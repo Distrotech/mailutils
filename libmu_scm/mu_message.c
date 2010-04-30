@@ -195,14 +195,12 @@ SCM_DEFINE_PUBLIC (scm_mu_message_copy, "mu-message-copy", 1, 0, 0,
 {
   mu_message_t msg, newmsg;
   mu_stream_t in = NULL, out = NULL;
-  char buffer[512];
-  size_t n;
   int status;
   
   SCM_ASSERT (mu_scm_is_message (mesg), mesg, SCM_ARG1, FUNC_NAME);
   msg = mu_scm_message_get (mesg);
 
-  status = mu_message_get_stream (msg, &in);
+  status = mu_message_get_streamref (msg, &in);
   if (status)
     mu_scm_error (FUNC_NAME, status,
 		  "Cannot get input stream from message ~A",
@@ -213,7 +211,7 @@ SCM_DEFINE_PUBLIC (scm_mu_message_copy, "mu-message-copy", 1, 0, 0,
     mu_scm_error (FUNC_NAME, status,
 		  "Cannot create message", SCM_BOOL_F);
   
-  status = mu_message_get_stream (newmsg, &out);
+  status = mu_message_get_streamref (newmsg, &out);
   if (status)
     {
       mu_message_destroy (&newmsg, NULL);
@@ -221,18 +219,14 @@ SCM_DEFINE_PUBLIC (scm_mu_message_copy, "mu-message-copy", 1, 0, 0,
 		    "Cannot get output stream", SCM_BOOL_F);
     }
 
-  mu_stream_seek (in, 0, MU_SEEK_SET, NULL);
-  while ((status = mu_stream_read (in, buffer, sizeof (buffer) - 1, &n))
-	 == 0
-	 && n != 0)
+  status = mu_stream_copy (out, in, 0);
+  mu_stream_destroy (&in);
+  mu_stream_destroy (&out);
+  if (status)
     {
-      status = mu_stream_write (out, buffer, n, NULL);
-      if (status)
-	{
-	  mu_message_destroy (&newmsg, NULL);
-	  mu_scm_error (FUNC_NAME, status,
-			"Error writing to stream", SCM_BOOL_F);
-	}
+      mu_message_destroy (&newmsg, NULL);
+      mu_scm_error (FUNC_NAME, status,
+		    "Error writing to stream", SCM_BOOL_F);
     }
   
   return mu_scm_message_create (SCM_BOOL_F, newmsg);
@@ -905,7 +899,7 @@ SCM_DEFINE_PUBLIC (scm_mu_message_get_port, "mu-message-get-port", 2, 1, 0,
       SCM_ASSERT (scm_is_bool (full), full, SCM_ARG3, FUNC_NAME);
       if (full == SCM_BOOL_T)
 	{
-	  status = mu_message_get_stream (msg, &stream);
+	  status = mu_message_get_streamref (msg, &stream);
 	  if (status)
 	    mu_scm_error (FUNC_NAME, status, "Cannot get message stream",
 			  SCM_BOOL_F);
@@ -920,7 +914,7 @@ SCM_DEFINE_PUBLIC (scm_mu_message_get_port, "mu-message-get-port", 2, 1, 0,
       if (status)
 	mu_scm_error (FUNC_NAME, status, "Cannot get message body",
 		      SCM_BOOL_F);
-      status = mu_body_get_stream (body, &stream);
+      status = mu_body_get_streamref (body, &stream);
       if (status)
 	mu_scm_error (FUNC_NAME, status, "Cannot get message body stream",
 		      SCM_BOOL_F);

@@ -47,8 +47,9 @@ mu_scm_body_free (SCM body_smob)
   struct mu_body *mbp = (struct mu_body *) SCM_CDR (body_smob);
   if (mbp->buffer)
     free (mbp->buffer);
+  mu_stream_unref (mbp->stream);
   free (mbp);
-  return sizeof (struct mu_body);
+  return 0;
 }
 
 static int
@@ -114,7 +115,7 @@ SCM_DEFINE_PUBLIC (scm_mu_body_read_line, "mu-body-read-line", 1, 0, 0,
 
   if (!mbp->stream)
     {
-      status = mu_body_get_stream (mbp->body, &mbp->stream);
+      status = mu_body_get_streamref (mbp->body, &mbp->stream);
       if (status)
 	mu_scm_error (FUNC_NAME, status,
 		      "Cannot get body stream",
@@ -158,7 +159,7 @@ SCM_DEFINE_PUBLIC (scm_mu_body_write, "mu-body-write", 2, 0, 0,
   
   if (!mbp->stream)
     {
-      status = mu_body_get_stream (mbp->body, &mbp->stream);
+      status = mu_body_get_streamref (mbp->body, &mbp->stream);
       if (status)
 	mu_scm_error (FUNC_NAME, status,
 		      "Cannot get body stream", SCM_BOOL_F);

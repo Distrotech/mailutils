@@ -151,6 +151,8 @@ mu_port_close (SCM port)
 static scm_sizet
 mu_port_free (SCM port)
 {
+  struct mu_port *mp = MU_PORT (port);
+  mu_stream_unref (mp->stream);
   mu_port_close (port);
   return 0;
 }
