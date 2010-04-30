@@ -316,7 +316,7 @@ SCM_DEFINE_PUBLIC (scm_mu_mailbox_get_port, "mu-mailbox-get-port", 2, 0, 0,
   SCM_ASSERT (mu_scm_is_mailbox (mbox), mbox, SCM_ARG1, FUNC_NAME);
   SCM_ASSERT (scm_is_string (mode), mode, SCM_ARG2, FUNC_NAME);
   mum = (struct mu_mailbox *) SCM_CDR (mbox);
-  status = mu_mailbox_get_stream (mum->mbox, &stream);
+  status = mu_mailbox_get_streamref (mum->mbox, &stream);
   if (status)
     mu_scm_error (FUNC_NAME, status,
 		  "Cannot get mailbox stream",
