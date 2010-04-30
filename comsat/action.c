@@ -155,7 +155,7 @@ expand_escape (char **pp, mu_message_t msg, struct obstack *stk)
       if (lncount == 0)
 	lncount = maxlines;
       if (mu_message_get_body (msg, &body) == 0
-	  && mu_body_get_stream (body, &stream) == 0)
+	  && mu_body_get_streamref (body, &stream) == 0)
 	{
 	  size_t nread;
 	  char *buf = malloc (size+1);
@@ -179,6 +179,7 @@ expand_escape (char **pp, mu_message_t msg, struct obstack *stk)
 		}
 	      obstack_grow (stk, buf, size);
 	    }
+	  mu_stream_destroy (&stream);
 	  free (buf);
 	}
       *pp = p;

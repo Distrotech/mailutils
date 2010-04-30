@@ -124,8 +124,7 @@ msglist (mu_mailbox_t mbox, int show_all, int argc, char **argv,
 	      mu_stream_t stream = NULL;
 
 	      mu_mailbox_get_message (mbox, j, &msg);
-	      mu_message_get_stream (msg, &stream);
-	      mu_stream_seek (stream, 0, MU_SEEK_SET, NULL);
+	      mu_message_get_streamref (msg, &stream);
 	      while (mu_stream_readline (stream, buf, sizeof buf, &len) == 0
 		     && len > 0)
 		{

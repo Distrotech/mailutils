@@ -211,14 +211,15 @@ print_header (mu_message_t message, int unix_header, int weedc, char **weedv)
       size_t len = 0;
       char buf[128];
 
-      mu_header_get_stream (header, &stream);
-      mu_stream_seek (stream, 0, MU_SEEK_SET, NULL);
+      /* FIXME: Use mu_stream_copy */
+      mu_header_get_streamref (header, &stream);
       while (mu_stream_read (stream, buf, sizeof (buf) - 1, &len) == 0
 	     && len != 0)
 	{
 	  buf[len] = '\0';
 	  printf ("%s", buf);
 	}
+      mu_stream_destroy (&stream);
     }
   else
     {
@@ -264,7 +265,9 @@ print_body (mu_message_t message)
   mu_stream_t stream = NULL;
   size_t len = 0;
   mu_message_get_body (message, &body);
-  mu_body_get_stream (body, &stream);
+
+  /* FIXME: Use mu_stream_copy */
+  mu_body_get_streamref (body, &stream);
 
   while (mu_stream_read (stream, buf, sizeof (buf) - 1, &len) == 0
 	 && len != 0)
@@ -272,6 +275,7 @@ print_body (mu_message_t message)
       buf[len] = '\0';
       printf ("%s", buf);
     }
+  mu_stream_destroy (&stream);
 }
 
 int

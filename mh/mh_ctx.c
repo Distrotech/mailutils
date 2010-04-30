@@ -145,17 +145,16 @@ mh_context_write (mh_context_t *ctx)
 		ctx->name, strerror (errno));
       return MU_ERR_FAILURE;
     }
-  
-  mu_header_get_stream (ctx->header, &stream);
 
-  mu_stream_seek (stream, 0, MU_SEEK_SET, NULL);
+  /* FIXME: Use mu_stream+copy */
+  mu_header_get_streamref (ctx->header, &stream);
   while (mu_stream_read (stream, buffer, sizeof buffer - 1, &n) == 0
 	 && n != 0)
     {
       buffer[n] = '\0';
       fprintf (fp, "%s", buffer);
     }
-
+  mu_stream_destroy (&stream);
   fclose (fp);
   return 0;
 }

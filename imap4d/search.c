@@ -842,7 +842,7 @@ _scan_body (struct parsebuf *pb, char *text)
   mu_message_get_body (pb->msg, &body);
   mu_body_size (body, &size);
   mu_body_lines (body, &lines);
-  mu_body_get_stream (body, &stream);
+  mu_body_get_streamref (body, &stream);
   rc = 0;
   while (rc == 0
 	 && mu_stream_read (stream, buffer, sizeof(buffer)-1, &n) == 0
@@ -851,6 +851,7 @@ _scan_body (struct parsebuf *pb, char *text)
       buffer[n] = 0;
       rc = util_strcasestr (buffer, text) != NULL;
     }
+  mu_stream_destroy (&stream);
   return rc;
 }
 

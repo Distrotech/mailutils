@@ -885,7 +885,8 @@ _frt_body (struct fetch_function_closure *ffc,
   mu_message_t msg;
   mu_stream_t stream = NULL;
   size_t size = 0, lines = 0;
-
+  int rc;
+  
   set_seen (ffc, frt);
   if (ffc->name)
     util_send ("%s", ffc->name);
@@ -897,10 +898,12 @@ _frt_body (struct fetch_function_closure *ffc,
       util_send (" \"\"");
       return RESP_OK;
     }
-  mu_message_get_stream (msg, &stream);
+  mu_message_get_streamref (msg, &stream);
   mu_message_size (msg, &size);
   mu_message_lines (msg, &lines);
-  return fetch_io (stream, ffc->start, ffc->size, size + lines);
+  rc = fetch_io (stream, ffc->start, ffc->size, size + lines);
+  mu_stream_destroy (&stream);
+  return rc;
 }
 
 static int
@@ -911,7 +914,8 @@ _frt_body_text (struct fetch_function_closure *ffc,
   mu_body_t body = NULL;
   mu_stream_t stream = NULL;
   size_t size = 0, lines = 0;
-
+  int rc;
+  
   set_seen (ffc, frt);
   if (ffc->name)
     util_send ("%s",  ffc->name);
@@ -927,8 +931,10 @@ _frt_body_text (struct fetch_function_closure *ffc,
   mu_message_get_body (msg, &body);
   mu_body_size (body, &size);
   mu_body_lines (body, &lines);
-  mu_body_get_stream (body, &stream);
-  return fetch_io (stream, ffc->start, ffc->size, size + lines);
+  mu_body_get_streamref (body, &stream);
+  rc = fetch_io (stream, ffc->start, ffc->size, size + lines);
+  mu_stream_destroy (&stream);
+  return rc;
 }
 
 static int
@@ -953,6 +959,7 @@ _frt_header0 (struct fetch_function_closure *ffc,
   mu_header_t header = NULL;
   mu_stream_t stream = NULL;
   size_t size = 0, lines = 0;
+  int rc;
   
   set_seen (ffc, frt);
   if (ffc->name)
@@ -969,8 +976,10 @@ _frt_header0 (struct fetch_function_closure *ffc,
   mu_message_get_header (msg, &header);
   mu_header_size (header, &size);
   mu_header_lines (header, &lines);
-  mu_header_get_stream (header, &stream);
-  return fetch_io (stream, ffc->start, ffc->size, size + lines);
+  mu_header_get_streamref (header, &stream);
+  rc = fetch_io (stream, ffc->start, ffc->size, size + lines);
+  mu_stream_destroy (&stream);
+  return rc;
 }
 
 static int

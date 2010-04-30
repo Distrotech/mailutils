@@ -246,10 +246,9 @@ msg_copy (mu_message_t msg, mu_stream_t ostream)
   char buf[512];
   enum rfc934_state state = S1;
   
-  rc = mu_message_get_stream (msg, &istream);
+  rc = mu_message_get_streamref (msg, &istream);
   if (rc)
     return rc;
-  mu_stream_seek (istream, 0, SEEK_SET, NULL);
   while (rc == 0
 	 && mu_stream_read (istream, buf, sizeof buf, &n) == 0
 	 && n > 0)
@@ -283,6 +282,7 @@ msg_copy (mu_message_t msg, mu_stream_t ostream)
       if (i > start)
 	rc = mu_stream_write (ostream, buf + start, i  - start, NULL);
     }
+  mu_stream_destroy (&istream);
   return rc;
 }
 
