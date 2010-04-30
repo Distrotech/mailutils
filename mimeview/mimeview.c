@@ -69,7 +69,7 @@ static char *no_ask_types;  /* List of MIME types for which no questions
 			       should be asked */
 static int interactive = -1; 
 char *mimeview_file;       /* Name of the file to view */
-int mimeview_fd;     /* Its descriptor */
+FILE *mimeview_fp;     /* Its descriptor */
 
 static void
 set_debug_flags (mu_debug_t debug, const char *arg)
@@ -201,8 +201,8 @@ open_file (char *name)
     }
 
   mimeview_file = name;
-  mimeview_fd = open (name, O_RDONLY);
-  if (mimeview_fd == -1)
+  mimeview_fp = fopen (name, "r");
+  if (mimeview_fp == NULL)
     {
       mu_error (_("Cannot open `%s': %s"), name, mu_strerror (errno));
       return -1;
@@ -213,7 +213,7 @@ open_file (char *name)
 void
 close_file ()
 {
-  close (mimeview_fd);
+  fclose (mimeview_fp);
 }
 
 void
@@ -258,7 +258,7 @@ display_file (const char *type)
 	mu_error (_("cannot create header: %s"), mu_strerror (status));
       else
 	{
-	  mu_stdio_stream_create (&stream, mimeview_fd,
+	  mu_stdio_stream_create (&stream, fileno (mimeview_fp),
 				  MU_STREAM_READ|
 				  MU_STREAM_SEEK|MU_STREAM_NO_CLOSE);
 	  mu_stream_open (stream);
