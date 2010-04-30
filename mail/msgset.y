@@ -629,8 +629,7 @@ select_body (mu_message_t msg, void *closure)
   mu_message_get_body (msg, &body);
   mu_body_size (body, &size);
   mu_body_lines (body, &lines);
-  mu_body_get_stream (body, &stream);
-  status = mu_stream_seek (stream, 0, MU_SEEK_SET, NULL);
+  status = mu_body_get_streamref (body, &stream);
   while (status == 0
 	 && mu_stream_readline (stream, buffer, sizeof(buffer)-1, &n) == 0
 	 && n > 0)
@@ -643,7 +642,7 @@ select_body (mu_message_t msg, void *closure)
       else
 	status = regexec (&re, buffer, 0, NULL, 0);
     }
-
+  mu_stream_destroy (&stream);
   if (!noregex)
     regfree (&re);
 

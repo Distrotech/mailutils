@@ -35,8 +35,8 @@ top0 (msgset_t *mspec, mu_message_t msg, void *data)
       || lines < 0)
     return 1;
 
-  mu_message_get_stream (msg, &stream);
-  mu_stream_seek (stream, 0, MU_SEEK_SET, NULL);
+  /* FIXME: Use mu_stream_copy */
+  mu_message_get_streamref (msg, &stream);
   for (; lines > 0; lines--)
     {
       int status = mu_stream_readline (stream, buf, sizeof (buf), &n);
@@ -44,6 +44,7 @@ top0 (msgset_t *mspec, mu_message_t msg, void *data)
 	break;
       fprintf (ofile, "%s", buf);
     }
+  mu_stream_destroy (&stream);
   set_cursor (mspec->msg_part[0]);
 
   util_mark_read (msg);

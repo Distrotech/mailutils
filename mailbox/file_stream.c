@@ -221,6 +221,15 @@ fd_wait (mu_stream_t stream, int *pflags, struct timeval *tvp)
 }
 
 int
+fd_truncate (mu_stream_t stream, mu_off_t size)
+{
+  struct _mu_file_stream *fstr = (struct _mu_file_stream *) stream;
+  if (ftruncate (fstr->fd, size))
+    return errno;
+  return 0;
+}
+
+int
 _mu_file_stream_create (mu_stream_t *pstream, size_t size,
 			char *filename, int flags)
 {
@@ -239,6 +248,7 @@ _mu_file_stream_create (mu_stream_t *pstream, size_t size,
   str->stream.size = fd_size;
   str->stream.ctl = fd_ioctl;
   str->stream.wait = fd_wait;
+  str->stream.truncate = fd_truncate;
   str->stream.error_string = fd_error_string;
 
   str->filename = filename;

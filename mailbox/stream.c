@@ -53,7 +53,7 @@ _stream_seterror (struct _mu_stream *stream, int code, int perm)
 #define _stream_cleareof(s) ((s)->flags &= ~_MU_STR_EOF)
 #define _stream_advance_buffer(s,n) ((s)->cur += n, (s)->level -= n)
 #define _stream_buffer_offset(s) ((s)->cur - (s)->buffer)
-#define _stream_orig_level(s) ((s)->level + _stream_buffer_offset(s))
+#define _stream_orig_level(s) ((s)->level + _stream_buffer_offset (s))
 
 static int
 _stream_fill_buffer (struct _mu_stream *stream)
@@ -202,6 +202,7 @@ mu_stream_destroy (mu_stream_t *pstream)
       mu_stream_t str = *pstream;
       if (str && (str->ref_count == 0 || --str->ref_count == 0))
 	{
+	  mu_stream_close (str);
 	  if (str->done)
 	    str->done (str);
 	  free (str);
@@ -213,7 +214,7 @@ mu_stream_destroy (mu_stream_t *pstream)
 void
 mu_stream_get_flags (mu_stream_t str, int *pflags)
 {
-  *pflags = str->flags;
+  *pflags = str->flags & ~_MU_STR_INTERN_MASK;
 }
   
 void
@@ -249,6 +250,12 @@ mu_stream_strerror (mu_stream_t stream, int rc)
   else
     str = mu_strerror (rc);
   return str;
+}
+
+int
+mu_stream_err (mu_stream_t stream)
+{
+  return stream->flags & _MU_STR_ERR;
 }
 
 int
@@ -700,6 +707,9 @@ mu_stream_close (mu_stream_t stream)
   if (!stream)
     return EINVAL;
   mu_stream_flush (stream);
+  /* Do close the stream only if it is not used by anyone else */
+  if (stream->ref_count > 1)
+    return 0;
   if (stream->close)
     rc = stream->close (stream);
   return rc;
@@ -785,7 +795,7 @@ mu_stream_set_flags (mu_stream_t stream, int fl)
 {
   if (stream == NULL)
     return EINVAL;
-  stream->flags |= fl;
+  stream->flags |= (fl & ~_MU_STR_INTERN_MASK);
   return 0;
 }
 
@@ -794,7 +804,7 @@ mu_stream_clr_flags (mu_stream_t stream, int fl)
 {
   if (stream == NULL)
     return EINVAL;
-  stream->flags &= ~fl;
+  stream->flags &= ~(fl & ~_MU_STR_INTERN_MASK);
   return 0;
 }
 

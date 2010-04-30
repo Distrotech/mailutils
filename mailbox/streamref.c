@@ -62,7 +62,7 @@ _streamref_read (struct _mu_stream *str, char *buf, size_t bufsize,
   else if (rc == ESPIPE)
     {
       *pnread = 0;
-      str->flags |= _MU_STR_EOF;
+      mu_stream_clearerr (sp->transport);
       return 0;
     }
   return streamref_return (sp, rc);
@@ -170,7 +170,21 @@ static int
 _streamref_size (struct _mu_stream *str, mu_off_t *psize)
 {
   struct _mu_streamref *sp = (struct _mu_streamref *)str;
-  return streamref_return (sp, mu_stream_size (sp->transport, psize));
+  mu_off_t size;
+  int rc = 0;
+  
+  if (sp->end)
+    size = sp->end - sp->start + 1;
+  else
+    {
+      rc = mu_stream_size (sp->transport, &size);
+      if (rc)
+	return streamref_return (sp, rc);
+      size -= sp->start;
+    }
+  if (rc == 0)
+    *psize = size;
+  return rc;
 }
 
 static int
@@ -240,12 +254,11 @@ mu_streamref_create_abridged (mu_stream_t *pref, mu_stream_t str,
   int flags;
   struct _mu_streamref *sp;
 
-  rc = mu_stream_seek (str, 0, MU_SEEK_CUR, &off);
+  rc = mu_stream_seek (str, 0, MU_SEEK_SET, &off);
   if (rc)
     return rc;
   mu_stream_get_flags (str, &flags);
-  sp = (struct _mu_streamref *) _mu_stream_create (sizeof (*sp),
-						   flags | MU_STREAM_NO_CLOSE);
+  sp = (struct _mu_streamref *) _mu_stream_create (sizeof (*sp), flags);
   if (!sp)
     return ENOMEM;
   mu_stream_ref (str);

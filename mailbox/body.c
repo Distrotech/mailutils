@@ -285,7 +285,7 @@ _body_seek (mu_stream_t stream, mu_off_t off, int whence, mu_off_t *presult)
 {
   struct _mu_body_stream *str = (struct _mu_body_stream*) stream;
   mu_body_t body = str->body;
-  return mu_stream_seek (body->stream, off, whence, presult);
+  return mu_stream_seek (body->fstream, off, whence, presult);
 }
 
 static const char *

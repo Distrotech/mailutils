@@ -259,7 +259,7 @@ static int
 mbox_message_qid (mu_message_t msg, mu_message_qid_t *pqid)
 {
   mbox_message_t mum = mu_message_get_owner (msg);
-  return mu_asprintf (pqid, "%lu", (unsigned long) mum->header_from);
+  return mu_asprintf (pqid, "%lu", (unsigned long) mum->envel_from);
 }
 
 
@@ -297,8 +297,8 @@ _msg_stream_setup (mu_message_t msg, mbox_message_t mum)
   
   status = mu_streamref_create_abridged (&stream,
 					 mum->mud->mailbox->stream,
-					 mum->header_from_end + 1,
-					 mum->body);
+					 mum->envel_from_end,
+					 mum->body_end);
   if (status == 0)
     status = mu_message_set_stream (msg, stream, mum);
   return status;
@@ -343,7 +343,7 @@ _msg_body_setup (mu_message_t msg, mbox_message_t mum)
   status = mu_streamref_create_abridged (&stream,
 					 mum->mud->mailbox->stream,
 					 mum->body,
-					 mum->body_end);
+					 mum->body_end - 1);
   if (status)
     mu_body_destroy (&body, msg);
   else
@@ -373,7 +373,7 @@ mbox_envelope_date (mu_envelope_t envelope, char *buf, size_t len,
     return EINVAL;
 
   status = mu_stream_seek (mum->mud->mailbox->stream,
-			   mum->header_from, MU_SEEK_SET,
+			   mum->envel_from, MU_SEEK_SET,
 			   NULL);
   if (status)
     return status;
@@ -419,7 +419,7 @@ mbox_envelope_sender (mu_envelope_t envelope, char *buf, size_t len,
     return EINVAL;
 
   status = mu_stream_seek (mum->mud->mailbox->stream,
-			   mum->header_from, MU_SEEK_SET,
+			   mum->envel_from, MU_SEEK_SET,
 			   NULL);
   if (status)
     return status;
@@ -1022,8 +1022,10 @@ uid_to_stream (mu_stream_t ostr, mu_message_t msg, mbox_data_t mud, int flags)
   else
     uid = mud->uidnext++;
   
-  return mu_stream_printf (ostr, "%s: %u\n", MU_HEADER_X_UID,
-			   (unsigned) uid);
+  mu_stream_printf (ostr, "%s: %u\n", MU_HEADER_X_UID, (unsigned) uid);
+  if (mu_stream_err (ostr))
+    return mu_stream_last_error (ostr);
+  return 0;
 }
 
 /* Append MSG to stream OSTR in its current position */
@@ -1048,12 +1050,14 @@ append_message_to_stream (mu_stream_t ostr, mu_message_t msg,
 
       if (flags & MBOX_FIRSTMSG)
 	{
-	  status = mu_stream_printf (ostr, "%s: %lu %u\n",
-				     MU_HEADER_X_IMAPBASE,
-				     (unsigned long) mud->uidvalidity,
-				     (unsigned) mud->uidnext);
-	  if (status)
-	    return status;
+	  /* FIXME: Perhaps printf should return error code,
+	     like the rest of stream functions. */
+	  mu_stream_printf (ostr, "%s: %lu %u\n",
+			    MU_HEADER_X_IMAPBASE,
+			    (unsigned long) mud->uidvalidity,
+			    (unsigned) mud->uidnext);
+	  if (mu_stream_err (ostr))
+	    return mu_stream_last_error (ostr);
 	}
 
       status = msg_attr_to_stream (ostr, msg);
@@ -1165,7 +1169,7 @@ mbox_reset (mu_mailbox_t mailbox, size_t dirty, int remove_deleted)
 	  else
 	    memset (mum, 0, sizeof (*mum));
 	}
-      mum->header_from = mum->header_from_end = 0;
+      mum->envel_from = mum->envel_from_end = 0;
       mum->body = mum->body_end = 0;
       mum->header_lines = mum->body_lines = 0;
     }
@@ -1187,7 +1191,7 @@ mbox_expunge_unlocked (mu_mailbox_t mailbox, size_t dirty, int remove_deleted,
   mu_off_t size;
 
   /* Set the marker position.  */
-  start_off = mud->umessages[dirty]->header_from;
+  start_off = mud->umessages[dirty]->envel_from;
 
   for (i = dirty; i < mud->messages_count; i++)
     {
@@ -1226,8 +1230,8 @@ mbox_expunge_unlocked (mu_mailbox_t mailbox, size_t dirty, int remove_deleted,
 	      status = mbox_get_message (mailbox, i + 1, &msg);
 	      if (status != 0)
 		{
-		  mu_error (_("error expunging:%d: %s"), __LINE__,
-			    mu_strerror (status));
+		  mu_error (_("%s:%d: error expunging: %s"),	        
+			    __FILE__, __LINE__, mu_strerror (status));	
 		  return status;
 		}
 	    }
@@ -1235,8 +1239,8 @@ mbox_expunge_unlocked (mu_mailbox_t mailbox, size_t dirty, int remove_deleted,
 					     flags);
 	  if (status != 0)
 	    {
-	      mu_error (_("error expunging:%d: %s"), __LINE__,
-		        mu_strerror (status));
+	      mu_error (_("%s:%d: error expunging: %s"),	        
+			__FILE__, __LINE__, mu_strerror (status));	
 	      return status;
 	    }
 	  /* Clear the dirty bits.  */
@@ -1247,7 +1251,7 @@ mbox_expunge_unlocked (mu_mailbox_t mailbox, size_t dirty, int remove_deleted,
 	{
 	  /* Otherwise, copy bits from mailbox->stream as is. */
 	  
-	  status = mu_stream_seek (mailbox->stream, mum->header_from,
+	  status = mu_stream_seek (mailbox->stream, mum->envel_from,
 				   MU_SEEK_SET, NULL);
 	  if (status)
 	    {
@@ -1257,7 +1261,7 @@ mbox_expunge_unlocked (mu_mailbox_t mailbox, size_t dirty, int remove_deleted,
 	      return status;
 	    }
 	  status = mu_stream_copy (tempstr, mailbox->stream,
-				   mum->body_end - mum->header_from);
+				   mum->body_end - mum->envel_from);
 	  if (status)
 	    {
 	      mu_error (_("%s:%d: error copying: %s"),
@@ -1336,10 +1340,19 @@ mbox_expunge_unlocked (mu_mailbox_t mailbox, size_t dirty, int remove_deleted,
       return status;
     }
   
+  status = mu_stream_seek (tempstr, 0, MU_SEEK_SET, NULL);
+  if (status)
+    {
+      mu_error (_("%s:%d: seek error: %s"),
+		__FILE__, __LINE__,
+		mu_stream_strerror (mailbox->stream, status));
+      return status;
+    }
+
   status = mu_stream_copy (mailbox->stream, tempstr, size);
   if (status)
     {
-      mu_error (_("%s:%d: error writing to temporary stream: %s"),
+      mu_error (_("%s:%d: copying from the temporary stream: %s"),
 		__FILE__, __LINE__,
 		mu_strerror (status));
       return status;
@@ -1395,30 +1408,35 @@ mbox_expunge0 (mu_mailbox_t mailbox, int remove_deleted)
   status = mu_temp_file_stream_create (&tempstr, NULL);
   if (status == 0)
     {
-      sigset_t signalset;
-#ifdef WITH_PTHREAD
-      int state;
-      pthread_setcancelstate (PTHREAD_CANCEL_DISABLE, &state);
-#endif
-      sigemptyset (&signalset);
-      sigaddset (&signalset, SIGTERM);
-      sigaddset (&signalset, SIGHUP);
-      sigaddset (&signalset, SIGTSTP);
-      sigaddset (&signalset, SIGINT);
-      sigaddset (&signalset, SIGWINCH);
-      sigprocmask (SIG_BLOCK, &signalset, 0);
-
-      status = mbox_expunge_unlocked (mailbox, dirty, remove_deleted, tempstr);
-
-#ifdef WITH_PTHREAD
-      pthread_setcancelstate (state, &state);
-#endif
-      sigprocmask (SIG_UNBLOCK, &signalset, 0);
-      
-      mu_stream_destroy (&tempstr);
-
+      status = mu_stream_open (tempstr);
       if (status == 0)
-	mbox_reset (mailbox, dirty, remove_deleted);
+	{
+	  sigset_t signalset;
+#ifdef WITH_PTHREAD
+	  int state;
+	  pthread_setcancelstate (PTHREAD_CANCEL_DISABLE, &state);
+#endif
+	  sigemptyset (&signalset);
+	  sigaddset (&signalset, SIGTERM);
+	  sigaddset (&signalset, SIGHUP);
+	  sigaddset (&signalset, SIGTSTP);
+	  sigaddset (&signalset, SIGINT);
+	  sigaddset (&signalset, SIGWINCH);
+	  sigprocmask (SIG_BLOCK, &signalset, 0);
+	  
+	  status = mbox_expunge_unlocked (mailbox, dirty, remove_deleted,
+					  tempstr);
+
+#ifdef WITH_PTHREAD
+	  pthread_setcancelstate (state, &state);
+#endif
+	  sigprocmask (SIG_UNBLOCK, &signalset, 0);
+      
+	  mu_stream_destroy (&tempstr);
+
+	  if (status == 0)
+	    mbox_reset (mailbox, dirty, remove_deleted);
+	}
     }
   mu_locker_unlock (mailbox->locker);
   return status;

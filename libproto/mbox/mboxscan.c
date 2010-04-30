@@ -359,11 +359,10 @@ mbox_scan_internal (mu_mailbox_t mailbox, mbox_message_t mum,
 		}
 	      /* Allocate_msgs will initialize mum.  */
 	      ALLOCATE_MSGS (mailbox, mud);
-	      mud->messages_count++;
-	      mum = mud->umessages[mud->messages_count - 1];
+	      mum = mud->umessages[mud->messages_count++];
 	      mum->mud = mud;
-              mum->header_from = total - n;
-              mum->header_from_end = total;
+              mum->envel_from = total - n;
+              mum->envel_from_end = total;
 	      mum->body_end = mum->body = 0;
 	      mum->attr_flags = 0;
 	      lines = 0;
@@ -467,7 +466,7 @@ mbox_scan0 (mu_mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notif)
     {
       mum = mud->umessages[msgno - 1];
       if (mum)
-	total = mum->header_from;
+	total = mum->envel_from;
       mud->messages_count = msgno - 1;
     }
   else
