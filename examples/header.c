@@ -173,7 +173,7 @@ cmd_dump (int argc, char **argv)
   if (argc == 2)
     off = strtoul (argv[1], NULL, 0);
 
-  status = mu_header_get_stream (header, &stream);
+  status = mu_header_get_streamref (header, &stream);
   if (status)
     {
       mu_error ("%u: cannot get stream: %s", line_num, mu_strerror (status));
@@ -183,6 +183,7 @@ cmd_dump (int argc, char **argv)
   status = mu_stream_seek (stream, off, SEEK_SET, NULL);
   if (status)
     {
+      mu_stream_destroy (&stream);
       mu_error ("%u: cannot seek: %s", line_num, mu_strerror (status));
       return;
     }
@@ -192,6 +193,7 @@ cmd_dump (int argc, char **argv)
     {
       fwrite (buf, 1, n, stdout);
     }
+  mu_stream_destroy (&stream);
 }  
 
 void
@@ -272,7 +274,7 @@ cmd_write (int argc, char **argv)
   if (check_args (argv[0], argc, 1, 1))
     return;
 
-  status = mu_header_get_stream (header, &str);
+  status = mu_header_get_streamref (header, &str);
   if (status)
     {
       mu_error ("%u: cannot get stream: %s", line_num, mu_strerror (status));
@@ -286,6 +288,7 @@ cmd_write (int argc, char **argv)
       if (buf[0] == '\n')
 	break;
     }
+  mu_stream_destroy (&str);
 }
 
 void
