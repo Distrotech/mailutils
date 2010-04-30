@@ -423,7 +423,6 @@ com_body (char *arg)
 
    if (status == 0 && stream != NULL)
     {
-      size_t n = 0;
       char buf[128];
       while (mu_stream_readline (stream, buf, sizeof buf, 0) == 0)
         printf ("%s", buf);

@@ -19,7 +19,7 @@
 
 /* This is a "fake" mta designed for testing purposes. It imitates
    sendmail sending and daemon modes. It does not actually send anything,
-   instead it just outputs the transcript of what would have been done.
+   instead it just outputs a transcript of what would have been done.
 
    Invocation:
    
@@ -326,7 +326,7 @@ mta_send (mu_message_t msg)
   fprintf (diag, "ENVELOPE TO: %s\n", value);
   free (value);
 
-  mu_message_get_stream (msg, &stream);
+  mu_message_get_streamref (msg, &stream);
   line = 0;
   fprintf (diag, "%4lu: ", (unsigned long) line);
   while (mu_stream_read (stream, buffer, sizeof buffer - 1, &n) == 0
@@ -344,6 +344,7 @@ mta_send (mu_message_t msg)
 	    }
 	}
     }
+  mu_stream_destroy (&stream);
   fprintf (diag, "\nEND OF MESSAGE\n");
   fflush (diag);
   return 0;
