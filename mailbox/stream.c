@@ -563,6 +563,8 @@ _stream_scandelim (mu_stream_t stream, char *buf, size_t size, int delim,
       buf += len;
       size -= len;
       nread += len;
+      if (p) /* Delimiter found */
+	break;
     }
   *buf = 0;
   *pnread = nread;

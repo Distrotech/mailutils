@@ -162,6 +162,7 @@ mu_rfc2047_decode (const char *tocode, const char *input, char **ptostr)
 
 	  mu_memory_stream_create (&in_stream, 0);
 	  mu_stream_write (in_stream, encoded_text, size, NULL);
+	  mu_stream_seek (in_stream, 0, MU_SEEK_SET, NULL);
 	  status = mu_decode_filter (&filter, in_stream, filter_type, fromcode,
 				     tocode);
 	  if (status != 0)
