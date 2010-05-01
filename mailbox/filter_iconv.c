@@ -462,5 +462,6 @@ mu_filter_iconv_create (mu_stream_t *s, mu_stream_t transport,
   iptr->stream.ctl = _icvt_ioctl;
   iptr->stream.wait = _icvt_wait;
   iptr->stream.seek = _icvt_seek;
+  *s = iptr;
   return 0;
 }
