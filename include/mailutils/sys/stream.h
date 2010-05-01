@@ -35,6 +35,7 @@ struct _mu_stream
   char *cur;
 
   int flags;
+  mu_off_t offset;
   mu_off_t bytes_in, bytes_out;
   
   int last_err;
