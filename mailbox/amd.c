@@ -494,6 +494,7 @@ _amd_attach_message (mu_mailbox_t mailbox, struct _amd_message *mhm,
     mu_body_set_size (body, amd_body_size, msg);
     mu_body_set_lines (body, amd_body_lines, msg);
     mu_message_set_body (msg, body, mhm);
+    str->body = body;
   }
 
   /* Set the envelope.  */
@@ -1341,30 +1342,26 @@ amd_scan_message (struct _amd_message *mhm)
   size_t hlines = 0;
   size_t blines = 0;
   size_t body_start = 0;
+  struct stat st;
+  char *msg_name;
 
   /* Check if the message was modified after the last scan */
-  if (mhm->mtime)
+  status = mhm->amd->cur_msg_file_name (mhm, &msg_name);
+  if (status)
+    return status;
+
+  if (stat (msg_name, &st) == 0 && st.st_mtime == mhm->mtime)
     {
-      struct stat st;
-      char *msg_name;
-
-      status = mhm->amd->cur_msg_file_name (mhm, &msg_name);
-      if (status)
-	return status;
-
-      if (stat (msg_name, &st) == 0 && st.st_mtime == mhm->mtime)
-	{
-	  /* Nothing to do */
-	  free (msg_name);
-	  return 0;
-	}
+      /* Nothing to do */
       free (msg_name);
+      return 0;
     }
+  free (msg_name);
 
   off = 0;
   status = mu_stream_seek (stream, 0, MU_SEEK_SET, NULL);
   if (status == 0)
-    while ((status = mu_stream_readline (stream, buf, sizeof (buf), &n) == 0)
+    while ((status = mu_stream_readline (stream, buf, sizeof (buf), &n)) == 0
 	   && n != 0)
       {
 	if (in_header)
@@ -1401,6 +1398,7 @@ amd_scan_message (struct _amd_message *mhm)
 
   if (status == 0)
     {
+      mhm->mtime = st.st_mtime;
       if (!body_start)
 	body_start = off;
       mhm->header_lines = hlines;
@@ -1552,6 +1550,9 @@ amd_message_stream_open (struct _amd_message *mhm)
   if (status != 0)
     return status;
 
+  /* FIXME: Select buffer size dynamically */
+  mu_stream_set_buffer (mhm->stream, mu_buffer_full, 16384);
+  
   status = mu_stream_open (mhm->stream);
 
   if (status != 0)
@@ -1614,9 +1615,15 @@ amd_body_stream_read (mu_stream_t is, char *buffer, size_t buflen,
   if (ln > 0)
     {
       nread = ((size_t)ln < buflen) ? (size_t)ln : buflen;
-      status = mu_stream_read (mhm->stream, buffer, nread, pnread);
+      status = mu_stream_seek (mhm->stream, mhm->body_start + amdstr->off,
+			       MU_SEEK_SET, NULL);
       if (status == 0)
-	amdstr->off += pnread ? *pnread : nread;
+	{
+	  status = mu_stream_read (mhm->stream, buffer, nread, &nread);
+	  amdstr->off += nread;
+	  if (pnread)
+	    *pnread = nread;
+	}
     }
 
   mu_monitor_unlock (mhm->amd->mailbox->monitor);
@@ -1631,7 +1638,6 @@ static int
 amd_body_stream_seek (mu_stream_t str, mu_off_t off, int whence,
 		      mu_off_t *presult)
 {
-  int rc;
   size_t size;
   struct _amd_body_stream *amdstr = (struct _amd_body_stream *)str;
   mu_message_t msg = mu_body_get_owner (amdstr->body);
@@ -1655,9 +1661,6 @@ amd_body_stream_seek (mu_stream_t str, mu_off_t off, int whence,
   if (off < 0 || off >= size)
     return ESPIPE;
 
-  rc = mu_stream_seek (mhm->stream, mhm->body_start + off, MU_SEEK_SET, NULL);
-  if (rc)
-    return rc;
   amdstr->off = off;
   if (presult)
     *presult = off;
