@@ -69,11 +69,10 @@ _stream_fill_buffer (struct _mu_stream *stream)
       return 0;
 	
     case mu_buffer_full:
-      if (mu_stream_read_unbuffered (stream,
-				     stream->buffer, stream->bufsize,
-				     0,
-				     &stream->level))
-	return 1;
+      rc = mu_stream_read_unbuffered (stream,
+				      stream->buffer, stream->bufsize,
+				      0,
+				      &stream->level);
       break;
 	
     case mu_buffer_line:
@@ -124,9 +123,7 @@ _stream_flush_buffer (struct _mu_stream *stream, int all)
   if (stream->flags & _MU_STR_DIRTY)
     {
       if ((stream->flags & MU_STREAM_SEEK)
-	  && (rc = mu_stream_seek (stream,
-				   - _stream_orig_level (stream),
-				   MU_SEEK_CUR, NULL)))
+	  && (rc = mu_stream_seek (stream, stream->offset, MU_SEEK_SET, NULL)))
 	return rc;
 
       switch (stream->buftype)
@@ -138,6 +135,8 @@ _stream_flush_buffer (struct _mu_stream *stream, int all)
 	  if ((rc = mu_stream_write_unbuffered (stream, stream->cur,
 						stream->level, 1, NULL)))
 	    return rc;
+	  if (all)
+	    _stream_advance_buffer (stream, stream->level);
 	  break;
 	    
 	case mu_buffer_line:
@@ -167,6 +166,9 @@ _stream_flush_buffer (struct _mu_stream *stream, int all)
 	    }
 	}
     }
+  else if (all)
+    _stream_advance_buffer (stream, stream->level);
+  
   if (stream->level)
     {
       if (stream->cur > stream->buffer)
@@ -280,11 +282,10 @@ mu_stream_eof (mu_stream_t stream)
 int
 mu_stream_seek (mu_stream_t stream, mu_off_t offset, int whence,
 		mu_off_t *pres)
-{
+{    
   int rc;
-  mu_off_t res;
-  size_t bpos;
-    
+  mu_off_t size;
+  
   if (!stream->seek)
     return _stream_seterror (stream, ENOSYS, 0);
 
@@ -297,35 +298,39 @@ mu_stream_seek (mu_stream_t stream, mu_off_t offset, int whence,
       break;
 
     case MU_SEEK_CUR:
-      break;
-
-    case MU_SEEK_END: 
-      bpos = _stream_buffer_offset (stream);
-      if (bpos + offset >= 0 && bpos + offset < _stream_orig_level (stream))
+      if (offset == 0)
 	{
-	  if ((rc = stream->seek (stream, offset, whence, &res)))
-	    return _stream_seterror (stream, rc, 1);
-	  offset -= bpos;
-	  _stream_advance_buffer (stream, offset);
-	  _stream_cleareof (stream);
-	  if (pres)
-	    *pres = res - stream->level;
+	  *pres = stream->offset + _stream_buffer_offset (stream);
 	  return 0;
 	}
+      offset += stream->offset;
+      break;
+
+    case MU_SEEK_END:
+      rc = mu_stream_size (stream, &size);
+      if (rc)
+	return _stream_seterror (stream, rc, 1);
+      offset += size;
       break;
 
     default:
       return _stream_seterror (stream, EINVAL, 1);
     }
 
-  if ((rc = _stream_flush_buffer (stream, 1)))
-    return rc;
-  rc = stream->seek (stream, offset, whence, &res);
-  if (rc)
-    return _stream_seterror (stream, rc, 1);
-  _stream_cleareof (stream);
+  if (stream->buftype == mu_buffer_none
+      || offset < stream->offset
+      || offset > stream->offset + _stream_buffer_offset (stream))
+    {
+      if ((rc = _stream_flush_buffer (stream, 1)))
+	return rc;
+      rc = stream->seek (stream, offset, MU_SEEK_SET, &stream->offset);
+      if (rc)
+	return _stream_seterror (stream, rc, 1);
+      _stream_cleareof (stream);
+    }
+  
   if (pres)
-    *pres = res - stream->level;
+    *pres = stream->offset + _stream_buffer_offset (stream);
   return 0;
 }
 
@@ -419,6 +424,7 @@ mu_stream_read_unbuffered (mu_stream_t stream, void *buf, size_t size,
 	  }
 	_stream_seterror (stream, rc, rc != 0);
       }
+    stream->offset += nread;
     if (pnread)
       *pnread = nread;
     
@@ -478,6 +484,7 @@ mu_stream_write_unbuffered (mu_stream_t stream,
 	stream->bytes_out += nwritten;
     }
   stream->flags |= _MU_STR_WRT;
+  stream->offset += nwritten;
   if (pnwritten)
     *pnwritten = nwritten;
   _stream_seterror (stream, rc, rc != 0);
@@ -524,8 +531,6 @@ mu_stream_read (mu_stream_t stream, void *buf, size_t size, size_t *pread)
       
       if (pread)
 	*pread = nbytes;
-      else if (size) 
-	return _stream_seterror (stream, EIO, 1);
     }
   return 0;
 }
@@ -538,7 +543,7 @@ mu_stream_readline (mu_stream_t stream, char *buf, size_t size, size_t *pread)
   size_t n = 0, rdn;
     
   if (size == 0)
-    return EIO;
+    return EINVAL;
     
   size--;
   for (n = 0;
