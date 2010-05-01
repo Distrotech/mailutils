@@ -74,6 +74,8 @@ int mu_stream_seek (mu_stream_t stream, mu_off_t offset, int whence,
 int mu_stream_set_buffer (mu_stream_t stream, enum mu_buffer_type type,
 			  size_t size);
 int mu_stream_read (mu_stream_t stream, void *buf, size_t size, size_t *pread);
+int mu_stream_readdelim (mu_stream_t stream, char *buf, size_t size,
+			 int delim, size_t *pread);
 int mu_stream_readline (mu_stream_t stream, char *buf, size_t size, size_t *pread);
 int mu_stream_getdelim (mu_stream_t stream, char **pbuf, size_t *psize,
 			int delim, size_t *pread);

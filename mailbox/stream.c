@@ -536,14 +536,46 @@ mu_stream_read (mu_stream_t stream, void *buf, size_t size, size_t *pread)
 }
 
 int
-mu_stream_readline (mu_stream_t stream, char *buf, size_t size, size_t *pread)
+_stream_scandelim (mu_stream_t stream, char *buf, size_t size, int delim,
+		   size_t *pnread)
+{
+  int rc = 0;
+  size_t nread = 0;
+  
+  size--;
+  while (size)
+    {
+      char *p;
+      size_t len;
+      
+      if (stream->level == 0)
+	{
+	  if ((rc = _stream_fill_buffer (stream)) || stream->level == 0)
+	    break;
+	}
+      
+      p = memchr (stream->cur, delim, stream->level);
+      len = p ? p - stream->cur + 1 : stream->level;
+      if (len > size)
+	len = size;
+      memcpy (buf, stream->cur, len);
+      _stream_advance_buffer (stream, len);
+      buf += len;
+      size -= len;
+      nread += len;
+    }
+  *buf = 0;
+  *pnread = nread;
+  return rc;
+}
+
+static int
+_stream_readdelim (mu_stream_t stream, char *buf, size_t size,
+		   int delim, size_t *pread)
 {
   int rc;
   char c;
   size_t n = 0, rdn;
-    
-  if (size == 0)
-    return EINVAL;
     
   size--;
   for (n = 0;
@@ -551,13 +583,37 @@ mu_stream_readline (mu_stream_t stream, char *buf, size_t size, size_t *pread)
     {
       *buf++ = c;
       n++;
-      if (c == '\n')
+      if (c == delim)
 	break;
     }
   *buf = 0;
   if (pread)
     *pread = n;
   return rc;
+}
+
+int
+mu_stream_readdelim (mu_stream_t stream, char *buf, size_t size,
+		     int delim, size_t *pread)
+{
+  int rc;
+  
+  if (size == 0)
+    return EINVAL;
+    
+  if (stream->readdelim)
+    rc = stream->readdelim (stream, buf, size, delim, pread);
+  else if (stream->buftype != mu_buffer_none)
+    rc = _stream_scandelim (stream, buf, size, delim, pread);
+  else
+    rc = _stream_readdelim (stream, buf, size, delim, pread);
+  return rc;
+}
+
+int
+mu_stream_readline (mu_stream_t stream, char *buf, size_t size, size_t *pread)
+{
+  return mu_stream_readdelim (stream, buf, size, '\n', pread);
 }
 
 int
@@ -581,13 +637,8 @@ mu_stream_getdelim (mu_stream_t stream, char **pbuf, size_t *psize,
     
   for (;;)
     {
-      char c;
       size_t rdn;
 
-      rc = mu_stream_read (stream, &c, 1, &rdn);
-      if (rc || rdn == 0)
-	break;
-	
       /* Make enough space for len+1 (for final NUL) bytes.  */
       if (cur_len + 1 >= n)
 	{
@@ -615,10 +666,20 @@ mu_stream_getdelim (mu_stream_t stream, char **pbuf, size_t *psize,
 	  n = needed;
 	}
 
-      lineptr[cur_len] = c;
-      cur_len++;
+      if (stream->readdelim)
+	rc = stream->readdelim (stream, lineptr + cur_len, n - cur_len, delim,
+				&rdn);
+      else if (stream->buftype != mu_buffer_none)
+	rc = _stream_scandelim (stream, lineptr + cur_len, n - cur_len, delim,
+				&rdn);
+      else
+	rc = mu_stream_read (stream, lineptr + cur_len, 1, &rdn);
+
+      if (rc || rdn == 0)
+	break;
+      cur_len += rdn;
       
-      if (c == delim)
+      if (lineptr[cur_len - 1] == delim)
 	break;
     }
   lineptr[cur_len] = '\0';

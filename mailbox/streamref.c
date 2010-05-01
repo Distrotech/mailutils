@@ -69,6 +69,16 @@ _streamref_read (struct _mu_stream *str, char *buf, size_t bufsize,
 }
 
 static int
+_streamref_readdelim (struct _mu_stream *str, char *buf, size_t bufsize,
+		      int delim, size_t *pnread)
+{
+  struct _mu_streamref *sp = (struct _mu_streamref *)str;
+  return streamref_return (sp, mu_stream_readdelim (sp->transport,
+						    buf, bufsize,
+						    delim, pnread));
+}
+
+static int
 _streamref_write (struct _mu_stream *str, const char *buf, size_t bufsize,
 		  size_t *pnwrite)
 {
@@ -264,6 +274,7 @@ mu_streamref_create_abridged (mu_stream_t *pref, mu_stream_t str,
   mu_stream_ref (str);
 
   sp->stream.read = _streamref_read; 
+  sp->stream.readdelim = _streamref_readdelim; 
   sp->stream.write = _streamref_write;
   sp->stream.flush = _streamref_flush;
   sp->stream.open = _streamref_open; 

@@ -41,6 +41,7 @@ struct _mu_stream
   int last_err;
 
   int (*read) (struct _mu_stream *, char *, size_t, size_t *);
+  int (*readdelim) (struct _mu_stream *, char *, size_t, int, size_t *);
   int (*write) (struct _mu_stream *, const char *, size_t, size_t *);
   int (*flush) (struct _mu_stream *);
   int (*open) (struct _mu_stream *);
