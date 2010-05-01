@@ -73,9 +73,33 @@ _streamref_readdelim (struct _mu_stream *str, char *buf, size_t bufsize,
 		      int delim, size_t *pnread)
 {
   struct _mu_streamref *sp = (struct _mu_streamref *)str;
-  return streamref_return (sp, mu_stream_readdelim (sp->transport,
-						    buf, bufsize,
-						    delim, pnread));
+  int rc;
+  size_t nread;
+  mu_off_t off;
+  
+  rc = mu_stream_seek (sp->transport, sp->offset, MU_SEEK_SET, &off);
+  if (rc == 0)
+    {
+      if (sp->end)
+	{
+	  size_t size = sp->end - off + 2; /* extra 1 to account for \0 */
+	  if (size < bufsize)
+	    bufsize = size;
+	}
+      rc = mu_stream_readdelim (sp->transport, buf, bufsize, delim, &nread);
+      if (rc == 0)
+	{
+	  sp->offset += nread;
+	  *pnread = nread;
+	}
+    }
+  else if (rc == ESPIPE)
+    {
+      *pnread = 0;
+      mu_stream_clearerr (sp->transport);
+      return 0;
+    }
+  return streamref_return (sp, rc);
 }
 
 static int
