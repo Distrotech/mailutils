@@ -104,7 +104,7 @@ _check_stream_state (struct _mu_message_stream *str)
 	  rc = mu_body_get_streamref (str->msg->body, &str->transport);
 	  if (rc == 0)
 	    {
-	      str->state = _mss_header;
+	      str->state = _mss_body;
 	      rc = mu_stream_seek (str->transport, 0, MU_SEEK_SET, NULL);
 	    }
 	}
@@ -194,13 +194,12 @@ _message_stream_seek (struct _mu_stream *str, mu_off_t off, int whence,
 	return rc;
       /* fall through */
     case _mss_header:
-      if (off > hsize)
-	{
-	  mu_stream_destroy (&sp->transport);
-	  rc = _check_stream_state (sp);
-	  if (rc)
-	    return rc;
-	}
+      if (off < hsize)
+	break;
+      mu_stream_destroy (&sp->transport);
+      rc = _check_stream_state (sp);
+      if (rc)
+	return rc;
       /* fall through */
     case _mss_body:
       off -= hsize;
@@ -224,15 +223,24 @@ _message_stream_read (struct _mu_stream *str, char *buf, size_t bufsize,
 		      size_t *pnread)
 {
   struct _mu_message_stream *sp = (struct _mu_message_stream *)str;
-  int rc = _check_stream_state (sp);
-  if (rc)
-    return rc;
-  if (sp->state == _mss_eof)
+  size_t nread = 0;
+  int rc;
+  
+  while (bufsize)
     {
-      *pnread = 0;
-      return 0;
+      size_t n;
+      rc = _check_stream_state (sp);
+      if (rc)
+	break;
+      if (sp->state == _mss_eof)
+	break;
+      rc = mu_stream_read (sp->transport, buf, bufsize, &n);
+      nread += n;
+      buf += n;
+      bufsize -= n;
     }
-  return mu_stream_read (sp->transport, buf, bufsize, pnread);
+  *pnread = nread;
+  return rc;
 }
 
 #if 0
@@ -252,7 +260,8 @@ _message_stream_create (mu_stream_t *pmsg, mu_message_t msg, int flags)
 {
   struct _mu_message_stream *sp;
 
-  sp = (struct _mu_message_stream *) _mu_stream_create (sizeof (*sp), flags);
+  sp = (struct _mu_message_stream *) _mu_stream_create (sizeof (*sp),
+							flags | MU_STREAM_SEEK);
   if (!sp)
     return ENOMEM;
 
