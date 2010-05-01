@@ -243,6 +243,31 @@ _message_stream_read (struct _mu_stream *str, char *buf, size_t bufsize,
   return rc;
 }
 
+static int
+_message_stream_readdelim (struct _mu_stream *str, char *buf, size_t bufsize,
+			   int delim, size_t *pnread)
+{
+  struct _mu_message_stream *sp = (struct _mu_message_stream *)str;
+  size_t nread = 0;
+  int rc;
+  
+  while (bufsize)
+    {
+      size_t n;
+      rc = _check_stream_state (sp);
+      if (rc)
+	break;
+      if (sp->state == _mss_eof)
+	break;
+      rc = mu_stream_readdelim (sp->transport, buf, bufsize, delim, &n);
+      nread += n;
+      buf += n;
+      bufsize -= n;
+    }
+  *pnread = nread;
+  return rc;
+}  
+
 #if 0
 static int
 _message_stream_write (struct _mu_stream *str,
@@ -266,6 +291,7 @@ _message_stream_create (mu_stream_t *pmsg, mu_message_t msg, int flags)
     return ENOMEM;
 
   sp->stream.read = _message_stream_read;
+  sp->stream.readdelim = _message_stream_readdelim;
   /* FIXME: Write is not defined */
   /*  sp->stream.write = _message_stream_write;*/
   sp->stream.done = _message_stream_done;

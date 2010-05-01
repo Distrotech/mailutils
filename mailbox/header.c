@@ -999,6 +999,59 @@ header_read (mu_stream_t is, char *buffer, size_t buflen, size_t *pnread)
   return 0;
 }
 
+#if 0
+/* FIXME: Implement header_readdelim based on this: */
+static int
+_header_readline (mu_stream_t is, char *buffer, size_t buflen, size_t *pnread)
+{
+  struct _mu_header_stream *hstr = (struct _mu_header_stream *) is;
+  mu_header_t header = hstr->hdr;
+  struct mu_hdrent *ent;
+  size_t ent_off;
+  int status;
+  size_t strsize;
+  char *start, *end;
+
+  if (buflen == 0)
+    return EINVAL;
+
+  header = mu_stream_get_owner (is);
+  status = mu_header_fill (header);
+  if (status)
+    return status;
+  if (mu_hdrent_find_stream_pos (header, hstr->off, &ent, &ent_off))
+    {
+      if (pnread)
+	*pnread = 0;
+      return 0;
+    }
+
+  buflen--; /* Account for the terminating nul */
+
+  mu_hdrent_fixup (header, ent);
+  strsize = MU_STR_SIZE (ent->nlen, ent->vlen) - ent_off;
+  start = MU_HDRENT_NAME (header, ent) + ent_off;
+  end = strchr (start, '\n');
+  if (end)
+    {
+      size_t len = end - start + 1;
+      if (len < strsize)
+	strsize = len;
+    }
+
+  if (strsize < buflen)
+    buflen = strsize;
+
+  memcpy (buffer, start, buflen);
+  buffer[buflen] = 0;
+  hstr->off += buflen;
+  mu_hdrent_unroll_fixup (header, ent);
+  if (pnread)
+    *pnread = buflen;
+  return 0;
+}
+#endif
+
 static int
 header_write (mu_stream_t os, const char *buf, size_t buflen, size_t *pnwrite)
 {
