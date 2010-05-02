@@ -114,6 +114,7 @@ libmailutils_la_SOURCES = \
  muerror.c\
  muerrno.c\
  nls.c\
+ nullrec.c\
  observer.c\
  opool.c\
  parse822.c\

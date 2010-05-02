@@ -17,5 +17,25 @@
 ##   Foundation, Inc. 51 Franklin Street, Fifth Floor, Boston, MA
 ##   02110-1301 USA
 
-SUBDIRS = include mbox pop nntp imap mh maildir mailer
+if MU_COND_SUPPORT_POP
+  POP_DIR = pop
+endif
+
+if MU_COND_SUPPORT_IMAP
+  IMAP_DIR = imap
+endif
+
+if MU_COND_SUPPORT_NNTP
+  NNTP_DIR = nntp
+endif
+
+if MU_COND_SUPPORT_MH
+  MH_DIR = mh
+endif
+
+if MU_COND_SUPPORT_MAILDIR
+  MAILDIR_DIR = maildir
+endif
+
+SUBDIRS = include mbox $(POP_DIR) $(NNTP_DIR) $(IMAP_DIR) $(MH_DIR) $(MAILDIR_DIR) mailer
 
