@@ -60,7 +60,7 @@ enum mu_filter_result
     mu_filter_moreoutput,
   };
   
-typedef void *(*mu_filter_new_data_t) (void *);
+typedef int (*mu_filter_new_data_t) (void **, int, void *);
 typedef enum mu_filter_result (*mu_filter_xcode_t) (void *data,
 						    enum mu_filter_command cmd,
 						    struct mu_filter_io *iobuf);

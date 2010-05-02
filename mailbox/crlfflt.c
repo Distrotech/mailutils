@@ -22,11 +22,16 @@
 #include <mailutils/errno.h>
 #include <mailutils/filter.h>
 
+enum crlf_state
+{
+  state_init,
+  state_cr
+};
+  
 /* Move min(isize,osize) bytes from iptr to optr, replacing each \n
-   with \r\n.  Store number of bytes written to optr in *pnbytes.
-   Return number of bytes read from iptr. */
+   with \r\n.  Any input \r\n sequences remain untouched. */
 static enum mu_filter_result
-_crlf_encoder (void *xd MU_ARG_UNUSED,
+_crlf_encoder (void *xd,
 	       enum mu_filter_command cmd,
 	       struct mu_filter_io *iobuf)
 {
@@ -35,10 +40,12 @@ _crlf_encoder (void *xd MU_ARG_UNUSED,
   size_t isize;
   char *optr;
   size_t osize;
-
+  enum crlf_state *state = xd;
+  
   switch (cmd)
     {
     case mu_filter_init:
+      *state = state_init;
     case mu_filter_done:
       return mu_filter_ok;
     default:
@@ -55,7 +62,12 @@ _crlf_encoder (void *xd MU_ARG_UNUSED,
       unsigned char c = *iptr++;
       if (c == '\n')
 	{
-	  if (j + 1 == osize)
+	  if (*state == state_cr)
+	    {
+	      *state = state_init;
+	      optr[j++] = c;
+	    }
+	  else if (j + 1 == osize)
 	    {
 	      if (i == 0)
 		{
@@ -64,10 +76,17 @@ _crlf_encoder (void *xd MU_ARG_UNUSED,
 		}
 	      break;
 	    }
-	  optr[j++] = '\r';
-	  optr[j++] = '\n';
+	  else
+	    {
+	      optr[j++] = '\r';
+	      optr[j++] = '\n';
+	    }
 	}
-      /*else if (c == '\r')*/
+      else if (c == '\r')
+	{
+	  *state = state_cr;
+	  optr[j++] = c;
+	}
       else
 	optr[j++] = c;
     }
@@ -77,8 +96,7 @@ _crlf_encoder (void *xd MU_ARG_UNUSED,
 }
 
 /* Move min(isize,osize) bytes from iptr to optr, replacing each \r\n
-   with \n.  Store number of bytes written to optr in *pnbytes.
-   Return number of bytes read from iptr. */
+   with \n. */
 static enum mu_filter_result
 _crlf_decoder (void *xd MU_ARG_UNUSED,
 	       enum mu_filter_command cmd,
@@ -121,10 +139,28 @@ _crlf_decoder (void *xd MU_ARG_UNUSED,
   return mu_filter_ok;
 }
 
+static int
+alloc_state (void **pret, int mode, void *data MU_ARG_UNUSED)
+{
+  switch (mode)
+    {
+    case MU_FILTER_ENCODE:
+      *pret = malloc (sizeof (int));
+      if (!*pret)
+	return ENOMEM;
+      break;
+
+    case MU_FILTER_DECODE:
+      *pret = NULL;
+    }
+  return 0;
+}
+  
+
 static struct _mu_filter_record _crlf_filter = {
   "CRLF",
   0,
-  NULL,
+  alloc_state,
   _crlf_encoder,
   _crlf_decoder
 };
@@ -136,7 +172,7 @@ mu_filter_record_t mu_crlf_filter = &_crlf_filter;
 static struct _mu_filter_record _rfc822_filter = {
   "RFC822",
   0,
-  NULL,
+  alloc_state,
   _crlf_encoder,
   _crlf_decoder
 };
