@@ -316,7 +316,7 @@ _mapfile_seek (struct _mu_stream *str, mu_off_t off, mu_off_t *presult)
 { 
   struct _mu_mapfile_stream *mfs = (struct _mu_mapfile_stream *) str;
   
-  if (off < 0 || off >= mfs->size)
+  if (off < 0 || off > mfs->size)
     return ESPIPE;
   mfs->offset = off;
   *presult = off;
