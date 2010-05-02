@@ -26,7 +26,16 @@ void
 mu_set_signals (RETSIGTYPE (*handler) (int signo), int *sigv, int sigc)
 {
   int i;
+  struct sigaction act;
 
+  act.sa_flags = 0;
+  sigemptyset (&act.sa_mask);
   for (i = 0; i < sigc; i++)
-    signal (sigv[i], handler);
+    sigaddset (&act.sa_mask, i);
+      
+  for (i = 0; i < sigc; i++)
+    {
+      act.sa_handler = handler;
+      sigaction (sigv[i], &act, NULL);
+    }
 }

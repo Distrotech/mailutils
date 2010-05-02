@@ -49,21 +49,25 @@ imap4d_master_signal (int signo)
 RETSIGTYPE
 imap4d_child_signal (int signo)
 {
+  imap4d_child_signal_setup (SIG_IGN);
   mu_diag_output (MU_DIAG_CRIT, _("got signal `%s'"), strsignal (signo));
-
   switch (signo)
     {
     case SIGTERM:
     case SIGHUP:
-      imap4d_bye (ERR_TERMINATE);
-
+      signo = ERR_TERMINATE;
+      break;
+      
     case SIGALRM:
-      imap4d_bye (ERR_TIMEOUT);
-
+      signo = ERR_TIMEOUT;
+      break;
+      
     case SIGPIPE:
-      imap4d_bye (ERR_NO_OFILE);
+      signo = ERR_NO_OFILE;
+      break;
       
     default:
-      imap4d_bye (ERR_SIGNAL);
+      signo = ERR_SIGNAL;
     }
+  imap4d_bye (signo);
 }
