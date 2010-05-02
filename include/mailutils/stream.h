@@ -71,6 +71,9 @@ void mu_stream_clearerr (mu_stream_t stream);
 int mu_stream_eof (mu_stream_t stream);
 int mu_stream_seek (mu_stream_t stream, mu_off_t offset, int whence,
 		    mu_off_t *pres);
+int mu_stream_skip_input_bytes (mu_stream_t stream, mu_off_t count,
+				mu_off_t *pres);
+
 int mu_stream_set_buffer (mu_stream_t stream, enum mu_buffer_type type,
 			  size_t size);
 int mu_stream_read (mu_stream_t stream, void *buf, size_t size, size_t *pread);

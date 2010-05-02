@@ -313,12 +313,17 @@ filter_wr_flush (mu_stream_t stream)
   return rc;
 }
 
-/* FIXME: Seeks in the *transport* stream */
 static int
 filter_seek (struct _mu_stream *stream, mu_off_t off, mu_off_t *ppos)
 {
   struct _mu_filter_stream *fs = (struct _mu_filter_stream *)stream;
-  return mu_stream_seek (fs->transport, off, MU_SEEK_SET, ppos);
+  int status;
+
+  status = mu_stream_seek (fs->transport, 0, MU_SEEK_SET, NULL);
+  if (status)
+    return status;
+  stream->offset = 0;
+  return mu_stream_skip_input_bytes (stream, off, ppos);
 }
 
 static int
@@ -392,7 +397,7 @@ mu_filter_stream_create (mu_stream_t *pflt,
 
   if ((flags & MU_STREAM_RDWR) == MU_STREAM_RDWR
       || !(flags & MU_STREAM_RDWR)
-      || (flags & MU_STREAM_SEEK))
+      || (flags & (MU_STREAM_WRITE|MU_STREAM_SEEK)) == (MU_STREAM_WRITE|MU_STREAM_SEEK))
     return EINVAL;
  
   fs = (struct _mu_filter_stream *) _mu_stream_create (sizeof (*fs), flags);

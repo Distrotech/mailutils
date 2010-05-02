@@ -334,6 +334,71 @@ mu_stream_seek (mu_stream_t stream, mu_off_t offset, int whence,
   return 0;
 }
 
+/* Skip COUNT bytes from the current position in stream by reading from
+   it.  Return new offset in PRES.
+
+   Return 0 on success, EACCES if STREAM was not opened for reading.
+   Another non-zero exit codes are propagated from the underlying
+   input operations.
+   
+   This function is designed to help implement seek method in otherwise
+   unseekable streams (such as filters).  Do not use it if you absolutely
+   have to.  Using it on an unbuffered stream is a terrible waste of CPU. */
+int
+mu_stream_skip_input_bytes (mu_stream_t stream, mu_off_t count, mu_off_t *pres)
+{
+  mu_off_t pos;
+  int rc;
+
+  if (!(stream->flags & MU_STREAM_READ))
+    return _stream_seterror (stream, EACCES, 1);
+
+  if (stream->buftype == mu_buffer_none)
+    {
+      for (pos = 0; pos < count; pos++)
+	{
+	  char c;
+	  size_t nrd;
+	  rc = mu_stream_read (stream, &c, 1, &nrd);
+	  if (nrd == 0)
+	    rc = ESPIPE;
+	  if (rc)
+	    break;
+	}
+    }
+  else
+    {
+      if ((rc = _stream_flush_buffer (stream, 1)))
+	return rc;
+      for (pos = 0;;)
+	{
+	  if (stream->level == 0)
+	    {
+	      rc = _stream_fill_buffer (stream);
+	      if (rc)
+		break;
+	      if (stream->level == 0)
+		{
+		  rc = ESPIPE;
+		  break;
+		}
+	    }
+	  if (pos <= count && count < pos + stream->level)
+	    {
+	      rc = 0;
+	      stream->cur = stream->buffer + count - pos;
+	      pos = count;
+	      break;
+	    }
+	}
+    }
+  
+  stream->offset += pos;
+  if (pres)
+    *pres = stream->offset;
+  return rc;
+}
+
 int
 mu_stream_set_buffer (mu_stream_t stream, enum mu_buffer_type type,
 		      size_t size)
