@@ -128,23 +128,9 @@ stdio_size (struct _mu_stream *str, off_t *psize)
 }
 
 static int
-stdio_seek (struct _mu_stream *str, mu_off_t off, int whence, mu_off_t *presult)
+stdio_seek (struct _mu_stream *str, mu_off_t off, mu_off_t *presult)
 { 
   struct _mu_stdio_stream *fs = (struct _mu_stdio_stream *) str;
-  /* FIXME */
-  switch (whence)
-    {
-    case MU_SEEK_SET:
-      break;
-
-    case MU_SEEK_CUR:
-      off += fs->offset;
-      break;
-
-    case MU_SEEK_END:
-      off += fs->size;
-      break;
-    }
 
   if (off < 0)
     return ESPIPE;

@@ -415,11 +415,12 @@ _icvt_wait (mu_stream_t stream, int *pflags, struct timeval *tvp)
   return mu_stream_wait (s->transport, pflags, tvp);
 }
 
+/* FIXME: Seeks in the *transport* stream. */
 int
-_icvt_seek (mu_stream_t stream, mu_off_t off, int whence, mu_off_t *presult)
+_icvt_seek (mu_stream_t stream, mu_off_t off, mu_off_t *presult)
 {
   struct icvt_stream *s = (struct icvt_stream *)stream;
-  return mu_stream_seek (s->transport, off, whence, presult);
+  return mu_stream_seek (s->transport, off, MU_SEEK_SET, presult);
 }
 
 int
@@ -462,6 +463,6 @@ mu_filter_iconv_create (mu_stream_t *s, mu_stream_t transport,
   iptr->stream.ctl = _icvt_ioctl;
   iptr->stream.wait = _icvt_wait;
   iptr->stream.seek = _icvt_seek;
-  *s = iptr;
+  *s = (mu_stream_t)iptr;
   return 0;
 }

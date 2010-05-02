@@ -303,27 +303,12 @@ _message_done (mu_stream_t stream)
 }
 
 static int
-_message_seek (struct _mu_stream *stream, mu_off_t off, int whence,
-	       mu_off_t *presult)
+_message_seek (struct _mu_stream *stream, mu_off_t off, mu_off_t *presult)
 { 
   struct _mu_message_stream *s = (struct _mu_message_stream*) stream;
   mu_off_t size;
 
   mu_stream_size (stream, &size);
-  switch (whence)
-    {
-    case MU_SEEK_SET:
-      break;
-
-    case MU_SEEK_CUR:
-      off += s->offset;
-      break;
-
-    case MU_SEEK_END:
-      off += size;
-      break;
-    }
-
   if (off < 0 || off >= size)
     return ESPIPE;
   s->offset = off;

@@ -148,10 +148,10 @@ fd_open (struct _mu_stream *str)
 }
 
 int
-fd_seek (struct _mu_stream *str, mu_off_t off, int whence, mu_off_t *presult)
+fd_seek (struct _mu_stream *str, mu_off_t off, mu_off_t *presult)
 { 
   struct _mu_file_stream *fstr = (struct _mu_file_stream *) str;
-  off = lseek (fstr->fd, off, whence);
+  off = lseek (fstr->fd, off, SEEK_SET);
   if (off < 0)
     return errno;
   *presult = off;

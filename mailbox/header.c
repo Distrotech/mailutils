@@ -931,23 +931,9 @@ mu_hdrent_unroll_fixup (mu_header_t hdr, struct mu_hdrent *ent)
 }
 
 int
-header_seek (mu_stream_t str, mu_off_t off, int whence, mu_off_t *presult)
+header_seek (mu_stream_t str, mu_off_t off, mu_off_t *presult)
 { 
   struct _mu_header_stream *hstr = (struct _mu_header_stream *) str;
-
-  switch (whence)
-    {
-    case MU_SEEK_SET:
-      break;
-
-    case MU_SEEK_CUR:
-      off += hstr->off;
-      break;
-
-    case MU_SEEK_END:
-      off += hstr->hdr->size;
-      break;
-    }
 
   if (off < 0 || off > hstr->hdr->size)
     return ESPIPE;

@@ -544,24 +544,11 @@ struct _mime_body_stream
 
 /* FIXME: The seek method is defective */
 static int
-_mime_body_seek (mu_stream_t stream, mu_off_t off, int whence,
-		 mu_off_t *presult)
+_mime_body_seek (mu_stream_t stream, mu_off_t off, mu_off_t *presult)
 {
   struct _mime_body_stream *mstr = (struct _mime_body_stream *)stream;
   mu_mime_t mime = mstr->mime;
 
-  switch (whence)
-    {
-    case MU_SEEK_SET:
-      break;
-
-    case MU_SEEK_CUR:
-      off += mime->cur_offset;
-
-    case MU_SEEK_END:
-      return ESPIPE;
-    }
-    
   if (off == 0)
     {				/* reset message */
       mime->cur_offset = 0;

@@ -122,7 +122,7 @@ static int amd_body_stream_readdelim (mu_stream_t is,
 				      int delim,
 				      size_t *pnread);
 static int amd_body_stream_size (mu_stream_t str, mu_off_t *psize);
-static int amd_body_stream_seek (mu_stream_t str, mu_off_t off, int whence,
+static int amd_body_stream_seek (mu_stream_t str, mu_off_t off, 
 				 mu_off_t *presult);
 
 struct _amd_body_stream
@@ -1703,27 +1703,12 @@ amd_body_stream_readdelim (mu_stream_t is, char *buffer, size_t buflen,
 }
 
 static int
-amd_body_stream_seek (mu_stream_t str, mu_off_t off, int whence,
-		      mu_off_t *presult)
+amd_body_stream_seek (mu_stream_t str, mu_off_t off, mu_off_t *presult)
 {
   size_t size;
   struct _amd_body_stream *amdstr = (struct _amd_body_stream *)str;
-  mu_message_t msg = mu_body_get_owner (amdstr->body);
   
   amd_body_size (amdstr->body, &size);
-  switch (whence)
-    {
-    case MU_SEEK_SET:
-      break;
-
-    case MU_SEEK_CUR:
-      off += amdstr->off;
-      break;
-
-    case MU_SEEK_END:
-      off += size;
-      break;
-    }
 
   if (off < 0 || off >= size)
     return ESPIPE;
