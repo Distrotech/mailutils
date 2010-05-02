@@ -24,7 +24,6 @@
 #define obstack_chunk_free free
 #include <obstack.h>
 
-const char *program_version = "burst (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU MH burst")"\v"
 N_("Options marked with `*' are not yet implemented.\n\
 Use -help to obtain the list of traditional MH options.");
@@ -48,8 +47,6 @@ static struct argp_option options[] = {
   {"norecursive",  ARG_NORECURSIVE,  0, OPTION_HIDDEN, ""},
   {"length",       ARG_LENGTH,       N_("NUMBER"), 0,
    N_("set minimal length of digest encapsulation boundary (default 1)") },
-  {"license",      ARG_LICENSE, 0,      0,
-   N_("display software license"), -1},
   { NULL }
 };
 
@@ -93,10 +90,6 @@ opt_handler (int key, char *arg, struct argp_state *state)
 	eb_min_length = 1;
       break;
       
-    case ARG_LICENSE:
-      mh_license (argp_program_version);
-      break;
-
     case ARG_VERBOSE:
       verbose = is_true (arg);
       break;
@@ -554,7 +547,7 @@ main (int argc, char **argv)
   /* Native Language Support */
   MU_APP_INIT_NLS ();
 
-  mh_argp_init (program_version);
+  mh_argp_init ();
   mh_argp_parse (&argc, &argv, 0, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, &index);
 

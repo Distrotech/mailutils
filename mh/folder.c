@@ -34,7 +34,6 @@
 #define obstack_chunk_free free
 #include <obstack.h>
 
-const char *program_version = "folder (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU MH folder")"\v"
 N_("Use -help to obtain the list of traditional MH options.");
 static char args_doc[] = N_("[action] [msg]");
@@ -81,9 +80,6 @@ static struct argp_option options[] = {
   {"dry-run", ARG_DRY_RUN, NULL, 0,
    N_("do nothing, print what would be done (with --pack)"), 3},
    
-  {"license", ARG_LICENSE, 0,      0,
-   N_("display software license"), -1},
-
   {NULL},
 };
 
@@ -225,10 +221,6 @@ opt_handler (int key, char *arg, struct argp_state *state)
       mh_set_current_folder (arg);
       break;
       
-    case ARG_LICENSE:
-      mh_license (argp_program_version);
-      break;
-
     case ARG_VERBOSE:
       verbose++;
       break;
@@ -939,7 +931,7 @@ main (int argc, char **argv)
   /* Native Language Support */
   MU_APP_INIT_NLS ();
 
-  mh_argp_init (program_version);
+  mh_argp_init ();
   mh_argp_parse (&argc, &argv, 0, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, &index);
 

@@ -89,7 +89,6 @@ enum mh_arg {
   ARG_INTERACTIVE,	
   ARG_LBRACE,		
   ARG_LENGTH,		
-  ARG_LICENSE,		
   ARG_LIMIT,		
   ARG_LINK,		
   ARG_LIST,		
@@ -184,7 +183,7 @@ enum mh_arg {
   ARG_ZERO
 };
 
-void mh_argp_init (const char *vers);
+void mh_argp_init (void);
 void mh_argv_preproc (int argc, char **argv, struct mh_argp_data *data);
 int mh_getopt (int argc, char **argv, struct mh_option *mh_opt, const char *doc);
 int mh_argp_parse (int *argc, char **argv[],

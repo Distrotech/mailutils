@@ -23,7 +23,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-const char *program_version = "comp (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU MH comp")"\v"
 N_("Options marked with `*' are not yet implemented.\n"
 "Use -help to obtain the list of traditional MH options.");
@@ -56,8 +55,6 @@ static struct argp_option options[] = {
   {"use",           ARG_USE, N_("BOOL"), OPTION_ARG_OPTIONAL,
    N_("use draft file preserved after the last session") },
   {"nouse",         ARG_NOUSE, NULL, OPTION_HIDDEN, ""},
-  {"license",       ARG_LICENSE, 0,      0,
-   N_("display software license"), -1},
   { 0 }
 };
 
@@ -195,7 +192,7 @@ main (int argc, char **argv)
   /* Native Language Support */
   MU_APP_INIT_NLS ();
 
-  mh_argp_init (program_version);
+  mh_argp_init ();
   mh_argp_parse (&argc, &argv, 0, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, &index);
 

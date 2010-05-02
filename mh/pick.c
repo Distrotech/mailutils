@@ -27,7 +27,6 @@
 #define obstack_chunk_free free
 #include <obstack.h>
 
-const char *program_version = "pick (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU MH pick")"\v"
 N_("Use -help to obtain the list of traditional MH options.");
 static char args_doc[] = N_("[messages]");
@@ -90,8 +89,6 @@ static struct argp_option options[] = {
   {"zero",     ARG_ZERO,     N_("BOOL"), OPTION_ARG_OPTIONAL,
    N_("empty the sequence before adding messages"), 4},
   {"nozero", ARG_NOZERO, NULL, OPTION_HIDDEN, "", 4 },
-  {"license", ARG_LICENSE, 0,      0,
-   N_("display software license"), -1},
   {NULL},
 };
 
@@ -285,10 +282,6 @@ opt_handler (int key, char *arg, struct argp_state *state)
       pick_add_token (&lexlist, T_STRING, p);
       break;
 
-    case ARG_LICENSE:
-      mh_license (argp_program_version);
-      break;
-
     default:
       return ARGP_ERR_UNKNOWN;
     }
@@ -348,7 +341,7 @@ main (int argc, char **argv)
 
   flags = mh_interactive_mode_p () ? 0 : ARGP_NO_ERRS;
   MU_APP_INIT_NLS ();
-  mh_argp_init (program_version);
+  mh_argp_init ();
   mh_argp_parse (&argc, &argv, flags, options, mh_option,
 		 args_doc, doc, opt_handler, NULL, &index);
   if (pick_parse (lexlist))

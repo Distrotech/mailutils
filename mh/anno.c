@@ -21,7 +21,6 @@
 
 #include <mh.h>
 
-const char *program_version = "anno (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU MH anno")"\v"
 N_("Options marked with `*' are not yet implemented.\n\
 Use -help to obtain the list of traditional MH options.");
@@ -41,8 +40,6 @@ static struct argp_option options[] = {
    N_("add this FIELD to the message header") },
   {"text", ARG_TEXT, N_("STRING"), 0,
    N_("field value for the component") },
-  {"license", ARG_LICENSE, 0,      0,
-   N_("display software license"), -1},
   { NULL }
 };
 
@@ -94,10 +91,6 @@ opt_handler (int key, char *arg, struct argp_state *state)
       mh_quote (arg, &anno_text);
       break;
 
-    case ARG_LICENSE:
-      mh_license (argp_program_version);
-      break;
-
     default:
       return ARGP_ERR_UNKNOWN;
     }
@@ -121,7 +114,7 @@ main (int argc, char **argv)
   
   MU_APP_INIT_NLS ();
 
-  mh_argp_init (program_version);
+  mh_argp_init ();
   mh_argp_parse (&argc, &argv, 0, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, &index);
 

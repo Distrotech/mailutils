@@ -23,7 +23,6 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-const char *program_version = "mhl (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU MH mhl")"\v"
 N_("Use -help to obtain the list of traditional MH options.");
 static char args_doc[] = N_("[files]");
@@ -48,8 +47,6 @@ static struct argp_option options[] = {
    N_("use given PROG instead of the default") },
   {"nomoreproc", ARG_NOMOREPROC, NULL, 0,
    N_("disable use of moreproc program") },
-  {"license", ARG_LICENSE, 0,      0,
-   N_("display software license"), -1},
   { NULL }
 };
    
@@ -133,10 +130,6 @@ opt_handler (int key, char *arg, struct argp_state *state)
       nomoreproc = 1;
       break;
       
-    case ARG_LICENSE:
-      mh_license (argp_program_version);
-      break;
-
     default:
       return ARGP_ERR_UNKNOWN;
     }
@@ -224,7 +217,7 @@ main (int argc, char **argv)
   interactive = isatty (1) && isatty (0);
   
   MU_APP_INIT_NLS ();
-  mh_argp_init (program_version);
+  mh_argp_init ();
   mh_argp_parse (&argc, &argv, 0, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, &index);
 

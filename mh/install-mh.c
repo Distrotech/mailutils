@@ -19,7 +19,6 @@
 
 #include <mh.h>
 
-const char *program_version = "install-mh (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU MH install-mh")"\v"
 N_("Use -help to obtain the list of traditional MH options.");
 static char args_doc[] = "";
@@ -28,8 +27,6 @@ static char args_doc[] = "";
 static struct argp_option options[] = {
   {"auto",  ARG_AUTO, NULL, 0, N_("do not ask for anything")},
   {"compat", ARG_COMPAT, NULL, OPTION_HIDDEN, ""},
-  {"license", ARG_LICENSE, 0,      0,
-   N_("display software license"), -1},
   {NULL}
 };
 
@@ -53,10 +50,6 @@ opt_handler (int key, char *arg, struct argp_state *state)
     case ARG_COMPAT:
       break;
 
-    case ARG_LICENSE:
-      mh_license (argp_program_version);
-      break;
-
     default:
       return ARGP_ERR_UNKNOWN;
     }
@@ -72,7 +65,7 @@ main (int argc, char **argv)
   /* Native Language Support */
   MU_APP_INIT_NLS ();
 
-  mh_argp_init (program_version);
+  mh_argp_init ();
   mh_auto_install = 0;
   mh_argp_parse (&argc, &argv, 0, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, NULL);
