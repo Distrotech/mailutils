@@ -118,24 +118,31 @@ msglist (mu_mailbox_t mbox, int show_all, int argc, char **argv,
 	  int found = 0;
 	  for (j = 1; j <= total; j++)
 	    {
+	      int status;
 	      char buf[128];
 	      size_t len = 0;
 	      mu_message_t msg = NULL;
 	      mu_stream_t stream = NULL;
 
 	      mu_mailbox_get_message (mbox, j, &msg);
-	      mu_message_get_streamref (msg, &stream);
-	      while (mu_stream_readline (stream, buf, sizeof buf, &len) == 0
-		     && len > 0)
+	      status = mu_message_get_streamref (msg, &stream);
+	      if (status)
+		mu_error (_("cannot read message: %s"),
+			  mu_strerror (status));
+	      else
 		{
-		  if (strstr (buf, argv[i]) != NULL)
+		  while (mu_stream_readline (stream, buf, sizeof buf, &len) == 0
+			 && len > 0)
 		    {
-		      addset (set, n, j);
-		      found = 1;
-		      break;
+		      if (strstr (buf, argv[i]) != NULL)
+			{
+			  addset (set, n, j);
+			  found = 1;
+			  break;
+			}
 		    }
+		  mu_stream_destroy (&stream);
 		}
-	      mu_stream_destroy (&stream);
 	      if (found && !show_all)
 		break;
 	    }
