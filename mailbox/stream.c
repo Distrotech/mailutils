@@ -80,9 +80,9 @@ _stream_fill_buffer (struct _mu_stream *stream)
 	   n < stream->bufsize
 	     && (rc = mu_stream_read_unbuffered (stream,
 						 &c, 1, 0, &rdn)) == 0
-	     && rdn; n++)
+	     && rdn; )
 	{
-	  stream->buffer[n] = c;
+	  stream->buffer[n++] = c;
 	  if (c == '\n')
 	    break;
 	}
@@ -368,10 +368,10 @@ mu_stream_skip_input_bytes (mu_stream_t stream, mu_off_t count, mu_off_t *pres)
     }
   else
     {
-      if ((rc = _stream_flush_buffer (stream, 1)))
-	return rc;
       for (pos = 0;;)
 	{
+	  if ((rc = _stream_flush_buffer (stream, 1)))
+	    return rc;
 	  if (stream->level == 0)
 	    {
 	      rc = _stream_fill_buffer (stream);
@@ -385,11 +385,13 @@ mu_stream_skip_input_bytes (mu_stream_t stream, mu_off_t count, mu_off_t *pres)
 	    }
 	  if (pos <= count && count < pos + stream->level)
 	    {
-	      rc = 0;
-	      stream->cur = stream->buffer + count - pos;
+	      size_t delta = count - pos;
+	      _stream_advance_buffer (stream, delta);
 	      pos = count;
+	      rc = 0;
 	      break;
 	    }
+	  pos += stream->level;
 	}
     }
   

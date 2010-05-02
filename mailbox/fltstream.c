@@ -117,73 +117,78 @@ filter_read (mu_stream_t stream, char *buf, size_t size, size_t *pret)
   
   while (total < size && cmd != mu_filter_lastbuf)
     {
-      enum mu_filter_result res;
-      int rc;
       size_t rdsize;
 
-      if (MFB_RDBYTES (fs->inbuf) < min_input_level)
+      if (MFB_RDBYTES (fs->outbuf) == 0)
 	{
-	  rc = MFB_require (&fs->inbuf, min_input_level);
-	  if (rc)
-	    return rc;
-	  rc = mu_stream_read (fs->transport,
-			       MFB_ENDPTR (fs->inbuf),
-			       MFB_FREESIZE (fs->inbuf),
-			       &rdsize);
-	  if (rc)
-	    return rc;
-	  if (rdsize == 0 &&
-	      MFB_RDBYTES (fs->outbuf) == 0 && MFB_RDBYTES (fs->inbuf) == 0)
-	    break;
-	  MFB_advance_level (&fs->inbuf, rdsize);
-	}
-
-      if (min_output_size < MFB_RDBYTES (fs->inbuf))
-	min_output_size = MFB_RDBYTES (fs->inbuf);
-      rc = MFB_require (&fs->outbuf, min_output_size);
-      if (rc)
-	return rc;
-      
-      init_iobuf (&iobuf, fs);
-
-      cmd = mu_stream_eof (fs->transport) ?
-	       mu_filter_lastbuf : mu_filter_xcode;
-      res = fs->xcode (fs->xdata, cmd, &iobuf);
-      switch (res)
-	{
-	case mu_filter_ok:
-	  if (iobuf.isize == 0 || iobuf.osize == 0)
+	  enum mu_filter_result res;
+	  int rc;
+	  
+	  if (MFB_RDBYTES (fs->inbuf) < min_input_level)
 	    {
-	      /* FIXME: Hack to handle eventual buggy filters */
-	      if (iobuf.isize == 0)
-		min_input_level++;
-	      if (iobuf.osize == 0)
-		min_output_size++;
+	      rc = MFB_require (&fs->inbuf, min_input_level);
+	      if (rc)
+		return rc;
+	      rc = mu_stream_read (fs->transport,
+				   MFB_ENDPTR (fs->inbuf),
+				   MFB_FREESIZE (fs->inbuf),
+				   &rdsize);
+	      if (rc)
+		return rc;
+	      if (rdsize == 0 &&
+		  MFB_RDBYTES (fs->outbuf) == 0
+		  && MFB_RDBYTES (fs->inbuf) == 0)
+		break;
+	      MFB_advance_level (&fs->inbuf, rdsize);
+	    }
+
+	  if (min_output_size < MFB_RDBYTES (fs->inbuf))
+	    min_output_size = MFB_RDBYTES (fs->inbuf);
+	  rc = MFB_require (&fs->outbuf, min_output_size);
+	  if (rc)
+	    return rc;
+      
+	  init_iobuf (&iobuf, fs);
+
+	  cmd = mu_stream_eof (fs->transport) ?
+	    mu_filter_lastbuf : mu_filter_xcode;
+	  res = fs->xcode (fs->xdata, cmd, &iobuf);
+	  switch (res)
+	    {
+	    case mu_filter_ok:
+	      if (iobuf.isize == 0 || iobuf.osize == 0)
+		{
+		  /* FIXME: Hack to handle eventual buggy filters */
+		  if (iobuf.isize == 0)
+		    min_input_level++;
+		  if (iobuf.osize == 0)
+		    min_output_size++;
+		  continue;
+		}
+	      if (iobuf.isize > MFB_RDBYTES (fs->inbuf)
+		  || iobuf.osize > MFB_FREESIZE (fs->outbuf))
+		return MU_ERR_FAILURE; /* FIXME: special error code? */
+	      break;
+	  
+	    case mu_filter_falure:
+	      return iobuf.errcode;
+	      
+	    case mu_filter_moreinput:
+	      min_input_level = iobuf.isize;
+	      continue;
+	      
+	    case mu_filter_moreoutput:
+	      min_output_size = iobuf.osize;
 	      continue;
 	    }
-	  if (iobuf.isize > MFB_RDBYTES (fs->inbuf)
-	      || iobuf.osize > MFB_FREESIZE (fs->outbuf))
-	    return MU_ERR_FAILURE; /* FIXME: special error code? */
-	  break;
+      
+	  /* iobuf.osize contains number of bytes written to output */
+	  MFB_advance_level (&fs->outbuf, iobuf.osize);
 	  
-	case mu_filter_falure:
-	  return iobuf.errcode;
-	  
-	case mu_filter_moreinput:
-	  min_input_level = iobuf.isize;
-	  continue;
-	  
-	case mu_filter_moreoutput:
-	  min_output_size = iobuf.osize;
-	  continue;
+	  /* iobuf.isize contains number of bytes read from input */
+	  MFB_advance_pos (&fs->inbuf, iobuf.isize);
 	}
-      
-      /* iobuf.osize contains number of bytes written to output */
-      MFB_advance_level (&fs->outbuf, iobuf.osize);
-      
-      /* iobuf.isize contains number of bytes read from input */
-      MFB_advance_pos (&fs->inbuf, iobuf.isize);
-      
+
       rdsize = size - total;
       if (rdsize > MFB_RDBYTES (fs->outbuf))
 	rdsize = MFB_RDBYTES (fs->outbuf);
