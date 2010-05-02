@@ -56,14 +56,11 @@ int (*ftab[]) (struct action_data *) = {
   action_chpass
 };
 
-const char *program_version = "popauth (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU popauth -- manage pop3 authentication database");
 static error_t popauth_parse_opt  (int key, char *arg,
 				   struct argp_state *astate);
 
 void popauth_version (FILE *stream, struct argp_state *state);
-void (*argp_program_version_hook) (FILE *stream, struct argp_state *state) =
-                                   popauth_version;
 
 static struct argp_option options[] = 
 {
@@ -202,7 +199,8 @@ main(int argc, char **argv)
   /* Native Language Support */
   MU_APP_INIT_NLS ();
 
-  mu_argp_init (program_version, NULL);
+  mu_argp_init (NULL, NULL);
+  argp_program_version_hook = popauth_version;
   if (mu_app_init (&argp, popauth_argp_capa, NULL,
 		   argc, argv, 0, NULL, &adata))
     exit (EX_USAGE);
@@ -600,7 +598,7 @@ popauth_version (FILE *stream, struct argp_state *state)
 #elif defined(WITH_TOKYOCABINET)
 # define FORMAT "Tokyo Cabinet"
 #endif
-  printf ("%s\n", argp_program_version);
+  mu_program_version_hook (stream, state);
   printf (_("Database format: %s\n"), FORMAT);
   printf (_("Database location: %s\n"), APOP_PASSFILE);
   exit (EX_OK);

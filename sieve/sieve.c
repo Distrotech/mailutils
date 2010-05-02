@@ -48,8 +48,6 @@
 
 #include "mailutils/libargp.h"
 
-const char *program_version = "sieve (" PACKAGE_STRING ")";
-
 static char doc[] =
 N_("GNU sieve -- a mail filtering tool.")
 "\v"
@@ -480,7 +478,7 @@ main (int argc, char *argv[])
   /* Native Language Support */
   MU_APP_INIT_NLS ();
 
-  mu_argp_init (program_version, NULL);
+  mu_argp_init (NULL, NULL);
 #ifdef WITH_TLS
   mu_gocs_register ("tls", mu_tls_module_init);
 #endif

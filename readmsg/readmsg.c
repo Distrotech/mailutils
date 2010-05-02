@@ -33,7 +33,6 @@ static void print_header (mu_message_t, int, int, char **);
 static void print_body (mu_message_t);
 static int  string_starts_with (const char * s1, const char *s2);
 
-const char *program_version = "readmsg (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU readmsg -- print messages.");
 static error_t readmsg_parse_opt  (int key, char *arg, struct argp_state *astate);
 
@@ -301,7 +300,7 @@ main (int argc, char **argv)
 #ifdef WITH_TLS
   mu_gocs_register ("tls", mu_tls_module_init);
 #endif
-  mu_argp_init (program_version, NULL);
+  mu_argp_init (NULL, NULL);
   if (mu_app_init (&argp, readmsg_argp_capa, readmsg_cfg_param, 
 		   argc, argv, 0, &index, NULL))
     exit (1);

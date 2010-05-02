@@ -31,7 +31,6 @@ static int align = 0;      /* Tidy mode. -t option. */
 #define IS_NEW  0x100
 static int select_attribute;
 
-const char *program_version = "frm (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU frm -- display From: lines.");
 
 static struct attr_tab {
@@ -358,7 +357,7 @@ main (int argc, char **argv)
   mu_gocs_register ("tls", mu_tls_module_init);
 #endif
   
-  mu_argp_init (program_version, NULL);
+  mu_argp_init (NULL, NULL);
   if (mu_app_init (&argp, frm_argp_capa, NULL, argc, argv, 0, &c, NULL))
     exit (1);
 

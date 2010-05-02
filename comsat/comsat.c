@@ -570,7 +570,7 @@ main (int argc, char **argv)
   /* Native Language Support */
   MU_APP_INIT_NLS ();
 
-  mu_argp_init (program_version, NULL);
+  mu_argp_init (NULL, NULL);
   comsat_init ();
   mu_acl_cfg_init ();
   mu_m_server_cfg_init ();

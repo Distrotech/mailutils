@@ -25,7 +25,6 @@
 #include <mu_asprintf.h>
 #include "mailutils/libargp.h"
 
-const char *program_version = "mailutils-config (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU mailutils-config -- display compiler and loader options needed for building a program with mailutils.");
 static char args_doc[] = N_("[arg...]");
 
@@ -188,7 +187,7 @@ main (int argc, char **argv)
   mu_stream_t stream;
   int fmtflags = 0;
   
-  mu_argp_init (program_version, NULL);
+  mu_argp_init (NULL, NULL);
 
   mu_set_program_name (argv[0]);
   mu_libargp_init ();

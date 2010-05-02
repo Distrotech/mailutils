@@ -33,7 +33,6 @@
 
 #include "mailutils/libargp.h"
 
-const char *program_version = "GNU dotlock (" PACKAGE_STRING ")";
 static char doc[] =
 N_("GNU dotlock -- lock mail spool files.")
 "\v"
@@ -161,7 +160,7 @@ main (int argc, char *argv[])
 
   argp_err_exit_status = MU_DL_EX_ERROR;
   
-  mu_argp_init (program_version, NULL);
+  mu_argp_init (NULL, NULL);
   if (mu_app_init (&argp, dotlock_capa, dotlock_cfg_param, 
 		   argc, argv, 0, NULL, NULL))
     exit (1);
