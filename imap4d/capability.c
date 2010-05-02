@@ -80,7 +80,7 @@ imap4d_capability (struct imap4d_command *command, imap4d_tokbuf_t tok)
   mu_list_do (capa_list, print_capa, NULL);
   
   imap4d_auth_capability ();
-  util_send ("\r\n");
+  util_send ("\n");
 
   return util_finish (command, RESP_OK, "Completed");
 }

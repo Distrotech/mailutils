@@ -270,6 +270,12 @@ util_msgset (char *s, size_t ** set, int *n, int isuid)
 }
 
 int
+util_copy_out (mu_stream_t str, size_t size)
+{
+  return mu_stream_copy (ostream, str, size);
+}
+
+int
 util_send_bytes (const char *buf, size_t size)
 {
   return mu_stream_write (ostream, buf, size, NULL);
@@ -325,7 +331,7 @@ util_send_qstring (const char *buffer)
 int
 util_send_literal (const char *buffer)
 {
-  return util_send ("{%lu}\r\n%s", (unsigned long) strlen (buffer), buffer);
+  return util_send ("{%lu}\n%s", (unsigned long) strlen (buffer), buffer);
 }
 
 /* Send an unsolicited response.  */
@@ -337,7 +343,7 @@ util_out (int rc, const char *format, ...)
   int status = 0;
   va_list ap;
 
-  asprintf (&tempbuf, "* %s%s\r\n", sc2string (rc), format);
+  asprintf (&tempbuf, "* %s%s\n", sc2string (rc), format);
   va_start (ap, format);
   vasprintf (&buf, tempbuf, ap);
   va_end (ap);
@@ -346,7 +352,7 @@ util_out (int rc, const char *format, ...)
 
   if (imap4d_transcript)
     {
-      int len = strcspn (buf, "\r\n");
+      int len = strcspn (buf, "\n");
       mu_diag_output (MU_DIAG_DEBUG, "sent: %*.*s", len, len, buf);
     }
 
@@ -393,7 +399,7 @@ util_finish (struct imap4d_command *command, int rc, const char *format, ...)
 
   mu_stream_write (ostream, buf, strlen (buf), NULL);
   free (buf);
-  mu_stream_write (ostream, "\r\n", 2, NULL);
+  mu_stream_write (ostream, "\n", 2, NULL);
 
   /* Reset the state.  */
   if (rc == RESP_OK)
@@ -800,16 +806,24 @@ util_uidvalidity (mu_mailbox_t smbox, unsigned long *uidvp)
 void
 util_setio (FILE *in, FILE *out)
 {
+  mu_stream_t tmp;
+  
   if (!in)
     imap4d_bye (ERR_NO_IFILE);
   if (!out)
     imap4d_bye (ERR_NO_OFILE);
 
-  if (mu_stdio_stream_create (&istream, fileno (in), MU_STREAM_NO_CLOSE))
+  if (mu_stdio_stream_create (&tmp, fileno (in), MU_STREAM_NO_CLOSE))
     imap4d_bye (ERR_NO_IFILE);
-  if (mu_stdio_stream_create (&ostream, fileno (out), MU_STREAM_NO_CLOSE))
-    imap4d_bye (ERR_NO_OFILE);
+  mu_stream_set_buffer (tmp, mu_buffer_line, 1024);
+  mu_filter_create (&istream, tmp, "rfc822", MU_FILTER_DECODE, MU_STREAM_READ);
   mu_stream_set_buffer (istream, mu_buffer_line, 1024);
+  
+  if (mu_stdio_stream_create (&tmp, fileno (out), MU_STREAM_NO_CLOSE))
+    imap4d_bye (ERR_NO_OFILE);
+  mu_stream_set_buffer (tmp, mu_buffer_line, 1024);
+  mu_filter_create (&ostream, tmp, "rfc822", MU_FILTER_ENCODE,
+		    MU_STREAM_WRITE);
   mu_stream_set_buffer (ostream, mu_buffer_line, 1024);
 }
 
@@ -917,7 +931,7 @@ void
 util_bye ()
 {
   int rc = istream != ostream;
-  
+
   mu_stream_close (istream);
   mu_stream_destroy (&istream);
 
@@ -926,7 +940,6 @@ util_bye ()
       mu_stream_close (ostream);
       mu_stream_destroy (&ostream);
     }
-      
   mu_list_do (atexit_list, atexit_run, 0);
 }
 
@@ -1020,30 +1033,6 @@ is_atom (const char *s)
 }
      
 
-static size_t
-remove_cr (char *line, size_t len)
-{
-  char *prev = NULL;
-  size_t rlen = len;
-  char *p;
-  while ((p = memchr (line, '\r', len)))
-    {
-      if (prev)
-	{
-	  memmove (prev, line, p - line);
-	  prev += p - line;
-	}
-      else
-	prev = p;
-      rlen--;
-      len -= p - line + 1;
-      line = p + 1;
-    }
-  if (prev)
-    memmove (prev, line, len);
-  return rlen;
-}
-
 static size_t
 unquote (char *line, size_t len)
 {
@@ -1318,7 +1307,7 @@ imap4d_readline (struct imap4d_tokbuf *tok)
 	  /* Client can ask for non-synchronised literal,
 	     if a '+' is appended to the octet count. */
 	  if (*sp == '}')
-	    util_send ("+ GO AHEAD\r\n");
+	    util_send ("+ GO AHEAD\n");
 	  else if (*sp != '+')
 	    break;
 	  imap4d_tokbuf_expand (tok, number + 1);
@@ -1334,7 +1323,6 @@ imap4d_readline (struct imap4d_tokbuf *tok)
                len += sz;
             }
 	  check_input_err (rc, len);
-	  len = remove_cr (buf, len);
 	  imap4d_tokbuf_unquote (tok, &off, &len);
 	  tok->level += len;
 	  tok->buffer[tok->level++] = 0;

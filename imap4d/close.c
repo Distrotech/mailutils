@@ -30,7 +30,7 @@ imap4d_close0 (struct imap4d_command *command, imap4d_tokbuf_t tok,
     return util_finish (command, RESP_BAD, "Invalid arguments");
   
   mu_mailbox_get_flags (mbox, &flags);
-  if ((flags & MU_STREAM_READ) == 0)
+  if (flags & MU_STREAM_WRITE)
     {
       status = mu_mailbox_flush (mbox, expunge);
       if (status)

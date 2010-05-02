@@ -97,11 +97,11 @@ list_fun (mu_folder_t folder, struct mu_list_response *resp, void *data)
   name = refinfo->buf;
   
   if (strpbrk (name, "\"{}"))
-    util_send ("{%lu}\r\n%s\r\n", (unsigned long) strlen (name), name);
+    util_send ("{%lu}\n%s\n", (unsigned long) strlen (name), name);
   else if (is_atom (name))
-    util_send ("%s\r\n", name);
+    util_send ("%s\n", name);
   else
-    util_send ("\"%s\"\r\n", name);
+    util_send ("\"%s\"\n", name);
   return 0;
 }
 

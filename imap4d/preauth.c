@@ -366,7 +366,7 @@ do_preauth_ident (struct sockaddr *clt_sa, struct sockaddr *srv_sa)
       return NULL;
     }
 
-  mu_stream_printf (stream, "%u , %u\r\n",
+  mu_stream_printf (stream, "%u , %u\n",
 		    ntohs (clt_addr->sin_port),
 		    ntohs (srv_addr->sin_port));
   mu_stream_shutdown (stream, MU_STREAM_WRITE);

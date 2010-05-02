@@ -689,38 +689,35 @@ static int
 fetch_io (mu_stream_t stream, size_t start, size_t size, size_t max)
 {
   mu_stream_t rfc = NULL;
+  
   size_t n = 0;
 
   mu_filter_create (&rfc, stream, "rfc822", MU_FILTER_ENCODE,
-		    MU_STREAM_READ|MU_STREAM_NO_CHECK|MU_STREAM_NO_CLOSE);
-
+		    MU_STREAM_READ|MU_STREAM_SEEK|MU_STREAM_NO_CLOSE);
+  
   if (start == 0 && size == (size_t) -1)
     {
-      char *buffer;
-      size_t bufsize;
       int rc;
       
-      for (bufsize = max; (buffer = malloc (bufsize)) == NULL; bufsize /= 2)
-	if (bufsize < 512)
-  	  imap4d_bye (ERR_NO_MEM);
-
       rc = mu_stream_seek (rfc, 0, MU_SEEK_SET, NULL);
       if (rc)
 	{
-	  mu_error ("seek error: %s", mu_stream_strerror (rfc, rc));
+	  mu_error ("seek error: %s", mu_stream_strerror (stream, rc));
 	  return RESP_BAD;
 	}
       if (max)
 	{
-	  util_send (" {%lu}\r\n", (unsigned long) max);
-	  while (mu_stream_read (rfc, buffer, bufsize, &n) == 0 && n > 0)
-	    util_send_bytes (buffer, n);
-
+	  util_send (" {%lu}\n", (unsigned long) max);
+	  util_copy_out (rfc, max);
 	  /* FIXME: Make sure exactly max bytes were sent */
-          free (buffer); 
 	}
       else
 	util_send (" \"\"");
+    }
+  else if (start > max)
+    {
+      util_send ("<%lu>", (unsigned long) start);
+      util_send (" \"\"");
     }
   else if (size + 2 < size) /* Check for integer overflow */
     {
@@ -737,16 +734,17 @@ fetch_io (mu_stream_t stream, size_t start, size_t size, size_t max)
       if (!p)
 	imap4d_bye (ERR_NO_MEM);
 
-      rc = mu_stream_seek (stream, start, MU_SEEK_SET, NULL);
+      rc = mu_stream_seek (rfc, start, MU_SEEK_SET, NULL);
       if (rc)
 	{
 	  mu_error ("seek error: %s", mu_stream_strerror (rfc, rc));
 	  free (buffer);
+	  mu_stream_destroy (&rfc);
 	  return RESP_BAD;
 	}
 
       while (total < size
-	     && mu_stream_read (rfc, p, size - total + 1, &n) == 0
+	     && mu_stream_read (rfc, p, size - total, &n) == 0
 	     && n > 0)
 	{
 	  total += n;
@@ -756,7 +754,7 @@ fetch_io (mu_stream_t stream, size_t start, size_t size, size_t max)
       util_send ("<%lu>", (unsigned long) start);
       if (total)
 	{
-	  util_send (" {%lu}\r\n", (unsigned long) total);
+	  util_send (" {%lu}\n", (unsigned long) total);
 	  util_send_bytes (buffer, total);
 	}
       else
@@ -1085,6 +1083,7 @@ _frt_header_fields (struct fetch_function_closure *ffc,
   
   /* Output collected data */
   mu_stream_size (stream, &size);
+  mu_stream_seek (stream, 0, MU_SEEK_SET, NULL);
   status = fetch_io (stream, ffc->start, ffc->size, size + lines);
   mu_stream_destroy (&stream);
   
@@ -1657,7 +1656,7 @@ imap4d_fetch0 (imap4d_tokbuf_t tok, int isuid, char **err_text)
 	      util_send ("* %lu FETCH (", (unsigned long) frc.msgno);
 	      frc.eltno = 0;
 	      rc = mu_list_do (pclos.fnlist, _do_fetch, &frc);
-	      util_send (")\r\n");
+	      util_send (")\n");
 	    }
 	}
       }
@@ -1693,4 +1692,3 @@ imap4d_fetch (struct imap4d_command *command, imap4d_tokbuf_t tok)
   rc = imap4d_fetch0 (tok, 0, &err_text);
   return util_finish (command, rc, "%s", err_text);
 }
-

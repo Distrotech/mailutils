@@ -363,7 +363,7 @@ do_search (struct parsebuf *pb)
 	    util_send (" %s", mu_umaxtostr (0, pb->msgno));
 	}
     }
-  util_send ("\r\n");
+  util_send ("\n");
 }
 
 /* Parse buffer functions */
