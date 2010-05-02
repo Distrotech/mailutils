@@ -1087,6 +1087,8 @@ append_message_to_stream (mu_stream_t ostr, mu_message_t msg,
     }
   status = mu_stream_copy (ostr, istr, 0);
   mu_stream_destroy (&istr);
+  if (status == 0)
+    status = mu_stream_write (ostr, "\n", 1, NULL);
   return status;
 }
 
