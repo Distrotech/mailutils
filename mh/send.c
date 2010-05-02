@@ -25,7 +25,6 @@
 #include <stdarg.h>
 #include <pwd.h>
 
-const char *program_version = "send (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU MH send")"\v"
 N_("Options marked with `*' are not yet implemented.\n\
 Use -help to obtain the list of traditional MH options.");
@@ -77,8 +76,6 @@ static struct argp_option options[] = {
   {"nowatch",       ARG_NOWATCH,       NULL, OPTION_HIDDEN, "" },
   {"width",         ARG_WIDTH,         N_("NUMBER"), 0,
    N_("* make header fields no longer than NUMBER columns") },
-  {"license", ARG_LICENSE, 0,      0,
-   N_("display software license"), -1},
   { 0 }
 };
 
@@ -252,10 +249,6 @@ opt_handler (int key, char *arg, struct argp_state *state)
 	}
       break;
       
-    case ARG_LICENSE:
-      mh_license (argp_program_version);
-      break;
-
     default:
       return ARGP_ERR_UNKNOWN;
     }
@@ -747,7 +740,7 @@ main (int argc, char **argv)
   
   MU_APP_INIT_NLS ();
   
-  mh_argp_init (program_version);
+  mh_argp_init ();
   mh_argp_parse (&argc, &argv, 0, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, &index);
 

@@ -20,7 +20,6 @@
 
 #include <mh.h>
 
-const char *program_version = "whatnow (" PACKAGE_STRING ")";
 static char doc[] = "GNU MH whatnow";
 static char args_doc[] = N_("[FILE]");
 
@@ -35,9 +34,6 @@ static struct argp_option options[] = {
   {"editor",  ARG_EDITOR, N_("PROG"), 0, N_("set the editor program to use")},
   {"noedit", ARG_NOEDIT, 0, 0, N_("suppress the initial edit")},
   {"prompt", ARG_PROMPT, N_("STRING"), 0, N_("set the prompt")},
-
-  {"license", ARG_LICENSE, 0,      0,
-   N_("display software license"), -1},
 
   { NULL }
 };
@@ -91,10 +87,6 @@ opt_handler (int key, char *arg, struct argp_state *state)
       wh_env.prompt = arg;
       break;
       
-    case ARG_LICENSE:
-      mh_license (argp_program_version);
-      break;
-
     default:
       return ARGP_ERR_UNKNOWN;
     }
@@ -108,7 +100,7 @@ main (int argc, char **argv)
   
   MU_APP_INIT_NLS ();
 
-  mh_argp_init (program_version);
+  mh_argp_init ();
   mh_argp_parse (&argc, &argv, 0, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, &index);
   argc -= index;

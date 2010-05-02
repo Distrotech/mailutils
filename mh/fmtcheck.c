@@ -21,7 +21,6 @@
 
 #include <mh.h>
 
-const char *program_version = "fmtcheck (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU MH fmtcheck")"\v"
 N_("Use -help to obtain the list of traditional MH options.");
 static char args_doc[] = "";
@@ -36,8 +35,6 @@ static struct argp_option options[] = {
    N_("dump the listing of compiled format code")},
   { "debug",  ARG_DEBUG, NULL,     0,
     N_("enable parser debugging output"),},
-  {"license", ARG_LICENSE, 0,      0,
-   N_("display software license"), -1},
 
   { 0 }
 };
@@ -89,10 +86,6 @@ opt_handler (int key, char *arg, struct argp_state *state)
       mh_format_debug (1);
       break;
       
-    case ARG_LICENSE:
-      mh_license (argp_program_version);
-      break;
-
     default:
       return ARGP_ERR_UNKNOWN;
     }
@@ -105,7 +98,7 @@ main (int argc, char **argv)
   /* Native Language Support */
   MU_APP_INIT_NLS ();
 
-  mh_argp_init (program_version);
+  mh_argp_init ();
   mh_argp_parse (&argc, &argv, 0, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, NULL);
 

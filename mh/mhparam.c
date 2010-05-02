@@ -21,7 +21,6 @@
 
 #include <mh.h>
 
-const char *program_version = "mhparam (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU MH mhparam")"\v"
 N_("Use -help to obtain the list of traditional MH options.");
 static char args_doc[] = N_("[components]");
@@ -32,8 +31,6 @@ static struct argp_option options[] = {
    N_("display all components from the MH profile. All other arguments are ignored")},
   {"component", ARG_COMPONENT, N_("BOOL"),   OPTION_ARG_OPTIONAL,
    N_("always display the component name") },
-  {"license", ARG_LICENSE, 0,      0,
-   N_("display software license"), -1},
   { 0 }
 };
 
@@ -60,10 +57,6 @@ opt_handler (int key, char *arg, struct argp_state *state)
       display_comp_name = is_true (arg);
       break;
       
-    case ARG_LICENSE:
-      mh_license (argp_program_version);
-      break;
-
     default:
       return ARGP_ERR_UNKNOWN;
     }
@@ -126,7 +119,7 @@ main (int argc, char **argv)
   /* Native Language Support */
   MU_APP_INIT_NLS ();
 
-  mh_argp_init (program_version);
+  mh_argp_init ();
   mh_argp_parse (&argc, &argv, 0, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, &index);
 

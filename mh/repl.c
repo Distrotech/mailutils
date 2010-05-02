@@ -24,7 +24,6 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-const char *program_version = "reply (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU MH repl")"\v"
 N_("Options marked with `*' are not yet implemented.\n\
 Use -help to obtain the list of traditional MH options.");
@@ -68,8 +67,6 @@ static struct argp_option options[] = {
   {"nowhatnowproc", ARG_NOWHATNOWPROC, NULL, 0,
    N_("* ignore whatnowproc variable; use standard `whatnow' shell instead")},
   {"use", ARG_USE, N_("BOOL"), OPTION_ARG_OPTIONAL, N_("use draft file preserved after the last session") },
-  {"license", ARG_LICENSE, 0,      0,
-   N_("display software license"), -1},
   { 0 }
 };
 
@@ -261,10 +258,6 @@ opt_handler (int key, char *arg, struct argp_state *state)
       argp_error (state, _("Option is not yet implemented"));
       exit (1);
       
-    case ARG_LICENSE:
-      mh_license (argp_program_version);
-      break;
-
     case ARGP_KEY_FINI:
       if (!format_str)
 	format_str = default_format_str;
@@ -406,7 +399,7 @@ main (int argc, char **argv)
   /* Native Language Support */
   MU_APP_INIT_NLS ();
 
-  mh_argp_init (program_version);
+  mh_argp_init ();
 
   mh_argp_parse (&argc, &argv, 0, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, &index);

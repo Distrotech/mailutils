@@ -28,6 +28,9 @@
 #include <string.h>
 #include <mailutils/argcv.h>
 #include "argp.h"
+#ifdef MU_ALPHA_RELEASE
+# include <git-describe.h>
+#endif
 
 static error_t
 parse_opt (int key, char *arg, struct argp_state *state)
@@ -93,11 +96,49 @@ my_argp_parse (struct argp *argp, int argc, char **argv, int flags,
   return rc;
 }
 
-void
-mh_argp_init (const char *vers)
+const char version_etc_copyright[] =
+  /* Do *not* mark this string for translation.  %s is a copyright
+     symbol suitable for this locale, and %d is the copyright
+     year.  */
+  "Copyright %s 2010 Free Software Foundation, inc.";
+
+/* This is almost the same as mu_program_version_hook from muinit.c,
+   except for different formatting of the first line. MH uses:
+
+      progname (GNU Mailutils X.Y.Z)
+
+   where X.Y.Z stands for the version number. Emacs MH-E uses this
+   to determine Mailutils presence and its version number (see
+   lisp/mh-e/mh-e.el, function mh-variant-mu-mh-info). */
+static void
+mh_program_version_hook (FILE *stream, struct argp_state *state)
 {
-  argp_program_version = vers ? vers : PACKAGE_STRING;
+#ifdef GIT_DESCRIBE
+  fprintf (stream, "%s (%s %s) [%s]\n",
+	   mu_program_name, PACKAGE_NAME, PACKAGE_VERSION, GIT_DESCRIBE);
+#else
+  fprintf (stream, "%s (%s %s)\n", mu_program_name,
+	   PACKAGE_NAME, PACKAGE_VERSION);
+#endif
+  /* TRANSLATORS: Translate "(C)" to the copyright symbol
+     (C-in-a-circle), if this symbol is available in the user's
+     locale.  Otherwise, do not translate "(C)"; leave it as-is.  */
+  fprintf (stream, version_etc_copyright, _("(C)"));
+
+  fputs (_("\
+\n\
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\nThis is free software: you are free to change and redistribute it.\n\
+There is NO WARRANTY, to the extent permitted by law.\n\
+\n\
+"),
+	 stream);
+}
+
+void
+mh_argp_init ()
+{
   argp_program_bug_address =  "<" PACKAGE_BUGREPORT ">";
+  argp_program_version_hook = mh_program_version_hook;
 }
 
 
