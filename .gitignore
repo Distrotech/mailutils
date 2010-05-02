@@ -22,6 +22,8 @@ config.h.in
 config.log
 config.status
 configure
+git-describe
+git-describe.h
 libtool
 m4
 pathdefs.h

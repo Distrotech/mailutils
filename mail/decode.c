@@ -318,7 +318,6 @@ print_stream (mu_stream_t stream, FILE *out)
 {
   char buffer[512];
   size_t n = 0;
-  int rc;
   
   while (mu_stream_read (stream, buffer, sizeof (buffer) - 1, &n) == 0
 	 && n != 0)

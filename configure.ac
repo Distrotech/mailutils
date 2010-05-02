@@ -40,16 +40,16 @@ dnl Library paths
 AC_SUBST(MU_LIB_AUTH,'${top_builddir}/libmu_auth/libmu_auth.la')
 AC_SUBST(MU_LIB_MAILUTILS,'${top_builddir}/mailbox/libmailutils.la')
 AC_SUBST(MU_LIB_SQL,'${top_builddir}/sql/libsql.la')
-AC_SUBST(MU_LIB_IMAP,'${top_builddir}/libproto/imap/libmu_imap.la')
-AC_SUBST(MU_LIB_MAILDIR,'${top_builddir}/libproto/maildir/libmu_maildir.la')
+AC_SUBST(MU_LIB_IMAP)
+AC_SUBST(MU_LIB_MAILDIR)
 AC_SUBST(MU_LIB_MAILER,'${top_builddir}/libproto/mailer/libmu_mailer.la')
 AC_SUBST(MU_LIB_MBOX,'${top_builddir}/libproto/mbox/libmu_mbox.la')
-AC_SUBST(MU_LIB_MH,'${top_builddir}/libproto/mh/libmu_mh.la')
-AC_SUBST(MU_LIB_NNTP,'${top_builddir}/libproto/nntp/libmu_nntp.la')
-AC_SUBST(MU_LIB_POP,'${top_builddir}/libproto/pop/libmu_pop.la')
+AC_SUBST(MU_LIB_MH)
+AC_SUBST(MU_LIB_NNTP)
+AC_SUBST(MU_LIB_POP)
 AC_SUBST(MU_LIB_SIEVE,'${top_builddir}/libmu_sieve/libmu_sieve.la')
-AC_SUBST(MU_LIB_SCM,'${top_builddir}/libmu_scm/libmu_scm.la')
-AC_SUBST(MU_LIB_CPP,'${top_builddir}/libmu_cpp/libmu_cpp.la')
+AC_SUBST(MU_LIB_SCM)
+AC_SUBST(MU_LIB_CPP)
 AC_SUBST(MU_LIB_ARGP,'${top_builddir}/libmu_argp/libmu_argp.la')
 AC_SUBST(MU_LIB_PY)
 
@@ -805,9 +805,17 @@ AC_ARG_WITH([virtual-pwddir],
 		*)  SITE_VIRTUAL_PWDDIR="\$(sysconfdir)/${withval}";;
 	     esac],
              [SITE_VIRTUAL_PWDDIR="\$(sysconfdir)/domain"])
-MU_ENABLE_SUPPORT(imap)
-MU_ENABLE_SUPPORT(pop)
-MU_ENABLE_SUPPORT(nntp)
+	     
+MU_ENABLE_SUPPORT([imap],
+         [MU_LIB_IMAP='${top_builddir}/libproto/imap/libmu_imap.la'])
+MU_ENABLE_SUPPORT([pop],
+         [MU_LIB_POP='${top_builddir}/libproto/pop/libmu_pop.la'])
+MU_ENABLE_SUPPORT([nntp],
+         [MU_LIB_NNTP='${top_builddir}/libproto/nntp/libmu_nntp.la'])
+MU_ENABLE_SUPPORT([mh],
+         [MU_LIB_MH='${top_builddir}/libproto/mh/libmu_mh.la'])
+MU_ENABLE_SUPPORT([maildir],
+         [MU_LIB_MAILDIR='${top_builddir}/libproto/maildir/libmu_maildir.la'])
 
 AC_SUBST(MU_SMTP_PROGRAMS_BUILD)
 AC_SUBST(MU_SMTP_DEJATOOL)
@@ -819,9 +827,6 @@ MU_ENABLE_SUPPORT(sendmail)
 
 MU_ENABLE_SUPPORT(prog)
 
-MU_ENABLE_SUPPORT(mh)
-
-MU_ENABLE_SUPPORT(maildir)
 
 # FIXME: Should be --with-radius 
 MU_ENABLE_SUPPORT(radius,
@@ -1091,14 +1096,14 @@ fi
 AC_SUBST(lisp_LISP)
 
 # Check for Python
-AC_ARG_WITH([python],
-            AC_HELP_STRING([--without-python],
-                           [do not build Python interface]),
-            [
-case "${withval}" in
+AC_ARG_ENABLE([python],
+              AC_HELP_STRING([--disable-python],
+                             [do not build Python interface]),
+              [
+case "${enableval}" in
   yes) status_python=yes ;;
   no)  status_python=no ;;
-  *)   AC_MSG_ERROR(bad value ${withval} for --without-python) ;;
+  *)   AC_MSG_ERROR(bad value ${enableval} for --enable-python) ;;
 esac],[status_python=yes])
 
 AC_SUBST(PYTHON_LIBS)
@@ -1138,8 +1143,8 @@ AM_CONDITIONAL([MU_COND_PYTHON], [test "$status_python" = yes])
 
 AC_SUBST(MU_CXX_EXAMPLES_BUILD)
 MU_ENABLE_SUPPORT(cxx,
-  	          [MU_CXX_EXAMPLES_BUILD='$(MU_CXX_EXAMPLES_LIST)'])
-AM_CONDITIONAL([MU_COND_LIBMU_CPP], [test "$mu_cv_enable_cxx" = yes])
+  	          [MU_CXX_EXAMPLES_BUILD='$(MU_CXX_EXAMPLES_LIST)'
+                   MU_LIB_CPP='${top_builddir}/libmu_cpp/libmu_cpp.la'])
 
 # Default mailbox record
 # Note: 1. Support for mbox type is always enabled.
@@ -1224,11 +1229,12 @@ case `echo $VERSION|sed  's/[[^.]]//g'` in
 "..")  if test `echo $VERSION | sed  's/.*\.//'` -lt 50; then
 	 RENDITION=DISTRIB
        else
+         AC_DEFINE_UNQUOTED([MU_ALPHA_RELEASE], 1,
+	                    [Define if this is an alpha release])
          RENDITION=PROOF
        fi;;
 *)     RENDITION=PROOF;;
 esac
-
 
 AC_CONFIG_COMMANDS([status],[
 cat <<EOF

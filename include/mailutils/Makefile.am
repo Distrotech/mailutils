@@ -98,7 +98,7 @@ pkginclude_HEADERS = \
  vartab.h\
  version.h
 
-if MU_COND_LIBMU_CPP
+if MU_COND_SUPPORT_CXX
   CPP_DIR = cpp
 endif
 

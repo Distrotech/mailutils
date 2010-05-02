@@ -18,7 +18,19 @@
 ##   Foundation, Inc. 51 Franklin Street, Fifth Floor, Boston, MA
 ##   02110-1301 USA
 
-SUBDIRS = config cpp python scheme
+if MU_COND_SUPPORT_POP
+  POP3CLIENT = pop3client
+endif
+
+if MU_COND_SUPPORT_NNTP
+  NNTPCLIENT = nntpclient
+endif
+
+if MU_COND_SUPPORT_CXX
+  CPP_DIR = cpp
+endif
+
+SUBDIRS = config $(CPP_DIR) python scheme
 
 noinst_PROGRAMS = \
  aclck\
@@ -40,10 +52,12 @@ noinst_PROGRAMS = \
  muauth\
  muemail\
  murun\
- nntpclient\
- pop3client \
+ $(NNTPCLIENT)\
+ $(POP3CLIENT)\
  sfrom\
  url-parse
+
+EXTRA_PROGRAMS = pop3client nntpclient
 
 ## NOTE: Numaddr must be an installable target, otherwise libtool
 ## will not create a shared library and `make check' will fail in

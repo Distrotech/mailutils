@@ -23,6 +23,7 @@ dnl                   [default-value])
 AC_DEFUN([MU_ENABLE_SUPPORT], [
 	pushdef([mu_upcase],translit($1,[a-z+-],[A-ZX_]))
 	pushdef([mu_cache_var],[mu_cv_enable_]translit($1,[+-],[x_]))
+	pushdef([mu_cond],[MU_COND_SUPPORT_]mu_upcase)
 
 	AC_ARG_ENABLE($1, 
 	              AC_HELP_STRING([--disable-]$1,
@@ -43,8 +44,11 @@ AC_DEFUN([MU_ENABLE_SUPPORT], [
 	if test x"[$]mu_cache_var" = x"yes"; then
 		AC_DEFINE([ENABLE_]mu_upcase,1,[Define this if you enable $1 support])
         fi
-	popdef([mu_upcase])
+	AM_CONDITIONAL(mu_cond,
+	               [test x"[$]mu_cache_var" = x"yes" ifelse($4,,,[&& $4])])
+	popdef([mu_cond])
 	popdef([mu_cache_var])
+	popdef([mu_upcase])
 ])
 
 dnl MU_ENABLE_BUILD(feature, [action-if-true], [action-if-false],

@@ -156,7 +156,6 @@ static int
 _streamref_seek (struct _mu_stream *str, mu_off_t off, mu_off_t *ppos)
 {
   struct _mu_streamref *sp = (struct _mu_streamref *)str;
-  mu_off_t cur = sp->offset - sp->start;
   mu_off_t size;
   int rc;
   

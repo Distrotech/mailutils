@@ -85,11 +85,11 @@ if MU_COND_LIBMU_SCM
   LIBMU_SCM_DIR = libmu_scm
 endif
 
-if MU_COND_LIBMU_CPP
+if MU_COND_SUPPORT_CXX
   LIBMU_CPP_DIR = libmu_cpp
 endif
 
-SUBDIRS = \
+SUBDIRS = . \
  mu-aux\
  include\
  po\
@@ -124,8 +124,8 @@ SUBDIRS = \
  $(MOVEMAIL_DIR)\
  $(MIMEVIEW_DIR)
 
-EXTRA_DIST = COPYING.LESSER paths
-
+EXTRA_DIST = COPYING.LESSER paths git-describe git-describe.h
+BUILT_SOURCES = git-describe git-describe.h
 DISTCLEANFILES = pathdefs.h
 
 gen_start_date = "2008-12-08"
@@ -155,12 +155,45 @@ ChangeLog:
 	  mv cl-t ChangeLog;                                               \
 	fi
 
-alpha:
-	$(MAKE) dist distdir=$(PACKAGE)-$(VERSION)-`date +"%Y%m%d"`
+.PHONY: git-describe
+git-describe:
+	$(AM_V_GEN)if test -d .git; then \
+		dirty=`git diff-index --name-only HEAD 2>/dev/null` || dirty=;\
+		test -n "$$dirty" && dirty="-dirty"; \
+		descr=`git describe`; \
+		echo $${descr}$$dirty > git-describe; \
+	fi
+
+dist-hook: ChangeLog git-describe
+	@PATCHLEV=`echo "$(PACKAGE_VERSION)" | \
+                   sed -r "s/[0-9]+\.[0-9]+\.?//"`; \
+	if test $${PATCHLEV:-0} -lt 50; then \
+		if grep -q FIXME NEWS; then \
+			echo >&2 "NEWS file contains FIXMEs"; \
+			exit 1; \
+		fi; \
+	fi
+
+git-describe.h: git-describe
+	$(AM_V_GEN)if test -f $(srcdir)/git-describe; then \
+	  sed '1s/.*/#define GIT_DESCRIBE "&"/' $(srcdir)/git-describe; \
+	else \
+          echo "/* No git tag */"; \
+	fi > git-describe.h
+
+alpha: git-describe
+	$(AM_V_GEN)if test -f $(srcdir)/git-describe; then \
+	  tag=`head -n 1 $(srcdir)/git-describe`; \
+	else \
+	  tag=`date +"%Y%m%d"`; \
+	fi; \
+	$(MAKE) dist distdir=$(PACKAGE)-$(VERSION)-$$tag
 
 alphacheck:
-	$(MAKE) distcheck distdir=$(PACKAGE)-$(VERSION)-`date +"%Y%m%d"`
-
-rpm: dist
-	rpm -ta --clean mailutils-$(VERSION).tar.gz
+	$(AM_V_GEN)if test -f $(srcdir)/git-describe; then \
+	  tag=`head -n 1 $(srcdir)/git-describe`; \
+	else \
+	  tag=`date +"%Y%m%d"`; \
+	fi; \
+	$(MAKE) distcheck distdir=$(PACKAGE)-$(VERSION)-$$tag
 
