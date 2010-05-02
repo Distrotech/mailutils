@@ -222,11 +222,18 @@ print_header (mu_message_t message, int unix_header, int weedc, char **weedv)
     }
   else
     {
+      int status;
       size_t count;
       size_t i;
 
-      mu_header_get_field_count (header, &count);
-
+      status = mu_header_get_field_count (header, &count);
+      if (status)
+	{
+	  mu_error (_("cannot get number of headers: %s"),
+		    mu_strerror (status));
+	  return;
+	}
+      
       for (i = 1; i <= count; i++)
 	{
 	  int j;
@@ -259,6 +266,7 @@ print_header (mu_message_t message, int unix_header, int weedc, char **weedv)
 static void
 print_body (mu_message_t message)
 {
+  int status;
   char buf[128];
   mu_body_t body = NULL;
   mu_stream_t stream = NULL;
@@ -266,7 +274,12 @@ print_body (mu_message_t message)
   mu_message_get_body (message, &body);
 
   /* FIXME: Use mu_stream_copy */
-  mu_body_get_streamref (body, &stream);
+  status = mu_body_get_streamref (body, &stream);
+  if (status)
+    {
+      mu_error (_("cannot get body stream: %s"), mu_strerror (status));
+      return;
+    }
 
   while (mu_stream_read (stream, buf, sizeof (buf) - 1, &len) == 0
 	 && len != 0)
