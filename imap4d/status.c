@@ -136,7 +136,7 @@ imap4d_status (struct imap4d_command *command, imap4d_tokbuf_t tok)
 
 	  
 	  if (count > 0)
-	    util_send (")\r\n");
+	    util_send (")\n");
 	  mu_mailbox_close (smbox);
 	}
       mu_mailbox_destroy (&smbox);

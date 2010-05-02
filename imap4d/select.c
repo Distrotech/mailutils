@@ -74,9 +74,9 @@ imap4d_select0 (struct imap4d_command *command, const char *mboxname,
 	{
 	  free (mailbox_name);
 	  /* Need to set the state explicitely for select.  */
-	  return util_send ("%s OK [%s] %s Completed\r\n", command->tag,
-			    (flags & MU_STREAM_READ)  ?
-			    "READ-ONLY" : "READ-WRITE", command->name);
+	  return util_send ("%s OK [%s] %s Completed\n", command->tag,
+			    ((flags & MU_STREAM_RDWR) == MU_STREAM_RDWR) ?
+			    "READ-WRITE" : "READ-ONLY", command->name);
 	}
     }
   
@@ -119,7 +119,7 @@ imap4d_select_status ()
   /* FIXME:
      - '\*' can be supported if we use the attribute_set userflag()
      - Answered is still not set in the mailbox code.  */
-  if (select_flags & MU_STREAM_READ)
+  if (!(select_flags & MU_STREAM_WRITE))
     util_out (RESP_OK, "[PERMANENTFLAGS ()] No Permanent flags");
   else
     util_out (RESP_OK, "[PERMANENTFLAGS (%s)] Permanent flags", pflags);

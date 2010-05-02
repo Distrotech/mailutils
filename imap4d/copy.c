@@ -52,7 +52,7 @@ imap4d_copy (struct imap4d_command *command, imap4d_tokbuf_t tok)
       int new_state = (rc == RESP_OK) ? command->success : command->failure;
       if (new_state != STATE_NONE)
 	state = new_state;
-      return util_send ("%s %s\r\n", command->tag, text);
+      return util_send ("%s %s\n", command->tag, text);
     }
   return util_finish (command, rc, "%s", text);
 }

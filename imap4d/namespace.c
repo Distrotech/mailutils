@@ -126,7 +126,7 @@ imap4d_namespace (struct imap4d_command *command, imap4d_tokbuf_t tok)
   print_namespace (NS_OTHER);
   util_send (" ");
   print_namespace (NS_SHARED);
-  util_send ("\r\n");
+  util_send ("\n");
 
   return util_finish (command, RESP_OK, "Completed");
 }

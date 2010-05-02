@@ -157,7 +157,7 @@ imap4d_store0 (imap4d_tokbuf_t tok, int isuid, char **ptext)
 		util_send ("UID %lu ", (unsigned long) msgno);
 	      util_send ("FLAGS (");
 	      util_print_flags (attr);
-	      util_send ("))\r\n");
+	      util_send ("))\n");
 	    }
 	  /* Update the flags of uid table.  */
 	  imap4d_sync_flags (pclos.set[i]);

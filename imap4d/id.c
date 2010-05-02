@@ -202,7 +202,7 @@ imap4d_id (struct imap4d_command *command, imap4d_tokbuf_t tok)
 	}
       mu_iterator_destroy (&itr);
       if (outcnt)
-	util_send (")\r\n");
+	util_send (")\n");
     }
   return util_finish (command, RESP_OK, "Completed");
 }

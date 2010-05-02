@@ -32,7 +32,7 @@ imap4d_idle (struct imap4d_command *command, imap4d_tokbuf_t tok)
   if (util_wait_input (0) == -1)
     return util_finish (command, RESP_NO, "Cannot idle");
 
-  util_send ("+ idling\r\n");
+  util_send ("+ idling\n");
   util_flush_output ();
 
   start = time (NULL);

@@ -202,7 +202,7 @@ extern int imap4d_transcript;
 extern mu_list_t imap4d_id_list;
 extern int imap4d_argc;                 
 extern char **imap4d_argv;
-  
+
 #ifndef HAVE_STRTOK_R
 extern char *strtok_r (char *s, const char *delim, char **save_ptr);
 #endif
@@ -334,6 +334,8 @@ extern int  util_send (const char *, ...) MU_PRINTFLIKE(1,2);
 extern int  util_send_bytes (const char *buf, size_t size);
 extern int  util_send_qstring (const char *);
 extern int  util_send_literal (const char *);
+extern int  util_copy_out (mu_stream_t str, size_t size);
+
 extern int  util_start (char *);
 extern int  util_finish (struct imap4d_command *, int, const char *, ...) 
                          MU_PRINTFLIKE(3,4);
