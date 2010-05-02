@@ -169,7 +169,11 @@ mu_filter_create (mu_stream_t *pstream, mu_stream_t stream, const char *name,
     return status;
 
   if (frec->newdata)
-    xdata = frec->newdata (NULL);
+    {
+      status = frec->newdata (&xdata, mode, NULL);
+      if (status)
+	return status;
+    }
 
   status = ((flags & MU_STREAM_WRITE) ? filter_create_wr : filter_create_rd)
                    (pstream, stream,
