@@ -240,6 +240,8 @@ _message_stream_readdelim (struct _mu_stream *str, char *buf, size_t bufsize,
       if (sp->state == _mss_eof)
 	break;
       rc = mu_stream_readdelim (sp->transport, buf, bufsize, delim, &n);
+      if (rc || n == 0)
+	break;
       nread += n;
       buf += n;
       bufsize -= n;

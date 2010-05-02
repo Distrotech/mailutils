@@ -934,8 +934,14 @@ int
 header_seek (mu_stream_t str, mu_off_t off, mu_off_t *presult)
 { 
   struct _mu_header_stream *hstr = (struct _mu_header_stream *) str;
-
-  if (off < 0 || off > hstr->hdr->size)
+  size_t size;
+  int status;
+    
+  status = mu_header_size (hstr->hdr, &size);
+  if (status)
+    return status;
+  
+  if (off < 0 || off > size)
     return ESPIPE;
   hstr->off = off;
   *presult = off;
