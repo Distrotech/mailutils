@@ -53,8 +53,9 @@ main (int argc, char * argv [])
   int flags = MU_STREAM_READ;
   char *input = NULL, *output = NULL;
   char *encoding = "base64";
-    
-  while ((c = getopt (argc, argv, "deE:hi:o:pvw")) != EOF)
+  mu_off_t shift = 0;
+  
+  while ((c = getopt (argc, argv, "deE:hi:o:ps:vw")) != EOF)
     switch (c)
       {
       case 'i':
@@ -80,6 +81,10 @@ main (int argc, char * argv [])
       case 'p':
  	printable = 1; /* FIXME: Not implemented */
 	break;
+
+      case 's':
+	shift = strtoul (optarg, NULL, 0); 
+	break;
 	
       case 'v':
 	verbose = 1;
@@ -98,7 +103,7 @@ main (int argc, char * argv [])
       }
 
   if (input)
-    MU_ASSERT (mu_file_stream_create (&in, input, MU_STREAM_READ));
+    MU_ASSERT (mu_file_stream_create (&in, input, MU_STREAM_READ|MU_STREAM_SEEK));
   else
     MU_ASSERT (mu_stdio_stream_create (&in, MU_STDIN_FD, 0));
   MU_ASSERT (mu_stream_open (in));
@@ -112,13 +117,18 @@ main (int argc, char * argv [])
 
   if (flags == MU_STREAM_READ)
     {
-      MU_ASSERT (mu_filter_create (&flt, in, encoding, mode, MU_STREAM_READ));
+      MU_ASSERT (mu_filter_create (&flt, in, encoding, mode,
+				   MU_STREAM_READ|MU_STREAM_SEEK));
+      if (shift)
+	MU_ASSERT (mu_stream_seek (flt, shift, MU_SEEK_SET, NULL));
       c_copy (out, flt);
     }
   else
     {
       MU_ASSERT (mu_filter_create (&flt, out, encoding, mode,
 				   MU_STREAM_WRITE));
+      if (shift)
+	MU_ASSERT (mu_stream_seek (in, shift, MU_SEEK_SET, NULL));
       c_copy (flt, in);
     }
       
