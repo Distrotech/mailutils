@@ -383,18 +383,22 @@ get_client_address (int fd, struct sockaddr_in *pcs)
   return 0;
 }
 
+void
+imap4d_child_signal_setup (RETSIGTYPE (*handler) (int signo))
+{
+  static int sigtab[] = { SIGILL, SIGBUS, SIGFPE, SIGSEGV, SIGSTOP, SIGPIPE,
+			  SIGABRT, SIGINT, SIGQUIT, SIGTERM, SIGHUP, SIGALRM };
+  mu_set_signals (handler, sigtab, MU_ARRAY_SIZE (sigtab));
+}
+
 static int
 imap4d_mainloop (int fd, FILE *infile, FILE *outfile)
 {
   imap4d_tokbuf_t tokp;
   char *text;
   int debug_mode = isatty (fd);
-  static int sigtab[] = { SIGILL, SIGBUS, SIGFPE, SIGSEGV, SIGSTOP, SIGPIPE,
-			  SIGABRT, SIGINT, SIGQUIT, SIGTERM, SIGHUP, SIGALRM };
 
-  /* Reset signals */
-  mu_set_signals (imap4d_child_signal, sigtab, MU_ARRAY_SIZE (sigtab));
-  
+  imap4d_child_signal_setup (imap4d_child_signal);
   util_setio (infile, outfile);
 
   if (imap4d_preauth_setup (fd) == 0)
