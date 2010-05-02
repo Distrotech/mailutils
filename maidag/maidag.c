@@ -518,7 +518,7 @@ main (int argc, char *argv[])
   maidag_cfg_init ();
   
   /* Parse command line */
-  mu_argp_init (program_version, NULL);
+  mu_argp_init (NULL, NULL);
 
   mu_m_server_create (&server, program_version);
   mu_m_server_set_conn (server, lmtp_connection);

@@ -33,7 +33,6 @@
 
 #include "mailcap.h"
 
-const char *program_version = "mimeview (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU mimeview -- display files, using mailcap mechanism.")
 "\v"     
 N_("Default mime.types file is ") DEFAULT_CUPS_CONFDIR "/mime.types"
@@ -281,7 +280,7 @@ main (int argc, char **argv)
   int index;
   
   MU_APP_INIT_NLS ();
-  mu_argp_init (program_version, NULL);
+  mu_argp_init (NULL, NULL);
   if (mu_app_init (&argp, capa, mimeview_cfg_param, 
 		   argc, argv, 0, &index, NULL))
     exit (1);

@@ -507,7 +507,7 @@ main (int argc, char **argv)
   mu_acl_cfg_init ();
   mu_m_server_cfg_init ();
   
-  mu_argp_init (program_version, NULL);
+  mu_argp_init (NULL, NULL);
 
   mu_m_server_create (&server, program_version);
   mu_m_server_set_conn (server, imap4d_connection);

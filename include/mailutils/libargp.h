@@ -75,6 +75,7 @@ void mu_argp_init (const char *vers, const char *bugaddr);
 int mu_app_init (struct argp *myargp, const char **capa,
 		 struct mu_cfg_param *cfg_param, 
 		 int argc, char **argv, int flags, int *pindex, void *data);
+extern void mu_program_version_hook (FILE *stream, struct argp_state *state);
 
 error_t mu_argp_parse (const struct argp *myargp, 
 		       int *pargc, char **pargv[],  

@@ -394,7 +394,7 @@ main (int argc, char **argv)
 #ifdef WITH_TLS
   mu_gocs_register ("tls", mu_tls_module_init);
 #endif
-  mu_argp_init (program_version, NULL);
+  mu_argp_init (NULL, NULL);
   if (mu_app_init (&argp, mail_capa, NULL, argc, argv, 0, NULL, &args))
     exit (1);
   

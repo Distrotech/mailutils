@@ -27,7 +27,6 @@
 #include <mailutils/mailutils.h>
 #include "mailutils/libargp.h"
 
-const char *program_version = "muauth (" PACKAGE_STRING ")";
 static char doc[] =
 "muauth -- test mailutils authentication and authorization schemes";
 static char args_doc[] = "key";
@@ -91,7 +90,7 @@ main (int argc, char * argv [])
   uid_t uid;
   
   MU_AUTH_REGISTER_ALL_MODULES ();
-  mu_argp_init (program_version, NULL);
+  mu_argp_init (NULL, NULL);
   if (mu_app_init (&argp, capa, NULL, argc, argv, 0, &index, NULL))
     exit (1);
 

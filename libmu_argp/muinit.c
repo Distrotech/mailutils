@@ -25,13 +25,48 @@
 #include <mailutils/stream.h>
 #include "xalloc.h"
 #include <string.h>
-
+#ifdef MU_ALPHA_RELEASE
+# include <git-describe.h>
+#endif
 struct mu_cfg_tree *mu_argp_tree;
+
+const char version_etc_copyright[] =
+  /* Do *not* mark this string for translation.  %s is a copyright
+     symbol suitable for this locale, and %d is the copyright
+     year.  */
+  "Copyright %s 2010 Free Software Foundation, inc.";
+
+void
+mu_program_version_hook (FILE *stream, struct argp_state *state)
+{
+#ifdef GIT_DESCRIBE
+  fprintf (stream, "%s (%s) %s [%s]\n",
+	   mu_program_name, PACKAGE_NAME, PACKAGE_VERSION, GIT_DESCRIBE);
+#else
+  fprintf (stream, "%s (%s) %s\n", mu_program_name,
+	   PACKAGE_NAME, PACKAGE_VERSION);
+#endif
+  /* TRANSLATORS: Translate "(C)" to the copyright symbol
+     (C-in-a-circle), if this symbol is available in the user's
+     locale.  Otherwise, do not translate "(C)"; leave it as-is.  */
+  fprintf (stream, version_etc_copyright, _("(C)"));
+
+  fputs (_("\
+\n\
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\nThis is free software: you are free to change and redistribute it.\n\
+There is NO WARRANTY, to the extent permitted by law.\n\
+\n\
+"),
+	 stream);
+}
 
 void
 mu_argp_init (const char *vers, const char *bugaddr)
 {
-  argp_program_version = vers ? vers : PACKAGE_STRING;
+  if (vers)
+    argp_program_version = vers;
+  else
+    argp_program_version_hook = mu_program_version_hook;
   argp_program_bug_address = bugaddr ? bugaddr : "<" PACKAGE_BUGREPORT ">";
 }
 

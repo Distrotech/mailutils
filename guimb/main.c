@@ -122,7 +122,6 @@ parse_opt (int key, char *arg, struct argp_state *state)
   return 0;
 }
 
-const char *program_version = "guimb (" PACKAGE_STRING ")";
 static char doc[] =
 N_("GNU guimb -- process contents of the specified mailboxes "
 "using a Scheme program or expression.");
@@ -161,7 +160,7 @@ main (int argc, char *argv[])
   /* Register the desired formats. */
   mu_register_all_formats ();
 
-  mu_argp_init (program_version, NULL);
+  mu_argp_init (NULL, NULL);
   if (mu_app_init (&argp, guimb_argp_capa, NULL, argc, argv, 0, &index, &c))
     exit (1);
 

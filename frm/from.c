@@ -23,7 +23,6 @@ int count_only;
 char *sender_option;
 char *mailbox_name;
 
-const char *program_version = "from (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU from -- display from and subject.");
 
 static struct argp_option options[] = {
@@ -120,7 +119,7 @@ main (int argc, char **argv)
   mu_gocs_register ("tls", mu_tls_module_init);
 #endif
 
-  mu_argp_init (program_version, NULL);
+  mu_argp_init (NULL, NULL);
   if (mu_app_init (&argp, capa, NULL, argc, argv, 0, &c, NULL))
     exit (1);
 
