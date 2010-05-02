@@ -149,8 +149,7 @@ _message_stream_size (struct _mu_stream *str, mu_off_t *psize)
 }
 
 static int
-_message_stream_seek (struct _mu_stream *str, mu_off_t off, int whence,
-		      mu_off_t *ppos)
+_message_stream_seek (struct _mu_stream *str, mu_off_t off, mu_off_t *ppos)
 {
   struct _mu_message_stream *sp = (struct _mu_message_stream *)str;
   size_t hsize, size;
@@ -163,25 +162,6 @@ _message_stream_seek (struct _mu_stream *str, mu_off_t off, int whence,
   mu_body_size (sp->msg->body, &size);
   size += hsize;
   
-  switch (whence)
-    {
-    case MU_SEEK_SET:
-      break;
-
-    case MU_SEEK_CUR:
-      {
-	mu_off_t cur;
-	rc = mu_stream_seek (sp->transport, 0, MU_SEEK_CUR, &cur);
-	if (rc)
-	  return rc;
-	off += cur;
-      }
-      break;
-
-    case MU_SEEK_END:
-      off += size;
-      break;
-    }
   if (off < 0 || off >= size)
     return ESPIPE;
 

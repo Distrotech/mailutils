@@ -47,7 +47,7 @@ struct _mu_stream
   int (*open) (struct _mu_stream *);
   int (*close) (struct _mu_stream *);
   void (*done) (struct _mu_stream *);
-  int (*seek) (struct _mu_stream *, mu_off_t, int, mu_off_t *);
+  int (*seek) (struct _mu_stream *, mu_off_t, mu_off_t *);
   int (*size) (struct _mu_stream *, mu_off_t *);
   int (*ctl) (struct _mu_stream *, int, void *);
   int (*wait) (struct _mu_stream *, int *, struct timeval *);

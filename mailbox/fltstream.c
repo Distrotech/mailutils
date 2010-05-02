@@ -313,12 +313,12 @@ filter_wr_flush (mu_stream_t stream)
   return rc;
 }
 
+/* FIXME: Seeks in the *transport* stream */
 static int
-filter_seek (struct _mu_stream *stream, mu_off_t off, int whence,
-	     mu_off_t *ppos)
+filter_seek (struct _mu_stream *stream, mu_off_t off, mu_off_t *ppos)
 {
   struct _mu_filter_stream *fs = (struct _mu_filter_stream *)stream;
-  return mu_stream_seek (fs->transport, off, whence, ppos);
+  return mu_stream_seek (fs->transport, off, MU_SEEK_SET, ppos);
 }
 
 static int

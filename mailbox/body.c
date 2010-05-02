@@ -44,7 +44,7 @@ static int _body_truncate (mu_stream_t, mu_off_t);
 static int _body_size     (mu_stream_t, mu_off_t *);
 static int _body_write    (mu_stream_t, const char *, size_t, size_t *);
 static int _body_ioctl    (mu_stream_t, int, void *);
-static int _body_seek     (mu_stream_t, mu_off_t, int, mu_off_t *);
+static int _body_seek     (mu_stream_t, mu_off_t, mu_off_t *);
 static const char *_body_error_string (mu_stream_t, int);
 
 /* Our own defaults for the body.  */
@@ -281,11 +281,11 @@ mu_body_set_size (mu_body_t body, int (*_size)(mu_body_t, size_t*) , void *owner
 /* Stub function for the body stream.  */
 
 static int
-_body_seek (mu_stream_t stream, mu_off_t off, int whence, mu_off_t *presult)
+_body_seek (mu_stream_t stream, mu_off_t off, mu_off_t *presult)
 {
   struct _mu_body_stream *str = (struct _mu_body_stream*) stream;
   mu_body_t body = str->body;
-  return mu_stream_seek (body->fstream, off, whence, presult);
+  return mu_stream_seek (body->fstream, off, MU_SEEK_SET, presult);
 }
 
 static const char *

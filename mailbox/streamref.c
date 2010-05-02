@@ -153,8 +153,7 @@ _streamref_done (struct _mu_stream *str)
 }
 
 static int
-_streamref_seek (struct _mu_stream *str, mu_off_t off, int whence,
-		 mu_off_t *ppos)
+_streamref_seek (struct _mu_stream *str, mu_off_t off, mu_off_t *ppos)
 {
   struct _mu_streamref *sp = (struct _mu_streamref *)str;
   mu_off_t cur = sp->offset - sp->start;
@@ -171,25 +170,6 @@ _streamref_seek (struct _mu_stream *str, mu_off_t off, int whence,
       size -= sp->start;
     }
   
-  switch (whence)
-    {
-    case MU_SEEK_SET:
-      break;
-
-    case MU_SEEK_CUR:
-      if (off == 0)
-	{
-	  *ppos = sp->offset - sp->start;
-	  return 0;
-	}
-      off += cur;
-      break;
-
-    case MU_SEEK_END:
-      off += size;
-      break;
-    }
-
   if (off < 0 || off >= size)
     return sp->stream.last_err = ESPIPE;
   rc = mu_stream_seek (sp->transport, sp->start + off, MU_SEEK_SET,

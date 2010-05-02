@@ -323,7 +323,7 @@ mu_stream_seek (mu_stream_t stream, mu_off_t offset, int whence,
     {
       if ((rc = _stream_flush_buffer (stream, 1)))
 	return rc;
-      rc = stream->seek (stream, offset, MU_SEEK_SET, &stream->offset);
+      rc = stream->seek (stream, offset, &stream->offset);
       if (rc)
 	return _stream_seterror (stream, rc, 1);
       _stream_cleareof (stream);

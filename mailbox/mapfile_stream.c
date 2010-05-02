@@ -312,25 +312,10 @@ _mapfile_open (mu_stream_t stream)
 }
 
 static int
-_mapfile_seek (struct _mu_stream *str, mu_off_t off, int whence, mu_off_t *presult)
+_mapfile_seek (struct _mu_stream *str, mu_off_t off, mu_off_t *presult)
 { 
   struct _mu_mapfile_stream *mfs = (struct _mu_mapfile_stream *) str;
   
-  /* FIXME */
-  switch (whence)
-    {
-    case MU_SEEK_SET:
-      break;
-
-    case MU_SEEK_CUR:
-      off += mfs->offset;
-      break;
-
-    case MU_SEEK_END:
-      off += mfs->size;
-      break;
-    }
-
   if (off < 0 || off >= mfs->size)
     return ESPIPE;
   mfs->offset = off;

@@ -166,24 +166,9 @@ _memory_ioctl (struct _mu_stream *stream, int code, void *ptr)
 }
 
 static int
-_memory_seek (struct _mu_stream *stream, mu_off_t off, int whence,
-	      mu_off_t *presult)
+_memory_seek (struct _mu_stream *stream, mu_off_t off, mu_off_t *presult)
 { 
   struct _mu_memory_stream *mfs = (struct _mu_memory_stream *) stream;
-  
-  switch (whence)
-    {
-    case MU_SEEK_SET:
-      break;
-
-    case MU_SEEK_CUR:
-      off += mfs->offset;
-      break;
-
-    case MU_SEEK_END:
-      off += mfs->size;
-      break;
-    }
 
   if (off < 0)
     return ESPIPE;
