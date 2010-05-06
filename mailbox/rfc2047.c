@@ -51,6 +51,7 @@ getword (char **pret, const char **pstr, int delim)
   const char *end = strchr (start, delim);
 
   free (*pret);
+  *pret = NULL;
   if (!end)
     return MU_ERR_BAD_2047_INPUT;
   len = end - start;
