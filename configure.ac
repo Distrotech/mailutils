@@ -306,16 +306,6 @@ if test "$WITH_GNUTLS" != "no"; then
   AC_DEFINE(WITH_TLS,1,[Define if mailutils is using TLS])
 fi
 
-AC_ARG_WITH([guile],
-            AC_HELP_STRING([--without-guile],
-                           [do not build guile interface]),
-            [
-case "${withval}" in
-  yes) useguile=yes ;;
-  no)  useguile=no ;;
-  *)   AC_MSG_ERROR(bad value ${withval} for --without-guile) ;;
-esac],[useguile=yes])
-
 AC_SUBST(SITE_MAIL_RC)
 AC_ARG_WITH([mail-rc],
             AC_HELP_STRING([--with-mail-rc=FILE],
@@ -1078,19 +1068,17 @@ AC_SUBST([LIBMU_SCM])
 AC_SUBST([LIBMU_SCM_DEPS])
 AC_SUBST([MU_GUILE_SIEVE_MOD_DIR])
 AC_SUBST([MU_GUILE_SIEVE_MOD_DATA])
-if test "$useguile" != "no"; then
-  GINT_INIT([gint],[1.8],
-	    [useguile=yes
-   	     AC_DEFINE([WITH_GUILE],1,[Enable Guile support])
-             GUILE_BINDIR=`guile-config info bindir`
-             LIBMU_SCM=../libmu_scm/libmu_scm.la
-             LIBMU_SCM_DEPS='${MU_LIB_MBOX} ${MU_LIB_IMAP} ${MU_LIB_POP} ${MU_LIB_MH} ${MU_LIB_MAILDIR} ${MU_LIB_MAILER}'
-             MU_GUILE_SIEVE_MOD_DIR='$(GUILE_SITE)/$(PACKAGE)/sieve-modules'
-             MU_GUILE_SIEVE_MOD_DATA='$(MU_GUILE_SIEVE_MOD_DATA_X)'
-             GINT_INCLUDES='${MU_APP_COMMON_INCLUDES}'
-             GINT_LDADD=../lib/libmuaux.la
-            ],[useguile=no])
-fi
+GINT_INIT([gint],[1.8 with-guile],
+	  [useguile=yes
+ 	   AC_DEFINE([WITH_GUILE],1,[Enable Guile support])
+           GUILE_BINDIR=`guile-config info bindir`
+           LIBMU_SCM=../libmu_scm/libmu_scm.la
+           LIBMU_SCM_DEPS='${MU_LIB_MBOX} ${MU_LIB_IMAP} ${MU_LIB_POP} ${MU_LIB_MH} ${MU_LIB_MAILDIR} ${MU_LIB_MAILER}'
+           MU_GUILE_SIEVE_MOD_DIR='$(GUILE_SITE)/$(PACKAGE)/sieve-modules'
+           MU_GUILE_SIEVE_MOD_DATA='$(MU_GUILE_SIEVE_MOD_DATA_X)'
+           GINT_INCLUDES='${MU_APP_COMMON_INCLUDES}'
+           GINT_LDADD=../lib/libmuaux.la
+          ],[useguile=no])
 
 AM_CONDITIONAL([MU_COND_LIBMU_SCM],[test "$useguile" = "yes"])
 
