@@ -197,3 +197,6 @@ int mh_argp_parse (int *argc, char **argv[],
 
 void mh_help (struct mh_option *mh_option, const char *doc);
 void mh_license (const char *name);
+
+void mh_opt_notimpl (const char *name);
+void mh_opt_notimpl_warning (const char *name);

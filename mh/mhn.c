@@ -334,6 +334,7 @@ opt_handler (int key, char *arg, struct argp_state *state)
       /* Display options */
 
     case ARG_SERIALONLY:
+      mh_opt_notimpl_warning ("-[no]serialonly");
       if (is_true (arg))
 	{
 	  mode_options |= OPT_SERIALONLY;

@@ -140,9 +140,9 @@ opt_handler (int key, char *arg, struct argp_state *state)
       
     case ARG_WHATNOWPROC:
     case ARG_NOWHATNOWPROC:
-      argp_error (state, _("option is not yet implemented"));
-      exit (1);
-      
+      mh_opt_notimpl ("-[no]whatnowproc");
+      break;
+
     case ARG_LICENSE:
       mh_license (argp_program_version);
       break;

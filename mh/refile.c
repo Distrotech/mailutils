@@ -168,6 +168,7 @@ opt_handler (int key, char *arg, struct argp_state *state)
       break;
       
     case ARG_PRESERVE:
+      mh_opt_notimpl_warning ("-preserve");
       preserve_flag = is_true(arg);
       break;
 	

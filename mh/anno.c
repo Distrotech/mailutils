@@ -69,10 +69,12 @@ opt_handler (int key, char *arg, struct argp_state *state)
       break;
 
     case ARG_INPLACE:
+      mh_opt_notimpl_warning ("-inplace");
       inplace = is_true (arg);
       break;
 
     case ARG_NOINPLACE:
+      mh_opt_notimpl_warning ("-noinplace");
       inplace = 0;
       break;
 

@@ -134,7 +134,7 @@ opt_handler (int key, char *arg, struct argp_state *state)
       break;
       
     case ARG_FILE:
-      argp_error (state, _("Option is not yet implemented"));
+      mh_opt_notimpl ("-file");
       break;
       
     case ARG_LICENSE:

@@ -28,8 +28,7 @@
 
 const char *program_version = "ali (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU MH ali")"\v"
-N_("Options marked with `*' are not yet implemented.\n"
-"Use -help to obtain the list of traditional MH options.");
+N_("Use -help to obtain the list of traditional MH options.");
 static char args_doc[] = N_("aliases ...");
 
 /* GNU options */

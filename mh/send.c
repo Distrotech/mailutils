@@ -170,30 +170,40 @@ opt_handler (int key, char *arg, struct argp_state *state)
       break;
       
     case ARG_FILTER:
+      mh_opt_notimpl ("-filter");
+      break;
+
     case ARG_NOFILTER:
-      return 1;
-      
+      mh_opt_notimpl ("-nofilter");
+      break;
+ 
     case ARG_FORMAT:
+      mh_opt_notimpl_warning ("-format"); 
       reformat_recipients = is_true (arg);
       break;
       
     case ARG_NOFORMAT:
+      mh_opt_notimpl_warning ("-noformat"); 
       reformat_recipients = 0;
       break;
       
     case ARG_FORWARD:
+      mh_opt_notimpl_warning ("-forward");
       forward_notice = is_true (arg);
       break;
       
     case ARG_NOFORWARD:
+      mh_opt_notimpl_warning ("-noforward");
       forward_notice = 0;
       break;
       
     case ARG_MIME:
+      mh_opt_notimpl_warning ("-mime");
       mime_encaps = is_true (arg);
       break;
       
     case ARG_NOMIME:
+      mh_opt_notimpl_warning ("-nomime");
       mime_encaps = 0;
       break;
       
@@ -244,6 +254,7 @@ opt_handler (int key, char *arg, struct argp_state *state)
       break;
       
     case ARG_WIDTH:
+      mh_opt_notimpl_warning ("-width");
       width = strtoul (arg, &p, 10);
       if (*p)
 	{

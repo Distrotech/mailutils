@@ -150,3 +150,16 @@ mh_help (struct mh_option *mh_opt, const char *doc)
             "Run %s --help for more info on these.\n"),
             mu_program_name);
 }
+
+void
+mh_opt_notimpl (const char *name)
+{
+  mu_error (_("option is not yet implemented: %s"), name);
+  exit (1);
+}
+
+void
+mh_opt_notimpl_warning (const char *name)
+{
+  mu_error (_("ignoring not implemented option %s"), name);
+}
