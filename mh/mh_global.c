@@ -73,6 +73,8 @@ mh_read_profile ()
   profile = mh_context_create (p, 1);
   mh_context_read (profile);
 
+  mu_set_folder_directory (mh_get_dir ());
+
   mh_set_reply_regex (mh_global_profile_get ("Reply-Regex", NULL));
   fallback = mh_global_profile_get ("Decode-Fallback", NULL);
   if (fallback && mu_set_default_fallback (fallback))
@@ -88,7 +90,6 @@ _mh_init_global_context ()
   
   if (context)
     return;
-  mu_set_folder_directory (mh_get_dir ());
   p = getenv ("CONTEXT");
   if (!p)
     p = MH_CONTEXT_FILE;
