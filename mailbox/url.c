@@ -952,7 +952,7 @@ mu_url_init (mu_url_t url, int port, const char *scheme)
 static char *
 _url_path_default (const char *spooldir, const char *user, int unused)
 {
-  char *mbox = malloc (sizeof(spooldir) + strlen(user) + 2);
+  char *mbox = malloc (strlen (spooldir) + strlen (user) + 2);
   if (!mbox)
     errno = ENOMEM;
   else
