@@ -109,7 +109,7 @@ mu_mysql_connect (mu_sql_connection_t conn)
 			  conn->dbname,
 			  conn->port,
 			  socket_name,
-			  0))
+			  CLIENT_MULTI_RESULTS))
     return MU_ERR_SQL;
   
   return 0;
