@@ -37,13 +37,17 @@ const char *program_version = "movemail (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU movemail -- move messages across mailboxes.");
 static char args_doc[] = N_("inbox-url destfile [POP-password]");
 
-#define OPT_EMACS 256
+enum {
+  EMACS_OPTION=256,
+  IGNORE_ERRORS_OPTION,
+  PROGRAM_ID_OPTION
+};
 
 static struct argp_option options[] = {
   { "preserve", 'p', NULL, 0, N_("preserve the source mailbox") },
   { "keep-messages", 0, NULL, OPTION_ALIAS, NULL },
   { "reverse",  'r', NULL, 0, N_("reverse the sorting order") },
-  { "emacs", OPT_EMACS, NULL, 0,
+  { "emacs", EMACS_OPTION, NULL, 0,
     N_("output information used by Emacs rmail interface") },
   { "uidl", 'u', NULL, 0,
     N_("use UIDLs to avoid downloading the same message twice") },
@@ -51,6 +55,10 @@ static struct argp_option options[] = {
     N_("increase verbosity level") },
   { "owner", 'P', N_("MODELIST"), 0,
     N_("control mailbox ownership") },
+  { "ignore-errors", IGNORE_ERRORS_OPTION, NULL, 0,
+    N_("try to continue after errors") },
+  { "program-id", PROGRAM_ID_OPTION, N_("FMT"), 0,
+    N_("set program identifier for diagnostics (default: program name)") },
   { NULL,      0, NULL, 0, NULL, 0 }
 };
 
@@ -59,6 +67,8 @@ static int preserve_mail;
 static int emacs_mode;
 static int uidl_option;
 static int verbose_option;
+static int ignore_errors;
+static char *program_id_option;
 
 enum set_ownership_mode
   {
@@ -135,10 +145,18 @@ parse_opt (int key, char *arg, struct argp_state *state)
       verbose_option++;
       break;
       
-    case OPT_EMACS:
+    case EMACS_OPTION:
       mu_argp_node_list_new (lst, "emacs", "yes");
       break;
 
+    case IGNORE_ERRORS_OPTION:
+      mu_argp_node_list_new (lst, "ignore-errors", "yes");
+      break;
+
+    case PROGRAM_ID_OPTION:
+      mu_argp_node_list_new (lst, "program-id", arg);
+      break;
+      
     case ARGP_KEY_INIT:
       mu_argp_node_list_init (&lst);
       break;
@@ -298,6 +316,10 @@ struct mu_cfg_param movemail_cfg_param[] = {
     N_("Use UIDLs to avoid downloading the same message twice.") },
   { "verbose", mu_cfg_int, &verbose_option, 0, NULL,
     N_("Set verbosity level.") },
+  { "ignore-errors", mu_cfg_bool, &ignore_errors, 0, NULL,
+    N_("Continue after an error.") },
+  { "program-id", mu_cfg_string, &program_id_option, 0, NULL,
+    N_("Set program identifier string (default: program name)") },
   { "mailbox-ownership", mu_cfg_callback, NULL, 0,
     cb_mailbox_ownership,
     N_("Define a list of methods for setting mailbox ownership. Valid "
@@ -633,26 +655,70 @@ _compare_uidls (const void *item, const void *value)
   return strcmp (a->uidl, b->uidl);
 }
 
-static int
-_compare_msgno (const void *item, const void *value)
-{
-  const struct mu_uidl *a = item;
-  const struct mu_uidl *b = value;
-
-  if (a->msgno < b->msgno)
-    return -1;
-  if (a->msgno > b->msgno)
-    return 1;
-  return 0;
+#define __cat2__(a,b) a ## b
+#define DCL_VTX(what)						\
+static int							\
+ __cat2__(_vtx_,what) (const char *name, void *data, char **p)	\
+{								\
+  mu_url_t url = data;			                        \
+  int rc = __cat2__(mu_url_aget_,what) (url, p);                \
+  if (rc == MU_ERR_NOENT)	                                \
+    {                                                           \
+      *p = strdup ("");						\
+      return 0;                                                 \
+    }                                                           \
+  return rc;                                                    \
 }
 
-static int
-msgno_in_list (mu_list_t list, size_t num)
+DCL_VTX (host)
+DCL_VTX (user)
+DCL_VTX (path)
+
+static void
+set_program_id (const char *source_name, const char *dest_name)
 {
-  struct mu_uidl t;
-  t.msgno = num;
-  return mu_list_locate (list, &t, NULL) == 0;
-}  
+  int rc;
+  mu_vartab_t vtab;
+  char *id;
+  mu_url_t url;
+      
+  mu_vartab_create (&vtab);
+  mu_vartab_define (vtab, "progname", mu_program_name, 1);
+  mu_vartab_define (vtab, "source", source_name, 1);
+  rc = mu_mailbox_get_url (source, &url);
+  if (rc)
+    mu_diag_output (MU_DIAG_INFO,
+		    _("cannot obtain source mailbox URL: %s"),
+		    mu_strerror (rc));
+  else
+    {
+      mu_vartab_define_exp (vtab, "source:user", _vtx_user, NULL, url);
+      mu_vartab_define_exp (vtab, "source:host", _vtx_host, NULL, url);
+      mu_vartab_define_exp (vtab, "source:path", _vtx_path, NULL, url);
+    }
+      
+  mu_vartab_define (vtab, "dest", dest_name, 1);
+  rc = mu_mailbox_get_url (dest, &url);
+  if (rc)
+    mu_diag_output (MU_DIAG_INFO,
+		    _("cannot obtain destination mailbox URL: %s"),
+		    mu_strerror (rc));
+  else
+    {
+      mu_vartab_define_exp (vtab, "dest:user", _vtx_user, NULL, url);
+      mu_vartab_define_exp (vtab, "dest:host", _vtx_host, NULL, url);
+      mu_vartab_define_exp (vtab, "dest:path", _vtx_path, NULL, url);
+    }
+      
+  rc = mu_vartab_expand (vtab, program_id_option, &id);
+  mu_vartab_destroy (&vtab);
+  /*      asprintf (&id, "%s: %s", mu_program_name, s);
+	  free (s);*/
+  /* FIXME: Don't use mu_set_program_name here, because it
+     plays wise with its argument. We need a mu_set_diag_prefix
+     function. */
+  mu_program_name = id;
+}
 
 int
 main (int argc, char **argv)
@@ -660,6 +726,7 @@ main (int argc, char **argv)
   int index;
   size_t i, total;
   int rc = 0;
+  int errs = 0;
   char *source_name, *dest_name;
   int flags;
   mu_list_t src_uidl_list = NULL;
@@ -707,6 +774,9 @@ main (int argc, char **argv)
   
   open_mailbox (&dest, dest_name, MU_STREAM_RDWR | MU_STREAM_CREAT, NULL);
 
+  if (program_id_option)
+    set_program_id (source_name, dest_name);
+
   rc = mu_mailbox_messages_count (source, &total);
   if (rc)
     {
@@ -745,43 +815,67 @@ main (int argc, char **argv)
 	}
       mu_iterator_destroy (&itr);
       mu_list_destroy (&dst_uidl_list);
-      mu_list_set_comparator (src_uidl_list, _compare_msgno);
+      mu_list_set_comparator (src_uidl_list, NULL);
     }
-  
-  if (reverse_order)
+
+  /* FIXME: Implementing a mailbox iterator would allow to merge the three
+     branches of this conditional. */
+  if (src_uidl_list)
+    {
+      mu_iterator_t itr;
+
+      rc = mu_list_get_iterator (src_uidl_list, &itr);
+      if (rc)
+	{
+	  mu_error(_("cannot get iterator: %s"), mu_strerror (rc));
+	  exit (1);
+	}
+      rc = mu_iterator_ctl (itr, mu_itrctl_set_direction, &reverse_order);
+      if (rc)
+	{
+	  mu_error(_("cannot set iteration direction: %s"), mu_strerror (rc));
+	  exit (1);
+	}
+      for (mu_iterator_first (itr); !mu_iterator_is_done (itr);
+	   mu_iterator_next (itr))
+	{
+	  struct mu_uidl *uidl;
+	      
+	  mu_iterator_current (itr, (void **)&uidl);
+	  rc = move_message (source, dest, uidl->msgno);
+	  if (rc == 0)
+	    msg_count++;
+	  else if (!ignore_errors)
+	    break;
+	  else
+	    errs = 1;
+	}
+      mu_iterator_destroy (&itr);
+    }
+  else if (reverse_order)
     {
       for (i = total; i > 0; i--)
 	{
-	  if (src_uidl_list && !msgno_in_list (src_uidl_list, i))
-	    {
-	      if (verbose_option > 1)
-		mu_diag_output (MU_DIAG_INFO, _("ignoring message %lu"),
-				(unsigned long) i);
-	      continue;
-	    }
 	  rc = move_message (source, dest, i);
 	  if (rc == 0)
 	    msg_count++;
-	  else
+	  else if (!ignore_errors)
 	    break;
+	  else
+	    errs = 1;
 	}
     }
   else
     {
       for (i = 1; i <= total; i++)
 	{
-	  if (src_uidl_list && !msgno_in_list (src_uidl_list, i))
-	    {
-	      if (verbose_option > 1)
-		mu_diag_output (MU_DIAG_INFO, _("ignoring message %lu"),
-				(unsigned long) i);
-	      continue;
-	    }
 	  rc = move_message (source, dest, i);
 	  if (rc == 0)
 	    msg_count++;
-	  else
+	  else if (!ignore_errors)
 	    break;
+	  else
+	    errs = 1;
 	}
     }
   
@@ -791,7 +885,7 @@ main (int argc, char **argv)
 		    (unsigned long) msg_count);
   
   if (rc)
-    return rc;
+    return !!rc;
   
   mu_mailbox_sync (dest);
   rc = mu_mailbox_close (dest);
@@ -804,5 +898,5 @@ main (int argc, char **argv)
   mu_mailbox_close (source);
   mu_mailbox_destroy (&source);
 
-  return rc;
+  return !(rc == 0 && errs == 0);
 }

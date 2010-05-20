@@ -4369,7 +4369,7 @@ intended as a replacement for @command{movemail} from GNU Emacs. The
 module. @xref{Rmail,,,emacs,Reading Mail with Rmail}, for detailed
 description of @code{Rmail} interface.
 
-Mailutils version of @command{movemail} is completely
+Mailutils version of @command{movemail} is fully
 backward-compatible with its Emacs predecessor, so it should run
 flawlessly with older versions of Emacs. Emacs versions
 starting from 22.1 contain improved @code{Rmail} interface and
@@ -4399,6 +4399,57 @@ If @var{bool} is @samp{true}, reverse message sorting order.
 
 @deffn {Movemail Config} emacs @var{bool}
 If @var{bool} is @samp{true}, output information used by Emacs rmail interface.
+@end deffn
+
+@deffn {Movemail Config} ignore-erros @var{bool}
+Continue moving messages after errors.  By default,
+@command{mailfromd} exits immediately if it cannot copy a message.
+@end deffn
+
+@deffn {Movemail Config} program-id @var{fmt}
+Set program identifier, i.e. a string which will prefix all
+diagnostic messages issued by the program.  By default, program
+name is used.
+
+The @var{fmt} is a format string that may contain references to the
+following macro variables (@FIXME-pxref{macro-variables}):
+
+@table @code
+@item progname
+The program name.
+
+@item source
+URL of the source mailbox.
+
+@item source:user
+User part of the source mailbox URL.
+
+@item source:host
+Host part of the source mailbox URL.
+
+@item source:path
+Path part of the source mailbox URL.
+
+@item dest
+URL of the destination mailbox
+
+@item dest:user
+User part of the destination mailbox URL.
+
+@item dest:host
+Host part of the destination mailbox URL.
+
+@item dest:path
+Path part of the destination mailbox URL.
+@end table
+
+Setting @code{program-id} may be necessary if several @code{movemail}
+instances are run simultaneously (e.g. invoked from a script) to
+discern between the instances.  For example:
+
+@smallexample
+program-id "$@{progname@}: $@{source@} => $@{dest@}"
+@end smallexample
 @end deffn
 
 @deffn {Movemail Config} uidl @var{bool}
@@ -4494,10 +4545,17 @@ Following is the summary of available command line options:
 @item --emacs
 Output information used by Emacs rmail interface
 
+@item --ignore-errors
+Continue moving messages after an error occurs.
+
 @item -p
 @itemx --preserve
 @itemx --keep-messages
 Preserve the source mailbox
+
+@item --program-id=@var{fmt}
+Set program identifier for diagnostic purposes.  See @ref{Movemail
+Configuration,program-id}, for a detailed discussion of this feature. 
 
 @item -r
 @itemx --reverse
