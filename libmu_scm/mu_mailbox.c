@@ -523,6 +523,26 @@ SCM_DEFINE_PUBLIC (scm_mu_mailbox_more_messages_p, "mu-mailbox-more-messages?", 
 }
 #undef FUNC_NAME
 
+SCM_DEFINE_PUBLIC (scm_mu_mailbox_get_size, "mu-mailbox-get-size", 1, 0, 0,
+		   (SCM mbox),
+		   "Return size of the mailbox @var{mbox}.")
+#define FUNC_NAME s_scm_mu_mailbox_get_size
+{
+  struct mu_mailbox *mum;
+  int status;
+  mu_off_t size;
+  
+  SCM_ASSERT (mu_scm_is_mailbox (mbox), mbox, SCM_ARG1, FUNC_NAME);
+  mum = (struct mu_mailbox *) SCM_CDR (mbox);
+  status = mu_mailbox_get_size (mum->mbox, &size);
+  if (status)
+    mu_scm_error (FUNC_NAME, status,
+		  "~A: cannot determine mailbox size: ~A",
+		  scm_list_2 (mbox,
+			      scm_from_locale_string (mu_strerror (status))));
+  return scm_from_uintmax (size);
+}
+
 /* Initialize the module */
 void
 mu_scm_mailbox_init ()
