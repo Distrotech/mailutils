@@ -78,6 +78,7 @@ msg_send_LDADD =\
  @MU_AUTHLIBS@\
  ${MU_LIB_MAILUTILS}
 
+mta_CPPFLAGS=-I${top_srcdir}/lib -I${top_builddir}/lib
 mta_LDADD =\
  ../lib/libmuaux.la\
  ${MU_LIB_MBOX}\
