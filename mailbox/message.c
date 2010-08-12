@@ -105,7 +105,18 @@ mu_message_destroy (mu_message_t *pmsg, void *owner)
       int destroy_lock = 0;
 
       mu_monitor_wrlock (monitor);
-      msg->ref--;
+      /* Note: msg->ref may be incremented by mu_message_ref without
+	 additional checking for its owner, therefore decrementing
+	 it must also occur independently of the owner checking. Due
+	 to this inconsistency ref may reach negative values, which
+	 is very unfortunate.
+
+	 The `owner' stuff is a leftover from older mailutils versions.
+	 There is an ongoing attempt to remove it in the stream-cleanup
+	 branch. When it is ready, it will be merged to the HEAD and this
+	 will finally resolve this issue. */
+      if (msg->ref > 0)
+	msg->ref--;
       if ((msg->owner && msg->owner == owner)
 	  || (msg->owner == NULL && msg->ref <= 0))
 	{
@@ -155,8 +166,8 @@ mu_message_destroy (mu_message_t *pmsg, void *owner)
 	     if (msg->floating_mailbox && msg->mailbox)
 	     mu_mailbox_destroy (&(msg->mailbox));
 	  */
-
-	  if (msg->ref == 0)
+	  
+	  if (msg->ref <= 0)
 	    free (msg);
 	}
       mu_monitor_unlock (monitor);

@@ -69,6 +69,7 @@ mu_authority_destroy (mu_authority_t *pauthority, void *owner)
       if (authority->owner == owner)
 	{
 	  mu_ticket_destroy (&authority->ticket);
+	  mu_list_destroy (&authority->auth_methods);
 	  free (authority);
 	}
       *pauthority = NULL;

@@ -224,8 +224,11 @@ mu_rfc2047_decode (const char *tocode, const char *input, char **ptostr)
   free (fromcode);
   free (encoding_type);
   free (encoded_text);
-  
-  *ptostr = realloc (buffer, bufpos);
+
+  if (status)
+    free (buffer);
+  else
+    *ptostr = realloc (buffer, bufpos);
   return status;
 }
 

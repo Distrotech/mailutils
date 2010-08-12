@@ -930,7 +930,8 @@ mu_mime_get_num_parts (mu_mime_t mime, size_t *nmtp_parts)
 {
   int             ret = 0;
 
-  if (mime->nmtp_parts == 0 || mime->flags & MIME_PARSER_ACTIVE)
+  if ((mime->nmtp_parts == 0 && !mime->boundary)
+      || mime->flags & MIME_PARSER_ACTIVE)
     {
       if (mu_mime_is_multipart (mime))
 	{

@@ -701,6 +701,7 @@ static void
 destroy_dotlock (mu_locker_t locker)
 {
   free (locker->data.dot.dotlock);
+  free (locker->data.dot.nfslock);
 }
 
 #ifndef MAXHOSTNAMELEN
@@ -721,7 +722,7 @@ lock_dotlock (mu_locker_t locker, enum mu_locker_mode mode)
     {
       unlink (locker->data.dot.nfslock);
       free (locker->data.dot.nfslock);
-      locker->data.dot.nfslock = 0;
+      locker->data.dot.nfslock = NULL;
     }
 
   expire_stale_lock (locker);
