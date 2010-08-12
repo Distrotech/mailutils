@@ -177,7 +177,7 @@ void
 message_display_parts (mu_message_t msg, int indent)
 {
   int ret, j;
-  size_t nparts, nsubparts;
+  size_t nparts;
   mu_message_t part;
   mu_header_t hdr;
   mu_stream_t str;
@@ -239,7 +239,6 @@ message_display_parts (mu_message_t msg, int indent)
           printf ("%*.*sEncapsulated message : %s\t%s\n",
                   indent, indent, "", from, subject);
           printf ("%*.*sBegin\n", indent, indent, "");
-          MU_ASSERT (mu_message_get_num_parts (part, &nsubparts));
           message_display_parts (part, indent + indent_level);
           mu_message_destroy (&part, NULL);
         }
