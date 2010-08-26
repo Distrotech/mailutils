@@ -541,7 +541,10 @@ expand_arg (const char *cmdline, struct run_closure *rp, char **s)
 	addr.s_addr = htonl (addr.s_addr);
 	mu_vartab_define (vtab, "address", inet_ntoa (addr), 0);
 	if (mu_asprintf (&p, "%hu", ntohs (s_in->sin_port)) == 0)
-	  mu_vartab_define (vtab, "port", p, 0);
+	  {
+	    mu_vartab_define (vtab, "port", p, 0);
+	    free (p);
+	  }
       }
       break;
       
