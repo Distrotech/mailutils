@@ -197,7 +197,7 @@ _base64_encoder (void *xd MU_ARG_UNUSED,
       break;
     }
   
-  if (isize <= 3)
+  if (iobuf->isize <= 3)
     {
       if (cmd == mu_filter_lastbuf)
 	pad = 1;

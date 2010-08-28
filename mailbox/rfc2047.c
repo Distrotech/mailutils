@@ -271,7 +271,7 @@ mu_rfc2047_encode (const char *charset, const char *encoding,
     return rc;
   
   mu_stream_write (input_stream, text, strlen (text), NULL);
-
+  mu_stream_seek (input_stream, 0, MU_SEEK_SET, NULL);
   rc = mu_filter_create (&output_stream, input_stream,
 			 encoding, MU_FILTER_ENCODE, MU_STREAM_READ);
   if (rc == 0)
