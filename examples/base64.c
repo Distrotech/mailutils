@@ -35,13 +35,51 @@ int printable = 0;
 static void
 c_copy (mu_stream_t out, mu_stream_t in)
 {
-  MU_ASSERT (mu_stream_copy (out, in, 0));
+  if (printable)
+    {
+      char c;
+      size_t size;
+      
+      while (mu_stream_read (in, &c, 1, &size) == 0 && size > 0)
+	{
+	  int rc;
+	  
+	  if (printable && !ISPRINT (c))
+	    {
+	      char outbuf[24];
+	      sprintf (outbuf, "\\%03o", (unsigned char) c);
+	      rc = mu_stream_write (out, outbuf, strlen (outbuf), NULL);
+	    }
+	  else
+	    rc = mu_stream_write (out, &c, 1, NULL);
+	}
+    }
+  else
+    MU_ASSERT (mu_stream_copy (out, in, 0));
+  mu_stream_write (out, "\n", 1, NULL);
   mu_stream_close (out);
   mu_stream_close (in);
   if (verbose)
     fprintf (stderr, "\ntotal: %lu/%lu bytes\n",
 	     (unsigned long) mu_stream_bytes_in (in),
 	     (unsigned long) mu_stream_bytes_out (out));
+}
+
+/* Set the maximum line length for the filter NAME to LENGTH.
+   FIXME: This is a kludge. Perhaps API should provide a function
+   for that. */
+static void
+reset_line_length (const char *name, size_t length)
+{
+  mu_list_t list;
+  int status;
+  mu_filter_record_t frec;
+  
+  mu_filter_get_list (&list);
+  status = mu_list_locate (list, (void*)name, (void**)&frec);
+  if (status == 0)
+    frec->max_line_length = length;
+  /* don't bail out, leave that to mu_filter_create */
 }
 
 int
@@ -54,8 +92,10 @@ main (int argc, char * argv [])
   char *input = NULL, *output = NULL;
   char *encoding = "base64";
   mu_off_t shift = 0;
+  size_t line_length;
+  int line_length_option = 0;
   
-  while ((c = getopt (argc, argv, "deE:hi:o:ps:vw")) != EOF)
+  while ((c = getopt (argc, argv, "deE:hi:l:o:ps:vw")) != EOF)
     switch (c)
       {
       case 'i':
@@ -78,8 +118,13 @@ main (int argc, char * argv [])
 	mode = MU_FILTER_ENCODE;
 	break;
 
+      case 'l':
+	line_length = strtoul (optarg, NULL, 10);
+	line_length_option = 1;
+	break;
+	
       case 'p':
- 	printable = 1; /* FIXME: Not implemented */
+ 	printable = 1;
 	break;
 
       case 's':
@@ -115,6 +160,9 @@ main (int argc, char * argv [])
     MU_ASSERT (mu_stdio_stream_create (&out, MU_STDOUT_FD, 0));
   MU_ASSERT (mu_stream_open (out));
 
+  if (line_length_option)
+    reset_line_length (encoding, line_length);
+  
   if (flags == MU_STREAM_READ)
     {
       MU_ASSERT (mu_filter_create (&flt, in, encoding, mode,
