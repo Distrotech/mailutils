@@ -298,7 +298,7 @@ _msg_stream_setup (mu_message_t msg, mbox_message_t mum)
   status = mu_streamref_create_abridged (&stream,
 					 mum->mud->mailbox->stream,
 					 mum->envel_from_end,
-					 mum->body_end);
+					 mum->body_end - 1);
   if (status == 0)
     status = mu_message_set_stream (msg, stream, mum);
   return status;
@@ -1272,16 +1272,6 @@ mbox_expunge_unlocked (mu_mailbox_t mailbox, size_t dirty, int remove_deleted,
 	      return status;
 	    }
 	}
-
-      status = mu_stream_write (tempstr, "\n", 1, NULL);
-      if (status)
-	{
-	  mu_error (_("%s:%d: error writing to temporary stream: %s"),
-		    __FILE__, __LINE__,
-		    mu_strerror (status));
-	  return status;
-	}
-
     }
 
   /* Caution: before moving data back to the mailbox see
