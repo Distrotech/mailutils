@@ -88,7 +88,7 @@ mu_base64_decode (const unsigned char *input, size_t input_len,
 	  || input[2] > 127 || ((input[2] != '=') && (b64val[input[2]] == -1))
 	  || input[3] > 127 || ((input[3] != '=')
 				&& (b64val[input[3]] == -1)))
-	return -1;
+	return EINVAL;
       *out++ = (b64val[input[0]] << 2) | (b64val[input[1]] >> 4);
       if (input[2] != '=')
 	{

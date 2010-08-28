@@ -78,6 +78,7 @@ extern "C" {
 
 extern int mu_header_create (mu_header_t *, const char *, size_t);
 extern void mu_header_destroy (mu_header_t *);
+extern int mu_header_invalidate (mu_header_t);
 
 extern int mu_header_is_modified (mu_header_t);
 extern int mu_header_clear_modified (mu_header_t);

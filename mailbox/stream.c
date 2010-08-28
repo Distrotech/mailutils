@@ -610,6 +610,8 @@ _stream_scandelim (mu_stream_t stream, char *buf, size_t size, int delim,
   size_t nread = 0;
   
   size--;
+  if (size == 0)
+    return MU_ERR_BUFSPACE;
   while (size)
     {
       char *p;
@@ -647,6 +649,8 @@ _stream_readdelim (mu_stream_t stream, char *buf, size_t size,
   size_t n = 0, rdn;
     
   size--;
+  if (size == 0)
+    return MU_ERR_BUFSPACE;
   for (n = 0;
        n < size && (rc = mu_stream_read (stream, &c, 1, &rdn)) == 0 && rdn;)
     {

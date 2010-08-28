@@ -569,33 +569,36 @@ mu_message_create_copy (mu_message_t *to, mu_message_t from)
 {
   int status = 0;
   mu_stream_t fromstr = NULL;
-  mu_stream_t tostr = NULL;
-  size_t n = 0;
-  char buf[512];
+  mu_stream_t tmp = NULL;
 
   if (!to)
     return MU_ERR_OUT_PTR_NULL;
   if (!from)
     return EINVAL;
 
-  if ((status = mu_message_create (to, NULL)))
+  status = mu_memory_stream_create (&tmp, MU_STREAM_RDWR|MU_STREAM_SEEK);
+  if (status)
     return status;
 
-  mu_message_get_streamref (from, &fromstr);
-  mu_message_get_streamref (*to, &tostr);
-
-  status = mu_stream_seek (fromstr, 0, MU_SEEK_SET, NULL);
-  if (status == 0)
-    while ((status = mu_stream_readline (fromstr, buf, sizeof (buf), &n)) == 0
-	   && n > 0)
-      mu_stream_write (tostr, buf, n, NULL);
-
-  mu_stream_destroy (&fromstr);
-  mu_stream_destroy (&tostr);
-  
+  status = mu_message_get_streamref (from, &fromstr);
   if (status)
-    mu_message_destroy (to, NULL);
-  
+    {
+      mu_stream_destroy (&tmp);
+      return status;
+    }
+
+  status = mu_stream_copy (tmp, fromstr, 0);
+  if (status == 0)
+    {
+      status = mu_message_create (to, NULL);
+      if (status == 0)
+	mu_message_set_stream (*to, tmp, NULL);
+    }
+
+  if (status)
+    mu_stream_destroy (&tmp);
+  mu_stream_destroy (&fromstr);
+
   return status;
 }
 
@@ -721,14 +724,16 @@ mu_message_get_body (mu_message_t msg, mu_body_t *pbody)
       int status = mu_body_create (&body, msg);
       if (status != 0)
 	return status;
-      /* If a stream is already set use it to create the body stream.  */
+      /* If a stream is already set, use it to create the body stream.  */
       /* FIXME: I'm not sure if the second condition is really needed */
-      if (msg->stream && (msg->flags & MESSAGE_INTERNAL_STREAM))
+      if (msg->stream/* && (msg->flags & MESSAGE_INTERNAL_STREAM)*/)
 	{
 	  size_t size = 0;
 	  mu_stream_t stream;
 	  int flags = 0;
-	  
+
+	  /* FIXME: The size cannot be used as offset, because
+	     the headers might have been modified in between. */
 	  status = mu_header_size (msg->header, &size);
 	  if (status)
 	    return status;
@@ -790,7 +795,20 @@ _message_get_stream (mu_message_t msg, mu_stream_t *pstream, int ref)
 
   if (msg->stream == NULL)
     {
-      int status = _message_stream_create (&msg->stream, msg, MU_STREAM_RDWR);
+      int status;
+      mu_header_t hdr;
+      mu_body_t body;
+
+      /* FIXME: Kind of a kludge: make sure the message has header
+	 and body initialized. */
+      status = mu_message_get_header (msg, &hdr);
+      if (status)
+	return status;
+      status = mu_message_get_body (msg, &body);
+      if (status)
+	return status;
+      
+      status = _message_stream_create (&msg->stream, msg, MU_STREAM_RDWR);
       if (status)
 	return status;
       msg->flags |= MESSAGE_INTERNAL_STREAM;
