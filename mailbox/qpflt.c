@@ -142,6 +142,12 @@ _qp_decoder (void *xd MU_ARG_UNUSED,
 		  consumed += 2;
 		}
 	    }
+	  else if (c == '_')
+	    {
+	      *optr++ = ' ';
+	      nbytes++;
+	      consumed++;
+	    }
 	  else
 	    {
 	      *optr++ = c;
