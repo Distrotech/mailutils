@@ -60,7 +60,9 @@ pop3d_top (char *arg)
   /* Header.  */
   mu_message_get_header (msg, &hdr);
   /* FIXME: Use crlf filter + mu_stream_copy instead of the below loop */
-  mu_header_get_stream (hdr, &stream);
+  if (mu_header_get_stream (hdr, &stream)
+      || mu_stream_seek (stream, 0, MU_SEEK_SET, NULL))
+    return ERR_UNKNOWN;
   n = 0;
   while (mu_stream_readline (stream, buf, sizeof(buf), &n) == 0
 	 && n > 0)
@@ -82,7 +84,9 @@ pop3d_top (char *arg)
 
       mu_message_get_body (msg, &body);
       /* FIXME: Use the crlf filter + mu_stream_copy */
-      mu_body_get_stream (body, &stream);
+      if (mu_body_get_stream (body, &stream)
+	  || mu_stream_seek (stream, 0, MU_SEEK_SET, NULL))
+	return ERR_UNKNOWN;
       n = 0;
       while (mu_stream_readline (stream, buf, sizeof(buf), &n) == 0
 	     && n > 0 && lines > 0)

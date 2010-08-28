@@ -45,7 +45,10 @@ pop3d_retr (char *arg)
     return ERR_MESG_DELE;
 
   /* FIXME: Use crlf filter + mu_stream_copy instead of the loop below */
-  mu_message_get_stream (msg, &stream);
+  if (mu_message_get_stream (msg, &stream)
+      || mu_stream_seek (stream, 0, MU_SEEK_SET, NULL))
+    return ERR_UNKNOWN;
+  
   pop3d_outf ("+OK\r\n");
 
   prev_nl = 1;
