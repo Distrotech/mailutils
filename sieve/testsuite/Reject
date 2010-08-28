@@ -26,179 +26,173 @@ PATTERN END
 FILE BEGIN
 ENVELOPE FROM: MAILER-DAEMON@nonexistent.net
 ENVELOPE TO: <coyote@desert.example.org>
-   0: To: <coyote@desert.example.org>
+   0: To: coyote@desert.example.org
 -re
-   1: X-Authentication-Warning: [^ \t]+ set sender using -f flag
+   1: Content-Type: multipart/mixed; boundary="[0-9:=-]+"
+   2: MIME-Version: 1.0
+   3:
 -re
-   2: Content-Type: multipart/mixed; boundary="[0-9:=-]+"
-   3: MIME-Version: 1.0
-   4:
+   4: [0-9:=-]+
+   5: Content-Type: text/plain;charset=UTF-8
+   6: Content-Transfer-Encoding: 8bit
+   7:
 -re
-   5: [0-9:=-]+
-   6: Content-Type: text/plain;charset=UTF-8
-   7: Content-Transfer-Encoding: 8bit
-   8:
+   8: The original message was received at [A-Z][a-z][a-z], [A-Z][a-z][a-z] [ 0-3][0-9] [ 0-2][0-9]:[0-6][0-9]:[0-6][0-9] [0-9][0-9][0-9][0-9] [a-zA-Z0-9]* from coyote@desert.example.org.
+   9: Message was refused by recipient's mail filtering program.
+  10: Reason given was as follows:
+  11: 
+  12: I don't want to read these messages.
+  13: 
+  14: Regards.
+  15:
 -re
-   9: The original message was received at [A-Z][a-z][a-z], [A-Z][a-z][a-z] [ 0-3][0-9] [ 0-2][0-9]:[0-6][0-9]:[0-6][0-9] [0-9][0-9][0-9][0-9] [a-zA-Z0-9]* from coyote@desert.example.org.
-  10: Message was refused by recipient's mail filtering program.
-  11: Reason given was as follows:
-  12: 
-  13: I don't want to read these messages.
-  14: 
-  15: Regards.
-  16:
+  16: [0-9:=-]+
+  17: Content-Type: message/delivery-status
+  18:
 -re
-  17: [0-9:=-]+
-  18: Content-Type: message/delivery-status
-  19:
+  19: Reporting-UA: sieve; GNU Mailutils [0-9][0-9.]*
 -re
-  20: Reporting-UA: sieve; GNU Mailutils [0-9][0-9.]*
+  20: Arrival-Date: [A-Z][a-z][a-z], [A-Z][a-z][a-z] [ 0-3][0-9] [ 0-2][0-9]:[0-6][0-9]:[0-6][0-9] [0-9][0-9][0-9][0-9] [a-zA-Z0-9]*
+  21: Final-Recipient: RFC822; foobar@nonexistent.net
+  22: Action: deleted
+  23: Disposition: automatic-action/MDN-sent-automatically;deleted
 -re
-  21: Arrival-Date: [A-Z][a-z][a-z], [A-Z][a-z][a-z] [ 0-3][0-9] [ 0-2][0-9]:[0-6][0-9]:[0-6][0-9] [0-9][0-9][0-9][0-9] [a-zA-Z0-9]*
-  22: Final-Recipient: RFC822; foobar@nonexistent.net
-  23: Action: deleted
-  24: Disposition: automatic-action/MDN-sent-automatically;deleted
+  24: Last-Attempt-Date: [A-Z][a-z][a-z], [A-Z][a-z][a-z] [ 0-3][0-9] [ 0-2][0-9]:[0-6][0-9]:[0-6][0-9] [0-9][0-9][0-9][0-9] [a-zA-Z0-9]*
+  25:
 -re
-  25: Last-Attempt-Date: [A-Z][a-z][a-z], [A-Z][a-z][a-z] [ 0-3][0-9] [ 0-2][0-9]:[0-6][0-9]:[0-6][0-9] [0-9][0-9][0-9][0-9] [a-zA-Z0-9]*
-  26:
+  26: [0-9:=-]+
+  27: Content-Type: message/rfc822
+  28: 
+  29: From: coyote@desert.example.org
+  30: To: roadrunner@acme.example.com
+  31: Subject: I have a present for you
+  32: X-Caffeine: C8H10N4O2
+  33: 
+  34: Look, I'm sorry about the whole anvil thing, and I really
+  35: didn't mean to try and drop it on you from the top of the
+  36: cliff.  I want to try to make it up to you.  I've got some
+  37: great birdseed over here at my place--top of the line
+  38: stuff--and if you come by, I'll have it all wrapped up
+  39: for you.  I'm really sorry for all the problems I've caused
+  40: for you over the years, but I know we can work this out.
+  41: 
+  42: -- 
+  43: Wile E. Coyote   "Super Genius"   coyote@desert.example.org
+  44:
 -re
-  27: [0-9:=-]+
-  28: Content-Type: message/rfc822
-  29: 
-  30: From: coyote@desert.example.org
-  31: To: roadrunner@acme.example.com
-  32: Subject: I have a present for you
-  33: X-Caffeine: C8H10N4O2
-  34: 
-  35: Look, I'm sorry about the whole anvil thing, and I really
-  36: didn't mean to try and drop it on you from the top of the
-  37: cliff.  I want to try to make it up to you.  I've got some
-  38: great birdseed over here at my place--top of the line
-  39: stuff--and if you come by, I'll have it all wrapped up
-  40: for you.  I'm really sorry for all the problems I've caused
-  41: for you over the years, but I know we can work this out.
-  42: 
-  43: -- 
-  44: Wile E. Coyote   "Super Genius"   coyote@desert.example.org
-  45:
--re
-  46: [0-9:=-]+
-  47: 
+  45: [0-9:=-]+
+  46: 
 END OF MESSAGE
 ENVELOPE FROM: MAILER-DAEMON@nonexistent.net
 ENVELOPE TO: <b1ff@de.res.example.com>
-   0: To: <b1ff@de.res.example.com>
+   0: To: b1ff@de.res.example.com
 -re
-   1: X-Authentication-Warning: [^ \t]+ set sender using -f flag
+   1: Content-Type: multipart/mixed; boundary="[0-9:=-]+"
+   2: MIME-Version: 1.0
+   3:
 -re
-   2: Content-Type: multipart/mixed; boundary="[0-9:=-]+"
-   3: MIME-Version: 1.0
-   4:
+   4: [0-9:=-]+
+   5: Content-Type: text/plain;charset=UTF-8
+   6: Content-Transfer-Encoding: 8bit
+   7:
 -re
-   5: [0-9:=-]+
-   6: Content-Type: text/plain;charset=UTF-8
-   7: Content-Transfer-Encoding: 8bit
-   8:
+   8: The original message was received at [A-Z][a-z][a-z], [A-Z][a-z][a-z] [ 0-3][0-9] [ 0-2][0-9]:[0-6][0-9]:[0-6][0-9] [0-9][0-9][0-9][0-9] [a-zA-Z0-9]* from b1ff@de.res.example.com.
+   9: Message was refused by recipient's mail filtering program.
+  10: Reason given was as follows:
+  11: 
+  12: I don't want to read these messages.
+  13: 
+  14: Regards.
+  15:
 -re
-   9: The original message was received at [A-Z][a-z][a-z], [A-Z][a-z][a-z] [ 0-3][0-9] [ 0-2][0-9]:[0-6][0-9]:[0-6][0-9] [0-9][0-9][0-9][0-9] [a-zA-Z0-9]* from b1ff@de.res.example.com.
-  10: Message was refused by recipient's mail filtering program.
-  11: Reason given was as follows:
-  12: 
-  13: I don't want to read these messages.
-  14: 
-  15: Regards.
-  16:
+  16: [0-9:=-]+
+  17: Content-Type: message/delivery-status
+  18:
 -re
-  17: [0-9:=-]+
-  18: Content-Type: message/delivery-status
-  19:
+  19: Reporting-UA: sieve; GNU Mailutils [0-9][0-9.]*
 -re
-  20: Reporting-UA: sieve; GNU Mailutils [0-9][0-9.]*
+  20: Arrival-Date: [A-Z][a-z][a-z], [A-Z][a-z][a-z] [ 0-3][0-9] [ 0-2][0-9]:[0-6][0-9]:[0-6][0-9] [0-9][0-9][0-9][0-9] [a-zA-Z0-9]*
+  21: Final-Recipient: RFC822; foobar@nonexistent.net
+  22: Action: deleted
+  23: Disposition: automatic-action/MDN-sent-automatically;deleted
 -re
-  21: Arrival-Date: [A-Z][a-z][a-z], [A-Z][a-z][a-z] [ 0-3][0-9] [ 0-2][0-9]:[0-6][0-9]:[0-6][0-9] [0-9][0-9][0-9][0-9] [a-zA-Z0-9]*
-  22: Final-Recipient: RFC822; foobar@nonexistent.net
-  23: Action: deleted
-  24: Disposition: automatic-action/MDN-sent-automatically;deleted
+  24: Last-Attempt-Date: [A-Z][a-z][a-z], [A-Z][a-z][a-z] [ 0-3][0-9] [ 0-2][0-9]:[0-6][0-9]:[0-6][0-9] [0-9][0-9][0-9][0-9] [a-zA-Z0-9]*
+  25:
 -re
-  25: Last-Attempt-Date: [A-Z][a-z][a-z], [A-Z][a-z][a-z] [ 0-3][0-9] [ 0-2][0-9]:[0-6][0-9]:[0-6][0-9] [0-9][0-9][0-9][0-9] [a-zA-Z0-9]*
-  26:
+  26: [0-9:=-]+
+  27: Content-Type: message/rfc822
+  28: 
+  29: From: youcouldberich!@reply-by-postal-mail.invalid
+  30: To: rube@landru.example.edu
+  31: Subject: $$$ YOU, TOO, CAN BE A MILLIONAIRE! $$$
+  32: Date: TBD
+  33: X-Number: 0015
+  34:
+  35: YOU MAY HAVE ALREADY WON TEN MILLION DOLLARS, BUT I DOUBT
+  36: IT!  SO JUST POST THIS TO SIX HUNDRED NEWSGROUPS!  IT WILL
+  37: GUARANTEE THAT YOU GET AT LEAST FIVE RESPONSES WITH MONEY!
+  38: MONEY! MONEY! COLD HARD CASH!  YOU WILL RECEIVE OVER
+  39: $20,000 IN LESS THAN TWO MONTHS!  AND IT'S LEGAL!!!!!!!!!
+  40: !!!!!!!!!!!!!!!!!!111111111!!!!!!!11111111111!!1  JUST
+  41: SEND $5 IN SMALL, UNMARKED BILLS TO THE ADDRESSES BELOW!
+  42:
 -re
-  27: [0-9:=-]+
-  28: Content-Type: message/rfc822
-  29: 
-  30: From: youcouldberich!@reply-by-postal-mail.invalid
-  31: To: rube@landru.example.edu
-  32: Subject: $$$ YOU, TOO, CAN BE A MILLIONAIRE! $$$
-  33: Date: TBD
-  34: X-Number: 0015
-  35:
-  36: YOU MAY HAVE ALREADY WON TEN MILLION DOLLARS, BUT I DOUBT
-  37: IT!  SO JUST POST THIS TO SIX HUNDRED NEWSGROUPS!  IT WILL
-  38: GUARANTEE THAT YOU GET AT LEAST FIVE RESPONSES WITH MONEY!
-  39: MONEY! MONEY! COLD HARD CASH!  YOU WILL RECEIVE OVER
-  40: $20,000 IN LESS THAN TWO MONTHS!  AND IT'S LEGAL!!!!!!!!!
-  41: !!!!!!!!!!!!!!!!!!111111111!!!!!!!11111111111!!1  JUST
-  42: SEND $5 IN SMALL, UNMARKED BILLS TO THE ADDRESSES BELOW!
-  43:
--re
-  44: [0-9:=-]+
-  45:
+  43: [0-9:=-]+
+  44:
 END OF MESSAGE
 ENVELOPE FROM: MAILER-DAEMON@nonexistent.net
 ENVELOPE TO: <bar@dontmailme.org>
-   0: To: <bar@dontmailme.org>
+   0: To: bar@dontmailme.org
 -re
-   1: X-Authentication-Warning: [^ \t]+ set sender using -f flag
+   1: Content-Type: multipart/mixed; boundary="[0-9:=-]+"
+   2: MIME-Version: 1.0
+   3:
 -re
-   2: Content-Type: multipart/mixed; boundary="[0-9:=-]+"
-   3: MIME-Version: 1.0
-   4:
+   4: [0-9:=-]+
+   5: Content-Type: text/plain;charset=UTF-8
+   6: Content-Transfer-Encoding: 8bit
+   7:
 -re
-   5: [0-9:=-]+
-   6: Content-Type: text/plain;charset=UTF-8
-   7: Content-Transfer-Encoding: 8bit
-   8:
+   8: The original message was received at [A-Z][a-z][a-z], [A-Z][a-z][a-z] [ 0-3][0-9] [ 0-2][0-9]:[0-6][0-9]:[0-6][0-9] [0-9][0-9][0-9][0-9] [a-zA-Z0-9]* from bar@dontmailme.org.
+   9: Message was refused by recipient's mail filtering program.
+  10: Reason given was as follows:
+  11: 
+  12: I don't want to read these messages.
+  13: 
+  14: Regards.
+  15:
 -re
-   9: The original message was received at [A-Z][a-z][a-z], [A-Z][a-z][a-z] [ 0-3][0-9] [ 0-2][0-9]:[0-6][0-9]:[0-6][0-9] [0-9][0-9][0-9][0-9] [a-zA-Z0-9]* from bar@dontmailme.org.
-  10: Message was refused by recipient's mail filtering program.
-  11: Reason given was as follows:
-  12: 
-  13: I don't want to read these messages.
-  14: 
-  15: Regards.
-  16:
+  16: [0-9:=-]+
+  17: Content-Type: message/delivery-status
+  18:
 -re
-  17: [0-9:=-]+
-  18: Content-Type: message/delivery-status
-  19:
+  19: Reporting-UA: sieve; GNU Mailutils [0-9][0-9.]*
 -re
-  20: Reporting-UA: sieve; GNU Mailutils [0-9][0-9.]*
+  20: Arrival-Date: [A-Z][a-z][a-z], [A-Z][a-z][a-z] [ 0-3][0-9] [ 0-2][0-9]:[0-6][0-9]:[0-6][0-9] [0-9][0-9][0-9][0-9] [a-zA-Z0-9]*
+  21: Final-Recipient: RFC822; foobar@nonexistent.net
+  22: Action: deleted
+  23: Disposition: automatic-action/MDN-sent-automatically;deleted
 -re
-  21: Arrival-Date: [A-Z][a-z][a-z], [A-Z][a-z][a-z] [ 0-3][0-9] [ 0-2][0-9]:[0-6][0-9]:[0-6][0-9] [0-9][0-9][0-9][0-9] [a-zA-Z0-9]*
-  22: Final-Recipient: RFC822; foobar@nonexistent.net
-  23: Action: deleted
-  24: Disposition: automatic-action/MDN-sent-automatically;deleted
+  24: Last-Attempt-Date: [A-Z][a-z][a-z], [A-Z][a-z][a-z] [ 0-3][0-9] [ 0-2][0-9]:[0-6][0-9]:[0-6][0-9] [0-9][0-9][0-9][0-9] [a-zA-Z0-9]*
+  25:
 -re
-  25: Last-Attempt-Date: [A-Z][a-z][a-z], [A-Z][a-z][a-z] [ 0-3][0-9] [ 0-2][0-9]:[0-6][0-9]:[0-6][0-9] [0-9][0-9][0-9][0-9] [a-zA-Z0-9]*
-  26:
+  26: [0-9:=-]+
+  27: Content-Type: message/rfc822
+  28: 
+  29: Received: (from bar@dontmailme.org)
+  30: 	by dontmailme.org id fERKR9N16790
+  31: 	for foobar@nonexistent.net; Fri, 28 Dec 2001 22:18:08 +0200
+  32: Date: Fri, 28 Dec 2001 23:28:08 +0200
+  33: From: Bar <bar@dontmailme.org>
+  34: To: Foo Bar <foobar@nonexistent.net>
+  35: Message-Id: <200112232808.fERKR9N16790@dontmailme.org>
+  36: Subject: Coffee
+  37: 
+  38: How about some coffee?
+  39:
 -re
-  27: [0-9:=-]+
-  28: Content-Type: message/rfc822
-  29: 
-  30: Received: (from bar@dontmailme.org)
-  31: 	by dontmailme.org id fERKR9N16790
-  32: 	for foobar@nonexistent.net; Fri, 28 Dec 2001 22:18:08 +0200
-  33: Date: Fri, 28 Dec 2001 23:28:08 +0200
-  34: From: Bar <bar@dontmailme.org>
-  35: To: Foo Bar <foobar@nonexistent.net>
-  36: Message-Id: <200112232808.fERKR9N16790@dontmailme.org>
-  37: Subject: Coffee
-  38: 
-  39: How about some coffee?
-  40:
--re
-  41: [0-9:=-]+
-  42: 
+  40: [0-9:=-]+
+  41: 
 END OF MESSAGE
 FILE END
 TEST END

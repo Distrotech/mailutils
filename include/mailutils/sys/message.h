@@ -47,7 +47,8 @@ struct _mu_message
   mu_mime_t mime;
   mu_observable_t observable;
   mu_mailbox_t mailbox;
-
+  size_t orig_header_size;
+  
   /* Reference count.  */
   int ref;
 

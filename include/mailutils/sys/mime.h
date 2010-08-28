@@ -64,6 +64,7 @@ struct _mu_mime
   int             boundary_len;
   int             preamble;
   int             postamble;
+  mu_stream_t     part_stream;
   /* parser state */
   char           *cur_line;
   int             line_ndx;
