@@ -154,7 +154,7 @@ mime_create_reason (mu_mime_t mime, mu_message_t msg, const char *text)
  
   mu_message_create (&newmsg, NULL);
   mu_message_get_body (newmsg, &body);
-  mu_body_get_stream (body, &stream);
+  mu_body_get_streamref (body, &stream);
 
   time (&t);
   tm = localtime (&t);
@@ -171,6 +171,8 @@ mime_create_reason (mu_mime_t mime, mu_message_t msg, const char *text)
   mu_stream_printf (stream, "Reason given was as follows:\n\n");
   mu_stream_printf (stream, "%s", text);
   mu_stream_close (stream);
+  mu_stream_destroy (&stream);
+  
   mu_header_create (&hdr, content_header, strlen (content_header));
   mu_message_set_header (newmsg, hdr, NULL);
   mu_mime_add_part (mime, newmsg);
@@ -196,7 +198,7 @@ mime_create_ds (mu_mime_t mime, mu_message_t orig)
   mu_message_get_header (newmsg, &hdr); 
   mu_header_set_value (hdr, "Content-Type", "message/delivery-status", 1);
   mu_message_get_body (newmsg, &body);
-  mu_body_get_stream (body, &stream);
+  mu_body_get_streamref (body, &stream);
   mu_stream_printf (stream, "Reporting-UA: sieve; %s\n", PACKAGE_STRING);
 
   mu_message_get_envelope (orig, &env);
@@ -226,7 +228,9 @@ mime_create_ds (mu_mime_t mime, mu_message_t orig)
   mu_stream_printf (stream, "Last-Attempt-Date: %s\n", datestr);
 
   mu_stream_close (stream);
-  mu_mime_add_part(mime, newmsg);
+  mu_stream_destroy (&stream);
+  
+  mu_mime_add_part (mime, newmsg);
   mu_message_unref (newmsg);
 }
 
@@ -241,25 +245,30 @@ mime_create_quote (mu_mime_t mime, mu_message_t msg)
   size_t n;
   char buffer[512];
   mu_body_t body;
-    
+  int rc;
+  
   mu_message_create (&newmsg, NULL);
   mu_message_get_header (newmsg, &hdr); 
   mu_header_set_value (hdr, "Content-Type", "message/rfc822", 1);
   mu_message_get_body (newmsg, &body);
-  mu_body_get_stream (body, &ostream);
-  mu_message_get_stream (msg, &istream);
-  
+  mu_body_get_streamref (body, &ostream);
+  mu_message_get_streamref (msg, &istream);
+
+  rc = 0;/* FIXME: use mu_stream_copy */
   while (mu_stream_read (istream, buffer, sizeof buffer - 1, &n) == 0
 	 && n != 0)
     {
-      int rc = mu_stream_write (ostream, buffer, n, NULL);
+      rc = mu_stream_write (ostream, buffer, n, NULL);
       if (rc)
-	return EIO;
+	break;
     }
+  mu_stream_destroy (&istream);
   mu_stream_close (ostream);
+  mu_stream_destroy (&ostream);
+  
   mu_mime_add_part (mime, newmsg);
   mu_message_unref (newmsg);
-  return 0;
+  return rc;
 }
   
 static int
@@ -292,6 +301,7 @@ sieve_action_reject (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   mu_message_t newmsg;
   char *addrtext;
   mu_address_t from, to;
+  mu_header_t hdr;
   
   mu_sieve_value_t *val = mu_sieve_value_get (args, 0);
   if (!val)
@@ -308,6 +318,9 @@ sieve_action_reject (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   mu_mime_get_message (mime, &newmsg);
 
   mu_sieve_get_message_sender (mach->msg, &addrtext);
+  mu_message_get_header (newmsg, &hdr);
+  mu_header_prepend (hdr, MU_HEADER_TO, addrtext);
+
   rc = mu_address_create (&to, addrtext);
   if (rc)
     {

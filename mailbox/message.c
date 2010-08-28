@@ -688,6 +688,9 @@ mu_message_get_header (mu_message_t msg, mu_header_t *phdr)
 	return status;
       if (msg->stream)
 	mu_header_set_fill (header, message_header_fill, msg);
+      status = mu_header_size (header, &msg->orig_header_size);
+      if (status)
+	return status;
       msg->header = header;
     }
   *phdr = msg->header;
@@ -728,19 +731,15 @@ mu_message_get_body (mu_message_t msg, mu_body_t *pbody)
       /* FIXME: I'm not sure if the second condition is really needed */
       if (msg->stream/* && (msg->flags & MESSAGE_INTERNAL_STREAM)*/)
 	{
-	  size_t size = 0;
 	  mu_stream_t stream;
 	  int flags = 0;
 
-	  /* FIXME: The size cannot be used as offset, because
-	     the headers might have been modified in between. */
-	  status = mu_header_size (msg->header, &size);
-	  if (status)
-	    return status;
+	  /* FIXME: The actual mu_header_size cannot be used as offset,
+	     because the headers might have been modified in between. */
 	  
 	  mu_stream_get_flags (msg->stream, &flags);
 	  status = mu_streamref_create_abridged (&stream, msg->stream,
-						 size, 0);
+						 msg->orig_header_size, 0);
 	  if (status)
 	    {
 	      mu_body_destroy (&body, msg);

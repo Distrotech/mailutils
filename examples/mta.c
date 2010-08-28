@@ -73,6 +73,18 @@ int dot = 1;             /* Message is terminated by a lone dot on a line */
 
 mu_address_t recipients = NULL;
 char *progname;
+/* FIXME: If finalize_option is set, mta should try to finalize
+   received messages the way sendmail does, i.e. to add To: or
+   Cc: headers, if they are missing, etc. The code to do so is
+   already included, but the modified message is not reproduced
+   on diagnostic output because mta_send reads it from the stream,
+   which does not reflect modifications to the header.
+
+   Ideally, the mu_message_get_streamref function should notice the
+   change in the header (and/or the body) and return a temporary
+   stream, which will read the modified values.  This is left as
+   as TODO for a later time.                  2010-09-29, Sergey */
+int finalize_option = 0; 
 
 int mta_stdin (int argc, char **argv);
 int mta_smtp (int argc, char **argv);
@@ -361,7 +373,7 @@ message_finalize (mu_message_t msg, int warn)
   
   mu_message_get_header (msg, &header);
 
-  if (warn && from_person)
+  if (finalize_option && warn && from_person)
     {
       struct passwd *pwd = getpwuid (getuid ());
       char *warn = malloc (strlen (pwd->pw_name) + 1 +
@@ -400,7 +412,8 @@ message_finalize (mu_message_t msg, int warn)
 	  free (value);
 	}  
 	  
-      if (mu_header_aget_value (header, MU_HEADER_BCC, &value) == 0)
+      if (finalize_option &&
+	  mu_header_aget_value (header, MU_HEADER_BCC, &value) == 0)
 	{
 	  if (add_recipient (value))
 	    {
@@ -412,7 +425,7 @@ message_finalize (mu_message_t msg, int warn)
 	}  
     }
 
-  if (!have_to)
+  if (finalize_option && !have_to)
     {
       size_t n;
       int c;
