@@ -169,7 +169,7 @@ _streamref_seek (struct _mu_stream *str, mu_off_t off, mu_off_t *ppos)
       size -= sp->start;
     }
   
-  if (off < 0 || off >= size)
+  if (off < 0 || off > size)
     return sp->stream.last_err = ESPIPE;
   rc = mu_stream_seek (sp->transport, sp->start + off, MU_SEEK_SET,
 		       &sp->offset);

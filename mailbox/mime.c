@@ -887,7 +887,7 @@ mu_mime_get_part (mu_mime_t mime, size_t part, mu_message_t *msg)
 	      ret = mu_streamref_create_abridged (&stream, mime->stream,
 						  mime_part->offset,
 						  mime_part->offset +
-						     mime_part->len);
+						    mime_part->len - 1);
 	      if (ret == 0)
 		{
 		  mu_stream_set_flags (stream,
