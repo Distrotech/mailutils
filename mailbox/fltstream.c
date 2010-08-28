@@ -425,7 +425,8 @@ mu_filter_stream_create (mu_stream_t *pflt,
     fs->stream.seek = filter_seek;
   fs->stream.ctl = filter_ctl;
   fs->stream.error_string = filter_error_string;
-
+  fs->stream.flags = flags;
+  
   fs->transport = str;
   fs->xcode = xcode;
   fs->xdata = xdata;
