@@ -188,8 +188,13 @@ mu_progmailer_send (struct _mu_progmailer *pm, mu_message_t msg)
   if (!pm || !msg)
     return EINVAL;
   mu_message_get_header (msg, &hdr);
-  mu_header_get_streamref (hdr, &stream);
-
+  status = mu_header_get_streamref (hdr, &stream);
+  if (status)
+    {
+      MU_DEBUG1 (pm->debug, MU_DEBUG_ERROR,
+		 "cannot get header stream: %s\n", mu_strerror (status));
+      return status;
+    }
   MU_DEBUG (pm->debug, MU_DEBUG_TRACE, "Sending headers...\n");
   mu_stream_seek (stream, 0, MU_SEEK_SET, NULL);
   while ((status = mu_stream_readline (stream, buffer, sizeof (buffer),
@@ -225,7 +230,13 @@ mu_progmailer_send (struct _mu_progmailer *pm, mu_message_t msg)
   
   MU_DEBUG (pm->debug, MU_DEBUG_TRACE, "Sending body...\n");
   mu_message_get_body (msg, &body);
-  mu_body_get_streamref (body, &stream);
+  status = mu_body_get_streamref (body, &stream);
+  if (status)
+    {
+      MU_DEBUG1 (pm->debug, MU_DEBUG_ERROR,
+		 "cannot get body stream: %s\n", mu_strerror (status));
+      return status;
+    }
 
   mu_stream_seek (stream, 0, MU_SEEK_SET, NULL);
   while ((status = mu_stream_read (stream, buffer, sizeof (buffer),

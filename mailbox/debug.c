@@ -55,13 +55,16 @@ mu_debug_destroy (mu_debug_t *pdebug, void *owner)
       mu_debug_t debug = *pdebug;
       if (debug->owner == owner)
 	{
-	  mu_off_t len = 0;
-	  int rc = mu_stream_size (debug->stream, &len);
-	  if (rc == 0 && len)
-	    /* Flush leftover data */
-	    mu_debug_printf (debug, 0, "\n");
+	  if (debug->stream)
+	    {
+	      mu_off_t len = 0;
+	      int rc = mu_stream_size (debug->stream, &len);
+	      if (rc == 0 && len)
+		/* Flush leftover data */
+		mu_debug_printf (debug, 0, "\n");
 
-	  mu_stream_destroy (&debug->stream);
+	      mu_stream_destroy (&debug->stream);
+	    }
 	  if (debug->destroy)
 	    debug->destroy (debug->data);
 	  free (*pdebug);

@@ -75,8 +75,10 @@ get_canonical_name ()
 {
   char *name;
   size_t len;
-  char *p = strchr (argp_program_version, ' ');
-  if (!p)
+  char *p;
+
+  if (!argp_program_version ||
+      !(p = strchr (argp_program_version, ' ')))
     return strdup (mu_program_name);
   len = p - argp_program_version;
   name = malloc (len + 1);

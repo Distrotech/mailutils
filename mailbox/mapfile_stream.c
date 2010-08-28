@@ -129,7 +129,7 @@ _mapfile_truncate (mu_stream_t stream, mu_off_t len)
   if (mfs->ptr == MAP_FAILED)
     return EINVAL;
   /* Remap.  */
-  if (mfs->ptr && munmap (mfs->ptr, len) != 0)
+  if (mfs->ptr && munmap (mfs->ptr, mfs->size) != 0)
     {
       int err = errno;
       mfs->ptr = MAP_FAILED;

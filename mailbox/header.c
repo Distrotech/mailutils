@@ -911,6 +911,15 @@ mu_header_size (mu_header_t header, size_t *psize)
   return status;
 }
 
+int
+mu_header_invalidate (mu_header_t hdr)
+{
+  if (hdr == NULL)
+    return EINVAL;
+  mu_hdrent_free_list (hdr);
+  return 0;
+}
+
 
 static void
 mu_hdrent_fixup (mu_header_t hdr, struct mu_hdrent *ent)
