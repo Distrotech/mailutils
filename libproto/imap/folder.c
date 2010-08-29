@@ -688,10 +688,12 @@ folder_imap_open (mu_folder_t folder, int flags)
 	      CHECK_EAGAIN (f_imap, status);
 	      CHECK_ERROR_CLOSE (folder, f_imap, status);
 
-	      status = mu_tls_stream_create_client_from_tcp (&newstr, folder->stream, 0);
+	      status = mu_tls_client_stream_create (&newstr, 
+	                                            folder->stream,
+	                                            folder->stream, 0);
 	      if (status != 0)
 		{
-		  mu_error ("folder_imap_open: mu_tls_stream_create_client_from_tcp: %s",
+		  mu_error ("folder_imap_open: mu_tls_client_stream_create: %s",
 			    mu_strerror (status));
 		  return status;
 		}

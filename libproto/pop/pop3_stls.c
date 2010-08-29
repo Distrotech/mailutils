@@ -66,7 +66,9 @@ mu_pop3_stls (mu_pop3_t pop3)
         MU_POP3_CHECK_EAGAIN (pop3, status);
         mu_pop3_debug_ack (pop3);
         MU_POP3_CHECK_OK (pop3);
-        status = mu_tls_stream_create_client_from_tcp (&tls_stream, pop3->carrier, 0);
+        status = mu_tls_client_stream_create (&tls_stream, 
+                                              pop3->carrier, 
+                                              pop3->carrier, 0);
         MU_POP3_CHECK_ERROR (pop3, status);
         pop3->carrier = tls_stream; 
         pop3->state = MU_POP3_STLS_CONNECT;

@@ -36,15 +36,12 @@ struct mu_tls_module_config
 
 extern int mu_tls_module_init (enum mu_gocs_op, void *);
 
-extern int mu_tls_stream_create (mu_stream_t *stream, 
-				 mu_stream_t strin, mu_stream_t strout,
-				 int flags);
-extern int mu_tls_stream_create_client (mu_stream_t *stream,
+extern int mu_tls_server_stream_create (mu_stream_t *stream, 
+			 	        mu_stream_t strin, mu_stream_t strout,
+				        int flags);
+extern int mu_tls_client_stream_create (mu_stream_t *stream,
 					mu_stream_t strin, mu_stream_t strout,
 					int flags);
-extern int mu_tls_stream_create_client_from_tcp (mu_stream_t *stream,
-						 mu_stream_t tcp_str,
-						 int flags);
 
 extern int mu_check_tls_environment (void);
 extern int mu_init_tls_libs (void);
