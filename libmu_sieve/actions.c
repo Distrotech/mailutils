@@ -242,10 +242,8 @@ mime_create_quote (mu_mime_t mime, mu_message_t msg)
   mu_message_t newmsg;
   mu_stream_t istream, ostream;
   mu_header_t hdr;
-  size_t n;
-  char buffer[512];
-  mu_body_t body;
   int rc;
+  mu_body_t body;
   
   mu_message_create (&newmsg, NULL);
   mu_message_get_header (newmsg, &hdr); 
@@ -254,14 +252,8 @@ mime_create_quote (mu_mime_t mime, mu_message_t msg)
   mu_body_get_streamref (body, &ostream);
   mu_message_get_streamref (msg, &istream);
 
-  rc = 0;/* FIXME: use mu_stream_copy */
-  while (mu_stream_read (istream, buffer, sizeof buffer - 1, &n) == 0
-	 && n != 0)
-    {
-      rc = mu_stream_write (ostream, buffer, n, NULL);
-      if (rc)
-	break;
-    }
+  rc = mu_stream_copy (ostream, istream, 0);
+
   mu_stream_destroy (&istream);
   mu_stream_close (ostream);
   mu_stream_destroy (&ostream);
