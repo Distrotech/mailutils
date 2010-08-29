@@ -71,13 +71,13 @@ pop3d_top (char *arg)
     {
       char *buf = NULL;
       size_t size = 0, n;
-      while (lines > 0 &&
+      for (; lines > 0 &&
 	     mu_stream_getline (stream, &buf, &size, &n) == 0 &&
-	     n > 0)
+	     n > 0; lines--)
 	{
 	  if (buf[0] == '.')
 	    pop3d_outf (".");
-	  pop3d_outf ("%s\n", buf);
+	  pop3d_outf ("%s", buf);
 	}
       mu_stream_destroy (&stream);
       free (buf);

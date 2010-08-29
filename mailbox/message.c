@@ -182,7 +182,17 @@ _message_stream_seek (struct _mu_stream *str, mu_off_t off, mu_off_t *ppos)
 	return rc;
       /* fall through */
     case _mss_body:
-      off -= hsize;
+      if (off > hsize)
+	off -= hsize;	
+      else
+	{
+	  mu_stream_destroy (&sp->transport);
+	  sp->state = _mss_init;
+	  rc = _check_stream_state (sp);
+	  if (rc)
+	    return rc;
+	}
+
       break;
 
     default:
