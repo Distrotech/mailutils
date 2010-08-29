@@ -126,6 +126,14 @@ pop3d_abquit (int reason)
   exit (code);
 }
 
+/* Keeps the *real* output stream.  Ostream is a RFC822 filter built over
+   real_ostream, or even over a TLS stream, which in turn is based on this
+   real_ostream.
+   FIXME: This is sorta kludge: we could use MU_IOCTL_GET_TRANSPORT call
+   to retrieve the bottom-level stream, if filter streams supported it.
+*/
+static mu_stream_t real_ostream;
+
 void
 pop3d_setio (FILE *in, FILE *out)
 {
@@ -136,14 +144,17 @@ pop3d_setio (FILE *in, FILE *out)
   if (!out)
     pop3d_abquit (ERR_NO_OFILE);
 
-  if (mu_stdio_stream_create (&istream, fileno (in), MU_STREAM_NO_CLOSE))
+  if (mu_stdio_stream_create (&istream, fileno (in),
+			      MU_STREAM_READ | MU_STREAM_NO_CLOSE))
     pop3d_abquit (ERR_NO_IFILE);
   mu_stream_set_buffer (istream, mu_buffer_line, 1024);
   
-  if (mu_stdio_stream_create (&str, fileno (out), MU_STREAM_NO_CLOSE))
+  if (mu_stdio_stream_create (&str, fileno (out),
+			      MU_STREAM_WRITE | MU_STREAM_NO_CLOSE))
     pop3d_abquit (ERR_NO_OFILE);
+  real_ostream = str;
   if (mu_filter_create (&ostream, str, "rfc822", MU_FILTER_ENCODE,
-			MU_STREAM_WRITE|MU_STREAM_NO_CLOSE))
+			MU_STREAM_WRITE | MU_STREAM_NO_CLOSE))
     pop3d_abquit (ERR_NO_IFILE);
   mu_stream_set_buffer (ostream, mu_buffer_line, 1024);
 }
@@ -154,8 +165,8 @@ pop3d_init_tls_server ()
 {
   mu_stream_t stream;
   int rc;
- 
-  rc = mu_tls_stream_create (&stream, istream, ostream, 0);
+
+  rc = mu_tls_server_stream_create (&stream, istream, real_ostream, 0);
   if (rc)
     return 0;
 
@@ -167,7 +178,12 @@ pop3d_init_tls_server ()
       return 0;
     }
   
-  istream = ostream = stream;
+  istream = stream;
+  mu_stream_destroy (&ostream);
+  if (mu_filter_create (&ostream, stream, "rfc822", MU_FILTER_ENCODE,
+			MU_STREAM_WRITE | MU_STREAM_NO_CLOSE))
+    pop3d_abquit (ERR_NO_IFILE);
+  mu_stream_set_buffer (ostream, mu_buffer_line, 1024);
   return 1;
 }
 #endif

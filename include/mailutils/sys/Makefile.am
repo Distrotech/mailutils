@@ -34,5 +34,6 @@ sysinclude_HEADERS = \
  streamref.h\
  streamtrans.h\
  stream.h\
+ tls-stream.h\
  pop3.h\
  nntp.h

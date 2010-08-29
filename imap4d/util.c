@@ -893,7 +893,7 @@ imap4d_init_tls_server ()
   mu_stream_t stream;
   int rc;
  
-  rc = mu_tls_stream_create (&stream, istream, ostream, 0);
+  rc = mu_tls_server_stream_create (&stream, istream, ostream, 0);
   if (rc)
     return 0;
 

@@ -824,8 +824,11 @@ pop_open (mu_mailbox_t mbox, int flags)
       /* Create the networking stack.  */
       if (mbox->stream == NULL)
 	{
-	  status = mu_tcp_stream_create (&mbox->stream, host, port, mbox->flags);
+	  status = mu_tcp_stream_create (&mbox->stream, host, port,
+					 mbox->flags);
 	  CHECK_ERROR (mpd, status);
+	  /* FIXME: How to configure the buffer size? */
+	  mu_stream_set_buffer (mbox->stream, mu_buffer_line, 1024);
 
 #ifdef WITH_TLS
 	  if (mpd->pops)
@@ -836,19 +839,18 @@ pop_open (mu_mailbox_t mbox, int flags)
 	      CHECK_EAGAIN (mpd, status);
 	      CHECK_ERROR_CLOSE (mbox, mpd, status);
 
-	      status = mu_tls_stream_create_client_from_tcp (&newstr, mbox->stream, 0);
+	      status = mu_tls_client_stream_create (&newstr, 
+	                                            mbox->stream, 
+	                                            mbox->stream, 0);
 	      if (status != 0)
 		{
-		  mu_error ("pop_open: mu_tls_stream_create_client_from_tcp: %s",
+		  mu_error ("pop_open: mu_tls_client_stream_create: %s",
 			    mu_strerror (status));
 		  return status;
 		}
 	      mbox->stream = newstr;
 	    }
 #endif /* WITH_TLS */
-
-	  /* Using the awkward mu_stream_t buffering.  */
-	  mu_stream_setbufsiz (mbox->stream, BUFSIZ);
 	}
       else
 	{

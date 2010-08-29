@@ -32,9 +32,6 @@ pop3d_capa (char *arg)
   if (strlen (arg) != 0)
     return ERR_BAD_ARGS;
 
-  if (state != initial_state && state != TRANSACTION)
-    return ERR_WRONG_STATE;
-
   pop3d_outf ("+OK Capability list follows\n");
   pop3d_outf ("TOP\n");
   pop3d_outf ("USER\n");
