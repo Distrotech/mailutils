@@ -32,7 +32,7 @@ pop3d_stls (char *arg)
   if (tls_done)
     return ERR_TLS_ACTIVE;
 
-  pop3d_outf ("+OK Begin TLS negotiation\r\n");
+  pop3d_outf ("+OK Begin TLS negotiation\n");
   pop3d_flush_output ();
 
   tls_done = pop3d_init_tls_server ();

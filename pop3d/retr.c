@@ -22,12 +22,10 @@
 int
 pop3d_retr (char *arg)
 {
-  size_t mesgno, n;
-  char buf[BUFFERSIZE];
+  size_t mesgno;
   mu_message_t msg = NULL;
   mu_attribute_t attr = NULL;
-  mu_stream_t stream = NULL;
-  int prev_nl;
+  mu_stream_t stream;
   
   if ((strlen (arg) == 0) || (strchr (arg, ' ') != NULL))
     return ERR_BAD_ARGS;
@@ -44,42 +42,19 @@ pop3d_retr (char *arg)
   if (pop3d_is_deleted (attr))
     return ERR_MESG_DELE;
 
-  /* FIXME: Use crlf filter + mu_stream_copy instead of the loop below */
-  if (mu_message_get_stream (msg, &stream)
-      || mu_stream_seek (stream, 0, MU_SEEK_SET, NULL))
+  if (mu_message_get_streamref (msg, &stream))
     return ERR_UNKNOWN;
   
-  pop3d_outf ("+OK\r\n");
-
-  prev_nl = 1;
-  while (mu_stream_readline (stream, buf, sizeof(buf), &n) == 0
-	 && n > 0)
-    {
-      if (prev_nl && buf[0] == '.')
-	pop3d_outf (".");
-      
-      if (buf[n - 1] == '\n')
-	{
-	  buf[n - 1] = '\0';
-	  pop3d_outf ("%s\r\n", buf);
-	  prev_nl = 1;
-	}
-      else
-	{
-	  pop3d_outf ("%s", buf);
-	  prev_nl = 0;
-	}
-    }
-
-  if (!prev_nl)
-    pop3d_outf ("\r\n");
+  pop3d_outf ("+OK\n");
+  mu_stream_copy (ostream, stream, 0);
+  mu_stream_destroy (&stream);
 
   if (!mu_attribute_is_read (attr))
     mu_attribute_set_read (attr);
 
   pop3d_mark_retr (attr);
 
-  pop3d_outf (".\r\n");
+  pop3d_outf (".\n");
 
   return OK;
 }

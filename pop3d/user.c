@@ -63,7 +63,7 @@ pop3d_begin_session ()
     pop3d_abquit (ERR_NO_MEM);
   state = TRANSACTION;
 
-  pop3d_outf ("+OK opened mailbox for %s\r\n", username);
+  pop3d_outf ("+OK opened mailbox for %s\n", username);
 
   if (undelete_on_startup)
     pop3d_undelete_all ();
@@ -98,7 +98,7 @@ pop3d_user (char *arg)
   if ((strlen (arg) == 0) || (strchr (arg, ' ') != NULL))
     return ERR_BAD_ARGS;
 
-  pop3d_outf ("+OK\r\n");
+  pop3d_outf ("+OK\n");
   pop3d_flush_output ();
 
   buf = pop3d_readline (buffer, sizeof (buffer));

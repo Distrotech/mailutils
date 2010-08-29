@@ -39,6 +39,6 @@ pop3d_dele (char *arg)
 
   mu_message_get_attribute (msg, &attr);
   pop3d_mark_deleted (attr);
-  pop3d_outf ("+OK Message %s marked\r\n", mu_umaxtostr (0, num));
+  pop3d_outf ("+OK Message %s marked\n", mu_umaxtostr (0, num));
   return OK;
 }

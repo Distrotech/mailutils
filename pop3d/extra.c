@@ -20,7 +20,7 @@
 #include "pop3d.h"
 #include "mailutils/libargp.h"
 
-static mu_stream_t istream, ostream;
+mu_stream_t istream, ostream;
 
 void
 pop3d_parse_command (char *cmd, char **pcmd, char **parg)
@@ -61,7 +61,7 @@ pop3d_abquit (int reason)
     {
     case ERR_NO_MEM:
       code = EX_SOFTWARE;
-      pop3d_outf ("-ERR %s\r\n", pop3d_error_string (reason));
+      pop3d_outf ("-ERR %s\n", pop3d_error_string (reason));
       mu_diag_output (MU_DIAG_ERROR, _("not enough memory"));
       break;
 
@@ -77,7 +77,7 @@ pop3d_abquit (int reason)
 
     case ERR_TIMEOUT:
       code = EX_TEMPFAIL;
-      pop3d_outf ("-ERR %s\r\n", pop3d_error_string (reason));
+      pop3d_outf ("-ERR %s\n", pop3d_error_string (reason));
       if (state == TRANSACTION)
 	mu_diag_output (MU_DIAG_INFO, _("session timed out for user: %s"),
 			username);
@@ -111,12 +111,12 @@ pop3d_abquit (int reason)
 		      _("mailbox was updated by other party: %s"),
 		      username);
       pop3d_outf
-	("-ERR [OUT-SYNC] Mailbox updated by other party or corrupt\r\n");
+	("-ERR [OUT-SYNC] Mailbox updated by other party or corrupt\n");
       break;
 
     default:
       code = EX_SOFTWARE;
-      pop3d_outf ("-ERR Quitting: %s\r\n", pop3d_error_string (reason));
+      pop3d_outf ("-ERR Quitting: %s\n", pop3d_error_string (reason));
       mu_diag_output (MU_DIAG_ERROR, _("quitting (numeric reason %d)"),
 		      reason);
       break;
@@ -129,6 +129,8 @@ pop3d_abquit (int reason)
 void
 pop3d_setio (FILE *in, FILE *out)
 {
+  mu_stream_t str;
+  
   if (!in)
     pop3d_abquit (ERR_NO_IFILE);
   if (!out)
@@ -136,9 +138,13 @@ pop3d_setio (FILE *in, FILE *out)
 
   if (mu_stdio_stream_create (&istream, fileno (in), MU_STREAM_NO_CLOSE))
     pop3d_abquit (ERR_NO_IFILE);
-  if (mu_stdio_stream_create (&ostream, fileno (out), MU_STREAM_NO_CLOSE))
-    pop3d_abquit (ERR_NO_OFILE);
   mu_stream_set_buffer (istream, mu_buffer_line, 1024);
+  
+  if (mu_stdio_stream_create (&str, fileno (out), MU_STREAM_NO_CLOSE))
+    pop3d_abquit (ERR_NO_OFILE);
+  if (mu_filter_create (&ostream, str, "rfc822", MU_FILTER_ENCODE,
+			MU_STREAM_WRITE|MU_STREAM_NO_CLOSE))
+    pop3d_abquit (ERR_NO_IFILE);
   mu_stream_set_buffer (ostream, mu_buffer_line, 1024);
 }
 

@@ -125,6 +125,7 @@ extern int expire_on_exit;
 #include <mailutils/md5.h>
 #include <mailutils/acl.h>
 #include <mailutils/server.h>
+#include <mailutils/filter.h>
 
 /* For Berkley DB2 APOP password file */
 #ifdef HAVE_DB_H
@@ -188,6 +189,7 @@ struct pop3d_command
   pop3d_command_handler_t handler;
 };
 
+extern mu_stream_t istream, ostream;
 extern mu_pop_server_t pop3srv;
 extern mu_mailbox_t mbox;
 extern int state;

@@ -53,7 +53,7 @@ pop3d_quit (char *arg)
   free (md5shared);
 
   if (err == OK)
-    pop3d_outf ("+OK\r\n");
+    pop3d_outf ("+OK\n");
   return err;
 }
 

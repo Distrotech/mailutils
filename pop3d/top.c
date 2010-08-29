@@ -23,16 +23,14 @@ int
 pop3d_top (char *arg)
 {
   size_t mesgno;
-  int lines;
+  unsigned long lines;
   mu_message_t msg;
   mu_attribute_t attr;
   mu_header_t hdr;
   mu_body_t body;
   mu_stream_t stream;
-  char *mesgc, *linesc;
-  char buf[BUFFERSIZE];
-  size_t n;
-
+  char *mesgc, *linesc, *p;
+  
   if (strlen (arg) == 0)
     return ERR_BAD_ARGS;
 
@@ -40,11 +38,14 @@ pop3d_top (char *arg)
     return ERR_WRONG_STATE;
 
   pop3d_parse_command (arg, &mesgc, &linesc);
+  if (linesc[0] == 0)
+    return ERR_BAD_ARGS;
   
-  mesgno = strtoul (mesgc, NULL, 10);
-  lines = *linesc ? strtol (linesc, NULL, 10) : -1;
-
-  if (lines < 0)
+  mesgno = strtoul (mesgc, &p, 10);
+  if (*p)
+    return ERR_BAD_ARGS;
+  lines = strtoul (linesc, &p, 10);
+  if (*p)
     return ERR_BAD_ARGS;
 
   if (mu_mailbox_get_message (mbox, mesgno, &msg) != 0)
@@ -55,63 +56,34 @@ pop3d_top (char *arg)
     return ERR_MESG_DELE;
   pop3d_mark_retr (attr);
   
-  pop3d_outf ("+OK\r\n");
-
   /* Header.  */
   mu_message_get_header (msg, &hdr);
-  /* FIXME: Use crlf filter + mu_stream_copy instead of the below loop */
-  if (mu_header_get_stream (hdr, &stream)
-      || mu_stream_seek (stream, 0, MU_SEEK_SET, NULL))
+  if (mu_header_get_streamref (hdr, &stream))
     return ERR_UNKNOWN;
-  n = 0;
-  while (mu_stream_readline (stream, buf, sizeof(buf), &n) == 0
-	 && n > 0)
-    {
-      /* Nuke the trainline newline.  */
-      if (buf[n - 1] == '\n')
-	{
-	  buf[n - 1] = '\0';
-	  pop3d_outf ("%s\r\n", buf);
-	}
-      else
-	pop3d_outf ("%s", buf);
-    }
+  pop3d_outf ("+OK\n");
 
-  /* Lines of body.  */
-  if (lines)
+  mu_stream_copy (ostream, stream, 0);
+  pop3d_outf ("\n");
+  mu_stream_destroy (&stream);
+  
+  mu_message_get_body (msg, &body);
+  if (mu_body_get_streamref (body, &stream) == 0)
     {
-      int prev_nl = 1;
-
-      mu_message_get_body (msg, &body);
-      /* FIXME: Use the crlf filter + mu_stream_copy */
-      if (mu_body_get_stream (body, &stream)
-	  || mu_stream_seek (stream, 0, MU_SEEK_SET, NULL))
-	return ERR_UNKNOWN;
-      n = 0;
-      while (mu_stream_readline (stream, buf, sizeof(buf), &n) == 0
-	     && n > 0 && lines > 0)
+      char *buf = NULL;
+      size_t size = 0, n;
+      while (lines > 0 &&
+	     mu_stream_getline (stream, &buf, &size, &n) == 0 &&
+	     n > 0)
 	{
-	  if (prev_nl && buf[0] == '.')
+	  if (buf[0] == '.')
 	    pop3d_outf (".");
-      
-	  if (buf[n - 1] == '\n')
-	    {
-	      buf[n - 1] = '\0';
-	      pop3d_outf ("%s\r\n", buf);
-	      prev_nl = 1;
-	      lines--;
-	    }
-	  else
-	    {
-	      pop3d_outf ("%s", buf);
-	      prev_nl = 0;
-	    }
+	  pop3d_outf ("%s\n", buf);
 	}
-      if (!prev_nl)
-	pop3d_outf ("\r\n");
+      mu_stream_destroy (&stream);
+      free (buf);
     }
 
-  pop3d_outf (".\r\n");
+  pop3d_outf (".\n");
 
   return OK;
 }
