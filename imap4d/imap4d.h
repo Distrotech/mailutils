@@ -322,6 +322,7 @@ extern char *namespace_checkfullpath (const char *name, const char *pattern,
 				       const char *delim, int *pns);
 int imap4d_session_setup (char *username);
 int imap4d_session_setup0 (void);
+void imap4d_child_signal_setup (RETSIGTYPE (*handler) (int signo));
   
 /* Capability functions */
 extern void imap4d_capability_add (const char *str);

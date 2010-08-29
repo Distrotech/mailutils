@@ -28,6 +28,7 @@
 char *file;
 mu_header_t header;
 mu_iterator_t iterator;
+mu_stream_t hstream;
 
 char *ps[] = { "> ", ". " };
 int interactive;
@@ -124,6 +125,7 @@ cmd_load (int argc, char **argv)
 {
   if (check_args (argv[0], argc, 2, 2))
     return;
+  mu_stream_destroy (&hstream);
   mu_header_destroy (&header);
   load_file (argv[1]);
 }
@@ -134,6 +136,7 @@ cmd_free (int argc, char **argv)
   if (check_args (argv[0], argc, 1, 1))
     return;
   mu_iterator_destroy (&iterator);
+  mu_stream_destroy (&hstream);
   mu_header_destroy (&header);
 }
 
@@ -211,6 +214,7 @@ cmd_remove (int argc, char **argv)
   status = mu_header_remove (header, fn, num);
   if (status)
     mu_error ("%u: %s: %s", line_num, argv[0], mu_strerror (status));
+  mu_stream_destroy (&hstream);
 }
 
 /* insert header value [ref [num] [before|after] [replace]] */
@@ -260,6 +264,7 @@ cmd_insert (int argc, char **argv)
     }
   status = mu_header_insert (header, argv[1], argv[2],
 			     ref, num, flags);
+  mu_stream_destroy (&hstream);
   if (status)
     mu_error ("%u: %s: %s", line_num, argv[0], mu_strerror (status));
 }
@@ -289,6 +294,7 @@ cmd_write (int argc, char **argv)
 	break;
     }
   mu_stream_destroy (&str);
+  mu_stream_destroy (&hstream);
 }
 
 void
@@ -341,18 +347,19 @@ void
 cmd_readline (int argc, char **argv)
 {
   char *buf;
-  size_t size;
-  mu_stream_t stream;
+  size_t size = 128;
   size_t nbytes;
   
   if (check_args (argv[0], argc, 1, 2))
     return;
-  size = atoi (argv[1]);
+  if (argc == 2)
+    size = atoi (argv[1]);
   buf = malloc (size);
   if (!buf)
     abort ();
-  mu_header_get_stream (header, &stream);
-  mu_stream_readline (stream, buf, size, &nbytes);
+  if (!hstream)
+    mu_header_get_streamref (header, &hstream);
+  mu_stream_readline (hstream, buf, size, &nbytes);
   printf ("\"%*.*s\"", (int) nbytes, (int) nbytes, buf);
   free (buf);
 }

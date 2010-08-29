@@ -1710,7 +1710,7 @@ amd_body_stream_seek (mu_stream_t str, mu_off_t off, mu_off_t *presult)
   
   amd_body_size (amdstr->body, &size);
 
-  if (off < 0 || off >= size)
+  if (off < 0 || off > size)
     return ESPIPE;
 
   amdstr->off = off;

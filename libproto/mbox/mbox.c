@@ -382,7 +382,8 @@ mbox_envelope_date (mu_envelope_t envelope, char *buf, size_t len,
 			       &n);
   if (status)
     return status;
-
+  mu_rtrim_cset (buffer, "\r\n");
+  
   /* Format:  "From [sender] [date]" */
   /* strlen ("From ") == 5 */
   if (n > 5 && (s = strchr (buffer + 5, ' ')) != NULL)
