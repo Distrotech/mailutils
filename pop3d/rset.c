@@ -41,6 +41,6 @@ pop3d_rset (char *arg)
       mu_message_get_attribute (msg, &attr);
       pop3d_unset_deleted (attr);
     }
-  pop3d_outf ("+OK\r\n");
+  pop3d_outf ("+OK\n");
   return OK;
 }

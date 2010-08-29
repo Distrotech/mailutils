@@ -26,6 +26,6 @@ pop3d_noop (char *arg)
     return ERR_BAD_ARGS;
   if (state != TRANSACTION)
     return ERR_WRONG_STATE;
-  pop3d_outf ("+OK\r\n");
+  pop3d_outf ("+OK\n");
   return OK;
 }

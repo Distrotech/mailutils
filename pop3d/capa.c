@@ -35,30 +35,30 @@ pop3d_capa (char *arg)
   if (state != initial_state && state != TRANSACTION)
     return ERR_WRONG_STATE;
 
-  pop3d_outf ("+OK Capability list follows\r\n");
-  pop3d_outf ("TOP\r\n");
-  pop3d_outf ("USER\r\n");
-  pop3d_outf ("UIDL\r\n");
-  pop3d_outf ("RESP-CODES\r\n");
-  pop3d_outf ("PIPELINING\r\n");
+  pop3d_outf ("+OK Capability list follows\n");
+  pop3d_outf ("TOP\n");
+  pop3d_outf ("USER\n");
+  pop3d_outf ("UIDL\n");
+  pop3d_outf ("RESP-CODES\n");
+  pop3d_outf ("PIPELINING\n");
 
 #ifdef WITH_TLS
   if (tls_available && tls_done == 0)
-    pop3d_outf ("STLS\r\n");
+    pop3d_outf ("STLS\n");
 #endif /* WITH_TLS */
 
   login_delay_capa ();
   /* This can be implemented by setting an header field on the message.  */
   if (expire == EXPIRE_NEVER)
-    pop3d_outf ("EXPIRE NEVER\r\n");
+    pop3d_outf ("EXPIRE NEVER\n");
   else 
-    pop3d_outf ("EXPIRE %s\r\n", mu_umaxtostr (0, expire));
+    pop3d_outf ("EXPIRE %s\n", mu_umaxtostr (0, expire));
 
   if (state == INITIAL)
-    pop3d_outf ("XTLSREQUIRED\r\n");
+    pop3d_outf ("XTLSREQUIRED\n");
   
   if (state == TRANSACTION)	/* let's not advertise to just anyone */
-    pop3d_outf ("IMPLEMENTATION %s\r\n", PACKAGE_STRING);
-  pop3d_outf (".\r\n");
+    pop3d_outf ("IMPLEMENTATION %s\n", PACKAGE_STRING);
+  pop3d_outf (".\n");
   return OK;
 }

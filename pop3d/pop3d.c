@@ -248,7 +248,7 @@ pop3d_mainloop (int fd, FILE *infile, FILE *outfile)
   }
 
   /* Lets boogie.  */
-  pop3d_outf ("+OK POP3 Ready %s\r\n", md5shared);
+  pop3d_outf ("+OK POP3 Ready %s\n", md5shared);
 
   while (state != UPDATE && state != ABORT)
     {
@@ -291,7 +291,7 @@ pop3d_mainloop (int fd, FILE *infile, FILE *outfile)
 	status = ERR_BAD_CMD;
 
       if (status != OK)
-	pop3d_outf ("-ERR %s\r\n", pop3d_error_string (status));
+	pop3d_outf ("-ERR %s\n", pop3d_error_string (status));
     }
 
   pop3d_bye ();

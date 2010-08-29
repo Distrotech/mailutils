@@ -37,7 +37,7 @@ pop3d_list (char *arg)
   if (strlen (arg) == 0)
     {
       size_t total = 0;
-      pop3d_outf ("+OK\r\n");
+      pop3d_outf ("+OK\n");
       mu_mailbox_messages_count (mbox, &total);
       for (mesgno = 1; mesgno <= total; mesgno++)
 	{
@@ -47,12 +47,12 @@ pop3d_list (char *arg)
 	    {
 	      mu_message_size (msg, &size);
 	      mu_message_lines (msg, &lines);
-	      pop3d_outf ("%s %s\r\n", 
+	      pop3d_outf ("%s %s\n", 
                           mu_umaxtostr (0, mesgno), 
                           mu_umaxtostr (1, size + lines));
 	    }
 	}
-      pop3d_outf (".\r\n");
+      pop3d_outf (".\n");
     }
   else
     {
@@ -64,7 +64,7 @@ pop3d_list (char *arg)
 	return ERR_MESG_DELE;
       mu_message_size (msg, &size);
       mu_message_lines (msg, &lines);
-      pop3d_outf ("+OK %s %s\r\n", 
+      pop3d_outf ("+OK %s %s\n", 
                   mu_umaxtostr (0, mesgno),
                   mu_umaxtostr (1, size + lines));
     }
