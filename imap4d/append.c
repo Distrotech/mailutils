@@ -45,6 +45,7 @@ _append_sender (mu_envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
   return 0;
 }
 
+/* FIXME: Why not use mu_message_size instead? */
 static int
 _append_size (mu_message_t msg, size_t *psize)
 {

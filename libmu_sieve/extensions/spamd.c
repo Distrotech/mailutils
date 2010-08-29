@@ -34,6 +34,8 @@
 #include <mailutils/sieve.h>
 #include <mailutils/mu_auth.h>
 #include <mailutils/nls.h>
+#include <mailutils/filter.h>
+#include <mailutils/stream.h>
 
 #define DEFAULT_SPAMD_PORT 783
 
@@ -98,29 +100,28 @@ spamd_send_command (mu_stream_t stream, const char *fmt, ...)
   mu_stream_writeline (stream, buf, n);
 }
 
-static void
+static int
 spamd_send_message (mu_stream_t stream, mu_message_t msg)
 {
-  size_t size;
-  char buf[512];
-  mu_stream_t mstr;
+  int rc;
+  mu_stream_t mstr, flt;
 
-  mu_message_get_stream (msg, &mstr);
-  mu_stream_seek (mstr, 0, SEEK_SET, NULL);
-  while (mu_stream_readline (mstr, buf, sizeof (buf), &size) == 0
-	 && size > 0)
+  rc = mu_message_get_streamref (msg, &mstr);
+  if (rc)
+    return rc;
+  rc = mu_filter_create (&flt, mstr, "rfc822", MU_FILTER_ENCODE,
+			 MU_STREAM_READ|MU_STREAM_SEEK|MU_STREAM_NO_CLOSE);
+  if (rc)
     {
-      char *nl = NULL;
-      
-      if (buf[size-1] == '\n')
-	{
-	  size--;
-	  nl = "\r\n";
-	}
-      mu_stream_write (stream, buf, size, NULL);
-      if (nl)
-	mu_stream_write (stream, nl, 2, NULL);
+      mu_stream_destroy (&mstr);
+      return rc;
     }
+
+  rc = mu_stream_copy (stream, flt, 0);
+
+  mu_stream_destroy (&mstr);
+  mu_stream_destroy (&flt);
+  return rc;
 }
 
 static size_t
@@ -283,6 +284,9 @@ spamd_test (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
 		   (unsigned long) locus.source_line,
 		   (u_long) mu_sieve_get_message_num (mach));
     }
+  
+  if (mu_sieve_is_dry_run (mach))
+    return 0;
   
   if (mu_sieve_tag_lookup (tags, "host", &arg))
     host = arg->v.string;

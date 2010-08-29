@@ -21,9 +21,9 @@
    The pipe action executes a shell command specified by its
    argument and pipes the entire message to its standard input.
    The envelope of the message is included, if the :envelope tag is given.
-   
+
    Notes/FIXME: 1. it would be nice to implement meta-variables in
-                <program call> which would expand to various
+		<program call> which would expand to various
 		items from the message being handled.
 		2. :mime tag could be useful too.
 */
@@ -41,38 +41,6 @@
 #include <regex.h>
 #include <mailutils/sieve.h>
 
-#define ASSERT(expr, diag, ec)                                                \
- if (!(expr))                                                                 \
-   {                                                                          \
-     if (ec)                                                                  \
-       mu_sieve_error (mach, "%lu: %s: %s",                                   \
-	 	       (unsigned long) mu_sieve_get_message_num (mach),	      \
-		       diag,                                                  \
-		       mu_strerror (ec));                                     \
-     else                                                                     \
-       mu_sieve_error (mach, "%lu: %s",                                       \
-	 	       (unsigned long) mu_sieve_get_message_num (mach),	      \
-		       diag);                                                 \
-     mu_sieve_abort (mach);                                                   \
-   }
-    
-#define ASSERT2(expr, diag, arg, ec)                                          \
- if (!(expr))                                                                 \
-   {                                                                          \
-     if (ec)                                                                  \
-       mu_sieve_error (mach, "%lu: `%s': %s: %s",                             \
-	 	       (unsigned long) mu_sieve_get_message_num (mach),	      \
-		       arg,                                                   \
-		       diag,                                                  \
-		       mu_strerror (ec));                                     \
-     else                                                                     \
-       mu_sieve_error (mach, "%lu: `%s': %s",                                 \
-		       (unsigned long) mu_sieve_get_message_num (mach),	      \
-		       arg,                                                   \
-		       diag);                                                 \
-     mu_sieve_abort (mach);                                                   \
-   }
-
 int
 sieve_action_pipe (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
 {
@@ -81,12 +49,25 @@ sieve_action_pipe (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   mu_sieve_value_t *val;
   char *cmd;
   mu_stream_t mstr, pstr;
-  char buf[512];
-  size_t n;
   mu_envelope_t env;
-  
+  const char *error_diag = NULL;
+  const char *error_arg = NULL;
+#define ONERR(rc, diag, arg)						\
+  if (rc)								\
+    {									\
+      error_diag = diag;						\
+      error_arg = arg;							\
+      break;								\
+    }
+
   val = mu_sieve_value_get (args, 0);
-  ASSERT (val, _("cannot get command!"), 0);
+  if (!val)
+    {
+      mu_sieve_error (mach, "%lu: %s",
+		      (unsigned long) mu_sieve_get_message_num (mach),
+		      _("cannot get command!"));
+      mu_sieve_abort (mach);
+    }
   cmd = val->v.string;
 
   mu_sieve_log_action (mach, "PIPE", NULL);
@@ -104,49 +85,64 @@ sieve_action_pipe (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
 
   msg = mu_sieve_get_message (mach);
   mu_message_get_envelope (msg, &env);
-  
-  rc = mu_message_get_stream (msg, &mstr);
-  ASSERT (rc == 0, _("cannot get message stream"), rc);
-  
-  rc = mu_prog_stream_create (&pstr, cmd, MU_STREAM_WRITE);
-  ASSERT2 (rc == 0, _("cannot create command stream"), cmd, rc);
 
-  rc = mu_stream_open (pstr);
-  ASSERT2 (rc == 0, _("cannot open command stream"), cmd, rc);
-
-  if (mu_sieve_tag_lookup (tags, "envelope", &val))
+  do
     {
-      char *p;
+      rc = mu_message_get_streamref (msg, &mstr);
+      ONERR (rc, _("cannot get message stream"), NULL);
 
-      rc = mu_envelope_aget_sender (env, &p);
-      ASSERT (rc == 0, _("cannot get envelope sender"), rc);
-      rc = mu_stream_write (pstr, "From ", 5, NULL);
-      ASSERT (rc == 0, _("stream write failed"), rc);
-      mu_stream_write (pstr, p, strlen (p), NULL);
-      free (p);
-      rc = mu_stream_write (pstr, " ", 1, NULL);
-      ASSERT (rc == 0, _("stream write failed"), rc);
-      rc = mu_envelope_aget_date (env, &p);
-      ASSERT (rc == 0, _("cannot get envelope date"), rc);
-      rc = mu_stream_write (pstr, p, strlen (p), NULL);
-      ASSERT (rc == 0, _("stream write failed"), rc);
-      free (p);
-      rc = mu_stream_write (pstr, "\n", 1, NULL);
-      ASSERT (rc == 0, _("stream write failed"), rc);
+      rc = mu_prog_stream_create (&pstr, cmd, MU_STREAM_WRITE);
+      ONERR (rc, _("cannot create command stream"), cmd);
+
+      rc = mu_stream_open (pstr);
+      ONERR (rc, _("cannot open command stream"), cmd);
+
+      if (mu_sieve_tag_lookup (tags, "envelope", &val))
+	{
+	  char *p;
+
+	  rc = mu_envelope_aget_sender (env, &p);
+	  ONERR (rc, _("cannot get envelope sender"), NULL);
+	  rc = mu_stream_write (pstr, "From ", 5, NULL);
+	  ONERR (rc, _("stream write failed"), NULL);
+	  mu_stream_write (pstr, p, strlen (p), NULL);
+	  free (p);
+	  rc = mu_stream_write (pstr, " ", 1, NULL);
+	  ONERR (rc, _("stream write failed"), NULL);
+	  rc = mu_envelope_aget_date (env, &p);
+	  ONERR (rc, _("cannot get envelope date"), NULL);
+	  rc = mu_stream_write (pstr, p, strlen (p), NULL);
+	  ONERR (rc, _("stream write failed"), NULL);
+	  free (p);
+	  rc = mu_stream_write (pstr, "\n", 1, NULL);
+	  ONERR (rc, _("stream write failed"), NULL);
+	}
+
+      rc = mu_stream_copy (pstr, mstr, 0);
+      ONERR (rc, _("command failed"), cmd);
     }
-  
-  rc = mu_stream_seek (mstr, 0, SEEK_SET, NULL);
-  while (rc == 0
-	 && mu_stream_read (mstr, buf, sizeof buf, &n) == 0
-	 && n > 0)
-    rc = mu_stream_write (pstr, buf, n, NULL);
+  while (0);
 
+  mu_stream_destroy (&mstr);
   mu_stream_close (pstr);
   mu_stream_destroy (&pstr);
 
+  if (rc)
+    {
+      if (error_arg)
+	mu_sieve_error (mach, "%lu: %s: %s: %s",
+			(unsigned long) mu_sieve_get_message_num (mach),
+			error_diag,
+			error_arg,
+			mu_strerror (rc));
+      else
+	mu_sieve_error (mach, "%lu: %s: %s",
+			(unsigned long) mu_sieve_get_message_num (mach),
+			error_diag,
+			mu_strerror (rc));
+      mu_sieve_abort (mach);
+    }
 
-  ASSERT2 (rc == 0, _("command failed"), cmd, rc);
-  
   return 0;
 }
 
@@ -155,9 +151,9 @@ static mu_sieve_tag_def_t pipe_tags[] = {
   { "envelope", SVT_VOID },
   { NULL }
 };
-  
+
 static mu_sieve_tag_group_t pipe_tag_groups[] = {
-  { pipe_tags, NULL }, 
+  { pipe_tags, NULL },
   { NULL }
 };
 
@@ -173,4 +169,3 @@ SIEVE_EXPORT (pipe, init) (mu_sieve_machine_t mach)
   return mu_sieve_register_action (mach, "pipe", sieve_action_pipe,
 				   pipe_args, pipe_tag_groups, 1);
 }
-

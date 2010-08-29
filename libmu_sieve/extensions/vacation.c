@@ -42,7 +42,6 @@
 
 /* Build a mime response message from original message MSG. TEXT
    is the message text.
-   FIXME: This is for future use, when I add :mime tag
 */
 static int
 build_mime (mu_sieve_machine_t mach, mu_list_t tags, mu_mime_t *pmime,
@@ -50,25 +49,25 @@ build_mime (mu_sieve_machine_t mach, mu_list_t tags, mu_mime_t *pmime,
 {
   mu_mime_t mime = NULL;
   mu_message_t newmsg;
-  mu_stream_t stream, input, save_input = NULL;
+  mu_stream_t stream, input;
   mu_header_t hdr;
   mu_body_t body;
-  char buf[512];
-  char *header = "Content-Type: text/plain;charset=" MU_SIEVE_CHARSET "\n"
- 	       "Content-Transfer-Encoding: 8bit\n\n";
+  const char *header =
+    "Content-Type: text/plain;charset=" MU_SIEVE_CHARSET "\n"
+    "Content-Transfer-Encoding: 8bit\n\n";
   int rc;
-  size_t n;
   
   mu_mime_create (&mime, NULL, 0);
   mu_message_create (&newmsg, NULL);
   mu_message_get_body (newmsg, &body);
-  mu_body_get_stream (body, &stream);
 
   if ((rc = mu_memory_stream_create (&input, MU_STREAM_RDWR)))
     {
       mu_sieve_error (mach,
 		      _("cannot create temporary stream: %s"),
 		      mu_strerror (rc));
+      mu_mime_destroy (&mime);
+      mu_message_destroy (&newmsg, NULL);
       return 1;
     }
 
@@ -77,6 +76,9 @@ build_mime (mu_sieve_machine_t mach, mu_list_t tags, mu_mime_t *pmime,
       mu_sieve_error (mach,
 		      _("cannot open temporary stream: %s"),
 		      mu_strerror (rc));
+      mu_mime_destroy (&mime);
+      mu_message_destroy (&newmsg, NULL);
+      mu_stream_destroy (&input);
       return 1;
     }
   
@@ -91,19 +93,37 @@ build_mime (mu_sieve_machine_t mach, mu_list_t tags, mu_mime_t *pmime,
 	{
 	  header = "Content-Type: text/plain;charset=" MU_SIEVE_CHARSET "\n"
 	           "Content-Transfer-Encoding: base64\n\n";
-	  save_input = input;
 	  input = fstr;
 	}
     }
 
-  while (rc == 0
-	 && mu_stream_read (input, buf, sizeof buf, &n) == 0
-	 && n > 0)
-    rc = mu_stream_write (stream, buf, n, NULL);
+  rc = mu_body_get_streamref (body, &stream);
+  if (rc)
+    {
+      mu_sieve_error (mach,
+		      _("cannot get input body stream: %s"),
+		      mu_strerror (rc));
+      mu_mime_destroy (&mime);
+      mu_message_destroy (&newmsg, NULL);
+      mu_stream_destroy (&input);
+      return 1;
+    }
+
+  mu_stream_seek (input, 0, MU_SEEK_SET, NULL);
+  rc = mu_stream_copy (stream, input, 0);
+  if (rc)
+    {
+      mu_sieve_error (mach,
+		      _("stream copy failed: %s"),
+		      mu_strerror (rc));
+      mu_mime_destroy (&mime);
+      mu_message_destroy (&newmsg, NULL);
+      mu_stream_destroy (&input);
+      mu_stream_destroy (&stream);
+      return 1;
+    }
 
   mu_stream_destroy (&input);
-  if (save_input)
-    mu_stream_destroy (&save_input);
   
   mu_header_create (&hdr, header, strlen (header));
   mu_message_set_header (newmsg, hdr, NULL);

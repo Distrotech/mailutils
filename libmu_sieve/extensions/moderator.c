@@ -213,7 +213,7 @@ moderator_message_get_part (mu_sieve_machine_t mach,
 
       free (value);
       mu_message_get_body (tmp, &body);
-      mu_body_get_stream (body, &str);
+      mu_body_get_streamref (body, &str);
 
       rc = mu_stream_to_message (str, pmsg);
       if (rc)
@@ -223,6 +223,7 @@ moderator_message_get_part (mu_sieve_machine_t mach,
 			  mu_strerror (rc));
 	  return 1;
 	}
+      mu_stream_destroy (&str);
     }
   else if (value)
     {
