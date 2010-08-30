@@ -19,10 +19,12 @@
 
 sysincludedir=$(pkgincludedir)/sys
 sysinclude_HEADERS = \
+ dbgstream.h\
  file_stream.h\
  filter.h\
  header_stream.h\
  header.h\
+ iostream.h\
  mapfile_stream.h\
  memory_stream.h\
  message_stream.h\
@@ -36,4 +38,5 @@ sysinclude_HEADERS = \
  stream.h\
  tls-stream.h\
  pop3.h\
- nntp.h
+ nntp.h\
+ xscript-stream.h

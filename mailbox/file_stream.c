@@ -192,7 +192,7 @@ static int
 fd_ioctl (struct _mu_stream *str, int code, void *ptr)
 {
   struct _mu_file_stream *fstr = (struct _mu_file_stream *) str;
-  mu_transport_t (*ptrans)[2];
+  mu_transport_t *ptrans;
   
   switch (code)
     {
@@ -200,8 +200,8 @@ fd_ioctl (struct _mu_stream *str, int code, void *ptr)
       if (!ptr)
 	return EINVAL;
       ptrans = ptr;
-      (*ptrans)[0] = (mu_transport_t) fstr->fd;
-      (*ptrans)[1] = NULL;
+      ptrans[0] = (mu_transport_t) fstr->fd;
+      ptrans[1] = NULL;
       break;
 
     default:

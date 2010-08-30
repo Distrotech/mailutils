@@ -335,7 +335,7 @@ static int
 filter_ctl (struct _mu_stream *stream, int op, void *ptr)
 {
   struct _mu_filter_stream *fs = (struct _mu_filter_stream *)stream;
-  mu_transport_t (*ptrans)[2];
+  mu_transport_t *ptrans;
 
   switch (op)
     {
@@ -343,8 +343,8 @@ filter_ctl (struct _mu_stream *stream, int op, void *ptr)
       if (!ptr)
 	return EINVAL;
       ptrans = ptr;
-      (*ptrans)[0] = (mu_transport_t) fs->transport;
-      (*ptrans)[1] = NULL;
+      ptrans[0] = (mu_transport_t) fs->transport;
+      ptrans[1] = NULL;
       break;
 
     default:
@@ -390,6 +390,26 @@ filter_close (mu_stream_t stream)
   return mu_stream_close (fs->transport);
 }
 
+
+static int
+filter_read_through (struct _mu_stream *stream,
+		     char *buf, size_t bufsize,
+		     size_t *pnread)
+{
+  struct _mu_filter_stream *fs = (struct _mu_filter_stream *)stream;
+  return mu_stream_read (fs->transport, buf, bufsize, pnread);
+}
+
+static int
+filter_write_through (struct _mu_stream *stream,
+		      const char *buf, size_t bufsize,
+		      size_t *pnwrite)
+{
+  struct _mu_filter_stream *fs = (struct _mu_filter_stream *)stream;
+  return mu_stream_write (fs->transport, buf, bufsize, pnwrite);
+}
+
+
 int
 mu_filter_stream_create (mu_stream_t *pflt,
 			 mu_stream_t str,
@@ -402,7 +422,14 @@ mu_filter_stream_create (mu_stream_t *pflt,
 
   if ((flags & MU_STREAM_RDWR) == MU_STREAM_RDWR
       || !(flags & MU_STREAM_RDWR)
-      || (flags & (MU_STREAM_WRITE|MU_STREAM_SEEK)) == (MU_STREAM_WRITE|MU_STREAM_SEEK))
+      || (flags & (MU_STREAM_WRITE|MU_STREAM_SEEK)) ==
+          (MU_STREAM_WRITE|MU_STREAM_SEEK)
+      || (flags & (MU_STREAM_RDTHRU|MU_STREAM_WRTHRU)) ==
+	  (MU_STREAM_RDTHRU|MU_STREAM_WRTHRU)
+      || (flags & (MU_STREAM_READ|MU_STREAM_RDTHRU)) ==
+	  (MU_STREAM_READ|MU_STREAM_RDTHRU)
+      || (flags & (MU_STREAM_WRITE|MU_STREAM_WRTHRU)) ==
+          (MU_STREAM_WRITE|MU_STREAM_WRTHRU))
     return EINVAL;
  
   fs = (struct _mu_filter_stream *) _mu_stream_create (sizeof (*fs), flags);
@@ -413,11 +440,21 @@ mu_filter_stream_create (mu_stream_t *pflt,
     {
       fs->stream.read = filter_read;
       fs->stream.flush = filter_rd_flush;
+      if (flags & MU_STREAM_WRTHRU)
+	{
+	  flags |= MU_STREAM_WRITE;
+	  fs->stream.write = filter_write_through;
+	}
     }
   else
     {
       fs->stream.write = filter_write;
       fs->stream.flush = filter_wr_flush;
+      if (flags & MU_STREAM_RDTHRU)
+	{
+	  flags |= MU_STREAM_READ;
+	  fs->stream.read = filter_read_through;
+	}
     }
   fs->stream.done = filter_done;
   fs->stream.close = filter_close;

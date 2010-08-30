@@ -20,7 +20,7 @@
 #include "pop3d.h"
 #include "mailutils/libargp.h"
 
-mu_stream_t istream, ostream;
+mu_stream_t iostream;
 
 void
 pop3d_parse_command (char *cmd, char **pcmd, char **parg)
@@ -132,12 +132,12 @@ pop3d_abquit (int reason)
    FIXME: This is sorta kludge: we could use MU_IOCTL_GET_TRANSPORT call
    to retrieve the bottom-level stream, if filter streams supported it.
 */
-static mu_stream_t real_ostream;
+static mu_stream_t real_istream, real_ostream;
 
 void
 pop3d_setio (FILE *in, FILE *out)
 {
-  mu_stream_t str;
+  mu_stream_t str, istream, ostream;
   
   if (!in)
     pop3d_abquit (ERR_NO_IFILE);
@@ -147,6 +147,7 @@ pop3d_setio (FILE *in, FILE *out)
   if (mu_stdio_stream_create (&istream, fileno (in),
 			      MU_STREAM_READ | MU_STREAM_NO_CLOSE))
     pop3d_abquit (ERR_NO_IFILE);
+  real_istream = istream;
   mu_stream_set_buffer (istream, mu_buffer_line, 1024);
   
   if (mu_stdio_stream_create (&str, fileno (out),
@@ -157,6 +158,32 @@ pop3d_setio (FILE *in, FILE *out)
 			MU_STREAM_WRITE | MU_STREAM_NO_CLOSE))
     pop3d_abquit (ERR_NO_IFILE);
   mu_stream_set_buffer (ostream, mu_buffer_line, 1024);
+
+  if (mu_iostream_create (&iostream, istream, ostream, 0))
+    pop3d_abquit (ERR_FILE);
+  if (pop3d_transcript)
+    {
+      int rc;
+      mu_debug_t debug;
+      mu_stream_t dstr, xstr;
+      
+      mu_diag_get_debug (&debug);
+      
+      rc = mu_dbgstream_create (&dstr, debug, MU_DIAG_DEBUG,
+				MU_STREAM_NO_CLOSE);
+      if (rc)
+	mu_error (_("cannot create debug stream; transcript disabled: %s"),
+		  mu_strerror (rc));
+      else
+	{
+	  rc = mu_xscript_stream_create (&xstr, iostream, dstr, NULL);
+	  if (rc)
+	    mu_error (_("cannot create transcript stream: %s"),
+		      mu_strerror (rc));
+	  else
+	    iostream = xstr;
+	}
+    }
 }
 
 #ifdef WITH_TLS
@@ -166,37 +193,44 @@ pop3d_init_tls_server ()
   mu_stream_t stream;
   int rc;
 
-  rc = mu_tls_server_stream_create (&stream, istream, real_ostream, 0);
+  rc = mu_tls_server_stream_create (&stream, real_istream, real_ostream,
+				    MU_STREAM_NO_CLOSE);
   if (rc)
-    return 0;
+    return 1;
 
   rc = mu_stream_open (stream);
   if (rc)
     {
       mu_diag_output (MU_DIAG_ERROR, _("cannot open TLS stream: %s"),
 		      mu_stream_strerror (stream, rc));
-      return 0;
+      mu_stream_destroy (&stream);
+      return 1;
     }
-  
-  istream = stream;
-  mu_stream_destroy (&ostream);
-  if (mu_filter_create (&ostream, stream, "rfc822", MU_FILTER_ENCODE,
-			MU_STREAM_WRITE | MU_STREAM_NO_CLOSE))
+
+  if (mu_filter_create (&stream, stream, "rfc822", MU_FILTER_ENCODE,
+			MU_STREAM_WRITE | MU_STREAM_RDTHRU |
+			MU_STREAM_NO_CLOSE))
     pop3d_abquit (ERR_NO_IFILE);
-  mu_stream_set_buffer (ostream, mu_buffer_line, 1024);
-  return 1;
+  
+  if (pop3d_transcript)
+    {
+      mu_transport_t trans[2];
+
+      trans[0] = (mu_transport_t) stream;
+      trans[1] = NULL;
+      mu_stream_ioctl (iostream, MU_IOCTL_SET_TRANSPORT, trans);
+    }
+  else
+    iostream = stream;
+  return 0;
 }
 #endif
 
 void
 pop3d_bye ()
 {
-  if (istream == ostream)
-    {
-      mu_stream_close (istream);
-      mu_stream_destroy (&istream);
-    }
-  /* There's no reason closing in/out streams otherwise */
+  mu_stream_close (iostream);
+  mu_stream_destroy (&iostream);
 #ifdef WITH_TLS
   if (tls_available)
     mu_deinit_tls_libs ();
@@ -206,53 +240,28 @@ pop3d_bye ()
 void
 pop3d_flush_output ()
 {
-  mu_stream_flush (ostream);
+  mu_stream_flush (iostream);
 }
 
 int
 pop3d_is_master ()
 {
-  return ostream == NULL;
-}
-
-static void
-transcript (const char *pfx, const char *buf)
-{
-  if (pop3d_transcript)
-    {
-      int len = strlen (buf);
-      if (len > 0 && buf[len-1] == '\n')
-	{
-	  len--;
-	  if (len > 0 && buf[len-1] == '\r')
-	    len--;
-	}
-      mu_diag_output (MU_DIAG_DEBUG, "%s: %-.*s", pfx, len, buf);
-    }
+  return iostream == NULL;
 }
 
 void
 pop3d_outf (const char *fmt, ...)
 {
   va_list ap;
-  char *buf;
   int rc;
   
   va_start (ap, fmt);
-  vasprintf (&buf, fmt, ap);
+  rc = mu_stream_vprintf (iostream, fmt, ap);
   va_end (ap);
-
-  if (!buf)
-    pop3d_abquit (ERR_NO_MEM);
-  
-  transcript ("sent", buf);
-
-  rc = mu_stream_write (ostream, buf, strlen (buf), NULL);
-  free (buf);
   if (rc)
     {
       mu_diag_output (MU_DIAG_ERROR, _("Write failed: %s"),
- 		      mu_stream_strerror (ostream, rc));
+ 		      mu_stream_strerror (iostream, rc));
       pop3d_abquit (ERR_IO);
     }
 }
@@ -265,13 +274,13 @@ pop3d_readline (char *buffer, size_t size)
   size_t nbytes;
   
   alarm (idle_timeout);
-  rc = mu_stream_readline (istream, buffer, size, &nbytes);
+  rc = mu_stream_readline (iostream, buffer, size, &nbytes);
   alarm (0);
 
   if (rc)
     {
       mu_diag_output (MU_DIAG_ERROR, _("Read failed: %s"),
- 		      mu_stream_strerror (ostream, rc));
+ 		      mu_stream_strerror (iostream, rc));
       pop3d_abquit (ERR_IO);
     }
   else if (nbytes == 0)
@@ -284,8 +293,6 @@ pop3d_readline (char *buffer, size_t size)
       mu_diag_output (MU_DIAG_ERROR, _("Unexpected eof on input"));
       pop3d_abquit (ERR_PROTO);
     }
-
-  transcript ("recv", buffer);
 
   return buffer;
 }

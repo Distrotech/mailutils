@@ -209,13 +209,13 @@ static int
 _mapfile_ioctl (struct _mu_stream *str, int code, void *ptr)
 {
   struct _mu_mapfile_stream *mfs = (struct _mu_mapfile_stream *) str;
-  mu_transport_t (*ptrans)[2];
+  mu_transport_t ptrans[2];
   
   switch (code)
     {
     case MU_IOCTL_GET_TRANSPORT:
-      (*ptrans)[0] = (mu_transport_t) mfs->fd;
-      (*ptrans)[1] = NULL;
+      ptrans[0] = (mu_transport_t) mfs->fd;
+      ptrans[1] = NULL;
       break;
 
     default:

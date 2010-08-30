@@ -189,7 +189,7 @@ struct pop3d_command
   pop3d_command_handler_t handler;
 };
 
-extern mu_stream_t istream, ostream;
+extern mu_stream_t iostream;
 extern mu_pop_server_t pop3srv;
 extern mu_mailbox_t mbox;
 extern int state;

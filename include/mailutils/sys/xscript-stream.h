@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2010 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as published by
@@ -14,29 +14,20 @@
    You should have received a copy of the GNU Lesser General Public License
    along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>. */
 
-#ifdef HAVE_CONFIG_H
-# include <config.h>
-#endif
-#include <mailutils/types.h>
-#include <mailutils/stream.h>
-#include <mailutils/io.h>
-#include <stdlib.h>
-#include <string.h>
+#ifndef _MAILUTILS_SYS_XSCRIPT_STREAM_H
+# define _MAILUTILS_SYS_XSCRIPT_STREAM_H
 
-int
-mu_stream_vprintf (mu_stream_t str, const char *fmt, va_list ap)
+# include <mailutils/types.h>
+# include <mailutils/stream.h>
+# include <mailutils/sys/stream.h>
+
+struct _mu_xscript_stream
 {
-  char *buf = NULL;
-  size_t buflen = 0;
-  size_t n;
-  int rc;
+  struct _mu_stream stream;
+  mu_stream_t transport;
+  mu_stream_t logstr;
+  int flags;
+  char *prefix[2];
+};
 
-  rc = mu_vasnprintf (&buf, &buflen, fmt, ap);
-  if (rc)
-    return rc;
-  n = strlen (buf);
-  rc = mu_stream_write (str, buf, n, NULL);
-  free (buf);
-  return rc;
-}
-
+#endif

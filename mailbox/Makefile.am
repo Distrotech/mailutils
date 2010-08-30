@@ -69,6 +69,7 @@ libmailutils_la_SOURCES = \
  daemon.c\
  date.c\
  dbgstderr.c\
+ dbgstream.c\
  dbgsyslog.c\
  debug.c\
  diag.c\
@@ -84,6 +85,7 @@ libmailutils_la_SOURCES = \
  gocs.c\
  hdritr.c\
  header.c\
+ iostream.c\
  iterator.c\
  ipsrv.c\
  kwd.c\
@@ -150,7 +152,8 @@ libmailutils_la_SOURCES = \
  vartab.c\
  vasnprintf.c\
  version.c\
- wicket.c
+ wicket.c\
+ xscript-stream.c
  
 BUILT_SOURCES = parsedate.c muerrno.c cfg_parser.c cfg_parser.h cfg_lexer.c
 MOSTLYCLEANFILES=
