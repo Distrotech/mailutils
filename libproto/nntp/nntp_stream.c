@@ -131,7 +131,7 @@ mu_nntp_stream_create (mu_nntp_t nntp, mu_stream_t *pstream)
   nntp_stream->nntp = nntp;
   nntp_stream->done = 0;
 
-  status = mu_stream_create (pstream, MU_STREAM_READ | MU_STREAM_NO_CLOSE | MU_STREAM_NO_CHECK, nntp_stream);
+  status = mu_stream_create (pstream, MU_STREAM_READ, nntp_stream);
   if (status != 0)
     {
       free (nntp_stream);

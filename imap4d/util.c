@@ -813,17 +813,18 @@ util_setio (FILE *in, FILE *out)
   if (!out)
     imap4d_bye (ERR_NO_OFILE);
 
-  if (mu_stdio_stream_create (&tmp, fileno (in), MU_STREAM_NO_CLOSE))
+  if (mu_stdio_stream_create (&tmp, fileno (in), 0))
     imap4d_bye (ERR_NO_IFILE);
   mu_stream_set_buffer (tmp, mu_buffer_line, 1024);
-  mu_filter_create (&istream, tmp, "rfc822", MU_FILTER_DECODE, MU_STREAM_READ);
+  mu_filter_create (&istream, tmp, "rfc822", MU_FILTER_DECODE,
+                    MU_STREAM_READ | MU_STREAM_AUTOCLOSE);
   mu_stream_set_buffer (istream, mu_buffer_line, 1024);
   
-  if (mu_stdio_stream_create (&tmp, fileno (out), MU_STREAM_NO_CLOSE))
+  if (mu_stdio_stream_create (&tmp, fileno (out), 0))
     imap4d_bye (ERR_NO_OFILE);
   mu_stream_set_buffer (tmp, mu_buffer_line, 1024);
   mu_filter_create (&ostream, tmp, "rfc822", MU_FILTER_ENCODE,
-		    MU_STREAM_WRITE);
+		    MU_STREAM_WRITE | MU_STREAM_AUTOCLOSE);
   mu_stream_set_buffer (ostream, mu_buffer_line, 1024);
 }
 

@@ -144,8 +144,6 @@ static int
 _xscript_close (struct _mu_stream *str)
 {
   struct _mu_xscript_stream *sp = (struct _mu_xscript_stream *)str;
-  if (sp->stream.flags & MU_STREAM_NO_CLOSE)
-    return 0;
   return mu_stream_close (sp->transport);
 }
 
@@ -268,9 +266,12 @@ mu_xscript_stream_create(mu_stream_t *pref, mu_stream_t transport,
   sp->stream.shutdown = _xscript_shutdown;
   sp->stream.error_string = _xscript_error_string;
 
-  mu_stream_ref (transport);
+  if (!(flags & MU_STREAM_AUTOCLOSE))
+    {
+      mu_stream_ref (transport);
+      mu_stream_ref (logstr);
+    }
   sp->transport = transport;
-  mu_stream_ref (logstr);
   sp->logstr = logstr;
   
   sp->flags = TRANS_READ | TRANS_WRITE;

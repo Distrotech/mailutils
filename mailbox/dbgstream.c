@@ -58,7 +58,7 @@ static void
 _dbg_done (struct _mu_stream *str)
 {
   struct _mu_dbgstream *sp = (struct _mu_dbgstream *)str;
-  if (!(str->flags & MU_STREAM_NO_CLOSE))
+  if (str->flags & MU_STREAM_AUTOCLOSE)
     mu_debug_destroy (&sp->debug, NULL);
 }
 
@@ -70,7 +70,7 @@ mu_dbgstream_create(mu_stream_t *pref, mu_debug_t debug, mu_log_level_t level,
 
   sp = (struct _mu_dbgstream *)
     _mu_stream_create (sizeof (*sp), MU_STREAM_WRITE |
-		       (flags & MU_STREAM_NO_CLOSE));
+		       (flags & MU_STREAM_AUTOCLOSE));
   if (!sp)
     return ENOMEM;
   sp->stream.write = _dbg_write;

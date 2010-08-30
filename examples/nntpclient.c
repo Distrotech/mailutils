@@ -1004,8 +1004,7 @@ com_connect (char *arg)
       if (verbose)
 	com_verbose ("on");
       status =
-	mu_tcp_stream_create (&tcp, host, port,
-			   MU_STREAM_READ | MU_STREAM_NO_CHECK);
+	mu_tcp_stream_create (&tcp, host, port, MU_STREAM_READ);
       if (status == 0)
 	{
 	  mu_nntp_set_carrier (nntp, tcp);

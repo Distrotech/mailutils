@@ -698,9 +698,9 @@ eval_body (struct eval_env *env)
       mu_header_aget_value (hdr, MU_HEADER_CONTENT_TRANSFER_ENCODING, &encoding);
       if (encoding)
 	{
-	  int rc = mu_filter_create(&dstr, input, encoding,
-				    MU_FILTER_DECODE, 
-				    MU_STREAM_READ | MU_STREAM_NO_CLOSE);
+	  int rc = mu_filter_create (&dstr, input, encoding,
+				     MU_FILTER_DECODE, 
+				     MU_STREAM_READ);
 	  if (rc == 0)
 	    input = dstr;
 	  free (encoding);

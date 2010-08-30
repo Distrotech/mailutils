@@ -90,8 +90,7 @@ _icvt_close (mu_stream_t stream)
   struct icvt_stream *s = (struct icvt_stream *)stream;
   if (s->state != state_closed)
     {
-      if (!(stream->flags & MU_STREAM_NO_CLOSE))
-	mu_stream_close (s->transport);
+      mu_stream_close (s->transport);
       iconv_close (s->cd);
       s->cd = (iconv_t) -1;
       s->state = state_closed;
@@ -106,8 +105,7 @@ _icvt_done (mu_stream_t stream)
 
   if (s->state != state_closed)
     _icvt_close (stream);
-  if (!(stream->flags & MU_STREAM_NO_CLOSE))
-    mu_stream_destroy (&s->transport);
+  mu_stream_destroy (&s->transport);
   free (s->buf);
 }
 
@@ -442,6 +440,8 @@ mu_filter_iconv_create (mu_stream_t *s, mu_stream_t transport,
       return ENOMEM;
     }
   
+  if (!(flags & MU_STREAM_AUTOCLOSE))
+    mu_stream_ref (transport);
   iptr->transport = transport;
   iptr->fallback_mode = fallback_mode;
   iptr->cd = cd;

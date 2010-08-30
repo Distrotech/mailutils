@@ -262,7 +262,7 @@ display_submessage (struct mime_descend_closure *closure, void *data)
       /* Can we decode.  */
       if (mu_filter_create (&d_stream, b_stream, closure->encoding,
 			    MU_FILTER_DECODE, 
-			    MU_STREAM_READ|MU_STREAM_NO_CLOSE) == 0)
+			    MU_STREAM_READ | MU_STREAM_AUTOCLOSE) == 0)
 	stream = d_stream;
       else
 	stream = b_stream;

@@ -144,22 +144,22 @@ pop3d_setio (FILE *in, FILE *out)
   if (!out)
     pop3d_abquit (ERR_NO_OFILE);
 
-  if (mu_stdio_stream_create (&istream, fileno (in),
-			      MU_STREAM_READ | MU_STREAM_NO_CLOSE))
+  if (mu_stdio_stream_create (&istream, fileno (in), 
+                              MU_STREAM_READ | MU_STREAM_AUTOCLOSE))
     pop3d_abquit (ERR_NO_IFILE);
   real_istream = istream;
   mu_stream_set_buffer (istream, mu_buffer_line, 1024);
   
-  if (mu_stdio_stream_create (&str, fileno (out),
-			      MU_STREAM_WRITE | MU_STREAM_NO_CLOSE))
+  if (mu_stdio_stream_create (&str, fileno (out), 
+                              MU_STREAM_WRITE | MU_STREAM_AUTOCLOSE))
     pop3d_abquit (ERR_NO_OFILE);
   real_ostream = str;
   if (mu_filter_create (&ostream, str, "rfc822", MU_FILTER_ENCODE,
-			MU_STREAM_WRITE | MU_STREAM_NO_CLOSE))
+			MU_STREAM_WRITE))
     pop3d_abquit (ERR_NO_IFILE);
   mu_stream_set_buffer (ostream, mu_buffer_line, 1024);
 
-  if (mu_iostream_create (&iostream, istream, ostream, 0))
+  if (mu_iostream_create (&iostream, istream, ostream))
     pop3d_abquit (ERR_FILE);
   if (pop3d_transcript)
     {
@@ -169,8 +169,7 @@ pop3d_setio (FILE *in, FILE *out)
       
       mu_diag_get_debug (&debug);
       
-      rc = mu_dbgstream_create (&dstr, debug, MU_DIAG_DEBUG,
-				MU_STREAM_NO_CLOSE);
+      rc = mu_dbgstream_create (&dstr, debug, MU_DIAG_DEBUG, 0);
       if (rc)
 	mu_error (_("cannot create debug stream; transcript disabled: %s"),
 		  mu_strerror (rc));
@@ -181,7 +180,10 @@ pop3d_setio (FILE *in, FILE *out)
 	    mu_error (_("cannot create transcript stream: %s"),
 		      mu_strerror (rc));
 	  else
-	    iostream = xstr;
+	    {
+	      mu_stream_unref (iostream);
+	      iostream = xstr;
+	    }
 	}
     }
 }
@@ -193,8 +195,7 @@ pop3d_init_tls_server ()
   mu_stream_t stream;
   int rc;
 
-  rc = mu_tls_server_stream_create (&stream, real_istream, real_ostream,
-				    MU_STREAM_NO_CLOSE);
+  rc = mu_tls_server_stream_create (&stream, real_istream, real_ostream, 0);
   if (rc)
     return 1;
 
@@ -208,8 +209,7 @@ pop3d_init_tls_server ()
     }
 
   if (mu_filter_create (&stream, stream, "rfc822", MU_FILTER_ENCODE,
-			MU_STREAM_WRITE | MU_STREAM_RDTHRU |
-			MU_STREAM_NO_CLOSE))
+			MU_STREAM_WRITE | MU_STREAM_RDTHRU))
     pop3d_abquit (ERR_NO_IFILE);
   
   if (pop3d_transcript)

@@ -241,17 +241,14 @@ _tls_io_close (mu_stream_t stream)
 {
   struct _mu_tls_io_stream *sp = (struct _mu_tls_io_stream *) stream;
   
-  if (!(sp->stream.flags & MU_STREAM_NO_CLOSE))
-    return mu_stream_close (sp->transport);
-  return 0;
+  return mu_stream_close (sp->transport);
 }
 
 static void
 _tls_io_done (struct _mu_stream *stream)
 {
   struct _mu_tls_io_stream *sp = (struct _mu_tls_io_stream *) stream;
-  if (!(sp->stream.flags & MU_STREAM_NO_CLOSE))
-    mu_stream_unref (sp->transport);
+  mu_stream_unref (sp->transport);
 }
 
 static int
@@ -364,8 +361,7 @@ _mu_tls_io_stream_create (mu_stream_t *pstream,
   struct _mu_tls_io_stream *sp;
 
   sp = (struct _mu_tls_io_stream *)
-    _mu_stream_create (sizeof (*sp),
-		       flags & (MU_STREAM_RDWR | MU_STREAM_NO_CLOSE));
+    _mu_stream_create (sizeof (*sp), flags & MU_STREAM_RDWR);
   if (!sp)
     return ENOMEM;
 
@@ -388,6 +384,8 @@ _mu_tls_io_stream_create (mu_stream_t *pstream,
   /* FIXME:
      sp->stream.error_string = _tls_error_string;*/
 
+  if (!(flags & MU_STREAM_AUTOCLOSE))
+    mu_stream_ref (transport);
   sp->transport = transport;
   sp->up = master;
   *pstream = (mu_stream_t) sp;
@@ -625,11 +623,8 @@ _tls_close (mu_stream_t stream)
       sp->state = state_closed;
     }
   
-  if (!(sp->stream.flags & MU_STREAM_NO_CLOSE))
-    {
-      mu_stream_close (sp->transport[0]);
-      mu_stream_close (sp->transport[1]);
-    }
+  mu_stream_close (sp->transport[0]);
+  mu_stream_close (sp->transport[1]);
   return 0;
 }
 
@@ -646,11 +641,8 @@ _tls_done (struct _mu_stream *stream)
       sp->state = state_destroyed;
     }
 
-  if (!(sp->stream.flags & MU_STREAM_NO_CLOSE))
-    {
-      mu_stream_unref (sp->transport[0]);
-      mu_stream_unref (sp->transport[1]);
-    }
+  mu_stream_destroy (&sp->transport[0]);
+  mu_stream_destroy (&sp->transport[1]);
 }
 
 static int
@@ -659,12 +651,11 @@ _mu_tls_stream_create (mu_stream_t *pstream,
 		       mu_stream_t strin, mu_stream_t strout, int flags)
 {
   struct _mu_tls_stream *sp;
-  int noclose = flags & MU_STREAM_NO_CLOSE;
+  int autoclose = flags & MU_STREAM_AUTOCLOSE;
   int rc;
   
   sp = (struct _mu_tls_stream *)
-    _mu_stream_create (sizeof (*sp),
-		       MU_STREAM_RDWR | noclose);
+    _mu_stream_create (sizeof (*sp), MU_STREAM_RDWR);
   if (!sp)
     return ENOMEM;
 
@@ -679,13 +670,10 @@ _mu_tls_stream_create (mu_stream_t *pstream,
   /* FIXME:
      sp->stream.error_string = _tls_error_string;*/
 
-  if (!noclose && strin == strout)
-    mu_stream_ref (strin);
-
   mu_stream_set_buffer (strin, mu_buffer_none, 0);
   mu_stream_set_buffer (strout, mu_buffer_none, 0);
   rc = _mu_tls_io_stream_create (&sp->transport[0], strin,
-				 MU_STREAM_READ | noclose, sp);
+				 MU_STREAM_READ | autoclose, sp);
   if (rc)
     {
       free (sp);
@@ -693,7 +681,7 @@ _mu_tls_stream_create (mu_stream_t *pstream,
     }
       
   rc = _mu_tls_io_stream_create (&sp->transport[1], strout,
-				 MU_STREAM_WRITE | noclose, sp);
+				 MU_STREAM_WRITE | autoclose, sp);
   if (rc)
     {
       free (sp);

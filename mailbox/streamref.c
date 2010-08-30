@@ -140,8 +140,6 @@ static int
 _streamref_close (struct _mu_stream *str)
 {
   struct _mu_streamref *sp = (struct _mu_streamref *)str;
-  if (sp->stream.flags & MU_STREAM_NO_CLOSE)
-    return 0;
   return streamref_return (sp, mu_stream_close (sp->transport));
 }
 
@@ -271,9 +269,11 @@ mu_streamref_create_abridged (mu_stream_t *pref, mu_stream_t str,
   if (rc)
     return rc;
   mu_stream_get_flags (str, &flags);
-  sp = (struct _mu_streamref *) _mu_stream_create (sizeof (*sp), flags);
+  sp = (struct _mu_streamref *)
+         _mu_stream_create (sizeof (*sp), flags & ~MU_STREAM_AUTOCLOSE);
   if (!sp)
     return ENOMEM;
+
   mu_stream_ref (str);
 
   sp->stream.read = _streamref_read; 

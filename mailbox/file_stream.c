@@ -62,9 +62,12 @@ static int
 fd_close (struct _mu_stream *str)
 {
   struct _mu_file_stream *fstr = (struct _mu_file_stream *) str;
-  if (close (fstr->fd))
-    return errno;
-  fstr->fd = -1;
+  if (fstr->fd != -1)
+    {
+      if ((str->flags & MU_STREAM_AUTOCLOSE) && close (fstr->fd))
+	return errno;
+      fstr->fd = -1;
+    }
   return 0;
 }
 
@@ -234,8 +237,8 @@ _mu_file_stream_create (mu_stream_t *pstream, size_t size,
 			char *filename, int flags)
 {
   struct _mu_file_stream *str =
-    (struct _mu_file_stream *) _mu_stream_create (size,
-						  flags | MU_STREAM_SEEK);
+    (struct _mu_file_stream *)
+      _mu_stream_create (size, flags | MU_STREAM_SEEK);
   if (!str)
     return ENOMEM;
 
@@ -267,7 +270,7 @@ mu_file_stream_create (mu_stream_t *pstream, const char *filename, int flags)
     return ENOMEM;
   rc = _mu_file_stream_create (pstream,
 			       sizeof (struct _mu_file_stream),
-			       fname, flags);
+			       fname, flags | MU_STREAM_AUTOCLOSE);
   if (rc)
     free (fname);
   return rc;

@@ -694,7 +694,7 @@ fetch_io (mu_stream_t stream, size_t start, size_t size, size_t max)
   size_t n = 0;
 
   mu_filter_create (&rfc, stream, "rfc822", MU_FILTER_ENCODE,
-		    MU_STREAM_READ|MU_STREAM_SEEK|MU_STREAM_NO_CLOSE);
+		    MU_STREAM_READ|MU_STREAM_SEEK);
   
   if (start == 0 && size == (size_t) -1)
     {
@@ -1038,7 +1038,7 @@ _frt_header_fields (struct fetch_function_closure *ffc,
       return RESP_OK;
     }
 
-  status = mu_memory_stream_create (&stream, MU_STREAM_NO_CHECK);
+  status = mu_memory_stream_create (&stream, 0);
   if (status != 0)
     imap4d_bye (ERR_NO_MEM);
 

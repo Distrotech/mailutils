@@ -112,11 +112,8 @@ static int
 _iostream_close (struct _mu_stream *str)
 {
   struct _mu_iostream *sp = (struct _mu_iostream *)str;
-  if (sp->stream.flags & MU_STREAM_NO_CLOSE)
-    return 0;
   mu_stream_close (sp->transport[_MU_STREAM_INPUT]);
-  if (sp->transport[_MU_STREAM_INPUT] != sp->transport[_MU_STREAM_OUTPUT])
-    mu_stream_close (sp->transport[_MU_STREAM_OUTPUT]);
+  mu_stream_close (sp->transport[_MU_STREAM_OUTPUT]);
   return 0;
 }
 
@@ -125,8 +122,7 @@ _iostream_done (struct _mu_stream *str)
 {
   struct _mu_iostream *sp = (struct _mu_iostream *)str;
   mu_stream_unref (sp->transport[_MU_STREAM_INPUT]);
-  if (sp->transport[_MU_STREAM_INPUT] != sp->transport[_MU_STREAM_OUTPUT])
-    mu_stream_unref (sp->transport[_MU_STREAM_OUTPUT]);
+  mu_stream_unref (sp->transport[_MU_STREAM_OUTPUT]);
 }
 
 static int
@@ -212,15 +208,13 @@ _iostream_error_string (struct _mu_stream *str, int rc)
 }
 
 int
-mu_iostream_create (mu_stream_t *pref, mu_stream_t in, mu_stream_t out,
-		    int flags)
+mu_iostream_create (mu_stream_t *pref, mu_stream_t in, mu_stream_t out)
 {
   struct _mu_iostream *sp;
 
   sp = (struct _mu_iostream *)
     _mu_stream_create (sizeof (*sp),
-		       MU_STREAM_READ | MU_STREAM_WRITE |
-		       (flags & MU_STREAM_NO_CLOSE));
+		       MU_STREAM_READ | MU_STREAM_WRITE);
   if (!sp)
     return ENOMEM;
 

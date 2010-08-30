@@ -520,7 +520,7 @@ mu_mimehdr_decode_param (const char *value, int flags,
 		    break;
 		  
 		  rc = mu_filter_iconv_create (&cvt, instr, source_cs, charset,
-					       MU_STREAM_NO_CLOSE,
+					       0,
 					       mu_default_fallback_mode);
 		  if (rc)
 		    break;

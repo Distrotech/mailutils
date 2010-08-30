@@ -166,6 +166,7 @@ mu_rfc2047_decode (const char *tocode, const char *input, char **ptostr)
 	  mu_stream_seek (in_stream, 0, MU_SEEK_SET, NULL);
 	  status = mu_decode_filter (&filter, in_stream, filter_type, fromcode,
 				     tocode);
+	  mu_stream_unref (in_stream);
 	  if (status != 0)
 	    break;
 
@@ -273,7 +274,8 @@ mu_rfc2047_encode (const char *charset, const char *encoding,
   mu_stream_write (input_stream, text, strlen (text), NULL);
   mu_stream_seek (input_stream, 0, MU_SEEK_SET, NULL);
   rc = mu_filter_create (&output_stream, input_stream,
-			 encoding, MU_FILTER_ENCODE, MU_STREAM_READ);
+			 encoding, MU_FILTER_ENCODE,
+			 MU_STREAM_READ | MU_STREAM_AUTOCLOSE);
   if (rc == 0)
     {
       /* Assume strlen(qp_encoded_text) <= strlen(text) * 3 */
