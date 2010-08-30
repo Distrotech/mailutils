@@ -166,7 +166,8 @@ main (int argc, char * argv [])
   if (flags == MU_STREAM_READ)
     {
       MU_ASSERT (mu_filter_create (&flt, in, encoding, mode,
-				   MU_STREAM_READ|MU_STREAM_SEEK));
+				   MU_STREAM_READ|MU_STREAM_SEEK|
+				   MU_STREAM_AUTOCLOSE));
       if (shift)
 	MU_ASSERT (mu_stream_seek (flt, shift, MU_SEEK_SET, NULL));
       c_copy (out, flt);
@@ -174,7 +175,7 @@ main (int argc, char * argv [])
   else
     {
       MU_ASSERT (mu_filter_create (&flt, out, encoding, mode,
-				   MU_STREAM_WRITE));
+				   MU_STREAM_WRITE|MU_STREAM_AUTOCLOSE));
       if (shift)
 	MU_ASSERT (mu_stream_seek (in, shift, MU_SEEK_SET, NULL));
       c_copy (flt, in);

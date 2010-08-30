@@ -54,6 +54,9 @@ _stream_seterror (struct _mu_stream *stream, int code, int perm)
 #define _stream_advance_buffer(s,n) ((s)->cur += n, (s)->level -= n)
 #define _stream_buffer_offset(s) ((s)->cur - (s)->buffer)
 #define _stream_orig_level(s) ((s)->level + _stream_buffer_offset (s))
+#define _stream_buffer_freespace(s) \
+  ((s)->bufsize - (s)->level - _stream_buffer_offset(s))
+#define _stream_buffer_is_full(s) (_stream_buffer_freespace(s) == 0)
 
 static int
 _stream_fill_buffer (struct _mu_stream *stream)
@@ -93,9 +96,6 @@ _stream_fill_buffer (struct _mu_stream *stream)
   return rc;
 }
 
-#define BUFFER_FULL_P(s) \
-  ((s)->cur + (s)->level == (s)->buffer + (s)->bufsize)
-
 static int
 _stream_buffer_full_p (struct _mu_stream *stream)
 {
@@ -105,11 +105,11 @@ _stream_buffer_full_p (struct _mu_stream *stream)
 	break;
 	
       case mu_buffer_line:
-	return BUFFER_FULL_P (stream)
+	return _stream_buffer_is_full (stream)
 	       || memchr (stream->cur, '\n', stream->level) != NULL;
 
       case mu_buffer_full:
-	return BUFFER_FULL_P (stream);
+	return _stream_buffer_is_full (stream);
       }
     return 0;
 }
@@ -135,8 +135,7 @@ _stream_flush_buffer (struct _mu_stream *stream, int all)
 	  if ((rc = mu_stream_write_unbuffered (stream, stream->cur,
 						stream->level, 1, NULL)))
 	    return rc;
-	  if (all)
-	    _stream_advance_buffer (stream, stream->level);
+	  _stream_advance_buffer (stream, stream->level);
 	  break;
 	    
 	case mu_buffer_line:
@@ -154,7 +153,7 @@ _stream_flush_buffer (struct _mu_stream *stream, int all)
 		return rc;
 	      _stream_advance_buffer (stream, size);
 	    }
-	  if ((all && stream->level) || BUFFER_FULL_P (stream))
+	  if ((all && stream->level) || _stream_buffer_is_full (stream))
 	    {
 	      rc = mu_stream_write_unbuffered (stream,
 					       stream->cur,
@@ -799,7 +798,7 @@ mu_stream_write (mu_stream_t stream, const void *buf, size_t size,
 	  if (size == 0)
 	    break;
 	    
-	  n = stream->bufsize - stream->level;
+	  n = _stream_buffer_freespace (stream);
 	  if (n > size)
 	    n = size;
 	  memcpy (stream->cur + stream->level, bufp, n);

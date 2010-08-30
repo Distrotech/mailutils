@@ -71,6 +71,8 @@ main (int argc, char *argv[])
       MU_ASSERT (mu_stdio_stream_create (&in, MU_STDIN_FD, 0));
       MU_ASSERT (mu_stream_open (in));
       rc = mu_filter_prog_stream_create (&stream, cmdline, in);
+      /* Make sure closing/destroying stream will close/destroy in */
+      mu_stream_unref (in);
     }
   else
     rc = mu_prog_stream_create (&stream, cmdline, flags);
@@ -80,7 +82,7 @@ main (int argc, char *argv[])
 	       argv[0], mu_strerror (rc));
       exit (1);
     }
-
+  
   rc = mu_stream_open (stream);
   if (rc)
     {

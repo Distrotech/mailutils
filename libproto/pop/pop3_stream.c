@@ -131,7 +131,7 @@ mu_pop3_stream_create (mu_pop3_t pop3, mu_stream_t *pstream)
   pop3_stream->pop3 = pop3;
   pop3_stream->done = 0;
 
-  status = mu_stream_create (pstream, MU_STREAM_READ | MU_STREAM_NO_CLOSE | MU_STREAM_NO_CHECK, pop3_stream);
+  status = mu_stream_create (pstream, MU_STREAM_READ, pop3_stream);
   if (status != 0)
     {
       free (pop3_stream);

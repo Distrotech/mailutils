@@ -210,9 +210,9 @@ decode64_buf (const char *name, unsigned char **pbuf, size_t *psize)
   
   name++;
   namelen = strlen (name) - 1;
-  mu_memory_stream_create (&str, MU_STREAM_NO_CHECK);
+  mu_memory_stream_create (&str, 0);
   mu_filter_create (&flt, str, "base64", MU_FILTER_DECODE,
-		    MU_STREAM_READ | MU_STREAM_NO_CHECK);
+		    MU_STREAM_READ | MU_STREAM_AUTOCLOSE);
   mu_stream_open (str);
   mu_stream_write (str, name, namelen, NULL);
   mu_stream_read (flt, buf, sizeof buf, &size);
@@ -349,8 +349,7 @@ do_preauth_ident (struct sockaddr *clt_sa, struct sockaddr *srv_sa)
   
   memcpy (hostaddr, p, 15);
   hostaddr[15] = 0;
-  rc = mu_tcp_stream_create (&stream, hostaddr, ident_port, 
-			     MU_STREAM_RDWR | MU_STREAM_NO_CHECK);
+  rc = mu_tcp_stream_create (&stream, hostaddr, ident_port, MU_STREAM_RDWR);
   if (rc)
     {
       mu_diag_output (MU_DIAG_INFO, _("cannot create TCP stream: %s"),

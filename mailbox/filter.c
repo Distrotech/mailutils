@@ -92,27 +92,28 @@ filter_create_rd (mu_stream_t *pstream, mu_stream_t stream,
 {
   int status;
   mu_stream_t fltstream;
+
+  flags &= ~MU_STREAM_AUTOCLOSE;
   
   status = mu_filter_stream_create (&fltstream, stream,
 				    mode, xcode, xdata,
-				    flags & ~MU_STREAM_NO_CLOSE);
+				    flags);
   if (status == 0)
     {
       if (max_line_length)
 	{
 	  status = mu_linelen_filter_create (pstream, fltstream,
 					     max_line_length,
-					     flags & ~MU_STREAM_NO_CLOSE);
+					     flags);
+	  mu_stream_unref (fltstream);
 	  if (status)
-	    mu_stream_destroy (&fltstream);
-	  else if (flags & MU_STREAM_NO_CLOSE)
-	    mu_stream_set_flags (*pstream, MU_STREAM_NO_CLOSE);
+	    return status;
 	}
       else
 	*pstream = fltstream;
 
-      if (flags & MU_STREAM_NO_CLOSE)
-	mu_stream_set_flags (fltstream, MU_STREAM_NO_CLOSE);
+      if (flags & MU_STREAM_AUTOCLOSE)
+	mu_stream_unref (stream);
     }
   return status;
 }
@@ -125,29 +126,31 @@ filter_create_wr (mu_stream_t *pstream, mu_stream_t stream,
 		  int flags)
 {
   int status;
-  mu_stream_t fltstream, instream = NULL;
+  mu_stream_t fltstream, instream = NULL, tmpstr;
+
+  flags &= ~MU_STREAM_AUTOCLOSE;
 
   if (max_line_length)
     {
       status = mu_linelen_filter_create (&instream, stream,
 					 max_line_length,
-					 flags & ~MU_STREAM_NO_CLOSE);
+					 flags);
       if (status)
 	return status;
-      stream = instream;
+      tmpstr = instream;
     }
+  else
+    tmpstr = stream;
   
-  status = mu_filter_stream_create (&fltstream, stream,
+  status = mu_filter_stream_create (&fltstream, tmpstr,
 				    mode, xcode, xdata,
 				    flags);
-  if (instream)
-    {
-      if (status)
-	mu_stream_destroy (&instream);
-      else if (flags & MU_STREAM_NO_CLOSE)
-	mu_stream_set_flags (fltstream, MU_STREAM_NO_CLOSE);
-    }
+  mu_stream_unref (instream);
+  if (status)
+    return status;
   *pstream = fltstream;
+  if (flags & MU_STREAM_AUTOCLOSE)
+    mu_stream_unref (stream);
   return status;
 }
 

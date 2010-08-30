@@ -254,7 +254,7 @@ message_display_parts (mu_message_t msg, int indent)
           /* Make sure the original body stream is not closed when
              str gets destroyed */
           mu_filter_create (&str, str, encoding, MU_FILTER_DECODE,
-			    MU_STREAM_READ | MU_STREAM_NO_CLOSE);
+			    MU_STREAM_READ);
 	  
 	  while (mu_stream_readline (str, buf, sizeof (buf), &nbytes) == 0
 		 && nbytes)

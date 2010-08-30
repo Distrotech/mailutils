@@ -256,7 +256,7 @@ mu_gsasl_stream_create (mu_stream_t *stream, mu_stream_t transport,
   s->stream = transport;
   s->sess_ctx = ctx;
   
-  rc = mu_stream_create (stream, flags|MU_STREAM_NO_CHECK, s);
+  rc = mu_stream_create (stream, flags, s);
   if (rc)
     {
       free (s);

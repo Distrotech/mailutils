@@ -1118,7 +1118,7 @@ mhn_message_size (mu_message_t msg, size_t *psize)
 
 	  rc = mu_filter_create (&dstr, bstr, encoding,
 			 	 MU_FILTER_DECODE, 
-				 MU_STREAM_READ | MU_STREAM_NO_CLOSE);
+				 MU_STREAM_READ);
 	  free (encoding);
 	  if (rc == 0)
 	    {
@@ -1255,7 +1255,7 @@ show_internal (mu_message_t msg, msg_part_t part, char *encoding, mu_stream_t ou
     }
   mu_body_get_streamref (body, &bstr);
   rc = mu_filter_create (&dstr, bstr, encoding,
-		         MU_FILTER_DECODE, MU_STREAM_READ | MU_STREAM_NO_CLOSE);
+		         MU_FILTER_DECODE, MU_STREAM_READ);
   if (rc == 0)
     bstr = dstr;
   rc = mu_stream_copy (out, bstr, 0);
@@ -2000,7 +2000,7 @@ finish_text_msg (struct compose_env *env, mu_message_t *msg, int ascii)
       mu_body_get_streamref (body, &input);
       rc = mu_filter_create (&fstr, input, "quoted-printable",
 			     MU_FILTER_ENCODE, 
-			     MU_STREAM_READ | MU_STREAM_NO_CLOSE);
+			     MU_STREAM_READ);
       if (rc == 0)
 	{
 	  mu_stream_copy (output, fstr, 0);
@@ -2275,7 +2275,8 @@ edit_mime (char *cmd, struct compose_env *env, mu_message_t *msg, int level)
       free (subtype);
     }
 
-  rc = mu_filter_create (&fstr, in, encoding, MU_FILTER_ENCODE, MU_STREAM_READ);
+  rc = mu_filter_create (&fstr, in, encoding, MU_FILTER_ENCODE,
+                         MU_STREAM_READ | MU_STREAM_AUTOCLOSE);
   if (rc)
     {
       fstr = in;

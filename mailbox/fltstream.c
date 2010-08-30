@@ -45,8 +45,8 @@
 static void
 init_iobuf (struct mu_filter_io *io, struct _mu_filter_stream *fs)
 {
-  io->input = MFB_CURPTR (fs->inbuf);
-  io->isize = MFB_RDBYTES (fs->inbuf);
+  io->input = MFB_BASE (fs->inbuf);
+  io->isize = MFB_LEVEL (fs->inbuf);
   io->output = MFB_ENDPTR (fs->outbuf);
   io->osize = MFB_FREESIZE (fs->outbuf);
 }
@@ -234,7 +234,7 @@ filter_write_internal (mu_stream_t stream, enum mu_filter_command cmd,
 	    break;
 	  if (rdsize > MFB_FREESIZE (fs->inbuf))
 	    rdsize = MFB_FREESIZE (fs->inbuf);
-	  memcpy (MFB_BASE (fs->inbuf), buf + total, rdsize);
+	  memcpy (MFB_ENDPTR (fs->inbuf), buf + total, rdsize);
 	  MFB_advance_level (&fs->inbuf, rdsize);
 	  total += rdsize;
 	}
@@ -374,8 +374,6 @@ filter_done (mu_stream_t stream)
       fs->xcode (fs->xdata, mu_filter_done, NULL);
       free (fs->xdata);
     }
-  if (stream->flags & MU_STREAM_NO_CLOSE)
-    return;
   mu_stream_destroy (&fs->transport);
 }
 
@@ -383,8 +381,6 @@ static int
 filter_close (mu_stream_t stream)
 {
   struct _mu_filter_stream *fs = (struct _mu_filter_stream *)stream;
-  if (stream->flags & MU_STREAM_NO_CLOSE)
-    return 0;
   MBF_CLEAR (fs->inbuf);
   MBF_CLEAR (fs->outbuf);
   return mu_stream_close (fs->transport);
@@ -463,7 +459,9 @@ mu_filter_stream_create (mu_stream_t *pflt,
   fs->stream.ctl = filter_ctl;
   fs->stream.error_string = filter_error_string;
   fs->stream.flags = flags;
-  
+
+  if (!(flags & MU_STREAM_AUTOCLOSE))
+    mu_stream_ref (str);
   fs->transport = str;
   fs->xcode = xcode;
   fs->xdata = xdata;

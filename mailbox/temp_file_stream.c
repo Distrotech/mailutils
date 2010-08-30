@@ -58,7 +58,9 @@ mu_temp_file_stream_create (mu_stream_t *pstream, const char *dir)
   
   rc = _mu_file_stream_create (pstream,
 			       sizeof (struct _mu_file_stream),
-			       fname, MU_STREAM_RDWR|MU_STREAM_CREAT);
+			       fname, 
+			       MU_STREAM_RDWR | MU_STREAM_CREAT | 
+			       MU_STREAM_AUTOCLOSE);
   if (rc)
     {
       free (fname);

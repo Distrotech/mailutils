@@ -114,7 +114,8 @@ mu_socket_stream_create (mu_stream_t *pstream, const char *filename, int flags)
   struct _mu_socket_stream *s;
   int rc;
   
-  rc = _mu_stdio_stream_create (pstream, sizeof (*s), flags);
+  rc = _mu_stdio_stream_create (pstream, sizeof (*s),
+                                flags | MU_STREAM_AUTOCLOSE);
   if (rc)
     return rc;
   s = (struct _mu_socket_stream *) *pstream;

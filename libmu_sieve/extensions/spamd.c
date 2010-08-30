@@ -46,7 +46,7 @@ static int
 spamd_connect_tcp (mu_sieve_machine_t mach, mu_stream_t *stream,
 		   char *host, int port)
 {
-  int rc = mu_tcp_stream_create (stream, host, port, MU_STREAM_NO_CHECK);
+  int rc = mu_tcp_stream_create (stream, host, port, 0);
   if (rc)
     {
       mu_sieve_error (mach, "mu_tcp_stream_create: %s", mu_strerror (rc));
@@ -64,7 +64,7 @@ spamd_connect_tcp (mu_sieve_machine_t mach, mu_stream_t *stream,
 static int
 spamd_connect_socket (mu_sieve_machine_t mach, mu_stream_t *stream, char *path)
 {
-  int rc = mu_socket_stream_create (stream, path, MU_STREAM_NO_CHECK);
+  int rc = mu_socket_stream_create (stream, path, 0);
   if (rc)
     {
       mu_sieve_error (mach, "mu_socket_stream_create: %s", mu_strerror (rc));
@@ -110,7 +110,7 @@ spamd_send_message (mu_stream_t stream, mu_message_t msg)
   if (rc)
     return rc;
   rc = mu_filter_create (&flt, mstr, "rfc822", MU_FILTER_ENCODE,
-			 MU_STREAM_READ|MU_STREAM_SEEK|MU_STREAM_NO_CLOSE);
+			 MU_STREAM_READ|MU_STREAM_SEEK);
   if (rc)
     {
       mu_stream_destroy (&mstr);

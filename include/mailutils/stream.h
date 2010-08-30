@@ -41,7 +41,7 @@ enum mu_buffer_type
 #define MU_STREAM_APPEND      0x00000008
 #define MU_STREAM_CREAT	      0x00000010
 #define MU_STREAM_NONBLOCK    0x00000020
-#define MU_STREAM_NO_CLOSE    0x00000040
+#define MU_STREAM_AUTOCLOSE   0x00000040
 #define MU_STREAM_NONLOCK     0x00000080
 #define MU_STREAM_ALLOW_LINKS 0x00000100
 /* FIXME: This one affects only mailboxes */  
@@ -152,8 +152,7 @@ int mu_tcp_stream_create (mu_stream_t *stream, const char *host, int port,
 int mu_xscript_stream_create(mu_stream_t *pref, mu_stream_t transport,
 			     mu_stream_t logstr,
 			     const char *prefix[]);
-int mu_iostream_create (mu_stream_t *pref, mu_stream_t in, mu_stream_t out,
-			int flags);
+int mu_iostream_create (mu_stream_t *pref, mu_stream_t in, mu_stream_t out);
 int mu_dbgstream_create(mu_stream_t *pref, mu_debug_t debug,
 			mu_log_level_t level, int flags);
 

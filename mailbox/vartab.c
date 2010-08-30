@@ -224,7 +224,7 @@ mu_vartab_expand (mu_vartab_t vt, const char *str, char **pres)
     return EINVAL;
   if (!vt->stream)
     {
-      rc = mu_memory_stream_create (&vt->stream, MU_STREAM_NO_CHECK);
+      rc = mu_memory_stream_create (&vt->stream, 0);
       if (rc)
 	return rc;
       rc = mu_stream_open (vt->stream);

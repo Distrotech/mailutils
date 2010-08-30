@@ -1328,17 +1328,17 @@ mu_decode_filter (mu_stream_t *pfilter, mu_stream_t input,
   if (fromcode && tocode && mu_c_strcasecmp (fromcode, tocode))
     {
       mu_stream_t cvt;
+
       status = mu_filter_iconv_create (&cvt, filter, fromcode, tocode,
-				       MU_STREAM_NO_CLOSE,
-				       mu_default_fallback_mode);
+				       0, mu_default_fallback_mode);
       if (status == 0)
 	{
 	  if (mu_stream_open (cvt))
 	    mu_stream_destroy (&cvt);
 	  else
-	    {
-	      mu_stream_clr_flags (cvt, MU_STREAM_NO_CLOSE);
-	      filter = cvt;
+            {
+              mu_stream_unref (filter);
+              filter = cvt;
 	    }
 	}
     }

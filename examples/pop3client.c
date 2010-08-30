@@ -800,8 +800,7 @@ com_connect (char *arg)
       if (verbose)
 	com_verbose ("on");
       status =
-	mu_tcp_stream_create (&tcp, argv[0], n,
-			      MU_STREAM_READ | MU_STREAM_NO_CHECK);
+	mu_tcp_stream_create (&tcp, argv[0], n, MU_STREAM_READ);
       if (status == 0)
 	{
 	  mu_pop3_set_carrier (pop3, tcp);

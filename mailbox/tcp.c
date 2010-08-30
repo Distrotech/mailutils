@@ -317,7 +317,7 @@ mu_tcp_stream_create_with_source_ip (mu_stream_t *stream,
   if (port < 1)
     return MU_ERR_TCP_NO_PORT;
 
-  tcp = _create_tcp_stream (flags | MU_STREAM_NO_CHECK | MU_STREAM_RDWR);
+  tcp = _create_tcp_stream (flags | MU_STREAM_RDWR);
   if (!tcp)
     return ENOMEM;
   tcp->host = strdup (host);
