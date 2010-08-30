@@ -390,7 +390,7 @@ static int
 _icvt_ioctl (mu_stream_t stream, int code, void *ptr)
 {
   struct icvt_stream *s = (struct icvt_stream *)stream;
-  mu_transport_t (*ptrans)[2];
+  mu_transport_t *ptrans;
   
   switch (code)
     {
@@ -398,8 +398,8 @@ _icvt_ioctl (mu_stream_t stream, int code, void *ptr)
       if (!ptr)
 	return EINVAL;
       ptrans = ptr;
-      (*ptrans)[0] = (mu_transport_t) s->transport;
-      (*ptrans)[1] = NULL;
+      ptrans[0] = (mu_transport_t) s->transport;
+      ptrans[1] = NULL;
       break;
 
     default:

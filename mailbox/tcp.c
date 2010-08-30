@@ -196,7 +196,7 @@ static int
 _tcp_ioctl (mu_stream_t stream, int code, void *ptr)
 {
   struct _tcp_instance *tcp = (struct _tcp_instance *)stream;
-  mu_transport_t (*ptrans)[2];
+  mu_transport_t *ptrans;
 
   switch (code)
     {
@@ -204,8 +204,8 @@ _tcp_ioctl (mu_stream_t stream, int code, void *ptr)
       if (!ptr)
 	return EINVAL;
       ptrans = ptr;
-      (*ptrans)[0] = (mu_transport_t) tcp->fd;
-      (*ptrans)[1] = NULL;
+      ptrans[0] = (mu_transport_t) tcp->fd;
+      ptrans[1] = NULL;
       break;
 
     default:

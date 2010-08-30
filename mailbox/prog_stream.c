@@ -367,7 +367,7 @@ _prog_ioctl (struct _mu_stream *str, int code, void *ptr)
 {
   struct _mu_prog_stream *fstr = (struct _mu_prog_stream *) str;
   mu_transport_t t[2];
-  mu_transport_t (*ptrans)[2];
+  mu_transport_t *ptrans;
   
   switch (code)
     {
@@ -375,9 +375,9 @@ _prog_ioctl (struct _mu_stream *str, int code, void *ptr)
       if (!ptr)
       	return EINVAL;
       mu_stream_ioctl (fstr->in, MU_IOCTL_GET_TRANSPORT, t);
-      (*ptrans)[0] = t[0];
+      ptrans[0] = t[0];
       mu_stream_ioctl (fstr->out, MU_IOCTL_GET_TRANSPORT, t);
-      (*ptrans)[1] = t[1];
+      ptrans[1] = t[1];
       break;
 
     case MU_IOCTL_GET_STATUS:

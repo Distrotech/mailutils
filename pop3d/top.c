@@ -62,7 +62,7 @@ pop3d_top (char *arg)
     return ERR_UNKNOWN;
   pop3d_outf ("+OK\n");
 
-  mu_stream_copy (ostream, stream, 0);
+  mu_stream_copy (iostream, stream, 0);
   pop3d_outf ("\n");
   mu_stream_destroy (&stream);
   

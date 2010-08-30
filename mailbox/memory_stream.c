@@ -147,7 +147,7 @@ static int
 _memory_ioctl (struct _mu_stream *stream, int code, void *ptr)
 {
   struct _mu_memory_stream *mfs = (struct _mu_memory_stream *) stream;
-  mu_transport_t (*ptrans)[2];
+  mu_transport_t *ptrans;
   
   switch (code)
     {
@@ -155,8 +155,8 @@ _memory_ioctl (struct _mu_stream *stream, int code, void *ptr)
       if (!ptr)
 	return EINVAL;
       ptrans = ptr;
-      (*ptrans)[0] = (mu_transport_t) mfs->ptr;
-      (*ptrans)[1] = NULL;
+      ptrans[0] = (mu_transport_t) mfs->ptr;
+      ptrans[1] = NULL;
       break;
 
     default:
