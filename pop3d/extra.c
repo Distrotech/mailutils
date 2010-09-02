@@ -151,11 +151,12 @@ pop3d_setio (FILE *in, FILE *out)
 
   /* Convert all writes to CRLF form.
      There is no need to convert reads, as the code ignores extra \r anyway.
-     This also installs an extra full buffering, which is needed for TLS
-     code (see below). */
-  if (mu_filter_create (&iostream, str, "rfc822", MU_FILTER_ENCODE,
+  */
+  if (mu_filter_create (&iostream, str, "CRLF", MU_FILTER_ENCODE,
 			MU_STREAM_WRITE | MU_STREAM_RDTHRU))
     pop3d_abquit (ERR_NO_IFILE);
+  /* Change buffering scheme: filter streams are fully buffered by default. */
+  mu_stream_set_buffer (iostream, mu_buffer_line, 1024);
   
   if (pop3d_transcript)
     {
