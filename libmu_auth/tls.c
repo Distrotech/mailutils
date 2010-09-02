@@ -679,7 +679,7 @@ _mu_tls_stream_create (mu_stream_t *pstream,
       free (sp);
       return rc;
     }
-      
+     
   rc = _mu_tls_io_stream_create (&sp->transport[1], strout,
 				 MU_STREAM_WRITE | autoclose, sp);
   if (rc)
@@ -688,7 +688,7 @@ _mu_tls_stream_create (mu_stream_t *pstream,
       free (sp->transport[0]);
       return rc;
     }
-  
+
   mu_stream_set_buffer ((mu_stream_t) sp, mu_buffer_line, 1024);
   *pstream = (mu_stream_t) sp;
   return 0;

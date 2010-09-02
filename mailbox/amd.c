@@ -1604,8 +1604,7 @@ amd_body_stream_read (mu_stream_t is, char *buffer, size_t buflen,
 
   if (buffer == NULL || buflen == 0)
     {
-      if (pnread)
-	*pnread = nread;
+      *pnread = nread;
       return 0;
     }
 
@@ -1626,10 +1625,10 @@ amd_body_stream_read (mu_stream_t is, char *buffer, size_t buflen,
 	{
 	  status = mu_stream_read (mhm->stream, buffer, nread, &nread);
 	  amdstr->off += nread;
-	  if (pnread)
-	    *pnread = nread;
 	}
     }
+
+  *pnread = nread;
 
   mu_monitor_unlock (mhm->amd->mailbox->monitor);
 #ifdef WITH_PTHREAD

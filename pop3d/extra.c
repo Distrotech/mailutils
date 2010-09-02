@@ -126,14 +126,6 @@ pop3d_abquit (int reason)
   exit (code);
 }
 
-/* Keeps the *real* output stream.  Ostream is a RFC822 filter built over
-   real_ostream, or even over a TLS stream, which in turn is based on this
-   real_ostream.
-   FIXME: This is sorta kludge: we could use MU_IOCTL_GET_TRANSPORT call
-   to retrieve the bottom-level stream, if filter streams supported it.
-*/
-static mu_stream_t real_istream, real_ostream;
-
 void
 pop3d_setio (FILE *in, FILE *out)
 {
@@ -147,20 +139,24 @@ pop3d_setio (FILE *in, FILE *out)
   if (mu_stdio_stream_create (&istream, fileno (in), 
                               MU_STREAM_READ | MU_STREAM_AUTOCLOSE))
     pop3d_abquit (ERR_NO_IFILE);
-  real_istream = istream;
   mu_stream_set_buffer (istream, mu_buffer_line, 1024);
   
-  if (mu_stdio_stream_create (&str, fileno (out), 
+  if (mu_stdio_stream_create (&ostream, fileno (out), 
                               MU_STREAM_WRITE | MU_STREAM_AUTOCLOSE))
     pop3d_abquit (ERR_NO_OFILE);
-  real_ostream = str;
-  if (mu_filter_create (&ostream, str, "rfc822", MU_FILTER_ENCODE,
-			MU_STREAM_WRITE))
-    pop3d_abquit (ERR_NO_IFILE);
-  mu_stream_set_buffer (ostream, mu_buffer_line, 1024);
 
-  if (mu_iostream_create (&iostream, istream, ostream))
+  /* Combine the two streams into an I/O one. */
+  if (mu_iostream_create (&str, istream, ostream))
     pop3d_abquit (ERR_FILE);
+
+  /* Convert all writes to CRLF form.
+     There is no need to convert reads, as the code ignores extra \r anyway.
+     This also installs an extra full buffering, which is needed for TLS
+     code (see below). */
+  if (mu_filter_create (&iostream, str, "rfc822", MU_FILTER_ENCODE,
+			MU_STREAM_WRITE | MU_STREAM_RDTHRU))
+    pop3d_abquit (ERR_NO_IFILE);
+  
   if (pop3d_transcript)
     {
       int rc;
@@ -192,36 +188,40 @@ pop3d_setio (FILE *in, FILE *out)
 int
 pop3d_init_tls_server ()
 {
-  mu_stream_t stream;
+  mu_stream_t tlsstream, stream[2];
   int rc;
 
-  rc = mu_tls_server_stream_create (&stream, real_istream, real_ostream, 0);
+  stream[0] = stream[1] = NULL;
+  rc = mu_stream_ioctl (iostream, MU_IOCTL_SWAP_STREAM, stream);
+  if (rc)
+    {
+      mu_error (_("%s failed: %s"), "MU_IOCTL_SWAP_STREAM",
+		mu_stream_strerror (iostream, rc));
+      return 1;
+    }
+  
+  rc = mu_tls_server_stream_create (&tlsstream, stream[0], stream[1], 0);
   if (rc)
     return 1;
 
-  rc = mu_stream_open (stream);
+  rc = mu_stream_open (tlsstream);
   if (rc)
     {
       mu_diag_output (MU_DIAG_ERROR, _("cannot open TLS stream: %s"),
-		      mu_stream_strerror (stream, rc));
-      mu_stream_destroy (&stream);
+		      mu_stream_strerror (tlsstream, rc));
+      mu_stream_destroy (&tlsstream);
       return 1;
     }
-
-  if (mu_filter_create (&stream, stream, "rfc822", MU_FILTER_ENCODE,
-			MU_STREAM_WRITE | MU_STREAM_RDTHRU))
-    pop3d_abquit (ERR_NO_IFILE);
-  
-  if (pop3d_transcript)
-    {
-      mu_transport_t trans[2];
-
-      trans[0] = (mu_transport_t) stream;
-      trans[1] = NULL;
-      mu_stream_ioctl (iostream, MU_IOCTL_SET_TRANSPORT, trans);
-    }
   else
-    iostream = stream;
+    stream[0] = stream[1] = tlsstream;
+
+  rc = mu_stream_ioctl (iostream, MU_IOCTL_SWAP_STREAM, stream);
+  if (rc)
+    {
+      mu_error (_("%s failed: %s"), "MU_IOCTL_SWAP_STREAM",
+		mu_stream_strerror (iostream, rc));
+      pop3d_abquit (ERR_IO);
+    }
   return 0;
 }
 #endif

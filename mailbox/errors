@@ -83,3 +83,5 @@ MU_ERR_NO_INTERFACE         _("No such interface")
 MU_ERR_BADOP                _("Inappropriate operation for this mode")
 MU_ERR_BAD_FILENAME         _("Badly formed file or directory name")
 MU_ERR_READ                 _("Read error")
+
+MU_ERR_NO_TRANSPORT         _("Transport stream not set")

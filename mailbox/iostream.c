@@ -148,6 +148,11 @@ _iostream_ctl (struct _mu_stream *str, int op, void *arg)
       sp->transport[_MU_STREAM_INPUT] = (mu_stream_t) ptrans[0];
       sp->transport[_MU_STREAM_OUTPUT] = (mu_stream_t) ptrans[1];
       break;
+
+    case MU_IOCTL_SWAP_STREAM:
+      if (!arg)
+	return EINVAL;
+      return _mu_stream_swap_streams (str, sp->transport, arg, 0);
       
     default:
       return EINVAL;

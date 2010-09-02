@@ -176,7 +176,8 @@ _xscript_ctl (struct _mu_stream *str, int op, void *arg)
 {
   struct _mu_xscript_stream *sp = (struct _mu_xscript_stream *)str;
   mu_transport_t *ptrans;
-
+  mu_stream_t strtab[2];
+  
   switch (op)
     {
     case MU_IOCTL_GET_TRANSPORT:
@@ -196,7 +197,9 @@ _xscript_ctl (struct _mu_stream *str, int op, void *arg)
       if (ptrans[1])
 	sp->logstr = (mu_stream_t) ptrans[1];
       break;
-      
+
+    case MU_IOCTL_SWAP_STREAM:
+      /* fall through */
     default:
       return mu_stream_ioctl (sp->transport, op, arg);
     }
