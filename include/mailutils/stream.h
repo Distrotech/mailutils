@@ -32,8 +32,6 @@ enum mu_buffer_type
 #define MU_SEEK_CUR      1
 #define MU_SEEK_END      2
 
-#define MU_STREAM_NO_CHECK    0 /* for backward compatibility */
-
 #define MU_STREAM_READ	      0x00000001
 #define MU_STREAM_WRITE	      0x00000002
 #define MU_STREAM_RDWR        (MU_STREAM_READ|MU_STREAM_WRITE)
@@ -63,6 +61,7 @@ enum mu_buffer_type
 #define MU_IOCTL_ABRIDGE_SEEK MU_IOCTL_SET_SEEK_LIMITS
 #define MU_IOCTL_GET_SEEK_LIMITS 5
 #define MU_IOCTL_SET_TRANSPORT   6
+#define MU_IOCTL_SWAP_STREAM     7
 
 void mu_stream_ref (mu_stream_t stream);
 void mu_stream_unref (mu_stream_t stream);
@@ -72,6 +71,8 @@ const char *mu_stream_strerror (mu_stream_t stream, int rc);
 int mu_stream_err (mu_stream_t stream);
 int mu_stream_last_error (mu_stream_t stream);
 void mu_stream_clearerr (mu_stream_t stream);
+int mu_stream_seterr (struct _mu_stream *stream, int code, int perm);
+
 int mu_stream_eof (mu_stream_t stream);
 int mu_stream_seek (mu_stream_t stream, mu_off_t offset, int whence,
 		    mu_off_t *pres);

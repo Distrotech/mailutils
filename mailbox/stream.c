@@ -32,8 +32,8 @@
 #include <mailutils/stream.h>
 #include <mailutils/sys/stream.h>
 
-static int
-_stream_seterror (struct _mu_stream *stream, int code, int perm)
+int
+mu_stream_seterr (struct _mu_stream *stream, int code, int perm)
 {
   stream->last_err = code;
   switch (code)
@@ -236,7 +236,7 @@ mu_stream_open (mu_stream_t stream)
   int rc;
 
   if (stream->open && (rc = stream->open (stream)))
-    return _stream_seterror (stream, rc, 1);
+    return mu_stream_seterr (stream, rc, 1);
   stream->bytes_in = stream->bytes_out = 0;
   return 0;
 }
@@ -286,10 +286,10 @@ mu_stream_seek (mu_stream_t stream, mu_off_t offset, int whence,
   mu_off_t size;
   
   if (!stream->seek)
-    return _stream_seterror (stream, ENOSYS, 0);
+    return mu_stream_seterr (stream, ENOSYS, 0);
 
   if (!(stream->flags & MU_STREAM_SEEK))
-    return _stream_seterror (stream, EACCES, 1);
+    return mu_stream_seterr (stream, EACCES, 1);
 
   switch (whence)
     {
@@ -308,12 +308,12 @@ mu_stream_seek (mu_stream_t stream, mu_off_t offset, int whence,
     case MU_SEEK_END:
       rc = mu_stream_size (stream, &size);
       if (rc)
-	return _stream_seterror (stream, rc, 1);
+	return mu_stream_seterr (stream, rc, 1);
       offset += size;
       break;
 
     default:
-      return _stream_seterror (stream, EINVAL, 1);
+      return mu_stream_seterr (stream, EINVAL, 1);
     }
 
   if (stream->buftype == mu_buffer_none
@@ -326,7 +326,7 @@ mu_stream_seek (mu_stream_t stream, mu_off_t offset, int whence,
       if (rc == ESPIPE)
 	return rc;
       if (rc)
-	return _stream_seterror (stream, rc, 1);
+	return mu_stream_seterr (stream, rc, 1);
       _stream_cleareof (stream);
     }
   
@@ -352,7 +352,7 @@ mu_stream_skip_input_bytes (mu_stream_t stream, mu_off_t count, mu_off_t *pres)
   int rc;
 
   if (!(stream->flags & MU_STREAM_READ))
-    return _stream_seterror (stream, EACCES, 1);
+    return mu_stream_seterr (stream, EACCES, 1);
 
   if (stream->buftype == mu_buffer_none)
     {
@@ -426,7 +426,7 @@ mu_stream_set_buffer (mu_stream_t stream, enum mu_buffer_type type,
   if (stream->buffer == NULL)
     {
       stream->buftype = mu_buffer_none;
-      return _stream_seterror (stream, ENOMEM, 1);
+      return mu_stream_seterr (stream, ENOMEM, 1);
     }
   stream->bufsize = size;
   stream->cur = stream->buffer;
@@ -444,10 +444,10 @@ mu_stream_read_unbuffered (mu_stream_t stream, void *buf, size_t size,
   size_t nread;
     
   if (!stream->read) 
-    return _stream_seterror (stream, ENOSYS, 0);
+    return mu_stream_seterr (stream, ENOSYS, 0);
 
   if (!(stream->flags & MU_STREAM_READ)) 
-    return _stream_seterror (stream, EACCES, 1);
+    return mu_stream_seterr (stream, EACCES, 1);
     
   if (stream->flags & _MU_STR_ERR)
     return stream->last_err;
@@ -479,7 +479,7 @@ mu_stream_read_unbuffered (mu_stream_t stream, void *buf, size_t size,
 	    
 	  }
 	if (size && rc)
-	  rc = _stream_seterror (stream, rc, 0);
+	  rc = mu_stream_seterr (stream, rc, 0);
       }
     else
       {
@@ -490,7 +490,7 @@ mu_stream_read_unbuffered (mu_stream_t stream, void *buf, size_t size,
 	      stream->flags |= _MU_STR_EOF;
 	    stream->bytes_in += nread;
 	  }
-	_stream_seterror (stream, rc, rc != 0);
+	mu_stream_seterr (stream, rc, rc != 0);
       }
     stream->offset += nread;
     if (pnread)
@@ -509,10 +509,10 @@ mu_stream_write_unbuffered (mu_stream_t stream,
   size_t nwritten;
   
   if (!stream->write) 
-    return _stream_seterror (stream, ENOSYS, 0);
+    return mu_stream_seterr (stream, ENOSYS, 0);
 
   if (!(stream->flags & MU_STREAM_WRITE)) 
-    return _stream_seterror (stream, EACCES, 1);
+    return mu_stream_seterr (stream, EACCES, 1);
 
   if (stream->flags & _MU_STR_ERR)
     return stream->last_err;
@@ -555,7 +555,7 @@ mu_stream_write_unbuffered (mu_stream_t stream,
   stream->offset += nwritten;
   if (pnwritten)
     *pnwritten = nwritten;
-  _stream_seterror (stream, rc, rc != 0);
+  mu_stream_seterr (stream, rc, rc != 0);
   return rc;
 }
 
@@ -861,9 +861,9 @@ mu_stream_size (mu_stream_t stream, mu_off_t *psize)
   int rc;
     
   if (!stream->size)
-    return _stream_seterror (stream, ENOSYS, 0);
+    return mu_stream_seterr (stream, ENOSYS, 0);
   rc = stream->size (stream, psize);
-  return _stream_seterror (stream, rc, rc != 0);
+  return mu_stream_seterr (stream, rc, rc != 0);
 }
 
 mu_off_t
@@ -948,8 +948,88 @@ mu_stream_clr_flags (mu_stream_t stream, int fl)
   return 0;
 }
 
+static void
+swapstr (mu_stream_t stream, mu_stream_t *curstr, mu_stream_t *newstr)
+{
+  mu_stream_t tmp;
 
+  tmp = *newstr;
+  *newstr = *curstr;
+  *curstr = tmp;
+  if (!(stream->flags & MU_STREAM_AUTOCLOSE))
+    {
+      if (*newstr)
+	mu_stream_unref (*newstr);
+      if (tmp)
+	mu_stream_ref (tmp);
+    }
+  if (!tmp)
+    mu_stream_seterr (stream, MU_ERR_NO_TRANSPORT, 1);
+  else if (stream->last_err == MU_ERR_NO_TRANSPORT)
+    mu_stream_clearerr (stream);
+}
 
+static int
+swapstr_recursive (mu_stream_t stream, mu_stream_t *curstr,
+		   mu_stream_t *newstr, int flags)
+{
+  mu_stream_t strtab[2];
+  int rc = ENOSYS;
+
+  if (*curstr == NULL && *newstr == NULL)
+    return 0;
+  
+  if (*curstr)
+    {
+      strtab[0] = *newstr;
+      strtab[1] = NULL;
+      rc = mu_stream_ioctl (*curstr, MU_IOCTL_SWAP_STREAM, strtab);
+      if (rc)
+	{
+	  if ((flags & _MU_SWAP_IOCTL_MUST_SUCCEED)
+	      || !(rc == ENOSYS || rc == EINVAL))
+	    return rc;
+	}
+    }
+  if (rc == 0)
+    *newstr = strtab[0];
+  else
+    swapstr (stream, curstr, newstr);
+  return 0;
+}
+
+/* CURTRANS[2] contains I/O transport streams used by STREAM,
+   NEWTRANS[2] contains another pair of streams.
+   This function swaps the items of these two arrays using the
+   MU_IOCTL_SWAP_STREAM ioctl.  It is intended for use by STREAM's
+   ioctl method and is currently used by iostream.c */
+   
+int
+_mu_stream_swap_streams (mu_stream_t stream, mu_stream_t *curtrans,
+			 mu_stream_t *newtrans, int flags)
+{
+  int rc;
+
+  rc = swapstr_recursive (stream, &curtrans[0], &newtrans[0], flags);
+  if (rc)
+    return rc;
+  if (flags & _MU_SWAP_FIRST_ONLY)
+    return 0;
+  rc = swapstr_recursive (stream, &curtrans[1], &newtrans[1], flags);
+  if (rc)
+    {
+      int rc1 = swapstr_recursive (stream, &curtrans[0], &newtrans[0], flags);
+      if (rc1)
+	{
+	  mu_diag_output (MU_DIAG_CRIT,
+			  _("restoring streams on %p failed: %s"),
+			  stream, mu_strerror (rc1));
+	  abort ();
+	}
+    }
+  return rc;
+}
+  
 
 
 

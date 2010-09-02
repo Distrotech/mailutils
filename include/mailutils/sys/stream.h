@@ -65,4 +65,11 @@ int mu_stream_write_unbuffered (mu_stream_t stream,
 				const void *buf, size_t size,
 				int full_write, size_t *pnwritten);
 
+#define _MU_SWAP_FIRST_ONLY         0x01
+#define _MU_SWAP_IOCTL_MUST_SUCCEED 0x02
+
+int _mu_stream_swap_streams (mu_stream_t stream, mu_stream_t *curtrans,
+			     mu_stream_t *newtrans, int flags);
+
+
 #endif

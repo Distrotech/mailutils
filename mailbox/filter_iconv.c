@@ -400,6 +400,9 @@ _icvt_ioctl (mu_stream_t stream, int code, void *ptr)
       ptrans[1] = NULL;
       break;
 
+    case MU_IOCTL_SWAP_STREAM:
+      return mu_stream_ioctl (s->transport, code, ptr);
+      
     default:
       return EINVAL;
     }
