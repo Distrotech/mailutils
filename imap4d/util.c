@@ -20,7 +20,6 @@
 #include "imap4d.h"
 
 static int add2set (size_t **, int *, unsigned long);
-static const char *sc2string (int);
 
 /* NOTE: Allocates Memory.  */
 /* Expand: ~ --> /home/user and to ~guest --> /home/guest.  */
@@ -651,74 +650,6 @@ util_bye ()
   mu_list_do (atexit_list, atexit_run, 0);
 }
 
-struct state_event
-{
-  int old_state;
-  int new_state;
-  mu_list_action_t *action;
-  void *data;
-};
-
-static mu_list_t event_list;
-
-void
-util_register_event (int old_state, int new_state,
-		     mu_list_action_t *action, void *data)
-{
-  struct state_event *evp = malloc (sizeof (*evp));
-  if (!evp)
-    imap4d_bye (ERR_NO_MEM);
-  evp->old_state = old_state;
-  evp->new_state = new_state;
-  evp->action = action;
-  evp->data = data;
-  if (!event_list)
-    {
-      mu_list_create (&event_list);
-      mu_list_set_destroy_item (event_list, mu_list_free_item);
-    }
-  mu_list_append (event_list, (void*)evp);
-}
-
-void
-util_event_remove (void *id)
-{
-  mu_list_remove (event_list, id);
-}
-
-static int
-event_exec (void *item, void *data)
-{
-  struct state_event *ev = data, *elem = item;
-
-  if (ev->old_state == elem->old_state && ev->new_state == elem->new_state)
-    return elem->action (item, elem->data);
-  return 0;
-}
-
-void
-util_run_events (int old_state, int new_state)
-{
-  if (event_list)
-    {
-      struct state_event ev;
-      mu_iterator_t itr;
-      ev.old_state = old_state;
-      ev.new_state = new_state;
-
-      mu_list_get_iterator (event_list, &itr);
-      for (mu_iterator_first (itr);
-	   !mu_iterator_is_done (itr); mu_iterator_next (itr))
-	{
-	  struct state_event *p;
-	  mu_iterator_current (itr, (void **)&p);
-	  if (event_exec (p, &ev))
-	    break;
-	}
-      mu_iterator_destroy (&itr);
-    }
-}
-  
 void
 util_chdir (const char *dir)
 {

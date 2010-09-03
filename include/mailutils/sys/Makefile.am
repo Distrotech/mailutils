@@ -22,6 +22,7 @@ sysinclude_HEADERS = \
  dbgstream.h\
  file_stream.h\
  filter.h\
+ gsasl-stream.h\
  header_stream.h\
  header.h\
  iostream.h\

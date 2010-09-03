@@ -19,7 +19,8 @@
 
 #include "imap4d.h"
 
-struct imap_auth {
+struct imap_auth
+{
   char *name;
   imap4d_auth_handler_fp handler;
 };
@@ -66,24 +67,17 @@ _auth_capa (void *item, void *usused)
   return 0;
 }
 
-struct auth_data {
-  struct imap4d_command *command;
-  char *auth_type;
-  char *arg;
-  char *username;
-  int result;
-};
-
 static int
 _auth_try (void *item, void *data)
 {
   struct imap_auth *p = item;
-  struct auth_data *ap = data;
+  struct imap4d_auth *ap = data;
 
   if (strcmp (p->name, ap->auth_type) == 0)
     {
-      ap->result = p->handler (ap->command, ap->auth_type, &ap->username);
-      return 1;
+      int res = p->handler (ap);
+      if (res)
+	return res;
     }
   return 0;
 }
@@ -104,8 +98,9 @@ int
 imap4d_authenticate (struct imap4d_command *command, imap4d_tokbuf_t tok)
 {
   char *auth_type;
-  struct auth_data adata;
-
+  struct imap4d_auth adata;
+  enum imap4d_auth_result res;
+  
   if (imap4d_tokbuf_argc (tok) != 3)
     return io_completion_response (command, RESP_BAD, "Invalid arguments");
   
@@ -117,25 +112,35 @@ imap4d_authenticate (struct imap4d_command *command, imap4d_tokbuf_t tok)
   
   adata.command = command;
   adata.auth_type = auth_type;
-  adata.arg = NULL;
   adata.username = NULL;
 
-  if (mu_list_do (imap_auth_list, _auth_try, &adata) == 0)
-    return io_completion_response (command, RESP_NO,
-			           "Authentication mechanism not supported");
-  
-  if (adata.result == RESP_OK && adata.username)
+  res = mu_list_do (imap_auth_list, _auth_try, &adata);
+
+  switch (res)
     {
-      if (imap4d_session_setup (adata.username))
-	return io_completion_response (command, RESP_NO,
-			               "User name or passwd rejected");
-      else
-	return io_completion_response (command, RESP_OK,
-			               "%s authentication successful",
-			               auth_type);
+    case imap4d_auth_nosup:
+      return io_completion_response (command, RESP_NO,
+				     "Authentication mechanism not supported");
+    case imap4d_auth_ok:
+      return 0;
+
+    case imap4d_auth_resp:
+      if (adata.response == RESP_OK && adata.username)
+	{
+	  if (imap4d_session_setup (adata.username))
+	    return io_completion_response (command, RESP_NO,
+					   "User name or passwd rejected");
+	  else
+	    return io_completion_response (command, RESP_OK,
+					   "%s authentication successful",
+					   auth_type);
+	}
+      /* fall through */
+    case imap4d_auth_fail:
+      adata.response = RESP_NO;
+      break;
     }
-      
-  return io_completion_response (command, adata.result,
-		                 "%s authentication failed", auth_type);
+  return io_completion_response (command, adata.response,
+				 "%s authentication failed", auth_type);
 }
 

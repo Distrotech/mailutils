@@ -29,43 +29,6 @@ static Gsasl_session *sess_ctx;
 
 static void auth_gsasl_capa_init (int disable);
 
-static int
-create_gsasl_stream (mu_stream_t *newstr, mu_stream_t transport, int flags)
-{
-  int rc;
-  
-  rc = mu_gsasl_stream_create (newstr, transport, sess_ctx, flags);
-  if (rc)
-    {
-      mu_diag_output (MU_DIAG_ERROR, _("cannot create SASL stream: %s"),
-	      mu_strerror (rc));
-      return RESP_NO;
-    }
-
-  if ((rc = mu_stream_open (*newstr)) != 0)
-    {
-      mu_diag_output (MU_DIAG_ERROR,
-		      _("cannot open SASL input stream: %s"),
-		      mu_stream_strerror (*newstr, rc));
-      return RESP_NO;
-    }
-
-  return RESP_OK;
-}
-
-int
-gsasl_replace_streams (void *self, void *data)
-{
-  mu_stream_t *s = data;
-
-  util_set_input (s[0]);
-  util_set_output (s[1]);
-  free (s);
-  util_event_remove (self);
-  free (self);
-  return 0;
-}
-
 static void
 finish_session (void)
 {
@@ -73,7 +36,21 @@ finish_session (void)
 }
 
 static int
-auth_gsasl (struct imap4d_command *command, char *auth_type, char **username)
+restore_and_return (struct imap4d_auth *ap, mu_stream_t *str, int resp)
+{
+  int rc = mu_stream_ioctl (iostream, MU_IOCTL_SWAP_STREAM, str);
+  if (rc)
+    {
+      mu_error (_("%s failed when it should not: %s"), "MU_IOCTL_SWAP_STREAM",
+		mu_stream_strerror (iostream, rc));
+      abort ();
+    }
+  ap->response = resp;
+  return imap4d_auth_resp;
+}
+
+static enum imap4d_auth_result
+auth_gsasl (struct imap4d_auth *ap)
 {
   char *input_str = NULL;
   size_t input_size = 0;
@@ -81,15 +58,15 @@ auth_gsasl (struct imap4d_command *command, char *auth_type, char **username)
   char *output;
   int rc;
   
-  rc = gsasl_server_start (ctx, auth_type, &sess_ctx);
+  rc = gsasl_server_start (ctx, ap->auth_type, &sess_ctx);
   if (rc != GSASL_OK)
     {
       mu_diag_output (MU_DIAG_NOTICE, _("SASL gsasl_server_start: %s"),
  	              gsasl_strerror (rc));
-      return 0;
+      return imap4d_auth_fail;
     }
 
-  gsasl_callback_hook_set (ctx, username);
+  gsasl_callback_hook_set (ctx, &ap->username);
 
   output = NULL;
   while ((rc = gsasl_step64 (sess_ctx, input_str, &output))
@@ -105,7 +82,8 @@ auth_gsasl (struct imap4d_command *command, char *auth_type, char **username)
 		      gsasl_strerror (rc));
       free (input_str);
       free (output);
-      return RESP_NO;
+      ap->response = RESP_NO;
+      return imap4d_auth_resp;
     }
 
   /* Some SASL mechanisms output additional data when GSASL_OK is
@@ -119,44 +97,81 @@ auth_gsasl (struct imap4d_command *command, char *auth_type, char **username)
 	  mu_diag_output (MU_DIAG_NOTICE, _("non-empty client response"));
           free (input_str);
           free (output);
-	  return RESP_NO;
+	  ap->response = RESP_NO;
+	  return imap4d_auth_resp;
 	}
     }
 
   free (input_str);
   free (output);
 
-  if (*username == NULL)
+  if (ap->username == NULL)
     {
-      mu_diag_output (MU_DIAG_NOTICE, _("GSASL %s: cannot get username"), auth_type);
-      return RESP_NO;
+      mu_diag_output (MU_DIAG_NOTICE, _("GSASL %s: cannot get username"),
+		      ap->auth_type);
+      ap->response = RESP_NO;
+      return imap4d_auth_resp;
     }
 
+  auth_gsasl_capa_init (1);
   if (sess_ctx)
     {
-      mu_stream_t tmp, new_in, new_out;
-      mu_stream_t *s;
+      mu_stream_t stream[2], newstream[2];
 
-      util_get_input (&tmp);
-      if (create_gsasl_stream (&new_in, tmp, MU_STREAM_READ))
-	return RESP_NO;
-      util_get_output (&tmp);
-      if (create_gsasl_stream (&new_out, tmp, MU_STREAM_WRITE))
+      stream[0] = stream[1] = NULL;
+      rc = mu_stream_ioctl (iostream, MU_IOCTL_SWAP_STREAM, stream);
+      if (rc)
 	{
-	  mu_stream_destroy (&new_in);
-	  return RESP_NO;
+	  mu_error (_("%s failed: %s"), "MU_IOCTL_SWAP_STREAM",
+		    mu_stream_strerror (iostream, rc));
+	  ap->response = RESP_NO;
+	  return imap4d_auth_resp;
+	}
+      rc = gsasl_encoder_stream (&newstream[0], stream[0], sess_ctx,
+				 MU_STREAM_READ);
+      if (rc)
+	{
+	  mu_error (_("%s failed: %s"), "gsasl_encoder_stream",
+		    mu_strerror (rc));
+	  return restore_and_return (ap, stream, RESP_NO);
 	}
 
-      s = calloc (2, sizeof (mu_stream_t));
-      s[0] = new_in;
-      s[1] = new_out;
-      util_register_event (STATE_NONAUTH, STATE_AUTH,
-			   gsasl_replace_streams, s);
+      rc = gsasl_decoder_stream (&newstream[1], stream[1], sess_ctx,
+				 MU_STREAM_WRITE);
+      if (rc)
+	{
+	  mu_error (_("%s failed: %s"), "gsasl_decoder_stream",
+		    mu_strerror (rc));
+	  mu_stream_destroy (&newstream[0]);
+	  return restore_and_return (ap, stream, RESP_NO);
+	}
+      
+      if (ap->username)
+	{
+	  if (imap4d_session_setup (ap->username))
+	    return restore_and_return (ap, stream, RESP_NO);
+	}
+
+      /* FIXME: This is not reflected in the transcript. */
+      io_stream_completion_response (stream[1], ap->command, RESP_OK,
+				     "%s authentication successful",
+				     ap->auth_type);
+      mu_stream_flush (stream[1]);
+      
+      rc = mu_stream_ioctl (iostream, MU_IOCTL_SWAP_STREAM, newstream);
+      if (rc)
+	{
+	  mu_error (_("%s failed when it should not: %s"),
+		    "MU_IOCTL_SWAP_STREAM",
+		    mu_stream_strerror (iostream, rc));
+	  abort ();
+	}
       util_atexit (finish_session);
+      return imap4d_auth_ok;
     }
   
-  auth_gsasl_capa_init (1);
-  return RESP_OK;
+  ap->response = RESP_OK;
+  return imap4d_auth_resp;
 }
 
 static void

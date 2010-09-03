@@ -36,8 +36,10 @@ extern struct mu_gsasl_module_data mu_gsasl_module_data;
 #ifdef WITH_GSASL
 #include <gsasl.h>
 
-int mu_gsasl_stream_create (mu_stream_t *stream, mu_stream_t transport,
-			    Gsasl_session *ctx, int flags);
+int gsasl_encoder_stream (mu_stream_t *pstr, mu_stream_t transport,
+			  Gsasl_session *ctx, int flags);
+int gsasl_decoder_stream (mu_stream_t *pstr, mu_stream_t transport,
+			  Gsasl_session *ctx, int flags);
 
 #endif
 
