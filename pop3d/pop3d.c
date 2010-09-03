@@ -261,11 +261,6 @@ pop3d_mainloop (int fd, FILE *infile, FILE *outfile)
       buf = pop3d_readline (buffer, sizeof (buffer));
       pop3d_parse_command (buf, &cmd, &arg);
 
-      /* The mailbox size needs to be check to make sure that we are in
-	 sync.  Some other applications may not respect the *.lock or
-	 the lock may be stale because downloading on slow modem.
-	 We rely on the size of the mailbox for the check and bail if out
-	 of sync.  */
       if (state == TRANSACTION && !mu_mailbox_is_updated (mbox))
 	{
 	  static mu_off_t mailbox_size;
