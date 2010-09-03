@@ -41,11 +41,11 @@
 char *
 pop3d_apopuser (const char *user)
 {
-  char *password;
-  char buf[POP_MAXCMDLEN];
-
+  char *password = NULL;
+  
 #ifdef USE_DBM
   {
+    size_t len;
     DBM_FILE db;
     DBM_DATUM key, data;
 
@@ -60,11 +60,8 @@ pop3d_apopuser (const char *user)
     memset (&key, 0, sizeof key);
     memset (&data, 0, sizeof data);
 
-    strncpy (buf, user, sizeof buf);
-    /* strncpy () is lame and does not NULL terminate.  */
-    buf[sizeof (buf) - 1] = '\0';
-    MU_DATUM_PTR(key) = buf;
-    MU_DATUM_SIZE(key) = strlen (buf);
+    MU_DATUM_PTR (key) = user;
+    MU_DATUM_SIZE (key) = strlen (user);
 
     rc = mu_dbm_fetch (db, key, &data);
     mu_dbm_close (db);
@@ -74,21 +71,23 @@ pop3d_apopuser (const char *user)
 			_("cannot fetch APOP data: %s"), mu_strerror (errno));
 	return NULL;
       }
-    password = calloc (MU_DATUM_SIZE(data) + 1, sizeof (*password));
+    len = MU_DATUM_SIZE (data);
+    password = malloc (len + 1);
     if (password == NULL)
       {
 	mu_dbm_datum_free (&data);
 	return NULL;
       }
-    
-    sprintf (password, "%.*s", (int) MU_DATUM_SIZE(data),
-	     (char*) MU_DATUM_PTR(data));
+    memcpy (password, MU_DATUM_PTR (data), len);
+    password[len] = 0;
     mu_dbm_datum_free (&data);
     return password;
   }
 #else /* !USE_DBM */
   {
-    char *tmp;
+    char *buf = NULL;
+    size_t size = 0;
+    size_t ulen;
     FILE *apop_file;
 
     if (mu_check_perm (APOP_PASSFILE, 0600))
@@ -101,44 +100,32 @@ pop3d_apopuser (const char *user)
     apop_file = fopen (APOP_PASSFILE, "r");
     if (apop_file == NULL)
       {
-	mu_diag_output (MU_DIAG_INFO, _("unable to open APOP password file %s"),
-		strerror (errno));
+	mu_diag_output (MU_DIAG_INFO,
+			_("unable to open APOP password file %s: %s"),
+			APOP_PASSFILE, mu_strerror (errno));
 	return NULL;
       }
 
-    password = calloc (APOP_DIGEST, sizeof (*password));
-    if (password == NULL)
+    ulen = strlen (user);
+    while (getline (&buf, &size, apop_file) > 0)
       {
-	fclose (apop_file);
-	pop3d_abquit (ERR_NO_MEM);
-      }
+	char *p, *start = mu_str_stripws (buf);
 
-    while (fgets (buf, sizeof (buf) - 1, apop_file) != NULL)
-      {
-	tmp = strchr (buf, ':');
-	if (tmp == NULL)
+	if (!*start || *start == '#')
 	  continue;
-	*tmp++ = '\0';
-
-	if (strncmp (user, buf, strlen (user)))
+	p = strchr (start, ':');
+	if (!p)
 	  continue;
-
-	strncpy (password, tmp, APOP_DIGEST);
-	/* strncpy () is lame and does not NULL terminate.  */
-	password[APOP_DIGEST - 1] = '\0';
-	tmp = strchr (password, '\n');
-	if (tmp)
-	  *tmp = '\0';
-	break;
+	if (p - start == ulen && memcmp (user, start, ulen) == 0)
+	  {
+	    p = mu_str_skip_class (p + 1, MU_CTYPE_SPACE);
+	    if (*p)
+	      password = strdup (p);
+	    break;
+	  }
       }
 
     fclose (apop_file);
-    if (*password == '\0')
-      {
-	free (password);
-	return NULL;
-      }
-
     return password;
   }
 #endif
