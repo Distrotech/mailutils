@@ -65,7 +65,7 @@ imap4d_capability_init ()
 static int
 print_capa (void *item, void *data)
 {
-  util_send (" %s", (char *)item);
+  io_sendf (" %s", (char *)item);
   return 0;
 }
 
@@ -73,14 +73,14 @@ int
 imap4d_capability (struct imap4d_command *command, imap4d_tokbuf_t tok)
 {
   if (imap4d_tokbuf_argc (tok) != 2)
-    return util_finish (command, RESP_BAD, "Invalid arguments");
+    return io_completion_response (command, RESP_BAD, "Invalid arguments");
   
-  util_send ("* CAPABILITY");
+  io_sendf ("* CAPABILITY");
 
   mu_list_do (capa_list, print_capa, NULL);
   
   imap4d_auth_capability ();
-  util_send ("\n");
+  io_sendf ("\n");
 
-  return util_finish (command, RESP_OK, "Completed");
+  return io_completion_response (command, RESP_OK, "Completed");
 }

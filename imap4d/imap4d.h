@@ -154,7 +154,8 @@ struct imap4d_command
 #define ERR_TLS               6
 #define ERR_MAILBOX_CORRUPTED 7
 #define ERR_TERMINATE         8
-  
+#define ERR_STREAM_CREATE     9
+
 /* Namespace numbers */
 #define NS_PRIVATE 0
 #define NS_OTHER   1
@@ -208,14 +209,28 @@ extern char *strtok_r (char *s, const char *delim, char **save_ptr);
 #endif
 
 /* Input functions */
+extern mu_stream_t iostream;
+extern int  io_untagged_response (int, const char *, ...) MU_PRINTFLIKE(2,3);
+extern int  io_sendf (const char *, ...) MU_PRINTFLIKE(1,2);
+extern int  io_send_bytes (const char *buf, size_t size);
+extern int  io_send_qstring (const char *);
+extern int  io_send_literal (const char *);
+extern int  io_copy_out (mu_stream_t str, size_t size);
+extern int  io_completion_response (struct imap4d_command *, int,
+                                    const char *, ...) MU_PRINTFLIKE(3,4);
+int io_getline (char **pbuf, size_t *psize, size_t *pnbytes);
+void io_setio (FILE*, FILE*);
+void io_flush (void);
+int io_wait_input (int);
+  
 imap4d_tokbuf_t imap4d_tokbuf_init (void);
 void imap4d_tokbuf_destroy (imap4d_tokbuf_t *tok);
 int imap4d_tokbuf_argc (imap4d_tokbuf_t tok);
 char *imap4d_tokbuf_getarg (imap4d_tokbuf_t tok, int n);
 void imap4d_readline (imap4d_tokbuf_t tok);
-struct imap4d_tokbuf *imap4d_tokbuf_from_string (char *str);
-int imap4d_getline (char **pbuf, size_t *psize, size_t *pnbytes);
+imap4d_tokbuf_t imap4d_tokbuf_from_string (char *str);
 
+  
 #define IMAP4_ARG_TAG     0
 #define IMAP4_ARG_COMMAND 1
 #define IMAP4_ARG_1       2
@@ -328,18 +343,10 @@ void imap4d_child_signal_setup (RETSIGTYPE (*handler) (int signo));
 extern void imap4d_capability_add (const char *str);
 extern void imap4d_capability_remove (const char *str);
 extern void imap4d_capability_init (void);
-  
+
 /* Helper functions.  */
-extern int  util_out (int, const char *, ...) MU_PRINTFLIKE(2,3);
-extern int  util_send (const char *, ...) MU_PRINTFLIKE(1,2);
-extern int  util_send_bytes (const char *buf, size_t size);
-extern int  util_send_qstring (const char *);
-extern int  util_send_literal (const char *);
-extern int  util_copy_out (mu_stream_t str, size_t size);
 
 extern int  util_start (char *);
-extern int  util_finish (struct imap4d_command *, int, const char *, ...) 
-                         MU_PRINTFLIKE(3,4);
 extern int  util_getstate (void);
 extern int  util_do_command (imap4d_tokbuf_t);
 extern char *util_tilde_expansion (const char *, const char *);
@@ -361,14 +368,6 @@ int util_type_to_attribute (int type, char **attr_str);
 int util_attribute_matches_flag (mu_attribute_t attr, const char *item);
 int util_uidvalidity (mu_mailbox_t smbox, unsigned long *uidvp);
 
-void util_setio (FILE*, FILE*);
-void util_flush_output (void);
-void util_get_input (mu_stream_t *pstr);
-void util_get_output (mu_stream_t *pstr);
-void util_set_input (mu_stream_t str);
-void util_set_output (mu_stream_t str);
-int util_wait_input (int);
-  
 void util_register_event (int old_state, int new_state,
 			  mu_list_action_t *action, void *data);
 void util_event_remove (void *id);

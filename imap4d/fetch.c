@@ -76,7 +76,7 @@ fetch_send_address (const char *addr)
   /* Short circuit.  */
   if (addr == NULL || *addr == '\0')
     {
-      util_send ("NIL");
+      io_sendf ("NIL");
       return RESP_OK;
     }
 
@@ -86,26 +86,26 @@ fetch_send_address (const char *addr)
   /* We failed: can't parse.  */
   if (count == 0)
     {
-      util_send ("NIL");
+      io_sendf ("NIL");
       return RESP_OK;
     }
 
-  util_send ("(");
+  io_sendf ("(");
   for (i = 1; i <= count; i++)
     {
       const char *str;
       int is_group = 0;
 
-      util_send ("(");
+      io_sendf ("(");
 
       mu_address_sget_personal (address, i, &str);
-      util_send_qstring (str);
-      util_send (" ");
+      io_send_qstring (str);
+      io_sendf (" ");
 
       mu_address_sget_route (address, i, &str);
-      util_send_qstring (str);
+      io_send_qstring (str);
 
-      util_send (" ");
+      io_sendf (" ");
 
       mu_address_is_group (address, i, &is_group);
       str = NULL;
@@ -114,16 +114,16 @@ fetch_send_address (const char *addr)
       else
 	mu_address_sget_local_part (address, i, &str);
 
-      util_send_qstring (str);
+      io_send_qstring (str);
 
-      util_send (" ");
+      io_sendf (" ");
 
       mu_address_sget_domain (address, i, &str);
-      util_send_qstring (str);
+      io_send_qstring (str);
 
-      util_send (")");
+      io_sendf (")");
     }
-  util_send (")");
+  io_sendf (")");
   return RESP_OK;
 }
 
@@ -134,16 +134,16 @@ fetch_send_header_value (mu_header_t header, const char *name,
   char *buffer;
   
   if (space)
-    util_send (" ");
+    io_sendf (" ");
   if (mu_header_aget_value (header, name, &buffer) == 0)
     {
-      util_send_qstring (buffer);
+      io_send_qstring (buffer);
       free (buffer);
     }
   else if (defval)
-    util_send_qstring (defval);
+    io_send_qstring (defval);
   else
-    util_send ("NIL");
+    io_sendf ("NIL");
 }
 
 static void
@@ -153,7 +153,7 @@ fetch_send_header_address (mu_header_t header, const char *name,
   char *buffer;
   
   if (space)
-    util_send (" ");
+    io_sendf (" ");
   if (mu_header_aget_value (header, name, &buffer) == 0)
     {
       fetch_send_address (buffer);
@@ -172,36 +172,36 @@ send_parameter_list (const char *buffer)
   
   if (!buffer)
     {
-      util_send ("NIL");
+      io_sendf ("NIL");
       return;
     }
 
   mu_argcv_get (buffer, " \t\r\n;=", NULL, &argc, &argv);
   
   if (argc == 0)
-    util_send ("NIL");
+    io_sendf ("NIL");
   else
     {
       char *p;
       
-      util_send ("(");
+      io_sendf ("(");
         
       p = argv[0];
-      util_send_qstring (p);
+      io_send_qstring (p);
 
       if (argc > 1)
 	{
 	  int i, space = 0;
 	  char *lvalue = NULL;
 
-	  util_send ("(");
+	  io_sendf ("(");
 	  for (i = 1; i < argc; i++)
 	    {
 	      if (lvalue)
 		{
 		  if (space)
-		    util_send (" ");
-		  util_send_qstring (lvalue);
+		    io_sendf (" ");
+		  io_send_qstring (lvalue);
 		  lvalue = NULL;
 		  space = 1;
 		}
@@ -215,8 +215,8 @@ send_parameter_list (const char *buffer)
 		  if (++i < argc)
 		    {
 		      char *p = argv[i];
-		      util_send (" ");
-		      util_send_qstring (p);
+		      io_sendf (" ");
+		      io_send_qstring (p);
 		    }
 		  break;
 		  
@@ -227,14 +227,14 @@ send_parameter_list (const char *buffer)
 	  if (lvalue)
 	    {
 	      if (space)
-		util_send (" ");
-	      util_send_qstring (lvalue);
+		io_sendf (" ");
+	      io_send_qstring (lvalue);
 	    }
-	  util_send (")");
+	  io_sendf (")");
 	}
       else
-	util_send (" NIL");
-      util_send (")");
+	io_sendf (" NIL");
+      io_sendf (")");
     }
   mu_argcv_free (argc, argv);
 }
@@ -246,7 +246,7 @@ fetch_send_header_list (mu_header_t header, const char *name,
   char *buffer;
   
   if (space)
-    util_send (" ");
+    io_sendf (" ");
   if (mu_header_aget_value (header, name, &buffer) == 0)
     {
       send_parameter_list (buffer);
@@ -255,7 +255,7 @@ fetch_send_header_list (mu_header_t header, const char *name,
   else if (defval)
     send_parameter_list (defval);
   else
-    util_send ("NIL");
+    io_sendf ("NIL");
 }
 
 /* ENVELOPE:
@@ -281,7 +281,7 @@ fetch_envelope0 (mu_message_t msg)
 
   /* From:  */
   mu_header_aget_value (header, "From", &from);
-  util_send (" ");
+  io_sendf (" ");
   fetch_send_address (from);
 
   fetch_send_header_address (header, "Sender", from, 1);
@@ -368,9 +368,9 @@ bodystructure (mu_message_t msg, int extension)
       if (s)
 	*s++ = 0;
       p = argv[0];
-      util_send_qstring (p);
-      util_send (" ");
-      util_send_qstring (s);
+      io_send_qstring (p);
+      io_sendf (" ");
+      io_send_qstring (s);
 
       /* body parameter parenthesized list: Content-type attributes */
       if (argc > 1 || text_plain)
@@ -380,7 +380,7 @@ bodystructure (mu_message_t msg, int extension)
 	  int have_charset = 0;
 	  int i;
 	  
-	  util_send (" (");
+	  io_sendf (" (");
 	  for (i = 1; i < argc; i++)
 	    {
 	      /* body parameter parenthesized list:
@@ -388,8 +388,8 @@ bodystructure (mu_message_t msg, int extension)
 	      if (lvalue)
 		{
 		  if (space)
-		    util_send (" ");
-		  util_send_qstring (lvalue);
+		    io_sendf (" ");
+		  io_send_qstring (lvalue);
 		  lvalue = NULL;
 		  space = 1;
 		}
@@ -403,8 +403,8 @@ bodystructure (mu_message_t msg, int extension)
 		  if (++i < argc)
 		    {
 		      char *p = argv[i];
-		      util_send (" ");
-		      util_send_qstring (p);
+		      io_sendf (" ");
+		      io_send_qstring (p);
 		    }
 		  break;
 		  
@@ -419,27 +419,27 @@ bodystructure (mu_message_t msg, int extension)
 	  if (lvalue)
 	    {
 	      if (space)
-		util_send (" ");
-	      util_send_qstring (lvalue);
+		io_sendf (" ");
+	      io_send_qstring (lvalue);
 	    }
 	  
 	  if (!have_charset && text_plain)
 	    {
 	      if (space)
-		util_send (" ");
-	      util_send ("\"CHARSET\" \"US-ASCII\"");
+		io_sendf (" ");
+	      io_sendf ("\"CHARSET\" \"US-ASCII\"");
 	    }
-	  util_send (")");
+	  io_sendf (")");
 	}
       else
-	util_send (" NIL");
+	io_sendf (" NIL");
       mu_argcv_free (argc, argv);
       free (buffer);
     }
   else
     {
       /* Default? If Content-Type is not present consider as text/plain.  */
-      util_send ("\"TEXT\" \"PLAIN\" (\"CHARSET\" \"US-ASCII\")");
+      io_sendf ("\"TEXT\" \"PLAIN\" (\"CHARSET\" \"US-ASCII\")");
       text_plain = 1;
     }
   
@@ -459,14 +459,14 @@ bodystructure (mu_message_t msg, int extension)
     mu_message_get_body (msg, &body);
     mu_body_size (body, &size);
     mu_body_lines (body, &blines);
-    util_send (" %s", mu_umaxtostr (0, size + blines));
+    io_sendf (" %s", mu_umaxtostr (0, size + blines));
   }
 
   /* If the mime type was text.  */
   if (text_plain)
     {
       /* Add the line number of the body.  */
-      util_send (" %s", mu_umaxtostr (0, blines));
+      io_sendf (" %s", mu_umaxtostr (0, blines));
     }
   else if (message_rfc822)
     {
@@ -474,16 +474,16 @@ bodystructure (mu_message_t msg, int extension)
       mu_message_t emsg = NULL;
       mu_message_unencapsulate  (msg, &emsg, NULL);
       /* Add envelope structure of the encapsulated message.  */
-      util_send (" (");
+      io_sendf (" (");
       fetch_envelope0 (emsg);
-      util_send (")");
+      io_sendf (")");
       /* Add body structure of the encapsulated message.  */
-      util_send ("(");
+      io_sendf ("(");
       bodystructure (emsg, extension);
-      util_send (")");
+      io_sendf (")");
       /* Size in text lines of the encapsulated message.  */
       mu_message_lines (emsg, &lines);
-      util_send (" %s", mu_umaxtostr (0, lines));
+      io_sendf (" %s", mu_umaxtostr (0, lines));
       mu_message_destroy (&emsg, NULL);
     }
 
@@ -543,9 +543,9 @@ fetch_bodystructure0 (mu_message_t message, int extension)
         {
           mu_message_t msg = NULL;
           mu_message_get_part (message, i, &msg);
-          util_send ("(");
+          io_sendf ("(");
           fetch_bodystructure0 (msg, extension);
-          util_send (")");
+          io_sendf (")");
         } /* for () */
 
       mu_message_get_header (message, &header);
@@ -563,8 +563,8 @@ fetch_bodystructure0 (mu_message_t message, int extension)
 	  s = strchr (argv[0], '/');
 	  if (s)
 	    s++;
-	  util_send (" ");
-	  util_send_qstring (s);
+	  io_sendf (" ");
+	  io_send_qstring (s);
 
 	  /* The extension data for multipart. */
 	  if (extension)
@@ -572,7 +572,7 @@ fetch_bodystructure0 (mu_message_t message, int extension)
 	      int space = 0;
 	      char *lvalue = NULL;
 	      
-	      util_send (" (");
+	      io_sendf (" (");
 	      for (i = 1; i < argc; i++)
 		{
 		  /* body parameter parenthesized list:
@@ -580,8 +580,8 @@ fetch_bodystructure0 (mu_message_t message, int extension)
 		  if (lvalue)
 		    {
 		      if (space)
-			util_send (" ");
-		      util_send_qstring (lvalue);
+			io_sendf (" ");
+		      io_send_qstring (lvalue);
 		      lvalue = NULL;
 		      space = 1;
 		    }
@@ -595,8 +595,8 @@ fetch_bodystructure0 (mu_message_t message, int extension)
 		      if (++i < argc)
 			{
 			  char *p = argv[i];
-			  util_send (" ");
-			  util_send_qstring (p);
+			  io_sendf (" ");
+			  io_send_qstring (p);
 			}
 		      break;
 		      
@@ -607,19 +607,19 @@ fetch_bodystructure0 (mu_message_t message, int extension)
 	      if (lvalue)
 		{
 		  if (space)
-		    util_send (" ");
-		  util_send_qstring (lvalue);
+		    io_sendf (" ");
+		  io_send_qstring (lvalue);
 		}
-	      util_send (")");
+	      io_sendf (")");
 	    }
 	  else
-	    util_send (" NIL");
+	    io_sendf (" NIL");
 	  mu_argcv_free (argc, argv);
           free (buffer);
 	}
       else
 	/* No content-type header */
-	util_send (" NIL");
+	io_sendf (" NIL");
 
       /* body disposition: Content-Disposition.  */
       fetch_send_header_list (header, MU_HEADER_CONTENT_DISPOSITION,
@@ -643,7 +643,7 @@ set_seen (struct fetch_function_closure *ffc,
       mu_message_get_attribute (frt->msg, &attr);
       if (!mu_attribute_is_read (attr))
 	{
-	  util_send ("FLAGS (\\Seen) ");
+	  io_sendf ("FLAGS (\\Seen) ");
 	  mu_attribute_set_read (attr);
 	}
     }
@@ -668,21 +668,21 @@ fetch_send_section_part (struct fetch_function_closure *ffc,
 {
   int i;
   
-  util_send ("BODY[");
+  io_sendf ("BODY[");
   for (i = 0; i < ffc->nset; i++)
     {
       if (i)
-	util_send (".");
-      util_send ("%lu",  (unsigned long) ffc->section_part[i]);
+	io_sendf (".");
+      io_sendf ("%lu",  (unsigned long) ffc->section_part[i]);
     }
   if (suffix)
     {
       if (i)
-	util_send (".");
-      util_send ("%s", suffix);
+	io_sendf (".");
+      io_sendf ("%s", suffix);
     }
   if (close_bracket)
-    util_send ("]");
+    io_sendf ("]");
 }
 
 static int
@@ -707,17 +707,17 @@ fetch_io (mu_stream_t stream, size_t start, size_t size, size_t max)
 	}
       if (max)
 	{
-	  util_send (" {%lu}\n", (unsigned long) max);
-	  util_copy_out (rfc, max);
+	  io_sendf (" {%lu}\n", (unsigned long) max);
+	  io_copy_out (rfc, max);
 	  /* FIXME: Make sure exactly max bytes were sent */
 	}
       else
-	util_send (" \"\"");
+	io_sendf (" \"\"");
     }
   else if (start > max)
     {
-      util_send ("<%lu>", (unsigned long) start);
-      util_send (" \"\"");
+      io_sendf ("<%lu>", (unsigned long) start);
+      io_sendf (" \"\"");
     }
   else if (size + 2 < size) /* Check for integer overflow */
     {
@@ -751,14 +751,14 @@ fetch_io (mu_stream_t stream, size_t start, size_t size, size_t max)
 	  p += n;
 	}
       *p = 0;
-      util_send ("<%lu>", (unsigned long) start);
+      io_sendf ("<%lu>", (unsigned long) start);
       if (total)
 	{
-	  util_send (" {%lu}\n", (unsigned long) total);
-	  util_send_bytes (buffer, total);
+	  io_sendf (" {%lu}\n", (unsigned long) total);
+	  io_send_bytes (buffer, total);
 	}
       else
-	util_send (" \"\"");
+	io_sendf (" \"\"");
       free (buffer);
     }
   mu_stream_destroy (&rfc);
@@ -774,7 +774,7 @@ _frt_uid (struct fetch_function_closure *ffc,
   size_t uid = 0;
 
   mu_message_get_uid (frt->msg, &uid);
-  util_send ("%s %s", ffc->name, mu_umaxtostr (0, uid));
+  io_sendf ("%s %s", ffc->name, mu_umaxtostr (0, uid));
   return RESP_OK;
 }
 
@@ -782,9 +782,9 @@ static int
 _frt_envelope (struct fetch_function_closure *ffc,
 	       struct fetch_runtime_closure *frt)
 {
-  util_send ("%s (", ffc->name);
+  io_sendf ("%s (", ffc->name);
   fetch_envelope0 (frt->msg);
-  util_send (")");
+  io_sendf (")");
   return RESP_OK;
 }
 
@@ -795,9 +795,9 @@ _frt_flags (struct fetch_function_closure *ffc,
   mu_attribute_t attr = NULL;
 
   mu_message_get_attribute (frt->msg, &attr);
-  util_send ("%s (", ffc->name);
+  io_sendf ("%s (", ffc->name);
   util_print_flags (attr);
-  util_send (")");
+  io_sendf (")");
   return 0;
 }
 
@@ -850,8 +850,8 @@ _frt_internaldate (struct fetch_function_closure *ffc,
       tmp = localtime (&t);
     }
   mu_strftime (datebuf, sizeof (datebuf), "%d-%b-%Y %H:%M:%S", tmp);
-  util_send ("%s", ffc->name);
-  util_send (" \"%s +0000\"", datebuf);
+  io_sendf ("%s", ffc->name);
+  io_sendf (" \"%s +0000\"", datebuf);
   return 0;
 }
 
@@ -859,9 +859,9 @@ static int
 _frt_bodystructure (struct fetch_function_closure *ffc,
 		    struct fetch_runtime_closure *frt)
 {
-  util_send ("%s (", ffc->name);
+  io_sendf ("%s (", ffc->name);
   fetch_bodystructure0 (frt->msg, 1); /* 1 means with extension data.  */
-  util_send (")");
+  io_sendf (")");
   return RESP_OK;
 }
 
@@ -869,9 +869,9 @@ static int
 _frt_bodystructure0 (struct fetch_function_closure *ffc,
 		     struct fetch_runtime_closure *frt)
 {
-  util_send ("%s (", ffc->name);
+  io_sendf ("%s (", ffc->name);
   fetch_bodystructure0 (frt->msg, 0);
-  util_send (")");
+  io_sendf (")");
   return RESP_OK;
 }
 
@@ -887,13 +887,13 @@ _frt_body (struct fetch_function_closure *ffc,
   
   set_seen (ffc, frt);
   if (ffc->name)
-    util_send ("%s", ffc->name);
+    io_sendf ("%s", ffc->name);
   else
     fetch_send_section_part (ffc, NULL, 1);
   msg = fetch_get_part (ffc, frt);
   if (!msg)
     {
-      util_send (" \"\"");
+      io_sendf (" \"\"");
       return RESP_OK;
     }
   mu_message_get_streamref (msg, &stream);
@@ -916,13 +916,13 @@ _frt_body_text (struct fetch_function_closure *ffc,
   
   set_seen (ffc, frt);
   if (ffc->name)
-    util_send ("%s",  ffc->name);
+    io_sendf ("%s",  ffc->name);
   else
     fetch_send_section_part (ffc, "TEXT", 1);
   msg = fetch_get_part (ffc, frt);
   if (!msg)
     {
-      util_send (" \"\"");
+      io_sendf (" \"\"");
       return RESP_OK;
     }
 
@@ -944,7 +944,7 @@ _frt_size (struct fetch_function_closure *ffc,
   
   mu_message_size (frt->msg, &size);
   mu_message_lines (frt->msg, &lines);
-  util_send ("%s %lu", ffc->name, (unsigned long) (size + lines));
+  io_sendf ("%s %lu", ffc->name, (unsigned long) (size + lines));
   return RESP_OK;
 }
 
@@ -961,14 +961,14 @@ _frt_header0 (struct fetch_function_closure *ffc,
   
   set_seen (ffc, frt);
   if (ffc->name)
-    util_send ("%s",  ffc->name);
+    io_sendf ("%s",  ffc->name);
   else
     fetch_send_section_part (ffc, suffix, 1);
 
   msg = fetch_get_part (ffc, frt);
   if (!msg)
     {
-      util_send (" \"\"");
+      io_sendf (" \"\"");
       return RESP_OK;
     }
   mu_message_get_header (msg, &header);
@@ -999,10 +999,10 @@ _send_header_name (void *item, void *data)
 {
   int *pf = data;
   if (*pf)
-    util_send (" ");
+    io_sendf (" ");
   else
     *pf = 1;
-  util_send ("%s", (char*) item);
+  io_sendf ("%s", (char*) item);
   return 0;
 }
 
@@ -1031,16 +1031,16 @@ _frt_header_fields (struct fetch_function_closure *ffc,
 
   fetch_send_section_part (ffc, "HEADER.FIELDS", 0);
   if (ffc->not)
-    util_send (".NOT");
-  util_send (" (");
+    io_sendf (".NOT");
+  io_sendf (" (");
   status = 0;
   mu_list_do (ffc->headers, _send_header_name, &status);
-  util_send (")]");
+  io_sendf (")]");
   
   msg = fetch_get_part (ffc, frt);
   if (!msg)
     {
-      util_send (" \"\"");
+      io_sendf (" \"\"");
       return RESP_OK;
     }
 
@@ -1048,7 +1048,7 @@ _frt_header_fields (struct fetch_function_closure *ffc,
   if (mu_message_get_header (msg, &header)
       || mu_header_get_iterator (header, &itr))
     {
-      util_send (" \"\"");
+      io_sendf (" \"\"");
       return RESP_OK;
     }
 
@@ -1113,7 +1113,7 @@ _do_fetch (void *item, void *data)
   struct fetch_function_closure *ffc = item;
   struct fetch_runtime_closure *frt = data;
   if (frt->eltno++)
-    util_send (" ");
+    io_sendf (" ");
   return ffc->fun (ffc, frt);
 }
 
@@ -1653,10 +1653,10 @@ imap4d_fetch0 (imap4d_tokbuf_t tok, int isuid, char **err_text)
 	  if (frc.msgno &&
 	      mu_mailbox_get_message (mbox, frc.msgno, &frc.msg) == 0)
 	    {
-	      util_send ("* %lu FETCH (", (unsigned long) frc.msgno);
+	      io_sendf ("* %lu FETCH (", (unsigned long) frc.msgno);
 	      frc.eltno = 0;
 	      rc = mu_list_do (pclos.fnlist, _do_fetch, &frc);
-	      util_send (")\n");
+	      io_sendf (")\n");
 	    }
 	}
       }
@@ -1690,5 +1690,5 @@ imap4d_fetch (struct imap4d_command *command, imap4d_tokbuf_t tok)
   char *err_text = "Completed";
 
   rc = imap4d_fetch0 (tok, 0, &err_text);
-  return util_finish (command, rc, "%s", err_text);
+  return io_completion_response (command, rc, "%s", err_text);
 }

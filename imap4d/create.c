@@ -91,16 +91,16 @@ imap4d_create (struct imap4d_command *command, imap4d_tokbuf_t tok)
   const char *msg = "Completed";
 
   if (imap4d_tokbuf_argc (tok) != 3)
-    return util_finish (command, RESP_BAD, "Invalid arguments");
+    return io_completion_response (command, RESP_BAD, "Invalid arguments");
 
   name = imap4d_tokbuf_getarg (tok, IMAP4_ARG_1);
 
   if (*name == '\0')
-    return util_finish (command, RESP_BAD, "Too few arguments");
+    return io_completion_response (command, RESP_BAD, "Too few arguments");
 
   /* Creating, "Inbox" should always fail.  */
   if (mu_c_strcasecmp (name, "INBOX") == 0)
-    return util_finish (command, RESP_BAD, "Already exist");
+    return io_completion_response (command, RESP_BAD, "Already exist");
 
   /* RFC 3501:
          If the mailbox name is suffixed with the server's hierarchy
@@ -117,7 +117,7 @@ imap4d_create (struct imap4d_command *command, imap4d_tokbuf_t tok)
   name = namespace_getfullpath (name, delim, &ns);
 
   if (!name)
-    return util_finish (command, RESP_NO, "Cannot create mailbox");
+    return io_completion_response (command, RESP_NO, "Cannot create mailbox");
 
   /* It will fail if the mailbox already exists.  */
   if (access (name, F_OK) != 0)
@@ -165,5 +165,5 @@ imap4d_create (struct imap4d_command *command, imap4d_tokbuf_t tok)
       msg = "already exists";
     }
 
-  return util_finish (command, rc, msg);
+  return io_completion_response (command, rc, msg);
 }

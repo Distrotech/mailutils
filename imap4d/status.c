@@ -79,14 +79,14 @@ imap4d_status (struct imap4d_command *command, imap4d_tokbuf_t tok)
   int argc = imap4d_tokbuf_argc (tok);
 
   if (argc < 4)
-    return util_finish (command, RESP_BAD, "Invalid arguments");
+    return io_completion_response (command, RESP_BAD, "Invalid arguments");
   
   name = imap4d_tokbuf_getarg (tok, IMAP4_ARG_1);
 
   mailbox_name = namespace_getfullpath (name, delim, NULL);
 
   if (!mailbox_name)
-    return util_finish (command, RESP_NO, "Error opening mailbox");
+    return io_completion_response (command, RESP_NO, "Error opening mailbox");
 
   /* We may be opening the current mailbox, so make sure the attributes are
      preserved */
@@ -105,7 +105,8 @@ imap4d_status (struct imap4d_command *command, imap4d_tokbuf_t tok)
 	  if (item[0] == '(')
 	    {
 	      if (imap4d_tokbuf_getarg (tok, argc - 1)[0] != ')')
-		return util_finish (command, RESP_BAD, "Invalid arguments");
+		return io_completion_response (command, RESP_BAD, 
+		                               "Invalid arguments");
 	      argc--;
 	      i++;
 	    }
@@ -123,11 +124,11 @@ imap4d_status (struct imap4d_command *command, imap4d_tokbuf_t tok)
 		}
 		  
 	      if (count++ == 0)
-		util_send ("* STATUS %s (", name);
+		io_sendf ("* STATUS %s (", name);
 	      else if (!space_sent)
                 {
                   space_sent = 1;
-		  util_send (" ");
+		  io_sendf (" ");
                 }     
 
 	      if (!fun (smbox))
@@ -136,7 +137,7 @@ imap4d_status (struct imap4d_command *command, imap4d_tokbuf_t tok)
 
 	  
 	  if (count > 0)
-	    util_send (")\n");
+	    io_sendf (")\n");
 	  mu_mailbox_close (smbox);
 	}
       mu_mailbox_destroy (&smbox);
@@ -146,13 +147,14 @@ imap4d_status (struct imap4d_command *command, imap4d_tokbuf_t tok)
   if (status == 0)
     {
       if (count == 0)
-	return util_finish (command, RESP_BAD, "Too few args (empty list)");
+	return io_completion_response (command, RESP_BAD, 
+	                               "Too few args (empty list)");
       else if (err_msg)
-	return util_finish (command, RESP_BAD, err_msg);
-      return util_finish (command, RESP_OK, "Completed");
+	return io_completion_response (command, RESP_BAD, err_msg);
+      return io_completion_response (command, RESP_OK, "Completed");
     }
   
-  return util_finish (command, RESP_NO, "Error opening mailbox");
+  return io_completion_response (command, RESP_NO, "Error opening mailbox");
 }
 
 static int
@@ -160,7 +162,7 @@ status_messages (mu_mailbox_t smbox)
 {
   size_t total = 0;
   mu_mailbox_messages_count (smbox, &total);
-  util_send ("MESSAGES %lu", (unsigned long) total);
+  io_sendf ("MESSAGES %lu", (unsigned long) total);
   return 0;
 }
 
@@ -169,7 +171,7 @@ status_recent (mu_mailbox_t smbox)
 {
   size_t recent = 0;
   mu_mailbox_messages_recent (smbox, &recent);
-  util_send ("RECENT %lu", (unsigned long) recent);
+  io_sendf ("RECENT %lu", (unsigned long) recent);
   return 0;
 }
 
@@ -178,7 +180,7 @@ status_uidnext (mu_mailbox_t smbox)
 {
   size_t uidnext = 1;
   mu_mailbox_uidnext (smbox, &uidnext);
-  util_send ("UIDNEXT %lu", (unsigned long) uidnext);
+  io_sendf ("UIDNEXT %lu", (unsigned long) uidnext);
   return 0;
 }
 
@@ -187,7 +189,7 @@ status_uidvalidity (mu_mailbox_t smbox)
 {
   unsigned long uidvalidity = 0;
   util_uidvalidity (smbox, &uidvalidity);
-  util_send ("UIDVALIDITY %lu", uidvalidity);
+  io_sendf ("UIDVALIDITY %lu", uidvalidity);
   return 0;
 }
 
@@ -214,6 +216,6 @@ status_unseen (mu_mailbox_t smbox)
       if (!mu_attribute_is_read (attr))
 	unseen++;
     }
-  util_send ("UNSEEN %lu", (unsigned long) unseen);
+  io_sendf ("UNSEEN %lu", (unsigned long) unseen);
   return 0;
 }

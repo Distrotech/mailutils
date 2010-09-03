@@ -36,7 +36,7 @@ int
 imap4d_examine (struct imap4d_command *command, imap4d_tokbuf_t tok)
 {
   if (imap4d_tokbuf_argc (tok) != 3)
-    return util_finish (command, RESP_BAD, "Invalid arguments");
+    return io_completion_response (command, RESP_BAD, "Invalid arguments");
   return imap4d_select0 (command, imap4d_tokbuf_getarg (tok, IMAP4_ARG_1),
 			 MU_STREAM_READ);
 }

@@ -38,10 +38,10 @@ imap4d_login (struct imap4d_command *command, imap4d_tokbuf_t tok)
   int rc;
 
   if (login_disabled || tls_required)    
-    return util_finish (command, RESP_NO, "Command disabled");
+    return io_completion_response (command, RESP_NO, "Command disabled");
 
   if (imap4d_tokbuf_argc (tok) != 4)
-    return util_finish (command, RESP_BAD, "Invalid arguments");
+    return io_completion_response (command, RESP_BAD, "Invalid arguments");
   
   username = imap4d_tokbuf_getarg (tok, IMAP4_ARG_1);
   pass = imap4d_tokbuf_getarg (tok, IMAP4_ARG_2);
@@ -51,7 +51,8 @@ imap4d_login (struct imap4d_command *command, imap4d_tokbuf_t tok)
   if (auth_data == NULL)
     {
       mu_diag_output (MU_DIAG_INFO, _("user `%s' nonexistent"), username);
-      return util_finish (command, RESP_NO, "User name or passwd rejected");
+      return io_completion_response (command, RESP_NO, 
+                                     "User name or passwd rejected");
     }
 
   rc = mu_authenticate (auth_data, pass);
@@ -59,11 +60,13 @@ imap4d_login (struct imap4d_command *command, imap4d_tokbuf_t tok)
   if (rc)
     {
       mu_diag_output (MU_DIAG_INFO, _("login failed: %s"), username);
-      return util_finish (command, RESP_NO, "User name or passwd rejected");
+      return io_completion_response (command, RESP_NO, 
+                                     "User name or passwd rejected");
     }
 
   if (imap4d_session_setup0 ())
-    return util_finish (command, RESP_NO, "User name or passwd rejected");
-  return util_finish (command, RESP_OK, "Completed");
+    return io_completion_response (command, RESP_NO, 
+                                   "User name or passwd rejected");
+  return io_completion_response (command, RESP_OK, "Completed");
 }
 

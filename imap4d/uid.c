@@ -32,7 +32,7 @@ imap4d_uid (struct imap4d_command *command, imap4d_tokbuf_t tok)
   char *err_text = "Completed";
 
   if (imap4d_tokbuf_argc (tok) < 3)
-    return util_finish (command, RESP_BAD, "Invalid arguments");
+    return io_completion_response (command, RESP_BAD, "Invalid arguments");
 
   cmd = imap4d_tokbuf_getarg (tok, IMAP4_ARG_1);
   
@@ -49,5 +49,5 @@ imap4d_uid (struct imap4d_command *command, imap4d_tokbuf_t tok)
       err_text = "Uknown uid command";
       rc = RESP_BAD;
     }
-  return util_finish (command, rc, "%s %s", cmd, err_text);
+  return io_completion_response (command, rc, "%s %s", cmd, err_text);
 }

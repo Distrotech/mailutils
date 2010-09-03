@@ -51,16 +51,16 @@ list_fun (mu_folder_t folder, struct mu_list_response *resp, void *data)
       && memcmp (name + refinfo->homelen + 1, "INBOX", 5) == 0)
     return 0;
      
-  util_send ("* %s", "LIST (");
+  io_sendf ("* %s", "LIST (");
   if ((resp->type & (MU_FOLDER_ATTRIBUTE_FILE|MU_FOLDER_ATTRIBUTE_DIRECTORY))
        == (MU_FOLDER_ATTRIBUTE_FILE|MU_FOLDER_ATTRIBUTE_DIRECTORY))
     /* nothing */;
   else if (resp->type & MU_FOLDER_ATTRIBUTE_FILE)
-    util_send ("\\NoInferiors");
+    io_sendf ("\\NoInferiors");
   else if (resp->type & MU_FOLDER_ATTRIBUTE_DIRECTORY)
-    util_send ("\\NoSelect");
+    io_sendf ("\\NoSelect");
   
-  util_send (") \"%c\" ", resp->separator);
+  io_sendf (") \"%c\" ", resp->separator);
 
   name = resp->name + refinfo->pfxlen;
   size = strlen (name) + refinfo->reflen + 1;
@@ -97,11 +97,11 @@ list_fun (mu_folder_t folder, struct mu_list_response *resp, void *data)
   name = refinfo->buf;
   
   if (strpbrk (name, "\"{}"))
-    util_send ("{%lu}\n%s\n", (unsigned long) strlen (name), name);
+    io_sendf ("{%lu}\n%s\n", (unsigned long) strlen (name), name);
   else if (is_atom (name))
-    util_send ("%s\n", name);
+    io_sendf ("%s\n", name);
   else
-    util_send ("\"%s\"\n", name);
+    io_sendf ("\"%s\"\n", name);
   return 0;
 }
 
@@ -146,7 +146,7 @@ imap4d_list (struct imap4d_command *command, imap4d_tokbuf_t tok)
   const char *delim = "/";
 
   if (imap4d_tokbuf_argc (tok) != 4)
-    return util_finish (command, RESP_BAD, "Invalid arguments");
+    return io_completion_response (command, RESP_BAD, "Invalid arguments");
   
   ref = imap4d_tokbuf_getarg (tok, IMAP4_ARG_1);
   wcard = imap4d_tokbuf_getarg (tok, IMAP4_ARG_2);
@@ -155,14 +155,15 @@ imap4d_list (struct imap4d_command *command, imap4d_tokbuf_t tok)
      return the hierarchy.  */
   if (*wcard == '\0')
     {
-      util_out (RESP_NONE, "LIST (\\NoSelect) \"%s\" \"%s\"", delim,
-		(*ref) ? delim : "");
+      io_untagged_response (RESP_NONE,
+                               "LIST (\\NoSelect) \"%s\" \"%s\"", delim,
+		               (*ref) ? delim : "");
     }
   /* There is only one mailbox in the "INBOX" hierarchy ... INBOX.  */
   else if (mu_c_strcasecmp (ref, "INBOX") == 0
 	   || (ref[0] == 0 && mu_c_strcasecmp (wcard, "INBOX") == 0))
     {
-      util_out (RESP_NONE, "LIST (\\NoInferiors) NIL INBOX");
+      io_untagged_response (RESP_NONE, "LIST (\\NoInferiors) NIL INBOX");
     }
   else
     {
@@ -233,16 +234,16 @@ imap4d_list (struct imap4d_command *command, imap4d_tokbuf_t tok)
       if (!cwd)
 	{
 	  free (ref);
-	  return util_finish (command, RESP_NO,
-			      "The requested item could not be found.");
+	  return io_completion_response (command, RESP_NO,
+			              "The requested item could not be found.");
 	}
       status = mu_folder_create (&folder, cwd);
       if (status)
 	{
 	  free (ref);
 	  free (cwd);
-	  return util_finish (command, RESP_NO,
-			      "The requested item could not be found.");
+	  return io_completion_response (command, RESP_NO,
+			              "The requested item could not be found.");
 	}
       mu_folder_set_match (folder, imap4d_match);
 
@@ -263,7 +264,7 @@ imap4d_list (struct imap4d_command *command, imap4d_tokbuf_t tok)
 
       if (!*ref && (imap4d_match ("INBOX", wcard, 0) == 0
 		    || imap4d_match ("inbox", wcard, 0) == 0))
-	util_out (RESP_NONE, "LIST (\\NoInferiors) NIL INBOX");
+	io_untagged_response (RESP_NONE, "LIST (\\NoInferiors) NIL INBOX");
 
       mu_folder_enumerate (folder, NULL, wcard, 0, 0, NULL,
 			   list_fun, &refinfo);
@@ -273,6 +274,6 @@ imap4d_list (struct imap4d_command *command, imap4d_tokbuf_t tok)
       free (ref);
     }
 
-  return util_finish (command, RESP_OK, "Completed");
+  return io_completion_response (command, RESP_OK, "Completed");
 }
 

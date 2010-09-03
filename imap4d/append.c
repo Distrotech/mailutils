@@ -140,11 +140,11 @@ imap4d_append (struct imap4d_command *command, imap4d_tokbuf_t tok)
   char *err_text = "[TRYCREATE] failed";
   
   if (argc < 4)
-    return util_finish (command, RESP_BAD, "Too few arguments");
+    return io_completion_response (command, RESP_BAD, "Too few arguments");
       
   mboxname = imap4d_tokbuf_getarg (tok, IMAP4_ARG_1);
   if (!mboxname)
-    return util_finish (command, RESP_BAD, "Too few arguments");
+    return io_completion_response (command, RESP_BAD, "Too few arguments");
 
   i = IMAP4_ARG_2;
   if (imap4d_tokbuf_getarg (tok, i)[0] == '(')
@@ -160,7 +160,8 @@ imap4d_append (struct imap4d_command *command, imap4d_tokbuf_t tok)
 	    break;
 	}
       if (i == argc)
-	return util_finish (command, RESP_BAD, "Missing closing parenthesis");
+	return io_completion_response (command, RESP_BAD, 
+	                               "Missing closing parenthesis");
       i++;
     }
 
@@ -177,14 +178,14 @@ imap4d_append (struct imap4d_command *command, imap4d_tokbuf_t tok)
       break;
 
     default:
-      return util_finish (command, RESP_BAD, "Too many arguments");
+      return io_completion_response (command, RESP_BAD, "Too many arguments");
     }
 
   msg_text = imap4d_tokbuf_getarg (tok, i);
   
   mboxname = namespace_getfullpath (mboxname, "/", NULL);
   if (!mboxname)
-    return util_finish (command, RESP_NO, "Couldn't open mailbox"); 
+    return io_completion_response (command, RESP_NO, "Couldn't open mailbox"); 
 
   status = mu_mailbox_create_default (&dest_mbox, mboxname);
   if (status == 0)
@@ -202,9 +203,9 @@ imap4d_append (struct imap4d_command *command, imap4d_tokbuf_t tok)
   
   free (mboxname);
   if (status == 0)
-    return util_finish (command, RESP_OK, "Completed");
+    return io_completion_response (command, RESP_OK, "Completed");
 
-  return util_finish (command, RESP_NO, err_text);
+  return io_completion_response (command, RESP_NO, err_text);
 }
 
 

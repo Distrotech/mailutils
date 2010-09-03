@@ -48,18 +48,18 @@ imap4d_rename (struct imap4d_command *command, imap4d_tokbuf_t tok)
   int ns;
   
   if (imap4d_tokbuf_argc (tok) != 4)
-    return util_finish (command, RESP_BAD, "Invalid arguments");
+    return io_completion_response (command, RESP_BAD, "Invalid arguments");
   
   oldname = imap4d_tokbuf_getarg (tok, IMAP4_ARG_1);
   newname = imap4d_tokbuf_getarg (tok, IMAP4_ARG_2);
 
   if (mu_c_strcasecmp (newname, "INBOX") == 0)
-    return util_finish (command, RESP_NO, "Name Inbox is reservered");
+    return io_completion_response (command, RESP_NO, "Name Inbox is reservered");
 
   /* Allocates memory.  */
   newname = namespace_getfullpath (newname, delim, &ns);
   if (!newname)
-    return util_finish (command, RESP_NO, "Permission denied");
+    return io_completion_response (command, RESP_NO, "Permission denied");
 
   /* It is an error to attempt to rename from a mailbox name that already
      exist.  */
@@ -68,7 +68,8 @@ imap4d_rename (struct imap4d_command *command, imap4d_tokbuf_t tok)
       if (!S_ISDIR(newst.st_mode))
 	{
 	  free (newname);
-	  return util_finish (command, RESP_NO, "Already exist, delete first");
+	  return io_completion_response (command, RESP_NO,
+	                                 "Already exist, delete first");
 	}
     }
 
@@ -83,7 +84,8 @@ imap4d_rename (struct imap4d_command *command, imap4d_tokbuf_t tok)
       if (S_ISDIR (newst.st_mode))
 	{
 	  free (newname);
-	  return util_finish (command, RESP_NO, "Cannot be a directory");
+	  return io_completion_response (command, RESP_NO, 
+	                                 "Cannot be a directory");
 	}
       if (mu_mailbox_create (&newmbox, newname) != 0
 	  || mu_mailbox_open (newmbox,
@@ -91,7 +93,8 @@ imap4d_rename (struct imap4d_command *command, imap4d_tokbuf_t tok)
 			        | mailbox_mode[ns]) != 0)
 	{
 	  free (newname);
-	  return util_finish (command, RESP_NO, "Cannot create new mailbox");
+	  return io_completion_response (command, RESP_NO,
+	                                 "Cannot create new mailbox");
 	}
       free (newname);
 
@@ -118,7 +121,7 @@ imap4d_rename (struct imap4d_command *command, imap4d_tokbuf_t tok)
 	}
       mu_mailbox_close (newmbox);
       mu_mailbox_destroy (&newmbox);
-      return util_finish (command, RESP_OK, "Already exist");
+      return io_completion_response (command, RESP_OK, "Already exist");
     }
 
   oldname = namespace_getfullpath (oldname, delim, NULL);
@@ -135,5 +138,5 @@ imap4d_rename (struct imap4d_command *command, imap4d_tokbuf_t tok)
   if (oldname)
     free (oldname);
   free (newname);
-  return util_finish (command, rc, msg);
+  return io_completion_response (command, rc, msg);
 }

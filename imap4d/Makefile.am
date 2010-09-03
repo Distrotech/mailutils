@@ -41,6 +41,7 @@ imap4d_SOURCES = \
  idle.c\
  imap4d.c\
  imap4d.h\
+ io.c\
  list.c\
  logout.c\
  login.c\

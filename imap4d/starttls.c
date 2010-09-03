@@ -40,16 +40,16 @@ imap4d_starttls (struct imap4d_command *command, imap4d_tokbuf_t tok)
   int status;
 
   if (!tls_available || tls_done)
-    return util_finish (command, RESP_BAD, "Invalid command");
+    return io_completion_response (command, RESP_BAD, "Invalid command");
 
   if (imap4d_tokbuf_argc (tok) != 2)
-    return util_finish (command, RESP_BAD, "Invalid arguments");
+    return io_completion_response (command, RESP_BAD, "Invalid arguments");
 
   util_atexit (mu_deinit_tls_libs);
 
-  status = util_finish (command, RESP_OK, "Begin TLS negotiation");
-  util_flush_output ();
-  tls_done = imap4d_init_tls_server ();
+  status = io_completion_response (command, RESP_OK, "Begin TLS negotiation");
+  io_flush ();
+  tls_done = imap4d_init_tls_server () == 0;
 
   if (tls_done)
     {

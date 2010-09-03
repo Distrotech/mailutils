@@ -313,7 +313,7 @@ filter_wr_flush (mu_stream_t stream)
 {
   struct _mu_filter_stream *fs = (struct _mu_filter_stream *)stream;
   int rc = filter_write_internal (stream, mu_filter_lastbuf, NULL, 0, NULL);
-  if (rc)
+  if (rc == 0)
     rc = mu_stream_flush (fs->transport);
   return rc;
 }
@@ -405,6 +405,14 @@ filter_write_through (struct _mu_stream *stream,
   return mu_stream_write (fs->transport, buf, bufsize, pnwrite);
 }
 
+static int
+filter_wait (struct _mu_stream *stream, int *pflags, struct timeval *tvp)
+{
+  struct _mu_filter_stream *fs = (struct _mu_filter_stream *)stream;
+  /* FIXME: Take into account internal buffer state. */
+  return mu_stream_wait (fs->transport, pflags, tvp);
+}
+
 
 int
 mu_filter_stream_create (mu_stream_t *pflt,
@@ -457,6 +465,7 @@ mu_filter_stream_create (mu_stream_t *pflt,
   if (flags & MU_STREAM_SEEK)
     fs->stream.seek = filter_seek;
   fs->stream.ctl = filter_ctl;
+  fs->stream.wait = filter_wait;
   fs->stream.error_string = filter_error_string;
   fs->stream.flags = flags;
 

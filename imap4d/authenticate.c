@@ -62,7 +62,7 @@ static int
 _auth_capa (void *item, void *usused)
 {
   struct imap_auth *p = item;
-  util_send(" AUTH=%s", p->name);
+  io_sendf (" AUTH=%s", p->name);
   return 0;
 }
 
@@ -107,13 +107,13 @@ imap4d_authenticate (struct imap4d_command *command, imap4d_tokbuf_t tok)
   struct auth_data adata;
 
   if (imap4d_tokbuf_argc (tok) != 3)
-    return util_finish (command, RESP_BAD, "Invalid arguments");
+    return io_completion_response (command, RESP_BAD, "Invalid arguments");
   
   auth_type = imap4d_tokbuf_getarg (tok, IMAP4_ARG_1);
 
   if (tls_required)
-    return util_finish (command, RESP_NO,
-			"Command disabled: Use STARTTLS first");
+    return io_completion_response (command, RESP_NO,
+			           "Command disabled: Use STARTTLS first");
   
   adata.command = command;
   adata.auth_type = auth_type;
@@ -121,20 +121,21 @@ imap4d_authenticate (struct imap4d_command *command, imap4d_tokbuf_t tok)
   adata.username = NULL;
 
   if (mu_list_do (imap_auth_list, _auth_try, &adata) == 0)
-    return util_finish (command, RESP_NO,
-			"Authentication mechanism not supported");
+    return io_completion_response (command, RESP_NO,
+			           "Authentication mechanism not supported");
   
   if (adata.result == RESP_OK && adata.username)
     {
       if (imap4d_session_setup (adata.username))
-	return util_finish (command, RESP_NO,
-			    "User name or passwd rejected");
+	return io_completion_response (command, RESP_NO,
+			               "User name or passwd rejected");
       else
-	return util_finish (command, RESP_OK,
-			    "%s authentication successful", auth_type);
+	return io_completion_response (command, RESP_OK,
+			               "%s authentication successful",
+			               auth_type);
     }
       
-  return util_finish (command, adata.result,
-		      "%s authentication failed", auth_type);
+  return io_completion_response (command, adata.result,
+		                 "%s authentication failed", auth_type);
 }
 
