@@ -67,16 +67,9 @@ extern int expire_on_exit;
 /* Size of the MD5 digest for APOP */
 #define APOP_DIGEST	70
 
-/* Longest legal POP command */
-#define POP_MAXCMDLEN	255
-
-/* Buffer size to use for output */
-#define BUFFERSIZE	1024
-
 #ifndef _GNU_SOURCE
 # define _GNU_SOURCE
 #endif
-#define _QNX_SOURCE
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
