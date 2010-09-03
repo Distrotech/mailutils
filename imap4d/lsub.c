@@ -42,20 +42,20 @@ imap4d_lsub (struct imap4d_command *command, imap4d_tokbuf_t tok)
   FILE *fp;
   
   if (imap4d_tokbuf_argc (tok) != 4)
-    return util_finish (command, RESP_BAD, "Invalid arguments");
+    return io_completion_response (command, RESP_BAD, "Invalid arguments");
   
   ref = imap4d_tokbuf_getarg (tok, IMAP4_ARG_1);
   wcard = imap4d_tokbuf_getarg (tok, IMAP4_ARG_2);
 
   asprintf (&pattern, "%s%s", ref, wcard);
   if (!pattern)
-    return util_finish (command, RESP_NO, "Not enough memory");
+    return io_completion_response (command, RESP_NO, "Not enough memory");
   
   asprintf (&file, "%s/.mailboxlist", real_homedir);
   if (!file)
     {
       free (pattern);
-      return util_finish (command, RESP_NO, "Not enough memory");
+      return io_completion_response (command, RESP_NO, "Not enough memory");
     }
   
   fp = fopen (file, "r");
@@ -71,13 +71,14 @@ imap4d_lsub (struct imap4d_command *command, imap4d_tokbuf_t tok)
 	  if (buf[len - 1] == '\n')
 	    buf[len - 1] = '\0';
 	  if (util_wcard_match (buf, pattern, delim) == 0)
-	    util_out (RESP_NONE, "LIST () \"%s\" %s", delim, buf);
+	    io_untagged_response (RESP_NONE, "LIST () \"%s\" %s", 
+	                             delim, buf);
 	}
       fclose (fp);
       free (buf);
-      return util_finish (command, RESP_OK, "Completed");
+      return io_completion_response (command, RESP_OK, "Completed");
     }
   else if (errno == ENOENT)
-    return util_finish (command, RESP_OK, "Completed");
-  return util_finish (command, RESP_NO, "Cannot list subscriber");
+    return io_completion_response (command, RESP_OK, "Completed");
+  return io_completion_response (command, RESP_NO, "Cannot list subscriber");
 }

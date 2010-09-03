@@ -95,8 +95,8 @@ auth_gsasl (struct imap4d_command *command, char *auth_type, char **username)
   while ((rc = gsasl_step64 (sess_ctx, input_str, &output))
 	   == GSASL_NEEDS_MORE)
     {
-      util_send ("+ %s\n", output);
-      imap4d_getline (&input_str, &input_size, &input_len);
+      io_sendf ("+ %s\n", output);
+      io_getline (&input_str, &input_size, &input_len);
     }
   
   if (rc != GSASL_OK)
@@ -112,8 +112,8 @@ auth_gsasl (struct imap4d_command *command, char *auth_type, char **username)
      returned, and clients must respond with an empty response. */
   if (output[0])
     {
-      util_send ("+ %s\n", output);
-      imap4d_getline (&input_str, &input_size, &input_len);
+      io_sendf ("+ %s\n", output);
+      io_getline (&input_str, &input_size, &input_len);
       if (input_len != 0)
 	{
 	  mu_diag_output (MU_DIAG_NOTICE, _("non-empty client response"));

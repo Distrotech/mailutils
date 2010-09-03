@@ -42,8 +42,8 @@ print_namespace_fun (void *item, void *data)
   const char *dir = printable_pathname (item);
   char *suf = (dir[0] && dir[strlen (dir) - 1] != '/') ? "/" : "";
   if ((*pcount)++)
-    util_send (" ");
-  util_send ("(\"%s%s\" \"/\")", dir, suf);
+    io_sendf (" ");
+  io_sendf ("(\"%s%s\" \"/\")", dir, suf);
   return 0;
 }
 
@@ -52,14 +52,14 @@ print_namespace (int nsid)
 {
   mu_list_t list = namespace[nsid];
   if (!list)
-    util_send ("NIL");
+    io_sendf ("NIL");
   else
     {
       int count;
       count = 0;
-      util_send ("(");
+      io_sendf ("(");
       mu_list_do (list, print_namespace_fun, &count);
-      util_send (")");
+      io_sendf (")");
     }
 }
 
@@ -117,18 +117,18 @@ int
 imap4d_namespace (struct imap4d_command *command, imap4d_tokbuf_t tok)
 {
   if (imap4d_tokbuf_argc (tok) != 2)
-    return util_finish (command, RESP_BAD, "Invalid arguments");
+    return io_completion_response (command, RESP_BAD, "Invalid arguments");
 
-  util_send ("* NAMESPACE ");
+  io_sendf ("* NAMESPACE ");
 
   print_namespace (NS_PRIVATE);
-  util_send (" ");
+  io_sendf (" ");
   print_namespace (NS_OTHER);
-  util_send (" ");
+  io_sendf (" ");
   print_namespace (NS_SHARED);
-  util_send ("\n");
+  io_sendf ("\n");
 
-  return util_finish (command, RESP_OK, "Completed");
+  return io_completion_response (command, RESP_OK, "Completed");
 }
 
 

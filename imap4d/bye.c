@@ -40,13 +40,13 @@ imap4d_bye0 (int reason, struct imap4d_command *command)
   switch (reason)
     {
     case ERR_NO_MEM:
-      util_out (RESP_BYE, "Server terminating: no more resources.");
+      io_untagged_response (RESP_BYE, "Server terminating: no more resources.");
       mu_diag_output (MU_DIAG_ERROR, _("not enough memory"));
       break;
 
     case ERR_TERMINATE:
       status = EX_OK;
-      util_out (RESP_BYE, "Server terminating on request.");
+      io_untagged_response (RESP_BYE, "Server terminating on request.");
       mu_diag_output (MU_DIAG_NOTICE, _("terminating on request"));
       break;
 
@@ -56,7 +56,7 @@ imap4d_bye0 (int reason, struct imap4d_command *command)
 
     case ERR_TIMEOUT:
       status = EX_TEMPFAIL;
-      util_out (RESP_BYE, "Session timed out");
+      io_untagged_response (RESP_BYE, "Session timed out");
       if (state == STATE_NONAUTH)
         mu_diag_output (MU_DIAG_INFO, _("session timed out for no user"));
       else
@@ -77,10 +77,15 @@ imap4d_bye0 (int reason, struct imap4d_command *command)
       status = EX_OSERR;
       mu_diag_output (MU_DIAG_ERROR, _("mailbox modified by third party"));
       break;
+
+    case ERR_STREAM_CREATE:
+      status = EX_UNAVAILABLE;
+      mu_diag_output (MU_DIAG_ERROR, _("cannot create transport stream"));
+      break;
       
     case OK:
       status = EX_OK;
-      util_out (RESP_BYE, "Session terminating.");
+      io_untagged_response (RESP_BYE, "Session terminating.");
       if (state == STATE_NONAUTH)
 	mu_diag_output (MU_DIAG_INFO, _("session terminating"));
       else
@@ -88,13 +93,13 @@ imap4d_bye0 (int reason, struct imap4d_command *command)
       break;
 
     default:
-      util_out (RESP_BYE, "Quitting (reason unknown)");
+      io_untagged_response (RESP_BYE, "Quitting (reason unknown)");
       mu_diag_output (MU_DIAG_ERROR, _("quitting (numeric reason %d)"), reason);
       break;
     }
 
   if (status == EX_OK && command)
-     util_finish (command, RESP_OK, "Completed");
+     io_completion_response (command, RESP_OK, "Completed");
 
   util_bye ();
 

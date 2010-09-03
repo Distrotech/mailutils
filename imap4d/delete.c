@@ -39,25 +39,25 @@ imap4d_delete (struct imap4d_command *command, imap4d_tokbuf_t tok)
   char *name;
 
   if (imap4d_tokbuf_argc (tok) != 3)
-    return util_finish (command, RESP_BAD, "Invalid arguments");
+    return io_completion_response (command, RESP_BAD, "Invalid arguments");
   name = imap4d_tokbuf_getarg (tok, IMAP4_ARG_1);
   if (!name || *name == '\0')
-    return util_finish (command, RESP_BAD, "Too few arguments");
+    return io_completion_response (command, RESP_BAD, "Too few arguments");
 
   /* It is an error to attempt to delele "INBOX or a mailbox
      name that dos not exists.  */
   if (mu_c_strcasecmp (name, "INBOX") == 0)
-    return util_finish (command, RESP_NO, "Already exist");
+    return io_completion_response (command, RESP_NO, "Already exist");
 
  /* Allocates memory.  */
   name = namespace_getfullpath (name, delim, NULL);
   if (!name)
-    return util_finish (command, RESP_NO, "Cannot remove");
+    return io_completion_response (command, RESP_NO, "Cannot remove");
 
   if (remove (name) != 0)
     {
       rc = RESP_NO;
       msg = "Cannot remove";
     }
-  return util_finish (command, rc, msg);
+  return io_completion_response (command, rc, msg);
 }

@@ -27,7 +27,7 @@ imap4d_close0 (struct imap4d_command *command, imap4d_tokbuf_t tok,
   int status, flags;
 
   if (imap4d_tokbuf_argc (tok) != 2)
-    return util_finish (command, RESP_BAD, "Invalid arguments");
+    return io_completion_response (command, RESP_BAD, "Invalid arguments");
   
   mu_mailbox_get_flags (mbox, &flags);
   if (flags & MU_STREAM_WRITE)
@@ -51,8 +51,8 @@ imap4d_close0 (struct imap4d_command *command, imap4d_tokbuf_t tok,
   mu_mailbox_destroy (&mbox);
 
   if (msg)
-    return util_finish (command, RESP_NO, msg);
-  return util_finish (command, RESP_OK, "Completed");
+    return io_completion_response (command, RESP_NO, msg);
+  return io_completion_response (command, RESP_OK, "Completed");
 }
 
 /*

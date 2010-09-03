@@ -151,13 +151,13 @@ imap4d_store0 (imap4d_tokbuf_t tok, int isuid, char **ptext)
 	  
 	  if (pclos.ack)
 	    {
-	      util_send ("* %lu FETCH (", (unsigned long) msgno);
+	      io_sendf ("* %lu FETCH (", (unsigned long) msgno);
 	      
 	      if (isuid)
-		util_send ("UID %lu ", (unsigned long) msgno);
-	      util_send ("FLAGS (");
+		io_sendf ("UID %lu ", (unsigned long) msgno);
+	      io_sendf ("FLAGS (");
 	      util_print_flags (attr);
-	      util_send ("))\n");
+	      io_sendf ("))\n");
 	    }
 	  /* Update the flags of uid table.  */
 	  imap4d_sync_flags (pclos.set[i]);
@@ -178,6 +178,6 @@ imap4d_store (struct imap4d_command *command, imap4d_tokbuf_t tok)
   char *err_text;
   
   rc = imap4d_store0 (tok, 0, &err_text);
-  return util_finish (command, rc, "%s", err_text);
+  return io_completion_response (command, rc, "%s", err_text);
 }
 

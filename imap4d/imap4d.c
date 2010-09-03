@@ -399,7 +399,7 @@ imap4d_mainloop (int fd, FILE *infile, FILE *outfile)
   int debug_mode = isatty (fd);
 
   imap4d_child_signal_setup (imap4d_child_signal);
-  util_setio (infile, outfile);
+  io_setio (infile, outfile);
 
   if (imap4d_preauth_setup (fd) == 0)
     {
@@ -413,13 +413,14 @@ imap4d_mainloop (int fd, FILE *infile, FILE *outfile)
     }
   else
     {
-      util_flush_output ();
+      io_flush ();
       return 0;
     }
 
   /* Greetings.  */
-  util_out ((state == STATE_AUTH) ? RESP_PREAUTH : RESP_OK, "%s", text);
-  util_flush_output ();
+  io_untagged_response ((state == STATE_AUTH) ? 
+                        RESP_PREAUTH : RESP_OK, "%s", text);
+  io_flush ();
 
   tokp = imap4d_tokbuf_init ();
   while (1)
@@ -429,7 +430,7 @@ imap4d_mainloop (int fd, FILE *infile, FILE *outfile)
       imap4d_sync ();
       util_do_command (tokp);
       imap4d_sync ();
-      util_flush_output ();
+      io_flush ();
     }
 
   return 0;

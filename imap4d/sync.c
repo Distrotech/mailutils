@@ -102,8 +102,8 @@ notify_flag (size_t msgno, mu_attribute_t oattr)
 	    add_flag (&abuf, "\\Recent");
 	  }
       if (*abuf)
-	util_out (RESP_NONE, "%lu FETCH FLAGS (%s)",
-		  (unsigned long) msgno, abuf);
+	io_untagged_response (RESP_NONE, "%lu FETCH FLAGS (%s)",
+		                 (unsigned long) msgno, abuf);
       free (abuf);
     }
 }
@@ -125,8 +125,8 @@ notify_deleted (void)
 	{
 	  if (!(uid_table[i].notify))
 	    {
-	      util_out (RESP_NONE, "%lu EXPUNGED",
-			(unsigned long) uid_table[i].msgno-decr);
+	      io_untagged_response (RESP_NONE, "%lu EXPUNGED",
+			               (unsigned long) uid_table[i].msgno-decr);
 	      uid_table[i].notify = 1;
 	      decr++;
 	    }
@@ -240,8 +240,8 @@ notify (void)
       mu_mailbox_messages_recent (mbox, &recent);
     }
 
-  util_out (RESP_NONE, "%lu EXISTS", (unsigned long) total);
-  util_out (RESP_NONE, "%lu RECENT", (unsigned long) recent);
+  io_untagged_response (RESP_NONE, "%lu EXISTS", (unsigned long) total);
+  io_untagged_response (RESP_NONE, "%lu RECENT", (unsigned long) recent);
 
   if (!reset)
     reset_uids ();
@@ -331,8 +331,8 @@ imap4d_sync (void)
 	  imap4d_set_observer (mbox);
 	  free_uids ();
 	  mailbox_corrupt = 0;
-	  util_out (RESP_NONE,
-		    "OK [ALERT] Mailbox modified by another program");
+	  io_untagged_response (RESP_NONE,
+		             "OK [ALERT] Mailbox modified by another program");
 	}
       notify ();
     }

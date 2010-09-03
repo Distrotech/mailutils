@@ -27,7 +27,7 @@ int
 imap4d_select (struct imap4d_command *command, imap4d_tokbuf_t tok)
 {
   if (imap4d_tokbuf_argc (tok) != 3)
-    return util_finish (command, RESP_BAD, "Invalid arguments");
+    return io_completion_response (command, RESP_BAD, "Invalid arguments");
   return imap4d_select0 (command, imap4d_tokbuf_getarg (tok, IMAP4_ARG_1),
 			 MU_STREAM_RDWR);
 }
@@ -60,7 +60,7 @@ imap4d_select0 (struct imap4d_command *command, const char *mboxname,
   mailbox_name = namespace_getfullpath (mboxname, "/", NULL);
 
   if (!mailbox_name)
-    return util_finish (command, RESP_NO, "Couldn't open mailbox");
+    return io_completion_response (command, RESP_NO, "Couldn't open mailbox");
 
   if ((status = mu_mailbox_create_default (&mbox, mailbox_name)) == 0
       && (status = mu_mailbox_open (mbox, flags)) == 0)
@@ -74,14 +74,14 @@ imap4d_select0 (struct imap4d_command *command, const char *mboxname,
 	{
 	  free (mailbox_name);
 	  /* Need to set the state explicitely for select.  */
-	  return util_send ("%s OK [%s] %s Completed\n", command->tag,
-			    ((flags & MU_STREAM_RDWR) == MU_STREAM_RDWR) ?
-			    "READ-WRITE" : "READ-ONLY", command->name);
+	  return io_sendf ("%s OK [%s] %s Completed\n", command->tag,
+			   ((flags & MU_STREAM_RDWR) == MU_STREAM_RDWR) ?
+			   "READ-WRITE" : "READ-ONLY", command->name);
 	}
     }
   
   mu_mailbox_destroy (&mbox);
-  status = util_finish (command, RESP_NO, "Could not open %s: %s",
+  status = io_completion_response (command, RESP_NO, "Could not open %s: %s",
 			mboxname, mu_strerror (status));
   free (mailbox_name);
   return status;
@@ -109,20 +109,22 @@ imap4d_select_status ()
 
   /* This outputs EXISTS and RECENT responses */
   imap4d_sync();
-  util_out (RESP_OK, "[UIDVALIDITY %lu] UID valididy status", uidvalidity);
-  util_out (RESP_OK, "[UIDNEXT %lu] Predicted next uid",
-	    (unsigned long) uidnext);
+  io_untagged_response (RESP_OK, "[UIDVALIDITY %lu] UID valididy status", 
+                           uidvalidity);
+  io_untagged_response (RESP_OK, "[UIDNEXT %lu] Predicted next uid",
+	                   (unsigned long) uidnext);
   if (unseen)
-    util_out (RESP_OK, "[UNSEEN %lu] first unseen messsage ",
-	      (unsigned long) unseen);
-  util_out (RESP_NONE, "FLAGS (%s)", mflags);
+    io_untagged_response (RESP_OK, "[UNSEEN %lu] first unseen messsage ",
+	                     (unsigned long) unseen);
+  io_untagged_response (RESP_NONE, "FLAGS (%s)", mflags);
   /* FIXME:
      - '\*' can be supported if we use the attribute_set userflag()
      - Answered is still not set in the mailbox code.  */
   if (!(select_flags & MU_STREAM_WRITE))
-    util_out (RESP_OK, "[PERMANENTFLAGS ()] No Permanent flags");
+    io_untagged_response (RESP_OK, "[PERMANENTFLAGS ()] No Permanent flags");
   else
-    util_out (RESP_OK, "[PERMANENTFLAGS (%s)] Permanent flags", pflags);
+    io_untagged_response (RESP_OK, "[PERMANENTFLAGS (%s)] Permanent flags",
+                          pflags);
 
   return 0;
 }

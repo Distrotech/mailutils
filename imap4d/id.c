@@ -169,7 +169,7 @@ imap4d_id (struct imap4d_command *command, imap4d_tokbuf_t tok)
 {
   int rc = eat_args (tok);
   if (rc != RESP_OK)
-    return util_finish (command, rc, "Syntax error");
+    return io_completion_response (command, rc, "Syntax error");
   if (imap4d_id_list)
     {
       mu_iterator_t itr;
@@ -194,15 +194,15 @@ imap4d_id (struct imap4d_command *command, imap4d_tokbuf_t tok)
 	  if (q)
 	    {
 	      if (outcnt++ == 0)
-		util_send ("* ID (");
+		io_sendf ("* ID (");
 	      else
-		util_send (" ");
-	      util_send ("\"%*.*s\" \"%s\"", (int) len, (int) len, p, q);
+		io_sendf (" ");
+	      io_sendf ("\"%*.*s\" \"%s\"", (int) len, (int) len, p, q);
 	    }
 	}
       mu_iterator_destroy (&itr);
       if (outcnt)
-	util_send (")\n");
+	io_sendf (")\n");
     }
-  return util_finish (command, RESP_OK, "Completed");
+  return io_completion_response (command, RESP_OK, "Completed");
 }

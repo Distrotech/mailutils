@@ -27,21 +27,20 @@ imap4d_idle (struct imap4d_command *command, imap4d_tokbuf_t tok)
   size_t token_size = 0, token_len;
   
   if (imap4d_tokbuf_argc (tok) != 2)
-    return util_finish (command, RESP_BAD, "Invalid arguments");
+    return io_completion_response (command, RESP_BAD, "Invalid arguments");
 
-  if (util_wait_input (0) == -1)
-    return util_finish (command, RESP_NO, "Cannot idle");
+  if (io_wait_input (0) == -1)
+    return io_completion_response (command, RESP_NO, "Cannot idle");
 
-  util_send ("+ idling\n");
-  util_flush_output ();
+  io_sendf ("+ idling\n");
+  io_flush ();
 
   start = time (NULL);
   while (1)
     {
-      if (util_wait_input (5))
+      if (io_wait_input (5))
 	{
-          imap4d_getline (&token_str, &token_size, &token_len); 	  
-	  token_len = util_trim_nl (token_str, token_len);
+          io_getline (&token_str, &token_size, &token_len); 	  
 	  if (token_len == 4 && mu_c_strcasecmp (token_str, "done") == 0)
 	    break;
 	}
@@ -49,9 +48,9 @@ imap4d_idle (struct imap4d_command *command, imap4d_tokbuf_t tok)
 	imap4d_bye (ERR_TIMEOUT);
 
       imap4d_sync ();
-      util_flush_output ();
+      io_flush ();
     }
   free (token_str);
-  return util_finish (command, RESP_OK, "terminated");
+  return io_completion_response (command, RESP_OK, "terminated");
 }
 

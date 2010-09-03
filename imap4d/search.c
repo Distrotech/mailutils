@@ -269,7 +269,7 @@ imap4d_search (struct imap4d_command *command, imap4d_tokbuf_t tok)
   char *err_text= "";
   
   rc = imap4d_search0 (tok, 0, &err_text);
-  return util_finish (command, rc, "%s", err_text);
+  return io_completion_response (command, rc, "%s", err_text);
 }
   
 int
@@ -347,7 +347,7 @@ do_search (struct parsebuf *pb)
   
   mu_mailbox_messages_count (mbox, &count);
 
-  util_send ("* SEARCH");
+  io_sendf ("* SEARCH");
   for (pb->msgno = 1; pb->msgno <= count; pb->msgno++)
     {
       if (mu_mailbox_get_message (mbox, pb->msgno, &pb->msg) == 0
@@ -357,13 +357,13 @@ do_search (struct parsebuf *pb)
 	    {
 	      size_t uid;
 	      mu_message_get_uid (pb->msg, &uid);
-	      util_send (" %s", mu_umaxtostr (0, uid));
+	      io_sendf (" %s", mu_umaxtostr (0, uid));
 	    }
 	  else
-	    util_send (" %s", mu_umaxtostr (0, pb->msgno));
+	    io_sendf (" %s", mu_umaxtostr (0, pb->msgno));
 	}
     }
-  util_send ("\n");
+  io_sendf ("\n");
 }
 
 /* Parse buffer functions */

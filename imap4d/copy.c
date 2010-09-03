@@ -42,7 +42,7 @@ imap4d_copy (struct imap4d_command *command, imap4d_tokbuf_t tok)
   char *text;
 
   if (imap4d_tokbuf_argc (tok) != 4)
-    return util_finish (command, RESP_BAD, "Invalid arguments");
+    return io_completion_response (command, RESP_BAD, "Invalid arguments");
   
   rc = imap4d_copy0 (tok, 0, &text);
   
@@ -52,9 +52,9 @@ imap4d_copy (struct imap4d_command *command, imap4d_tokbuf_t tok)
       int new_state = (rc == RESP_OK) ? command->success : command->failure;
       if (new_state != STATE_NONE)
 	state = new_state;
-      return util_send ("%s %s\n", command->tag, text);
+      return io_sendf ("%s %s\n", command->tag, text);
     }
-  return util_finish (command, rc, "%s", text);
+  return io_completion_response (command, rc, "%s", text);
 }
 
 int
