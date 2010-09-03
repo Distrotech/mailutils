@@ -276,11 +276,7 @@ pop3d_mainloop (int fd, FILE *infile, FILE *outfile)
       /* Refresh the Lock.  */
       pop3d_touchlock ();
 
-      if (strlen (arg) > POP_MAXCMDLEN || strlen (cmd) > POP_MAXCMDLEN)
-	status = ERR_TOO_LONG;
-      else if (strlen (cmd) > 4)
-	status = ERR_BAD_CMD;
-      else if ((handler = pop3d_find_command (cmd)) != NULL)
+      if ((handler = pop3d_find_command (cmd)) != NULL)
 	status = handler (arg);
       else
 	status = ERR_BAD_CMD;

@@ -89,7 +89,7 @@ pop3d_begin_session ()
 int
 pop3d_user (char *arg)
 {
-  char *buf, pass[POP_MAXCMDLEN], *tmp, *cmd;
+  char *buf, *pass, *cmd;
   char buffer[512];
   
   if (state != AUTHORIZATION)
@@ -102,16 +102,7 @@ pop3d_user (char *arg)
   pop3d_flush_output ();
 
   buf = pop3d_readline (buffer, sizeof (buffer));
-  pop3d_parse_command (buf, &cmd, &tmp);
-
-  if (strlen (tmp) > POP_MAXCMDLEN)
-    return ERR_TOO_LONG;
-  else
-    {
-      strncpy (pass, tmp, POP_MAXCMDLEN);
-      /* strncpy () is lame, make sure the string is null terminated.  */
-      pass[POP_MAXCMDLEN - 1] = '\0';
-    }
+  pop3d_parse_command (buf, &cmd, &pass);
 
   if (mu_c_strcasecmp (cmd, "PASS") == 0)
     {
@@ -122,7 +113,8 @@ pop3d_user (char *arg)
       tmp = pop3d_apopuser (arg);
       if (tmp != NULL)
 	{
-	  mu_diag_output (MU_DIAG_INFO, _("APOP user %s tried to log in with USER"), arg);
+	  mu_diag_output (MU_DIAG_INFO,
+			  _("APOP user %s tried to log in with USER"), arg);
 	  return ERR_BAD_LOGIN;
 	}
 #endif
