@@ -60,7 +60,7 @@ pop3d_apopuser (const char *user)
     memset (&key, 0, sizeof key);
     memset (&data, 0, sizeof data);
 
-    MU_DATUM_PTR (key) = user;
+    MU_DATUM_PTR (key) = (void*) user;
     MU_DATUM_SIZE (key) = strlen (user);
 
     rc = mu_dbm_fetch (db, key, &data);
@@ -134,11 +134,12 @@ pop3d_apopuser (const char *user)
 int
 pop3d_apop (char *arg)
 {
-  char *tmp, *password, *user_digest, *user;
-  char buf[POP_MAXCMDLEN];
+  char *p, *password, *user_digest, *user;
   struct mu_md5_ctx md5context;
   unsigned char md5digest[16];
-
+  char buf[2 * 16 + 1];
+  size_t i;
+  
   if (state != AUTHORIZATION)
     return ERR_WRONG_STATE;
 
@@ -146,11 +147,6 @@ pop3d_apop (char *arg)
     return ERR_BAD_ARGS;
 
   pop3d_parse_command (arg, &user, &user_digest);
-  if (strlen (user) > (POP_MAXCMDLEN - APOP_DIGEST))
-    {
-      mu_diag_output (MU_DIAG_INFO, _("user name too long: %s"), user);
-      return ERR_BAD_ARGS;
-    }
 
   password = pop3d_apopuser (user);
   if (password == NULL)
@@ -167,14 +163,9 @@ pop3d_apop (char *arg)
   free (password);
   mu_md5_finish_ctx (&md5context, md5digest);
 
-  {
-    int i;
-    tmp = buf;
-    for (i = 0; i < 16; i++, tmp += 2)
-      sprintf (tmp, "%02x", md5digest[i]);
-  }
-
-  *tmp++ = '\0';
+  for (i = 0, p = buf; i < 16; i++, p += 2)
+      sprintf (p, "%02x", md5digest[i]);
+  *p = 0;
 
   if (strcmp (user_digest, buf))
     {
