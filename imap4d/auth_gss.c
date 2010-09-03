@@ -108,9 +108,8 @@ imap4d_gss_userok (gss_buffer_t client_name, char *name)
 }
 #endif
 
-static int
-auth_gssapi (struct imap4d_command *command,
-	     char *auth_type_unused, char **username)
+static enum imap4d_auth_result
+auth_gssapi (struct imap4d_auth *ap)
 {
   gss_buffer_desc tokbuf, outbuf;
   OM_uint32 maj_stat, min_stat, min_stat2;
@@ -147,7 +146,8 @@ auth_gssapi (struct imap4d_command *command,
   if (maj_stat != GSS_S_COMPLETE)
     {
       display_status ("import name", maj_stat, min_stat);
-      return RESP_NO;
+      ap->response = RESP_NO;
+      return imap4d_auth_resp;
     }
 
   maj_stat = gss_acquire_cred (&min_stat, server_name, 0,
@@ -158,7 +158,8 @@ auth_gssapi (struct imap4d_command *command,
   if (maj_stat != GSS_S_COMPLETE)
     {
       display_status ("acquire credentials", maj_stat, min_stat);
-      return RESP_NO;
+      ap->response = RESP_NO;
+      return imap4d_auth_resp;
     }
 
   /* Start the dialogue */
@@ -206,7 +207,8 @@ auth_gssapi (struct imap4d_command *command,
       maj_stat = gss_delete_sec_context (&min_stat, &context, &outbuf);
       gss_release_buffer (&min_stat, &outbuf);
       free (token_str);
-      return RESP_NO;
+      ap->response = RESP_NO;
+      return imap4d_auth_resp;
     }
 
   if (outbuf.length)
@@ -228,7 +230,8 @@ auth_gssapi (struct imap4d_command *command,
     {
       display_status ("wrap", maj_stat, min_stat);
       free (token_str);
-      return RESP_NO;
+      ap->response = RESP_NO;
+      return imap4d_auth_resp;
     }
   
   mu_base64_encode (outbuf.value, outbuf.length, &tmp, &size);
@@ -246,7 +249,8 @@ auth_gssapi (struct imap4d_command *command,
   if (maj_stat != GSS_S_COMPLETE)
     {
       display_status ("unwrap", maj_stat, min_stat);
-      return RESP_NO;
+      ap->response = RESP_NO;
+      return imap4d_auth_resp;
     }
   
   sec_level = ntohl (*(OM_uint32 *) outbuf.value);
@@ -261,23 +265,25 @@ auth_gssapi (struct imap4d_command *command,
       gss_release_buffer (&min_stat, &outbuf);
       maj_stat = gss_delete_sec_context (&min_stat, &context, &outbuf);
       gss_release_buffer (&min_stat, &outbuf);
-      return RESP_NO;
+      ap->response = RESP_NO;
+      return imap4d_auth_resp;
     }
   protection_mech = mech;
   client_buffer_size = sec_level & 0x00ffffffff;
 
-  *username = malloc (outbuf.length - 4 + 1);
-  if (!*username)
+  ap->username = malloc (outbuf.length - 4 + 1);
+  if (!ap->username)
     {
       mu_diag_output (MU_DIAG_NOTICE, _("not enough memory"));
       gss_release_buffer (&min_stat, &outbuf);
       maj_stat = gss_delete_sec_context (&min_stat, &context, &outbuf);
       gss_release_buffer (&min_stat, &outbuf);
-      return RESP_NO;
+      ap->response = RESP_NO;
+      return imap4d_auth_resp;
     }
        
-  memcpy (*username, (char *) outbuf.value + 4, outbuf.length - 4);
-  (*username)[outbuf.length - 4] = '\0';
+  memcpy (ap->username, (char *) outbuf.value + 4, outbuf.length - 4);
+  ap->username[outbuf.length - 4] = '\0';
   gss_release_buffer (&min_stat, &outbuf);
 
   maj_stat = gss_display_name (&min_stat, client, &client_name, &mech_type);
@@ -286,36 +292,40 @@ auth_gssapi (struct imap4d_command *command,
       display_status ("get client name", maj_stat, min_stat);
       maj_stat = gss_delete_sec_context (&min_stat, &context, &outbuf);
       gss_release_buffer (&min_stat, &outbuf);
-      free (*username);
-      return RESP_NO;
+      free (ap->username);
+      ap->response = RESP_NO;
+      return imap4d_auth_resp;
     }
 
 #ifdef WITH_GSS
-  baduser = !gss_userok (client, *username);
+  baduser = !gss_userok (client, ap->username);
 #else
-  baduser = imap4d_gss_userok (&client_name, *username);
+  baduser = imap4d_gss_userok (&client_name, ap->username);
 #endif
 
   if (baduser)
     {
-      mu_diag_output (MU_DIAG_NOTICE, _("GSSAPI user %s is NOT authorized as %s"),
-	      (char *) client_name.value, *username);
+      mu_diag_output (MU_DIAG_NOTICE,
+		      _("GSSAPI user %s is NOT authorized as %s"),
+		      (char *) client_name.value, ap->username);
       maj_stat = gss_delete_sec_context (&min_stat, &context, &outbuf);
       gss_release_buffer (&min_stat, &outbuf);
       gss_release_buffer (&min_stat, &client_name);
-      free (*username);
-      return RESP_NO;
+      free (ap->username);
+      ap->response = RESP_NO;
+      return imap4d_auth_resp;
     }
   else
     {
       mu_diag_output (MU_DIAG_NOTICE, _("GSSAPI user %s is authorized as %s"),
-	      (char *) client_name.value, *username);
+	      (char *) client_name.value, ap->username);
     }
 
   gss_release_buffer (&min_stat, &client_name);
   maj_stat = gss_delete_sec_context (&min_stat, &context, &outbuf);
   gss_release_buffer (&min_stat, &outbuf);
-  return RESP_OK;
+  ap->response = RESP_OK;
+  return imap4d_auth_resp;
 }
 
 void

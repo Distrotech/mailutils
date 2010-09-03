@@ -176,7 +176,6 @@ _xscript_ctl (struct _mu_stream *str, int op, void *arg)
 {
   struct _mu_xscript_stream *sp = (struct _mu_xscript_stream *)str;
   mu_transport_t *ptrans;
-  mu_stream_t strtab[2];
   
   switch (op)
     {

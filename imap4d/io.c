@@ -219,20 +219,18 @@ io_untagged_response (int rc, const char *format, ...)
 
 /* Send the completion response and reset the state.  */
 int
-io_completion_response (struct imap4d_command *command, int rc, 
-                        const char *format, ...)
+io_format_completion_response (mu_stream_t str,
+			       struct imap4d_command *command, int rc, 
+			       const char *format, va_list ap)
 {
   int new_state;
   int status = 0;
-  va_list ap;
   const char *sc = sc2string (rc);
 
-  mu_stream_printf (iostream, "%s %s%s ",
+  mu_stream_printf (str, "%s %s%s ",
 		    command->tag, sc, command->name);
-  va_start (ap, format);
-  mu_stream_vprintf (iostream, format, ap);
-  va_end (ap);
-  mu_stream_write (iostream, "\n", 1, NULL);
+  mu_stream_vprintf (str, format, ap);
+  mu_stream_write (str, "\n", 1, NULL);
 
   /* Reset the state.  */
   if (rc == RESP_OK)
@@ -243,11 +241,35 @@ io_completion_response (struct imap4d_command *command, int rc,
     new_state = STATE_NONE;
 
   if (new_state != STATE_NONE)
-    {
-      util_run_events (state, new_state);
-      state = new_state;
-    }
+    state = new_state;
   
+  return status;
+}
+
+int
+io_completion_response (struct imap4d_command *command, int rc, 
+                        const char *format, ...)
+{
+  va_list ap;
+  int status;
+
+  va_start (ap, format);
+  status = io_format_completion_response (iostream, command, rc, format, ap);
+  va_end (ap);
+  return status;
+}
+
+int
+io_stream_completion_response (mu_stream_t str,
+			       struct imap4d_command *command, int rc, 
+			       const char *format, ...)
+{
+  va_list ap;
+  int status;
+  
+  va_start (ap, format);
+  status = io_format_completion_response (str, command, rc, format, ap);
+  va_end (ap);
   return status;
 }
 

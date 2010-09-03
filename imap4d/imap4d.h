@@ -218,6 +218,11 @@ extern int  io_send_literal (const char *);
 extern int  io_copy_out (mu_stream_t str, size_t size);
 extern int  io_completion_response (struct imap4d_command *, int,
                                     const char *, ...) MU_PRINTFLIKE(3,4);
+extern int io_stream_completion_response (mu_stream_t str,
+					  struct imap4d_command *command,
+					  int rc, 
+					  const char *format, ...)
+                                    MU_PRINTFLIKE(4,5);
 int io_getline (char **pbuf, size_t *psize, size_t *pnbytes);
 void io_setio (FILE*, FILE*);
 void io_flush (void);
@@ -368,10 +373,6 @@ int util_type_to_attribute (int type, char **attr_str);
 int util_attribute_matches_flag (mu_attribute_t attr, const char *item);
 int util_uidvalidity (mu_mailbox_t smbox, unsigned long *uidvp);
 
-void util_register_event (int old_state, int new_state,
-			  mu_list_action_t *action, void *data);
-void util_event_remove (void *id);
-void util_run_events (int old_state, int new_state);
   
 int util_is_master (void);
 void util_bye (void);  
@@ -385,8 +386,26 @@ int util_trim_nl (char *s, size_t len);
 int imap4d_init_tls_server (void);
 #endif /* WITH_TLS */
 
-typedef int (*imap4d_auth_handler_fp) (struct imap4d_command *,
-				       char *, char **);
+struct imap4d_auth
+{
+  /* input */
+  struct imap4d_command *command;
+  char *auth_type;
+  /* output */
+  char *username;
+  int response;
+};
+
+enum imap4d_auth_result
+  {
+    imap4d_auth_nosup,
+    imap4d_auth_ok,
+    imap4d_auth_resp,
+    imap4d_auth_fail
+  };
+  
+typedef enum imap4d_auth_result
+          (*imap4d_auth_handler_fp) (struct imap4d_auth *);
   
 extern void auth_add (char *name, imap4d_auth_handler_fp handler);
 extern void auth_remove (char *name);

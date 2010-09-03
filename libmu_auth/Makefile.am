@@ -26,8 +26,6 @@ lib_LTLIBRARIES = libmu_auth.la
 
 libmu_auth_la_SOURCES = \
  gsasl.c\
- lbuf.c\
- lbuf.h\
  ldap.c\
  pam.c\
  radius.c\
