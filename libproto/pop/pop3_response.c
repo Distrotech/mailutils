@@ -20,14 +20,19 @@
 # include <config.h>
 #endif
 
+#include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <mailutils/cctype.h>
+#include <mailutils/cstr.h>
 #include <mailutils/sys/pop3.h>
+
+#define POP3_DEFERR "-ERR POP3 IO ERROR"
 
 /* If we did not grap the ack already, call pop3_readline() but handle
    Nonblocking also.  */
 int
-mu_pop3_response (mu_pop3_t pop3, char *buffer, size_t buflen, size_t *pnread)
+mu_pop3_response (mu_pop3_t pop3, size_t *pnread)
 {
   size_t n = 0;
   int status = 0;
@@ -35,37 +40,33 @@ mu_pop3_response (mu_pop3_t pop3, char *buffer, size_t buflen, size_t *pnread)
   if (pop3 == NULL)
     return EINVAL;
 
-  if (!pop3->acknowledge)
+  if (!MU_POP3_FISSET (pop3, MU_POP3_ACK))
     {
-      size_t len = pop3->ack.len - (pop3->ack.ptr  - pop3->ack.buf);
-      status = mu_pop3_readline (pop3, pop3->ack.ptr, len, &n);
-      pop3->ack.ptr += n;
+      status = mu_stream_getline (pop3->carrier, &pop3->ackbuf,
+				  &pop3->acksize, NULL);
       if (status == 0)
 	{
-	  len = pop3->ack.ptr - pop3->ack.buf;
-	  if (len && pop3->ack.buf[len - 1] == '\n')
-	    pop3->ack.buf[len - 1] = '\0';
-	  pop3->acknowledge = 1; /* Flag that we have the ack.  */
-	  pop3->ack.ptr = pop3->ack.buf;
+	  n = mu_rtrim_class (pop3->ackbuf, MU_CTYPE_SPACE);
+	  MU_POP3_FSET (pop3, MU_POP3_ACK); /* Flag that we have the ack.  */
 	}
       else
 	{
 	  /* Provide them with an error.  */
-	  const char *econ = "-ERR POP3 IO ERROR";
-	  n = strlen (econ);
-	  strcpy (pop3->ack.buf, econ);
+	  if (pop3->acksize < sizeof (POP3_DEFERR))
+	    {
+	      char *p = realloc (pop3->ackbuf, sizeof (POP3_DEFERR));
+	      if (p)
+		{
+		  pop3->ackbuf = p;
+		  pop3->acksize = sizeof (POP3_DEFERR);
+		}
+	    }
+	  if (pop3->ackbuf)
+	    strncpy (pop3->ackbuf, POP3_DEFERR, pop3->acksize);
 	}
     }
-  else
-    n = strlen (pop3->ack.buf);
-
-  if (buffer)
-    {
-      buflen--; /* Leave space for the NULL.  */
-      n = (buflen < n) ? buflen : n;
-      memcpy (buffer, pop3->ack.buf, n);
-      buffer[n] = '\0';
-    }
+  else if (pop3->ackbuf)
+    n = strlen (pop3->ackbuf);
 
   if (pnread)
     *pnread = n;

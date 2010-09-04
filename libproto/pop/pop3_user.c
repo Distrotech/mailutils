@@ -37,19 +37,12 @@ mu_pop3_user (mu_pop3_t pop3, const char *user)
     case MU_POP3_NO_STATE:
       status = mu_pop3_writeline (pop3, "USER %s\r\n", user);
       MU_POP3_CHECK_ERROR (pop3, status);
-      mu_pop3_debug_cmd (pop3);
+      MU_POP3_FCLR (pop3, MU_POP3_ACK);
       pop3->state = MU_POP3_USER;
 
     case MU_POP3_USER:
-      status = mu_pop3_send (pop3);
+      status = mu_pop3_response (pop3, NULL);
       MU_POP3_CHECK_EAGAIN (pop3, status);
-      pop3->acknowledge = 0;
-      pop3->state = MU_POP3_USER_ACK;
-
-    case MU_POP3_USER_ACK:
-      status = mu_pop3_response (pop3, NULL, 0, NULL);
-      MU_POP3_CHECK_EAGAIN (pop3, status);
-      mu_pop3_debug_ack (pop3);
       MU_POP3_CHECK_OK (pop3);
       pop3->state = MU_POP3_NO_STATE;
       break;

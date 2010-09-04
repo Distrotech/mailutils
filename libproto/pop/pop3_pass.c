@@ -37,21 +37,13 @@ mu_pop3_pass (mu_pop3_t pop3, const char *passwd)
     case MU_POP3_NO_STATE:
       status = mu_pop3_writeline (pop3, "PASS %s\r\n", passwd);
       MU_POP3_CHECK_ERROR (pop3, status);
-      mu_pop3_debug_cmd (pop3);
+      /* FIXME: how to obscure the passwd in the stream buffer? */
+      MU_POP3_FCLR (pop3, MU_POP3_ACK);
       pop3->state = MU_POP3_PASS;
 
     case MU_POP3_PASS:
-      status = mu_pop3_send (pop3);
+      status = mu_pop3_response (pop3, NULL);
       MU_POP3_CHECK_EAGAIN (pop3, status);
-      /* Obscure the passwd.  */
-      memset (pop3->io.buf, '\0', pop3->io.len);
-      pop3->acknowledge = 0;
-      pop3->state = MU_POP3_PASS_ACK;
-
-    case MU_POP3_PASS_ACK:
-      status = mu_pop3_response (pop3, NULL, 0, NULL);
-      MU_POP3_CHECK_EAGAIN (pop3, status);
-      mu_pop3_debug_ack (pop3);
       MU_POP3_CHECK_OK (pop3);
       pop3->state = MU_POP3_NO_STATE;
       break;

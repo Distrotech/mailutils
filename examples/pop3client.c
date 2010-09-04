@@ -48,6 +48,7 @@
 #include <mailutils/argcv.h>
 #include <mailutils/cctype.h>
 #include <mailutils/cstr.h>
+#include <mailutils/tls.h>
 
 /* A structure which contains information on the commands this program
    can understand. */
@@ -80,6 +81,7 @@ int com_uidl (char *);
 int com_user (char *);
 int com_verbose (char *);
 int com_prompt (char *);
+int com_stls (char *);
 
 void initialize_readline (void);
 COMMAND *find_command (char *);
@@ -106,6 +108,7 @@ COMMAND commands[] = {
   { "retr", com_retr, "Dowload message: RETR msgno" },
   { "rset", com_rset, "Unmark all messages: RSET" },
   { "stat", com_stat, "Get the size and count of mailbox : STAT [msgno]" },
+  { "stls", com_stls, "Start TLS negotiation" },
   { "top", com_top, "Get the header of message: TOP msgno [lines]" },
   { "uidl", com_uidl, "Get the unique id of message: UIDL [msgno]" },
   { "user", com_user, "send login: USER user" },
@@ -310,7 +313,9 @@ main (int argc MU_ARG_UNUSED, char **argv)
   mu_set_program_name (argv[0]);
   prompt = strdup (DEFAULT_PROMPT);
   initialize_readline ();	/* Bind our completer. */
-
+#ifdef WITH_TLS
+  mu_init_tls_libs ();
+#endif  
   /* Loop reading and executing lines until the user quits. */
   while (!done)
     {
@@ -393,16 +398,9 @@ com_verbose (char *arg)
   if (pop3 != NULL)
     {
       if (verbose == 1)
-	{
-	  mu_debug_t debug;
-	  mu_debug_create (&debug, NULL);
-	  mu_debug_set_level (debug, MU_DEBUG_LEVEL_UPTO (MU_DEBUG_PROT));
-	  status = mu_pop3_set_debug (pop3, debug);
-	}
+	mu_pop3_trace (pop3, MU_POP3_TRACE_SET);
       else
-	{
-	  status = mu_pop3_set_debug (pop3, NULL);
-	}
+	mu_pop3_trace (pop3, MU_POP3_TRACE_CLR);
     }
   return status;
 }
@@ -442,10 +440,24 @@ com_apop (char *arg)
 }
 
 int
-com_capa (char *arg MU_ARG_UNUSED)
+com_capa (char *arg)
 {
   mu_iterator_t iterator = NULL;
-  int status = mu_pop3_capa (pop3, &iterator);
+  int status;
+  int reread = 0;
+
+  if (arg && *arg)
+    {
+      if (strcmp (arg, "reread") == 0)
+	reread = 1;
+      else
+	{
+	  mu_error ("%s: unknown argument", "capa");
+	  return 0;
+	}
+    }
+
+  status = mu_pop3_capa (pop3, reread, &iterator);
 
   if (status == 0)
     {
@@ -606,6 +618,12 @@ com_stat (char *arg MU_ARG_UNUSED)
   printf ("Mesgs: %lu Size %lu\n",
 	  (unsigned long) count, (unsigned long) size);
   return status;
+}
+
+int
+com_stls (char *arg MU_ARG_UNUSED)
+{
+  return mu_pop3_stls (pop3);
 }
 
 int
@@ -799,8 +817,7 @@ com_connect (char *arg)
 
       if (verbose)
 	com_verbose ("on");
-      status =
-	mu_tcp_stream_create (&tcp, argv[0], n, MU_STREAM_READ);
+      status = mu_tcp_stream_create (&tcp, argv[0], n, MU_STREAM_READ);
       if (status == 0)
 	{
 	  mu_pop3_set_carrier (pop3, tcp);

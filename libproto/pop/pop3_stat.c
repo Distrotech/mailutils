@@ -42,26 +42,20 @@ mu_pop3_stat (mu_pop3_t pop3, unsigned *msg_count, size_t *size)
     case MU_POP3_NO_STATE:
       status = mu_pop3_writeline (pop3, "STAT\r\n");
       MU_POP3_CHECK_ERROR (pop3, status);
-      mu_pop3_debug_cmd (pop3);
+      MU_POP3_FCLR (pop3, MU_POP3_ACK);
       pop3->state = MU_POP3_STAT;
 
     case MU_POP3_STAT:
-      status = mu_pop3_send (pop3);
+      status = mu_pop3_response (pop3, NULL);
       MU_POP3_CHECK_EAGAIN (pop3, status);
-      pop3->acknowledge = 0;
-      pop3->state = MU_POP3_STAT_ACK;
-
-    case MU_POP3_STAT_ACK:
-      status = mu_pop3_response (pop3, NULL, 0, NULL);
-      MU_POP3_CHECK_EAGAIN (pop3, status);
-      mu_pop3_debug_ack (pop3);
       MU_POP3_CHECK_OK (pop3);
       pop3->state = MU_POP3_NO_STATE;
 
       /* Parse the answer.  */
       *msg_count = 0;
       lv = 0;
-      sscanf (pop3->ack.buf, "+OK %d %lu", msg_count, &lv);
+      /* FIXME: Error checking */
+      sscanf (pop3->ackbuf, "+OK %d %lu", msg_count, &lv);
       *size = lv;
       break;
 

@@ -53,14 +53,15 @@ mu_pop3_connect (mu_pop3_t pop3)
 
     case MU_POP3_NO_STATE:
       /* If the stream was previoulsy open this is sudden death:
-         for many pop servers, it is important to let them time to remove any locks or move
-         the .user.pop files.  This happen when we do close() and immediately open().
-         For example, the user does not want to read the entire file, and wants to start
-	 to read a new message, closing the connection and immediately
-	 contacting the server again, and he'll end up having
-	 "-ERR Mail Lock busy" or something similar. To prevent this race
-	 condition we sleep 2 seconds.  You can see this behaviour in an
-	 environment where QPopper(Qualcomm POP3 server) is use and the user as a big mailbox. */
+         For many pop servers, it is important to allow them some time to
+	 remove any locks or move the .user.pop files.  This happen when we
+	 do close() and immediately open().  For example, the user does not
+	 want to read the entire file, and wants to start to read a new
+	 message, closing the connection and immediately contacting the
+	 server again, and he'll end up having "-ERR Mail Lock busy" or
+	 something similar. To prevent this race condition we sleep 2 seconds.
+	 You can see this behaviour in an environment where QPopper (Qualcomm
+	 POP3 server) is used and the user has a big mailbox. */
       status = mu_pop3_disconnect (pop3);
       if (status != 0)
         mu_pop3_sleep (2);
@@ -70,7 +71,7 @@ mu_pop3_connect (mu_pop3_t pop3)
       /* Establish the connection.  */
       status = mu_stream_open (pop3->carrier);
       MU_POP3_CHECK_EAGAIN (pop3, status);
-      pop3->acknowledge = 0;
+      MU_POP3_FCLR (pop3, MU_POP3_ACK);
       pop3->state = MU_POP3_GREETINGS;
 
     case MU_POP3_GREETINGS:
@@ -78,10 +79,9 @@ mu_pop3_connect (mu_pop3_t pop3)
       {
 	size_t len = 0;
 	char *right, *left;
-	status = mu_pop3_response (pop3, NULL, 0, &len);
+	status = mu_pop3_response (pop3, &len);
 	MU_POP3_CHECK_EAGAIN (pop3, status);
-	mu_pop3_debug_ack (pop3);
-	if (mu_c_strncasecmp (pop3->ack.buf, "+OK", 3) != 0)
+	if (mu_c_strncasecmp (pop3->ackbuf, "+OK", 3) != 0)
 	  {
 	    mu_stream_close (pop3->carrier);
 	    pop3->state = MU_POP3_NO_STATE;
@@ -89,10 +89,10 @@ mu_pop3_connect (mu_pop3_t pop3)
 	  }
 
 	/* Get the timestamp.  */
-	right = memchr (pop3->ack.buf, '<', len);
+	right = memchr (pop3->ackbuf, '<', len);
 	if (right)
 	  {
-	    len = len - (right - pop3->ack.buf);
+	    len = len - (right - pop3->ackbuf);
 	    left = memchr (right, '>', len);
 	    if (left)
 	      {
@@ -121,5 +121,5 @@ mu_pop3_sleep (int seconds)
   struct timeval tval;
   tval.tv_sec = seconds;
   tval.tv_usec = 0;
-  return select (1, NULL, NULL, NULL, &tval);
+  return select (0, NULL, NULL, NULL, &tval);
 }

@@ -49,6 +49,8 @@ init_iobuf (struct mu_filter_io *io, struct _mu_filter_stream *fs)
   io->isize = MFB_LEVEL (fs->inbuf);
   io->output = MFB_ENDPTR (fs->outbuf);
   io->osize = MFB_FREESIZE (fs->outbuf);
+  io->errcode = 0;
+  io->eof = 0;
 }
 
 static int
@@ -114,8 +116,9 @@ filter_read (mu_stream_t stream, char *buf, size_t size, size_t *pret)
   size_t min_input_level = MU_FILTER_BUF_SIZE;
   size_t min_output_size = MU_FILTER_BUF_SIZE;
   size_t total = 0;
+  int stop = 0;
   
-  while (total < size && cmd != mu_filter_lastbuf)
+  while (!stop && total < size && cmd != mu_filter_lastbuf)
     {
       size_t rdsize;
 
@@ -168,6 +171,11 @@ filter_read (mu_stream_t stream, char *buf, size_t size, size_t *pret)
 	      if (iobuf.isize > MFB_RDBYTES (fs->inbuf)
 		  || iobuf.osize > MFB_FREESIZE (fs->outbuf))
 		return MU_ERR_FAILURE; /* FIXME: special error code? */
+	      if (iobuf.eof)
+		{
+		  stream->flags |= _MU_STR_EOF;
+		  stop = 1;
+		}
 	      break;
 	  
 	    case mu_filter_falure:

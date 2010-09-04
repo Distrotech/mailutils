@@ -39,15 +39,11 @@ mu_pop3_apop (mu_pop3_t pop3, const char *user, const char *secret)
 
   /* Sanity checks.  */
   if (pop3 == NULL || user == NULL || secret == NULL)
-    {
-      return EINVAL;
-    }
+    return EINVAL;
 
   /* The server did not offer a timestamp in the greeting, bailout early.  */
   if (pop3->timestamp == NULL)
-    {
-      return ENOTSUP;
-    }
+    return ENOTSUP;
 
   switch (pop3->state)
     {
@@ -61,35 +57,25 @@ mu_pop3_apop (mu_pop3_t pop3, const char *user, const char *secret)
 	size_t n;
 
 	mu_md5_init_ctx (&md5context);
-	mu_md5_process_bytes (pop3->timestamp, strlen (pop3->timestamp), &md5context);
+	mu_md5_process_bytes (pop3->timestamp, strlen (pop3->timestamp),
+			      &md5context);
 	mu_md5_process_bytes (secret, strlen (secret), &md5context);
 	mu_md5_finish_ctx (&md5context, md5digest);
 	for (tmp = digest, n = 0; n < 16; n++, tmp += 2)
-	  {
-	    sprintf (tmp, "%02x", md5digest[n]);
-	  }
+	  sprintf (tmp, "%02x", md5digest[n]);
 	*tmp = '\0';
 
 	status = mu_pop3_writeline (pop3, "APOP %s %s\r\n", user, digest);
 	/* Obscure the digest, for security reasons.  */
 	memset (digest, '\0', sizeof digest);
 	MU_POP3_CHECK_ERROR (pop3, status);
-	mu_pop3_debug_cmd (pop3);
+	MU_POP3_FCLR (pop3, MU_POP3_ACK); 
 	pop3->state = MU_POP3_APOP;
       }
 
     case MU_POP3_APOP:
-      status = mu_pop3_send (pop3);
+      status = mu_pop3_response (pop3, NULL);
       MU_POP3_CHECK_EAGAIN (pop3, status);
-      /* Obscure the digest, for security reasons.  */
-      memset (pop3->io.buf, '\0', pop3->io.len);
-      pop3->acknowledge = 0;
-      pop3->state = MU_POP3_APOP_ACK;
-
-    case MU_POP3_APOP_ACK:
-      status = mu_pop3_response (pop3, NULL, 0, NULL);
-      MU_POP3_CHECK_EAGAIN (pop3, status);
-      mu_pop3_debug_ack (pop3);
       MU_POP3_CHECK_OK (pop3);
       pop3->state = MU_POP3_NO_STATE;
       break;

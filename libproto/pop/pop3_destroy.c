@@ -32,17 +32,18 @@ mu_pop3_destroy (mu_pop3_t *ppop3)
       mu_pop3_t pop3 = *ppop3;
 
       /* Free the response buffer.  */
-      if (pop3->ack.buf)
-	free (pop3->ack.buf);
-
-      /* Free the io buffer.  */
-      if (pop3->io.buf)
-	free (pop3->io.buf);
+      if (pop3->ackbuf)
+	free (pop3->ackbuf);
+      /* Free the read buffer.  */
+      if (pop3->rdbuf)
+	free (pop3->rdbuf);
 
       /* Free the timestamp use for APOP.  */
       if (pop3->timestamp)
 	free (pop3->timestamp);
 
+      mu_list_destroy (&pop3->capa);
+      
       /* Release the carrier.  */
       if (pop3->carrier)
 	mu_stream_destroy (&pop3->carrier);

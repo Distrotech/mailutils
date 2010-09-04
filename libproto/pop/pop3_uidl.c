@@ -30,6 +30,7 @@ int
 mu_pop3_uidl (mu_pop3_t pop3, unsigned int msgno, char **uidl)
 {
   int status;
+  char *space;
 
   if (pop3 == NULL)
     return EINVAL;
@@ -41,52 +42,44 @@ mu_pop3_uidl (mu_pop3_t pop3, unsigned int msgno, char **uidl)
     case MU_POP3_NO_STATE:
       status = mu_pop3_writeline (pop3, "UIDL %d\r\n", msgno);
       MU_POP3_CHECK_ERROR (pop3, status);
-      mu_pop3_debug_cmd (pop3);
+      MU_POP3_FCLR (pop3, MU_POP3_ACK);
       pop3->state = MU_POP3_UIDL;
 
     case MU_POP3_UIDL:
-      status = mu_pop3_send (pop3);
+      status = mu_pop3_response (pop3, NULL);
       MU_POP3_CHECK_EAGAIN (pop3, status);
-      pop3->acknowledge = 0;
-      pop3->state = MU_POP3_UIDL_ACK;
-
-    case MU_POP3_UIDL_ACK:
-      status = mu_pop3_response (pop3, NULL, 0, NULL);
-      MU_POP3_CHECK_EAGAIN (pop3, status);
-      mu_pop3_debug_ack (pop3);
       MU_POP3_CHECK_OK (pop3);
       pop3->state = MU_POP3_NO_STATE;
 
       *uidl = NULL;
-      {
-	char *space;
-	/* Format:  +OK msgno uidlstring  */
 
-	/* Pass the "+OK".  */
-	space = strchr (pop3->ack.buf, ' ');
-	if (space)
-	  {
-	    /* Skip spaces.  */
-	    while (*space == ' ') space++;
-	    /* Pass the number.  */
-	    space = strchr (space, ' ');
-	    if (space)
-	      {
-		size_t len;
-		/* Skip spaces between msgno and uidlstring  */
-		while (*space == ' ') space++;
-		len = strlen (space);
-		if (space[len - 1] == '\n')
-		  {
-		    space[len - 1] = '\0';
-		    len--;
-		  }
-		*uidl = calloc (len + 1, 1);
-		if (*uidl)
-		  memcpy (*uidl, space, len);
-	      }
-	  }
-      }
+      /* Format:  +OK msgno uidlstring  */
+
+      /* Pass the "+OK".  */
+      space = strchr (pop3->ackbuf, ' ');
+      if (space)
+	{
+	  /* Skip spaces.  */
+	  while (*space == ' ') space++;
+	  /* Pass the number.  */
+	  space = strchr (space, ' ');
+	  if (space)
+	    {
+	      size_t len;
+	      /* Skip spaces between msgno and uidlstring  */
+	      while (*space == ' ') space++;
+	      len = strlen (space);
+	      if (space[len - 1] == '\n')
+		{
+		  space[len - 1] = '\0';
+		  len--;
+		}
+	      *uidl = calloc (len + 1, 1);
+	      if (*uidl)
+		memcpy (*uidl, space, len);
+	    }
+	}
+
       if (*uidl == NULL) /* What can we do?  */
 	{
 	  *uidl = malloc (1);

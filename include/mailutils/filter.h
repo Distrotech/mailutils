@@ -42,6 +42,7 @@ struct mu_filter_io
   char *output;
   size_t osize;
   int errcode;
+  int eof;
 };
 
 enum mu_filter_command
@@ -57,7 +58,7 @@ enum mu_filter_result
     mu_filter_ok,
     mu_filter_falure,
     mu_filter_moreinput,
-    mu_filter_moreoutput,
+    mu_filter_moreoutput
   };
   
 typedef int (*mu_filter_new_data_t) (void **, int, void *);
