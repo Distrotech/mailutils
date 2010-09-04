@@ -25,9 +25,29 @@
 #include <string.h>
 #include <errno.h>
 
+#include <mailutils/pop3.h>
 #include <mailutils/sys/pop3.h>
 #include <mailutils/tls.h>
-#include <mailutils/md5.h>
+#include <mailutils/list.h>
+
+static int
+pop3_swap_streams (mu_pop3_t pop3, mu_stream_t *streams)
+{
+  int rc;
+  
+  if (MU_POP3_FISSET (pop3, MU_POP3_TRACE))
+    rc = mu_stream_ioctl (pop3->carrier, MU_IOCTL_SWAP_STREAM, streams);
+  else if (streams[0] != streams[1])
+    rc = EINVAL;
+  else
+    {
+      mu_stream_t str = streams[0];
+      streams[0] = streams[1] = pop3->carrier;
+      pop3->carrier = str;
+      rc = 0;
+    }
+  return rc;
+}
 
 /*
  * STLS
@@ -38,49 +58,43 @@ mu_pop3_stls (mu_pop3_t pop3)
 {
 #ifdef WITH_TLS
   int status;
-
+  mu_stream_t tlsstream, streams[2];
+  
   /* Sanity checks.  */
   if (pop3 == NULL)
-    {
-      return EINVAL;
-    }
+    return EINVAL;
 
   switch (pop3->state)
     {
     case MU_POP3_NO_STATE:
       status = mu_pop3_writeline (pop3, "STLS\r\n");
       MU_POP3_CHECK_ERROR (pop3, status);
-      mu_pop3_debug_cmd (pop3);
+      MU_POP3_FCLR (pop3, MU_POP3_ACK);
       pop3->state = MU_POP3_STLS;
 
     case MU_POP3_STLS:
-      status = mu_pop3_send (pop3);
+      status = mu_pop3_response (pop3, NULL);
       MU_POP3_CHECK_EAGAIN (pop3, status);
-      pop3->acknowledge = 0;
-      pop3->state = MU_POP3_STLS_ACK;
-
-    case MU_POP3_STLS_ACK:
-      {
-        mu_stream_t tls_stream;
-        status = mu_pop3_response (pop3, NULL, 0, NULL);
-        MU_POP3_CHECK_EAGAIN (pop3, status);
-        mu_pop3_debug_ack (pop3);
-        MU_POP3_CHECK_OK (pop3);
-        status = mu_tls_client_stream_create (&tls_stream, 
-                                              pop3->carrier, 
-                                              pop3->carrier, 0);
-        MU_POP3_CHECK_ERROR (pop3, status);
-        pop3->carrier = tls_stream; 
-        pop3->state = MU_POP3_STLS_CONNECT;
-        break;
-      }
-
+      MU_POP3_CHECK_OK (pop3);
+      pop3->state = MU_POP3_STLS_CONNECT;
+      
     case MU_POP3_STLS_CONNECT:
-      status = mu_stream_open (pop3->carrier);
+      streams[0] = streams[1] = NULL;
+      status = pop3_swap_streams (pop3, streams);
       MU_POP3_CHECK_EAGAIN (pop3, status);
+      status = mu_tls_client_stream_create (&tlsstream,
+					    streams[0], streams[1], 0);
+      MU_POP3_CHECK_EAGAIN (pop3, status);
+      status = mu_stream_open (tlsstream);
+      MU_POP3_CHECK_EAGAIN (pop3, status);
+      streams[0] = streams[1] = tlsstream;
+      status = pop3_swap_streams (pop3, streams);
+      MU_POP3_CHECK_EAGAIN (pop3, status);
+      /* Invalidate the capability list */
+      mu_list_destroy (&pop3->capa);
       pop3->state = MU_POP3_NO_STATE;
-      break;
-
+      return 0;
+      
       /* They must deal with the error first by reopening.  */
     case MU_POP3_ERROR:
       status = ECANCELED;
@@ -93,7 +107,6 @@ mu_pop3_stls (mu_pop3_t pop3)
 
   return status;
 #else
-  (void)pop3;
   return ENOTSUP;
 #endif
 }

@@ -24,17 +24,16 @@ lib_LTLIBRARIES = libmu_pop.la
 libmu_pop_la_LDFLAGS=-version-info @VI_CURRENT@:@VI_REVISION@:@VI_AGE@
 libmu_pop_la_LIBADD = ${MU_LIB_AUTH} ${MU_LIB_MAILUTILS} @INTLLIBS@
 
+#  folder.c\
+#  mbox.c\
+#  url.c
 libmu_pop_la_SOURCES = \
- folder.c\
- mbox.c\
- url.c \
  \
  pop3_apop.c \
  pop3_capa.c \
  pop3_carrier.c \
  pop3_connect.c \
  pop3_create.c \
- pop3_debug.c \
  pop3_dele.c \
  pop3_destroy.c \
  pop3_disconnect.c \
@@ -54,6 +53,7 @@ libmu_pop_la_SOURCES = \
  pop3_stream.c \
  pop3_timeout.c \
  pop3_top.c \
+ pop3_trace.c \
  pop3_uidla.c \
  pop3_uidl.c \
  pop3_user.c

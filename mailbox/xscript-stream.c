@@ -176,6 +176,7 @@ _xscript_ctl (struct _mu_stream *str, int op, void *arg)
 {
   struct _mu_xscript_stream *sp = (struct _mu_xscript_stream *)str;
   mu_transport_t *ptrans;
+  int status = 0;
   
   switch (op)
     {
@@ -198,11 +199,37 @@ _xscript_ctl (struct _mu_stream *str, int op, void *arg)
       break;
 
     case MU_IOCTL_SWAP_STREAM:
-      /* fall through */
+      if (!arg)
+	return EINVAL;
+      status = mu_stream_ioctl (sp->transport, op, arg);
+      if (status == EINVAL || status == ENOSYS)
+	{
+	  mu_stream_t *pstr = arg;
+	  mu_stream_t tmp;
+
+	  if (pstr[0] != pstr[1])
+	    return EINVAL; /* FIXME */
+	  tmp = pstr[0];
+	  pstr[0] = sp->transport;
+	  pstr[1] = sp->transport;
+	  sp->transport = tmp;
+	  if (!(str->flags & MU_STREAM_AUTOCLOSE))
+	    {
+	      if (pstr[0])
+		mu_stream_unref (pstr[0]);
+	      if (tmp)
+		mu_stream_ref (tmp);
+	    }
+	  if (tmp)
+	    mu_stream_ref (tmp);
+	  status = 0;
+	}
+      break;
+      
     default:
       return mu_stream_ioctl (sp->transport, op, arg);
     }
-  return 0;
+  return status;
 }
 
 static int

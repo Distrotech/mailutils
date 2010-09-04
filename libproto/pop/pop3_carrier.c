@@ -38,10 +38,14 @@ mu_pop3_set_carrier (mu_pop3_t pop3, mu_stream_t carrier)
       mu_pop3_disconnect (pop3);
       mu_stream_destroy (&pop3->carrier);
     }
+  mu_stream_ref (carrier);
   pop3->carrier = carrier;
+  if (MU_POP3_FISSET (pop3, MU_POP3_TRACE))
+    _mu_pop3_trace_enable (pop3);
   return 0;
 }
 
+/* FIXME: Is it needed? */
 int
 mu_pop3_get_carrier (mu_pop3_t pop3, mu_stream_t *pcarrier)
 {

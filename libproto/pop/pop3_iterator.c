@@ -25,7 +25,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
+#include <mailutils/pop3.h>
 #include <mailutils/sys/pop3.h>
+#include <mailutils/cctype.h>
+#include <mailutils/cstr.h>
 
 static int  pop3_itr_dup     (void **ptr, void *owner);
 static int  pop3_itr_destroy (mu_iterator_t itr, void *owner);
@@ -38,8 +41,11 @@ static int  pop3_itr_finished_p (void *owner);
 struct pop3_iterator
 {
   mu_pop3_t pop3;
+  mu_stream_t stream;
   int done;
   char *item;
+  char *rdbuf;
+  size_t rdsize;
 };
 
 int
@@ -53,9 +59,17 @@ mu_pop3_iterator_create (mu_pop3_t pop3, mu_iterator_t *piterator)
   if (pop3_iterator == NULL)
     return ENOMEM;
 
+  status = mu_pop3_stream_create (pop3, &pop3_iterator->stream);
+  if (status)
+    {
+      free (pop3_iterator);
+      return status;
+    }
   pop3_iterator->item = NULL;
+  pop3_iterator->rdbuf = NULL;
+  pop3_iterator->rdsize = 0;
   pop3_iterator->done = 0;
-  pop3_iterator->pop3= pop3;
+  pop3_iterator->pop3 = pop3;
 
   status = mu_iterator_create (&iterator, pop3_iterator);
   if (status != 0)
@@ -93,17 +107,21 @@ pop3_itr_destroy (mu_iterator_t iterator, void *owner)
 {
   struct pop3_iterator *pop3_iterator = (struct pop3_iterator *)owner;
   /* Delicate situation if they did not finish to drain the result
-     We take te approach to do it for the user.  FIXME: Not sure
+     We take the approach to do it for the user.  FIXME: Not sure
      if this is the rigth thing to do. The other way is to close the stream  */
   if (!pop3_iterator->done)
     {
       char buf[128];
       size_t n = 0;
-      while (mu_pop3_readline (pop3_iterator->pop3, buf, sizeof buf, &n) > 0 && n > 0)
+      mu_stream_t str = pop3_iterator->pop3->carrier;
+      while (mu_stream_readline (str, buf, sizeof buf, &n) > 0
+	     && n > 0)
 	n = 0;
     }
   if (pop3_iterator->item)
     free (pop3_iterator->item);
+  if (pop3_iterator->rdbuf)
+    free (pop3_iterator->rdbuf);
   pop3_iterator->pop3->state = MU_POP3_NO_STATE;
   free (pop3_iterator);
   return 0;
@@ -119,40 +137,27 @@ static int
 pop3_itr_next (void *owner)
 {
   struct pop3_iterator *pop3_iterator = (struct pop3_iterator *)owner;
-  size_t n = 0;
   int status = 0;
-
-  if (!pop3_iterator->done)
+  size_t n;
+  
+  status = mu_stream_getline (pop3_iterator->stream, &pop3_iterator->rdbuf,
+			      &pop3_iterator->rdsize, &n);
+  
+  if (status || n == 0)
     {
-      /* The first readline will not consume the buffer, we just need to
-	 know how much to read.  */
-      status = mu_pop3_readline (pop3_iterator->pop3, NULL, 0, &n);
-      if (status == 0)
-	{
-	  if (n)
-	    {
-	      char *buf;
-	      buf = calloc (n + 1, 1);
-	      if (buf)
-		{
-		  /* Consume.  */
-		  mu_pop3_readline (pop3_iterator->pop3, buf, n + 1, NULL);
-		  if (buf[n - 1] == '\n')
-		    buf[n - 1] = '\0';
-		  if (pop3_iterator->item)
-		    free (pop3_iterator->item);
-		  pop3_iterator->item = buf;
-		}
-	      else
-		status = ENOMEM;
-	    }
-	  else
-	    {
-	      pop3_iterator->done = 1;
-	      pop3_iterator->pop3->state = MU_POP3_NO_STATE;
-	    }
-	}
+      pop3_iterator->done = 1;
+      pop3_iterator->pop3->state = MU_POP3_NO_STATE;
+      return 0;
     }
+
+  n = mu_rtrim_class (pop3_iterator->rdbuf, MU_CTYPE_SPACE);
+  if (n == 1 && pop3_iterator->rdbuf[0] == '.')
+    {
+      pop3_iterator->done = 1;
+      pop3_iterator->pop3->state = MU_POP3_NO_STATE;
+    }
+  else
+    pop3_iterator->item = pop3_iterator->rdbuf;
   return status;
 }
 

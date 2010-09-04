@@ -115,11 +115,23 @@ mu_check_tls_environment (void)
 
 int mu_tls_enable = 0;
 
+#if 0
+void
+_mu_gtls_logger(int level, const char *text)
+{
+  mu_diag_output (MU_DIAG_DEBUG, "GnuTLS(%d): %s", level, text);
+}
+#endif
+
 int
 mu_init_tls_libs (void)
 {
   if (mu_tls_module_config.enable && !mu_tls_enable)
     mu_tls_enable = !gnutls_global_init (); /* Returns 1 on success */
+#if 0
+  gnutls_global_set_log_function (_mu_gtls_logger);
+  gnutls_global_set_log_level (110);
+#endif
   return mu_tls_enable;
 }
 
@@ -161,7 +173,7 @@ mu_tls_begin (void *iodata,
 {
   int i = 0;
   int status;
-  mu_stream_t oldstr, newstr;
+  mu_stream_t streams[2], newstr;
   
   if (keywords == NULL)
     return EINVAL;
@@ -181,19 +193,23 @@ mu_tls_begin (void *iodata,
 	      return status;
 	    }
           
-          status = reader (iodata);
+          status = reader (iodata, i);
           if (status != 0)
 	    {
 	      mu_error ("mu_tls_begin: reader (0): %s", mu_strerror (status));
 	      return status;
 	    }
 
-          stream_ctl (iodata, &oldstr, NULL);
-          status = mu_tls_client_stream_create (&newstr, oldstr, oldstr, 0);
+          status = stream_ctl (iodata, MU_TLS_SESS_GET_STREAMS, streams);
+	  if (status)
+	    return status;
+          status = mu_tls_client_stream_create (&newstr,
+						streams[0], streams[1], 0);
           if (status != 0)
 	    {
 	      mu_error ("mu_tls_begin: mu_tls_client_stream_create(0): %s",
 			mu_strerror (status));
+	      stream_ctl (iodata, MU_TLS_SESS_SET_STREAMS, streams);
 	      return status;
 	    }
 
@@ -202,10 +218,13 @@ mu_tls_begin (void *iodata,
 	    {
 	      mu_error ("mu_tls_begin: mu_stream_open (0): %s",
 			mu_strerror (status));
+	      stream_ctl (iodata, MU_TLS_SESS_SET_STREAMS, streams);
 	      return status;
 	    }
 
-          stream_ctl (iodata, NULL, newstr);
+	  streams[0] = streams[1] = newstr;
+	  stream_ctl (iodata, MU_TLS_SESS_SET_STREAMS, streams);
+	  /* FIXME: Unref newstr */
           break;
 
         case 1:
@@ -219,7 +238,7 @@ mu_tls_begin (void *iodata,
 	      return status;
 	    }
 
-          status = reader (iodata);
+          status = reader (iodata, i);
           if (status != 0)
 	    {
 	      mu_error ("mu_tls_begin: reader (1): %s", mu_strerror (status));
@@ -402,7 +421,7 @@ _tls_stream_pull (gnutls_transport_ptr fd, void *buf, size_t size)
 	
   while ((rc = mu_stream_read (stream, buf, size, &rdbytes)) == EAGAIN)
     ;
-
+  
   if (rc)
     return -1;
   return rdbytes;
@@ -420,6 +439,7 @@ _tls_stream_push (gnutls_transport_ptr fd, const void *buf, size_t size)
       mu_error ("_tls_stream_push: %s", mu_strerror (rc)); /* FIXME */
       return -1;
     }
+
   mu_stream_flush (stream);
   return size;
 }
@@ -475,9 +495,11 @@ _tls_server_open (mu_stream_t stream)
 }
 
 static int
-prepare_client_session (struct _mu_tls_stream *sp)
+prepare_client_session (mu_stream_t stream)
 {
+  struct _mu_tls_stream *sp = (struct _mu_tls_stream *) stream;
   int rc;
+  mu_transport_t transport[2];
   static int protocol_priority[] = {GNUTLS_TLS1, GNUTLS_SSL3, 0};
   static int kx_priority[] = {GNUTLS_KX_RSA, 0};
   static int cipher_priority[] = {GNUTLS_CIPHER_3DES_CBC,
@@ -508,9 +530,10 @@ prepare_client_session (struct _mu_tls_stream *sp)
 
   gnutls_credentials_set (sp->session, GNUTLS_CRD_CERTIFICATE, x509_cred);
 
+  mu_stream_ioctl (stream, MU_IOCTL_GET_TRANSPORT, transport);
   gnutls_transport_set_ptr2 (sp->session,
-			     (gnutls_transport_ptr) sp->transport[0],
-			     (gnutls_transport_ptr) sp->transport[1]);
+			     (gnutls_transport_ptr) transport[0],
+			     (gnutls_transport_ptr) transport[1]);
   gnutls_transport_set_pull_function (sp->session, _tls_stream_pull);
   gnutls_transport_set_push_function (sp->session, _tls_stream_push);
       
@@ -532,7 +555,7 @@ _tls_client_open (mu_stream_t stream)
       /* FALLTHROUGH */
       
     case state_init:
-      prepare_client_session (sp);
+      prepare_client_session (stream);
       rc = gnutls_handshake (sp->session);
       if (rc < 0)
 	{

@@ -42,26 +42,20 @@ mu_pop3_list_all (mu_pop3_t pop3, mu_iterator_t *piterator)
     case MU_POP3_NO_STATE:
       status = mu_pop3_writeline (pop3, "LIST\r\n");
       MU_POP3_CHECK_ERROR (pop3, status);
-      mu_pop3_debug_cmd (pop3);
+      MU_POP3_FCLR (pop3, MU_POP3_ACK);
       pop3->state = MU_POP3_LIST;
 
     case MU_POP3_LIST:
-      status = mu_pop3_send (pop3);
+      status = mu_pop3_response (pop3, NULL);
       MU_POP3_CHECK_EAGAIN (pop3, status);
-      pop3->acknowledge = 0;
-      pop3->state = MU_POP3_LIST_ACK;
-
-    case MU_POP3_LIST_ACK:
-      status = mu_pop3_response (pop3, NULL, 0, NULL);
-      MU_POP3_CHECK_EAGAIN (pop3, status);
-      mu_pop3_debug_ack (pop3);
       MU_POP3_CHECK_OK (pop3);
       status = mu_pop3_iterator_create (pop3, piterator);
       MU_POP3_CHECK_ERROR (pop3, status);
       pop3->state = MU_POP3_LIST_RX;
 
     case MU_POP3_LIST_RX:
-      /* The mu_iterator_t will read the stream and set the state to MU_POP3_NO_STATE when done.  */
+      /* The mu_iterator_t will read the stream and set the state to
+	 MU_POP3_NO_STATE when done.  */
       break;
 
       /* They must deal with the error first by reopening.  */

@@ -36,13 +36,10 @@ mu_pop3_disconnect (mu_pop3_t pop3)
   /* We can keep some of the fields, if they decide to pop3_connect() again but
      clear the states.  */
   pop3->state = MU_POP3_NO_STATE;
-  pop3->acknowledge = 0;
+  MU_POP3_FCLR (pop3, MU_POP3_ACK);
 
-  /* Clear the buffers.  */
-  memset (pop3->io.buf, '\0', pop3->io.len);
-  pop3->io.ptr = pop3->io.buf;
-  memset (pop3->ack.buf, '\0', pop3->ack.len);
-  pop3->ack.ptr = pop3->ack.buf;
+  if (pop3->rdbuf)
+    pop3->rdbuf[0] = 0;
 
   /* Free the timestamp, it will be different on each connection.  */
   if (pop3->timestamp)

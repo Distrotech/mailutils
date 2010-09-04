@@ -27,47 +27,95 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <mailutils/error.h>
+#include <mailutils/list.h>
+#include <mailutils/cctype.h>
+#include <mailutils/cstr.h>
 #include <mailutils/sys/pop3.h>
+
+static int
+string_comp (const void *item, const void *value)
+{
+  return strcmp (item, value);
+}
+
+int
+_mu_pop3_fill_list (mu_pop3_t pop3, mu_list_t list)
+{
+  mu_stream_t stream;
+  size_t n;
+  int status = mu_pop3_stream_create (pop3, &stream);
+  if (status)
+    return status;
+  
+  while (mu_stream_getline (stream, &pop3->rdbuf, &pop3->rdsize, &n) == 0
+	 && n > 0)
+    {
+      char *np = strdup (pop3->rdbuf);
+      if (!np)
+	{
+	  status = ENOMEM;
+	  break;
+	}
+      mu_rtrim_class (np, MU_CTYPE_SPACE);
+      status = mu_list_append (list, np);
+      if (status)
+	break;
+    }
+  mu_stream_destroy (&stream);
+  return status;
+}
 
 /*
   CAPA command, return a list that contains the result.
   It is the responsability of the caller to destroy the list(mu_list_destroy).
  */
 int
-mu_pop3_capa (mu_pop3_t pop3, mu_iterator_t *piterator)
+mu_pop3_capa (mu_pop3_t pop3, int reread, mu_iterator_t *piter)
 {
   int status = 0;
-
+  
   if (pop3 == NULL)
     return EINVAL;
-  if (piterator == NULL)
-    return MU_ERR_OUT_PTR_NULL;
 
+  if (pop3->capa)
+    {
+      if (!reread)
+	{
+	  if (!piter)
+	    return 0;
+	  return mu_list_get_iterator (pop3->capa, piter);
+	}
+      mu_list_destroy (&pop3->capa);
+    }
+
+  status = mu_list_create (&pop3->capa);
+  if (status)
+    return status;
+  mu_list_set_comparator (pop3->capa, string_comp);
+  mu_list_set_destroy_item (pop3->capa, mu_list_free_item);
+  
   switch (pop3->state)
     {
     case MU_POP3_NO_STATE:
       status = mu_pop3_writeline (pop3, "CAPA\r\n");
       MU_POP3_CHECK_ERROR (pop3, status);
-      mu_pop3_debug_cmd (pop3);
+      MU_POP3_FCLR (pop3, MU_POP3_ACK);
       pop3->state = MU_POP3_CAPA;
 
     case MU_POP3_CAPA:
-      status = mu_pop3_send (pop3);
+      status = mu_pop3_response (pop3, NULL);
       MU_POP3_CHECK_EAGAIN (pop3, status);
-      pop3->acknowledge = 0;
-      pop3->state = MU_POP3_CAPA_ACK;
-
-    case MU_POP3_CAPA_ACK:
-      status = mu_pop3_response (pop3, NULL, 0, NULL);
-      MU_POP3_CHECK_EAGAIN (pop3, status);
-      mu_pop3_debug_ack (pop3);
       MU_POP3_CHECK_OK (pop3);
-      status = mu_pop3_iterator_create (pop3, piterator);
-      MU_POP3_CHECK_ERROR (pop3, status);
       pop3->state = MU_POP3_CAPA_RX;
 
     case MU_POP3_CAPA_RX:
-      /* The mu_iterator_t will read the stream and set the state to MU_POP3_NO_STATE when done.  */
+      status = _mu_pop3_fill_list (pop3, pop3->capa);
+      MU_POP3_CHECK_ERROR (pop3, status);
+      if (piter)
+	status = mu_list_get_iterator (pop3->capa, piter);
+      else
+	status = 0;
+      pop3->state = MU_POP3_NO_STATE;
       break;
 
       /* They must deal with the error first by reopening.  */

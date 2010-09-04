@@ -26,7 +26,8 @@
 #include <mailutils/sys/pop3.h>
 
 int
-mu_pop3_top (mu_pop3_t pop3, unsigned msgno, unsigned int lines, mu_stream_t *pstream)
+mu_pop3_top (mu_pop3_t pop3, unsigned msgno, unsigned int lines,
+	     mu_stream_t *pstream)
 {
   int status;
 
@@ -40,25 +41,19 @@ mu_pop3_top (mu_pop3_t pop3, unsigned msgno, unsigned int lines, mu_stream_t *ps
     case MU_POP3_NO_STATE:
       status = mu_pop3_writeline (pop3, "TOP %d %d\r\n", msgno, lines);
       MU_POP3_CHECK_ERROR (pop3, status);
-      mu_pop3_debug_cmd (pop3);
+      MU_POP3_FCLR (pop3, MU_POP3_ACK);
       pop3->state = MU_POP3_TOP;
 
     case MU_POP3_TOP:
-      status = mu_pop3_send (pop3);
+      status = mu_pop3_response (pop3, NULL);
       MU_POP3_CHECK_EAGAIN (pop3, status);
-      pop3->acknowledge = 0;
-      pop3->state = MU_POP3_TOP_ACK;
-
-    case MU_POP3_TOP_ACK:
-      status = mu_pop3_response (pop3, NULL, 0, NULL);
-      MU_POP3_CHECK_EAGAIN (pop3, status);
-      mu_pop3_debug_ack (pop3);
       MU_POP3_CHECK_OK (pop3);
       pop3->state = MU_POP3_TOP_RX;
 
     case MU_POP3_TOP_RX:
       status = mu_pop3_stream_create (pop3, pstream);
       MU_POP3_CHECK_ERROR (pop3, status);
+      pop3->state = MU_POP3_NO_STATE;
       break;
 
       /* They must deal with the error first by reopening.  */
