@@ -17,33 +17,27 @@
    Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02110-1301 USA */
 
-#ifndef _ATTRIBUTE0_H
-# define _ATTRIBUTE0_H
+#ifndef _MAILUTILS_SYS_ENVELOPE_H
+# define _MAILUTILS_SYS_ENVELOPE_H
 
-#ifdef DMALLOC
-#  include <dmalloc.h>
-#endif
-
-#include <mailutils/attribute.h>
+#include <mailutils/envelope.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct _mu_attribute
+struct _mu_envelope
 {
   void *owner;
-
-  int flags;
-  int user_flags;
-
-  int (*_get_flags)   (mu_attribute_t, int *);
-  int (*_set_flags)   (mu_attribute_t, int);
-  int (*_unset_flags) (mu_attribute_t, int);
+  char *date;
+  char *sender;
+  int (*_destroy) (mu_envelope_t);
+  int (*_get_sender)  (mu_envelope_t, char *, size_t, size_t *);
+  int (*_get_date)    (mu_envelope_t, char *, size_t , size_t *);
 };
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* _ATTRIBUTE0_H */
+#endif /* _MAILUTILS_SYS_ENVELOPE_H */

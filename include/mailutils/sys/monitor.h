@@ -1,6 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2007, 2010 Free Software Foundation,
-   Inc.
+   Copyright (C) 1999, 2000, 2007, 2010 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -17,37 +16,22 @@
    Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02110-1301 USA */
 
-#ifndef _BODY0_H
-#define _BODY0_H
+#ifndef _MAILUTILS_SYS_MONITOR_H
+# define _MAILUTILS_SYS_MONITOR_H
 
-#ifdef DMALLOC
-#  include <dmalloc.h>
-#endif
+# ifdef HAVE_CONFIG_H
+#  include <config.h>
+# endif
 
-#include <mailutils/stream.h>
-#include <mailutils/body.h>
+# include <sys/types.h>
+# include <mailutils/monitor.h>
 
-#include <stdio.h>
-#include <sys/types.h>
-
-#ifdef __cplusplus
+# ifdef __cplusplus
 extern "C" {
-#endif
-
-struct _mu_body
-{
-  void *owner;
-  char *filename;
-  mu_stream_t stream;
-  mu_stream_t fstream;
-  int flags;
-
-  int (*_size)  (mu_body_t, size_t*);
-  int (*_lines) (mu_body_t, size_t*);
-};
-
-#ifdef __cplusplus
+# endif
+/* FIXME: any protos? */
+# ifdef __cplusplus
 }
-#endif
+# endif
 
-#endif /* _BODY0_H */
+#endif /* _MONITOR0_H */

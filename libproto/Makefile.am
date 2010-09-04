@@ -37,5 +37,5 @@ if MU_COND_SUPPORT_MAILDIR
   MAILDIR_DIR = maildir
 endif
 
-SUBDIRS = include mbox $(POP_DIR) $(NNTP_DIR) $(IMAP_DIR) $(MH_DIR) $(MAILDIR_DIR) mailer
+SUBDIRS = mbox $(POP_DIR) $(NNTP_DIR) $(IMAP_DIR) $(MH_DIR) $(MAILDIR_DIR) mailer
 

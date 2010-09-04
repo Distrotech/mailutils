@@ -58,10 +58,10 @@
 #include <mailutils/cstr.h>
 #include <mailutils/cctype.h>
 
-#include <folder0.h>
-#include <mailbox0.h>
-#include <registrar0.h>
-#include <url0.h>
+#include <mailutils/sys/folder.h>
+#include <mailutils/sys/mailbox.h>
+#include <mailutils/sys/registrar.h>
+#include <mailutils/sys/url.h>
 
 #define PROP_RFC822 1
 

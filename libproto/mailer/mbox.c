@@ -30,8 +30,8 @@
 #include <mailutils/mailer.h>
 #include <mailutils/url.h>
 #include <mailutils/mutil.h>
-#include <mailbox0.h>
-#include <mailer0.h>
+#include <mailutils/sys/mailbox.h>
+#include <mailutils/sys/mailer.h>
 
 struct remote_mbox_data
 {

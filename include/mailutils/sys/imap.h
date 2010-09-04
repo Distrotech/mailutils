@@ -17,65 +17,60 @@
    Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02110-1301 USA */
 
-#ifndef _IMAP0_H
-#define _IMAP0_H
+#ifndef _MAILUTILS_SYS_IMAP_H
+# define _MAILUTILS_SYS_IMAP_H
 
-#ifdef DMALLOC
-#  include <dmalloc.h>
-#endif
+# include <mailutils/sys/folder.h>
+# include <mailutils/sys/mailbox.h>
+# include <mailutils/sys/registrar.h>
+# include <mailutils/sys/auth.h>
 
-#include <folder0.h>
-#include <mailbox0.h>
-#include <registrar0.h>
-#include <auth0.h>
-
-#ifdef __cplusplus
+# ifdef __cplusplus
 extern "C" {
-#endif
+# endif
 
-#define CLEAR_STATE(f_imap) \
+# define CLEAR_STATE(f_imap)				\
  f_imap->selected = NULL, f_imap->state = IMAP_NO_STATE
 
 /* Clear the state and close the stream.  */
-#define CHECK_ERROR_CLOSE(folder, f_imap, status) \
-do \
-  { \
-     if (status != 0) \
-       { \
-          mu_stream_close (folder->stream); \
-          CLEAR_STATE (f_imap); \
-          return status; \
-       } \
-  } \
-while (0)
+# define CHECK_ERROR_CLOSE(folder, f_imap, status)	\
+  do							\
+    {							\
+      if (status != 0)					\
+	{						\
+          mu_stream_close (folder->stream);		\
+          CLEAR_STATE (f_imap);				\
+          return status;				\
+	}						\
+    }							\
+  while (0)
 
 /* Clear the state.  */
-#define CHECK_ERROR(f_imap, status) \
-do \
-  { \
-     if (status != 0) \
-       { \
-          CLEAR_STATE (f_imap); \
-          return status; \
-       } \
-  } \
+# define CHECK_ERROR(f_imap, status)		\
+  do						\
+    {						\
+      if (status != 0)				\
+	{					\
+          CLEAR_STATE (f_imap);			\
+          return status;			\
+	}					\
+    }						\
 while (0)
 
 /* Clear the state for non recoverable error.  */
-#define CHECK_EAGAIN(f_imap, status) \
-do \
-  { \
-    if (status != 0) \
-      { \
-         if (status != EAGAIN && status != EINPROGRESS && status != EINTR) \
-           { \
-             CLEAR_STATE (f_imap); \
-           } \
-         return status; \
-      } \
-   }  \
-while (0)
-
+# define CHECK_EAGAIN(f_imap, status)		\
+  do						\
+    {						\
+      if (status != 0)				\
+	{								\
+	  if (status != EAGAIN && status != EINPROGRESS && status != EINTR) \
+	    {								\
+	      CLEAR_STATE (f_imap);					\
+	    }								\
+	  return status;						\
+	}								\
+    }									\
+  while (0)
 
 struct _f_imap;
 struct _m_imap;
@@ -234,8 +229,8 @@ int imap_parse        (f_imap_t);
 int imap_readline     (f_imap_t);
 char *section_name    (msg_imap_t);
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 }
-#endif
+# endif
 
-#endif /* _IMAP0_H */
+#endif /* _MAILUTILS_SYS_IMAP_H */

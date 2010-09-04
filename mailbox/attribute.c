@@ -33,7 +33,7 @@
 #include <mailutils/errno.h>
 #include <mailutils/mutil.h>
 #include <mailutils/cstr.h>
-#include <attribute0.h>
+#include <mailutils/sys/attribute.h>
 
 int
 mu_attribute_create (mu_attribute_t *pattr, void *owner)

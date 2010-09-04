@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2007, 2010 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2005, 2007, 2010 Free Software Foundation,
+   Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -16,26 +17,40 @@
    Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02110-1301 USA */
 
-#ifndef _MONITOR0_H
-#define _MONITOR0_H
+#ifndef _MAILUTILS_SYS_OBSERVER_H
+# define _MAILUTILS_SYS_OBSERVER_H
 
-#ifdef DMALLOC
-#  include <dmalloc.h>
-#endif
+# include <mailutils/observer.h>
 
-#ifdef HAVE_CONFIG_H
-# include <config.h>
-#endif
-
-#include <sys/types.h>
-#include <mailutils/monitor.h>
-
-#ifdef __cplusplus
+# ifdef __cplusplus
 extern "C" {
-#endif
-/* FIXME: any protos? */
-#ifdef __cplusplus
-}
-#endif
+# endif
 
-#endif /* _MONITOR0_H */
+struct _mu_observer
+{
+  int flags;
+  void *owner;
+  int (*_action)  (mu_observer_t, size_t, void *, void *);
+  void *_action_data;
+  int (*_destroy) (mu_observer_t, void *data);
+};
+
+struct _mu_observable
+{
+  void *owner;
+  mu_list_t list;
+};
+
+struct _event
+{
+  size_t type;
+  mu_observer_t observer;
+};
+
+typedef struct _event *event_t;
+
+# ifdef __cplusplus
+}
+# endif
+
+#endif /* _MAILUTILS_SYS_OBSERVER_H */

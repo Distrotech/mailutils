@@ -40,7 +40,7 @@
 #include <mailutils/folder.h>
 #include <mailutils/auth.h>
 
-#include <mailbox0.h>
+#include <mailutils/sys/mailbox.h>
 
 char *mu_ticket_file = "~/.mu-tickets";
 

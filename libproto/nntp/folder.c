@@ -36,8 +36,8 @@
 #include <mailutils/registrar.h>
 #include <mailutils/url.h>
 
-#include <folder0.h>
-#include "nntp0.h"
+#include <mailutils/sys/folder.h>
+#include "mailutils/sys/nntp.h"
 
 /* We export url parsing and the initialisation of
    the mailbox, via the register entry/record.  */
@@ -194,6 +194,6 @@ nntp_folder_list (mu_folder_t folder, const char *ref, void *pat, int flags,
 }
 #else
 #include <stdio.h>
-#include <registrar0.h>
+#include <mailutils/sys/registrar.h>
 mu_record_t mu_nntp_record = NULL;
 #endif

@@ -34,9 +34,9 @@
 #include <mailutils/progmailer.h>
 #include <mailutils/vartab.h>
 
-#include <url0.h>
-#include <mailer0.h>
-#include <registrar0.h>
+#include <mailutils/sys/url.h>
+#include <mailutils/sys/mailer.h>
+#include <mailutils/sys/registrar.h>
 
 static int _url_prog_init     (mu_url_t);
 
@@ -379,6 +379,6 @@ prog_send_message (mu_mailer_t mailer, mu_message_t msg, mu_address_t from,
 
 #else
 #include <stdio.h>
-#include <registrar0.h>
+#include <mailutils/sys/registrar.h>
 mu_record_t mu_prog_record = NULL;
 #endif

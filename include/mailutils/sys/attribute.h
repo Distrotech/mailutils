@@ -17,50 +17,29 @@
    Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02110-1301 USA */
 
-#ifndef _LIST0_H
-#define _LIST0_H
+#ifndef _MAILUTILS_SYS_ATTRIBUTE_H
+# define _MAILUTILS_SYS_ATTRIBUTE_H
 
-#ifdef DMALLOC
-#  include <dmalloc.h>
-#endif
-
-#include <sys/types.h>
-
-#include <mailutils/list.h>
-#include <mailutils/monitor.h>
-#include <mailutils/iterator.h>
+#include <mailutils/attribute.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct list_data
+struct _mu_attribute
 {
-  void *item;
-  struct list_data *next;
-  struct list_data *prev;
-};
+  void *owner;
 
-struct _mu_list
-{
-  struct list_data head;
-  size_t count;
-  mu_monitor_t monitor;
-  mu_list_comparator_t comp;
-  void (*destroy_item) (void *item);
-  struct _mu_iterator *itr;
-};
+  int flags;
+  int user_flags;
 
-extern void _mu_list_clear (mu_list_t list);
-extern void _mu_list_insert_sublist (mu_list_t list,
-				     struct list_data *current,
-				     struct list_data *head,
-				     struct list_data *tail,
-				     size_t count,
-				     int insert_before);
+  int (*_get_flags)   (mu_attribute_t, int *);
+  int (*_set_flags)   (mu_attribute_t, int);
+  int (*_unset_flags) (mu_attribute_t, int);
+};
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* _LIST0_H */
+#endif /* _MAILUTILS_SYS_ATTRIBUTE_H */

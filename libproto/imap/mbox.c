@@ -47,10 +47,10 @@
 #include <mailutils/stream.h>
 #include <mailutils/io.h>
 
-#include <imap0.h>
-#include <mailbox0.h>
-#include <registrar0.h>
-#include <url0.h>
+#include <mailutils/sys/imap.h>
+#include <mailutils/sys/mailbox.h>
+#include <mailutils/sys/registrar.h>
+#include <mailutils/sys/url.h>
 
 #undef min
 #define min(a,b) ((a) < (b) ? (a) : (b))

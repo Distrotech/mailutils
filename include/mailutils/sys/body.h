@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2005, 2007, 2010 Free Software Foundation,
+   Copyright (C) 1999, 2000, 2001, 2007, 2010 Free Software Foundation,
    Inc.
 
    This library is free software; you can redistribute it and/or
@@ -17,31 +17,33 @@
    Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02110-1301 USA */
 
-#ifndef _ENVELOPE0_H
-#define _ENVELOPE0_H
+#ifndef _MAILUTILS_SYS_BODY_H
+# define _MAILUTILS_SYS_BODY_H
 
-#ifdef DMALLOC
-#include <dmalloc.h>
-#endif
+#include <mailutils/stream.h>
+#include <mailutils/body.h>
 
-#include <mailutils/envelope.h>
+#include <stdio.h>
+#include <sys/types.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct _mu_envelope
+struct _mu_body
 {
   void *owner;
-  char *date;
-  char *sender;
-  int (*_destroy) (mu_envelope_t);
-  int (*_get_sender)  (mu_envelope_t, char *, size_t, size_t *);
-  int (*_get_date)    (mu_envelope_t, char *, size_t , size_t *);
+  char *filename;
+  mu_stream_t stream;
+  mu_stream_t fstream;
+  int flags;
+
+  int (*_size)  (mu_body_t, size_t*);
+  int (*_lines) (mu_body_t, size_t*);
 };
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* _ENVELOPE0_H */
+#endif /* _MAILUTILS_SYS_BODY_H */

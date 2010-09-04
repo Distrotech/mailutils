@@ -17,46 +17,46 @@
    Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02110-1301 USA */
 
-#ifndef _OBSERVER0_H
-#define _OBSERVER0_H
+#ifndef _MAILUTILS_SYS_LIST_H
+# define _MAILUTILS_SYS_LIST_H
 
-#ifdef DMALLOC
-#  include <dmalloc.h>
-#endif
+# include <sys/types.h>
 
-#include <mailutils/observer.h>
+# include <mailutils/list.h>
+# include <mailutils/monitor.h>
+# include <mailutils/iterator.h>
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 extern "C" {
-#endif
+# endif
 
-struct _mu_observer
+struct list_data
 {
-  int flags;
-  void *owner;
-  int (*_action)  (mu_observer_t, size_t, void *, void *);
-  void *_action_data;
-  int (*_destroy) (mu_observer_t, void *data);
+  void *item;
+  struct list_data *next;
+  struct list_data *prev;
 };
 
-struct _mu_observable
+struct _mu_list
 {
-  void *owner;
-  mu_list_t list;
+  struct list_data head;
+  size_t count;
+  mu_monitor_t monitor;
+  mu_list_comparator_t comp;
+  void (*destroy_item) (void *item);
+  struct _mu_iterator *itr;
 };
 
-struct _event
-{
-  size_t type;
-  mu_observer_t observer;
-};
+extern void _mu_list_clear (mu_list_t list);
+extern void _mu_list_insert_sublist (mu_list_t list,
+				     struct list_data *current,
+				     struct list_data *head,
+				     struct list_data *tail,
+				     size_t count,
+				     int insert_before);
 
-typedef struct _event *event_t;
-
-
-
-#ifdef __cplusplus
+# ifdef __cplusplus
 }
-#endif
+# endif
 
-#endif /* _OBSERVER0_H */
+#endif /* _MAILUTILS_SYS_LIST_H */

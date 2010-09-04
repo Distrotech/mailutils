@@ -41,8 +41,8 @@
 #include <mailutils/message.h>
 #include <mailutils/mutil.h>
 
-#include <mailbox0.h>
-#include <url0.h>
+#include <mailutils/sys/mailbox.h>
+#include <mailutils/sys/url.h>
 
 static int
 mailbox_folder_create (mu_mailbox_t mbox, const char *name,

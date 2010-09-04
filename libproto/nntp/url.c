@@ -32,7 +32,7 @@
 
 #include <mailutils/nntp.h>
 
-#include <url0.h>
+#include <mailutils/sys/url.h>
 
 static void url_nntp_destroy (mu_url_t url);
 

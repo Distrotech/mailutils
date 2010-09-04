@@ -17,18 +17,14 @@
    Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02110-1301 USA */
 
-#ifndef _URL0_H
-#define _URL0_H	1
+#ifndef _MAILUTILS_SYS_URL_H
+# define _MAILUTILS_SYS_URL_H
 
-#ifdef DMALLOC
-#  include <dmalloc.h>
-#endif
+# include <mailutils/url.h>
 
-#include <mailutils/url.h>
-
-#ifdef __cplusplus
+# ifdef __cplusplus
 extern "C" {
-#endif
+# endif
 
 struct _mu_url
 {
@@ -63,9 +59,8 @@ struct _mu_url
   int   (*_uplevel)    (const mu_url_t, mu_url_t *);
 };
 
-
-#ifdef __cplusplus
+# ifdef __cplusplus
 }
-#endif
+# endif
 
-#endif /* URL_H */
+#endif /* _MAILUTILS_SYS_URL_H */

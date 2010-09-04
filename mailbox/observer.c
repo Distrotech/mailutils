@@ -27,7 +27,7 @@
 #include <mailutils/list.h>
 #include <mailutils/iterator.h>
 #include <mailutils/errno.h>
-#include <observer0.h>
+#include <mailutils/sys/observer.h>
 
 int
 mu_observer_create (mu_observer_t *pobserver, void *owner)

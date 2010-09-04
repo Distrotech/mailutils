@@ -17,12 +17,8 @@
    Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02110-1301 USA */
 
-#ifndef _DEBUG0_H
-#define _DEBUG0_H
-
-#ifdef DMALLOC
-#  include <dmalloc.h>
-#endif
+#ifndef _MAILUTILS_SYS_DEBUG_H
+# define _MAILUTILS_SYS_DEBUG_H
 
 #include <mailutils/debug.h>
 #include <mailutils/stream.h>
@@ -47,4 +43,4 @@ struct _mu_debug
 }
 #endif
 
-#endif /* _DEBUG0_H */
+#endif /* _MAILUTILS_SYS_DEBUG_H */

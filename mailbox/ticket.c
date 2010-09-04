@@ -32,7 +32,7 @@
 #include <mailutils/mutil.h>
 #include <mailutils/errno.h>
 #include <mailutils/secret.h>
-#include <auth0.h>
+#include <mailutils/sys/auth.h>
 
 static void
 echo_off (struct termios *stored_settings)

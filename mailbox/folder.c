@@ -37,7 +37,7 @@
 #include <mailutils/url.h>
 #include <mailutils/errno.h>
 
-#include <folder0.h>
+#include <mailutils/sys/folder.h>
 
 /* Internal folder list.  */
 static mu_list_t known_folder_list;

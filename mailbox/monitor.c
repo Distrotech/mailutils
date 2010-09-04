@@ -34,7 +34,7 @@
 #include <errno.h>
 #include <stdlib.h>
 
-#include <monitor0.h>
+#include <mailutils/sys/monitor.h>
 #include <mailutils/errno.h>
 
 #ifdef WITH_PTHREAD

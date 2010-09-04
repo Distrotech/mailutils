@@ -29,7 +29,7 @@
 #include <mailutils/error.h>
 #include <mailutils/iterator.h>
 
-#include <mailbox0.h>
+#include <mailutils/sys/mailbox.h>
 
 struct mailbox_iterator
 {

@@ -17,10 +17,12 @@
    Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02110-1301 USA */
 
-#define MAX_OPEN_STREAMS 16
+#ifndef _MAILUTILS_SYS_AMD_H
+# define _MAILUTILS_SYS_AMD_H
+# define MAX_OPEN_STREAMS 16
 
 /* Notifications ADD_MESG. */
-#define DISPATCH_ADD_MSG(mbox,mhd,n)					\
+# define DISPATCH_ADD_MSG(mbox,mhd,n)					\
   do									\
     {									\
       int bailing = 0;							\
@@ -42,7 +44,7 @@
       mu_monitor_wrlock (mbox->monitor);				\
 } while (0);
 
-#define MU_AMD_SIZE_FILE_NAME ".mu-size"
+# define MU_AMD_SIZE_FILE_NAME ".mu-size"
 
 struct _amd_data;
 struct _amd_message
@@ -110,3 +112,5 @@ void amd_cleanup (void *arg);
 struct _amd_message *_amd_get_message (struct _amd_data *amd, size_t msgno);
 int amd_msg_lookup (struct _amd_data *amd, struct _amd_message *msg,
 		    size_t *pret);
+
+#endif		    

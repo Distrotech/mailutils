@@ -37,9 +37,9 @@
 #include <mailutils/cstr.h>
 #include <mailutils/cctype.h>
 
-#include <folder0.h>
-#include <registrar0.h>
-#include <url0.h>
+#include <mailutils/sys/folder.h>
+#include <mailutils/sys/registrar.h>
+#include <mailutils/sys/url.h>
 
 /* We export url parsing and the initialisation of
    the mailbox, via the register entry/record.  */
@@ -160,7 +160,7 @@ folder_pop_get_authority (mu_folder_t folder, mu_authority_t *pauth)
 
 #else
 #include <stdio.h>
-#include <registrar0.h>
+#include <mailutils/sys/registrar.h>
 mu_record_t mu_pop_record = NULL;
 mu_record_t mu_pops_record = NULL;
 #endif /* ENABLE_POP */

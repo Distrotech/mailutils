@@ -66,9 +66,9 @@
 #include <mailutils/observer.h>
 #include <mailutils/errno.h>
 #include <mailutils/locker.h>
-#include <mailbox0.h>
-#include <registrar0.h>
-#include <amd.h>
+#include <mailutils/sys/mailbox.h>
+#include <mailutils/sys/registrar.h>
+#include <mailutils/sys/amd.h>
 #include <maildir.h>
 
 #ifndef PATH_MAX 

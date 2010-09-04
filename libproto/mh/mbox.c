@@ -64,9 +64,9 @@
 #include <mailutils/observer.h>
 #include <mailutils/io.h>
 #include <mailutils/cctype.h>
-#include <mailbox0.h>
-#include <registrar0.h>
-#include <amd.h>
+#include <mailutils/sys/mailbox.h>
+#include <mailutils/sys/registrar.h>
+#include <mailutils/sys/amd.h>
 
 struct _mh_message
 {
