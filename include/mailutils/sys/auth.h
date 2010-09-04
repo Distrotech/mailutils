@@ -17,16 +17,12 @@
    Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02110-1301 USA */
 
-#ifndef _AUTH0_H
-#define _AUTH0_H
+#ifndef _MAILUTILS_SYS_AUTH_H
+# define _MAILUTILS_SYS_AUTH_H
 
-#ifdef DMALLOC
-#  include <dmalloc.h>
-#endif
-
+#include <sys/types.h>
 #include <mailutils/auth.h>
 #include <mailutils/list.h>
-#include <sys/types.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -67,4 +63,4 @@ struct _mu_wicket
 }
 #endif
 
-#endif /* _AUTH0_H */
+#endif /* _MAILUTILS_SYS_AUTH_H */

@@ -17,24 +17,20 @@
    Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02110-1301 USA */
 
-#ifndef _PROPERTY0_H
-#define _PROPERTY0_H
+#ifndef _MAILUTILS_SYS_PROPERTY_H
+# define _MAILUTILS_SYS_PROPERTY_H
 
-#ifdef DMALLOC
-#  include <dmalloc.h>
-#endif
+# include <errno.h>
+# include <stdlib.h>
+# include <string.h>
 
-#include <errno.h>
-#include <stdlib.h>
-#include <string.h>
+# include <mailutils/property.h>
+# include <mailutils/monitor.h>
+# include <mailutils/assoc.h>
 
-#include <mailutils/property.h>
-#include <mailutils/monitor.h>
-#include <mailutils/assoc.h>
-
-#ifdef __cplusplus
+# ifdef __cplusplus
 extern "C" {
-#endif
+# endif
 
 struct property_item
 {
@@ -48,8 +44,8 @@ struct _mu_property
   mu_monitor_t lock;
 };
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 }
-#endif
+# endif
 
-#endif /* _PROPERTY0_H */
+#endif /* _MAILUTILS_SYS_PROPERTY_H */

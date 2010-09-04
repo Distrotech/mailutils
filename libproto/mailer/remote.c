@@ -34,9 +34,9 @@
 #include <mailutils/error.h>
 #include <mailutils/diag.h>
 
-#include <url0.h>
-#include <mailer0.h>
-#include <registrar0.h>
+#include <mailutils/sys/url.h>
+#include <mailutils/sys/mailer.h>
+#include <mailutils/sys/registrar.h>
 
 #ifdef ENABLE_SMTP
 

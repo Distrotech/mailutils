@@ -17,18 +17,14 @@
    Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02110-1301 USA */
 
-#ifndef _ITERATOR0_H
-#define _ITERATOR0_H
+#ifndef _MAILUTILS_SYS_ITERATOR_H
+# define _MAILUTILS_SYS_ITERATOR_H
 
-#ifdef DMALLOC
-#  include <dmalloc.h>
-#endif
+# include <mailutils/iterator.h>
 
-#include <mailutils/iterator.h>
-
-#ifdef __cplusplus
+# ifdef __cplusplus
 extern "C" {
-#endif
+# endif
 
 struct _mu_iterator
 {
@@ -46,8 +42,8 @@ struct _mu_iterator
   int (*itrctl) (void *owner, enum mu_itrctl_req req, void *arg);
 };
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 }
-#endif
+# endif
 
-#endif /* _ITERATOR0_H */
+#endif /* _MAILUTILS_SYS_ITERATOR_H */

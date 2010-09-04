@@ -17,23 +17,19 @@
    Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02110-1301 USA */
 
-#ifndef _MAILBOX0_H
-#define _MAILBOX0_H
+#ifndef _MAILUTILS_SYS_MAILBOX_H
+# define _MAILUTILS_SYS_MAILBOX_H
 
-#ifdef DMALLOC
-#  include <dmalloc.h>
-#endif
+# include <sys/types.h>
+# include <stdio.h>
 
-#include <sys/types.h>
-#include <stdio.h>
+# include <mailutils/monitor.h>
+# include <mailutils/mailbox.h>
+# include <mailutils/iterator.h>
 
-#include <mailutils/monitor.h>
-#include <mailutils/mailbox.h>
-#include <mailutils/iterator.h>
-
-#ifdef __cplusplus
+# ifdef __cplusplus
 extern "C" {
-#endif
+# endif
 
 struct _mu_mailbox
 {
@@ -80,8 +76,8 @@ struct _mu_mailbox
   int  (*_get_uidls) (mu_mailbox_t, mu_list_t);
 };
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 }
-#endif
+# endif
 
-#endif /* _MAILBOX0_H */
+#endif /* _MAILUTILS_SYS_MAILBOX_H */

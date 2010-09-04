@@ -36,7 +36,7 @@
 #include <mailutils/error.h>
 #include <mailutils/url.h>
 #include <mailutils/mutil.h>
-#include <registrar0.h>
+#include <mailutils/sys/registrar.h>
 
 /* NOTE: We will leak here since the monitor and the registrar will never
    be released. That's ok we can live with this, it's only done once.  */

@@ -19,25 +19,42 @@
 
 sysincludedir=$(pkgincludedir)/sys
 sysinclude_HEADERS = \
+ amd.h\
+ attribute.h\
+ auth.h\
+ body.h\
  dbgstream.h\
+ debug.h\
+ envelope.h\
  file_stream.h\
  filter.h\
+ folder.h\
  gsasl-stream.h\
  header_stream.h\
  header.h\
+ imap.h\
+ iterator.h\
  iostream.h\
+ list.h\
+ mailbox.h\
+ mailer.h\
  mapfile_stream.h\
  memory_stream.h\
  message_stream.h\
  message.h\
  mime.h\
+ monitor.h\
+ nntp.h\
+ observer.h\
+ pop3.h\
  prog_stream.h\
+ property.h\
+ registrar.h\
  socket_stream.h\
  stdio_stream.h\
  streamref.h\
  streamtrans.h\
  stream.h\
  tls-stream.h\
- pop3.h\
- nntp.h\
+ url.h\
  xscript-stream.h

@@ -28,13 +28,13 @@
 #include <string.h>
 #include <errno.h>
 
-#include <folder0.h>
-#include <registrar0.h>
+#include <mailutils/sys/folder.h>
+#include <mailutils/sys/registrar.h>
 
 #include <maildir.h>
 #include <mailutils/mutil.h>
 #include <mailutils/url.h>
-#include <amd.h>
+#include <mailutils/sys/amd.h>
 
 static int
 _maildir_folder_init (mu_folder_t folder MU_ARG_UNUSED)
@@ -115,6 +115,6 @@ mu_record_t mu_maildir_record = &_maildir_record;
 
 #else
 #include <stdio.h>
-#include <registrar0.h>
+#include <mailutils/sys/registrar.h>
 mu_record_t mu_maildir_record = NULL;
 #endif

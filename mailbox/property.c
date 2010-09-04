@@ -24,7 +24,7 @@
 # include <strings.h>
 #endif
 
-#include <property0.h>
+#include <mailutils/sys/property.h>
 #include <mailutils/errno.h>
 #include <mailutils/assoc.h>
 #include <stdlib.h>

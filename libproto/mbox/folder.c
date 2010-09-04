@@ -33,8 +33,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <folder0.h>
-#include <registrar0.h>
+#include <mailutils/sys/folder.h>
+#include <mailutils/sys/registrar.h>
 
 #include <mailutils/auth.h>
 #include <mailutils/url.h>

@@ -51,9 +51,9 @@
 #include <mailutils/url.h>
 #include <mailutils/nntp.h>
 
-#include <folder0.h>
-#include <mailbox0.h>
-#include "nntp0.h"
+#include <mailutils/sys/folder.h>
+#include <mailutils/sys/mailbox.h>
+#include "mailutils/sys/nntp.h"
 
 
 /*  Functions/Methods that implements the mu_mailbox_t API.  */

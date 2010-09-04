@@ -55,9 +55,9 @@
 #include <mailutils/cctype.h>
 #include <mailutils/cstr.h>
 
-#include <mailer0.h>
-#include <url0.h>
-#include <registrar0.h>
+#include <mailutils/sys/mailer.h>
+#include <mailutils/sys/url.h>
+#include <mailutils/sys/registrar.h>
 
 static int      _mailer_smtp_init (mu_mailer_t);
 
@@ -1513,7 +1513,7 @@ smtp_readline (smtp_t smtp)
 
 #else
 #include <stdio.h>
-#include <registrar0.h>
+#include <mailutils/sys/registrar.h>
 mu_record_t     mu_smtp_record = NULL;
 mu_record_t     mu_remote_smtp_record = NULL;
 #endif

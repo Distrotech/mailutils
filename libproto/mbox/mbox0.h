@@ -42,8 +42,8 @@
 # include <strings.h>
 #endif
 
-#include <mailbox0.h>
-#include <registrar0.h>
+#include <mailutils/sys/mailbox.h>
+#include <mailutils/sys/registrar.h>
 
 #include <mailutils/address.h>
 #include <mailutils/attribute.h>

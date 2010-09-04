@@ -28,7 +28,7 @@
 
 #include <mailutils/errno.h>
 #include <mailutils/nls.h>
-#include <debug0.h>
+#include <mailutils/sys/debug.h>
 
 mu_debug_printer_fp mu_debug_default_printer = mu_debug_stderr_printer;
 

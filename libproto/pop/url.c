@@ -31,8 +31,8 @@
 # include <strings.h>
 #endif
 
-#include <url0.h>
-#include <registrar0.h>
+#include <mailutils/sys/url.h>
+#include <mailutils/sys/registrar.h>
 
 static void url_pop_destroy (mu_url_t url);
 

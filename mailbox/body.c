@@ -34,7 +34,7 @@
 #include <mailutils/mutil.h>
 #include <mailutils/errno.h>
 #include <mailutils/sys/stream.h>
-#include <body0.h>
+#include <mailutils/sys/body.h>
 
 #define BODY_MODIFIED 0x10000
 

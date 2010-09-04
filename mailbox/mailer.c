@@ -50,7 +50,7 @@
 #include <mailutils/mime.h>
 #include <mailutils/io.h>
 
-#include <mailer0.h>
+#include <mailutils/sys/mailer.h>
 
 static char *mailer_url_default;
 

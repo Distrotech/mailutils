@@ -17,25 +17,21 @@
    Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02110-1301 USA */
 
-#ifndef _FOLDER0_H
-#define _FOLDER0_H
+#ifndef _MAILUTILS_SYS_FOLDER_H
+# define _MAILUTILS_SYS_FOLDER_H
 
-#ifdef DMALLOC
-#  include <dmalloc.h>
-#endif
+# include <sys/types.h>
+# include <stdio.h>
 
-#include <sys/types.h>
-#include <stdio.h>
+# include <mailutils/monitor.h>
+# include <mailutils/folder.h>
 
-#include <mailutils/monitor.h>
-#include <mailutils/folder.h>
-
-#ifdef __cplusplus
+# ifdef __cplusplus
 extern "C" {
-#endif
+# endif
 
-#define MU_FOLDER_LIST 0
-#define MU_FOLDER_ENUM 1
+# define MU_FOLDER_LIST 0
+# define MU_FOLDER_ENUM 1
   
 struct _mu_folder
 {
@@ -70,8 +66,8 @@ struct _mu_folder
   int  (*_unsubscribe) (mu_folder_t, const char *);
 };
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 }
-#endif
+# endif
 
-#endif /* _FOLDER0_H */
+#endif /* _MAILUTILS_SYS_FOLDER_H */

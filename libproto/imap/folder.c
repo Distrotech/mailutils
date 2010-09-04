@@ -34,8 +34,8 @@
 # include <strings.h>
 #endif
 
-#include <imap0.h>
-#include <url0.h>
+#include <mailutils/sys/imap.h>
+#include <mailutils/sys/url.h>
 
 #include <mailutils/auth.h>
 #include <mailutils/attribute.h>
@@ -2612,7 +2612,7 @@ imap_parse (f_imap_t f_imap)
 
 #else
 #include <stdio.h>
-#include <registrar0.h>
+#include <mailutils/sys/registrar.h>
 mu_record_t mu_imap_record = NULL;
 mu_record_t mu_imaps_record = NULL;
 #endif /* ENABLE_IMAP */

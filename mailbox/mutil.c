@@ -64,7 +64,7 @@
 #include <mailutils/cctype.h>
 #include <mailutils/cstr.h>
 
-#include <registrar0.h>
+#include <mailutils/sys/registrar.h>
 
 /* convert a sequence of hex characters into an integer */
 

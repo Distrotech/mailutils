@@ -35,7 +35,7 @@
 #include <mailutils/secret.h>
 #include <mailutils/cctype.h>
 #include <mailutils/cstr.h>
-#include <url0.h>
+#include <mailutils/sys/url.h>
 
 #define AC2(a,b) a ## b
 #define AC4(a,b,c,d) a ## b ## c ## d

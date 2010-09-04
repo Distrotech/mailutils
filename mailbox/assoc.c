@@ -29,7 +29,7 @@
 #include <mailutils/iterator.h>
 #include <mailutils/mutil.h>
 #include <mailutils/cstr.h>
-#include <iterator0.h>
+#include <mailutils/sys/iterator.h>
 
 /* |hash_size| defines a sequence of symbol table sizes. These are prime
    numbers, the distance between each pair of them grows exponentially,

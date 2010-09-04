@@ -31,10 +31,10 @@
 #include <unistd.h>
 #include <dirent.h>
 
-#include <url0.h>
-#include <folder0.h>
-#include <registrar0.h>
-#include <amd.h>
+#include <mailutils/sys/url.h>
+#include <mailutils/sys/folder.h>
+#include <mailutils/sys/registrar.h>
+#include <mailutils/sys/amd.h>
 #include <mailutils/mutil.h>
 #include <mailutils/cctype.h>
 
@@ -155,6 +155,6 @@ mu_record_t mu_mh_record = &_mh_record;
 
 #else
 #include <stdio.h>
-#include <registrar0.h>
+#include <mailutils/sys/registrar.h>
 mu_record_t mu_mh_record = NULL;
 #endif

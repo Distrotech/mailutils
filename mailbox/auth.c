@@ -27,7 +27,7 @@
 #include <stdlib.h>
 
 #include <mailutils/errno.h>
-#include <auth0.h>
+#include <mailutils/sys/auth.h>
 
 static int
 _authenticate_null (mu_authority_t auth MU_ARG_UNUSED)

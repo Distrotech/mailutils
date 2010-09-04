@@ -25,7 +25,7 @@
 #include <string.h>
 #include <mailutils/errno.h>
 #include <mailutils/mutil.h>
-#include <envelope0.h>
+#include <mailutils/sys/envelope.h>
 
 int
 mu_envelope_create (mu_envelope_t *penvelope, void *owner)

@@ -69,7 +69,7 @@ AC_SUBST(MU_APP_LIBRARIES,'../libmu_argp/libmu_argp.a ../libmu_cfg/libmu_cfg.la 
 # header files. There are two exceptions, though. See NOTE before the
 # AC_CONFIG_LINKS statements, below.
 
-AC_SUBST(MU_LIB_COMMON_INCLUDES,'-I${top_builddir} -I${top_srcdir}/include  -I${top_builddir}/include -I${top_srcdir}/mailbox -I${top_srcdir}/libproto/include')
+AC_SUBST(MU_LIB_COMMON_INCLUDES,'-I${top_builddir} -I${top_srcdir}/include  -I${top_builddir}/include -I${top_srcdir}/mailbox')
 
 AC_SUBST(MU_APP_COMMON_INCLUDES,'-I${srcdir} -I${top_srcdir}/include -I${top_srcdir}/lib -I${top_builddir}/lib -I${top_builddir} -I${top_builddir}/include -I${top_srcdir}/mailbox -I${top_srcdir}/libmu_argp -I${top_srcdir}/libmu_cfg')
 
@@ -1350,7 +1350,6 @@ AC_CONFIG_FILES([
  libproto/pop/Makefile
  libproto/nntp/Makefile
  libproto/imap/Makefile
- libproto/include/Makefile
  maidag/Makefile
  mail/Makefile
  mail/testsuite/Makefile

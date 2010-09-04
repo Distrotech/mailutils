@@ -40,9 +40,9 @@
 #include <mailutils/errno.h>
 #include <mailutils/progmailer.h>
 
-#include <url0.h>
-#include <mailer0.h>
-#include <registrar0.h>
+#include <mailutils/sys/url.h>
+#include <mailutils/sys/mailer.h>
+#include <mailutils/sys/registrar.h>
 
 static void sendmail_destroy (mu_mailer_t);
 static int sendmail_open (mu_mailer_t, int);
@@ -293,6 +293,6 @@ mu_record_t mu_sendmail_record = &_sendmail_record;
 
 #else
 #include <stdio.h>
-#include <registrar0.h>
+#include <mailutils/sys/registrar.h>
 mu_record_t mu_sendmail_record = NULL;
 #endif

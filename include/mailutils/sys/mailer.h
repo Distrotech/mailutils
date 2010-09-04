@@ -17,26 +17,22 @@
    Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02110-1301 USA */
 
-#ifndef _MAILER0_H
-#define _MAILER0_H
+#ifndef _MAILUTILS_SYS_MAILER_H
+# define _MAILUTILS_SYS_MAILER_H
 
-#ifdef DMALLOC
-#  include <dmalloc.h>
-#endif
+# include <sys/types.h>
+# include <mailutils/mailer.h>
+# include <mailutils/monitor.h>
 
-#include <sys/types.h>
-#include <mailutils/mailer.h>
-#include <mailutils/monitor.h>
-
-#ifdef __cplusplus
+# ifdef __cplusplus
 extern "C" {
-#endif
+# endif
 
 /* Default mailer URL. */
 
-#define MAILER_URL_DEFAULT "sendmail:"
+# define MAILER_URL_DEFAULT "sendmail:"
 
-#define MAILER_LINE_BUF_SIZE	1000
+# define MAILER_LINE_BUF_SIZE	1000
 
 struct _mu_mailer
 {
@@ -61,11 +57,11 @@ struct _mu_mailer
 int _mu_mailer_mailbox_init (mu_mailbox_t mailbox);
 int _mu_mailer_folder_init (mu_folder_t folder MU_ARG_UNUSED);
   
-#define MAILER_NOTIFY(mailer, type) \
+# define MAILER_NOTIFY(mailer, type) \
   if (mailer->observer) observer_notify (mailer->observer, type)
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 }
-#endif
+# endif
 
-#endif /* MAILER0_H */
+#endif /* _MAILUTILS_SYS_MAILER_H */

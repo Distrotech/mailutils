@@ -36,8 +36,8 @@
 #include <mailutils/mu_auth.h>
 #include <mailutils/stream.h>
 
-#include <auth0.h>
-#include <url0.h>
+#include <mailutils/sys/auth.h>
+#include <mailutils/sys/url.h>
 
 int
 mu_wicket_create (mu_wicket_t *pwicket)

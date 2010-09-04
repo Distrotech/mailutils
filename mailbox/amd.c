@@ -69,10 +69,10 @@
 #include <mailutils/url.h>
 #include <mailutils/observer.h>
 #include <mailutils/sys/stream.h>
-#include <mailbox0.h>
-#include <registrar0.h>
-#include <url0.h>
-#include <amd.h>
+#include <mailutils/sys/mailbox.h>
+#include <mailutils/sys/registrar.h>
+#include <mailutils/sys/url.h>
+#include <mailutils/sys/amd.h>
 
 static void amd_destroy (mu_mailbox_t mailbox);
 static int amd_open (mu_mailbox_t, int);
