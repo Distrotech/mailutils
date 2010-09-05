@@ -554,49 +554,9 @@ smtp_close (mu_mailer_t mailer)
   return mu_stream_close (mailer->stream);
 }
 
-#ifdef WITH_TLS
 /*
   Client side STARTTLS support.
  */
-
-static int
-smtp_reader (void *iodata)
-{
-  int             status = 0;
-  smtp_t          iop = iodata;
-
-  status = smtp_read_ack (iop);
-  CHECK_EAGAIN (iop, status);
-  return status;
-}
-
-static int
-smtp_writer (void *iodata, char *buf)
-{
-  smtp_t          iop = iodata;
-  int             status;
-
-  if (mu_c_strncasecmp (buf, "EHLO", 4) == 0)
-    status = smtp_writeline (iop, "%s %s\r\n", buf, iop->localhost);
-  else
-    status = smtp_writeline (iop, "%s\r\n", buf);
-  CHECK_ERROR (iop, status);
-  status = smtp_write (iop);
-  CHECK_EAGAIN (iop, status);
-  return status;
-}
-
-static void
-smtp_stream_ctl (void *iodata, mu_stream_t * pold, mu_stream_t new)
-{
-  smtp_t          iop = iodata;
-
-  if (pold)
-    *pold = iop->mailer->stream;
-  if (new)
-    iop->mailer->stream = new;
-}
-#endif
 
 static int
 smtp_starttls (smtp_t smtp)
@@ -604,18 +564,30 @@ smtp_starttls (smtp_t smtp)
 #ifdef WITH_TLS
   int             status;
   mu_mailer_t     mailer = smtp->mailer;
-  char           *keywords[] = { "STARTTLS", NULL };
-
+  mu_stream_t     newstr;
+  
   if (!mu_tls_enable || !(smtp->capa & CAPA_STARTTLS))
     return -1;
 
   smtp->capa = 0;
   smtp->auth_mechs = 0;
-  status = mu_tls_begin (smtp, smtp_reader, smtp_writer,
-			 smtp_stream_ctl, keywords);
 
+  status = smtp_writeline (smtp, "STARTTLS\r\n");
+  CHECK_ERROR (smtp, status);
+  status = smtp_write (smtp);
+  CHECK_EAGAIN (smtp, status);
+  status = smtp_read_ack (smtp);
+  CHECK_ERROR (smtp, status);
+  mu_stream_flush (mailer->stream);
+  status = mu_tls_client_stream_create (&newstr, mailer->stream,
+					mailer->stream, 0);
+  CHECK_ERROR (smtp, status);
+  status = mu_stream_open (newstr);
   MU_DEBUG1 (mailer->debug, MU_DEBUG_PROT, "TLS negotiation %s\n",
 	     status == 0 ? "succeeded" : "failed");
+  CHECK_ERROR (smtp, status);
+
+  mailer->stream = newstr;
 
   return status;
 #else
@@ -1398,6 +1370,8 @@ smtp_parse_ehlo_ack (smtp_t smtp)
 {
   int             status;
   int             multi;
+
+  smtp->ptr = smtp->buffer;
 
   do
     {
