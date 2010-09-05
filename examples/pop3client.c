@@ -50,6 +50,7 @@
 #include <mailutils/cctype.h>
 #include <mailutils/cstr.h>
 #include <mailutils/tls.h>
+#include <mailutils/mutil.h>
 
 /* A structure which contains information on the commands this program
    can understand. */
@@ -85,6 +86,7 @@ int com_user (int, char **);
 int com_verbose (int, char **);
 int com_prompt (int, char **);
 int com_stls (int, char **);
+int com_history (int, char **);
 
 COMMAND *find_command (char *);
 
@@ -131,6 +133,10 @@ COMMAND commands[] = {
     "send login: USER user" },
   { "verbose",    1, 2, com_verbose,
     "Enable Protocol tracing: verbose [on|off]" },
+#ifdef WITH_READLINE
+  { "history",    1, 1, com_history,
+    "Show command history" },
+#endif
   { NULL }
 };
 
@@ -210,6 +216,27 @@ expand_prompt ()
 
 
 #ifdef WITH_READLINE
+#define HISTFILE_SUFFIX "_history"
+
+static char *
+get_history_file_name ()
+{
+  static char *filename = NULL;
+
+  if (!filename)
+    {
+      char *hname;
+      
+      hname = xmalloc(3 + strlen (rl_readline_name) + sizeof HISTFILE_SUFFIX);
+      strcpy (hname, "~/.");
+      strcat (hname, rl_readline_name);
+      strcat (hname, HISTFILE_SUFFIX);
+      filename = mu_tilde_expansion (hname, "/", NULL);
+      free(hname);
+    }
+  return filename;
+}
+
 /* Interface to Readline Completion */
 
 char *command_generator (const char *, int);
@@ -222,10 +249,18 @@ void
 initialize_readline ()
 {
   /* Allow conditional parsing of the ~/.inputrc file. */
-  rl_readline_name = (char *) "pop3";
+  rl_readline_name = (char *) "pop3client";
 
   /* Tell the completer that we want a crack first. */
   rl_attempted_completion_function = (CPPFunction *) pop_completion;
+
+  read_history (get_history_file_name ());
+}
+
+void
+finish_readline ()
+{
+  write_history (get_history_file_name());
 }
 
 /* Attempt to complete on the contents of TEXT.  START and END bound the
@@ -280,11 +315,64 @@ command_generator (const char *text, int state)
   return NULL;
 }
 
-#else
-void
-initialize_readline ()
+static char *pre_input_line;
+
+static int
+pre_input (void)
 {
+  rl_insert_text (pre_input_line);
+  free (pre_input_line);
+  rl_pre_input_hook = NULL;
+  rl_redisplay ();
+  return 0;
 }
+
+static int
+retrieve_history (char *str)
+{
+  char *out;
+  int rc;
+
+  rc = history_expand (str, &out);
+  switch (rc)
+    {
+    case -1:
+      mu_error ("%s", out);
+      free (out);
+      return 1;
+
+    case 0:
+      break;
+
+    case 1:
+      pre_input_line = out;
+      rl_pre_input_hook = pre_input;
+      return 1;
+
+    case 2:
+      printf ("%s\n", out);
+      free (out);
+      return 1;
+    }
+  return 0;
+}
+
+int
+com_history (int argc, char **argv)
+{
+  int i;
+  HIST_ENTRY **hlist;
+
+  hlist = history_list ();
+  for (i = 0; i < history_length; i++)
+    printf ("%4d) %s\n", i + 1, hlist[i]->line);
+
+  return 0;
+}
+
+#else
+# define initialize_readline()
+# define finish_readline()
 
 char *
 readline (char *prompt)
@@ -299,7 +387,7 @@ readline (char *prompt)
 
   if (!fgets (buf, sizeof (buf), stdin))
     return NULL;
-  return strdup (buf);
+  return xstrdup (buf);
 }
 
 void
@@ -678,7 +766,7 @@ int
 com_stat (int argc MU_ARG_UNUSED, char **argv MU_ARG_UNUSED)
 {
   size_t count = 0;
-  size_t size = 0;
+  mu_off_t size = 0;
   int status = 0;
 
   status = mu_pop3_stat (pop3, &count, &size);
@@ -947,24 +1035,45 @@ com_exit (int argc MU_ARG_UNUSED, char **argv MU_ARG_UNUSED)
 }
 
 
+static char *
+input_line_interactive ()
+{
+  char *p = expand_prompt ();
+  char *line = readline (p);
+  free (p);
+  return line;
+}
+
+static char *
+input_line_script ()
+{
+  size_t size = 0;
+  char *buf = NULL;
+  if (getline (&buf, &size, stdin) <= 0)
+    return NULL;
+  return buf;
+}
+
 int
 main (int argc MU_ARG_UNUSED, char **argv)
 {
   char *line, *s;
+  int interactive = isatty (0);
+  char *(*input_line) () = interactive ?
+                             input_line_interactive : input_line_script;
 
   mu_set_program_name (argv[0]);
   prompt = strdup (DEFAULT_PROMPT);
-  initialize_readline ();	/* Bind our completer. */
+  if (interactive)
+    initialize_readline ();	/* Bind our completer. */
+
 #ifdef WITH_TLS
   mu_init_tls_libs ();
 #endif  
   /* Loop reading and executing lines until the user quits. */
   while (!done)
     {
-      char *p = expand_prompt ();
-      line = readline (p);
-      free (p);
-      
+      line = input_line ();
       if (!line)
 	break;
 
@@ -976,7 +1085,16 @@ main (int argc MU_ARG_UNUSED, char **argv)
       if (*s)
 	{
 	  int status;
-	  add_history (s);
+
+#ifdef WITH_READLINE
+	  if (interactive)
+	    {
+	      if (retrieve_history (s))
+		continue;
+	      add_history (s);
+	    }
+#endif
+
 	  status = execute_line (s);
 	  if (status != 0)
 	    mu_error ("Error: %s", mu_strerror (status));
@@ -984,6 +1102,8 @@ main (int argc MU_ARG_UNUSED, char **argv)
 
       free (line);
     }
+  if (interactive)
+    finish_readline ();
   exit (0);
 }
 
