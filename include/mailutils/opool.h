@@ -62,6 +62,10 @@ size_t mu_opool_size (mu_opool_t opool);
    mu_opool_create, above). */
 int mu_opool_coalesce (mu_opool_t opool, size_t *psize);
 
+/* Copy at most SIZE bytes of collected data into BUF.  Return the
+   actual number of bytes copied. */
+size_t mu_opool_copy (mu_opool_t opool, void *buf, size_t size);
+
 /* Return the pointer to the current object head chunk.  If mu_opool_coalesce 
    was called before, the returned value points to the entire object.
    If PSIZE is not NULL, store the size of the head chunk to *PSIZE. */     

@@ -26,7 +26,7 @@
 #include <mailutils/sys/pop3.h>
 
 int
-pop3_capa_test (mu_pop3_t pop3, const char *name, const char **pret)
+mu_pop3_capa_test (mu_pop3_t pop3, const char *name, const char **pret)
 {
   int rc;
 

@@ -27,10 +27,10 @@
 #include <mailutils/sys/pop3.h>
 
 int
-mu_pop3_stat (mu_pop3_t pop3, unsigned *msg_count, size_t *size)
+mu_pop3_stat (mu_pop3_t pop3, size_t *msg_count, mu_off_t *size)
 {
   int status;
-  unsigned long lv;
+  unsigned long lv, count;
   
   if (pop3 == NULL || msg_count == NULL)
     return EINVAL;
@@ -55,7 +55,8 @@ mu_pop3_stat (mu_pop3_t pop3, unsigned *msg_count, size_t *size)
       *msg_count = 0;
       lv = 0;
       /* FIXME: Error checking */
-      sscanf (pop3->ackbuf, "+OK %d %lu", msg_count, &lv);
+      sscanf (pop3->ackbuf, "+OK %lu %lu", &count, &lv);
+      *msg_count = count;
       *size = lv;
       break;
 

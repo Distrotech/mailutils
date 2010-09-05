@@ -201,7 +201,10 @@ _xscript_ctl (struct _mu_stream *str, int op, void *arg)
     case MU_IOCTL_SWAP_STREAM:
       if (!arg)
 	return EINVAL;
-      status = mu_stream_ioctl (sp->transport, op, arg);
+      if (!sp->transport)
+	status = ENOSYS;
+      else
+	status = mu_stream_ioctl (sp->transport, op, arg);
       if (status == EINVAL || status == ENOSYS)
 	{
 	  mu_stream_t *pstr = arg;
