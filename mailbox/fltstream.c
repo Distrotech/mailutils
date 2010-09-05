@@ -159,15 +159,6 @@ filter_read (mu_stream_t stream, char *buf, size_t size, size_t *pret)
 	  switch (res)
 	    {
 	    case mu_filter_ok:
-	      if (iobuf.isize == 0 || iobuf.osize == 0)
-		{
-		  /* FIXME: Hack to handle eventual buggy filters */
-		  if (iobuf.isize == 0)
-		    min_input_level++;
-		  if (iobuf.osize == 0)
-		    min_output_size++;
-		  continue;
-		}
 	      if (iobuf.isize > MFB_RDBYTES (fs->inbuf)
 		  || iobuf.osize > MFB_FREESIZE (fs->outbuf))
 		return MU_ERR_FAILURE; /* FIXME: special error code? */

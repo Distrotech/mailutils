@@ -142,7 +142,8 @@ _pop3_decoder (void *xd,
 	}
       else if (c == '.' && *pstate == pds_crlf)
 	{
-	  if (i + 1 == isize)
+	  /* Make sure we have two more characters in the buffer */
+	  if (i + 2 == isize)
 	    break;
 	  *pstate = newstate (*pstate, c);
 	  if (*iptr != '\r')
@@ -154,7 +155,10 @@ _pop3_decoder (void *xd,
     }
   
   if (*pstate == pds_end)
-    iobuf->eof = 1;
+    {
+      j -= 2; /* remove the trailing .\n */
+      iobuf->eof = 1;
+    }
   iobuf->isize = i;
   iobuf->osize = j;
   return mu_filter_ok;

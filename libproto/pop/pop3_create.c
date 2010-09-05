@@ -24,6 +24,7 @@
 #include <errno.h>
 #include <mailutils/errno.h>
 #include <mailutils/sys/pop3.h>
+#include <mailutils/list.h>
 
 /* Initialise a mu_pop3_t handle.  */
 
@@ -58,6 +59,7 @@ _mu_pop3_init (mu_pop3_t pop3)
       mu_list_destroy (&pop3->capa);
       pop3->flags = 0;
     }
+  return 0;
 }
 
   

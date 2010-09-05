@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <mailutils/errno.h>
 #include <mailutils/sys/pop3.h>
+#include <mailutils/list.h>
 
 void
 mu_pop3_destroy (mu_pop3_t *ppop3)
