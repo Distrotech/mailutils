@@ -48,12 +48,11 @@ mu_pop3_top (mu_pop3_t pop3, unsigned msgno, unsigned int lines,
       status = mu_pop3_response (pop3, NULL);
       MU_POP3_CHECK_EAGAIN (pop3, status);
       MU_POP3_CHECK_OK (pop3);
+      status = mu_pop3_stream_create (pop3, pstream);
+      MU_POP3_CHECK_ERROR (pop3, status);
       pop3->state = MU_POP3_TOP_RX;
 
     case MU_POP3_TOP_RX:
-      status = mu_pop3_stream_create (pop3, pstream);
-      MU_POP3_CHECK_ERROR (pop3, status);
-      pop3->state = MU_POP3_NO_STATE;
       break;
 
       /* They must deal with the error first by reopening.  */

@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2004, 2007, 2010 Free Software
-   Foundation, Inc.
+   Copyright (C) 2003, 2004, 2005, 2007, 2010 Free Software Foundation,
+   Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -21,19 +21,17 @@
 # include <config.h>
 #endif
 
+#include <stdlib.h>
+#include <mailutils/list.h>
 #include <mailutils/sys/pop3.h>
 
 int
-mu_pop3_list_all (mu_pop3_t pop3, mu_iterator_t *piterator)
+pop3_capa_test (mu_pop3_t pop3, const char *name, const char **pret)
 {
-  int status = mu_pop3_list_cmd (pop3);
+  int rc;
 
-  if (status)
-    return status;
-
-  status = mu_pop3_iterator_create (pop3, piterator);
-  MU_POP3_CHECK_ERROR (pop3, status);
-  pop3->state = MU_POP3_LIST_RX;
-
-  return status;
+  rc = mu_pop3_capa (pop3, 0, NULL);
+  if (rc)
+    return rc;
+  return mu_list_locate (pop3->capa, (void*) name, (void**)pret);
 }

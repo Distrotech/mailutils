@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2004, 2007, 2010 Free Software
-   Foundation, Inc.
+   Copyright (C) 2003, 2004, 2005, 2007, 2010 Free Software Foundation,
+   Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -21,19 +21,45 @@
 # include <config.h>
 #endif
 
+#include <string.h>
+#include <mailutils/stream.h>
+#include <mailutils/list.h>
+#include <mailutils/cctype.h>
+#include <mailutils/cstr.h>
 #include <mailutils/sys/pop3.h>
 
 int
-mu_pop3_list_all (mu_pop3_t pop3, mu_iterator_t *piterator)
+mu_pop3_stream_to_list (mu_pop3_t pop3, mu_stream_t stream, mu_list_t list)
 {
-  int status = mu_pop3_list_cmd (pop3);
-
-  if (status)
-    return status;
-
-  status = mu_pop3_iterator_create (pop3, piterator);
-  MU_POP3_CHECK_ERROR (pop3, status);
-  pop3->state = MU_POP3_LIST_RX;
-
+  int status;
+  size_t n;
+  
+  while (mu_stream_getline (stream, &pop3->rdbuf, &pop3->rdsize, &n) == 0
+	 && n > 0)
+    {
+      char *np = strdup (pop3->rdbuf);
+      if (!np)
+	{
+	  status = ENOMEM;
+	  break;
+	}
+      mu_rtrim_class (np, MU_CTYPE_SPACE);
+      status = mu_list_append (list, np);
+      if (status)
+	break;
+    }
   return status;
 }
+
+int
+mu_pop3_read_list (mu_pop3_t pop3, mu_list_t list)
+{
+  mu_stream_t stream;
+  int status = mu_pop3_stream_create (pop3, &stream);
+  if (status)
+    return status;
+  status = mu_pop3_stream_to_list (pop3, stream, list);
+  mu_stream_destroy (&stream);
+  return status;
+}
+

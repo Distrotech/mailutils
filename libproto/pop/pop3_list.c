@@ -40,7 +40,7 @@ mu_pop3_list (mu_pop3_t pop3, unsigned int msgno, size_t *psize)
   switch (pop3->state)
     {
     case MU_POP3_NO_STATE:
-      status = mu_pop3_writeline (pop3, "LIST %d\r\n", msgno);
+      status = mu_pop3_writeline (pop3, "LIST %u\r\n", msgno);
       MU_POP3_CHECK_ERROR (pop3, status);
       MU_POP3_FCLR (pop3, MU_POP3_ACK);
       pop3->state = MU_POP3_LIST;

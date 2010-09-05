@@ -164,7 +164,7 @@ filter_read (mu_stream_t stream, char *buf, size_t size, size_t *pret)
 		return MU_ERR_FAILURE; /* FIXME: special error code? */
 	      if (iobuf.eof)
 		{
-		  stream->flags |= _MU_STR_EOF;
+		  _mu_stream_seteof (stream);
 		  stop = 1;
 		}
 	      break;
