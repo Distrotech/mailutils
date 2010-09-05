@@ -47,19 +47,6 @@ extern int mu_check_tls_environment (void);
 extern int mu_init_tls_libs (void);
 extern void mu_deinit_tls_libs (void);
 
-typedef int (*mu_tls_readline_fn) (void *iodata, int n);
-typedef int (*mu_tls_writeline_fn) (void *iodata, char *buf);
-
-#define MU_TLS_SESS_GET_STREAMS 0
-#define MU_TLS_SESS_SET_STREAMS 1  
-typedef int (*mu_tls_stream_ctl_fn) (void *iodata, int __op,
-				     mu_stream_t *pstr);
-
-extern int mu_tls_begin (void *iodata, mu_tls_readline_fn reader,
-			 mu_tls_writeline_fn writer,
-			 mu_tls_stream_ctl_fn stream_ctl,
-			 char *keywords[]);
-
 extern int mu_tls_enable;
   
 #ifdef __cplusplus
