@@ -24,14 +24,14 @@
 #include <mailutils/sys/pop3.h>
 
 int
-mu_pop3_list_all (mu_pop3_t pop3, mu_iterator_t *piterator)
+mu_pop3_list_all_stream (mu_pop3_t pop3, mu_stream_t *pstream)
 {
   int status = mu_pop3_list_cmd (pop3);
 
   if (status)
     return status;
 
-  status = mu_pop3_iterator_create (pop3, piterator);
+  status = mu_pop3_stream_create (pop3, pstream);
   MU_POP3_CHECK_ERROR (pop3, status);
   pop3->state = MU_POP3_LIST_RX;
 

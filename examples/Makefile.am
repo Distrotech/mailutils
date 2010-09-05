@@ -111,6 +111,7 @@ sfrom_LDADD =\
  @MU_AUTHLIBS@\
  ${MU_LIB_MAILUTILS}
 
+pop3client_CPPFLAGS = @MU_APP_COMMON_INCLUDES@
 pop3client_LDADD = \
  ../lib/libmuaux.la\
  ${MU_LIB_POP}\

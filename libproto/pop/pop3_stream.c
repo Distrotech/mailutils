@@ -39,6 +39,7 @@ struct mu_pop3_stream
 enum pop3_decode_state
   {
     pds_init,  /* initial state */
+    pds_char,  /* Any character excepting [\r\n.] */
     pds_cr,    /* prev. char was \r */
     pds_crlf,  /* 2 prev. char were \r\n */
     pds_dot,   /* 3 prev. chars were \r\n. */
@@ -52,6 +53,16 @@ newstate (int state, int c)
   switch (state)
     {
     case pds_init:
+      switch (c)
+	{
+	case '\r':
+	  return pds_cr;
+	case '.':
+	  return pds_dot;
+	}
+      break;
+      
+    case pds_char:
       switch (c)
 	{
 	case '\r':
@@ -93,7 +104,7 @@ newstate (int state, int c)
 	  return pds_end;
 	}
     }
-  return pds_init;
+  return pds_char;
 }
 
 /* Move min(isize,osize) bytes from iptr to optr, replacing each \r\n
@@ -140,7 +151,7 @@ _pop3_decoder (void *xd,
 	  if (*iptr == '\n')
 	    continue;
 	}
-      else if (c == '.' && *pstate == pds_crlf)
+      else if (c == '.' && (*pstate == pds_init || *pstate == pds_crlf))
 	{
 	  /* Make sure we have two more characters in the buffer */
 	  if (i + 2 == isize)
@@ -164,16 +175,39 @@ _pop3_decoder (void *xd,
   return mu_filter_ok;
 }
 
+static void
+_pop3_event_cb (mu_stream_t str, int ev, int flags)
+{
+  if (ev == _MU_STR_EVENT_SET)
+    {
+      mu_transport_t trans[2];
+
+      if (mu_stream_ioctl (str, MU_IOCTL_GET_TRANSPORT, trans) == 0)
+	{
+	  struct mu_pop3_stream *sp = (struct mu_pop3_stream *) trans[0];
+	  sp->pop3->state = MU_POP3_NO_STATE;
+	}
+    }
+}
+
 static int
 mu_pop3_filter_create (mu_stream_t *pstream, mu_stream_t stream)
 {
+  int rc;
   int *state = malloc (sizeof (*state));
   if (!state)
     return ENOMEM;
-  return mu_filter_stream_create (pstream, stream,
-				  MU_FILTER_DECODE,
-				  _pop3_decoder, state,
-				  MU_STREAM_READ);
+  rc = mu_filter_stream_create (pstream, stream,
+				MU_FILTER_DECODE,
+				_pop3_decoder, state,
+				MU_STREAM_READ);
+  if (rc == 0)
+    {
+      mu_stream_t str = *pstream;
+      str->event_cb = _pop3_event_cb;
+      str->event_mask = _MU_STR_EOF;
+    }
+  return rc;
 }
 
 
@@ -257,6 +291,7 @@ mu_pop3_stream_create (mu_pop3_t pop3, mu_stream_t *pstream)
   sp->stream.readdelim = _mu_pop3_readdelim; 
   sp->stream.flush = _mu_pop3_flush;
   sp->stream.wait = _mu_pop3_wait;
+  
   sp->pop3 = pop3;
   sp->done = 0;
   str = (mu_stream_t) sp;

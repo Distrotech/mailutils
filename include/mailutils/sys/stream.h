@@ -24,6 +24,9 @@
 
 #define _MU_STR_INTERN_MASK   0xf000
 
+#define _MU_STR_EVENT_SET     1
+#define _MU_STR_EVENT_CLR     2
+
 struct _mu_stream
 {
   int ref_count;
@@ -54,6 +57,9 @@ struct _mu_stream
   int (*truncate) (struct _mu_stream *, mu_off_t);
   int (*shutdown) (struct _mu_stream *, int);
 
+  void (*event_cb) (struct _mu_stream *, int, int);
+  int  event_mask;
+  
   const char *(*error_string) (struct _mu_stream *, int);
   
 };
@@ -64,6 +70,9 @@ int mu_stream_read_unbuffered (mu_stream_t stream, void *buf, size_t size,
 int mu_stream_write_unbuffered (mu_stream_t stream,
 				const void *buf, size_t size,
 				int full_write, size_t *pnwritten);
+
+void _mu_stream_cleareof (mu_stream_t str);
+void _mu_stream_seteof (mu_stream_t str);
 
 #define _MU_SWAP_FIRST_ONLY         0x01
 #define _MU_SWAP_IOCTL_MUST_SUCCEED 0x02

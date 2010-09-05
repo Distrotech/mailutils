@@ -32,6 +32,22 @@
 #include <mailutils/stream.h>
 #include <mailutils/sys/stream.h>
 
+static void
+_stream_setflag (struct _mu_stream *stream, int flag)
+{
+  if (stream->event_cb && (stream->event_mask & flag))
+    stream->event_cb (stream, _MU_STR_EVENT_SET, flag);
+  stream->flags |= flag;
+}
+
+static void
+_stream_clrflag (struct _mu_stream *stream, int flag)
+{
+  if (stream->event_cb && (stream->event_mask & flag))
+    stream->event_cb (stream, _MU_STR_EVENT_CLR, flag);
+  stream->flags &= ~flag;
+}
+
 int
 mu_stream_seterr (struct _mu_stream *stream, int code, int perm)
 {
@@ -45,12 +61,23 @@ mu_stream_seterr (struct _mu_stream *stream, int code, int perm)
 
     default:
       if (perm)
-	stream->flags |= _MU_STR_ERR;
+	_stream_setflag (stream, _MU_STR_ERR);
     }
   return code;
 }
 
-#define _stream_cleareof(s) ((s)->flags &= ~_MU_STR_EOF)
+void
+_mu_stream_cleareof (mu_stream_t str)
+{
+  _stream_clrflag (str, _MU_STR_EOF);
+}
+
+void
+_mu_stream_seteof (mu_stream_t str)
+{
+  _stream_setflag (str, _MU_STR_EOF);
+}
+
 #define _stream_advance_buffer(s,n) ((s)->cur += n, (s)->level -= n)
 #define _stream_buffer_offset(s) ((s)->cur - (s)->buffer)
 #define _stream_orig_level(s) ((s)->level + _stream_buffer_offset (s))
@@ -82,9 +109,13 @@ _stream_fill_buffer (struct _mu_stream *stream)
       for (n = 0;
 	   n < stream->bufsize
 	     && (rc = mu_stream_read_unbuffered (stream,
-						 &c, 1, 0, &rdn)) == 0
-	     && rdn; )
+						 &c, 1, 0, &rdn)) == 0;)
 	{
+	  if (rdn == 0)
+	    {
+	      _stream_setflag (stream, _MU_STR_EOF);
+	      break;
+	    }
 	  stream->buffer[n++] = c;
 	  if (c == '\n')
 	    break;
@@ -175,7 +206,7 @@ _stream_flush_buffer (struct _mu_stream *stream, int all)
     }
   else
     {
-      stream->flags &= ~_MU_STR_DIRTY;
+      _stream_clrflag (stream, _MU_STR_DIRTY);
       stream->level = 0;
     }
   stream->cur = stream->buffer;
@@ -269,7 +300,7 @@ void
 mu_stream_clearerr (mu_stream_t stream)
 {
   stream->last_err = 0;
-  stream->flags &= ~_MU_STR_ERR;
+  _stream_clrflag (stream, _MU_STR_ERR);
 }
 
 int
@@ -327,7 +358,7 @@ mu_stream_seek (mu_stream_t stream, mu_off_t offset, int whence,
 	return rc;
       if (rc)
 	return mu_stream_seterr (stream, rc, 1);
-      _stream_cleareof (stream);
+      _mu_stream_cleareof (stream);
     }
   
   if (pres)
@@ -469,7 +500,7 @@ mu_stream_read_unbuffered (mu_stream_t stream, void *buf, size_t size,
 	  {
 	    if (rdbytes == 0)
 	      {
-		stream->flags |= _MU_STR_EOF;
+		_stream_setflag (stream, _MU_STR_EOF);
 		break;
 	      }
 	    buf += rdbytes;
@@ -487,7 +518,7 @@ mu_stream_read_unbuffered (mu_stream_t stream, void *buf, size_t size,
 	if (rc == 0)
 	  {
 	    if (nread == 0)
-	      stream->flags |= _MU_STR_EOF;
+	      _stream_setflag (stream, _MU_STR_EOF);
 	    stream->bytes_in += nread;
 	  }
 	mu_stream_seterr (stream, rc, rc != 0);
@@ -551,7 +582,7 @@ mu_stream_write_unbuffered (mu_stream_t stream,
       if (rc == 0)
 	stream->bytes_out += nwritten;
     }
-  stream->flags |= _MU_STR_WRT;
+  _stream_setflag (stream, _MU_STR_WRT);
   stream->offset += nwritten;
   if (pnwritten)
     *pnwritten = nwritten;
@@ -806,7 +837,7 @@ mu_stream_write (mu_stream_t stream, const void *buf, size_t size,
 	  nbytes += n;
 	  bufp += n;
 	  size -= n;
-	  stream->flags |= _MU_STR_DIRTY;
+	  _stream_setflag (stream, _MU_STR_DIRTY);
 	}
       if (pnwritten)
 	*pnwritten = nbytes;
@@ -835,7 +866,7 @@ mu_stream_flush (mu_stream_t stream)
     return rc;
   if ((stream->flags & _MU_STR_WRT) && stream->flush)
     return stream->flush (stream);
-  stream->flags &= ~_MU_STR_WRT;
+  _stream_clrflag (stream, _MU_STR_WRT);
   return 0;
 }
 

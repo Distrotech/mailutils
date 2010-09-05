@@ -20,50 +20,17 @@
 # include <config.h>
 #endif
 
-#include <string.h>
-# include <errno.h>
-#include <stdlib.h>
 #include <mailutils/sys/pop3.h>
 
 int
 mu_pop3_uidl_all (mu_pop3_t pop3, mu_iterator_t *piterator)
 {
-  int status = 0;
-
-  if (pop3 == NULL)
-    return EINVAL;
-  if (piterator == NULL)
-    return MU_ERR_OUT_PTR_NULL;
-
-  switch (pop3->state)
-    {
-    case MU_POP3_NO_STATE:
-      status = mu_pop3_writeline (pop3, "UIDL\r\n");
-      MU_POP3_CHECK_ERROR (pop3, status);
-      MU_POP3_FCLR (pop3, MU_POP3_ACK);
-      pop3->state = MU_POP3_UIDL;
-
-    case MU_POP3_UIDL:
-      status = mu_pop3_response (pop3, NULL);
-      MU_POP3_CHECK_EAGAIN (pop3, status);
-      MU_POP3_CHECK_OK (pop3);
-      status = mu_pop3_iterator_create (pop3, piterator);
-      MU_POP3_CHECK_ERROR (pop3, status);
-      pop3->state = MU_POP3_UIDL_RX;
-
-    case MU_POP3_UIDL_RX:
-      /* The mu_iterator_t will read the stream and set the state to
-	 MU_POP3_NO_STATE when done.  */
-      break;
-
-      /* They must deal with the error first by reopening.  */
-    case MU_POP3_ERROR:
-      status = ECANCELED;
-      break;
-
-    default:
-      status = EINPROGRESS;
-    }
+  int status = mu_pop3_uidl_all_cmd (pop3);
+  if (status)
+    return status;
+  status = mu_pop3_iterator_create (pop3, piterator);
+  MU_POP3_CHECK_ERROR (pop3, status);
+  pop3->state = MU_POP3_UIDL_RX;
 
   return status;
 }

@@ -33,36 +33,18 @@
 #include <mailutils/sys/pop3.h>
 
 static int
-string_comp (const void *item, const void *value)
+capa_comp (const void *item, const void *value)
 {
-  return strcmp (item, value);
-}
-
-int
-_mu_pop3_fill_list (mu_pop3_t pop3, mu_list_t list)
-{
-  mu_stream_t stream;
-  size_t n;
-  int status = mu_pop3_stream_create (pop3, &stream);
-  if (status)
-    return status;
-  
-  while (mu_stream_getline (stream, &pop3->rdbuf, &pop3->rdsize, &n) == 0
-	 && n > 0)
+  const char *capa = item;
+  const char *needle = value;
+  for (; *needle; capa++, needle++)
     {
-      char *np = strdup (pop3->rdbuf);
-      if (!np)
-	{
-	  status = ENOMEM;
-	  break;
-	}
-      mu_rtrim_class (np, MU_CTYPE_SPACE);
-      status = mu_list_append (list, np);
-      if (status)
-	break;
+      if (!*capa)
+	return 1;
+      if (mu_tolower (*capa) != mu_tolower (*needle))
+	return 1;
     }
-  mu_stream_destroy (&stream);
-  return status;
+  return !(*capa == 0 || mu_isspace (*capa));
 }
 
 /*
@@ -91,7 +73,7 @@ mu_pop3_capa (mu_pop3_t pop3, int reread, mu_iterator_t *piter)
   status = mu_list_create (&pop3->capa);
   if (status)
     return status;
-  mu_list_set_comparator (pop3->capa, string_comp);
+  mu_list_set_comparator (pop3->capa, capa_comp);
   mu_list_set_destroy_item (pop3->capa, mu_list_free_item);
   
   switch (pop3->state)
@@ -109,7 +91,7 @@ mu_pop3_capa (mu_pop3_t pop3, int reread, mu_iterator_t *piter)
       pop3->state = MU_POP3_CAPA_RX;
 
     case MU_POP3_CAPA_RX:
-      status = _mu_pop3_fill_list (pop3, pop3->capa);
+      status = mu_pop3_read_list (pop3, pop3->capa);
       MU_POP3_CHECK_ERROR (pop3, status);
       if (piter)
 	status = mu_list_get_iterator (pop3->capa, piter);

@@ -1,6 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2004, 2007, 2010 Free Software
-   Foundation, Inc.
+   Copyright (C) 2003, 2004, 2007, 2010 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -24,16 +23,14 @@
 #include <mailutils/sys/pop3.h>
 
 int
-mu_pop3_list_all (mu_pop3_t pop3, mu_iterator_t *piterator)
+mu_pop3_uidl_all_stream (mu_pop3_t pop3, mu_stream_t *pstream)
 {
-  int status = mu_pop3_list_cmd (pop3);
-
+  int status = mu_pop3_uidl_all_cmd (pop3);
   if (status)
     return status;
-
-  status = mu_pop3_iterator_create (pop3, piterator);
+  status = mu_pop3_stream_create (pop3, pstream);
   MU_POP3_CHECK_ERROR (pop3, status);
-  pop3->state = MU_POP3_LIST_RX;
+  pop3->state = MU_POP3_UIDL_RX;
 
   return status;
 }
