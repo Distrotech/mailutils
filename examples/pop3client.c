@@ -502,7 +502,7 @@ com_capa (int argc, char **argv)
       for (; i < argc; i++)
 	{
 	  const char *elt;
-	  int rc = pop3_capa_test (pop3, argv[i], &elt);
+	  int rc = mu_pop3_capa_test (pop3, argv[i], &elt);
 	  switch (rc)
 	    {
 	    case 0:
@@ -677,7 +677,7 @@ com_pass (int argc, char **argv)
 int
 com_stat (int argc MU_ARG_UNUSED, char **argv MU_ARG_UNUSED)
 {
-  unsigned count = 0;
+  size_t count = 0;
   size_t size = 0;
   int status = 0;
 

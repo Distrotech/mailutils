@@ -59,8 +59,8 @@ int  mu_pop3_stls (mu_pop3_t pop3);
    done with the iterator.  The items returned by the iterator are of type
    "const char *", no processing is done on the item except the removal of
    the trailing newline.  */
-int  mu_pop3_capa (mu_pop3_t pop3, int reread, mu_iterator_t *piter);
-int pop3_capa_test (mu_pop3_t pop3, const char *name, const char **pret);
+int mu_pop3_capa (mu_pop3_t pop3, int reread, mu_iterator_t *piter);
+int mu_pop3_capa_test (mu_pop3_t pop3, const char *name, const char **pret);
 
 int  mu_pop3_dele (mu_pop3_t pop3, unsigned int mesgno);
 
@@ -89,7 +89,7 @@ int  mu_pop3_retr (mu_pop3_t pop3, unsigned int mesgno,
 
 int  mu_pop3_rset (mu_pop3_t pop3);
 
-int  mu_pop3_stat (mu_pop3_t pop3, unsigned int *count, size_t *octets);
+int  mu_pop3_stat (mu_pop3_t pop3, size_t *count, mu_off_t *octets);
 
 /* A stream is returned with the multi-line answer.  It is the responsability
    of the caller to call mu_stream_destroy() to dipose of the stream.  */

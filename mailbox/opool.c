@@ -205,6 +205,25 @@ mu_opool_size (mu_opool_t opool)
   return size;
 }
 
+size_t
+mu_opool_copy (mu_opool_t opool, void *buf, size_t size)
+{
+  char *cp = buf;
+  size_t total = 0;
+  struct mu_opool_bucket *p;
+  
+  for (p = opool->head; p && total < size; p = p->next)
+    {
+      size_t cpsize = size - total;
+      if (cpsize > p->level)
+	cpsize = p->level;
+      memcpy (cp, p->buf, cpsize);
+      cp += cpsize;
+      total += cpsize;
+    }
+  return total;
+}
+
 int
 mu_opool_coalesce (mu_opool_t opool, size_t *psize)
 {
