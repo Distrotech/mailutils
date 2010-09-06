@@ -146,6 +146,9 @@ fd_open (struct _mu_stream *str)
   if (fd < 0)
     return errno;
 
+  /* Make sure it will be closed */
+  fstr->flags |= MU_STREAM_AUTOCLOSE;
+
   fstr->fd = fd;
   return 0;
 }
@@ -207,6 +210,13 @@ fd_ioctl (struct _mu_stream *str, int code, void *ptr)
       ptrans[1] = NULL;
       break;
 
+    case MU_IOCTL_SET_TRANSPORT:
+      if (!ptr)
+	return EINVAL;
+      ptrans = ptr;
+      fstr->fd = (int) ptrans[0];
+      break;
+      
     default:
       return EINVAL;
     }
@@ -233,12 +243,11 @@ fd_truncate (mu_stream_t stream, mu_off_t size)
 }
 
 int
-_mu_file_stream_create (mu_stream_t *pstream, size_t size,
-			char *filename, int flags)
+_mu_file_stream_create (struct _mu_file_stream **pstream, size_t size,
+			const char *filename, int fd, int flags)
 {
   struct _mu_file_stream *str =
-    (struct _mu_file_stream *)
-      _mu_stream_create (size, flags | MU_STREAM_SEEK);
+    (struct _mu_file_stream *) _mu_stream_create (size, flags);
   if (!str)
     return ENOMEM;
 
@@ -254,25 +263,38 @@ _mu_file_stream_create (mu_stream_t *pstream, size_t size,
   str->stream.truncate = fd_truncate;
   str->stream.error_string = fd_error_string;
 
-  str->filename = filename;
-  str->fd = -1;
+  if (filename)
+    str->filename = mu_strdup (filename);
+  else
+    str->filename = NULL;
+  str->fd = fd;
   str->flags = 0;
-  *pstream = (mu_stream_t) str;
+  *pstream = str;
   return 0;
 }
 
 int
 mu_file_stream_create (mu_stream_t *pstream, const char *filename, int flags)
 {
-  int rc;
-  char *fname = mu_strdup (filename);
-  if (!fname)
-    return ENOMEM;
-  rc = _mu_file_stream_create (pstream,
-			       sizeof (struct _mu_file_stream),
-			       fname, flags | MU_STREAM_AUTOCLOSE);
-  if (rc)
-    free (fname);
+  struct _mu_file_stream *fstr;
+  int rc = _mu_file_stream_create (&fstr,
+				   sizeof (struct _mu_file_stream),
+				   filename, -1,
+				   flags | MU_STREAM_SEEK | MU_STREAM_AUTOCLOSE);
+  if (rc == 0)
+    *pstream = (mu_stream_t) fstr;
+  return rc;
+}
+
+int
+mu_fd_stream_create (mu_stream_t *pstream, char *filename, int fd, int flags)
+{
+  struct _mu_file_stream *fstr;
+  int rc = _mu_file_stream_create (&fstr,
+				   sizeof (struct _mu_file_stream),
+				   filename, fd, flags);
+  if (rc == 0)
+    *pstream = (mu_stream_t) fstr;
   return rc;
 }
 

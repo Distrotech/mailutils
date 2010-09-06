@@ -49,9 +49,8 @@ sysinclude_HEADERS = \
  pop3.h\
  prog_stream.h\
  property.h\
+ rdcache_stream.h\
  registrar.h\
- socket_stream.h\
- stdio_stream.h\
  streamref.h\
  streamtrans.h\
  stream.h\

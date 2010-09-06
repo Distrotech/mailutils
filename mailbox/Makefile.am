@@ -126,6 +126,7 @@ libmailutils_la_SOURCES = \
  prog_stream.c\
  property.c\
  qpflt.c\
+ rdcache_stream.c\
  registrar.c\
  refcount.c\
  rfc2047.c\

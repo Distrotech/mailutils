@@ -31,7 +31,7 @@ struct _mu_file_stream
   char *filename;
 };
 
-int _mu_file_stream_create (mu_stream_t *pstream, size_t size,
-			    char *filename, int flags);
+int _mu_file_stream_create (struct _mu_file_stream **pstream, size_t size,
+			    const char *filename, int fd, int flags);
 
 #endif
