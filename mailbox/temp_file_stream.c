@@ -48,28 +48,18 @@ int
 mu_temp_file_stream_create (mu_stream_t *pstream, const char *dir)
 {
   int rc;
-  char *fname;
   struct _mu_file_stream *str;
 
-  if (!dir)
-    fname = NULL;
-  else if ((fname = mu_strdup (dir)) == NULL)
-    return ENOMEM;
-  
-  rc = _mu_file_stream_create (pstream,
+  rc = _mu_file_stream_create (&str,
 			       sizeof (struct _mu_file_stream),
-			       fname, 
-			       MU_STREAM_RDWR | MU_STREAM_CREAT | 
+			       dir,
+			       -1,
+			       MU_STREAM_RDWR | MU_STREAM_SEEK |
+			       MU_STREAM_CREAT | 
 			       MU_STREAM_AUTOCLOSE);
-  if (rc)
-    {
-      free (fname);
-      return rc;
-    }
-  str = (struct _mu_file_stream *) *pstream;
 
   str->stream.open = fd_temp_open;
   str->flags = _MU_FILE_STREAM_TEMP;
-
+  *pstream = (mu_stream_t) str;
   return 0;
 }

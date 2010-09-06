@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2009 Free Software Foundation, Inc.
+   Copyright (C) 2010 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as published by
@@ -14,21 +14,20 @@
    You should have received a copy of the GNU Lesser General Public License
    along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>. */
 
-#ifndef _MAILUTILS_SYS_STDIO_STREAM_H
-#define _MAILUTILS_SYS_STDIO_STREAM_H
+#ifndef _MAILUTILS_SYS_RDCACHE_STREAM_H
+# define _MAILUTILS_SYS_RDCACHE_STREAM_H
 
-#include <mailutils/sys/file_stream.h>
+# include <mailutils/types.h>
+# include <mailutils/stream.h>
+# include <mailutils/sys/stream.h>
 
-#define _MU_STDIO_SIZE_COMPUTED 0x02
-
-struct _mu_stdio_stream
+struct _mu_rdcache_stream
 {
-  struct _mu_file_stream file_stream;
+  struct _mu_stream stream;
+  mu_stream_t transport;
   mu_stream_t cache;
   mu_off_t size;
   mu_off_t offset;
 };
-
-int _mu_stdio_stream_create (mu_stream_t *pstream, size_t size, int flags);
 
 #endif

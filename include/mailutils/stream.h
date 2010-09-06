@@ -120,6 +120,8 @@ int mu_stream_copy (mu_stream_t dst, mu_stream_t src, size_t size);
 
 int mu_file_stream_create (mu_stream_t *pstream, const char *filename, int flags);
 int mu_temp_file_stream_create (mu_stream_t *pstream, const char *dir);
+int mu_fd_stream_create (mu_stream_t *pstream, char *filename, int fd,
+			 int flags);
 
 #define MU_STDIN_FD  0
 #define MU_STDOUT_FD 1
@@ -156,5 +158,8 @@ int mu_xscript_stream_create(mu_stream_t *pref, mu_stream_t transport,
 int mu_iostream_create (mu_stream_t *pref, mu_stream_t in, mu_stream_t out);
 int mu_dbgstream_create(mu_stream_t *pref, mu_debug_t debug,
 			mu_log_level_t level, int flags);
+
+int mu_rdcache_stream_create (mu_stream_t *pstream, mu_stream_t transport,
+			      int flags);
 
 #endif

@@ -69,6 +69,8 @@ mu_stream_copy (mu_stream_t dst, mu_stream_t src, size_t size)
 	      size -= pos;
 	      break;
       
+	    case EACCES:
+	      mu_stream_clearerr (src);
 	    case ENOSYS:
 	      break;
 

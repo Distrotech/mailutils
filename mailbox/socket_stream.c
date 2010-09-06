@@ -31,22 +31,13 @@
 #include <mailutils/errno.h>
 #include <mailutils/nls.h>
 #include <mailutils/stream.h>
-#include <mailutils/sys/socket_stream.h>
-
-static void
-_socket_done (mu_stream_t stream)
-{
-  struct _mu_socket_stream *s = (struct _mu_socket_stream *) stream;
-
-  if (s->filename)
-    free (s->filename);
-}
+#include <mailutils/sys/file_stream.h>
 
 static int
 _socket_open (mu_stream_t stream)
 {
-  struct _mu_socket_stream *s = (struct _mu_socket_stream *) stream;
-  int fd, rc;
+  struct _mu_file_stream *s = (struct _mu_file_stream *) stream;
+  int fd;
   struct sockaddr_un addr;
   
   if (!s)
@@ -66,31 +57,15 @@ _socket_open (mu_stream_t stream)
       return errno;
     }
 
-  s->stdio_stream.file_stream.fd = fd;
-  s->stdio_stream.size = 0;
-  s->stdio_stream.offset = 0;
-  if (s->stdio_stream.cache)
-    mu_stream_truncate (s->stdio_stream.cache, 0);
+  s->fd = fd;
       
-  return rc;
-}
-
-static int
-_socket_close (mu_stream_t stream)
-{
-  struct _mu_socket_stream *s = (struct _mu_socket_stream *) stream;
-  if (s->stdio_stream.file_stream.fd != -1)
-    {
-      close (s->stdio_stream.file_stream.fd);
-      s->stdio_stream.file_stream.fd = -1;
-    }
   return 0;
 }
 
 int
 _socket_shutdown (mu_stream_t stream, int how)
 {
-  struct _mu_socket_stream *s = (struct _mu_socket_stream *) stream;
+  struct _mu_file_stream *s = (struct _mu_file_stream *) stream;
   int flag;
 
   switch (how)
@@ -103,7 +78,7 @@ _socket_shutdown (mu_stream_t stream, int how)
       flag = SHUT_WR;
     }
   
-  if (shutdown (s->stdio_stream.file_stream.fd, flag))
+  if (shutdown (s->fd, flag))
     return errno;
   return 0;
 }
@@ -111,17 +86,37 @@ _socket_shutdown (mu_stream_t stream, int how)
 int
 mu_socket_stream_create (mu_stream_t *pstream, const char *filename, int flags)
 {
-  struct _mu_socket_stream *s;
   int rc;
+  mu_stream_t transport;
+  int need_cache;
+  struct _mu_file_stream *fstr;
   
-  rc = _mu_stdio_stream_create (pstream, sizeof (*s),
-                                flags | MU_STREAM_AUTOCLOSE);
+  need_cache = flags & MU_STREAM_SEEK;
+  if (need_cache && (flags & MU_STREAM_WRITE))
+    /* Write caches are not supported */
+    return EINVAL;
+
+  /* Create transport stream. */
+  rc = _mu_file_stream_create (&fstr, sizeof (*fstr),
+			       filename, -1,
+			       (flags | MU_STREAM_AUTOCLOSE) & ~MU_STREAM_SEEK);
   if (rc)
     return rc;
-  s = (struct _mu_socket_stream *) *pstream;
-  s->stdio_stream.file_stream.stream.done = _socket_done;
-  s->stdio_stream.file_stream.stream.open = _socket_open;
-  s->stdio_stream.file_stream.stream.close = _socket_close;
-  s->stdio_stream.file_stream.stream.shutdown = _socket_shutdown;
+  fstr->stream.open = _socket_open;
+  fstr->stream.shutdown = _socket_shutdown;
+  transport = (mu_stream_t) fstr;
+  
+  /* Wrap it in cache, if required */
+  if (need_cache)
+    {
+      mu_stream_t str;
+      rc = mu_rdcache_stream_create (&str, transport, flags);
+      mu_stream_unref (transport);
+      if (rc)
+	return rc;
+      transport = str;
+    }
+
+  *pstream = transport;
   return 0;
 }

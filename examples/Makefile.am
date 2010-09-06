@@ -49,9 +49,11 @@ noinst_PROGRAMS = \
  mimetest\
  msg-send\
  mta\
+ mucat\
  muauth\
  muemail\
  murun\
+ musocio\
  $(NNTPCLIENT)\
  $(POP3CLIENT)\
  sfrom\
