@@ -1259,7 +1259,7 @@ show_internal (mu_message_t msg, msg_part_t part, char *encoding, mu_stream_t ou
 		         MU_FILTER_DECODE, MU_STREAM_READ);
   if (rc == 0)
     bstr = dstr;
-  rc = mu_stream_copy (out, bstr, 0);
+  rc = mu_stream_copy (out, bstr, 0, NULL);
   mu_stream_destroy (&bstr);
   return rc;
 }
@@ -2004,7 +2004,7 @@ finish_text_msg (struct compose_env *env, mu_message_t *msg, int ascii)
 			     MU_STREAM_READ);
       if (rc == 0)
 	{
-	  mu_stream_copy (output, fstr, 0);
+	  mu_stream_copy (output, fstr, 0, NULL);
 	  mu_stream_destroy (&fstr);
 	  mu_message_unref (*msg);
 	  *msg = newmsg;
@@ -2064,7 +2064,7 @@ edit_extern (char *cmd, struct compose_env *env, mu_message_t *msg, int level)
   free (id);
 
   mu_header_get_streamref (hdr2, &in);
-  mu_stream_copy (out, in, 0);
+  mu_stream_copy (out, in, 0, NULL);
   mu_stream_destroy (&in);
   mu_stream_close (out);
   mu_stream_destroy (&out);
@@ -2295,7 +2295,7 @@ edit_mime (char *cmd, struct compose_env *env, mu_message_t *msg, int level)
   
   mu_message_get_body (*msg, &body);
   mu_body_get_streamref (body, &out);
-  mu_stream_copy (out, fstr, 0);
+  mu_stream_copy (out, fstr, 0, NULL);
 
   mu_stream_close (out);
   mu_stream_destroy (&out);
@@ -2660,7 +2660,7 @@ mhn_compose ()
   mhn_header (message, msg);
   copy_header_to_stream (message, stream);
   mu_message_get_streamref (msg, &in);
-  mu_stream_copy (stream, in, 0);
+  mu_stream_copy (stream, in, 0, NULL);
   mu_stream_destroy (&in);
   mu_stream_destroy (&stream);
   

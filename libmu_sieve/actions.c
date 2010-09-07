@@ -252,7 +252,7 @@ mime_create_quote (mu_mime_t mime, mu_message_t msg)
   mu_body_get_streamref (body, &ostream);
   mu_message_get_streamref (msg, &istream);
 
-  rc = mu_stream_copy (ostream, istream, 0);
+  rc = mu_stream_copy (ostream, istream, 0, NULL);
 
   mu_stream_destroy (&istream);
   mu_stream_close (ostream);

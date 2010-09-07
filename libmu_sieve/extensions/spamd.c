@@ -117,7 +117,7 @@ spamd_send_message (mu_stream_t stream, mu_message_t msg)
       return rc;
     }
 
-  rc = mu_stream_copy (stream, flt, 0);
+  rc = mu_stream_copy (stream, flt, 0, NULL);
 
   mu_stream_destroy (&mstr);
   mu_stream_destroy (&flt);

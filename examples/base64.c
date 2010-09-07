@@ -55,7 +55,7 @@ c_copy (mu_stream_t out, mu_stream_t in)
 	}
     }
   else
-    MU_ASSERT (mu_stream_copy (out, in, 0));
+    MU_ASSERT (mu_stream_copy (out, in, 0, NULL));
   mu_stream_write (out, "\n", 1, NULL);
   mu_stream_close (out);
   mu_stream_close (in);

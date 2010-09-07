@@ -118,7 +118,7 @@ sieve_action_pipe (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
 	  ONERR (rc, _("stream write failed"), NULL);
 	}
 
-      rc = mu_stream_copy (pstr, mstr, 0);
+      rc = mu_stream_copy (pstr, mstr, 0, NULL);
       ONERR (rc, _("command failed"), cmd);
     }
   while (0);

@@ -496,7 +496,7 @@ msg_copy (size_t num, const char *file)
   mu_mailbox_get_message (tmpbox, num, &msg);
   mu_message_get_streamref (msg, &istream);
   /* FIXME: Implement RFC 934 FSA? */
-  rc = mu_stream_copy (ostream, istream, 0);
+  rc = mu_stream_copy (ostream, istream, 0, NULL);
   if (rc)
     {
       mu_error (_("copy stream error: %s"), mu_strerror (rc));

@@ -111,7 +111,7 @@ build_mime (mu_sieve_machine_t mach, mu_list_t tags, mu_mime_t *pmime,
     }
 
   mu_stream_seek (input, 0, MU_SEEK_SET, NULL);
-  rc = mu_stream_copy (stream, input, 0);
+  rc = mu_stream_copy (stream, input, 0, NULL);
   if (rc)
     {
       mu_sieve_error (mach,

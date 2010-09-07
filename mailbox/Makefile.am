@@ -108,6 +108,7 @@ libmailutils_la_SOURCES = \
  mimehdr.c\
  mkfilename.c\
  monitor.c\
+ msgscan.c\
  msrv.c\
  mu_auth.c\
  muctype.c\

@@ -153,9 +153,13 @@ _stream_flush_buffer (struct _mu_stream *stream, int all)
 		  
   if (stream->flags & _MU_STR_DIRTY)
     {
-      if ((stream->flags & MU_STREAM_SEEK)
-	  && (rc = mu_stream_seek (stream, stream->offset, MU_SEEK_SET, NULL)))
-	return rc;
+      if ((stream->flags & MU_STREAM_SEEK) && stream->seek)
+	{
+	  mu_off_t off;
+	  rc = stream->seek (stream, stream->offset, &off);
+	  if (rc)
+	    return rc;
+	}
 
       switch (stream->buftype)
 	{

@@ -46,7 +46,7 @@ pop3d_retr (char *arg)
     return ERR_UNKNOWN;
   
   pop3d_outf ("+OK\n");
-  mu_stream_copy (iostream, stream, 0);
+  mu_stream_copy (iostream, stream, 0, NULL);
   mu_stream_destroy (&stream);
 
   if (!mu_attribute_is_read (attr))

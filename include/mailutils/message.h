@@ -26,6 +26,25 @@
 extern "C" {
 #endif
 
+#define MU_SCAN_SEEK  0x01
+#define MU_SCAN_SIZE  0x02
+
+struct mu_message_scan
+{
+  int flags;
+  mu_off_t message_start;
+  mu_off_t message_size;
+
+  mu_off_t body_start;
+  mu_off_t body_end;
+  size_t header_lines;
+  size_t body_lines;
+  int attr_flags;
+  unsigned long uidvalidity;
+};
+
+int mu_stream_scan_message (mu_stream_t stream, struct mu_message_scan *sp);
+  
 /* A message is considered to be a container for:
   mu_header_t, mu_body_t, and its mu_attribute_t.  */
 
@@ -34,7 +53,7 @@ extern void mu_message_destroy (mu_message_t *, void *owner);
 
 extern int mu_message_create_copy (mu_message_t *to, mu_message_t from);
 
-extern void * mu_message_get_owner (mu_message_t);
+extern void *mu_message_get_owner (mu_message_t);
 extern int mu_message_is_modified (mu_message_t);
 extern int mu_message_clear_modified (mu_message_t);
 extern int mu_message_get_mailbox (mu_message_t, mu_mailbox_t *);
@@ -64,6 +83,9 @@ extern int mu_message_set_attribute (mu_message_t, mu_attribute_t, void *);
 
 extern int mu_message_get_observable (mu_message_t, mu_observable_t *);
 
+extern int mu_message_set_get_stream (mu_message_t,
+				      int (*) (mu_message_t, mu_stream_t *),
+				      void *);
 extern int mu_message_is_multipart (mu_message_t, int *);
 extern int mu_message_set_is_multipart (mu_message_t, 
 					int (*_is_multipart) (mu_message_t,

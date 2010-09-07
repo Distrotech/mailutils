@@ -41,6 +41,7 @@
 #include <mailutils/observer.h>
 #include <mailutils/property.h>
 #include <mailutils/stream.h>
+#include <mailutils/filter.h>
 #include <mailutils/url.h>
 #include <mailutils/secret.h>
 #include <mailutils/tls.h>
@@ -56,22 +57,24 @@
 #include <mailutils/sys/registrar.h>
 #include <mailutils/sys/url.h>
 
-#define _POP3_MSG_INBODY  0x01
-#define _POP3_MSG_SKIPHDR 0x02
-#define _POP3_MSG_SKIPBDY 0x04
+#define _POP3_MSG_CACHED  0x01      /* Message is already cached */
+#define _POP3_MSG_SIZE    0x02      /* Message size obtained */
+#define _POP3_MSG_SCANNED 0x04      /* Message has been scanned */
+#define _POP3_MSG_ATTRSET 0x08      /* Attributes has been set */
 
 struct _pop3_message
 {
   int flags;
-  size_t body_size;
-  size_t header_size;
-  size_t body_lines;
-  size_t header_lines;
-  size_t message_size;
-  size_t num;
-  char *uidl; /* Cache the uidl string.  */
-  int attr_flags;
-  mu_message_t message;
+  mu_off_t offset;          /* Offset in the message cache stream */
+  mu_off_t body_start;      /* Start of message, relative to offset */
+  mu_off_t body_end;        /* End of message, relative to offset */  
+  size_t header_lines;      /* Number of lines in the header */
+  size_t body_lines;        /* Number of lines in the body */
+  int attr_flags;           /* Message attributes */
+  size_t message_size;      /* Message size */ 
+  size_t num;               /* Message number */
+  char *uidl;               /* Cached uidl string.  */
+  mu_message_t message;     /* Pointer to the message structure */ 
   struct _pop3_mailbox *mpd; /* Back pointer.  */
 };
   
@@ -87,9 +90,15 @@ struct _pop3_mailbox
   size_t msg_max;             /* Actual size of the array */  
   mu_mailbox_t mbox;          /* MU mailbox corresponding to this one. */
 
-  char *user;     /* Temporary holders for user and passwd.  */
+  mu_stream_t cache;          /* Message cache stream */
+   /* Temporary holders for user and passwd: */
+  char *user;    
   mu_secret_t secret;
 };
+
+
+/* ------------------------------------------------------------------------- */
+/* Basic operations */
 
 static int
 pop_open (mu_mailbox_t mbox, int flags)
@@ -193,6 +202,7 @@ pop_close (mu_mailbox_t mbox)
   if (status)
     mu_error ("mu_pop3_disconnect failed: %s", mu_strerror (status));
   mu_pop3_destroy (&mpd->pop3);
+  mu_stream_destroy (&mpd->cache);
   return 0;
 }
 
@@ -220,6 +230,7 @@ pop_destroy (mu_mailbox_t mbox)
 	free (mpd->user);
       if (mpd->secret)
 	mu_secret_unref (mpd->secret);
+      mu_stream_destroy (&mpd->cache);
    }
 }
 
@@ -319,6 +330,156 @@ pop_get_size (mu_mailbox_t mbox, mu_off_t *psize)
 }
 
 
+/* ------------------------------------------------------------------------- */
+/* POP3 message streams */
+
+static void
+pop_stream_drain (mu_stream_t str)
+{
+  char buf[2048];
+  size_t size;
+
+  while (mu_stream_read (str, buf, sizeof buf, &size) == 0 && size)
+    ;
+}
+     
+static int
+_pop_message_get_stream (struct _pop3_message *mpm, mu_stream_t *pstr)
+{
+  int status;
+  struct _pop3_mailbox *mpd = mpm->mpd;
+  
+  if (!(mpm->flags & _POP3_MSG_CACHED))
+    {
+      mu_stream_t stream;
+      mu_off_t size;
+      
+      status = mu_pop3_retr (mpd->pop3, mpm->num, &stream);
+      if (status)
+	return status;
+
+      do
+	{
+	  mu_stream_t flt;
+	  
+	  if (!mpd->cache)
+	    {
+	      status = mu_temp_file_stream_create (&mpd->cache, NULL);
+	      if (status)
+		/* FIXME: Try to recover first */
+		break;
+
+	      status = mu_stream_open (mpd->cache);
+	      if (status)
+		{
+		  mu_stream_destroy (&mpd->cache);
+		  break;
+		}
+	      mu_stream_set_buffer (mpd->cache, mu_buffer_full, 8192);
+	    }
+
+	  status = mu_stream_size (mpd->cache, &mpm->offset);
+	  if (status)
+	    break;
+
+	  status = mu_filter_create (&flt, stream, "CRLF", MU_FILTER_DECODE,
+				     MU_STREAM_READ);
+	  if (status)
+	    break;
+
+	  status = mu_stream_copy (mpd->cache, flt, 0, &size);
+
+	  mu_stream_destroy (&flt);
+	}
+      while (0);
+
+      if (status)
+	{
+	  pop_stream_drain (stream);
+	  mu_stream_unref (stream);
+	  return status;
+	}
+
+      mu_stream_unref (stream);
+
+      mpm->message_size = size; /* FIXME: Possible overflow. */
+
+      mpm->flags |= _POP3_MSG_CACHED | _POP3_MSG_SIZE;
+    }
+  return mu_streamref_create_abridged (pstr, mpd->cache,
+				       mpm->offset,
+				       mpm->offset + mpm->message_size - 1);
+}
+
+static int
+pop_message_get_stream (mu_message_t msg, mu_stream_t *pstr)
+{
+  struct _pop3_message *mpm = mu_message_get_owner (msg);
+  return _pop_message_get_stream (mpm, pstr);
+}
+        
+static int
+pop_scan_message (struct _pop3_message *mpm)
+{
+  int status;
+  mu_stream_t stream;
+  struct mu_message_scan scan;
+
+  if (mpm->flags & _POP3_MSG_SCANNED)
+    return 0;
+  
+  status = _pop_message_get_stream (mpm, &stream);
+  if (status)
+    return status;
+      
+  scan.flags = MU_SCAN_SEEK | MU_SCAN_SIZE;
+  scan.message_start = 0;
+  scan.message_size = mpm->message_size;
+  status = mu_stream_scan_message (stream, &scan);
+  mu_stream_unref (stream);
+
+  if (status == 0)
+    {
+      mpm->body_start = scan.body_start;
+      mpm->body_end = scan.body_end;
+      mpm->header_lines = scan.header_lines;
+      mpm->body_lines = scan.body_lines;
+      if (!(mpm->flags & _POP3_MSG_ATTRSET))
+	{
+	  mpm->attr_flags = scan.attr_flags;
+	  mpm->flags |= _POP3_MSG_ATTRSET;
+	}
+
+      mpm->flags |= _POP3_MSG_SCANNED;
+    }
+  
+  return status;
+}
+
+
+static int
+pop_message_size (mu_message_t msg, size_t *psize)
+{
+  struct _pop3_message *mpm = mu_message_get_owner (msg);
+  struct _pop3_mailbox *mpd = mpm->mpd;
+
+  if (mpm == NULL)
+    return EINVAL;
+
+  if (!(mpm->flags & _POP3_MSG_SIZE))
+    {
+      /* FIXME: The size obtained this way may differ from the actual one
+	 by the number of lines in the message. */
+      int status = mu_pop3_list (mpd->pop3, mpm->num, &mpm->message_size);
+      if (status)
+	return status;
+      mpm->flags |= _POP3_MSG_SIZE;
+    }
+  if (psize)
+    *psize = mpm->message_size;
+  return 0;
+}
+
 static int
 pop_create_message (struct _pop3_message *mpm, struct _pop3_mailbox *mpd)
 {
@@ -328,7 +489,9 @@ pop_create_message (struct _pop3_message *mpm, struct _pop3_mailbox *mpd)
   status = mu_message_create (&msg, mpm);
   if (status)
     return status;
-  // FIXME...
+
+  mu_message_set_get_stream (msg, pop_message_get_stream, mpm);
+  mu_message_set_size (msg, pop_message_size, mpm);
   mpm->message = msg;
   return 0;
 }
@@ -337,46 +500,34 @@ pop_create_message (struct _pop3_message *mpm, struct _pop3_mailbox *mpd)
 /* ------------------------------------------------------------------------- */
 /* Header */
 
-static int
-pop_header_fill (void *data, char **pbuf, size_t *plen)
+int
+pop_header_blurb (mu_stream_t stream, size_t maxlines,
+		  char **pbuf, size_t *plen)
 {
-  struct _pop3_message *mpm = data;
-  struct _pop3_mailbox *mpd = mpm->mpd;
-  mu_stream_t stream;
-  mu_opool_t opool;
   int status;
+  mu_opool_t opool;
+  size_t size = 0;
+  char *buf = NULL;
+  size_t n;
+  size_t nlines = 0;
   
   status = mu_opool_create (&opool, 0);
   if (status)
     return status;
-  
-  if (mu_pop3_capa_test (mpd->pop3, "TOP", NULL) == 0)
-    status = mu_pop3_top (mpd->pop3, mpm->num, 0, &stream);
-  else
-    status = mu_pop3_retr (mpd->pop3, mpm->num, &stream);
-
+      
+  while ((status = mu_stream_getline (stream, &buf, &size, &n)) == 0 && n > 0)
+    {
+      size_t len = mu_rtrim_cset (buf, "\r\n");
+      if (len == 0)
+	break;
+      mu_opool_append (opool, buf, len);
+      mu_opool_append_char (opool, '\n');
+      if (maxlines && ++nlines >= maxlines)
+	break;
+    }
+      
   if (status == 0)
     {
-      size_t size = 0;
-      char *buf = NULL;
-      size_t n;
-
-      while (mu_stream_getline (stream, &buf, &size, &n) == 0
-	     && n > 0)
-	{
-	  size_t len = mu_rtrim_cset (buf, "\r\n");
-	  if (len == 0)
-	    break;
-	  mu_opool_append (opool, buf, len);
-	  mu_opool_append_char (opool, '\n');
-	}
-
-      if (!mu_stream_eof (stream))
-	/* Drain the stream. */
-	while (mu_stream_getline (stream, &buf, &size, &n) == 0
-	       && n > 0);
-      mu_stream_destroy (&stream);
-
       n = mu_opool_size (opool);
       if (n > size)
 	{
@@ -384,19 +535,53 @@ pop_header_fill (void *data, char **pbuf, size_t *plen)
 	  if (!p)
 	    {
 	      free (buf);
-	      mu_opool_destroy (&opool);
-	      return ENOMEM;
+	      status = ENOMEM;
 	    }
-	  buf = p;
+	  else
+	    buf = p;
 	}
+    }
 
+  if (status == 0)
+    {
       mu_opool_copy (opool, buf, n);
       *pbuf = buf;
       *plen = n;
-      status = 0;
     }
+  else
+    free (buf);
   mu_opool_destroy (&opool);
-  
+
+  return 0;
+}
+
+static int
+pop_header_fill (void *data, char **pbuf, size_t *plen)
+{
+  struct _pop3_message *mpm = data;
+  struct _pop3_mailbox *mpd = mpm->mpd;
+  mu_stream_t stream;
+  int status;
+
+  if (mpm->flags & _POP3_MSG_SCANNED)
+    status = _pop_message_get_stream (mpm, &stream);
+  else
+    {
+      status = mu_pop3_top (mpd->pop3, mpm->num, 0, &stream);
+      if (status == 0)
+	{
+	  status = pop_header_blurb (stream, 0, pbuf, plen);
+	  if (!mu_stream_eof (stream))
+	    pop_stream_drain (stream);
+	  mu_stream_destroy (&stream);
+	  return status;
+	}
+      else
+	status = _pop_message_get_stream (mpm, &stream);
+    }
+
+  status = pop_header_blurb (stream, mpm->header_lines, pbuf, plen);
+  mu_stream_destroy (&stream);
   return status;
 }
 
@@ -437,7 +622,7 @@ pop_get_attribute (mu_attribute_t attr, int *pflags)
 
   if (mpm == NULL || pflags == NULL)
     return EINVAL;
-  if (mpm->attr_flags == 0)
+  if (!(mpm->flags & _POP3_MSG_ATTRSET))
     {
       hdr_status[0] = '\0';
 
@@ -458,6 +643,7 @@ pop_set_attribute (mu_attribute_t attr, int flags)
   if (mpm == NULL)
     return EINVAL;
   mpm->attr_flags |= flags;
+  mpm->flags |= _POP3_MSG_ATTRSET;
   return 0;
 }
 
@@ -469,6 +655,7 @@ pop_unset_attribute (mu_attribute_t attr, int flags)
   if (mpm == NULL)
     return EINVAL;
   mpm->attr_flags &= ~flags;
+  mpm->flags |= _POP3_MSG_ATTRSET;
   return 0;
 }
 
@@ -492,11 +679,58 @@ pop_create_attribute (struct _pop3_message *mpm)
 /* ------------------------------------------------------------------------- */
 /* Body */
 
+int
+pop_body_get_stream (mu_body_t body, mu_stream_t *pstr)
+{
+  struct _pop3_message *mpm = mu_body_get_owner (body);
+  struct _pop3_mailbox *mpd = mpm->mpd;
+  int status = pop_scan_message (mpm);
+  if (status)
+    return status;
+  return mu_streamref_create_abridged (pstr, mpd->cache,
+				       mpm->offset + mpm->body_start,
+				       mpm->offset + mpm->body_end - 1);
+}
+
+static int
+pop_body_size (mu_body_t body, size_t *psize)
+{
+  struct _pop3_message *mpm = mu_body_get_owner (body);
+  int status = pop_scan_message (mpm);
+  if (status)
+    return status;
+  *psize = mpm->body_end - mpm->body_start;
+  return 0;
+}
+
+static int
+pop_body_lines (mu_body_t body, size_t *plines)
+{
+  struct _pop3_message *mpm = mu_body_get_owner (body);
+  int status = pop_scan_message (mpm);
+  if (status)
+    return status;
+  *plines = mpm->body_lines;
+  return 0;
+}
+
 static int
 pop_create_body (struct _pop3_message *mpm)
 {
-  /* FIXME */
-  return ENOSYS;
+  int status;
+  mu_body_t body = NULL;
+
+  status = mu_body_create (&body, mpm);
+  if (status)
+    return status;
+
+  mu_body_set_get_stream (body, pop_body_get_stream, mpm);
+  mu_body_set_size (body, pop_body_size, mpm);
+  mu_body_set_lines (body, pop_body_lines, mpm);
+
+  mu_message_set_body (mpm->message, body, mpm);
+
+  return 0;
 }
 
 
@@ -568,9 +802,9 @@ pop_get_message (mu_mailbox_t mbox, size_t msgno, mu_message_t *pmsg)
       if (!mpd->msg)
 	return ENOMEM;
     }
-  if (mpd->msg[msgno])
+  if (mpd->msg[msgno - 1])
     {
-      *pmsg = mpd->msg[msgno]->message;
+      *pmsg = mpd->msg[msgno - 1]->message;
       return 0;
     }
 
@@ -613,12 +847,44 @@ pop_get_message (mu_mailbox_t mbox, size_t msgno, mu_message_t *pmsg)
 
   mu_message_set_uid (mpm->message, pop_uid, mpm);
 
-  mpd->msg[msgno] = mpm;
+  mpd->msg[msgno - 1] = mpm;
   mu_message_set_mailbox (mpm->message, mbox, mpm);
   *pmsg = mpm->message;
   return 0;
 }
 
+static int
+pop_expunge (mu_mailbox_t mbox)
+{
+  struct _pop3_mailbox *mpd = mbox->data;
+  int status = 0;
+  size_t i;
+  
+  if (mpd == NULL)
+    return EINVAL;
+
+  if (!mpd->msg)
+    return 0;
+  
+  for (i = 0; i < mpd->msg_count; i++)
+    {
+      struct _pop3_message *mpm = mpd->msg[i];
+
+      if (mpm &&
+	  (mpm->flags & _POP3_MSG_ATTRSET) &&
+	  (mpm->attr_flags & MU_ATTRIBUTE_DELETED))
+	{
+	  status = mu_pop3_dele (mpd->pop3, mpm->num);
+	  if (status)
+	    break;
+	}
+    }
+  return 0;
+}
+
+/* ------------------------------------------------------------------------- */
+/* Initialization */
+
 static int
 _pop3_mailbox_init (mu_mailbox_t mbox, int pops)
 {
@@ -649,12 +915,9 @@ _pop3_mailbox_init (mu_mailbox_t mbox, int pops)
   mbox->_message_unseen = pop_message_unseen;
   mbox->_get_size = pop_get_size;
   
-#if 0 //FIXME
   /* Messages.  */
   mbox->_get_message = pop_get_message;
   mbox->_expunge = pop_expunge;
-
-
 
   /* Set our properties.  */
   {
@@ -663,7 +926,6 @@ _pop3_mailbox_init (mu_mailbox_t mbox, int pops)
     mu_property_set_value (property, "TYPE", "POP3", 1);
   }
 
-#endif
   /* Hack! POP does not really have a folder.  */
   mbox->folder->data = mbox;
   return status;
@@ -682,6 +944,7 @@ _mailbox_pops_init (mu_mailbox_t mbox)
 }
 
 
+/* ------------------------------------------------------------------------- */
 /* Authentication */
 
 /* Extract the User from the URL or the ticket.  */

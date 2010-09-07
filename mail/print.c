@@ -98,6 +98,8 @@ mail_print_msg (msgset_t *mspec, mu_message_t mesg, void *data)
   if (status)
     {
       mu_error (_("get_stream error: %s"), mu_strerror (status));
+      if (out != ofile)
+	pclose (out);
       return 0;
     }
 

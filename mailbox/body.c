@@ -161,36 +161,46 @@ _body_get_stream (mu_body_t body, mu_stream_t *pstream, int ref)
 
   if (body->stream == NULL)
     {
-      int status;
-      struct _mu_body_stream *str =
-	(struct _mu_body_stream *)
-	   _mu_stream_create (sizeof (*str),
-			      MU_STREAM_RDWR|MU_STREAM_SEEK);
-      if (!str)
-	return ENOMEM;
-      
-      /* Create the temporary file.  */
-      body->filename = mu_tempname (NULL);
-      status = mu_file_stream_create (&body->fstream, 
-				      body->filename, MU_STREAM_RDWR);
-      if (status != 0)
-	return status;
-      status = mu_stream_open (body->fstream);
-      if (status != 0)
-	return status;
-      str->stream.ctl = _body_ioctl;
-      str->stream.read = _body_read;
-      str->stream.write = _body_write;
-      str->stream.truncate = _body_truncate;
-      str->stream.size = _body_size;
-      str->stream.seek = _body_seek;
-      str->stream.flush = _body_flush;
-      str->body = body;
-      body->stream = (mu_stream_t) str;
-      /* Override the defaults.  */
-      body->_lines = _body_get_lines;
-      body->_size = _body_get_size;
+      if (body->_get_stream)
+	{
+	  int status = body->_get_stream (body, &body->stream);
+	  if (status)
+	    return status;
+	}
+      else
+	{
+	  int status;
+	  struct _mu_body_stream *str =
+	    (struct _mu_body_stream *)
+	    _mu_stream_create (sizeof (*str),
+			       MU_STREAM_RDWR|MU_STREAM_SEEK);
+	  if (!str)
+	    return ENOMEM;
+	  
+	  /* Create the temporary file.  */
+	  body->filename = mu_tempname (NULL);
+	  status = mu_file_stream_create (&body->fstream, 
+					  body->filename, MU_STREAM_RDWR);
+	  if (status != 0)
+	    return status;
+	  status = mu_stream_open (body->fstream);
+	  if (status != 0)
+	    return status;
+	  str->stream.ctl = _body_ioctl;
+	  str->stream.read = _body_read;
+	  str->stream.write = _body_write;
+	  str->stream.truncate = _body_truncate;
+	  str->stream.size = _body_size;
+	  str->stream.seek = _body_seek;
+	  str->stream.flush = _body_flush;
+	  str->body = body;
+	  body->stream = (mu_stream_t) str;
+	  /* Override the defaults.  */
+	  body->_lines = _body_get_lines;
+	  body->_size = _body_get_size;
+	}
     }
+  
   if (!ref)
     {
       *pstream = body->stream;
@@ -227,7 +237,21 @@ mu_body_set_stream (mu_body_t body, mu_stream_t stream, void *owner)
 }
 
 int
-mu_body_set_lines (mu_body_t body, int (*_lines) (mu_body_t, size_t *), void *owner)
+mu_body_set_get_stream (mu_body_t body,
+			int (*_getstr) (mu_body_t, mu_stream_t *),
+			void *owner)
+{
+  if (body == NULL)
+    return EINVAL;
+  if (body->owner != owner)
+    return EACCES;
+  body->_get_stream = _getstr;
+  return 0;
+}
+
+int
+mu_body_set_lines (mu_body_t body, int (*_lines) (mu_body_t, size_t *),
+		   void *owner)
 {
   if (body == NULL)
     return EINVAL;
