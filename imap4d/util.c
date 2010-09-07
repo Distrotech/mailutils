@@ -672,3 +672,22 @@ is_atom (const char *s)
   return 1;
 }
      
+int
+set_xscript_level (int xlev)
+{
+  if (imap4d_transcript)
+    {
+      if (xlev != XSCRIPT_NORMAL)
+	{
+	  mu_log_level_t n = xlev == XSCRIPT_SECURE ?
+	                      MU_DEBUG_TRACE6 : MU_DEBUG_TRACE7;
+	  
+	  if (mu_global_debug_level ("imap4") & MU_DEBUG_LEVEL_MASK (n))
+	    return XSCRIPT_NORMAL;
+	}
+
+      if (mu_stream_ioctl (iostream, MU_IOCTL_LEVEL, &xlev) == 0)
+	return xlev;
+    }
+  return 0;
+}

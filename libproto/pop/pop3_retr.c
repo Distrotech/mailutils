@@ -50,6 +50,8 @@ mu_pop3_retr (mu_pop3_t pop3, unsigned int msgno, mu_stream_t *pstream)
       MU_POP3_CHECK_OK (pop3);
       status = mu_pop3_stream_create (pop3, pstream);
       MU_POP3_CHECK_ERROR (pop3, status);
+      if (mu_pop3_trace_mask (pop3, MU_POP3_TRACE_QRY, XSCRIPT_PAYLOAD))
+	_mu_pop3_xscript_level (pop3, XSCRIPT_PAYLOAD);
       pop3->state = MU_POP3_RETR_RX;
 
     case MU_POP3_RETR_RX:

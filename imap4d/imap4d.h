@@ -381,7 +381,9 @@ void util_chdir (const char *homedir);
 int is_atom (const char *s);
 int util_isdelim (const char *str);
 int util_trim_nl (char *s, size_t len);
-  
+
+int set_xscript_level (int xlev);
+
 #ifdef WITH_TLS
 int imap4d_init_tls_server (void);
 #endif /* WITH_TLS */

@@ -30,6 +30,7 @@ pop3d_top (char *arg)
   mu_body_t body;
   mu_stream_t stream;
   char *mesgc, *linesc, *p;
+  int xscript_level;
   
   if (strlen (arg) == 0)
     return ERR_BAD_ARGS;
@@ -62,6 +63,8 @@ pop3d_top (char *arg)
     return ERR_UNKNOWN;
   pop3d_outf ("+OK\n");
 
+  xscript_level = set_xscript_level (XSCRIPT_PAYLOAD);
+
   mu_stream_copy (iostream, stream, 0, NULL);
   pop3d_outf ("\n");
   mu_stream_destroy (&stream);
@@ -84,6 +87,8 @@ pop3d_top (char *arg)
     }
 
   pop3d_outf (".\n");
+
+  set_xscript_level (xscript_level);
 
   return OK;
 }

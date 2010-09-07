@@ -417,11 +417,13 @@ imap4d_mainloop (int fd, FILE *infile, FILE *outfile)
       return 0;
     }
 
-  /* Greetings.  */
+  /* Greetings. */
   io_untagged_response ((state == STATE_AUTH) ? 
                         RESP_PREAUTH : RESP_OK, "%s", text);
   io_flush ();
 
+  set_xscript_level ((state == STATE_AUTH) ? XSCRIPT_NORMAL : XSCRIPT_SECURE);
+  
   tokp = imap4d_tokbuf_init ();
   while (1)
     {

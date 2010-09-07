@@ -91,6 +91,7 @@ pop3d_user (char *arg)
 {
   char *buf, *pass, *cmd;
   char buffer[512];
+  int xscript_level;
   
   if (state != AUTHORIZATION)
     return ERR_WRONG_STATE;
@@ -101,9 +102,11 @@ pop3d_user (char *arg)
   pop3d_outf ("+OK\n");
   pop3d_flush_output ();
 
+  xscript_level = set_xscript_level (XSCRIPT_SECURE);
   buf = pop3d_readline (buffer, sizeof (buffer));
   pop3d_parse_command (buf, &cmd, &pass);
-
+  set_xscript_level (xscript_level);
+  
   if (mu_c_strcasecmp (cmd, "PASS") == 0)
     {
       int rc;

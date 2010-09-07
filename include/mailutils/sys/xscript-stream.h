@@ -27,6 +27,7 @@ struct _mu_xscript_stream
   mu_stream_t transport;
   mu_stream_t logstr;
   int flags;
+  int level;
   char *prefix[2];
 };
 

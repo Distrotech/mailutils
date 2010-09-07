@@ -115,4 +115,36 @@ mu_pop3_trace (mu_pop3_t pop3, int op)
   return EINVAL;
 }
 
+int
+mu_pop3_trace_mask (mu_pop3_t pop3, int op, int lev)
+{
+  switch (op)
+    {
+    case MU_POP3_TRACE_SET:
+      pop3->flags |= MU_POP3_XSCRIPT_MASK(lev);
+      break;
+      
+    case MU_POP3_TRACE_CLR:
+      pop3->flags &= ~MU_POP3_XSCRIPT_MASK(lev);
+      break;
+      
+    case MU_POP3_TRACE_QRY:
+      if (pop3->flags & MU_POP3_XSCRIPT_MASK(lev))
+	break;
+      return MU_ERR_NOENT;
+      
+    default:
+      return EINVAL;
+    }
+  return 0;
+}
+
+int
+_mu_pop3_xscript_level (mu_pop3_t pop3, int xlev)
+{
+  if (mu_stream_ioctl (pop3->carrier, MU_IOCTL_LEVEL, &xlev) == 0)
+    return xlev;
+  return XSCRIPT_NORMAL;
+}
+
   

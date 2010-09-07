@@ -241,7 +241,11 @@ io_format_completion_response (mu_stream_t str,
     new_state = STATE_NONE;
 
   if (new_state != STATE_NONE)
-    state = new_state;
+    {
+      if (new_state == STATE_AUTH)
+	set_xscript_level (XSCRIPT_NORMAL);
+      state = new_state;
+    }
   
   return status;
 }
@@ -570,6 +574,7 @@ imap4d_readline (struct imap4d_tokbuf *tok)
 	  char *sp = NULL;
 	  char *buf;
 	  size_t len;
+	  int xlev = set_xscript_level (XSCRIPT_PAYLOAD);
 	  
 	  number = strtoul (last_arg + 1, &sp, 10);
 	  /* Client can ask for non-synchronised literal,
@@ -595,6 +600,7 @@ imap4d_readline (struct imap4d_tokbuf *tok)
 	  tok->level += len;
 	  tok->buffer[tok->level++] = 0;
 	  tok->argp[tok->argc - 1] = off;
+	  set_xscript_level (xlev);
 	}
       else
 	break;
