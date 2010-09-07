@@ -519,9 +519,9 @@ static int
 string_to_xlev (const char *name, int *pv)
 {
   if (strcmp (name, "secure") == 0)
-    *pv = XSCRIPT_SECURE;
+    *pv = MU_XSCRIPT_SECURE;
   else if (strcmp (name, "payload") == 0)
-    *pv = XSCRIPT_PAYLOAD;
+    *pv = MU_XSCRIPT_PAYLOAD;
   else
     return 1;
   return 0;
@@ -568,12 +568,12 @@ set_verbose_mask (mu_pop3_t p)
 {
   if (p)
     {
-      mu_pop3_trace_mask (p, QRY_VERBOSE_MASK (XSCRIPT_SECURE)
+      mu_pop3_trace_mask (p, QRY_VERBOSE_MASK (MU_XSCRIPT_SECURE)
 			          ? MU_POP3_TRACE_SET : MU_POP3_TRACE_CLR,
-			      XSCRIPT_SECURE);
-      mu_pop3_trace_mask (p, QRY_VERBOSE_MASK (XSCRIPT_PAYLOAD)
+			      MU_XSCRIPT_SECURE);
+      mu_pop3_trace_mask (p, QRY_VERBOSE_MASK (MU_XSCRIPT_PAYLOAD)
 			          ? MU_POP3_TRACE_SET : MU_POP3_TRACE_CLR,
-			      XSCRIPT_PAYLOAD);
+			      MU_XSCRIPT_PAYLOAD);
     }
 }
 
@@ -589,12 +589,12 @@ com_verbose (int argc, char **argv)
 	    {
 	      char *delim = " (";
 	    
-	      if (QRY_VERBOSE_MASK (XSCRIPT_SECURE))
+	      if (QRY_VERBOSE_MASK (MU_XSCRIPT_SECURE))
 		{
 		  printf("%ssecure", delim);
 		  delim = ", ";
 		}
-	      if (QRY_VERBOSE_MASK (XSCRIPT_PAYLOAD))
+	      if (QRY_VERBOSE_MASK (MU_XSCRIPT_PAYLOAD))
 		printf("%spayload", delim);
 	      printf (")");
 	    }

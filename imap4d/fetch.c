@@ -1688,7 +1688,7 @@ imap4d_fetch (struct imap4d_command *command, imap4d_tokbuf_t tok)
 {
   int rc;
   char *err_text = "Completed";
-  int xlev = set_xscript_level (XSCRIPT_PAYLOAD);
+  int xlev = set_xscript_level (MU_XSCRIPT_PAYLOAD);
   rc = imap4d_fetch0 (tok, 0, &err_text);
   set_xscript_level (xlev);
   return io_completion_response (command, rc, "%s", err_text);

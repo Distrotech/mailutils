@@ -422,7 +422,8 @@ imap4d_mainloop (int fd, FILE *infile, FILE *outfile)
                         RESP_PREAUTH : RESP_OK, "%s", text);
   io_flush ();
 
-  set_xscript_level ((state == STATE_AUTH) ? XSCRIPT_NORMAL : XSCRIPT_SECURE);
+  set_xscript_level ((state == STATE_AUTH) ?
+                      MU_XSCRIPT_NORMAL : MU_XSCRIPT_SECURE);
   
   tokp = imap4d_tokbuf_init ();
   while (1)

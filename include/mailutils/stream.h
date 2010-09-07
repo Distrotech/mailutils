@@ -157,9 +157,9 @@ int mu_tcp_stream_create (mu_stream_t *stream, const char *host, int port,
 			  int flags);
 
 /* Transcript output levels */
-#define XSCRIPT_NORMAL  0  /* Normal transcript */
-#define XSCRIPT_SECURE  1  /* Security-related data are being sent/received */
-#define XSCRIPT_PAYLOAD 2  /* Actual payload (may be copious) */
+#define MU_XSCRIPT_NORMAL  0  /* Normal transcript */
+#define MU_XSCRIPT_SECURE  1  /* Security-related data are being transmitted */
+#define MU_XSCRIPT_PAYLOAD 2  /* Actual payload (may be copious) */
 
 int mu_xscript_stream_create(mu_stream_t *pref, mu_stream_t transport,
 			     mu_stream_t logstr,
