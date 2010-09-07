@@ -38,7 +38,7 @@ imap4d_uid (struct imap4d_command *command, imap4d_tokbuf_t tok)
   
   if (mu_c_strcasecmp (cmd, "FETCH") == 0)
     {
-      int xlev = set_xscript_level (XSCRIPT_PAYLOAD);
+      int xlev = set_xscript_level (MU_XSCRIPT_PAYLOAD);
       rc = imap4d_fetch0 (tok, 1, &err_text);
       set_xscript_level (xlev);
     }

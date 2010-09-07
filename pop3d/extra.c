@@ -344,13 +344,13 @@ set_xscript_level (int xlev)
 {
   if (pop3d_transcript)
     {
-      if (xlev != XSCRIPT_NORMAL)
+      if (xlev != MU_XSCRIPT_NORMAL)
 	{
-	  mu_log_level_t n = xlev == XSCRIPT_SECURE ?
+	  mu_log_level_t n = xlev == MU_XSCRIPT_SECURE ?
 	                      MU_DEBUG_TRACE6 : MU_DEBUG_TRACE7;
 	  
 	  if (mu_global_debug_level ("pop3") & MU_DEBUG_LEVEL_MASK (n))
-	    return XSCRIPT_NORMAL;
+	    return MU_XSCRIPT_NORMAL;
 	}
 
       if (mu_stream_ioctl (iostream, MU_IOCTL_LEVEL, &xlev) == 0)

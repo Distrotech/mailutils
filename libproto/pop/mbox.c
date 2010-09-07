@@ -162,9 +162,9 @@ pop_open (mu_mailbox_t mbox, int flags)
   if (mu_debug_check_level (mbox->debug, MU_DEBUG_PROT))
     mu_pop3_trace (mpd->pop3, MU_POP3_TRACE_SET);
   if (mu_debug_check_level (mbox->debug, MU_DEBUG_TRACE6))
-    mu_pop3_trace_mask (mpd->pop3, MU_POP3_TRACE_SET, XSCRIPT_SECURE);
+    mu_pop3_trace_mask (mpd->pop3, MU_POP3_TRACE_SET, MU_XSCRIPT_SECURE);
   if (mu_debug_check_level (mbox->debug, MU_DEBUG_TRACE7))
-    mu_pop3_trace_mask (mpd->pop3, MU_POP3_TRACE_SET, XSCRIPT_PAYLOAD);
+    mu_pop3_trace_mask (mpd->pop3, MU_POP3_TRACE_SET, MU_XSCRIPT_PAYLOAD);
     
   do
     {

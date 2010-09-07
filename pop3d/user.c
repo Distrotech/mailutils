@@ -102,7 +102,7 @@ pop3d_user (char *arg)
   pop3d_outf ("+OK\n");
   pop3d_flush_output ();
 
-  xscript_level = set_xscript_level (XSCRIPT_SECURE);
+  xscript_level = set_xscript_level (MU_XSCRIPT_SECURE);
   buf = pop3d_readline (buffer, sizeof (buffer));
   pop3d_parse_command (buf, &cmd, &pass);
   set_xscript_level (xscript_level);

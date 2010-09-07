@@ -107,7 +107,7 @@ print_transcript (struct _mu_xscript_stream *str, int flag,
       if (str->flags & TRANS_DISABLED)
 	return;
   
-      if (str->level == XSCRIPT_PAYLOAD)
+      if (str->level == MU_XSCRIPT_PAYLOAD)
 	{
 	  mu_stream_printf (str->logstr, "(data...)\n");
 	  str->flags |= TRANS_DISABLED;
@@ -121,7 +121,7 @@ print_transcript (struct _mu_xscript_stream *str, int flag,
 	  if (p > buf && p[-1] == '\r')
 	    len--;
 
-	  if (str->level == XSCRIPT_SECURE)
+	  if (str->level == MU_XSCRIPT_SECURE)
 	    {
 	      size_t i;
 	      

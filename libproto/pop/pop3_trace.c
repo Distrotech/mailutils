@@ -144,7 +144,7 @@ _mu_pop3_xscript_level (mu_pop3_t pop3, int xlev)
 {
   if (mu_stream_ioctl (pop3->carrier, MU_IOCTL_LEVEL, &xlev) == 0)
     return xlev;
-  return XSCRIPT_NORMAL;
+  return MU_XSCRIPT_NORMAL;
 }
 
   
