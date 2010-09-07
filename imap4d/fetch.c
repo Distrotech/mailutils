@@ -49,6 +49,7 @@ struct fetch_function_closure
 {
   fetch_function_t fun;            /* Handler function */
   const char *name;                /* Response tag */
+  const char *section_tag;          
   size_t *section_part;            /* Section-part */
   size_t nset;                     /* Number of elements in section_part */
   int peek;
@@ -906,7 +907,7 @@ _frt_body_text (struct fetch_function_closure *ffc,
   if (ffc->name)
     util_send ("%s",  ffc->name);
   else
-    fetch_send_section_part (ffc, "TEXT", 1);
+    fetch_send_section_part (ffc, ffc->section_tag, 1);
   msg = fetch_get_part (ffc, frt);
   if (!msg)
     {
@@ -935,9 +936,8 @@ _frt_size (struct fetch_function_closure *ffc,
 }
 
 static int
-_frt_header0 (struct fetch_function_closure *ffc,
-	      struct fetch_runtime_closure *frt,
-	      const char *suffix)
+_frt_header (struct fetch_function_closure *ffc,
+	     struct fetch_runtime_closure *frt)
 {
   mu_message_t msg;
   mu_header_t header = NULL;
@@ -946,9 +946,9 @@ _frt_header0 (struct fetch_function_closure *ffc,
   
   set_seen (ffc, frt);
   if (ffc->name)
-    util_send ("%s",  ffc->name);
+    util_send ("%s", ffc->name);
   else
-    fetch_send_section_part (ffc, suffix, 1);
+    fetch_send_section_part (ffc, ffc->section_tag, 1);
 
   msg = fetch_get_part (ffc, frt);
   if (!msg)
@@ -961,20 +961,6 @@ _frt_header0 (struct fetch_function_closure *ffc,
   mu_header_lines (header, &lines);
   mu_header_get_stream (header, &stream);
   return fetch_io (stream, ffc->start, ffc->size, size + lines);
-}
-
-static int
-_frt_header (struct fetch_function_closure *ffc,
-	     struct fetch_runtime_closure *frt)
-{
-  return _frt_header0 (ffc, frt, "HEADER");
-}
-
-static int
-_frt_mime (struct fetch_function_closure *ffc,
-	   struct fetch_runtime_closure *frt)
-{
-  return _frt_header0 (ffc, frt, "MIME");
 }
 
 static int
@@ -1291,17 +1277,22 @@ parse_section_text (imap4d_parsebuf_t p, struct fetch_function_closure *ffc,
 	  parse_header_list (p, ffc);
 	}
       else
-	ffc->fun = _frt_header;
+	{
+	  ffc->fun = _frt_header;
+	  ffc->section_tag = "HEADER";
+	}
     }
   else if (mu_c_strcasecmp (p->token, "TEXT") == 0)
     {
       imap4d_parsebuf_next (p, 1);
       ffc->fun = _frt_body_text;
+      ffc->section_tag = "TEXT";
     }
   else if (allow_mime && mu_c_strcasecmp (p->token, "MIME") == 0)
     {
       imap4d_parsebuf_next (p, 1);
-      ffc->fun = _frt_mime;
+      ffc->fun = _frt_header;
+      ffc->section_tag = "MIME";
     }
   else
     return 1;
@@ -1375,12 +1366,12 @@ parse_section (imap4d_parsebuf_t p, struct fetch_function_closure *ffc)
     return 1;
   ffc_init (ffc);
   ffc->name = NULL;
-  ffc->fun = _frt_body;
+  ffc->fun = _frt_body_text;
   imap4d_parsebuf_next (p, 1);
   if (parse_section_text (p, ffc, 0))
     {
       if (p->token[0] == ']')
-	/* OK */;
+	ffc->fun = _frt_body;
       else if (mu_isdigit (p->token[0]))
 	{
 	  parse_section_part (p, ffc);
