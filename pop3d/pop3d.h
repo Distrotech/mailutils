@@ -265,4 +265,6 @@ extern int set_bulletin_source (const char *source);
 extern int pop3d_begin_session (void);
 extern const char *pop3d_error_string (int code);
 
+extern int set_xscript_level (int xlev);
+
 #endif /* _POP3D_H */

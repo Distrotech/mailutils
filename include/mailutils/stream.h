@@ -63,6 +63,9 @@ enum mu_buffer_type
 #define MU_IOCTL_SET_TRANSPORT   6
 #define MU_IOCTL_SWAP_STREAM     7
 
+#define MU_IOCTL_LEVEL           8
+
+
 void mu_stream_ref (mu_stream_t stream);
 void mu_stream_unref (mu_stream_t stream);
 void mu_stream_destroy (mu_stream_t *pstream);
@@ -153,9 +156,15 @@ int mu_tcp_stream_create_with_source_host (mu_stream_t *stream,
 int mu_tcp_stream_create (mu_stream_t *stream, const char *host, int port,
 			  int flags);
 
+/* Transcript output levels */
+#define XSCRIPT_NORMAL  0  /* Normal transcript */
+#define XSCRIPT_SECURE  1  /* Security-related data are being sent/received */
+#define XSCRIPT_PAYLOAD 2  /* Actual payload (may be copious) */
+
 int mu_xscript_stream_create(mu_stream_t *pref, mu_stream_t transport,
 			     mu_stream_t logstr,
 			     const char *prefix[]);
+
 int mu_iostream_create (mu_stream_t *pref, mu_stream_t in, mu_stream_t out);
 int mu_dbgstream_create(mu_stream_t *pref, mu_debug_t debug,
 			mu_log_level_t level, int flags);

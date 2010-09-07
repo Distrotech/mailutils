@@ -131,8 +131,8 @@ COMMAND commands[] = {
     "Get the unique id of message: UIDL [msgno]" },
   { "user",       2, 2, com_user,
     "send login: USER user" },
-  { "verbose",    1, 2, com_verbose,
-    "Enable Protocol tracing: verbose [on|off]" },
+  { "verbose",    1, 4, com_verbose,
+    "Enable Protocol tracing: verbose [on|off|mask|unmask] [x1 [x2]]" },
 #ifdef WITH_READLINE
   { "history",    1, 1, com_history,
     "Show command history" },
@@ -145,6 +145,14 @@ mu_pop3_t pop3;
 
 /* Flag if verbosity is needed.  */
 int verbose;
+#define VERBOSE_MASK(n) (1<<((n)+1))
+#define SET_VERBOSE_MASK(n) (verbose |= VERBOSE_MASK (n))
+#define CLR_VERBOSE_MASK(n) (verbose &= VERBOSE_MASK (n))
+#define QRY_VERBOSE_MASK(n) (verbose & VERBOSE_MASK (n))
+#define HAS_VERBOSE_MASK(n) (verbose & ~1)
+#define SET_VERBOSE() (verbose |= 1)
+#define CLR_VERBOSE() (verbose &= ~1)
+#define QRY_VERBOSE() (verbose & 1)
 
 /* When non-zero, this global means the user is done using this program. */
 int done;
@@ -408,10 +416,8 @@ get_bool (const char *str, int *pb)
       || mu_c_strcasecmp (str, "false") == 0)
     *pb = 0;
   else
-    {
-      mu_error ("not a boolean: %s", str);
-      return 1;
-    }
+    return 1;
+
   return 0;
 }
 
@@ -509,13 +515,91 @@ find_command (char *name)
   return NULL;
 }
 
+static int
+string_to_xlev (const char *name, int *pv)
+{
+  if (strcmp (name, "secure") == 0)
+    *pv = XSCRIPT_SECURE;
+  else if (strcmp (name, "payload") == 0)
+    *pv = XSCRIPT_PAYLOAD;
+  else
+    return 1;
+  return 0;
+}
+
+static int
+change_verbose_mask (int set, int argc, char **argv)
+{
+  int i;
+  
+  for (i = 0; i < argc; i++)
+    {
+      int lev;
+      
+      if (string_to_xlev (argv[i], &lev))
+	{
+	  mu_error ("unknown level: %s", argv[i]);
+	  return 1;
+	}
+      if (set)
+	SET_VERBOSE_MASK (lev);
+      else
+	CLR_VERBOSE_MASK (lev);
+    }
+  return 0;
+}
+
+void
+set_verbose (mu_pop3_t p)
+{
+  if (p)
+    {
+      if (QRY_VERBOSE ())
+	{
+	  mu_pop3_trace (p, MU_POP3_TRACE_SET);
+	}
+      else
+	mu_pop3_trace (p, MU_POP3_TRACE_CLR);
+    }
+}
+
+void
+set_verbose_mask (mu_pop3_t p)
+{
+  if (p)
+    {
+      mu_pop3_trace_mask (p, QRY_VERBOSE_MASK (XSCRIPT_SECURE)
+			          ? MU_POP3_TRACE_SET : MU_POP3_TRACE_CLR,
+			      XSCRIPT_SECURE);
+      mu_pop3_trace_mask (p, QRY_VERBOSE_MASK (XSCRIPT_PAYLOAD)
+			          ? MU_POP3_TRACE_SET : MU_POP3_TRACE_CLR,
+			      XSCRIPT_PAYLOAD);
+    }
+}
+
 int
 com_verbose (int argc, char **argv)
 {
   if (argc == 1)
     {
-      if (verbose)
-	printf ("verbose is on\n");
+      if (QRY_VERBOSE ())
+	{
+	  printf ("verbose is on");
+	  if (HAS_VERBOSE_MASK ())
+	    {
+	      char *delim = " (";
+	    
+	      if (QRY_VERBOSE_MASK (XSCRIPT_SECURE))
+		{
+		  printf("%ssecure", delim);
+		  delim = ", ";
+		}
+	      if (QRY_VERBOSE_MASK (XSCRIPT_PAYLOAD))
+		printf("%spayload", delim);
+	      printf (")");
+	    }
+	  printf ("\n");
+	}
       else
 	printf ("verbose is off\n");
     }
@@ -525,16 +609,20 @@ com_verbose (int argc, char **argv)
 
       if (get_bool (argv[1], &bv) == 0)
 	{
-	  verbose = bv;
-	  if (pop3 != NULL)
-	    {
-	      if (verbose == 1)
-		mu_pop3_trace (pop3, MU_POP3_TRACE_SET);
-	      else
-		mu_pop3_trace (pop3, MU_POP3_TRACE_CLR);
-	    }
+	  verbose |= bv;
+	  if (argc > 2)
+	    change_verbose_mask (verbose, argc - 2, argv + 2);
+	  set_verbose (pop3);
 	}
+      else if (strcmp (argv[1], "mask") == 0)
+	change_verbose_mask (1, argc - 2, argv + 2);
+      else if (strcmp (argv[1], "unmask") == 0)
+	change_verbose_mask (0, argc - 2, argv + 2);
+      else
+	mu_error ("unknown subcommand");
+      set_verbose_mask (pop3);
     }
+
   return 0;
 }
 
@@ -929,8 +1017,11 @@ com_connect (int argc, char **argv)
     {
       mu_stream_t tcp;
 
-      if (verbose)
-	mu_pop3_trace (pop3, MU_POP3_TRACE_SET);
+      if (QRY_VERBOSE ())
+	{
+	  set_verbose (pop3);
+	  set_verbose_mask (pop3);
+	}
       status = mu_tcp_stream_create (&tcp, argv[0], n, MU_STREAM_READ);
       if (status == 0)
 	{

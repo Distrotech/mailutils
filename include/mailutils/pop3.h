@@ -50,6 +50,7 @@ int  mu_pop3_get_timeout (mu_pop3_t pop3, int *timeout);
 #define MU_POP3_TRACE_SET 1
 #define MU_POP3_TRACE_QRY 2
 int mu_pop3_trace (mu_pop3_t pop3, int op);
+int mu_pop3_trace_mask (mu_pop3_t pop3, int op, int lev);
 
 int  mu_pop3_apop (mu_pop3_t pop3, const char *name, const char *digest);
 

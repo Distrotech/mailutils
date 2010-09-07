@@ -26,6 +26,7 @@ pop3d_retr (char *arg)
   mu_message_t msg = NULL;
   mu_attribute_t attr = NULL;
   mu_stream_t stream;
+  int xscript_level;
   
   if ((strlen (arg) == 0) || (strchr (arg, ' ') != NULL))
     return ERR_BAD_ARGS;
@@ -46,6 +47,7 @@ pop3d_retr (char *arg)
     return ERR_UNKNOWN;
   
   pop3d_outf ("+OK\n");
+  xscript_level = set_xscript_level (XSCRIPT_PAYLOAD);
   mu_stream_copy (iostream, stream, 0, NULL);
   mu_stream_destroy (&stream);
 
@@ -55,6 +57,8 @@ pop3d_retr (char *arg)
   pop3d_mark_retr (attr);
 
   pop3d_outf (".\n");
+
+  set_xscript_level (xscript_level);
 
   return OK;
 }

@@ -161,7 +161,11 @@ pop_open (mu_mailbox_t mbox, int flags)
 
   if (mu_debug_check_level (mbox->debug, MU_DEBUG_PROT))
     mu_pop3_trace (mpd->pop3, MU_POP3_TRACE_SET);
-
+  if (mu_debug_check_level (mbox->debug, MU_DEBUG_TRACE6))
+    mu_pop3_trace_mask (mpd->pop3, MU_POP3_TRACE_SET, XSCRIPT_SECURE);
+  if (mu_debug_check_level (mbox->debug, MU_DEBUG_TRACE7))
+    mu_pop3_trace_mask (mpd->pop3, MU_POP3_TRACE_SET, XSCRIPT_PAYLOAD);
+    
   do
     {
       status = mu_pop3_connect (mpd->pop3);
@@ -214,7 +218,7 @@ pop_destroy (mu_mailbox_t mbox)
     {
        size_t i;
       mu_monitor_wrlock (mbox->monitor);
-      /* Destroy the pop messages and ressources associated to them.  */
+      /* Destroy the pop messages and resources associated to them.  */
       for (i = 0; i < mpd->msg_count; i++)
 	{
 	  if (mpd->msg[i])
@@ -291,7 +295,7 @@ pop_scan (mu_mailbox_t mbox, size_t msgno, size_t *pcount)
       if (mu_observable_notify (mbox->observable, MU_EVT_MESSAGE_ADD,
 				&tmp) != 0)
 	break;
-      if (((i +1) % 10) == 0)
+      if (((i + 1) % 10) == 0)
 	{
 	  mu_observable_notify (mbox->observable, MU_EVT_MAILBOX_PROGRESS,
 				NULL);

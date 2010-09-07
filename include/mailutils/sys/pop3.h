@@ -59,6 +59,7 @@ enum mu_pop3_state
 
 #define MU_POP3_ACK   0x01
 #define MU_POP3_TRACE 0x02  
+#define MU_POP3_XSCRIPT_MASK(n) (1<<((n)+1))
   
 /* Structure to hold things general to POP3 mailbox, like its state, etc ... */
 struct _mu_pop3
@@ -89,6 +90,8 @@ extern int  mu_pop3_iterator_create (mu_pop3_t pop3, mu_iterator_t *piterator);
 extern int  mu_pop3_stream_create (mu_pop3_t pop3, mu_stream_t *pstream);
 extern int  mu_pop3_carrier_is_ready (mu_stream_t carrier, int flag,
 				      int timeout);
+
+int _mu_pop3_xscript_level (mu_pop3_t pop3, int xlev);
 
 int _mu_pop3_trace_enable (mu_pop3_t pop3);
 int _mu_pop3_trace_disable (mu_pop3_t pop3);  

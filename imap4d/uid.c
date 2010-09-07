@@ -37,7 +37,11 @@ imap4d_uid (struct imap4d_command *command, imap4d_tokbuf_t tok)
   cmd = imap4d_tokbuf_getarg (tok, IMAP4_ARG_1);
   
   if (mu_c_strcasecmp (cmd, "FETCH") == 0)
-    rc = imap4d_fetch0 (tok, 1, &err_text);
+    {
+      int xlev = set_xscript_level (XSCRIPT_PAYLOAD);
+      rc = imap4d_fetch0 (tok, 1, &err_text);
+      set_xscript_level (xlev);
+    }
   else if (mu_c_strcasecmp (cmd, "COPY") == 0)
     rc = imap4d_copy0 (tok, 1, &err_text);
   else if (mu_c_strcasecmp (cmd, "STORE") == 0)

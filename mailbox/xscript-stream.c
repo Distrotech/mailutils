@@ -30,6 +30,8 @@
 #include <mailutils/stream.h>
 #include <mailutils/sys/stream.h>
 #include <mailutils/sys/xscript-stream.h>
+#include <mailutils/cctype.h>
+#include <mailutils/cstr.h>
 
 /* A "transcript stream" transparently writes data to and reads data from
    an underlying transport stream, writing each lineful of data to a "log
@@ -38,47 +40,131 @@
    RFCs -- "S: ", for data written ("Server"), and "C: ", for data read
    ("Client"). */
 
-#define TRANS_READ 0x1
-#define TRANS_WRITE 0x2
+#define TRANS_READ     0x1
+#define TRANS_WRITE    0x2
+#define TRANS_DISABLED 0x4
 #define FLAG_TO_PFX(c) ((c) - 1)
+
+static int
+word_match (const char *buf, size_t len, int n, const char *word,
+	    size_t *pos)
+{
+  size_t i = 0;
+  size_t wl = strlen (word);
+  
+  for (;; n--)
+    {
+      /* Skip whitespace separator */
+      for (; i < len && mu_isspace (buf[i]); i++)
+	;
+
+      if (n == 0)
+	break;
+      
+      /* Skip the argument */
+      if (buf[i] == '"')
+	{
+	  for (i++; i < len && buf[i] != '"'; i++)
+	    if (buf[i] == '\'')
+	      i++;
+	}
+      else
+	{
+	  for (; i < len && !mu_isspace (buf[i]); i++)
+	    ;
+	}
+    }
+
+  if (i + wl <= len &&
+      mu_c_strncasecmp (buf + i, word, wl) == 0 &&
+      mu_isblank (buf[i + wl]))
+    {
+      *pos = i + wl;
+      return 1;
+    }
+
+  return 0;
+}
 
 static void
 print_transcript (struct _mu_xscript_stream *str, int flag,
 		  const char *buf, size_t size)
 {
-    while (size)
-      {
-	const char *p;
-	size_t len;
-	
-	if (str->flags & flag)
-	  {
-	    mu_stream_write (str->logstr,
-			     str->prefix[FLAG_TO_PFX(flag)],
-			     strlen (str->prefix[FLAG_TO_PFX (flag)]),
-			     NULL);
-	    str->flags &= ~flag;
-	  }
-	p = memchr (buf, '\n', size);
-	if (p)
-	  {
-	    len = p - buf;
-	    if (p > buf && p[-1] == '\r')
-	      len--;
-	    mu_stream_write (str->logstr, buf, len, NULL);
-	    mu_stream_write (str->logstr, "\n", 1, NULL);
-	    str->flags |= flag;
+  while (size)
+    {
+      const char *p;
+      size_t len;
+      
+      if (str->flags & flag)
+	{
+	  mu_stream_write (str->logstr,
+			   str->prefix[FLAG_TO_PFX(flag)],
+			   strlen (str->prefix[FLAG_TO_PFX (flag)]),
+			   NULL);
+	  str->flags &= ~(flag | TRANS_DISABLED);
+	}
+      
+      if (str->flags & TRANS_DISABLED)
+	return;
+  
+      if (str->level == XSCRIPT_PAYLOAD)
+	{
+	  mu_stream_printf (str->logstr, "(data...)\n");
+	  str->flags |= TRANS_DISABLED;
+	  return;
+	}
+  
+      p = memchr (buf, '\n', size);
+      if (p)
+	{
+	  len = p - buf;
+	  if (p > buf && p[-1] == '\r')
+	    len--;
 
-	    len = p - buf + 1;
-	    buf = p + 1;
-	    size -= len;
-	  }
-	else
-	  {
-	    mu_stream_write (str->logstr, buf, size, NULL);
-	    break;
-	  }
-      }
+	  if (str->level == XSCRIPT_SECURE)
+	    {
+	      size_t i;
+	      
+	      if (word_match (buf, len, 0, "PASS", &i))
+		mu_stream_printf (str->logstr, "PASS ***");
+	      else if (word_match (buf, len, 1, "LOGIN", &i))
+		{
+		  /* Skip the whitespace separator */
+		  for (; i < len && mu_isspace (buf[i]); i++)
+		    ;
+		  /* Skip the first argument (presumably the user name) */
+		  if (buf[i] == '"')
+		    {
+		      for (i++; i < len && buf[i] != '"'; i++)
+			if (buf[i] == '\'')
+			  i++;
+		    }
+		  else
+		    {
+		      for (; i < len && !mu_isspace (buf[i]); i++)
+			;
+		    }
+		  mu_stream_write (str->logstr, buf, i, NULL);
+		  mu_stream_write (str->logstr, " \"***\"", 6, NULL);
+		}
+	      else
+		mu_stream_write (str->logstr, buf, len, NULL);
+	    }
+	  else
+	    mu_stream_write (str->logstr, buf, len, NULL);
+	  mu_stream_write (str->logstr, "\n", 1, NULL);
+	  str->flags |= flag;
+	  
+	  len = p - buf + 1;
+	  buf = p + 1;
+	  size -= len;
+	}
+      else
+	{
+	  mu_stream_write (str->logstr, buf, size, NULL);
+	  break;
+	}
+    }
 }
 
 static int
@@ -226,6 +312,18 @@ _xscript_ctl (struct _mu_stream *str, int op, void *arg)
 	  if (tmp)
 	    mu_stream_ref (tmp);
 	  status = 0;
+	}
+      break;
+
+    case MU_IOCTL_LEVEL:
+      if (!arg)
+	return EINVAL;
+      else
+	{
+	  int oldlev = sp->level;
+	  sp->level = *(int*)arg;
+	  sp->flags = TRANS_READ | TRANS_WRITE;
+	  *(int*)arg = oldlev;
 	}
       break;
       

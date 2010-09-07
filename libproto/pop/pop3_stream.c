@@ -185,6 +185,7 @@ _pop3_event_cb (mu_stream_t str, int ev, int flags)
       if (mu_stream_ioctl (str, MU_IOCTL_GET_TRANSPORT, trans) == 0)
 	{
 	  struct mu_pop3_stream *sp = (struct mu_pop3_stream *) trans[0];
+	  _mu_pop3_xscript_level (sp->pop3, XSCRIPT_NORMAL);
 	  sp->pop3->state = MU_POP3_NO_STATE;
 	}
     }

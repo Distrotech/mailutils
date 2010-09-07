@@ -28,14 +28,17 @@ int
 mu_pop3_pass (mu_pop3_t pop3, const char *passwd)
 {
   int status;
-
+  
   if (pop3 == NULL || passwd == NULL)
     return EINVAL;
 
   switch (pop3->state)
     {
     case MU_POP3_NO_STATE:
+      if (mu_pop3_trace_mask (pop3, MU_POP3_TRACE_QRY, XSCRIPT_SECURE))
+	_mu_pop3_xscript_level (pop3, XSCRIPT_SECURE);
       status = mu_pop3_writeline (pop3, "PASS %s\r\n", passwd);
+      _mu_pop3_xscript_level (pop3, XSCRIPT_NORMAL);
       MU_POP3_CHECK_ERROR (pop3, status);
       /* FIXME: how to obscure the passwd in the stream buffer? */
       MU_POP3_FCLR (pop3, MU_POP3_ACK);
