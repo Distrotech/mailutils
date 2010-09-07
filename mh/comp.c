@@ -167,7 +167,7 @@ copy_message (mu_mailbox_t mbox, size_t n, const char *file)
       return rc;
     }
 
-  rc = mu_stream_copy (out, in, 0);
+  rc = mu_stream_copy (out, in, 0, NULL);
   mu_stream_destroy (&in);
   mu_stream_close (out);
   mu_stream_destroy (&out);

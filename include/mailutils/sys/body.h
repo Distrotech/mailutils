@@ -40,6 +40,7 @@ struct _mu_body
 
   int (*_size)  (mu_body_t, size_t*);
   int (*_lines) (mu_body_t, size_t*);
+  int (*_get_stream) (mu_body_t, mu_stream_t *);
 };
 
 #ifdef __cplusplus

@@ -48,7 +48,7 @@ rdcache_read (struct _mu_stream *str, char *buf, size_t size, size_t *pnbytes)
       status = mu_stream_seek (sp->cache, 0, MU_SEEK_END, NULL);
       if (status)
 	return status;
-      status = mu_stream_copy (sp->cache, sp->transport, left);
+      status = mu_stream_copy (sp->cache, sp->transport, left, NULL);
       if (status)
 	return status;
       sp->size = sp->offset;

@@ -586,7 +586,7 @@ mu_message_create_copy (mu_message_t *to, mu_message_t from)
       return status;
     }
 
-  status = mu_stream_copy (tmp, fromstr, 0);
+  status = mu_stream_copy (tmp, fromstr, 0, NULL);
   if (status == 0)
     {
       status = mu_message_create (to, NULL);
@@ -786,6 +786,8 @@ mu_message_set_stream (mu_message_t msg, mu_stream_t stream, void *owner)
 static int
 _message_get_stream (mu_message_t msg, mu_stream_t *pstream, int ref)
 {
+  int status;
+
   if (msg == NULL)
     return EINVAL;
   if (pstream == NULL)
@@ -793,25 +795,33 @@ _message_get_stream (mu_message_t msg, mu_stream_t *pstream, int ref)
 
   if (msg->stream == NULL)
     {
-      int status;
-      mu_header_t hdr;
-      mu_body_t body;
+      if (msg->_get_stream)
+	{
+	  status = msg->_get_stream (msg, &msg->stream);
+	  if (status)
+	    return status;
+	}
+      else
+	{
+	  mu_header_t hdr;
+	  mu_body_t body;
 
-      /* FIXME: Kind of a kludge: make sure the message has header
-	 and body initialized. */
-      status = mu_message_get_header (msg, &hdr);
-      if (status)
-	return status;
-      status = mu_message_get_body (msg, &body);
-      if (status)
-	return status;
-      
-      status = _message_stream_create (&msg->stream, msg, MU_STREAM_RDWR);
-      if (status)
-	return status;
-      msg->flags |= MESSAGE_INTERNAL_STREAM;
+	  /* FIXME: Kind of a kludge: make sure the message has header
+	     and body initialized. */
+	  status = mu_message_get_header (msg, &hdr);
+	  if (status)
+	    return status;
+	  status = mu_message_get_body (msg, &body);
+	  if (status)
+	    return status;
+	  
+	  status = _message_stream_create (&msg->stream, msg, MU_STREAM_RDWR);
+	  if (status)
+	    return status;
+	  msg->flags |= MESSAGE_INTERNAL_STREAM;
+	}
     }
-
+  
   if (!ref)
     {
       *pstream = msg->stream;
@@ -831,6 +841,19 @@ int
 mu_message_get_streamref (mu_message_t msg, mu_stream_t *pstream)
 {
   return _message_get_stream (msg, pstream, 1);
+}
+
+int
+mu_message_set_get_stream (mu_message_t msg,
+			   int (*_getstr) (mu_message_t, mu_stream_t *),
+			   void *owner)
+{
+  if (msg == NULL)
+    return EINVAL;
+  if (msg->owner != owner)
+    return EACCES;
+  msg->_get_stream = _getstr;
+  return 0;
 }
 
 int

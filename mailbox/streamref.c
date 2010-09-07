@@ -24,13 +24,15 @@
 #include <mailutils/errno.h>
 #include <mailutils/sys/streamref.h>
 
+#define _MU_STR_ERRMASK (_MU_STR_ERR|_MU_STR_EOF)
+
 static int
 streamref_return (struct _mu_streamref *sp, int rc)
 {
   if (rc)
     sp->stream.last_err = sp->transport->last_err;
-  sp->stream.flags = (sp->stream.flags & ~_MU_STR_INTERN_MASK) |
-                   (sp->transport->flags & _MU_STR_INTERN_MASK);
+  sp->stream.flags = (sp->stream.flags & ~_MU_STR_ERRMASK) |
+                   (sp->transport->flags & _MU_STR_ERRMASK);
   return rc;
 }
 
@@ -80,15 +82,15 @@ _streamref_readdelim (struct _mu_stream *str, char *buf, size_t bufsize,
   rc = mu_stream_seek (sp->transport, sp->offset, MU_SEEK_SET, &off);
   if (rc == 0)
     {
-      if (sp->end)
-	{
-	  size_t size = sp->end - off + 2; /* extra 1 to account for \0 */
-	  if (size < bufsize)
-	    bufsize = size;
-	}
       rc = mu_stream_readdelim (sp->transport, buf, bufsize, delim, &nread);
       if (rc == 0)
 	{
+	  if (sp->end)
+	    {
+	      size_t size = sp->end - off + 1;
+	      if (nread > size)
+		nread = size;
+	    }
 	  sp->offset += nread;
 	  *pnread = nread;
 	}

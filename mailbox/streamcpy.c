@@ -31,22 +31,22 @@
 /* Copy SIZE bytes from SRC to DST.  If SIZE is 0, copy everything up to
    EOF. */
 int
-mu_stream_copy (mu_stream_t dst, mu_stream_t src, size_t size)
+mu_stream_copy (mu_stream_t dst, mu_stream_t src, mu_off_t size,
+		mu_off_t *pcsz)
 {
   int status;
   size_t bufsize, n;
   char *buf;
-
+  mu_off_t total = 0;
+  
+  if (pcsz)
+    *pcsz = 0;
   if (size == 0)
     {
-      mu_off_t strsize;
-      status = mu_stream_size (src, &strsize);
+      status = mu_stream_size (src, &size);
       switch (status)
 	{
 	case 0:
-	  size = strsize;
-	  if ((mu_off_t)size != strsize)
-	    return ERANGE;
 	  break;
 
 	case ENOSYS:
@@ -105,6 +105,7 @@ mu_stream_copy (mu_stream_t dst, mu_stream_t src, size_t size)
 	if (status)
 	  break;
 	size -= rdsize;
+	total += rdsize;
       }
   else
     while ((status = mu_stream_read (src, buf, bufsize, &n)) == 0
@@ -113,8 +114,11 @@ mu_stream_copy (mu_stream_t dst, mu_stream_t src, size_t size)
 	status = mu_stream_write (dst, buf, n, NULL);
 	if (status)
 	  break;
+	total += n;
       }
 
+  if (pcsz)
+    *pcsz = total;
   free (buf);
   return status;
 }

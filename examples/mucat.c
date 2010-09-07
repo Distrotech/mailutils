@@ -69,14 +69,14 @@ main (int argc, char * argv [])
       MU_ASSERT (mu_stream_seek (in, skip_off, MU_SEEK_SET, NULL));
     }
   
-  MU_ASSERT (mu_stream_copy (out, in, 0));
+  MU_ASSERT (mu_stream_copy (out, in, 0, NULL));
 
   if (reread_option)
     {
       mu_stream_printf (out, "rereading from %lu:\n",
 			(unsigned long) reread_off);
       MU_ASSERT (mu_stream_seek (in, reread_off, MU_SEEK_SET, NULL));
-      MU_ASSERT (mu_stream_copy (out, in, 0));
+      MU_ASSERT (mu_stream_copy (out, in, 0, NULL));
     }
   
   mu_stream_close (in);

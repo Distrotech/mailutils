@@ -52,6 +52,7 @@ struct _mu_message
   /* Reference count.  */
   int ref;
 
+  int (*_get_stream)     (mu_message_t, mu_stream_t *);
   int (*_get_uidl)       (mu_message_t, char *, size_t, size_t *);
   int (*_get_uid)        (mu_message_t, size_t *);
   int (*_get_qid)        (mu_message_t,	mu_message_qid_t *);

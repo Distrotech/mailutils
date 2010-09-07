@@ -152,7 +152,7 @@ sc2string (int rc)
 int
 io_copy_out (mu_stream_t str, size_t size)
 {
-  return mu_stream_copy (iostream, str, size);
+  return mu_stream_copy (iostream, str, size, NULL);
 }
 
 int

@@ -1086,7 +1086,7 @@ append_message_to_stream (mu_stream_t ostr, mu_message_t msg,
       if (status)
 	return status;
     }
-  status = mu_stream_copy (ostr, istr, 0);
+  status = mu_stream_copy (ostr, istr, 0, NULL);
   mu_stream_destroy (&istr);
   if (status == 0)
     status = mu_stream_write (ostr, "\n", 1, NULL);
@@ -1264,7 +1264,7 @@ mbox_expunge_unlocked (mu_mailbox_t mailbox, size_t dirty, int remove_deleted,
 	      return status;
 	    }
 	  status = mu_stream_copy (tempstr, mailbox->stream,
-				   mum->body_end - mum->envel_from);
+				   mum->body_end - mum->envel_from, NULL);
 	  if (status)
 	    {
 	      mu_error (_("%s:%d: error copying: %s"),
@@ -1295,7 +1295,7 @@ mbox_expunge_unlocked (mu_mailbox_t mailbox, size_t dirty, int remove_deleted,
 	      return status;
 	    }
   
-	  status = mu_stream_copy (tempstr, mailbox->stream, len);
+	  status = mu_stream_copy (tempstr, mailbox->stream, len, NULL);
 	  if (status)
 	    {
 	      mu_error (_("%s:%d: error writing to temporary stream: %s"),
@@ -1342,7 +1342,7 @@ mbox_expunge_unlocked (mu_mailbox_t mailbox, size_t dirty, int remove_deleted,
       return status;
     }
 
-  status = mu_stream_copy (mailbox->stream, tempstr, size);
+  status = mu_stream_copy (mailbox->stream, tempstr, size, NULL);
   if (status)
     {
       mu_error (_("%s:%d: copying from the temporary stream: %s"),

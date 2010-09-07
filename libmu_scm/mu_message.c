@@ -219,7 +219,7 @@ SCM_DEFINE_PUBLIC (scm_mu_message_copy, "mu-message-copy", 1, 0, 0,
 		    "Cannot get output stream", SCM_BOOL_F);
     }
 
-  status = mu_stream_copy (out, in, 0);
+  status = mu_stream_copy (out, in, 0, NULL);
   mu_stream_destroy (&in);
   mu_stream_destroy (&out);
   if (status)
