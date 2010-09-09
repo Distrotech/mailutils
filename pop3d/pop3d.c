@@ -115,6 +115,8 @@ static struct mu_cfg_param pop3d_cfg_param[] = {
     N_("Set the bulletin database file name."),
     N_("file") },
 #endif
+  { "output-buffer-size", mu_cfg_size, &pop3d_output_bufsize, 0, NULL,
+    N_("Size of the output buffer.") },
   { ".server", mu_cfg_section, NULL, 0, NULL,
     N_("Server configuration.") },
   { "transcript", mu_cfg_bool, &pop3d_transcript, 0, NULL,

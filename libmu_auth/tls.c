@@ -279,7 +279,7 @@ _tls_io_ioctl (struct _mu_stream *stream, int op, void *arg)
       break;
 
     default:
-      return EINVAL;
+      return ENOSYS;
     }
   return 0;
 }
@@ -507,20 +507,49 @@ static int
 _tls_ioctl (struct _mu_stream *stream, int op, void *arg)
 {
   struct _mu_tls_stream *sp = (struct _mu_tls_stream *) stream;
-  mu_transport_t *ptrans, trans[2];
 
   switch (op)
     {
     case MU_IOCTL_GET_TRANSPORT:
       if (!arg)
 	return EINVAL;
-      ptrans = arg;
-      mu_stream_ioctl (sp->transport[0], MU_IOCTL_GET_TRANSPORT, trans);
-      ptrans[0] = trans[0];
-      mu_stream_ioctl (sp->transport[1], MU_IOCTL_GET_TRANSPORT, trans);
-      ptrans[1] = trans[0];
+      else
+	{
+	  mu_transport_t *ptrans, trans[2];
+
+	  ptrans = arg;
+	  mu_stream_ioctl (sp->transport[0], MU_IOCTL_GET_TRANSPORT, trans);
+	  ptrans[0] = trans[0];
+	  mu_stream_ioctl (sp->transport[1], MU_IOCTL_GET_TRANSPORT, trans);
+	  ptrans[1] = trans[0];
+	}
       break;
 
+    case MU_IOCTL_GET_TRANSPORT_BUFFER:
+      if (!arg)
+	return EINVAL;
+      else
+	{
+	  struct mu_buffer_query *qp = arg;
+	  if (!MU_TRANSPORT_VALID_TYPE (qp->type) ||
+	      !sp->transport[qp->type])
+	    return EINVAL;
+	  return mu_stream_get_buffer (sp->transport[qp->type], qp);
+	}
+      
+    case MU_IOCTL_SET_TRANSPORT_BUFFER:
+      if (!arg)
+	return EINVAL;
+      else
+	{
+	  struct mu_buffer_query *qp = arg;
+	  if (!MU_TRANSPORT_VALID_TYPE (qp->type) ||
+	      !sp->transport[qp->type])
+	    return EINVAL;
+	  return mu_stream_set_buffer (sp->transport[qp->type],
+				       qp->buftype, qp->bufsize);
+	}
+      
     default:
       return EINVAL;
     }

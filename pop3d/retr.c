@@ -17,6 +17,31 @@
 
 #include "pop3d.h"
 
+size_t pop3d_output_bufsize = 64 * 1024;
+
+void
+pop3d_send_payload (mu_stream_t stream)
+{
+  struct mu_buffer_query oldbuf, newbuf;
+  int xscript_level = set_xscript_level (MU_XSCRIPT_PAYLOAD);
+
+  oldbuf.type = MU_TRANSPORT_OUTPUT;
+  mu_stream_ioctl (iostream, MU_IOCTL_GET_TRANSPORT_BUFFER,
+		   &oldbuf);
+  newbuf.type = MU_TRANSPORT_OUTPUT;
+  newbuf.buftype = mu_buffer_full;
+  newbuf.bufsize = pop3d_output_bufsize;
+  mu_stream_ioctl (iostream, MU_IOCTL_SET_TRANSPORT_BUFFER,
+		   &newbuf);
+
+  mu_stream_copy (iostream, stream, 0, NULL);
+  pop3d_outf (".\n");
+
+  mu_stream_ioctl (iostream, MU_IOCTL_SET_TRANSPORT_BUFFER,
+		   &oldbuf);
+  set_xscript_level (xscript_level);
+}
+
 /* Prints out the specified message */
 
 int
@@ -26,7 +51,6 @@ pop3d_retr (char *arg)
   mu_message_t msg = NULL;
   mu_attribute_t attr = NULL;
   mu_stream_t stream;
-  int xscript_level;
   
   if ((strlen (arg) == 0) || (strchr (arg, ' ') != NULL))
     return ERR_BAD_ARGS;
@@ -47,18 +71,14 @@ pop3d_retr (char *arg)
     return ERR_UNKNOWN;
   
   pop3d_outf ("+OK\n");
-  xscript_level = set_xscript_level (MU_XSCRIPT_PAYLOAD);
-  mu_stream_copy (iostream, stream, 0, NULL);
+  pop3d_send_payload (stream);
   mu_stream_destroy (&stream);
-
+  
   if (!mu_attribute_is_read (attr))
     mu_attribute_set_read (attr);
 
   pop3d_mark_retr (attr);
 
-  pop3d_outf (".\n");
-
-  set_xscript_level (xscript_level);
-
+  
   return OK;
 }

@@ -99,7 +99,8 @@ mbox_open (mu_mailbox_t mailbox, int flags)
 
       if (status)
 	return status;
-
+      mu_stream_set_buffer (mailbox->stream, mu_buffer_full, 0);
+      
       status = mu_stream_open (mailbox->stream);
       if (status)
 	{

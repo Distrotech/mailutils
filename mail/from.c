@@ -231,7 +231,8 @@ hdr_from (struct header_call_args *args, void *data)
     {  
       mu_header_t hdr;
       
-      mu_message_get_header (args->msg, &hdr);
+      if (mu_message_get_header (args->msg, &hdr))
+	abort ();
       if (mu_header_aget_value_unfold (hdr, MU_HEADER_FROM, &from) == 0)
 	{
 	  mu_address_t address = NULL;

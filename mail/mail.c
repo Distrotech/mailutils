@@ -321,10 +321,18 @@ mail_diag_stderr_printer (void *data, mu_log_level_t level, const char *buf)
   return 0;
 }
 
+static void
+do_and_quit (const char *command)
+{
+  int rc = util_do_command (command);
+  mu_mailbox_close (mbox);
+  exit (rc != 0);
+}
+
 int
 main (int argc, char **argv)
 {
-  char *mode = NULL, *prompt = NULL;
+  char *mode = NULL, *prompt = NULL, *p;
   struct arguments args;
   int i, rc;
   
@@ -376,13 +384,9 @@ main (int argc, char **argv)
   util_do_command ("set columns=%d", util_getcols ());
   
   /* Set the default mailer to sendmail.  */
-  {
-    char *mailer_name = alloca (strlen ("sendmail:")
-				+ strlen (PATH_SENDMAIL) + 1);
-    sprintf (mailer_name, "sendmail:%s", PATH_SENDMAIL);
-    mailvar_set ("sendmail", mailer_name, mailvar_type_string,
-		 MOPTF_OVERWRITE);
-  }
+  mailvar_set ("sendmail",
+	       xstrdup ("sendmail:" PATH_SENDMAIL), mailvar_type_string,
+	       MOPTF_OVERWRITE);
 
   args.argc = 0;
   args.argv = NULL;
@@ -401,7 +405,8 @@ main (int argc, char **argv)
   /* read system-wide mail.rc and user's .mailrc */
   if (mailvar_get (NULL, "rc", mailvar_type_boolean, 0) == 0)
     util_do_command ("source %s", SITE_MAIL_RC);
-  util_do_command ("source %s", getenv ("MAILRC"));
+  if ((p = getenv ("MAILRC")) && *p)
+    util_do_command ("source %s", getenv ("MAILRC"));
 
   util_run_cached_commands (&command_list);
 
@@ -476,11 +481,14 @@ main (int argc, char **argv)
 	    }
 
 	  if (strcmp (mode, "exist") == 0)
-	    return (total < 1) ? 1 : 0;
+	    {
+	      mu_mailbox_close (mbox);
+	      return (total < 1) ? 1 : 0;
+	    }
 	  else if (strcmp (mode, "print") == 0)
-	    return util_do_command ("print *");
+	    do_and_quit ("print *");
 	  else if (strcmp (mode, "headers") == 0)
-	    return util_do_command ("from *");
+	    do_and_quit ("from *");
 	  else if (strcmp (mode, "read"))
 	    {
 	      util_error (_("Unknown mode `%s'"), mode);

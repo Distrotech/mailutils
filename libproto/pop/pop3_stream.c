@@ -29,11 +29,16 @@
 #include <mailutils/sys/pop3.h>
 
 /* Implementation of the stream for TOP and RETR.  */
+
+#define _POP3F_DONE  0x01
+#define _POP3F_CHBUF 0x02
+
 struct mu_pop3_stream
 {
   struct _mu_stream stream;
   mu_pop3_t pop3;
-  int done;
+  int flags;
+  struct mu_buffer_query oldbuf;
 };
 
 enum pop3_decode_state
@@ -187,6 +192,13 @@ _pop3_event_cb (mu_stream_t str, int ev, int flags)
 	  struct mu_pop3_stream *sp = (struct mu_pop3_stream *) trans[0];
 	  _mu_pop3_xscript_level (sp->pop3, MU_XSCRIPT_NORMAL);
 	  sp->pop3->state = MU_POP3_NO_STATE;
+
+	  if (sp->flags & _POP3F_CHBUF)
+	    {
+	      mu_stream_ioctl (str, MU_IOCTL_SET_TRANSPORT_BUFFER,
+			       &sp->oldbuf);
+	      sp->flags = _POP3F_DONE;
+	    }
 	}
     }
 }
@@ -205,8 +217,27 @@ mu_pop3_filter_create (mu_stream_t *pstream, mu_stream_t stream)
   if (rc == 0)
     {
       mu_stream_t str = *pstream;
+      mu_transport_t trans[2];
+      
       str->event_cb = _pop3_event_cb;
       str->event_mask = _MU_STR_EOF;
+
+      if (mu_stream_ioctl (str, MU_IOCTL_GET_TRANSPORT, trans) == 0)
+	{
+	  struct mu_pop3_stream *sp = (struct mu_pop3_stream *) trans[0];
+	  if (mu_stream_ioctl (stream, MU_IOCTL_GET_TRANSPORT_BUFFER,
+			       &sp->oldbuf) == 0)
+	    {
+	      struct mu_buffer_query newbuf;
+
+	      sp->flags |= _POP3F_CHBUF;
+	      newbuf.type = MU_TRANSPORT_OUTPUT;
+	      newbuf.buftype = mu_buffer_full;
+	      newbuf.bufsize = 64*1024;
+	      mu_stream_ioctl (str, MU_IOCTL_SET_TRANSPORT_BUFFER,
+			       &newbuf);
+	    }
+	}
     }
   return rc;
 }
@@ -221,7 +252,7 @@ _mu_pop3_read (struct _mu_stream *str, char *buf, size_t bufsize,
   size_t nread;
   int status = 0;
 
-  if (sp->done)
+  if (sp->flags & _POP3F_DONE)
     nread = 0;
   else
     {
@@ -229,7 +260,7 @@ _mu_pop3_read (struct _mu_stream *str, char *buf, size_t bufsize,
       if (status == 0 && nread == 0)
 	{
 	  pop3->state = MU_POP3_NO_STATE;
-	  sp->done = 1;
+	  sp->flags |= _POP3F_DONE;
 	}
     }
   *pnread = nread;
@@ -245,7 +276,7 @@ _mu_pop3_readdelim (struct _mu_stream *str, char *buf, size_t bufsize,
   size_t nread;
   int status = 0;
   
-  if (sp->done)
+  if (sp->flags & _POP3F_DONE)
     nread = 0;
   else
     {
@@ -254,7 +285,7 @@ _mu_pop3_readdelim (struct _mu_stream *str, char *buf, size_t bufsize,
       if (status == 0 && nread == 0)
 	{
 	  pop3->state = MU_POP3_NO_STATE;
-	  sp->done = 1;
+	  sp->flags |= _POP3F_DONE;
 	}
     }
   *pnread = nread;
@@ -294,7 +325,7 @@ mu_pop3_stream_create (mu_pop3_t pop3, mu_stream_t *pstream)
   sp->stream.wait = _mu_pop3_wait;
   
   sp->pop3 = pop3;
-  sp->done = 0;
+  sp->flags = 0;
   str = (mu_stream_t) sp;
   mu_stream_set_buffer (str, mu_buffer_line, 1024);
 

@@ -31,6 +31,7 @@ pop3d_top (char *arg)
   mu_stream_t stream;
   char *mesgc, *linesc, *p;
   int xscript_level;
+  struct mu_buffer_query oldbuf, newbuf;
   
   if (strlen (arg) == 0)
     return ERR_BAD_ARGS;
@@ -64,6 +65,14 @@ pop3d_top (char *arg)
   pop3d_outf ("+OK\n");
 
   xscript_level = set_xscript_level (MU_XSCRIPT_PAYLOAD);
+  oldbuf.type = MU_TRANSPORT_OUTPUT;
+  mu_stream_ioctl (iostream, MU_IOCTL_GET_TRANSPORT_BUFFER,
+		   &oldbuf);
+  newbuf.type = MU_TRANSPORT_OUTPUT;
+  newbuf.buftype = mu_buffer_full;
+  newbuf.bufsize = pop3d_output_bufsize;
+  mu_stream_ioctl (iostream, MU_IOCTL_SET_TRANSPORT_BUFFER,
+		   &newbuf);  
 
   mu_stream_copy (iostream, stream, 0, NULL);
   pop3d_outf ("\n");
@@ -88,6 +97,9 @@ pop3d_top (char *arg)
 
   pop3d_outf (".\n");
 
+  mu_stream_ioctl (iostream, MU_IOCTL_SET_TRANSPORT_BUFFER,
+		   &oldbuf);
+  
   set_xscript_level (xscript_level);
 
   return OK;

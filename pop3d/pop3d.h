@@ -201,6 +201,7 @@ extern int undelete_on_startup;
 extern struct mu_auth_data *auth_data;
 extern unsigned int idle_timeout;
 extern int pop3d_transcript;
+extern size_t pop3d_output_bufsize;
 
 extern pop3d_command_handler_t pop3d_find_command (const char *name);
 

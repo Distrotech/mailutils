@@ -32,6 +32,8 @@
 #include <mailutils/stream.h>
 #include <mailutils/sys/stream.h>
 
+size_t mu_stream_default_buffer_size = MU_STREAM_DEFBUFSIZ;
+
 static void
 _stream_setflag (struct _mu_stream *stream, int flag)
 {
@@ -351,7 +353,7 @@ mu_stream_seek (mu_stream_t stream, mu_off_t offset, int whence,
       return mu_stream_seterr (stream, EINVAL, 1);
     }
 
-  if (stream->buftype == mu_buffer_none
+  if ((stream->buftype == mu_buffer_none && offset != stream->offset)
       || offset < stream->offset
       || offset > stream->offset + _stream_buffer_offset (stream))
     {
@@ -442,7 +444,7 @@ mu_stream_set_buffer (mu_stream_t stream, enum mu_buffer_type type,
 		      size_t size)
 {
   if (size == 0)
-    type = mu_buffer_none;
+    size = mu_stream_default_buffer_size;
 
   if (stream->buffer)
     {
@@ -467,6 +469,14 @@ mu_stream_set_buffer (mu_stream_t stream, enum mu_buffer_type type,
   stream->cur = stream->buffer;
   stream->level = 0;
     
+  return 0;
+}
+
+int
+mu_stream_get_buffer (mu_stream_t stream, struct mu_buffer_query *qry)
+{
+  qry->buftype = stream->buftype;
+  qry->bufsize = stream->bufsize;
   return 0;
 }
 
@@ -953,7 +963,13 @@ int
 mu_stream_truncate (mu_stream_t stream, mu_off_t size)
 {
   if (stream->truncate)
-    return stream->truncate (stream, size);
+    {
+      int rc;
+      
+      if ((rc = _stream_flush_buffer (stream, 1)))
+	return rc;
+      return stream->truncate (stream, size);
+    }
   return ENOSYS;
 }
 

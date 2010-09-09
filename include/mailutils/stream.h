@@ -65,6 +65,23 @@ enum mu_buffer_type
 
 #define MU_IOCTL_LEVEL           8
 
+#define MU_IOCTL_GET_TRANSPORT_BUFFER 9
+#define MU_IOCTL_SET_TRANSPORT_BUFFER 10
+
+#define MU_TRANSPORT_INPUT  0
+#define MU_TRANSPORT_OUTPUT 1
+#define MU_TRANSPORT_VALID_TYPE(n) \
+  ((n) == MU_TRANSPORT_INPUT || (n) == MU_TRANSPORT_OUTPUT)
+
+struct mu_buffer_query
+{
+  int type;                     /* One of MU_TRANSPORT_ defines */
+  enum mu_buffer_type buftype;  /* Buffer type */
+  size_t bufsize;               /* Buffer size */
+};
+
+#define MU_STREAM_DEFBUFSIZ 8192
+extern size_t mu_stream_default_buffer_size;
 
 void mu_stream_ref (mu_stream_t stream);
 void mu_stream_unref (mu_stream_t stream);
@@ -84,6 +101,8 @@ int mu_stream_skip_input_bytes (mu_stream_t stream, mu_off_t count,
 
 int mu_stream_set_buffer (mu_stream_t stream, enum mu_buffer_type type,
 			  size_t size);
+int mu_stream_get_buffer (mu_stream_t stream,
+			  struct mu_buffer_query *qry);
 int mu_stream_read (mu_stream_t stream, void *buf, size_t size, size_t *pread);
 int mu_stream_readdelim (mu_stream_t stream, char *buf, size_t size,
 			 int delim, size_t *pread);

@@ -393,7 +393,7 @@ _prog_ioctl (struct _mu_stream *str, int code, void *ptr)
       break;
       
     default:
-      return EINVAL;
+      return ENOSYS;
     }
   return 0;
 }

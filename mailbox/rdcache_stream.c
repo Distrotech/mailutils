@@ -131,8 +131,20 @@ rdcache_ioctl (struct _mu_stream *str, int op, void *arg)
       ptrans[1] = NULL;
       break;
 
+    case MU_IOCTL_GET_TRANSPORT_BUFFER:
+    case MU_IOCTL_SET_TRANSPORT_BUFFER:
+      if (!arg)
+	return EINVAL;
+      else
+	{
+	  struct mu_buffer_query *qp = arg;
+	  if (qp->type != MU_TRANSPORT_INPUT || !sp->transport)
+	    return EINVAL;
+	  return mu_stream_ioctl (sp->transport, op, arg);
+	}
+
     default:
-      return EINVAL;
+      return ENOSYS;
     }
   return 0;
 }

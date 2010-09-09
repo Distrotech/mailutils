@@ -217,8 +217,20 @@ fd_ioctl (struct _mu_stream *str, int code, void *ptr)
       fstr->fd = (int) ptrans[0];
       break;
       
+    case MU_IOCTL_GET_TRANSPORT_BUFFER:
+      {
+        struct mu_buffer_query *qp = ptr;
+	return mu_stream_get_buffer (str, qp);
+      }
+      
+    case MU_IOCTL_SET_TRANSPORT_BUFFER:
+      {
+        struct mu_buffer_query *qp = ptr;
+	return mu_stream_set_buffer (str, qp->buftype, qp->bufsize);
+      }
+      
     default:
-      return EINVAL;
+      return ENOSYS;
     }
   return 0;
 }

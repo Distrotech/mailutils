@@ -153,9 +153,21 @@ _iostream_ctl (struct _mu_stream *str, int op, void *arg)
       if (!arg)
 	return EINVAL;
       return _mu_stream_swap_streams (str, sp->transport, arg, 0);
+
+    case MU_IOCTL_GET_TRANSPORT_BUFFER:
+    case MU_IOCTL_SET_TRANSPORT_BUFFER:
+      if (!arg)
+	return EINVAL;
+      else
+	{
+	  struct mu_buffer_query *qp = arg;
+	  if (!MU_TRANSPORT_VALID_TYPE (qp->type) || !sp->transport[qp->type])
+	    return EINVAL;
+	  return mu_stream_ioctl (sp->transport[qp->type], op, arg);
+	}
       
     default:
-      return EINVAL;
+      return ENOSYS;
     }
   return 0;
 }

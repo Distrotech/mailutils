@@ -579,6 +579,17 @@ _mime_body_stream_size (mu_stream_t stream, mu_off_t *psize)
   return rc;
 }
 
+static void
+mime_reset_state (mu_mime_t mime)
+{				/* reset message */
+  mime->cur_offset = 0;
+  mime->cur_part = 0;
+  mime->part_offset = 0;
+  
+  if (mime->nmtp_parts > 1)
+    mime->flags |= MIME_INSERT_BOUNDARY;
+}
+
 /* FIXME: The seek method is defective */
 static int
 _mime_body_stream_seek (mu_stream_t stream, mu_off_t off, mu_off_t *presult)
@@ -587,14 +598,7 @@ _mime_body_stream_seek (mu_stream_t stream, mu_off_t off, mu_off_t *presult)
   mu_mime_t mime = mstr->mime;
 
   if (off == 0)
-    {				/* reset message */
-      mime->cur_offset = 0;
-      mime->cur_part = 0;
-      mime->part_offset = 0;
-
-      if (mime->nmtp_parts > 1)
-	mime->flags |= MIME_INSERT_BOUNDARY;
-    }
+    mime_reset_state (mime);
 
   if (off != mime->cur_offset)
     return ESPIPE;
@@ -767,7 +771,7 @@ _mime_body_stream_ioctl (mu_stream_t stream, int code, void *arg)
       break;
 
     default:
-      rc = EINVAL;
+      rc = ENOSYS;
     }
   return rc;
 }
@@ -785,6 +789,7 @@ create_mime_body_stream (mu_stream_t *pstr, mu_mime_t mime)
   sp->stream.ctl = _mime_body_stream_ioctl;
   sp->stream.size = _mime_body_stream_size;
   sp->mime = mime;
+  mime_reset_state (mime);
   *pstr = (mu_stream_t) sp;
   return 0;
 }

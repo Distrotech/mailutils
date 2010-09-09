@@ -568,24 +568,30 @@ pop_header_fill (void *data, char **pbuf, size_t *plen)
   int status;
 
   if (mpm->flags & _POP3_MSG_SCANNED)
-    status = _pop_message_get_stream (mpm, &stream);
+    {
+      status = _pop_message_get_stream (mpm, &stream);
+      if (status == 0)
+	{
+	  status = pop_header_blurb (stream, mpm->header_lines, pbuf, plen);
+	  mu_stream_destroy (&stream);
+	}
+    }
   else
     {
       status = mu_pop3_top (mpd->pop3, mpm->num, 0, &stream);
+      if (status)
+	status = _pop_message_get_stream (mpm, &stream);
+
       if (status == 0)
 	{
 	  status = pop_header_blurb (stream, 0, pbuf, plen);
 	  if (!mu_stream_eof (stream))
 	    pop_stream_drain (stream);
 	  mu_stream_destroy (&stream);
-	  return status;
 	}
-      else
-	status = _pop_message_get_stream (mpm, &stream);
+      return status;
     }
 
-  status = pop_header_blurb (stream, mpm->header_lines, pbuf, plen);
-  mu_stream_destroy (&stream);
   return status;
 }
 

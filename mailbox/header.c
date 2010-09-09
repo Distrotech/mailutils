@@ -344,7 +344,11 @@ header_parse (mu_header_t header, const char *blurb, int len)
 	{
 	  header_end = memchr (header_start2, '\n', len);
 	  if (header_end == NULL)
-	    break;
+	    {
+	      header_end = header_start2 + len;
+	      len = 0;
+	      break;
+	    }
 	  else
 	    {
 	      len -= (header_end - header_start2 + 1);
@@ -431,7 +435,7 @@ mu_header_create (mu_header_t *ph, const char *blurb, size_t len)
 {
   mu_header_t header;
   int status = 0;
-  
+
   header = calloc (1, sizeof (*header));
   if (header == NULL)
     return ENOMEM;

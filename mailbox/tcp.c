@@ -209,7 +209,7 @@ _tcp_ioctl (mu_stream_t stream, int code, void *ptr)
       break;
 
     default:
-      return EINVAL;
+      return ENOSYS;
     }
   return 0;
 }

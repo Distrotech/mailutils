@@ -315,6 +315,15 @@ _xscript_ctl (struct _mu_stream *str, int op, void *arg)
 	}
       break;
 
+    case MU_IOCTL_GET_TRANSPORT_BUFFER:
+    case MU_IOCTL_SET_TRANSPORT_BUFFER:
+      {
+        struct mu_transport_buffer_query *qp = arg;
+        if (!sp->transport)
+          return EINVAL;
+        return mu_stream_ioctl (sp->transport, op, arg);
+      }
+
     case MU_IOCTL_LEVEL:
       if (!arg)
 	return EINVAL;
