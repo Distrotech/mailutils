@@ -140,10 +140,6 @@ opt_handler (int key, char *arg, struct argp_state *state)
       mh_opt_notimpl ("-[no]whatnowproc");
       break;
 
-    case ARG_LICENSE:
-      mh_license (argp_program_version);
-      break;
-
     default:
       return ARGP_ERR_UNKNOWN;
     }
