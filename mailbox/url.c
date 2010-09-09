@@ -676,8 +676,8 @@ ACCESSOR(is_same,field) (mu_url_t url1, mu_url_t url2)		          \
   if (status2 && status2 != MU_ERR_NOENT)				  \
     return 0;								  \
 									  \
-  if (status1 && status1 == status2) /* Both fields are missing */	  \
-    return 1;								  \
+  if (status1 || status2)						  \
+    return status1 == status2; /* Both fields are missing */		  \
   return mu_c_strcasecmp (s1, s2) == 0;					  \
 }
 
