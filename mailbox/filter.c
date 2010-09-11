@@ -75,6 +75,7 @@ mu_filter_get_list (mu_list_t *plist)
       mu_list_append (filter_list, mu_rfc822_filter);
       mu_list_append (filter_list, mu_crlf_filter);
       mu_list_append (filter_list, mu_crlfdot_filter);
+      mu_list_append (filter_list, mu_dot_filter);
       mu_list_append (filter_list, mu_rfc_2047_Q_filter);
       mu_list_append (filter_list, mu_rfc_2047_B_filter);
       /* FIXME: add the default encodings?  */

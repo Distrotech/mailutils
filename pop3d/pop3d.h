@@ -219,6 +219,9 @@ extern int pop3d_quit           (char *);
 extern int pop3d_retr           (char *);
 extern int pop3d_rset           (char *);
 
+void pop3d_send_payload (mu_stream_t stream, mu_stream_t linestr,
+			 size_t maxlines);
+
 extern void pop3d_bye           (void);
 extern int pop3d_abquit         (int);
 extern char *pop3d_apopuser     (const char *);

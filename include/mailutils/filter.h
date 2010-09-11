@@ -95,6 +95,7 @@ extern int mu_filter_get_list (mu_list_t *);
 extern mu_filter_record_t mu_crlf_filter;  
 extern mu_filter_record_t mu_rfc822_filter;
 extern mu_filter_record_t mu_crlfdot_filter;
+extern mu_filter_record_t mu_dot_filter;
 extern mu_filter_record_t mu_qp_filter; /* quoted-printable.  */
 extern mu_filter_record_t mu_base64_filter;
 extern mu_filter_record_t mu_binary_filter;

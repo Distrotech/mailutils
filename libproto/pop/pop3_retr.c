@@ -29,7 +29,7 @@
 int
 mu_pop3_retr (mu_pop3_t pop3, unsigned int msgno, mu_stream_t *pstream)
 {
-  int status;
+  int status = EINPROGRESS;
 
   if (pop3 == NULL || msgno == 0)
     return EINVAL;

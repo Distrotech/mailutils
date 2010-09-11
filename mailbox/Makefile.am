@@ -74,6 +74,7 @@ libmailutils_la_SOURCES = \
  dbgsyslog.c\
  debug.c\
  diag.c\
+ dot.c\
  envelope.c\
  fgetpwent.c\
  file_stream.c\

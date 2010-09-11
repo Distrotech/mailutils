@@ -41,145 +41,6 @@ struct mu_pop3_stream
   struct mu_buffer_query oldbuf;
 };
 
-enum pop3_decode_state
-  {
-    pds_init,  /* initial state */
-    pds_char,  /* Any character excepting [\r\n.] */
-    pds_cr,    /* prev. char was \r */
-    pds_crlf,  /* 2 prev. char were \r\n */
-    pds_dot,   /* 3 prev. chars were \r\n. */
-    pds_dotcr, /* 4 prev. chars were \r\n.\r */
-    pds_end    /* final state, a \r\n.\r\n seen. */
-  };
-
-static int
-newstate (int state, int c)
-{
-  switch (state)
-    {
-    case pds_init:
-      switch (c)
-	{
-	case '\r':
-	  return pds_cr;
-	case '.':
-	  return pds_dot;
-	}
-      break;
-      
-    case pds_char:
-      switch (c)
-	{
-	case '\r':
-	  return pds_cr;
-	}
-      break;
-      
-    case pds_cr:
-      switch (c)
-	{
-	case '\r':
-	  return pds_cr;
-	case '\n':
-	  return pds_crlf;
-	}
-      break;
-      
-    case pds_crlf:
-      switch (c)
-	{
-	case '\r':
-	  return pds_cr;
-	case '.':
-	  return pds_dot;
-	}
-      
-    case pds_dot:
-      switch (c)
-	{
-	case '\r':
-	  return pds_dotcr;
-	}
-      break;
-
-    case pds_dotcr:
-      switch (c)
-	{
-	case '\n':
-	  return pds_end;
-	}
-    }
-  return pds_char;
-}
-
-/* Move min(isize,osize) bytes from iptr to optr, replacing each \r\n
-   with \n. */
-static enum mu_filter_result
-_pop3_decoder (void *xd,
-	       enum mu_filter_command cmd,
-	       struct mu_filter_io *iobuf)
-{
-  int *pstate = xd;
-  size_t i, j;
-  const unsigned char *iptr;
-  size_t isize;
-  char *optr;
-  size_t osize;
-
-  switch (cmd)
-    {
-    case mu_filter_init:
-      *pstate = pds_init;
-      return mu_filter_ok;
-      
-    case mu_filter_done:
-      return mu_filter_ok;
-      
-    default:
-      break;
-    }
-  
-  iptr = (const unsigned char *) iobuf->input;
-  isize = iobuf->isize;
-  optr = iobuf->output;
-  osize = iobuf->osize;
-
-  for (i = j = 0; *pstate != pds_end && i < isize && j < osize; i++)
-    {
-      unsigned char c = *iptr++;
-
-      if (c == '\r')
-	{
-	  if (i + 1 == isize)
-	    break;
-	  *pstate = newstate (*pstate, c);
-	  if (*iptr == '\n')
-	    continue;
-	}
-      else if (c == '.' && (*pstate == pds_init || *pstate == pds_crlf))
-	{
-	  /* Make sure we have two more characters in the buffer */
-	  if (i + 2 == isize)
-	    break;
-	  *pstate = newstate (*pstate, c);
-	  if (*iptr != '\r')
-	    continue;
-	}
-      else
-	*pstate = newstate (*pstate, c);
-      optr[j++] = c;
-    }
-  
-  if (*pstate == pds_end)
-    {
-      j -= 2; /* remove the trailing .\n */
-      iobuf->eof = 1;
-    }
-  iobuf->isize = i;
-  iobuf->osize = j;
-  return mu_filter_ok;
-}
-
 static void
 _pop3_event_cb (mu_stream_t str, int ev, int flags)
 {
@@ -207,13 +68,9 @@ static int
 mu_pop3_filter_create (mu_stream_t *pstream, mu_stream_t stream)
 {
   int rc;
-  int *state = malloc (sizeof (*state));
-  if (!state)
-    return ENOMEM;
-  rc = mu_filter_stream_create (pstream, stream,
-				MU_FILTER_DECODE,
-				_pop3_decoder, state,
-				MU_STREAM_READ);
+
+  rc = mu_filter_create (pstream, stream, "CRLFDOT", MU_FILTER_DECODE,
+			 MU_STREAM_READ | MU_STREAM_AUTOCLOSE);
   if (rc == 0)
     {
       mu_stream_t str = *pstream;

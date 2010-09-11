@@ -20,8 +20,9 @@
 size_t pop3d_output_bufsize = 64 * 1024;
 
 void
-pop3d_send_payload (mu_stream_t stream)
+pop3d_send_payload (mu_stream_t stream, mu_stream_t linestr, size_t maxlines)
 {
+  mu_stream_t flt;
   struct mu_buffer_query oldbuf, newbuf;
   int xscript_level = set_xscript_level (MU_XSCRIPT_PAYLOAD);
 
@@ -33,10 +34,28 @@ pop3d_send_payload (mu_stream_t stream)
   newbuf.bufsize = pop3d_output_bufsize;
   mu_stream_ioctl (iostream, MU_IOCTL_SET_TRANSPORT_BUFFER,
 		   &newbuf);
+  /* FIXME: Return code */
+  mu_filter_create (&flt, iostream, "DOT", MU_FILTER_ENCODE,
+		    MU_STREAM_WRITE);
+  
+  mu_stream_copy (flt, stream, 0, NULL);
 
-  mu_stream_copy (iostream, stream, 0, NULL);
-  pop3d_outf (".\n");
+  if (maxlines)
+    {
+      char *buf = NULL;
+      size_t size = 0, n;
 
+      mu_stream_write (flt, "\n", 1, NULL);
+      for (; maxlines > 0 &&
+	     mu_stream_getline (linestr, &buf, &size, &n) == 0 &&
+	     n > 0; maxlines--)
+	mu_stream_write (flt, buf, n, NULL);
+      free (buf);
+    }
+  
+  mu_stream_close (flt);
+  mu_stream_destroy (&flt);
+  
   mu_stream_ioctl (iostream, MU_IOCTL_SET_TRANSPORT_BUFFER,
 		   &oldbuf);
   set_xscript_level (xscript_level);
@@ -71,7 +90,7 @@ pop3d_retr (char *arg)
     return ERR_UNKNOWN;
   
   pop3d_outf ("+OK\n");
-  pop3d_send_payload (stream);
+  pop3d_send_payload (stream, NULL, 0);
   mu_stream_destroy (&stream);
   
   if (!mu_attribute_is_read (attr))

@@ -737,7 +737,13 @@ mu_stream_readdelim (mu_stream_t stream, char *buf, size_t size,
     return EINVAL;
     
   if (stream->readdelim)
-    rc = stream->readdelim (stream, buf, size, delim, pread);
+    {
+      size_t nread;
+      rc = stream->readdelim (stream, buf, size, delim, &nread);
+      if (pread)
+	*pread = nread;
+      stream->offset += nread;
+    }
   else if (stream->buftype != mu_buffer_none)
     rc = _stream_scandelim (stream, buf, size, delim, pread);
   else

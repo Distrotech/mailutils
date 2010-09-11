@@ -401,11 +401,26 @@ filter_done (mu_stream_t stream)
 }
 
 static int
-filter_close (mu_stream_t stream)
+filter_wr_close (mu_stream_t stream)
 {
   struct _mu_filter_stream *fs = (struct _mu_filter_stream *)stream;
-  size_t dummy;
-  int rc = filter_write_internal (stream, mu_filter_lastbuf, NULL, 0, &dummy);
+  if (!mu_stream_eof (stream))
+    {
+      size_t dummy;
+      int rc = filter_write_internal (stream, mu_filter_lastbuf, NULL, 0,
+				      &dummy);
+      if (rc)
+	return rc;
+    }
+  MBF_CLEAR (fs->inbuf);
+  MBF_CLEAR (fs->outbuf);
+  return mu_stream_close (fs->transport);
+}
+
+static int
+filter_rd_close (mu_stream_t stream)
+{
+  struct _mu_filter_stream *fs = (struct _mu_filter_stream *)stream;
   MBF_CLEAR (fs->inbuf);
   MBF_CLEAR (fs->outbuf);
   return mu_stream_close (fs->transport);
@@ -469,6 +484,7 @@ mu_filter_stream_create (mu_stream_t *pflt,
     {
       fs->stream.read = filter_read;
       fs->stream.flush = filter_rd_flush;
+      fs->stream.close = filter_rd_close;
       if (flags & MU_STREAM_WRTHRU)
 	{
 	  flags |= MU_STREAM_WRITE;
@@ -479,6 +495,7 @@ mu_filter_stream_create (mu_stream_t *pflt,
     {
       fs->stream.write = filter_write;
       fs->stream.flush = filter_wr_flush;
+      fs->stream.close = filter_wr_close;
       if (flags & MU_STREAM_RDTHRU)
 	{
 	  flags |= MU_STREAM_READ;
@@ -486,7 +503,6 @@ mu_filter_stream_create (mu_stream_t *pflt,
 	}
     }
   fs->stream.done = filter_done;
-  fs->stream.close = filter_close;
   if (flags & MU_STREAM_SEEK)
     fs->stream.seek = filter_seek;
   fs->stream.ctl = filter_ctl;

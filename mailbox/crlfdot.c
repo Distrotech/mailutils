@@ -219,11 +219,6 @@ _crlfdot_encoder (void *xd,
   size_t osize;
   int *state = xd;
   
-  iptr = (const unsigned char *) iobuf->input;
-  isize = iobuf->isize;
-  optr = iobuf->output;
-  osize = iobuf->osize;
-
   switch (cmd)
     {
     case mu_filter_init:
@@ -237,6 +232,11 @@ _crlfdot_encoder (void *xd,
       break;
     }
   
+  iptr = (const unsigned char *) iobuf->input;
+  isize = iobuf->isize;
+  optr = iobuf->output;
+  osize = iobuf->osize;
+
   for (i = j = 0; i < isize && j < osize; i++, iptr++)
     {
       unsigned char c = *iptr;

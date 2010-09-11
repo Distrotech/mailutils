@@ -28,10 +28,8 @@ pop3d_top (char *arg)
   mu_attribute_t attr;
   mu_header_t hdr;
   mu_body_t body;
-  mu_stream_t stream;
+  mu_stream_t hstream, bstream;
   char *mesgc, *linesc, *p;
-  int xscript_level;
-  struct mu_buffer_query oldbuf, newbuf;
   
   if (strlen (arg) == 0)
     return ERR_BAD_ARGS;
@@ -60,47 +58,21 @@ pop3d_top (char *arg)
   
   /* Header.  */
   mu_message_get_header (msg, &hdr);
-  if (mu_header_get_streamref (hdr, &stream))
+  if (mu_header_get_streamref (hdr, &hstream))
     return ERR_UNKNOWN;
+  mu_message_get_body (msg, &body);
+  if (mu_body_get_streamref (body, &bstream))
+    {
+      mu_stream_unref (hstream);
+      return ERR_UNKNOWN;
+    }
+    
   pop3d_outf ("+OK\n");
 
-  xscript_level = set_xscript_level (MU_XSCRIPT_PAYLOAD);
-  oldbuf.type = MU_TRANSPORT_OUTPUT;
-  mu_stream_ioctl (iostream, MU_IOCTL_GET_TRANSPORT_BUFFER,
-		   &oldbuf);
-  newbuf.type = MU_TRANSPORT_OUTPUT;
-  newbuf.buftype = mu_buffer_full;
-  newbuf.bufsize = pop3d_output_bufsize;
-  mu_stream_ioctl (iostream, MU_IOCTL_SET_TRANSPORT_BUFFER,
-		   &newbuf);  
+  pop3d_send_payload (hstream, bstream, lines);
 
-  mu_stream_copy (iostream, stream, 0, NULL);
-  pop3d_outf ("\n");
-  mu_stream_destroy (&stream);
-  
-  mu_message_get_body (msg, &body);
-  if (mu_body_get_streamref (body, &stream) == 0)
-    {
-      char *buf = NULL;
-      size_t size = 0, n;
-      for (; lines > 0 &&
-	     mu_stream_getline (stream, &buf, &size, &n) == 0 &&
-	     n > 0; lines--)
-	{
-	  if (buf[0] == '.')
-	    pop3d_outf (".");
-	  pop3d_outf ("%s", buf);
-	}
-      mu_stream_destroy (&stream);
-      free (buf);
-    }
-
-  pop3d_outf (".\n");
-
-  mu_stream_ioctl (iostream, MU_IOCTL_SET_TRANSPORT_BUFFER,
-		   &oldbuf);
-  
-  set_xscript_level (xscript_level);
+  mu_stream_unref (hstream);
+  mu_stream_unref (bstream);
 
   return OK;
 }

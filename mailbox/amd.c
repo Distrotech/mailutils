@@ -1678,7 +1678,7 @@ amd_body_stream_readdelim (mu_stream_t is, char *buffer, size_t buflen,
 	  size_t rdsize = ((size_t)ln < buflen) ? (size_t)ln : buflen;
 	  status = mu_stream_readdelim (mhm->stream, buffer, rdsize,
 					delim, &nread);
-	  amdstr->off += rdsize;
+	  amdstr->off += nread;
 	}
 
       if (pnread)
