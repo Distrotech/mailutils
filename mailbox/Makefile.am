@@ -63,6 +63,7 @@ libmailutils_la_SOURCES = \
  cfg_format.c\
  cfg_lexer.c\
  cfg_parser.c\
+ crlfdot.c\
  crlfflt.c\
  cstrlower.c\
  cstrupper.c\

@@ -50,7 +50,8 @@ enum mu_filter_command
     mu_filter_init,
     mu_filter_done,
     mu_filter_xcode,
-    mu_filter_lastbuf
+    mu_filter_lastbuf,
+    mu_filter_flush
   };
   
 enum mu_filter_result
@@ -58,9 +59,12 @@ enum mu_filter_result
     mu_filter_ok,
     mu_filter_falure,
     mu_filter_moreinput,
-    mu_filter_moreoutput
+    mu_filter_moreoutput,
+    mu_filter_again
   };
-  
+
+#define MU_FILTER_MAX_AGAIN 5
+
 typedef int (*mu_filter_new_data_t) (void **, int, void *);
 typedef enum mu_filter_result (*mu_filter_xcode_t) (void *data,
 						    enum mu_filter_command cmd,
@@ -88,8 +92,9 @@ extern int mu_filter_create (mu_stream_t *, mu_stream_t, const char*,
 extern int mu_filter_get_list (mu_list_t *);
 
 /* List of defaults.  */
-extern mu_filter_record_t mu_crlf_filter;
+extern mu_filter_record_t mu_crlf_filter;  
 extern mu_filter_record_t mu_rfc822_filter;
+extern mu_filter_record_t mu_crlfdot_filter;
 extern mu_filter_record_t mu_qp_filter; /* quoted-printable.  */
 extern mu_filter_record_t mu_base64_filter;
 extern mu_filter_record_t mu_binary_filter;

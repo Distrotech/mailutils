@@ -380,10 +380,10 @@ mu_stream_seek (mu_stream_t stream, mu_off_t offset, int whence,
    input operations.
    
    This function is designed to help implement seek method in otherwise
-   unseekable streams (such as filters).  Do not use it if you absolutely
+   unseekable streams (such as filters).  Do not use it unless you absolutely
    have to.  Using it on an unbuffered stream is a terrible waste of CPU. */
-int
-mu_stream_skip_input_bytes (mu_stream_t stream, mu_off_t count, mu_off_t *pres)
+static int
+_stream_skip_input_bytes (mu_stream_t stream, mu_off_t count, mu_off_t *pres)
 {
   mu_off_t pos;
   int rc;
@@ -436,6 +436,22 @@ mu_stream_skip_input_bytes (mu_stream_t stream, mu_off_t count, mu_off_t *pres)
   stream->offset += pos;
   if (pres)
     *pres = stream->offset;
+  return rc;
+}
+
+/* A wrapper for the above function.  It is normally called from a
+   seek method implementation, so it makes sure the MU_STREAM_SEEK
+   is cleared while in _stream_skip_input_bytes, to avoid infitite
+   recursion that may be triggered by _stream_flush_buffer invoking
+   stream->seek. */
+int
+mu_stream_skip_input_bytes (mu_stream_t stream, mu_off_t count, mu_off_t *pres)
+{
+  int rc;
+  int seek_flag = stream->flags & MU_STREAM_SEEK;
+  stream->flags &= ~MU_STREAM_SEEK;
+  rc = _stream_skip_input_bytes (stream, count, pres);
+  stream->flags |= seek_flag;
   return rc;
 }
 

@@ -45,8 +45,8 @@
 static void
 init_iobuf (struct mu_filter_io *io, struct _mu_filter_stream *fs)
 {
-  io->input = MFB_BASE (fs->inbuf);
-  io->isize = MFB_LEVEL (fs->inbuf);
+  io->input = MFB_CURPTR (fs->inbuf);
+  io->isize = MFB_RDBYTES (fs->inbuf);
   io->output = MFB_ENDPTR (fs->outbuf);
   io->osize = MFB_FREESIZE (fs->outbuf);
   io->errcode = 0;
@@ -111,14 +111,15 @@ static int
 filter_read (mu_stream_t stream, char *buf, size_t size, size_t *pret)
 {
   struct _mu_filter_stream *fs = (struct _mu_filter_stream *)stream;
-  enum mu_filter_command cmd = mu_filter_xcode;
   struct mu_filter_io iobuf;
   size_t min_input_level = MU_FILTER_BUF_SIZE;
   size_t min_output_size = MU_FILTER_BUF_SIZE;
+  enum mu_filter_command cmd = mu_filter_xcode;
   size_t total = 0;
   int stop = 0;
+  int again = 0;
   
-  while (!stop && total < size && cmd != mu_filter_lastbuf)
+  do
     {
       size_t rdsize;
 
@@ -127,7 +128,7 @@ filter_read (mu_stream_t stream, char *buf, size_t size, size_t *pret)
 	  enum mu_filter_result res;
 	  int rc;
 	  
-	  if (MFB_RDBYTES (fs->inbuf) < min_input_level)
+	  if (MFB_RDBYTES (fs->inbuf) < min_input_level && !again)
 	    {
 	      rc = MFB_require (&fs->inbuf, min_input_level);
 	      if (rc)
@@ -139,9 +140,10 @@ filter_read (mu_stream_t stream, char *buf, size_t size, size_t *pret)
 	      if (rc)
 		return rc;
 	      if (rdsize == 0 &&
-		  MFB_RDBYTES (fs->outbuf) == 0
-		  && MFB_RDBYTES (fs->inbuf) == 0)
-		break;
+		  MFB_RDBYTES (fs->outbuf) == 0 &&
+		  MFB_RDBYTES (fs->inbuf) == 0)
+		cmd = mu_filter_lastbuf;
+	      
 	      MFB_advance_level (&fs->inbuf, rdsize);
 	    }
 
@@ -153,16 +155,24 @@ filter_read (mu_stream_t stream, char *buf, size_t size, size_t *pret)
       
 	  init_iobuf (&iobuf, fs);
 
-	  cmd = mu_stream_eof (fs->transport) ?
-	    mu_filter_lastbuf : mu_filter_xcode;
+	  if (cmd != mu_filter_lastbuf)
+	    cmd = mu_stream_eof (fs->transport) ?
+	      mu_filter_lastbuf : mu_filter_xcode;
 	  res = fs->xcode (fs->xdata, cmd, &iobuf);
 	  switch (res)
 	    {
+	    case mu_filter_again:
+	      if (++again > MU_FILTER_MAX_AGAIN)
+		{
+		  /* FIXME: What filter? Need some id. */
+		  mu_error (_("filter returned `again' too many times"));
+		  again = 0;
+		}
+	      break;
+	      
 	    case mu_filter_ok:
-	      if (iobuf.isize > MFB_RDBYTES (fs->inbuf)
-		  || iobuf.osize > MFB_FREESIZE (fs->outbuf))
-		return MU_ERR_FAILURE; /* FIXME: special error code? */
-	      if (iobuf.eof)
+	      again = 0;
+	      if (cmd == mu_filter_lastbuf || iobuf.eof)
 		{
 		  _mu_stream_seteof (stream);
 		  stop = 1;
@@ -181,6 +191,10 @@ filter_read (mu_stream_t stream, char *buf, size_t size, size_t *pret)
 	      continue;
 	    }
       
+	  if (iobuf.isize > MFB_RDBYTES (fs->inbuf)
+	      || iobuf.osize > MFB_FREESIZE (fs->outbuf))
+	    return MU_ERR_FAILURE; /* FIXME: special error code? */
+	  
 	  /* iobuf.osize contains number of bytes written to output */
 	  MFB_advance_level (&fs->outbuf, iobuf.osize);
 	  
@@ -194,8 +208,10 @@ filter_read (mu_stream_t stream, char *buf, size_t size, size_t *pret)
       memcpy (buf + total, MFB_CURPTR (fs->outbuf), rdsize);
       MFB_advance_pos (&fs->outbuf, rdsize);
       total += rdsize;
-    }
 
+    }
+  while (!stop && (total < size || again));
+  
   *pret = total;
   return 0;
 }
@@ -217,6 +233,8 @@ filter_write_internal (mu_stream_t stream, enum mu_filter_command cmd,
   size_t min_output_size = MU_FILTER_BUF_SIZE;
   size_t total = 0;
   int rc = 0;
+  int again;
+  int stop = 0;
   
   do
     {
@@ -249,19 +267,22 @@ filter_write_internal (mu_stream_t stream, enum mu_filter_command cmd,
       res = fs->xcode (fs->xdata, cmd, &iobuf);
       switch (res)
 	{
-	case mu_filter_ok:
-	  if (iobuf.isize == 0 || iobuf.osize == 0)
+	case mu_filter_again:
+	  if (++again > MU_FILTER_MAX_AGAIN)
 	    {
-	      /* FIXME: Hack to handle eventual buggy filters */
-	      if (iobuf.isize == 0)
-		min_input_level++;
-	      if (iobuf.osize == 0)
-		min_output_size++;
-	      continue;
+	      /* FIXME: What filter? Need some id. */
+	      mu_error (_("filter returned `again' too many times"));
+	      again = 0;
 	    }
-	  if (iobuf.isize > MFB_RDBYTES (fs->inbuf)
-	      || iobuf.osize > MFB_FREESIZE (fs->outbuf))
-	    return MU_ERR_FAILURE; /* FIXME: special error code? */
+	  break;
+
+	case mu_filter_ok:
+	  again = 0;
+	  if (cmd == mu_filter_lastbuf || iobuf.eof)
+	    {
+	      _mu_stream_seteof (stream);
+	      stop = 1;
+	    }
 	  break;
 	  
 	case mu_filter_falure:
@@ -276,24 +297,26 @@ filter_write_internal (mu_stream_t stream, enum mu_filter_command cmd,
 	  continue;
 	}
       
+      if (iobuf.isize > MFB_RDBYTES (fs->inbuf)
+	  || iobuf.osize > MFB_FREESIZE (fs->outbuf))
+	return MU_ERR_FAILURE; /* FIXME: special error code? */
+      
       /* iobuf.osize contains number of bytes written to output */
       MFB_advance_level (&fs->outbuf, iobuf.osize);
       
       /* iobuf.isize contains number of bytes read from input */
       MFB_advance_pos (&fs->inbuf, iobuf.isize);
       
-      rdsize = size - total;
-      if (rdsize > MFB_RDBYTES (fs->outbuf))
-	rdsize = MFB_RDBYTES (fs->outbuf);
-
       rc = mu_stream_write (fs->transport,
-			    MFB_CURPTR (fs->outbuf), MFB_RDBYTES (fs->outbuf),
+			    MFB_CURPTR (fs->outbuf),
+			    MFB_RDBYTES (fs->outbuf),
 			    &rdsize);
-      MFB_advance_pos (&fs->outbuf, rdsize);
-      if (rc)
+      if (rc == 0)
+	MFB_advance_pos (&fs->outbuf, rdsize);
+      else
 	break;
     }
-  while (MFB_RDBYTES (fs->outbuf));
+  while (!stop && (MFB_RDBYTES (fs->outbuf) || again));
   if (pret)
     *pret = total;
   else if (total < size && rc == 0)
@@ -311,7 +334,8 @@ static int
 filter_wr_flush (mu_stream_t stream)
 {
   struct _mu_filter_stream *fs = (struct _mu_filter_stream *)stream;
-  int rc = filter_write_internal (stream, mu_filter_lastbuf, NULL, 0, NULL);
+  size_t dummy;
+  int rc = filter_write_internal (stream, mu_filter_flush, NULL, 0, &dummy);
   if (rc == 0)
     rc = mu_stream_flush (fs->transport);
   return rc;
@@ -380,6 +404,8 @@ static int
 filter_close (mu_stream_t stream)
 {
   struct _mu_filter_stream *fs = (struct _mu_filter_stream *)stream;
+  size_t dummy;
+  int rc = filter_write_internal (stream, mu_filter_lastbuf, NULL, 0, &dummy);
   MBF_CLEAR (fs->inbuf);
   MBF_CLEAR (fs->outbuf);
   return mu_stream_close (fs->transport);

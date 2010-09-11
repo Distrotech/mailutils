@@ -25,10 +25,6 @@
 #include <mailutils/errno.h>
 #include <mailutils/cstr.h>
 
-#ifdef DMALLOC
-# include <dmalloc.h>
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif

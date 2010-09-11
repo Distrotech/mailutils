@@ -17,12 +17,12 @@
 #ifndef _MAILUTILS_SYS_STREAM_H
 #define _MAILUTILS_SYS_STREAM_H
 
-#define _MU_STR_DIRTY         0x1000    /* Buffer dirty */
-#define _MU_STR_WRT           0x2000    /* Unflushed write pending */
-#define _MU_STR_ERR           0x4000    /* Permanent error state */
-#define _MU_STR_EOF           0x8000    /* EOF encountered */
+#define _MU_STR_DIRTY         0x10000000    /* Buffer dirty */
+#define _MU_STR_WRT           0x20000000    /* Unflushed write pending */
+#define _MU_STR_ERR           0x40000000    /* Permanent error state */
+#define _MU_STR_EOF           0x80000000    /* EOF encountered */
 
-#define _MU_STR_INTERN_MASK   0xf000
+#define _MU_STR_INTERN_MASK   0xf0000000
 
 #define _MU_STR_EVENT_SET     1
 #define _MU_STR_EVENT_CLR     2
