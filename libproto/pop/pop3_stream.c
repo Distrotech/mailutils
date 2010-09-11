@@ -56,7 +56,8 @@ _pop3_event_cb (mu_stream_t str, int ev, int flags)
 
 	  if (sp->flags & _POP3F_CHBUF)
 	    {
-	      mu_stream_ioctl (str, MU_IOCTL_SET_TRANSPORT_BUFFER,
+	      mu_stream_ioctl (sp->pop3->carrier,
+			       MU_IOCTL_SET_TRANSPORT_BUFFER,
 			       &sp->oldbuf);
 	      sp->flags = _POP3F_DONE;
 	    }
@@ -73,27 +74,24 @@ mu_pop3_filter_create (mu_stream_t *pstream, mu_stream_t stream)
 			 MU_STREAM_READ | MU_STREAM_AUTOCLOSE);
   if (rc == 0)
     {
+      struct mu_pop3_stream *sp = (struct mu_pop3_stream *) stream;
       mu_stream_t str = *pstream;
-      mu_transport_t trans[2];
       
       str->event_cb = _pop3_event_cb;
       str->event_mask = _MU_STR_EOF;
 
-      if (mu_stream_ioctl (str, MU_IOCTL_GET_TRANSPORT, trans) == 0)
+      sp->oldbuf.type = MU_TRANSPORT_OUTPUT;
+      if (mu_stream_ioctl (sp->pop3->carrier, MU_IOCTL_GET_TRANSPORT_BUFFER,
+			   &sp->oldbuf) == 0)
 	{
-	  struct mu_pop3_stream *sp = (struct mu_pop3_stream *) trans[0];
-	  if (mu_stream_ioctl (stream, MU_IOCTL_GET_TRANSPORT_BUFFER,
-			       &sp->oldbuf) == 0)
-	    {
-	      struct mu_buffer_query newbuf;
+	  struct mu_buffer_query newbuf;
 
-	      sp->flags |= _POP3F_CHBUF;
-	      newbuf.type = MU_TRANSPORT_OUTPUT;
-	      newbuf.buftype = mu_buffer_full;
-	      newbuf.bufsize = 64*1024;
-	      mu_stream_ioctl (str, MU_IOCTL_SET_TRANSPORT_BUFFER,
-			       &newbuf);
-	    }
+	  sp->flags |= _POP3F_CHBUF;
+	  newbuf.type = MU_TRANSPORT_OUTPUT;
+	  newbuf.buftype = mu_buffer_full;
+	  newbuf.bufsize = 64*1024;
+	  mu_stream_ioctl (sp->pop3->carrier, MU_IOCTL_SET_TRANSPORT_BUFFER,
+			   &newbuf);
 	}
     }
   return rc;

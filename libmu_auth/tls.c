@@ -115,7 +115,7 @@ mu_check_tls_environment (void)
 
 int mu_tls_enable = 0;
 
-#if 0
+#ifdef DEBUG_TLS
 void
 _mu_gtls_logger(int level, const char *text)
 {
@@ -128,7 +128,7 @@ mu_init_tls_libs (void)
 {
   if (mu_tls_module_config.enable && !mu_tls_enable)
     mu_tls_enable = !gnutls_global_init (); /* Returns 1 on success */
-#if 0
+#ifdef DEBUG_TLS
   gnutls_global_set_log_function (_mu_gtls_logger);
   gnutls_global_set_log_level (110);
 #endif
