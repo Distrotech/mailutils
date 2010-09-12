@@ -1005,6 +1005,8 @@ read_size_file (struct _amd_data *amd, mu_off_t *psize)
 	rc = 1;
       fclose (fp);
     }
+  else
+    rc = 1;
   free (name);
   return rc;
 }
