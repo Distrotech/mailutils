@@ -352,9 +352,14 @@ imap4d_session_setup0 ()
 
   util_chdir (imap4d_homedir);
   namespace_init_session (imap4d_homedir);
+  
   mu_diag_output (MU_DIAG_INFO,
 		  _("user `%s' logged in (source: %s)"), auth_data->name,
 		  auth_data->source);
+
+  if (auth_data->quota)
+    quota_setup ();
+  
   return 0;
 }
 

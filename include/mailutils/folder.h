@@ -32,6 +32,7 @@ struct mu_list_response
   int level;
   int separator;
   char *name;
+  mu_record_t format;   /* Associated mailbox format record */
 };
 
 typedef int (*mu_folder_match_fp) (const char *, void *, int);

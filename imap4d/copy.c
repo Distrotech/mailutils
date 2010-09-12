@@ -57,6 +57,153 @@ imap4d_copy (struct imap4d_command *command, imap4d_tokbuf_t tok)
   return io_completion_response (command, rc, "%s", text);
 }
 
+static int
+copy_check_size (mu_mailbox_t mbox, size_t n, size_t *set, mu_off_t *size)
+{
+  int status;
+  size_t i;
+  mu_off_t total = 0;
+  
+  for (i = 0; i < n; i++)
+    {
+      mu_message_t msg = NULL;
+      size_t msgno = set[i];
+      if (msgno)
+	{
+	  status = mu_mailbox_get_message (mbox, msgno, &msg);
+	  if (status)
+	    {
+	      mu_diag_funcall (MU_DIAG_ERROR, "mu_mailbox_get_message", NULL,
+			       status);
+	      return RESP_BAD;
+	    }
+	  else 
+	    {
+	      size_t size;
+	      status = mu_message_size (msg, &size);
+	      if (status)
+		{
+		  mu_diag_funcall (MU_DIAG_ERROR, "mu_message_size", NULL,
+				   status);
+		  return RESP_BAD;
+		}
+	      total += size;
+	    }
+	}
+    }
+  *size = total;
+  return quota_check (total);
+}
+
+static int
+try_copy (mu_mailbox_t dst, mu_mailbox_t src, size_t n, size_t *set)
+{
+  int result;
+  size_t i;
+  mu_off_t total;
+  
+  result = copy_check_size (src, n, set, &total);
+  if (result)
+    return result;
+  
+  for (i = 0; i < n; i++)
+    {
+      mu_message_t msg = NULL;
+      size_t msgno = set[i];
+
+      if (msgno)
+	{
+	  int status = mu_mailbox_get_message (src, msgno, &msg);
+	  if (status)
+	    {
+	      mu_diag_funcall (MU_DIAG_ERROR, "mu_mailbox_get_message", NULL,
+			       status);
+	      return RESP_BAD;
+	    }
+
+	  status = mu_mailbox_append_message (dst, msg);
+	  if (status)
+	    {
+	      mu_diag_funcall (MU_DIAG_ERROR, "mu_mailbox_append_message",
+			       NULL,
+			       status);
+	      return RESP_BAD;
+	    }
+	}
+    }
+  quota_update (total);
+  return RESP_OK;
+}
+
+static int
+safe_copy (mu_mailbox_t dst, mu_mailbox_t src, size_t n, size_t *set,
+	   char **err_text)
+{
+  size_t nmesg;
+  int status;
+  
+  status = mu_mailbox_messages_count (dst, &nmesg);
+  if (status)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_mailbox_messages_count",
+		       NULL, status);
+      *err_text = "Operation failed";
+      return RESP_NO;
+    }
+
+  status = try_copy (dst, src, n, set);
+  if (status)
+    {
+      size_t maxmesg;
+
+      if (status == RESP_NO)
+	*err_text = "Mailbox quota exceeded";
+      else
+	*err_text = "Operation failed";
+      
+      /* If the COPY command is unsuccessful for any reason, server
+	 implementations MUST restore the destination mailbox to its state
+	 before the COPY attempt. */
+
+      status = mu_mailbox_messages_count (dst, &maxmesg);
+      if (status)
+	{
+	  mu_url_t url = NULL;
+
+	  mu_mailbox_get_url (dst, &url);
+	  mu_error (_("cannot count messages in mailbox %s: %s"),
+		    mu_url_to_string (url), mu_strerror (status));
+	  imap4d_bye (ERR_MAILBOX_CORRUPTED);
+	}
+      
+      for (nmesg++; nmesg <= maxmesg; nmesg++)
+	{
+	  mu_message_t msg;
+	  
+	  if (mu_mailbox_get_message (dst, nmesg, &msg) == 0)
+	    {
+	      mu_attribute_t attr;
+	      mu_message_get_attribute (msg, &attr);
+	      mu_attribute_set_userflag (attr, MU_ATTRIBUTE_DELETED);
+	    }
+	}
+      
+      status = mu_mailbox_flush (dst, 1);
+      if (status)
+	{
+	  mu_url_t url = NULL;
+
+	  mu_mailbox_get_url (dst, &url);
+	  mu_error (_("cannot flush mailbox %s: %s"),
+		    mu_url_to_string (url), mu_strerror (status));
+	  imap4d_bye (ERR_MAILBOX_CORRUPTED);
+	}
+      return RESP_NO;
+    }
+  
+  return RESP_OK;
+}
+
 int
 imap4d_copy0 (imap4d_tokbuf_t tok, int isuid, char **err_text)
 {
@@ -70,7 +217,8 @@ imap4d_copy0 (imap4d_tokbuf_t tok, int isuid, char **err_text)
   mu_mailbox_t cmbox = NULL;
   int arg = IMAP4_ARG_1 + !!isuid;
   int ns;
-  
+
+  *err_text = NULL;
   if (imap4d_tokbuf_argc (tok) != arg + 2)
     {
       *err_text = "Invalid arguments";
@@ -89,11 +237,19 @@ imap4d_copy0 (imap4d_tokbuf_t tok, int isuid, char **err_text)
       return RESP_OK;
     }
 
+  if (isuid)
+    {
+      int i;
+      /* Fixup the message set. Perhaps util_msgset should do it itself? */
+      for (i = 0; i < n; i++)
+	set[i] = uid_to_msgno (set[i]);
+    }
+  
   mailbox_name = namespace_getfullpath (name, delim, &ns);
 
   if (!mailbox_name)
     {
-      *err_text = "NO Copy failed.";
+      *err_text = "Copy failed";
       return RESP_NO;
     }
 
@@ -106,14 +262,7 @@ imap4d_copy0 (imap4d_tokbuf_t tok, int isuid, char **err_text)
       status = mu_mailbox_open (cmbox, MU_STREAM_RDWR | mailbox_mode[ns]);
       if (status == 0)
 	{
-	  size_t i;
-	  for (i = 0; i < n; i++)
-	    {
-	      mu_message_t msg = NULL;
-	      size_t msgno = (isuid) ? uid_to_msgno (set[i]) : set[i];
-	      if (msgno && mu_mailbox_get_message (mbox, msgno, &msg) == 0)
-		mu_mailbox_append_message (cmbox, msg);
-	    }
+	  status = safe_copy (cmbox, mbox, n, set, err_text);
 	  mu_mailbox_close (cmbox);
 	}
       mu_mailbox_destroy (&cmbox);
@@ -132,6 +281,7 @@ imap4d_copy0 (imap4d_tokbuf_t tok, int isuid, char **err_text)
      of the text of the tagged NO response.  This gives a hint to the
      client that it can attempt a CREATE command and retry the copy if
      the CREATE is successful.  */
-  *err_text = "[TRYCREATE] failed";
+  if (!*err_text)
+    *err_text = "[TRYCREATE] failed";
   return RESP_NO;
 }

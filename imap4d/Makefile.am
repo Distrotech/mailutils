@@ -50,6 +50,7 @@ imap4d_SOURCES = \
  noop.c\
  parsebuf.c\
  preauth.c\
+ quota.c\
  rename.c\
  search.c\
  select.c\

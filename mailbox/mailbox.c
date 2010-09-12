@@ -69,98 +69,106 @@ mailbox_folder_create (mu_mailbox_t mbox, const char *name,
   return rc;
 }
 
+int
+_mailbox_create_from_record (mu_mailbox_t *pmbox,
+			     mu_record_t record,
+			     mu_url_t url, 
+			     const char *name)
+{
+  mu_log_level_t level;
+  int (*m_init) (mu_mailbox_t) = NULL;
+      
+  mu_record_get_mailbox (record, &m_init);
+  if (m_init)
+    {
+      int status;
+      int (*u_init) (mu_url_t) = NULL;
+      mu_mailbox_t mbox;
+      
+      /* Allocate memory for mbox.  */
+      mbox = calloc (1, sizeof (*mbox));
+      if (mbox == NULL)
+	return ENOMEM;
+      
+      /* Initialize the internal lock now, so the concrete mailbox
+	 could use it. */
+      status = mu_monitor_create (&mbox->monitor, 0, mbox);
+      if (status != 0)
+	{
+	  mu_mailbox_destroy (&mbox);
+	  return status;
+	}
+      
+      /* Make sure scheme contains actual mailbox scheme */
+      /* FIXME: It is appropriate not for all record types.  For now we
+	 assume that if the record scheme ends with a plus sign, this
+	 should not be done.  Probably it requires some flag in struct
+	 _mu_record? */
+      if (strcmp (url->scheme, record->scheme))
+	{
+	  char *p = strdup (record->scheme);
+	  if (!p)
+	    {
+	      mu_mailbox_destroy (&mbox);
+	      return errno;
+	    }
+	  free (url->scheme);
+	  url->scheme = p;
+	}
+      
+      mu_record_get_url (record, &u_init);
+      if (u_init && (status = u_init (url)) != 0)
+	{
+	  mu_mailbox_destroy (&mbox);
+	  return status;
+	}
+      
+      mbox->url = url;
+      
+      /* Create the folder before initializing the concrete mailbox.
+	 The mailbox needs it's back pointer. */
+      status = mailbox_folder_create (mbox, name, record);
+      
+      if (status == 0)
+	status = m_init (mbox);   /* Create the concrete mailbox type.  */
+      
+      if (status != 0)
+	{
+	  /* Take care not to destroy url.  Leave it to caller. */
+	  mbox->url = NULL;
+	  mu_mailbox_destroy (&mbox);
+	}
+      else
+	{
+	  *pmbox = mbox;
+	  
+	  level = mu_global_debug_level ("mailbox");
+	  if (level)
+	    {
+	      int status = mu_debug_create (&mbox->debug, mbox);
+	      if (status)
+		return 0; /* FIXME: don't want to bail out just because I
+			     failed to create a *debug* object. But I may
+			     be wrong... */
+	      mu_debug_set_level (mbox->debug, level);
+	      if (level & MU_DEBUG_INHERIT)
+		mu_folder_set_debug (mbox->folder, mbox->debug);
+	    }
+	}
+      
+      return status;
+    }
+  return MU_ERR_NO_HANDLER;
+}
+
 static int
 _create_mailbox0 (mu_mailbox_t *pmbox, mu_url_t url, const char *name)
 {
-  int status;
   mu_record_t record = NULL;
 
   if (mu_registrar_lookup_url (url, MU_FOLDER_ATTRIBUTE_FILE, &record, NULL)
       == 0)
-    {
-      mu_log_level_t level;
-      int (*m_init) (mu_mailbox_t) = NULL;
-      
-      mu_record_get_mailbox (record, &m_init);
-      if (m_init)
-        {
-	  int (*u_init) (mu_url_t) = NULL;
-	  mu_mailbox_t mbox;
-
-	  /* Allocate memory for mbox.  */
-	  mbox = calloc (1, sizeof (*mbox));
-	  if (mbox == NULL)
-	    return ENOMEM;
-
-	  /* Initialize the internal lock now, so the concrete mailbox
-	     could use it. */
-	  status = mu_monitor_create (&mbox->monitor, 0, mbox);
-	  if (status != 0)
-	    {
-	      mu_mailbox_destroy (&mbox);
-	      return status;
-	    }
-
-	  /* Make sure scheme contains actual mailbox scheme */
-	  /* FIXME: It is appropriate not for all record types.  For now we
-	     assume that if the record scheme ends with a plus sign, this
-	     should not be done.  Probably it requires some flag in struct
-	     _mu_record? */
-	  if (strcmp (url->scheme, record->scheme))
-	    {
-	      char *p = strdup (record->scheme);
-	      if (!p)
-		{
-		  mu_mailbox_destroy (&mbox);
-		  return errno;
-		}
-	      free (url->scheme);
-	      url->scheme = p;
-	    }
-
-	  mu_record_get_url (record, &u_init);
-	  if (u_init && (status = u_init (url)) != 0)
-	    {
-	      mu_mailbox_destroy (&mbox);
-	      return status;
-	    }
-
-	  mbox->url = url;
-
-	  /* Create the folder before initializing the concrete mailbox.
-	     The mailbox needs it's back pointer. */
-	  status = mailbox_folder_create (mbox, name, record);
-	  
-	  if (status == 0)
-	    status = m_init (mbox);   /* Create the concrete mailbox type.  */
-
-	  if (status != 0)
-	    {
-	      /* Take care not to destroy url.  Leave it to caller. */
-	      mbox->url = NULL;
-	      mu_mailbox_destroy (&mbox);
-	    }
-	  else
-	    {
-	      *pmbox = mbox;
-
-	      level = mu_global_debug_level ("mailbox");
-	      if (level)
-		{
-		  int status = mu_debug_create (&mbox->debug, mbox);
-		  if (status)
-		    return 0; /* FIXME: don't want to bail out just because I
-				 failed to create a *debug* object. But I may
-				 be wrong... */
-		  mu_debug_set_level (mbox->debug, level);
-		  if (level & MU_DEBUG_INHERIT)
-		    mu_folder_set_debug (mbox->folder, mbox->debug);
-		}
-	    }
-	  
-	  return status;
-	}
-    }
+    return _mailbox_create_from_record (pmbox, record, url, name);
   return MU_ERR_NO_HANDLER;
 }
 
@@ -200,6 +208,24 @@ mu_mailbox_create_from_url (mu_mailbox_t *pmbox, mu_url_t url)
   if (pmbox == NULL)
     return MU_ERR_OUT_PTR_NULL;
   return _create_mailbox0 (pmbox, url, mu_url_to_string (url));
+}
+
+int
+mu_mailbox_create_from_record (mu_mailbox_t *pmbox, mu_record_t record,
+			       const char *name)
+{
+  mu_url_t url;
+  int rc;
+  
+  rc = mu_url_create (&url, name);
+  if (rc)
+    return rc;
+  rc = mu_url_parse (url);
+  if (rc == 0)
+    rc = _mailbox_create_from_record (pmbox, record, url, name);
+  if (rc)
+    mu_url_destroy (&url);
+  return rc;
 }
 
 void
