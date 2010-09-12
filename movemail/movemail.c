@@ -606,6 +606,8 @@ guess_mbox_owner (mu_mailbox_t mbox, struct user_id *id)
 		  rc = 1;
 		}
 	    }
+	  else
+	    id->gid = meth->owner.id.gid;
 	  break;
 	  
 	case set_owner_name:
@@ -891,7 +893,7 @@ main (int argc, char **argv)
   mu_mailbox_destroy (&dest);
   if (rc)
     mu_error (_("cannot close destination mailbox: %s"), mu_strerror (rc));
-  else
+  else if (!preserve_mail)
     mu_mailbox_flush (source, 1);
 
   mu_mailbox_close (source);
