@@ -18,7 +18,7 @@ dnl with GNU Mailutils; if not, write to the Free Software Foundation,
 dnl Inc. 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 AC_PREREQ(2.63)
-AC_INIT([GNU Mailutils], [2.2], [bug-mailutils@gnu.org], [mailutils])
+AC_INIT([GNU Mailutils], [2.2.1], [bug-mailutils@gnu.org], [mailutils])
 AC_CONFIG_SRCDIR([mailbox/mailbox.c])
 AC_CONFIG_AUX_DIR([build-aux])
 AM_INIT_AUTOMAKE([gnits 1.11 dist-bzip2 dist-lzma dist-xz std-options silent-rules])
@@ -1221,7 +1221,9 @@ CPPFLAGS="$CPPFLAGS -DSYSCONFDIR=\\\"\$(sysconfdir)\\\""
 AC_SUBST(RENDITION)
 case `echo $VERSION|sed  's/[[^.]]//g'` in
 ""|".")  RENDITION=DISTRIB;;
-"..")  if test `echo $VERSION | sed  's/.*\.//'` -lt 50; then
+"..")  MINOR=`echo $VERSION | sed  's/.*\.//'`
+       MINS=`echo $MINOR | sed 's/^[0-9][0-9]*//g'`
+       if test -n "$MINS" || test $MINOR -lt 50; then
 	 RENDITION=DISTRIB
        else
          RENDITION=PROOF

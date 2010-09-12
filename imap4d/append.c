@@ -71,7 +71,8 @@ imap4d_append0 (mu_mailbox_t mbox, int flags, char *date_time, char *text,
   struct tm *tm;
   time_t t;
   mu_envelope_t env;
-    
+  size_t size;
+  
   if (mu_message_create (&msg, &tm))
     return 1;
   
@@ -94,9 +95,9 @@ imap4d_append0 (mu_mailbox_t mbox, int flags, char *date_time, char *text,
 	}
     }
   else
-    time(&t);
+    time (&t);
   
-  tm = gmtime(&t);
+  tm = gmtime (&t);
 
   while (*text && mu_isblank (*text))
     text++;
@@ -109,17 +110,42 @@ imap4d_append0 (mu_mailbox_t mbox, int flags, char *date_time, char *text,
   mu_envelope_set_date (env, _append_date, msg);
   mu_envelope_set_sender (env, _append_sender, msg);
   mu_message_set_envelope (msg, env, &tm);
-  rc = mu_mailbox_append_message (mbox, msg);
-  if (rc == 0 && flags)
-    {
-      size_t num = 0;
-      mu_attribute_t attr = NULL;
-      mu_mailbox_messages_count (mbox, &num);
-      mu_mailbox_get_message (mbox, num, &msg);
-      mu_message_get_attribute (msg, &attr);
-      mu_attribute_set_flags (attr, flags);
-    }
 
+  rc = _append_size (msg, &size);
+  if (rc)
+    {
+      mu_diag_output (MU_DIAG_NOTICE,
+		      _("cannot compute size of the message being appended; "
+			"using estimated value: %s"),
+		      mu_strerror (rc));
+      /* raw estimate */
+      size = strlen (text);
+    }
+  rc = quota_check (size);
+  if (rc != RESP_OK)
+    {
+      *err_text = rc == RESP_NO ?
+	                   "Mailbox quota exceeded" : "Operation failed";
+      mu_message_destroy (&msg, &tm);
+      return 1;
+    }
+  
+  rc = mu_mailbox_append_message (mbox, msg);
+  if (rc == 0)
+    {
+      if (flags)
+	{
+	  size_t num = 0;
+	  mu_attribute_t attr = NULL;
+	  mu_mailbox_messages_count (mbox, &num);
+	  mu_mailbox_get_message (mbox, num, &msg);
+	  mu_message_get_attribute (msg, &attr);
+	  mu_attribute_set_flags (attr, flags);
+	}
+      /* FIXME: If not INBOX */
+      quota_update (size);
+    }
+  
   mu_message_destroy (&msg, &tm);
   return rc;
 }

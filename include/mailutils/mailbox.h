@@ -40,9 +40,12 @@ int mu_construct_user_mailbox_url (char **pout, const char *name);
 /* Constructor/destructor and possible types.  */
 extern int  mu_mailbox_create          (mu_mailbox_t *, const char *);
 extern int  mu_mailbox_create_from_url (mu_mailbox_t *, mu_url_t);
+extern int  mu_mailbox_create_from_record (mu_mailbox_t *pmbox,
+					   mu_record_t record,
+					   const char *name);
+extern int  mu_mailbox_create_default  (mu_mailbox_t *, const char *);
 
 extern void mu_mailbox_destroy         (mu_mailbox_t *);
-extern int  mu_mailbox_create_default  (mu_mailbox_t *, const char *);
 
 extern int  mu_mailbox_open            (mu_mailbox_t, int flag);
 extern int  mu_mailbox_close           (mu_mailbox_t);

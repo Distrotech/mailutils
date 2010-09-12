@@ -315,7 +315,7 @@ list_helper (struct search_data *data, mu_record_t record,
   DIR *dirp;
   struct dirent *dp;
   int stop = 0;
-  
+    
   if (data->max_level && level > data->max_level)
     return 0;
 
@@ -345,13 +345,15 @@ list_helper (struct search_data *data, mu_record_t record,
       if (ename[ename[0] != '.' ? 0 : ename[1] != '.' ? 1 : 2] == 0)
 	continue;
       fname = get_pathname (dirname, ename);
-      if (stat (fname, &st) == 0)
+      if (lstat (fname, &st) == 0)
 	{
 	  int f;
 	  if (S_ISDIR (st.st_mode))
 	    f = MU_FOLDER_ATTRIBUTE_DIRECTORY;
 	  else if (S_ISREG (st.st_mode))
 	    f = MU_FOLDER_ATTRIBUTE_FILE;
+	  else if (S_ISLNK (st.st_mode))
+	    f = MU_FOLDER_ATTRIBUTE_LINK;
 	  else
 	    f = 0;
 	  if (mu_record_list_p (record, ename, f))
@@ -386,6 +388,7 @@ list_helper (struct search_data *data, mu_record_t record,
 		  resp->level = level;
 		  resp->separator = '/';
 		  resp->type = type;
+		  resp->format = rec;
 		  
 		  if (resp->type == 0)
 		    {

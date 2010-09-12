@@ -400,7 +400,12 @@ extern void auth_gsasl_init (void);
 #else
 # define auth_gsasl_init()
 #endif
-  
+
+/* Quota support */
+void quota_setup (void);
+int quota_check (mu_off_t size);
+void quota_update (mu_off_t size);
+
 #ifdef __cplusplus
 }
 #endif

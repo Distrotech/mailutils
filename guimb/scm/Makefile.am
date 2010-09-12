@@ -21,6 +21,11 @@
 MU_GUILE_SIEVE_SCRIPTS_X=sieve.scm
 bin_SCRIPTS = sieve.scm
 EXTRA_SCRIPTS=sieve.scm
+# FIXME: Sieve.scm is temporarly exempted from installchecks because 
+# it may fail starting during checks, if libguile-mailutils-v- library
+# has not been previously installed. The proper fix would be to alter 
+# %load-path during tests.
+AM_INSTALLCHECK_STD_OPTIONS_EXEMPT=sieve.scm
 
 sievemoddir=@MU_GUILE_SIEVE_MOD_DIR@
 
