@@ -71,7 +71,7 @@ imap4d_lsub (struct imap4d_command *command, imap4d_tokbuf_t tok)
 	  if (buf[len - 1] == '\n')
 	    buf[len - 1] = '\0';
 	  if (util_wcard_match (buf, pattern, delim) == 0)
-	    util_out (RESP_NONE, "LIST () \"%s\" %s", delim, buf);
+	    util_out (RESP_NONE, "LSUB () \"%s\" %s", delim, buf);
 	}
       fclose (fp);
       free (buf);
