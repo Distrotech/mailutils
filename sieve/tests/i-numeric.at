@@ -1,0 +1,46 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+# This file is part of Mailfromd testsuite. 
+
+MUT_TESTCASE([i-numeric :is], [comparator i-numeric is i-numeric-is],
+[
+require "comparator-i;ascii-numeric";
+
+if header :comparator "i;ascii-numeric" :is "X-Number" "15"
+  {
+    discard;
+  }
+],[],[0],[],
+[IMPLICIT KEEP on msg uid 1
+DISCARD on msg uid 2: marking as deleted
+IMPLICIT KEEP on msg uid 3
+])
+
+AT_SETUP([i-numeric with contains])
+AT_KEYWORDS([comparator i-numeric is i-numeric-contains])
+MUT_SIEVE_COMPILE([
+require "comparator-i;ascii-numeric";
+
+if header :comparator "i;ascii-numeric" :contains "X-Number" "15"
+  {
+    discard;
+  }
+],[78],[],
+[sieve: prog:5: comparator `i;ascii-numeric' is incompatible with match type `contains' in call to `header'
+])
+AT_CLEANUP
+
+

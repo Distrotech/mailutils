@@ -35,7 +35,8 @@
 #include <mailutils/list.h>
 #include <mailutils/iterator.h>
 #include <mailutils/debug.h>
-#include <mailutils/mutil.h>  
+#include <mailutils/mutil.h>
+#include <mailutils/cctype.h>
 
 int mu_cfg_parser_verbose;
 static mu_list_t /* of mu_cfg_node_t */ parse_node_list; 
@@ -1741,25 +1742,53 @@ mu_cfg_create_subtree (const char *path, mu_cfg_node_t **pnode)
 {
   int rc;
   int argc, i;
+  char *p;
   char **argv;
   mu_cfg_locus_t locus;
   enum mu_cfg_node_type type;
   mu_cfg_node_t *node = NULL;
+  char *delim = MU_CFG_PATH_DELIM_STR;
+  char static_delim[2] = { 0, 0 };
   
   locus.file = "<int>";
   locus.line = 0;
+
+  if (path[0] == '\\')
+    {
+      argv = calloc (2, sizeof (*argv));
+      if (!argv)
+	return ENOMEM;
+      argv[0] = strdup (path + 1);
+      if (!argv[0])
+	{
+	  free (argv);
+	  return ENOMEM;
+	}
+      argv[1] = NULL;
+      argc = 1;
+      rc = 0;
+    }
+  else
+    {
+      if (mu_ispunct (path[0]))
+	{
+	  delim = static_delim;
+	  delim[0] = path[0];
+	  path++;
+	}
+      rc = mu_argcv_get_np (path, strlen (path), delim, NULL, 0,
+			    &argc, &argv, NULL);
+    }
   
-  rc = mu_argcv_get_np (path, strlen (path), MU_CFG_PATH_DELIM_STR, NULL, 0,
-			&argc, &argv, NULL);
   if (rc)
     return rc;
 
   for (i = argc - 1; i >= 0; i--)
     {
       mu_list_t nodelist = NULL;
-      char *p = strrchr (argv[i], '=');
       mu_config_value_t *label = NULL;
 
+      p = strrchr (argv[i], '=');
       type = mu_cfg_node_statement;
       if (p)
 	{

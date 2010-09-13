@@ -1209,6 +1209,10 @@ AC_ARG_WITH([mh-bindir],
                     [MH_BIN_DIR='${exec_prefix}/bin/mu-mh'])
 
 
+# Initialize the (autotest) test suite.
+AC_CONFIG_TESTDIR(tests)
+AC_CONFIG_FILES([sieve/tests/Makefile sieve/tests/atlocal]) 
+AM_MISSING_PROG([AUTOM4TE], [autom4te])
 
 dnl Make sysconfdir available to the application
 dnl This must be done LAST, since CPPFLAGS is passed by configure
@@ -1371,7 +1375,6 @@ AC_CONFIG_FILES([
  mu-aux/Makefile
  mu-aux/mailutils.spec
  sieve/Makefile
- sieve/testsuite/Makefile
  testsuite/Makefile
  ])
 AC_OUTPUT

@@ -1,0 +1,110 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+# This file is part of Mailfromd testsuite. 
+
+# Require a reasonably recent autotest.
+m4_version_prereq([2.52g])
+
+m4_define([AT_SKIP_TEST],[exit 77])
+
+dnl ------------------------------------------------------------
+dnl testcompile(SCRIPT) -- test compilation of the Sieve SCRIPT
+dnl
+m4_define([testcompile],[
+AT_SETUP([compile $1])
+AT_CHECK([sieve -c $top_srcdir/sieve/examples/$1],
+[0])
+AT_CLEANUP
+])
+
+dnl ------------------------------------------------------------
+dnl MUT_SIEVE_OPTIONS  -- additional command line options for Sieve
+m4_define([MUT_SIEVE_OPTIONS])
+
+dnl ------------------------------------------------------------
+dnl MUT_SIEVE_MAILBOX  -- mailbox used for testing
+m4_define([MUT_SIEVE_MAILBOX],[sieve.mbox])
+
+dnl ------------------------------------------------------------
+m4_define([MUT_SIEVE_CMDLINE],[dnl
+ --verbose dnl
+ --line-info=no dnl
+ --no-program-name dnl
+ --no-site-config dnl
+ --no-user-config dnl
+ -M sendmail:$top_builddir/examples/mta dnl
+ --email foobar@nonexistent.net])
+ 
+dnl ------------------------------------------------------------
+dnl MUT_SIEVE_COMPILE(SCRIPT, [ADD-TEST = `'],
+dnl                   [STATUS = `0'], [STDOUT = `'], [STDERR = `'],
+dnl                   [RUN-IF-FAIL], [RUN-IF-PASS])
+dnl	  
+m4_define([MUT_SIEVE_COMPILE],[
+AT_DATA([prog],[$1
+])
+AT_CHECK([sieve MUT_SIEVE_OPTIONS -c prog],m4_shift($@))])
+
+dnl ------------------------------------------------------------
+dnl MUT_SIEVE_RUN(SCRIPT, MBOX, [ADD-TEST = `'],
+dnl               [STATUS = `0'], [STDOUT = `'], [STDERR = `'],
+dnl               [RUN-IF-FAIL], [RUN-IF-PASS])
+dnl	  
+m4_define([MUT_SIEVE_RUN],[
+AT_DATA([prog],[$1
+])
+AT_CHECK([sieve MUT_SIEVE_CMDLINE MUT_SIEVE_OPTIONS -f $2 prog
+		$3],
+		m4_shift(m4_shift(m4_shift($@))))])
+
+m4_define([MUT_TESTCASE],[
+AT_SETUP([$1])
+AT_KEYWORDS([$2])
+cp $top_srcdir/testsuite/spool/MUT_SIEVE_MAILBOX .
+MUT_SIEVE_RUN([$3], ./MUT_SIEVE_MAILBOX, m4_shift(m4_shift(m4_shift($@))))
+AT_CLEANUP])
+
+m4_define([MUT_PREREQ_CAPA],[
+sieve --show-config-options | grep '^$1' > /dev/null 2>&1 || AT_SKIP_TEST
+])
+
+AT_INIT
+
+AT_TESTED([sieve])
+
+m4_include([version.at])
+m4_include([compile.at])
+m4_include([false.at])
+m4_include([true.at])
+m4_include([not.at])
+m4_include([action.at])
+m4_include([address.at])
+m4_include([allof.at])
+m4_include([anyof.at])
+m4_include([envelope.at])
+m4_include([exists.at])
+m4_include([header.at])
+m4_include([i-casemap.at])
+m4_include([i-numeric.at])
+m4_include([i-octet.at])
+m4_include([mul-addr.at])
+m4_include([relational.at])
+m4_include([size.at])
+m4_include([redirect.at])
+m4_include([reject.at])
+m4_include([ext.at])
+
+

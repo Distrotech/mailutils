@@ -18,7 +18,7 @@
 ##   02110-1301 USA
 
 INCLUDES = @MU_APP_COMMON_INCLUDES@ 
-SUBDIRS  = testsuite
+SUBDIRS  = tests
 
 bin_PROGRAMS = sieve
 sieve_SOURCES = sieve.c
