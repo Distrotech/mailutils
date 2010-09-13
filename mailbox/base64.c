@@ -244,6 +244,9 @@ _base64_encoder (void *xd MU_ARG_UNUSED,
       pad = 0;
     }
 
+  /* Consumed may grow bigger than isize if cmd is mu_filter_lastbuf */
+  if (consumed > iobuf->isize)
+    consumed = iobuf->isize;
   iobuf->isize = consumed;
   iobuf->osize = nbytes;
   return mu_filter_ok;

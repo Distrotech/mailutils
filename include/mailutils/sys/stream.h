@@ -24,8 +24,12 @@
 
 #define _MU_STR_INTERN_MASK   0xf0000000
 
-#define _MU_STR_EVENT_SET     1
-#define _MU_STR_EVENT_CLR     2
+#define _MU_STR_EVENT_SETFLAG   0
+#define _MU_STR_EVENT_CLRFLAG   1
+#define _MU_STR_EVENT_FILLBUF   2
+#define _MU_STR_EVENT_FLUSHBUF  3
+
+#define _MU_STR_EVMASK(n) (1<<(n))
 
 struct _mu_stream
 {
@@ -35,7 +39,7 @@ struct _mu_stream
   size_t bufsize;
   char *buffer;
   size_t level;
-  char *cur;
+  size_t pos;
 
   int flags;
   mu_off_t offset;
@@ -57,7 +61,7 @@ struct _mu_stream
   int (*truncate) (struct _mu_stream *, mu_off_t);
   int (*shutdown) (struct _mu_stream *, int);
 
-  void (*event_cb) (struct _mu_stream *, int, int);
+  void (*event_cb) (struct _mu_stream *, int code, unsigned long, void *);
   int  event_mask;
   
   const char *(*error_string) (struct _mu_stream *, int);
@@ -65,11 +69,6 @@ struct _mu_stream
 };
 
 mu_stream_t _mu_stream_create (size_t size, int flags);
-int mu_stream_read_unbuffered (mu_stream_t stream, void *buf, size_t size,
-			       int full_read, size_t *pnread);
-int mu_stream_write_unbuffered (mu_stream_t stream,
-				const void *buf, size_t size,
-				int full_write, size_t *pnwritten);
 
 void _mu_stream_cleareof (mu_stream_t str);
 void _mu_stream_seteof (mu_stream_t str);

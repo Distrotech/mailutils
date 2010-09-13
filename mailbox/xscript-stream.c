@@ -167,21 +167,28 @@ print_transcript (struct _mu_xscript_stream *str, int flag,
     }
 }
 
+static void
+_xscript_event_cb (mu_stream_t str, int ev, unsigned long size, void *ptr)
+{
+  struct _mu_xscript_stream *sp = (struct _mu_xscript_stream *)str;
+
+  switch (ev)
+    {
+    case _MU_STR_EVENT_FILLBUF:
+      print_transcript (sp, TRANS_READ, ptr, size);
+      break;
+
+    case _MU_STR_EVENT_FLUSHBUF:
+      print_transcript (sp, TRANS_WRITE, ptr, size);
+    }
+}
+
 static int
 _xscript_read (struct _mu_stream *str, char *buf, size_t bufsize,
 	       size_t *pnread)
 {
   struct _mu_xscript_stream *sp = (struct _mu_xscript_stream *)str;
-  size_t nbytes;
-  int rc = mu_stream_read (sp->transport, buf, bufsize, &nbytes);
-
-  if (rc == 0)
-    {
-      print_transcript (sp, TRANS_READ, buf, nbytes);
-      if (pnread)
-	*pnread = nbytes;
-    }
-  return rc;
+  return mu_stream_read (sp->transport, buf, bufsize, pnread);
 }
 
 static int
@@ -189,15 +196,7 @@ _xscript_readdelim (struct _mu_stream *str, char *buf, size_t bufsize,
 		    int delim, size_t *pnread)
 {
   struct _mu_xscript_stream *sp = (struct _mu_xscript_stream *)str;
-  size_t nread;
-  int rc = mu_stream_readdelim (sp->transport, buf, bufsize, delim, &nread);
-  if (rc == 0)
-    {
-      print_transcript (sp, TRANS_READ, buf, nread);
-      if (pnread)
-	*pnread = nread;
-    }
-  return rc;
+  return mu_stream_readdelim (sp->transport, buf, bufsize, delim, pnread);
 }
 
 static int
@@ -205,11 +204,7 @@ _xscript_write (struct _mu_stream *str, const char *buf, size_t bufsize,
 		  size_t *pnwrite)
 {
   struct _mu_xscript_stream *sp = (struct _mu_xscript_stream *)str;
-  int rc = mu_stream_write (sp->transport, buf, bufsize, pnwrite);
-
-  if (rc == 0)
-    print_transcript (sp, TRANS_WRITE, buf, pnwrite ? *pnwrite : bufsize);
-  return rc;
+  return mu_stream_write (sp->transport, buf, bufsize, pnwrite);
 }
 
 static int
@@ -318,7 +313,6 @@ _xscript_ctl (struct _mu_stream *str, int op, void *arg)
     case MU_IOCTL_GET_TRANSPORT_BUFFER:
     case MU_IOCTL_SET_TRANSPORT_BUFFER:
       {
-        struct mu_transport_buffer_query *qp = arg;
         if (!sp->transport)
           return EINVAL;
         return mu_stream_ioctl (sp->transport, op, arg);
@@ -391,7 +385,8 @@ mu_xscript_stream_create(mu_stream_t *pref, mu_stream_t transport,
     return ENOMEM;
 
   sp->stream.read = _xscript_read; 
-  sp->stream.readdelim = _xscript_readdelim; 
+  if (transport->readdelim)
+    sp->stream.readdelim = _xscript_readdelim; 
   sp->stream.write = _xscript_write;
   sp->stream.flush = _xscript_flush;
   sp->stream.open = _xscript_open; 
@@ -404,7 +399,9 @@ mu_xscript_stream_create(mu_stream_t *pref, mu_stream_t transport,
   sp->stream.truncate = _xscript_truncate;
   sp->stream.shutdown = _xscript_shutdown;
   sp->stream.error_string = _xscript_error_string;
-
+  sp->stream.event_cb = _xscript_event_cb;
+  sp->stream.event_mask = _MU_STR_EVMASK(_MU_STR_EVENT_FILLBUF) |
+                          _MU_STR_EVMASK(_MU_STR_EVENT_FLUSHBUF);
   if (!(flags & MU_STREAM_AUTOCLOSE))
     {
       mu_stream_ref (transport);

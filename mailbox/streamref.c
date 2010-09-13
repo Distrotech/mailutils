@@ -279,7 +279,8 @@ mu_streamref_create_abridged (mu_stream_t *pref, mu_stream_t str,
   mu_stream_ref (str);
 
   sp->stream.read = _streamref_read; 
-  sp->stream.readdelim = _streamref_readdelim; 
+  if (str->readdelim)
+    sp->stream.readdelim = _streamref_readdelim; 
   sp->stream.write = _streamref_write;
   sp->stream.flush = _streamref_flush;
   sp->stream.open = _streamref_open; 

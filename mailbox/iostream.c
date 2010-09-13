@@ -236,7 +236,8 @@ mu_iostream_create (mu_stream_t *pref, mu_stream_t in, mu_stream_t out)
     return ENOMEM;
 
   sp->stream.read = _iostream_read; 
-  sp->stream.readdelim = _iostream_readdelim; 
+  if (in->readdelim)
+    sp->stream.readdelim = _iostream_readdelim; 
   sp->stream.write = _iostream_write;
   sp->stream.flush = _iostream_flush;
   sp->stream.open = _iostream_open; 

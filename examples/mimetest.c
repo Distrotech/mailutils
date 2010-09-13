@@ -116,7 +116,7 @@ main (int argc, char **argv)
   MU_ASSERT (mu_mailbox_open (mbox, MU_STREAM_RDWR));
 
   /* Iterate through the entire message set.  */
-  mu_mailbox_messages_count (mbox, &count);
+  MU_ASSERT (mu_mailbox_messages_count (mbox, &count));
 
   for (i = 1; i <= count; ++i)
     {

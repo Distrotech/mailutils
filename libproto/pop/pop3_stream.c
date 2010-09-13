@@ -41,10 +41,12 @@ struct mu_pop3_stream
   struct mu_buffer_query oldbuf;
 };
 
+/* Called on _MU_STR_EVENT_SETFLAG */
 static void
-_pop3_event_cb (mu_stream_t str, int ev, int flags)
+_pop3_event_cb (mu_stream_t str, int ev, unsigned long flags,
+		void *ptr MU_ARG_UNUSED)
 {
-  if (ev == _MU_STR_EVENT_SET)
+  if (flags & _MU_STR_EOF)
     {
       mu_transport_t trans[2];
 
@@ -78,7 +80,7 @@ mu_pop3_filter_create (mu_stream_t *pstream, mu_stream_t stream)
       mu_stream_t str = *pstream;
       
       str->event_cb = _pop3_event_cb;
-      str->event_mask = _MU_STR_EOF;
+      str->event_mask = _MU_STR_EVMASK(_MU_STR_EVENT_SETFLAG);
 
       sp->oldbuf.type = MU_TRANSPORT_OUTPUT;
       if (mu_stream_ioctl (sp->pop3->carrier, MU_IOCTL_GET_TRANSPORT_BUFFER,

@@ -27,7 +27,7 @@ mail_test -noprompt "quit" \
 # Start again using the same mailbox
 mail_start -reuse-spool "--file=%mbox1"
 # Go to the last message and do delete 4 times
-mail_command "4"
+mail_command "3"
 mail_command "delete"
 mail_command "delete"
 mail_command "delete"
