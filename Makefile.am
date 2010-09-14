@@ -94,7 +94,7 @@ SUBDIRS = . \
  include\
  po\
  testsuite\
- mailbox\
+ libmailutils\
  sql\
  libmu_auth\
  libproto\

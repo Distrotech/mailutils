@@ -19,7 +19,7 @@ dnl Inc. 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 AC_PREREQ(2.63)
 AC_INIT([GNU Mailutils], [2.2.90], [bug-mailutils@gnu.org], [mailutils])
-AC_CONFIG_SRCDIR([mailbox/mailbox.c])
+AC_CONFIG_SRCDIR([libmailutils/mailbox.c])
 AC_CONFIG_AUX_DIR([build-aux])
 AM_INIT_AUTOMAKE([gnits 1.11 dist-bzip2 dist-lzma dist-xz std-options silent-rules])
 AC_CONFIG_HEADERS([config.h])
@@ -38,7 +38,7 @@ AC_SUBST(VI_AGE,      1)
 
 dnl Library paths
 AC_SUBST(MU_LIB_AUTH,'${top_builddir}/libmu_auth/libmu_auth.la')
-AC_SUBST(MU_LIB_MAILUTILS,'${top_builddir}/mailbox/libmailutils.la')
+AC_SUBST(MU_LIB_MAILUTILS,'${top_builddir}/libmailutils/libmailutils.la')
 AC_SUBST(MU_LIB_SQL,'${top_builddir}/sql/libsql.la')
 AC_SUBST(MU_LIB_IMAP)
 AC_SUBST(MU_LIB_MAILDIR)
@@ -69,9 +69,9 @@ AC_SUBST(MU_APP_LIBRARIES,'../libmu_argp/libmu_argp.a ../libmu_cfg/libmu_cfg.la 
 # header files. There are two exceptions, though. See NOTE before the
 # AC_CONFIG_LINKS statements, below.
 
-AC_SUBST(MU_LIB_COMMON_INCLUDES,'-I${top_builddir} -I${top_srcdir}/include  -I${top_builddir}/include -I${top_srcdir}/mailbox')
+AC_SUBST(MU_LIB_COMMON_INCLUDES,'-I${top_builddir} -I${top_srcdir}/include  -I${top_builddir}/include')
 
-AC_SUBST(MU_APP_COMMON_INCLUDES,'-I${srcdir} -I${top_srcdir}/include -I${top_srcdir}/lib -I${top_builddir}/lib -I${top_builddir} -I${top_builddir}/include -I${top_srcdir}/mailbox -I${top_srcdir}/libmu_argp -I${top_srcdir}/libmu_cfg')
+AC_SUBST(MU_APP_COMMON_INCLUDES,'-I${srcdir} -I${top_srcdir}/include -I${top_srcdir}/lib -I${top_builddir}/lib -I${top_builddir} -I${top_builddir}/include -I${top_srcdir}/libmu_argp -I${top_srcdir}/libmu_cfg')
 
 dnl Check for programs
 AC_PROG_CC
@@ -112,7 +112,7 @@ AC_CHECK_TYPE(iconv_t,:,
 
 # NOTE: Generally speaking, Mailutils libraries are not allowed to include
 # gnulib headers.  The only exceptions are: gettext.h, which is needed for
-# proper i18n, and intprops.h, which is used in mailbox/cfg_parser.y.
+# proper i18n, and intprops.h, which is used in libmailutils/cfg_parser.y.
 # This latter will probably be rewritten to remove the need for intprops.h.
 #
 # To make these two headers accessible for the libraries, they are linked
@@ -1361,8 +1361,8 @@ AC_CONFIG_FILES([
  maidag/Makefile
  mail/Makefile
  mail/testsuite/Makefile
- mailbox/Makefile
- mailbox/testsuite/Makefile
+ libmailutils/Makefile
+ libmailutils/testsuite/Makefile
  messages/Makefile
  messages/testsuite/Makefile
  mh/Makefile

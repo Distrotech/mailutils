@@ -18,7 +18,7 @@
 ##   Foundation, Inc. 51 Franklin Street, Fifth Floor, Boston, MA
 ##   02110-1301 USA
 
-INCLUDES = @MU_LIB_COMMON_INCLUDES@
+INCLUDES = @MU_LIB_COMMON_INCLUDES@ -I${top_srcdir}/libmailutils
 
 YLWRAP = $(SHELL) $(mu_aux_dir)/gylwrap
 AM_YFLAGS=-vt
