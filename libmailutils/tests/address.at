@@ -1,0 +1,1080 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+# This file is part of Mailfromd testsuite. 
+
+dnl ------------------------------------------------------------
+dnl TESTADDR(ADDR, [KW = `'], [STATUS = `0'], [STDOUT = `'],
+dnl          [STDERR = `'], [RUN-IF-FAIL], [RUN-IF-PASS])
+dnl
+m4_define([TESTADDR],[
+AT_SETUP([Address: [$1]])
+AT_KEYWORDS([address $2])
+AT_CHECK([addr '[$1]'],m4_shift(m4_shift($@)))
+AT_CLEANUP
+])
+
+TESTADDR([Sam <@[matrix (smtp)], @[nexus: [node 12]]:sroberts@[10].[1]>],[],
+[1],
+[],
+[MU_ERR_BAD_822_FORMAT
+])
+
+TESTADDR([a@b,z@y],[],
+[0],
+[naddr: 2
+1. email <a@b>:
+local-part <a> domain <b>
+2. email <z@y>:
+local-part <z> domain <y>
+])
+
+TESTADDR([,a@b,z@y],[],
+[0],
+[naddr: 2
+1. email <a@b>:
+local-part <a> domain <b>
+2. email <z@y>:
+local-part <z> domain <y>
+])
+
+TESTADDR([a@b,z@y,],[],
+[0],
+[naddr: 2
+1. email <a@b>:
+local-part <a> domain <b>
+2. email <z@y>:
+local-part <z> domain <y>
+])
+
+TESTADDR([,a@b,z@y,],[],
+[0],
+[naddr: 2
+1. email <a@b>:
+local-part <a> domain <b>
+2. email <z@y>:
+local-part <z> domain <y>
+])
+
+TESTADDR([a@b,,z@y],[],
+[0],
+[naddr: 2
+1. email <a@b>:
+local-part <a> domain <b>
+2. email <z@y>:
+local-part <z> domain <y>
+])
+
+TESTADDR([a@b,,,z@y],[],
+[0],
+[naddr: 2
+1. email <a@b>:
+local-part <a> domain <b>
+2. email <z@y>:
+local-part <z> domain <y>
+])
+
+TESTADDR([,,,a@b,,,],[],
+[0],
+[naddr: 1
+1. email <a@b>:
+local-part <a> domain <b>
+])
+
+TESTADDR([,a@b],[],
+[0],
+[naddr: 1
+1. email <a@b>:
+local-part <a> domain <b>
+])
+
+TESTADDR([a@b,],[],
+[0],
+[naddr: 1
+1. email <a@b>:
+local-part <a> domain <b>
+])
+
+TESTADDR([,],[],
+[1],
+[],
+[MU_ERR_EMPTY_ADDRESS
+])
+
+TESTADDR([,,],[],
+[1],
+[],
+[MU_ERR_EMPTY_ADDRESS
+])
+
+TESTADDR([,,],[],
+[1],
+[],
+[MU_ERR_EMPTY_ADDRESS
+])
+
+TESTADDR([a group: a@b,z@y;],[group],
+[0],
+[naddr: 2
+1. email <a@b>:
+local-part <a> domain <b>
+2. email <z@y>:
+local-part <z> domain <y>
+])
+
+TESTADDR([a group: ,a@b,z@y;],[group],
+[0],
+[naddr: 2
+1. email <a@b>:
+local-part <a> domain <b>
+2. email <z@y>:
+local-part <z> domain <y>
+])
+
+TESTADDR([a group: a@b,z@y,;],[group],
+[0],
+[naddr: 2
+1. email <a@b>:
+local-part <a> domain <b>
+2. email <z@y>:
+local-part <z> domain <y>
+])
+
+TESTADDR([a group: ,a@b,z@y,;],[group],
+[0],
+[naddr: 2
+1. email <a@b>:
+local-part <a> domain <b>
+2. email <z@y>:
+local-part <z> domain <y>
+])
+
+TESTADDR([a group: a@b,,z@y;],[group],
+[0],
+[naddr: 2
+1. email <a@b>:
+local-part <a> domain <b>
+2. email <z@y>:
+local-part <z> domain <y>
+])
+
+TESTADDR([a group: a@b,,,z@y;],[group],
+[0],
+[naddr: 2
+1. email <a@b>:
+local-part <a> domain <b>
+2. email <z@y>:
+local-part <z> domain <y>
+])
+
+TESTADDR([a group: ,,,a@b,,, ;],[group],
+[0],
+[naddr: 1
+1. email <a@b>:
+local-part <a> domain <b>
+])
+
+TESTADDR([a group: ,a@b ;],[group],
+[0],
+[naddr: 1
+1. email <a@b>:
+local-part <a> domain <b>
+])
+
+TESTADDR([a group: a@b, ;],[group],
+[0],
+[naddr: 1
+1. email <a@b>:
+local-part <a> domain <b>
+])
+
+TESTADDR([a group: , ;],[group],
+[1],
+[],
+[MU_ERR_EMPTY_ADDRESS
+])
+
+TESTADDR([a group: ,, ;],[group],
+[1],
+[],
+[MU_ERR_EMPTY_ADDRESS
+])
+
+TESTADDR([a group: ,, ;],[group],
+[1],
+[],
+[MU_ERR_EMPTY_ADDRESS
+])
+
+TESTADDR([Sam <@[matrix (smtp)], @[nexus: [node 12]]:sroberts@[10].[1]> ;],[],
+[1],
+[],
+[MU_ERR_BAD_822_FORMAT
+])
+
+TESTADDR([Aliens: Sam <@[matrix (smtp)]: sam@sam>, sroberts@[10].[1];],[],
+[0],
+[[naddr: 2
+1. email <sam@sam>:
+personal <Sam>
+local-part <sam> domain <sam>
+route <@[matrix (smtp)]>
+2. email <sroberts@[10].[1]>:
+local-part <sroberts> domain <[10].[1]>
+]])
+
+TESTADDR([lo@hi, Aliens: Sam <@[matrix (smtp)]: sam@sam>, sroberts@[10].[1];],
+[],
+[0],
+[[naddr: 3
+1. email <lo@hi>:
+local-part <lo> domain <hi>
+2. email <sam@sam>:
+personal <Sam>
+local-part <sam> domain <sam>
+route <@[matrix (smtp)]>
+3. email <sroberts@[10].[1]>:
+local-part <sroberts> domain <[10].[1]>
+]])
+
+TESTADDR([Aliens: Sam <@[matrix (smtp)]: sam@sam>, sroberts@[10].[1];, hi@lo],
+[],
+[0],
+[[naddr: 3
+1. email <sam@sam>:
+personal <Sam>
+local-part <sam> domain <sam>
+route <@[matrix (smtp)]>
+2. email <sroberts@[10].[1]>:
+local-part <sroberts> domain <[10].[1]>
+3. email <hi@lo>:
+local-part <hi> domain <lo>
+]])
+
+TESTADDR([lo@hi, Aliens: Sam <@[matrix (smtp)]: sam@sam>, sroberts@[10].[1];, hi@lo],
+[],
+[0],
+[[naddr: 4
+1. email <lo@hi>:
+local-part <lo> domain <hi>
+2. email <sam@sam>:
+personal <Sam>
+local-part <sam> domain <sam>
+route <@[matrix (smtp)]>
+3. email <sroberts@[10].[1]>:
+local-part <sroberts> domain <[10].[1]>
+4. email <hi@lo>:
+local-part <hi> domain <lo>
+]])
+
+TESTADDR([Sam <@mail2.uniserve.com:sroberts@uniserve.com>],[],
+[0],
+[naddr: 1
+1. email <sroberts@uniserve.com>:
+personal <Sam>
+local-part <sroberts> domain <uniserve.com>
+route <@mail2.uniserve.com>
+])
+
+TESTADDR([< (hey) @ (hey, )smtp1.sympatico.ca, mail2.uniserve.com (hoo!):sroberts@uniserve.com>],[],
+[1],
+[],
+[MU_ERR_BAD_822_FORMAT
+])
+
+TESTADDR([hw@570.com (Hardware Support Account)],[],
+[0],
+[naddr: 1
+1. email <hw@570.com>:
+personal <Hardware Support Account>
+local-part <hw> domain <570.com>
+])
+
+TESTADDR([list-ietf-wg-apps-drums@faerber.muc.de (=?ISO-8859-1?Q?Claus_F=E4rber?=)],[],
+[0],
+[naddr: 1
+1. email <list-ietf-wg-apps-drums@faerber.muc.de>:
+personal <=?ISO-8859-1?Q?Claus_F=E4rber?=>
+local-part <list-ietf-wg-apps-drums> domain <faerber.muc.de>
+])
+
+TESTADDR([<mutt-dev@mutt.org>(mutt #369), guug-bugs-closed@guug.de (#369)],[],
+[0],
+[naddr: 2
+1. email <mutt-dev@mutt.org>:
+local-part <mutt-dev> domain <mutt.org>
+2. email <guug-bugs-closed@guug.de>:
+personal <#369>
+local-part <guug-bugs-closed> domain <guug.de>
+])
+
+dnl --------------------------------------------------------------------------
+dnl FIXME:
+m4_if([TESTADDR(["'Aernoudt Bottemanne'"	 <Aernoudt.Bottemanne@Informix.com>],[],
+[0],
+[naddr: 1
+1. email <Aernoudt.Bottemanne@Informix.com>:
+personal <'Aernoudt Bottemanne'>
+local-part <Aernoudt.Bottemanne> domain <Informix.com>
+])
+
+TESTADDR(["'Haag, Ullrich - MBDC'" <Ullrich.Haag@MBDC.com>,],[],
+[0],
+[naddr: 1
+1. email <Ullrich.Haag@MBDC.com>:
+personal <'Haag, Ullrich - MBDC'>
+local-part <Ullrich.Haag> domain <MBDC.com>
+])
+
+TESTADDR(["'Michael C. Ibarra'" <ibarra@hawk.com>, arl@q7.net, Al <arl@q7.net>],
+[],
+[0],
+[naddr: 3
+1. email <ibarra@hawk.com>:
+personal <'Michael C. Ibarra'>
+local-part <ibarra> domain <hawk.com>
+2. email <arl@q7.net>:
+local-part <arl> domain <q7.net>
+3. email <arl@q7.net>:
+personal <Al>
+local-part <arl> domain <q7.net>
+])
+
+TESTADDR(["'Sam Roberts'" <sam@cogent.ca>],[],
+[0],
+[naddr: 1
+1. email <sam@cogent.ca>:
+personal <'Sam Roberts'>
+local-part <sam> domain <cogent.ca>
+])
+
+TESTADDR(["'paul@pitbull-productions.com'" <paul@pitbull-productions.com>,],[],
+[0],
+[naddr: 1
+1. email <paul@pitbull-productions.com>:
+personal <'paul@pitbull-productions.com'>
+local-part <paul> domain <pitbull-productions.com>
+])
+
+TESTADDR(["'sam@cogent.ca'" <sam@cogent.ca>, "'sroberts@uniserve.com'"],[],
+[1],
+[],
+[MU_ERR_BAD_822_FORMAT
+])
+
+TESTADDR(["'sroberts\@certicom\.ca'" <sroberts@certicom.ca>],[]
+[0],
+[naddr: 1
+1. email <sroberts@certicom.ca>:
+personal <'sroberts@certicom.ca'>
+local-part <sroberts> domain <certicom.ca>
+])
+
+])
+dnl --------------------------------------------------------------------------
+
+TESTADDR(["=?iso-8859-1?Q?Juan_Carlos_Marcos_Rodr=EDguez?=" <jcmarcos@datavoice.es>],[],
+[0],
+[naddr: 1
+1. email <jcmarcos@datavoice.es>:
+personal <=?iso-8859-1?Q?Juan_Carlos_Marcos_Rodr=EDguez?=>
+local-part <jcmarcos> domain <datavoice.es>
+])
+
+TESTADDR(["Christian Edward Gruber" <christian.edward.gruber@gmx.net>,],[],
+[0],
+[naddr: 1
+1. email <christian.edward.gruber@gmx.net>:
+personal <Christian Edward Gruber>
+local-part <christian.edward.gruber> domain <gmx.net>
+])
+
+TESTADDR(["D. J. Bernstein" <"djb-   "@cr.yp.to>],[],
+[0],
+[naddr: 1
+1. email <"djb-   "@cr.yp.to>:
+personal <D. J. Bernstein>
+local-part <djb-   > domain <cr.yp.to>
+])
+
+TESTADDR(["D. J. Bernstein" <djb@cr.yp.to>, drums@cs.utk.edu],[],
+[0],
+[naddr: 2
+1. email <djb@cr.yp.to>:
+personal <D. J. Bernstein>
+local-part <djb> domain <cr.yp.to>
+2. email <drums@cs.utk.edu>:
+local-part <drums> domain <cs.utk.edu>
+])
+
+TESTADDR(["Dave Sill <de5-drums" <de5-drums@sws5.ctd.ornl.gov>],[],
+[0],
+[naddr: 1
+1. email <de5-drums@sws5.ctd.ornl.gov>:
+personal <Dave Sill <de5-drums>
+local-part <de5-drums> domain <sws5.ctd.ornl.gov>
+])
+
+TESTADDR(["Dave \(work\) Baerg \(E-mail\)" <Dave.Baerg@SUMMedia.com>],[],
+[0],
+[naddr: 1
+1. email <Dave.Baerg@SUMMedia.com>:
+personal <Dave (work) Baerg (E-mail)>
+local-part <Dave.Baerg> domain <SUMMedia.com>
+])
+
+TESTADDR(["Demian" <damient@wave.home.com>],[],
+[0],
+[naddr: 1
+1. email <damient@wave.home.com>:
+personal <Demian>
+local-part <damient> domain <wave.home.com>
+])
+
+TESTADDR(["Detailed Revision/Update of Message Standards" <drums@cs.utk.edu>],[],
+[0],
+[naddr: 1
+1. email <drums@cs.utk.edu>:
+personal <Detailed Revision/Update of Message Standards>
+local-part <drums> domain <cs.utk.edu>
+])
+
+TESTADDR(["Fred" <fprog@__nowhere__.users.sourceforge.net>],[],
+[0],
+[naddr: 1
+1. email <fprog@__nowhere__.users.sourceforge.net>:
+personal <Fred>
+local-part <fprog> domain <__nowhere__.users.sourceforge.net>
+])
+
+TESTADDR(["Haag, Ullrich - MBDC" <Ullrich.Haag@MBDC.com>],[],
+[0],
+[naddr: 1
+1. email <Ullrich.Haag@MBDC.com>:
+personal <Haag, Ullrich - MBDC>
+local-part <Ullrich.Haag> domain <MBDC.com>
+])
+
+TESTADDR(["Jacob Palme" <jpalme@dsv.su.se>, <drums@cs.utk.edu>],[],
+[0],
+[naddr: 2
+1. email <jpalme@dsv.su.se>:
+personal <Jacob Palme>
+local-part <jpalme> domain <dsv.su.se>
+2. email <drums@cs.utk.edu>:
+local-part <drums> domain <cs.utk.edu>
+])
+
+dnl FIXME
+m4_if([
+TESTADDR(["Jakob 'sparky' Kaivo" <jkaivo@elijah.nodomainname.net>],[],
+[0],
+[naddr: 1
+1. email <jkaivo@elijah.nodomainname.net>:
+personal <Jakob 'sparky' Kaivo>
+local-part <jkaivo> domain <elijah.nodomainname.net>
+])
+])
+
+TESTADDR(["Lee R. Copp" <Lee.R.Copp@MichiganScientific.com>],[],
+[0],
+[naddr: 1
+1. email <Lee.R.Copp@MichiganScientific.com>:
+personal <Lee R. Copp>
+local-part <Lee.R.Copp> domain <MichiganScientific.com>
+])
+
+TESTADDR(["Lionel Johnson" <ljohnson**nospam**@sterling1.com>],[],
+[0],
+[naddr: 1
+1. email <ljohnson**nospam**@sterling1.com>:
+personal <Lionel Johnson>
+local-part <ljohnson**nospam**> domain <sterling1.com>
+])
+
+TESTADDR(["Martin [Keso] Keseg" <Martin.Keseg@slovakia.sun.com>],[],
+[0],
+[[naddr: 1
+1. email <Martin.Keseg@slovakia.sun.com>:
+personal <Martin [Keso] Keseg>
+local-part <Martin.Keseg> domain <slovakia.sun.com>
+]])
+
+TESTADDR(["}{ristoph" <news2@kristoph.net>],[],
+[0],
+[naddr: 1
+1. email <news2@kristoph.net>:
+personal <}{ristoph>
+local-part <news2> domain <kristoph.net>
+])
+
+TESTADDR(["fmartens-2000" <fmartens-2000@planet.nl>],[],
+[0],
+[naddr: 1
+1. email <fmartens-2000@planet.nl>:
+personal <fmartens-2000>
+local-part <fmartens-2000> domain <planet.nl>
+])
+
+dnl FIXME
+m4_if([
+TESTADDR(["g'o'tz ohnesorge" <gohnesorge@lh-computertechnik.de>],[],
+[0],
+[naddr: 1
+1. email <gohnesorge@lh-computertechnik.de>:
+personal <g'o'tz ohnesorge>
+local-part <gohnesorge> domain <lh-computertechnik.de>
+])
+
+])
+
+TESTADDR(["gao jie" <jiegi@public.wh.hb.cn>],[],
+[0],
+[naddr: 1
+1. email <jiegi@public.wh.hb.cn>:
+personal <gao jie>
+local-part <jiegi> domain <public.wh.hb.cn>
+])
+
+TESTADDR(["gnupg-devel@gnupg.org" <gnupg-devel%gnupg.org@f48.n48.z2.fidonet.org>],
+[],
+[0],
+[naddr: 1
+1. email <gnupg-devel%gnupg.org@f48.n48.z2.fidonet.org>:
+personal <gnupg-devel@gnupg.org>
+local-part <gnupg-devel%gnupg.org> domain <f48.n48.z2.fidonet.org>
+])
+
+TESTADDR(["gpg-devel" <gnupg-devel@gnupg.org>],[],
+[0],
+[naddr: 1
+1. email <gnupg-devel@gnupg.org>:
+personal <gpg-devel>
+local-part <gnupg-devel> domain <gnupg.org>
+])
+
+TESTADDR(["jigang" <jigang@jinglun.com.cn>],[],
+[0],
+[naddr: 1
+1. email <jigang@jinglun.com.cn>:
+personal <jigang>
+local-part <jigang> domain <jinglun.com.cn>
+])
+
+TESTADDR(["misc@openbsd.org" <misc@openbsd.org>],[],
+[0],
+[naddr: 1
+1. email <misc@openbsd.org>:
+personal <misc@openbsd.org>
+local-part <misc> domain <openbsd.org>
+])
+
+TESTADDR(["misc@openbsd.org" <misc@openbsd.org>, brian@Awfulhak.org],[],
+[0],
+[naddr: 2
+1. email <misc@openbsd.org>:
+personal <misc@openbsd.org>
+local-part <misc> domain <openbsd.org>
+2. email <brian@Awfulhak.org>:
+local-part <brian> domain <Awfulhak.org>
+])
+
+TESTADDR(["mutt-dev @ mutt . orgThomas Roessler" <roessler@does-not-exist.org>],[],
+[0],
+[naddr: 1
+1. email <roessler@does-not-exist.org>:
+personal <mutt-dev @ mutt . orgThomas Roessler>
+local-part <roessler> domain <does-not-exist.org>
+])
+
+TESTADDR(["zwk@f36.n480.z2.fidonet.org" <zwk%f36.n480.z2.fidonet.org@f36.n480.z2.fidonet.org>],[],
+[0],
+[naddr: 1
+1. email <zwk%f36.n480.z2.fidonet.org@f36.n480.z2.fidonet.org>:
+personal <zwk@f36.n480.z2.fidonet.org>
+local-part <zwk%f36.n480.z2.fidonet.org> domain <f36.n480.z2.fidonet.org>
+])
+
+dnl FIXME
+m4_if([
+TESTADDR(['Dan Dall'Acqua' <ddallacqua@noetic.ab.ca>, 'Dave Shyong'],[],
+[1],
+[],
+[MU_ERR_BAD_822_FORMAT
+])
+
+])
+
+TESTADDR([0xdeadbeef-request@petting-zoo.net],[],
+[0],
+[naddr: 1
+1. email <0xdeadbeef-request@petting-zoo.net>:
+local-part <0xdeadbeef-request> domain <petting-zoo.net>
+])
+
+TESTADDR([102023-00406421@cnxt19932218.conexant.com],[],
+[0],
+[naddr: 1
+1. email <102023-00406421@cnxt19932218.conexant.com>:
+local-part <102023-00406421> domain <cnxt19932218.conexant.com>
+])
+
+TESTADDR([218164.24.43@jobcontrolcenter.com],[],
+[0],
+[naddr: 1
+1. email <218164.24.43@jobcontrolcenter.com>:
+local-part <218164.24.43> domain <jobcontrolcenter.com>
+])
+
+TESTADDR([<0xdeadbeef-request@petting-zoo.net>],[],
+[0],
+[naddr: 1
+1. email <0xdeadbeef-request@petting-zoo.net>:
+local-part <0xdeadbeef-request> domain <petting-zoo.net>
+])
+
+TESTADDR([<>],[],
+[0],
+[naddr: 1
+1. email <>:
+])
+
+TESTADDR([<Christia.Roberts@nrc.ca>],[],
+[0],
+[naddr: 1
+1. email <Christia.Roberts@nrc.ca>:
+local-part <Christia.Roberts> domain <nrc.ca>
+])
+
+TESTADDR([<Nick_Shelness@motorcity2.lotus.com>],[],
+[0],
+[naddr: 1
+1. email <Nick_Shelness@motorcity2.lotus.com>:
+local-part <Nick_Shelness> domain <motorcity2.lotus.com>
+])
+
+TESTADDR([<all: >],[],
+[1],
+[],
+[MU_ERR_BAD_822_FORMAT
+])
+
+TESTADDR([<fyi-admin@emyr.net>],[],
+[0],
+[naddr: 1
+1. email <fyi-admin@emyr.net>:
+local-part <fyi-admin> domain <emyr.net>
+])
+
+TESTADDR([<gary.stefanov@medtronic.com>, <HdeVisse@husky.ca>,],[],
+[0],
+[naddr: 2
+1. email <gary.stefanov@medtronic.com>:
+local-part <gary.stefanov> domain <medtronic.com>
+2. email <HdeVisse@husky.ca>:
+local-part <HdeVisse> domain <husky.ca>
+])
+
+TESTADDR([<gnu-pop-list@nodomainname.net>],[],
+[0],
+[naddr: 1
+1. email <gnu-pop-list@nodomainname.net>:
+local-part <gnu-pop-list> domain <nodomainname.net>
+])
+
+TESTADDR([<mutt-dev-owner-sroberts=uniserve.com@ns.gbnet.net>],[],
+[0],
+[naddr: 1
+1. email <mutt-dev-owner-sroberts=uniserve.com@ns.gbnet.net>:
+local-part <mutt-dev-owner-sroberts=uniserve.com> domain <ns.gbnet.net>
+])
+
+TESTADDR([=?ISO-8859-1?Q?Kolbj=F8rn_Barmen?= <kolla@nvg.ntnu.no>],[],
+[0],
+[naddr: 1
+1. email <kolla@nvg.ntnu.no>:
+personal <=?ISO-8859-1?Q?Kolbj=F8rn_Barmen?=>
+local-part <kolla> domain <nvg.ntnu.no>
+])
+
+TESTADDR([=?ISO-8859-1?Q?Patrik_F=E4ltstr=F6m?= <paf@cisco.com>],[],
+[0],
+[naddr: 1
+1. email <paf@cisco.com>:
+personal <=?ISO-8859-1?Q?Patrik_F=E4ltstr=F6m?=>
+local-part <paf> domain <cisco.com>
+])
+
+TESTADDR([=?ISO-8859-1?Q?Patrik_F=E4ltstr=F6m?= <paf@cisco.com>,],[],
+[0],
+[naddr: 1
+1. email <paf@cisco.com>:
+personal <=?ISO-8859-1?Q?Patrik_F=E4ltstr=F6m?=>
+local-part <paf> domain <cisco.com>
+])
+
+TESTADDR([=?US-ASCII?Q?gary=5Fc?= <gary_c@cunningham-lee.com>],[],
+[0],
+[naddr: 1
+1. email <gary_c@cunningham-lee.com>:
+personal <=?US-ASCII?Q?gary=5Fc?=>
+local-part <gary_c> domain <cunningham-lee.com>
+])
+
+TESTADDR([=?iso-8859-1?Q?Fr=E9d=E9ric_L_=2E_W_=2E?= Meunier <0@pervalidus.net>],[],
+[0],
+[naddr: 1
+1. email <0@pervalidus.net>:
+personal <=?iso-8859-1?Q?Fr=E9d=E9ric_L_=2E_W_=2E?= Meunier>
+local-part <0> domain <pervalidus.net>
+])
+
+TESTADDR([=?iso-8859-1?Q?Fr=E9d=E9ric_L_=2E_W_=2E?= Meunier <0@pervalidus.net>,],[],
+[0],
+[naddr: 1
+1. email <0@pervalidus.net>:
+personal <=?iso-8859-1?Q?Fr=E9d=E9ric_L_=2E_W_=2E?= Meunier>
+local-part <0> domain <pervalidus.net>
+])
+
+TESTADDR([=?iso-8859-1?Q?Fr=E9d=E9ric_L_=2E_W_=2E_Meunier?= <0@pervalidus.net>],[],
+[0],
+[naddr: 1
+1. email <0@pervalidus.net>:
+personal <=?iso-8859-1?Q?Fr=E9d=E9ric_L_=2E_W_=2E_Meunier?=>
+local-part <0> domain <pervalidus.net>
+])
+
+TESTADDR([=?iso-8859-1?Q?J=F8rgen_Thomsen?= <jth@postfix.jth.net>],[],
+[0],
+[naddr: 1
+1. email <jth@postfix.jth.net>:
+personal <=?iso-8859-1?Q?J=F8rgen_Thomsen?=>
+local-part <jth> domain <postfix.jth.net>
+])
+
+TESTADDR([=?iso-8859-1?Q?Jos=3F_C=2E_Garc=EDa_Sogo?= <jose@jaimedelamo.eu.org>],[],
+[0],
+[naddr: 1
+1. email <jose@jaimedelamo.eu.org>:
+personal <=?iso-8859-1?Q?Jos=3F_C=2E_Garc=EDa_Sogo?=>
+local-part <jose> domain <jaimedelamo.eu.org>
+])
+
+TESTADDR([=?iso-8859-1?Q?Mikko_H=E4nninen?= <Mikko.Hanninen@dna.fi>],[],
+[0],
+[naddr: 1
+1. email <Mikko.Hanninen@dna.fi>:
+personal <=?iso-8859-1?Q?Mikko_H=E4nninen?=>
+local-part <Mikko.Hanninen> domain <dna.fi>
+])
+
+TESTADDR([=?iso-8859-1?Q?Mikko_H=E4nninen?= <Mikko.Hanninen@iki.fi>],[],
+[0],
+[naddr: 1
+1. email <Mikko.Hanninen@iki.fi>:
+personal <=?iso-8859-1?Q?Mikko_H=E4nninen?=>
+local-part <Mikko.Hanninen> domain <iki.fi>
+])
+
+TESTADDR([=?iso-8859-1?Q?R=E9mi_Guyomarch?= <rguyom@321.net>],[],
+[0],
+[naddr: 1
+1. email <rguyom@321.net>:
+personal <=?iso-8859-1?Q?R=E9mi_Guyomarch?=>
+local-part <rguyom> domain <321.net>
+])
+
+TESTADDR([=?iso-8859-1?Q?Ulf_M=F6ller?= <ulf@fitug.de>],[],
+[0],
+[naddr: 1
+1. email <ulf@fitug.de>:
+personal <=?iso-8859-1?Q?Ulf_M=F6ller?=>
+local-part <ulf> domain <fitug.de>
+])
+
+TESTADDR([ANDREW MARTIN <amartin@ee.ryerson.ca>],[],
+[0],
+[naddr: 1
+1. email <amartin@ee.ryerson.ca>:
+personal <ANDREW MARTIN>
+local-part <amartin> domain <ee.ryerson.ca>
+])
+
+TESTADDR([Abhay Ghaisas <abhay@sobolev.does-not-exist.org>, mutt-dev@mutt.org],[],
+[0],
+[naddr: 2
+1. email <abhay@sobolev.does-not-exist.org>:
+personal <Abhay Ghaisas>
+local-part <abhay> domain <sobolev.does-not-exist.org>
+2. email <mutt-dev@mutt.org>:
+local-part <mutt-dev> domain <mutt.org>
+])
+
+TESTADDR([Brian Salter-Duke <b_duke@lacebark.ntu.edu.au>],[],
+[0],
+[naddr: 1
+1. email <b_duke@lacebark.ntu.edu.au>:
+personal <Brian Salter-Duke>
+local-part <b_duke> domain <lacebark.ntu.edu.au>
+])
+
+TESTADDR([Catharine Shyong <shyong@t-iii.com>],[],
+[0],
+[naddr: 1
+1. email <shyong@t-iii.com>:
+personal <Catharine Shyong>
+local-part <shyong> domain <t-iii.com>
+])
+
+TESTADDR([DRUMS-Last-Call:;],[],
+[1],
+[],
+[MU_ERR_EMPTY_ADDRESS
+])
+
+TESTADDR([Detailed Revision/Update of Message Standards <drums@cs.utk.edu>],[],
+[0],
+[naddr: 1
+1. email <drums@cs.utk.edu>:
+personal <Detailed Revision/Update of Message Standards>
+local-part <drums> domain <cs.utk.edu>
+])
+
+TESTADDR([Eric Allman <eric+ietf@Sendmail.ORG>],[],
+[0],
+[naddr: 1
+1. email <eric+ietf@Sendmail.ORG>:
+personal <Eric Allman>
+local-part <eric+ietf> domain <Sendmail.ORG>
+])
+
+TESTADDR([Gary <Gary@e-c-s-uk.com>],[],
+[0],
+[naddr: 1
+1. email <Gary@e-c-s-uk.com>:
+personal <Gary>
+local-part <Gary> domain <e-c-s-uk.com>
+])
+
+TESTADDR([IETF working group on revision of mail standards <drums@cs.utk.edu>],[],
+[0],
+[naddr: 1
+1. email <drums@cs.utk.edu>:
+personal <IETF working group on revision of mail standards>
+local-part <drums> domain <cs.utk.edu>
+])
+
+TESTADDR([IETF-Announce:;],[],
+[1],
+[],
+[MU_ERR_EMPTY_ADDRESS
+])
+
+TESTADDR([IETF-Announce:;, drums@cs.utk.edu],[],
+[0],
+[naddr: 1
+1. email <drums@cs.utk.edu>:
+local-part <drums> domain <cs.utk.edu>
+])
+
+TESTADDR([Jean-Baptiste Marchand <Jean-Baptiste.Marchand@epita.fr>],[],
+[0],
+[naddr: 1
+1. email <Jean-Baptiste.Marchand@epita.fr>:
+personal <Jean-Baptiste Marchand>
+local-part <Jean-Baptiste.Marchand> domain <epita.fr>
+])
+
+TESTADDR([Jonathan Rozes <jrozes+969649116.89117462@vinton.com>],[],
+[0],
+[naddr: 1
+1. email <jrozes+969649116.89117462@vinton.com>:
+personal <Jonathan Rozes>
+local-part <jrozes+969649116.89117462> domain <vinton.com>
+])
+
+TESTADDR([Jose "C." Garcia Sogo<jose@jaimedelamo.eu.org>],[],
+[0],
+[naddr: 1
+1. email <jose@jaimedelamo.eu.org>:
+personal <Jose C. Garcia Sogo>
+local-part <jose> domain <jaimedelamo.eu.org>
+])
+
+dnl FIXME
+m4_if([
+TESTADDR([Marco d'Itri <md@Linux.IT>,[],
+[0],
+1. email <md@Linux.IT>:
+personal <Marco d'Itri>
+local-part <md> domain <Linux.IT>
+])
+])
+
+TESTADDR([No_Reply-To@mapquest.com],[],
+[0],
+[naddr: 1
+1. email <No_Reply-To@mapquest.com>:
+local-part <No_Reply-To> domain <mapquest.com>
+])
+
+TESTADDR([OSULLIE@rte.ie, skidswam@hotmail.com, boot],[],
+[0],
+[naddr: 3
+1. email <OSULLIE@rte.ie>:
+local-part <OSULLIE> domain <rte.ie>
+2. email <skidswam@hotmail.com>:
+local-part <skidswam> domain <hotmail.com>
+3. email <boot@localhost>:
+local-part <boot> domain <localhost>
+])
+
+TESTADDR([Paul Hoffman / IMC <phoffman@imc.org>],[],
+[0],
+[naddr: 1
+1. email <phoffman@imc.org>:
+personal <Paul Hoffman / IMC>
+local-part <phoffman> domain <imc.org>
+])
+
+TESTADDR([Sam],[],
+[0],
+[naddr: 1
+1. email <Sam@localhost>:
+local-part <Sam> domain <localhost>
+])
+
+TESTADDR([Sam Roberts <sam@cogent.ca>],[],
+[0],
+[naddr: 1
+1. email <sam@cogent.ca>:
+personal <Sam Roberts>
+local-part <sam> domain <cogent.ca>
+])
+
+TESTADDR([Sam_Roberts/Certicom%Certicom@certicom.com],[],
+[0],
+[naddr: 1
+1. email <Sam_Roberts/Certicom%Certicom@certicom.com>:
+local-part <Sam_Roberts/Certicom%Certicom> domain <certicom.com>
+])
+
+TESTADDR([Thomas Roessler <roessler@does-not-exist.org>, 490@bugs.guug.de],[],
+[0],
+[naddr: 2
+1. email <roessler@does-not-exist.org>:
+personal <Thomas Roessler>
+local-part <roessler> domain <does-not-exist.org>
+2. email <490@bugs.guug.de>:
+local-part <490> domain <bugs.guug.de>
+])
+
+TESTADDR([Thomas Roessler <roessler@does-not-exist.org>, g10@gnupg.org],[],
+[0],
+[naddr: 2
+1. email <roessler@does-not-exist.org>:
+personal <Thomas Roessler>
+local-part <roessler> domain <does-not-exist.org>
+2. email <g10@gnupg.org>:
+local-part <g10> domain <gnupg.org>
+])
+
+TESTADDR([ddickey@ip-12-22-50-150.hqglobal.net],[],
+[0],
+[naddr: 1
+1. email <ddickey@ip-12-22-50-150.hqglobal.net>:
+local-part <ddickey> domain <ip-12-22-50-150.hqglobal.net>
+])
+
+TESTADDR([ktb <x.y.f@home.com>],[],
+[0],
+[naddr: 1
+1. email <x.y.f@home.com>:
+personal <ktb>
+local-part <x.y.f> domain <home.com>
+])
+
+dnl FIXME
+m4_if([
+TESTADDR([mcaustin@eudoramail.com, aposner@usaid.gov, Kieran.O'Leary@anpost.ie],[],
+[0],
+[naddr: 3
+1. email <mcaustin@eudoramail.com>:
+local-part <mcaustin> domain <eudoramail.com>
+2. email <aposner@usaid.gov>:
+local-part <aposner> domain <usaid.gov>
+3. email <Kieran.O'Leary@anpost.ie>:
+local-part <Kieran.O'Leary> domain <anpost.ie>
+])
+])
+
+TESTADDR([rfunk@wks.uts.ohio-state.eduofflinemailer-bounce@dikke.penguin.nl],[],
+[1],
+[],
+[MU_ERR_BAD_822_FORMAT
+])
+
+TESTADDR([root],[],
+[0],
+[naddr: 1
+1. email <root@localhost>:
+local-part <root> domain <localhost>
+])
+
+dnl FIXME srr <sam@localhost>=> error MU_ERR_BAD_822_FORMAT
+
+TESTADDR([whom it may concern: ;;whom.it.may.concern: ;],[],
+[1],
+[],
+[MU_ERR_BAD_822_FORMAT
+])
+
+TESTADDR([whom it may concern: mutt-dev@mutt.org, mutt-users@mutt.org;],[],
+[0],
+[naddr: 2
+1. email <mutt-dev@mutt.org>:
+local-part <mutt-dev> domain <mutt.org>
+2. email <mutt-users@mutt.org>:
+local-part <mutt-users> domain <mutt.org>
+])
+
+TESTADDR([Sergey V. Poznyakoff <gray@gnu.org>],[],
+[0],
+[naddr: 1
+1. email <gray@gnu.org>:
+personal <Sergey V. Poznyakoff>
+local-part <gray> domain <gnu.org>
+])
+
+TESTADDR([P. D. Q. Bach <bach@somewhere.org>],[],
+[0],
+[naddr: 1
+1. email <bach@somewhere.org>:
+personal <P. D. Q. Bach>
+local-part <bach> domain <somewhere.org>
+])
+
+TESTADDR(["A bad quote\" <devnull@localhost>],[],
+[1],
+[],
+[MU_ERR_BAD_822_FORMAT
+])
+
+
+
+
+
+

@@ -15,6 +15,6 @@
 # along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
 # This file is part of Mailfromd testsuite. 
 
-m4_include([testsuite.inc])
+dnl m4_include([testsuite.inc])
 
 MUT_VERSION(sieve)

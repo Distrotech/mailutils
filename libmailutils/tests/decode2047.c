@@ -71,8 +71,9 @@ main (int argc, char *argv[])
       if (len > 0 && buf[len - 1] == '\n')
 	buf[len - 1] = 0;
       rc = mu_rfc2047_decode (charset, buf, &p);
-      printf ("%s=> %s\n", buf, mu_strerror (rc));
-      if (p)
+      if (rc)
+	fprintf (stderr, "%s", mu_strerror (rc));
+      else if (p)
 	print (p, printable);
       putchar ('\n');
       free (p);

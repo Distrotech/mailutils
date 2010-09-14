@@ -20,7 +20,7 @@
 
 BUILT_SOURCES=errno.h debug.h
 EXTRA_DIST=errno.hin debug.hm4 types.hin
-errno.h: $(top_srcdir)/mailbox/errors errno.hin
+errno.h: $(top_srcdir)/libmailutils/errors errno.hin
 	$(AM_V_GEN)$(AWK) -f $(mu_aux_dir)/generr.awk $^ > $@
 
 debug.h: $(mu_aux_dir)/debugdef.m4 debug.hm4

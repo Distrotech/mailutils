@@ -197,8 +197,9 @@ main (int argc, char *argv[])
 	decode_octal (cmd);
 	  
       rc = mu_rfc2047_encode (charset, encoding, cmd, &p);
-      printf ("%s=> %s\n", buf, mu_strerror (rc));
-      if (p)
+      if (rc)
+	fprintf (stderr, "%s", mu_strerror (rc));
+      else if (p)
 	printf ("%s\n", p);
       free (p);
     }

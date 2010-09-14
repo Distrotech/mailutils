@@ -15,8 +15,7 @@
 # along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
 # This file is part of Mailfromd testsuite. 
 
-# Require a reasonably recent autotest.
-m4_version_prereq([2.52g])
+m4_include([testsuite.inc])
 
 dnl ------------------------------------------------------------
 dnl testcompile(SCRIPT) -- test compilation of the Sieve SCRIPT

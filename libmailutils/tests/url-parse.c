@@ -39,7 +39,7 @@
 	  mu_error ("cannot get %s: %s", #field, mu_strerror (status));	\
 	  exit (1);					                \
         }                                                               \
-      printf ("\t" #field " <%s>\n", buf)
+      printf (#field " <%s>\n", buf)
 
 static void
 print_fvpairs (mu_url_t url)
@@ -55,7 +55,7 @@ print_fvpairs (mu_url_t url)
   if (fvc == 0)
     return;
   for (i = 0; i < fvc; i++)
-    printf ("\tparam[%lu] <%s>\n", (unsigned long) i, fvp[i]);
+    printf ("param[%lu] <%s>\n", (unsigned long) i, fvp[i]);
 }
 
 static void
@@ -72,7 +72,7 @@ print_query (mu_url_t url)
   if (qargc == 0)
     return;
   for (i = 0; i < qargc; i++)
-    printf ("\tquery[%lu] <%s>\n", (unsigned long) i, qargv[i]);
+    printf ("query[%lu] <%s>\n", (unsigned long) i, qargv[i]);
 }
 
 int
@@ -99,18 +99,16 @@ main ()
         }
       if ((rc = mu_url_parse (u)) != 0)
         {
-          printf ("%s => FAILED: [%d] %s\n",
-                  str, rc, mu_strerror (rc));
+          fprintf (stderr, "%s\n", mu_errname (rc));
           continue;
         }
-      printf ("%s => SUCCESS\n", str);
 
       GET_AND_PRINT (scheme, u, buf, rc);
       GET_AND_PRINT (user, u, buf, rc);
 
       rc = mu_url_get_secret (u, &secret);
       if (rc == MU_ERR_NOENT)
-	printf ("\tpasswd <>\n");
+	printf ("passwd <>\n");
       else if (rc)
 	{
 	  mu_error ("cannot get %s: %s", "passwd", mu_strerror (rc));
@@ -118,7 +116,7 @@ main ()
         }
       else
 	{
-	  printf ("\tpasswd <%s>\n", mu_secret_password (secret));
+	  printf ("passwd <%s>\n", mu_secret_password (secret));
 	  mu_secret_password_unref (secret);
 	}
       
@@ -131,7 +129,7 @@ main ()
 	  mu_error ("cannot get %s: %s", "port", mu_strerror (rc));	
 	  exit (1);					
         }                                               
-      printf ("\tport %ld\n", port);
+      printf ("port %ld\n", port);
       
       GET_AND_PRINT (path, u, buf, rc);
       print_fvpairs (u);

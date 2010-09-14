@@ -1,0 +1,279 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+# This file is part of Mailfromd testsuite. 
+
+dnl ------------------------------------------------------------
+dnl MAILCAP([NAME], [KW = `'], [INPUT], [STDOUT = `'],
+dnl         [STDERR = `'], [RUN-IF-FAIL], [RUN-IF-PASS])
+dnl
+m4_define([MAILCAP],[
+AT_SETUP([Mailcap: [$1]])
+AT_KEYWORDS([mailcap $2])
+AT_CHECK([
+AT_DATA([input],[$3
+])
+mailcap input],[0],m4_shift(m4_shift(m4_shift($@))))
+AT_CLEANUP
+])
+
+dnl ------------------------------------------------------------
+
+MAILCAP([1],[mailcap01],
+[text/plain; less '%s'; needsterminal],
+[[entry[1]
+	typefield: text/plain
+	view-command: less '%s'
+	fields[1]: needsterminal
+	
+]])
+
+MAILCAP([2],[mailcap02],
+[text/html; gnome-help-browser '%s'; nametemplate=%s.html; test=test -n "$DISPLAY"],
+[[entry[1]
+	typefield: text/html
+	view-command: gnome-help-browser '%s'
+	fields[1]: nametemplate=%s.html
+	fields[2]: test=test -n "$DISPLAY"
+
+]])
+
+MAILCAP([3],[mailcap03],
+[application/x-troff-man; /usr/bin/nroff -mandoc -Tlatin1; \
+copiousoutput; print=/usr/bin/nroff -mandoc -Tlatin1 | print text/plain:-
+],
+[[entry[1]
+	typefield: application/x-troff-man
+	view-command: /usr/bin/nroff -mandoc -Tlatin1
+	fields[1]: copiousoutput
+	fields[2]: print=/usr/bin/nroff -mandoc -Tlatin1 | print text/plain:-
+
+]])
+
+MAILCAP([4],[mailcap04],
+[text/plain; shownonascii iso-8859-1 '%s'; description="Plain ASCII Text"; \
+test=test "$(echo %{charset} | tr "A-Z" "a-z")" = iso-8859-1 -a "$DISPLAY" != ""],
+[[entry[1]
+	typefield: text/plain
+	view-command: shownonascii iso-8859-1 '%s'
+	fields[1]: description="Plain ASCII Text"
+	fields[2]: test=test "$(echo %{charset} | tr "A-Z" "a-z")" = iso-8859-1 -a "$DISPLAY" != ""
+
+]])
+
+MAILCAP([5],[mailcap05],
+[text/richtext; shownonascii iso-8859-1 -e richtext -p '%s'; \
+description="Richtext"; copiousoutput; \
+test=test "$(echo %{charset} | tr "A-Z" "a-z")" = iso-8859-1 -a "$DISPLAY" != ""],
+[[entry[1]
+	typefield: text/richtext
+	view-command: shownonascii iso-8859-1 -e richtext -p '%s'
+	fields[1]: description="Richtext"
+	fields[2]: copiousoutput
+	fields[3]: test=test "$(echo %{charset} | tr "A-Z" "a-z")" = iso-8859-1 -a "$DISPLAY" != ""
+
+]])
+
+MAILCAP([6],[mailcap06],
+[text/enriched; shownonascii iso-8859-1 -e richtext -e -p '%s'; \
+description="Enriched Text"; \
+copiousoutput; \
+test=test "$(echo %{charset} | tr "A-Z" "a-z")" = iso-8859-1 -a "$DISPLAY" != ""],
+[[entry[1]
+	typefield: text/enriched
+	view-command: shownonascii iso-8859-1 -e richtext -e -p '%s'
+	fields[1]: description="Enriched Text"
+	fields[2]: copiousoutput
+	fields[3]: test=test "$(echo %{charset} | tr "A-Z" "a-z")" = iso-8859-1 -a "$DISPLAY" != ""
+
+]])
+
+MAILCAP([7],[mailcap07],
+[message/partial; showpartial '%s' %{id} %{number} %{total}; description="An incomplete message"],
+[[entry[1]
+	typefield: message/partial
+	view-command: showpartial '%s' %{id} %{number} %{total}
+	fields[1]: description="An incomplete message"
+
+]])
+
+MAILCAP([8],[mailcap08],
+[message/external-body; showexternal '%s' %{access-type} %{name} %{site} %{directory} %{mode} %{server}; needsterminal; description="A reference to data stored in an external location"; composetyped="extcompose '%s"'],
+[[entry[1]
+	typefield: message/external-body
+	view-command: showexternal '%s' %{access-type} %{name} %{site} %{directory} %{mode} %{server}
+	fields[1]: needsterminal
+	fields[2]: description="A reference to data stored in an external location"
+	fields[3]: composetyped="extcompose '%s"'
+
+]])
+
+MAILCAP([9],[mailcap09],
+[application/x-dvi; /usr/bin/xdvi '%s'; test=test -n "$DISPLAY"; description=TeX DVI file; nametemplate=%s.dvi],
+[[entry[1]
+	typefield: application/x-dvi
+	view-command: /usr/bin/xdvi '%s'
+	fields[1]: test=test -n "$DISPLAY"
+	fields[2]: description=TeX DVI file
+	fields[3]: nametemplate=%s.dvi
+
+]])
+
+MAILCAP([10],[mailcap10],
+[text/plain; more '%s'; needsterminal],
+[[entry[1]
+	typefield: text/plain
+	view-command: more '%s'
+	fields[1]: needsterminal
+
+]])
+
+MAILCAP([11],[mailcap11],
+[text/html; /usr/bin/links '%s'; needsterminal; description=HTML Text; nametemplate=%s.html],
+[[entry[1]
+	typefield: text/html
+	view-command: /usr/bin/links '%s'
+	fields[1]: needsterminal
+	fields[2]: description=HTML Text
+	fields[3]: nametemplate=%s.html
+
+]])
+
+MAILCAP([12],[mailcap12],
+[text/richtext; richtext '%s'; description="Richtext"; copiousoutput],
+[[entry[1]
+	typefield: text/richtext
+	view-command: richtext '%s'
+	fields[1]: description="Richtext"
+	fields[2]: copiousoutput
+
+]])
+
+MAILCAP([13],[mailcap13],
+[text/enriched; richtext -e '%s'; description="Enriched Text"; copiousoutput],
+[[entry[1]
+	typefield: text/enriched
+	view-command: richtext -e '%s'
+	fields[1]: description="Enriched Text"
+	fields[2]: copiousoutput
+
+]])
+
+MAILCAP([14],[mailcap14],
+[text/html; /usr/bin/w3m -T text/html '%s'; needsterminal; description=HTML Text; nametemplate=%s.html],
+[[entry[1]
+	typefield: text/html
+	view-command: /usr/bin/w3m -T text/html '%s'
+	fields[1]: needsterminal
+	fields[2]: description=HTML Text
+	fields[3]: nametemplate=%s.html
+
+]])
+
+MAILCAP([15],[mailcap15],
+[text/html; /usr/bin/links -dump '%s'; copiousoutput; description=HTML Text; nametemplate=%s.html],
+[[entry[1]
+	typefield: text/html
+	view-command: /usr/bin/links -dump '%s'
+	fields[1]: copiousoutput
+	fields[2]: description=HTML Text
+	fields[3]: nametemplate=%s.html
+
+]])
+
+MAILCAP([16],[mailcap16],
+[text/html; /usr/bin/lynx -force_html '%s'; needsterminal; description=HTML Text; nametemplate=%s.html],
+[[entry[1]
+	typefield: text/html
+	view-command: /usr/bin/lynx -force_html '%s'
+	fields[1]: needsterminal
+	fields[2]: description=HTML Text
+	fields[3]: nametemplate=%s.html
+
+]])
+
+MAILCAP([17],[mailcap17],
+[text/html; /usr/bin/w3m -dump -T text/html '%s'; copiousoutput; description=HTML Text; nametemplate=%s.html],
+[[entry[1]
+	typefield: text/html
+	view-command: /usr/bin/w3m -dump -T text/html '%s'
+	fields[1]: copiousoutput
+	fields[2]: description=HTML Text
+	fields[3]: nametemplate=%s.html
+
+]])
+
+MAILCAP([18],[mailcap18],
+[text/html; /usr/bin/html2text '%s'; copiousoutput; description=HTML Text],
+[[entry[1]
+	typefield: text/html
+	view-command: /usr/bin/html2text '%s'
+	fields[1]: copiousoutput
+	fields[2]: description=HTML Text
+
+]])
+
+MAILCAP([19],[mailcap19],
+[text/html; /usr/bin/lynx -dump -force_html '%s'; copiousoutput; description=HTML Text; nametemplate=%s.html],
+[[entry[1]
+	typefield: text/html
+	view-command: /usr/bin/lynx -dump -force_html '%s'
+	fields[1]: copiousoutput
+	fields[2]: description=HTML Text
+	fields[3]: nametemplate=%s.html
+
+]])
+
+MAILCAP([20],[mailcap20],
+[text/*; less '%s'; needsterminal],
+[[entry[1]
+	typefield: text/*
+	view-command: less '%s'
+	fields[1]: needsterminal
+
+]])
+
+MAILCAP([21],[mailcap21],
+[text/*; more '%s'; needsterminal],
+[[entry[1]
+	typefield: text/*
+	view-command: more '%s'
+	fields[1]: needsterminal
+
+]])
+
+MAILCAP([22],[mailcap22],
+[application/x-debian-package; /usr/lib/mime/debian-view '%s'; \
+needsterminal; description=Debian GNU/Linux Package; \
+nametemplate=%s.deb],
+[[entry[1]
+	typefield: application/x-debian-package
+	view-command: /usr/lib/mime/debian-view '%s'
+	fields[1]: needsterminal
+	fields[2]: description=Debian GNU/Linux Package
+	fields[3]: nametemplate=%s.deb
+
+]])
+
+MAILCAP([23],[mailcap23],
+[audio/basic; /usr/lib/mime/playaudio '%s'; description=Basic uLaw Audio; \
+nametemplate=%s.au],
+[[entry[1]
+	typefield: audio/basic
+	view-command: /usr/lib/mime/playaudio '%s'
+	fields[1]: description=Basic uLaw Audio
+	fields[2]: nametemplate=%s.au
+
+]])

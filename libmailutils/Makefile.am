@@ -24,7 +24,7 @@ YLWRAP = $(SHELL) $(mu_aux_dir)/gylwrap
 AM_YFLAGS=-vt
 AM_LFLAGS=-dvp
 
-SUBDIRS = testsuite 
+SUBDIRS = tests 
 
 lib_LTLIBRARIES = libmailutils.la
 

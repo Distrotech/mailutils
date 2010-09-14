@@ -16,7 +16,6 @@
 # This file is part of Mailfromd testsuite. 
 
 # Require a reasonably recent autotest.
-m4_version_prereq([2.52g])
 m4_include([testsuite.inc])
 
 dnl ------------------------------------------------------------

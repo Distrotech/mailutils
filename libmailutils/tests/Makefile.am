@@ -23,7 +23,7 @@ MAINTAINERCLEANFILES = Makefile.in $(TESTSUITE)
 ## ------------ ##
 
 $(srcdir)/package.m4: $(top_srcdir)/configure.ac
-	$(AM_V_GEN) {                                      \
+	$(AM_V_GEN){                                      \
 	  echo '# Signature of the current package.'; \
 	  echo 'm4_define([AT_PACKAGE_NAME],      [@PACKAGE_NAME@])'; \
 	  echo 'm4_define([AT_PACKAGE_TARNAME],   [@PACKAGE_TARNAME@])'; \
@@ -34,13 +34,47 @@ $(srcdir)/package.m4: $(top_srcdir)/configure.ac
 
 #
 
+## -------------------------- ##
+## Non-installable programs
+## -------------------------- ##
+
+INCLUDES = @MU_LIB_COMMON_INCLUDES@ 
+noinst_PROGRAMS = \
+ addr\
+ argcv\
+ decode2047\
+ encode2047\
+ fltst\
+ mailcap\
+ mimetest\
+ url-parse
+
+LDADD =\
+ ../../lib/libmuaux.la\
+ ${MU_LIB_MBOX}\
+ ${MU_LIB_IMAP}\
+ ${MU_LIB_POP}\
+ ${MU_LIB_AUTH}\
+ @MU_AUTHLIBS@\
+ ${MU_LIB_MAILUTILS}
+
+EXTRA_DIST += Encode Decode
+
 ## ------------ ##
 ## Test suite.  ##
 ## ------------ ##
 
 TESTSUITE_AT = \
- all.at\
- testsuite.at
+ address.at\
+ argcv.at\
+ base64d.at\
+ base64e.at\
+ decode2047.at\
+ encode2047.at\
+ mailcap.at\
+ mime.at\
+ testsuite.at\
+ url.at
 
 TESTSUITE = $(srcdir)/testsuite
 M4=m4

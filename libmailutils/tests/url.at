@@ -1,0 +1,776 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+# This file is part of Mailfromd testsuite. 
+
+dnl ------------------------------------------------------------
+dnl TESTURL([NAME], [KW = `'], [INPUT], [STDOUT = `'],
+dnl         [STDERR = `'], [RUN-IF-FAIL], [RUN-IF-PASS])
+dnl
+m4_define([TESTURL],[
+AT_SETUP([URL: m4_if([$1],[],[$3],[$1])])
+AT_KEYWORDS([url $2])
+AT_CHECK([
+AT_DATA([input],[$3
+])
+url-parse < input],[0],m4_shift(m4_shift(m4_shift($@))))
+AT_CLEANUP
+])
+
+dnl ------------------------------------------------------------
+
+TESTURL([],[],
+[scheme:],
+[scheme <scheme>
+user <>
+passwd <>
+auth <>
+host <>
+port 0
+path <>
+])
+
+TESTURL([],[],
+[scheme:/absolute/path],
+[scheme <scheme>
+user <>
+passwd <>
+auth <>
+host <>
+port 0
+path </absolute/path>
+])
+
+TESTURL([],[],
+[scheme:relative/path],
+[scheme <scheme>
+user <>
+passwd <>
+auth <>
+host <>
+port 0
+path <relative/path>
+])
+
+TESTURL([],[],
+[scheme:///absolute/path],
+[scheme <scheme>
+user <>
+passwd <>
+auth <>
+host <>
+port 0
+path </absolute/path>
+])
+
+TESTURL([],[],
+[scheme://%75%73%65%72:%70%61%73%73@%68%6f%73%74],
+[scheme <scheme>
+user <user>
+passwd <pass>
+auth <>
+host <host>
+port 0
+path <>
+])
+
+TESTURL([],[],
+[ftp://user:pass@host//a/path],
+[scheme <ftp>
+user <user>
+passwd <pass>
+auth <>
+host <host>
+port 0
+path </a/path>
+])
+
+TESTURL([],[],
+[ftp://:pass@host//a/path],
+[scheme <ftp>
+user <>
+passwd <pass>
+auth <>
+host <host>
+port 0
+path </a/path>
+])
+
+TESTURL([],[],
+[ftp://user:@host//a/path],
+[scheme <ftp>
+user <user>
+passwd <>
+auth <>
+host <host>
+port 0
+path </a/path>
+])
+
+TESTURL([],[],
+[ftp://user:pass@//a/path],
+[scheme <ftp>
+user <user>
+passwd <pass>
+auth <>
+host <>
+port 0
+path </a/path>
+])
+
+TESTURL([],[],
+[ftp://user:@//a/path],
+[scheme <ftp>
+user <user>
+passwd <>
+auth <>
+host <>
+port 0
+path </a/path>
+])
+
+TESTURL([],[],
+[ftp://:@host//a/path],
+[scheme <ftp>
+user <>
+passwd <>
+auth <>
+host <host>
+port 0
+path </a/path>
+])
+
+TESTURL([],[],
+[ftp://:pass@//a/path],
+[scheme <ftp>
+user <>
+passwd <pass>
+auth <>
+host <>
+port 0
+path </a/path>
+])
+
+TESTURL([],[],
+[ftp://:@//a/path],
+[scheme <ftp>
+user <>
+passwd <>
+auth <>
+host <>
+port 0
+path </a/path>
+])
+
+TESTURL([],[],
+[ftp://://a/path],
+[scheme <ftp>
+user <>
+passwd <>
+auth <>
+host <>
+port 0
+path </a/path>
+])
+
+TESTURL([],[],
+[ftp://@//a/path],
+[scheme <ftp>
+user <>
+passwd <>
+auth <>
+host <>
+port 0
+path </a/path>
+])
+
+TESTURL([],[],
+[ftp:/a/path],
+[scheme <ftp>
+user <>
+passwd <>
+auth <>
+host <>
+port 0
+path </a/path>
+])
+
+TESTURL([],[],
+[ftp://user:pass@host/a/path],
+[scheme <ftp>
+user <user>
+passwd <pass>
+auth <>
+host <host>
+port 0
+path <a/path>
+])
+
+
+TESTURL([],[],
+[ftp://:pass@host/a/path],
+[scheme <ftp>
+user <>
+passwd <pass>
+auth <>
+host <host>
+port 0
+path <a/path>
+])
+
+TESTURL([],[],
+[ftp://user:@host/a/path],
+[scheme <ftp>
+user <user>
+passwd <>
+auth <>
+host <host>
+port 0
+path <a/path>
+])
+
+TESTURL([],[],
+[ftp://user:pass@/a/path],
+[scheme <ftp>
+user <user>
+passwd <pass>
+auth <>
+host <>
+port 0
+path <a/path>
+])
+
+TESTURL([],[],
+[ftp://user:@/a/path],
+[scheme <ftp>
+user <user>
+passwd <>
+auth <>
+host <>
+port 0
+path <a/path>
+])
+
+TESTURL([],[],
+[ftp://:@host/a/path],
+[scheme <ftp>
+user <>
+passwd <>
+auth <>
+host <host>
+port 0
+path <a/path>
+])
+
+TESTURL([],[],
+[ftp://:pass@/a/path],
+[scheme <ftp>
+user <>
+passwd <pass>
+auth <>
+host <>
+port 0
+path <a/path>
+])
+
+TESTURL([],[],
+[ftp://:@/a/path],
+[scheme <ftp>
+user <>
+passwd <>
+auth <>
+host <>
+port 0
+path <a/path>
+])
+
+TESTURL([],[],
+[ftp://:/a/path],
+[scheme <ftp>
+user <>
+passwd <>
+auth <>
+host <>
+port 0
+path <a/path>
+])
+
+TESTURL([],[],
+[ftp://@/a/path],
+[scheme <ftp>
+user <>
+passwd <>
+auth <>
+host <>
+port 0
+path <a/path>
+])
+
+TESTURL([],[],
+[ftp:///a/path],
+[scheme <ftp>
+user <>
+passwd <>
+auth <>
+host <>
+port 0
+path </a/path>
+])
+
+TESTURL([],[],
+[pop://pop.example.net],
+[scheme <pop>
+user <>
+passwd <>
+auth <>
+host <pop.example.net>
+port 0
+path <>
+])
+
+TESTURL([],[],
+[pop://user@pop.example.net],
+[scheme <pop>
+user <user>
+passwd <>
+auth <>
+host <pop.example.net>
+port 0
+path <>
+])
+
+TESTURL([],[],
+[pop://user:passwd@pop.example.net],
+[scheme <pop>
+user <user>
+passwd <passwd>
+auth <>
+host <pop.example.net>
+port 0
+path <>
+])
+
+TESTURL([],[],
+[pop://user;auth=*@pop.example.net],
+[scheme <pop>
+user <user>
+passwd <>
+auth <*>
+host <pop.example.net>
+port 0
+path <>
+])
+
+TESTURL([],[],
+[pop://pop.example.net:111],
+[scheme <pop>
+user <>
+passwd <>
+auth <>
+host <pop.example.net>
+port 111
+path <>
+])
+
+TESTURL([],[],
+[pop://user@pop.example.net:111],
+[scheme <pop>
+user <user>
+passwd <>
+auth <>
+host <pop.example.net>
+port 111
+path <>
+])
+
+TESTURL([],[],
+[pop://user:passwd@pop.example.net:111],
+[scheme <pop>
+user <user>
+passwd <passwd>
+auth <>
+host <pop.example.net>
+port 111
+path <>
+])
+
+TESTURL([],[],
+[pop://user;auth=*@pop.example.net:111],
+[scheme <pop>
+user <user>
+passwd <>
+auth <*>
+host <pop.example.net>
+port 111
+path <>
+])
+
+TESTURL([],[],
+[imap://imap.example.net],
+[scheme <imap>
+user <>
+passwd <>
+auth <>
+host <imap.example.net>
+port 0
+path <>
+])
+
+TESTURL([],[],
+[imap://user@imap.example.net],
+[scheme <imap>
+user <user>
+passwd <>
+auth <>
+host <imap.example.net>
+port 0
+path <>
+])
+
+TESTURL([],[],
+[imap://user:passwd@imap.example.net],
+[scheme <imap>
+user <user>
+passwd <passwd>
+auth <>
+host <imap.example.net>
+port 0
+path <>
+])
+
+TESTURL([],[],
+[imap://user;auth=*@imap.example.net],
+[scheme <imap>
+user <user>
+passwd <>
+auth <*>
+host <imap.example.net>
+port 0
+path <>
+])
+
+TESTURL([],[],
+[imap://imap.example.net:111],
+[scheme <imap>
+user <>
+passwd <>
+auth <>
+host <imap.example.net>
+port 111
+path <>
+])
+
+TESTURL([],[],
+[imap://user@imap.example.net:111],
+[scheme <imap>
+user <user>
+passwd <>
+auth <>
+host <imap.example.net>
+port 111
+path <>
+])
+
+TESTURL([],[],
+[imap://user:passwd@imap.example.net:111],
+[scheme <imap>
+user <user>
+passwd <passwd>
+auth <>
+host <imap.example.net>
+port 111
+path <>
+])
+
+TESTURL([],[],
+[imap://user;auth=*@imap.example.net:111],
+[scheme <imap>
+user <user>
+passwd <>
+auth <*>
+host <imap.example.net>
+port 111
+path <>
+])
+
+TESTURL([],[],
+[imap://imap.example.net/mbox],
+[scheme <imap>
+user <>
+passwd <>
+auth <>
+host <imap.example.net>
+port 0
+path <mbox>
+])
+
+TESTURL([],[],
+[imap://user@imap.example.net/mbox],
+[scheme <imap>
+user <user>
+passwd <>
+auth <>
+host <imap.example.net>
+port 0
+path <mbox>
+])
+
+TESTURL([],[],
+[imap://user:passwd@imap.example.net/mbox],
+[scheme <imap>
+user <user>
+passwd <passwd>
+auth <>
+host <imap.example.net>
+port 0
+path <mbox>
+])
+
+TESTURL([],[],
+[imap://user;auth=*@imap.example.net/mbox],
+[scheme <imap>
+user <user>
+passwd <>
+auth <*>
+host <imap.example.net>
+port 0
+path <mbox>
+])
+
+TESTURL([],[],
+[imap://imap.example.net:111/mbox],
+[scheme <imap>
+user <>
+passwd <>
+auth <>
+host <imap.example.net>
+port 111
+path <mbox>
+])
+
+TESTURL([],[],
+[imap://user@imap.example.net:111/mbox],
+[scheme <imap>
+user <user>
+passwd <>
+auth <>
+host <imap.example.net>
+port 111
+path <mbox>
+])
+
+TESTURL([],[],
+[imap://user:passwd@imap.example.net:111/mbox],
+[scheme <imap>
+user <user>
+passwd <passwd>
+auth <>
+host <imap.example.net>
+port 111
+path <mbox>
+])
+
+TESTURL([],[],
+[imap://user;auth=*@imap.example.net:111/mbox],
+[scheme <imap>
+user <user>
+passwd <>
+auth <*>
+host <imap.example.net>
+port 111
+path <mbox>
+])
+
+TESTURL([],[],
+[imap://imap.example.net/mbox/user@host],
+[scheme <imap>
+user <imap.example.net/mbox/user>
+passwd <>
+auth <>
+host <host>
+port 0
+path <>
+])
+
+TESTURL([],[],
+[imap://user@imap.example.net/mbox/user@host],
+[scheme <imap>
+user <user>
+passwd <>
+auth <>
+host <imap.example.net>
+port 0
+path <mbox/user@host>
+])
+
+TESTURL([],[],
+[imap://user:passwd@imap.example.net/mbox/user@host],
+[scheme <imap>
+user <user>
+passwd <passwd>
+auth <>
+host <imap.example.net>
+port 0
+path <mbox/user@host>
+])
+
+TESTURL([],[],
+[imap://user;auth=*@imap.example.net/mbox/user@host],
+[scheme <imap>
+user <user>
+passwd <>
+auth <*>
+host <imap.example.net>
+port 0
+path <mbox/user@host>
+])
+
+TESTURL([],[],
+[imap://imap.example.net:111/mbox/user@host],
+[scheme <imap>
+user <imap.example.net>
+passwd <111/mbox/user>
+auth <>
+host <host>
+port 0
+path <>
+])
+
+TESTURL([],[],
+[imap://user@imap.example.net:111/mbox/user@host],
+[scheme <imap>
+user <user>
+passwd <>
+auth <>
+host <imap.example.net>
+port 111
+path <mbox/user@host>
+])
+
+TESTURL([],[],
+[imap://user:passwd@imap.example.net:111/mbox/user@host],
+[scheme <imap>
+user <user>
+passwd <passwd>
+auth <>
+host <imap.example.net>
+port 111
+path <mbox/user@host>
+])
+
+TESTURL([],[],
+[imap://user;auth=*@imap.example.net:111/mbox/user@host],
+[scheme <imap>
+user <user>
+passwd <>
+auth <*>
+host <imap.example.net>
+port 111
+path <mbox/user@host>
+])
+
+TESTURL([],[],
+[ftp://ftp.example.org/mbox/user%40host],
+[scheme <ftp>
+user <>
+passwd <>
+auth <>
+host <ftp.example.org>
+port 0
+path <mbox/user@host>
+])
+
+TESTURL([],[],
+[ftp://ftp.example.org:111/mbox/user%40host],
+[scheme <ftp>
+user <>
+passwd <>
+auth <>
+host <ftp.example.org>
+port 111
+path <mbox/user@host>
+])
+
+TESTURL([],[],
+[ftp://ftp.example.org:111/mbox/user%40host;type=pass],
+[[scheme <ftp>
+user <>
+passwd <>
+auth <>
+host <ftp.example.org>
+port 111
+path <mbox/user@host>
+param[0] <type=pass>
+]])
+
+TESTURL([],[],
+[mbox:/var/spool/mail;type=index;param=2;user=gray],
+[[scheme <mbox>
+user <>
+passwd <>
+auth <>
+host <>
+port 0
+path </var/spool/mail>
+param[0] <type=index>
+param[1] <param=2>
+param[2] <user=gray>
+]])
+
+TESTURL([],[],
+[mbox:///var/spool/mail;type=index;param=2;user=gray],
+[[scheme <mbox>
+user <>
+passwd <>
+auth <>
+host <>
+port 0
+path </var/spool/mail>
+param[0] <type=index>
+param[1] <param=2>
+param[2] <user=gray>
+]])
+
+TESTURL([],[],
+[http://gnu.org.ua/home/gray?prog&arg1&arg2],
+[[scheme <http>
+user <>
+passwd <>
+auth <>
+host <gnu.org.ua>
+port 0
+path <home/gray>
+query[0] <prog>
+query[1] <arg1>
+query[2] <arg2>
+]])
+
+TESTURL([],[],
+[http://gnu.org.ua/home/gray;foo=bar;baz=qux?prog&arg%201&arg%202],
+[[scheme <http>
+user <>
+passwd <>
+auth <>
+host <gnu.org.ua>
+port 0
+path <home/gray>
+param[0] <foo=bar>
+param[1] <baz=qux>
+query[0] <prog>
+query[1] <arg 1>
+query[2] <arg 2>
+]])
+
+

@@ -1,0 +1,91 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+# This file is part of Mailfromd testsuite. 
+
+dnl ------------------------------------------------------------
+dnl TESTARGS([NAME], [KW = `'], [INPUT], [STDOUT = `'],
+dnl          [STDERR = `'], [RUN-IF-FAIL], [RUN-IF-PASS])
+dnl
+m4_define([TESTARGS],[
+AT_SETUP([Argcv: $1])
+AT_KEYWORDS([argcv $2])
+AT_CHECK([
+AT_DATA([input],[$3
+])
+argcv < input],[0],m4_shift(m4_shift(m4_shift($@))))
+AT_CLEANUP
+])
+
+dnl ------------------------------------------------------------
+TESTARGS([simple input],[],
+[1 2 3],
+[3: 1 2 3
+])
+
+TESTARGS([quoted space],[],
+[quoted\ space],
+[1: "quoted space"
+])
+
+TESTARGS([tab character],[],
+[a "tab	character"],
+[2: a tab\tcharacter
+])
+
+TESTARGS([octal and hex escapes],[],
+[\157\143\164\141\154\40and\x20\x68\x65\x78],
+[1: "octal and hex"
+])
+
+TESTARGS([octal and hex escapes 2],[],
+[\157\143\164\141\154\40 and \x20\x68\x65\x78],
+[3: "octal " and " hex"
+])
+
+TESTARGS([escape representation],[],
+[A\x3-\48\39],
+[1: A\003-\0048\0039
+])
+
+TESTARG([8-bit input],[],
+[верхняя половина таблицы],
+[3: \327\305\322\310\316\321\321 \320\317\314\317\327\311\316\301 \324\301\302\314\311\303\331])
+
+TESTARG([misquoted input],[],
+[messed        up'quotations     ' in "a  single'" "command" lin"e],
+[6: messed "upquotations     " in "a  single'" command "lin\"e"
+])
+
+TESTARG([unbalanced quote],[],
+['unbalanced "quote],
+[2: 'unbalanced "\"quote"
+])
+
+TESTARG([unbalanced quote 2],[],
+[unbalanced "quote],
+[2: unbalanced "\"quote"
+])
+
+TESTARG([unbalanced quote 3],[],
+["],
+[1: "\""
+])
+
+
+
+
+
+

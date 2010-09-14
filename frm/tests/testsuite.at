@@ -15,10 +15,7 @@
 # along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
 # This file is part of Mailfromd testsuite. 
 
-# Require a reasonably recent autotest.
-m4_version_prereq([2.52g])
-
-m4_define([AT_SKIP_TEST],[exit 77])
+m4_include([testsuite.inc])
 
 dnl ------------------------------------------------------------
 dnl FRM_MAILBOX  -- mailbox used for testing
@@ -46,8 +43,6 @@ AT_CLEANUP])
 AT_INIT
 
 AT_TESTED([frm])
-
-m4_include([testsuite.inc])
 
 MUT_VERSION(frm)
 

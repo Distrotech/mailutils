@@ -15,31 +15,25 @@
 # along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
 # This file is part of Mailfromd testsuite. 
 
-# Require a reasonably recent autotest.
-m4_version_prereq([2.52g])
+AT_SETUP([base64 encoding (read)])
+AT_KEYWORDS([base64 base64e base64er encode])
 
-m4_define([AT_SKIP_TEST],[exit 77])
-
-dnl ------------------------------------------------------------
-dnl MUT_VERSION(TOOL)  -- checks the version output from TOOL
-dnl
-m4_define([MUT_VERSION],[
-AT_SETUP([$1 version])
-
-AT_CHECK([$1 --version | sed '1{s/ *[\[.*\]]//;q}' ],
-         [0],
-         [$1 (AT_PACKAGE_NAME) AT_PACKAGE_VERSION
-],
-[],
-[cat >.xfailfile <<'_EOT'
-
-==============================================================
-WARNING: Not using the proper version, *all* checks dubious...
-==============================================================
-_EOT
-],
-[rm -f $[]XFAILFILE])
+AT_CHECK([
+cp $top_srcdir/libmailutils/tests/Decode expout
+fltst base64 encode read nl < $top_srcdir/libmailutils/tests/Encode],
+[0],
+[expout])
 
 AT_CLEANUP
-])
 
+
+AT_SETUP([base64 encoding (write)])
+AT_KEYWORDS([base64 base64e base64ew encode])
+
+AT_CHECK([
+cp $top_srcdir/libmailutils/tests/Decode expout
+fltst base64 encode write nl < $top_srcdir/libmailutils/tests/Encode],
+[0],
+[expout])
+
+AT_CLEANUP

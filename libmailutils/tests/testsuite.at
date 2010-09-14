@@ -15,31 +15,16 @@
 # along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
 # This file is part of Mailfromd testsuite. 
 
-# Require a reasonably recent autotest.
-m4_version_prereq([2.52g])
+m4_include([testsuite.inc])
 
-m4_define([AT_SKIP_TEST],[exit 77])
+AT_INIT
 
-dnl ------------------------------------------------------------
-dnl MUT_VERSION(TOOL)  -- checks the version output from TOOL
-dnl
-m4_define([MUT_VERSION],[
-AT_SETUP([$1 version])
-
-AT_CHECK([$1 --version | sed '1{s/ *[\[.*\]]//;q}' ],
-         [0],
-         [$1 (AT_PACKAGE_NAME) AT_PACKAGE_VERSION
-],
-[],
-[cat >.xfailfile <<'_EOT'
-
-==============================================================
-WARNING: Not using the proper version, *all* checks dubious...
-==============================================================
-_EOT
-],
-[rm -f $[]XFAILFILE])
-
-AT_CLEANUP
-])
-
+m4_include([address.at])
+m4_include([argcv.at])
+m4_include([mime.at])
+m4_include([url.at])
+m4_include([mailcap.at])
+m4_include([base64e.at])
+m4_include([base64d.at])
+m4_include([decode2047.at])
+m4_include([encode2047.at])

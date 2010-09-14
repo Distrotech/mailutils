@@ -1,23 +1,28 @@
-# This file is part of Mailutils testsuite.
-# Copyright (C) 2002, 2007, 2010 Free Software Foundation, Inc.
-#  
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 3 of the License, or
-# (at your option) any later version.
-#   
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#  
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software Foundation,
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. 
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 #
-# NOTE: Apart from this comment, the contents of this file is taken verbatim.
-#       Please be sure you don't add any extra newlines.
-Message: 1
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+# This file is part of Mailfromd testsuite. 
+
+AT_SETUP([mime])
+
+# FIXME: Mimetest should probably be fixed to avoid the use of `tr'
+# and `sed' here.
+AT_CHECK([mimetest -i 0 -p $top_srcdir/testsuite/spool/mbox1 | dnl
+          tr '\t' ' ' | sed 's/  *$//'],
+[0],
+[Message: 1
 From: Foo Bar <foobar@nonexistent.net>
 Subject: Jabberwocky
 Number of parts in message - 1
@@ -100,7 +105,7 @@ With gently smiling jaws!
 End
 Type of part 2 = application/octet-stream
 Message part size - 645/11: 183/5, 462/6
-Attachment - saving [msg.21]
+Attachment - saving [[msg.21]]
 Begin
 `You are old, Father William,' the young man said,
 `And your hair has become very white;
@@ -141,7 +146,7 @@ Encapsulated message :
 Begin
 Type of part 1 = application/octet-stream
 Message part size - 663/12: 184/5, 479/7
-Attachment - saving [msg.22]
+Attachment - saving [[msg.22]]
 Begin
 `You are old,' said the youth, `as I mentioned before,
 And have grown most uncommonly fat;
@@ -160,7 +165,7 @@ Encapsulated message :
 Begin
 Type of part 1 = application/octet-stream
 Message part size - 668/12: 185/5, 483/7
-Attachment - saving [msg.23]
+Attachment - saving [[msg.23]]
 Begin
 `You are old,' said the youth, `and your jaws are too weak
 For anything tougher than suet;
@@ -175,7 +180,7 @@ Has lasted the rest of my life.'
 End
 Type of part 2 = application/octet-stream
 Message part size - 679/12: 184/5, 495/7
-Attachment - saving [msg.24]
+Attachment - saving [[msg.24]]
 Begin
 `You are old,' said the youth, `one would hardly suppose
 That your eye was as steady as ever;
@@ -210,3 +215,6 @@ Begin
 
 
 End
+])
+
+AT_CLEANUP
