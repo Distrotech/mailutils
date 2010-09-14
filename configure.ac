@@ -1211,7 +1211,10 @@ AC_ARG_WITH([mh-bindir],
 
 # Initialize the (autotest) test suite.
 AC_CONFIG_TESTDIR(tests)
-AC_CONFIG_FILES([sieve/tests/Makefile sieve/tests/atlocal]) 
+AC_CONFIG_FILES([frm/tests/Makefile
+                 frm/tests/atlocal
+                 sieve/tests/Makefile
+                 sieve/tests/atlocal]) 
 AM_MISSING_PROG([AUTOM4TE], [autom4te])
 
 dnl Make sysconfdir available to the application
@@ -1329,7 +1332,6 @@ AC_CONFIG_FILES([
  examples/scheme/Makefile
  gint/Makefile
  frm/Makefile
- frm/testsuite/Makefile
  guimb/Makefile
  guimb/scm/Makefile
  imap4d/Makefile

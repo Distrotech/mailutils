@@ -1,0 +1,115 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+# This file is part of Mailfromd testsuite. 
+
+# Require a reasonably recent autotest.
+m4_version_prereq([2.52g])
+
+m4_define([AT_SKIP_TEST],[exit 77])
+
+dnl ------------------------------------------------------------
+dnl FRM_MAILBOX  -- mailbox used for testing
+m4_define([FRM_MAILBOX],[mbox1])
+
+dnl ------------------------------------------------------------
+dnl FRM_OPTIONS  -- default options for frm
+m4_define([FRM_OPTIONS],[--no-site --no-user])
+
+dnl ------------------------------------------------------------
+dnl FRMTEST(DESCR, KW, CMDLINE, [STATUS = `0'], [STDOUT = `'],
+dnl         [STDERR = `'], [RUN-IF-FAIL], [RUN-IF-PASS])
+dnl
+m4_define([FRMTEST],[
+AT_SETUP([$1])
+AT_KEYWORDS([$2])
+AT_CHECK([
+MAIL=$top_srcdir/testsuite/spool/FRM_MAILBOX
+FOLDER=$MAIL
+export MAIL FOLDER
+frm FRM_OPTIONS $3],
+m4_shift(m4_shift(m4_shift($@))))
+AT_CLEANUP])
+
+AT_INIT
+
+AT_TESTED([frm])
+
+m4_include([testsuite.inc])
+
+MUT_VERSION(frm)
+
+FRMTEST([no options],[frm00],
+[],
+[1],
+[Foo Bar	Jabberwocky
+Bar	Re: Jabberwocky
+Sergey Poznyakoff	Simple MIME
+Sergey Poznyakoff	Nested MIME
+Sergey Poznyakoff	Empty MIME Parts
+])
+
+FRMTEST([frm -n],[frm-n frm01],
+[-n],
+[1],
+[   1:	Foo Bar	Jabberwocky
+   2:	Bar	Re: Jabberwocky
+   3:	Sergey Poznyakoff	Simple MIME
+   4:	Sergey Poznyakoff	Nested MIME
+   5:	Sergey Poznyakoff	Empty MIME Parts
+])
+
+FRMTEST([frm -l],[frm-l frm02],
+[-l],
+[1],
+[(Bar)	Foo Bar	Jabberwocky
+(Foo Bar)	Bar	Re: Jabberwocky
+(Foo Bar)	Sergey Poznyakoff	Simple MIME
+(Foo Bar)	Sergey Poznyakoff	Nested MIME
+(Foo Bar)	Sergey Poznyakoff	Empty MIME Parts
+])
+
+FRMTEST([frm -qS],[frm-qS frm03],
+[-qS],
+[1],
+[Folder contains 5 new messages.
+])
+
+FRMTEST([frm -q],[frm-q frm04],
+[-q],
+[1],
+[There are messages in that folder.
+])
+
+FRMTEST([frm +mbox],[frm+mbox frm05],
+[--set ":mailbox:folder=$top_srcdir/testsuite/spool" +mbox],
+[1],
+[Sergey Poznyakoff	MBOX
+])
+
+FRMTEST([nonexistent mailbox],[frm06],
+[-q %nonexistent],
+[2],
+[No messages in that folder!
+])
+
+m4_pushdef([FRM_MAILBOX],[bigto.mbox])
+FRMTEST([frm -l on long headers],[frm07],
+[-l],
+[1],
+[(Ayoung-Chee, Nigel Paul -- Nigel Paul Ayoung-Chee)	Patrick Chan	New email address, etc.
+])
+m4_popdef([FRM_MAILBOX])
+

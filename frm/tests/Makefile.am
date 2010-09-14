@@ -17,7 +17,6 @@
 EXTRA_DIST = $(TESTSUITE_AT) testsuite package.m4 
 DISTCLEANFILES       = atconfig $(check_SCRIPTS)
 MAINTAINERCLEANFILES = Makefile.in $(TESTSUITE)
-#SUBDIRS = etc
 
 ## ------------ ##
 ## package.m4.  ##
@@ -40,26 +39,6 @@ $(srcdir)/package.m4: $(top_srcdir)/configure.ac
 ## ------------ ##
 
 TESTSUITE_AT = \
-  action.at\
-  address.at\
-  allof.at\
-  anyof.at\
-  compile.at\
-  envelope.at\
-  exists.at\
-  ext.at\
-  false.at\
-  header.at\
-  i-casemap.at\
-  i-numeric.at\
-  i-octet.at\
-  mul-addr.at\
-  not.at\
-  redirect.at\
-  reject.at\
-  relational.at\
-  size.at\
-  true.at\
   testsuite.at\
   version.at
 

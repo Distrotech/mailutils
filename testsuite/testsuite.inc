@@ -15,6 +15,25 @@
 # along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
 # This file is part of Mailfromd testsuite. 
 
-m4_include([testsuite.inc])
+dnl ------------------------------------------------------------
+dnl MUT_VERSION(TOOL)  -- checks the version output from TOOL
+dnl
+m4_define([MUT_VERSION],[
+AT_SETUP([$1 version])
 
-MUT_VERSION(frm)
+AT_CHECK([$1 --version | sed '1{s/ *[\[.*\]]//;q}' ],
+         [0],
+         [$1 (AT_PACKAGE_NAME) AT_PACKAGE_VERSION
+],
+[],
+[cat >$[]XFAILFILE <<'_EOT'
+
+==============================================================
+WARNING: Not using the proper version, *all* checks dubious...
+==============================================================
+_EOT
+],
+[rm -f $[]XFAILFILE])
+
+AT_CLEANUP
+])
