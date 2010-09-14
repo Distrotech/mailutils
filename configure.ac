@@ -1215,6 +1215,8 @@ AC_CONFIG_FILES([libmailutils/tests/Makefile
                  libmailutils/tests/atlocal 
                  frm/tests/Makefile
                  frm/tests/atlocal
+		 messages/tests/Makefile
+		 messages/tests/atlocal
 		 readmsg/tests/Makefile
 		 readmsg/tests/atlocal
                  sieve/tests/Makefile
@@ -1365,7 +1367,6 @@ AC_CONFIG_FILES([
  mail/testsuite/Makefile
  libmailutils/Makefile
  messages/Makefile
- messages/testsuite/Makefile
  mh/Makefile
  mimeview/Makefile
  movemail/Makefile
