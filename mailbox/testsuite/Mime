@@ -21,9 +21,9 @@ Message: 1
 From: Foo Bar <foobar@nonexistent.net>
 Subject: Jabberwocky
 Number of parts in message - 1
-Total message size - 1255/44
+Total message size - 1254/44
 Type of part 1 = 
-Message part size - 1255/44: 318/9, 937/35
+Message part size - 1254/44: 317/9, 937/35
 Text Message
 Begin
 `Twas brillig, and the slithy toves
@@ -67,9 +67,9 @@ Message: 2
 From: Bar <bar@dontmailme.org>
 Subject: Re: Jabberwocky
 Number of parts in message - 1
-Total message size - 535/13
+Total message size - 534/13
 Type of part 1 = 
-Message part size - 535/13: 320/9, 215/4
+Message part size - 534/13: 319/9, 215/4
 Text Message
 Begin
 It seems very pretty, but it's *rather* hard to understand!'
@@ -82,7 +82,7 @@ Message: 3
 From: Sergey Poznyakoff <gray@Mirddin.farlep.net>
 Subject: Simple MIME
 Number of parts in message - 2
-Total message size - 1626/42
+Total message size - 1625/42
 Type of part 1 = text/plain
 Message part size - 371/13: 141/4, 230/9
 Text Message
@@ -118,7 +118,7 @@ Message: 4
 From: Sergey Poznyakoff <gray@Mirddin.farlep.net>
 Subject: Nested MIME
 Number of parts in message - 2
-Total message size - 3484/84
+Total message size - 3483/84
 Type of part 1 = text/plain
 Message part size - 496/14: 155/4, 341/10
 Text Message
@@ -196,7 +196,7 @@ Message: 5
 From: Sergey Poznyakoff <gray@Mirddin.farlep.net>
 Subject: Empty MIME Parts
 Number of parts in message - 2
-Total message size - 914/27
+Total message size - 913/27
 Type of part 1 = text/plain
 Message part size - 143/4: 143/4, 0/0
 Text Message

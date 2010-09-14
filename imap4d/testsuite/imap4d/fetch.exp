@@ -78,11 +78,11 @@ imap4d_test "FETCH 1:* ENVELOPE"\
 #                RFC822.SIZE ENVELOPE)
 
 imap4d_test "FETCH 1:\* ALL"\
-"1 FETCH (FLAGS (\\Recent) INTERNALDATE \"28-Dec-2001 22:18:09 +0000\" RFC822.SIZE 1299 ENVELOPE (\"Fri, 28 Dec 2001 22:18:08 +0200\" \"Jabberwocky\" ((\"Foo Bar\" NIL \"foobar\" \"nonexistent.net\")) ((\"Foo Bar\" NIL \"foobar\" \"nonexistent.net\")) ((\"Foo Bar\" NIL \"foobar\" \"nonexistent.net\")) ((\"Bar\" NIL \"bar\" \"dontmailme.org\")) NIL NIL NIL \"<200112282018.fBSKI8N04906@nonexistent.net>\"))"\
-"2 FETCH (FLAGS (\\Recent) INTERNALDATE \"28-Dec-2001 23:28:09 +0000\" RFC822.SIZE 548 ENVELOPE (\"Fri, 28 Dec 2001 23:28:08 +0200\" \"Re: Jabberwocky\" ((\"Bar\" NIL \"bar\" \"dontmailme.org\")) ((\"Bar\" NIL \"bar\" \"dontmailme.org\")) ((\"Bar\" NIL \"bar\" \"dontmailme.org\")) ((\"Foo Bar\" NIL \"foobar\" \"nonexistent.net\")) NIL NIL NIL \"<200112232808.fERKR9N16790@dontmailme.org>\"))"\
-"3 FETCH (FLAGS (\\Recent) INTERNALDATE \"13-Jul-2002 00:43:18 +0000\" RFC822.SIZE 1668 ENVELOPE (\"Sat, 13 Jul 2002 00:43:18 +0300\" \"Simple MIME\" ((\"Sergey Poznyakoff\" NIL \"gray\" \"Mirddin.farlep.net\")) ((\"Sergey Poznyakoff\" NIL \"gray\" \"Mirddin.farlep.net\")) ((\"Sergey Poznyakoff\" NIL \"gray\" \"Mirddin.farlep.net\")) ((\"Foo Bar\" NIL \"foobar\" \"nonexistent.net\")) NIL NIL NIL \"<200207122143.g6CLhIb05086@Mirddin.farlep.net>\"))"\
-"4 FETCH (FLAGS (\\Recent) INTERNALDATE \"13-Jul-2002 00:50:58 +0000\" RFC822.SIZE 3568 ENVELOPE (\"Sat, 13 Jul 2002 00:50:58 +0300\" \"Nested MIME\" ((\"Sergey Poznyakoff\" NIL \"gray\" \"Mirddin.farlep.net\")) ((\"Sergey Poznyakoff\" NIL \"gray\" \"Mirddin.farlep.net\")) ((\"Sergey Poznyakoff\" NIL \"gray\" \"Mirddin.farlep.net\")) ((\"Foo Bar\" NIL \"foobar\" \"nonexistent.net\")) NIL NIL NIL \"<200207122150.g6CLowb05126@Mirddin.farlep.net>\"))"\
-"5 FETCH (FLAGS (\\Recent) INTERNALDATE \"13-Jul-2002 00:43:18 +0000\" RFC822.SIZE 941 ENVELOPE (\"Sat, 13 Jul 2002 00:43:18 +0300\" \"Empty MIME Parts\" ((\"Sergey Poznyakoff\" NIL \"gray\" \"Mirddin.farlep.net\")) ((\"Sergey Poznyakoff\" NIL \"gray\" \"Mirddin.farlep.net\")) ((\"Sergey Poznyakoff\" NIL \"gray\" \"Mirddin.farlep.net\")) ((\"Foo Bar\" NIL \"foobar\" \"nonexistent.net\")) NIL NIL NIL \"<200207122143.g6CLhIb05086@Mirddin.farlep.net>\"))"\
+"1 FETCH (FLAGS (\\Recent) INTERNALDATE \"28-Dec-2001 22:18:09 +0000\" RFC822.SIZE 1298 ENVELOPE (\"Fri, 28 Dec 2001 22:18:08 +0200\" \"Jabberwocky\" ((\"Foo Bar\" NIL \"foobar\" \"nonexistent.net\")) ((\"Foo Bar\" NIL \"foobar\" \"nonexistent.net\")) ((\"Foo Bar\" NIL \"foobar\" \"nonexistent.net\")) ((\"Bar\" NIL \"bar\" \"dontmailme.org\")) NIL NIL NIL \"<200112282018.fBSKI8N04906@nonexistent.net>\"))"\
+"2 FETCH (FLAGS (\\Recent) INTERNALDATE \"28-Dec-2001 23:28:09 +0000\" RFC822.SIZE 547 ENVELOPE (\"Fri, 28 Dec 2001 23:28:08 +0200\" \"Re: Jabberwocky\" ((\"Bar\" NIL \"bar\" \"dontmailme.org\")) ((\"Bar\" NIL \"bar\" \"dontmailme.org\")) ((\"Bar\" NIL \"bar\" \"dontmailme.org\")) ((\"Foo Bar\" NIL \"foobar\" \"nonexistent.net\")) NIL NIL NIL \"<200112232808.fERKR9N16790@dontmailme.org>\"))"\
+"3 FETCH (FLAGS (\\Recent) INTERNALDATE \"13-Jul-2002 00:43:18 +0000\" RFC822.SIZE 1667 ENVELOPE (\"Sat, 13 Jul 2002 00:43:18 +0300\" \"Simple MIME\" ((\"Sergey Poznyakoff\" NIL \"gray\" \"Mirddin.farlep.net\")) ((\"Sergey Poznyakoff\" NIL \"gray\" \"Mirddin.farlep.net\")) ((\"Sergey Poznyakoff\" NIL \"gray\" \"Mirddin.farlep.net\")) ((\"Foo Bar\" NIL \"foobar\" \"nonexistent.net\")) NIL NIL NIL \"<200207122143.g6CLhIb05086@Mirddin.farlep.net>\"))"\
+"4 FETCH (FLAGS (\\Recent) INTERNALDATE \"13-Jul-2002 00:50:58 +0000\" RFC822.SIZE 3567 ENVELOPE (\"Sat, 13 Jul 2002 00:50:58 +0300\" \"Nested MIME\" ((\"Sergey Poznyakoff\" NIL \"gray\" \"Mirddin.farlep.net\")) ((\"Sergey Poznyakoff\" NIL \"gray\" \"Mirddin.farlep.net\")) ((\"Sergey Poznyakoff\" NIL \"gray\" \"Mirddin.farlep.net\")) ((\"Foo Bar\" NIL \"foobar\" \"nonexistent.net\")) NIL NIL NIL \"<200207122150.g6CLowb05126@Mirddin.farlep.net>\"))"\
+"5 FETCH (FLAGS (\\Recent) INTERNALDATE \"13-Jul-2002 00:43:18 +0000\" RFC822.SIZE 940 ENVELOPE (\"Sat, 13 Jul 2002 00:43:18 +0300\" \"Empty MIME Parts\" ((\"Sergey Poznyakoff\" NIL \"gray\" \"Mirddin.farlep.net\")) ((\"Sergey Poznyakoff\" NIL \"gray\" \"Mirddin.farlep.net\")) ((\"Sergey Poznyakoff\" NIL \"gray\" \"Mirddin.farlep.net\")) ((\"Foo Bar\" NIL \"foobar\" \"nonexistent.net\")) NIL NIL NIL \"<200207122143.g6CLhIb05086@Mirddin.farlep.net>\"))"\
 "OK"
 
 # BODYSTRUCTURE  The [MIME-IMB] body structure of the message.  This
@@ -124,9 +124,9 @@ imap4d_test "FETCH 1:* BODY"\
 #                    implicitly set the \Seen flag.
 
 imap4d_test "FETCH 1 BODY.PEEK\[HEADER\]"\
-"1 FETCH (BODY\[HEADER\] {327}"\
+"1 FETCH (BODY\[HEADER\] {326}"\
 -literal\
-"Received: (from foobar@nonexistent.net) "\
+"Received: (from foobar@nonexistent.net)"\
 "	by nonexistent.net id fBSKI8N04906"\
 "	for bar@dontmailme.org; Fri, 28 Dec 2001 22:18:08 +0200"\
 "Date: Fri, 28 Dec 2001 22:18:08 +0200"\
@@ -144,9 +144,9 @@ imap4d_test "FETCH 1 BODY.PEEK\[HEADER\]"\
 # MESSAGE/RFC822 message.
 
 imap4d_test "FETCH 1 BODY\[HEADER\]"\
-"1 FETCH (FLAGS (\\Seen) BODY\[HEADER\] {327}"\
+"1 FETCH (FLAGS (\\Seen) BODY\[HEADER\] {326}"\
 -literal\
-"Received: (from foobar@nonexistent.net) "\
+"Received: (from foobar@nonexistent.net)"\
 "	by nonexistent.net id fBSKI8N04906"\
 "	for bar@dontmailme.org; Fri, 28 Dec 2001 22:18:08 +0200"\
 "Date: Fri, 28 Dec 2001 22:18:08 +0200"\
@@ -179,9 +179,9 @@ imap4d_test "FETCH 1 BODY\[HEADER.FIELDS (FROM TO SUBJECT)\]"\
 # the header fields with a non-matching field-name. 
 
 imap4d_test "FETCH 1 BODY\[HEADER.FIELDS.NOT (FROM TO SUBJECT)\]"\
-"1 FETCH (BODY\[HEADER.FIELDS.NOT (FROM TO SUBJECT)\] {235}"\
+"1 FETCH (BODY\[HEADER.FIELDS.NOT (FROM TO SUBJECT)\] {234}"\
 -literal\
-"Received: (from foobar@nonexistent.net) "\
+"Received: (from foobar@nonexistent.net)"\
 "	by nonexistent.net id fBSKI8N04906"\
 "	for bar@dontmailme.org; Fri, 28 Dec 2001 22:18:08 +0200"\
 "Date: Fri, 28 Dec 2001 22:18:08 +0200"\
@@ -419,9 +419,9 @@ imap4d_test "STORE 1:* -FLAGS (\\Seen)"\
 #                is returned).
 
 imap4d_test "FETCH 1 RFC822"\
-"1 FETCH (FLAGS (\\Seen) RFC822 {1299}"\
+"1 FETCH (FLAGS (\\Seen) RFC822 {1298}"\
 -literal\
-"Received: (from foobar@nonexistent.net) "\
+"Received: (from foobar@nonexistent.net)"\
 "	by nonexistent.net id fBSKI8N04906"\
 "	for bar@dontmailme.org; Fri, 28 Dec 2001 22:18:08 +0200"\
 "Date: Fri, 28 Dec 2001 22:18:08 +0200"\
@@ -473,9 +473,9 @@ imap4d_test "FETCH 1 RFC822"\
 #                FETCH data (RFC822.HEADER is returned).
 
 imap4d_test "FETCH 2 RFC822.HEADER"\
-"2 FETCH (RFC822.HEADER {329}"\
+"2 FETCH (RFC822.HEADER {328}"\
 -literal\
-"Received: (from bar@dontmailme.org) "\
+"Received: (from bar@dontmailme.org)"\
 "	by dontmailme.org id fERKR9N16790"\
 "	for foobar@nonexistent.net; Fri, 28 Dec 2001 22:18:08 +0200"\
 "Date: Fri, 28 Dec 2001 23:28:08 +0200"\
@@ -490,7 +490,7 @@ imap4d_test "FETCH 2 RFC822.HEADER"\
 # RFC822.SIZE    The [RFC-822] size of the message.
 
 imap4d_test "FETCH 3 RFC822.SIZE"\
-"3 FETCH (RFC822.SIZE 1668)"\
+"3 FETCH (RFC822.SIZE 1667)"\
 "OK"
 
 # RFC822.TEXT    Functionally equivalent to BODY[TEXT], differing in
@@ -510,14 +510,14 @@ imap4d_test "FETCH 2 RFC822.TEXT"\
 #                RFC822.SIZE)
 
 imap4d_test "FETCH 1 FAST" \
-"1 FETCH (FLAGS (\\Seen \\Recent) INTERNALDATE \"28-Dec-2001 22:18:09 +0000\" RFC822.SIZE 1299)"\
+"1 FETCH (FLAGS (\\Seen \\Recent) INTERNALDATE \"28-Dec-2001 22:18:09 +0000\" RFC822.SIZE 1298)"\
 "OK"
 
 # FULL           Macro equivalent to: (FLAGS INTERNALDATE
 #                RFC822.SIZE ENVELOPE BODY)
 
 imap4d_test "FETCH 4 FULL"\
-"4 FETCH (FLAGS (\\Recent) INTERNALDATE \"13-Jul-2002 00:50:58 +0000\" RFC822.SIZE 3568 ENVELOPE (\"Sat, 13 Jul 2002 00:50:58 +0300\" \"Nested MIME\" ((\"Sergey Poznyakoff\" NIL \"gray\" \"Mirddin.farlep.net\")) ((\"Sergey Poznyakoff\" NIL \"gray\" \"Mirddin.farlep.net\")) ((\"Sergey Poznyakoff\" NIL \"gray\" \"Mirddin.farlep.net\")) ((\"Foo Bar\" NIL \"foobar\" \"nonexistent.net\")) NIL NIL NIL \"<200207122150.g6CLowb05126@Mirddin.farlep.net>\") BODY ((\"text\" \"plain\" (\"name\" \"msg.21\" \"charset\" \"us-ascii\") \"<5122.1026510654.2@Mirddin.farlep.net>\" \"Father William Part I\" \"7BIT\" 351 10)((\"application\" \"octet-stream\" (\"name\" \"msg.22\") \"<5122.1026510654.4@Mirddin.farlep.net>\" \"Father William Part II\" \"base64\" 486)((\"application\" \"octet-stream\" (\"name\" \"msg.23\") \"<5122.1026510654.6@Mirddin.farlep.net>\" \"Father William Part III\" \"base64\" 490)(\"application\" \"octet-stream\" (\"name\" \"msg.24\") \"<5122.1026510654.7@Mirddin.farlep.net>\" \"Father William Part IV\" \"base64\" 502) \"mixed\" NIL NIL NIL) \"mixed\" NIL NIL NIL) \"mixed\" NIL NIL NIL))"\
+"4 FETCH (FLAGS (\\Recent) INTERNALDATE \"13-Jul-2002 00:50:58 +0000\" RFC822.SIZE 3567 ENVELOPE (\"Sat, 13 Jul 2002 00:50:58 +0300\" \"Nested MIME\" ((\"Sergey Poznyakoff\" NIL \"gray\" \"Mirddin.farlep.net\")) ((\"Sergey Poznyakoff\" NIL \"gray\" \"Mirddin.farlep.net\")) ((\"Sergey Poznyakoff\" NIL \"gray\" \"Mirddin.farlep.net\")) ((\"Foo Bar\" NIL \"foobar\" \"nonexistent.net\")) NIL NIL NIL \"<200207122150.g6CLowb05126@Mirddin.farlep.net>\") BODY ((\"text\" \"plain\" (\"name\" \"msg.21\" \"charset\" \"us-ascii\") \"<5122.1026510654.2@Mirddin.farlep.net>\" \"Father William Part I\" \"7BIT\" 351 10)((\"application\" \"octet-stream\" (\"name\" \"msg.22\") \"<5122.1026510654.4@Mirddin.farlep.net>\" \"Father William Part II\" \"base64\" 486)((\"application\" \"octet-stream\" (\"name\" \"msg.23\") \"<5122.1026510654.6@Mirddin.farlep.net>\" \"Father William Part III\" \"base64\" 490)(\"application\" \"octet-stream\" (\"name\" \"msg.24\") \"<5122.1026510654.7@Mirddin.farlep.net>\" \"Father William Part IV\" \"base64\" 502) \"mixed\" NIL NIL NIL) \"mixed\" NIL NIL NIL) \"mixed\" NIL NIL NIL))"\
 "OK"
 
 imap4d_stop

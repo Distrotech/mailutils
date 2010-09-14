@@ -1213,6 +1213,8 @@ AC_ARG_WITH([mh-bindir],
 AC_CONFIG_TESTDIR(tests)
 AC_CONFIG_FILES([frm/tests/Makefile
                  frm/tests/atlocal
+		 readmsg/tests/Makefile
+		 readmsg/tests/atlocal
                  sieve/tests/Makefile
                  sieve/tests/atlocal]) 
 AM_MISSING_PROG([AUTOM4TE], [autom4te])
@@ -1373,7 +1375,6 @@ AC_CONFIG_FILES([
  python/libmu_py/Makefile
  python/mailutils/Makefile
  readmsg/Makefile
- readmsg/testsuite/Makefile
  mu-aux/Makefile
  mu-aux/mailutils.spec
  sieve/Makefile

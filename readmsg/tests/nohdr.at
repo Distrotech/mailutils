@@ -15,6 +15,13 @@
 # along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
 # This file is part of Mailfromd testsuite. 
 
-m4_include([testsuite.inc])
+READMSGTEST([readmsg -n],[nohdr],
+[readmsg -n SOMETHING],
+[0],
+[It seems very pretty, but it's *rather* hard to understand!'
+Somehow it seems to fill my head with ideas -- only I don't
+exactly know what they are!  However, SOMEBODY killed SOMETHING:
+that's clear, at any rate...
 
-MUT_VERSION(sieve)
+
+])

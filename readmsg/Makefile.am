@@ -20,7 +20,7 @@
 
 INCLUDES = @MU_APP_COMMON_INCLUDES@ 
 
-SUBDIRS = testsuite
+SUBDIRS = tests
 
 bin_PROGRAMS = readmsg
 readmsg_SOURCES = readmsg.c msglist.c readmsg.h

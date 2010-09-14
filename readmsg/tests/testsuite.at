@@ -1,0 +1,54 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+# This file is part of Mailfromd testsuite. 
+
+# Require a reasonably recent autotest.
+m4_version_prereq([2.52g])
+m4_include([testsuite.inc])
+
+dnl ------------------------------------------------------------
+dnl READMSG_MAILBOX  -- mailbox used for testing
+m4_define([READMSG_MAILBOX],[mbox1])
+
+dnl ------------------------------------------------------------
+dnl READMSG_OPTIONS  -- default options for readmsg
+m4_define([READMSG_OPTIONS],[--no-site --no-user])
+
+dnl ------------------------------------------------------------
+dnl READMSGTEST(DESCR, KW, CMDLINE, [STATUS = `0'], [STDOUT = `'],
+dnl         [STDERR = `'], [RUN-IF-FAIL], [RUN-IF-PASS])
+dnl
+m4_define([READMSGTEST],[
+AT_SETUP([$1])
+AT_KEYWORDS([$2])
+AT_CHECK([
+MAIL=$top_srcdir/testsuite/spool/READMSG_MAILBOX
+FOLDER=$MAIL
+export MAIL FOLDER
+readmsg READMSG_OPTIONS $3],
+m4_shift(m4_shift(m4_shift($@))))
+AT_CLEANUP])
+
+AT_INIT
+
+AT_TESTED([readmsg])
+
+MUT_VERSION(readmsg)
+m4_include([all.at])
+m4_include([twomsg.at])
+m4_include([hdr.at])
+m4_include([nohdr.at])
+m4_include([weed.at])

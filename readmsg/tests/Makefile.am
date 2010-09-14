@@ -38,7 +38,9 @@ $(srcdir)/package.m4: $(top_srcdir)/configure.ac
 ## Test suite.  ##
 ## ------------ ##
 
-TESTSUITE_AT = testsuite.at
+TESTSUITE_AT = \
+ all.at\
+ testsuite.at
 
 TESTSUITE = $(srcdir)/testsuite
 M4=m4

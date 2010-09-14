@@ -27,21 +27,21 @@ mail_command "set readonly"
 # line and a delimiter line between headers and the body. Thus, number
 # of lines is always two less then reported by BSD mail.
 mail_test "size *" \
-"> 1  44/1255 "\
-"  2  13/535  "\
-"  3  42/1626 "\
-"  4  84/3484 "
+"> 1  44/1254 "\
+"  2  13/534  "\
+"  3  42/1625 "\
+"  4  84/3483 "
 
 ###########################################################################
 # `headers' and `print'
 mail_test "headers" \
-">N   1 Foo Bar            Fri Dec 28 22:18  44/1255  Jabberwocky" \
-" N   2 Bar                Fri Dec 28 23:28  13/535   Re: Jabberwocky" \
-" N   3 Sergey Poznyakoff  Sat Jul 13 00:43  42/1626  Simple MIME" \
-" N   4 Sergey Poznyakoff  Sat Jul 13 00:50  84/3484  Nested MIME" \
+">N   1 Foo Bar            Fri Dec 28 22:18  44/1254  Jabberwocky" \
+" N   2 Bar                Fri Dec 28 23:28  13/534   Re: Jabberwocky" \
+" N   3 Sergey Poznyakoff  Sat Jul 13 00:43  42/1625  Simple MIME" \
+" N   4 Sergey Poznyakoff  Sat Jul 13 00:50  84/3483  Nested MIME" \
 
 mail_test "print"\
-	"Received: (from foobar@nonexistent.net) "\
+	"Received: (from foobar@nonexistent.net)"\
 	"	by nonexistent.net id fBSKI8N04906"\
 	"	for bar@dontmailme.org; Fri, 28 Dec 2001 22:18:08 +0200"\
 	"Date: Fri, 28 Dec 2001 22:18:08 +0200"\
@@ -87,7 +87,7 @@ mail_test "print"\
 
 # Initially, `Print' must yield the same output as `print'
 mail_test "Print"\
-	"Received: (from foobar@nonexistent.net) "\
+	"Received: (from foobar@nonexistent.net)"\
 	"	by nonexistent.net id fBSKI8N04906"\
 	"	for bar@dontmailme.org; Fri, 28 Dec 2001 22:18:08 +0200"\
 	"Date: Fri, 28 Dec 2001 22:18:08 +0200"\
@@ -135,7 +135,7 @@ mail_test "Print"\
 # Test the `top' command
 
 mail_test "top" \
-	"Received: (from foobar@nonexistent.net) "\
+	"Received: (from foobar@nonexistent.net)"\
 	"	by nonexistent.net id fBSKI8N04906"\
 	"	for bar@dontmailme.org; Fri, 28 Dec 2001 22:18:08 +0200"\
 	"Date: Fri, 28 Dec 2001 22:18:08 +0200"\
@@ -158,16 +158,16 @@ mail_test -message "top (2)" "top" \
 # This checks if `headers' correctly reflects 'read' attribute
 
 mail_test -message "headers (2)" "headers" \
-">R   1 Foo Bar            Fri Dec 28 22:18  44/1255  Jabberwocky" \
-" N   2 Bar                Fri Dec 28 23:28  13/535   Re: Jabberwocky" \
-" N   3 Sergey Poznyakoff  Sat Jul 13 00:43  42/1626  Simple MIME" \
-" N   4 Sergey Poznyakoff  Sat Jul 13 00:50  84/3484  Nested MIME" \
+">R   1 Foo Bar            Fri Dec 28 22:18  44/1254  Jabberwocky" \
+" N   2 Bar                Fri Dec 28 23:28  13/534   Re: Jabberwocky" \
+" N   3 Sergey Poznyakoff  Sat Jul 13 00:43  42/1625  Simple MIME" \
+" N   4 Sergey Poznyakoff  Sat Jul 13 00:50  84/3483  Nested MIME" \
 
 ###########################################################################
 # `next' should display the 2nd message
 
 mail_test "next" \
-"Received: (from bar@dontmailme.org) "\
+"Received: (from bar@dontmailme.org)"\
 "	by dontmailme.org id fERKR9N16790"\
 "	for foobar@nonexistent.net; Fri, 28 Dec 2001 22:18:08 +0200"\
 "Date: Fri, 28 Dec 2001 23:28:08 +0200"\
@@ -185,10 +185,10 @@ mail_test "next" \
 # Now check if the cursor is placed correctly
 
 mail_test -message "headers (3)" "headers" \
-" R   1 Foo Bar            Fri Dec 28 22:18  44/1255  Jabberwocky" \
-">R   2 Bar                Fri Dec 28 23:28  13/535   Re: Jabberwocky" \
-" N   3 Sergey Poznyakoff  Sat Jul 13 00:43  42/1626  Simple MIME" \
-" N   4 Sergey Poznyakoff  Sat Jul 13 00:50  84/3484  Nested MIME" \
+" R   1 Foo Bar            Fri Dec 28 22:18  44/1254  Jabberwocky" \
+">R   2 Bar                Fri Dec 28 23:28  13/534   Re: Jabberwocky" \
+" N   3 Sergey Poznyakoff  Sat Jul 13 00:43  42/1625  Simple MIME" \
+" N   4 Sergey Poznyakoff  Sat Jul 13 00:50  84/3483  Nested MIME" \
 
 ###########################################################################
 # Check for `prev'
@@ -212,16 +212,16 @@ mail_test "prev"\
 # `headers' again
 
 mail_test -message "headers (4)" "headers" \
-">R   1 Foo Bar            Fri Dec 28 22:18  44/1255  Jabberwocky" \
-" R   2 Bar                Fri Dec 28 23:28  13/535   Re: Jabberwocky" \
-" N   3 Sergey Poznyakoff  Sat Jul 13 00:43  42/1626  Simple MIME" \
-" N   4 Sergey Poznyakoff  Sat Jul 13 00:50  84/3484  Nested MIME" \
+">R   1 Foo Bar            Fri Dec 28 22:18  44/1254  Jabberwocky" \
+" R   2 Bar                Fri Dec 28 23:28  13/534   Re: Jabberwocky" \
+" N   3 Sergey Poznyakoff  Sat Jul 13 00:43  42/1625  Simple MIME" \
+" N   4 Sergey Poznyakoff  Sat Jul 13 00:50  84/3483  Nested MIME" \
 
 ###########################################################################
 # print with an argument
 
 mail_test -message "print (2)" "print 2"\
-"Received: (from bar@dontmailme.org) "\
+"Received: (from bar@dontmailme.org)"\
 "	by dontmailme.org id fERKR9N16790"\
 "	for foobar@nonexistent.net; Fri, 28 Dec 2001 22:18:08 +0200"\
 "Date: Fri, 28 Dec 2001 23:28:08 +0200"\

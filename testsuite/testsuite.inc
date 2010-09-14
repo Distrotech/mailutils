@@ -26,7 +26,7 @@ AT_CHECK([$1 --version | sed '1{s/ *[\[.*\]]//;q}' ],
          [$1 (AT_PACKAGE_NAME) AT_PACKAGE_VERSION
 ],
 [],
-[cat >$[]XFAILFILE <<'_EOT'
+[cat >.xfailfile <<'_EOT'
 
 ==============================================================
 WARNING: Not using the proper version, *all* checks dubious...
@@ -37,3 +37,6 @@ _EOT
 
 AT_CLEANUP
 ])
+
+m4_define([AT_SKIP_TEST],[exit 77])
+
