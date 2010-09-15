@@ -27,7 +27,6 @@ enum mu_buffer_type
     mu_buffer_full
   };
 
-
 #define MU_SEEK_SET      0
 #define MU_SEEK_CUR      1
 #define MU_SEEK_END      2
@@ -38,8 +37,10 @@ enum mu_buffer_type
 #define MU_STREAM_SEEK        0x00000004
 #define MU_STREAM_APPEND      0x00000008
 #define MU_STREAM_CREAT	      0x00000010
+/* So far used only by TCP streams. */
 #define MU_STREAM_NONBLOCK    0x00000020
 #define MU_STREAM_AUTOCLOSE   0x00000040
+/* Not used. Intended for mailboxes only. */
 #define MU_STREAM_NONLOCK     0x00000080
 #define MU_STREAM_ALLOW_LINKS 0x00000100
 /* FIXME: This one affects only mailboxes */  

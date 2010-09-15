@@ -121,7 +121,7 @@ fd_open (struct _mu_stream *str)
     {
       struct stat fdbuf, filebuf;
 
-      /* The next two stats should never fail.  */
+      /* The following two stats should never fail.  */
       if (fstat (fd, &fdbuf) == -1
 	  || lstat (fstr->filename, &filebuf) == -1)
 	{

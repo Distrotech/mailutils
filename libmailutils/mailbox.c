@@ -44,6 +44,11 @@
 #include <mailutils/sys/mailbox.h>
 #include <mailutils/sys/url.h>
 
+/* Mailbox-specific flags */
+#define _MU_MAILBOX_OPEN    0x10000000
+#define _MU_MAILBOX_REMOVED 0x20000000
+#define _MU_MAILBOX_MASK    0xF0000000
+
 static int
 mailbox_folder_create (mu_mailbox_t mbox, const char *name,
 		       mu_record_t record)
@@ -287,7 +292,11 @@ mu_mailbox_destroy (mu_mailbox_t *pmbox)
 int
 mu_mailbox_open (mu_mailbox_t mbox, int flag)
 {
-  if (mbox == NULL || mbox->_open == NULL)
+  int rc;
+  
+  if (!mbox)
+    return MU_ERR_MBX_NULL;
+  if (mbox->_open == NULL)
     return MU_ERR_EMPTY_VFN;
   if (flag & MU_STREAM_QACCESS)
     {
@@ -296,16 +305,42 @@ mu_mailbox_open (mu_mailbox_t mbox, int flag)
 		  | MU_STREAM_APPEND | MU_STREAM_CREAT))
 	return EINVAL; /* FIXME: Better error code, please? */
     }
-  return mbox->_open (mbox, flag);
+  rc = mbox->_open (mbox, flag);
+  if (rc == 0)
+    mbox->flags |= _MU_MAILBOX_OPEN;
+  return rc;
 }
 
 int
 mu_mailbox_close (mu_mailbox_t mbox)
 {
+  int rc;
+
+  if (!mbox)
+    return MU_ERR_MBX_NULL;
+  if (!(mbox->flags & _MU_MAILBOX_OPEN))
+    return MU_ERR_NOT_OPEN;
   if (mbox == NULL || mbox->_close == NULL)
     return MU_ERR_EMPTY_VFN;
 
-  return mbox->_close (mbox);
+  rc = mbox->_close (mbox);
+  if (rc == 0)
+    mbox->flags &= ~_MU_MAILBOX_OPEN;
+  return rc;
+}
+
+int
+mu_mailbox_remove (mu_mailbox_t mbox)
+{
+  if (!mbox)
+    return MU_ERR_MBX_NULL;
+  if (mbox->flags & _MU_MAILBOX_OPEN)
+    return MU_ERR_OPEN;
+  if (mbox->flags & _MU_MAILBOX_REMOVED)
+    return MU_ERR_MBX_REMOVED;
+  if (!mbox->_remove)
+    return MU_ERR_EMPTY_VFN;
+  return mbox->_remove (mbox);
 }
 
 int
@@ -315,7 +350,11 @@ mu_mailbox_flush (mu_mailbox_t mbox, int expunge)
   int status = 0;
   
   if (!mbox)
-    return EINVAL;
+    return MU_ERR_MBX_NULL;
+  if (mbox->flags & _MU_MAILBOX_REMOVED)
+    return MU_ERR_MBX_REMOVED;
+  if (!(mbox->flags & _MU_MAILBOX_OPEN))
+    return _MU_MAILBOX_OPEN;
   if (!(mbox->flags & (MU_STREAM_RDWR|MU_STREAM_WRITE|MU_STREAM_APPEND)))
     return 0;
 
@@ -338,12 +377,29 @@ mu_mailbox_flush (mu_mailbox_t mbox, int expunge)
   return status;
 }
 
+#define _MBOX_CHECK_FLAGS(mbox)			\
+  if (mbox == NULL)				\
+    return MU_ERR_MBX_NULL;			\
+  if (mbox->flags & _MU_MAILBOX_REMOVED)	\
+    return MU_ERR_MBX_REMOVED;			\
+  if (!(mbox->flags & _MU_MAILBOX_OPEN))	\
+    return _MU_MAILBOX_OPEN
+
+#define _MBOX_CHECK(mbox,method)		\
+  _MBOX_CHECK_FLAGS(mbox);			\
+  if (mbox->method == NULL)			\
+    return MU_ERR_EMPTY_VFN
+
+#define _MBOX_CHECK_Q(mbox,method)		\
+  _MBOX_CHECK(mbox,method);			\
+  if (mbox->flags & MU_STREAM_QACCESS)		\
+    return MU_ERR_BADOP
+
 /* messages */
 int
 mu_mailbox_append_message (mu_mailbox_t mbox, mu_message_t msg)
 {
-  if (mbox == NULL || mbox->_append_message == NULL)
-    return MU_ERR_EMPTY_VFN;
+  _MBOX_CHECK_Q (mbox, _append_message);
   if (!(mbox->flags & (MU_STREAM_RDWR|MU_STREAM_WRITE|MU_STREAM_APPEND)))
     return EACCES;
   return mbox->_append_message (mbox, msg);
@@ -352,10 +408,7 @@ mu_mailbox_append_message (mu_mailbox_t mbox, mu_message_t msg)
 int
 mu_mailbox_get_message (mu_mailbox_t mbox, size_t msgno,  mu_message_t *pmsg)
 {
-  if (mbox == NULL || mbox->_get_message == NULL)
-    return MU_ERR_EMPTY_VFN;
-  if (mbox->flags & MU_STREAM_QACCESS)
-    return MU_ERR_BADOP;
+  _MBOX_CHECK_Q (mbox, _get_message);
   return mbox->_get_message (mbox, msgno, pmsg);
 }
 
@@ -363,8 +416,7 @@ int
 mu_mailbox_quick_get_message (mu_mailbox_t mbox, mu_message_qid_t qid,
 			      mu_message_t *pmsg)
 {
-  if (mbox == NULL || mbox->_quick_get_message == NULL)
-    return MU_ERR_EMPTY_VFN;
+  _MBOX_CHECK (mbox, _quick_get_message);
   if (!(mbox->flags & MU_STREAM_QACCESS))
     return MU_ERR_BADOP;
   return mbox->_quick_get_message (mbox, qid, pmsg);
@@ -373,38 +425,28 @@ mu_mailbox_quick_get_message (mu_mailbox_t mbox, mu_message_qid_t qid,
 int
 mu_mailbox_messages_count (mu_mailbox_t mbox, size_t *num)
 {
-  if (mbox == NULL || mbox->_messages_count == NULL)
-    return MU_ERR_EMPTY_VFN;
-  if (mbox->flags & MU_STREAM_QACCESS)
-    return MU_ERR_BADOP;
+  _MBOX_CHECK_Q (mbox, _messages_count);
   return mbox->_messages_count (mbox, num);
 }
 
 int
 mu_mailbox_messages_recent (mu_mailbox_t mbox, size_t *num)
 {
-  if (mbox == NULL || mbox->_messages_recent == NULL)
-    return MU_ERR_EMPTY_VFN;
-  if (mbox->flags & MU_STREAM_QACCESS)
-    return MU_ERR_BADOP;
+  _MBOX_CHECK_Q (mbox, _messages_recent);
   return mbox->_messages_recent (mbox, num);
 }
 
 int
 mu_mailbox_message_unseen (mu_mailbox_t mbox, size_t *num)
 {
-  if (mbox == NULL || mbox->_message_unseen == NULL)
-    return MU_ERR_EMPTY_VFN;
-  if (mbox->flags & MU_STREAM_QACCESS)
-    return MU_ERR_BADOP;
+  _MBOX_CHECK_Q (mbox, _message_unseen);
   return mbox->_message_unseen (mbox, num);
 }
 
 int
 mu_mailbox_sync (mu_mailbox_t mbox)
 {
-  if (mbox == NULL || mbox->_sync == NULL)
-    return MU_ERR_EMPTY_VFN;
+  _MBOX_CHECK_Q (mbox, _sync);
   if (!(mbox->flags & (MU_STREAM_RDWR|MU_STREAM_WRITE|MU_STREAM_APPEND)))
     return 0;
   return mbox->_sync (mbox);
@@ -414,18 +456,13 @@ mu_mailbox_sync (mu_mailbox_t mbox)
 int
 mu_mailbox_save_attributes (mu_mailbox_t mbox)
 {
-  if (mbox == NULL || mbox->_sync == NULL)
-    return MU_ERR_EMPTY_VFN;
-  if (!(mbox->flags & (MU_STREAM_RDWR|MU_STREAM_WRITE|MU_STREAM_APPEND)))
-    return EACCES;
-  return mbox->_sync (mbox);
+  return mu_mailbox_sync (mbox);
 }
 
 int
 mu_mailbox_expunge (mu_mailbox_t mbox)
 {
-  if (mbox == NULL || mbox->_expunge == NULL)
-    return MU_ERR_EMPTY_VFN;
+  _MBOX_CHECK_Q (mbox, _expunge);
   if (!(mbox->flags & (MU_STREAM_RDWR|MU_STREAM_WRITE|MU_STREAM_APPEND)))
     return EACCES;
   return mbox->_expunge (mbox);
@@ -434,7 +471,10 @@ mu_mailbox_expunge (mu_mailbox_t mbox)
 int
 mu_mailbox_is_updated (mu_mailbox_t mbox)
 {
-  if (mbox == NULL || mbox->_is_updated == NULL)
+  if (mbox == NULL ||
+      !(mbox->flags & _MU_MAILBOX_OPEN) ||
+      (mbox->flags & _MU_MAILBOX_REMOVED) ||
+      mbox->_is_updated == NULL)
     return 1;
   if (mbox->flags & MU_STREAM_QACCESS)
     return 1;
@@ -444,10 +484,7 @@ mu_mailbox_is_updated (mu_mailbox_t mbox)
 int
 mu_mailbox_scan (mu_mailbox_t mbox, size_t msgno, size_t *pcount)
 {
-  if (mbox == NULL || mbox->_scan == NULL)
-    return MU_ERR_EMPTY_VFN;
-  if (mbox->flags & MU_STREAM_QACCESS)
-    return MU_ERR_BADOP;
+  _MBOX_CHECK_Q (mbox, _scan);
   return mbox->_scan (mbox, msgno, pcount);
 }
 
@@ -455,8 +492,8 @@ int
 mu_mailbox_get_size (mu_mailbox_t mbox, mu_off_t *psize)
 {
   int status;
-  if (mbox == NULL)
-    return MU_ERR_EMPTY_VFN;
+
+  _MBOX_CHECK_FLAGS (mbox);
   if (mbox->flags & MU_STREAM_QACCESS)
     return MU_ERR_BADOP;
   if (mbox->_get_size == NULL
@@ -489,20 +526,14 @@ mu_mailbox_get_size (mu_mailbox_t mbox, mu_off_t *psize)
 int
 mu_mailbox_uidvalidity (mu_mailbox_t mbox, unsigned long *pvalid)
 {
-  if (mbox == NULL || mbox->_uidvalidity == NULL)
-    return MU_ERR_EMPTY_VFN;
-  if (mbox->flags & MU_STREAM_QACCESS)
-    return MU_ERR_BADOP;
+  _MBOX_CHECK_Q (mbox, _uidvalidity);
   return mbox->_uidvalidity (mbox, pvalid);
 }
 
 int
 mu_mailbox_uidnext (mu_mailbox_t mbox, size_t *puidnext)
 {
-  if (mbox == NULL || mbox->_uidnext == NULL)
-    return MU_ERR_EMPTY_VFN;
-  if (mbox->flags & MU_STREAM_QACCESS)
-    return MU_ERR_BADOP;
+  _MBOX_CHECK_Q (mbox, _uidnext);
   return mbox->_uidnext (mbox, puidnext);
 }
 
@@ -536,7 +567,7 @@ mu_mailbox_get_flags (mu_mailbox_t mbox, int *flags)
     return MU_ERR_MBX_NULL;
   if (!*flags)
     return MU_ERR_OUT_NULL;
-  *flags = mbox->flags;
+  *flags = mbox->flags & ~_MU_MAILBOX_MASK;
   return 0;
 }
 

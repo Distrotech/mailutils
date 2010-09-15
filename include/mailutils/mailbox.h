@@ -49,6 +49,7 @@ extern void mu_mailbox_destroy         (mu_mailbox_t *);
 
 extern int  mu_mailbox_open            (mu_mailbox_t, int flag);
 extern int  mu_mailbox_close           (mu_mailbox_t);
+extern int  mu_mailbox_remove          (mu_mailbox_t mbox);
 extern int  mu_mailbox_flush           (mu_mailbox_t mbox, int expunge);
 extern int  mu_mailbox_get_folder      (mu_mailbox_t, mu_folder_t *);
 extern int  mu_mailbox_set_folder      (mu_mailbox_t, mu_folder_t);

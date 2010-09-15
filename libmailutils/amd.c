@@ -112,6 +112,7 @@ static int amd_envelope_date (mu_envelope_t envelope, char *buf, size_t len,
 			      size_t *psize);
 static int amd_envelope_sender (mu_envelope_t envelope, char *buf, size_t len,
 			        size_t *psize);
+static int amd_remove_mbox (mu_mailbox_t mailbox);
 
 
 static int amd_body_stream_read (mu_stream_t str, char *buffer,
@@ -309,7 +310,8 @@ amd_init_mailbox (mu_mailbox_t mailbox, size_t amd_size,
   mailbox->_is_updated = amd_is_updated;
 
   mailbox->_get_size = amd_get_size;
-
+  mailbox->_remove = amd_remove_mbox;
+  
   MU_DEBUG1 (mailbox->debug, MU_DEBUG_TRACE1, "amd_init(%s)\n", amd->name);
   *pamd = amd;
   return 0;
@@ -1097,6 +1099,40 @@ compute_mailbox_size (struct _amd_data *amd, const char *name, mu_off_t *psize)
   
   closedir (dir);
   return 0;
+}
+
+static int
+amd_remove_mbox (mu_mailbox_t mailbox)
+{
+  int rc;
+  struct _amd_data *amd = mailbox->data;
+  
+  if (!amd->remove)
+    return ENOSYS;
+  rc = amd->remove (amd);
+  if (rc == 0)
+    {
+      char *name = make_size_file_name (amd);
+      if (!name)
+	return ENOMEM;
+      if (unlink (name) && errno != ENOENT)
+	rc = errno;
+      free (name);
+    }
+
+  if (rc == 0)
+    {
+      if (rmdir (amd->name) && errno != ENOENT)
+	{
+	  rc = errno;
+	  /* POSIX.1-2001 allows EEXIST to be returned if the directory
+	     contained entries other than . and .. */
+	  if (rc == EEXIST)
+	    rc = ENOTEMPTY;
+	}
+    }
+  
+  return rc;
 }
 
 static int
@@ -1920,6 +1956,83 @@ amd_envelope_sender (mu_envelope_t envelope, char *buf, size_t len, size_t *psiz
   if (psize)
     *psize = len;
   return 0;
+}
+
+
+int
+amd_remove_dir (const char *name)
+{
+  DIR *dir;
+  struct dirent *ent;
+  char *namebuf;
+  size_t namelen, namesize;
+  int rc = 0;
+  int has_subdirs = 0;
+  
+  namelen = strlen (name);
+  namesize = namelen + 128;
+  namebuf = malloc (namesize);
+  if (!namebuf)
+    return ENOMEM;
+  memcpy (namebuf, name, namelen);
+  if (namebuf[namelen - 1] != '/')
+    namebuf[namelen++] = '/';
+  
+  dir = opendir (name);
+  if (!dir)
+    return errno;
+  while ((ent = readdir (dir)))
+    {
+      struct stat st;
+      size_t len;
+
+      if (strcmp (ent->d_name, ".") == 0 ||
+	  strcmp (ent->d_name, "..") == 0)
+	continue;
+      len = strlen (ent->d_name);
+      if (namelen + len >= namesize)
+	{
+	  char *p;
+
+	  namesize += len + 1;
+	  p = realloc (namebuf, namesize);
+	  if (!p)
+	    {
+	      rc = ENOMEM;
+	      break;
+	    }
+	}
+      strcpy (namebuf + namelen, ent->d_name);
+      if (stat (namebuf, &st) == 0 && S_ISDIR (st.st_mode))
+	{
+	  has_subdirs = 1;
+	  continue;
+	}
+      
+      if (unlink (namebuf))
+	{
+	  rc = errno;
+	  mu_diag_output (MU_DIAG_WARNING,
+			  "failed to remove %s: %s",
+			  namebuf, mu_strerror (rc));
+	  break;
+	}
+    }
+  closedir (dir);
+  free (namebuf);
+
+  if (rc == 0 && !has_subdirs)
+    {
+      if (rmdir (name))
+	{
+	  rc = errno;
+	  /* POSIX.1-2001 allows EEXIST to be returned if the directory
+	     contained entries other than . and .. */
+	  if (rc == EEXIST)
+	    rc = ENOTEMPTY;
+	}
+    }
+  return rc;
 }
 
 

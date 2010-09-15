@@ -26,6 +26,10 @@ MU_ERR_OUT_NULL             _("Pointer to output null")
 MU_ERR_OUT_PTR_NULL         _("Pointer to output pointer null")
 
 MU_ERR_MBX_NULL             _("Mailbox null")
+MU_ERR_MBX_REMOVED          _("Mailbox removed")
+
+MU_ERR_NOT_OPEN             _("Resource not open")
+MU_ERR_OPEN                 _("Resource still open")
 
 MU_ERR_BAD_822_FORMAT       _("Format of RFC822 object is bad")
 MU_ERR_EMPTY_ADDRESS        _("Address contains no addr specs")
