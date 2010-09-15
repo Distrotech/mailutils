@@ -298,6 +298,8 @@ mu_mailbox_open (mu_mailbox_t mbox, int flag)
     return MU_ERR_MBX_NULL;
   if (mbox->_open == NULL)
     return MU_ERR_EMPTY_VFN;
+  if (mbox->flags & _MU_MAILBOX_OPEN)
+    return MU_ERR_OPEN;
   if (flag & MU_STREAM_QACCESS)
     {
       /* Quick access mailboxes are read-only */
