@@ -19,14 +19,15 @@ dnl ------------------------------------------------------------
 dnl TESTURL([NAME], [KW = `'], [INPUT], [STDOUT = `'],
 dnl         [STDERR = `'], [RUN-IF-FAIL], [RUN-IF-PASS])
 dnl
-m4_define([TESTURL],[
-AT_SETUP([URL: m4_if([$1],[],[$3],[$1])])
-AT_KEYWORDS([url $2])
-AT_CHECK([
-AT_DATA([input],[$3
-])
-url-parse < input],[0],m4_shift(m4_shift(m4_shift($@))))
-AT_CLEANUP
+
+m4_pushdef([TESTURL],[
+m4_pushdef([MU_TEST_GROUP],[Url])
+m4_pushdef([MU_TEST_KEYWORDS],[url])
+m4_pushdef([MU_TEST_COMMAND],[url-parse])
+MU_GENERIC_TEST([$1],[$2],[$3],[],[$4],[$5])
+m4_popdef([MU_TEST_COMMAND])
+m4_popdef([MU_TEST_KEYWORDS])
+m4_popdef([MU_TEST_GROUP])
 ])
 
 dnl ------------------------------------------------------------
@@ -773,4 +774,4 @@ query[1] <arg 1>
 query[2] <arg 2>
 ]])
 
-
+m4_popdef([TESTURL])

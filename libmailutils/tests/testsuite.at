@@ -17,6 +17,41 @@
 
 m4_include([testsuite.inc])
 
+dnl ------------------------------------------------------------
+m4_define([MU_TEST_GROUP],[generic])
+dnl ------------------------------------------------------------
+m4_define([MU_TEST_KEYWORDS])
+dnl ------------------------------------------------------------
+m4_define([MU_TEST_COMMAND])
+
+m4_define([mu_trimstr],[m4_if([$2],-1,[$1],[m4_substr($1,0,$2)...])])
+m4_define([mu_firstline],[mu_trimstr([$1],m4_index([$1],[
+]))])
+
+dnl ------------------------------------------------------------
+dnl MU_GENERIC_TEST([NAME], [KW = `'], [INPUT],
+dnl                 [CODE], [STDOUT = `'], [STDERR = `'],
+dnl                 [RUN-IF-FAIL], [RUN-IF-PASS])
+dnl
+dnl NAME        $1
+dnl KW          $2
+dnl INPUT       $3
+dnl CODE        $4
+dnl STDOUT      $5
+dnl STDERR      $6
+dnl RUN-IF-FAIL $7
+dnl RUN-IF-PASS $8
+dnl
+m4_define([MU_GENERIC_TEST],[
+AT_SETUP([m4_if(MU_TEST_GROUP,[],,MU_TEST_GROUP: )m4_if([$1],[],mu_firstline([$3]),[$1])])
+AT_KEYWORDS([MU_TEST_KEYWORDS $2])
+AT_CHECK([
+AT_DATA([input],[$3
+])
+MU_TEST_COMMAND < input],[$4],[$5],[$6],[$7],[$8])
+AT_CLEANUP
+])
+
 AT_INIT
 
 m4_include([address.at])

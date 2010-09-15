@@ -22,7 +22,10 @@ dnl
 m4_define([TESTADDR],[
 AT_SETUP([Address: [$1]])
 AT_KEYWORDS([address $2])
-AT_CHECK([addr '[$1]'],m4_shift(m4_shift($@)))
+AT_CHECK([m4_if(m4_index([$1],[']),-1,[addr '[$1]'],
+[AT_DATA([input],[$1
+])
+addr < input])],m4_shift(m4_shift($@)))
 AT_CLEANUP
 ])
 
@@ -320,9 +323,7 @@ personal <#369>
 local-part <guug-bugs-closed> domain <guug.de>
 ])
 
-dnl --------------------------------------------------------------------------
-dnl FIXME:
-m4_if([TESTADDR(["'Aernoudt Bottemanne'"	 <Aernoudt.Bottemanne@Informix.com>],[],
+TESTADDR(["'Aernoudt Bottemanne'"	 <Aernoudt.Bottemanne@Informix.com>],[],
 [0],
 [naddr: 1
 1. email <Aernoudt.Bottemanne@Informix.com>:
@@ -369,21 +370,18 @@ local-part <paul> domain <pitbull-productions.com>
 ])
 
 TESTADDR(["'sam@cogent.ca'" <sam@cogent.ca>, "'sroberts@uniserve.com'"],[],
-[1],
+[0],
 [],
 [MU_ERR_BAD_822_FORMAT
 ])
 
-TESTADDR(["'sroberts\@certicom\.ca'" <sroberts@certicom.ca>],[]
+TESTADDR(["'sroberts\@certicom\.ca'" <sroberts@certicom.ca>],[],
 [0],
 [naddr: 1
 1. email <sroberts@certicom.ca>:
 personal <'sroberts@certicom.ca'>
 local-part <sroberts> domain <certicom.ca>
 ])
-
-])
-dnl --------------------------------------------------------------------------
 
 TESTADDR(["=?iso-8859-1?Q?Juan_Carlos_Marcos_Rodr=EDguez?=" <jcmarcos@datavoice.es>],[],
 [0],
@@ -477,15 +475,12 @@ local-part <jpalme> domain <dsv.su.se>
 local-part <drums> domain <cs.utk.edu>
 ])
 
-dnl FIXME
-m4_if([
 TESTADDR(["Jakob 'sparky' Kaivo" <jkaivo@elijah.nodomainname.net>],[],
 [0],
 [naddr: 1
 1. email <jkaivo@elijah.nodomainname.net>:
 personal <Jakob 'sparky' Kaivo>
 local-part <jkaivo> domain <elijah.nodomainname.net>
-])
 ])
 
 TESTADDR(["Lee R. Copp" <Lee.R.Copp@MichiganScientific.com>],[],
@@ -528,16 +523,12 @@ personal <fmartens-2000>
 local-part <fmartens-2000> domain <planet.nl>
 ])
 
-dnl FIXME
-m4_if([
 TESTADDR(["g'o'tz ohnesorge" <gohnesorge@lh-computertechnik.de>],[],
 [0],
 [naddr: 1
 1. email <gohnesorge@lh-computertechnik.de>:
 personal <g'o'tz ohnesorge>
 local-part <gohnesorge> domain <lh-computertechnik.de>
-])
-
 ])
 
 TESTADDR(["gao jie" <jiegi@public.wh.hb.cn>],[],
@@ -607,14 +598,10 @@ personal <zwk@f36.n480.z2.fidonet.org>
 local-part <zwk%f36.n480.z2.fidonet.org> domain <f36.n480.z2.fidonet.org>
 ])
 
-dnl FIXME
-m4_if([
 TESTADDR(['Dan Dall'Acqua' <ddallacqua@noetic.ab.ca>, 'Dave Shyong'],[],
-[1],
+[0],
 [],
 [MU_ERR_BAD_822_FORMAT
-])
-
 ])
 
 TESTADDR([0xdeadbeef-request@petting-zoo.net],[],
@@ -914,14 +901,12 @@ personal <Jose C. Garcia Sogo>
 local-part <jose> domain <jaimedelamo.eu.org>
 ])
 
-dnl FIXME
-m4_if([
-TESTADDR([Marco d'Itri <md@Linux.IT>,[],
+TESTADDR([Marco d'Itri <md@Linux.IT>],[],
 [0],
+[naddr: 1
 1. email <md@Linux.IT>:
 personal <Marco d'Itri>
 local-part <md> domain <Linux.IT>
-])
 ])
 
 TESTADDR([No_Reply-To@mapquest.com],[],
@@ -1007,8 +992,6 @@ personal <ktb>
 local-part <x.y.f> domain <home.com>
 ])
 
-dnl FIXME
-m4_if([
 TESTADDR([mcaustin@eudoramail.com, aposner@usaid.gov, Kieran.O'Leary@anpost.ie],[],
 [0],
 [naddr: 3
@@ -1018,7 +1001,6 @@ local-part <mcaustin> domain <eudoramail.com>
 local-part <aposner> domain <usaid.gov>
 3. email <Kieran.O'Leary@anpost.ie>:
 local-part <Kieran.O'Leary> domain <anpost.ie>
-])
 ])
 
 TESTADDR([rfunk@wks.uts.ohio-state.eduofflinemailer-bounce@dikke.penguin.nl],[],
@@ -1033,8 +1015,6 @@ TESTADDR([root],[],
 1. email <root@localhost>:
 local-part <root> domain <localhost>
 ])
-
-dnl FIXME srr <sam@localhost>=> error MU_ERR_BAD_822_FORMAT
 
 TESTADDR([whom it may concern: ;;whom.it.may.concern: ;],[],
 [1],

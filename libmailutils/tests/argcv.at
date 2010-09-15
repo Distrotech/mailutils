@@ -19,14 +19,14 @@ dnl ------------------------------------------------------------
 dnl TESTARGS([NAME], [KW = `'], [INPUT], [STDOUT = `'],
 dnl          [STDERR = `'], [RUN-IF-FAIL], [RUN-IF-PASS])
 dnl
-m4_define([TESTARGS],[
-AT_SETUP([Argcv: $1])
-AT_KEYWORDS([argcv $2])
-AT_CHECK([
-AT_DATA([input],[$3
-])
-argcv < input],[0],m4_shift(m4_shift(m4_shift($@))))
-AT_CLEANUP
+m4_pushdef([TESTARGS],[
+m4_pushdef([MU_TEST_GROUP],[Argcv])
+m4_pushdef([MU_TEST_KEYWORDS],[argcv])
+m4_pushdef([MU_TEST_COMMAND],[argcv])
+MU_GENERIC_TEST([$1],[$2],[$3],[],[$4],[$5])
+m4_popdef([MU_TEST_COMMAND])
+m4_popdef([MU_TEST_KEYWORDS])
+m4_popdef([MU_TEST_GROUP])
 ])
 
 dnl ------------------------------------------------------------
@@ -84,6 +84,7 @@ TESTARG([unbalanced quote 3],[],
 [1: "\""
 ])
 
+m4_popdef([TESTARGS])
 
 
 

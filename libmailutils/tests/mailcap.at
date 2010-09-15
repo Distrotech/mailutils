@@ -19,14 +19,15 @@ dnl ------------------------------------------------------------
 dnl MAILCAP([NAME], [KW = `'], [INPUT], [STDOUT = `'],
 dnl         [STDERR = `'], [RUN-IF-FAIL], [RUN-IF-PASS])
 dnl
-m4_define([MAILCAP],[
-AT_SETUP([Mailcap: [$1]])
-AT_KEYWORDS([mailcap $2])
-AT_CHECK([
-AT_DATA([input],[$3
-])
-mailcap input],[0],m4_shift(m4_shift(m4_shift($@))))
-AT_CLEANUP
+
+m4_pushdef([MAILCAP],[
+m4_pushdef([MU_TEST_GROUP],[Mailcap])
+m4_pushdef([MU_TEST_KEYWORDS],[mailcap])
+m4_pushdef([MU_TEST_COMMAND],[mailcap])
+MU_GENERIC_TEST([$1],[$2],[$3],[],[$4],[$5])
+m4_popdef([MU_TEST_COMMAND])
+m4_popdef([MU_TEST_KEYWORDS])
+m4_popdef([MU_TEST_GROUP])
 ])
 
 dnl ------------------------------------------------------------
@@ -277,3 +278,5 @@ nametemplate=%s.au],
 	fields[2]: nametemplate=%s.au
 
 ]])
+
+m4_popdef([MAILCAP])

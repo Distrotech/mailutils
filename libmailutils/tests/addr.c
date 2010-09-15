@@ -20,6 +20,7 @@
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
@@ -28,13 +29,14 @@
 #include <mailutils/errno.h>
 #include <mailutils/kwd.h>
 #include <mailutils/mutil.h>
+#include <mailutils/cstr.h>
+#include <mailutils/cctype.h>
 
 #define EPARSE MU_ERR_NOENT
 
 int
-main (int argc, char *argv[])
+parse (const char *str)
 {
-  char *str;
   size_t i;
   size_t pcount = 0;
   int status;
@@ -42,13 +44,6 @@ main (int argc, char *argv[])
   mu_address_t address = NULL;
   struct mu_address hint;
 
-  if (argc != 2)
-    {
-      fprintf (stderr, "usage: %s address\n", argv[0]);
-      return 2;
-    }
-  str = argv[1];
-  
   hint.domain = "localhost";
   status = mu_address_create_hint (&address, str, &hint, MU_ADDR_HINT_DOMAIN);
   mu_address_get_count (address, &pcount);
@@ -99,5 +94,27 @@ main (int argc, char *argv[])
         printf ("route <%s>\n", buf);
     }
   mu_address_destroy (&address);
+  return 0;
+}
+
+int
+main (int argc, char *argv[])
+{
+  char buf[256];
+
+  if (argc > 2)
+    {
+      fprintf (stderr, "usage: %s [address]\n", argv[0]);
+      return 2;
+    }
+
+  if (argc == 2)
+    exit (parse (argv[1]));
+  
+  while (fgets (buf, sizeof buf, stdin))
+    {
+      mu_rtrim_class (buf, MU_CTYPE_SPACE);
+      parse (buf);
+    }
   return 0;
 }

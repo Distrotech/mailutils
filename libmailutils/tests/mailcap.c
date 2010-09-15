@@ -31,22 +31,22 @@ main (int argc, char **argv)
 {
   mu_stream_t stream = NULL;
   int status = 0;
-  char *file = argc == 1 ? "/etc/mailcap" : argv[1];
   mu_mailcap_t mailcap = NULL;
 
-  status = mu_file_stream_create (&stream, file, MU_STREAM_READ);
+  status = mu_stdio_stream_create (&stream, MU_STDIN_FD,
+				   MU_STREAM_READ|MU_STREAM_SEEK);
   if (status)
     {
-      mu_error ("cannot create file stream %s: %s",
-		file, mu_strerror (status));
+      mu_error ("cannot create input stream: %s",
+		mu_strerror (status));
       exit (1);
     }
 
   status = mu_stream_open (stream);
   if (status)
     {
-      mu_error ("cannot open file stream %s: %s",
-		file, mu_strerror (status));
+      mu_error ("cannot open input stream: %s",
+		mu_strerror (status));
       exit (1);
     }
 
