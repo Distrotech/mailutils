@@ -1,0 +1,15 @@
+atconfig
+atlocal
+package.m4
+testsuite
+testsuite.dir
+testsuite.log
+addr
+argcv
+decode2047
+encode2047
+fltst
+listop
+mailcap
+mimetest
+url-parse

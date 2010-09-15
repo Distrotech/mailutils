@@ -26,12 +26,7 @@
 #include <mailutils/argcv.h>
 #include <mailutils/mailutils.h>
 
-void
-usage(int code)
-{
-  printf ("usage: listop [item..]\n");
-  exit (code);
-}
+static int interactive;
 
 void
 lperror (char *text, int rc)
@@ -413,9 +408,34 @@ find (mu_iterator_t itr, char *arg)
 }
 
 void
+cur (int num, mu_iterator_t itr)
+{
+  char *text;
+  size_t pos;
+  int rc;
+
+  printf ("%lu:", (unsigned long) num);
+  rc = mu_iterator_ctl (itr, mu_itrctl_tell, &pos);
+  if (rc == MU_ERR_NOENT)
+    {
+      printf ("iterator not initialized\n");
+      return;
+    }
+  if (rc)
+    lperror ("mu_iterator_ctl", rc);
+  printf ("%lu:", (unsigned long) pos);
+
+  rc = mu_iterator_current (itr, (void**) &text);
+  if (rc)
+    lperror ("mu_iterator_current", rc);
+  printf ("%s\n", text);
+}
+
+void
 help ()
 {
   printf ("count\n");
+  printf ("cur\n");
   printf ("next [count]\n");
   printf ("first\n");
   printf ("find item\n");
@@ -447,7 +467,7 @@ shell (mu_list_t list)
   num = 0;
   while (1)
     {
-      char *text;
+      char *text = NULL;
       char buf[80];
       int argc;
       char **argv;
@@ -464,7 +484,8 @@ shell (mu_list_t list)
       if (rc)
 	lperror ("mu_iterator_current", rc);
 
-      printf ("%d:(%s)> ", num, text ? text : "NULL");
+      if (interactive)
+	printf ("%d:(%s)> ", num, text ? text : "NULL");
       if (fgets (buf, sizeof buf, stdin) == NULL)
 	return;
 
@@ -494,6 +515,8 @@ shell (mu_list_t list)
 	    ictl (itr[num], argc, argv);
 	  else if (strcmp (argv[0], "print") == 0)
 	    print (list);
+	  else if (strcmp (argv[0], "cur") == 0)
+	    cur (num, itr[num]);
 	  else if (strcmp (argv[0], "quit") == 0)
 	    return;
 	  else if (strcmp (argv[0], "iter") == 0)
@@ -555,25 +578,16 @@ main (int argc, char **argv)
 {
   mu_list_t list;
   int rc;
-  
-  while ((rc = getopt (argc, argv, "h")) != EOF)
-    switch (rc)
-      {
-      case 'h':
-	usage (0);
-	
-      default:
-	usage (1);
-      }
 
-  argc -= optind;
-  argv += optind;
-
+  interactive = isatty (0);
   rc = mu_list_create (&list);
   if (rc)
     lperror ("mu_list_create", rc);
   mu_list_set_comparator (list, string_comp);
   mu_list_set_destroy_item (list, mu_list_free_item);
+
+  argc--;
+  argv++;
   
   while (argc--)
     {

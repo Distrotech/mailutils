@@ -599,6 +599,7 @@ list_itrctl (void *owner, enum mu_itrctl_req req, void *arg)
       /* Replace current element */
       if (!arg)
 	return EINVAL;
+      ptr = itr->cur;
       if (req == mu_itrctl_replace)
 	  DESTROY_ITEM (list, ptr);
       ptr = itr->cur;

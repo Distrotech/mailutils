@@ -45,6 +45,7 @@ noinst_PROGRAMS = \
  decode2047\
  encode2047\
  fltst\
+ listop\
  mailcap\
  mimetest\
  url-parse
@@ -71,6 +72,7 @@ TESTSUITE_AT = \
  base64e.at\
  decode2047.at\
  encode2047.at\
+ list.at\
  mailcap.at\
  mime.at\
  testsuite.at\

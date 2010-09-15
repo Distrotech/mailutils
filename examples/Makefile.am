@@ -40,7 +40,6 @@ noinst_PROGRAMS = \
  header\
  http\
  iconv\
- listop\
  lsf\
  msg-send\
  mta\
