@@ -181,7 +181,7 @@ mbox_remove (mu_mailbox_t mailbox)
 
   MU_DEBUG1 (mailbox->debug, MU_DEBUG_TRACE1,
 	     "mbox_remove (%s)\n", mud->name);
-  return unlink (mud->name);
+  return unlink (mud->name) == 0 ? 0 : errno;
 }
 
 /* Cover function that calls the real thing, mbox_scan(), with

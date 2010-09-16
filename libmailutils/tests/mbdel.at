@@ -1,0 +1,73 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2010 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+# This file is part of Mailfromd testsuite. 
+
+dnl ------------------------------------------------------------
+dnl MBDEL_TEST([FORMAT], [PROG],
+dnl             [CODE], [STDOUT = `'], [STDERR = `'],
+dnl             [RUN-IF-FAIL], [RUN-IF-PASS])
+m4_define([MBDEL_TEST],[
+AT_SETUP([Mailbox deletion: $1])
+AT_KEYWORDS([mailbox mbdel mbdel-$1])
+AT_CHECK([$2],[$3],[$4],[$5],[$6],[$7],[$8])
+AT_CLEANUP
+])
+
+dnl ------------------------------------------------------------
+MBDEL_TEST([mbox],
+[cp $top_srcdir/testsuite/spool/mbox1 .
+mbdel mbox:mbox1 || exit 2
+test -f mbox1
+],
+[1])
+
+MBDEL_TEST([mh],
+[cp -r $top_srcdir/testsuite/mh/mbox1 .
+mbdel mh:mbox1 || exit 2
+test -d mbox1
+],
+[1])
+
+MBDEL_TEST([maildir],
+[cp -r $top_srcdir/testsuite/maildir/mbox1 .
+mbdel maildir:mbox1 || exit 2
+test -d mbox1
+],
+[1])
+
+MBDEL_TEST([mh with subdirs],
+[cp -r $top_srcdir/testsuite/mh/mbox1 .
+mkdir mbox1/subfolder
+mbdel mh:mbox1 || exit 2
+test -d mbox1 && find mbox1
+],
+[0],
+[mailbox removed, but has subfolders
+mbox1
+mbox1/subfolder
+])
+
+MBDEL_TEST([maildir with subdirs],
+[cp -r $top_srcdir/testsuite/maildir/mbox1 .
+mkdir mbox1/subfolder
+mbdel maildir:mbox1 || exit 2
+test -d mbox1 && find mbox1
+],
+[0],
+[mailbox removed, but has subfolders
+mbox1
+mbox1/subfolder
+])

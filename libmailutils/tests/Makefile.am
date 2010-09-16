@@ -79,6 +79,7 @@ TESTSUITE_AT = \
  encode2047.at\
  list.at\
  mailcap.at\
+ mbdel.at\
  mime.at\
  testsuite.at\
  url.at

@@ -57,10 +57,12 @@ AT_INIT
 m4_include([list.at])
 m4_include([address.at])
 m4_include([argcv.at])
-m4_include([mime.at])
 m4_include([url.at])
 m4_include([mailcap.at])
 m4_include([base64e.at])
 m4_include([base64d.at])
 m4_include([decode2047.at])
 m4_include([encode2047.at])
+
+m4_include([mime.at])
+m4_include([mbdel.at])

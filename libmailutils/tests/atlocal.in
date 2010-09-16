@@ -5,5 +5,5 @@
 PATH=@abs_builddir@:@abs_top_builddir@/frm:$top_srcdir:$srcdir:$PATH
 top_srcdir=@abs_top_srcdir@
 top_builddir=@abs_top_builddir@
-
+abs_builddir=@abs_builddir@
   

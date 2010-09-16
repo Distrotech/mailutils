@@ -1,0 +1,12 @@
+Received: (from hatter@wonder.land) 
+	by wonder.land id 3319
+	for alice@wonder.land; Mon, 29 Jul 2002 22:00:24 +0100
+Date: Mon, 29 Jul 2002 22:00:19 +0100
+From: Hatter  <hatter@wonder.land>
+Message-Id: <200207292200.3319@wonder.land>
+To: Alice  <alice@wonder.land>
+Subject: Watch
+X-Envelope-Date: Mon Jul 29 22:00:26 2002
+X-Envelope-Sender: hatter@wonder.land
+
+What day of the month is it?
