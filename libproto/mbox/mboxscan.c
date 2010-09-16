@@ -209,7 +209,8 @@ do                                                                            \
     }                                                                         \
   if (bailing != 0)                                                           \
     {                                                                         \
-      mu_locker_unlock (mbox->locker);                                        \
+      if (mailbox->locker)						      \
+	mu_locker_unlock (mbox->locker);				      \
       return EINTR;                                                           \
     }                                                                         \
   mu_monitor_wrlock (mbox->monitor);                                          \
@@ -232,8 +233,9 @@ do                                                                           \
                                     MU_EVT_MAILBOX_PROGRESS, NULL);          \
   if (bailing != 0)                                                          \
     {	                                                                     \
-       mu_locker_unlock (mbox->locker);                                      \
-       return EINTR;                                                         \
+      if (mailbox->locker)						     \
+	mu_locker_unlock (mbox->locker);				     \
+      return EINTR;							     \
     }                                                                        \
   mud->messages_count++;                                                     \
   mu_monitor_wrlock (mbox->monitor);                                         \
@@ -251,7 +253,8 @@ do                                                                           \
       m = realloc ((mud)->umessages, num * sizeof (*m));                     \
     if (m == NULL)                                                           \
       {                                                                      \
-        mu_locker_unlock (mbox->locker);                                     \
+	if (mailbox->locker)						     \
+	  mu_locker_unlock (mbox->locker);				     \
         mu_monitor_unlock (mbox->monitor);                                   \
         return ENOMEM;                                                       \
       }                                                                      \
@@ -259,7 +262,8 @@ do                                                                           \
     (mud)->umessages[num - 1] = calloc (1, sizeof (*(mum)));                 \
     if ((mud)->umessages[num - 1] == NULL)                                   \
       {                                                                      \
-        mu_locker_unlock (mbox->locker);                                     \
+	if (mailbox->locker)						     \
+	  mu_locker_unlock (mbox->locker);				     \
         mu_monitor_unlock (mbox->monitor);                                   \
         return ENOMEM;                                                       \
       }                                                                      \
@@ -391,7 +395,7 @@ mbox_scan_internal (mu_mailbox_t mailbox, mbox_message_t mum,
       newline = (inbody && lines) ? nl : 0;
       
       /* Every 100 mesgs update the lock, it should be every minute.  */
-      if ((mud->messages_count % 100) == 0)
+      if (mailbox->locker && (mud->messages_count % 100) == 0)
 	mu_locker_touchlock (mailbox->locker);
 
       /* Ping them every 1000 lines. Should be tunable.  */
@@ -454,7 +458,8 @@ mbox_scan0 (mu_mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notif)
       return status;
     }
 
-  if ((status = mu_locker_lock (mailbox->locker)))
+  if (mailbox->locker &&
+      (status = mu_locker_lock (mailbox->locker)))
     {
       mu_monitor_unlock (mailbox->monitor);
       return status;
@@ -477,7 +482,8 @@ mbox_scan0 (mu_mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notif)
     
   if (pcount)
     *pcount = mud->messages_count;
-  mu_locker_unlock (mailbox->locker);
+  if (mailbox->locker)
+    mu_locker_unlock (mailbox->locker);
   mu_monitor_unlock (mailbox->monitor);
 
   /* Reset the uidvalidity.  */
@@ -525,7 +531,8 @@ mbox_scan1 (mu_mailbox_t mailbox, mu_off_t offset, int do_notif)
   pthread_cleanup_push (mbox_cleanup, (void *)mailbox);
 #endif
 
-  if ((status = mu_locker_lock (mailbox->locker)))
+  if (mailbox->locker &&
+      (status = mu_locker_lock (mailbox->locker)))
     {
       mu_monitor_unlock (mailbox->monitor);
       return status;
@@ -535,7 +542,8 @@ mbox_scan1 (mu_mailbox_t mailbox, mu_off_t offset, int do_notif)
   if (status)
     {
       mu_monitor_unlock (mailbox->monitor);
-      mu_locker_unlock (mailbox->locker);
+      if (mailbox->locker)
+	mu_locker_unlock (mailbox->locker);
       return status;
     }
 
@@ -543,7 +551,8 @@ mbox_scan1 (mu_mailbox_t mailbox, mu_off_t offset, int do_notif)
 			       MBOX_SCAN_ONEMSG |
 			       (do_notif ? MBOX_SCAN_NOTIFY : 0));
 
-  mu_locker_unlock (mailbox->locker);
+  if (mailbox->locker)
+    mu_locker_unlock (mailbox->locker);
   mu_monitor_unlock (mailbox->monitor);
   
 #ifdef WITH_PTHREAD

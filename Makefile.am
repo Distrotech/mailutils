@@ -93,11 +93,11 @@ SUBDIRS = . \
  mu-aux\
  include\
  po\
- testsuite\
  libmailutils\
  sql\
  libmu_auth\
  libproto\
+ testsuite\
  lib\
  libmu_argp\
  libmu_cfg\
@@ -126,7 +126,7 @@ SUBDIRS = . \
 
 EXTRA_DIST = COPYING.LESSER paths git-describe git-describe.h
 BUILT_SOURCES = git-describe git-describe.h
-DISTCLEANFILES = pathdefs.h
+DISTCLEANFILES = pathdefs.h git-describe.h
 
 gen_start_date = "2008-12-08"
 prev_change_log = "doc/ChangeLog.CVS"

@@ -3,5 +3,3 @@
 # Copyright (C) 2004, 2010 Free Software Foundation, Inc.
 
 PATH=@abs_builddir@:@abs_top_builddir@/readmsg:$top_srcdir:$srcdir:$PATH
-top_srcdir=@abs_top_srcdir@
-top_builddir=@abs_top_builddir@

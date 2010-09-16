@@ -3,12 +3,3 @@
 # Copyright (C) 2004, 2010 Free Software Foundation, Inc.
 
 PATH=@abs_builddir@:@abs_top_builddir@/sieve:$top_srcdir:$srcdir:$PATH
-top_srcdir=@abs_top_srcdir@
-top_builddir=@abs_top_builddir@
-
-initspool() {
-  test -d data || mkdir data
-  test -d data/spool || mkdir data/spool
-  cp $top_srcdir/testsuite/spool/* data/spool
-}
-  

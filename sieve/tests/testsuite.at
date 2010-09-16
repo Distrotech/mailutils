@@ -22,7 +22,7 @@ dnl testcompile(SCRIPT) -- test compilation of the Sieve SCRIPT
 dnl
 m4_define([testcompile],[
 AT_SETUP([compile $1])
-AT_CHECK([sieve -c $top_srcdir/sieve/examples/$1],
+AT_CHECK([sieve -c $abs_top_srcdir/sieve/examples/$1],
 [0])
 AT_CLEANUP
 ])
@@ -42,7 +42,7 @@ m4_define([MUT_SIEVE_CMDLINE],[dnl
  --no-program-name dnl
  --no-site-config dnl
  --no-user-config dnl
- -M sendmail:$top_builddir/examples/mta dnl
+ -M sendmail:$abs_top_builddir/examples/mta dnl
  --email foobar@nonexistent.net])
  
 dnl ------------------------------------------------------------
@@ -70,7 +70,9 @@ AT_CHECK([sieve MUT_SIEVE_CMDLINE MUT_SIEVE_OPTIONS -f $2 prog
 m4_define([MUT_TESTCASE],[
 AT_SETUP([$1])
 AT_KEYWORDS([$2])
-cp $top_srcdir/testsuite/spool/MUT_SIEVE_MAILBOX .
+cp $abs_top_srcdir/testsuite/spool/MUT_SIEVE_MAILBOX .
+chmod +w MUT_SIEVE_MAILBOX
+
 MUT_SIEVE_RUN([$3], ./MUT_SIEVE_MAILBOX, m4_shift(m4_shift(m4_shift($@))))
 AT_CLEANUP])
 

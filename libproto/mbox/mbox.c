@@ -120,7 +120,8 @@ mbox_open (mu_mailbox_t mailbox, int flags)
   MU_DEBUG2 (mailbox->debug, MU_DEBUG_TRACE1, "mbox_open (%s, 0x%x)\n",
 	     mud->name, mailbox->flags);
 
-  if (mailbox->locker == NULL)
+  if (mailbox->locker == NULL &&
+      (flags & (MU_STREAM_WRITE | MU_STREAM_APPEND | MU_STREAM_CREAT)))
     status = mu_locker_create (&mailbox->locker, mud->name, 0);
   return status;
 }
@@ -1117,7 +1118,8 @@ mbox_append_message (mu_mailbox_t mailbox, mu_message_t msg)
   MU_DEBUG1 (mailbox->debug, MU_DEBUG_TRACE1, "mbox_append_message (%s)\n",
 	     mud->name);
 
-  if ((status = mu_locker_lock (mailbox->locker)) != 0)
+  if (mailbox->locker &&
+      (status = mu_locker_lock (mailbox->locker)) != 0)
     {
       MU_DEBUG1 (mailbox->debug, MU_DEBUG_TRACE1,
 		 "mbox_append_message: %s\n", mu_strerror(status));
@@ -1128,7 +1130,8 @@ mbox_append_message (mu_mailbox_t mailbox, mu_message_t msg)
   if (status)
     return status;
   status = append_message_to_stream (mailbox->stream, msg, mud, 0);
-  mu_locker_unlock (mailbox->locker);
+  if (mailbox->locker)
+    mu_locker_unlock (mailbox->locker);
 
   if (status)
     {
@@ -1406,7 +1409,8 @@ mbox_expunge0 (mu_mailbox_t mailbox, int remove_deleted)
     return 0; /* Nothing changed.  */
 
   /* Lock the mailbox */
-  if ((status = mu_locker_lock (mailbox->locker)) != 0)
+  if (mailbox->locker &&
+      (status = mu_locker_lock (mailbox->locker)) != 0)
     return status;
 
   status = mu_temp_file_stream_create (&tempstr, NULL);
@@ -1442,7 +1446,8 @@ mbox_expunge0 (mu_mailbox_t mailbox, int remove_deleted)
 	    mbox_reset (mailbox, dirty, remove_deleted);
 	}
     }
-  mu_locker_unlock (mailbox->locker);
+  if (mailbox->locker)
+    mu_locker_unlock (mailbox->locker);
   return status;
 }
 

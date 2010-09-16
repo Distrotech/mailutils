@@ -113,7 +113,7 @@ main (int argc, char **argv)
     }
 
   /* Open the mailbox for reading only.  */
-  MU_ASSERT (mu_mailbox_open (mbox, MU_STREAM_RDWR));
+  MU_ASSERT (mu_mailbox_open (mbox, MU_STREAM_READ));
 
   /* Iterate through the entire message set.  */
   MU_ASSERT (mu_mailbox_messages_count (mbox, &count));

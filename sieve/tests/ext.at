@@ -30,10 +30,11 @@ if numaddr [[ "to", "cc" ]] :over 5
   }
 ])
 
-cp $top_srcdir/testsuite/spool/bigto.mbox .
+cp $abs_top_srcdir/testsuite/spool/bigto.mbox .
+chmod +w bigto.mbox
 
 sieve MUT_SIEVE_CMDLINE dnl
- --clearpath -L "${top_builddir}/examples" -f ./bigto.mbox prog
+ --clearpath -L "${abs_top_builddir}/examples" -f ./bigto.mbox prog
 ],
 [0],
 [],

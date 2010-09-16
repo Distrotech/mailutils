@@ -1,2 +1,8 @@
-Makefile
-Makefile.in
+atconfig
+atlocal
+package.m4
+testsuite
+testsuite.dir
+testsuite.log
+mbdel
+mimetest

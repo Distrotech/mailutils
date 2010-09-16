@@ -1,5 +1,5 @@
 # This file is part of GNU Mailutils.
-# Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+# Copyright (C) 2010 Free Software Foundation, Inc.
 #
 # GNU Mailutils is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License as
@@ -47,22 +47,9 @@ noinst_PROGRAMS = \
  fltst\
  listop\
  mailcap\
- mbdel\
- mimetest\
  url-parse
 
-LDADD =\
- ../../lib/libmuaux.la\
- ${MU_LIB_MBOX}\
- ${MU_LIB_IMAP}\
- ${MU_LIB_POP}\
- ${MU_LIB_NNTP}\
- ${MU_LIB_MH}\
- ${MU_LIB_MAILDIR}\
- ${MU_LIB_MAILER}\
- ${MU_LIB_AUTH}\
- @MU_AUTHLIBS@\
- ${MU_LIB_MAILUTILS}
+LDADD = ${MU_LIB_MAILUTILS}
 
 EXTRA_DIST += Encode Decode
 
@@ -79,8 +66,6 @@ TESTSUITE_AT = \
  encode2047.at\
  list.at\
  mailcap.at\
- mbdel.at\
- mime.at\
  testsuite.at\
  url.at
 

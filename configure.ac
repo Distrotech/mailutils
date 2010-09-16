@@ -21,7 +21,7 @@ AC_PREREQ(2.63)
 AC_INIT([GNU Mailutils], [2.2.90], [bug-mailutils@gnu.org], [mailutils])
 AC_CONFIG_SRCDIR([libmailutils/mailbox.c])
 AC_CONFIG_AUX_DIR([build-aux])
-AM_INIT_AUTOMAKE([gnits 1.11 dist-bzip2 dist-lzma dist-xz std-options silent-rules])
+AM_INIT_AUTOMAKE([gnits 1.11 dist-bzip2 dist-xz std-options silent-rules])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([m4])
 
@@ -1210,9 +1210,17 @@ AC_ARG_WITH([mh-bindir],
 
 
 # Initialize the (autotest) test suite.
-AC_CONFIG_TESTDIR(tests)
+AC_CONFIG_TESTDIR(libmailutils/tests)
+AC_CONFIG_TESTDIR(testsuite)
+AC_CONFIG_TESTDIR(frm/tests)
+AC_CONFIG_TESTDIR(messages/tests)
+AC_CONFIG_TESTDIR(readmsg/tests)
+AC_CONFIG_TESTDIR(sieve/tests)
+
 AC_CONFIG_FILES([libmailutils/tests/Makefile
-                 libmailutils/tests/atlocal 
+                 libmailutils/tests/atlocal
+	         testsuite/Makefile
+                 testsuite/atlocal
                  frm/tests/Makefile
                  frm/tests/atlocal
 		 messages/tests/Makefile
@@ -1380,7 +1388,6 @@ AC_CONFIG_FILES([
  mu-aux/Makefile
  mu-aux/mailutils.spec
  sieve/Makefile
- testsuite/Makefile
  ])
 AC_OUTPUT
 

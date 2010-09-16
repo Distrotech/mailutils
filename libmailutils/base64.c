@@ -128,7 +128,7 @@ _base64_decoder (void *xd MU_ARG_UNUSED,
       break;
     }
   
-  if (osize <= 3)
+  if (iobuf->osize <= 3)
     {
       iobuf->osize = 3;
       return mu_filter_moreoutput;
@@ -207,7 +207,7 @@ _base64_encoder (void *xd MU_ARG_UNUSED,
 	  return mu_filter_moreinput;
 	}
     }
-  if (osize < 4)
+  if (iobuf->osize < 4)
     {
       iobuf->osize = 4;
       return mu_filter_moreoutput;

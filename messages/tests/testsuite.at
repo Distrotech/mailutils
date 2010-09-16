@@ -33,7 +33,7 @@ m4_define([MSGTEST],[
 AT_SETUP([$1])
 AT_KEYWORDS([messages $2])
 AT_CHECK([
-MAIL=$top_srcdir/testsuite/spool/MSG_MAILBOX
+MAIL=$abs_top_srcdir/testsuite/spool/MSG_MAILBOX
 FOLDER=$MAIL
 export MAIL FOLDER
 messages MSG_OPTIONS $3 | sed 's|in /.*/|in |'],
@@ -59,7 +59,7 @@ MSGTEST([messages -q],[messages01 messages-q],
 ])
 
 MSGTEST([messages 2],[messages02],
-[--set ":mailbox:folder=$top_srcdir/testsuite/spool" +teaparty.mbox],
+[--set ":mailbox:folder=$abs_top_srcdir/testsuite/spool" +teaparty.mbox],
 [0],
 [Number of messages in teaparty.mbox: 95
 ])

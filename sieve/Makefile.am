@@ -19,6 +19,7 @@
 
 INCLUDES = @MU_APP_COMMON_INCLUDES@ 
 SUBDIRS  = tests
+EXTRA_DIST = examples
 
 bin_PROGRAMS = sieve
 sieve_SOURCES = sieve.c

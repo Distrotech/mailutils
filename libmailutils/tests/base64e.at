@@ -19,8 +19,8 @@ AT_SETUP([base64 encoding (read)])
 AT_KEYWORDS([base64 base64e base64er encode])
 
 AT_CHECK([
-cp $top_srcdir/libmailutils/tests/Decode expout
-fltst base64 encode read nl < $top_srcdir/libmailutils/tests/Encode],
+cp $abs_top_srcdir/libmailutils/tests/Decode expout
+fltst base64 encode read nl < $abs_top_srcdir/libmailutils/tests/Encode],
 [0],
 [expout])
 
@@ -31,8 +31,8 @@ AT_SETUP([base64 encoding (write)])
 AT_KEYWORDS([base64 base64e base64ew encode])
 
 AT_CHECK([
-cp $top_srcdir/libmailutils/tests/Decode expout
-fltst base64 encode write nl < $top_srcdir/libmailutils/tests/Encode],
+cp $abs_top_srcdir/libmailutils/tests/Decode expout
+fltst base64 encode write nl < $abs_top_srcdir/libmailutils/tests/Encode],
 [0],
 [expout])
 

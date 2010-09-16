@@ -2,4 +2,4 @@
 # Configurable variable values for Mailutils test suite.
 # Copyright (C) 2004, 2010 Free Software Foundation, Inc.
 
-PATH=@abs_builddir@:@abs_top_builddir@/libmailutils/tests:$top_srcdir:$srcdir:$PATH
+PATH=@abs_builddir@:@abs_top_builddir@/libtests:$top_srcdir:$srcdir:$PATH

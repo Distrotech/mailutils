@@ -34,7 +34,7 @@ m4_define([READMSGTEST],[
 AT_SETUP([$1])
 AT_KEYWORDS([$2])
 AT_CHECK([
-MAIL=$top_srcdir/testsuite/spool/READMSG_MAILBOX
+MAIL=$abs_top_srcdir/testsuite/spool/READMSG_MAILBOX
 FOLDER=$MAIL
 export MAIL FOLDER
 readmsg READMSG_OPTIONS $3],

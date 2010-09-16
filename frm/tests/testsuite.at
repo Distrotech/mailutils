@@ -33,7 +33,7 @@ m4_define([FRMTEST],[
 AT_SETUP([$1])
 AT_KEYWORDS([$2])
 AT_CHECK([
-MAIL=$top_srcdir/testsuite/spool/FRM_MAILBOX
+MAIL=$abs_top_srcdir/testsuite/spool/FRM_MAILBOX
 FOLDER=$MAIL
 export MAIL FOLDER
 frm FRM_OPTIONS $3],
@@ -89,7 +89,7 @@ FRMTEST([frm -q],[frm-q frm04],
 ])
 
 FRMTEST([frm +mbox],[frm+mbox frm05],
-[--set ":mailbox:folder=$top_srcdir/testsuite/spool" +mbox],
+[--set ":mailbox:folder=$abs_top_srcdir/testsuite/spool" +mbox],
 [1],
 [Sergey Poznyakoff	MBOX
 ])
