@@ -77,16 +77,7 @@ mailutils_TEXINFOS = \
  $(RENDITION_TEXI)\
  $(INCFILES)
 
-## Fake configure into including srcdir to VPATH:
-s=${srcdir}:${top_srcdir}/examples/
-VPATH = $(s)
-
-SUFFIXES=.c .inc 
-.c.inc:
-	sed -f $(mu_aux_dir)/texify.sed $< > $@
-
 DISTCLEANFILES=*.pgs *.kys *.vrs
-MAINTAINERCLEANFILES=$(INCFILES)
 clean-local:
 	rm -rf manual
 
