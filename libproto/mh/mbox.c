@@ -353,6 +353,13 @@ _mh_msg_init (struct _amd_data *amd, struct _amd_message *amm)
 }
 
 
+static int
+mh_remove (struct _amd_data *amd)
+{
+  return amd_remove_dir (amd->name);
+}
+
+
 
 int
 _mailbox_mh_init (mu_mailbox_t mailbox)
@@ -375,7 +382,8 @@ _mailbox_mh_init (mu_mailbox_t mailbox)
   amd->msg_cmp = mh_message_cmp;
   amd->message_uid = mh_message_uid;
   amd->next_uid = _mh_next_seq;
-  
+  amd->remove = mh_remove;
+
   /* Set our properties.  */
   {
     mu_property_t property = NULL;

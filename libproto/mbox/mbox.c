@@ -84,6 +84,7 @@ static int mbox_envelope_sender       (mu_envelope_t, char *, size_t,
 static int mbox_envelope_date         (mu_envelope_t, char *, size_t,
 				       size_t *);
 static int mbox_tmpfile               (mu_mailbox_t, char **pbox);
+static int mbox_remove (mu_mailbox_t mailbox);
 
 /* Allocate the mbox_data_t struct(concrete mailbox), but don't do any
    parsing on the name or even test for existence.  However we do strip any
@@ -129,7 +130,8 @@ _mailbox_mbox_init (mu_mailbox_t mailbox)
 
   mailbox->_open = mbox_open;
   mailbox->_close = mbox_close;
-
+  mailbox->_remove = mbox_remove;
+  
   /* Overloading of the entire mailbox object methods.  */
   mailbox->_get_message = mbox_get_message;
   mailbox->_append_message = mbox_append_message;
@@ -297,6 +299,16 @@ mbox_close (mu_mailbox_t mailbox)
   mu_monitor_unlock (mailbox->monitor);
 
   return mu_stream_close (mailbox->stream);
+}
+
+static int
+mbox_remove (mu_mailbox_t mailbox)
+{
+  mbox_data_t mud = mailbox->data;
+
+  MU_DEBUG1 (mailbox->debug, MU_DEBUG_TRACE1,
+	     "mbox_remove (%s)\n", mud->name);
+  return unlink (mud->name) == 0 ? 0 : errno;
 }
 
 /* Cover function that call the real thing, mbox_scan(), with

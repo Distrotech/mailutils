@@ -765,6 +765,28 @@ maildir_qfetch (struct _amd_data *amd, mu_message_qid_t qid)
   return 0;
 }
 
+
+static int
+maildir_remove (struct _amd_data *amd)
+{
+  int i;
+  static char *suf[3] = { NEWSUF, CURSUF, TMPSUF };
+  int rc = 0;
+
+  for (i = 0; rc == 0 && i < 3; i++)
+    {
+      char *name = maildir_mkfilename (amd->name, suf[i], NULL);
+      rc = amd_remove_dir (name);
+      if (rc)
+	mu_diag_output (MU_DIAG_WARNING,
+			"removing contents of %s failed: %s", name,
+			mu_strerror (rc));
+      free (name);
+    }
+  
+  return rc;
+}
+
      
 int
 _mailbox_maildir_init (mu_mailbox_t mailbox)
@@ -788,6 +810,7 @@ _mailbox_maildir_init (mu_mailbox_t mailbox)
   amd->msg_cmp = maildir_message_cmp;
   amd->message_uid = maildir_message_uid;
   amd->next_uid = maildir_next_uid;
+  amd->remove = maildir_remove;
   
   /* Set our properties.  */
   {

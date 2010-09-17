@@ -80,6 +80,7 @@ struct _amd_data
   int (*msg_cmp) (struct _amd_message *, struct _amd_message *);
   int (*message_uid) (mu_message_t msg, size_t *puid);
   size_t (*next_uid) (struct _amd_data *mhd);
+  int (*remove) (struct _amd_data *);
   
   /* List of messages: */
   size_t msg_count; /* number of messages in the list */
@@ -110,3 +111,4 @@ void amd_cleanup (void *arg);
 struct _amd_message *_amd_get_message (struct _amd_data *amd, size_t msgno);
 int amd_msg_lookup (struct _amd_data *amd, struct _amd_message *msg,
 		    size_t *pret);
+int amd_remove_dir (const char *name);

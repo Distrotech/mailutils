@@ -37,7 +37,8 @@ imap4d_delete (struct imap4d_command *command, imap4d_tokbuf_t tok)
   const char *msg = "Completed";
   const char *delim = "/";
   char *name;
-
+  mu_mailbox_t tmpbox;
+  
   if (imap4d_tokbuf_argc (tok) != 3)
     return util_finish (command, RESP_BAD, "Invalid arguments");
   name = imap4d_tokbuf_getarg (tok, IMAP4_ARG_1);
@@ -54,7 +55,22 @@ imap4d_delete (struct imap4d_command *command, imap4d_tokbuf_t tok)
   if (!name)
     return util_finish (command, RESP_NO, "Cannot remove");
 
-  if (remove (name) != 0)
+  rc = mu_mailbox_create (&tmpbox, name);
+  if (rc == 0)
+    {
+      rc = mu_mailbox_remove (tmpbox);
+      mu_mailbox_destroy (&tmpbox);
+      if (rc)
+	mu_diag_funcall (MU_DIAG_ERROR, "mu_mailbox_remove", name, rc);
+    }
+  else
+    {
+      rc = remove (name);
+      if (rc)
+	mu_diag_funcall (MU_DIAG_ERROR, "remove", name, errno);
+    }
+
+  if (rc)
     {
       rc = RESP_NO;
       msg = "Cannot remove";

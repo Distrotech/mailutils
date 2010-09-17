@@ -58,6 +58,7 @@ struct _mu_mailbox
 
   int  (*_open)            (mu_mailbox_t, int);
   int  (*_close)           (mu_mailbox_t);
+  int  (*_remove)          (mu_mailbox_t);
   
   /* messages */
   int  (*_get_message)     (mu_mailbox_t, size_t, mu_message_t *);
