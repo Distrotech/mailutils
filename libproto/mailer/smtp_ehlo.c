@@ -81,7 +81,7 @@ mu_smtp_ehlo (mu_smtp_t smtp)
       mu_list_set_comparator (smtp->capa, capa_comp);
     }
   else if (smtp->replcode[0] == '4')
-    return EAGAIN;
+    return MU_ERR_REPLY;
   else
     {
       status = mu_smtp_write (smtp, "HELO %s\r\n", smtp->domain);
@@ -89,10 +89,8 @@ mu_smtp_ehlo (mu_smtp_t smtp)
       status = mu_smtp_response (smtp);
       MU_SMTP_CHECK_ERROR (smtp, status);
       smtp->flags &= ~_MU_SMTP_ESMTP;
-      if (smtp->replcode[0] == '4')
-	return EAGAIN;
-      else if (smtp->replcode[0] != '2')
-	return MU_ERR_FAILURE;
+      if (smtp->replcode[0] != '2')
+	return MU_ERR_REPLY;
     }
   smtp->state = MU_SMTP_MAIL;
   return 0;

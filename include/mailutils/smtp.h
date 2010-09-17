@@ -45,4 +45,10 @@ int mu_smtp_get_domain (mu_smtp_t smtp, const char **pdom);
 int mu_smtp_capa_test (mu_smtp_t smtp, const char *capa, const char **pret);
 int mu_smtp_starttls (mu_smtp_t smtp);
 
+int mu_smtp_mail_basic (mu_smtp_t smtp, const char *email, const char *args);
+int mu_smtp_rcpt_basic (mu_smtp_t smtp, const char *email, const char *args);
+int mu_smtp_send_stream (mu_smtp_t smtp, mu_stream_t str);
+int mu_smtp_rset (mu_smtp_t smtp);
+int mu_smtp_quit (mu_smtp_t smtp);
+
 #endif

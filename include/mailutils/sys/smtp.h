@@ -36,6 +36,11 @@ enum mu_smtp_state
     MU_SMTP_INIT,
     MU_SMTP_EHLO,
     MU_SMTP_MAIL,
+    MU_SMTP_RCPT,
+    MU_SMTP_MORE,
+    MU_SMTP_DOT,
+    MU_SMTP_QUIT,
+    MU_SMTP_CLOS
   };
 
 struct _mu_smtp
@@ -75,6 +80,6 @@ struct _mu_smtp
 
 int _mu_smtp_trace_enable (mu_smtp_t smtp);
 int _mu_smtp_trace_disable (mu_smtp_t smtp);
-
+int _mu_smtp_xscript_level (mu_smtp_t smtp, int xlev);
 
 #endif

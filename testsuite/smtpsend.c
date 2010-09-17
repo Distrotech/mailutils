@@ -23,16 +23,44 @@
 #include <mailutils/mailutils.h>
 #include <mailutils/smtp.h>
 
+static char usage_text[] =
+"usage: %s hostname [port=N] [trace=N] [tls=N] [from=STRING] [rcpt=STRING]\n"
+"                   [domain=STRING] input=FILE raw=N\n";
+
+static void
+usage ()
+{
+  fprintf (stderr, usage_text, mu_program_name);
+  exit (1);
+}
+
+static int
+send_rcpt_command (void *item, void *data)
+{
+  char *email = item;
+  mu_smtp_t smtp = data;
+
+  MU_ASSERT (mu_smtp_rcpt_basic (smtp, email, NULL));
+  return 0;
+}
+  
 int
 main (int argc, char **argv)
 {
   int i;
   char *host;
+  char *domain = NULL;
+  char *infile = NULL;
   int port = 25;
   int trace = 0;
   int tls = 0;
+  int raw = 1;
+  int flags = 0;
   mu_stream_t stream;
   mu_smtp_t smtp;
+  mu_stream_t instr;
+  char *from = NULL;
+  mu_list_t rcpt_list = NULL;
   
   mu_set_program_name (argv[0]);
 #ifdef WITH_TLS
@@ -40,10 +68,7 @@ main (int argc, char **argv)
 #endif  
   
   if (argc < 2)
-    {
-      fprintf (stderr, "usage: %s hostname [port=N] [trace=N] [tls=N]\n", argv[0]);
-      return 1;
-    }
+    usage ();
 
   for (i = 1; i < argc; i++)
     {
@@ -60,16 +85,36 @@ main (int argc, char **argv)
 	trace = atoi (argv[i] + 6);
       else if (strncmp (argv[i], "tls=", 4) == 0)
 	tls = atoi (argv[i] + 4);
+      else if (strncmp (argv[i], "domain=", 7) == 0)
+	domain = argv[i] + 7;
+      else if (strncmp (argv[i], "infile=", 7) == 0)
+	infile = argv[i] + 7;
+      else if (strncmp (argv[i], "raw=", 4) == 0)
+	raw = atoi (argv[i] + 4);
+      else if (strncmp (argv[i], "rcpt=", 5) == 0)
+	{
+	  if (!rcpt_list)
+	    MU_ASSERT (mu_list_create (&rcpt_list));
+	  MU_ASSERT (mu_list_append (rcpt_list, argv[i] + 5));
+	}
+      else if (strncmp (argv[i], "from=", 5) == 0)
+	from = argv[i] + 5;
       else
 	host = argv[i];
     }
 
   if (!host)
-    {
-      fprintf (stderr, "usage: %s hostname [port=N] [trace=N]\n", argv[0]);
-      return 1;
-    }
+    usage ();
 
+  if (!raw)
+    flags = MU_STREAM_SEEK;
+  if (infile)
+    {
+      MU_ASSERT (mu_file_stream_create (&instr, infile, MU_STREAM_READ|flags));
+      MU_ASSERT (mu_stream_open (instr));
+    }
+  else
+    MU_ASSERT (mu_stdio_stream_create (&instr, MU_STDIN_FD, flags));
   
   MU_ASSERT (mu_smtp_create (&smtp));
 
@@ -81,6 +126,24 @@ main (int argc, char **argv)
   
   if (trace)
     mu_smtp_trace (smtp, MU_SMTP_TRACE_SET);
+  if (domain)
+    mu_smtp_set_domain (smtp, domain);
+  if (!from)
+    {
+      from = getenv ("USER");
+      if (!from)
+	{
+	  mu_error ("cannot determine sender name");
+	  exit (1);
+	}
+    }
+
+  if (raw && !rcpt_list)
+    {
+      mu_error ("no recipients");
+      exit (1);
+    }
+  
   MU_ASSERT (mu_smtp_open (smtp));
   MU_ASSERT (mu_smtp_ehlo (smtp));
 
@@ -89,7 +152,24 @@ main (int argc, char **argv)
       MU_ASSERT (mu_smtp_starttls (smtp));
       MU_ASSERT (mu_smtp_ehlo (smtp));
     }
+
+  if (raw)
+    {
+      /* Raw sending mode: send from the stream directly */
+      MU_ASSERT (mu_smtp_mail_basic (smtp, from, NULL));
+      mu_list_do (rcpt_list, send_rcpt_command, smtp);
+      MU_ASSERT (mu_smtp_send_stream (smtp, instr));
+      MU_ASSERT (mu_smtp_quit (smtp));
+    }
+  else
+    {
+      /* Message (standard) sending mode: send a MU message. */
+      //FIXME;
+    }
+  
   
   mu_smtp_destroy (&smtp);
+  mu_stream_close (instr);
+  mu_stream_destroy (&instr);
   return 0;
 }

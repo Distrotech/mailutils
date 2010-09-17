@@ -20,28 +20,41 @@
 
 #include <errno.h>
 #include <stdlib.h>
+#include <string.h>
 #include <mailutils/errno.h>
 #include <mailutils/cctype.h>
 #include <mailutils/list.h>
+#include <mailutils/mutil.h>
 #include <mailutils/smtp.h>
 #include <mailutils/sys/smtp.h>
 
 int
-mu_smtp_open (mu_smtp_t smtp)
+mu_smtp_rcpt_basic (mu_smtp_t smtp, const char *email, const char *args)
 {
   int status;
   
   if (!smtp)
     return EINVAL;
-  if (smtp->state != MU_SMTP_INIT)
+  if (MU_SMTP_FISSET (smtp, _MU_SMTP_ERR))
+    return MU_ERR_FAILURE;
+  if (smtp->state != MU_SMTP_RCPT && smtp->state != MU_SMTP_MORE)
     return MU_ERR_SEQ;
+  status = mu_smtp_write (smtp, "RCPT TO:<%s>", email);
+  MU_SMTP_CHECK_ERROR (smtp, status);
+  if (args)
+    {
+      status = mu_smtp_write (smtp, " %s", args);
+      MU_SMTP_CHECK_ERROR (smtp, status);
+    }
+  status = mu_smtp_write (smtp, "\r\n");
+  MU_SMTP_CHECK_ERROR (smtp, status);
   status = mu_smtp_response (smtp);
   MU_SMTP_CHECK_ERROR (smtp, status);
+
   if (smtp->replcode[0] != '2')
-    /* There's no use doing anything in this session, so we set the
-       _MU_SMTP_ERR flag. */
-    MU_SMTP_CHECK_ERROR (smtp, MU_ERR_REPLY);
-  smtp->state = MU_SMTP_EHLO;
+    return MU_ERR_REPLY;
+  smtp->state = MU_SMTP_MORE;
   return 0;
 }
 
+      
