@@ -29,8 +29,7 @@ require "redirect";
 
 redirect "gray@gnu.org";
 ])
-cp $abs_top_srcdir/testsuite/spool/MUT_SIEVE_MAILBOX .
-chmod +w MUT_SIEVE_MAILBOX
+MUT_MBCOPY($abs_top_srcdir/testsuite/spool/MUT_SIEVE_MAILBOX)
 
 sieve MUT_SIEVE_CMDLINE MUT_SIEVE_OPTIONS -f ./MUT_SIEVE_MAILBOX prog || exit 1
 sed 's/ $//' ./mta.diag

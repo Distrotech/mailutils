@@ -46,8 +46,7 @@ s/^\( *[[0-9]][[0-9]]*: The original message was received at *\).*\( from .*\)/\
 s/^\( *[[0-9]][[0-9]]*: Last-Attempt-Date:\).*/\1 (date)/
 ])
 
-cp $abs_top_srcdir/testsuite/spool/MUT_SIEVE_MAILBOX .
-chmod +w MUT_SIEVE_MAILBOX
+MUT_MBCOPY($abs_top_srcdir/testsuite/spool/MUT_SIEVE_MAILBOX)
 
 sieve MUT_SIEVE_CMDLINE MUT_SIEVE_OPTIONS -f ./MUT_SIEVE_MAILBOX prog || exit 1
 sed -f filter.sed ./mta.diag

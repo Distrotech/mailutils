@@ -70,8 +70,7 @@ AT_CHECK([sieve MUT_SIEVE_CMDLINE MUT_SIEVE_OPTIONS -f $2 prog
 m4_define([MUT_TESTCASE],[
 AT_SETUP([$1])
 AT_KEYWORDS([$2])
-cp $abs_top_srcdir/testsuite/spool/MUT_SIEVE_MAILBOX .
-chmod +w MUT_SIEVE_MAILBOX
+MUT_MBCOPY($abs_top_srcdir/testsuite/spool/MUT_SIEVE_MAILBOX)
 
 MUT_SIEVE_RUN([$3], ./MUT_SIEVE_MAILBOX, m4_shift(m4_shift(m4_shift($@))))
 AT_CLEANUP])
