@@ -16,7 +16,8 @@
 # This file is part of Mailfromd testsuite. 
 
 m4_pushdef([MUT_SIEVE_MAILBOX],[relational.mbox])
-m4_pushdef([MUT_SIEVE_OPTIONS],[--set ":mailbox:folder=`pwd`"])
+m4_pushdef([MUT_SIEVE_OPTIONS],[--set ":mailbox:folder=`pwd`" dnl
+ --set ":mailbox:mailbox-pattern=`pwd`/"'${user}'])
 
 MUT_TESTCASE([relational address],[test relational address comparator i-ascii-numeric],
 [
@@ -58,6 +59,8 @@ IMPLICIT KEEP on msg uid 8
 DISCARD on msg uid 9: marking as deleted
 ])
 
+m4_pushdef([FILEEXISTS],[test -f "$1" || echo "$1 missing"])
+
 MUT_TESTCASE([relational big test],[test relational relational-hairy],
 [
 require [["relational", "comparator-i;ascii-numeric", "fileinto"]];
@@ -88,7 +91,14 @@ if allof (address :count "eq" :comparator "i;ascii-numeric"
   {
     fileinto "%Only_me";
   }
-],[],[0],[],
+],
+[
+FILEEXISTS([From_A-M])
+FILEEXISTS([From_N-Z])
+FILEEXISTS([Priority])
+FILEEXISTS([Only_me])
+FILEEXISTS([SPAM])
+],[0],[],
 [FILEINTO on msg uid 1: delivering into %From_A-M
 FILEINTO on msg uid 2: delivering into %From_N-Z
 FILEINTO on msg uid 3: delivering into %Priority
@@ -100,6 +110,6 @@ FILEINTO on msg uid 8: delivering into %From_A-M
 FILEINTO on msg uid 8: delivering into %Only_me
 FILEINTO on msg uid 9: delivering into %SPAM
 ])
-
+m4_popdef([FILEEXISTS])
 m4_popdef([MUT_SIEVE_MAILBOX])
 m4_popdef([MUT_SIEVE_OPTIONS])

@@ -44,6 +44,7 @@ s/^\( *[[0-9]][[0-9]]*:\) --[[0-9]].*/\1 --(boundary)/
 # Same goes for dates.
 s/^\( *[[0-9]][[0-9]]*: The original message was received at *\).*\( from .*\)/\1(date)\2/
 s/^\( *[[0-9]][[0-9]]*: Last-Attempt-Date:\).*/\1 (date)/
+s/^\( *[[0-9]][[0-9]]*: Arrival-Date:\).*/\1 (date)/
 ])
 
 MUT_MBCOPY($abs_top_srcdir/testsuite/spool/MUT_SIEVE_MAILBOX)
@@ -74,7 +75,7 @@ ENVELOPE TO: <coyote@desert.example.org>
   17: Content-Type: message/delivery-status
   18: 
   19: Reporting-UA: sieve; GNU Mailutils 2.2.90
-  20: Arrival-Date: Mon, May 07 01:16:47 2001 EEST
+  20: Arrival-Date: (date)
   21: Final-Recipient: RFC822; foobar@nonexistent.net
   22: Action: deleted
   23: Disposition: automatic-action/MDN-sent-automatically;deleted
@@ -124,7 +125,7 @@ ENVELOPE TO: <b1ff@de.res.example.com>
   17: Content-Type: message/delivery-status
   18: 
   19: Reporting-UA: sieve; GNU Mailutils 2.2.90
-  20: Arrival-Date: Mon, May 07 01:17:15 2001 EEST
+  20: Arrival-Date: (date)
   21: Final-Recipient: RFC822; foobar@nonexistent.net
   22: Action: deleted
   23: Disposition: automatic-action/MDN-sent-automatically;deleted
@@ -172,7 +173,7 @@ ENVELOPE TO: <bar@dontmailme.org>
   17: Content-Type: message/delivery-status
   18: 
   19: Reporting-UA: sieve; GNU Mailutils 2.2.90
-  20: Arrival-Date: Sat, Dec 29 01:28:09 2001 EET
+  20: Arrival-Date: (date)
   21: Final-Recipient: RFC822; foobar@nonexistent.net
   22: Action: deleted
   23: Disposition: automatic-action/MDN-sent-automatically;deleted
