@@ -28,5 +28,15 @@ libmu_mailer_la_SOURCES = \
  prog.c\
  sendmail.c\
  smtp.c\
+ smtp_capa.c\
+ smtp_carrier.c\
+ smtp_create.c\
+ smtp_disconnect.c\
+ smtp_domain.c\
+ smtp_ehlo.c\
+ smtp_io.c\
+ smtp_open.c\
+ smtp_starttls.c\
+ smtp_trace.c\
  remote.c
 

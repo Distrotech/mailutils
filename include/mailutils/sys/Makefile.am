@@ -51,6 +51,7 @@ sysinclude_HEADERS = \
  property.h\
  rdcache_stream.h\
  registrar.h\
+ smtp.h\
  streamref.h\
  streamtrans.h\
  stream.h\

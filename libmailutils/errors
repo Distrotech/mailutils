@@ -60,6 +60,9 @@ MU_ERR_BAD_2047_ENCODING    _("Not a valid RFC 2047 encoding")
 
 MU_ERR_NOUSERNAME           _("User name is not supplied")
 MU_ERR_NOPASSWORD           _("User password is not supplied")
+MU_ERR_BADREPLY             _("Invalid reply from the remote host")
+
+MU_ERR_SEQ                  _("Bad command sequence")
 
 MU_ERR_UNSAFE_PERMS         _("Unsafe file permissions. Set 0600")
 MU_ERR_BAD_AUTH_SCHEME      _("Unsupported authentication scheme")

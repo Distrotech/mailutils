@@ -61,23 +61,30 @@ mu_list_create (mu_list_t *plist)
 }
 
 void
+mu_list_clear (mu_list_t list)
+{
+  struct list_data *current;
+  struct list_data *previous;
+  
+  mu_monitor_wrlock (list->monitor);
+  for (current = list->head.next; current != &list->head;)
+    {
+      previous = current;
+      current = current->next;
+      DESTROY_ITEM (list, previous);
+      free (previous);
+    }
+  list->head.next = list->head.prev = &list->head;
+  mu_monitor_unlock (list->monitor);
+}
+
+void
 mu_list_destroy (mu_list_t *plist)
 {
   if (plist && *plist)
     {
       mu_list_t list = *plist;
-      struct list_data *current;
-      struct list_data *previous;
-
-      mu_monitor_wrlock (list->monitor);
-      for (current = list->head.next; current != &list->head;)
-	{
-	  previous = current;
-	  current = current->next;
-	  DESTROY_ITEM (list, previous);
-	  free (previous);
-	}
-      mu_monitor_unlock (list->monitor);
+      mu_list_clear (list);
       mu_monitor_destroy (&list->monitor, list);
       free (list);
       *plist = NULL;

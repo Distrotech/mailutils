@@ -41,7 +41,8 @@ $(srcdir)/package.m4: $(top_srcdir)/configure.ac
 INCLUDES = @MU_LIB_COMMON_INCLUDES@ 
 noinst_PROGRAMS = \
  mbdel\
- mimetest
+ mimetest\
+ smtpsend
 
 LDADD = \
  ${MU_LIB_MBOX}\
@@ -52,6 +53,11 @@ LDADD = \
  ${MU_LIB_MAILDIR}\
  ${MU_LIB_MAILER}\
  ${MU_LIB_AUTH}\
+ @MU_AUTHLIBS@\
+ ${MU_LIB_MAILUTILS}
+
+smtpsend_LDADD = \
+ ${MU_LIB_MAILER} \
  @MU_AUTHLIBS@\
  ${MU_LIB_MAILUTILS}
 

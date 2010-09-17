@@ -28,6 +28,7 @@ extern "C" {
 
 extern int mu_list_create   (mu_list_t *);
 extern void mu_list_destroy (mu_list_t *);
+extern void mu_list_clear (mu_list_t list);
 extern int mu_list_append   (mu_list_t, void *item);
 extern int mu_list_prepend  (mu_list_t, void *item);
 extern int mu_list_insert   (mu_list_t list, void *item, void *new_item, 

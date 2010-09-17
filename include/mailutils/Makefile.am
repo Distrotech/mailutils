@@ -90,6 +90,7 @@ pkginclude_HEADERS = \
  secret.h\
  server.h\
  sieve.h\
+ smtp.h\
  stream.h\
  syslog.h\
  sql.h\
