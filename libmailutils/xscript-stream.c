@@ -292,11 +292,17 @@ _xscript_ctl (struct _mu_stream *str, int op, void *arg)
 	  mu_stream_t tmp;
 
 	  if (pstr[0] != pstr[1])
-	    return EINVAL; /* FIXME */
-	  tmp = pstr[0];
+	    {
+	      status = mu_iostream_create (&tmp, pstr[0], pstr[1]);
+	      if (status)
+		return status;
+	    }
+	  else
+	    tmp = pstr[0];
 	  pstr[0] = sp->transport;
 	  pstr[1] = sp->transport;
 	  sp->transport = tmp;
+	  /* FIXME */
 	  if (!(str->flags & MU_STREAM_AUTOCLOSE))
 	    {
 	      if (pstr[0])

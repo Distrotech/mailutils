@@ -53,7 +53,7 @@ mu_smtp_ehlo (mu_smtp_t smtp)
   if (MU_SMTP_FISSET (smtp, _MU_SMTP_ERR))
     return MU_ERR_FAILURE;
 
-  if (!smtp->domain)
+  if (!smtp->param[MU_SMTP_PARAM_DOMAIN])
     {
       char *host;
       char *p;
@@ -65,11 +65,12 @@ mu_smtp_ehlo (mu_smtp_t smtp)
 	p++;
       else
 	p = host;
-      status = mu_smtp_set_domain (smtp, p);
+      status = mu_smtp_set_param (smtp, MU_SMTP_PARAM_DOMAIN, p);
       MU_SMTP_CHECK_ERROR (smtp, status);
     }
   
-  status = mu_smtp_write (smtp, "EHLO %s\r\n", smtp->domain);
+  status = mu_smtp_write (smtp, "EHLO %s\r\n",
+			  smtp->param[MU_SMTP_PARAM_DOMAIN]);
   MU_SMTP_CHECK_ERROR (smtp, status);
   status = mu_smtp_response (smtp);
   MU_SMTP_CHECK_ERROR (smtp, status);
@@ -84,7 +85,8 @@ mu_smtp_ehlo (mu_smtp_t smtp)
     return MU_ERR_REPLY;
   else
     {
-      status = mu_smtp_write (smtp, "HELO %s\r\n", smtp->domain);
+      status = mu_smtp_write (smtp, "HELO %s\r\n",
+			      smtp->param[MU_SMTP_PARAM_DOMAIN]);
       MU_SMTP_CHECK_ERROR (smtp, status);
       status = mu_smtp_response (smtp);
       MU_SMTP_CHECK_ERROR (smtp, status);

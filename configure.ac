@@ -287,6 +287,7 @@ MU_CHECK_GSASL(0.2.3, [
     MU_AUTHLIBS="$MU_AUTHLIBS $GSASL_LIBS"
     IMAP_AUTHOBJS="$IMAP_AUTHOBJS auth_gsasl.o"
     status_gsasl=yes])
+AM_CONDITIONAL([MU_COND_GSASL],[test "$status_gsasl" = "yes"])
 
 AC_SUBST(SITE_CRAM_MD5_PWD,"\$(sysconfdir)/cram-md5.pwd")
 

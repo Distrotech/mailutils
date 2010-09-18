@@ -23,6 +23,18 @@
 
 typedef struct _mu_smtp *mu_smtp_t;
 
+enum
+  {
+    MU_SMTP_PARAM_DOMAIN,
+    MU_SMTP_PARAM_USERNAME,
+    MU_SMTP_PARAM_PASSWORD,
+    MU_SMTP_PARAM_SERVICE,
+    MU_SMTP_PARAM_REALM,
+    MU_SMTP_PARAM_HOST
+  };
+
+#define MU_SMTP_MAX_PARAM (MU_SMTP_PARAM_HOST+1)
+
 int mu_smtp_create (mu_smtp_t *);
 void mu_smtp_destroy (mu_smtp_t *);
 int mu_smtp_set_carrier (mu_smtp_t smtp, mu_stream_t str);
@@ -40,8 +52,8 @@ int mu_smtp_trace_mask (mu_smtp_t smtp, int op, int lev);
 
 int mu_smtp_disconnect (mu_smtp_t smtp);
 int mu_smtp_ehlo (mu_smtp_t smtp);
-int mu_smtp_set_domain (mu_smtp_t smtp, const char *newdom);
-int mu_smtp_get_domain (mu_smtp_t smtp, const char **pdom);
+int mu_smtp_set_param (mu_smtp_t smtp, int code, const char *val);
+int mu_smtp_get_param (mu_smtp_t smtp, int code, const char **param);
 int mu_smtp_capa_test (mu_smtp_t smtp, const char *capa, const char **pret);
 int mu_smtp_starttls (mu_smtp_t smtp);
 
@@ -50,5 +62,12 @@ int mu_smtp_rcpt_basic (mu_smtp_t smtp, const char *email, const char *args);
 int mu_smtp_send_stream (mu_smtp_t smtp, mu_stream_t str);
 int mu_smtp_rset (mu_smtp_t smtp);
 int mu_smtp_quit (mu_smtp_t smtp);
+
+int mu_smtp_auth (mu_smtp_t smtp);
+
+int mu_smtp_add_auth_mech (mu_smtp_t smtp, const char *mech);
+int mu_smtp_clear_auth_mech (mu_smtp_t smtp);
+int mu_smtp_add_auth_mech_list (mu_smtp_t smtp, mu_list_t list);
+int mu_smtp_mech_select (mu_smtp_t smtp, const char **pmech);
 
 #endif

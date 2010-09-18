@@ -6,3 +6,4 @@ testsuite.dir
 testsuite.log
 mbdel
 mimetest
+smtpsend

@@ -92,7 +92,7 @@ mu_smtp_starttls (mu_smtp_t smtp)
   mu_list_destroy (&smtp->capa);
   return 0;
 #else
-  return ENOTSUP;
+  return ENOSYS;
 #endif
 }
 

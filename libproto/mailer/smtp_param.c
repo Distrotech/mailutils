@@ -1,4 +1,3 @@
-
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 2010 Free Software Foundation, Inc.
 
@@ -28,28 +27,32 @@
 #include <mailutils/smtp.h>
 #include <mailutils/sys/smtp.h>
 
-int
-mu_smtp_set_domain (mu_smtp_t smtp, const char *newdom)
+ int
+mu_smtp_set_param (mu_smtp_t smtp, int pcode, const char *newparam)
 {
-  char *dom;
+  char *param;
   
   if (!smtp)
     return EINVAL;
-
-  dom = strdup (newdom);
-  if (!dom)
+  if (pcode < 0 || pcode >= MU_SMTP_MAX_PARAM)
+    return EINVAL;
+  
+  param = strdup (newparam);
+  if (!param)
     return ENOMEM;
-  free (smtp->domain);
-  smtp->domain = dom;
+  free (smtp->param[pcode]);
+  smtp->param[pcode] = param;
   return 0;
 }
 
 int
-mu_smtp_get_domain (mu_smtp_t smtp, const char **pdom)
+mu_smtp_get_param (mu_smtp_t smtp, int pcode, const char **pparam)
 {
   if (!smtp)
     return EINVAL;
-  *pdom = smtp->domain;
+  if (pcode < 0 || pcode >= MU_SMTP_MAX_PARAM)
+    return EINVAL;
+  *pparam = smtp->param[pcode];
   return 0;
 }
 

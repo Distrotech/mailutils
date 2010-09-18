@@ -206,7 +206,7 @@ mu_gsasl_stream_create (mu_stream_t *stream, mu_stream_t transport,
   rc = gsasl_encoder_stream (&in, transport, ctx, MU_STREAM_READ);
   if (rc)
     return rc;
-  rc = gsasl_encoder_stream (&out, transport, ctx, MU_STREAM_WRITE);
+  rc = gsasl_decoder_stream (&out, transport, ctx, MU_STREAM_WRITE);
   if (rc)
     {
       mu_stream_destroy (&in);

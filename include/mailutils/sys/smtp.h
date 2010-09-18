@@ -46,11 +46,17 @@ enum mu_smtp_state
 struct _mu_smtp
 {
   int flags;
-  char *domain;
+  
   mu_stream_t carrier;
   enum mu_smtp_state state;
   mu_list_t capa;
-
+  mu_list_t authimpl;          /* List of implemented authentication mechs */
+  
+  /* User-supplied data */
+  char *param[MU_SMTP_MAX_PARAM];
+  mu_list_t authmech;          /* List of allowed authentication mechs */
+  
+  /* I/O buffers */
   char replcode[4];
   char *replptr;
   
@@ -81,5 +87,7 @@ struct _mu_smtp
 int _mu_smtp_trace_enable (mu_smtp_t smtp);
 int _mu_smtp_trace_disable (mu_smtp_t smtp);
 int _mu_smtp_xscript_level (mu_smtp_t smtp, int xlev);
+int _mu_smtp_gsasl_auth (mu_smtp_t smtp);
+int _mu_smtp_mech_impl (mu_smtp_t smtp, mu_list_t list);
 
 #endif

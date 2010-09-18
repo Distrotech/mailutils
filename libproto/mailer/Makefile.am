@@ -23,22 +23,30 @@ lib_LTLIBRARIES = libmu_mailer.la
 libmu_mailer_la_LDFLAGS=-version-info @VI_CURRENT@:@VI_REVISION@:@VI_AGE@
 libmu_mailer_la_LIBADD = ${MU_LIB_AUTH} ${MU_LIB_MAILUTILS} @INTLLIBS@
 
+if MU_COND_GSASL
+  SMTP_GSASL=smtp_gsasl.c
+endif
+EXTRA_DIST=smtp_gsasl.c
+
 libmu_mailer_la_SOURCES = \
  mbox.c\
  prog.c\
  sendmail.c\
  smtp.c\
+ smtp_auth.c\
  smtp_capa.c\
  smtp_carrier.c\
  smtp_create.c\
  smtp_data.c\
  smtp_disconnect.c\
- smtp_domain.c\
  smtp_ehlo.c\
+ $(SMTP_GSASL)\
  smtp_io.c\
  smtp_mail.c\
- smtp_rcpt.c\
+ smtp_mech.c\
  smtp_open.c\
+ smtp_param.c\
+ smtp_rcpt.c\
  smtp_rset.c\
  smtp_starttls.c\
  smtp_trace.c\

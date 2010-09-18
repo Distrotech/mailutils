@@ -25,7 +25,9 @@
 
 static char usage_text[] =
 "usage: %s hostname [port=N] [trace=N] [tls=N] [from=STRING] [rcpt=STRING]\n"
-"                   [domain=STRING] input=FILE raw=N\n";
+"                   [domain=STRING] [user=STRING] [pass=STRING]\n"
+"                   [service=STRING] [realm=STRING] [host=STRING]\n"
+"                   [auth=method[,...]] [input=FILE] [raw=N]\n";
 
 static void
 usage ()
@@ -49,10 +51,8 @@ main (int argc, char **argv)
 {
   int i;
   char *host;
-  char *domain = NULL;
   char *infile = NULL;
   int port = 25;
-  int trace = 0;
   int tls = 0;
   int raw = 1;
   int flags = 0;
@@ -61,6 +61,7 @@ main (int argc, char **argv)
   mu_stream_t instr;
   char *from = NULL;
   mu_list_t rcpt_list = NULL;
+  mu_list_t meth_list = NULL;
   
   mu_set_program_name (argv[0]);
 #ifdef WITH_TLS
@@ -69,6 +70,8 @@ main (int argc, char **argv)
   
   if (argc < 2)
     usage ();
+
+  MU_ASSERT (mu_smtp_create (&smtp));
 
   for (i = 1; i < argc; i++)
     {
@@ -82,11 +85,28 @@ main (int argc, char **argv)
 	    }
 	}
       else if (strncmp (argv[i], "trace=", 6) == 0)
-	trace = atoi (argv[i] + 6);
+	mu_smtp_trace (smtp, atoi (argv[i] + 6) ?
+		       MU_SMTP_TRACE_SET : MU_SMTP_TRACE_CLR);
       else if (strncmp (argv[i], "tls=", 4) == 0)
 	tls = atoi (argv[i] + 4);
       else if (strncmp (argv[i], "domain=", 7) == 0)
-	domain = argv[i] + 7;
+	MU_ASSERT (mu_smtp_set_param (smtp, MU_SMTP_PARAM_DOMAIN,
+				      argv[i] + 7));
+      else if (strncmp (argv[i], "user=", 5) == 0)
+	MU_ASSERT (mu_smtp_set_param (smtp, MU_SMTP_PARAM_USERNAME,
+				      argv[i] + 5));
+      else if (strncmp (argv[i], "pass=", 5) == 0)
+	MU_ASSERT (mu_smtp_set_param (smtp, MU_SMTP_PARAM_PASSWORD,
+				      argv[i] + 5));
+      else if (strncmp (argv[i], "service=", 8) == 0)
+	MU_ASSERT (mu_smtp_set_param (smtp, MU_SMTP_PARAM_SERVICE,
+				      argv[i] + 8));
+      else if (strncmp (argv[i], "realm=", 6) == 0)
+	MU_ASSERT (mu_smtp_set_param (smtp, MU_SMTP_PARAM_REALM,
+				      argv[i] + 6));
+      else if (strncmp (argv[i], "host=", 5) == 0)
+	MU_ASSERT (mu_smtp_set_param (smtp, MU_SMTP_PARAM_HOST,
+				      argv[i] + 5));
       else if (strncmp (argv[i], "infile=", 7) == 0)
 	infile = argv[i] + 7;
       else if (strncmp (argv[i], "raw=", 4) == 0)
@@ -99,6 +119,22 @@ main (int argc, char **argv)
 	}
       else if (strncmp (argv[i], "from=", 5) == 0)
 	from = argv[i] + 5;
+      else if (strncmp (argv[i], "auth=", 5) == 0)
+	{
+	  int mc, j;
+	  char **mv;
+	  
+	  if (!meth_list)
+	    MU_ASSERT (mu_list_create (&meth_list));
+
+	  MU_ASSERT (mu_argcv_get_np (argv[i] + 5, strlen (argv[i] + 5),
+				      ",", NULL,
+				      0,
+				      &mc, &mv, NULL));
+	  for (j = 0; j < mc; j++)
+	    MU_ASSERT (mu_list_append (meth_list, mv[j]));
+	  free (mv);
+	}
       else
 	host = argv[i];
     }
@@ -116,18 +152,12 @@ main (int argc, char **argv)
   else
     MU_ASSERT (mu_stdio_stream_create (&instr, MU_STDIN_FD, flags));
   
-  MU_ASSERT (mu_smtp_create (&smtp));
-
   host = argv[1];
   MU_ASSERT (mu_tcp_stream_create (&stream, host, port, MU_STREAM_RDWR));
   MU_ASSERT (mu_stream_open (stream));
   mu_smtp_set_carrier (smtp, stream);
   //mu_stream_unref (stream);
   
-  if (trace)
-    mu_smtp_trace (smtp, MU_SMTP_TRACE_SET);
-  if (domain)
-    mu_smtp_set_domain (smtp, domain);
   if (!from)
     {
       from = getenv ("USER");
@@ -153,6 +183,26 @@ main (int argc, char **argv)
       MU_ASSERT (mu_smtp_ehlo (smtp));
     }
 
+  if (meth_list)
+    {
+      int status;
+      
+      MU_ASSERT (mu_smtp_add_auth_mech_list (smtp, meth_list));
+      status = mu_smtp_auth (smtp);
+      switch (status)
+	{
+	case 0:
+	case ENOSYS:
+	case MU_ERR_NOENT:
+	  /* Ok, skip it */
+	  break;
+
+	default:
+	  mu_error ("authentication failed: %s", mu_strerror (status));
+	  exit (1);
+	}
+    }
+  
   if (raw)
     {
       /* Raw sending mode: send from the stream directly */

@@ -17,52 +17,28 @@
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
+
 #include <errno.h>
-#include <stdlib.h>
-#include <mailutils/list.h>
+#include <mailutils/errno.h>
 #include <mailutils/smtp.h>
-#include <mailutils/stream.h>
 #include <mailutils/sys/smtp.h>
 
 int
-mu_smtp_create (mu_smtp_t *psmtp)
+mu_smtp_auth (mu_smtp_t smtp)
 {
-  struct _mu_smtp *smtp;
-
-  if (!psmtp)
-    return EINVAL;
-  
-  smtp = calloc (1, sizeof (*smtp));
-
   if (!smtp)
-    return ENOMEM;
+    return EINVAL;
+  if (MU_SMTP_FISSET (smtp, _MU_SMTP_ERR))
+    return MU_ERR_FAILURE;
+  if (MU_SMTP_FISSET (smtp, _MU_SMTP_AUTH))
+    return MU_ERR_SEQ;
+  if (smtp->state != MU_SMTP_MAIL)
+    return MU_ERR_SEQ;
   
-  smtp->state = MU_SMTP_INIT;
-  *psmtp = smtp;
-  return 0;
+#if defined(WITH_GSASL)
+  return _mu_smtp_gsasl_auth (smtp);
+#else
+  /* FIXME: Provide support for some basic authentication methods */
+  return ENOSYS;
+#endif
 }
-
-void
-mu_smtp_destroy (mu_smtp_t *psmtp)
-{
-  int i;
-  struct _mu_smtp *smtp;
-
-  if (!psmtp || !*psmtp)
-    return;
-  smtp = *psmtp;
-  mu_stream_destroy (&smtp->carrier);
-  mu_list_destroy (&smtp->capa);
-  mu_list_destroy (&smtp->authimpl);
-  free (smtp->rdbuf);
-  free (smtp->flbuf);
-  mu_list_destroy (&smtp->mlrepl);
-
-  mu_list_destroy (&smtp->authmech);
-  for (i = 0; i < MU_SMTP_MAX_PARAM; i++)
-    free (smtp->param[i]);
-  
-  free (smtp);
-  *psmtp = NULL;
-}
-
