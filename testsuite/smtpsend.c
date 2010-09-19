@@ -192,6 +192,9 @@ main (int argc, char **argv)
       switch (status)
 	{
 	case 0:
+	  MU_ASSERT (mu_smtp_ehlo (smtp));
+	  break;
+	  
 	case ENOSYS:
 	case MU_ERR_NOENT:
 	  /* Ok, skip it */
