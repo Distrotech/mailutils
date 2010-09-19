@@ -69,7 +69,6 @@ _gsasl_encoder (void *xdata,
     case mu_filter_done:
       if (flt->bufptr)
 	free (flt->bufptr);
-      free (flt);
       return mu_filter_ok;
       
     default:
@@ -122,7 +121,6 @@ _gsasl_decoder (void *xdata,
     case mu_filter_done:
       if (flt->bufptr)
 	free (flt->bufptr);
-      free (flt);
       return mu_filter_ok;
       
     default:

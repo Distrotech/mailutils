@@ -20,6 +20,10 @@
 #include <mailutils/types.h>
 #include <stdarg.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 enum mu_buffer_type
   {
     mu_buffer_none,
@@ -192,4 +196,8 @@ int mu_dbgstream_create(mu_stream_t *pref, mu_debug_t debug,
 int mu_rdcache_stream_create (mu_stream_t *pstream, mu_stream_t transport,
 			      int flags);
 
+#ifdef __cplusplus
+}
+#endif
+  
 #endif
