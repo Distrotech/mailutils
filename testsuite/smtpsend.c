@@ -27,7 +27,7 @@ static char usage_text[] =
 "usage: %s hostname [port=N] [trace=N] [tls=N] [from=STRING] [rcpt=STRING]\n"
 "                   [domain=STRING] [user=STRING] [pass=STRING]\n"
 "                   [service=STRING] [realm=STRING] [host=STRING]\n"
-"                   [auth=method[,...]] [input=FILE] [raw=N]\n";
+"                   [auth=method[,...]] [url=STRING] [input=FILE] [raw=N]\n";
 
 static void
 usage ()
@@ -107,6 +107,9 @@ main (int argc, char **argv)
       else if (strncmp (argv[i], "host=", 5) == 0)
 	MU_ASSERT (mu_smtp_set_param (smtp, MU_SMTP_PARAM_HOST,
 				      argv[i] + 5));
+      else if (strncmp (argv[i], "url=", 4) == 0)
+	MU_ASSERT (mu_smtp_set_param (smtp, MU_SMTP_PARAM_URL,
+				      argv[i] + 4));
       else if (strncmp (argv[i], "infile=", 7) == 0)
 	infile = argv[i] + 7;
       else if (strncmp (argv[i], "raw=", 4) == 0)

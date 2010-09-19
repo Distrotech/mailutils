@@ -20,6 +20,7 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <mailutils/list.h>
+#include <mailutils/secret.h>
 #include <mailutils/smtp.h>
 #include <mailutils/stream.h>
 #include <mailutils/sys/smtp.h>
@@ -59,8 +60,19 @@ mu_smtp_destroy (mu_smtp_t *psmtp)
   mu_list_destroy (&smtp->mlrepl);
 
   mu_list_destroy (&smtp->authmech);
+  if (smtp->secret)
+    {
+      if (MU_SMTP_FISSET (smtp, _MU_SMTP_CLNPASS))
+	mu_secret_password_unref (smtp->secret);
+      mu_secret_destroy (&smtp->secret);
+    }
+  
   for (i = 0; i < MU_SMTP_MAX_PARAM; i++)
-    free (smtp->param[i]);
+    {
+      if (i == MU_SMTP_PARAM_PASSWORD)
+	continue;
+      free (smtp->param[i]);
+    }
   
   free (smtp);
   *psmtp = NULL;

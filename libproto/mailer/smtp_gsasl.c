@@ -75,44 +75,48 @@ _smtp_callback (Gsasl *ctx, Gsasl_session *sctx, Gsasl_property prop)
 {
   int rc = GSASL_OK;
   mu_smtp_t smtp = gsasl_callback_hook_get (ctx);
-  char *p;
+  const char *p = NULL;
   
   switch (prop)
     {
     case GSASL_PASSWORD:
-      gsasl_property_set (sctx, prop, smtp->param[MU_SMTP_PARAM_PASSWORD]);
+      if (mu_smtp_get_param (smtp, MU_SMTP_PARAM_PASSWORD, &p) == 0 && p)
+	gsasl_property_set (sctx, prop, p);
+      else
+	rc = GSASL_NO_PASSWORD;
       break;
 
     case GSASL_AUTHID:
     case GSASL_ANONYMOUS_TOKEN:
-      gsasl_property_set (sctx, prop, smtp->param[MU_SMTP_PARAM_USERNAME]);
+      if (mu_smtp_get_param (smtp, MU_SMTP_PARAM_USERNAME, &p) == 0 && p)
+	gsasl_property_set (sctx, prop, p);
+      else if (prop == GSASL_AUTHID)
+	rc = GSASL_NO_AUTHID;
+      else
+	rc = GSASL_NO_ANONYMOUS_TOKEN;
       break;
 
     case GSASL_AUTHZID:
-      gsasl_property_set (sctx, prop, NULL);
+      rc = GSASL_NO_AUTHZID;
       break;
 	
     case GSASL_SERVICE:
-      gsasl_property_set (sctx, prop, 
-			  smtp->param[MU_SMTP_PARAM_SERVICE] ?
-			     smtp->param[MU_SMTP_PARAM_SERVICE] : "smtp");
+      if (mu_smtp_get_param (smtp, MU_SMTP_PARAM_SERVICE, &p) || !p)
+	p = "smtp";
+      gsasl_property_set (sctx, prop, p);
       break;
 
     case GSASL_REALM:
-      p = smtp->param[MU_SMTP_PARAM_REALM] ?
-	      smtp->param[MU_SMTP_PARAM_REALM] :
-              smtp->param[MU_SMTP_PARAM_DOMAIN];
-      
-      if (!p)
+      if ((mu_smtp_get_param (smtp, MU_SMTP_PARAM_REALM, &p) || !p) &&
+	  (mu_smtp_get_param (smtp, MU_SMTP_PARAM_DOMAIN, &p) || !p))
 	rc = GSASL_NO_HOSTNAME;
       else
 	gsasl_property_set (sctx, prop, p);
 	break;
 
     case GSASL_HOSTNAME:
-      if (smtp->param[MU_SMTP_PARAM_HOST])
-	p = smtp->param[MU_SMTP_PARAM_HOST];
-      else if (mu_get_host_name (&p))
+      if ((mu_smtp_get_param (smtp, MU_SMTP_PARAM_HOST, &p) || !p) &&
+	  mu_get_host_name ((char**)&p))
 	{
 	  rc = GSASL_NO_HOSTNAME;
 	  break;

@@ -30,10 +30,11 @@ enum
     MU_SMTP_PARAM_PASSWORD,
     MU_SMTP_PARAM_SERVICE,
     MU_SMTP_PARAM_REALM,
-    MU_SMTP_PARAM_HOST
+    MU_SMTP_PARAM_HOST,
+    MU_SMTP_PARAM_URL
   };
 
-#define MU_SMTP_MAX_PARAM (MU_SMTP_PARAM_HOST+1)
+#define MU_SMTP_MAX_PARAM (MU_SMTP_PARAM_URL+1)
 
 int mu_smtp_create (mu_smtp_t *);
 void mu_smtp_destroy (mu_smtp_t *);

@@ -22,12 +22,13 @@
 # include <mailutils/types.h>
 # include <mailutils/smtp.h>
 
-# define _MU_SMTP_ESMTP  0x01 /* Connection supports ESMTP */
-# define _MU_SMTP_TRACE  0x02 /* Session trace required/enabled */
-# define _MU_SMTP_ERR    0x04 /* Object in error state */
-# define _MU_SMTP_MLREPL 0x08 /* Last reply was multi-line */
-# define _MU_SMTP_TLS    0x10 /* TLS initiated */ 
-# define _MU_SMTP_AUTH   0x20 /* Authorization passed */
+# define _MU_SMTP_ESMTP   0x01 /* Connection supports ESMTP */
+# define _MU_SMTP_TRACE   0x02 /* Session trace required/enabled */
+# define _MU_SMTP_ERR     0x04 /* Object in error state */
+# define _MU_SMTP_MLREPL  0x08 /* Last reply was multi-line */
+# define _MU_SMTP_TLS     0x10 /* TLS initiated */ 
+# define _MU_SMTP_AUTH    0x20 /* Authorization passed */
+# define _MU_SMTP_CLNPASS 0x40 /* Password has been de-obfuscated */
 
 #define MU_SMTP_XSCRIPT_MASK(n) (0x100<<(n))
 
@@ -55,6 +56,7 @@ struct _mu_smtp
   /* User-supplied data */
   char *param[MU_SMTP_MAX_PARAM];
   mu_list_t authmech;          /* List of allowed authentication mechs */
+  mu_secret_t secret;
   
   /* I/O buffers */
   char replcode[4];
