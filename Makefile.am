@@ -161,7 +161,10 @@ git-describe:
 		dirty=`git diff-index --name-only HEAD 2>/dev/null` || dirty=;\
 		test -n "$$dirty" && dirty="-dirty"; \
 		descr=`git describe`; \
-		echo $${descr}$$dirty > git-describe; \
+		echo $${descr}$$dirty > git-describe.tmp; \
+		test -f git-describe && cmp git-describe.tmp git-describe || \
+		  cp git-describe.tmp git-describe; \
+	        rm git-describe.tmp; \
 	fi
 
 dist-hook: ChangeLog git-describe
@@ -179,7 +182,10 @@ git-describe.h: git-describe
 	  sed '1s/.*/#define GIT_DESCRIBE "&"/' $(srcdir)/git-describe; \
 	else \
           echo "/* No git tag */"; \
-	fi > git-describe.h
+	fi > git-describe.h.tmp; \
+	test -f git-describe.h && cmp git-describe.h.tmp git-describe.h || \
+          cp git-describe.h.tmp git-describe.h; \
+	rm git-describe.h.tmp
 
 alpha: git-describe
 	$(AM_V_GEN)if test -f $(srcdir)/git-describe; then \
