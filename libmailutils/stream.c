@@ -249,7 +249,7 @@ _mu_stream_create (size_t size, int flags)
   if (size < sizeof (str))
     abort ();
   str = mu_zalloc (size);
-  str->flags = flags;
+  str->flags = flags & ~_MU_STR_INTERN_MASK;
   mu_stream_ref (str);
   return str;
 }

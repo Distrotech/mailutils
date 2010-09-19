@@ -314,8 +314,7 @@ main (int argc, char **argv)
 {
   struct group *gr;
   int status = OK;
-  static int sigtab[] = { SIGILL, SIGBUS, SIGFPE, SIGSEGV, SIGSTOP, SIGPIPE,
-			  SIGABRT };
+  static int sigtab[] = { SIGILL, SIGBUS, SIGFPE, SIGSEGV, SIGSTOP, SIGPIPE };
 
   /* Native Language Support */
   MU_APP_INIT_NLS ();
