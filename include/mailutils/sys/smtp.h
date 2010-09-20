@@ -21,6 +21,7 @@
 # include <sys/socket.h>
 # include <mailutils/types.h>
 # include <mailutils/smtp.h>
+# include <mailutils/stream.h>
 
 # define _MU_SMTP_ESMTP   0x01 /* Connection supports ESMTP */
 # define _MU_SMTP_TRACE   0x02 /* Session trace required/enabled */
@@ -29,6 +30,7 @@
 # define _MU_SMTP_TLS     0x10 /* TLS initiated */ 
 # define _MU_SMTP_AUTH    0x20 /* Authorization passed */
 # define _MU_SMTP_CLNPASS 0x40 /* Password has been de-obfuscated */
+# define _MU_SMTP_SAVEBUF 0x80 /* Buffering state saved */
 
 #define MU_SMTP_XSCRIPT_MASK(n) (0x100<<(n))
 
@@ -69,6 +71,7 @@ struct _mu_smtp
   size_t flsize;
   
   mu_list_t mlrepl;
+  struct mu_buffer_query savebuf;
 };
 
 #define MU_SMTP_FSET(p,f) ((p)->flags |= (f))
@@ -91,5 +94,7 @@ int _mu_smtp_trace_disable (mu_smtp_t smtp);
 int _mu_smtp_xscript_level (mu_smtp_t smtp, int xlev);
 int _mu_smtp_gsasl_auth (mu_smtp_t smtp);
 int _mu_smtp_mech_impl (mu_smtp_t smtp, mu_list_t list);
+int _mu_smtp_data_begin (mu_smtp_t smtp);
+int _mu_smtp_data_end (mu_smtp_t smtp);
 
 #endif

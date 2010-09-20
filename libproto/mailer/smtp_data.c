@@ -22,18 +22,18 @@
 #include <stdlib.h>
 #include <string.h>
 #include <mailutils/errno.h>
+#include <mailutils/diag.h>
 #include <mailutils/filter.h>
 #include <mailutils/list.h>
 #include <mailutils/smtp.h>
 #include <mailutils/stream.h>
+#include <mailutils/sys/stream.h>
 #include <mailutils/sys/smtp.h>
 
-static int
-_smtp_data_send (mu_smtp_t smtp, mu_stream_t stream)
+int
+_mu_smtp_data_begin (mu_smtp_t smtp)
 {
   int status;
-  struct mu_buffer_query oldbuf;
-  int buffer_changed = 0;
   
   status = mu_smtp_write (smtp, "DATA\r\n");
   MU_SMTP_CHECK_ERROR (smtp, status);
@@ -47,34 +47,51 @@ _smtp_data_send (mu_smtp_t smtp, mu_stream_t stream)
     _mu_smtp_xscript_level (smtp, MU_XSCRIPT_PAYLOAD);
 
   if (mu_stream_ioctl (smtp->carrier, MU_IOCTL_GET_TRANSPORT_BUFFER,
-		       &oldbuf) == 0)
+		       &smtp->savebuf) == 0)
     {
       struct mu_buffer_query newbuf;
       newbuf.type = MU_TRANSPORT_OUTPUT;
       newbuf.buftype = mu_buffer_full;
       newbuf.bufsize = 64*1024;
-      buffer_changed = mu_stream_ioctl (smtp->carrier,
-					MU_IOCTL_SET_TRANSPORT_BUFFER,
-					&newbuf) == 0;
+      if (mu_stream_ioctl (smtp->carrier, MU_IOCTL_SET_TRANSPORT_BUFFER,
+			   &newbuf) == 0)
+	MU_SMTP_FSET (smtp, _MU_SMTP_SAVEBUF);
     }
+  return 0;
+}
 
-  status = mu_stream_copy (smtp->carrier, stream, 0, NULL);
+int
+_mu_smtp_data_end (mu_smtp_t smtp)
+{
+  int status = 0;
+  /* code is always _MU_STR_EVENT_CLOSE */
+  if (MU_SMTP_FISSET (smtp, _MU_SMTP_SAVEBUF))
+    {
+      status = mu_stream_ioctl (smtp->carrier, MU_IOCTL_SET_TRANSPORT_BUFFER,
+				&smtp->savebuf);
+      if (status)
+	mu_diag_output (MU_DIAG_NOTICE,
+			"failed to restore buffer state on SMTP carrier: %s",
+			mu_strerror (status));
+    }
   _mu_smtp_xscript_level (smtp, MU_XSCRIPT_NORMAL);
-  mu_stream_flush (smtp->carrier);
-  if (buffer_changed)
-    mu_stream_ioctl (smtp->carrier, MU_IOCTL_SET_TRANSPORT_BUFFER,
-		     &oldbuf);
-  
   return status;
 }
 
+static void
+_smtp_event_cb (struct _mu_stream *str, int code,
+		unsigned long lval, void *pval)
+{
+  mu_smtp_t smtp = str->event_cb_data;
+  _mu_smtp_data_end (smtp);
+}
 
 int
-mu_smtp_send_stream (mu_smtp_t smtp, mu_stream_t stream)
+mu_smtp_data (mu_smtp_t smtp, mu_stream_t *pstream)
 {
   int status;
   mu_stream_t input;
-  
+
   if (!smtp)
     return EINVAL;
   if (MU_SMTP_FISSET (smtp, _MU_SMTP_ERR))
@@ -82,14 +99,17 @@ mu_smtp_send_stream (mu_smtp_t smtp, mu_stream_t stream)
   if (smtp->state != MU_SMTP_MORE)
     return MU_ERR_SEQ;
 
-  status = mu_filter_create (&input, stream, "CRLFDOT", MU_FILTER_ENCODE,
-			     MU_STREAM_READ);
+  status = _mu_smtp_data_begin (smtp);
   if (status)
     return status;
-  
-  status = _smtp_data_send (smtp, input);
-  mu_stream_destroy (&input);
-  if (status == 0)
-    smtp->state = MU_SMTP_DOT;
-  return status;
+
+  status = mu_filter_create (&input, smtp->carrier, "CRLFDOT",
+			     MU_FILTER_ENCODE, MU_STREAM_WRITE);
+  if (status)
+    return status;
+  input->event_cb = _smtp_event_cb;
+  input->event_cb_data = smtp;
+  input->event_mask = _MU_STR_EVMASK (_MU_STR_EVENT_CLOSE);
+  *pstream = input;
+  return 0;
 }

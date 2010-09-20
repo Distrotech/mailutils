@@ -24,6 +24,7 @@
 #include <mailutils/errno.h>
 #include <mailutils/cctype.h>
 #include <mailutils/list.h>
+#include <mailutils/secret.h>
 #include <mailutils/smtp.h>
 #include <mailutils/sys/smtp.h>
 
@@ -69,7 +70,7 @@ mu_smtp_get_param (mu_smtp_t smtp, int pcode, const char **pparam)
   if (pcode == MU_SMTP_PARAM_PASSWORD && smtp->secret &&
       !MU_SMTP_FISSET (smtp, _MU_SMTP_CLNPASS))
     {
-      smtp->param[pcode] = mu_secret_password (smtp->secret);
+      smtp->param[pcode] = (char*) mu_secret_password (smtp->secret);
       MU_SMTP_FSET (smtp, _MU_SMTP_CLNPASS);
     }
   

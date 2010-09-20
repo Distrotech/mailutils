@@ -19,6 +19,7 @@
 #endif
 
 #include <errno.h>
+#include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
 #include <mailutils/errno.h>
@@ -26,10 +27,11 @@
 #include <mailutils/list.h>
 #include <mailutils/mutil.h>
 #include <mailutils/smtp.h>
+#include <mailutils/stream.h>
 #include <mailutils/sys/smtp.h>
 
 int
-mu_smtp_mail_basic (mu_smtp_t smtp, const char *email, const char *args)
+mu_smtp_mail_basic (mu_smtp_t smtp, const char *email, const char *fmt, ...)
 {
   int status;
   
@@ -41,9 +43,14 @@ mu_smtp_mail_basic (mu_smtp_t smtp, const char *email, const char *args)
     return MU_ERR_SEQ;
   status = mu_smtp_write (smtp, "MAIL FROM:<%s>", email);
   MU_SMTP_CHECK_ERROR (smtp, status);
-  if (args)
+  if (fmt)
     {
-      status = mu_smtp_write (smtp, " %s", args);
+      va_list ap;
+
+      status = mu_smtp_write (smtp, " ");
+      va_start (ap, fmt);
+      status = mu_stream_vprintf (smtp->carrier, fmt, ap);
+      va_end (ap);
       MU_SMTP_CHECK_ERROR (smtp, status);
     }
   status = mu_smtp_write (smtp, "\r\n");

@@ -43,7 +43,7 @@ int mu_smtp_get_carrier (mu_smtp_t smtp, mu_stream_t *pcarrier);
 
 int mu_smtp_open (mu_smtp_t);
 int mu_smtp_response (mu_smtp_t smtp);
-int mu_smtp_write (mu_smtp_t smtp, const char *fmt, ...);
+int mu_smtp_write (mu_smtp_t smtp, const char *fmt, ...) MU_PRINTFLIKE(2,3);
 
 #define MU_SMTP_TRACE_CLR 0
 #define MU_SMTP_TRACE_SET 1
@@ -58,8 +58,12 @@ int mu_smtp_get_param (mu_smtp_t smtp, int code, const char **param);
 int mu_smtp_capa_test (mu_smtp_t smtp, const char *capa, const char **pret);
 int mu_smtp_starttls (mu_smtp_t smtp);
 
-int mu_smtp_mail_basic (mu_smtp_t smtp, const char *email, const char *args);
-int mu_smtp_rcpt_basic (mu_smtp_t smtp, const char *email, const char *args);
+int mu_smtp_mail_basic (mu_smtp_t smtp, const char *email,
+			const char *fmt, ...) MU_PRINTFLIKE(3,4);
+int mu_smtp_rcpt_basic (mu_smtp_t smtp, const char *email,
+			const char *fmt, ...) MU_PRINTFLIKE(3,4);
+
+int mu_smtp_data (mu_smtp_t smtp, mu_stream_t *pstream);
 int mu_smtp_send_stream (mu_smtp_t smtp, mu_stream_t str);
 int mu_smtp_rset (mu_smtp_t smtp);
 int mu_smtp_quit (mu_smtp_t smtp);

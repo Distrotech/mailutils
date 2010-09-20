@@ -94,6 +94,7 @@ mu_smtp_ehlo (mu_smtp_t smtp)
       if (smtp->replcode[0] != '2')
 	return MU_ERR_REPLY;
     }
-  smtp->state = MU_SMTP_MAIL;
+  if (smtp->state == MU_SMTP_EHLO)
+    smtp->state = MU_SMTP_MAIL;
   return 0;
 }
