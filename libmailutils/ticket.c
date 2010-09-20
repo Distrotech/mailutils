@@ -211,7 +211,9 @@ mu_ticket_get_cred (mu_ticket_t ticket, mu_url_t url, const char *challenge,
 	}
       arg [strlen (arg) - 1] = '\0'; /* nuke the trailing line.  */
     }
-
+  else
+    return MU_ERR_FAILURE;
+  
   if (pplain)
     {
       *pplain = strdup (arg);

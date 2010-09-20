@@ -37,6 +37,8 @@ mu_smtp_quit (mu_smtp_t smtp)
     return EINVAL;
   if (MU_SMTP_FISSET (smtp, _MU_SMTP_ERR))
     return MU_ERR_FAILURE;
+  if (smtp->state == MU_SMTP_CLOS)
+    return 0;
   status = mu_smtp_write (smtp, "QUIT\r\n");
   MU_SMTP_CHECK_ERROR (smtp, status);
   status = mu_smtp_response (smtp);

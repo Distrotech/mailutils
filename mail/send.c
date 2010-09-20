@@ -23,7 +23,7 @@
 #include <fcntl.h>
 
 static int isfilename (const char *);
-static void msg_to_pipe (const char *cmd, mu_message_t msg);
+static int msg_to_pipe (const char *cmd, mu_message_t msg);
 
 
 /* Additional message headers */
@@ -338,6 +338,82 @@ fill_body (mu_message_t msg, FILE *file)
   return 0;
 }
 
+static int
+save_dead_message (compose_env_t *env)
+{
+  if (mailvar_get (NULL, "save", mailvar_type_boolean, 0) == 0)
+    {
+      FILE *fp = fopen (getenv ("DEAD"),
+			mailvar_get (NULL, "appenddeadletter",
+				     mailvar_type_boolean, 0) == 0 ?
+			"a" : "w");
+      
+      if (!fp)
+	{
+	  util_error (_("Cannot open file %s: %s"), getenv ("DEAD"),
+		      strerror (errno));
+	  return 1;
+	}
+      else
+	{
+	  char *buf = NULL;
+	  size_t n;
+	  rewind (env->file);
+	  while (getline (&buf, &n, env->file) > 0)
+	    fputs (buf, fp);
+	  fclose (fp);
+	  free (buf);
+	}
+    }
+  return 0;
+}
+
+static int
+send_message (mu_message_t msg)
+{
+  char *sendmail;
+  int status;
+  
+  if (mailvar_get (&sendmail, "sendmail", mailvar_type_string, 0) == 0)
+    {
+      if (sendmail[0] == '/')
+	status = msg_to_pipe (sendmail, msg);
+      else
+	{
+	  mu_mailer_t mailer;
+	  
+	  status = mu_mailer_create (&mailer, sendmail);
+	  if (status == 0)
+	    {
+	      if (mailvar_get (NULL, "verbose", mailvar_type_boolean, 0) == 0)
+		{
+		  mu_debug_t debug = NULL;
+		  mu_mailer_get_debug (mailer, &debug);
+		  mu_debug_set_level (debug,
+				      MU_DEBUG_LEVEL_UPTO (MU_DEBUG_PROT));
+		}
+	      status = mu_mailer_open (mailer, MU_STREAM_RDWR);
+	      if (status == 0)
+		{
+		  status = mu_mailer_send_message (mailer, msg, NULL, NULL);
+		  mu_mailer_close (mailer);
+		}
+	      else
+		util_error (_("Cannot open mailer: %s"), mu_strerror (status));
+	      mu_mailer_destroy (&mailer);
+	    }
+	  else
+	    util_error (_("Cannot create mailer: %s"),
+			mu_strerror (status));
+	}
+    }
+  else
+    {
+      util_error (_("Variable sendmail not set: no mailer"));
+      status = ENOSYS;
+    }
+  return status;
+}
 
 /* mail_send0(): shared between mail_send() and mail_reply();
 
@@ -471,40 +547,15 @@ mail_send0 (compose_env_t * env, int save_to)
       free (buf);
     }
 
-  /* If interrupted dump the file to dead.letter.  */
+  /* If interrupted, dump the file to dead.letter.  */
   if (int_cnt)
     {
-      if (mailvar_get (NULL, "save", mailvar_type_boolean, 0) == 0)
-	{
-	  FILE *fp = fopen (getenv ("DEAD"),
-			    mailvar_get (NULL, "appenddeadletter",
-					 mailvar_type_boolean, 0) == 0 ?
-			    "a" : "w");
-
-	  if (!fp)
-	    {
-	      util_error (_("Cannot open file %s: %s"), getenv ("DEAD"),
-			  strerror (errno));
-	    }
-	  else
-	    {
-	      char *buf = NULL;
-	      size_t n;
-	      rewind (env->file);
-	      while (getline (&buf, &n, env->file) > 0)
-		fputs (buf, fp);
-	      fclose (fp);
-	      free (buf);
-	    }
-	}
-
+      save_dead_message (env);
       fclose (env->file);
       remove (filename);
       free (filename);
       return 1;
     }
-
-  fclose (env->file);		/* FIXME: freopen would be better */
 
   /* In mailx compatibility mode, ask for Cc and Bcc after editing
      the body of the message */
@@ -521,12 +572,12 @@ mail_send0 (compose_env_t * env, int save_to)
       file = fopen (filename, "r");
       if (file != NULL)
 	{
-	  mu_mailer_t mailer;
 	  mu_message_t msg = NULL;
 	  int rc;
+	  int status = 0;
 	  
 	  mu_message_create (&msg, NULL);
-
+	  
 	  /* Fill the body.  */
 	  rc = fill_body (msg, file);
 	  fclose (file);
@@ -561,11 +612,10 @@ mail_send0 (compose_env_t * env, int save_to)
 		    {
 		      /* Pipe to a cmd.  */
 		      if (env->outfiles[i][0] == '|')
-			msg_to_pipe (&(env->outfiles[i][1]), msg);
+			status = msg_to_pipe (env->outfiles[i] + 1, msg);
 		      /* Save to a file.  */
 		      else
 			{
-			  int status;
 			  mu_mailbox_t mbx = NULL;
 			  status = mu_mailbox_create_default (&mbx, 
                                                               env->outfiles[i]);
@@ -585,64 +635,36 @@ mail_send0 (compose_env_t * env, int save_to)
 			    }
 			  if (status)
 			    util_error (_("Cannot create mailbox %s: %s"), 
-					env->outfiles[i], mu_strerror (status));
+					env->outfiles[i],
+					mu_strerror (status));
 			}
 		    }
 		}
 
 	      /* Do we need to Send the message on the wire?  */
-	      if (compose_header_get (env, MU_HEADER_TO, NULL)
-		  || compose_header_get (env, MU_HEADER_CC, NULL)
-		  || compose_header_get (env, MU_HEADER_BCC, NULL))
+ 	      if (status == 0 &&
+ 		  (compose_header_get (env, MU_HEADER_TO, NULL) ||
+ 		   compose_header_get (env, MU_HEADER_CC, NULL) ||
+ 		   compose_header_get (env, MU_HEADER_BCC, NULL)))
 		{
-		  char *sendmail;
-		  if (mailvar_get (&sendmail, "sendmail",
-				   mailvar_type_string, 0) == 0)
-		    {
-		      mu_message_set_header (msg, env->header, NULL);
-		      env->header = NULL;
-		      if (sendmail[0] == '/')
-			msg_to_pipe (sendmail, msg);
-		      else
-			{
-			  int status = mu_mailer_create (&mailer, sendmail);
-			  if (status == 0)
-			    {
-			      if (mailvar_get (NULL, "verbose",
-					       mailvar_type_boolean, 0) == 0)
-				{
-				  mu_debug_t debug = NULL;
-				  mu_mailer_get_debug (mailer, &debug);
-				  mu_debug_set_level (debug,
-						      MU_DEBUG_LEVEL_UPTO (MU_DEBUG_PROT));
-				}
-			      status = mu_mailer_open (mailer, MU_STREAM_RDWR);
-			      if (status == 0)
-				{
-				  mu_mailer_send_message (mailer, msg,
-							  NULL, NULL);
-				  mu_mailer_close (mailer);
-				}
-			      else
-				util_error (_("Cannot open mailer: %s"),
-					    mu_strerror (status));
-			      mu_mailer_destroy (&mailer);
-			    }
-			  else
-			    util_error (_("Cannot create mailer: %s"),
-					mu_strerror (status));
-			}
-		    }
-		  else
-		    util_error (_("Variable sendmail not set: no mailer"));
+		  mu_message_set_header (msg, env->header, NULL);
+		  env->header = NULL;
+		  status = send_message (msg);
+ 		  if (status)
+ 		    save_dead_message (env);
 		}
 	    }
+	  fclose (env->file);
 	  mu_message_destroy (&msg, NULL);
 	  remove (filename);
 	  free (filename);
-	  return 0;
+	  return status;
 	}
     }
+  else
+    save_dead_message (env);
+  
+  fclose (env->file);
 
   remove (filename);
   free (filename);
@@ -662,26 +684,33 @@ isfilename (const char *p)
 
 /* FIXME: Should probably be in util.c.  */
 /* Call popen(cmd) and write the message to it.  */
-static void
+static int
 msg_to_pipe (const char *cmd, mu_message_t msg)
 {
-  FILE *fp = popen (cmd, "w");
-  if (fp)
+  mu_stream_t progstream, msgstream;
+  int status, rc;
+  
+  status = mu_prog_stream_create (&progstream, cmd, MU_STREAM_WRITE);
+  if (status)
     {
-      mu_stream_t stream = NULL;
-      char buffer[512];
-      size_t n = 0;
-      /* FIXME: Use mu_stream_copy */
-      mu_message_get_streamref (msg, &stream);
-      while (mu_stream_read (stream, buffer, sizeof buffer - 1, &n) == 0
-	     && n != 0)
-	{
-	  buffer[n] = '\0';
-	  fprintf (fp, "%s", buffer);
-	}
-      mu_stream_destroy (&stream);
-      pclose (fp);
+      util_error (_("Cannot pipe to %s: %s"), cmd, mu_strerror (status));
+      return status;
     }
-  else
-    util_error (_("Piping %s failed"), cmd);
+
+  mu_message_get_streamref (msg, &msgstream);
+  status = mu_stream_copy (progstream, msgstream, 0, NULL);
+  rc = mu_stream_close (progstream);
+
+  if (status == 0 && rc)
+    status = rc;
+
+  mu_stream_destroy (&progstream);
+  mu_stream_destroy (&msgstream);
+  
+  if (status)
+    {
+      util_error (_("Sending data to %s failed: %s"), cmd,
+		  mu_strerror (status));
+    }
+  return status;
 }
