@@ -140,7 +140,8 @@ int mu_stream_set_flags (mu_stream_t stream, int fl);
 int mu_stream_clr_flags (mu_stream_t stream, int fl);
 
 int mu_stream_vprintf (mu_stream_t str, const char *fmt, va_list ap);
-int mu_stream_printf (mu_stream_t stream, const char *fmt, ...);
+int mu_stream_printf (mu_stream_t stream, const char *fmt, ...)
+                      MU_PRINTFLIKE(2,3);
 
 int mu_stream_copy (mu_stream_t dst, mu_stream_t src, mu_off_t size,
 		    mu_off_t *pcsz);

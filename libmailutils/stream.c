@@ -375,10 +375,11 @@ mu_stream_seek (mu_stream_t stream, mu_off_t offset, int whence,
       return mu_stream_seterr (stream, EINVAL, 1);
     }
 
-  if ((stream->buftype == mu_buffer_none && offset != stream->offset)
-      || stream->level == 0
-      || offset < stream->offset
-      || offset > stream->offset + stream->level)
+  if (stream->buftype == mu_buffer_none ?
+      (offset != stream->offset)
+       : (stream->level == 0
+	  || offset < stream->offset
+	  || offset > stream->offset + stream->level))
     {
       if ((rc = _stream_flush_buffer (stream, 1)))
 	return rc;
@@ -945,10 +946,12 @@ mu_stream_close (mu_stream_t stream)
     
   if (!stream)
     return EINVAL;
+  
   mu_stream_flush (stream);
   /* Do close the stream only if it is not used by anyone else */
   if (stream->ref_count > 1)
     return 0;
+  _stream_event (stream, _MU_STR_EVENT_CLOSE, 0, NULL);
   if (stream->close)
     rc = stream->close (stream);
   return rc;

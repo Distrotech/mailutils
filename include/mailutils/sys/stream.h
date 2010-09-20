@@ -28,6 +28,7 @@
 #define _MU_STR_EVENT_CLRFLAG   1
 #define _MU_STR_EVENT_FILLBUF   2
 #define _MU_STR_EVENT_FLUSHBUF  3
+#define _MU_STR_EVENT_CLOSE     4
 
 #define _MU_STR_EVMASK(n) (1<<(n))
 
@@ -63,6 +64,7 @@ struct _mu_stream
 
   void (*event_cb) (struct _mu_stream *, int code, unsigned long, void *);
   int  event_mask;
+  void *event_cb_data;
   
   const char *(*error_string) (struct _mu_stream *, int);
   
