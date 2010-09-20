@@ -133,7 +133,7 @@ _message_size (mu_stream_t stream, mu_off_t *psize)
 }
   
 static int
-scan_stream (mu_stream_t stream)
+scan_stream (struct _mu_message_stream *str)
 {
   char *from = NULL;
   char *env_from = NULL;
@@ -143,7 +143,7 @@ scan_stream (mu_stream_t stream)
   size_t bufsize = 0;
   size_t len;
   mu_off_t body_start, body_end;
-  struct _mu_message_stream *str = (struct _mu_message_stream *) stream;
+  mu_stream_t stream = str->transport;
 
   if (str->envelope)
     {
@@ -205,8 +205,6 @@ scan_stream (mu_stream_t stream)
   rc = mu_stream_seek (stream, 0, MU_SEEK_CUR, &body_start);
   if (rc)
     return rc;
-  else
-    body_start++;
   mu_stream_size (stream, &body_end);
   
   if (!env_from)
@@ -281,7 +279,7 @@ _message_open (mu_stream_t stream)
     }
   free (buffer);
 
-  return scan_stream (s->transport);
+  return scan_stream (s);
 }
 
 static int
@@ -355,6 +353,7 @@ mu_message_stream_create (mu_stream_t *stream, mu_stream_t src, int flags)
   s->stream.size = _message_size;
   s->stream.seek = _message_seek;
   s->stream.error_string = _message_error_string;
+  *stream = (mu_stream_t)s;
   return 0;  
 }
 
