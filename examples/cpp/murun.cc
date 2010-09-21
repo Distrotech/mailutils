@@ -33,11 +33,11 @@ read_and_print (Stream *in, Stream& out)
 {
   char buffer[128];
   
-  in->sequential_readline (buffer, sizeof (buffer));
+  in->readline (buffer, sizeof (buffer));
   while (in->get_read_count ())
     {
-      out.sequential_write (buffer, in->get_read_count ());
-      in->sequential_readline (buffer, sizeof (buffer));
+      out.write (buffer, in->get_read_count ());
+      in->readline (buffer, sizeof (buffer));
     }
 }
 
@@ -47,7 +47,7 @@ create_filter (bool read_stdin, char *cmdline, int flags)
   try {
     if (read_stdin)
       {
-	StdioStream *in = new StdioStream (stdin, 0);
+	StdioStream *in = new StdioStream (MU_STDIN_FD, 0);
 	in->open ();
 	FilterProgStream *stream = new FilterProgStream (cmdline, in);
 	stream->open ();
@@ -96,7 +96,7 @@ main (int argc, char *argv[])
   stream = create_filter (read_stdin, cmdline, flags);
 
   try {
-    StdioStream out (stdout, 0);
+    StdioStream out (MU_STDOUT_FD, 0);
     out.open ();
 
     read_and_print (stream, out);

@@ -88,7 +88,7 @@ main (int argc, char *argv[])
     }
 
   try {
-    StdioStream in (stdin, MU_STREAM_SEEK);
+    StdioStream in (MU_STDIN_FD, MU_STREAM_SEEK);
     in.open ();
 
     Message msg;

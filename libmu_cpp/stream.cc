@@ -56,7 +56,7 @@ Stream :: ~Stream ()
     {
       close ();
       if (this->stm)
-	mu_stream_destroy (&stm, NULL);
+	mu_stream_destroy (&stm);
     }
 }
 
@@ -109,9 +109,9 @@ Stream :: wait (int flags)
 }
 
 int
-Stream :: read (char* rbuf, size_t size, off_t offset)
+Stream :: read (void* rbuf, size_t size)
 {
-  int status = mu_stream_read (stm, rbuf, size, offset, &read_count);
+  int status = mu_stream_read (stm, rbuf, size, &read_count);
   if (status == EAGAIN)
     throw Stream::EAgain ("Stream::read", status);
   else if (status)
@@ -120,10 +120,9 @@ Stream :: read (char* rbuf, size_t size, off_t offset)
 }
 
 int
-Stream :: write (const std::string& wbuf, size_t size, off_t offset)
+Stream :: write (void* wbuf, size_t size)
 {
-  int status = mu_stream_write (stm, wbuf.c_str (), size, offset,
-				&write_count);
+  int status = mu_stream_write (stm, wbuf, size, &write_count);
   if (status == EAGAIN)
     throw Stream::EAgain ("Stream::write", status);
   else if (status)
@@ -132,30 +131,25 @@ Stream :: write (const std::string& wbuf, size_t size, off_t offset)
 }
 
 int
-Stream :: readline (char* rbuf, size_t size, off_t offset)
+Stream :: write (const std::string& wbuf, size_t size)
 {
-  int status = mu_stream_readline (stm, rbuf, size, offset, &read_count);
+  int status = mu_stream_write (stm, wbuf.c_str (), size, &write_count);
+  if (status == EAGAIN)
+    throw Stream::EAgain ("Stream::write", status);
+  else if (status)
+    throw Exception ("Stream::write", status);
+  return status;
+}
+
+int
+Stream :: readline (char* rbuf, size_t size)
+{
+  int status = mu_stream_readline (stm, rbuf, size, &read_count);
   if (status == EAGAIN)
     throw Stream::EAgain ("Stream::readline", status);
   else if (status)
     throw Exception ("Stream::readline", status);
   return status;
-}
-
-void
-Stream :: sequential_readline (char* rbuf, size_t size)
-{
-  int status = mu_stream_sequential_readline (stm, rbuf, size, &read_count);
-  if (status)
-    throw Exception ("Stream::sequential_readline", status);
-}
-
-void
-Stream :: sequential_write (const std::string& wbuf, size_t size)
-{
-  int status = mu_stream_sequential_write (stm, wbuf.c_str (), size);
-  if (status)
-    throw Exception ("Stream::sequential_write", status);
 }
 
 void
@@ -171,7 +165,7 @@ namespace mailutils
   Stream&
   operator << (Stream& stm, const std::string& wbuf)
   {
-    stm.write (wbuf, wbuf.length (), 0);
+    stm.write (wbuf, wbuf.length ());
     return stm;
   }
 
@@ -179,7 +173,7 @@ namespace mailutils
   operator >> (Stream& stm, std::string& rbuf)
   {
     char tmp[1024];
-    stm.read (tmp, sizeof (tmp), 0);
+    stm.read (tmp, sizeof (tmp));
     rbuf = std::string (tmp);
     return stm;
   }
@@ -211,9 +205,9 @@ FileStream :: FileStream (const std::string& filename, int flags)
 // StdioStream
 //
 
-StdioStream :: StdioStream (FILE* fp, int flags)
+StdioStream :: StdioStream (int fd, int flags)
 {
-  int status = mu_stdio_stream_create (&stm, fp, flags);
+  int status = mu_stdio_stream_create (&stm, fd, flags);
   if (status)
     throw Exception ("StdioStream::StdioStream", status);
 }

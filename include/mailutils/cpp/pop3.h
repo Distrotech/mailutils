@@ -51,7 +51,7 @@ class Pop3
 
   void apop (const char* name, const char* digest);
   void stls ();
-  Iterator& capa ();
+  Iterator& capa (bool reread);
   void dele (unsigned int msgno);
   size_t list (unsigned int msgno);
   Iterator& list_all ();
@@ -60,16 +60,15 @@ class Pop3
   void quit ();
   Stream& retr (unsigned int msgno);
   void rset ();
-  void stat (unsigned int* count, size_t* octets);
+  void stat (unsigned int* count, mu_off_t* octets);
   Stream& top (unsigned int msgno, unsigned int lines);
   std::string uidl  (unsigned int msgno);
   Iterator& uidl_all ();
   void user (const char* user);
 
-  size_t readline (char* buf, size_t buflen);
-  size_t response (char* buf, size_t buflen);
+  void getline ();
+  void response (size_t* nread);
   void sendline (const char* line);
-  void send ();
 };
 
 }

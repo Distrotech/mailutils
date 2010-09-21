@@ -39,7 +39,7 @@ main (int argc, char **argv)
     }
 
   try {
-    StdioStream *in = new StdioStream (stdin, 0);
+    StdioStream *in = new StdioStream (MU_STDIN_FD, 0);
     in->open ();
 
     FilterIconvStream cvt (*in, (string)argv[1], (string)argv[2], 0,
@@ -47,12 +47,12 @@ main (int argc, char **argv)
     cvt.open ();
     delete in;
     
-    StdioStream out (stdout, 0);
+    StdioStream out (MU_STDOUT_FD, 0);
     out.open ();
 
     do {
-      cvt.read (buffer, sizeof (buffer), total);
-      out.sequential_write (buffer, cvt.get_read_count ());
+      cvt.read (buffer, sizeof (buffer));
+      out.write (buffer, cvt.get_read_count ());
       total += cvt.get_read_count ();
     } while (cvt.get_read_count ());
 

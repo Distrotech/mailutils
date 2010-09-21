@@ -120,11 +120,11 @@ Pop3 :: stls ()
 }
 
 Iterator&
-Pop3 :: capa ()
+Pop3 :: capa (bool reread = false)
 {
   mu_iterator_t mu_itr;
 
-  int status = mu_pop3_capa (pop3, &mu_itr);
+  int status = mu_pop3_capa (pop3, reread, &mu_itr);
   if (status)
     throw Exception ("Pop3::capa", status);
 
@@ -208,7 +208,7 @@ Pop3 :: rset ()
 }
 
 void
-Pop3 :: stat (unsigned int* count, size_t* octets)
+Pop3 :: stat (unsigned int* count, mu_off_t* octets)
 {
   int status = mu_pop3_stat (pop3, count, octets);
   if (status)
@@ -264,22 +264,18 @@ Pop3 :: user (const char* user)
     throw Exception ("Pop3::user", status);
 }
 
-size_t
-Pop3 :: readline (char* buf, size_t buflen)
+void
+Pop3 :: getline ()
 {
-  size_t nread;
-
-  int status = mu_pop3_readline (pop3, buf, buflen, &nread);
+  int status = mu_pop3_getline (pop3);
   if (status)
-    throw Exception ("Pop3::readline", status);
+    throw Exception ("Pop3::getline", status);
 }
 
-size_t
-Pop3 :: response (char* buf, size_t buflen)
+void
+Pop3 :: response (size_t* nread)
 {
-  size_t nread;
-
-  int status = mu_pop3_response (pop3, buf, buflen, &nread);
+  int status = mu_pop3_response (pop3, nread);
   if (status)
     throw Exception ("Pop3::response", status);
 }
@@ -290,13 +286,5 @@ Pop3 :: sendline (const char* line)
   int status = mu_pop3_sendline (pop3, line);
   if (status)
     throw Exception ("Pop3::sendline", status);
-}
-
-void
-Pop3 :: send ()
-{
-  int status = mu_pop3_send (pop3);
-  if (status)
-    throw Exception ("Pop3::send", status);
 }
 

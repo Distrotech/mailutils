@@ -68,11 +68,10 @@ class Stream
   void set_waitflags (int flags);
   void wait (); // timeval is missing
   void wait (int flags); // timeval is missing
-  int  read (char* rbuf, size_t size, off_t offset);
-  int  write (const std::string& wbuf, size_t size, off_t offset);
-  int  readline (char* rbuf, size_t size, off_t offset);
-  void sequential_readline (char* rbuf, size_t size);
-  void sequential_write (const std::string& wbuf, size_t size);
+  int  read (void* rbuf, size_t size);
+  int  write (void* wbuf, size_t size);
+  int  write (const std::string& wbuf, size_t size);
+  int  readline (char* rbuf, size_t size);
   void flush ();
 
   // Inlines
@@ -108,7 +107,7 @@ class FileStream : public Stream
 class StdioStream : public Stream
 {
  public:
-  StdioStream (FILE*, int);
+  StdioStream (int fd, int flags);
 };
 
 class ProgStream : public Stream

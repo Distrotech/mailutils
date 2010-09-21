@@ -187,14 +187,12 @@ message_display_parts (Message& msg, int indent)
 	  Stream stream = body.get_stream ();
 
 	  FilterStream filter (stream, encoding, 0, 0);
-          int offset = 0;
 	  char buf[2048];
 
-          while (filter.readline (buf, sizeof (buf), offset) == 0 &&
+          while (filter.readline (buf, sizeof (buf)) == 0 &&
 		 filter.get_read_count ())
             {
 	      cout << setw (indent) << setfill (' ') << buf;
-              offset += filter.get_read_count ();
             }
         }
       else
