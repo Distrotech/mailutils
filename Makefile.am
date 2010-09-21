@@ -162,7 +162,8 @@ git-describe:
 		test -n "$$dirty" && dirty="-dirty"; \
 		descr=`git describe`; \
 		echo $${descr}$$dirty > git-describe.tmp; \
-		test -f git-describe && cmp git-describe.tmp git-describe || \
+		test -f git-describe && \
+                  cmp git-describe.tmp git-describe >/dev/null || \
 		  cp git-describe.tmp git-describe; \
 	        rm git-describe.tmp; \
 	fi
@@ -183,7 +184,8 @@ git-describe.h: git-describe
 	else \
           echo "/* No git tag */"; \
 	fi > git-describe.h.tmp; \
-	test -f git-describe.h && cmp git-describe.h.tmp git-describe.h || \
+	test -f git-describe.h && \
+          cmp git-describe.h.tmp git-describe.h >/dev/null || \
           cp git-describe.h.tmp git-describe.h; \
 	rm git-describe.h.tmp
 

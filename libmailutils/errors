@@ -93,3 +93,4 @@ MU_ERR_BAD_FILENAME         _("Badly formed file or directory name")
 MU_ERR_READ                 _("Read error")
 
 MU_ERR_NO_TRANSPORT         _("Transport stream not set")
+MU_ERR_AUTH_NO_CRED         _("No credentials supplied")

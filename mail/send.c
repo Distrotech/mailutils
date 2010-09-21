@@ -308,9 +308,10 @@ fill_body (mu_message_t msg, FILE *file)
   mu_stream_t stream = NULL;
   char *buf = NULL;
   size_t n = 0;
+  int nullbody = 1;
+
   mu_message_get_body (msg, &body);
   mu_body_get_streamref (body, &stream);
-  int nullbody = 1;
   
   while (getline (&buf, &n, file) >= 0)
     {
@@ -651,7 +652,11 @@ mail_send0 (compose_env_t * env, int save_to)
 		  env->header = NULL;
 		  status = send_message (msg);
  		  if (status)
- 		    save_dead_message (env);
+		    {
+		      mu_error (_("cannot send message: %s"),
+				mu_strerror (status));
+		      save_dead_message (env);
+		    }
 		}
 	    }
 	  fclose (env->file);

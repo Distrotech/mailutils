@@ -124,9 +124,11 @@ smtp_open (mu_mailer_t mailer, int flags)
   if (mu_debug_check_level (mailer->debug, MU_DEBUG_PROT))
     mu_smtp_trace (smtp_mailer->smtp, MU_SMTP_TRACE_SET);
   if (mu_debug_check_level (mailer->debug, MU_DEBUG_TRACE6))
-    mu_smtp_trace_mask (smtp_mailer->smtp, MU_SMTP_TRACE_SET, MU_XSCRIPT_SECURE);
+    mu_smtp_trace_mask (smtp_mailer->smtp, MU_SMTP_TRACE_SET,
+			MU_XSCRIPT_SECURE);
   if (mu_debug_check_level (mailer->debug, MU_DEBUG_TRACE7))
-    mu_smtp_trace_mask (smtp_mailer->smtp, MU_SMTP_TRACE_SET, MU_XSCRIPT_PAYLOAD);
+    mu_smtp_trace_mask (smtp_mailer->smtp, MU_SMTP_TRACE_SET,
+			MU_XSCRIPT_PAYLOAD);
   
   mu_smtp_set_param (smtp_mailer->smtp, MU_SMTP_PARAM_URL,
 		     mu_url_to_string (mailer->url));
@@ -203,9 +205,19 @@ smtp_open (mu_mailer_t mailer, int flags)
   if (!noauth && mu_smtp_capa_test (smtp_mailer->smtp, "AUTH", NULL) == 0)
     {
       rc = mu_smtp_auth (smtp_mailer->smtp);
-      if (rc)
-	return rc;
-      rc = mu_smtp_ehlo (smtp_mailer->smtp);
+      switch (rc)
+	{
+	case 0:
+	  rc = mu_smtp_ehlo (smtp_mailer->smtp);
+	  break;
+	  
+	case ENOSYS:
+	case MU_ERR_AUTH_NO_CRED:
+	  mu_diag_output (MU_DIAG_NOTICE, "authentication disabled: %s",
+			  mu_strerror (rc));
+	  rc = 0; /* Continue anyway */
+	  break;
+	}
       if (rc)
 	return rc;
     }
@@ -377,7 +389,7 @@ smtp_send_message (mu_mailer_t mailer, mu_message_t msg,
   mu_smtp_t smtp = smp->smtp;
   int status;
   size_t size, lines, count;
-  const char *mail_from;
+  const char *mail_from, *size_str;
   mu_header_t     header;
       
   if (mailer == NULL)
@@ -398,12 +410,19 @@ smtp_send_message (mu_mailer_t mailer, mu_message_t msg,
   if (status)
     return status;
   
-  if (mu_smtp_capa_test (smp->smtp, "SIZE", NULL) == 0 &&
+  if (mu_smtp_capa_test (smp->smtp, "SIZE", &size_str) == 0 &&
       mu_message_size (msg, &size) == 0 &&
       mu_message_lines (msg, &lines) == 0)
-    status = mu_smtp_mail_basic (smp->smtp, mail_from,
-				 "SIZE=%lu",
-				 (unsigned long) (size + lines));
+    {
+      size_t msgsize = size + lines;
+      size_t maxsize = strtoul (size_str + 5, NULL, 10);
+
+      if (msgsize && msgsize > maxsize)
+	return EFBIG;
+      status = mu_smtp_mail_basic (smp->smtp, mail_from,
+				   "SIZE=%lu",
+				   (unsigned long) msgsize);
+    }
   else
     status = mu_smtp_mail_basic (smp->smtp, mail_from, NULL);
   if (status)

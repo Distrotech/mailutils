@@ -141,6 +141,8 @@ mu_smtp_auth (mu_smtp_t smtp)
      default it does that on tty, which obviously will not suite
      GUI applications). */
   _mu_smtp_fixup_params (smtp);
+  if (!smtp->param[MU_SMTP_PARAM_USERNAME] && !smtp->secret)
+    return MU_ERR_AUTH_NO_CRED;
 #if defined(WITH_GSASL)
   return _mu_smtp_gsasl_auth (smtp);
 #else

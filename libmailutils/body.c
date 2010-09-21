@@ -183,6 +183,7 @@ _body_get_stream (mu_body_t body, mu_stream_t *pstream, int ref)
 					  body->filename, MU_STREAM_RDWR);
 	  if (status != 0)
 	    return status;
+	  mu_stream_set_buffer (body->fstream, mu_buffer_full, 0);
 	  status = mu_stream_open (body->fstream);
 	  if (status != 0)
 	    return status;
