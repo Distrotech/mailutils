@@ -731,7 +731,7 @@ fetch_io (mu_stream_t stream, size_t start, size_t size, size_t max)
       char *buffer, *p;
       size_t total = 0;
       offset = start;
-      p = buffer = malloc (size + 1);
+      p = buffer = malloc (size + 2);
       if (!p)
 	imap4d_bye (ERR_NO_MEM);
       
