@@ -27,13 +27,10 @@
 int
 mail_pipe (int argc, char **argv)
 {
-  mu_message_t msg;
-  mu_stream_t stream;
+  int rc;
+  mu_stream_t outstr;
   char *cmd;
-  FILE *tube;
   msgset_t *list, *mp;
-  char buffer[512];
-  size_t n = 0;
 
   if (argc > 2)
     cmd = argv[--argc];
@@ -41,30 +38,35 @@ mail_pipe (int argc, char **argv)
     return 1;
 
   if (msgset_parse (argc, argv, MSG_NODELETED|MSG_SILENT, &list))
-      return 1;
+    return 1;
 
-  tube = popen (cmd, "w");
+  rc = mu_prog_stream_create (&outstr, cmd, MU_STREAM_WRITE);
+  if (rc == 0)
+    rc = mu_stream_open (outstr);
+  if (rc)
+    {
+      mu_error (_("cannot open `%s': %s"), cmd, mu_strerror (rc));
+      return 1;
+    }
 
   for (mp = list; mp; mp = mp->next)
     {
+      mu_message_t msg;
+      mu_stream_t stream;
+      
       if (util_get_message (mbox, mp->msg_part[0], &msg) == 0)
 	{
 	  mu_message_get_streamref (msg, &stream);
-	  /* FIXME: Use mu_stream_copy */
-	  while (mu_stream_read (stream, buffer, sizeof (buffer) - 1, &n) == 0
-		 && n != 0)
-	    {
-	      buffer[n] = '\0';
-	      fprintf (tube, "%s", buffer);
-	    }
+	  mu_stream_copy (outstr, stream, 0, NULL);
 	  mu_stream_destroy (&stream);
 	  if (mailvar_get (NULL, "page", mailvar_type_boolean, 0) == 0)
-	    fprintf (tube, "\f\n");
+	    mu_stream_write (outstr, "\f\n", 2, NULL);
 	}
       util_mark_read (msg);
     }
-
+  mu_stream_close (outstr);
+  mu_stream_destroy (&outstr);
   msgset_free (list);
-  pclose (tube);
+
   return 0;
 }

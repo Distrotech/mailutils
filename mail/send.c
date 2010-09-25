@@ -299,32 +299,27 @@ compose_destroy (compose_env_t *env)
   free (env->outfiles);
 }
 
-/* FIXME: Can we use mu_stream_t instead of FILE? If so,
-   replace the loop with a call to mu_stream_copy. */
 static int
-fill_body (mu_message_t msg, FILE *file)
+fill_body (mu_message_t msg, mu_stream_t instr)
 {
+  int rc;
   mu_body_t body = NULL;
   mu_stream_t stream = NULL;
-  char *buf = NULL;
-  size_t n = 0;
-  int nullbody = 1;
-
+  mu_off_t n;
+  
   mu_message_get_body (msg, &body);
   mu_body_get_streamref (body, &stream);
-  
-  while (getline (&buf, &n, file) >= 0)
-    {
-      size_t len = strlen (buf);
-      if (len)
-	nullbody = 0;
-      mu_stream_write (stream, buf, len, NULL);
-    }
-  mu_stream_destroy (&stream);
-  if (buf)
-    free (buf);
 
-  if (nullbody)
+  rc = mu_stream_copy (stream, instr, 0, &n);
+  mu_stream_destroy (&stream);
+
+  if (rc)
+    {
+      mu_error (_("cannot copy temporary stream: %s"), mu_strerror (rc));
+      return 1;
+    }
+  
+  if (n == 0)
     {
       if (mailvar_get (NULL, "nullbody", mailvar_type_boolean, 0) == 0)
 	{
@@ -437,7 +432,6 @@ mail_send0 (compose_env_t * env, int save_to)
   int done = 0;
   int fd;
   char *filename;
-  FILE *file;
   char *savefile = NULL;
   int int_cnt;
   char *escape;
@@ -570,8 +564,16 @@ mail_send0 (compose_env_t * env, int save_to)
 
   if (util_header_expand (&env->header) == 0)
     {
-      file = fopen (filename, "r");
-      if (file != NULL)
+      int rc;
+      mu_stream_t instr;
+
+      rc = mu_file_stream_create (&instr, filename, MU_STREAM_READ);
+      if (rc == 0)
+	rc = mu_stream_open (instr);
+      if (rc)
+	mu_error (_("cannot open temporary stream `%s' for reading: %s"),
+		  filename, mu_strerror (rc));
+      else
 	{
 	  mu_message_t msg = NULL;
 	  int rc;
@@ -580,8 +582,8 @@ mail_send0 (compose_env_t * env, int save_to)
 	  mu_message_create (&msg, NULL);
 	  
 	  /* Fill the body.  */
-	  rc = fill_body (msg, file);
-	  fclose (file);
+	  rc = fill_body (msg, instr);
+	  mu_stream_destroy (&instr);
 
 	  if (rc == 0)
 	    {

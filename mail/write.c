@@ -28,10 +28,8 @@
 int
 mail_write (int argc, char **argv)
 {
-  mu_message_t msg;
-  mu_body_t bod;
-  mu_stream_t stream;
-  FILE *output;
+  int rc;
+  mu_stream_t output;
   char *filename = NULL;
   msgset_t *msglist = NULL, *mp;
   int sender = 0;
@@ -58,7 +56,7 @@ mail_write (int argc, char **argv)
   if (msgset_parse (argc, argv, MSG_NODELETED|MSG_SILENT, &msglist))
     {
       if (filename)
-          free (filename);
+	free (filename);
       return 1;
     }
 
@@ -72,54 +70,58 @@ mail_write (int argc, char **argv)
 	}
     }
 
-  output = fopen (filename, "a");
-  if (!output)
+  rc = mu_file_stream_create (&output, filename,
+			      MU_STREAM_APPEND|MU_STREAM_CREAT);
+  if (rc == 0)
+    rc = mu_stream_open (output);
+  if (rc)
     {
-      util_error (_("can't open %s: %s"), filename, strerror (errno));
+      util_error (_("can't open %s: %s"), filename, mu_strerror (rc));
       free (filename);
-      fclose (output);
       msgset_free (msglist);
       return 1;
     }
 
   for (mp = msglist; mp; mp = mp->next)
     {
+      mu_message_t msg;
+      mu_body_t body;
+      mu_stream_t stream;
       mu_attribute_t attr;
-      char buffer[512];
-      size_t n = 0;
 
       if (util_get_message (mbox, mp->msg_part[0], &msg))
         continue;
 
-      mu_message_get_body (msg, &bod);
+      mu_message_get_body (msg, &body);
 
-      mu_body_size (bod, &size);
-      total_size += size;
-      mu_body_lines (bod, &size);
-      total_lines += size;
-
-      /* FIXME: Use mu_stream_copy */
-      mu_body_get_streamref (bod, &stream);
-      /* should there be a separator? */
-      while (mu_stream_read (stream, buffer, sizeof (buffer) - 1, &n) == 0
-	     && n != 0)
-	{
-	  buffer[n] = '\0';
-	  fprintf (output, "%s", buffer);
-	}
+      mu_body_get_streamref (body, &stream);
+      rc = mu_stream_copy (output, stream, 0, NULL);
       mu_stream_destroy (&stream);
-      
-      /* mark as saved. */
 
-      mu_message_get_attribute (msg, &attr);
-      mu_attribute_set_userflag (attr, MAIL_ATTRIBUTE_SAVED);
+      if (rc == 0)
+	{
+	  mu_body_size (body, &size);
+	  total_size += size;
+	  mu_body_lines (body, &size);
+	  total_lines += size;
+	  
+	  /* mark as saved. */
+	  
+	  mu_message_get_attribute (msg, &attr);
+	  mu_attribute_set_userflag (attr, MAIL_ATTRIBUTE_SAVED);
+	}
+      else
+	mu_error (_("cannot save %lu: %s"),
+		  (unsigned long) mp->msg_part[0], mu_strerror (rc));
     }
 
+  mu_stream_close (output);
+  mu_stream_destroy (&output);
+  
   fprintf (ofile, "\"%s\" %3lu/%-5lu\n", filename,
 	   (unsigned long) total_lines, (unsigned long) total_size);
 
   free (filename);
-  fclose (output);
   msgset_free (msglist);
   return 0;
 }

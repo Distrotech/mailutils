@@ -294,8 +294,15 @@ mu_stream_open (mu_stream_t stream)
 {
   int rc;
 
-  if (stream->open && (rc = stream->open (stream)))
-    return mu_stream_seterr (stream, rc, 1);
+  if (stream->open)
+    {
+      if ((rc = stream->open (stream)))
+	return mu_stream_seterr (stream, rc, 1);
+      if ((stream->flags & (MU_STREAM_APPEND|MU_STREAM_SEEK)) ==
+	  (MU_STREAM_APPEND|MU_STREAM_SEEK) &&
+	  (rc = mu_stream_seek (stream, 0, MU_SEEK_END, NULL)))
+	return mu_stream_seterr (stream, rc, 1);
+    }
   stream->bytes_in = stream->bytes_out = 0;
   return 0;
 }
@@ -596,7 +603,7 @@ _stream_write_unbuffered (mu_stream_t stream,
   if (!stream->write) 
     return mu_stream_seterr (stream, ENOSYS, 0);
 
-  if (!(stream->flags & MU_STREAM_WRITE)) 
+  if (!(stream->flags & (MU_STREAM_WRITE|MU_STREAM_APPEND))) 
     return mu_stream_seterr (stream, EACCES, 1);
 
   if (stream->flags & _MU_STR_ERR)

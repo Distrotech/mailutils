@@ -67,8 +67,8 @@ _prog_stream_unregister (struct _mu_prog_stream *stream)
 # define getmaxfd() 64
 #endif
 
-#define REDIRECT_STDIN_P(f) ((f) & (MU_STREAM_WRITE|MU_STREAM_RDWR))
-#define REDIRECT_STDOUT_P(f) ((f) & (MU_STREAM_READ|MU_STREAM_RDWR))
+#define REDIRECT_STDIN_P(f) ((f) & MU_STREAM_WRITE)
+#define REDIRECT_STDOUT_P(f) ((f) & MU_STREAM_READ)
 
 static int
 start_program_filter (pid_t *pid, int *p, int argc, char **argv,
