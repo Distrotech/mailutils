@@ -20,7 +20,7 @@
 
 INCLUDES = @MU_APP_COMMON_INCLUDES@ 
 
-SUBDIRS = tests
+SUBDIRS = . tests
 
 bin_PROGRAMS = frm from
 frm_SOURCES = frm.c common.c frm.h

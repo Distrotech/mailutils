@@ -5,7 +5,6 @@
 #
 
 comsat/action.c
-comsat/oldcfg.c
 comsat/comsat.c
 
 config/mailutils-config.c

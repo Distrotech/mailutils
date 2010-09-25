@@ -18,7 +18,7 @@
 ##   02110-1301 USA
 
 INCLUDES = @MU_APP_COMMON_INCLUDES@ 
-SUBDIRS  = tests
+SUBDIRS  = . tests
 EXTRA_DIST = examples
 
 bin_PROGRAMS = sieve
