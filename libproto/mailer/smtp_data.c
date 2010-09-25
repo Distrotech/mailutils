@@ -46,6 +46,7 @@ _mu_smtp_data_begin (mu_smtp_t smtp)
   if (mu_smtp_trace_mask (smtp, MU_SMTP_TRACE_QRY, MU_XSCRIPT_PAYLOAD))
     _mu_smtp_xscript_level (smtp, MU_XSCRIPT_PAYLOAD);
 
+  smtp->savebuf.type = MU_TRANSPORT_OUTPUT;
   if (mu_stream_ioctl (smtp->carrier, MU_IOCTL_GET_TRANSPORT_BUFFER,
 		       &smtp->savebuf) == 0)
     {

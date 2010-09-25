@@ -205,7 +205,9 @@ scan_stream (struct _mu_message_stream *str)
   rc = mu_stream_seek (stream, 0, MU_SEEK_CUR, &body_start);
   if (rc)
     return rc;
-  mu_stream_size (stream, &body_end);
+  rc = mu_stream_size (stream, &body_end);
+  if (rc)
+    return rc;
   
   if (!env_from)
     {
@@ -240,7 +242,7 @@ scan_stream (struct _mu_message_stream *str)
   str->date = env_date;
 
   str->body_start = body_start;
-  str->body_end = body_end;
+  str->body_end = body_end - 1;
   
   return 0;
 }
@@ -369,7 +371,7 @@ _body_obj_size (mu_body_t body, size_t *size)
   struct _mu_message_stream *str = mu_message_get_owner (msg);
 
   if (size)
-    *size = str->body_end - str->body_start;
+    *size = str->body_end - str->body_start + 1;
   return 0;
 }
 

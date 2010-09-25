@@ -104,8 +104,8 @@ mu_stream_copy (mu_stream_t dst, mu_stream_t src, mu_off_t size,
 	status = mu_stream_write (dst, buf, n, NULL);
 	if (status)
 	  break;
-	size -= rdsize;
-	total += rdsize;
+	size -= n;
+	total += n;
       }
   else
     while ((status = mu_stream_read (src, buf, bufsize, &n)) == 0

@@ -187,6 +187,7 @@ _base64_encoder (void *xd MU_ARG_UNUSED,
   size_t isize;
   char *optr;
   size_t osize;
+  enum mu_filter_result res;
   
   switch (cmd)
     {
@@ -247,9 +248,13 @@ _base64_encoder (void *xd MU_ARG_UNUSED,
   /* Consumed may grow bigger than isize if cmd is mu_filter_lastbuf */
   if (consumed > iobuf->isize)
     consumed = iobuf->isize;
+  if (cmd == mu_filter_lastbuf && consumed < iobuf->isize)
+    res = mu_filter_again;
+  else
+    res = mu_filter_ok;
   iobuf->isize = consumed;
   iobuf->osize = nbytes;
-  return mu_filter_ok;
+  return res;
 }
 
 static struct _mu_filter_record _base64_filter = {
