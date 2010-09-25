@@ -24,7 +24,7 @@ m4_pushdef([TESTURL],[
 m4_pushdef([MU_TEST_GROUP],[Url])
 m4_pushdef([MU_TEST_KEYWORDS],[url])
 m4_pushdef([MU_TEST_COMMAND],[url-parse])
-MU_GENERIC_TEST([$1],[$2],[$3],[],[$4],[$5])
+MU_GENERIC_TEST([$1],[$2 url-m4_translit($3,[ ],[_])],[$3],[],[$4],[$5])
 m4_popdef([MU_TEST_COMMAND])
 m4_popdef([MU_TEST_KEYWORDS])
 m4_popdef([MU_TEST_GROUP])
@@ -772,6 +772,42 @@ param[1] <baz=qux>
 query[0] <prog>
 query[1] <arg 1>
 query[2] <arg 2>
+]])
+
+TESTURL([],[],
+[/usr/sbin/sendmail],
+[scheme <file>
+user <>
+passwd <>
+auth <>
+host <>
+port 0
+path </usr/sbin/sendmail>
+])
+
+TESTURL([],[],
+[/var/spool/mail/gray%40gnu.org],
+[scheme <file>
+user <>
+passwd <>
+auth <>
+host <>
+port 0
+path </var/spool/mail/gray%40gnu.org>
+])
+
+TESTURL([],[],
+[| /bin/mailman request list%40dom],
+[[scheme <prog>
+user <>
+passwd <>
+auth <>
+host <>
+port 0
+path </bin/mailman>
+query[0] </bin/mailman>
+query[1] <request>
+query[2] <list%40dom>
 ]])
 
 m4_popdef([TESTURL])

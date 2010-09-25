@@ -40,7 +40,7 @@
 #define AC2(a,b) a ## b
 #define AC4(a,b,c,d) a ## b ## c ## d
 
-static int url_parse0 (mu_url_t, char *, size_t *poff);
+static int url_parse0 (mu_url_t, char *, size_t *poff, int *decode);
 
 static int
 parse_query (const char *query,
@@ -286,7 +286,8 @@ mu_url_parse (mu_url_t url)
   struct _mu_url u;
   size_t pstart;
   mu_secret_t newsec;
-
+  int want_decode;
+  
   if (!url || !url->name)
     return EINVAL;
 
@@ -301,7 +302,7 @@ mu_url_parse (mu_url_t url)
   if (!n)
     return ENOMEM;
 
-  err = url_parse0 (&u, n, &pstart);
+  err = url_parse0 (&u, n, &pstart, &want_decode);
 
   if (!err)
     {
@@ -331,17 +332,18 @@ mu_url_parse (mu_url_t url)
 	 though.
        */
 
-#define UALLOC(X)                                          \
-  if (u.X && u.X[0] && (url->X = mu_url_decode(u.X)) == 0) \
-    {                                                      \
-       err = ENOMEM;                                       \
-       goto CLEANUP;                                       \
-    }                                                      \
-  else                                                     \
-    {                                                      \
-       /* Set zero-length strings to NULL. */              \
-	u.X = NULL; \
-    }
+#define UALLOC(X)							\
+      if (u.X && u.X[0] &&						\
+	  !(url->X = (want_decode ? mu_url_decode (u.X) : strdup (u.X)))) \
+	{								\
+	  err = ENOMEM;							\
+	  goto CLEANUP;							\
+	}								\
+      else								\
+	{								\
+	  /* Set zero-length strings to NULL. */			\
+	  u.X = NULL;							\
+	}
 
       UALLOC (scheme);
       UALLOC (user);
@@ -420,7 +422,7 @@ Is this required to be % quoted, though? I hope so!
 */
 
 static int
-url_parse0 (mu_url_t u, char *name, size_t *poff)
+url_parse0 (mu_url_t u, char *name, size_t *poff, int *decode)
 {
   char *start = name;
   char *p;			/* pointer into name */
@@ -432,11 +434,13 @@ url_parse0 (mu_url_t u, char *name, size_t *poff)
   if (name[0] == '/')
     {
       u->scheme = "file";
+      *decode = 0;
     }
   else if (name[0] == '|')
     {
       int rc;
       u->scheme = "prog";
+      *decode = 0;
       rc = mu_argcv_get (name + 1, NULL, NULL, &u->qargc, &u->qargv);
       if (rc == 0)
 	{
@@ -448,6 +452,7 @@ url_parse0 (mu_url_t u, char *name, size_t *poff)
     }
   else
     {
+      *decode = 1;
       /* Parse out the SCHEME. */
       p = strchr (name, ':');
       if (p == NULL)

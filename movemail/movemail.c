@@ -759,6 +759,14 @@ main (int argc, char **argv)
       return 1;
     }
 
+  if (emacs_mode)
+    {
+      /* Undo the effect of configuration options that may affect
+	 the interaction with Emacs. */
+      mu_registrar_set_default_record (mu_mbox_record);
+      mu_debug_default_printer = mu_debug_stderr_printer;
+    }
+  
   atexit (close_mailboxes);
   
   source_name = argv[0];
