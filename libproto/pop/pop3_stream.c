@@ -184,7 +184,7 @@ mu_pop3_stream_create (mu_pop3_t pop3, mu_stream_t *pstream)
   sp->pop3 = pop3;
   sp->flags = 0;
   str = (mu_stream_t) sp;
-  mu_stream_set_buffer (str, mu_buffer_line, 1024);
+  mu_stream_set_buffer (str, mu_buffer_line, 0);
 
   status = mu_pop3_filter_create (pstream, str);
   mu_stream_unref (str);

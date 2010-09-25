@@ -253,7 +253,7 @@ mu_iostream_create (mu_stream_t *pref, mu_stream_t in, mu_stream_t out)
   mu_stream_ref (out);
   sp->transport[_MU_STREAM_OUTPUT] = out;
 
-  mu_stream_set_buffer ((mu_stream_t) sp, mu_buffer_line, 1024);
+  mu_stream_set_buffer ((mu_stream_t) sp, mu_buffer_line, 0);
   *pref = (mu_stream_t) sp;
   return 0;
 }

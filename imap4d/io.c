@@ -34,12 +34,13 @@ io_setio (FILE *in, FILE *out)
   if (mu_stdio_stream_create (&istream, fileno (in), 
                               MU_STREAM_READ | MU_STREAM_AUTOCLOSE))
     imap4d_bye (ERR_STREAM_CREATE);
-  mu_stream_set_buffer (istream, mu_buffer_line, 1024);
+  mu_stream_set_buffer (istream, mu_buffer_line, 0);
   
   if (mu_stdio_stream_create (&ostream, fileno (out), 
                               MU_STREAM_WRITE | MU_STREAM_AUTOCLOSE))
     imap4d_bye (ERR_STREAM_CREATE);
-
+  mu_stream_set_buffer (ostream, mu_buffer_line, 0);
+  
   /* Combine the two streams into an I/O one. */
   if (mu_iostream_create (&str, istream, ostream))
     imap4d_bye (ERR_STREAM_CREATE);
@@ -51,7 +52,7 @@ io_setio (FILE *in, FILE *out)
 			MU_STREAM_WRITE | MU_STREAM_RDTHRU))
     imap4d_bye (ERR_STREAM_CREATE);
   /* Change buffering scheme: filter streams are fully buffered by default. */
-  mu_stream_set_buffer (iostream, mu_buffer_line, 1024);
+  mu_stream_set_buffer (iostream, mu_buffer_line, 0);
   
   if (imap4d_transcript)
     {

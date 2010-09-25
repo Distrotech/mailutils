@@ -65,6 +65,7 @@ mu_stdio_stream_create (mu_stream_t *pstream, int fd, int flags)
     return rc;
   fstr->stream.open = NULL;
   transport = (mu_stream_t) fstr;
+  mu_stream_set_buffer (transport, mu_buffer_line, 0);
   
   /* Wrap it in cache, if required */
   if (need_cache)

@@ -85,11 +85,11 @@ main (int argc, char * argv [])
     }
 
   MU_ASSERT (mu_stdio_stream_create (&in, MU_STDIN_FD, 0));
-  mu_stream_set_buffer (in, mu_buffer_line, 1024);
+  mu_stream_set_buffer (in, mu_buffer_line, 0);
   MU_ASSERT (mu_stdio_stream_create (&out, MU_STDOUT_FD, 0));
-  mu_stream_set_buffer (out, mu_buffer_line, 1024);
+  mu_stream_set_buffer (out, mu_buffer_line, 0);
   MU_ASSERT (mu_socket_stream_create (&sock, argv[1], MU_STREAM_RDWR));
-  mu_stream_set_buffer (sock, mu_buffer_line, 1024);
+  mu_stream_set_buffer (sock, mu_buffer_line, 0);
   MU_ASSERT (mu_stream_open (sock));
   
   pid = fork ();

@@ -294,7 +294,10 @@ mu_file_stream_create (mu_stream_t *pstream, const char *filename, int flags)
 				   filename, -1,
 				   flags | MU_STREAM_SEEK | MU_STREAM_AUTOCLOSE);
   if (rc == 0)
-    *pstream = (mu_stream_t) fstr;
+    {
+      *pstream = (mu_stream_t) fstr;
+      mu_stream_set_buffer ((mu_stream_t) fstr, mu_buffer_full, 0);
+    }
   return rc;
 }
 
@@ -306,7 +309,10 @@ mu_fd_stream_create (mu_stream_t *pstream, char *filename, int fd, int flags)
 				   sizeof (struct _mu_file_stream),
 				   filename, fd, flags);
   if (rc == 0)
-    *pstream = (mu_stream_t) fstr;
+    {
+      *pstream = (mu_stream_t) fstr;
+      mu_stream_set_buffer ((mu_stream_t) fstr, mu_buffer_full, 0);
+    }
   return rc;
 }
 

@@ -149,7 +149,7 @@ pop_open (mu_mailbox_t mbox, int flags)
 #endif /* WITH_TLS */
 
   /* FIXME: How to configure buffer size? */
-  mu_stream_set_buffer (stream, mu_buffer_line, 1024);
+  mu_stream_set_buffer (stream, mu_buffer_line, 0);
 
   status = mu_pop3_create (&mpd->pop3);
   if (status)

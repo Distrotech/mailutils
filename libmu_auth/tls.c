@@ -300,13 +300,13 @@ _mu_tls_io_stream_create (mu_stream_t *pstream,
     {
       sp->stream.read = _tls_io_read; 
       sp->stream.wait = _tls_rd_wait;
-      mu_stream_set_buffer ((mu_stream_t) sp, mu_buffer_full, 1024);
+      mu_stream_set_buffer ((mu_stream_t) sp, mu_buffer_full, 0);
     }
   else
     {
       sp->stream.write = _tls_io_write;
       sp->stream.wait = _tls_wr_wait;
-      mu_stream_set_buffer ((mu_stream_t) sp, mu_buffer_line, 1024);
+      mu_stream_set_buffer ((mu_stream_t) sp, mu_buffer_line, 0);
     }
   sp->stream.flush = _tls_io_flush;
   sp->stream.close = _tls_io_close;
@@ -653,7 +653,7 @@ _mu_tls_stream_create (mu_stream_t *pstream,
       return rc;
     }
 
-  mu_stream_set_buffer ((mu_stream_t) sp, mu_buffer_line, 1024);
+  mu_stream_set_buffer ((mu_stream_t) sp, mu_buffer_line, 0);
   *pstream = (mu_stream_t) sp;
   return 0;
 }

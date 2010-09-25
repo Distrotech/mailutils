@@ -172,7 +172,7 @@ gsasl_encoder_stream (mu_stream_t *pstr, mu_stream_t transport,
 				_gsasl_encoder,
 				flt, flags);
   if (rc == 0)
-    mu_stream_set_buffer (*pstr, mu_buffer_line, 1024);
+    mu_stream_set_buffer (*pstr, mu_buffer_line, 0);
   return rc;
 }
 
@@ -188,7 +188,7 @@ gsasl_decoder_stream (mu_stream_t *pstr, mu_stream_t transport,
 				_gsasl_decoder,
 				flt, flags);
   if (rc == 0)
-    mu_stream_set_buffer (*pstr, mu_buffer_line, 1024);
+    mu_stream_set_buffer (*pstr, mu_buffer_line, 0);
   return rc;
 }
 

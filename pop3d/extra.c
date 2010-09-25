@@ -139,7 +139,7 @@ pop3d_setio (FILE *in, FILE *out)
   if (mu_stdio_stream_create (&istream, fileno (in), 
                               MU_STREAM_READ | MU_STREAM_AUTOCLOSE))
     pop3d_abquit (ERR_NO_IFILE);
-  mu_stream_set_buffer (istream, mu_buffer_line, 1024);
+  mu_stream_set_buffer (istream, mu_buffer_line, 0);
   
   if (mu_stdio_stream_create (&ostream, fileno (out), 
                               MU_STREAM_WRITE | MU_STREAM_AUTOCLOSE))
@@ -156,7 +156,7 @@ pop3d_setio (FILE *in, FILE *out)
 			MU_STREAM_WRITE | MU_STREAM_RDTHRU))
     pop3d_abquit (ERR_NO_IFILE);
   /* Change buffering scheme: filter streams are fully buffered by default. */
-  mu_stream_set_buffer (iostream, mu_buffer_line, 1024);
+  mu_stream_set_buffer (iostream, mu_buffer_line, 0);
   
   if (pop3d_transcript)
     {

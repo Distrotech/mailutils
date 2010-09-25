@@ -435,7 +435,7 @@ mu_xscript_stream_create(mu_stream_t *pref, mu_stream_t transport,
       free (sp);
       return ENOMEM;
     }
-  mu_stream_set_buffer ((mu_stream_t) sp, mu_buffer_line, 1024);
+  mu_stream_set_buffer ((mu_stream_t) sp, mu_buffer_line, 0);
   *pref = (mu_stream_t) sp;
   return 0;
 }
