@@ -127,21 +127,21 @@ pop3d_abquit (int reason)
 }
 
 void
-pop3d_setio (FILE *in, FILE *out)
+pop3d_setio (int ifd, int ofd)
 {
   mu_stream_t str, istream, ostream;
   
-  if (!in)
+  if (ifd == -1)
     pop3d_abquit (ERR_NO_IFILE);
-  if (!out)
+  if (ofd == -1)
     pop3d_abquit (ERR_NO_OFILE);
 
-  if (mu_stdio_stream_create (&istream, fileno (in), 
+  if (mu_stdio_stream_create (&istream, ifd, 
                               MU_STREAM_READ | MU_STREAM_AUTOCLOSE))
     pop3d_abquit (ERR_NO_IFILE);
   mu_stream_set_buffer (istream, mu_buffer_line, 0);
   
-  if (mu_stdio_stream_create (&ostream, fileno (out), 
+  if (mu_stdio_stream_create (&ostream, ofd, 
                               MU_STREAM_WRITE | MU_STREAM_AUTOCLOSE))
     pop3d_abquit (ERR_NO_OFILE);
 

@@ -224,7 +224,7 @@ extern int io_stream_completion_response (mu_stream_t str,
 					  const char *format, ...)
                                     MU_PRINTFLIKE(4,5);
 int io_getline (char **pbuf, size_t *psize, size_t *pnbytes);
-void io_setio (FILE*, FILE*);
+void io_setio (int, int);
 void io_flush (void);
 int io_wait_input (int);
   

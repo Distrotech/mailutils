@@ -208,11 +208,10 @@ pop3d_get_client_address (int fd, struct sockaddr_in *pcs)
 /* The main part of the daemon. This function reads input from the client and
    executes the proper functions. Also handles the bulk of error reporting.
    Arguments:
-      fd        --  socket descriptor (for diagnostics)
-      infile    --  input stream
-      outfile   --  output stream */
+      ifd       --  input descriptor
+      ofd       --  output descriptor  */
 int
-pop3d_mainloop (int fd, FILE *infile, FILE *outfile)
+pop3d_mainloop (int ifd, int ofd)
 {
   int status = OK;
   char buffer[512];
@@ -221,7 +220,7 @@ pop3d_mainloop (int fd, FILE *infile, FILE *outfile)
 
   mu_set_signals (pop3d_child_signal, sigtab, MU_ARRAY_SIZE (sigtab));
 
-  pop3d_setio (infile, outfile);
+  pop3d_setio (ifd, ofd);
 
   state = initial_state;
 
@@ -299,7 +298,7 @@ pop3d_connection (int fd, struct sockaddr *sa, int salen, void *data,
   idle_timeout = timeout;
   if (pop3d_transcript != transcript)
     pop3d_transcript = transcript;
-  pop3d_mainloop (fd, fdopen (fd, "r"), fdopen (fd, "w"));
+  pop3d_mainloop (fd, fd);
   return 0;
 }
 
@@ -430,7 +429,7 @@ main (int argc, char **argv)
     {
       /* Make sure we are in the root directory.  */
       chdir ("/");
-      status = pop3d_mainloop (fileno (stdin), stdin, stdout);
+      status = pop3d_mainloop (MU_STDIN_FD, MU_STDOUT_FD);
     }
   
   if (status)

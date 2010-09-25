@@ -22,21 +22,21 @@
 mu_stream_t iostream;
 
 void
-io_setio (FILE *in, FILE *out)
+io_setio (int ifd, int ofd)
 {
   mu_stream_t str, istream, ostream;
   
-  if (!in)
+  if (ifd == -1)
     imap4d_bye (ERR_NO_IFILE);
-  if (!out)
+  if (ofd == -1)
     imap4d_bye (ERR_NO_OFILE);
 
-  if (mu_stdio_stream_create (&istream, fileno (in), 
-                              MU_STREAM_READ | MU_STREAM_AUTOCLOSE))
+  if (mu_stdio_stream_create (&istream, ifd,
+			      MU_STREAM_READ | MU_STREAM_AUTOCLOSE))
     imap4d_bye (ERR_STREAM_CREATE);
   mu_stream_set_buffer (istream, mu_buffer_line, 0);
   
-  if (mu_stdio_stream_create (&ostream, fileno (out), 
+  if (mu_stdio_stream_create (&ostream, ofd, 
                               MU_STREAM_WRITE | MU_STREAM_AUTOCLOSE))
     imap4d_bye (ERR_STREAM_CREATE);
   mu_stream_set_buffer (ostream, mu_buffer_line, 0);

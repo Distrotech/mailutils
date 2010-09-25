@@ -96,7 +96,7 @@ static const char *imap4d_capa[] = {
   NULL
 };
 
-static int imap4d_mainloop (int, FILE *, FILE *);
+static int imap4d_mainloop (int, int);
 
 static error_t
 imap4d_parse_opt (int key, char *arg, struct argp_state *state)
@@ -397,16 +397,16 @@ imap4d_child_signal_setup (RETSIGTYPE (*handler) (int signo))
 }
 
 static int
-imap4d_mainloop (int fd, FILE *infile, FILE *outfile)
+imap4d_mainloop (int ifd, int ofd)
 {
   imap4d_tokbuf_t tokp;
   char *text;
-  int debug_mode = isatty (fd);
+  int debug_mode = isatty (ifd);
 
   imap4d_child_signal_setup (imap4d_child_signal);
-  io_setio (infile, outfile);
+  io_setio (ifd, ofd);
 
-  if (imap4d_preauth_setup (fd) == 0)
+  if (imap4d_preauth_setup (ifd) == 0)
     {
       if (debug_mode)
 	{
@@ -451,7 +451,7 @@ imap4d_connection (int fd, struct sockaddr *sa, int salen, void *data,
   idle_timeout = timeout;
   if (imap4d_transcript != transcript)
     imap4d_transcript = transcript;
-  imap4d_mainloop (fd, fdopen (fd, "r"), fdopen (fd, "w"));
+  imap4d_mainloop (fd, fd);
   return 0;
 }
 
@@ -612,7 +612,7 @@ main (int argc, char **argv)
     {
       /* Make sure we are in the root directory.  */
       chdir ("/");
-      status = imap4d_mainloop (fileno (stdin), stdin, stdout);
+      status = imap4d_mainloop (MU_STDIN_FD, MU_STDOUT_FD);
     }
 
   if (status)
