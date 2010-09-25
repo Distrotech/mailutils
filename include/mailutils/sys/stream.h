@@ -75,11 +75,4 @@ mu_stream_t _mu_stream_create (size_t size, int flags);
 void _mu_stream_cleareof (mu_stream_t str);
 void _mu_stream_seteof (mu_stream_t str);
 
-#define _MU_SWAP_FIRST_ONLY         0x01
-#define _MU_SWAP_IOCTL_MUST_SUCCEED 0x02
-
-int _mu_stream_swap_streams (mu_stream_t stream, mu_stream_t *curtrans,
-			     mu_stream_t *newtrans, int flags);
-
-
 #endif

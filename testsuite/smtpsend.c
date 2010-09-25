@@ -196,7 +196,7 @@ main (int argc, char **argv)
   MU_ASSERT (mu_tcp_stream_create (&stream, host, port, MU_STREAM_RDWR));
   MU_ASSERT (mu_stream_open (stream));
   mu_smtp_set_carrier (smtp, stream);
-  //mu_stream_unref (stream);
+  mu_stream_unref (stream);
   
   if (!from)
     {

@@ -31,20 +31,48 @@
 #include <mailutils/list.h>
 
 static int
-pop3_swap_streams (mu_pop3_t pop3, mu_stream_t *streams)
+pop3_get_streams (mu_pop3_t pop3, mu_stream_t *streams)
 {
   int rc;
   
   if (MU_POP3_FISSET (pop3, MU_POP3_TRACE))
-    rc = mu_stream_ioctl (pop3->carrier, MU_IOCTL_SWAP_STREAM, streams);
-  else if (streams[0] != streams[1])
-    rc = EINVAL;
+    rc = mu_stream_ioctl (pop3->carrier, MU_IOCTL_GET_STREAM, streams);
   else
     {
-      mu_stream_t str = streams[0];
-      streams[0] = streams[1] = pop3->carrier;
-      pop3->carrier = str;
+      streams[0] = pop3->carrier;
+      mu_stream_ref (streams[0]);
+      streams[1] = pop3->carrier;
+      mu_stream_ref (streams[1]);
       rc = 0;
+    }
+  return rc;
+}
+
+static int
+pop3_set_streams (mu_pop3_t pop3, mu_stream_t *streams)
+{
+  int rc;
+  
+  if (MU_POP3_FISSET (pop3, MU_POP3_TRACE))
+    rc = mu_stream_ioctl (pop3->carrier, MU_IOCTL_SET_STREAM, streams);
+  else
+    {
+      mu_stream_t tmp;
+      
+      if (streams[0] == streams[1])
+	{
+	  tmp = streams[0];
+	  mu_stream_ref (tmp);
+	  mu_stream_ref (tmp);
+	  rc = 0;
+	}
+      else
+	rc = mu_iostream_create (&tmp, streams[0], streams[1]);
+      if (rc == 0)
+	{
+	  mu_stream_unref (pop3->carrier);
+	  pop3->carrier = tmp;
+	}
     }
   return rc;
 }
@@ -79,16 +107,19 @@ mu_pop3_stls (mu_pop3_t pop3)
       pop3->state = MU_POP3_STLS_CONNECT;
       
     case MU_POP3_STLS_CONNECT:
-      streams[0] = streams[1] = NULL;
-      status = pop3_swap_streams (pop3, streams);
+      status = pop3_get_streams (pop3, streams);
       MU_POP3_CHECK_EAGAIN (pop3, status);
       status = mu_tls_client_stream_create (&tlsstream,
 					    streams[0], streams[1], 0);
+      mu_stream_unref (streams[0]);
+      mu_stream_unref (streams[1]);
       MU_POP3_CHECK_EAGAIN (pop3, status);
       status = mu_stream_open (tlsstream);
       MU_POP3_CHECK_EAGAIN (pop3, status);
       streams[0] = streams[1] = tlsstream;
-      status = pop3_swap_streams (pop3, streams);
+      status = pop3_set_streams (pop3, streams);
+      mu_stream_unref (streams[0]);
+      mu_stream_unref (streams[1]);
       MU_POP3_CHECK_EAGAIN (pop3, status);
       /* Invalidate the capability list */
       mu_list_destroy (&pop3->capa);

@@ -38,13 +38,8 @@ finish_session (void)
 static int
 restore_and_return (struct imap4d_auth *ap, mu_stream_t *str, int resp)
 {
-  int rc = mu_stream_ioctl (iostream, MU_IOCTL_SWAP_STREAM, str);
-  if (rc)
-    {
-      mu_error (_("%s failed when it should not: %s"), "MU_IOCTL_SWAP_STREAM",
-		mu_stream_strerror (iostream, rc));
-      abort ();
-    }
+  mu_stream_unref (str[0]);
+  mu_stream_unref (str[1]);
   ap->response = resp;
   return imap4d_auth_resp;
 }
@@ -118,11 +113,10 @@ auth_gsasl (struct imap4d_auth *ap)
     {
       mu_stream_t stream[2], newstream[2];
 
-      stream[0] = stream[1] = NULL;
-      rc = mu_stream_ioctl (iostream, MU_IOCTL_SWAP_STREAM, stream);
+      rc = mu_stream_ioctl (iostream, MU_IOCTL_GET_STREAM, stream);
       if (rc)
 	{
-	  mu_error (_("%s failed: %s"), "MU_IOCTL_SWAP_STREAM",
+	  mu_error (_("%s failed: %s"), "MU_IOCTL_GET_STREAM",
 		    mu_stream_strerror (iostream, rc));
 	  ap->response = RESP_NO;
 	  return imap4d_auth_resp;
@@ -149,7 +143,11 @@ auth_gsasl (struct imap4d_auth *ap)
       if (ap->username)
 	{
 	  if (imap4d_session_setup (ap->username))
-	    return restore_and_return (ap, stream, RESP_NO);
+	    {
+	      mu_stream_destroy (&newstream[0]);
+	      mu_stream_destroy (&newstream[1]);
+	      return restore_and_return (ap, stream, RESP_NO);
+	    }
 	}
 
       /* FIXME: This is not reflected in the transcript. */
@@ -157,15 +155,22 @@ auth_gsasl (struct imap4d_auth *ap)
 				     "%s authentication successful",
 				     ap->auth_type);
       mu_stream_flush (stream[1]);
+
+      mu_stream_unref (stream[0]);
+      mu_stream_unref (stream[1]);
       
-      rc = mu_stream_ioctl (iostream, MU_IOCTL_SWAP_STREAM, newstream);
+      rc = mu_stream_ioctl (iostream, MU_IOCTL_SET_STREAM, newstream);
       if (rc)
 	{
 	  mu_error (_("%s failed when it should not: %s"),
-		    "MU_IOCTL_SWAP_STREAM",
+		    "MU_IOCTL_SET_STREAM",
 		    mu_stream_strerror (iostream, rc));
 	  abort ();
 	}
+
+      mu_stream_unref (newstream[0]);
+      mu_stream_unref (newstream[1]);
+      
       util_atexit (finish_session);
       return imap4d_auth_ok;
     }

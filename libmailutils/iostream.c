@@ -149,10 +149,36 @@ _iostream_ctl (struct _mu_stream *str, int op, void *arg)
       sp->transport[_MU_STREAM_OUTPUT] = (mu_stream_t) ptrans[1];
       break;
 
-    case MU_IOCTL_SWAP_STREAM:
+    case MU_IOCTL_GET_STREAM:
       if (!arg)
 	return EINVAL;
-      return _mu_stream_swap_streams (str, sp->transport, arg, 0);
+      else
+	{
+	  mu_stream_t *pstr = arg;
+
+	  pstr[0] = sp->transport[0];
+	  mu_stream_ref (pstr[0]);
+	  pstr[1] = sp->transport[1];
+	  mu_stream_ref (pstr[1]);
+	}
+      break;
+
+    case MU_IOCTL_SET_STREAM:
+      if (!arg)
+	return EINVAL;
+      else
+	{
+	  mu_stream_t *pstr = arg;
+
+	  mu_stream_unref (sp->transport[0]);
+	  sp->transport[0] = pstr[0];
+	  mu_stream_ref (sp->transport[0]);
+	  
+	  mu_stream_unref (sp->transport[1]);
+	  sp->transport[1] = pstr[1];
+	  mu_stream_ref (sp->transport[1]);
+	}
+      break;
 
     case MU_IOCTL_GET_TRANSPORT_BUFFER:
     case MU_IOCTL_SET_TRANSPORT_BUFFER:

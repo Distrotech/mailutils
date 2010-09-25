@@ -138,14 +138,8 @@ _smtp_callback (Gsasl *ctx, Gsasl_session *sctx, Gsasl_property prop)
 static int
 restore_and_return (mu_smtp_t smtp, mu_stream_t *str, int code)
 {
-  int rc = mu_stream_ioctl (smtp->carrier, MU_IOCTL_SWAP_STREAM, str);
-  if (rc)
-    {
-      mu_error ("%s failed when it should not: %s",
-		"MU_IOCTL_SWAP_STREAM",
-		mu_stream_strerror (smtp->carrier, rc));
-      abort ();
-    }
+  mu_stream_unref (str[0]);
+  mu_stream_unref (str[1]);
   return code;
 }
 
@@ -155,11 +149,10 @@ insert_gsasl_stream (mu_smtp_t smtp, Gsasl_session *sess_ctx)
   mu_stream_t stream[2], newstream[2];
   int rc;
   
-  stream[0] = stream[1] = NULL;
-  rc = mu_stream_ioctl (smtp->carrier, MU_IOCTL_SWAP_STREAM, stream);
+  rc = mu_stream_ioctl (smtp->carrier, MU_IOCTL_GET_STREAM, stream);
   if (rc)
     {
-      mu_error ("%s failed: %s", "MU_IOCTL_SWAP_STREAM",
+      mu_error ("%s failed: %s", "MU_IOCTL_GET_STREAM",
 		mu_stream_strerror (smtp->carrier, rc));
       return MU_ERR_FAILURE;
     }
@@ -184,12 +177,16 @@ insert_gsasl_stream (mu_smtp_t smtp, Gsasl_session *sess_ctx)
     }
       
   mu_stream_flush (stream[1]);
+  mu_stream_unref (stream[0]);
+  mu_stream_unref (stream[1]);
   
-  rc = mu_stream_ioctl (smtp->carrier, MU_IOCTL_SWAP_STREAM, newstream);
+  rc = mu_stream_ioctl (smtp->carrier, MU_IOCTL_SET_STREAM, newstream);
+  mu_stream_unref (newstream[0]);
+  mu_stream_unref (newstream[1]);
   if (rc)
     {
       mu_error ("%s failed when it should not: %s",
-		"MU_IOCTL_SWAP_STREAM",
+		"MU_IOCTL_SET_STREAM",
 		mu_stream_strerror (smtp->carrier, rc));
       abort ();
     }

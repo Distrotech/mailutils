@@ -192,16 +192,17 @@ pop3d_init_tls_server ()
   mu_stream_t tlsstream, stream[2];
   int rc;
 
-  stream[0] = stream[1] = NULL;
-  rc = mu_stream_ioctl (iostream, MU_IOCTL_SWAP_STREAM, stream);
+  rc = mu_stream_ioctl (iostream, MU_IOCTL_GET_STREAM, stream);
   if (rc)
     {
-      mu_error (_("%s failed: %s"), "MU_IOCTL_SWAP_STREAM",
+      mu_error (_("%s failed: %s"), "MU_IOCTL_GET_STREAM",
 		mu_stream_strerror (iostream, rc));
       return 1;
     }
   
   rc = mu_tls_server_stream_create (&tlsstream, stream[0], stream[1], 0);
+  mu_stream_unref (stream[0]);
+  mu_stream_unref (stream[1]);
   if (rc)
     return 1;
 
@@ -216,10 +217,12 @@ pop3d_init_tls_server ()
   else
     stream[0] = stream[1] = tlsstream;
 
-  rc = mu_stream_ioctl (iostream, MU_IOCTL_SWAP_STREAM, stream);
+  rc = mu_stream_ioctl (iostream, MU_IOCTL_SET_STREAM, stream);
+  mu_stream_unref (stream[0]);
+  mu_stream_unref (stream[1]);
   if (rc)
     {
-      mu_error (_("%s failed: %s"), "MU_IOCTL_SWAP_STREAM",
+      mu_error (_("%s failed: %s"), "MU_IOCTL_SET_STREAM",
 		mu_stream_strerror (iostream, rc));
       pop3d_abquit (ERR_IO);
     }

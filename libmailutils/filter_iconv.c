@@ -400,7 +400,8 @@ _icvt_ioctl (mu_stream_t stream, int code, void *ptr)
       ptrans[1] = NULL;
       break;
 
-    case MU_IOCTL_SWAP_STREAM:
+    case MU_IOCTL_GET_STREAM:
+    case MU_IOCTL_SET_STREAM:
     case MU_IOCTL_GET_TRANSPORT_BUFFER:
     case MU_IOCTL_SET_TRANSPORT_BUFFER:
       return mu_stream_ioctl (s->transport, code, ptr);

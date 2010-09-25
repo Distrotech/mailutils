@@ -28,20 +28,48 @@
 #include <mailutils/tls.h>
 
 static int
-smtp_swap_streams (mu_smtp_t smtp, mu_stream_t *streams)
+smtp_get_streams (mu_smtp_t smtp, mu_stream_t *streams)
 {
   int rc;
   
   if (MU_SMTP_FISSET (smtp, _MU_SMTP_TRACE))
-    rc = mu_stream_ioctl (smtp->carrier, MU_IOCTL_SWAP_STREAM, streams);
-  else if (streams[0] != streams[1])
-    rc = EINVAL;
+    rc = mu_stream_ioctl (smtp->carrier, MU_IOCTL_GET_STREAM, streams);
   else
     {
-      mu_stream_t str = streams[0];
-      streams[0] = streams[1] = smtp->carrier;
-      smtp->carrier = str;
+      streams[0] = smtp->carrier;
+      mu_stream_ref (streams[0]);
+      streams[1] = smtp->carrier;
+      mu_stream_ref (streams[1]);
       rc = 0;
+    }
+  return rc;
+}
+
+static int
+smtp_set_streams (mu_smtp_t smtp, mu_stream_t *streams)
+{
+  int rc;
+  
+  if (MU_SMTP_FISSET (smtp, _MU_SMTP_TRACE))
+    rc = mu_stream_ioctl (smtp->carrier, MU_IOCTL_SET_STREAM, streams);
+  else
+    {
+      mu_stream_t tmp;
+      
+      if (streams[0] == streams[1])
+	{
+	  tmp = streams[0];
+	  mu_stream_ref (tmp);
+	  mu_stream_ref (tmp);
+	  rc = 0;
+	}
+      else
+	rc = mu_iostream_create (&tmp, streams[0], streams[1]);
+      if (rc == 0)
+	{
+	  mu_stream_unref (smtp->carrier);
+	  smtp->carrier = tmp;
+	}
     }
   return rc;
 }
@@ -72,12 +100,13 @@ mu_smtp_starttls (mu_smtp_t smtp)
     return MU_ERR_FAILURE;
 
   mu_stream_flush (smtp->carrier);
-  streams[0] = streams[1] = NULL;
-  status = smtp_swap_streams (smtp, streams);
+  status = smtp_get_streams (smtp, streams);
   MU_SMTP_CHECK_ERROR (smtp, status);
   
   status = mu_tls_client_stream_create (&tlsstream,
 					streams[0], streams[1], 0);
+  mu_stream_unref (streams[0]);
+  mu_stream_unref (streams[1]);
   MU_SMTP_CHECK_ERROR (smtp, status);
   status = mu_stream_open (tlsstream);
   if (status)
@@ -86,7 +115,9 @@ mu_smtp_starttls (mu_smtp_t smtp)
       return status;
     }
   streams[0] = streams[1] = tlsstream;
-  status = smtp_swap_streams (smtp, streams);
+  status = smtp_set_streams (smtp, streams);
+  mu_stream_unref (streams[0]);
+  mu_stream_unref (streams[1]);
   MU_SMTP_CHECK_ERROR (smtp, status);
   /* Invalidate the capability list */
   mu_list_destroy (&smtp->capa);

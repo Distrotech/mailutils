@@ -43,7 +43,8 @@
 #define TRANS_READ     0x1
 #define TRANS_WRITE    0x2
 #define TRANS_DISABLED 0x4
-#define FLAG_TO_PFX(c) ((c) - 1)
+#define TRANS_IOSTREAM 0x8
+#define FLAG_TO_PFX(c) ((c & 0x3) - 1)
 
 static int
 word_match (const char *buf, size_t len, int n, const char *word,
@@ -279,7 +280,26 @@ _xscript_ctl (struct _mu_stream *str, int op, void *arg)
 	sp->logstr = (mu_stream_t) ptrans[1];
       break;
 
-    case MU_IOCTL_SWAP_STREAM:
+    case MU_IOCTL_GET_STREAM:
+      if (!arg)
+	return EINVAL;
+      if (!sp->transport)
+	status = ENOSYS;
+      else
+	status = mu_stream_ioctl (sp->transport, op, arg);
+      if (status == EINVAL || status == ENOSYS)
+	{
+	  mu_stream_t *pstr = arg;
+
+	  pstr[0] = sp->transport;
+	  mu_stream_ref (pstr[0]);
+	  pstr[1] = sp->transport;
+	  mu_stream_ref (pstr[1]);
+	  status = 0;
+	}
+      break;
+
+    case MU_IOCTL_SET_STREAM:
       if (!arg)
 	return EINVAL;
       if (!sp->transport)
@@ -290,29 +310,24 @@ _xscript_ctl (struct _mu_stream *str, int op, void *arg)
 	{
 	  mu_stream_t *pstr = arg;
 	  mu_stream_t tmp;
-
+	  
 	  if (pstr[0] != pstr[1])
 	    {
 	      status = mu_iostream_create (&tmp, pstr[0], pstr[1]);
 	      if (status)
 		return status;
+	      sp->flags |= TRANS_IOSTREAM;
 	    }
 	  else
-	    tmp = pstr[0];
-	  pstr[0] = sp->transport;
-	  pstr[1] = sp->transport;
-	  sp->transport = tmp;
-	  /* FIXME */
-	  if (!(str->flags & MU_STREAM_AUTOCLOSE))
 	    {
-	      if (pstr[0])
-		mu_stream_unref (pstr[0]);
-	      if (tmp)
-		mu_stream_ref (tmp);
+	      tmp = pstr[0];
+	      mu_stream_ref (tmp);
+	      mu_stream_ref (tmp);
+	      status = 0;
 	    }
-	  if (tmp)
-	    mu_stream_ref (tmp);
-	  status = 0;
+
+	  mu_stream_unref (sp->transport);
+	  sp->transport = tmp;
 	}
       break;
 
@@ -331,7 +346,8 @@ _xscript_ctl (struct _mu_stream *str, int op, void *arg)
 	{
 	  int oldlev = sp->level;
 	  sp->level = *(int*)arg;
-	  sp->flags = TRANS_READ | TRANS_WRITE;
+	  sp->flags &= TRANS_DISABLED;
+	  sp->flags |= TRANS_READ | TRANS_WRITE;
 	  *(int*)arg = oldlev;
 	}
       break;
