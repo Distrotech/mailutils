@@ -22,7 +22,7 @@ INCLUDES = @MU_APP_COMMON_INCLUDES@
 
 sbin_PROGRAMS = comsatd
 
-comsatd_SOURCES = action.c comsat.c comsat.h oldcfg.c
+comsatd_SOURCES = action.c comsat.c comsat.h 
 AM_CPPFLAGS = -DSYSCONFDIR=\"$(sysconfdir)\"
 
 comsatd_LDADD = \

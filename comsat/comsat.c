@@ -63,9 +63,6 @@ static char args_doc[] = N_("\n--test MBOX-URL MSG-QID");
 
 static struct argp_option options[] = 
 {
-  { "config", 'c', N_("FILE"), OPTION_HIDDEN, "", 0 },
-  { "convert-config", 'C', N_("FILE"), 0,
-    N_("convert the configuration FILE to new format"), 0 },
   { "test", 't', NULL, 0, N_("run in test mode"), 0 },
   { "foreground", OPT_FOREGROUND, 0, 0, N_("remain in foreground"), 0},
   { "inetd",  'i', 0, 0, N_("run in inetd mode"), 0 },
@@ -151,33 +148,6 @@ comsatd_parse_opt (int key, char *arg, struct argp_state *state)
 
   switch (key)
     {
-    case 'c':
-      {
-	char *cfg;
-	int fd;
-	FILE *fp;
-
-	mu_diag_output (MU_DIAG_WARNING,
-_("The old configuration file format and the --config command\n"
-  "line option are deprecated and will be removed in the future\n"
-  "release. Please use --convert-config option to convert your\n"
-  "settings to the new format."));
-	/* FIXME: Refer to the docs */
-	
-	fd = mu_tempfile (NULL, &cfg);
-	fp = fdopen (fd, "w");
-	convert_config (arg, fp);
-	fclose (fp);
-	mu_get_config (cfg, mu_program_name, comsat_cfg_param, 0, NULL);
-	unlink (cfg);
-	free (cfg);
-      }
-      break;
-      
-    case 'C':
-      convert_config (arg, stdout);
-      exit (0);
-
     case 'd':
       mu_argp_node_list_new (lst, "mode", "daemon");
       if (arg)
