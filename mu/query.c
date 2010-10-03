@@ -25,7 +25,7 @@
 #include "mu.h"
 
 static char query_doc[] = N_("mu query - query configuration values.");
-static char query_args_doc[] = N_("keyword [keyword...]");
+static char query_args_doc[] = N_("path [path...]");
 
 char *file_name;
 int verbose_option;

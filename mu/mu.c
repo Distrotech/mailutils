@@ -24,8 +24,8 @@
 #include "mailutils/libargp.h"
 #include "mu.h"
 
-static char args_doc[] = N_("[OPTIONS] COMMAND [CMDOPTS]");
-static char doc[] = N_("mu -- GNU Mailutils test tool.\n\
+static char args_doc[] = N_("COMMAND [CMDOPTS]");
+static char doc[] = N_("mu -- GNU Mailutils multi-purpose tool.\n\
 Commands are:\n\
     mu info   - show Mailutils configuration\n\
     mu query  - query configuration values\n\
@@ -33,7 +33,7 @@ Commands are:\n\
     mu filter - filter program\n\
     mu 2047   - decode/encode message headers as per RFC 2047\n\
 \n\
-Try `mu COMMAND --help' to get help on a particular COMMAND\n\
+Try `mu COMMAND --help' to get help on a particular COMMAND.\n\
 \n\
 Options are:\n");
 /* FIXME: add
@@ -143,6 +143,10 @@ main (int argc, char **argv)
       exit (1);
     }
 
+  /* Disable --version option in action. */
+  argp_program_version = NULL;
+  argp_program_version_hook = NULL;
+  /* Run the action. */
   exit (action (argc, argv));
 }
 

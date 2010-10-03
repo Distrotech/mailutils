@@ -1576,6 +1576,49 @@ mu_cfg_value_eq (mu_config_value_t *a, mu_config_value_t *b)
 }
 
 
+static int
+split_cfg_path (const char *path, int *pargc, char ***pargv)
+{
+  int rc;
+  int argc;
+  char **argv;
+  char *delim = MU_CFG_PATH_DELIM_STR;
+  char static_delim[2] = { 0, 0 };
+  
+  if (path[0] == '\\')
+    {
+      argv = calloc (2, sizeof (*argv));
+      if (!argv)
+	return ENOMEM;
+      argv[0] = strdup (path + 1);
+      if (!argv[0])
+	{
+	  free (argv);
+	  return ENOMEM;
+	}
+      argv[1] = NULL;
+      argc = 1;
+      rc = 0;
+    }
+  else
+    {
+      if (mu_ispunct (path[0]))
+	{
+	  delim = static_delim;
+	  delim[0] = path[0];
+	  path++;
+	}
+      rc = mu_argcv_get_np (path, strlen (path), delim, NULL, 0,
+			    &argc, &argv, NULL);
+    }
+  if (rc == 0)
+    {
+      *pargc = argc;
+      *pargv = argv;
+    }
+  return rc;
+}
+
 struct find_data
 {
   int argc;
@@ -1714,9 +1757,7 @@ mu_cfg_find_node (mu_cfg_tree_t *tree, const char *path, mu_cfg_node_t **pval)
   struct find_data data;
   struct mu_cfg_iter_closure clos;
 
-  rc = mu_argcv_get_np (path, strlen (path),
-			MU_CFG_PATH_DELIM_STR, NULL,
-			0, &data.argc, &data.argv, NULL);
+  rc = split_cfg_path (path, &data.argc, &data.argv);
   if (rc)
     return rc;
   data.tag = 0;
@@ -1742,44 +1783,15 @@ mu_cfg_create_subtree (const char *path, mu_cfg_node_t **pnode)
 {
   int rc;
   int argc, i;
-  char *p;
   char **argv;
-  mu_cfg_locus_t locus;
   enum mu_cfg_node_type type;
   mu_cfg_node_t *node = NULL;
-  char *delim = MU_CFG_PATH_DELIM_STR;
-  char static_delim[2] = { 0, 0 };
-  
+  mu_cfg_locus_t locus;
+
   locus.file = "<int>";
   locus.line = 0;
 
-  if (path[0] == '\\')
-    {
-      argv = calloc (2, sizeof (*argv));
-      if (!argv)
-	return ENOMEM;
-      argv[0] = strdup (path + 1);
-      if (!argv[0])
-	{
-	  free (argv);
-	  return ENOMEM;
-	}
-      argv[1] = NULL;
-      argc = 1;
-      rc = 0;
-    }
-  else
-    {
-      if (mu_ispunct (path[0]))
-	{
-	  delim = static_delim;
-	  delim[0] = path[0];
-	  path++;
-	}
-      rc = mu_argcv_get_np (path, strlen (path), delim, NULL, 0,
-			    &argc, &argv, NULL);
-    }
-  
+  rc = split_cfg_path (path, &argc, &argv);
   if (rc)
     return rc;
 
@@ -1787,17 +1799,27 @@ mu_cfg_create_subtree (const char *path, mu_cfg_node_t **pnode)
     {
       mu_list_t nodelist = NULL;
       mu_config_value_t *label = NULL;
-
-      p = strrchr (argv[i], '=');
+      char *q = argv[i], *p;
+      
       type = mu_cfg_node_statement;
-      if (p)
+      do
 	{
-	  *p++ = 0;
-	  label = parse_label (p);
-	  if (i == argc - 1)
-	    type = mu_cfg_node_param;
+	  p = strchr (q, '=');
+	  if (p && p > argv[i] && p[-1] != '\\')
+	    {
+	      *p++ = 0;
+	      label = parse_label (p);
+	      if (i == argc - 1)
+		type = mu_cfg_node_param;
+	      break;
+	    }
+	  else if (p)
+	    q = p + 1;
+	  else
+	    break;
 	}
-
+      while (*q);
+      
       if (node)
 	{
 	  mu_cfg_create_node_list (&nodelist);
