@@ -99,12 +99,14 @@ main (int argc, char **argv)
 
   for (attempt = 0; ret; )
     {
-      ret = mu_stream_open (stream);
       if ((ret == EAGAIN || ret == EINPROGRESS) && attempt < io_attempts)
 	{
 	  ret = http_stream_wait(stream, MU_STREAM_READY_WR, &attempt);
 	  if (ret == 0)
-	    continue;
+	    {
+	      ret = mu_stream_open (stream);
+	      continue;
+	    }
 	}
       mu_error ("mu_stream_open: %s", mu_strerror (ret));
       exit (EXIT_FAILURE);

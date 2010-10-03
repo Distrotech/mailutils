@@ -1071,14 +1071,18 @@ mu_stream_wait (mu_stream_t stream, int *pflags, struct timeval *tvp)
 
   if (stream == NULL)
     return EINVAL;
-  
+#if 0
+  /* NOTE: Sometimes mu_stream_wait is called after a failed mu_stream_open.
+     In particular, this is needed for a TCP stream opened with a
+     MU_STREAM_NONBLOCK flag (see examples/http.c).  Until a better
+     solution is found, this check is commented out. */
   if (!(stream->flags & _MU_STR_OPEN))
     {
       if (stream->open)
 	return MU_ERR_NOT_OPEN;
       _stream_init (stream);
     }
-  
+#endif
   /* Take to acount if we have any buffering.  */
   /* FIXME: How about MU_STREAM_READY_WR? */
   if ((*pflags) & MU_STREAM_READY_RD 
