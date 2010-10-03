@@ -24,7 +24,7 @@
 #include "mu.h"
 
 static char filter_doc[] = N_("mu filter");
-static char filter_args_doc[] = N_("[OPTIONS] NAME");
+static char filter_args_doc[] = N_("NAME");
 
 static struct argp_option filter_options[] = {
   { "encode", 'e', NULL, 0, N_("encode the input (default)") },

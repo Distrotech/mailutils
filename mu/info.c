@@ -24,9 +24,9 @@
 #include "mu.h"
 
 static char info_doc[] = N_("mu info - print a list of configuration\
-options used to build mailutils; optional arguments are interpreted\
+ options used to build mailutils; optional arguments are interpreted\
  as a list of configuration options to check for.");
-static char info_args_doc[] = N_("[OPTIONS] [capa...]");
+static char info_args_doc[] = N_("[capa...]");
 
 static struct argp_option info_options[] = {
   { "verbose", 'v', NULL, 0,
