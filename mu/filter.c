@@ -29,7 +29,7 @@ static char filter_args_doc[] = N_("[OPTIONS] NAME");
 static struct argp_option filter_options[] = {
   { "encode", 'e', NULL, 0, N_("encode the input (default)") },
   { "decode", 'd', NULL, 0, N_("decode the input") },
-  { "line-length", 'l', NULL, 0, N_("limit output line length") },
+  { "line-length", 'l', N_("NUMBER"), 0, N_("limit output line length") },
   { "newline", 'n', NULL, 0, N_("print additional newline") },
   { NULL }
 };

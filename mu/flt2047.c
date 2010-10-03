@@ -30,8 +30,10 @@ static struct argp_option flt2047_options[] = {
   { "encode", 'e', NULL, 0, N_("encode the input (default)") },
   { "decode", 'd', NULL, 0, N_("decode the input") },
   { "newline", 'n', NULL, 0, N_("print additional newline") },
-  { "charset", 'c', NULL, 0, N_("set charset (default: iso-8859-1)") },
-  { "encoding", 'E', NULL, 0, N_("set encoding (default: quoted-printable)") },
+  { "charset", 'c', N_("NAME"), 0,
+    N_("set charset (default: iso-8859-1)") },
+  { "encoding", 'E', N_("NAME"), 0,
+    N_("set encoding (default: quoted-printable)") },
   { NULL }
 };
   
