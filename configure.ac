@@ -1389,6 +1389,7 @@ AC_CONFIG_FILES([
  mu-aux/Makefile
  mu-aux/mailutils.spec
  sieve/Makefile
+ mu/Makefile
  ])
 AC_OUTPUT
 

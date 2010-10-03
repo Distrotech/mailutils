@@ -109,6 +109,7 @@ SUBDIRS = . \
  doc\
  config\
  examples\
+ mu\
  $(FRM_DIR)\
  $(POP3D_DIR)\
  $(IMAP4D_DIR)\
