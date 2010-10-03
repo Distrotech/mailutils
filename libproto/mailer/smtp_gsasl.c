@@ -148,8 +148,8 @@ insert_gsasl_stream (mu_smtp_t smtp, Gsasl_session *sess_ctx)
 {
   mu_stream_t stream[2], newstream[2];
   int rc;
-  
-  rc = mu_stream_ioctl (smtp->carrier, MU_IOCTL_GET_STREAM, stream);
+
+  rc = _mu_smtp_get_streams (smtp, stream);
   if (rc)
     {
       mu_error ("%s failed: %s", "MU_IOCTL_GET_STREAM",
@@ -158,7 +158,7 @@ insert_gsasl_stream (mu_smtp_t smtp, Gsasl_session *sess_ctx)
     }
 
   rc = gsasl_encoder_stream (&newstream[0], stream[0], sess_ctx,
-			   MU_STREAM_READ);
+			     MU_STREAM_READ);
   if (rc)
     {
       mu_error ("%s failed: %s", "gsasl_encoder_stream",
@@ -179,10 +179,9 @@ insert_gsasl_stream (mu_smtp_t smtp, Gsasl_session *sess_ctx)
   mu_stream_flush (stream[1]);
   mu_stream_unref (stream[0]);
   mu_stream_unref (stream[1]);
+
+  rc = _mu_smtp_set_streams (smtp, newstream);
   
-  rc = mu_stream_ioctl (smtp->carrier, MU_IOCTL_SET_STREAM, newstream);
-  mu_stream_unref (newstream[0]);
-  mu_stream_unref (newstream[1]);
   if (rc)
     {
       mu_error ("%s failed when it should not: %s",

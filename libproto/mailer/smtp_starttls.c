@@ -27,8 +27,8 @@
 #include <mailutils/sys/smtp.h>
 #include <mailutils/tls.h>
 
-static int
-smtp_get_streams (mu_smtp_t smtp, mu_stream_t *streams)
+int
+_mu_smtp_get_streams (mu_smtp_t smtp, mu_stream_t *streams)
 {
   int rc;
   
@@ -45,8 +45,8 @@ smtp_get_streams (mu_smtp_t smtp, mu_stream_t *streams)
   return rc;
 }
 
-static int
-smtp_set_streams (mu_smtp_t smtp, mu_stream_t *streams)
+int
+_mu_smtp_set_streams (mu_smtp_t smtp, mu_stream_t *streams)
 {
   int rc;
   
@@ -100,7 +100,7 @@ mu_smtp_starttls (mu_smtp_t smtp)
     return MU_ERR_FAILURE;
 
   mu_stream_flush (smtp->carrier);
-  status = smtp_get_streams (smtp, streams);
+  status = _mu_smtp_get_streams (smtp, streams);
   MU_SMTP_CHECK_ERROR (smtp, status);
   
   status = mu_tls_client_stream_create (&tlsstream,
@@ -115,7 +115,7 @@ mu_smtp_starttls (mu_smtp_t smtp)
       return status;
     }
   streams[0] = streams[1] = tlsstream;
-  status = smtp_set_streams (smtp, streams);
+  status = _mu_smtp_set_streams (smtp, streams);
   mu_stream_unref (streams[0]);
   mu_stream_unref (streams[1]);
   MU_SMTP_CHECK_ERROR (smtp, status);

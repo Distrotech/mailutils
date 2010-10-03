@@ -97,4 +97,8 @@ int _mu_smtp_mech_impl (mu_smtp_t smtp, mu_list_t list);
 int _mu_smtp_data_begin (mu_smtp_t smtp);
 int _mu_smtp_data_end (mu_smtp_t smtp);
 
+int _mu_smtp_get_streams (mu_smtp_t smtp, mu_stream_t *streams);
+int _mu_smtp_set_streams (mu_smtp_t smtp, mu_stream_t *streams);
+
+
 #endif
