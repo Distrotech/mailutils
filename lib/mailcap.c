@@ -602,16 +602,6 @@ find_entry (const char *file, struct mime_context *ctx)
       return -1;
     }
 
-  status = mu_stream_open (stream);
-  if (status)
-    {
-      mu_stream_destroy (&stream);
-      if (status != ENOENT)
-	mu_error ("cannot open file stream %s: %s",
-		  file, mu_strerror (status));
-      return -1;
-    }
-
   status = mu_mailcap_create (&mailcap, stream);
   if (status == 0)
     {

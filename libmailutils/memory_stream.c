@@ -131,16 +131,16 @@ static int
 _memory_open (mu_stream_t stream)
 {
   struct _mu_memory_stream *mfs = (struct _mu_memory_stream *) stream;
-  int status = 0;
 
   /* Close any previous stream. */
   if (mfs->ptr)
     free (mfs->ptr);
   mfs->ptr = NULL;
   mfs->size = 0;
+  mfs->offset = 0;
   mfs->capacity = 0;
-
-  return status;
+  
+  return 0;
 }
 
 static int
@@ -192,6 +192,8 @@ _memory_seek (struct _mu_stream *stream, mu_off_t off, mu_off_t *presult)
 int
 mu_memory_stream_create (mu_stream_t *pstream, int flags)
 {
+  int rc;
+  mu_stream_t stream;
   struct _mu_memory_stream *str;
 
   if (!flags)
@@ -202,11 +204,6 @@ mu_memory_stream_create (mu_stream_t *pstream, int flags)
   if (!str)
     return ENOMEM;
 
-  str->ptr = NULL;
-  str->size = 0;
-  str->offset = 0;
-  str->capacity = 0;
-
   str->stream.open = _memory_open;
   str->stream.close = _memory_close;
   str->stream.read = _memory_read;
@@ -216,9 +213,14 @@ mu_memory_stream_create (mu_stream_t *pstream, int flags)
   str->stream.done = _memory_done;
   str->stream.ctl = _memory_ioctl;
   str->stream.seek = _memory_seek;
+  
+  stream = (mu_stream_t) str;
+  rc = mu_stream_open (stream);
+  if (rc)
+    mu_stream_destroy (&stream);
+  else
+    *pstream = stream;
 
-  *pstream = (mu_stream_t) str;
-
-  return 0;
+  return rc;
 }
   

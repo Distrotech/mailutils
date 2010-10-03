@@ -69,9 +69,12 @@ mu_pop3_connect (mu_pop3_t pop3)
 
     case MU_POP3_CONNECT:
       /* Establish the connection.  */
-      status = mu_stream_open (pop3->carrier);
-      MU_POP3_CHECK_EAGAIN (pop3, status);
-      MU_POP3_FCLR (pop3, MU_POP3_ACK);
+      if (!mu_stream_is_open (pop3->carrier))
+        {
+          status = mu_stream_open (pop3->carrier);
+          MU_POP3_CHECK_EAGAIN (pop3, status);
+          MU_POP3_FCLR (pop3, MU_POP3_ACK);
+        }
       pop3->state = MU_POP3_GREETINGS;
 
     case MU_POP3_GREETINGS:

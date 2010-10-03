@@ -99,6 +99,7 @@ int mu_stream_last_error (mu_stream_t stream);
 void mu_stream_clearerr (mu_stream_t stream);
 int mu_stream_seterr (struct _mu_stream *stream, int code, int perm);
 
+int mu_stream_is_open (mu_stream_t stream);
 int mu_stream_eof (mu_stream_t stream);
 int mu_stream_seek (mu_stream_t stream, mu_off_t offset, int whence,
 		    mu_off_t *pres);

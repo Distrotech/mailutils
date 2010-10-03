@@ -1086,12 +1086,6 @@ header_write (mu_stream_t os, const char *buf, size_t buflen, size_t *pnwrite)
       status = mu_memory_stream_create (&header->mstream, MU_STREAM_RDWR);
       if (status)
 	return status;
-      status = mu_stream_open (header->mstream);
-      if (status)
-	{
-	  mu_stream_destroy (&header->mstream);
-	  return status;
-	}
     }
 
   status = mu_stream_write (header->mstream, buf, buflen, NULL);

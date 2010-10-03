@@ -1273,13 +1273,6 @@ mhn_exec (mu_stream_t *str, const char *cmd, int flags)
       mu_error (_("cannot create proc stream (command %s): %s"),
 		cmd, mu_strerror (rc));
     }
-  else
-    {
-      rc = mu_stream_open (*str);
-      if (rc)
-	mu_error (_("cannot open proc stream (command %s): %s"),
-		  cmd, mu_strerror (rc));
-    }
   return rc;
 }
 
@@ -1327,15 +1320,6 @@ mhn_run_command (mu_message_t msg, msg_part_t part,
 	{
 	  mu_error (_("cannot create temporary stream (file %s): %s"),
 		    tempfile, mu_strerror (rc));
-	  mu_argcv_free (argc, argv);
-	  return rc;
-	}
-      rc = mu_stream_open (tmp);
-      if (rc)
-	{
-	  mu_error (_("cannot open temporary stream (file %s): %s"),
-		    tempfile, mu_strerror (rc));
-	  mu_stream_destroy (&tmp);
 	  mu_argcv_free (argc, argv);
 	  return rc;
 	}
@@ -1460,12 +1444,6 @@ mhn_show ()
   if (rc)
     {
       mu_error (_("cannot create output stream: %s"), mu_strerror (rc));
-      exit (1);
-    }
-  rc = mu_stream_open (ostr);
-  if (rc)
-    {
-      mu_error (_("cannot open output stream: %s"), mu_strerror (rc));
       exit (1);
     }
   
@@ -1640,15 +1618,6 @@ store_handler (mu_message_t msg, msg_part_t part, char *type, char *encoding,
       mu_error (_("cannot create output stream (file %s): %s"),
 		name, mu_strerror (rc));
       free (name);
-      return rc;
-    }
-  rc = mu_stream_open (out);
-  if (rc)
-    {
-      mu_error (_("cannot open output stream (file %s): %s"),
-		name, mu_strerror (rc));
-      free (name);
-      mu_stream_destroy (&out);
       return rc;
     }
   show_internal (msg, part, encoding, out);      
@@ -2246,14 +2215,6 @@ edit_mime (char *cmd, struct compose_env *env, mu_message_t *msg, int level)
 		    cmd, mu_strerror (rc));
 	  return rc;
 	}
-      rc = mu_stream_open (in);
-      if (rc)
-	{
-	  mu_error (_("cannot open input stream (file %s): %s"),
-		    cmd, mu_strerror (rc));
-	  mu_stream_destroy (&in);
-	  return rc;
-	}
     }
   
   /* Create filter */
@@ -2285,14 +2246,6 @@ edit_mime (char *cmd, struct compose_env *env, mu_message_t *msg, int level)
     }
   free (encoding);
 
-  rc = mu_stream_open (fstr);
-  if (rc)
-    {
-      mu_error (_("cannot open filter stream: %s"),
-		mu_strerror (rc));
-      return rc;
-    }
-  
   mu_message_get_body (*msg, &body);
   mu_body_get_streamref (body, &out);
   mu_stream_copy (out, fstr, 0, NULL);
@@ -2645,15 +2598,6 @@ mhn_compose ()
       mu_error (_("cannot create output stream (file %s): %s"),
 		name, mu_strerror (rc));
       free (name);
-      return rc;
-    }
-  rc = mu_stream_open (stream);
-  if (rc)
-    {
-      mu_error (_("cannot open output stream (file %s): %s"),
-		name, mu_strerror (rc));
-      free (name);
-      mu_stream_destroy (&stream);
       return rc;
     }
 

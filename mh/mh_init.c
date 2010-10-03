@@ -597,8 +597,7 @@ mh_file_copy (const char *from, const char *to)
   if (!bufsize)
     mh_err_memory (1);
 
-  if ((rc = mu_file_stream_create (&in, from, MU_STREAM_READ)) != 0
-      || (rc = mu_stream_open (in)))
+  if ((rc = mu_file_stream_create (&in, from, MU_STREAM_READ)))
     {
       mu_error (_("cannot open input file `%s': %s"),
 		from, mu_strerror (rc));
@@ -606,8 +605,7 @@ mh_file_copy (const char *from, const char *to)
       return 1;
     }
 
-  if ((rc = mu_file_stream_create (&out, to, MU_STREAM_RDWR|MU_STREAM_CREAT)) != 0
-      || (rc = mu_stream_open (out)))
+  if ((rc = mu_file_stream_create (&out, to, MU_STREAM_RDWR|MU_STREAM_CREAT)))
     {
       mu_error (_("cannot open output file `%s': %s"),
 		to, mu_strerror (rc));
@@ -660,14 +658,6 @@ _file_to_message (const char *file_name)
       return NULL;
     }
   
-  if ((rc = mu_stream_open (instream)))
-    {
-      mu_error (_("cannot open input stream (file %s): %s"),
-		file_name, mu_strerror (rc));
-      mu_stream_destroy (&instream);
-      return NULL;
-    }
-
   return mh_stream_to_message (instream);
 }
 

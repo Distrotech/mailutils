@@ -485,7 +485,8 @@ _amd_attach_message (mu_mailbox_t mailbox, struct _amd_message *mhm,
 
     str = (struct _amd_body_stream *)
               _mu_stream_create (sizeof (*str),
-				 mailbox->flags | MU_STREAM_SEEK);
+				 mailbox->flags | MU_STREAM_SEEK | 
+				 _MU_STR_OPEN);
     if (!str)
       {
 	mu_body_destroy (&body, msg);
@@ -1596,13 +1597,7 @@ amd_message_stream_open (struct _amd_message *mhm)
   /* FIXME: Select buffer size dynamically */
   mu_stream_set_buffer (mhm->stream, mu_buffer_full, 16384);
   
-  status = mu_stream_open (mhm->stream);
-
-  if (status != 0)
-    mu_stream_destroy (&mhm->stream);
-
-  if (status == 0)
-    status = amd_scan_message (mhm);
+  status = amd_scan_message (mhm);
 
   return status;
 }

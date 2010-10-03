@@ -525,10 +525,6 @@ mu_mimehdr_decode_param (const char *value, int flags,
 		  if (rc)
 		    break;
 		  
-		  rc = mu_stream_open (cvt);
-		  if (rc)
-		    break;
-
 		  while (mu_stream_read (cvt, iobuf, sizeof (iobuf),
 					 &nbytes) == 0
 			 && nbytes)

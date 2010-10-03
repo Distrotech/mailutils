@@ -161,11 +161,6 @@ open_output ()
       exit (1);
     }
 
-  if ((rc = mu_stream_open (output)))
-    {
-      mu_error (_("cannot open output stream: %s"), mu_strerror (rc));
-      exit (1);
-    }
   return output;
 }
 
@@ -183,13 +178,6 @@ list_message (char *name, mu_stream_t output)
   if (rc)
     {
       mu_error (_("cannot create input stream: %s"), mu_strerror (rc));
-      return;
-    }
-
-  if ((rc = mu_stream_open (input)))
-    {
-      mu_error (_("cannot open input stream: %s"), mu_strerror (rc));
-      mu_stream_destroy (&input);
       return;
     }
 

@@ -344,6 +344,8 @@ mu_mapfile_stream_create (mu_stream_t *pstream, const char *filename,
 #ifndef _POSIX_MAPPED_FILES
   return ENOSYS;
 #else
+  int rc;
+  mu_stream_t stream;
   struct _mu_mapfile_stream *str =
     (struct _mu_mapfile_stream *) _mu_stream_create (sizeof (*str),
 						     flags | MU_STREAM_SEEK);
@@ -369,9 +371,14 @@ mu_mapfile_stream_create (mu_stream_t *pstream, const char *filename,
   str->stream.flush = _mapfile_flush;
   str->stream.done = _mapfile_done;
   str->stream.seek = _mapfile_seek;
-  
-  *pstream = (mu_stream_t) str;
-  return 0;
+
+  stream = (mu_stream_t) str;
+  rc = mu_stream_open (stream);
+  if (rc)
+    mu_stream_destroy (&stream);
+  else
+    *pstream = stream;
+  return rc;
 #endif
 }
 

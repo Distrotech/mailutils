@@ -43,13 +43,10 @@ main (int argc, char **argv)
     }
 
   MU_ASSERT (mu_stdio_stream_create (&in, MU_STDIN_FD, 0));
-  MU_ASSERT (mu_stream_open (in));
   MU_ASSERT (mu_filter_iconv_create (&cvt, in, argv[1], argv[2], 
                                      0, mu_fallback_none));
-  MU_ASSERT (mu_stream_open (cvt));
   
   MU_ASSERT (mu_stdio_stream_create (&out, MU_STDOUT_FD, 0));
-  MU_ASSERT (mu_stream_open (out));
 
   while ((rc = mu_stream_read (cvt, buffer, sizeof (buffer), &size)) == 0
 	 && size > 0)

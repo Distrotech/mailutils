@@ -49,7 +49,7 @@ mu_temp_file_stream_create (mu_stream_t *pstream, const char *dir)
 {
   int rc;
   struct _mu_file_stream *str;
-
+  mu_stream_t stream;
   rc = _mu_file_stream_create (&str,
 			       sizeof (struct _mu_file_stream),
 			       dir,
@@ -57,9 +57,16 @@ mu_temp_file_stream_create (mu_stream_t *pstream, const char *dir)
 			       MU_STREAM_RDWR | MU_STREAM_SEEK |
 			       MU_STREAM_CREAT | 
 			       MU_STREAM_AUTOCLOSE);
-
-  str->stream.open = fd_temp_open;
-  str->flags = _MU_FILE_STREAM_TEMP;
-  *pstream = (mu_stream_t) str;
+  if (rc == 0)
+    {
+      str->stream.open = fd_temp_open;
+      str->flags = _MU_FILE_STREAM_TEMP;
+      stream = (mu_stream_t) str;
+      rc = mu_stream_open (stream);
+      if (rc)
+	mu_stream_unref (stream);
+      else
+	*pstream = stream;
+    }
   return 0;
 }

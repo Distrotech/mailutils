@@ -91,14 +91,15 @@ main (int argc, char **argv)
 	    argc == 3 ? argv[2] : "/");
 
   ret = mu_tcp_stream_create (&stream, url, 80, MU_STREAM_NONBLOCK);
-  if (ret != 0)
+  if (ret != 0 && !(ret == EAGAIN || ret == EINPROGRESS))
     {
       mu_error ("mu_tcp_stream_create: %s", mu_strerror (ret));
       exit (EXIT_FAILURE);
     }
 
-  for (attempt = 0; (ret = mu_stream_open (stream)); )
+  for (attempt = 0; ret; )
     {
+      ret = mu_stream_open (stream);
       if ((ret == EAGAIN || ret == EINPROGRESS) && attempt < io_attempts)
 	{
 	  ret = http_stream_wait(stream, MU_STREAM_READY_WR, &attempt);

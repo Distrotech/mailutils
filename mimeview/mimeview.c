@@ -260,7 +260,6 @@ display_file (const char *type)
 	  mu_stdio_stream_create (&stream, fileno (mimeview_fp),
 				  MU_STREAM_READ|
 				  MU_STREAM_SEEK);
-	  mu_stream_open (stream);
 	  
 	  display_stream_mailcap (mimeview_file, stream, hdr,
 				  no_ask_types, interactive, dry_run,

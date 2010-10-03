@@ -365,12 +365,6 @@ sieve_message (mu_sieve_machine_t mach)
       mu_error (_("cannot create stream: %s"), mu_strerror (rc));
       return EX_SOFTWARE;
     }
-  rc = mu_stream_open (instr);
-  if (rc)
-    {
-      mu_error (_("cannot open stream: %s"), mu_strerror (rc));
-      return EX_SOFTWARE;
-    }
   rc = mu_stream_to_message (instr, &msg);
   if (rc)
     {

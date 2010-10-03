@@ -672,70 +672,66 @@ int main()
 				  MU_STREAM_READ);
   if (status == 0)
     {
-      status = mu_stream_open (stream);
+      mu_mailcap_t mailcap;
+      status = mu_mailcap_create (&mailcap, stream);
       if (status == 0)
 	{
-	  mu_mailcap_t mailcap;
-	  status = mu_mailcap_create (&mailcap, stream);
-	  if (status == 0)
+	  int i, n;
+	  size_t count = 0;
+	  char buffer[256];
+	  
+	  mu_mailcap_entries_count (mailcap, &count);
+	  for (i = 1; i <= count; i++)
 	    {
-	      int i, n;
-	      size_t count = 0;
-	      char buffer[256];
-
-	      mu_mailcap_entries_count (mailcap, &count);
-	      for (i = 1; i <= count; i++)
-		{
-		  int j;
-		  mu_mailcap_entry_t entry = NULL;
-		  int fields_count = 0;
-
-		  printf ("entry[%d]\n", i);
+	      int j;
+	      mu_mailcap_entry_t entry = NULL;
+	      int fields_count = 0;
+	      
+	      printf ("entry[%d]\n", i);
 #if 1
-
-		  mu_mailcap_get_entry (mailcap, i, &entry);
-		  /* Print typefield.  */
-		  mu_mailcap_entry_get_typefield (entry, buffer,
-						  sizeof (buffer), NULL);
-		  printf ("\ttypefield: %s\n", buffer);
-
-		  /* Print view-command.  */
-		  mu_mailcap_entry_get_viewcommand (entry, buffer,
-						    sizeof (buffer), NULL);
-		  printf ("\tview-command: %s\n", buffer);
-
-		  /* Print fields.  */
-		  mu_mailcap_entry_fields_count (entry, &fields_count);
-		  for (j = 1; j <= fields_count; j++)
-		    {
-		      mu_mailcap_entry_get_field (entry, j, buffer,
-						  sizeof (buffer), NULL);
-		      printf("\tfields[%d]: %s\n", j, buffer);
-		    }
-		  n = 0;
-		  mu_mailcap_entry_get_compose (entry, buffer,
-						sizeof (buffer), &n);
-		  if (n > 0)
-		    {
-		      printf("\tcompose[%s]\n", buffer);
-		    }
-		  printf("\n");
-		}
-#else
-	      for (i = 0; i < mailcap->entries_count; i++)
+	      
+	      mu_mailcap_get_entry (mailcap, i, &entry);
+	      /* Print typefield.  */
+	      mu_mailcap_entry_get_typefield (entry, buffer,
+					      sizeof (buffer), NULL);
+	      printf ("\ttypefield: %s\n", buffer);
+	      
+	      /* Print view-command.  */
+	      mu_mailcap_entry_get_viewcommand (entry, buffer,
+						sizeof (buffer), NULL);
+	      printf ("\tview-command: %s\n", buffer);
+	      
+	      /* Print fields.  */
+	      mu_mailcap_entry_fields_count (entry, &fields_count);
+	      for (j = 1; j <= fields_count; j++)
 		{
-		  int j;
-		  mu_mailcap_entry_t entry = mailcap->entries[i];
-		  printf("[%s];[%s]", entry->typefield, entry->viewcommand);
-		  for (j = 0; j < entry->fields_count; j++)
-		    {
-		      printf(";[%s]", entry->fields[j]);
-		    }
-		  printf("\n");
+		  mu_mailcap_entry_get_field (entry, j, buffer,
+					      sizeof (buffer), NULL);
+		  printf("\tfields[%d]: %s\n", j, buffer);
 		}
-#endif
-	      mu_mailcap_destroy (&mailcap);
+	      n = 0;
+	      mu_mailcap_entry_get_compose (entry, buffer,
+					    sizeof (buffer), &n);
+	      if (n > 0)
+		{
+		  printf("\tcompose[%s]\n", buffer);
+		}
+	      printf("\n");
 	    }
+#else
+	  for (i = 0; i < mailcap->entries_count; i++)
+	    {
+	      int j;
+	      mu_mailcap_entry_t entry = mailcap->entries[i];
+	      printf("[%s];[%s]", entry->typefield, entry->viewcommand);
+	      for (j = 0; j < entry->fields_count; j++)
+		{
+		  printf(";[%s]", entry->fields[j]);
+		}
+	      printf("\n");
+	    }
+#endif
+	  mu_mailcap_destroy (&mailcap);
 	}
     }
   return 0;

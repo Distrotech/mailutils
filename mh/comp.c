@@ -158,8 +158,7 @@ copy_message (mu_mailbox_t mbox, size_t n, const char *file)
   mu_message_get_streamref (msg, &in);
   
   if ((rc = mu_file_stream_create (&out,
-				   file, MU_STREAM_RDWR|MU_STREAM_CREAT)) != 0
-      || (rc = mu_stream_open (out)))
+				   file, MU_STREAM_RDWR|MU_STREAM_CREAT)))
     {
       mu_error (_("cannot open output file \"%s\": %s"),
 		file, mu_strerror (rc));

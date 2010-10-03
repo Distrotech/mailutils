@@ -133,7 +133,6 @@ mu_app_init (struct argp *myargp, const char **capa,
       char *canonical_name = get_canonical_name ();
       mu_stream_t stream;
       mu_stdio_stream_create (&stream, MU_STDOUT_FD, 0);
-      mu_stream_open (stream);
       asprintf (&comment,
 		"Configuration file structure for %s utility.",
 		mu_program_name);

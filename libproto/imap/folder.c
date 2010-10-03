@@ -661,7 +661,6 @@ folder_imap_open (mu_folder_t folder, int flags)
             }
 	  status = mu_memory_stream_create (&f_imap->string.stream, NULL, MU_STREAM_RDWR);
           CHECK_ERROR (f_imap, status);
-	  mu_stream_open (f_imap->string.stream);
         }
       else
         {
@@ -683,10 +682,6 @@ folder_imap_open (mu_folder_t folder, int flags)
 	  if (f_imap->imaps)
 	    {
 	      mu_stream_t newstr;
-
-	      status = mu_stream_open (folder->stream);
-	      CHECK_EAGAIN (f_imap, status);
-	      CHECK_ERROR_CLOSE (folder, f_imap, status);
 
 	      status = mu_tls_client_stream_create (&newstr, 
 	                                            folder->stream,
@@ -712,10 +707,13 @@ folder_imap_open (mu_folder_t folder, int flags)
 
     case IMAP_OPEN_CONNECTION:
       /* Establish the connection.  */
-      status = mu_stream_open (folder->stream);
-      CHECK_EAGAIN (f_imap, status);
-      /* Can't recover bailout.  */
-      CHECK_ERROR_CLOSE (folder, f_imap, status);
+      if (!mu_stream_is_open (folder->stream))
+        {
+          status = mu_stream_open (folder->stream);
+          CHECK_EAGAIN (f_imap, status);
+          /* Can't recover bailout.  */
+          CHECK_ERROR_CLOSE (folder, f_imap, status);
+        }
       f_imap->state = IMAP_GREETINGS;
 
     case IMAP_GREETINGS:

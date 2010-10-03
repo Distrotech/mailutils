@@ -54,8 +54,7 @@ mh_comp_draft (const char *formfile, const char *defformfile,
 	  
 	  if ((rc = mu_file_stream_create (&stream,
 					draftfile,
-					MU_STREAM_WRITE|MU_STREAM_CREAT)) != 0
-	      || (rc = mu_stream_open (stream)))
+					MU_STREAM_WRITE|MU_STREAM_CREAT)))
 	    {
 	      mu_error (_("cannot open output file \"%s\": %s"),
 			draftfile, mu_strerror (rc));

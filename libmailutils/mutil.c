@@ -1333,13 +1333,8 @@ mu_decode_filter (mu_stream_t *pfilter, mu_stream_t input,
 				       0, mu_default_fallback_mode);
       if (status == 0)
 	{
-	  if (mu_stream_open (cvt))
-	    mu_stream_destroy (&cvt);
-	  else
-            {
-              mu_stream_unref (filter);
-              filter = cvt;
-	    }
+          mu_stream_unref (filter);
+          filter = cvt;
 	}
     }
   *pfilter = filter;

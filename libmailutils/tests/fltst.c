@@ -153,10 +153,7 @@ main (int argc, char * argv [])
     }
   
   MU_ASSERT (mu_stdio_stream_create (&in, MU_STDIN_FD, 0));
-  MU_ASSERT (mu_stream_open (in));
-
   MU_ASSERT (mu_stdio_stream_create (&out, MU_STDOUT_FD, 0));
-  MU_ASSERT (mu_stream_open (out));
 
   if (line_length_option)
     reset_line_length (fltname, line_length);

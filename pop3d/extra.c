@@ -206,17 +206,7 @@ pop3d_init_tls_server ()
   if (rc)
     return 1;
 
-  rc = mu_stream_open (tlsstream);
-  if (rc)
-    {
-      mu_diag_output (MU_DIAG_ERROR, _("cannot open TLS stream: %s"),
-		      mu_stream_strerror (tlsstream, rc));
-      mu_stream_destroy (&tlsstream);
-      return 1;
-    }
-  else
-    stream[0] = stream[1] = tlsstream;
-
+  stream[0] = stream[1] = tlsstream;
   rc = mu_stream_ioctl (iostream, MU_IOCTL_SET_STREAM, stream);
   mu_stream_unref (stream[0]);
   mu_stream_unref (stream[1]);

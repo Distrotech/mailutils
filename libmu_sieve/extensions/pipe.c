@@ -94,9 +94,6 @@ sieve_action_pipe (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
       rc = mu_prog_stream_create (&pstr, cmd, MU_STREAM_WRITE);
       ONERR (rc, _("cannot create command stream"), cmd);
 
-      rc = mu_stream_open (pstr);
-      ONERR (rc, _("cannot open command stream"), cmd);
-
       if (mu_sieve_tag_lookup (tags, "envelope", &val))
 	{
 	  char *p;

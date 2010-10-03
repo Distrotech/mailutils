@@ -304,11 +304,13 @@ _create_tcp_stream (int flags)
 }
 
 int
-mu_tcp_stream_create_with_source_ip (mu_stream_t *stream,
+mu_tcp_stream_create_with_source_ip (mu_stream_t *pstream,
 				     const char *host, int port,
 				     unsigned long source_ip,
 				     int flags)
 {
+  int rc;
+  mu_stream_t stream;
   struct _tcp_instance *tcp;
 
   if (host == NULL)
@@ -329,8 +331,13 @@ mu_tcp_stream_create_with_source_ip (mu_stream_t *stream,
   tcp->port = port;
   tcp->state = TCP_STATE_INIT;
   tcp->source_addr = source_ip;
-  *stream = (mu_stream_t) tcp;
-  return 0;
+  stream = (mu_stream_t) tcp;
+  rc = mu_stream_open (stream);
+  if (rc == 0 || rc == EAGAIN || rc == EINPROGRESS)
+    *pstream = stream;
+  else
+    mu_stream_destroy (&stream);
+  return rc;
 }
 
 int

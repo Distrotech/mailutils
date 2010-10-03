@@ -63,6 +63,7 @@ mu_stdio_stream_create (mu_stream_t *pstream, int fd, int flags)
 			       filename, fd, flags & ~MU_STREAM_SEEK);
   if (rc)
     return rc;
+  fstr->stream.flags |= _MU_STR_OPEN;
   fstr->stream.open = NULL;
   transport = (mu_stream_t) fstr;
   mu_stream_set_buffer (transport, mu_buffer_line, 0);

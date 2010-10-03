@@ -52,12 +52,6 @@ spamd_connect_tcp (mu_sieve_machine_t mach, mu_stream_t *stream,
       mu_sieve_error (mach, "mu_tcp_stream_create: %s", mu_strerror (rc));
       return rc;
     }
-  rc = mu_stream_open (*stream);
-  if (rc)
-    {
-      mu_sieve_error (mach, "opening tcp stream: %s", mu_strerror (rc));
-      mu_stream_destroy (stream);
-    }
   return rc;
 }
 
@@ -70,13 +64,6 @@ spamd_connect_socket (mu_sieve_machine_t mach, mu_stream_t *stream, char *path)
       mu_sieve_error (mach, "mu_socket_stream_create: %s", mu_strerror (rc));
       return rc;
     }
-  rc = mu_stream_open (*stream);
-  if (rc)
-    {
-      mu_sieve_error (mach, "opening socket stream: %s", mu_strerror (rc));
-      mu_stream_destroy (stream);
-    }
-
   return rc;
 }
 

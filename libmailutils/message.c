@@ -278,7 +278,9 @@ _message_stream_create (mu_stream_t *pmsg, mu_message_t msg, int flags)
   struct _mu_message_stream *sp;
 
   sp = (struct _mu_message_stream *) _mu_stream_create (sizeof (*sp),
-							flags | MU_STREAM_SEEK);
+							flags |
+							MU_STREAM_SEEK |
+							_MU_STR_OPEN);
   if (!sp)
     return ENOMEM;
 

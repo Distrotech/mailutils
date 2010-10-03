@@ -76,8 +76,7 @@ imap4d_append0 (mu_mailbox_t mbox, int flags, char *date_time, char *text,
   if (mu_message_create (&msg, &tm))
     return 1;
 
-  if (mu_memory_stream_create (&stream, MU_STREAM_RDWR)
-      || mu_stream_open (stream))
+  if (mu_memory_stream_create (&stream, MU_STREAM_RDWR))
     {
       mu_message_destroy (&msg, &tm);
       return 1;

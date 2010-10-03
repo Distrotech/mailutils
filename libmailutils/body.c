@@ -173,7 +173,7 @@ _body_get_stream (mu_body_t body, mu_stream_t *pstream, int ref)
 	  struct _mu_body_stream *str =
 	    (struct _mu_body_stream *)
 	    _mu_stream_create (sizeof (*str),
-			       MU_STREAM_RDWR|MU_STREAM_SEEK);
+			       MU_STREAM_RDWR|MU_STREAM_SEEK|_MU_STR_OPEN);
 	  if (!str)
 	    return ENOMEM;
 	  
@@ -184,9 +184,6 @@ _body_get_stream (mu_body_t body, mu_stream_t *pstream, int ref)
 	  if (status != 0)
 	    return status;
 	  mu_stream_set_buffer (body->fstream, mu_buffer_full, 0);
-	  status = mu_stream_open (body->fstream);
-	  if (status != 0)
-	    return status;
 	  str->stream.ctl = _body_ioctl;
 	  str->stream.read = _body_read;
 	  str->stream.write = _body_write;

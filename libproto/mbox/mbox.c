@@ -99,23 +99,9 @@ mbox_open (mu_mailbox_t mailbox, int flags)
 
       if (status)
 	return status;
-      mu_stream_set_buffer (mailbox->stream, mu_buffer_full, 0);
-      
-      status = mu_stream_open (mailbox->stream);
-      if (status)
-	{
-	  mu_stream_destroy (&mailbox->stream);
-	  return status;
-	}
-      
-      /* FIXME: Set up buffering */
     }
-  else
-    {
-      status = mu_stream_open (mailbox->stream);
-      if (status != 0)
-	return status;
-    }
+
+  mu_stream_set_buffer (mailbox->stream, mu_buffer_full, 0);
 
   MU_DEBUG2 (mailbox->debug, MU_DEBUG_TRACE1, "mbox_open (%s, 0x%x)\n",
 	     mud->name, mailbox->flags);
@@ -1416,35 +1402,31 @@ mbox_expunge0 (mu_mailbox_t mailbox, int remove_deleted)
   status = mu_temp_file_stream_create (&tempstr, NULL);
   if (status == 0)
     {
-      status = mu_stream_open (tempstr);
-      if (status == 0)
-	{
-	  sigset_t signalset;
+      sigset_t signalset;
 #ifdef WITH_PTHREAD
-	  int state;
-	  pthread_setcancelstate (PTHREAD_CANCEL_DISABLE, &state);
+      int state;
+      pthread_setcancelstate (PTHREAD_CANCEL_DISABLE, &state);
 #endif
-	  sigemptyset (&signalset);
-	  sigaddset (&signalset, SIGTERM);
-	  sigaddset (&signalset, SIGHUP);
-	  sigaddset (&signalset, SIGTSTP);
-	  sigaddset (&signalset, SIGINT);
-	  sigaddset (&signalset, SIGWINCH);
-	  sigprocmask (SIG_BLOCK, &signalset, 0);
-	  
-	  status = mbox_expunge_unlocked (mailbox, dirty, remove_deleted,
-					  tempstr);
-
-#ifdef WITH_PTHREAD
-	  pthread_setcancelstate (state, &state);
-#endif
-	  sigprocmask (SIG_UNBLOCK, &signalset, 0);
+      sigemptyset (&signalset);
+      sigaddset (&signalset, SIGTERM);
+      sigaddset (&signalset, SIGHUP);
+      sigaddset (&signalset, SIGTSTP);
+      sigaddset (&signalset, SIGINT);
+      sigaddset (&signalset, SIGWINCH);
+      sigprocmask (SIG_BLOCK, &signalset, 0);
       
-	  mu_stream_destroy (&tempstr);
+      status = mbox_expunge_unlocked (mailbox, dirty, remove_deleted,
+				      tempstr);
 
-	  if (status == 0)
-	    mbox_reset (mailbox, dirty, remove_deleted);
-	}
+#ifdef WITH_PTHREAD
+      pthread_setcancelstate (state, &state);
+#endif
+      sigprocmask (SIG_UNBLOCK, &signalset, 0);
+      
+      mu_stream_destroy (&tempstr);
+      
+      if (status == 0)
+	mbox_reset (mailbox, dirty, remove_deleted);
     }
   if (mailbox->locker)
     mu_locker_unlock (mailbox->locker);

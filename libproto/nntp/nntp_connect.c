@@ -55,8 +55,11 @@ mu_nntp_connect (mu_nntp_t nntp)
 
     case MU_NNTP_CONNECT:
       /* Establish the connection.  */
-      status = mu_stream_open (nntp->carrier);
-      MU_NNTP_CHECK_EAGAIN (nntp, status);
+      if (!mu_stream_is_open (nntp->carrier))
+        {
+          status = mu_stream_open (nntp->carrier);
+          MU_NNTP_CHECK_EAGAIN (nntp, status);
+        }
       nntp->acknowledge = 0;
       nntp->state = MU_NNTP_GREETINGS;
 

@@ -151,14 +151,12 @@ main (int argc, char * argv [])
     MU_ASSERT (mu_file_stream_create (&in, input, MU_STREAM_READ|MU_STREAM_SEEK));
   else
     MU_ASSERT (mu_stdio_stream_create (&in, MU_STDIN_FD, 0));
-  MU_ASSERT (mu_stream_open (in));
 
   if (output)
     MU_ASSERT (mu_file_stream_create (&out, output, 
                                       MU_STREAM_WRITE|MU_STREAM_CREAT));
   else
     MU_ASSERT (mu_stdio_stream_create (&out, MU_STDOUT_FD, 0));
-  MU_ASSERT (mu_stream_open (out));
 
   if (line_length_option)
     reset_line_length (encoding, line_length);

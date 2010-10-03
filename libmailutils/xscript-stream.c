@@ -402,7 +402,8 @@ mu_xscript_stream_create(mu_stream_t *pref, mu_stream_t transport,
   struct _mu_xscript_stream *sp;
 
   mu_stream_get_flags (transport, &flags);
-  sp = (struct _mu_xscript_stream *) _mu_stream_create (sizeof (*sp), flags);
+  sp = (struct _mu_xscript_stream *) _mu_stream_create (sizeof (*sp),
+                                                        flags | _MU_STR_OPEN);
   if (!sp)
     return ENOMEM;
 

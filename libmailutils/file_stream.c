@@ -295,8 +295,13 @@ mu_file_stream_create (mu_stream_t *pstream, const char *filename, int flags)
 				   flags | MU_STREAM_SEEK | MU_STREAM_AUTOCLOSE);
   if (rc == 0)
     {
-      *pstream = (mu_stream_t) fstr;
-      mu_stream_set_buffer ((mu_stream_t) fstr, mu_buffer_full, 0);
+      mu_stream_t stream = (mu_stream_t) fstr;
+      mu_stream_set_buffer (stream, mu_buffer_full, 0);
+      rc = mu_stream_open (stream);
+      if (rc)
+	mu_stream_unref (stream);
+      else
+	*pstream = stream;
     }
   return rc;
 }
@@ -310,8 +315,13 @@ mu_fd_stream_create (mu_stream_t *pstream, char *filename, int fd, int flags)
 				   filename, fd, flags);
   if (rc == 0)
     {
-      *pstream = (mu_stream_t) fstr;
-      mu_stream_set_buffer ((mu_stream_t) fstr, mu_buffer_full, 0);
+      mu_stream_t stream = (mu_stream_t) fstr;
+      mu_stream_set_buffer (stream, mu_buffer_full, 0);
+      rc = mu_stream_open (stream);
+      if (rc)
+	mu_stream_unref (stream);
+      else
+	*pstream = stream;
     }
   return rc;
 }

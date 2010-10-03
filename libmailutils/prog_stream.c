@@ -307,24 +307,12 @@ _prog_open (mu_stream_t stream)
 	  _prog_close (stream);
 	  return rc;
 	}
-      rc = mu_stream_open (fs->in);
-      if (rc)
-	{
-	  _prog_close (stream);
-	  return rc;
-	}
     }
   
   if (REDIRECT_STDIN_P (flags))
     {
       rc = mu_stdio_stream_create (&fs->out, pfd[1],
 				   MU_STREAM_WRITE|MU_STREAM_AUTOCLOSE|seekable_flag);
-      if (rc)
-	{
-	  _prog_close (stream);
-	  return rc;
-	}
-      rc = mu_stream_open (fs->out);
       if (rc)
 	{
 	  _prog_close (stream);
@@ -428,21 +416,32 @@ _prog_stream_create (const char *progname, int flags)
 int
 mu_prog_stream_create (mu_stream_t *pstream, const char *progname, int flags)
 {
+  int rc;
+  mu_stream_t stream;
+  
   if (pstream == NULL)
     return MU_ERR_OUT_PTR_NULL;
 
   if (progname == NULL)
     return EINVAL;
 
-  if ((*pstream = (mu_stream_t) _prog_stream_create (progname, flags)) == NULL)
+  if ((stream = (mu_stream_t) _prog_stream_create (progname, flags)) == NULL)
     return ENOMEM;
-  return 0;
+
+  rc = mu_stream_open (stream);
+  if (rc)
+    mu_stream_destroy (&stream);
+  else
+    *pstream = stream;
+  return rc;
 }
 
 int
 mu_filter_prog_stream_create (mu_stream_t *pstream, const char *progname,
 			      mu_stream_t input)
 {
+  int rc;
+  mu_stream_t stream;
   struct _mu_prog_stream *fs;
 
   if (pstream == NULL)
@@ -456,7 +455,12 @@ mu_filter_prog_stream_create (mu_stream_t *pstream, const char *progname,
     return ENOMEM;
   mu_stream_ref (input);
   fs->input = input;
-  *pstream = (mu_stream_t) fs;
-  return 0;
+  stream = (mu_stream_t) fs;
+  rc = mu_stream_open (stream);
+  if (rc)
+    mu_stream_destroy (&stream);
+  else
+    *pstream = stream;
+  return rc;
 }
 

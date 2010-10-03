@@ -66,6 +66,8 @@ int
 mu_dbgstream_create(mu_stream_t *pref, mu_debug_t debug, mu_log_level_t level,
 		    int flags)
 {
+  int rc;
+  mu_stream_t stream;
   struct _mu_dbgstream *sp;
 
   sp = (struct _mu_dbgstream *)
@@ -79,8 +81,13 @@ mu_dbgstream_create(mu_stream_t *pref, mu_debug_t debug, mu_log_level_t level,
   
   sp->debug = debug;
   sp->level = level;
-  mu_stream_set_buffer ((mu_stream_t) sp, mu_buffer_line, 0);
-  *pref = (mu_stream_t) sp;
-  return 0;
+  stream = (mu_stream_t) sp;
+  mu_stream_set_buffer (stream, mu_buffer_line, 0);
+  rc = mu_stream_open (stream);
+  if (rc)
+    mu_stream_destroy (&stream);
+  else
+    *pref = stream;
+  return rc;
 }
   

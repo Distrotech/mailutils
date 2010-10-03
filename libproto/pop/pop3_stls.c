@@ -114,8 +114,6 @@ mu_pop3_stls (mu_pop3_t pop3)
       mu_stream_unref (streams[0]);
       mu_stream_unref (streams[1]);
       MU_POP3_CHECK_EAGAIN (pop3, status);
-      status = mu_stream_open (tlsstream);
-      MU_POP3_CHECK_EAGAIN (pop3, status);
       streams[0] = streams[1] = tlsstream;
       status = pop3_set_streams (pop3, streams);
       mu_stream_unref (streams[0]);

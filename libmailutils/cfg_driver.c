@@ -590,7 +590,6 @@ mu_cfg_tree_reduce (mu_cfg_tree_t *parse_tree, const char *progname,
     {
       mu_stream_t stream;
       mu_stdio_stream_create (&stream, MU_STDERR_FD, 0);
-      mu_stream_open (stream);
       mu_cfg_format_parse_tree (stream, parse_tree, MU_CFG_FMT_LOCUS);
       mu_stream_destroy (&stream);
     }

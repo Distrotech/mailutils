@@ -568,8 +568,6 @@ mail_send0 (compose_env_t * env, int save_to)
       mu_stream_t instr;
 
       rc = mu_file_stream_create (&instr, filename, MU_STREAM_READ);
-      if (rc == 0)
-	rc = mu_stream_open (instr);
       if (rc)
 	mu_error (_("cannot open temporary stream `%s' for reading: %s"),
 		  filename, mu_strerror (rc));

@@ -239,9 +239,7 @@ flush_stream (mu_stream_t *pstr, char *buf, size_t size)
 
   if (size == 0)
     return;
-  if (!*pstr
-      && ((rc = mu_temp_file_stream_create (pstr, NULL)) != 0
-	  || (rc = mu_stream_open (*pstr))))
+  if ((rc = mu_temp_file_stream_create (pstr, NULL))) 
     {
       mu_error (_("Cannot open temporary file: %s"),
 		mu_strerror (rc));
@@ -485,8 +483,7 @@ msg_copy (size_t num, const char *file)
   
   if ((rc = mu_file_stream_create (&ostream,
 				   file,
-				   MU_STREAM_WRITE|MU_STREAM_CREAT)) != 0
-      || (rc = mu_stream_open (ostream)))
+				   MU_STREAM_WRITE|MU_STREAM_CREAT))) 
     {
       mu_error (_("Cannot open output file `%s': %s"),
 		file, mu_strerror (rc));

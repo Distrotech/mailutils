@@ -1030,15 +1030,6 @@ com_connect (int argc, char **argv)
 	    {
 	      mu_stream_t tlsstream;
 	      
-	      status = mu_stream_open (tcp);
-	      if (status)
-		{
-		  mu_error ("cannot open connection: %s",
-			    mu_stream_strerror (tcp, status));
-		  mu_stream_destroy (&tcp);
-		  return 0;
-		}
-
 	      status = mu_tls_client_stream_create (&tlsstream, tcp, tcp, 0);
 	      mu_stream_unref (tcp);
 	      if (status)

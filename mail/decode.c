@@ -418,12 +418,6 @@ run_metamail (const char *mailcap_cmd, mu_message_t mesg)
 	      break;
 	    }
 
-	  status = mu_stream_open (pstr);
-	  if (status)
-	    {
-	      mu_error ("mu_stream_open: %s", mu_strerror (status));
-	      break;
-	    }
 	  mu_stream_copy (pstr, stream, 0, NULL);
 	  mu_stream_close (pstr);
 	  mu_stream_destroy (&pstr);

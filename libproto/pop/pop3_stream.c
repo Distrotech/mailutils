@@ -173,7 +173,8 @@ mu_pop3_stream_create (mu_pop3_t pop3, mu_stream_t *pstream)
   int status;
   
   sp = (struct mu_pop3_stream *) _mu_stream_create (sizeof (*sp),
-						    MU_STREAM_READ);
+						    MU_STREAM_READ |
+						    _MU_STR_OPEN);
   if (!sp)
     return ENOMEM;
   sp->stream.read = _mu_pop3_read; 

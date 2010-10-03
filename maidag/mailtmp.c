@@ -49,13 +49,6 @@ mail_tmp_begin (struct mail_tmp **pmtmp, const char *from)
       return status;
     }
 
-  if ((status = mu_stream_open (mtmp->stream)))
-    {
-      free (mtmp);
-      maidag_error (_("unable to open temporary file: %s"),
-		    mu_strerror (status));
-      return status;
-    }
   mtmp->from = from;
   *pmtmp = mtmp;
   return 0;

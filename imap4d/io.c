@@ -98,14 +98,9 @@ imap4d_init_tls_server ()
   
   rc = mu_tls_server_stream_create (&tlsstream, stream[0], stream[1], 0);
   if (rc)
-    return 1;
-
-  rc = mu_stream_open (tlsstream);
-  if (rc)
     {
       mu_diag_output (MU_DIAG_ERROR, _("cannot open TLS stream: %s"),
 		      mu_stream_strerror (tlsstream, rc));
-      mu_stream_destroy (&tlsstream);
       return 1;
     }
 

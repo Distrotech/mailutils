@@ -198,12 +198,6 @@ display_file (const char *name)
 	  mu_error ("mu_file_stream_create: %s", mu_strerror (rc));
 	  return;
 	}
-      rc = mu_stream_open (stream);
-      if (rc)
-	{
-	  mu_error ("mu_stream_open: %s", mu_strerror (rc));
-	  return;
-	} 
 
       mu_stream_seek (stream, 0, MU_SEEK_SET, NULL);
       while (mu_stream_read (stream, buffer, sizeof buffer - 1, &n) == 0

@@ -292,7 +292,7 @@ _mu_tls_io_stream_create (mu_stream_t *pstream,
   struct _mu_tls_io_stream *sp;
 
   sp = (struct _mu_tls_io_stream *)
-    _mu_stream_create (sizeof (*sp), flags & MU_STREAM_RDWR);
+    _mu_stream_create (sizeof (*sp), (flags & MU_STREAM_RDWR) | _MU_STR_OPEN);
   if (!sp)
     return ENOMEM;
 
@@ -617,6 +617,7 @@ _mu_tls_stream_create (mu_stream_t *pstream,
   struct _mu_tls_stream *sp;
   int autoclose = flags & MU_STREAM_AUTOCLOSE;
   int rc;
+  mu_stream_t stream;
   
   sp = (struct _mu_tls_stream *)
     _mu_stream_create (sizeof (*sp), MU_STREAM_RDWR);
@@ -653,9 +654,14 @@ _mu_tls_stream_create (mu_stream_t *pstream,
       return rc;
     }
 
-  mu_stream_set_buffer ((mu_stream_t) sp, mu_buffer_line, 0);
-  *pstream = (mu_stream_t) sp;
-  return 0;
+  stream = (mu_stream_t) sp;
+  mu_stream_set_buffer (stream, mu_buffer_line, 0);
+  rc = mu_stream_open (stream);
+  if (rc)
+    mu_stream_destroy (&stream);
+  else
+    *pstream = stream;
+  return rc;
 }
 
 int

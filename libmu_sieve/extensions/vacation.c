@@ -71,17 +71,6 @@ build_mime (mu_sieve_machine_t mach, mu_list_t tags, mu_mime_t *pmime,
       return 1;
     }
 
-  if ((rc = mu_stream_open (input)))
-    {
-      mu_sieve_error (mach,
-		      _("cannot open temporary stream: %s"),
-		      mu_strerror (rc));
-      mu_mime_destroy (&mime);
-      mu_message_destroy (&newmsg, NULL);
-      mu_stream_destroy (&input);
-      return 1;
-    }
-  
   mu_stream_write (input, text, strlen (text), NULL);
 
   if (mu_sieve_tag_lookup (tags, "mime", NULL))

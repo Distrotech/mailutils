@@ -41,8 +41,6 @@ mail_pipe (int argc, char **argv)
     return 1;
 
   rc = mu_prog_stream_create (&outstr, cmd, MU_STREAM_WRITE);
-  if (rc == 0)
-    rc = mu_stream_open (outstr);
   if (rc)
     {
       mu_error (_("cannot open `%s': %s"), cmd, mu_strerror (rc));

@@ -42,14 +42,6 @@ main (int argc, char **argv)
       exit (1);
     }
 
-  status = mu_stream_open (stream);
-  if (status)
-    {
-      mu_error ("cannot open input stream: %s",
-		mu_strerror (status));
-      exit (1);
-    }
-
   status = mu_mailcap_create (&mailcap, stream);
   if (status == 0)
     {

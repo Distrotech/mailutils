@@ -324,11 +324,12 @@ _message_error_string (struct _mu_stream *stream, int rc)
 }
 
 int
-mu_message_stream_create (mu_stream_t *stream, mu_stream_t src, int flags)
+mu_message_stream_create (mu_stream_t *pstream, mu_stream_t src, int flags)
 {
   struct _mu_message_stream *s;
   int sflag;
   int rc;
+  mu_stream_t stream;
   
   mu_stream_get_flags (src, &sflag);
   sflag &= MU_STREAM_SEEK;
@@ -355,8 +356,14 @@ mu_message_stream_create (mu_stream_t *stream, mu_stream_t src, int flags)
   s->stream.size = _message_size;
   s->stream.seek = _message_seek;
   s->stream.error_string = _message_error_string;
-  *stream = (mu_stream_t)s;
-  return 0;  
+
+  stream = (mu_stream_t)s;
+  rc = mu_stream_open (stream);
+  if (rc)
+    mu_stream_destroy (&stream);
+  else
+    *pstream = stream;
+  return rc;
 }
 
 
@@ -391,12 +398,6 @@ mu_stream_to_message (mu_stream_t instream, mu_message_t *pmsg)
   /* FIXME: Perhaps MU_STREAM_NO_CLOSE is needed */
   if ((rc = mu_message_stream_create (&draftstream, instream, 0)))
     return rc;
-
-  if ((rc = mu_stream_open (draftstream)))
-    {
-      mu_stream_destroy (&draftstream);
-      return rc;
-    }
 
   if ((rc = mu_message_create (&msg, draftstream)))
     {

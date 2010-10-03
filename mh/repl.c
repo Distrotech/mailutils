@@ -336,13 +336,6 @@ make_draft (mu_mailbox_t mbox, int disp, struct mh_whatnow_env *wh)
 	  exit (1);
 	}
 
-      if ((rc = mu_stream_open (str)))
-	{
-	  mu_error (_("cannot open draft file %s: %s"),
-		    wh->file, mu_strerror (rc));
-	  exit (1);
-	}	  
-
       if (has_fcc)
 	{
 	  mu_message_t tmp_msg;

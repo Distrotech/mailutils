@@ -434,7 +434,9 @@ mu_filter_iconv_create (mu_stream_t *s, mu_stream_t transport,
 {
   struct icvt_stream *iptr;
   iconv_t cd;
-  
+  int rc;
+  mu_stream_t stream;
+    
   cd = iconv_open (tocode, fromcode);
   if (cd == (iconv_t) -1)
     return MU_ERR_FAILURE;
@@ -470,6 +472,11 @@ mu_filter_iconv_create (mu_stream_t *s, mu_stream_t transport,
   iptr->stream.wait = _icvt_wait;
   iptr->stream.seek = _icvt_seek;
   iptr->stream.flags = MU_STREAM_READ | MU_STREAM_SEEK;
-  *s = (mu_stream_t)iptr;
+  stream = (mu_stream_t)iptr;
+  rc = mu_stream_open (stream);
+  if (rc)
+    mu_stream_destroy (&stream);
+  else
+    *s = stream;
   return 0;
 }

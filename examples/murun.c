@@ -69,7 +69,6 @@ main (int argc, char *argv[])
     {
       mu_stream_t in;
       MU_ASSERT (mu_stdio_stream_create (&in, MU_STDIN_FD, 0));
-      MU_ASSERT (mu_stream_open (in));
       rc = mu_filter_prog_stream_create (&stream, cmdline, in);
       /* Make sure closing/destroying stream will close/destroy in */
       mu_stream_unref (in);
@@ -83,16 +82,7 @@ main (int argc, char *argv[])
       exit (1);
     }
   
-  rc = mu_stream_open (stream);
-  if (rc)
-    {
-      fprintf (stderr, "%s: cannot open program filter stream: %s\n",
-	       argv[0], mu_strerror (rc));
-      exit (1);
-    }
-
   MU_ASSERT (mu_stdio_stream_create (&out, MU_STDOUT_FD, 0));
-  MU_ASSERT (mu_stream_open (out));
   
   read_and_print (stream, out);
   mu_stream_close (stream);

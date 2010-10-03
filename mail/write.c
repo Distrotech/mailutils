@@ -72,8 +72,6 @@ mail_write (int argc, char **argv)
 
   rc = mu_file_stream_create (&output, filename,
 			      MU_STREAM_APPEND|MU_STREAM_CREAT);
-  if (rc == 0)
-    rc = mu_stream_open (output);
   if (rc)
     {
       util_error (_("can't open %s: %s"), filename, mu_strerror (rc));

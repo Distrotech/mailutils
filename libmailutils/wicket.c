@@ -249,72 +249,69 @@ get_ticket_url (mu_ticket_t ticket, mu_url_t url, mu_url_t *pticket_url)
   struct file_ticket *ft = mu_ticket_get_data (ticket);
   int rc;
   mu_url_t u = NULL;
+  char *buf = NULL;
+  size_t bufsize = 0;
+  size_t len;
   
   rc = mu_file_stream_create (&stream, ft->filename, MU_STREAM_READ);
   if (rc)
     return rc;
-  rc = mu_stream_open (stream);
-  if (rc == 0)
+    
+  while ((rc = mu_stream_getline (stream, &buf, &bufsize, &len)) == 0
+	 && len > 0)
     {
-      char *buf = NULL;
-      size_t bufsize = 0;
-      size_t len;
-
-      while ((rc = mu_stream_getline (stream, &buf, &bufsize, &len)) == 0
-	     && len > 0)
+      char *p;
+      int err;
+      
+      /* Truncate a trailing newline. */
+      if (len && buf[len - 1] == '\n')
+	buf[--len] = 0;
+      
+      /* Skip leading spaces  */
+      for (p = buf; *p == ' ' || *p == '\t'; p++)
+	;
+      /* Skip trailing spaces */
+      for (; len > 0 && (p[len-1] == ' ' || p[len-1] == '\t'); )
+	p[--len] = 0;
+      
+      /* Skip empty lines and comments. */
+      if (*p == 0 || *p == '#')
+	continue;
+      
+      if ((err = mu_url_create (&u, p)) != 0)
 	{
-	  char *p;
-	  int err;
-	  
-	  /* Truncate a trailing newline. */
-	  if (len && buf[len - 1] == '\n')
-	    buf[--len] = 0;
-
-	  /* Skip leading spaces  */
-	  for (p = buf; *p == ' ' || *p == '\t'; p++)
-	    ;
-	  /* Skip trailing spaces */
-	  for (; len > 0 && (p[len-1] == ' ' || p[len-1] == '\t'); )
-	    p[--len] = 0;
-	  
-	  /* Skip empty lines and comments. */
-	  if (*p == 0 || *p == '#')
-	    continue;
-
-	  if ((err = mu_url_create (&u, p)) != 0)
-	    {
-	      /* Skip erroneous entry */
-	      /* FIXME: Error message */
-	      continue;
-	    }
-	  if ((err = mu_url_parse (u)) != 0)
-	    {
-	      /* FIXME: See above */
-	      mu_url_destroy (&u);
-	      continue;
-	    }
-	  
-	  if (!mu_url_is_ticket (u, url))
-	    {
-	      mu_url_destroy (&u);
-	      continue;
-	    }
-	  
-	  if (ft->user)
-	    {
-	      if (u->name && strcmp (u->name, "*") != 0
-		  && strcmp (ft->user, u->name) != 0)
-		{
-		  mu_url_destroy (&u);
-		  continue;
-		}
-	    }
-	  
-	  break;
+	  /* Skip erroneous entry */
+	  /* FIXME: Error message */
+	  continue;
 	}
-      mu_stream_close (stream);
-      free (buf);
+      if ((err = mu_url_parse (u)) != 0)
+	{
+	  /* FIXME: See above */
+	  mu_url_destroy (&u);
+	  continue;
+	}
+      
+      if (!mu_url_is_ticket (u, url))
+	{
+	  mu_url_destroy (&u);
+	  continue;
+	}
+      
+      if (ft->user)
+	{
+	  if (u->name && strcmp (u->name, "*") != 0
+	      && strcmp (ft->user, u->name) != 0)
+	    {
+	      mu_url_destroy (&u);
+	      continue;
+	    }
+	}
+      
+      break;
     }
+  mu_stream_close (stream);
+  free (buf);
+    
   mu_stream_destroy (&stream);
 
   if (rc == 0)

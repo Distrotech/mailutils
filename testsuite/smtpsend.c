@@ -185,16 +185,12 @@ main (int argc, char **argv)
   if (!raw)
     flags = MU_STREAM_SEEK;
   if (infile)
-    {
-      MU_ASSERT (mu_file_stream_create (&instr, infile, MU_STREAM_READ|flags));
-      MU_ASSERT (mu_stream_open (instr));
-    }
+    MU_ASSERT (mu_file_stream_create (&instr, infile, MU_STREAM_READ|flags));
   else
     MU_ASSERT (mu_stdio_stream_create (&instr, MU_STDIN_FD, flags));
   
   host = argv[1];
   MU_ASSERT (mu_tcp_stream_create (&stream, host, port, MU_STREAM_RDWR));
-  MU_ASSERT (mu_stream_open (stream));
   mu_smtp_set_carrier (smtp, stream);
   mu_stream_unref (stream);
   

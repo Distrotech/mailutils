@@ -261,6 +261,7 @@ mu_iostream_create (mu_stream_t *pref, mu_stream_t in, mu_stream_t out)
   if (!sp)
     return ENOMEM;
 
+  sp->stream.flags |= _MU_STR_OPEN;
   sp->stream.read = _iostream_read; 
   if (in->readdelim)
     sp->stream.readdelim = _iostream_readdelim; 

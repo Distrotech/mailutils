@@ -480,6 +480,7 @@ mu_filter_stream_create (mu_stream_t *pflt,
   if (!fs)
     return ENOMEM;
   
+  flags |= _MU_STR_OPEN;
   if (flags & MU_STREAM_READ)
     {
       fs->stream.read = filter_read;

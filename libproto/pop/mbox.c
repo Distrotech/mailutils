@@ -129,13 +129,6 @@ pop_open (mu_mailbox_t mbox, int flags)
     {
       mu_stream_t newstr;
       
-      status = mu_stream_open (stream);
-      if (status)
-	{
-	  mu_stream_destroy (&stream);
-	  return status;
-	}
-      
       status = mu_tls_client_stream_create (&newstr, stream, stream, 0);
       mu_stream_unref (stream);
       if (status)
@@ -373,12 +366,6 @@ _pop_message_get_stream (struct _pop3_message *mpm, mu_stream_t *pstr)
 		/* FIXME: Try to recover first */
 		break;
 
-	      status = mu_stream_open (mpd->cache);
-	      if (status)
-		{
-		  mu_stream_destroy (&mpd->cache);
-		  break;
-		}
 	      mu_stream_set_buffer (mpd->cache, mu_buffer_full, 8192);
 	    }
 

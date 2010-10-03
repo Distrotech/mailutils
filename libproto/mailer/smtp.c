@@ -17,10 +17,6 @@
    Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02110-1301 USA */
 
-/** @file smtp.c
-@brief an SMTP mailer
-*/
-/* FIXME: Bufferization stuff is spurious. Remove it */
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
@@ -175,9 +171,6 @@ smtp_open (mu_mailer_t mailer, int flags)
       if (rc)
 	return rc;
       mu_stream_set_buffer (mailer->stream, mu_buffer_line, 0);
-      rc = mu_stream_open (mailer->stream);
-      if (rc)
-	return rc;
     }
   mu_smtp_set_carrier (smtp_mailer->smtp, mailer->stream);
   /* FIXME: Unref the stream */

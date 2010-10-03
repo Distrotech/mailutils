@@ -332,8 +332,7 @@ finish_draft ()
   
   if ((rc = mu_file_stream_create (&stream,
 				   wh_env.file,
-				   MU_STREAM_WRITE|MU_STREAM_CREAT)) != 0
-      || (rc = mu_stream_open (stream)))
+				   MU_STREAM_WRITE|MU_STREAM_CREAT)))
     {
       mu_error (_("cannot open output file `%s': %s"),
 		wh_env.file, mu_strerror (rc));

@@ -117,6 +117,10 @@ mu_socket_stream_create (mu_stream_t *pstream, const char *filename, int flags)
       transport = str;
     }
 
-  *pstream = transport;
-  return 0;
+  rc = mu_stream_open (transport);
+  if (rc)
+    mu_stream_unref (transport);
+  else
+    *pstream = transport;
+  return rc;
 }

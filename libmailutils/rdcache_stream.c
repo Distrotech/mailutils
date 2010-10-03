@@ -183,7 +183,7 @@ mu_rdcache_stream_create (mu_stream_t *pstream, mu_stream_t transport,
     return EINVAL;
   
   sp = (struct _mu_rdcache_stream *)
-          _mu_stream_create (sizeof (*sp), sflags);
+          _mu_stream_create (sizeof (*sp), sflags | _MU_STR_OPEN);
   if (!sp)
     return ENOMEM;
 
@@ -200,8 +200,7 @@ mu_rdcache_stream_create (mu_stream_t *pstream, mu_stream_t transport,
     mu_stream_ref (transport);
   sp->transport = transport;
 
-  if ((rc = mu_memory_stream_create (&sp->cache, MU_STREAM_RDWR))
-      || (rc = mu_stream_open (sp->cache)))
+  if ((rc = mu_memory_stream_create (&sp->cache, MU_STREAM_RDWR)))
     {
       mu_stream_destroy ((mu_stream_t*) &sp);
       return rc;

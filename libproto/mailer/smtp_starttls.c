@@ -108,12 +108,6 @@ mu_smtp_starttls (mu_smtp_t smtp)
   mu_stream_unref (streams[0]);
   mu_stream_unref (streams[1]);
   MU_SMTP_CHECK_ERROR (smtp, status);
-  status = mu_stream_open (tlsstream);
-  if (status)
-    {
-      mu_stream_destroy (&tlsstream);
-      return status;
-    }
   streams[0] = streams[1] = tlsstream;
   status = _mu_smtp_set_streams (smtp, streams);
   mu_stream_unref (streams[0]);

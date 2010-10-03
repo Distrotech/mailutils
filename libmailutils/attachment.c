@@ -104,16 +104,13 @@ mu_message_create_attachment (const char *content_type, const char *encoding,
 		       mu_file_stream_create (&fstream, filename,
 					      MU_STREAM_READ)) == 0)
 		    {
-		      if ((ret = mu_stream_open (fstream)) == 0)
+		      if ((ret =
+			   mu_filter_create (&tstream, fstream, encoding,
+					     MU_FILTER_ENCODE,
+					     MU_STREAM_READ)) == 0)
 			{
-			  if ((ret =
-			       mu_filter_create (&tstream, fstream, encoding,
-						 MU_FILTER_ENCODE,
-						 MU_STREAM_READ)) == 0)
-			    {
-			      mu_body_set_stream (body, tstream, *newmsg);
-			      mu_message_set_header (*newmsg, hdr, NULL);
-			    }
+			  mu_body_set_stream (body, tstream, *newmsg);
+			  mu_message_set_header (*newmsg, hdr, NULL);
 			}
 		    }
 		}
@@ -293,30 +290,27 @@ mu_message_save_attachment (mu_message_t msg, const char *filename,
 	      mu_file_stream_create (&info->fstream, fname,
 				     MU_STREAM_WRITE | MU_STREAM_CREAT)) == 0)
 	{
-	  if ((ret = mu_stream_open (info->fstream)) == 0)
+	  char *content_encoding;
+	  char *content_encoding_mem = NULL;
+	  
+	  mu_header_get_value (hdr, "Content-Transfer-Encoding", NULL, 0,
+			       &size);
+	  if (size)
 	    {
-	      char *content_encoding;
-	      char *content_encoding_mem = NULL;
-
-	      mu_header_get_value (hdr, "Content-Transfer-Encoding", NULL, 0,
-				   &size);
-	      if (size)
-		{
-		  content_encoding_mem = malloc (size + 1);
-		  if (content_encoding_mem == NULL)
-		    ret = ENOMEM;
-		  content_encoding = content_encoding_mem;
-		  mu_header_get_value (hdr, "Content-Transfer-Encoding",
-				       content_encoding, size + 1, 0);
-		}
-	      else
-		content_encoding = "7bit";
-	      ret =
-		mu_filter_create (&info->stream, istream, content_encoding,
-				  MU_FILTER_DECODE,
-				  MU_STREAM_READ);
-	      free (content_encoding_mem);
+	      content_encoding_mem = malloc (size + 1);
+	      if (content_encoding_mem == NULL)
+		ret = ENOMEM;
+	      content_encoding = content_encoding_mem;
+	      mu_header_get_value (hdr, "Content-Transfer-Encoding",
+				   content_encoding, size + 1, 0);
 	    }
+	  else
+	    content_encoding = "7bit";
+	  ret =
+	    mu_filter_create (&info->stream, istream, content_encoding,
+			      MU_FILTER_DECODE,
+			      MU_STREAM_READ);
+	  free (content_encoding_mem);
 	}
     }
   if (info->stream && istream)

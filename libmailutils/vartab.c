@@ -227,7 +227,6 @@ mu_vartab_expand (mu_vartab_t vt, const char *str, char **pres)
       rc = mu_memory_stream_create (&vt->stream, 0);
       if (rc)
 	return rc;
-      rc = mu_stream_open (vt->stream);
     }
   else
     mu_stream_truncate (vt->stream, 0);
