@@ -17,6 +17,7 @@
 
 bin_PROGRAMS = mu
 mu_SOURCES = \
+ acl.c\
  info.c\
  mu.h\
  mu.c\

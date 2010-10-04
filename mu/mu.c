@@ -32,6 +32,7 @@ Commands are:\n\
     mu pop    - POP3 client program\n\
     mu filter - filter program\n\
     mu 2047   - decode/encode message headers as per RFC 2047\n\
+    mu acl    - test access control lists\n\
 \n\
 Try `mu COMMAND --help' to get help on a particular COMMAND.\n\
 \n\
@@ -92,6 +93,7 @@ struct mutool_action_tab mutool_action_tab[] = {
   { "filter", mutool_filter },
   { "2047", mutool_flt2047 },
   { "query", mutool_query },
+  { "acl", mutool_acl },
   { NULL }
 };
 

@@ -23,7 +23,7 @@
 #include "argp.h"
 #include "mu.h"
 
-static char flt2047_doc[] = N_("mu 2047 - decode/encode message headers");
+static char flt2047_doc[] = N_("mu 2047 - decode/encode message headers.");
 static char flt2047_args_doc[] = N_("[text]");
 
 static struct argp_option flt2047_options[] = {

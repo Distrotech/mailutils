@@ -197,6 +197,7 @@ sieve/sieve.c
 
 sql/mysql.c
 
+mu/acl.c
 mu/filter.c
 mu/flt2047.c
 mu/info.c
