@@ -100,12 +100,8 @@ static const char *comsat_argp_capa[] = {
 #define NOT_HERE 1
 #define PERMISSION_DENIED 2
 
-#ifndef MAXHOSTNAMELEN
-# define MAXHOSTNAMELEN 64
-#endif
-
 int maxlines = 5;
-char hostname[MAXHOSTNAMELEN];
+char *hostname;
 const char *username;
 int require_tty;
 mu_m_server_t server;
@@ -220,11 +216,17 @@ sig_hup (int sig)
 void
 comsat_init ()
 {
+  int rc;
+
   /* Register mailbox formats */
   mu_register_all_mbox_formats ();
 
-  gethostname (hostname, sizeof hostname);
-
+  rc = mu_get_host_name (&hostname);
+  if (rc)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_get_host_name", NULL, rc);
+      exit (EXIT_FAILURE);
+    } 
   /* Set signal handlers */
   signal (SIGTTOU, SIG_IGN);
   signal (SIGCHLD, SIG_IGN);
@@ -586,7 +588,7 @@ main (int argc, char **argv)
   
   if (mu_app_init (&argp, comsat_argp_capa, comsat_cfg_param, argc, argv, 0,
 		   &ind, server))
-    exit (1);
+    exit (EXIT_FAILURE);
 
   if (test_mode)
     {

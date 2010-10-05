@@ -226,19 +226,13 @@ pop3d_mainloop (int fd, FILE *infile, FILE *outfile)
   /* Prepare the shared secret for APOP.  */
   {
     char *local_hostname;
-    local_hostname = mu_alloc (MAXHOSTNAMELEN + 1);
-
-    /* Get our canonical hostname. */
-    {
-      struct hostent *htbuf;
-      gethostname (local_hostname, MAXHOSTNAMELEN);
-      htbuf = gethostbyname (local_hostname);
-      if (htbuf)
-	{
-	  free (local_hostname);
-	  local_hostname = strdup (htbuf->h_name);
-	}
-    }
+    
+    status = mu_get_host_name (&local_hostname);
+    if (status)
+      {
+        mu_diag_funcall (MU_DIAG_ERROR, "mu_get_host_name", NULL, status);
+        exit (EXIT_FAILURE);
+      }
 
     md5shared = mu_alloc (strlen (local_hostname) + 51);
 

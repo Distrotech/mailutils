@@ -75,7 +75,7 @@ extern time_t overflow_control_interval;
 extern time_t overflow_delay_time;
 extern int maxlines;
 extern const char *username;
-extern char hostname[];
+extern char *hostname;
 extern struct daemon_param daemon_param;
 
 void run_user_action (FILE *tty, const char *cr, mu_message_t msg);
