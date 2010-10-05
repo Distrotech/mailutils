@@ -24,7 +24,8 @@ struct mutool_command
   int argmax;           /* Max. allowed number of arguments (-1 means not
 			   limited */
   mutool_action_t func;	/* Function to call to do the job. */
-  const char *doc;	/* Documentation for this function.  */
+  const char *argdoc;   /* Documentation for the arguments */
+  const char *docstring;/* Documentation for this function.  */
 };
 
 

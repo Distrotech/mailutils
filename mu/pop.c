@@ -304,13 +304,25 @@ static int
 com_apop (int argc, char **argv)
 {
   int status;
+  char *pwd, *passbuf = NULL;
 
-  status = mu_pop3_apop (pop3, argv[1], argv[2]);
+  if (argc == 3)
+    pwd = argv[2];
+  else
+    {
+      status = mu_getpass (mustrin, mustrout, "Password:", &passbuf);
+      if (status)
+	return status;
+      pwd = passbuf;
+    }
+  
+  status = mu_pop3_apop (pop3, argv[1], pwd);
   if (status == 0)
     {
       username = strdup (argv[1]);
       pop_session_status = pop_session_logged_in;
     }
+  free (passbuf);
   return status;
 }
 
@@ -694,40 +706,61 @@ com_quit (int argc MU_ARG_UNUSED, char **argv MU_ARG_UNUSED)
 }
 
 struct mutool_command pop_comtab[] = {
-  { "apop",       3,  3, com_apop,
-    "Authenticate with APOP: APOP user secret" },
+  { "apop",       2,  3, com_apop,
+    N_("USER [PASS]"),
+    N_("authenticate with APOP") },
   { "capa",       1, -1, com_capa,
-    "List capabilities: capa [-reread] [names...]" },
+    /* TRANSLATORS: -reread is a keyword; do not translate. */
+    N_("[-reread] [NAME...]"),
+    N_("list server capabilities") },
   { "disconnect", 1, 1,
-    com_disconnect, "Close connection: disconnect" },
+    com_disconnect,
+    NULL,
+    N_("close connection") },
   { "dele",       2, 2, com_dele,
-    "Mark message: DELE msgno" },
+    N_("NUMBER"),
+    N_("mark message for deletion") },
   { "list",       1, 2, com_list,
-    "List messages: LIST [msgno]" },
+    N_("[NUMBER]"),
+    N_("list messages") },
   { "noop",       1, 1, com_noop,
-    "Send no operation: NOOP" },
+    NULL,
+    N_("send a \"no operation\"") },
   { "pass",       1, 2, com_pass,
-    "Send passwd: PASS [passwd]" },
+    N_("[PASSWORD]"),
+    N_("send password") },
   { "connect",    1, 4, com_connect,
-    "Open connection: connect [-tls] hostname port" },
+    /* TRANSLATORS: --tls is a keyword. */
+    N_("[-tls] HOSTNAME [PORT]"),
+    N_("open connection") },
   { "quit",       1, 1, com_quit,
-    "Go to Update state : QUIT" },
+    NULL,
+    N_("quit pop3 session") },
   { "retr",       2, 2, com_retr,
-    "Dowload message: RETR msgno" },
+    "NUMBER",
+    N_("retrieve a message") },
   { "rset",       1, 1, com_rset,
-    "Unmark all messages: RSET" },
+    NULL,
+    N_("remove deletion marks") },
   { "stat",       1, 1, com_stat,
-    "Get the size and count of mailbox : STAT" },
+    NULL,
+    N_("get the mailbox size and number of messages in it") },
   { "stls",       1, 1, com_stls,
-    "Start TLS negotiation" },
+    NULL,
+    N_("start TLS negotiation") },
   { "top",        2, 3, com_top,
-    "Get the header of message: TOP msgno [lines]" },
+    "MSGNO [NUMBER]",
+    N_("display message headers and first NUMBER (default 5) lines of"
+       " its body") },
   { "uidl",       1, 2, com_uidl,
-    "Get the unique id of message: UIDL [msgno]" },
+    N_("[NUMBER]"),
+    N_("show unique message identifiers") },
   { "user",       2, 2, com_user,
-    "send login: USER user" },
+    N_("NAME"),
+    N_("send login") },
   { "verbose",    1, 4, com_verbose,
-    "Enable Protocol tracing: verbose [on|off|mask|unmask] [x1 [x2]]" },
+    "[on|off|mask|unmask] [secret [payload]]",
+    N_("control the protocol tracing") },
   { NULL }
 };
 

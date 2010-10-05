@@ -55,21 +55,89 @@ static int shell_history (int, char **);
 #endif
 
 struct mutool_command default_comtab[] = {
-  { "prompt",   -1, -1, shell_prompt,  "set command prompt" },
-  { "exit",       1, 1, shell_exit,    "exit program" },
-  { "help",       1, 2, shell_help,    "display this text" },
-  { "?",          1, 1, shell_help,    "synonym for `help'" },
+  { "prompt",   -1, -1, shell_prompt,
+    N_("STRING"),
+    N_("set command prompt") },
+  { "exit",       1, 1, shell_exit,    NULL,        N_("exit program") },
+  { "help",       1, 2, shell_help,
+    N_("[COMMAND]"),
+    N_("display this text") },
+  { "?",          1, 1, shell_help,
+    N_("[COMMAND]"),
+    N_("synonym for `help'") },
 #ifdef WITH_READLINE
-  { "history",    1, 1, shell_history, "show command history" },
+  { "history",    1, 1, shell_history,
+    NULL,
+    N_("show command history") },
 #endif
   { NULL }
 };
+
+#define DESCRCOL 25
+#define NUMCOLS  80
+#define DESCRWIDTH (NUMCOLS - DESCRCOL)
 
 /* Print a single comtab entry */
 static void
 print_comtab (mu_stream_t stream, struct mutool_command *tab)
 {
-  mu_stream_printf (stream, "%s\t\t%s\n", tab->name, tab->doc);
+  size_t size = 0;
+  const char *text;
+  
+  if (tab->docstring == NULL)
+    return;
+
+  mu_stream_printf (stream, "%s ", tab->name);
+  size += strlen (tab->name) + 1;
+  if (tab->argdoc)
+    {
+      text = gettext (tab->argdoc);
+      mu_stream_printf (stream, "%s", text);
+      size += strlen (text);
+    }
+  if (size >= DESCRCOL)
+    mu_stream_printf (stream, "\n%-*s", DESCRCOL, "");
+  else
+    mu_stream_printf (stream, "%-*s", (int) (DESCRCOL - size), "");
+
+  text = gettext (tab->docstring);
+  size = strlen (text);
+  
+  while (*text)
+    {
+      size_t len = size;
+      if (len > DESCRWIDTH)
+	{
+	  /* Fold the text */
+	  size_t n = 0;
+	  
+	  while (n < len)
+	    {
+	      size_t delta;
+	      char *p;
+	      
+	      p = mu_str_skip_cset_comp (text + n, " \t");
+	      delta = p - (text + n);
+	      if (n + delta > DESCRWIDTH)
+		break;
+	      n += delta;
+	      
+	      p = mu_str_skip_cset (text + n, " \t");
+	      delta = p - (text + n);
+	      if (n + delta > DESCRWIDTH)
+		break;
+	      n += delta;
+	    }
+
+	  len = n;
+	}
+      mu_stream_write (stream, text, len, NULL);
+      text += len;
+      size -= len;
+      mu_stream_write (stream, "\n", 1, NULL);
+      if (size)
+	mu_stream_printf (stream, "%-*s", DESCRCOL, "");
+    }
 }  
 
 /* Print a single comtab entry.
@@ -347,11 +415,13 @@ shell_history (int argc, char **argv)
 {
   int i;
   HIST_ENTRY **hlist;
-
+  mu_stream_t out = mutool_open_pager ();
+  
   hlist = history_list ();
   for (i = 0; i < history_length; i++)
-    mu_stream_printf (mustrout, "%4d) %s\n", i + 1, hlist[i]->line);
+    mu_stream_printf (out, "%4d) %s\n", i + 1, hlist[i]->line);
 
+  mu_stream_destroy (&out);
   return 0;
 }
 
