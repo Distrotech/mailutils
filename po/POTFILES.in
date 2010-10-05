@@ -42,7 +42,6 @@ lib/strexit.c
 libmu_argp/auth.c
 libmu_argp/cmdline.c
 libmu_argp/common.c
-libmu_argp/compat.c
 libmu_argp/mu_argp.c
 libmu_argp/sieve.c
 libmu_argp/tls.c

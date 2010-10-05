@@ -31,7 +31,6 @@ libmu_argp_a_SOURCES =\
  cmdline.c\
  cmdline.h\
  common.c\
- compat.c\
  mu_argp.c\
  muinit.c\
  sieve.c\

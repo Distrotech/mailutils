@@ -518,9 +518,10 @@ input_line_interactive ()
 static char *
 input_line_script ()
 {
-  size_t size = 0;
+  size_t size = 0, n;
   char *buf = NULL;
-  if (getline (&buf, &size, stdin) <= 0)
+
+  if (mu_stream_getline (mustrin, &buf, &size, &n) || n == 0)
     return NULL;
   return buf;
 }
