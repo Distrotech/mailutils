@@ -42,6 +42,7 @@ mu_pop3_set_carrier (mu_pop3_t pop3, mu_stream_t carrier)
   pop3->carrier = carrier;
   if (MU_POP3_FISSET (pop3, MU_POP3_TRACE))
     _mu_pop3_trace_enable (pop3);
+  pop3->state = MU_POP3_CONNECT;
   return 0;
 }
 

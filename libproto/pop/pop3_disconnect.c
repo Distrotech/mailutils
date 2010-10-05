@@ -49,5 +49,7 @@ mu_pop3_disconnect (mu_pop3_t pop3)
     }
 
   /* Close the stream.  */
-  return mu_stream_close (pop3->carrier);
+  if (mu_stream_is_open (pop3->carrier))
+    return mu_stream_close (pop3->carrier);
+  return 0;
 }
