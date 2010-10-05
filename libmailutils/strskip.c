@@ -41,10 +41,19 @@ mu_str_skip_class_comp (const char *str, int class)
 }
 
 char *
+mu_str_skip_cset (const char *str, const char *cset)
+{
+  for (; *str && strchr (cset, *str); str++)
+    ;
+  return (char*) str;
+}
+
+char *
 mu_str_skip_cset_comp (const char *str, const char *cset)
 {
   for (; *str && strchr (cset, *str) == NULL; str++)
     ;
   return (char*) str;
 }
+
 
