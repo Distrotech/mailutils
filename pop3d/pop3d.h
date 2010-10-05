@@ -133,12 +133,6 @@ extern int expire_on_exit;
 #include <shadow.h>
 #endif
 
-#ifndef MAXHOSTNAMELEN
-/* Maximum length of a hostname (is this defined somewhere else?).  */
-/* MAXHOSTNAMELEN is already defined on Solaris.  */
-# define MAXHOSTNAMELEN	64
-#endif
-
 #define POP3_ATTRIBUTE_DELE 0x0001
 #define POP3_ATTRIBUTE_RETR 0x0010
 

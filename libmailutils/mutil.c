@@ -291,30 +291,80 @@ mu_cpystr (char *dst, const char *src, size_t size)
   return len;
 }
 
+#ifndef MAXHOSTNAMELEN
+# define MAXHOSTNAMELEN 64
+#endif
+
 int
 mu_get_host_name (char **host)
 {
-  char hostname[MAXHOSTNAMELEN + 1];
-  struct hostent *hp = NULL;
-  char *domain = NULL;
+  char *hostname = NULL;
+  size_t size = 0;
+  char *p;
 
-  gethostname (hostname, sizeof hostname);
-  hostname[sizeof (hostname) - 1] = 0;
+  while (1)
+    {
+      if (size == 0)
+	{
+	  size = MAXHOSTNAMELEN;
+	  p = malloc (size);
+	}
+      else
+	{
+	  size_t ns = size * 2;
+	  if (ns < size)
+	    {
+	      free (hostname);
+	      return ENOMEM;
+	    }
+	  size = ns;
+	  p = realloc (hostname, size);
+	}
+      if (!p)
+	{
+	  free (hostname);
+	  return ENOMEM;
+	}
+      hostname = p;
+      hostname[size - 1] = 0;
+      if (gethostname (hostname, size - 1) == 0)
+	{
+	  if (!hostname[size - 1])
+	    break;
+	}
+      else if (errno != 0 && errno != ENAMETOOLONG && errno != EINVAL
+	       && errno != ENOMEM)
+	{
+	  int rc = errno;
+	  free (hostname);
+	  return rc;
+	}
+    }
 
-  if ((hp = gethostbyname (hostname)))
-    domain = hp->h_name;
-  else
-    domain = hostname;
-
-  domain = strdup (domain);
-
-  if (!domain)
-    return ENOMEM;
-
-  *host = domain;
-
+  /* Try to return fully qualified host name */
+  if (!strchr (hostname, '.'))
+    {
+      struct hostent *hp = gethostbyname (hostname);
+      if (hp)
+	{
+	  size_t len = strlen (hp->h_name);
+	  if (size < len + 1)
+	    {
+	      p = realloc (hostname, len + 1);
+	      if (!p)
+		{
+		  free (hostname);
+		  return ENOMEM;
+		}
+	      hostname = p;
+	    }
+	  strcpy (hostname, hp->h_name);
+	}
+    }
+  
+  *host = hostname;
   return 0;
-}
+}  
 
 /*
  * Functions used to convert unix mailbox/user names into RFC822 addr-specs.

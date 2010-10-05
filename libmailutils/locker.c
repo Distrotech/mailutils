@@ -704,14 +704,11 @@ destroy_dotlock (mu_locker_t locker)
   free (locker->data.dot.nfslock);
 }
 
-#ifndef MAXHOSTNAMELEN
-# define MAXHOSTNAMELEN 256
-#endif
-
 static int
 lock_dotlock (mu_locker_t locker, enum mu_locker_mode mode)
 {
-  char host[MAXHOSTNAMELEN + 1] = "localhost";
+  int rc;
+  char *host = NULL;
   char pid[11];		/* 10 is strlen(2^32 = 4294967296) */
   char now[11];
   size_t sz = 0;
@@ -729,8 +726,9 @@ lock_dotlock (mu_locker_t locker, enum mu_locker_mode mode)
 
   /* build the NFS hitching-post to the lock file */
 
-  gethostname (host, sizeof (host));
-  host[MAXHOSTNAMELEN] = 0;
+  rc = mu_get_host_name (&host);
+  if (rc)
+    return rc;
 
   snprintf (now, sizeof (now), "%lu", (unsigned long) time (0));
   now[sizeof (now) - 1] = 0;
@@ -746,10 +744,14 @@ lock_dotlock (mu_locker_t locker, enum mu_locker_mode mode)
   locker->data.dot.nfslock = malloc (sz);
   
   if (!locker->data.dot.nfslock)
-    return ENOMEM;
-  
+    {
+      free (host);
+      return ENOMEM;
+    }
+
   snprintf (locker->data.dot.nfslock, sz, "%s.%s.%s.%s",
 	    locker->file, pid, now, host);
+  free (host);
   
   fd = open (locker->data.dot.nfslock,
 	     O_WRONLY | O_CREAT | O_EXCL, LOCKFILE_ATTR);
