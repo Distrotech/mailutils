@@ -487,7 +487,7 @@ send_fragments (mu_mailer_t mailer,
 		struct timeval *delay,
 		mu_address_t from, mu_address_t to)
 {
-  int status;
+  int status = 0;
   size_t i;
   char *msgid = NULL;
   
