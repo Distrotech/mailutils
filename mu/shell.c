@@ -32,6 +32,8 @@
 
 char *mutool_shell_prompt;
 mu_vartab_t mutool_prompt_vartab;
+int mutool_shell_interactive;
+mu_stream_t mustrout;
 
 static char *
 expand_prompt ()
@@ -65,25 +67,25 @@ struct mutool_command default_comtab[] = {
 
 /* Print a single comtab entry */
 static void
-print_comtab (struct mutool_command *tab)
+print_comtab (mu_stream_t stream, struct mutool_command *tab)
 {
-  printf ("%s\t\t%s\n", tab->name, tab->doc);
+  mu_stream_printf (stream, "%s\t\t%s\n", tab->name, tab->doc);
 }  
 
 /* Print a single comtab entry.
    FIXME: Way too primitive. Rewrite. */
 int
-print_help (struct mutool_command *tab, size_t n)
+print_help (mu_stream_t stream, struct mutool_command *tab, size_t n)
 {
   if (n)
     {
       for (; n > 0 && tab->name; tab++, n--)
-	print_comtab (tab);
+	print_comtab (stream, tab);
     }
   else
     {
       for (; tab->name; tab++)
-	print_comtab (tab);
+	print_comtab (stream, tab);
     }
   return 0;
 }
@@ -102,16 +104,16 @@ list_commands (struct mutool_command *tab, const char *name)
       if (printed == 6)
 	{
 	  printed = 0;
-	  printf ("\n");
+	  mu_stream_printf (mustrout, "\n");
 	}
       if (mu_c_strncasecmp (tab->name, name, namelen) == 0)
 	{
-	  printf ("%s\t", tab->name);
+	  mu_stream_printf (mustrout, "%s\t", tab->name);
 	  printed++;
 	}
     }
   if (printed && printed < 6)
-    printf ("\n");
+    mu_stream_printf (mustrout, "\n");
 }
 
 static struct mutool_command *
@@ -139,23 +141,28 @@ int
 shell_help (int argc, char **argv)
 {
   char *name = argv[1];
+  
   if (name)
     {
       struct mutool_command *com = find_command (argv[1]);
 
       if (com)
-	print_comtab (com);
+	print_comtab (mustrout, com);
       else
 	{
-	  printf ("No commands match `%s'.  Possibilties are:\n", name);
+	  mu_stream_printf (mustrout,
+			    "No commands match `%s'.  Possibilties are:\n",
+			    name);
 	  list_commands (shell_comtab, name);
 	}
     }
   else
     {
-      print_help (shell_comtab, user_command_count);
-      printf ("\n");
-      print_help (shell_comtab + user_command_count, 0);
+      mu_stream_t str = mutool_open_pager ();
+      print_help (str, shell_comtab, user_command_count);
+      mu_stream_printf (str, "\n");
+      print_help (str, shell_comtab + user_command_count, 0);
+      mu_stream_destroy (&str);
     }
   return 0;
 }
@@ -173,6 +180,21 @@ shell_prompt (int argc, char **argv)
   return 0;
 }
 
+mu_stream_t
+mutool_open_pager ()
+{
+  char *pager;
+  if (mutool_shell_interactive && (pager = getenv ("PAGER")) != NULL)
+    {
+      mu_stream_t stream;
+      int rc = mu_prog_stream_create (&stream, pager, MU_STREAM_WRITE);
+      if (rc == 0)
+	return stream;
+      mu_error (_("cannot start pager: %s"), mu_strerror (rc));
+    }
+  mu_stream_ref (mustrout);
+  return mustrout;
+}
 
 
 #ifdef WITH_READLINE
@@ -313,7 +335,7 @@ retrieve_history (char *str)
       return 1;
 
     case 2:
-      printf ("%s\n", out);
+      mu_stream_printf (mustrout, "%s\n", out);
       free (out);
       return 1;
     }
@@ -328,7 +350,7 @@ shell_history (int argc, char **argv)
 
   hlist = history_list ();
   for (i = 0; i < history_length; i++)
-    printf ("%4d) %s\n", i + 1, hlist[i]->line);
+    mu_stream_printf (mustrout, "%4d) %s\n", i + 1, hlist[i]->line);
 
   return 0;
 }
@@ -345,7 +367,7 @@ readline (char *prompt)
 
   if (prompt)
     {
-      printf ("%s", prompt);
+      mu_stream_printf (mustrout, "%s", prompt);
       fflush (stdout);
     }
   if (getline (&buf, &size, stdin) <= 0)
@@ -440,9 +462,20 @@ shell_exit (int argc MU_ARG_UNUSED, char **argv MU_ARG_UNUSED)
 int
 mutool_shell (const char *name, struct mutool_command *cmd)
 {
+  int rc;
   size_t n;
-  int interactive = isatty (0);
-  char *(*input_line) () = interactive ?
+  char *(*input_line) ();
+
+  rc = mu_stdio_stream_create (&mustrout, MU_STDOUT_FD,
+			       MU_STREAM_WRITE);
+  if (rc)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_stdio_stream_create", "1", rc);
+      return 1;
+    }
+  
+  mutool_shell_interactive = isatty (0);
+  input_line = mutool_shell_interactive ?
                              input_line_interactive : input_line_script;
 
   for (n = 0; cmd[n].name; n++)
@@ -471,7 +504,7 @@ mutool_shell (const char *name, struct mutool_command *cmd)
 	  int status;
 
 #ifdef WITH_READLINE
-	  if (interactive)
+	  if (mutool_shell_interactive)
 	    {
 	      if (retrieve_history (s))
 		continue;
@@ -486,7 +519,8 @@ mutool_shell (const char *name, struct mutool_command *cmd)
 
       free (line);
     }
-  if (interactive)
+  if (mutool_shell_interactive)
     finish_readline ();
+  mu_stream_destroy (&mustrout);
   return 0;
 }

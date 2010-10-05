@@ -244,24 +244,24 @@ com_verbose (int argc, char **argv)
     {
       if (QRY_VERBOSE ())
 	{
-	  printf ("verbose is on");
+	  mu_stream_printf (mustrout, "verbose is on");
 	  if (HAS_VERBOSE_MASK ())
 	    {
 	      char *delim = " (";
 	    
 	      if (QRY_VERBOSE_MASK (MU_XSCRIPT_SECURE))
 		{
-		  printf("%ssecure", delim);
+		  mu_stream_printf (mustrout, "%ssecure", delim);
 		  delim = ", ";
 		}
 	      if (QRY_VERBOSE_MASK (MU_XSCRIPT_PAYLOAD))
-		printf("%spayload", delim);
-	      printf (")");
+		mu_stream_printf (mustrout, "%spayload", delim);
+	      mu_stream_printf (mustrout, ")");
 	    }
-	  printf ("\n");
+	  mu_stream_printf (mustrout, "\n");
 	}
       else
-	printf ("verbose is off\n");
+	mu_stream_printf (mustrout, "verbose is off\n");
     }
   else
     {
@@ -346,13 +346,13 @@ com_capa (int argc, char **argv)
 	    {
 	    case 0:
 	      if (*elt)
-		printf ("%s: %s\n", argv[i], elt);
+		mu_stream_printf (mustrout, "%s: %s\n", argv[i], elt);
 	      else
-		printf ("%s is set\n", argv[i]);
+		mu_stream_printf (mustrout, "%s is set\n", argv[i]);
 	      break;
 
 	    case MU_ERR_NOENT:
-	      printf ("%s is not set\n", argv[i]);
+	      mu_stream_printf (mustrout, "%s is not set\n", argv[i]);
 	      break;
 
 	    default:
@@ -371,7 +371,7 @@ com_capa (int argc, char **argv)
 	    {
 	      char *capa = NULL;
 	      mu_iterator_current (iterator, (void **) &capa);
-	      printf ("CAPA: %s\n", capa ? capa : "");
+	      mu_stream_printf (mustrout, "CAPA: %s\n", capa ? capa : "");
 	    }
 	  mu_iterator_destroy (&iterator);
 	}
@@ -385,6 +385,7 @@ com_uidl (int argc, char **argv)
   int status = 0;
   if (argc == 1)
     {
+      mu_stream_t out = mutool_open_pager ();
       mu_iterator_t uidl_iterator = NULL;
       status = mu_pop3_uidl_all (pop3, &uidl_iterator);
       if (status == 0)
@@ -395,10 +396,11 @@ com_uidl (int argc, char **argv)
 	    {
 	      char *uidl = NULL;
 	      mu_iterator_current (uidl_iterator, (void **) &uidl);
-	      printf ("UIDL: %s\n", uidl ? uidl : "");
+	      mu_stream_printf (out, "UIDL: %s\n", uidl ? uidl : "");
 	    }
 	  mu_iterator_destroy (&uidl_iterator);
 	}
+      mu_stream_destroy (&out);
     }
   else
     {
@@ -406,7 +408,7 @@ com_uidl (int argc, char **argv)
       unsigned int msgno = strtoul (argv[1], NULL, 10);
       status = mu_pop3_uidl (pop3, msgno, &uidl);
       if (status == 0)
-	printf ("Msg: %d UIDL: %s\n", msgno, uidl ? uidl : "");
+	mu_stream_printf (mustrout, "Msg: %d UIDL: %s\n", msgno, uidl ? uidl : "");
       free (uidl);
     }
   return status;
@@ -418,6 +420,7 @@ com_list (int argc, char **argv)
   int status = 0;
   if (argc == 1)
     {
+      mu_stream_t out = mutool_open_pager ();
       mu_iterator_t list_iterator;
       status = mu_pop3_list_all (pop3, &list_iterator);
       if (status == 0)
@@ -428,9 +431,10 @@ com_list (int argc, char **argv)
 	    {
 	      char *list = NULL;
 	      mu_iterator_current (list_iterator, (void **) &list);
-	      printf ("LIST: %s\n", (list) ? list : "");
+	      mu_stream_printf (out, "LIST: %s\n", (list) ? list : "");
 	    }
 	  mu_iterator_destroy (&list_iterator);
+	  mu_stream_destroy (&out);
 	}
     }
   else
@@ -439,7 +443,7 @@ com_list (int argc, char **argv)
       unsigned int msgno = strtoul (argv[1], NULL, 10);
       status = mu_pop3_list (pop3, msgno, &size);
       if (status == 0)
-	printf ("Msg: %u Size: %lu\n", msgno, (unsigned long) size);
+	mu_stream_printf (mustrout, "Msg: %u Size: %lu\n", msgno, (unsigned long) size);
     }
   return status;
 }
@@ -506,8 +510,8 @@ com_stat (int argc MU_ARG_UNUSED, char **argv MU_ARG_UNUSED)
   int status = 0;
 
   status = mu_pop3_stat (pop3, &count, &size);
-  printf ("Mesgs: %lu Size %lu\n",
-	  (unsigned long) count, (unsigned long) size);
+  mu_stream_printf (mustrout, "Mesgs: %lu Size %lu\n",
+		    (unsigned long) count, (unsigned long) size);
   return status;
 }
 
@@ -549,10 +553,9 @@ com_top (int argc, char **argv)
 
   if (status == 0)
     {
-      size_t n = 0;
-      char buf[128];
-      while ((mu_stream_readline (stream, buf, sizeof buf, &n) == 0) && n)
-	printf ("%s", buf);
+      mu_stream_t out = mutool_open_pager ();
+      mu_stream_copy (out, stream, 0, NULL);
+      mu_stream_destroy (&out);
       mu_stream_destroy (&stream);
     }
   return status;
@@ -570,10 +573,9 @@ com_retr (int argc, char **argv)
 
   if (status == 0)
     {
-      size_t n = 0;
-      char buf[128];
-      while ((mu_stream_readline (stream, buf, sizeof buf, &n) == 0) && n)
-	printf ("%s", buf);
+      mu_stream_t out = mutool_open_pager ();
+      mu_stream_copy (out, stream, 0, NULL);
+      mu_stream_destroy (&out);
       mu_stream_destroy (&stream);
     }
   return status;
@@ -706,11 +708,11 @@ com_quit (int argc MU_ARG_UNUSED, char **argv MU_ARG_UNUSED)
 	}
       else
 	{
-	  printf ("Try 'exit' to leave %s\n", mu_program_name);
+	  mu_stream_printf (mustrout, "Try 'exit' to leave %s\n", mu_program_name);
 	}
     }
   else
-    printf ("Try 'exit' to leave %s\n", mu_program_name);
+    mu_stream_printf (mustrout, "Try 'exit' to leave %s\n", mu_program_name);
   return status;
 }
 
