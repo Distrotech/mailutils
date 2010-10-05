@@ -38,6 +38,6 @@ int mutool_acl (int argc, char **argv);
 extern char *mutool_shell_prompt;
 extern mu_vartab_t mutool_prompt_vartab;
 extern int mutool_shell_interactive;
-extern mu_stream_t mustrout;
+extern mu_stream_t mustrin, mustrout;
 int mutool_shell (const char *name, struct mutool_command *cmd);
 mu_stream_t mutool_open_pager (void);

@@ -74,7 +74,7 @@ static struct argp_option options[] =
   { NULL, 0, NULL, 0,
     N_("Default action is:\n"
     "  For the file owner: --list\n"
-    "  For a user: --modify --username <username>\n"), 2 },
+    "  For a user: --modify --user <username>\n"), 2 },
   
   { NULL, 0, NULL, 0, N_("Options are:"), 3 },
   { "file", 'f', N_("FILE"), 0, N_("read input from FILE (default stdin)"), 3 },
@@ -105,7 +105,7 @@ set_db_perms (struct argp_state *astate, char *opt, int *pperm)
 {
   int perm = 0;
    
-  if (mu_isdigit(opt[0]))
+  if (mu_isdigit (opt[0]))
     {
       char *p;
       perm = strtoul (opt, &p, 8);
@@ -446,21 +446,57 @@ fill_pass (struct action_data *ap)
   if (!ap->passwd)
     {
       char *p;
+      mu_stream_t in, out;
+      int rc;
+      
+      rc = mu_stdio_stream_create (&in, MU_STDIN_FD, MU_STREAM_READ);
+      if (rc)
+	{
+	  mu_diag_funcall (MU_DIAG_ERROR, "mu_stdio_stream_create",
+			   "MU_STDIN_FD", rc);
+	  return;
+	}
+ 
+      rc = mu_stdio_stream_create (&out, MU_STDOUT_FD, MU_STREAM_WRITE);
+      if (rc)
+	{
+	  mu_diag_funcall (MU_DIAG_ERROR, "mu_stdio_stream_create",
+			   "MU_STDOUT_FD", rc);
+	  return;
+	}
 
-      while (1) {
-	if (ap->passwd)
-	  free (ap->passwd);
-	p = getpass (_("Password:"));
-	if (!p)
-	  exit (EX_DATAERR);
-	ap->passwd = strdup (p);
-	/* TRANSLATORS: Please try to format this string so that it has
-	   the same length as the translation of 'Password:' above */
-	p = getpass (_("Confirm :"));
-	if (strcmp (ap->passwd, p) == 0)
-	  break;
-	mu_error (_("Passwords differ. Please retry."));
-      } 
+      while (1)
+	{
+	  if (ap->passwd)
+	    free (ap->passwd);
+	  rc = mu_getpass (in, out, _("Password:"), &p);
+	  if (rc)
+	    {
+	      mu_diag_funcall (MU_DIAG_ERROR, "mu_getpass", NULL, rc);
+	      exit (EX_DATAERR);
+	    }
+	  
+	  if (!p)
+	    exit (EX_DATAERR);
+	  
+	  ap->passwd = strdup (p);
+	  /* TRANSLATORS: Please try to format this string so that it has
+	     the same length as the translation of 'Password:' above */
+	  rc = mu_getpass (in, out, _("Confirm :"), &p);
+	  if (rc)
+	    {
+	      mu_diag_funcall (MU_DIAG_ERROR, "mu_getpass", NULL, rc);
+	      exit (EX_DATAERR);
+	    }
+	  
+	  if (!p)
+	    exit (EX_DATAERR);
+	  if (strcmp (ap->passwd, p) == 0)
+	    break;
+	  mu_error (_("Passwords differ. Please retry."));
+	}
+      mu_stream_destroy (&in);
+      mu_stream_destroy (&out);
     }
 }
 

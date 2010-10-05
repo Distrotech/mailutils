@@ -454,42 +454,18 @@ com_noop (int argc MU_ARG_UNUSED, char **argv MU_ARG_UNUSED)
   return mu_pop3_noop (pop3);
 }
 
-static void
-echo_off (struct termios *stored_settings)
-{
-  struct termios new_settings;
-  tcgetattr (0, stored_settings);
-  new_settings = *stored_settings;
-  new_settings.c_lflag &= (~ECHO);
-  tcsetattr (0, TCSANOW, &new_settings);
-}
-
-static void
-echo_on (struct termios *stored_settings)
-{
-  tcsetattr (0, TCSANOW, stored_settings);
-}
-
 static int
 com_pass (int argc, char **argv)
 {
   int status;
-  char pass[256];
-  char *pwd;
+  char *pwd, *passbuf = NULL;
   
   if (argc == 1)
     {
-      struct termios stored_settings;
-
-      printf ("passwd:");
-      fflush (stdout);
-      echo_off (&stored_settings);
-      fgets (pass, sizeof pass, stdin);
-      echo_on (&stored_settings);
-      putchar ('\n');
-      fflush (stdout);
-      pass[strlen (pass) - 1] = '\0';	/* nuke the trailing line.  */
-      pwd = pass;
+      status = mu_getpass (mustrin, mustrout, "Password:", &passbuf);
+      if (status)
+	return status;
+      pwd = passbuf;
     }
   else
     pwd = argv[1];
@@ -499,6 +475,7 @@ com_pass (int argc, char **argv)
       pop_session_status = pop_session_logged_in;
       pop_prompt_vartab ();
     }
+  free (passbuf);
   return status;
 }
 

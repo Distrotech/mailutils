@@ -8,7 +8,6 @@ autobuild
 argp
 crypto/des
 getline
-getpass-gnu
 gettext
 gitlog-to-changelog
 intprops

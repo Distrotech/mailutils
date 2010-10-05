@@ -21,7 +21,8 @@
 #include <mailutils/stream.h>
 #include <mailutils/sys/stream.h>
 
-#define _MU_FILE_STREAM_TEMP 0x01
+#define _MU_FILE_STREAM_TEMP     0x01
+#define _MU_FILE_STREAM_ECHO_OFF 0x02
 
 struct _mu_file_stream
 {
@@ -29,6 +30,7 @@ struct _mu_file_stream
   int fd;
   int flags;
   char *filename;
+  void *echo_state;
 };
 
 int _mu_file_stream_create (struct _mu_file_stream **pstream, size_t size,

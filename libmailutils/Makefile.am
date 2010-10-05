@@ -84,6 +84,7 @@ libmailutils_la_SOURCES = \
  folder.c\
  freeitem.c\
  gdebug.c\
+ getpass.c\
  gocs.c\
  hdritr.c\
  header.c\

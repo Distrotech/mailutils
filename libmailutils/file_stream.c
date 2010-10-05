@@ -23,6 +23,9 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/stat.h>
+#if HAVE_TERMIOS_H
+# include <termios.h>
+#endif
 
 #include <mailutils/types.h>
 #include <mailutils/alloc.h>
@@ -183,6 +186,8 @@ fd_done (struct _mu_stream *str)
     fd_close (str);
   if (fstr->filename)
     free (fstr->filename);
+  if (fstr->echo_state)
+    free (fstr->echo_state);
 }
 
 const char *
@@ -193,6 +198,10 @@ fd_error_string (struct _mu_stream *str, int rc)
   else
     return mu_strerror (rc);
 }
+
+#ifndef TCSASOFT
+# define TCSASOFT 0
+#endif
 
 static int
 fd_ioctl (struct _mu_stream *str, int code, void *ptr)
@@ -218,17 +227,86 @@ fd_ioctl (struct _mu_stream *str, int code, void *ptr)
       break;
       
     case MU_IOCTL_GET_TRANSPORT_BUFFER:
-      {
-        struct mu_buffer_query *qp = ptr;
-	return mu_stream_get_buffer (str, qp);
-      }
+      if (!ptr)
+	return EINVAL;
+      else
+	{
+	  struct mu_buffer_query *qp = ptr;
+	  return mu_stream_get_buffer (str, qp);
+	}
       
     case MU_IOCTL_SET_TRANSPORT_BUFFER:
-      {
-        struct mu_buffer_query *qp = ptr;
-	return mu_stream_set_buffer (str, qp->buftype, qp->bufsize);
-      }
+      if (!ptr)
+	return EINVAL;
+      else
+	{
+	  struct mu_buffer_query *qp = ptr;
+	  return mu_stream_set_buffer (str, qp->buftype, qp->bufsize);
+	}
+
+    case MU_IOCTL_SET_ECHO:
+      if (!ptr)
+	return EINVAL;
+      else
+	{
+	  int status;
+	  struct termios t;
+	  int state = *(int*)ptr;
+#if HAVE_TCGETATTR
+	  if (state == 0)
+	    {
+	      if (fstr->flags & _MU_FILE_STREAM_ECHO_OFF)
+		return 0;
+	      status = tcgetattr (fstr->fd, &t);
+	      if (status == 0)
+		{
+		  fstr->echo_state = malloc (sizeof (t));
+		  if (!fstr->echo_state)
+		    return ENOMEM;
+		  memcpy (fstr->echo_state, &t, sizeof (t));
+
+		  t.c_lflag &= ~(ECHO | ISIG);
+		  status = tcsetattr (fstr->fd, TCSAFLUSH | TCSASOFT, &t);
+		  if (status == 0)
+		    fstr->flags |= _MU_FILE_STREAM_ECHO_OFF;
+		}
+	      if (status)
+		{
+		  status = errno;
+		  if (fstr->echo_state)
+		    {
+		      free (fstr->echo_state);
+		      fstr->echo_state = NULL;
+		    }
+		}
+	    }
+	  else
+	    {
+	      if (!(fstr->flags & _MU_FILE_STREAM_ECHO_OFF))
+		return 0;
+	      if (tcsetattr (fstr->fd, TCSAFLUSH | TCSASOFT, fstr->echo_state))
+		status = errno;
+	      else
+		{
+		  status = 0;
+		  free (fstr->echo_state);
+		  fstr->echo_state = NULL;
+		  fstr->flags &= ~_MU_FILE_STREAM_ECHO_OFF;
+		}
+	    }
+	  return status;
+#else
+	  return ENOSYS;
+#endif
+	}
       
+    case MU_IOCTL_GET_ECHO:
+      if (!ptr)
+	return EINVAL;
+      else
+	*(int*)ptr = fstr->flags & _MU_FILE_STREAM_ECHO_OFF;
+      break;
+	  
     default:
       return ENOSYS;
     }

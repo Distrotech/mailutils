@@ -33,7 +33,7 @@
 char *mutool_shell_prompt;
 mu_vartab_t mutool_prompt_vartab;
 int mutool_shell_interactive;
-mu_stream_t mustrout;
+mu_stream_t mustrin, mustrout;
 
 static char *
 expand_prompt ()
@@ -370,8 +370,13 @@ readline (char *prompt)
       mu_stream_printf (mustrout, "%s", prompt);
       fflush (stdout);
     }
-  if (getline (&buf, &size, stdin) <= 0)
-    return NULL;
+  if (mu_stream_getline (mustrin, &buf, &size, &n) || n == 0)
+    {
+      free (buf);
+      buf = NULL;
+      size = 0;
+      return NULL;
+    }
   return buf;
 }
 
@@ -466,14 +471,24 @@ mutool_shell (const char *name, struct mutool_command *cmd)
   size_t n;
   char *(*input_line) ();
 
+  rc = mu_stdio_stream_create (&mustrin, MU_STDIN_FD,
+			       MU_STREAM_READ);
+  if (rc)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_stdio_stream_create",
+		       "MU_STDIN_FD", rc);
+      return 1;
+    } 
+ 
   rc = mu_stdio_stream_create (&mustrout, MU_STDOUT_FD,
 			       MU_STREAM_WRITE);
   if (rc)
     {
-      mu_diag_funcall (MU_DIAG_ERROR, "mu_stdio_stream_create", "1", rc);
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_stdio_stream_create",
+		       "MU_STDOUT_FD", rc);
       return 1;
-    }
-  
+    } 
+ 
   mutool_shell_interactive = isatty (0);
   input_line = mutool_shell_interactive ?
                              input_line_interactive : input_line_script;
@@ -521,6 +536,7 @@ mutool_shell (const char *name, struct mutool_command *cmd)
     }
   if (mutool_shell_interactive)
     finish_readline ();
+  mu_stream_destroy (&mustrin);
   mu_stream_destroy (&mustrout);
   return 0;
 }

@@ -157,6 +157,8 @@ extern int mu_stream_flags_to_mode (int flags, int isdir);
 extern int mu_parse_stream_perm_string (int *pmode, const char *str,
 					const char **endp);
   
+extern int mu_getpass (mu_stream_t in, mu_stream_t out, const char *prompt,
+		       char **passptr);
 
 #ifdef __cplusplus
 }

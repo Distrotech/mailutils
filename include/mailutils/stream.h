@@ -74,6 +74,9 @@ enum mu_buffer_type
 #define MU_IOCTL_GET_TRANSPORT_BUFFER 10
 #define MU_IOCTL_SET_TRANSPORT_BUFFER 11
 
+#define MU_IOCTL_GET_ECHO        12     
+#define MU_IOCTL_SET_ECHO        13  
+  
 #define MU_TRANSPORT_INPUT  0
 #define MU_TRANSPORT_OUTPUT 1
 #define MU_TRANSPORT_VALID_TYPE(n) \
