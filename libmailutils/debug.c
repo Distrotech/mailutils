@@ -235,6 +235,7 @@ mu_debug_print (mu_debug_t debug, mu_log_level_t level,
 		const char *format, ...)
 {
   va_list ap;
+  va_start(ap, format);
   mu_debug_printv (debug, level, format, ap);
   va_end (ap);
   return 0;
