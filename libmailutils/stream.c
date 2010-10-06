@@ -34,6 +34,9 @@
 
 size_t mu_stream_default_buffer_size = MU_STREAM_DEFBUFSIZ;
 
+#define _MU_STR_FLUSH_ALL  0x01
+#define _MU_STR_FLUSH_KEEP 0x02
+
 #define _stream_event(stream, code, n, p)			\
   do								\
     {								\
@@ -167,12 +170,12 @@ _stream_buffer_full_p (struct _mu_stream *stream)
 }
 
 static int
-_stream_flush_buffer (struct _mu_stream *stream, int all)
+_stream_flush_buffer (struct _mu_stream *stream, int flags)
 {
   int rc;
   char *start, *end;
   size_t wrsize;
-  
+
   if (stream->flags & _MU_STR_DIRTY)
     {
       if ((stream->flags & MU_STREAM_SEEK) && stream->seek)
@@ -215,7 +218,8 @@ _stream_flush_buffer (struct _mu_stream *stream, int all)
 	      if (wrsize == 0)
 		break;
 	    }
-	  if ((all && wrsize) || wrsize == stream->level)
+	  if (((flags & _MU_STR_FLUSH_ALL) && wrsize) ||
+	      wrsize == stream->level)
 	    {
 	      rc = _stream_write_unbuffered (stream,
 					     stream->buffer,
@@ -234,10 +238,11 @@ _stream_flush_buffer (struct _mu_stream *stream, int all)
 	  stream->level = stream->pos = wrsize;
 	  return 0;
 	}
+      _stream_clrflag (stream, _MU_STR_DIRTY);
     }
 
-  _stream_clrflag (stream, _MU_STR_DIRTY);
-  stream->pos = stream->level = 0;
+  if (!(flags & _MU_STR_FLUSH_KEEP))
+    stream->pos = stream->level = 0;
   return 0;
 }
 
@@ -400,8 +405,8 @@ mu_stream_seek (mu_stream_t stream, mu_off_t offset, int whence,
     case MU_SEEK_END:
       rc = mu_stream_size (stream, &size);
       if (rc)
-	return mu_stream_seterr (stream, rc, 1);
-      offset += size + stream->pos;
+	return rc;
+      offset += size;
       break;
 
     default:
@@ -414,7 +419,7 @@ mu_stream_seek (mu_stream_t stream, mu_off_t offset, int whence,
 	  || offset < stream->offset
 	  || offset > stream->offset + stream->level))
     {
-      if ((rc = _stream_flush_buffer (stream, 1)))
+      if ((rc = _stream_flush_buffer (stream, _MU_STR_FLUSH_ALL)))
 	return rc;
       rc = stream->seek (stream, offset, &stream->offset);
       if (rc == ESPIPE)
@@ -425,7 +430,9 @@ mu_stream_seek (mu_stream_t stream, mu_off_t offset, int whence,
     }
   else if (stream->buftype != mu_buffer_none)
     stream->pos = offset - stream->offset;
-			    
+
+  _mu_stream_cleareof (stream);
+  
   if (pres)
     *pres = stream->offset + stream->pos;
   return 0;
@@ -469,7 +476,7 @@ _stream_skip_input_bytes (mu_stream_t stream, mu_off_t count, mu_off_t *pres)
 	{
 	  for (pos = 0;;)
 	    {
-	      if ((rc = _stream_flush_buffer (stream, 1)))
+	      if ((rc = _stream_flush_buffer (stream, _MU_STR_FLUSH_ALL)))
 		return rc;
 	      if (stream->pos == stream->level)
 		{
@@ -693,10 +700,15 @@ mu_stream_read (mu_stream_t stream, void *buf, size_t size, size_t *pread)
     {
       char *bufp = buf;
       size_t nbytes = 0;
+      int rc;
+      
+      if ((rc = _stream_flush_buffer (stream,
+				      _MU_STR_FLUSH_ALL|_MU_STR_FLUSH_KEEP)))
+	return rc;
+
       while (size)
 	{
 	  size_t n;
-	  int rc;
 	  
 	  if (stream->pos == stream->level)
 	    {
@@ -824,7 +836,12 @@ mu_stream_readdelim (mu_stream_t stream, char *buf, size_t size,
 	rc = _stream_readdelim (stream, buf, size, delim, pread);
     }
   else
-    rc = _stream_scandelim (stream, buf, size, delim, pread);
+    {
+      if ((rc = _stream_flush_buffer (stream,
+				      _MU_STR_FLUSH_ALL|_MU_STR_FLUSH_KEEP)))
+	return rc;
+      rc = _stream_scandelim (stream, buf, size, delim, pread);
+    }
   return rc;
 }
 
@@ -850,6 +867,10 @@ mu_stream_getdelim (mu_stream_t stream, char **pbuf, size_t *psize,
       _stream_init (stream);
     }
 
+  if ((rc = _stream_flush_buffer (stream,
+				  _MU_STR_FLUSH_ALL|_MU_STR_FLUSH_KEEP)))
+    return rc;
+  
   if (lineptr == NULL || n == 0)
     {
       char *new_lineptr;
@@ -997,7 +1018,7 @@ mu_stream_flush (mu_stream_t stream)
 	return MU_ERR_NOT_OPEN;
       _stream_init (stream);
     }
-  rc = _stream_flush_buffer (stream, 1);
+  rc = _stream_flush_buffer (stream, _MU_STR_FLUSH_ALL);
   if (rc)
     return rc;
   if ((stream->flags & _MU_STR_WRT) && stream->flush)
@@ -1031,7 +1052,8 @@ int
 mu_stream_size (mu_stream_t stream, mu_off_t *psize)
 {
   int rc;
-    
+  mu_off_t size;
+  
   if (!(stream->flags & _MU_STR_OPEN))
     {
       if (stream->open)
@@ -1040,7 +1062,13 @@ mu_stream_size (mu_stream_t stream, mu_off_t *psize)
     }
   if (!stream->size)
     return mu_stream_seterr (stream, ENOSYS, 0);
-  rc = stream->size (stream, psize);
+  rc = stream->size (stream, &size);
+  if (rc == 0)
+    {
+      if (stream->buftype != mu_buffer_none && stream->offset == size)
+	size += stream->level;
+      *psize = size;
+    }
   return mu_stream_seterr (stream, rc, rc != 0);
 }
 
@@ -1118,7 +1146,7 @@ mu_stream_truncate (mu_stream_t stream, mu_off_t size)
     {
       int rc;
       
-      if ((rc = _stream_flush_buffer (stream, 1)))
+      if ((rc = _stream_flush_buffer (stream, _MU_STR_FLUSH_ALL)))
 	return rc;
       return stream->truncate (stream, size);
     }

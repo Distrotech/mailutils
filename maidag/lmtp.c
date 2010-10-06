@@ -26,10 +26,39 @@
 #include <mu_umaxtostr.h>
 
 mu_list_t lmtp_groups;
-static int lmtp_transcript;
+
+static mu_stream_t
+lmpt_transcript (mu_stream_t iostream)
+{
+  int rc;
+  mu_debug_t debug;
+  mu_stream_t dstr, xstr;
+      
+  mu_diag_get_debug (&debug);
+      
+  rc = mu_dbgstream_create (&dstr, debug, MU_DIAG_DEBUG, 0);
+  if (rc)
+    mu_error (_("cannot create debug stream; transcript disabled: %s"),
+	      mu_strerror (rc));
+  else
+    {
+      rc = mu_xscript_stream_create (&xstr, iostream, dstr, NULL);
+      if (rc)
+	mu_error (_("cannot create transcript stream: %s"),
+		  mu_strerror (rc));
+      else
+	{
+	  /* FIXME: Would do a mu_stream_unref (iostream) here,
+	     however mu_xscript_stream_create *may* steal the reference.
+	     This should be fixed in mu_xscript_stream_create. */
+	  iostream = xstr;
+	}
+    }
+  return iostream;
+}
 
 void
-lmtp_reply (FILE *fp, char *code, char *enh, char *fmt, ...)
+lmtp_reply (mu_stream_t iostr, char *code, char *enh, char *fmt, ...)
 {
   va_list ap;
   char *str;
@@ -38,14 +67,6 @@ lmtp_reply (FILE *fp, char *code, char *enh, char *fmt, ...)
   vasprintf (&str, fmt, ap);
   va_end (ap);
 
-  if (lmtp_transcript)
-    {
-      if (enh)
-	mu_diag_output (MU_DIAG_INFO, "LMTP reply: %s %s %s", code, enh, str);
-      else
-	mu_diag_output (MU_DIAG_INFO, "LMTP reply: %s %s", code, str);
-    }
-  
   if (!str)
     {
       mu_error (_("not enough memory"));
@@ -59,38 +80,22 @@ lmtp_reply (FILE *fp, char *code, char *enh, char *fmt, ...)
       if (end)
 	{
 	  size_t len = end - str;
-	  fprintf (fp, "%s-", code);
+	  mu_stream_printf (iostr, "%s-", code);
 	  if (enh)
-	    fprintf (fp, "%s ", enh);
-	  fprintf (fp, "%.*s\r\n", (int) len, str);
+	    mu_stream_printf (iostr, "%s ", enh);
+	  mu_stream_printf (iostr, "%.*s\r\n", (int) len, str);
 	  for (str = end; *str && *str == '\n'; str++);
 	}
       else
 	{
-	  fprintf (fp, "%s ", code);
+	  mu_stream_printf (iostr, "%s ", code);
 	  if (enh)
-	    fprintf (fp, "%s ", enh);
-	  fprintf (fp, "%s\r\n", str);
+	    mu_stream_printf (iostr, "%s ", enh);
+	  mu_stream_printf (iostr, "%s\r\n", str);
 	  str += strlen (str);
 	}
     }
 }
-
-void
-xlatnl (char *arg)
-{
-  size_t len = strlen (arg);
-  if (len > 0 && arg[len-1] == '\n')
-    {
-      len--;
-      if (len > 0 && arg[len-1] == '\r')
-	{
-	  arg[len-1] = '\n';
-	  arg[len] = 0;
-	}
-    }
-}
-
 
 enum lmtp_state
   {
@@ -152,14 +157,13 @@ int transtab[NCMD][NSTATE] = {
 char *lhlo_domain;     /* Sender domain */
 char *mail_from;       /* Sender address */
 mu_list_t rcpt_list;   /* Recipient addresses */
-struct mail_tmp *mtmp; /* Temporary mail storage */
-mu_mailbox_t mbox;     /* Collected mail body */
+mu_message_t mesg;     /* Collected message */
 
 
 int
-cfun_unknown (FILE *out, char *arg)
+cfun_unknown (mu_stream_t iostr, char *arg)
 {
-  lmtp_reply (out, "500", "5.5.1", "Command unrecognized");
+  lmtp_reply (iostr, "500", "5.5.1", "Command unrecognized");
   return 0;
 }
 
@@ -242,46 +246,46 @@ check_address (char *arg, int with_domain, char **pret)
 
 
 int
-cfun_mail_from (FILE *out, char *arg)
+cfun_mail_from (mu_stream_t iostr, char *arg)
 {
   if (*arg == 0)
     {
-      lmtp_reply (out, "501", "5.5.2", "Syntax error");
+      lmtp_reply (iostr, "501", "5.5.2", "Syntax error");
       return 1;
     }
 
   if (check_address (arg, 1, &mail_from))
     {
-      lmtp_reply (out, "553", "5.1.8", "Address format error");
+      lmtp_reply (iostr, "553", "5.1.8", "Address format error");
       return 1;
     }
-  lmtp_reply (out, "250", "2.1.0", "Go ahead");
+  lmtp_reply (iostr, "250", "2.1.0", "Go ahead");
   return 0;
 }
 
 
 int
-cfun_rcpt_to (FILE *out, char *arg)
+cfun_rcpt_to (mu_stream_t iostr, char *arg)
 {
   char *user;
   struct mu_auth_data *auth;
   
   if (*arg == 0)
     {
-      lmtp_reply (out, "501", "5.5.2", "Syntax error");
+      lmtp_reply (iostr, "501", "5.5.2", "Syntax error");
       return 1;
     }
 
   /* FIXME: Check if domain is OK */
   if (check_address (arg, 0, &user))
     {
-      lmtp_reply (out, "553", "5.1.8", "Address format error");
+      lmtp_reply (iostr, "553", "5.1.8", "Address format error");
       return 1;
     }
   auth = mu_get_auth_by_name (user);
   if (!auth)
     {
-      lmtp_reply (out, "550", "5.1.1", "User unknown");
+      lmtp_reply (iostr, "550", "5.1.1", "User unknown");
       free (user);
       return 1;
     }
@@ -292,37 +296,17 @@ cfun_rcpt_to (FILE *out, char *arg)
       mu_list_set_destroy_item (rcpt_list, mu_list_free_item);
     }
   mu_list_append (rcpt_list, user);
-  lmtp_reply (out, "250", "2.1.5", "Go ahead");
+  lmtp_reply (iostr, "250", "2.1.5", "Go ahead");
   return 0;
 }  
-
-
-int
-cfun_data (FILE *out, char *arg)
-{
-  if (*arg)
-    {
-      lmtp_reply (out, "501", "5.5.2", "Syntax error");
-      return 1;
-    }
-
-  if (mail_tmp_begin (&mtmp, mail_from))
-    {
-      /* FIXME: codes */
-      lmtp_reply (out, "450", "4.1.0", "Temporary failure, try again later");
-      return 1;
-    }
-  lmtp_reply (out, "354", NULL, "Go ahead");
-  return 0;
-}
 
 
 int
 dot_temp_fail (void *item, void *cbdata)
 {
   char *name = item;
-  FILE *out = cbdata;
-  lmtp_reply (out, "450", "4.1.0", "%s: temporary failure", name);
+  mu_stream_t iostr = cbdata;
+  lmtp_reply (iostr, "450", "4.1.0", "%s: temporary failure", name);
   return 0;
 }
 
@@ -330,39 +314,27 @@ int
 dot_deliver (void *item, void *cbdata)
 {
   char *name = item;
-  FILE *out = cbdata;
+  mu_stream_t iostr = cbdata;
   char *errp = NULL;
-  mu_message_t msg;
-  int status;
   
-  if ((status = mu_mailbox_get_message (mbox, 1, &msg)) != 0)
-    {
-      mu_error (_("cannot get message from the temporary mailbox: %s"),
-		mu_strerror (status));
-      lmtp_reply (out, "450", "4.1.0",
-		  "%s: temporary failure, try again later",
-		  name);
-      return 0;
-    }
-
-  switch (deliver (msg, name, &errp))
+  switch (deliver (mesg, name, &errp))
     {
     case 0:
-      lmtp_reply (out, "250", "2.0.0", "%s: delivered", name);
+      lmtp_reply (iostr, "250", "2.0.0", "%s: delivered", name);
       break;
 
     case EX_UNAVAILABLE:
       if (errp)
-	lmtp_reply (out, "553", "5.1.8", "%s", errp);
+	lmtp_reply (iostr, "553", "5.1.8", "%s", errp);
       else
-	lmtp_reply (out, "553", "5.1.8", "%s: delivery failed", name);
+	lmtp_reply (iostr, "553", "5.1.8", "%s: delivery failed", name);
       break;
 
     default:
       if (errp)
-	lmtp_reply (out, "450", "4.1.0", "%s", errp);
+	lmtp_reply (iostr, "450", "4.1.0", "%s", errp);
       else
-	lmtp_reply (out, "450", "4.1.0",
+	lmtp_reply (iostr, "450", "4.1.0",
 		    "%s: temporary failure, try again later",
 		    name);
       break;
@@ -372,37 +344,103 @@ dot_deliver (void *item, void *cbdata)
 }
 
 int
-cfun_dot (FILE *out, char *arg)
+cfun_data (mu_stream_t iostr, char *arg)
 {
-  if (!mtmp)
-    mu_list_do (rcpt_list, dot_temp_fail, out);
-  else
+  int rc;
+  mu_stream_t flt, tempstr;
+  time_t t;
+  int xlev = MU_XSCRIPT_PAYLOAD, xlev_switch = 0, buf_switch = 0;
+  struct mu_buffer_query oldbuf;
+  
+  if (*arg)
     {
-      int rc = mail_tmp_finish (mtmp, &mbox);
-      if (rc)
-	mu_list_do (rcpt_list, dot_temp_fail, out);
-      else
-	{
-	  mu_list_do (rcpt_list, dot_deliver, out);
-	  mail_tmp_destroy (&mtmp);
-	  mu_mailbox_destroy (&mbox);
-	}
+      lmtp_reply (iostr, "501", "5.5.2", "Syntax error");
+      return 1;
     }
-  free (mail_from);
-  mu_list_destroy (&rcpt_list);
+
+  rc = mu_filter_create (&flt, iostr, "CRLFDOT", MU_FILTER_DECODE,
+			 MU_STREAM_READ|MU_STREAM_WRTHRU);
+  if (rc)
+    {
+      maidag_error (_("unable to open filter: %s"),
+		    mu_strerror (rc));
+      lmtp_reply (iostr, "450", "4.1.0", "Temporary failure, try again later");
+      return 1;
+    }
+
+  rc = mu_temp_file_stream_create (&tempstr, NULL);
+  if (rc)
+    {
+      maidag_error (_("unable to open temporary file: %s"), mu_strerror (rc));
+      mu_stream_destroy (&flt);
+      return 1;
+    }
+
+  /* Write out envelope */
+  time (&t);
+  rc = mu_stream_printf (tempstr, "From %s %s", mail_from, ctime (&t));
+  if (rc)
+    {
+      maidag_error (_("copy error: %s"), mu_strerror (rc));
+      mu_stream_destroy (&flt);
+      mu_stream_destroy (&tempstr);
+      mu_list_do (rcpt_list, dot_temp_fail, iostr);
+    }
+
+  lmtp_reply (iostr, "354", NULL, "Go ahead");
+
+  if (mu_stream_ioctl (iostr, MU_IOCTL_GET_TRANSPORT_BUFFER, &oldbuf) == 0)
+    {
+      struct mu_buffer_query newbuf;
+
+      newbuf.type = MU_TRANSPORT_OUTPUT;
+      newbuf.buftype = mu_buffer_full;
+      newbuf.bufsize = 64*1024;
+      if (mu_stream_ioctl (iostr, MU_IOCTL_SET_TRANSPORT_BUFFER, &newbuf))
+	buf_switch = 1;
+    }
+
+  if (mu_stream_ioctl (iostr, MU_IOCTL_LEVEL, &xlev) == 0)
+    xlev_switch = 1;
+  rc = mu_stream_copy (tempstr, flt, 0, NULL);
+  mu_stream_destroy (&flt);
+  if (xlev_switch)
+    mu_stream_ioctl (iostr, MU_IOCTL_LEVEL, &xlev);
+  if (buf_switch)
+    mu_stream_ioctl (iostr, MU_IOCTL_SET_TRANSPORT_BUFFER, &oldbuf);
+  if (rc)
+    {
+      maidag_error (_("copy error: %s"), mu_strerror (rc));
+      mu_list_do (rcpt_list, dot_temp_fail, iostr);
+    }
+
+  rc = mu_stream_to_message (tempstr, &mesg);
+  if (rc)
+    {
+      maidag_error (_("error creating temporary message: %s"),
+		    mu_strerror (rc));
+      mu_list_do (rcpt_list, dot_temp_fail, iostr);
+    }
+  
+  rc = mu_list_do (rcpt_list, dot_deliver, iostr);
+
+  mu_stream_destroy (&tempstr);
+  mu_message_destroy (&mesg, mu_message_get_owner (mesg));
+  if (rc)
+    mu_list_do (rcpt_list, dot_temp_fail, iostr);
+
   return 0;
 }
-  
+
 
 int
-cfun_rset (FILE *out, char *arg)
+cfun_rset (mu_stream_t iostr, char *arg)
 {
   free (lhlo_domain);
   free (mail_from);
   mu_list_destroy (&rcpt_list);
-  mail_tmp_destroy (&mtmp);
-  mu_mailbox_destroy (&mbox);
-  lmtp_reply (out, "250", "2.0.0", "OK, forgotten");
+  mu_message_destroy (&mesg, mu_message_get_owner (mesg));
+  lmtp_reply (iostr, "250", "2.0.0", "OK, forgotten");
   return 0;
 }
 
@@ -413,32 +451,32 @@ PIPELINING\n\
 HELP";
 
 int
-cfun_lhlo (FILE *out, char *arg)
+cfun_lhlo (mu_stream_t iostr, char *arg)
 {
   if (*arg == 0)
     {
-      lmtp_reply (out, "501", "5.0.0", "Syntax error");
+      lmtp_reply (iostr, "501", "5.0.0", "Syntax error");
       return 1;
     }
   lhlo_domain = strdup (arg);
-  lmtp_reply (out, "250", NULL, "Hello\n");
-  lmtp_reply (out, "250", NULL, capa_str);
+  lmtp_reply (iostr, "250", NULL, "Hello\n");
+  lmtp_reply (iostr, "250", NULL, capa_str);
   return 0;
 }
 
 
 int
-cfun_quit (FILE *out, char *arg)
+cfun_quit (mu_stream_t iostr, char *arg)
 {
-  lmtp_reply (out, "221", "2.0.0", "Bye");
+  lmtp_reply (iostr, "221", "2.0.0", "Bye");
   return 0;
 }
 
 
 int
-cfun_help (FILE *out, char *arg)
+cfun_help (mu_stream_t iostr, char *arg)
 {
-  lmtp_reply (out, "200", "2.0.0", "Man, help yourself");
+  lmtp_reply (iostr, "200", "2.0.0", "Man, help yourself");
   return 0;
 }
 
@@ -448,7 +486,7 @@ struct command_tab
   char *cmd_verb;
   int cmd_len;
   enum lmtp_command cmd_code;
-  int (*cmd_fun) (FILE *, char *);
+  int (*cmd_fun) (mu_stream_t, char *);
 } command_tab[] = {
 #define S(s) #s, (sizeof #s - 1)
   { S(lhlo), cmd_lhlo, cfun_lhlo },
@@ -458,7 +496,6 @@ struct command_tab
   { S(quit), cmd_quit, cfun_quit },
   { S(rset), cmd_rset, cfun_rset },
   { S(help), cmd_help, cfun_help },
-  { S(.), cmd_dot, cfun_dot },
   { NULL, 0, cmd_unknown, cfun_unknown }
 };
 
@@ -479,72 +516,47 @@ getcmd (char *buf, char **sp)
   return cp;
 }
 
-static char *
-to_fgets (char *buf, size_t size, FILE *fp, unsigned int timeout)
+static int
+to_fgets (mu_stream_t iostr, char **pbuf, size_t *psize, size_t *pnread,
+	  unsigned int timeout)
 {
-  char *p;
+  int rc;
+  
   alarm (timeout);
-  p = fgets (buf, size, fp);
+  rc = mu_stream_getline (iostr, pbuf, psize, pnread);
   alarm (0);
-  return p;
+  return rc;
 }
 
 int
-lmtp_loop (FILE *in, FILE *out, unsigned int timeout)
+lmtp_loop (mu_stream_t iostr, unsigned int timeout)
 {
-  char buf[1024];
+  size_t size = 0, n;
+  char *buf = NULL;
   enum lmtp_state state = state_init;
 
-  setvbuf (in, NULL, _IOLBF, 0);
-  setvbuf (out, NULL, _IOLBF, 0);
-
-  lmtp_reply (out, "220", NULL, "At your service");
-  while (to_fgets (buf, sizeof buf, in, timeout))
+  lmtp_reply (iostr, "220", NULL, "At your service");
+  while (to_fgets (iostr, &buf, &size, &n, timeout) == 0 && n)
     {
-      if (state == state_data
-	  && !(buf[0] == '.'
-	       && (buf[1] == '\n' || (buf[1] == '\r' && buf[2] == '\n'))))
-	{
-	  /* This is a special case */
-	  if (mtmp)
-	    {
-	      size_t len;
-	      int rc;
+      char *sp;
+      struct command_tab *cp = getcmd (buf, &sp);
+      enum lmtp_command cmd = cp->cmd_code;
+      enum lmtp_state next_state = transtab[cmd][state];
 
-	      xlatnl (buf);
-	      len = strlen (buf);
-	      if ((rc = mail_tmp_add_line (mtmp, buf, len)))
-		{
-		  mail_tmp_destroy (&mtmp);
-		  /* Wait the dot to report the error */
-		}
+      mu_rtrim_cset (sp, "\r\n");
+
+      if (next_state != state_none)
+	{
+	  if (cp->cmd_fun)
+	    {
+	      sp = mu_str_skip_class (sp, MU_CTYPE_SPACE);
+	      if (cp->cmd_fun (iostr, sp))
+		continue;
 	    }
+	  state = next_state;
 	}
       else
-	{
-	  char *sp;
-	  struct command_tab *cp = getcmd (buf, &sp);
-	  enum lmtp_command cmd = cp->cmd_code;
-	  enum lmtp_state next_state = transtab[cmd][state];
-
-	  mu_rtrim_cset (sp, "\r\n");
-
-	  if (lmtp_transcript)
-	    mu_diag_output (MU_DIAG_INFO, "LMTP receive: %s", buf);
-	      
-	  if (next_state != state_none)
-	    {
-	      if (cp->cmd_fun)
-		{
-		  sp = mu_str_skip_class (sp, MU_CTYPE_SPACE);
-		  if (cp->cmd_fun (out, sp))
-		    continue;
-		}
-	      state = next_state;
-	    }
-	  else
-	    lmtp_reply (out, "503", "5.0.0", "Syntax error");
-	}
+	lmtp_reply (iostr, "503", "5.0.0", "Syntax error");
       
       if (state == state_end)
 	break;
@@ -563,8 +575,22 @@ int
 lmtp_connection (int fd, struct sockaddr *sa, int salen, void *data,
 		 mu_ip_server_t srv, time_t timeout, int transcript)
 {
-  lmtp_transcript = transcript;
-  lmtp_loop (fdopen (fd, "r"), fdopen (fd, "w"), timeout);
+  mu_stream_t str;
+  int rc;
+  
+  rc = mu_fd_stream_create (&str, NULL, fd,
+			    MU_STREAM_RDWR|MU_STREAM_AUTOCLOSE);
+  if (rc)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_fd_stream_create", NULL, rc);
+      return rc;
+    }
+  mu_stream_set_buffer (str, mu_buffer_line, 0);
+
+  if (transcript || maidag_transcript)
+    str = lmpt_transcript (str);
+  lmtp_loop (str, timeout);
+  mu_stream_destroy (&str);
   return 0;
 }
 
@@ -640,6 +666,40 @@ maidag_lmtp_server ()
       if (status)
 	return EX_CONFIG;
     }
-  else 
-    return lmtp_loop (stdin, stdout, 0);
+  else
+    {
+      mu_stream_t str, istream, ostream;
+
+      rc = mu_stdio_stream_create (&istream, MU_STDIN_FD, MU_STREAM_READ);
+      if (rc)
+	{
+	  mu_diag_funcall (MU_DIAG_ERROR, "mu_stdio_stream_create",
+			   "MU_STDIN_FD", rc);
+	  return EX_UNAVAILABLE;
+	} 
+ 
+      rc = mu_stdio_stream_create (&ostream, MU_STDOUT_FD, MU_STREAM_WRITE);
+      if (rc)
+	{
+	  mu_diag_funcall (MU_DIAG_ERROR, "mu_stdio_stream_create",
+			   "MU_STDOUT_FD", rc);
+	  return 1;
+	} 
+
+      rc = mu_iostream_create (&str, istream, ostream);
+      mu_stream_unref (istream);
+      mu_stream_unref (ostream);
+      if (rc)
+	{
+	  mu_diag_funcall (MU_DIAG_ERROR, "mu_iostream_create", NULL, rc);
+	  return 1;
+	} 
+
+      if (maidag_transcript)
+	str = lmpt_transcript (str);
+
+      rc = lmtp_loop (str, 0);
+      mu_stream_destroy (&str);
+      return rc;
+    }
 }

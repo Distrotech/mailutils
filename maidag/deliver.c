@@ -19,26 +19,110 @@
 
 #include "maidag.h"
 
-void
-make_tmp (const char *from, mu_mailbox_t *mbox)
+static mu_mailbox_t
+make_tmp (const char *from)
 {
-  struct mail_tmp *mtmp;
-  char *buf = NULL;
-  size_t n = 0;
   int rc;
-
-  if (mail_tmp_begin (&mtmp, from))
-    exit (EX_TEMPFAIL);
-
-  while (getline (&buf, &n, stdin) > 0)
-    if ((rc = mail_tmp_add_line (mtmp, buf, strlen (buf))))
-      break;
-  free (buf);
-  if (rc == 0)
-    rc = mail_tmp_finish (mtmp, mbox);
-  mail_tmp_destroy (&mtmp);
+  mu_stream_t in, out;
+  char *buf = NULL;
+  size_t size = 0, n;
+  mu_mailbox_t mbox;
+  
+  rc = mu_stdio_stream_create (&in, MU_STDIN_FD, MU_STREAM_READ);
   if (rc)
-    exit (EX_TEMPFAIL);
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_stdio_stream_create",
+		       "MU_STDIN_FD", rc);
+      exit (EX_TEMPFAIL);
+    } 
+
+  rc = mu_temp_file_stream_create (&out, NULL);
+  if (rc)
+    {
+      maidag_error (_("unable to open temporary file: %s"), mu_strerror (rc));
+      exit (EX_TEMPFAIL);
+    }
+
+  rc = mu_stream_getline (in, &buf, &size, &n);
+  if (rc)
+    {
+      maidag_error (_("read error: %s"), mu_strerror (rc));
+      mu_stream_destroy (&in);
+      mu_stream_destroy (&out);
+      exit (EX_TEMPFAIL);
+    }
+  if (n == 0)
+    {
+      maidag_error (_("unexpected EOF on input"));
+      mu_stream_destroy (&in);
+      mu_stream_destroy (&out);
+      exit (EX_TEMPFAIL);
+    } 
+
+  if (n >= 5 && memcmp (buf, "From ", 5))
+    {
+      struct mu_auth_data *auth = NULL;
+      if (!from)
+	{
+	  auth = mu_get_auth_by_uid (getuid ());
+	  if (auth)
+	    from = auth->name;
+	}
+      if (from)
+	{
+	  time_t t;
+	  
+	  time (&t);
+	  mu_stream_printf (out, "From %s %s", from, ctime (&t));
+	}
+      else
+	{
+	  maidag_error (_("cannot determine sender address"));
+	  mu_stream_destroy (&in);
+	  mu_stream_destroy (&out);
+	  exit (EX_TEMPFAIL);
+	}
+      if (auth)
+	mu_auth_data_free (auth);
+    }
+
+  mu_stream_write (out, buf, n, NULL);
+  free (buf);
+  
+  rc = mu_stream_copy (out, in, 0, NULL);
+  
+  mu_stream_destroy (&in);
+  if (rc)
+    {
+      maidag_error (_("copy error: %s"), mu_strerror (rc));
+      mu_stream_destroy (&out);
+      exit (EX_TEMPFAIL);
+    }
+
+  mu_stream_flush (out);
+  if ((rc = mu_mailbox_create (&mbox, "mbox:/dev/null")) 
+      || (rc = mu_mailbox_open (mbox, MU_STREAM_READ))
+      || (rc = mu_mailbox_set_stream (mbox, out)))
+    {
+      maidag_error (_("error opening temporary file: %s"), 
+                    mu_strerror (rc));
+      mu_stream_destroy (&out);
+      exit (EX_TEMPFAIL);
+    }
+
+  rc = mu_mailbox_messages_count (mbox, &n);
+  if (rc)
+    {
+      errno = rc;
+      maidag_error (_("error creating temporary message: %s"),
+		    mu_strerror (rc));
+      mu_stream_destroy (&out);
+      exit (EX_TEMPFAIL);
+    }
+
+  /* FIXME: mu_stream_unref (out); But mu_mailbox_set_stream
+     steals the reference */
+  return mbox;
 }
 
 int
@@ -65,9 +149,7 @@ mda (mu_mailbox_t mbx, char *username)
 int
 maidag_stdio_delivery (int argc, char **argv)
 {
-  mu_mailbox_t mbox;
-
-  make_tmp (sender_address, &mbox);
+  mu_mailbox_t mbox = make_tmp (sender_address);
   
   if (multiple_delivery)
     multiple_delivery = argc > 1;

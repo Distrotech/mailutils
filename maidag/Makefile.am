@@ -26,7 +26,6 @@ maidag_SOURCES=\
  lmtp.c\
  maidag.c\
  maidag.h\
- mailtmp.c\
  mailquota.c\
  python.c\
  sieve.c\

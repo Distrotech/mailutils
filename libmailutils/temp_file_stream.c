@@ -66,7 +66,10 @@ mu_temp_file_stream_create (mu_stream_t *pstream, const char *dir)
       if (rc)
 	mu_stream_unref (stream);
       else
-	*pstream = stream;
+	{
+	  mu_stream_set_buffer (stream, mu_buffer_full, 0);
+	  *pstream = stream;
+	}
     }
   return 0;
 }

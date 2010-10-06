@@ -414,8 +414,8 @@ mu_stream_to_message (mu_stream_t instream, mu_message_t *pmsg)
       return rc;
     }
   
-  mu_envelope_set_date (env, _env_msg_date, msg);
-  mu_envelope_set_sender (env, _env_msg_sender, msg);
+  mu_envelope_set_date (env, _env_msg_date, draftstream);
+  mu_envelope_set_sender (env, _env_msg_sender, draftstream);
   mu_message_set_envelope (msg, env, draftstream);
 
   mu_body_create (&body, msg);

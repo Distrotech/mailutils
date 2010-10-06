@@ -90,7 +90,6 @@ maidag/deliver.c
 maidag/lmtp.c
 maidag/maidag.c
 maidag/mailquota.c
-maidag/mailtmp.c
 maidag/script.c
 
 mail/alias.c

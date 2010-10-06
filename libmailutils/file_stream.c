@@ -390,16 +390,12 @@ mu_fd_stream_create (mu_stream_t *pstream, char *filename, int fd, int flags)
   struct _mu_file_stream *fstr;
   int rc = _mu_file_stream_create (&fstr,
 				   sizeof (struct _mu_file_stream),
-				   filename, fd, flags);
+				   filename, fd, flags|_MU_STR_OPEN);
   if (rc == 0)
     {
       mu_stream_t stream = (mu_stream_t) fstr;
       mu_stream_set_buffer (stream, mu_buffer_full, 0);
-      rc = mu_stream_open (stream);
-      if (rc)
-	mu_stream_unref (stream);
-      else
-	*pstream = stream;
+      *pstream = stream;
     }
   return rc;
 }

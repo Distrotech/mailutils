@@ -142,6 +142,7 @@ extern char *lmtp_url_string;
 extern int reuse_lmtp_address;
 extern mu_list_t lmtp_groups;
 extern mu_acl_t maidag_acl;
+extern int maidag_transcript;
 
 void close_fds (void);
 int switch_user_id (struct mu_auth_data *auth, int user);
@@ -159,12 +160,6 @@ int mda (mu_mailbox_t mbx, char *username);
 int deliver (mu_message_t msg, char *name, char **errp);
 int sieve_test (struct mu_auth_data *auth, mu_message_t msg);
 int check_quota (struct mu_auth_data *auth, mu_off_t size, mu_off_t *rest);
-
-struct mail_tmp;
-int mail_tmp_begin (struct mail_tmp **pmtmp, const char *from);
-int mail_tmp_add_line (struct mail_tmp *mtmp, char *buf, size_t buflen);
-int mail_tmp_finish (struct mail_tmp *mtmp, mu_mailbox_t *mbox);
-void mail_tmp_destroy (struct mail_tmp **pmtmp);
 
 enum maidag_forward_result
   {

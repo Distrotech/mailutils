@@ -53,6 +53,7 @@ int lmtp_mode;
 int url_option;
 char *lmtp_url_string;
 int reuse_lmtp_address = 1;
+int maidag_transcript;
 
 const char *program_version = "maidag (" PACKAGE_STRING ")";
 static char doc[] =
@@ -72,6 +73,7 @@ static char args_doc[] = N_("[recipient...]");
 #define LMTP_OPTION 258
 #define FOREGROUND_OPTION 260
 #define URL_OPTION 261
+#define TRANSCRIPT_OPTION 262
 
 static struct argp_option options[] = 
 {
@@ -79,21 +81,23 @@ static struct argp_option options[] =
  { NULL, 0, NULL, 0,
    N_("General options"), GRID },
       
-  { "foreground", FOREGROUND_OPTION, 0, 0, N_("remain in foreground"),
-    GRID + 1 },
-  { "inetd",  'i', 0, 0, N_("run in inetd mode"), GRID + 1 },
-  { "daemon", 'd', N_("NUMBER"), OPTION_ARG_OPTIONAL,
-    N_("runs in daemon mode with a maximum of NUMBER children"), GRID + 1 },
-  { "url", URL_OPTION, 0, 0, N_("deliver to given URLs"), GRID + 1 },
-  { "from", 'f', N_("EMAIL"), 0,
-    N_("specify the sender's name"), GRID + 1 },
-  { NULL, 'r', NULL, OPTION_ALIAS, NULL },
-  { "lmtp", LMTP_OPTION, N_("URL"), OPTION_ARG_OPTIONAL,
-    N_("operate in LMTP mode"), GRID + 1 },
-  { "debug", 'x', N_("FLAGS"), 0,
-    N_("enable debugging"), GRID + 1 },
-  { "stderr", STDERR_OPTION, NULL, 0,
-    N_("log to standard error"), GRID + 1 },
+ { "foreground", FOREGROUND_OPTION, 0, 0, N_("remain in foreground"),
+   GRID + 1 },
+ { "inetd",  'i', 0, 0, N_("run in inetd mode"), GRID + 1 },
+ { "daemon", 'd', N_("NUMBER"), OPTION_ARG_OPTIONAL,
+   N_("runs in daemon mode with a maximum of NUMBER children"), GRID + 1 },
+ { "url", URL_OPTION, 0, 0, N_("deliver to given URLs"), GRID + 1 },
+ { "from", 'f', N_("EMAIL"), 0,
+   N_("specify the sender's name"), GRID + 1 },
+ { NULL, 'r', NULL, OPTION_ALIAS, NULL },
+ { "lmtp", LMTP_OPTION, N_("URL"), OPTION_ARG_OPTIONAL,
+   N_("operate in LMTP mode"), GRID + 1 },
+ { "debug", 'x', N_("FLAGS"), 0,
+   N_("enable debugging"), GRID + 1 },
+ { "stderr", STDERR_OPTION, NULL, 0,
+   N_("log to standard error"), GRID + 1 },
+ { "transcript", TRANSCRIPT_OPTION, NULL, 0,
+   N_("enable session transcript"), GRID + 1 },
 #undef GRID
 
 #define GRID 2
@@ -212,6 +216,10 @@ parse_opt (int key, char *arg, struct argp_state *state)
 	mu_argp_node_list_new (lst, "listen", arg);
       break;
 
+    case TRANSCRIPT_OPTION:
+      maidag_transcript = 1;
+      break;
+      
     case 'r':
     case 'f':
       if (sender_address != NULL)
