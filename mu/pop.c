@@ -308,6 +308,11 @@ com_apop (int argc, char **argv)
 
   if (argc == 3)
     pwd = argv[2];
+  else if (!mutool_shell_interactive)
+    {
+      mu_error (_("apop: password required"));
+      return 1;
+    }
   else
     {
       status = mu_getpass (mustrin, mustrout, "Password:", &passbuf);
@@ -474,6 +479,11 @@ com_pass (int argc, char **argv)
   
   if (argc == 1)
     {
+      if (!mutool_shell_interactive)
+	{
+	  mu_error (_("pass: password required"));
+	  return 1;
+	}
       status = mu_getpass (mustrin, mustrout, "Password:", &passbuf);
       if (status)
 	return status;
