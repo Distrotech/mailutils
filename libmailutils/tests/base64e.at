@@ -13,7 +13,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
-# This file is part of Mailfromd testsuite. 
 
 AT_SETUP([base64 encoding (read)])
 AT_KEYWORDS([base64 base64e base64er encode filter])
