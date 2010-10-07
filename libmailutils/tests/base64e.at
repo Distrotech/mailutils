@@ -16,7 +16,7 @@
 # This file is part of Mailfromd testsuite. 
 
 AT_SETUP([base64 encoding (read)])
-AT_KEYWORDS([base64 base64e base64er encode])
+AT_KEYWORDS([base64 base64e base64er encode filter])
 
 AT_CHECK([
 cp $abs_top_srcdir/libmailutils/tests/Decode expout
@@ -28,7 +28,7 @@ AT_CLEANUP
 
 
 AT_SETUP([base64 encoding (write)])
-AT_KEYWORDS([base64 base64e base64ew encode])
+AT_KEYWORDS([base64 base64e base64ew encode filter])
 
 AT_CHECK([
 cp $abs_top_srcdir/libmailutils/tests/Decode expout

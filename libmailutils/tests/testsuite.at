@@ -63,4 +63,5 @@ m4_include([base64e.at])
 m4_include([base64d.at])
 m4_include([decode2047.at])
 m4_include([encode2047.at])
+m4_include([fromflt.at])
 

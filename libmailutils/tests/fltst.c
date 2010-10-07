@@ -114,7 +114,7 @@ main (int argc, char * argv [])
   
   if (argc == 1)
     usage (NULL);
-  if (argc < 3)
+  if (argc < 4)
     usage ("not enough arguments");
   
   fltname = argv[1];

@@ -78,6 +78,7 @@ mu_filter_get_list (mu_list_t *plist)
       mu_list_append (filter_list, mu_dot_filter);
       mu_list_append (filter_list, mu_rfc_2047_Q_filter);
       mu_list_append (filter_list, mu_rfc_2047_B_filter);
+      mu_list_append (filter_list, mu_from_filter);
       /* FIXME: add the default encodings?  */
     }
   *plist = filter_list;

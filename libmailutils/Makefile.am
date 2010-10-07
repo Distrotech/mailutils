@@ -83,6 +83,7 @@ libmailutils_la_SOURCES = \
  fltstream.c\
  folder.c\
  freeitem.c\
+ fromflt.c\
  gdebug.c\
  getpass.c\
  gocs.c\

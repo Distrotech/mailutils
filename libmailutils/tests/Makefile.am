@@ -64,6 +64,7 @@ TESTSUITE_AT = \
  base64e.at\
  decode2047.at\
  encode2047.at\
+ fromflt.at\
  list.at\
  mailcap.at\
  testsuite.at\

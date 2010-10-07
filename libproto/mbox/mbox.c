@@ -28,6 +28,7 @@
 #include <mbox0.h>
 #include <mailutils/cstr.h>
 #include <mailutils/io.h>
+#include <mailutils/filter.h>
 
 #define ATTRIBUTE_IS_DELETED(flag)        (flag & MU_ATTRIBUTE_DELETED)
 #define ATTRIBUTE_IS_EQUAL(flag1, flag2)  (flag1 == flag2)
@@ -1033,7 +1034,7 @@ append_message_to_stream (mu_stream_t ostr, mu_message_t msg,
 			  mbox_data_t mud, int flags)
 {
   int status;
-  mu_stream_t istr;
+  mu_stream_t istr, flt;
   
   status = msg_envelope_to_stream (ostr, msg);
   if (status)
@@ -1084,10 +1085,18 @@ append_message_to_stream (mu_stream_t ostr, mu_message_t msg,
       if (status)
 	return status;
     }
-  status = mu_stream_copy (ostr, istr, 0, NULL);
-  mu_stream_destroy (&istr);
+
+  status = mu_filter_create (&flt, istr, "FROM",
+			     MU_FILTER_ENCODE, MU_STREAM_READ);
+  mu_stream_unref (istr);
   if (status == 0)
-    status = mu_stream_write (ostr, "\n", 1, NULL);
+    {
+      status = mu_stream_copy (ostr, flt, 0, NULL);
+      mu_stream_destroy (&flt);
+      if (status == 0)
+	status = mu_stream_write (ostr, "\n", 1, NULL);
+    }
+  
   return status;
 }
 

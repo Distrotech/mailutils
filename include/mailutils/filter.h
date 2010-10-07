@@ -103,7 +103,8 @@ extern mu_filter_record_t mu_bit8_filter;
 extern mu_filter_record_t mu_bit7_filter;
 extern mu_filter_record_t mu_rfc_2047_Q_filter;
 extern mu_filter_record_t mu_rfc_2047_B_filter;
-  
+extern mu_filter_record_t mu_from_filter;
+
 enum mu_iconv_fallback_mode
   {
     mu_fallback_none,
