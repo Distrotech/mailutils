@@ -18,6 +18,8 @@
 
 #include "maidag.h"
 
+int mda_mode;              /* Force local MDA mode even if not started as
+			      root */ 
 int multiple_delivery;     /* Don't return errors when delivering to multiple
 			      recipients */
 int ex_quota_tempfail;     /* Return temporary failure if mailbox quota is
@@ -74,6 +76,7 @@ static char args_doc[] = N_("[recipient...]");
 #define FOREGROUND_OPTION 260
 #define URL_OPTION 261
 #define TRANSCRIPT_OPTION 262
+#define MDA_OPTION 263
 
 static struct argp_option options[] = 
 {
@@ -87,6 +90,8 @@ static struct argp_option options[] =
  { "daemon", 'd', N_("NUMBER"), OPTION_ARG_OPTIONAL,
    N_("runs in daemon mode with a maximum of NUMBER children"), GRID + 1 },
  { "url", URL_OPTION, 0, 0, N_("deliver to given URLs"), GRID + 1 },
+ { "mda", MDA_OPTION, 0, 0, N_("force MDA mode even if not started as root"),
+   GRID + 1 },
  { "from", 'f', N_("EMAIL"), 0,
    N_("specify the sender's name"), GRID + 1 },
  { NULL, 'r', NULL, OPTION_ALIAS, NULL },
@@ -216,6 +221,10 @@ parse_opt (int key, char *arg, struct argp_state *state)
 	mu_argp_node_list_new (lst, "listen", arg);
       break;
 
+    case MDA_OPTION:
+      mda_mode = 1;
+      break;
+      
     case TRANSCRIPT_OPTION:
       maidag_transcript = 1;
       break;
@@ -292,23 +301,25 @@ cb_debug (mu_debug_t debug, void *data, mu_config_value_t *val)
 static int
 cb2_group (mu_debug_t debug, const char *gname, void *data)
 {
-  mu_list_t *plist = data;
+  mu_list_t list = data;
   struct group *group;
 
-  if (!*plist)
-    mu_list_create (plist);
   group = getgrnam (gname);
   if (!group)
     mu_cfg_format_error (debug, MU_DEBUG_ERROR, _("unknown group: %s"), gname);
   else
-    mu_list_append (*plist, (void*)group->gr_gid);
+    mu_list_append (list, (void*)group->gr_gid);
   return 0;
 }
   
 static int
 cb_group (mu_debug_t debug, void *data, mu_config_value_t *arg)
 {
-  return mu_cfg_string_value_cb (debug, arg, cb2_group, data);
+  mu_list_t *plist = data;
+
+  if (!*plist)
+    mu_list_create (plist);
+  return mu_cfg_string_value_cb (debug, arg, cb2_group, *plist);
 }
 
 static struct mu_kwd forward_checks[] = {
@@ -540,9 +551,11 @@ main (int argc, char *argv[])
     exit (EX_CONFIG);
 
   current_uid = getuid ();
-
+  if (!lmtp_mode && current_uid == 0)
+    mda_mode = 1; 
+  
   if (log_to_stderr == -1)
-    log_to_stderr = url_option || (!lmtp_mode && (current_uid != 0));
+    log_to_stderr = url_option || (!lmtp_mode && !mda_mode);
   
   mu_diag_get_debug (&debug);
   if (!log_to_stderr)
@@ -571,7 +584,7 @@ main (int argc, char *argv[])
     }
   else 
     {
-      if (current_uid)
+      if (!mda_mode)
 	{
 	  if (url_option)
 	    {
@@ -582,7 +595,7 @@ main (int argc, char *argv[])
 	      static char *s_argv[2];
 	      struct mu_auth_data *auth = mu_get_auth_by_uid (current_uid);
 	      
-	      if (!current_uid)
+	      if (!auth)
 		{
 		  mu_error (_("cannot get username"));
 		  return EX_UNAVAILABLE;

@@ -607,7 +607,14 @@ lmtp_set_privs ()
       mu_iterator_t itr;
       int rc;
 
-      mu_list_count (lmtp_groups, &size);
+      rc = mu_list_count (lmtp_groups, &size);
+      if (rc)
+	{
+	  mu_diag_funcall (MU_DIAG_ERROR, "mu_list_count", NULL, rc);
+	  return EX_UNAVAILABLE;
+	}
+      if (size == 0)
+	return 0; /* nothing to do */
       gidset = calloc (size, sizeof (gidset[0]));
       if (!gidset)
 	{

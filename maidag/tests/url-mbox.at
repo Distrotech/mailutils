@@ -1,0 +1,34 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2010 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# GNU Mailutils is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+
+AT_SETUP([URL mode])
+AT_KEYWORDS([maidag url-mbox url])
+
+AT_CHECK([
+echo ENVELOPE > expout
+cat $abs_top_srcdir/maidag/tests/input.msg >> expout
+echo "" >> expout
+mkdir spool
+
+maidag MAIDAG_OPTIONS --from 'gulliver@example.net' --url mbox:spool/out < dnl
+ $abs_top_srcdir/maidag/tests/input.msg || exit $?
+sed '1s/From gulliver@example.net.*/ENVELOPE/' spool/out
+],
+[0],
+[expout])
+
+AT_CLEANUP
+ 

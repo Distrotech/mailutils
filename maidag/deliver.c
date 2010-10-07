@@ -90,7 +90,9 @@ make_tmp (const char *from)
   free (buf);
   
   rc = mu_stream_copy (out, in, 0, NULL);
-  
+  if (rc == 0)
+    /* Write out message delimiter */
+    mu_stream_write (out, "\n", 1, NULL);
   mu_stream_destroy (&in);
   if (rc)
     {
@@ -347,26 +349,6 @@ deliver_to_user (mu_mailbox_t mbox, mu_message_t msg,
   return failed ? exit_code : 0;
 }
 
-static int
-is_remote_url (mu_url_t url)
-{
-  const char *scheme;
-  int rc = mu_url_sget_scheme (url, &scheme);
-  return rc == 0 && strncmp (scheme, "remote+", 7) == 0;
-}
-
-static int
-is_mailer_url (mu_url_t url)
-{
-  mu_record_t record = NULL;
-  int (*pfn) (mu_mailer_t) = NULL;
-  
-  return mu_registrar_lookup_url (url, MU_FOLDER_ATTRIBUTE_FILE,
-				  &record, NULL) == 0
-         && mu_record_get_mailer (record, &pfn) == 0
-         && pfn;
-}
-
 int
 deliver_url (mu_url_t url, mu_message_t msg, const char *name, char **errp)
 {
@@ -491,18 +473,7 @@ deliver (mu_message_t msg, char *dest_id, char **errp)
 	}
       status = mu_url_sget_user (url, &name);
       if (status == MU_ERR_NOENT)
-	{
-	  if (!is_mailer_url (url) && !is_remote_url (url))
-	    {
-	      maidag_error (_("no user name"));
-	      if (errp)
-		asprintf (errp, "no such user");
-	      exit_code = EX_NOUSER;
-	      return EX_NOUSER;
-	    }
-	  else
-	    name = NULL;
-	}
+	name = NULL;
       else if (status)
 	{
 	  maidag_error (_("%s: cannot get user name from url: %s"),

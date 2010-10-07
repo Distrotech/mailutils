@@ -15,8 +15,7 @@
 # Foundation, Inc.  51 Franklin Street, Fifth Floor, Boston, MA
 # 02110-1301 USA
 
-INCLUDES = -I${top_srcdir} @MU_APP_COMMON_INCLUDES@ @GUILE_INCLUDES@ \
- @PYTHON_INCLUDES@
+SUBDIRS = . tests
 
 sbin_PROGRAMS=maidag
 maidag_SOURCES=\
@@ -50,6 +49,9 @@ maidag_LDADD = \
  ${MU_LIB_MAILUTILS} \
  @MU_COMMON_LIBRARIES@\
  @TCPWRAP_LIBRARIES@
+
+INCLUDES = -I${top_srcdir} @MU_APP_COMMON_INCLUDES@ @GUILE_INCLUDES@ \
+ @PYTHON_INCLUDES@
 
 install-exec-hook:
 	for i in $(sbin_PROGRAMS); do\

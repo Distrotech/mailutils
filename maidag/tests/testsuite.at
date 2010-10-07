@@ -1,0 +1,32 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2010 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# GNU Mailutils is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+
+m4_include([testsuite.inc])
+
+m4_define([MAIDAG_OPTIONS],[dnl
+--no-site-config dnl
+--no-user-config dnl
+--set '|mailbox|mailbox-pattern='`pwd`/spool/'${user}' dnl
+--set .auth.authorization=system dnl
+--stderr])
+
+AT_INIT
+AT_TESTED([maidag])
+MUT_VERSION(maidag)
+m4_include([mda.at])
+m4_include([lmtp.at])
+m4_include([url-mbox.at])
+

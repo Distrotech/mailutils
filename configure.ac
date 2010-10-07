@@ -1214,6 +1214,7 @@ AC_ARG_WITH([mh-bindir],
 AC_CONFIG_TESTDIR(libmailutils/tests)
 AC_CONFIG_TESTDIR(testsuite)
 AC_CONFIG_TESTDIR(frm/tests)
+AC_CONFIG_TESTDIR(maidag/tests)
 AC_CONFIG_TESTDIR(messages/tests)
 AC_CONFIG_TESTDIR(readmsg/tests)
 AC_CONFIG_TESTDIR(sieve/tests)
@@ -1224,6 +1225,8 @@ AC_CONFIG_FILES([libmailutils/tests/Makefile
                  testsuite/atlocal
                  frm/tests/Makefile
                  frm/tests/atlocal
+		 maidag/tests/Makefile
+		 maidag/tests/atlocal
 		 messages/tests/Makefile
 		 messages/tests/atlocal
 		 readmsg/tests/Makefile

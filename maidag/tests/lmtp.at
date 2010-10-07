@@ -1,0 +1,58 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2010 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# GNU Mailutils is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+
+AT_SETUP([LMTP mode])
+AT_KEYWORDS([maidag lmtp])
+
+m4_pushdef([tocrlf],[dnl
+$abs_top_builddir/libmailutils/tests/fltst crlf encode read])
+
+AT_CHECK([
+AT_DATA([session_start],[LHLO localhost
+MAIL FROM:<gulliver@example.net>
+RCPT TO:<root@localhost>
+DATA
+])
+AT_DATA([session_end],[.
+QUIT
+])
+
+echo ENVELOPE > expout
+cat $abs_top_srcdir/maidag/tests/input.msg >> expout
+echo "" >> expout
+
+cat session_start $abs_top_srcdir/maidag/tests/input.msg session_end | tocrlf > session || exit $?
+
+mkdir spool
+maidag MAIDAG_OPTIONS --set 'group=()' --lmtp < session >transcript || exit $?
+
+sed '1s/From gulliver@example.net.*/ENVELOPE/' spool/root
+cat transcript | tr -d '\r' | sed '/...-/d;s/ .*//' >&2
+],
+[0],
+[expout],
+[220
+250
+250
+250
+354
+250
+221
+])
+
+AT_CLEANUP
+
+m4_popdef([tocrlf])
