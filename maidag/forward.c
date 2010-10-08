@@ -74,6 +74,52 @@ static struct perm_checker perm_check_tab[] = {
   { 0 }
 };
 
+static mu_list_t idlist;
+
+struct file_id
+{
+  dev_t dev;
+  ino_t inode;
+};
+
+static int
+file_id_cmp (const void *item, const void *data)
+{
+  const struct file_id *a = item;
+  const struct file_id *b = data;
+
+  if (a->dev != b->dev)
+    return 1;
+  if (a->inode != b->inode)
+    return 1;
+  return 0;
+}
+
+static int
+file_id_lookup (dev_t dev, ino_t ino)
+{
+  struct file_id id;
+
+  id.dev = dev;
+  id.inode = ino;
+  return mu_list_locate (idlist, &id, NULL);
+}
+
+static int
+file_id_remember (dev_t dev, ino_t ino)
+{
+  struct file_id *id = malloc (sizeof (*id));
+  if (!id)
+    {
+      mu_error ("%s", mu_strerror (errno));
+      return 1;
+    }
+  id->dev = dev;
+  id->inode = ino;
+  return mu_list_append (idlist, id);
+}
+
+
 /* Check if the forwrd file FILENAME has right permissions and file mode.
    DIRST describes the directory holding the file, AUTH gives current user
    authority. */
@@ -86,8 +132,22 @@ check_forward_permissions (const char *filename, struct stat *dirst,
   if (stat (filename, &st) == 0)
     {
       int i;
+
+      if (!idlist)
+	{
+	  mu_list_create (&idlist);
+	  mu_list_set_comparator (idlist, file_id_cmp);
+	}
+      else if (file_id_lookup (st.st_dev, st.st_ino) == 0)
+	{
+	  mu_diag_output (MU_DIAG_NOTICE,
+			  _("skipping forward file %s: already processed"),
+			  filename);
+	  return 1;
+	}
       
-      if (auth->uid != st.st_uid)
+      if ((forward_file_checks & FWD_OWNER) &&
+	  auth->uid != st.st_uid)
 	{
 	  mu_error (_("%s not owned by %s"), filename, auth->name);
 	  return 1;
@@ -99,6 +159,7 @@ check_forward_permissions (const char *filename, struct stat *dirst,
 	    mu_error ("%s: %s", filename, gettext (perm_check_tab[i].descr));
 	    return 1;
 	  }
+      file_id_remember (st.st_dev, st.st_ino);
       return 0;
     }
   else if (errno != ENOENT)
@@ -203,22 +264,23 @@ create_from_address (mu_message_t msg, mu_address_t *pfrom)
 enum maidag_forward_result
 process_forward (mu_message_t msg, char *filename, const char *myname)
 {
-  FILE *fp;
-  size_t size = 0;
+  int rc;
+  mu_stream_t file;
+  size_t size = 0, n;
   char *buf = NULL;
   enum maidag_forward_result result = maidag_forward_ok;
   mu_mailer_t mailer = NULL;
   mu_address_t from = NULL;
-  
-  fp = fopen (filename, "r");
-  if (!fp)
+
+  rc = mu_file_stream_create (&file, filename, MU_STREAM_READ);
+  if (rc)
     {
       mu_error (_("%s: cannot open forward file: %s"),
-		filename, mu_strerror (errno));
+		filename, mu_strerror (rc));
       return maidag_forward_error;
     }
 
-  while (getline (&buf, &size, fp) > 0)
+  while (mu_stream_getline (file, &buf, &size, &n) == 0 && n > 0)
     {
       char *p;
 
@@ -256,7 +318,7 @@ process_forward (mu_message_t msg, char *filename, const char *myname)
       mu_mailer_destroy (&mailer);
     }
   free (buf);
-  fclose (fp);
+  mu_stream_destroy (&file);
   return result;
 }
 
@@ -268,19 +330,25 @@ maidag_forward (mu_message_t msg, struct mu_auth_data *auth, char *fwfile)
   struct stat st;
   char *filename;
   enum maidag_forward_result result = maidag_forward_none;
-  
-  if (stat (auth->dir, &st))
+
+  if (fwfile[0] != '/')
     {
-      if (errno == ENOENT)
-	/* FIXME: a warning, maybe? */;
-      else if (!S_ISDIR (st.st_mode))
-	mu_error (_("%s: not a directory"), auth->dir);
-      else
-	mu_error (_("%s: cannot stat directory: %s"),
-		  auth->dir, mu_strerror (errno));
-      return maidag_forward_none;
+      if (stat (auth->dir, &st))
+	{
+	  if (errno == ENOENT)
+	    /* FIXME: a warning, maybe? */;
+	  else if (!S_ISDIR (st.st_mode))
+	    mu_error (_("%s: not a directory"), auth->dir);
+	  else
+	    mu_error (_("%s: cannot stat directory: %s"),
+		      auth->dir, mu_strerror (errno));
+	  return maidag_forward_none;
+	}
+      asprintf (&filename, "%s/%s", auth->dir, fwfile);
     }
-  asprintf (&filename, "%s/%s", auth->dir, fwfile);
+  else
+    filename = strdup (fwfile);
+  
   if (!filename)
     {
       mu_error ("%s", mu_strerror (errno));

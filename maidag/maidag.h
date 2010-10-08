@@ -111,12 +111,13 @@ extern int debug_level;
 #define EX_QUOTA() (ex_quota_tempfail ? EX_TEMPFAIL : EX_UNAVAILABLE)
 
 /* .forward file checks */
-#define FWD_IWGRP     0x0001 /* group writable forward file */
-#define FWD_IWOTH     0x0002 /* world writable forward file */
-#define FWD_LINK      0x0004 /* linked forward file in writable dir */
-#define FWD_DIR_IWGRP 0x0008 /* forward file in group writable directory */
-#define FWD_DIR_IWOTH 0x0010 /* forward file in world writable directory */
-#define FWD_ALL (FWD_IWGRP|FWD_IWOTH|FWD_LINK|FWD_DIR_IWOTH|FWD_DIR_IWGRP)
+#define FWD_OWNER     0x0001 /* file ownership */
+#define FWD_IWGRP     0x0002 /* group writable forward file */
+#define FWD_IWOTH     0x0004 /* world writable forward file */
+#define FWD_LINK      0x0008 /* linked forward file in writable dir */
+#define FWD_DIR_IWGRP 0x0010 /* forward file in group writable directory */
+#define FWD_DIR_IWOTH 0x0020 /* forward file in world writable directory */
+#define FWD_ALL (FWD_OWNER|FWD_IWGRP|FWD_IWOTH|FWD_LINK|FWD_DIR_IWOTH|FWD_DIR_IWGRP)
 
 enum maidag_mode
   {

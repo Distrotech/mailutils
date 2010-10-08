@@ -29,4 +29,5 @@ MUT_VERSION(maidag)
 m4_include([mda.at])
 m4_include([lmtp.at])
 m4_include([url-mbox.at])
+m4_include([forward.at])
 

@@ -321,6 +321,7 @@ cb_group (mu_debug_t debug, void *data, mu_config_value_t *arg)
 
 static struct mu_kwd forward_checks[] = {
   { "all", FWD_ALL },
+  { "owner", FWD_OWNER },
   { "groupwritablefile", FWD_IWGRP },
   { "file_iwgrp", FWD_IWGRP },
   { "worldwritablefile", FWD_IWOTH },
@@ -340,6 +341,12 @@ cb2_forward_file_checks (mu_debug_t debug, const char *name, void *data)
   int negate = 0;
   const char *str;
   int val;
+
+  if (strcmp (name, "none") == 0)
+    {
+      forward_file_checks = 0;
+      return 0;
+    }
   
   if (strlen (name) > 2 && mu_c_strncasecmp (name, "no", 2) == 0)
     {
@@ -609,6 +616,11 @@ main (int argc, char *argv[])
       break;
       
     case mode_mda:
+      if (argc == 0)
+	{
+	  mu_error (_("recipients not given"));
+	  return EX_USAGE;
+	}
       delivery_fun = deliver_to_user;
       break;
     }

@@ -95,7 +95,6 @@ if ![mu_check_capability ENABLE_SENDMAIL] {
 	"  48: > All mimsy were the borogoves,"\
 	"  49: > And the mome raths outgrabe."\
 	"  50: > "\
-	"  51: "\
 	"END OF MESSAGE"
 }
 
