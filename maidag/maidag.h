@@ -118,6 +118,15 @@ extern int debug_level;
 #define FWD_DIR_IWOTH 0x0010 /* forward file in world writable directory */
 #define FWD_ALL (FWD_IWGRP|FWD_IWOTH|FWD_LINK|FWD_DIR_IWOTH|FWD_DIR_IWGRP)
 
+enum maidag_mode
+  {
+    mode_default, 
+    mode_mda,
+    mode_url,
+    mode_lmtp
+  };
+
+extern enum maidag_mode maidag_mode;
 extern int exit_code;
 extern int log_to_stderr;
 extern int multiple_delivery;
@@ -136,8 +145,6 @@ extern int sieve_debug_flags;
 extern int sieve_enable_log;  
 
 extern mu_m_server_t server;
-extern int lmtp_mode;
-extern int url_option;
 extern char *lmtp_url_string;
 extern int reuse_lmtp_address;
 extern mu_list_t lmtp_groups;
@@ -147,7 +154,12 @@ extern int maidag_transcript;
 void close_fds (void);
 int switch_user_id (struct mu_auth_data *auth, int user);
 
-int maidag_stdio_delivery (int argc, char **argv);
+typedef int (*maidag_delivery_fn) (mu_message_t, char *, char **);
+
+int deliver_to_url (mu_message_t msg, char *dest_id, char **errp);
+int deliver_to_user (mu_message_t msg, char *dest_id, char **errp);
+
+int maidag_stdio_delivery (maidag_delivery_fn fun, int argc, char **argv);
 int maidag_lmtp_server (void);
 int lmtp_connection (int fd, struct sockaddr *sa, int salen, void *data,
 		     mu_ip_server_t srv, time_t timeout, int transcript);
@@ -156,8 +168,7 @@ void maidag_error (const char *fmt, ...) MU_PRINTFLIKE(1, 2);
 void notify_biff (mu_mailbox_t mbox, char *name, size_t size);
 void guess_retval (int ec);
 
-int mda (mu_mailbox_t mbx, char *username);
-int deliver (mu_message_t msg, char *name, char **errp);
+int mda (mu_mailbox_t mbx, char *username, maidag_delivery_fn fun);
 int sieve_test (struct mu_auth_data *auth, mu_message_t msg);
 int check_quota (struct mu_auth_data *auth, mu_off_t size, mu_off_t *rest);
 

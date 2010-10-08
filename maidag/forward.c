@@ -243,7 +243,7 @@ process_forward (mu_message_t msg, char *filename, const char *myname)
 		  if (result == maidag_forward_ok)
 		    result = maidag_forward_metoo;
 		}
-	      else if (deliver (msg, p, NULL))
+	      else if (deliver_to_user (msg, p, NULL))
 		result = maidag_forward_error;
 	    }
 	}

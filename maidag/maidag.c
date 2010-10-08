@@ -18,8 +18,7 @@
 
 #include "maidag.h"
 
-int mda_mode;              /* Force local MDA mode even if not started as
-			      root */ 
+enum maidag_mode maidag_mode = mode_default;
 int multiple_delivery;     /* Don't return errors when delivering to multiple
 			      recipients */
 int ex_quota_tempfail;     /* Return temporary failure if mailbox quota is
@@ -51,8 +50,6 @@ char *message_id_header;   /* Use the value of this header as message
 
 /* For LMTP mode */
 mu_m_server_t server;
-int lmtp_mode;
-int url_option;
 char *lmtp_url_string;
 int reuse_lmtp_address = 1;
 int maidag_transcript;
@@ -216,13 +213,13 @@ parse_opt (int key, char *arg, struct argp_state *state)
       break;
 
     case LMTP_OPTION:
-      mu_argp_node_list_new (lst, "lmtp", "yes");
+      mu_argp_node_list_new (lst, "delivery-mode", "lmtp");
       if (arg)
 	mu_argp_node_list_new (lst, "listen", arg);
       break;
 
     case MDA_OPTION:
-      mda_mode = 1;
+      mu_argp_node_list_new (lst, "delivery-mode", "mda");
       break;
       
     case TRANSCRIPT_OPTION:
@@ -267,7 +264,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
       break;
 
     case URL_OPTION:
-      url_option = 1;
+      mu_argp_node_list_new (lst, "delivery-mode", "url");
       break;
       
     case ARGP_KEY_INIT:
@@ -418,8 +415,35 @@ struct mu_cfg_param filter_cfg_param[] = {
     N_("Set script pattern.") },
   { NULL }
 };
-    
+
+static int
+cb_delivery_mode (mu_debug_t debug, void *data, mu_config_value_t *val)
+{
+  static mu_kwd_t mode_tab[] = {
+    { "default", mode_default },
+    { "mda", mode_mda },
+    { "url", mode_url },
+    { "lmtp", mode_lmtp },
+    { NULL }
+  };
+  int n;
+  
+  if (mu_cfg_assert_value_type (val, MU_CFG_STRING, debug))
+    return 1;
+
+  if (mu_kwd_xlat_name (mode_tab, val->v.string, &n) == 0)
+    maidag_mode = n;
+  else
+    mu_cfg_format_error (debug, MU_DEBUG_ERROR,
+			 _("%s is unknonw"),
+			 val->v.string);
+  return 0;
+}
+
 struct mu_cfg_param maidag_cfg_param[] = {
+  { "delivery-mode", mu_cfg_callback, NULL, 0, cb_delivery_mode,
+    N_("Set delivery mode"),
+    N_("mode: {default | mda | url | lmtp}") },
   { "exit-multiple-delivery-success", mu_cfg_bool, &multiple_delivery, 0, NULL,
     N_("In case of multiple delivery, exit with code 0 if at least one "
        "delivery succeeded.") },
@@ -456,8 +480,6 @@ struct mu_cfg_param maidag_cfg_param[] = {
     N_("Configure safety checks for the forward file."),
     N_("arg: list") },
 /* LMTP support */
-  { "lmtp", mu_cfg_bool, &lmtp_mode, 0, NULL,
-    N_("Run in LMTP mode.") },
   { "group", mu_cfg_callback, &lmtp_groups, 0, cb_group,
     N_("In LMTP mode, retain these supplementary groups."),
     N_("groups: list of string") },
@@ -501,7 +523,8 @@ main (int argc, char *argv[])
 {
   int arg_index;
   mu_debug_t debug;
-
+  maidag_delivery_fn delivery_fun = NULL;
+  
   /* Preparative work: close inherited fds, force a reasonable umask
      and prepare a logging. */
   close_fds ();
@@ -551,11 +574,11 @@ main (int argc, char *argv[])
     exit (EX_CONFIG);
 
   current_uid = getuid ();
-  if (!lmtp_mode && current_uid == 0)
-    mda_mode = 1; 
+  if (maidag_mode == mode_default && current_uid == 0)
+    maidag_mode = mode_mda; 
   
   if (log_to_stderr == -1)
-    log_to_stderr = url_option || (!lmtp_mode && !mda_mode);
+    log_to_stderr = maidag_mode == mode_url;
   
   mu_diag_get_debug (&debug);
   if (!log_to_stderr)
@@ -573,46 +596,49 @@ main (int argc, char *argv[])
   argc -= arg_index;
   argv += arg_index;
 
-  if (lmtp_mode && !url_option)
+  switch (maidag_mode)
     {
+    case mode_lmtp:
       if (argc)
 	{
 	  mu_error (_("too many arguments"));
 	  return EX_USAGE;
 	}
       return maidag_lmtp_server ();
-    }
-  else 
-    {
-      if (!mda_mode)
-	{
-	  if (url_option)
-	    {
-	      /* FIXME: Verify if the urls are deliverable? */
-	    }
-	  else
-	    {
-	      static char *s_argv[2];
-	      struct mu_auth_data *auth = mu_get_auth_by_uid (current_uid);
+
+    case mode_default:
+      {
+	static char *s_argv[2];
+	struct mu_auth_data *auth = mu_get_auth_by_uid (current_uid);
+	
+	if (!auth)
+	  {
+	    mu_error (_("cannot get username"));
+	    return EX_UNAVAILABLE;
+	  }
 	      
-	      if (!auth)
-		{
-		  mu_error (_("cannot get username"));
-		  return EX_UNAVAILABLE;
-		}
-	      
-	      if (argc > 0 && strcmp (auth->name, argv[0]))
-		{
-		  mu_error (_("recipients given when running as non-root"));
-		  return EX_USAGE;
-		}
-	      s_argv[0] = auth->name;
-	      argv = s_argv;
-	      argc = 1;
-	    }
-	}
-      return maidag_stdio_delivery (argc, argv);
+	if (argc > 0 && strcmp (auth->name, argv[0]))
+	  {
+	    mu_error (_("recipients given when running as non-root"));
+	    return EX_USAGE;
+	  }
+	s_argv[0] = auth->name;
+	argv = s_argv;
+	argc = 1;
+      }
+      delivery_fun = deliver_to_user;
+      break;
+      
+    case mode_url:
+      /* FIXME: Verify if the urls are deliverable? */
+      delivery_fun = deliver_to_url;
+      break;
+      
+    case mode_mda:
+      delivery_fun = deliver_to_user;
+      break;
     }
+  return maidag_stdio_delivery (delivery_fun, argc, argv);
 }
   
 

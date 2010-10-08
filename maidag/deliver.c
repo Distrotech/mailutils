@@ -128,7 +128,7 @@ make_tmp (const char *from)
 }
 
 int
-mda (mu_mailbox_t mbx, char *username)
+mda (mu_mailbox_t mbx, char *dest_id, maidag_delivery_fn deliver)
 {
   int status;
   mu_message_t msg;
@@ -140,7 +140,7 @@ mda (mu_mailbox_t mbx, char *username)
       return EX_TEMPFAIL;
     }
 
-  deliver (msg, username, NULL);
+  deliver (msg, dest_id, NULL);
 
   if (multiple_delivery)
     exit_code = EX_OK;
@@ -149,7 +149,7 @@ mda (mu_mailbox_t mbx, char *username)
 }
 
 int
-maidag_stdio_delivery (int argc, char **argv)
+maidag_stdio_delivery (maidag_delivery_fn delivery_fun, int argc, char **argv)
 {
   mu_mailbox_t mbox = make_tmp (sender_address);
   
@@ -157,7 +157,7 @@ maidag_stdio_delivery (int argc, char **argv)
     multiple_delivery = argc > 1;
 
   for (; *argv; argv++)
-    mda (mbox, *argv);
+    mda (mbox, *argv, delivery_fun);
   return exit_code;
 }
 
@@ -224,9 +224,9 @@ attach_notify (mu_mailbox_t mbox)
 }  
 
 int
-deliver_to_user (mu_mailbox_t mbox, mu_message_t msg,
-		 struct mu_auth_data *auth,
-		 char **errp)
+deliver_to_mailbox (mu_mailbox_t mbox, mu_message_t msg,
+		    struct mu_auth_data *auth,
+		    char **errp)
 {
   int status;
   char *path;
@@ -349,8 +349,8 @@ deliver_to_user (mu_mailbox_t mbox, mu_message_t msg,
   return failed ? exit_code : 0;
 }
 
-int
-deliver_url (mu_url_t url, mu_message_t msg, const char *name, char **errp)
+static int
+do_delivery (mu_url_t url, mu_message_t msg, const char *name, char **errp)
 {
   struct mu_auth_data *auth = NULL;
   mu_mailbox_t mbox;
@@ -437,7 +437,7 @@ deliver_url (mu_url_t url, mu_message_t msg, const char *name, char **errp)
      will be created */
   if (switch_user_id (auth, 1))
     return EX_TEMPFAIL;
-  status = deliver_to_user (mbox, msg, auth, errp);
+  status = deliver_to_mailbox (mbox, msg, auth, errp);
   if (switch_user_id (auth, 0))
     return EX_TEMPFAIL;
 
@@ -448,45 +448,42 @@ deliver_url (mu_url_t url, mu_message_t msg, const char *name, char **errp)
 }
 
 int
-deliver (mu_message_t msg, char *dest_id, char **errp)
+deliver_to_url (mu_message_t msg, char *dest_id, char **errp)
 {
   int status;
   const char *name;
   mu_url_t url = NULL;
   
-  if (url_option)
+  status = mu_url_create (&url, dest_id);
+  if (status)
     {
-      status = mu_url_create (&url, dest_id);
-      if (status)
-	{
-	  maidag_error (_("%s: cannot create url: %s"), dest_id,
-			mu_strerror (status));
-	  return EX_NOUSER;
-	}
-      status = mu_url_parse (url);
-      if (status)
-	{
-	  maidag_error (_("%s: cannot parse url: %s"), dest_id,
-			mu_strerror (status));
-	  mu_url_destroy (&url);
-	  return EX_NOUSER;
-	}
-      status = mu_url_sget_user (url, &name);
-      if (status == MU_ERR_NOENT)
-	name = NULL;
-      else if (status)
-	{
-	  maidag_error (_("%s: cannot get user name from url: %s"),
-			dest_id, mu_strerror (status));
-	  mu_url_destroy (&url);
-	  return EX_NOUSER;
-	}
+      maidag_error (_("%s: cannot create url: %s"), dest_id,
+		    mu_strerror (status));
+      return EX_NOUSER;
     }
-  else
+  status = mu_url_parse (url);
+  if (status)
     {
-      name = dest_id;
-      dest_id = NULL;
+      maidag_error (_("%s: cannot parse url: %s"), dest_id,
+		    mu_strerror (status));
+      mu_url_destroy (&url);
+      return EX_NOUSER;
     }
-  return deliver_url (url, msg, name, errp);
+  status = mu_url_sget_user (url, &name);
+  if (status == MU_ERR_NOENT)
+    name = NULL;
+  else if (status)
+    {
+      maidag_error (_("%s: cannot get user name from url: %s"),
+		    dest_id, mu_strerror (status));
+      mu_url_destroy (&url);
+      return EX_NOUSER;
+    }
+  return do_delivery (url, msg, name, errp);
 }
   
+int
+deliver_to_user (mu_message_t msg, char *dest_id, char **errp)
+{
+  return do_delivery (NULL, msg, dest_id, errp);
+}

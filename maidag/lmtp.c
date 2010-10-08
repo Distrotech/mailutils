@@ -317,7 +317,7 @@ dot_deliver (void *item, void *cbdata)
   mu_stream_t iostr = cbdata;
   char *errp = NULL;
   
-  switch (deliver (mesg, name, &errp))
+  switch (deliver_to_user (mesg, name, &errp))
     {
     case 0:
       lmtp_reply (iostr, "250", "2.0.0", "%s: delivered", name);
