@@ -87,9 +87,21 @@ struct mutool_action_tab
   mutool_action_t action;
 };
 
+static int
+mutool_nosys (int argc, char **argv)
+{
+  mu_error (_("%s is not available because required code is not compiled"),
+	    argv[0]);
+  return 1;
+}
+
 struct mutool_action_tab mutool_action_tab[] = {
   { "info", mutool_info },
+#ifdef ENABLE_POP
   { "pop", mutool_pop },
+#else
+  { "pop", mutool_nosys },
+#endif
   { "filter", mutool_filter },
   { "2047", mutool_flt2047 },
   { "query", mutool_query },

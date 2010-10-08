@@ -16,6 +16,13 @@
 ## along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 bin_PROGRAMS = mu
+
+if MU_COND_SUPPORT_POP
+ POP_C=pop.c
+endif
+
+EXTRA_DIST=pop.c
+
 mu_SOURCES = \
  acl.c\
  info.c\
@@ -23,7 +30,7 @@ mu_SOURCES = \
  mu.c\
  filter.c\
  flt2047.c\
- pop.c\
+ $(POP_C)\
  query.c\
  shell.c
 
