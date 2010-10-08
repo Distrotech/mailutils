@@ -19,14 +19,14 @@
 
 #include "maidag.h"
 
-static mu_mailbox_t
+static mu_message_t
 make_tmp (const char *from)
 {
   int rc;
   mu_stream_t in, out;
   char *buf = NULL;
   size_t size = 0, n;
-  mu_mailbox_t mbox;
+  mu_message_t mesg;
   
   rc = mu_stdio_stream_create (&in, MU_STDIN_FD, MU_STREAM_READ);
   if (rc)
@@ -90,9 +90,6 @@ make_tmp (const char *from)
   free (buf);
   
   rc = mu_stream_copy (out, in, 0, NULL);
-  if (rc == 0)
-    /* Write out message delimiter */
-    mu_stream_write (out, "\n", 1, NULL);
   mu_stream_destroy (&in);
   if (rc)
     {
@@ -101,63 +98,32 @@ make_tmp (const char *from)
       exit (EX_TEMPFAIL);
     }
 
-  mu_stream_flush (out);
-  if ((rc = mu_mailbox_create (&mbox, "mbox:/dev/null")) 
-      || (rc = mu_mailbox_open (mbox, MU_STREAM_READ))
-      || (rc = mu_mailbox_set_stream (mbox, out)))
-    {
-      maidag_error (_("error opening temporary file: %s"), 
-                    mu_strerror (rc));
-      mu_stream_destroy (&out);
-      exit (EX_TEMPFAIL);
-    }
-
-  rc = mu_mailbox_messages_count (mbox, &n);
+  rc = mu_stream_to_message (out, &mesg);
+  mu_stream_destroy (&out);
   if (rc)
     {
-      errno = rc;
       maidag_error (_("error creating temporary message: %s"),
 		    mu_strerror (rc));
-      mu_stream_destroy (&out);
       exit (EX_TEMPFAIL);
     }
 
-  /* FIXME: mu_stream_unref (out); But mu_mailbox_set_stream
-     steals the reference */
-  return mbox;
-}
-
-int
-mda (mu_mailbox_t mbx, char *dest_id, maidag_delivery_fn deliver)
-{
-  int status;
-  mu_message_t msg;
-  
-  if ((status = mu_mailbox_get_message (mbx, 1, &msg)) != 0)
-    {
-      maidag_error (_("cannot get message from the temporary mailbox: %s"),
-		    mu_strerror (status));
-      return EX_TEMPFAIL;
-    }
-
-  deliver (msg, dest_id, NULL);
-
-  if (multiple_delivery)
-    exit_code = EX_OK;
-
-  return exit_code;
+  return mesg;
 }
 
 int
 maidag_stdio_delivery (maidag_delivery_fn delivery_fun, int argc, char **argv)
 {
-  mu_mailbox_t mbox = make_tmp (sender_address);
+  mu_message_t mesg = make_tmp (sender_address);
   
   if (multiple_delivery)
     multiple_delivery = argc > 1;
 
   for (; *argv; argv++)
-    mda (mbox, *argv, delivery_fun);
+    {
+      delivery_fun (mesg, *argv, NULL);
+      if (multiple_delivery)
+	exit_code = EX_OK;
+    }
   return exit_code;
 }
 

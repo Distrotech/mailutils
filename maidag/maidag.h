@@ -167,7 +167,6 @@ void maidag_error (const char *fmt, ...) MU_PRINTFLIKE(1, 2);
 void notify_biff (mu_mailbox_t mbox, char *name, size_t size);
 void guess_retval (int ec);
 
-int mda (mu_mailbox_t mbx, char *username, maidag_delivery_fn fun);
 int sieve_test (struct mu_auth_data *auth, mu_message_t msg);
 int check_quota (struct mu_auth_data *auth, mu_off_t size, mu_off_t *rest);
 
