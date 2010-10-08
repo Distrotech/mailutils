@@ -18,7 +18,7 @@
 
 #include "maidag.h"
 
-enum maidag_mode maidag_mode = mode_default;
+enum maidag_mode maidag_mode = mode_mda;
 int multiple_delivery;     /* Don't return errors when delivering to multiple
 			      recipients */
 int ex_quota_tempfail;     /* Return temporary failure if mailbox quota is
@@ -420,7 +420,6 @@ static int
 cb_delivery_mode (mu_debug_t debug, void *data, mu_config_value_t *val)
 {
   static mu_kwd_t mode_tab[] = {
-    { "default", mode_default },
     { "mda", mode_mda },
     { "url", mode_url },
     { "lmtp", mode_lmtp },
@@ -443,7 +442,7 @@ cb_delivery_mode (mu_debug_t debug, void *data, mu_config_value_t *val)
 struct mu_cfg_param maidag_cfg_param[] = {
   { "delivery-mode", mu_cfg_callback, NULL, 0, cb_delivery_mode,
     N_("Set delivery mode"),
-    N_("mode: {default | mda | url | lmtp}") },
+    N_("mode: {mda | url | lmtp}") },
   { "exit-multiple-delivery-success", mu_cfg_bool, &multiple_delivery, 0, NULL,
     N_("In case of multiple delivery, exit with code 0 if at least one "
        "delivery succeeded.") },
@@ -574,8 +573,6 @@ main (int argc, char *argv[])
     exit (EX_CONFIG);
 
   current_uid = getuid ();
-  if (maidag_mode == mode_default && current_uid == 0)
-    maidag_mode = mode_mda; 
   
   if (log_to_stderr == -1)
     log_to_stderr = maidag_mode == mode_url;
@@ -606,29 +603,6 @@ main (int argc, char *argv[])
 	}
       return maidag_lmtp_server ();
 
-    case mode_default:
-      {
-	static char *s_argv[2];
-	struct mu_auth_data *auth = mu_get_auth_by_uid (current_uid);
-	
-	if (!auth)
-	  {
-	    mu_error (_("cannot get username"));
-	    return EX_UNAVAILABLE;
-	  }
-	      
-	if (argc > 0 && strcmp (auth->name, argv[0]))
-	  {
-	    mu_error (_("recipients given when running as non-root"));
-	    return EX_USAGE;
-	  }
-	s_argv[0] = auth->name;
-	argv = s_argv;
-	argc = 1;
-      }
-      delivery_fun = deliver_to_user;
-      break;
-      
     case mode_url:
       /* FIXME: Verify if the urls are deliverable? */
       delivery_fun = deliver_to_url;

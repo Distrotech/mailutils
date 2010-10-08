@@ -120,7 +120,6 @@ extern int debug_level;
 
 enum maidag_mode
   {
-    mode_default, 
     mode_mda,
     mode_url,
     mode_lmtp
