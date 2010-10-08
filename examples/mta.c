@@ -57,6 +57,7 @@
 #endif
 #include <string.h>
 #include <pwd.h>
+#include <sysexits.h>
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/socket.h>
@@ -141,7 +142,7 @@ main (int argc, char **argv)
 	  break;
 
 	default:
-	  exit (1);
+	  exit (EX_USAGE);
 	}
     }
 
@@ -190,73 +191,71 @@ from_address ()
   return strdup (from_person);
 }
      
-void
-make_tmp (FILE *input, const char *from, char **tempfile)
+static mu_message_t
+make_tmp (mu_stream_t in)
 {
-  time_t t;
-  int fd = mu_tempfile (NULL, tempfile);
-  FILE *fp;
+  int rc;
+  mu_stream_t out;
   char *buf = NULL;
-  size_t n = 0;
-  int line;
+  size_t size = 0, n;
+  mu_message_t mesg;
   
-  if (fd == -1 || (fp = fdopen (fd, "w+")) == NULL)
+  rc = mu_temp_file_stream_create (&out, NULL);
+  if (rc)
     {
-      mu_error ("%s: unable to open temporary file", progname);
-      exit (1);
+      mu_error (_("unable to open temporary file: %s"), mu_strerror (rc));
+      exit (EX_UNAVAILABLE);
     }
 
-  line = 0;
-  while (getline (&buf, &n, input) > 0)
+  rc = mu_stream_getline (in, &buf, &size, &n);
+  if (rc)
     {
-      int len = strlen (buf);
-      if (len >= 2 && buf[len - 2] == '\r')
+      mu_error (_("read error: %s"), mu_strerror (rc));
+      mu_stream_destroy (&out);
+      exit (EX_UNAVAILABLE);
+    }
+  if (n == 0)
+    {
+      mu_error (_("unexpected EOF on input"));
+      mu_stream_destroy (&out);
+      exit (EX_DATAERR);
+    } 
+
+  if (n >= 5 && memcmp (buf, "From ", 5))
+    {
+      time_t t;
+      const char *from = from_address ();
+      if (!from)
 	{
-	  buf[len - 2] = '\n';
-	  buf[len - 1] = 0;
+	  mu_error ("%s: can't determine sender address", progname);
+	  exit (EX_NOUSER);
 	}
 	  
-      line++;
-      if (line == 1)
-	{
-	  if (memcmp (buf, "From ", 5))
-	    {
-	      char *from = from_address ();
-	      if (from)
-		{
-		  time (&t);
-		  fprintf (fp, "From %s %s", from, ctime (&t));
-		  free (from);
-		}
-	      else
-		{
-		  mu_error ("%s: can't determine sender address", progname);
-		  exit (1);
-		}
-	    }
-	}
-      else if (!memcmp (buf, "From ", 5))
-	fputc ('>', fp);
-
-      if (dot && buf[0] == '.' &&
-	       ((buf[1] == '\r' && buf[2] == '\n') || (buf[1] == '\n')))
-	break;
-      
-      if (fputs (buf, fp) == EOF)
-	{
-	  mu_error ("%s: temporary file write error", progname);
-	  fclose (fp);
-	  exit (1);
-	}
+      time (&t);
+      mu_stream_printf (out, "From %s %s", from, ctime (&t));
     }
-  
-  if (buf && strchr (buf, '\n') == NULL)
-    putc ('\n', fp);
 
-  putc ('\n', fp);
+  mu_stream_write (out, buf, n, NULL);
   free (buf);
+  
+  rc = mu_stream_copy (out, in, 0, NULL);
+  if (rc)
+    {
+      mu_error (_("copy error: %s"), mu_strerror (rc));
+      mu_stream_destroy (&out);
+      exit (EX_UNAVAILABLE);
+    }
 
-  fclose (fp);
+  rc = mu_stream_to_message (out, &mesg);
+  mu_stream_destroy (&out);
+  if (rc)
+    {
+      mu_error (_("error creating temporary message: %s"),
+		mu_strerror (rc));
+      exit (EX_UNAVAILABLE);
+    }
+
+  return mesg;
 }
 
 void
@@ -462,9 +461,8 @@ message_finalize (mu_message_t msg, int warn)
 int
 mta_stdin (int argc, char **argv)
 {
-  int c;
-  char *tempfile;
-  mu_mailbox_t mbox;
+  int c, rc;
+  mu_stream_t in;
   mu_message_t msg = NULL;
   
   for (c = 0; c < argc; c++)
@@ -476,27 +474,19 @@ mta_stdin (int argc, char **argv)
 	}
     }
 
-  make_tmp (stdin, from_person, &tempfile);
-  if ((c = mu_mailbox_create_default (&mbox, tempfile)) != 0)
+  rc = mu_stdio_stream_create (&in, MU_STDIN_FD, MU_STREAM_READ);
+  if (rc)
     {
-      mu_error ("%s: can't create mailbox %s: %s",
-		progname, tempfile, mu_strerror (c));
-      unlink (tempfile);
-      return 1;
-    }
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_stdio_stream_create",
+		       "MU_STDIN_FD", rc);
+      exit (EX_UNAVAILABLE);
+    } 
 
-  if ((c = mu_mailbox_open (mbox, MU_STREAM_RDWR)) != 0)
-    {
-      mu_error ("%s: can't open mailbox %s: %s",
-		progname, tempfile, mu_strerror (c));
-      unlink (tempfile);
-      return 1;
-    }
-
-  mu_mailbox_get_message (mbox, 1, &msg);
+  msg = make_tmp (in);
+  mu_stream_destroy (&in);
   if (message_finalize (msg, 1))
     return 1;
-
+  
   if (!recipients)
     {
       mu_error ("%s: Recipient names must be specified", progname);
@@ -504,24 +494,20 @@ mta_stdin (int argc, char **argv)
     }
 
   mta_send (msg);
-  
-  unlink (tempfile);
-  free (tempfile);
+  mu_message_destroy (&msg, mu_message_get_owner (msg));
   return 0;
 }
 
-FILE *in, *out;
-
 void
-smtp_reply (int code, char *fmt, ...)
+smtp_reply (mu_stream_t str, int code, char *fmt, ...)
 {
   va_list ap;
 
+  mu_stream_printf (str, "%d ", code);
   va_start (ap, fmt);
-  fprintf (out, "%d ", code);
-  vfprintf (out, fmt, ap);
+  mu_stream_vprintf (str, fmt, ap);
   va_end (ap);
-  fprintf (out, "\r\n");
+  mu_stream_printf (str, "\r\n");
 }
 
 #define STATE_INIT   0
@@ -575,42 +561,34 @@ check_prefix (char *str, const char *prefix)
 }
 
 void
-smtp (int fd)
+smtp (mu_stream_t str)
 {
-  int state, c;
+  int state;
   char *buf = NULL;
   size_t size = 0;
-  mu_mailbox_t mbox;
-  mu_message_t msg;
-  char *tempfile;
   char *rcpt_addr;
   
-  in = fdopen (fd, "r");
-  out = fdopen (fd, "w");
-  SETVBUF (in, NULL, _IOLBF, 0);
-  SETVBUF (out, NULL, _IOLBF, 0);
-
-  smtp_reply (220, "Ready");
+  smtp_reply (str, 220, "Ready");
   for (state = STATE_INIT; state != STATE_QUIT; )
     {
+      char *s;
       int argc;
       char **argv;
-      int kw, len;
+      int kw;
+      size_t len;
       
-      if (getline (&buf, &size, in) == -1)
-	exit (1);
-      len = strlen (buf);
-      while (len > 0 && (buf[len-1] == '\n' || buf[len-1] == '\r'))
-	len --;
-      buf[len] = 0;
+      if (mu_stream_getline (str, &buf, &size, &len) || len == 0)
+	exit (EX_PROTOCOL);
+
+      s = mu_str_stripws (buf);
       
-      if (mu_argcv_get (buf, "", NULL, &argc, &argv))
-	exit (1);
+      if (mu_argcv_get (s, "", NULL, &argc, &argv))
+	exit (EX_UNAVAILABLE);
 
       kw = smtp_kw (argv[0]);
       if (kw == KW_QUIT)
 	{
-	  smtp_reply (221, "Done");
+	  smtp_reply (str, 221, "Done");
 	  state = STATE_QUIT;
 	  mu_argcv_free (argc, argv);
 	  continue;
@@ -625,15 +603,15 @@ smtp (int fd)
 	    case KW_HELO:
 	      if (argc == 2)
 		{
-		  smtp_reply (250, "pleased to meet you");
+		  smtp_reply (str, 250, "pleased to meet you");
 		  state = STATE_EHLO;
 		}
 	      else
-		smtp_reply (501, "%s requires domain address", argv[0]);
+		smtp_reply (str, 501, "%s requires domain address", argv[0]);
 	      break;
 
 	    default:
-	      smtp_reply (503, "Polite people say HELO first");
+	      smtp_reply (str, 503, "Polite people say HELO first");
 	      break;
 	    }
 	  break;
@@ -652,15 +630,15 @@ smtp (int fd)
 	      if (from_person)
 		{
 		  from_person = strdup (from_person);
-		  smtp_reply (250, "Sender OK");
+		  smtp_reply (str, 250, "Sender OK");
 		  state = STATE_MAIL;
 		}
 	      else
-		smtp_reply (501, "Syntax error");
+		smtp_reply (str, 501, "Syntax error");
 	      break;
 
 	    default:
-	      smtp_reply (503, "Need MAIL command");
+	      smtp_reply (str, 503, "Need MAIL command");
 	    }
 	  break;
 	  
@@ -678,19 +656,19 @@ smtp (int fd)
 	      if (rcpt_addr)
 		{
 		  if (add_recipient (rcpt_addr))
-		    smtp_reply (451, "Recipient not accepted");
+		    smtp_reply (str, 451, "Recipient not accepted");
 		  else
 		    {
-		      smtp_reply (250, "Recipient OK");
+		      smtp_reply (str, 250, "Recipient OK");
 		      state = STATE_RCPT;
 		    }
 		}
 	      else
-		smtp_reply (501, "Syntax error");
+		smtp_reply (str, 501, "Syntax error");
 	      break;
 	      
 	    default:
-	      smtp_reply (503, "Need RCPT command");
+	      smtp_reply (str, 503, "Need RCPT command");
 	    }
 	  break;
 	  
@@ -708,55 +686,51 @@ smtp (int fd)
 	      if (rcpt_addr)
 		{
 		  if (add_recipient (rcpt_addr))
-		    smtp_reply (451, "Recipient not accepted");
+		    smtp_reply (str, 451, "Recipient not accepted");
 		  else
 		    {
-		      smtp_reply (250, "Recipient OK");
+		      smtp_reply (str, 250, "Recipient OK");
 		      state = STATE_RCPT;
 		    }
 		}
 	      else
-		smtp_reply (501, "Syntax error");
+		smtp_reply (str, 501, "Syntax error");
 	      break;
 
 	    case KW_DATA:
-	      smtp_reply (354,
-			  "Enter mail, end with \".\" on a line by itself");
-	      make_tmp (in, from_person, &tempfile);
-	      if ((c = mu_mailbox_create_default (&mbox, tempfile)) != 0)
-		{
-		  mu_error ("%s: can't create mailbox %s: %s",
-			    progname,
-			    tempfile, mu_strerror (c));
-		  unlink (tempfile);
-		  exit (1);
-		}
-
-	      if ((c = mu_mailbox_open (mbox, MU_STREAM_RDWR)) != 0)
-		{
-		  mu_error ("%s: can't open mailbox %s: %s",
-			    progname, 
-			    tempfile, mu_strerror (c));
-		  unlink (tempfile);
-		  exit (1);
-		}
-
-	      mu_mailbox_get_message (mbox, 1, &msg);
-	      if (message_finalize (msg, 0) == 0)
-		mta_send (msg);
-	      else
-		smtp_reply (501, "can't send message"); /*FIXME: code?*/
-	      unlink (tempfile);
-
-	      mu_address_destroy (&recipients);
-	      from_person = NULL;
+	      {
+		mu_stream_t flt;
+		mu_message_t msg;
+		int rc;
+		
+		rc = mu_filter_create (&flt, str, "CRLFDOT", MU_FILTER_DECODE,
+				       MU_STREAM_READ|MU_STREAM_WRTHRU);
+		if (rc)
+		  {
+		    mu_diag_funcall (MU_DIAG_ERROR, "mu_filter_create",
+				     "CRLFDOT", rc);
+		    exit (EX_UNAVAILABLE);
+		  }
+		smtp_reply (str, 354,
+			    "Enter mail, end with \".\" on a line by itself");
+		
+		msg = make_tmp (flt);
+		mu_stream_destroy (&flt);
+		if (message_finalize (msg, 0) == 0)
+		  mta_send (msg);
+		else
+		  smtp_reply (str, 501, "can't send message"); /*FIXME: code?*/
+		mu_message_destroy (&msg, mu_message_get_owner (msg));
+		mu_address_destroy (&recipients);
+		from_person = NULL;
 	      
-	      smtp_reply (250, "Message accepted for delivery");
-	      state = STATE_EHLO;
+		smtp_reply (str, 250, "Message accepted for delivery");
+		state = STATE_EHLO;
+	      }
 	      break;
 
 	    default:
-	      smtp_reply (503, "Invalid command");
+	      smtp_reply (str, 503, "Invalid command");
 	      break;
 	    }
 	  break;
@@ -764,8 +738,6 @@ smtp (int fd)
 	}
       mu_argcv_free (argc, argv);
     }
-    
-  close (fd);
 }
 
 int
@@ -826,7 +798,9 @@ mta_smtp (int argc, char **argv)
       struct sockaddr_in his_addr;
       int sfd, status;
       socklen_t len;
-
+      int rc;
+      mu_stream_t str;
+      
       FD_ZERO (&rfds);
       FD_SET (fd, &rfds);
       
@@ -846,7 +820,16 @@ mta_smtp (int argc, char **argv)
 	  return 1;
 	}
 
-      smtp (sfd);
+      rc = mu_fd_stream_create (&str, NULL, sfd,
+				MU_STREAM_RDWR|MU_STREAM_AUTOCLOSE);
+      if (rc)
+	{
+	  mu_diag_funcall (MU_DIAG_ERROR, "mu_fd_stream_create", NULL, rc);
+	  break;
+	}
+      mu_stream_set_buffer (str, mu_buffer_line, 0);
+      smtp (str);
+      mu_stream_destroy (&str);
       break;
     }
   
