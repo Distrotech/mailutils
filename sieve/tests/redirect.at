@@ -52,7 +52,6 @@ ENVELOPE TO: <gray@gnu.org>
   13: 
   14: --
   15: Wile E. Coyote   "Super Genius"   coyote@desert.example.org
-  16: 
 END OF MESSAGE
 ENVELOPE FROM: b1ff@de.res.example.com
 ENVELOPE TO: <gray@gnu.org>
@@ -70,7 +69,6 @@ ENVELOPE TO: <gray@gnu.org>
   11: $20,000 IN LESS THAN TWO MONTHS!  AND IT'S LEGAL!!!!!!!!!
   12: !!!!!!!!!!!!!!!!!!111111111!!!!!!!11111111111!!1  JUST
   13: SEND $5 IN SMALL, UNMARKED BILLS TO THE ADDRESSES BELOW!
-  14: 
 END OF MESSAGE
 ENVELOPE FROM: bar@dontmailme.org
 ENVELOPE TO: <gray@gnu.org>
@@ -85,7 +83,6 @@ ENVELOPE TO: <gray@gnu.org>
    8: Subject: Coffee
    9: 
   10: How about some coffee?
-  11: 
 END OF MESSAGE
 ],
 [REDIRECT on msg uid 1: to gray@gnu.org

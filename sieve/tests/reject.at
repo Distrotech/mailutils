@@ -100,7 +100,6 @@ ENVELOPE TO: <coyote@desert.example.org>
   43: Wile E. Coyote   "Super Genius"   coyote@desert.example.org
   44: 
   45: --(boundary)
-  46: 
 END OF MESSAGE
 ENVELOPE FROM: MAILER-DAEMON@nonexistent.net
 ENVELOPE TO: <b1ff@de.res.example.com>
@@ -148,7 +147,6 @@ ENVELOPE TO: <b1ff@de.res.example.com>
   41: SEND $5 IN SMALL, UNMARKED BILLS TO THE ADDRESSES BELOW!
   42: 
   43: --(boundary)
-  44: 
 END OF MESSAGE
 ENVELOPE FROM: MAILER-DAEMON@nonexistent.net
 ENVELOPE TO: <bar@dontmailme.org>
@@ -193,7 +191,6 @@ ENVELOPE TO: <bar@dontmailme.org>
   38: How about some coffee?
   39: 
   40: --(boundary)
-  41: 
 END OF MESSAGE
 ],
 [REJECT on msg uid 1
