@@ -1,6 +1,5 @@
 # GNU Mailutils -- a suite of utilities for electronic mail
-# Copyright (C) 2000, 2001, 2002, 2004, 2005, 2006, 2007, 2008, 2009,
-# 2010 Free Software Foundation, Inc.
+# Copyright (C) 2010 Free Software Foundation, Inc.
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -16,27 +15,10 @@
 # Public License along with this library.  If not, see
 # <http://www.gnu.org/licenses/>.
 
-SUBDIRS = auth base address cfg diag filter mailbox mailer mime\
- server string stream . tests 
+noinst_LTLIBRARIES = libaddress.la
 
-lib_LTLIBRARIES = libmailutils.la
+libaddress_la_SOURCES = \
+ address.c\
+ parse822.c
 
-libmailutils_la_SOURCES =  
-
-libmailutils_la_LIBADD = \
- @MU_COMMON_LIBRARIES@\
- auth/libauth.la\
- base/libbase.la\
- address/libaddress.la\
- cfg/libcfg.la\
- diag/libdiag.la\
- filter/libfilter.la\
- mailbox/libmailbox.la\
- mailer/libmailer.la\
- mime/libmime.la\
- server/libserver.la\
- string/libstring.la\
- stream/libstream.la
-
-libmailutils_la_LDFLAGS = -version-info @VI_CURRENT@:@VI_REVISION@:@VI_AGE@
-
+INCLUDES = @MU_LIB_COMMON_INCLUDES@ -I/libmailutils

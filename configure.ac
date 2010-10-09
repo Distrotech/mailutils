@@ -14,12 +14,11 @@ dnl MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 dnl GNU General Public License for more details.
 dnl
 dnl You should have received a copy of the GNU General Public License along
-dnl with GNU Mailutils; if not, write to the Free Software Foundation,
-dnl Inc. 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+dnl with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
 
 AC_PREREQ(2.63)
 AC_INIT([GNU Mailutils], [2.2.90], [bug-mailutils@gnu.org], [mailutils])
-AC_CONFIG_SRCDIR([libmailutils/mailbox.c])
+AC_CONFIG_SRCDIR([libmailutils/mailbox/mailbox.c])
 AC_CONFIG_AUX_DIR([build-aux])
 AM_INIT_AUTOMAKE([gnits 1.11 dist-bzip2 dist-xz std-options silent-rules])
 AC_CONFIG_HEADERS([config.h])
@@ -1377,6 +1376,18 @@ AC_CONFIG_FILES([
  maidag/Makefile
  mail/Makefile
  mail/testsuite/Makefile
+ libmailutils/auth/Makefile
+ libmailutils/base/Makefile
+ libmailutils/address/Makefile
+ libmailutils/cfg/Makefile
+ libmailutils/diag/Makefile
+ libmailutils/filter/Makefile
+ libmailutils/mailbox/Makefile
+ libmailutils/mailer/Makefile
+ libmailutils/mime/Makefile
+ libmailutils/server/Makefile
+ libmailutils/string/Makefile
+ libmailutils/stream/Makefile
  libmailutils/Makefile
  messages/Makefile
  mh/Makefile

@@ -120,25 +120,25 @@ mail/unalias.c
 mail/util.c
 mail/z.c
 
-libmailutils/cfg_driver.c
-libmailutils/cfg_format.c
-libmailutils/cfg_lexer.l
-libmailutils/cfg_parser.y
-libmailutils/debug.c
-libmailutils/diag.c
-libmailutils/errors
-libmailutils/file_stream.c
-libmailutils/filter_iconv.c
-libmailutils/gdebug.c
-libmailutils/gocs.c
-libmailutils/ipsrv.c
-libmailutils/message.c
-libmailutils/msrv.c
-libmailutils/mu_auth.c
-libmailutils/mutil.c
-libmailutils/parsedate.y
-libmailutils/registrar.c
-libmailutils/version.c
+libmailutils/cfg/driver.c
+libmailutils/cfg/format.c
+libmailutils/cfg/lexer.l
+libmailutils/cfg/parser.y
+libmailutils/cfg/gocs.c
+libmailutils/diag/debug.c
+libmailutils/diag/diag.c
+libmailutils/diag/errors
+libmailutils/diag/gdebug.c
+libmailutils/stream/file_stream.c
+libmailutils/filter/filter_iconv.c
+libmailutils/server/ipsrv.c
+libmailutils/server/msrv.c
+libmailutils/mailbox/message.c
+libmailutils/auth/mu_auth.c
+libmailutils/base/mutil.c
+libmailutils/base/parsedate.y
+libmailutils/base/registrar.c
+libmailutils/base/version.c
 
 messages/messages.c
 

@@ -39,7 +39,7 @@
 #include <mailutils/list.h>
 #include <mailutils/mutil.h>
   
-#include "cfg_parser.h"
+#include "parser.h"
 
 void _mu_line_begin (void);
 void _mu_line_add (char *text, size_t len);
