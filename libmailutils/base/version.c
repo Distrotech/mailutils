@@ -12,9 +12,8 @@
    Lesser General Public License for more details.
 
    You should have received a copy of the GNU Lesser General
-   Public License along with this library; if not, write to the
-   Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110-1301 USA */
+   Public License along with this library.  If not, see
+   <http://www.gnu.org/licenses/>. */
 
 #ifdef HAVE_CONFIG_H
 # include <config.h>
@@ -40,8 +39,7 @@ char *mu_license_text =
     "   GNU General Public License for more details.\n"
     "\n"
     "   You should have received a copy of the GNU General Public License along\n"
-    "   with GNU Mailutils; if not, write to the Free Software Foundation,\n"
-    "   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA\n"
+    "   with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.\n"
     "\n"
     "\n"
 );

@@ -12,9 +12,8 @@
    GNU Lesser General Public License for more details.
 
    You should have received a copy of the GNU Lesser General Public
-   License along with GNU Mailutils; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110-1301 USA */
+   License along with GNU Mailutils.  If not, see
+   <http://www.gnu.org/licenses/>. */
 
 /* Moderator robot for Mailman-driven mail archives.
    Mailman moderation request is a MIME message consisting of the three parts:

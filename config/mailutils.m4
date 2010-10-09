@@ -5,13 +5,13 @@ dnl modify it under the terms of the GNU General Public License as
 dnl published by the Free Software Foundation; either version 3, or (at
 dnl your option) any later version.
 dnl
-dnl This program is distributed in the hope that it will be useful, but
+dnl GNU Mailutils is distributed in the hope that it will be useful, but
 dnl WITHOUT ANY WARRANTY; without even the implied warranty of
 dnl MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 dnl General Public License for more details.
 dnl
 dnl You should have received a copy of the GNU General Public License
-dnl along with this program.  If not, see <http://www.gnu.org/licenses/>.
+dnl along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
 
 dnl AM_GNU_MAILUTILS(minversion, link-req, [act-if-found], [ac-if-not-found])
 dnl                      $1         $2           $3              $4

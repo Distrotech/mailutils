@@ -1,5 +1,4 @@
-/*
-   Copyright (C) 2007, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 2007, 2010 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU Library General Public License as published by
@@ -12,9 +11,8 @@
    GNU Library General Public License for more details.
 
    You should have received a copy of the GNU Library General
-   Public License along with GNU Mailutils; if not, write to the
-   Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110-1301 USA */
+   Public License along with GNU Mailutils.  If not, see 
+   <http://www.gnu.org/licenses/>. */
 
 #ifndef MUASPRINTF_H
 #define MUASPRINTF_H

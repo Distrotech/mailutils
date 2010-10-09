@@ -12,9 +12,7 @@ dnl MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 dnl GNU General Public License for more details.
 dnl 
 dnl You should have received a copy of the GNU General Public License along
-dnl with GNU Mailutils; if not, write to the Free Software Foundation,
-dnl Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-dnl
+dnl with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
 
 AH_TEMPLATE(BDB2_CURSOR_LASTARG,
             [Last argument to the cursor member of Berkeley 2 DB structure])

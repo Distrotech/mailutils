@@ -12,9 +12,8 @@
    Lesser General Public License for more details.
 
    You should have received a copy of the GNU Lesser General
-   Public License along with this library; if not, write to the
-   Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110-1301 USA */
+   Public License along with this library.  If not, see 
+   <http://www.gnu.org/licenses/>. */
 
 /* This source implements a CRLFDOT filter, useful for data I/O in
    such protocols as POP3 and SMTP.  When encoding, this filter
