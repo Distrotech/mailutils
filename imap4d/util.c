@@ -388,7 +388,7 @@ util_parse_ctime_date (const char *date, time_t * timep)
 char *
 util_strcasestr (const char *haystack, const char *needle)
 {
-  return mu_strcasestr (haystack, needle);
+  return mu_c_strcasestr (haystack, needle);
 }
 
 struct

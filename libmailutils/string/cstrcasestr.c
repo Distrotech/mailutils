@@ -23,12 +23,10 @@
 #include <unistd.h>
 #include <mailutils/cctype.h>
 
-
 /* Based on strstr from GNU libc (Stephen R. van den Berg,
    berg@pool.informatik.rwth-aachen.de) */
-/* FIXME: Rename to mu_c_strcasestr */
 char *
-mu_strcasestr (const char *a_haystack, const char *a_needle)
+mu_c_strcasestr (const char *a_haystack, const char *a_needle)
 {
   register const unsigned char *haystack = (unsigned char*) a_haystack,
     *needle = (unsigned char*) a_needle;

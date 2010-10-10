@@ -420,7 +420,7 @@ i_ascii_casemap_is (const char *pattern, const char *text)
 static int
 i_ascii_casemap_contains (const char *pattern, const char *text)
 {
-  return mu_strcasestr (text, pattern) != NULL;
+  return mu_c_strcasestr (text, pattern) != NULL;
 }
 
 static int
