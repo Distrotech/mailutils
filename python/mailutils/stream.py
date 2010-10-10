@@ -36,6 +36,10 @@ MU_STREAM_IROTH =       0x00004000
 MU_STREAM_IWOTH =       0x00008000
 MU_STREAM_IMASK =       0x0000F000
 
+MU_STDIN_FD  = 0
+MU_STDOUT_FD = 1
+MU_STDERR_FD = 2
+
 class Stream:
     __refcount = 0
 
@@ -80,35 +84,24 @@ class Stream:
         if status:
             raise StreamError (status)
 
-    def read (self, offset = 0):
-        status, rbuf, self.read_count = stream.read (self.stm, offset)
+    def read (self):
+        status, rbuf, self.read_count = stream.read (self.stm)
         if status:
             raise StreamError (status)
         return rbuf
 
-    def write (self, wbuf, offset = 0):
-        status, self.write_count = stream.write (self.stm, wbuf, offset)
+    def write (self, wbuf, size=None):
+        if size == None:
+            size = len (wbuf)
+        status, self.write_count = stream.write (self.stm, wbuf, size)
         if status:
             raise StreamError (status)
 
-    def readline (self, offset = 0):
-        status, rbuf, self.read_count = stream.readline (self.stm, offset)
-        if status:
-            raise StreamError (status)
-        return rbuf
-
-    def sequential_readline (self):
+    def readline (self):
         status, rbuf, self.read_count = stream.readline (self.stm)
         if status:
             raise StreamError (status)
         return rbuf
-
-    def sequential_write (self, wbuf, size = None):
-        if size == None:
-            size = len (wbuf)
-        status = stream.sequential_write (self.stm, wbuf, size)
-        if status:
-            raise StreamError (status)
 
 class TcpStream (Stream):
     def __init__ (self, host, port, flags = MU_STREAM_READ):
@@ -125,9 +118,9 @@ class FileStream (Stream):
             raise StreamError (status)
 
 class StdioStream (Stream):
-    def __init__ (self, file, flags = MU_STREAM_READ):
+    def __init__ (self, fd=MU_STDIN_FD, flags=MU_STREAM_READ):
         Stream.__init__ (self)
-        status = stream.stdio_stream_create (self.stm, file, flags)
+        status = stream.stdio_stream_create (self.stm, fd, flags)
         if status:
             raise StreamError (status)
 

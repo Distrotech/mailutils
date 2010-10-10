@@ -115,20 +115,13 @@ api_file_stream_create (PyObject *self, PyObject *args)
 static PyObject *
 api_stdio_stream_create (PyObject *self, PyObject *args)
 {
-  int status, flags;
-  FILE *fp;
+  int status, fd, flags;
   PyStream *py_stm;
-  PyFileObject *py_file;
 
-  if (!PyArg_ParseTuple (args, "O!O!i",
-			 &PyStreamType, &py_stm,
-			 &PyFile_Type, &py_file,
-			 &flags))
+  if (!PyArg_ParseTuple (args, "O!ii", &PyStreamType, &py_stm, &fd, &flags))
     return NULL;
 
-  fp = PyFile_AsFile ((PyObject *)py_file);
-
-  status = mu_stdio_stream_create (&py_stm->stm, fp, flags);
+  status = mu_stdio_stream_create (&py_stm->stm, fd, flags);
   return _ro (PyInt_FromLong (status));
 }
 
@@ -166,6 +159,30 @@ api_filter_prog_stream_create (PyObject *self, PyObject *args)
 }
 
 static PyObject *
+api_stream_ref (PyObject *self, PyObject *args)
+{
+  PyStream *py_stm;
+
+  if (!PyArg_ParseTuple (args, "O!", &PyStreamType, &py_stm))
+    return NULL;
+
+  mu_stream_ref (py_stm->stm);
+  return _ro (Py_None);
+}
+
+static PyObject *
+api_stream_unref (PyObject *self, PyObject *args)
+{
+  PyStream *py_stm;
+
+  if (!PyArg_ParseTuple (args, "O!", &PyStreamType, &py_stm))
+    return NULL;
+
+  mu_stream_unref (py_stm->stm);
+  return _ro (Py_None);
+}
+
+static PyObject *
 api_stream_destroy (PyObject *self, PyObject *args)
 {
   PyStream *py_stm;
@@ -173,7 +190,7 @@ api_stream_destroy (PyObject *self, PyObject *args)
   if (!PyArg_ParseTuple (args, "O!", &PyStreamType, &py_stm))
     return NULL;
 
-  mu_stream_destroy (&py_stm->stm, NULL);
+  mu_stream_destroy (&py_stm->stm);
   return _ro (Py_None);
 }
 
@@ -233,7 +250,6 @@ static PyObject *
 api_stream_read (PyObject *self, PyObject *args)
 {
   int status;
-  size_t offset;
   size_t read_count;
   char rbuf[1024];
   PyObject *py_ret;
@@ -241,11 +257,10 @@ api_stream_read (PyObject *self, PyObject *args)
 
   memset (rbuf, 0, sizeof (rbuf));
 
-  if (!PyArg_ParseTuple (args, "O!i", &PyStreamType, &py_stm, &offset))
+  if (!PyArg_ParseTuple (args, "O!", &PyStreamType, &py_stm))
     return NULL;
 
-  status = mu_stream_read (py_stm->stm, rbuf, sizeof (rbuf), offset,
-			   &read_count);
+  status = mu_stream_read (py_stm->stm, rbuf, sizeof (rbuf), &read_count);
 
   py_ret = PyTuple_New (3);
   PyTuple_SetItem (py_ret, 0, PyInt_FromLong (status));
@@ -258,47 +273,19 @@ static PyObject *
 api_stream_write (PyObject *self, PyObject *args)
 {
   int status;
-  size_t offset;
-  size_t write_count;
   char *wbuf;
+  size_t size, write_count;
   PyStream *py_stm;
 
-  if (!PyArg_ParseTuple (args, "O!si", &PyStreamType, &py_stm,
-			 &wbuf, &offset))
+  if (!PyArg_ParseTuple (args, "O!si", &PyStreamType, &py_stm, &wbuf, &size))
     return NULL;
 
-  status = mu_stream_write (py_stm->stm, wbuf, strlen (wbuf), offset,
-			    &write_count);
+  status = mu_stream_write (py_stm->stm, wbuf, size, &write_count);
   return status_object (status, PyInt_FromLong (write_count));
 }
 
 static PyObject *
 api_stream_readline (PyObject *self, PyObject *args)
-{
-  int status;
-  size_t offset;
-  size_t read_count;
-  char rbuf[1024];
-  PyObject *py_ret;
-  PyStream *py_stm;
-
-  memset (rbuf, 0, sizeof (rbuf));
-
-  if (!PyArg_ParseTuple (args, "O!i", &PyStreamType, &py_stm, &offset))
-    return NULL;
-
-  status = mu_stream_readline (py_stm->stm, rbuf, sizeof (rbuf), offset,
-			       &read_count);
-
-  py_ret = PyTuple_New (3);
-  PyTuple_SetItem (py_ret, 0, PyInt_FromLong (status));
-  PyTuple_SetItem (py_ret, 1, PyString_FromString (rbuf));
-  PyTuple_SetItem (py_ret, 2, PyInt_FromLong (read_count));
-  return _ro (py_ret);
-}
-
-static PyObject *
-api_stream_sequential_readline (PyObject *self, PyObject *args)
 {
   int status;
   size_t read_count;
@@ -311,30 +298,13 @@ api_stream_sequential_readline (PyObject *self, PyObject *args)
   if (!PyArg_ParseTuple (args, "O!", &PyStreamType, &py_stm))
     return NULL;
 
-  status = mu_stream_sequential_readline (py_stm->stm, rbuf, sizeof (rbuf),
-					  &read_count);
+  status = mu_stream_readline (py_stm->stm, rbuf, sizeof (rbuf), &read_count);
 
   py_ret = PyTuple_New (3);
   PyTuple_SetItem (py_ret, 0, PyInt_FromLong (status));
   PyTuple_SetItem (py_ret, 1, PyString_FromString (rbuf));
   PyTuple_SetItem (py_ret, 2, PyInt_FromLong (read_count));
   return _ro (py_ret);
-}
-
-static PyObject *
-api_stream_sequential_write (PyObject *self, PyObject *args)
-{
-  int status;
-  char *wbuf;
-  size_t size;
-  PyStream *py_stm;
-
-  if (!PyArg_ParseTuple (args, "O!si", &PyStreamType, &py_stm, &wbuf,
-			 &size))
-    return NULL;
-
-  status = mu_stream_sequential_write (py_stm->stm, wbuf, size);
-  return _ro (PyInt_FromLong (status));
 }
 
 static PyMethodDef methods[] = {
@@ -352,6 +322,12 @@ static PyMethodDef methods[] = {
 
   { "filter_prog_stream_create",
     (PyCFunction) api_filter_prog_stream_create, METH_VARARGS,
+    "" },
+
+  { "ref", (PyCFunction) api_stream_ref, METH_VARARGS,
+    "" },
+
+  { "unref", (PyCFunction) api_stream_unref, METH_VARARGS,
     "" },
 
   { "destroy", (PyCFunction) api_stream_destroy, METH_VARARGS,
@@ -377,12 +353,6 @@ static PyMethodDef methods[] = {
 
   { "readline", (PyCFunction) api_stream_readline, METH_VARARGS,
     "" },
-
-  { "sequential_readline", (PyCFunction) api_stream_sequential_readline,
-    METH_VARARGS, "" },
-
-  { "sequential_write", (PyCFunction) api_stream_sequential_write,
-    METH_VARARGS, "" },
 
   { NULL, NULL, 0, NULL }
 };

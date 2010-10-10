@@ -140,28 +140,8 @@ api_folder_get_stream (PyObject *self, PyObject *args)
 
   Py_INCREF (py_stm);
 
-  status = mu_folder_get_stream (py_folder->folder, &py_stm->stm);
+  status = mu_folder_get_streamref (py_folder->folder, &py_stm->stm);
   return status_object (status, (PyObject *)py_stm);
-}
-
-static PyObject *
-api_folder_set_stream (PyObject *self, PyObject *args)
-{
-  int status;
-  PyFolder *py_folder;
-  PyStream *py_stm;
-
-  if (!PyArg_ParseTuple (args, "O!O", &PyFolderType, &py_folder, &py_stm))
-    return NULL;
-
-  if (!PyStream_Check ((PyObject *)py_stm))
-    {
-      PyErr_SetString (PyExc_TypeError, "");
-      return NULL;
-    }
-
-  status = mu_folder_set_stream (py_folder->folder, py_stm->stm);
-  return _ro (PyInt_FromLong (status));
 }
 
 static PyObject *
@@ -274,9 +254,6 @@ static PyMethodDef methods[] = {
     "" },
 
   { "get_stream", (PyCFunction) api_folder_get_stream, METH_VARARGS,
-    "" },
-
-  { "set_stream", (PyCFunction) api_folder_set_stream, METH_VARARGS,
     "" },
 
   { "get_authority", (PyCFunction) api_folder_get_authority, METH_VARARGS,

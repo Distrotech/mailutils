@@ -331,28 +331,6 @@ api_message_unencapsulate (PyObject *self, PyObject *args)
   return status_object (status, (PyObject *)py_unen);
 }
 
-static PyObject *
-api_message_set_stream (PyObject *self, PyObject *args)
-{
-  int status;
-  PyMessage *py_msg;
-  PyStream *py_stm;
-
-  if (!PyArg_ParseTuple (args, "O!O", &PyMessageType, &py_msg, &py_stm))
-    return NULL;
-
-  if (!PyStream_Check ((PyObject *)py_stm))
-    {
-      PyErr_SetString (PyExc_TypeError, "");
-      return NULL;
-    }
-
-  status = mu_message_set_stream (py_msg->msg, py_stm->stm, NULL);
-  py_stm->stm = NULL;
-
-  return _ro (PyInt_FromLong (status));
-}
-
 static PyMethodDef methods[] = {
   { "create", (PyCFunction) api_message_create, METH_VARARGS,
     "Create message." },
@@ -401,9 +379,6 @@ static PyMethodDef methods[] = {
 
   { "unencapsulate", (PyCFunction) api_message_unencapsulate,
     METH_VARARGS, "" },
-
-  { "set_stream", (PyCFunction) api_message_set_stream, METH_VARARGS,
-    "" },
 
   { NULL, NULL, 0, NULL }
 };

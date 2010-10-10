@@ -59,7 +59,7 @@ if optfrom:
 if args:
     to = address.Address (args)
 
-sti = stream.StdioStream (sys.stdin, stream.MU_STREAM_SEEKABLE)
+sti = stream.StdioStream (stream.MU_STDIN_FD, stream.MU_STREAM_SEEKABLE)
 sti.open ()
 
 msg = message.Message ()

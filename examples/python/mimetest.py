@@ -77,11 +77,9 @@ def message_display_parts (msg, indent):
           print "%*.*sBegin" % (indent, indent, '')
 
 	  flt = filter.FilterStream (part.body.get_stream (), encoding)
-          offset = 0
 
           while True:
-              buf = flt.readline (offset)
-              offset += flt.read_count
+              buf = flt.readline ()
               if not flt.read_count:
                   break
               print "%*.*s%s" % (indent, indent, '', buf),

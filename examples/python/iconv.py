@@ -22,19 +22,19 @@ if len (sys.argv) != 3:
     print "usage: %s from-code to-code" % sys.argv[0]
     sys.exit (0)
 
-sti = stream.StdioStream (sys.stdin)
+sti = stream.StdioStream (stream.MU_STDIN_FD)
 sti.open ()
 
 cvt = filter.FilterIconvStream (sti, sys.argv[1], sys.argv[2])
 cvt.open ()
 
-out = stream.StdioStream (sys.stdout, 0)
+out = stream.StdioStream (stream.MU_STDOUT_FD, 0)
 out.open ()
 
 total = 0
 while True:
     buf = cvt.read (total)
-    out.sequential_write (buf)
+    out.write (buf)
     total += cvt.read_count
     if not cvt.read_count:
         break

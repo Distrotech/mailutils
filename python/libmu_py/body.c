@@ -116,7 +116,7 @@ api_body_get_stream (PyObject *self, PyObject *args)
 
   Py_INCREF (py_stm);
 
-  status = mu_body_get_stream (py_body->body, &py_stm->stm);
+  status = mu_body_get_streamref (py_body->body, &py_stm->stm);
   return status_object (status, (PyObject *)py_stm);
 }
 
