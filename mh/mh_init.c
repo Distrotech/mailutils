@@ -381,14 +381,7 @@ mh_audit_open (char *name, mu_mailbox_t mbox)
   namep = mu_tilde_expansion (name, "/", NULL);
   if (strchr (namep, '/') == NULL)
     {
-      char *p = NULL;
-
-      asprintf (&p, "%s/%s", mu_folder_directory (), namep);
-      if (!p)
-	{
-	  mu_error (_("not enough memory"));
-	  exit (1);
-	}
+      char *p = mh_safe_make_file_name (mu_folder_directory (), namep);
       free (namep);
       namep = p;
     }
@@ -467,11 +460,16 @@ mh_get_dir ()
   if (mhdir[0] != '/')
     {
       char *p = mu_get_homedir ();
-      asprintf (&mhcopy, "%s/%s", p, mhdir);
+      mhcopy = mh_safe_make_file_name (p, mhdir);
       free (p);
     }
   else 
     mhcopy = strdup (mhdir);
+  if (!mhcopy)
+    {
+      mu_error (_("not enough memory"));
+      abort ();
+    }
   return mhcopy;
 }
 
@@ -487,8 +485,7 @@ mh_expand_name (const char *base, const char *name, int is_folder)
   else if (strncmp (namep, "../", 3) == 0 || strncmp (namep, "./", 2) == 0)
     {
       char *cwd = mu_getcwd ();
-      char *tmp = NULL;
-      asprintf (&tmp, "%s/%s", cwd, namep);
+      char *tmp = mh_safe_make_file_name (cwd, namep);
       free (cwd);
       free (namep);
       namep = tmp;
@@ -698,7 +695,7 @@ mh_real_install (char *name, int automode)
   char *ctx;
   FILE *fp;
   
-  asprintf (&mhdir, "%s/%s", home, "Mail");
+  mhdir = mh_safe_make_file_name (home, "Mail");
   
   if (!automode)
     {
@@ -736,7 +733,7 @@ mh_real_install (char *name, int automode)
 	  free (mhdir);
 	  if (local)
 	    {
-	      asprintf (&mhdir, "%s/%s", home, p);
+              mhdir = mh_safe_make_file_name (home, p);
 	      free (p);
 	    }
 	  else
@@ -756,7 +753,7 @@ mh_real_install (char *name, int automode)
   fprintf (fp, "Path: %s\n", mhdir);
   fclose (fp);
 
-  asprintf (&ctx, "%s/%s", mhdir, MH_CONTEXT_FILE);
+  ctx = mh_safe_make_file_name (mhdir, MH_CONTEXT_FILE);
   fp = fopen (ctx, "w");
   if (fp)
     {
@@ -764,7 +761,7 @@ mh_real_install (char *name, int automode)
       fclose (fp);
     }
   free (ctx);
-  asprintf (&ctx, "%s/inbox", mhdir);
+  ctx = mh_safe_make_file_name (mhdir, "inbox");
   if (mh_check_folder (ctx, !automode))
     exit (1);
   free (ctx);
@@ -1029,3 +1026,17 @@ mh_draft_message (const char *name, const char *msgspec, char **pname)
   mu_mailbox_destroy (&mbox);
   return rc;
 }
+
+char *
+mh_safe_make_file_name (const char *dir, const char *file)
+{
+  file = mu_make_file_name (dir, file);
+  if (!file)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_make_file_name", NULL, ENOMEM);
+      abort ();
+    }
+  return file;
+}
+
+			  

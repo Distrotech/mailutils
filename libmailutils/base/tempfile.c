@@ -31,6 +31,7 @@
 #include <mailutils/io.h>
 #include <mailutils/error.h>
 #include <mailutils/errno.h>
+#include <mailutils/util.h>
 
 /* Create and open a temporary file. Be very careful about it, since we
    may be running with extra privilege i.e setgid().
@@ -52,8 +53,12 @@ mu_tempfile (const char *tmpdir, char **namep)
   if (!tmpdir)
     tmpdir = (getenv ("TMPDIR")) ? getenv ("TMPDIR") : P_tmpdir;
 
-  if (mu_asprintf (&filename, "%s/muXXXXXX", tmpdir))
-    return -1;
+  filename = mu_make_file_name (tmpdir, "muXXXXXX");
+  if (!filename)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_make_file_name", NULL, ENOMEM);
+      return -1;
+    }
 
 #ifdef HAVE_MKSTEMP
   {

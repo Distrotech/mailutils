@@ -372,8 +372,8 @@ make_draft (mu_mailbox_t mbox, int disp, struct mh_whatnow_env *wh)
     
     mu_mailbox_get_url (mbox, &url);
     mh_message_number (msg, &num);
-    asprintf (&msgname, "%s/%s",
-	      mu_url_to_string (url), mu_umaxtostr (0, num));
+    msgname = mh_safe_make_file_name (mu_url_to_string (url), 
+                                      mu_umaxtostr (0, num));
     p = strchr (msgname, ':');
     if (!p)
       wh->msg = msgname;

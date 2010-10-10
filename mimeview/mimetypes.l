@@ -153,7 +153,7 @@ mimetypes_open (const char *name)
   
   if (S_ISDIR (st.st_mode))
     {
-      asprintf (&file_name, "%s/mime.types", name);
+      file_name = mu_make_file_name (name, "mime.types");
       file_name_alloc = 1;
     }
   else

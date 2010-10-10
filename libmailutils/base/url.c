@@ -956,12 +956,7 @@ mu_url_init (mu_url_t url, int port, const char *scheme)
 static char *
 _url_path_default (const char *spooldir, const char *user, int unused)
 {
-  char *mbox = malloc (strlen (spooldir) + strlen (user) + 2);
-  if (!mbox)
-    errno = ENOMEM;
-  else
-    sprintf (mbox, "%s/%s", spooldir, user);
-  return mbox;
+  return mu_make_file_name (spooldir, user);
 }
 
 /* Hashed indexing */

@@ -61,7 +61,7 @@ mh_read_profile ()
       char *home = mu_get_homedir ();
       if (!home)
 	abort (); /* shouldn't happen */
-      asprintf (&p, "%s/%s", home, MH_USER_PROFILE);
+      p = mh_safe_make_file_name (home, MH_USER_PROFILE);
       free (home);
     }
 
@@ -152,7 +152,7 @@ _mh_init_global_sequences ()
   _mh_init_global_context ();
   name = mh_global_profile_get ("mh-sequences", MH_SEQUENCES_FILE);
   p = mh_expand_name (NULL, current_folder, 0);
-  asprintf (&seq_name, "%s/%s", p, name);
+  seq_name = mh_safe_make_file_name (p, name);
   free (p);
   sequences = mh_context_create (seq_name, 1);
   if (mh_context_read (sequences) == 0)

@@ -59,14 +59,11 @@ mu_get_full_path (const char *file)
       char *cwd = mu_getcwd ();
       if (cwd)
 	{
-	  p = calloc (strlen (cwd) + 1 + strlen (file) + 1, 1);
-	  if (p)
-	    sprintf (p, "%s/%s", cwd, file);
+	  p = mu_make_file_name (cwd, file);
 	  free (cwd);
 	}
     }
-
-  if (!p)
+  else
     p = strdup (file);
   return p;
 }

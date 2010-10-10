@@ -447,8 +447,8 @@ swap_message (size_t a, size_t b)
   char *path_a, *path_b;
   char *tmp;
   
-  asprintf (&path_a, "%s/%s", mbox_path, mu_umaxtostr (0, a));
-  asprintf (&path_b, "%s/%s", mbox_path, mu_umaxtostr (1, b));
+  path_a = mh_safe_make_file_name (mbox_path, mu_umaxtostr (0, a));
+  path_b = mh_safe_make_file_name (mbox_path, mu_umaxtostr (1, b));
   tmp = mu_tempname (mbox_path);
   rename (path_a, tmp);
   unlink (path_a);

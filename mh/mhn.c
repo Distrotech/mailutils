@@ -1487,10 +1487,7 @@ normalize_path (const char *cwd, char *path)
   if (!cwd)
     cwd = pcwd = mu_getcwd ();
 
-  len = strlen (cwd) + strlen (path) + 2;
-  p = xmalloc (len);
-  sprintf (p, "%s/%s", cwd, path);
-  path = p;
+  path = mh_safe_make_file_name (cwd, path);
 
   /* delete trailing delimiter if any */
   if (len && path[len-1] == '/')
@@ -1576,7 +1573,7 @@ store_handler (mu_message_t msg, msg_part_t part, char *type, char *encoding,
     {
       char *fname = mhn_store_command (msg, part, prefix);
       if (dir)
-	asprintf (&name, "%s/%s", dir, fname);
+	name = mh_safe_make_file_name (dir, fname);
       else
 	name = fname;
     }
@@ -2670,7 +2667,7 @@ main (int argc, char **argv)
     case mode_compose:
       /* Prepare filename for diagnostic purposes */
       if (input_file[0] != '/')
-	asprintf (&input_file, "%s/%s", mu_folder_directory (), input_file);
+	input_file = mh_safe_make_file_name (mu_folder_directory (), input_file);
       rc = mhn_compose ();
       break;
       

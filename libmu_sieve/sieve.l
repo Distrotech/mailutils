@@ -349,11 +349,13 @@ static int
 _try_include (void *item, void *data)
 {
   char **dir = data;
-  char *name = malloc (strlen (item) + 1 + strlen (*dir) + 1);
+  char *name = mu_make_file_name ((char*) item, *dir);
 
   if (!name)
-    return 0;
-  sprintf (name, "%s/%s", (char*) item, *dir);
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_make_file_name", NULL, ENOMEM);
+      return 0;
+    }
   if (access (name, R_OK) == 0)
     {
       *(char**) data = name;

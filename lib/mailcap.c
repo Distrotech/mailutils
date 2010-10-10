@@ -660,10 +660,12 @@ display_stream_mailcap (const char *ident, mu_stream_t stream, mu_header_t hdr,
       char *home = mu_get_homedir ();
       asprintf (&mailcap_path, "%s/.mailcap:%s", home, DEFAULT_MAILCAP);
       free (home);
+      if (!mailcap_path)
+        return 1;
     }
   else
     mailcap_path = strdup (mailcap_path);
-
+  
   obstack_init (&expand_stack);
   
   for (p = strtok_r (mailcap_path, ":", &sp); p; p = strtok_r (NULL, ":", &sp))

@@ -342,7 +342,7 @@ maidag_forward (mu_message_t msg, struct mu_auth_data *auth, char *fwfile)
 		      auth->dir, mu_strerror (errno));
 	  return maidag_forward_none;
 	}
-      asprintf (&filename, "%s/%s", auth->dir, fwfile);
+      filename = mu_make_file_name (auth->dir, fwfile);
     }
   else
     filename = strdup (fwfile);

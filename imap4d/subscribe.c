@@ -40,7 +40,9 @@ imap4d_subscribe (struct imap4d_command *command, imap4d_tokbuf_t tok)
 
   name = imap4d_tokbuf_getarg (tok, IMAP4_ARG_1);
 
-  asprintf (&file, "%s/.mailboxlist", real_homedir);
+  file = mu_make_file_name (real_homedir, ".mailboxlist");
+  if (!file)
+    return io_completion_response (command, RESP_NO, "Cannot subscribe");
   fp = fopen (file, "a");
   free (file);
   if (fp)

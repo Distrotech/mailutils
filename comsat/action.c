@@ -375,9 +375,15 @@ run_user_action (FILE *tty, const char *cr, mu_message_t msg)
       char *cwd = mu_getcwd ();
       char *rcname;
 
-      mu_asprintf (&rcname, "%s/%s", cwd, BIFF_RC);
+      rcname = mu_make_file_name (cwd, BIFF_RC);
       free (cwd);
-      
+      if (!rcname)
+        {
+          mu_diag_funcall (MU_DIAG_ERROR, "mu_make_file_name", NULL, ENOMEM);
+          fclose (fp);
+          return;
+        }
+        
       mu_diag_get_debug (&debug);
       
       while ((n = act_getline (fp, &stmt, &size)))

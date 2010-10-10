@@ -99,7 +99,13 @@ imap4d_unsubscribe (struct imap4d_command *command, imap4d_tokbuf_t tok)
 
   name = imap4d_tokbuf_getarg (tok, IMAP4_ARG_1);
 
-  asprintf (&file, "%s/.mailboxlist", real_homedir);
+  file = mu_make_file_name (real_homedir, ".mailboxlist");
+  if (!file)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_make_file_name", NULL, ENOMEM);
+      return io_completion_response (command, RESP_NO, "Cannot unsubscribe");
+    }
+
   sd.result = 0;
   sd.name = name;
 

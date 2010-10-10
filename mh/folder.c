@@ -275,9 +275,7 @@ read_seq_file (struct folder_info *info, const char *prefix, const char *name)
   mh_context_t *ctx;
   const char *p;
   
-  asprintf (&pname, "%s/%s", prefix, name);
-  if (!pname)
-    abort ();
+  pname = mh_safe_make_file_name (prefix, name);
   ctx = mh_context_create (pname, 1);
   mh_context_read (ctx);
   
@@ -350,7 +348,7 @@ _scan (const char *name, size_t depth)
 	}
       else if (entry->d_name[0] != ',')
 	{
-	  asprintf (&p, "%s/%s", name, entry->d_name);
+	  p = mh_safe_make_file_name (name, entry->d_name);
 	  if (stat (p, &st) < 0)
 	    mu_diag_funcall (MU_DIAG_ERROR, "stat", p, errno);
 	  else if (S_ISDIR (st.st_mode))
@@ -378,7 +376,7 @@ _scan (const char *name, size_t depth)
   
   if (info.cur)
     {
-      asprintf (&p, "%s/%s", name, mu_umaxtostr (0, info.cur));
+      p = mh_safe_make_file_name (name, mu_umaxtostr (0, info.cur));
       if (stat (p, &st) < 0 || !S_ISREG (st.st_mode))
 	info.cur = 0;
       free (p);

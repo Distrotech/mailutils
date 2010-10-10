@@ -300,7 +300,8 @@ check_db (mu_sieve_machine_t mach, mu_list_t tags, char *from)
 
   home = mu_get_homedir ();
 
-  if (asprintf (&file, "%s/.vacation", (home ? home : ".")) == -1)
+  file = mu_make_file_name (home ? home : ".", ".vacation");
+  if (!file)
     {
       mu_sieve_error (mach, _("%lu: cannot build db file name"),
 		      (unsigned long) mu_sieve_get_message_num (mach));

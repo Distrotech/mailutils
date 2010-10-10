@@ -71,8 +71,7 @@ main (int argc, char **argv)
   home = mu_get_homedir ();
   if (!home)
     abort (); /* shouldn't happen */
-  asprintf (&name, "%s/%s", home, MH_USER_PROFILE);
-  
+  name = mh_safe_make_file_name (home, MH_USER_PROFILE);
   mh_install (name, automode);
   return 0;
 }

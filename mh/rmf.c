@@ -131,7 +131,7 @@ rmf (const char *name)
 	  || strcmp (entry->d_name, "..") == 0)
 	continue;
       
-      asprintf (&p, "%s/%s", name, entry->d_name);
+      p = mh_safe_make_file_name (name, entry->d_name);
       if (stat (p, &st) < 0)
 	{
 	  mu_diag_funcall (MU_DIAG_ERROR, "stat", p, errno);

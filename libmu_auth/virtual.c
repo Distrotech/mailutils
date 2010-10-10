@@ -52,6 +52,7 @@
 #include <mailutils/mu_auth.h>
 #include <mailutils/nls.h>
 #include <mailutils/errno.h>
+#include <mailutils/util.h>
 
 #ifdef ENABLE_VIRTUAL_DOMAINS
 
@@ -89,12 +90,10 @@ getpwnam_virtual (const char *u)
   if (delim == 0)
     return NULL;
 
-  filename = malloc (strlen (mu_virtual_module_config.pwddir) +
-		     strlen (&u[delim + 1]) + 2 /* slash and null byte */);
+  filename = mu_make_file_name (mu_virtual_module_config.pwddir, &u[delim + 1]);
   if (filename == NULL)
     return NULL;
 
-  sprintf (filename, "%s/%s", mu_virtual_module_config.pwddir, &u[delim + 1]);
   pfile = fopen (filename, "r");
   free (filename);
 
@@ -173,10 +172,9 @@ mu_auth_virt_domain_by_name (struct mu_auth_data **return_data,
 	return MU_ERR_AUTH_FAILURE;
     }
   
-  mailbox_name = calloc (strlen (pw->pw_dir) + strlen ("/INBOX") + 1, 1);
+  mailbox_name = mu_make_file_name (pw->pw_dir, "INBOX");
   if (!mailbox_name)
     return ENOMEM;
-  sprintf (mailbox_name, "%s/INBOX", pw->pw_dir);
 
   rc = mu_auth_data_alloc (return_data,
 			   pw->pw_name,

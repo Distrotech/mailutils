@@ -34,8 +34,8 @@ imap4d_lsub (struct imap4d_command *command, imap4d_tokbuf_t tok)
 {
   char *ref;
   char *wcard;
-  char *file = NULL;
-  char *pattern = NULL;
+  char *file;
+  char *pattern;
   const char *delim = "/";
   FILE *fp;
   
@@ -45,11 +45,11 @@ imap4d_lsub (struct imap4d_command *command, imap4d_tokbuf_t tok)
   ref = imap4d_tokbuf_getarg (tok, IMAP4_ARG_1);
   wcard = imap4d_tokbuf_getarg (tok, IMAP4_ARG_2);
 
-  asprintf (&pattern, "%s%s", ref, wcard);
+  pattern = mu_make_file_name (ref, wcard);
   if (!pattern)
     return io_completion_response (command, RESP_NO, "Not enough memory");
   
-  asprintf (&file, "%s/.mailboxlist", real_homedir);
+  file = mu_make_file_name (real_homedir, ".mailboxlist");
   if (!file)
     {
       free (pattern);
