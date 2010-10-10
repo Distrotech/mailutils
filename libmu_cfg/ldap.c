@@ -20,7 +20,7 @@
 #endif
 #include <stdlib.h>
 #include "mailutils/libcfg.h"
-#include "mailutils/mutil.h"
+#include "mailutils/util.h"
 #include "mailutils/ldap.h"
 
 static struct mu_ldap_module_config ldap_settings;

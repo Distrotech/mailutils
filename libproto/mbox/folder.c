@@ -38,7 +38,7 @@
 #include <mailutils/auth.h>
 #include <mailutils/url.h>
 #include <mailutils/stream.h>
-#include <mailutils/mutil.h>
+#include <mailutils/util.h>
 #include <mailutils/errno.h>
 #include <mailutils/debug.h>
 

@@ -30,7 +30,7 @@
 #include <confpaths.h>
 
 #include <mailutils/mailbox.h>
-#include <mailutils/mutil.h>
+#include <mailutils/util.h>
 #include <mailutils/debug.h>
 #include <mailutils/error.h>
 #include <mailutils/errno.h>

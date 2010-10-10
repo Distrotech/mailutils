@@ -31,7 +31,7 @@
 #include <mailutils/sys/registrar.h>
 
 #include <maildir.h>
-#include <mailutils/mutil.h>
+#include <mailutils/util.h>
 #include <mailutils/url.h>
 #include <mailutils/sys/amd.h>
 

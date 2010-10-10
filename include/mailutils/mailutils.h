@@ -44,7 +44,7 @@
 #include <mailutils/mime.h>
 #include <mailutils/monitor.h>
 #include <mailutils/mu_auth.h>
-#include <mailutils/mutil.h>
+#include <mailutils/util.h>
 #include <mailutils/nls.h>
 #include <mailutils/observer.h>
 #include <mailutils/opool.h>

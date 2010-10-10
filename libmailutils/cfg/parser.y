@@ -35,7 +35,7 @@
 #include <mailutils/list.h>
 #include <mailutils/iterator.h>
 #include <mailutils/debug.h>
-#include <mailutils/mutil.h>
+#include <mailutils/util.h>
 #include <mailutils/cctype.h>
 
 int mu_cfg_parser_verbose;

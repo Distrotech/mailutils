@@ -24,7 +24,7 @@
 
 #include <mailutils/types.h>
 #include <mailutils/stream.h>
-#include <mailutils/mutil.h>
+#include <mailutils/util.h>
 #include <mailutils/cstr.h>
 
 int

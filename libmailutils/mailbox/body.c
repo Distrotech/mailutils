@@ -30,7 +30,7 @@
 #include <fcntl.h>
 
 #include <mailutils/stream.h>
-#include <mailutils/mutil.h>
+#include <mailutils/util.h>
 #include <mailutils/errno.h>
 #include <mailutils/sys/stream.h>
 #include <mailutils/sys/body.h>

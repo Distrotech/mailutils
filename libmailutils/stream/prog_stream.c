@@ -35,7 +35,7 @@
 #include <mailutils/stream.h>
 #include <mailutils/sys/stream.h>
 #include <mailutils/sys/prog_stream.h>
-#include <mailutils/mutil.h>
+#include <mailutils/util.h>
 
 static mu_list_t prog_stream_list;
 

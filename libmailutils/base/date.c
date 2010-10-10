@@ -22,7 +22,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <mailutils/mutil.h>
+#include <mailutils/util.h>
 #include <mailutils/cstr.h>
 
 #define SECS_PER_DAY 86400

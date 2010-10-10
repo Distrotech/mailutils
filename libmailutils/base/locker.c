@@ -40,7 +40,7 @@
 
 #include <mailutils/errno.h>
 #include <mailutils/locker.h>
-#include <mailutils/mutil.h>
+#include <mailutils/util.h>
 
 #define LOCKFILE_ATTR           0644
 

@@ -25,7 +25,7 @@
 #include <mailutils/errno.h>
 #include <mailutils/error.h>
 #include <mailutils/iterator.h>
-#include <mailutils/mutil.h>
+#include <mailutils/util.h>
 #include <mailutils/cstr.h>
 #include <mailutils/sys/iterator.h>
 

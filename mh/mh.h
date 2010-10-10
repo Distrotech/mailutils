@@ -40,7 +40,7 @@
 #include <mailutils/list.h>
 #include <mailutils/iterator.h>
 #include <mailutils/address.h>
-#include <mailutils/mutil.h>
+#include <mailutils/util.h>
 #include <mailutils/stream.h>
 #include <mailutils/filter.h>
 #include <mailutils/url.h>

@@ -30,7 +30,7 @@
 #include <mailutils/cpp/mailer.h>
 #include <mailutils/cpp/message.h>
 #include <mailutils/cpp/mime.h>
-#include <mailutils/cpp/mutil.h>
+#include <mailutils/cpp/util.h>
 #include <mailutils/cpp/pop3.h>
 #include <mailutils/cpp/registrar.h>
 #include <mailutils/cpp/secret.h>

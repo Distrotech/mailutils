@@ -31,7 +31,7 @@
 #include <sys/types.h>
 
 #include <mailutils/errno.h>
-#include <mailutils/mutil.h>
+#include <mailutils/util.h>
 #include <mailutils/parse822.h>
 #include <mailutils/address.h>
 #include <mailutils/cstr.h>

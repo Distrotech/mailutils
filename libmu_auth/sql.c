@@ -47,7 +47,7 @@
 #include <mailutils/error.h>
 #include <mailutils/errno.h>
 #include <mailutils/nls.h>
-#include <mailutils/mutil.h>
+#include <mailutils/util.h>
 #include <mailutils/sql.h>
 #include <mailutils/vartab.h>
 #include <mailutils/cstr.h>

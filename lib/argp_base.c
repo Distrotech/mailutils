@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2009, 2010 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -12,25 +12,19 @@
    Lesser General Public License for more details.
 
    You should have received a copy of the GNU Lesser General
-   Public License along with this library.  If not, see 
+   Public License along with this library.  If not, see
    <http://www.gnu.org/licenses/>. */
 
-#ifndef _MUCPP_MUTIL_H
-#define _MUCPP_MUTIL_H
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
+#include <unistd.h>
+#include <string.h>
 
-#include <string>
-#include <mailutils/filter.h>
-#include <mailutils/mutil.h>
-
-namespace mailutils
+char *
+__argp_base_name (const char *arg)
 {
-
-int set_user_email (const std::string& email);
-int set_user_email_domain (const std::string& domain);
-std::string tempname ();
-std::string tempname (const std::string& tmpdir);
-
+  char *p = strrchr (arg, '/');
+  return (char *)(p ? p + 1 : arg);
 }
-
-#endif // not _MUCPP_MUTIL_H
 

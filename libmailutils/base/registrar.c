@@ -34,7 +34,7 @@
 #include <mailutils/nls.h>
 #include <mailutils/error.h>
 #include <mailutils/url.h>
-#include <mailutils/mutil.h>
+#include <mailutils/util.h>
 #include <mailutils/sys/registrar.h>
 
 /* NOTE: We will leak here since the monitor and the registrar will never

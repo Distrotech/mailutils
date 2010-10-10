@@ -28,7 +28,7 @@
 # include <strings.h>
 #endif
 
-#include <mailutils/mutil.h>
+#include <mailutils/util.h>
 #include <mailutils/errno.h>
 #include <mailutils/argcv.h>
 #include <mailutils/secret.h>

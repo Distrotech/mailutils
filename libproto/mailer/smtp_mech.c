@@ -26,7 +26,7 @@
 #include <mailutils/cstr.h>
 #include <mailutils/list.h>
 #include <mailutils/iterator.h>
-#include <mailutils/mutil.h>
+#include <mailutils/util.h>
 #include <mailutils/smtp.h>
 #include <mailutils/sys/smtp.h>
 

@@ -46,7 +46,7 @@
 #include <mailutils/tls.h>
 #include <mailutils/md5.h>
 #include <mailutils/io.h>
-#include <mailutils/mutil.h>
+#include <mailutils/util.h>
 #include <mailutils/cstr.h>
 #include <mailutils/cctype.h>
 #include <mailutils/opool.h>

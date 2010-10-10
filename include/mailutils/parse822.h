@@ -24,7 +24,7 @@
 #define _MAILUTILS_PARSE822_H
 
 #include <mailutils/types.h>
-#include <mailutils/mutil.h>
+#include <mailutils/util.h>
 
 #ifdef __cplusplus
 extern "C" {

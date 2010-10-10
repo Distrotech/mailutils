@@ -125,20 +125,30 @@ libmailutils/cfg/format.c
 libmailutils/cfg/lexer.l
 libmailutils/cfg/parser.y
 libmailutils/cfg/gocs.c
+
 libmailutils/diag/debug.c
 libmailutils/diag/diag.c
 libmailutils/diag/errors
 libmailutils/diag/gdebug.c
+
 libmailutils/stream/file_stream.c
+
 libmailutils/filter/filter_iconv.c
+
 libmailutils/server/ipsrv.c
 libmailutils/server/msrv.c
+
 libmailutils/mailbox/message.c
+
 libmailutils/auth/mu_auth.c
+
 libmailutils/base/mutil.c
 libmailutils/base/parsedate.y
 libmailutils/base/registrar.c
 libmailutils/base/version.c
+libmailutils/base/tempfile.c
+
+libmailutils/string/trueans.c
 
 messages/messages.c
 

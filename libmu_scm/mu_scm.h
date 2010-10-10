@@ -37,7 +37,7 @@
 #include <mailutils/errno.h>
 #include <mailutils/address.h>
 #include <mailutils/registrar.h>
-#include <mailutils/mutil.h>
+#include <mailutils/util.h>
 #include <mailutils/stream.h>
 #include <mailutils/debug.h>
 #include <mailutils/attribute.h>

@@ -19,7 +19,7 @@
 # include <config.h>
 #endif
 #include <mailutils/stream.h>
-#include <mailutils/mutil.h>
+#include <mailutils/util.h>
 #include <mailutils/errno.h>
 
 #define FILE_PERM_READ 0x1

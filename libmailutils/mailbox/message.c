@@ -41,7 +41,7 @@
 #include <mailutils/folder.h>
 #include <mailutils/header.h>
 #include <mailutils/mailbox.h>
-#include <mailutils/mutil.h>
+#include <mailutils/util.h>
 #include <mailutils/observer.h>
 #include <mailutils/stream.h>
 #include <mailutils/mu_auth.h>

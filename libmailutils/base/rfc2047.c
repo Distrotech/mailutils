@@ -28,7 +28,7 @@
 #include <mailutils/stream.h>
 #include <mailutils/filter.h>
 #include <mailutils/errno.h>
-#include <mailutils/mutil.h>
+#include <mailutils/util.h>
 
 static int
 realloc_buffer (char **bufp, size_t *bufsizep, size_t incr)

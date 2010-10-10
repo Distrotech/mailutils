@@ -22,7 +22,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <mailutils/alloc.h>
-#include <mailutils/mutil.h>
+#include <mailutils/util.h>
 
 char *
 mu_make_file_name (const char *dir, const char *file)

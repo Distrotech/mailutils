@@ -33,7 +33,7 @@
 			      be renamed! */
 #include <mailutils/mime.h>
 #include <mailutils/filter.h>
-#include <mailutils/mutil.h>
+#include <mailutils/util.h>
 
 /* See RFC 2045, 5.1.  Syntax of the Content-Type Header Field */
 #define _ISSPECIAL(c) !!strchr ("()<>@,;:\\\"/[]?=", c)

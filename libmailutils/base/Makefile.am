@@ -24,9 +24,13 @@ libbase_la_SOURCES = \
  assoc.c\
  daemon.c\
  date.c\
+ fdwait.c\
  fgetpwent.c\
+ filename.c\
  freeitem.c\
+ getcwd.c\
  getpass.c\
+ hostname.c\
  iterator.c\
  kwd.c\
  list.c\
@@ -36,6 +40,7 @@ libbase_la_SOURCES = \
  mailcap.c\
  md5.c\
  monitor.c\
+ msgid.c\
  munre.c\
  mutil.c\
  nls.c\
@@ -48,10 +53,16 @@ libbase_la_SOURCES = \
  registrar.c\
  refcount.c\
  rfc2047.c\
+ schemeauto.c\
  sha1.c\
  secret.c\
+ spawnvp.c\
+ symlink.c\
+ tempfile.c\
  ticket.c\
+ tilde.c\
  url.c\
+ usremail.c\
  vartab.c\
  version.c\
  wicket.c

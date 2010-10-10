@@ -35,7 +35,7 @@
 #include <mailutils/stream.h>
 #include <mailutils/sys/stream.h>
 #include <mailutils/sys/file_stream.h>
-#include <mailutils/mutil.h>
+#include <mailutils/util.h>
 
 #define MU_FSTR_ERROR_NOREG (MU_ERR_LAST+1)
 

@@ -31,7 +31,7 @@
 #include <mailutils/cfg.h>
 #include <mailutils/errno.h>
 #include <mailutils/error.h>
-#include <mailutils/mutil.h>
+#include <mailutils/util.h>
 #include <mailutils/monitor.h>
 #include <mailutils/refcount.h>
 #include <mailutils/list.h>

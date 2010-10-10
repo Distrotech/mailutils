@@ -26,7 +26,7 @@
 #include <mailutils/address.h>
 #include <mailutils/errno.h>
 #include <mailutils/kwd.h>
-#include <mailutils/mutil.h>
+#include <mailutils/util.h>
 #include <mailutils/cstr.h>
 #include <mailutils/cctype.h>
 

@@ -24,7 +24,7 @@
 #include <mailutils/gocs.h>
 #include <mailutils/mailbox.h>
 #include <mailutils/locker.h>
-#include <mailutils/mutil.h>
+#include <mailutils/util.h>
 #include <mailutils/mailer.h>
 #include <mailutils/error.h>
 #include <mailutils/errno.h>

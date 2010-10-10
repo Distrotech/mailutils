@@ -39,7 +39,7 @@
 #include <mailutils/guile.h>
 #include <mailutils/nls.h>
 #include <mailutils/list.h>
-#include <mailutils/mutil.h>
+#include <mailutils/util.h>
 #include <mailutils/attribute.h>
 #include <mailutils/envelope.h>
 #include <mu_asprintf.h>

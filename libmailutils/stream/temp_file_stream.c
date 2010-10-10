@@ -30,7 +30,7 @@
 #include <mailutils/stream.h>
 #include <mailutils/sys/stream.h>
 #include <mailutils/sys/file_stream.h>
-#include <mailutils/mutil.h>
+#include <mailutils/util.h>
 
 
 static int

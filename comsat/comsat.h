@@ -49,7 +49,7 @@
 #include <mailutils/list.h>
 #include <mailutils/mailbox.h>
 #include <mailutils/message.h>
-#include <mailutils/mutil.h>
+#include <mailutils/util.h>
 #include <mailutils/registrar.h>
 #include <mailutils/stream.h>
 #include <mailutils/mu_auth.h>

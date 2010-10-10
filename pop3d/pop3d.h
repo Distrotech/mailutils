@@ -107,7 +107,7 @@ extern int expire_on_exit;
 #include <mailutils/locker.h>
 #include <mailutils/mailbox.h>
 #include <mailutils/message.h>
-#include <mailutils/mutil.h>
+#include <mailutils/util.h>
 #include <mailutils/mu_auth.h>
 #include <mailutils/nls.h>
 #include <mailutils/registrar.h>

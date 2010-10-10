@@ -45,7 +45,7 @@
 #include <mailutils/mailbox.h>
 #include <mailutils/message.h>
 #include <mailutils/argcv.h>
-#include <mailutils/mutil.h>
+#include <mailutils/util.h>
 #include <mailutils/mime.h>
 #include <mailutils/io.h>
 

@@ -20,6 +20,7 @@ include gnulib.mk
 INCLUDES = @MU_LIB_COMMON_INCLUDES@ 
 
 libmuaux_a_SOURCES += \
+ argp_base.c\
  daemon.c\
  mailcap.c\
  mu_dbm.c\

@@ -610,7 +610,7 @@ o_merid	: /* empty */
 # endif
 #endif
 
-#include <mailutils/mutil.h>
+#include <mailutils/util.h>
 
 /* Month and day table. */
 static SYMBOL const month_day_tab[] = {

@@ -20,7 +20,7 @@
 #endif
 #include <stdlib.h>
 #include <stdio.h>
-#include <mailutils/mutil.h>
+#include <mailutils/util.h>
 #include "mailutils/libargp.h"
 
 const char *capa[] = {

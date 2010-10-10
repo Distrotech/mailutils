@@ -18,13 +18,18 @@
 noinst_LTLIBRARIES = libstring.la
 
 libstring_la_SOURCES = \
+ cpystr.c\
  cstrcasecmp.c\
+ cstrcasestr.c\
  cstrlower.c\
  cstrupper.c\
+ hexstr.c\
  strltrim.c\
  strskip.c\
  stripws.c\
  strrtrim.c\
+ trueans.c\
+ unfold.c\
  asnprintf.c\
  asprintf.c\
  muctype.c\

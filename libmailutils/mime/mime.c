@@ -37,7 +37,7 @@
 #include <mailutils/body.h>
 #include <mailutils/header.h>
 #include <mailutils/errno.h>
-#include <mailutils/mutil.h>
+#include <mailutils/util.h>
 
 #include <mailutils/sys/mime.h>
 #include <mailutils/sys/stream.h>

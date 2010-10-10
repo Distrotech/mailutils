@@ -42,7 +42,7 @@
 
 #include <mailutils/stream.h>
 #include <mailutils/address.h>
-#include <mailutils/mutil.h>
+#include <mailutils/util.h>
 #include <mailutils/errno.h>
 #include <mailutils/cstr.h>
 #include <mailutils/sys/header_stream.h>

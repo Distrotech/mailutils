@@ -18,6 +18,8 @@
 #ifndef _MAILUTILS_IO_H
 #define _MAILUTILS_IO_H
 
+#include <stdarg.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif

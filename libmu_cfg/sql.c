@@ -21,7 +21,7 @@
 #include <stdlib.h>
 #include "mailutils/libcfg.h"
 #include <mailutils/sql.h>
-#include <mailutils/mutil.h>
+#include <mailutils/util.h>
 
 static struct mu_sql_module_config sql_settings;
 

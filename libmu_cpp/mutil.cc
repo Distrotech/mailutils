@@ -16,7 +16,7 @@
    <http://www.gnu.org/licenses/>. */
 
 #include <cstdlib>
-#include <mailutils/cpp/mutil.h>
+#include <mailutils/cpp/util.h>
 
 using namespace mailutils;
 

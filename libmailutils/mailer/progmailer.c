@@ -39,7 +39,7 @@
 #include <mailutils/body.h>
 #include <mailutils/message.h>
 #include <mailutils/progmailer.h>
-#include <mailutils/mutil.h>
+#include <mailutils/util.h>
 #include <mailutils/cstr.h>
 
 struct _mu_progmailer

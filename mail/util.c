@@ -16,7 +16,7 @@
    along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include "mail.h"
-#include <mailutils/mutil.h>
+#include <mailutils/util.h>
 #include <mailutils/mime.h>
 #include <pwd.h>
 #ifdef HAVE_TERMIOS_H

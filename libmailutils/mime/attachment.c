@@ -42,7 +42,7 @@
 #include <mailutils/message.h>
 #include <mailutils/stream.h>
 #include <mailutils/errno.h>
-#include <mailutils/mutil.h>
+#include <mailutils/util.h>
 
 #define BUF_SIZE	2048
 

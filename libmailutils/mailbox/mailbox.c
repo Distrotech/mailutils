@@ -38,7 +38,7 @@
 #include <mailutils/url.h>
 #include <mailutils/attribute.h>
 #include <mailutils/message.h>
-#include <mailutils/mutil.h>
+#include <mailutils/util.h>
 
 #include <mailutils/sys/mailbox.h>
 #include <mailutils/sys/url.h>

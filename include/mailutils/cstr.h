@@ -27,6 +27,7 @@ int mu_strupper (char *);
 
 int mu_c_strcasecmp (const char *a, const char *b);
 int mu_c_strncasecmp (const char *a, const char *b, size_t n);
+char *mu_strcasestr (const char *haystack, const char *needle);
 
 size_t mu_rtrim_class (char *str, int __class);
 size_t mu_rtrim_cset (char *str, const char *cset);

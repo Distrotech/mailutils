@@ -25,7 +25,7 @@
 #include <mailutils/smtp.h>
 #include <mailutils/sys/smtp.h>
 #include <mailutils/mailbox.h> /* Strange, mu_ticket_file is declared here */
-#include <mailutils/mutil.h>
+#include <mailutils/util.h>
 #include <mailutils/auth.h>
 #include <mailutils/url.h>
 

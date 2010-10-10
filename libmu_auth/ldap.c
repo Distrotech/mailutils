@@ -37,7 +37,7 @@
 #include "mailutils/error.h"
 #include "mailutils/errno.h"
 #include "mailutils/nls.h"
-#include "mailutils/mutil.h"
+#include "mailutils/util.h"
 #include "mailutils/stream.h"
 #include "mailutils/filter.h"
 #include "mailutils/md5.h"

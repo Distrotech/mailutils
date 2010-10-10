@@ -59,7 +59,7 @@
 #include <mailutils/nls.h>
 #include <mailutils/tls.h>
 #include <mailutils/error.h>
-#include <mailutils/mutil.h>
+#include <mailutils/util.h>
 #include <mailutils/mime.h>
 
 #include "mailutils/libargp.h"

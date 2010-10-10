@@ -34,7 +34,7 @@
 #include <mailutils/sys/folder.h>
 #include <mailutils/sys/registrar.h>
 #include <mailutils/sys/amd.h>
-#include <mailutils/mutil.h>
+#include <mailutils/util.h>
 #include <mailutils/cctype.h>
 
 static int

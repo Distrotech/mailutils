@@ -24,7 +24,7 @@
 #include <mailutils/errno.h>
 #include <mailutils/cctype.h>
 #include <mailutils/list.h>
-#include <mailutils/mutil.h>
+#include <mailutils/util.h>
 #include <mailutils/smtp.h>
 #include <mailutils/stream.h>
 #include <mailutils/sys/smtp.h>

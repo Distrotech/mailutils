@@ -22,6 +22,7 @@ libfilter_la_SOURCES =\
  binflt.c\
  crlfdot.c\
  crlfflt.c\
+ decode.c\
  dot.c\
  filter.c\
  filter_iconv.c\

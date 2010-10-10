@@ -30,7 +30,7 @@
 #include <mailutils/nls.h>
 #include <mailutils/stream.h>
 #include <mailutils/sys/memory_stream.h>
-#include <mailutils/mutil.h>
+#include <mailutils/util.h>
 
 static void
 _memory_done (mu_stream_t stream)

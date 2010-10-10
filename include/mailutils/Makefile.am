@@ -69,7 +69,7 @@ pkginclude_HEADERS = \
  mime.h\
  monitor.h\
  mu_auth.h\
- mutil.h\
+ util.h\
  nls.h\
  nntp.h\
  observer.h\

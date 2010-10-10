@@ -37,7 +37,7 @@
 #include <mailutils/nls.h>
 #include <mailutils/cfg.h>
 #include <mailutils/list.h>
-#include <mailutils/mutil.h>
+#include <mailutils/util.h>
   
 #include "parser.h"
 

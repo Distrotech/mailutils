@@ -28,7 +28,7 @@
 #include <mailutils/property.h>
 #include <mailutils/mailer.h>
 #include <mailutils/url.h>
-#include <mailutils/mutil.h>
+#include <mailutils/util.h>
 #include <mailutils/sys/mailbox.h>
 #include <mailutils/sys/mailer.h>
 

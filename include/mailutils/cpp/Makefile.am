@@ -33,7 +33,7 @@ cppinclude_HEADERS = \
  mailutils.h\
  message.h\
  mime.h\
- mutil.h\
+ util.h\
  pop3.h\
  registrar.h\
  secret.h\

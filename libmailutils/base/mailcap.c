@@ -27,7 +27,7 @@
 #include <mailutils/cctype.h>
 #include <mailutils/mailcap.h>
 #include <mailutils/stream.h>
-#include <mailutils/mutil.h>
+#include <mailutils/util.h>
 #include <mailutils/cstr.h>
 
 /* Definition of the structure, this should be in mailutils/sys/mailcap.h.  */

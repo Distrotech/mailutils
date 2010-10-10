@@ -48,7 +48,7 @@
 #include <mailutils/cctype.h>
 #include <mailutils/cstr.h>
 #include <mailutils/tls.h>
-#include <mailutils/mutil.h>
+#include <mailutils/util.h>
 
 /* A structure which contains information on the commands this program
    can understand. */

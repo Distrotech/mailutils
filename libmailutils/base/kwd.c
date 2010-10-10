@@ -22,7 +22,7 @@
 #include <string.h>
 #include <mailutils/kwd.h>
 #include <mailutils/errno.h>
-#include <mailutils/mutil.h>
+#include <mailutils/util.h>
 #include <mailutils/cstr.h>
 
 int

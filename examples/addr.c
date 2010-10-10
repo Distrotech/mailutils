@@ -25,7 +25,7 @@
 #include <mailutils/address.h>
 #include <mailutils/errno.h>
 #include <mailutils/kwd.h>
-#include <mailutils/mutil.h>
+#include <mailutils/util.h>
 
 #define EPARSE MU_ERR_NOENT
 

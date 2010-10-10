@@ -38,7 +38,7 @@
 #include <mailutils/folder.h>
 #include <mailutils/list.h>
 #include <mailutils/mailbox.h>
-#include <mailutils/mutil.h>
+#include <mailutils/util.h>
 #include <mailutils/registrar.h>
 #include <mailutils/stream.h>
 #include <mailutils/nls.h>
