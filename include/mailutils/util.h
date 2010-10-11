@@ -78,7 +78,8 @@ char *mu_normalize_path (char *path);
 char *mu_expand_path_pattern (const char *pattern, const char *username);
 char *mu_tilde_expansion (const char *ref, const char *delim,
 			  const char *homedir);
-int mu_unroll_symlink (char *out, size_t outsz, const char *in);
+int mu_readlink (const char *name, char **pbuf, size_t *psize, size_t *plen);
+int mu_unroll_symlink (const char *name, char **pout);
 char *mu_getcwd (void);
 int mu_tempfile (const char *tmpdir, char **namep);
 char *mu_tempname (const char *tmpdir);

@@ -30,32 +30,73 @@
 #include <mailutils/types.h>
 #include <mailutils/util.h>
 
-/* The result of readlink() may be a path relative to that link, 
- * qualify it if necessary.
- */
-static void
-mu_qualify_link (const char *path, const char *link, char *qualified)
+#define INITIAL_READLINK_SIZE 128
+
+int
+mu_readlink (const char *name, char **pbuf, size_t *psize, size_t *plen)
 {
-  const char *lb = NULL;
-  size_t len;
+  size_t status = 0;
+  char *buf = *pbuf;
+  size_t size = *plen;
+  ssize_t linklen;
 
-  /* link is full path */
-  if (*link == '/')
+  while (1)
     {
-      mu_cpystr (qualified, link, _POSIX_PATH_MAX);
-      return;
+      if (!buf)
+	{
+	  size = INITIAL_READLINK_SIZE;
+	  buf = malloc (size);
+	}
+      else
+	{
+	  char *p;
+	  size_t newsize = size << 1;
+	  if (newsize < size)
+	    {
+	      status = ENAMETOOLONG;
+	      break;
+	    }
+	  size = newsize;
+	  p = realloc (buf, size);
+	  if (!p)
+	    free (buf);
+	  buf = p;
+	}
+      if (!buf)
+	{
+	  status = ENOMEM;
+	  break;
+	}
+      
+      linklen = readlink (name, buf, size);
+      if (linklen < 0 && errno != ERANGE)
+	{
+	  status = errno;
+	  break;
+	}
+
+      if ((size_t) linklen < size)
+	{
+	  buf[linklen++] = '\0';
+	  status = 0;
+	  break;
+	}
     }
 
-  if ((lb = strrchr (path, '/')) == NULL)
+  if (status)
     {
-      /* no path in link */
-      mu_cpystr (qualified, link, _POSIX_PATH_MAX);
-      return;
+      if (buf)
+	{
+	  free (buf);
+	  buf = NULL;
+	}
+      size = 0;
     }
-
-  len = lb - path + 1;
-  memcpy (qualified, path, len);
-  mu_cpystr (qualified + len, link, _POSIX_PATH_MAX - len);
+  *pbuf = buf;
+  *psize = size;
+  if (plen)
+    *plen = linklen;
+  return status;
 }
 
 #ifndef _POSIX_SYMLOOP_MAX
@@ -63,41 +104,52 @@ mu_qualify_link (const char *path, const char *link, char *qualified)
 #endif
 
 int
-mu_unroll_symlink (char *out, size_t outsz, const char *in)
+mu_unroll_symlink (const char *name, char **pout)
 {
-  char path[_POSIX_PATH_MAX];
-  int symloops = 0;
+  size_t symloops = 0;
+  struct slbuf { char *base; size_t size; } buf[2];
+  int idx = 0;
+  int status;
+  
+  buf[0].base = buf[1].base = NULL;
+  buf[0].size = buf[1].size = 0;
 
   while (symloops++ < _POSIX_SYMLOOP_MAX)
     {
-      struct stat s;
-      char link[_POSIX_PATH_MAX];
-      char qualified[_POSIX_PATH_MAX];
-      int len;
+      struct stat st;
+      size_t len;
 
-      if (lstat (in, &s) == -1)
+      if (lstat (name, &st) == -1)
 	return errno;
 
-      if (!S_ISLNK (s.st_mode))
+      if (!S_ISLNK (st.st_mode))
 	{
-	  mu_cpystr (path, in, sizeof (path));
+	  if (!buf[idx].base)
+	    {
+	      buf[idx].base = strdup (name);
+	      if (!buf[idx].base)
+		return ENOMEM;
+	    }
+	  status = 0;
 	  break;
 	}
 
-      if ((len = readlink (in, link, sizeof (link))) == -1)
-	return errno;
-
-      link[(len >= sizeof (link)) ? (sizeof (link) - 1) : len] = '\0';
-
-      mu_qualify_link (in, link, qualified);
-
-      mu_cpystr (path, qualified, sizeof (path));
-
-      in = path;
+      idx = !idx;
+      status = mu_readlink (name, &buf[idx].base, &buf[idx].size, &len);
+      if (status)
+	break;
+      name = mu_normalize_path (buf[idx].base);
     }
 
-  mu_cpystr (out, path, outsz);
-
-  return 0;
+  if (status)
+    {
+      free (buf[0].base);
+      free (buf[1].base);
+    }
+  else
+    {
+      *pout = buf[idx].base;
+      free (buf[!idx].base);
+    }
+  return status;
 }
-

@@ -437,7 +437,7 @@ mu_locker_create (mu_locker_t *plocker, const char *fname, int flags)
 {
   unsigned type;
   mu_locker_t l;
-  char filename[_POSIX_PATH_MAX];
+  char *filename;
   int err = 0;
 
   if (plocker == NULL)
@@ -446,15 +446,18 @@ mu_locker_create (mu_locker_t *plocker, const char *fname, int flags)
   if (fname == NULL)
     return EINVAL;
 
-  if ((err = mu_unroll_symlink (filename, sizeof (filename), fname)))
+  if ((err = mu_unroll_symlink (fname, &filename)))
     return err;
 
   l = calloc (1, sizeof (*l));
 
   if (l == NULL)
-    return ENOMEM;
-
-  l->file = strdup (filename);
+    {
+      free (filename);
+      return ENOMEM;
+    }
+  
+  l->file = filename;
   
   if (l->file == NULL)
     {
