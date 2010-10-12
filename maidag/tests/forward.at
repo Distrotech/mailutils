@@ -1,0 +1,78 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2010 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# GNU Mailutils is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+
+AT_SETUP([forwarding support])
+AT_KEYWORDS([maidag forward])
+
+m4_pushdef([FORWARD_OPTIONS],[dnl
+ --set "^mailer^url=sendmail:$abs_top_builddir/examples/mta" dnl
+ --set "^forward-file=$forward" dnl
+ --set "^forward-file-checks=none"])
+
+AT_CHECK([
+forward=`pwd`/my.forward
+namelist=`sed 's/:.*//;3,$d' /etc/passwd 2>/dev/null`
+test -n "$namelist" || AT_SKIP_TEST
+
+cat > my.forward <<EOT
+foo@bar.baz
+\\$namelist
+EOT
+
+set -- $namelist
+
+cat > experr <<EOT
+maidag: notice: skipping forward file $forward: already processed
+EOT
+
+echo ENVELOPE > expout.0
+cat $abs_top_srcdir/maidag/tests/input.msg >> expout.0
+echo "" >> expout.0
+
+echo "ENVELOPE FROM: gulliver@example.net" > expout.1
+echo "ENVELOPE TO: <foo@bar.baz>" >> expout.1
+awk '{printf("% 4d: %s\n", NR-1,$0)}' $abs_top_srcdir/maidag/tests/input.msg >> expout.1
+echo "END OF MESSAGE" >> expout.1
+
+MTA_DIAG=mta.diag
+export MTA_DIAG
+mkdir spool
+maidag MAIDAG_OPTIONS FORWARD_OPTIONS --from gulliver@example.net $1 < \
+ $abs_top_srcdir/maidag/tests/input.msg || exit $?
+
+for name in $namelist
+do
+  if test -f spool/$name; then
+    sed '1s/From gulliver@example.net.*/ENVELOPE/' spool/$name | \
+      cmp expout.0 - >/dev/null || echo "$name mailbox mismatch" >&2
+  else
+    echo "$name missed message" >&2
+  fi
+done
+
+if test -f mta.diag; then
+  cmp mta.diag expout.1 >/dev/null || echo "remote copy mismatch" >&2
+else
+  echo "remote delivery failed" >&2
+fi  
+],
+[0],
+[],
+[experr])
+
+m4_popdef([FORWARD_OPTIONS])
+
+AT_CLEANUP
