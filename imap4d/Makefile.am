@@ -82,7 +82,7 @@ imap4d_LDADD = \
 imap4d_DEPENDENCIES = \
  @IMAP_AUTHOBJS@\
  @MU_AUTHLIBS_DEPENDENCY@\
- ../lib/libmuaux.la\
+ ../lib/libmuaux.a\
  ${MU_LIB_MBOX}\
  ${MU_LIB_MAILUTILS}
 

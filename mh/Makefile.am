@@ -96,7 +96,7 @@ INCLUDES = @MU_APP_COMMON_INCLUDES@
 AM_CPPFLAGS = -D_GNU_SOURCE -DMHLIBDIR=\"$(mhlibdir)\" -DMHBINDIR=\"$(bindir)\"
 mh_LIBS = \
  ./libmh.a\
- ../lib/libmuaux.la\
+ ../lib/libmuaux.a\
  ${MU_LIB_MBOX}\
  ${MU_LIB_IMAP}\
  ${MU_LIB_POP}\

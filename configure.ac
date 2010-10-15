@@ -58,7 +58,7 @@ AC_SUBST(mu_aux_dir,'$(top_srcdir)/mu-aux')
 AC_SUBST(MU_SIEVE_MODDIR,'$(libdir)/$(PACKAGE)')
 
 AC_SUBST(MU_COMMON_LIBRARIES,'$(LTLIBINTL) $(LTLIBICONV)')
-AC_SUBST(MU_APP_LIBRARIES,'../libmu_argp/libmu_argp.a ../libmu_cfg/libmu_cfg.la ../lib/libmuaux.la')
+AC_SUBST(MU_APP_LIBRARIES,'../libmu_argp/libmu_argp.a ../libmu_cfg/libmu_cfg.la ../lib/libmuaux.a')
 
 # There are two sets of include directories: MU_LIB_COMMON_INCLUDES, used
 # by the libraries, and MU_APP_COMMON_INCLUDES, which is used by applications.
@@ -98,7 +98,7 @@ status_tcpwrap=maybe
 
 dnl Internationalization macros.
 AM_GNU_GETTEXT([external], [need-ngettext])
-AM_GNU_GETTEXT_VERSION(0.17)
+AM_GNU_GETTEXT_VERSION(0.18)
 AM_ICONV
 AC_CHECK_HEADERS(iconv.h)
 AC_CHECK_TYPE(iconv_t,:,
@@ -1077,7 +1077,7 @@ GINT_INIT([gint],[1.8 with-guile],
            MU_GUILE_SIEVE_MOD_DIR='$(GUILE_SITE)/$(PACKAGE)/sieve-modules'
            MU_GUILE_SIEVE_MOD_DATA='$(MU_GUILE_SIEVE_MOD_DATA_X)'
            GINT_INCLUDES='${MU_APP_COMMON_INCLUDES}'
-           GINT_LDADD=../lib/libmuaux.la
+           GINT_LDADD=../lib/libmuaux.a
           ],[useguile=no])
 
 AM_CONDITIONAL([MU_COND_LIBMU_SCM],[test "$useguile" = "yes"])

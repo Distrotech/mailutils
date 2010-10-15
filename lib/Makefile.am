@@ -22,7 +22,7 @@ include gnulib.mk
 
 INCLUDES = @MU_LIB_COMMON_INCLUDES@ 
 
-libmuaux_la_SOURCES += \
+libmuaux_a_SOURCES += \
  daemon.c\
  mailcap.c\
  mu_dbm.c\
