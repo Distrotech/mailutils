@@ -37,7 +37,7 @@ class Mailer:
         else:
             raise AttributeError, name
 
-    def open (self, flags = 0):
+    def open (self, flags=0):
         status = mailer.open (self.mlr, flags)
         if status:
             raise MailerError (status)

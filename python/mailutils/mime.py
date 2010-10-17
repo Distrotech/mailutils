@@ -23,7 +23,7 @@ MU_MIME_MULTIPART_MIXED = 0x1
 MU_MIME_MULTIPART_ALT   = 0x2
 
 class Mime:
-    def __init__ (self, msg, flags = 0):
+    def __init__ (self, msg, flags=0):
         self.mime = mime.MimeType ()
         status = mime.create (self.mime, msg.msg, flags)
         if status:

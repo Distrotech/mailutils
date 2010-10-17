@@ -24,7 +24,7 @@ from mailutils import debug
 from mailutils.error import MailboxError
 
 class MailboxBase:
-    def open (self, mode = 0):
+    def open (self, mode=0):
         """Open the connection.
 
         'mode' may be a string, consisting of the characters described
@@ -65,7 +65,7 @@ class MailboxBase:
         if status:
             raise MailboxError (status)
 
-    def flush (self, expunge = False):
+    def flush (self, expunge=False):
         """Flush the mailbox."""
         status = mailbox.flush (self.mbox, expunge)
         if status:
@@ -216,7 +216,7 @@ class Mailbox (MailboxBase):
         del self.mbox
 
 class MailboxDefault (MailboxBase):
-    def __init__ (self, name = None):
+    def __init__ (self, name=None):
         """MailboxDefault creates a Mailbox object for the supplied
         mailbox 'name'. Before creating, the name is expanded using
         the rules below:

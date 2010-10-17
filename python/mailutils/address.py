@@ -83,28 +83,28 @@ class Address:
 
     def get_domain (self, n):
         """Return domain part of the Nth email address."""
-        status, domain  = address.get_domain (self.addr, n)
+        status, domain = address.get_domain (self.addr, n)
         if status:
             raise AddressError (status)
         return domain
 
     def get_personal (self, n):
         """Return personal part of the Nth email address."""
-        status, personal  = address.get_personal (self.addr, n)
+        status, personal = address.get_personal (self.addr, n)
         if status:
             raise AddressError (status)
         return personal
 
     def get_comments (self, n):
         """Return comment part of the Nth email address."""
-        status, comments  = address.get_comments (self.addr, n)
+        status, comments = address.get_comments (self.addr, n)
         if status:
             raise AddressError (status)
         return comments
 
     def get_route (self, n):
         """Return the route part of the Nth email address."""
-        status, route  = address.get_route (self.addr, n)
+        status, route = address.get_route (self.addr, n)
         if status:
             raise AddressError (status)
         return route

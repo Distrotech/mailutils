@@ -21,7 +21,7 @@ from mailutils.error import AuthError
 
 MU_AF_QUOTA = 0x1
 
-def register_module (name = None):
+def register_module (name=None):
     if name == None:
         status = auth.register_module ()
     elif isinstance (name, types.TupleType) \
@@ -51,7 +51,7 @@ def set_pam_service (pam_service):
 class Authority:
     __owner = False
 
-    def __init__ (self, authority = None):
+    def __init__ (self, authority=None):
         if isinstance (authority, auth.AuthorityType):
             self.authority = authority
         else:
@@ -85,7 +85,7 @@ class Authority:
 class Ticket:
     __owner = False
 
-    def __init__ (self, ticket = None):
+    def __init__ (self, ticket=None):
         if isinstance (ticket, auth.TicketType):
             self.ticket = ticket
         else:
@@ -108,7 +108,7 @@ class Ticket:
 class Wicket:
     __owner = False
 
-    def __init__ (self, wicket = None):
+    def __init__ (self, wicket=None):
         if isinstance (wicket, auth.WicketType):
             self.wicket = wicket
         else:

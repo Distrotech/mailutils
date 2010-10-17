@@ -33,10 +33,9 @@ is licensed using the GNU GPL.
 
 See http://www.gnu.org/software/mailutils/ for more information about
 GNU Mailutils.
-
 """
 
-__all__ = [
+__all__ = (
     "error",
     "address",
     "attribute",
@@ -59,4 +58,4 @@ __all__ = [
     "stream",
     "url",
     "util",
-]
+)

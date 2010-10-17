@@ -25,7 +25,7 @@ from mailutils.error import MessageError
 class Message:
     __owner = False
 
-    def __init__ (self, msg = None):
+    def __init__ (self, msg=None):
         if msg == None:
             self.msg = message.MessageType ()
             self.__owner = True
@@ -141,7 +141,7 @@ class Message:
             raise MessageError (status)
         return name, lang
 
-    def save_attachment (self, filename = ''):
+    def save_attachment (self, filename=''):
         status = message.save_attachment (self.msg, filename)
         if status:
             raise MessageError (status)

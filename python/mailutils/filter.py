@@ -29,8 +29,8 @@ MU_FILTER_WRITE = MU_STREAM_WRITE
 MU_FILTER_RDWR  = MU_STREAM_RDWR
 
 class FilterStream (Stream):
-    def __init__ (self, transport, name, type = MU_FILTER_DECODE,
-                  direction = MU_FILTER_READ):
+    def __init__ (self, transport, name, type=MU_FILTER_DECODE,
+                  direction=MU_FILTER_READ):
         Stream.__init__ (self)
         status = filter.create (self.stm, transport.stm, name,
                                 type, direction)

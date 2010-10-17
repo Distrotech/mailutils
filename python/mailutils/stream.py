@@ -43,7 +43,7 @@ MU_STDERR_FD = 2
 class Stream:
     __refcount = 0
 
-    def __init__ (self, stm = None):
+    def __init__ (self, stm=None):
         if isinstance (stm, stream.StreamType):
             self.stm = stm
         else:
@@ -104,14 +104,14 @@ class Stream:
         return rbuf
 
 class TcpStream (Stream):
-    def __init__ (self, host, port, flags = MU_STREAM_READ):
+    def __init__ (self, host, port, flags=MU_STREAM_READ):
         Stream.__init__ (self)
         status = stream.tcp_stream_create (self.stm, host, port, flags)
         if status:
             raise StreamError (status)
 
 class FileStream (Stream):
-    def __init__ (self, filename, flags = MU_STREAM_READ):
+    def __init__ (self, filename, flags=MU_STREAM_READ):
         Stream.__init__ (self)
         status = stream.file_stream_create (self.stm, filename, flags)
         if status:
@@ -125,7 +125,7 @@ class StdioStream (Stream):
             raise StreamError (status)
 
 class ProgStream (Stream):
-    def __init__ (self, progname, flags = MU_STREAM_READ):
+    def __init__ (self, progname, flags=MU_STREAM_READ):
         Stream.__init__ (self)
         status = stream.prog_stream_create (self.stm, progname, flags)
         if status:

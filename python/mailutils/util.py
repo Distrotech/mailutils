@@ -17,7 +17,7 @@
 
 from mailutils.c_api import util
 
-def get_user_email (name = None):
+def get_user_email (name=None):
     if name == None:
         return util.get_user_email ()
     else:
@@ -33,5 +33,5 @@ def get_user_email_domain ():
 def set_user_email_domain (domain):
     util.set_user_email_domain (domain)
 
-def tempname (tmpdir = None):
+def tempname (tmpdir=None):
     return util.tempname (tmpdir)

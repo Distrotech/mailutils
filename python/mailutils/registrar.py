@@ -18,7 +18,7 @@
 import types
 from mailutils.c_api import registrar
 
-def register_format (name = None):
+def register_format (name=None):
     """Register desired mailutils 'name' format.
 
     A list or tuple of strings can be given.

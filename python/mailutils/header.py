@@ -82,7 +82,7 @@ class Header:
             raise HeaderError (status)
         return lines
 
-    def get_value (self, name, default = None):
+    def get_value (self, name, default=None):
         status, value = header.get_value (self.hdr, name)
         if status == MU_ERR_NOENT:
             if default != None:
@@ -93,7 +93,7 @@ class Header:
             raise HeaderError (status)
         return value
 
-    def get_value_n (self, name, n = 1, default = None):
+    def get_value_n (self, name, n=1, default=None):
         status, value = header.get_value_n (self.hdr, name, n)
         if status == MU_ERR_NOENT:
             if default != None:
@@ -104,7 +104,7 @@ class Header:
             raise HeaderError (status)
         return value
 
-    def set_value (self, name, value, replace = True):
+    def set_value (self, name, value, replace=True):
         status = header.set_value (self.hdr, name, value, replace)
         if status:
             raise HeaderError (status)

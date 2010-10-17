@@ -37,7 +37,7 @@ class Debug:
     def __del__ (self):
         del self.dbg
 
-    def set_level (self, level = MU_DEBUG_PROT):
+    def set_level (self, level=MU_DEBUG_PROT):
         status = debug.set_level (self.dbg, level)
         if status:
             raise DebugError (status)
