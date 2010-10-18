@@ -105,6 +105,9 @@ extern int mu_header_get_value_n (mu_header_t, const char *, int, char *,
 extern int mu_header_aget_value_n (mu_header_t, const char *, int, char **);
 #define mu_header_aget_value(header, name, pptr) \
   mu_header_aget_value_n (header, name, 1, pptr)
+
+int mu_header_sget_firstof (mu_header_t hdr, char **names,
+			    const char **pval, int *pidx);
   
 /* Get field values as an mu_address_t. */
 extern int mu_header_get_address_n (mu_header_t, const char *,

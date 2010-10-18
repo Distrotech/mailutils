@@ -25,61 +25,64 @@
 extern "C" {
 #endif
 
-extern int  mu_url_create    (mu_url_t *, const char *name);
-extern int  mu_url_dup       (mu_url_t old_url, mu_url_t *new_url);
-extern int  mu_url_uplevel   (mu_url_t url, mu_url_t *upurl);
+int  mu_url_create    (mu_url_t *, const char *name);
+int  mu_url_dup       (mu_url_t old_url, mu_url_t *new_url);
+int  mu_url_uplevel   (mu_url_t url, mu_url_t *upurl);
 
-extern void mu_url_destroy   (mu_url_t *);
-extern int  mu_url_parse     (mu_url_t);
+void mu_url_destroy   (mu_url_t *);
+int  mu_url_parse     (mu_url_t);
 
-extern int mu_url_sget_scheme  (const mu_url_t, const char **);
-extern int mu_url_aget_scheme  (const mu_url_t, char **);  
-extern int mu_url_get_scheme  (const mu_url_t, char *, size_t, size_t *);
-  
-extern int mu_url_sget_user  (const mu_url_t, const char **);
-extern int mu_url_aget_user  (const mu_url_t, char **);  
-extern int mu_url_get_user  (const mu_url_t, char *, size_t, size_t *);
+int mu_url_sget_scheme  (const mu_url_t, const char **);
+int mu_url_aget_scheme  (const mu_url_t, char **);  
+int mu_url_get_scheme  (const mu_url_t, char *, size_t, size_t *);
 
-extern int mu_url_get_secret (const mu_url_t url, mu_secret_t *psecret);
-  
-extern int mu_url_sget_auth  (const mu_url_t, const char **);
-extern int mu_url_aget_auth  (const mu_url_t, char **);  
-extern int mu_url_get_auth  (const mu_url_t, char *, size_t, size_t *);
+int mu_url_sget_user  (const mu_url_t, const char **);
+int mu_url_aget_user  (const mu_url_t, char **);  
+int mu_url_get_user  (const mu_url_t, char *, size_t, size_t *);
 
-extern int mu_url_sget_host  (const mu_url_t, const char **);
-extern int mu_url_aget_host  (const mu_url_t, char **);  
-extern int mu_url_get_host  (const mu_url_t, char *, size_t, size_t *);
-  
-extern int mu_url_sget_path  (const mu_url_t, const char **);
-extern int mu_url_aget_path  (const mu_url_t, char **);  
-extern int mu_url_get_path  (const mu_url_t, char *, size_t, size_t *);
+int mu_url_get_secret (const mu_url_t url, mu_secret_t *psecret);
 
-extern int mu_url_sget_query (const mu_url_t url, size_t *qc, char ***qv);
-extern int mu_url_aget_query (const mu_url_t url, size_t *qc, char ***qv);
-  
-extern int mu_url_get_port    (const mu_url_t, long *);
+int mu_url_sget_auth  (const mu_url_t, const char **);
+int mu_url_aget_auth  (const mu_url_t, char **);  
+int mu_url_get_auth  (const mu_url_t, char *, size_t, size_t *);
+
+int mu_url_sget_host  (const mu_url_t, const char **);
+int mu_url_aget_host  (const mu_url_t, char **);  
+int mu_url_get_host  (const mu_url_t, char *, size_t, size_t *);
+
+int mu_url_sget_path  (const mu_url_t, const char **);
+int mu_url_aget_path  (const mu_url_t, char **);  
+int mu_url_get_path  (const mu_url_t, char *, size_t, size_t *);
+
+int mu_url_sget_query (const mu_url_t url, size_t *qc, char ***qv);
+int mu_url_aget_query (const mu_url_t url, size_t *qc, char ***qv);
+
+int mu_url_get_port    (const mu_url_t, long *);
 
 int mu_url_sget_fvpairs (const mu_url_t url, size_t *fvc, char ***fvp);
 int mu_url_aget_fvpairs (const mu_url_t url, size_t *pfvc, char ***pfvp);
 
-extern int mu_url_expand_path (mu_url_t url);
-extern const char *mu_url_to_string   (const mu_url_t);
-
-extern int mu_url_set_scheme (mu_url_t url, const char *scheme);
+int mu_url_sget_param (const mu_url_t url, const char *param, const char **val);
+int mu_url_aget_param (const mu_url_t url, const char *param, char **val);
   
-extern int mu_url_is_scheme   (mu_url_t, const char *scheme);
+int mu_url_expand_path (mu_url_t url);
+const char *mu_url_to_string   (const mu_url_t);
 
-extern int mu_url_is_same_scheme (mu_url_t, mu_url_t);
-extern int mu_url_is_same_user   (mu_url_t, mu_url_t);
-extern int mu_url_is_same_path   (mu_url_t, mu_url_t);
-extern int mu_url_is_same_host   (mu_url_t, mu_url_t);
-extern int mu_url_is_same_port   (mu_url_t, mu_url_t);
+int mu_url_set_scheme (mu_url_t url, const char *scheme);
 
-extern char *mu_url_decode_len (const char *s, size_t len);  
-extern char *mu_url_decode     (const char *s);
+int mu_url_is_scheme   (mu_url_t, const char *scheme);
 
-extern int mu_url_is_ticket   (mu_url_t ticket, mu_url_t url);
-extern int mu_url_init (mu_url_t url, int port, const char *scheme);
+int mu_url_is_same_scheme (mu_url_t, mu_url_t);
+int mu_url_is_same_user   (mu_url_t, mu_url_t);
+int mu_url_is_same_path   (mu_url_t, mu_url_t);
+int mu_url_is_same_host   (mu_url_t, mu_url_t);
+int mu_url_is_same_port   (mu_url_t, mu_url_t);
+
+char *mu_url_decode_len (const char *s, size_t len);  
+char *mu_url_decode     (const char *s);
+
+int mu_url_is_ticket   (mu_url_t ticket, mu_url_t url);
+int mu_url_init (mu_url_t url, int port, const char *scheme);
   
 #ifdef __cplusplus
 }

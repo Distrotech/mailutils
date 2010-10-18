@@ -764,6 +764,48 @@ mu_url_sget_fvpairs (const mu_url_t url, size_t *fvc, char ***fvp)
 }
 
 int
+mu_url_sget_param (const mu_url_t url, const char *param, const char **val)
+{
+  size_t fvc;
+  char **fvp;
+  int status = mu_url_sget_fvpairs (url, &fvc, &fvp);
+
+  if (status)
+    return status;
+
+  if (fvc)
+    {
+      size_t i;
+      
+      for (i = 0; i < fvc; i++)
+	{
+	  const char *p;
+	  char *q;
+
+	  for (p = param, q = fvp[i]; *p && *q && *p == *q; p++, q++)
+	    ;
+	  if (*p == 0)
+	    {
+	      if (*q == 0)
+		{
+		  if (val)
+		    *val = q;
+		  return 0;
+		}
+	      else if (*q == '=')
+		{
+		  if (val)
+		    *val = q + 1;
+		  return 0;
+		}
+	    }
+	}
+    }
+ 
+  return MU_ERR_NOENT;
+}
+  
+int
 mu_url_aget_fvpairs (const mu_url_t url, size_t *pfvc, char ***pfvp)
 {
   size_t fvc, i;
@@ -789,6 +831,21 @@ mu_url_aget_fvpairs (const mu_url_t url, size_t *pfvc, char ***pfvp)
   *pfvc = fvc;
   *pfvp = fvcopy;
   return 0;
+}
+
+int
+mu_url_aget_param (const mu_url_t url, const char *param, char **val)
+{
+  const char *s;
+  int status = mu_url_sget_param (url, param, &s);
+
+  if (status == 0)
+    {
+      *val = strdup (s);
+      if (!*val)
+	status = ENOMEM;
+    }
+  return status;
 }
 
 int

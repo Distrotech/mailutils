@@ -29,6 +29,10 @@
 #include <mailutils/mailer.h>
 #include <mailutils/url.h>
 #include <mailutils/util.h>
+#include <mailutils/argcv.h>
+#include <mailutils/message.h>
+#include <mailutils/envelope.h>
+#include <mailutils/header.h>
 #include <mailutils/sys/mailbox.h>
 #include <mailutils/sys/mailer.h>
 
@@ -116,6 +120,113 @@ mkaddr (mu_mailbox_t mbox, mu_property_t property,
   return 0;
 }
 
+static int
+parse_received (mu_header_t hdr, char **sptr)
+{
+  const char *recv;
+  int wc, i;
+  char **ws;
+  enum { rcv_init, rcv_from, rcv_by, rcv_for } state;
+  int status;
+  char *s;
+  size_t len;
+  
+  status = mu_header_sget_value (hdr, MU_HEADER_RECEIVED, &recv);
+  if (status)
+    return status;
+  status = mu_argcv_get (recv, NULL, NULL, &wc, &ws);
+  if (status)
+    return status;
+
+  state = rcv_init;
+  for (i = 0; i < wc && state != rcv_for; i++)
+    {
+      switch (state)
+	{
+	case rcv_init:
+	  if (strcmp (ws[i], "from") == 0)
+	    state = rcv_from;
+	  break;
+	  
+	case rcv_from:
+	  if (strcmp (ws[i], "by") == 0)
+	    state = rcv_by;
+	  break;
+	  
+	case rcv_by:
+	  if (strcmp (ws[i], "for") == 0)
+	    state = rcv_for;
+	  break;
+
+	default:
+	  break;
+	}
+    }
+
+  if (state != rcv_for || ws[i] == NULL)
+    return MU_ERR_NOENT;
+
+  s = ws[i];
+  len = strlen (s);
+  if (s[len - 1] == ';')
+    len--;
+  if (s[0] == '<' && s[len - 1] == '>')
+    {
+      s++;
+      len--;
+    }
+  *sptr = malloc (len);
+  if (!*sptr)
+    status = ENOMEM;
+  else
+    {
+      memcpy (*sptr, s, len);
+      (*sptr)[len - 1] = 0;
+    }
+  mu_argcv_free (wc, ws);
+  return status;
+} 
+  
+static int
+guess_message_recipient (mu_message_t msg, char **hdrname, char **pptr)
+{
+  mu_header_t hdr;
+  int status;
+  char *s = NULL;
+  
+  status = mu_message_get_header (msg, &hdr);
+  if (status)
+    return status;
+
+  /* First, try an easy way. */
+  if (hdrname)
+    {
+      int i;
+      for (i = 0; hdrname[i]; i++)
+	{
+	  status = mu_header_aget_value (hdr, hdrname[i], &s);
+	  if (status == 0 && *s != 0)
+	    break;
+	}
+    }
+  else
+    status = MU_ERR_NOENT;
+  
+  if (status == MU_ERR_NOENT)
+    {
+      status = parse_received (hdr, &s);
+      if (status)
+	status = mu_header_aget_value (hdr, MU_HEADER_TO, &s);
+    }
+  
+  if (status)
+    return status;
+  
+  *pptr = s;
+  
+  return 0;
+}
+  
 
 static int
 remote_mbox_append_message (mu_mailbox_t mbox, mu_message_t msg)
@@ -137,9 +248,47 @@ remote_mbox_append_message (mu_mailbox_t mbox, mu_message_t msg)
   mkaddr (mbox, property, "TO", &to);
   if (!to)
     {
-      const char *rcpt;
+      char *rcpt;
       
-      status = mu_url_sget_user (mbox->url, &rcpt);
+      status = mu_url_aget_user (mbox->url, &rcpt);
+      if (status == MU_ERR_NOENT)
+	{
+	  static char *hdrnames[] = {
+	    "X-Envelope-To",
+	    "Delivered-To",
+	    "X-Original-To",
+	    NULL
+	  };
+	  const char *hstr;
+	  int hc; 
+	  char **hv;
+	  
+	  if (mu_url_sget_param (mbox->url, "recipient-headers", &hstr) == 0)
+	    {
+	      if (*hstr == 0)
+		{
+		  hc = 0;
+		  hv = NULL;
+		}
+	      else
+		{
+		  status = mu_argcv_get_np (hstr, strlen (hstr), ",", NULL, 0,
+					    &hc, &hv, NULL);
+		  if (status)
+		    return status;
+		}
+	    }
+	  else
+	    {
+	      hc = 0;
+	      hv = hdrnames;
+	    }
+	  
+	  status = guess_message_recipient (msg, hv, &rcpt);
+	  if (hc)
+	    mu_argcv_free (hc, hv);
+	}
+
       if (status != MU_ERR_NOENT)
 	{
 	  const char *host;
@@ -148,16 +297,27 @@ remote_mbox_append_message (mu_mailbox_t mbox, mu_message_t msg)
 	  if (status)
 	    {
 	      MU_DEBUG1 (mbox->debug, MU_DEBUG_ERROR,
-			 "failed to get recipient from the url: %s\n",
+			 "failed to get recipient: %s\n",
 			 mu_strerror (status));
 	      return status;
 	    }
 
-	  mu_url_sget_host (mbox->url, &host);
+	  /* Get additional parameters */
+	  status = mu_url_sget_param (mbox->url, "strip-domain", NULL);
+	  if (status == 0)
+	    {
+	      char *q = strchr (rcpt, '@');
+	      if (q)
+		*q = 0;
+	    }
+
+	  status = mu_url_sget_param (mbox->url, "domain", &host);
+	  if (!(status == 0 && *host))
+	    mu_url_sget_host (mbox->url, &host);
 	  hint.domain = (char*) host;
 	  status = mu_address_create_hint (&to, rcpt, &hint, 
 	                                   MU_ADDR_HINT_DOMAIN);
-      
+	  free (rcpt);
 	  if (status)
 	    {
 	      MU_DEBUG3 (mbox->debug, MU_DEBUG_ERROR,

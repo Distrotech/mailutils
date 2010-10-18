@@ -429,52 +429,59 @@ message_envelope_sender (mu_envelope_t envelope, char *buf, size_t len,
 			 size_t *pnwrite)
 {
   mu_message_t msg = mu_envelope_get_owner (envelope);
-  mu_header_t header = NULL;
-  size_t n = 0;
+  mu_header_t header;
   int status;
+  const char *sender;
+  struct mu_auth_data *auth = NULL;
+  static char *hdrnames[] = {
+    "X-Envelope-Sender",
+    "X-Envelope-From",
+    "X-Original-Sender",
+    "From",
+    NULL
+  };
+  mu_address_t address = NULL;
 
   if (msg == NULL)
     return EINVAL;
 
-  /* Can it be extracted from the From:  */
-  mu_message_get_header (msg, &header);
-  status = mu_header_get_value (header, MU_HEADER_FROM, NULL, 0, &n);
-  if (status == 0 && n != 0)
-    {
-      char *sender;
-      mu_address_t address = NULL;
-      sender = calloc (1, n + 1);
-      if (sender == NULL)
-	return ENOMEM;
-      mu_header_get_value (header, MU_HEADER_FROM, sender, n + 1, NULL);
-      if (mu_address_create (&address, sender) == 0)
-	mu_address_get_email (address, 1, buf, n + 1, pnwrite);
-      free (sender);
-      mu_address_destroy (&address);
-      return 0;
-    }
-  else if (status == EAGAIN)
+  /* First, try the header  */
+  status = mu_message_get_header (msg, &header);
+  if (status)
     return status;
+  status = mu_header_sget_firstof (header, hdrnames, &sender, NULL);
+  if (status)
+    {
+      auth = mu_get_auth_by_uid (getuid ());
+      if (!auth)
+	return MU_ERR_NOENT;
+      sender = auth->name;
+    }
 
-  /* oops! We are still here */
-  {
-    struct mu_auth_data *auth = mu_get_auth_by_uid (getuid ());
-    const char *sender = auth ? auth->name : "unknown";
-    n = strlen (sender);
-    if (buf && len > 0)
-      {
-	len--; /* One for the null.  */
-	n = (n < len) ? n : len;
-	memcpy (buf, auth->name, n);
-	buf[n] = '\0';
-      }
-    if (auth)
-      mu_auth_data_free (auth);
-  }
+  status = mu_address_create (&address, sender);
+  if (status == 0)
+    {
+      status = mu_address_sget_email (address, 1, &sender);
+      if (status == 0)
+	{
+	  size_t n = strlen (sender);
+	  if (buf && len > 0)
+	    {
+	      len--; /* One for the null.  */
+	      n = (n < len) ? n : len;
+	      memcpy (buf, sender, n);
+	      buf[n] = '\0';
+	    }
+	  if (pnwrite)
+	    *pnwrite = n;
+	}
+      mu_address_destroy (&address);
+    }
+  
+  if (auth)
+    mu_auth_data_free (auth);
 
-  if (pnwrite)
-    *pnwrite = n;
-  return 0;
+  return status;
 }
 
 

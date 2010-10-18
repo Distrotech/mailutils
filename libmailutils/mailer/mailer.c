@@ -41,6 +41,7 @@
 #include <mailutils/stream.h>
 #include <mailutils/url.h>
 #include <mailutils/header.h>
+#include <mailutils/envelope.h>
 #include <mailutils/body.h>
 #include <mailutils/mailbox.h>
 #include <mailutils/message.h>
@@ -336,20 +337,27 @@ _set_from (mu_address_t *pfrom, mu_message_t msg, mu_address_t from,
 	   mu_mailer_t mailer)
 {
   int status = 0;
-  char *mail_from;
-  mu_header_t header = NULL;
 
-  *pfrom = NULL;
-  
   /* Get MAIL_FROM from FROM, the message, or the environment. */
   if (!from)
     {
       const char *type;
-      
-      if ((status = mu_message_get_header (msg, &header)) != 0)
+      mu_envelope_t env;
+      const char *mail_from;
+
+      status = mu_message_get_envelope (msg, &env);
+      if (status)
 	return status;
-      
-      status = mu_header_aget_value (header, MU_HEADER_FROM, &mail_from);
+
+      status = mu_envelope_sget_sender (env, &mail_from);
+      if (status)
+	{
+	  mu_header_t header;
+	  status = mu_message_get_header (msg, &header);
+	  if (status)
+	    return status;
+	  status = mu_header_sget_value (header, MU_HEADER_FROM, &mail_from);
+	}
       
       switch (status)
 	{
@@ -361,9 +369,6 @@ _set_from (mu_address_t *pfrom, mu_message_t msg, mu_address_t from,
 	  MU_DEBUG1 (mailer->debug, MU_DEBUG_TRACE,
 		     "mu_mailer_send_message(): using From: %s\n",
 		     mail_from);
-	    
-	  status = mu_address_create (pfrom, mail_from);
-	  free (mail_from);
 	  break;
 
 	case MU_ERR_NOENT:
@@ -379,18 +384,20 @@ _set_from (mu_address_t *pfrom, mu_message_t msg, mu_address_t from,
 		       "mu_mailer_send_message(): using user's address: %s\n",
 		       mail_from);
 	  else
-            MU_DEBUG (mailer->debug, MU_DEBUG_ERROR,
-		      "mu_mailer_send_message(): no user's address, failing\n");
-
-	  if (!mail_from)
-	    return errno;
-
-	  status = mu_address_create (pfrom, mail_from);
+	    {
+	      MU_DEBUG (mailer->debug, MU_DEBUG_ERROR,
+			"mu_mailer_send_message(): "
+			"no user's address, failing\n");
+	      return errno;
+	    }
 	  /* FIXME: should we add the From: header? */
 	  break;
 	}
+      status = mu_address_create (pfrom, mail_from);
     }
-
+  else
+    *pfrom = NULL;
+  
   return status;
 }
 
