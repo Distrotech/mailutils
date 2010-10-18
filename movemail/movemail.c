@@ -738,8 +738,8 @@ main (int argc, char **argv)
   MU_APP_INIT_NLS ();
   MU_AUTH_REGISTER_ALL_MODULES ();
   
-  /* Register the desired mailbox formats.  */
-  mu_register_all_mbox_formats ();
+  /* Register the desired "mailbox" formats.  */
+  mu_register_all_formats ();
 
   /* argument parsing */
   
@@ -763,7 +763,7 @@ main (int argc, char **argv)
   if (emacs_mode)
     {
       /* Undo the effect of configuration options that may affect
-	 the interaction with Emacs. */
+	 interaction with Emacs. */
       mu_registrar_set_default_record (mu_mbox_record);
       mu_debug_default_printer = mu_debug_stderr_printer;
     }
