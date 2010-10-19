@@ -338,25 +338,33 @@ _set_from (mu_address_t *pfrom, mu_message_t msg, mu_address_t from,
 {
   int status = 0;
 
-  /* Get MAIL_FROM from FROM, the message, or the environment. */
+  *pfrom = NULL;
+  
+  /* Get MAIL_FROM from URL, envelope, headers, or the environment. */
   if (!from)
     {
       const char *type;
       mu_envelope_t env;
       const char *mail_from;
 
-      status = mu_message_get_envelope (msg, &env);
-      if (status)
-	return status;
+      status = mu_url_sget_param (mailer->url, "from", &mail_from);
 
-      status = mu_envelope_sget_sender (env, &mail_from);
       if (status)
 	{
-	  mu_header_t header;
-	  status = mu_message_get_header (msg, &header);
+	  status = mu_message_get_envelope (msg, &env);
 	  if (status)
 	    return status;
-	  status = mu_header_sget_value (header, MU_HEADER_FROM, &mail_from);
+
+	  status = mu_envelope_sget_sender (env, &mail_from);
+	  if (status)
+	    {
+	      mu_header_t header;
+	      status = mu_message_get_header (msg, &header);
+	      if (status)
+		return status;
+	      status = mu_header_sget_value (header, MU_HEADER_FROM,
+					     &mail_from);
+	    }
 	}
       
       switch (status)
@@ -395,12 +403,46 @@ _set_from (mu_address_t *pfrom, mu_message_t msg, mu_address_t from,
 	}
       status = mu_address_create (pfrom, mail_from);
     }
-  else
-    *pfrom = NULL;
   
   return status;
 }
 
+static int
+_set_to (mu_address_t *paddr, mu_message_t msg, mu_address_t to,
+	 mu_mailer_t mailer)
+{
+  int status = 0;
+
+  *paddr = NULL;
+  if (!to)
+    {
+      const char *rcpt_to;
+
+      status = mu_url_sget_param (mailer->url, "to", &rcpt_to);
+      switch (status)
+	{
+	case 0:
+	  break;
+
+	case MU_ERR_NOENT:
+	  /* FIXME: Get it from the message itself, at least if the
+	     mailer is not SENDMAIL. */
+	  return 0;
+
+	default:
+	  return status;
+	}
+      MU_DEBUG1 (mailer->debug, MU_DEBUG_TRACE,
+		 "mu_mailer_send_message(): using RCPT TO: %s\n",
+		 rcpt_to);
+      status = mu_address_create (paddr, rcpt_to);
+    }
+  
+  return status;
+}
+  
+
+  
 static int
 create_part (mu_mime_t mime, mu_stream_t istr, 
 	     size_t fragsize, size_t n, size_t nparts, char *msgid)
@@ -536,7 +578,7 @@ mu_mailer_send_fragments (mu_mailer_t mailer,
 			  mu_address_t from, mu_address_t to)
 {
   int status;
-  mu_address_t sender_addr = NULL;
+  mu_address_t sender_addr = NULL, rcpt_addr = NULL;
   
   if (mailer == NULL)
     return EINVAL;
@@ -548,6 +590,12 @@ mu_mailer_send_fragments (mu_mailer_t mailer,
     return status;
   if (sender_addr)
     from = sender_addr;
+
+  status = _set_to (&rcpt_addr, msg, from, mailer);
+  if (status)
+    return status;
+  if (rcpt_addr)
+    to = rcpt_addr;
   
   if ((!from || (status = mu_mailer_check_from (from)) == 0)
       && (!to || (status = mu_mailer_check_to (to)) == 0))
@@ -589,6 +637,7 @@ mu_mailer_send_fragments (mu_mailer_t mailer,
 	}
     }
   mu_address_destroy (&sender_addr);
+  mu_address_destroy (&rcpt_addr);
   return status;
 }
 

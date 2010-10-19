@@ -250,7 +250,7 @@ remote_mbox_append_message (mu_mailbox_t mbox, mu_message_t msg)
     {
       char *rcpt;
       
-      status = mu_url_aget_user (mbox->url, &rcpt);
+      status = mu_url_aget_param (mbox->url, "to", &rcpt);
       if (status == MU_ERR_NOENT)
 	{
 	  static char *hdrnames[] = {
