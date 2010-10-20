@@ -53,12 +53,7 @@ static int sendmail_send_message (mu_mailer_t, mu_message_t, mu_address_t,
 static int
 _url_sendmail_init (mu_url_t url)
 {
-  /* not valid in a sendmail url */
-  if (url->user || url->secret || url->auth || url->qargc
-      || url->host || url->port)
-    return EINVAL;
-
-  if (url->path == 0)
+  if (url->path == NULL)
     if ((url->path = strdup (PATH_SENDMAIL)) == 0)
       return ENOMEM;
 
@@ -275,6 +270,10 @@ static struct _mu_record _sendmail_record =
 {
   MU_SENDMAIL_PRIO,
   MU_SENDMAIL_SCHEME,
+  MU_RECORD_DEFAULT,
+  MU_URL_PATH,
+  0, /* Nothing is required in the URL, except scheme. Missing path means
+	using PATH_SENDMAIL. */
   _url_sendmail_init,    /* url init.  */
   _mu_mailer_mailbox_init,     /* Mailbox entry.  */
   _mu_mailer_sendmail_init, /* Mailer entry.  */

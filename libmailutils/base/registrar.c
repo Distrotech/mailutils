@@ -281,25 +281,6 @@ mu_record_is_scheme (mu_record_t record, mu_url_t url, int flags)
 }
 
 int
-mu_record_set_scheme (mu_record_t record, const char *scheme)
-{
-  if (record == NULL)
-    return EINVAL;
-  record->scheme = scheme;
-  return 0;
-}
-
-int
-mu_record_set_is_scheme (mu_record_t record,
-			 int (*_is_scheme) (mu_record_t, mu_url_t, int))
-{
-  if (record == NULL)
-    return EINVAL;
-  record->_is_scheme = _is_scheme;
-  return 0;
-}
-
-int
 mu_record_get_url (mu_record_t record, int (*(*_purl)) (mu_url_t))
 {
   if (record == NULL)
@@ -310,25 +291,6 @@ mu_record_get_url (mu_record_t record, int (*(*_purl)) (mu_url_t))
   if (record->_get_url)
     return record->_get_url (record, _purl);
   *_purl = record->_url;
-  return 0;
-}
-
-int
-mu_record_set_url (mu_record_t record, int (*_mu_url) (mu_url_t))
-{
-  if (record == NULL)
-    return EINVAL;
-  record->_url = _mu_url;
-  return 0;
-}
-
-int
-mu_record_set_get_url (mu_record_t record, int (*_get_url)
-		    (mu_record_t, int (*(*)) (mu_url_t)))
-{
-  if (record == NULL)
-    return EINVAL;
-  record->_get_url = _get_url;
   return 0;
 }
 
@@ -347,25 +309,6 @@ mu_record_get_mailbox (mu_record_t record, int (*(*_pmailbox)) (mu_mailbox_t))
 }
 
 int
-mu_record_set_mailbox (mu_record_t record, int (*_mu_mailbox) (mu_mailbox_t))
-{
-  if (record)
-    return EINVAL;
-  record->_mailbox = _mu_mailbox;
-  return 0;
-}
-
-int
-mu_record_set_get_mailbox (mu_record_t record, 
-     int (*_get_mailbox) (mu_record_t, int (*(*)) (mu_mailbox_t)))
-{
-  if (record)
-    return EINVAL;
-  record->_get_mailbox = _get_mailbox;
-  return 0;
-}
-
-int
 mu_record_get_mailer (mu_record_t record, int (*(*_pmailer)) (mu_mailer_t))
 {
   if (record == NULL)
@@ -376,25 +319,6 @@ mu_record_get_mailer (mu_record_t record, int (*(*_pmailer)) (mu_mailer_t))
   if (record->_get_mailer)
     return record->_get_mailer (record, _pmailer);
   *_pmailer = record->_mailer;
-  return 0;
-}
-
-int
-mu_record_set_mailer (mu_record_t record, int (*_mu_mailer) (mu_mailer_t))
-{
-  if (record)
-    return EINVAL;
-  record->_mailer = _mu_mailer;
-  return 0;
-}
-
-int
-mu_record_set_get_mailer (mu_record_t record, 
-  int (*_get_mailer) (mu_record_t, int (*(*)) (mu_mailer_t)))
-{
-  if (record == NULL)
-    return EINVAL;
-  record->_get_mailer = _get_mailer;
   return 0;
 }
 
@@ -413,25 +337,6 @@ mu_record_get_folder (mu_record_t record, int (*(*_pfolder)) (mu_folder_t))
 }
 
 int
-mu_record_set_folder (mu_record_t record, int (*_mu_folder) (mu_folder_t))
-{
-  if (record == NULL)
-    return EINVAL;
-  record->_folder = _mu_folder;
-  return 0;
-}
-
-int
-mu_record_set_get_folder (mu_record_t record, 
-   int (*_get_folder) (mu_record_t, int (*(*)) (mu_folder_t)))
-{
-  if (record == NULL)
-    return EINVAL;
-  record->_get_folder = _get_folder;
-  return 0;
-}
-
-int
 mu_record_list_p (mu_record_t record, const char *name, int flags)
 {
   if (record == NULL)
@@ -439,4 +344,57 @@ mu_record_list_p (mu_record_t record, const char *name, int flags)
   return record == NULL
           || !record->_list_p
           || record->_list_p (record, name, flags);
+}
+
+int
+mu_record_check_url (mu_record_t record, mu_url_t url, int *pmask)
+{
+  int mask;
+  int flags;
+  int rc;
+  
+  if (!record || !url)
+    return EINVAL;
+
+  rc = mu_url_get_flags (url, &flags);
+  if (rc)
+    return rc;
+
+  mask = flags & record->url_must_have;
+  if (mask != record->url_must_have)
+    {
+      if (pmask)
+	*pmask = record->url_must_have & ~mask;
+      return MU_ERR_URL_MISS_PARTS;
+    }
+  mask = flags & ~(record->url_may_have | record->url_must_have);
+  if (mask)
+    {
+      if (pmask)
+	*pmask = mask;
+      return MU_ERR_URL_EXTRA_PARTS;
+    }
+  return 0;
+}
+
+/* Test if URL corresponds to a local record.  
+   Return:
+     0            -  OK, the result is stored in *pres;
+     MU_ERR_NOENT -  don't know: there's no matching record;
+     EINVAL       -  some of the arguments is not valid;
+     other        -  URL lookup failed.
+*/
+int
+mu_registrar_test_local_url (mu_url_t url, int *pres)
+{
+  int rc;
+  mu_record_t rec;
+
+  if (!url || !pres)
+    return EINVAL;
+  rc = mu_registrar_lookup_url (url, MU_FOLDER_ATTRIBUTE_ALL, &rec, NULL);
+  if (rc)
+    return rc;
+  *pres = rec->flags & MU_RECORD_LOCAL;
+  return 0;
 }

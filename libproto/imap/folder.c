@@ -66,6 +66,9 @@ static struct _mu_record _imap_record =
 {
   MU_IMAP_PRIO,
   MU_IMAP_SCHEME,
+  MU_RECORD_DEFAULT,
+  MU_URL_CRED | MU_URL_INET | MU_URL_PATH,
+  MU_URL_HOST,
   _url_imap_init,     /* url entry.  */
   _mailbox_imap_init, /* Mailbox entry.  */
   NULL,               /* Mailer entry.  */
@@ -87,6 +90,9 @@ static struct _mu_record _imaps_record =
 {
   MU_IMAP_PRIO,
   MU_IMAPS_SCHEME,
+  MU_RECORD_DEFAULT,
+  MU_URL_CRED | MU_URL_INET | MU_URL_PATH | MU_URL_PARAM,
+  MU_URL_HOST,
   _url_imaps_init,     /* url entry.  */
   _mailbox_imaps_init, /* Mailbox entry.  */
   NULL,                /* Mailer entry.  */

@@ -56,26 +56,17 @@ static int      _mailer_smtp_init (mu_mailer_t);
 static int
 _url_smtp_init (mu_url_t url)
 {
-  /* host isn't optional */
-  if (!url->host)
-    return EINVAL;
-
-  /* accept url->user, pass, and auth
-     for the ESMTP authentication */
-
-  /* all other fields must be NULL */
-  if (url->path || url->qargc)
-    return EINVAL;
-
   if (url->port == 0)
     url->port = MU_SMTP_PORT;
-
   return 0;
 }
 
 static struct _mu_record _smtp_record = {
   MU_SMTP_PRIO,
   MU_SMTP_SCHEME,
+  MU_RECORD_DEFAULT,
+  MU_URL_CRED | MU_URL_INET | MU_URL_PARAM,
+  MU_URL_HOST,
   _url_smtp_init,		/* url init.  */
   _mu_mailer_mailbox_init,	/* Mailbox init.  */
   _mailer_smtp_init,		/* Mailer init.  */
@@ -101,10 +92,27 @@ struct _smtp_mailer
   mu_address_t    rcpt_bcc;
 };
 
+static void
+smtp_mailer_add_auth_mech (struct _smtp_mailer *smtp_mailer, const char *str)
+{
+  int mc, i, rc;
+  char **mv;
+  
+  rc = mu_argcv_get_np (str, strlen (str),
+			",", NULL,
+			0,
+			&mc, &mv, NULL);
+  if (rc == 0)
+    for (i = 0; i < mc; i++)
+      mu_smtp_add_auth_mech (smtp_mailer->smtp, mv[i]);
+  
+  free (mv);
+}
+
 static int
 smtp_open (mu_mailer_t mailer, int flags)
 {
-  const char *host;
+  const char *host, *auth;
   long port;
   struct _smtp_mailer *smtp_mailer = mailer->data;
   int rc;
@@ -134,6 +142,9 @@ smtp_open (mu_mailer_t mailer, int flags)
   if (mu_url_get_port (mailer->url, &port))
     port = 25;
 
+  if (mu_url_sget_auth (mailer->url, &auth) == 0)
+    smtp_mailer_add_auth_mech (smtp_mailer, auth);
+  
   /* Additional information is supplied in the arguments */
   if (mu_url_sget_fvpairs (mailer->url, &parmc, &parmv) == 0)
     {
@@ -146,20 +157,7 @@ smtp_open (mu_mailer_t mailer, int flags)
 	  else if (strcmp (parmv[i], "noauth") == 0)
 	    noauth = 1;
 	  else if (strncmp (parmv[i], "auth=", 5) == 0)
-	    {
-	      int mc, j;
-	      char **mv;
-	  
-	      rc = mu_argcv_get_np (parmv[i] + 5, strlen (parmv[i] + 5),
-				    ",", NULL,
-				    0,
-				    &mc, &mv, NULL);
-	      if (rc == 0)
-		for (j = 0; j < mc; j++)
-		  mu_smtp_add_auth_mech (smtp_mailer->smtp, mv[j]);
-	      
-	      free (mv);
-	    }
+	    smtp_mailer_add_auth_mech (smtp_mailer, parmv[i] + 5);
 	  /* unrecognized arguments silently ignored */
 	}
     }

@@ -44,6 +44,11 @@ static struct _mu_record _prog_record =
 {
   MU_PROG_PRIO,
   MU_PROG_SCHEME,
+  MU_RECORD_DEFAULT,
+  /* FIXME: MU_URL_USER could be used to request running with this
+     user privileges. */
+  MU_URL_PATH | MU_URL_QUERY, 
+  MU_URL_PATH,
   _url_prog_init,    /* url init.  */
   _mu_mailer_mailbox_init,  /* Mailbox entry.  */
   _mu_mailer_prog_init, /* Mailer entry.  */
@@ -68,11 +73,6 @@ _url_prog_uplevel (const mu_url_t orig, mu_url_t *up)
 static int
 _url_prog_init (mu_url_t url)
 {
-  /* not valid in a prog url */
-  if (url->secret || url->auth || url->host || url->port)
-    return EINVAL;
-  if (!url->path)
-    return EINVAL;
   url->_uplevel = _url_prog_uplevel;
   return 0;
 }

@@ -314,13 +314,25 @@ deliver_to_mailbox (mu_mailbox_t mbox, mu_message_t msg,
 }
 
 static int
+is_remote_url (mu_url_t url)
+{
+  int rc, res;
+
+  if (!url)
+    return 0;
+  
+  rc = mu_registrar_test_local_url (url, &res);
+  return rc == 0 && res == 0;
+}
+
+static int
 do_delivery (mu_url_t url, mu_message_t msg, const char *name, char **errp)
 {
   struct mu_auth_data *auth = NULL;
   mu_mailbox_t mbox;
   int status;
 
-  if (name)
+  if (name && !is_remote_url (url))
     {
       auth = mu_get_auth_by_name (name);
       if (!auth)

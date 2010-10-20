@@ -27,6 +27,7 @@ extern "C" {
 
 struct _mu_url
 {
+  int flags;  /* See MU_URL_ flags in ../url.h */
   /* Data */
   char  *name;
   char  *scheme;

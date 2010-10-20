@@ -25,11 +25,21 @@
 extern "C" {
 #endif
 
+#define MU_RECORD_DEFAULT 0
+#define MU_RECORD_LOCAL   0x0001
+  /* This record represents a "local entity", e.g. a UNIX or MH mailbox */
+
+  
 /* Public Interface, to allow static initialization.  */
 struct _mu_record
 {
   int priority;    /* Higher priority records are scanned first */
   const char *scheme;
+  int flags;       /* MU_RECORD_ flags */
+  int url_may_have; /* MU_URL_ flags (see url.h) describing what an URL
+		       for this record may have */
+  int url_must_have;/* MU_URL_ flags telling what such an URL must have */
+  
   int (*_url) (mu_url_t);
   int (*_mailbox) (mu_mailbox_t);
   int (*_mailer) (mu_mailer_t);
@@ -47,54 +57,40 @@ struct _mu_record
 };
 
 /* Defaults */  
-extern int mu_registrar_set_default_scheme (const char *scheme);
-extern const char *mu_registrar_get_default_scheme (void);
-extern int mu_registrar_get_default_record (mu_record_t *prec);
-extern void mu_registrar_set_default_record (mu_record_t record);
+int mu_registrar_set_default_scheme (const char *scheme);
+const char *mu_registrar_get_default_scheme (void);
+int mu_registrar_get_default_record (mu_record_t *prec);
+void mu_registrar_set_default_record (mu_record_t record);
   
 /* Registration.  */
-extern int mu_registrar_get_iterator (mu_iterator_t *);
-extern int mu_registrar_get_list (mu_list_t *) __attribute__ ((deprecated));
+int mu_registrar_get_iterator (mu_iterator_t *);
+int mu_registrar_get_list (mu_list_t *) __attribute__ ((deprecated));
 
-extern int mu_registrar_lookup_scheme (const char *scheme,
+int mu_registrar_lookup_scheme (const char *scheme,
 				       mu_record_t *precord);
-  
-extern int mu_registrar_lookup (const char *name, int flags, 
-                                mu_record_t *precord, int *pflags);
-extern int mu_registrar_lookup_url (mu_url_t url, int flags,
+
+int mu_registrar_lookup (const char *name, int flags, 
+                         mu_record_t *precord, int *pflags);
+int mu_registrar_lookup_url (mu_url_t url, int flags,
 				    mu_record_t *precord, int *pflags);
-extern int mu_registrar_record       (mu_record_t);
-extern int mu_unregistrar_record     (mu_record_t);
+int mu_registrar_record       (mu_record_t);
+int mu_unregistrar_record     (mu_record_t);
 
 /* Scheme.  */
-extern int mu_record_is_scheme       (mu_record_t, mu_url_t, int flags);
-extern int mu_record_set_scheme      (mu_record_t, const char *);
-extern int mu_record_set_is_scheme   (mu_record_t, 
-                      int (*_is_scheme) (mu_record_t, mu_url_t, int));
+int mu_record_is_scheme       (mu_record_t, mu_url_t, int flags);
 
 /* Url.  */
-extern int mu_record_get_url         (mu_record_t, int (*(*)) (mu_url_t));
-extern int mu_record_set_url         (mu_record_t, int (*) (mu_url_t));
-extern int mu_record_set_get_url     (mu_record_t, 
-                      int (*_get_url) (mu_record_t, int (*(*)) (mu_url_t)));
+int mu_record_get_url         (mu_record_t, int (*(*)) (mu_url_t));
+int mu_record_check_url (mu_record_t record, mu_url_t url, int *pmask);
+int mu_registrar_test_local_url (mu_url_t url, int *pres);
 /*  Mailbox. */
-extern int mu_record_get_mailbox     (mu_record_t, int (*(*)) (mu_mailbox_t));
-extern int mu_record_set_mailbox     (mu_record_t, int (*) (mu_mailbox_t));
-extern int mu_record_set_get_mailbox (mu_record_t, 
-                 int (*_get_mailbox) (mu_record_t, int (*(*)) (mu_mailbox_t)));
+int mu_record_get_mailbox     (mu_record_t, int (*(*)) (mu_mailbox_t));
 /* Mailer.  */
-extern int mu_record_get_mailer      (mu_record_t,
-				   int (*(*)) (mu_mailer_t));
-extern int mu_record_set_mailer      (mu_record_t, int (*) (mu_mailer_t));
-extern int mu_record_set_get_mailer  (mu_record_t, 
-        int (*_get_mailer) (mu_record_t, int (*(*)) (mu_mailer_t)));
+int mu_record_get_mailer      (mu_record_t, int (*(*)) (mu_mailer_t));
 /* Folder.  */
-extern int mu_record_get_folder      (mu_record_t, int (*(*)) (mu_folder_t));
-extern int mu_record_set_folder      (mu_record_t, int (*) (mu_folder_t));
-extern int mu_record_set_get_folder  (mu_record_t, 
-         int (*_get_folder) (mu_record_t, int (*(*)) (mu_folder_t)));
-
-extern int mu_record_list_p (mu_record_t record, const char *name, int);
+int mu_record_get_folder      (mu_record_t, int (*(*)) (mu_folder_t));
+  
+int mu_record_list_p (mu_record_t record, const char *name, int);
   
 /* Records provided by the library.  */
 

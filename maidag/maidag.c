@@ -564,6 +564,9 @@ main (int argc, char *argv[])
   maidag_cfg_init ();
   
   /* Parse command line */
+#ifdef WITH_TLS
+  mu_gocs_register ("tls", mu_tls_module_init);
+#endif
   mu_argp_init (NULL, NULL);
 
   mu_m_server_create (&server, program_version);

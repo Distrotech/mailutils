@@ -176,6 +176,7 @@ mu_url_copy0 (mu_url_t old_url, mu_url_t new_url)
 	return ENOMEM;
       new_url->qargc = argc;
     }
+  new_url->flags = old_url->flags;
   return 0;
 #undef URLCOPY
 }
@@ -292,8 +293,7 @@ mu_url_parse (mu_url_t url)
 
   memset (&u, 0, sizeof u);
   /* can't have been parsed already */
-  if (url->scheme || url->user || url->secret || url->auth ||
-      url->host || url->path || url->qargc)
+  if (url->flags)
     return EINVAL;
 
   n = strdup (url->name);
@@ -331,21 +331,25 @@ mu_url_parse (mu_url_t url)
 	 though.
        */
 
-#define UALLOC(X)							\
-      if (u.X && u.X[0] &&						\
-	  !(url->X = (want_decode ? mu_url_decode (u.X) : strdup (u.X)))) \
+#define UALLOC(X,f)							\
+      if (u.X && u.X[0])						\
 	{								\
-	  err = ENOMEM;							\
-	  goto CLEANUP;							\
+	  url->X = want_decode ? mu_url_decode (u.X) : strdup (u.X);	\
+	  if (!url->X)							\
+	    {								\
+	      err = ENOMEM;						\
+	      goto CLEANUP;						\
+	    }								\
+	  url->flags |= f;						\
 	}								\
       else								\
 	{								\
 	  /* Set zero-length strings to NULL. */			\
-	  u.X = NULL;							\
+	  url->X = NULL;						\
 	}
 
-      UALLOC (scheme);
-      UALLOC (user);
+      UALLOC (scheme, 0);
+      UALLOC (user, MU_URL_USER);
 
       if (u.secret)
 	{
@@ -357,20 +361,27 @@ mu_url_parse (mu_url_t url)
 	    goto CLEANUP;
 
 	  url->secret = newsec;
+	  url->flags |= MU_URL_SECRET;
 	}
 
-      UALLOC (auth);
-      UALLOC (host);
-      UALLOC (path);
+      UALLOC (auth, MU_URL_AUTH);
+      UALLOC (host, MU_URL_HOST);
+      UALLOC (path, MU_URL_PATH);
 
 #undef UALLOC
       url->fvcount = u.fvcount;
       url->fvpairs = u.fvpairs;
-
+      if (u.fvcount)
+	url->flags |= MU_URL_PARAM;
+	  
       url->qargc = u.qargc;
       url->qargv = u.qargv;
+      if (u.qargc)
+	url->flags |= MU_URL_QUERY;
 
       url->port = u.port;
+      if (u.port)
+	url->flags |= MU_URL_PORT;
     }
 
 CLEANUP:
@@ -1189,3 +1200,21 @@ mu_url_expand_path (mu_url_t url)
 
   return 0;
 }
+
+int
+mu_url_get_flags (mu_url_t url, int *pf)
+{
+  if (!url || !pf)
+    return EINVAL;
+  *pf = url->flags;
+  return 0;
+}
+
+int
+mu_url_has_flag (mu_url_t url, int flags)
+{
+  if (!url)
+    return 0;
+  return url->flags & flags;
+}
+

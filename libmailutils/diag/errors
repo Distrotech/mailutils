@@ -92,3 +92,6 @@ MU_ERR_READ                 _("Read error")
 
 MU_ERR_NO_TRANSPORT         _("Transport stream not set")
 MU_ERR_AUTH_NO_CRED         _("No credentials supplied")
+
+MU_ERR_URL_MISS_PARTS       _("URL missing required parts")
+MU_ERR_URL_EXTRA_PARTS      _("URL has parts not allowed by its scheme")

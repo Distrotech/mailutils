@@ -25,10 +25,33 @@
 extern "C" {
 #endif
 
+#define MU_URL_USER   0x0001 /* Has a user part */
+#define MU_URL_SECRET 0x0002 /* Has a secret (password) part */
+#define MU_URL_AUTH   0x0004 /* Has auth part */
+#define MU_URL_HOST   0x0008 /* Has host part */
+#define MU_URL_PORT   0x0010 /* Has port part */  
+#define MU_URL_PATH   0x0020 /* Has path */
+#define MU_URL_PARAM  0x0040 /* Has parameters */
+#define MU_URL_QUERY  0x0080 /* Has query */
+  
+#define MU_URL_CRED (MU_URL_USER | MU_URL_SECRET | MU_URL_AUTH)  
+  /* Has some of authentication credentials */
+#define MU_URL_INET (MU_URL_HOST | MU_URL_PORT)
+  /* Has Inet address */
+#define MU_URL_ALL \
+  (MU_URL_CRED | \
+   MU_URL_HOST | \
+   MU_URL_PATH | \
+   MU_URL_PARAM | \
+   MU_URL_QUERY)
+
 int  mu_url_create    (mu_url_t *, const char *name);
 int  mu_url_dup       (mu_url_t old_url, mu_url_t *new_url);
 int  mu_url_uplevel   (mu_url_t url, mu_url_t *upurl);
 
+int mu_url_get_flags (mu_url_t, int *);
+int mu_url_has_flag (mu_url_t, int);  
+  
 void mu_url_destroy   (mu_url_t *);
 int  mu_url_parse     (mu_url_t);
 

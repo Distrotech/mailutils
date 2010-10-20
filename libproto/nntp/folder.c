@@ -45,6 +45,9 @@ static struct _mu_record _nntp_record =
 {
   MU_NNTP_PRIO,
   MU_NNTP_URL_SCHEME,
+  MU_RECORD_DEFAULT,
+  MU_URL_CRED | MU_URL_INET | MU_URL_PATH,
+  MU_URL_HOST,
   _nntp_url_init, /* Url init.  */
   _nntp_mailbox_init, /* Mailbox init.  */
   NULL, /* Mailer init.  */

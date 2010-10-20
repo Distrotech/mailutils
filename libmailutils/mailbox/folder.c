@@ -76,10 +76,15 @@ mu_folder_create_from_record (mu_folder_t *pfolder, mu_url_t url,
       mu_record_get_folder (record, &f_init);
       if (f_init)
         {
-	  int status;
+	  int status, mask;
 	  mu_folder_t folder;
 	  int (*u_init) (mu_url_t) = NULL;
 
+	  status = mu_record_check_url (record, url, &mask);
+	  if (status)
+	    /* FIXME: mask would provide more info */
+	    return status;
+	  
 	  mu_record_get_url (record, &u_init);
 	  if (u_init)
 	    {

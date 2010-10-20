@@ -33,13 +33,6 @@
 #include <mailutils/sys/url.h>
 #include <mailutils/sys/registrar.h>
 
-static void url_pop_destroy (mu_url_t url);
-
-static void
-url_pop_destroy (mu_url_t url MU_ARG_UNUSED)
-{
-}
-
 /*
   POP URLs:
     pop://[<user>[;AUTH=<auth>]@]<host>[:<port>]
@@ -51,13 +44,6 @@ _url_pop_init (mu_url_t url)
 {
   if (url->port == 0)
     url->port = MU_POP_PORT;
-  
-  url->_destroy = url_pop_destroy;
-
-  /* not valid in pop url */
-  if (url->path || url->qargc || !url->host)
-    return EINVAL;
-
   return 0;
 }
 
@@ -72,13 +58,6 @@ _url_pops_init (mu_url_t url)
 {
   if (url->port == 0)
     url->port = MU_POPS_PORT;
-
-  url->_destroy = url_pop_destroy;
-
-  /* not valid in pops url */
-  if (url->path || url->qargc || !url->host)
-    return EINVAL;
-
   return 0;
 }
 
