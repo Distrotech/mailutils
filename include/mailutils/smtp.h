@@ -65,6 +65,7 @@ int mu_smtp_rcpt_basic (mu_smtp_t smtp, const char *email,
 
 int mu_smtp_data (mu_smtp_t smtp, mu_stream_t *pstream);
 int mu_smtp_send_stream (mu_smtp_t smtp, mu_stream_t str);
+int mu_smtp_dot (mu_smtp_t smtp);
 int mu_smtp_rset (mu_smtp_t smtp);
 int mu_smtp_quit (mu_smtp_t smtp);
 

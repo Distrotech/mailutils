@@ -36,6 +36,7 @@ libmu_mailer_la_SOURCES = \
  smtp_create.c\
  smtp_data.c\
  smtp_disconnect.c\
+ smtp_dot.c\
  smtp_ehlo.c\
  $(SMTP_GSASL)\
  smtp_io.c\

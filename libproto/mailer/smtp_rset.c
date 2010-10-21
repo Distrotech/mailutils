@@ -43,6 +43,21 @@ mu_smtp_rset (mu_smtp_t smtp)
   MU_SMTP_CHECK_ERROR (smtp, status);
   if (smtp->replcode[0] != '2')
     return MU_ERR_REPLY;
-  smtp->state = MU_SMTP_EHLO;
+  
+  switch (smtp->state)
+    {
+    case MU_SMTP_INIT:
+    case MU_SMTP_EHLO:
+    case MU_SMTP_DOT:
+      /* RFC 2821, 4.1.1.5 RESET (RSET):
+	[RSET] is effectively equivalent to a NOOP (i.e., if has no effect)
+	if issued immediately after EHLO, before EHLO is issued in the
+	session, after an end-of-data indicator has been sent and
+	acknowledged, or immediately before a QUIT */
+      break;
+      
+    default:
+      smtp->state = MU_SMTP_MAIL;
+    }
   return 0;
 }

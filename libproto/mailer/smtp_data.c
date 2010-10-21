@@ -76,6 +76,7 @@ _mu_smtp_data_end (mu_smtp_t smtp)
 			mu_strerror (status));
     }
   _mu_smtp_xscript_level (smtp, MU_XSCRIPT_NORMAL);
+  smtp->state = MU_SMTP_DOT;
   return status;
 }
 

@@ -375,8 +375,8 @@ static int
 smtp_send_message (mu_mailer_t mailer, mu_message_t msg,
 		   mu_address_t argfrom, mu_address_t argto)
 {
-  struct _smtp_mailer *smp = mailer->data;
-  mu_smtp_t smtp = smp->smtp;
+  struct _smtp_mailer *smp;
+  mu_smtp_t smtp;
   int status;
   size_t size, lines, count;
   const char *mail_from, *size_str;
@@ -388,7 +388,8 @@ smtp_send_message (mu_mailer_t mailer, mu_message_t msg,
   smp = mailer->data;
   if (!smp)
     return EINVAL;
-
+  smtp = smp->smtp;
+  
   if ((status = mu_message_get_header (msg, &header)))
     return status;
   
@@ -400,7 +401,7 @@ smtp_send_message (mu_mailer_t mailer, mu_message_t msg,
   if (status)
     return status;
   
-  if (mu_smtp_capa_test (smp->smtp, "SIZE", &size_str) == 0 &&
+  if (mu_smtp_capa_test (smtp, "SIZE", &size_str) == 0 &&
       mu_message_size (msg, &size) == 0 &&
       mu_message_lines (msg, &lines) == 0)
     {
@@ -409,21 +410,33 @@ smtp_send_message (mu_mailer_t mailer, mu_message_t msg,
 
       if (msgsize && msgsize > maxsize)
 	return EFBIG;
-      status = mu_smtp_mail_basic (smp->smtp, mail_from,
+      status = mu_smtp_mail_basic (smtp, mail_from,
 				   "SIZE=%lu",
 				   (unsigned long) msgsize);
     }
   else
-    status = mu_smtp_mail_basic (smp->smtp, mail_from, NULL);
+    status = mu_smtp_mail_basic (smtp, mail_from, NULL);
   if (status)
-    return status;
+    {
+      if (status == MU_ERR_REPLY)
+	mu_smtp_rset (smtp);
+      return status;
+    }
 
   status = _rcpt_to_addr (smtp, smp->rcpt_to, &count);
   if (status && count == 0)
-    return status;
+    {
+      if (status == MU_ERR_REPLY)
+	mu_smtp_rset (smtp);
+      return status;
+    }
   status = _rcpt_to_addr (smtp, smp->rcpt_bcc, &count);
   if (status && count == 0)
-    return status;
+    {
+      if (status == MU_ERR_REPLY)
+	mu_smtp_rset (smtp);
+      return status;
+    }
 
   if (mu_header_sget_value (header, MU_HEADER_BCC, NULL))
     {
@@ -433,7 +446,11 @@ smtp_send_message (mu_mailer_t mailer, mu_message_t msg,
 
       status = mu_smtp_data (smtp, &ostr);
       if (status)
-	return status;
+	{
+	  if (status == MU_ERR_REPLY)
+	    mu_smtp_rset (smtp);
+	  return status;
+	}
       mu_header_get_iterator (header, &itr);
       for (mu_iterator_first (itr); !mu_iterator_is_done (itr);
 	   mu_iterator_next (itr))
@@ -451,7 +468,7 @@ smtp_send_message (mu_mailer_t mailer, mu_message_t msg,
       
       mu_message_get_body (msg, &body);
       mu_body_get_streamref (body, &bstr);
-      mu_stream_copy (ostr, bstr, 0, NULL);
+      status = mu_stream_copy (ostr, bstr, 0, NULL);
       mu_stream_destroy (&bstr);
       mu_stream_close (ostr);
       mu_stream_destroy (&ostr);
@@ -463,12 +480,16 @@ smtp_send_message (mu_mailer_t mailer, mu_message_t msg,
       status = mu_smtp_send_stream (smtp, str);
       mu_stream_destroy (&str);
     }
-  mu_smtp_quit (smtp);
   mu_address_destroy (&smp->rcpt_to);
   mu_address_destroy (&smp->rcpt_bcc);
+  if (status == 0)
+    {
+      status = mu_smtp_dot (smtp);
+      if (status == MU_ERR_REPLY)
+	mu_smtp_rset (smtp);
+    }
   return status;
 }
-
 
 static int
 _mailer_smtp_init (mu_mailer_t mailer)

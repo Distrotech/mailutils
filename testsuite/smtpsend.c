@@ -289,7 +289,7 @@ main (int argc, char **argv)
       mu_stream_close (ostr);
       mu_stream_destroy (&ostr);
     }
-  
+  MU_ASSERT (mu_smtp_dot (smtp));
   MU_ASSERT (mu_smtp_quit (smtp));
   
   mu_smtp_destroy (&smtp);

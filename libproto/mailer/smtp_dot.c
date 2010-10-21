@@ -22,45 +22,27 @@
 #include <stdlib.h>
 #include <string.h>
 #include <mailutils/errno.h>
-#include <mailutils/filter.h>
+#include <mailutils/cctype.h>
 #include <mailutils/list.h>
+#include <mailutils/util.h>
 #include <mailutils/smtp.h>
-#include <mailutils/stream.h>
 #include <mailutils/sys/smtp.h>
 
-static int
-_smtp_data_send (mu_smtp_t smtp, mu_stream_t stream)
-{
-  int status = _mu_smtp_data_begin (smtp);
-
-  if (status)
-    return status;
-
-  status = mu_stream_copy (smtp->carrier, stream, 0, NULL);
-  _mu_smtp_data_end (smtp);
-  return status;
-}
-
-
 int
-mu_smtp_send_stream (mu_smtp_t smtp, mu_stream_t stream)
+mu_smtp_dot (mu_smtp_t smtp)
 {
   int status;
-  mu_stream_t input;
   
   if (!smtp)
     return EINVAL;
   if (MU_SMTP_FISSET (smtp, _MU_SMTP_ERR))
     return MU_ERR_FAILURE;
-  if (smtp->state != MU_SMTP_MORE)
+  if (smtp->state != MU_SMTP_DOT)
     return MU_ERR_SEQ;
-
-  status = mu_filter_create (&input, stream, "CRLFDOT", MU_FILTER_ENCODE,
-			     MU_STREAM_READ);
-  if (status)
-    return status;
-  
-  status = _smtp_data_send (smtp, input);
-  mu_stream_destroy (&input);
-  return status;
+  status = mu_smtp_response (smtp);
+  MU_SMTP_CHECK_ERROR (smtp, status);
+  if (smtp->replcode[0] != '2')
+    return MU_ERR_REPLY;
+  smtp->state = MU_SMTP_MAIL; /* FIXME: Force _EHLO perhaps? */
+  return 0;
 }
