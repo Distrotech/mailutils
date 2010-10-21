@@ -169,6 +169,7 @@ pop_open (mu_mailbox_t mbox, int flags)
 	break;
 
       if (WITH_TLS && !mpd->pops &&
+	  mu_url_sget_param (mbox->url, "notls", NULL) == MU_ERR_NOENT &&
 	  mu_pop3_capa_test (mpd->pop3, "STLS", NULL) == 0)
 	{
 	  status = mu_pop3_stls (mpd->pop3);

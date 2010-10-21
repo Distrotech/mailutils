@@ -48,7 +48,7 @@ static struct _mu_record _pop_record =
   MU_POP_PRIO,
   MU_POP_SCHEME,
   MU_RECORD_DEFAULT,
-  MU_URL_CRED | MU_URL_INET,
+  MU_URL_CRED | MU_URL_INET | MU_URL_PARAM,
   MU_URL_HOST,
   _url_pop_init, /* Url init.  */
   _mailbox_pop_init, /* Mailbox init.  */
