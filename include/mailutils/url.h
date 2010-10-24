@@ -104,7 +104,7 @@ int mu_url_is_same_port   (mu_url_t, mu_url_t);
 char *mu_url_decode_len (const char *s, size_t len);  
 char *mu_url_decode     (const char *s);
 
-int mu_url_is_ticket   (mu_url_t ticket, mu_url_t url);
+int mu_url_matches_ticket   (mu_url_t ticket, mu_url_t url, int *wcn);  
 int mu_url_init (mu_url_t url, int port, const char *scheme);
   
 #ifdef __cplusplus

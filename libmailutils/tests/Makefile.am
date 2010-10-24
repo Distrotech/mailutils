@@ -47,11 +47,12 @@ noinst_PROGRAMS = \
  fltst\
  listop\
  mailcap\
- url-parse
+ url-parse\
+ wicket
 
 LDADD = ${MU_LIB_MAILUTILS}
 
-EXTRA_DIST += Encode Decode
+EXTRA_DIST += Encode Decode Wicketfile
 
 ## ------------ ##
 ## Test suite.  ##
@@ -68,7 +69,8 @@ TESTSUITE_AT = \
  list.at\
  mailcap.at\
  testsuite.at\
- url.at
+ url.at\
+ wicket.at
 
 TESTSUITE = $(srcdir)/testsuite
 M4=m4

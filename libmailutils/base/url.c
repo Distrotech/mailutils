@@ -316,13 +316,18 @@ mu_url_parse (mu_url_t url)
 	  char *newname;
 
 	  memset (url->name + pstart, 0, plen);
-	  newname = realloc (url->name, len);
-	  if (!newname)
-	    goto CLEANUP;
+	  if (len > nlen + 1)
+	    {
+	      newname = realloc (url->name, len);
+	      if (!newname)
+		goto CLEANUP;
+	      url->name = newname;
+	    }
+	  else
+	    newname = url->name;
 	  memmove (newname + pstart + PASS_REPL_LEN, newname + pstart + plen,
 		   nlen - (pstart + plen) + 1);
 	  memcpy (newname + pstart, PASS_REPL, PASS_REPL_LEN);
-	  url->name = newname;
 	}
 
       /* Dup the strings we found. We wouldn't have to do this
@@ -959,44 +964,68 @@ mu_url_decode (const char *s)
   return mu_url_decode_len (s, strlen (s));
 }
 
-static int
-defined (const char *s)
-{
-  if (s && strcmp ("*", s) != 0)
-    return 1;
-  return 0;
-}
+#define is_wildcard(s) ((s)[0] == '*' && s[1] == 0)
 
 int
-mu_url_is_ticket (mu_url_t ticket, mu_url_t url)
+mu_url_matches_ticket (mu_url_t ticket, mu_url_t url, int *pwc)
 {
-  if (!ticket || !url)
+  int wcnt = 0;
+
+  if (is_wildcard (ticket->scheme))
+    wcnt++;
+  else if (mu_c_strcasecmp (ticket->scheme, url->scheme))
     return 0;
 
-  /* If ticket has a scheme, host, port, or path, then the queries
-     equivalent must be defined and match. */
-  if (defined (ticket->scheme))
+  if (ticket->flags & MU_URL_HOST)
     {
-      if (!url->scheme || mu_c_strcasecmp (ticket->scheme, url->scheme) != 0)
+      if (is_wildcard (ticket->host))
+	wcnt++;
+      else if (url->flags & MU_URL_HOST)
+	{
+	  if (mu_c_strcasecmp (ticket->host, url->host))
+	    /* FIXME: Compare IP addresses */
+	    return 0;
+	}
+      else
 	return 0;
     }
-  if (defined (ticket->host))
-    {
-      if (!url->host || mu_c_strcasecmp (ticket->host, url->host) != 0)
-	return 0;
-    }
-  if (ticket->port && ticket->port != url->port)
-    return 0;
-  /* If ticket has a user or pass, but url doesn't, that's OK, we were
-     urling for this info. But if url does have a user/pass, it
-     must match the ticket. */
-  if (url->user)
-    {
-      if (defined (ticket->user) && strcmp (ticket->user, url->user) != 0)
-	return 0;
-    }
+  else
+    wcnt++;
 
+  if (ticket->flags & MU_URL_PORT)
+    {
+      /* FIXME: No way to put a wildcard in the ticket file */
+      if (url->port & MU_URL_PORT)
+	{
+	  if (ticket->port != url->port)
+	    return 0;
+	  else
+	    wcnt++;
+	}
+    }
+  else
+    wcnt++;
+  
+  if (ticket->flags & MU_URL_USER)
+    {
+      if (is_wildcard (ticket->user))
+	wcnt += 2;
+      
+      /* If ticket has a user or pass, but url doesn't, that's OK, we were
+	 looking for this info. But if url does have a user/pass, it
+	 must match the ticket. */
+      else if (url->flags & MU_URL_USER)
+	{
+	  if (strcmp (ticket->user, url->user))
+	    return 0;
+	}
+    }
+  else
+    wcnt++;
+  
   /* Guess it matches. */
+  if (pwc)
+    *pwc = wcnt;
   return 1;
 }
 

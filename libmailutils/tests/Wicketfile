@@ -1,0 +1,7 @@
+# A test wicket file.
+*://foo:bar@localhost
+pop://*:foo;AUTH=+APOP@localhost
+pop://gray:test@localhost
+smtp://gray:guessme@localhost
+smtp://gray:adiviname@gnu.org
+pop://gray:secret@gnu.org

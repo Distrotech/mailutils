@@ -1,0 +1,52 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2010 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# GNU Mailutils is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+
+dnl ------------------------------------------------------------
+dnl TESTWICKET(URL, [KW = `'], [STDOUT = `'],
+dnl            [STDERR = `'], [RUN-IF-FAIL], [RUN-IF-PASS])
+dnl
+m4_pushdef([TESTWICKET],[
+AT_SETUP([Wicket: [$1]])
+AT_KEYWORDS([wicket wicket-$2])
+AT_CHECK([wicket $abs_top_srcdir/libmailutils/tests/Wicketfile "$1" | \
+ sed "s|$abs_top_srcdir/libmailutils/tests/Wicketfile|Wicketfile|"],
+[0],
+[$3],[$4],[$5],[$6])
+AT_CLEANUP])
+
+TESTWICKET([pop://localhost],[00],
+           [pop://localhost matches pop://gray:***@localhost at Wicketfile:4
+])
+TESTWICKET([pop://smith@localhost],[01],
+           [pop://smith@localhost matches pop://*:***;AUTH=+APOP@localhost at Wicketfile:3
+])
+TESTWICKET([pop://foo@localhost],[02],
+           [pop://foo@localhost matches *://foo:***@localhost at Wicketfile:2
+])
+TESTWICKET([pop://gnu.org],[03],
+           [pop://gnu.org matches pop://gray:***@gnu.org at Wicketfile:7
+])
+TESTWICKET([smtp://gnu.org],[04],
+           [smtp://gnu.org matches smtp://gray:***@gnu.org at Wicketfile:6
+])
+TESTWICKET([smtp://gray@gnu.org],[05],
+           [smtp://gray@gnu.org matches smtp://gray:***@gnu.org at Wicketfile:6
+])
+TESTWICKET([smtp://localhost],[06],
+           [smtp://localhost matches smtp://gray:***@localhost at Wicketfile:5
+])
+
+	   

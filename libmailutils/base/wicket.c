@@ -34,6 +34,9 @@
 #include <mailutils/util.h>
 #include <mailutils/mu_auth.h>
 #include <mailutils/stream.h>
+#include <mailutils/cstr.h>
+#include <mailutils/nls.h>
+#include <mailutils/errno.h>
 
 #include <mailutils/sys/auth.h>
 #include <mailutils/sys/url.h>
@@ -50,7 +53,8 @@ mu_wicket_create (mu_wicket_t *pwicket)
 }
 
 int
-mu_wicket_get_ticket (mu_wicket_t wicket, const char *user, mu_ticket_t *pticket)
+mu_wicket_get_ticket (mu_wicket_t wicket, const char *user,
+		      mu_ticket_t *pticket)
 {
   if (!wicket)
     return EINVAL;
@@ -168,8 +172,6 @@ file_ticket_destroy (mu_ticket_t ticket)
     }
 }
 
-static int get_ticket_url (mu_ticket_t ticket, mu_url_t url, mu_url_t *pticket_url);
-
 int
 file_ticket_get_cred (mu_ticket_t ticket, mu_url_t url, const char *challenge,
 		      char **pplain, mu_secret_t *psec)
@@ -178,7 +180,7 @@ file_ticket_get_cred (mu_ticket_t ticket, mu_url_t url, const char *challenge,
 
   if (!ft->tickurl)
     {
-      int rc = get_ticket_url (ticket, url, &ft->tickurl);
+      int rc = mu_wicket_file_match_url (ft->filename, url, &ft->tickurl);
       if (rc)
 	return rc;
     }
@@ -241,37 +243,28 @@ _file_wicket_get_ticket (mu_wicket_t wicket, void *data,
   return 0;
 }
   
-static int
-get_ticket_url (mu_ticket_t ticket, mu_url_t url, mu_url_t *pticket_url)
+int
+mu_wicket_stream_match_url (mu_stream_t stream, struct mu_debug_locus *loc,
+			    mu_url_t url, mu_url_t *pticket_url)
 {
-  mu_stream_t stream;
-  struct file_ticket *ft = mu_ticket_get_data (ticket);
   int rc;
   mu_url_t u = NULL;
   char *buf = NULL;
   size_t bufsize = 0;
   size_t len;
-  
-  rc = mu_file_stream_create (&stream, ft->filename, MU_STREAM_READ);
-  if (rc)
-    return rc;
+  mu_url_t pret = NULL;
+  int weight = 0;
+  int line = loc->line;
     
   while ((rc = mu_stream_getline (stream, &buf, &bufsize, &len)) == 0
 	 && len > 0)
     {
       char *p;
       int err;
+      int n;
       
-      /* Truncate a trailing newline. */
-      if (len && buf[len - 1] == '\n')
-	buf[--len] = 0;
-      
-      /* Skip leading spaces  */
-      for (p = buf; *p == ' ' || *p == '\t'; p++)
-	;
-      /* Skip trailing spaces */
-      for (; len > 0 && (p[len-1] == ' ' || p[len-1] == '\t'); )
-	p[--len] = 0;
+      loc->line++;
+      p = mu_str_stripws (buf);
       
       /* Skip empty lines and comments. */
       if (*p == 0 || *p == '#')
@@ -280,43 +273,42 @@ get_ticket_url (mu_ticket_t ticket, mu_url_t url, mu_url_t *pticket_url)
       if ((err = mu_url_create (&u, p)) != 0)
 	{
 	  /* Skip erroneous entry */
-	  /* FIXME: Error message */
+	  mu_error (_("%s:%u: cannot create URL: %s"),
+		    loc->file, loc->line, mu_strerror (err));
 	  continue;
 	}
       if ((err = mu_url_parse (u)) != 0)
 	{
-	  /* FIXME: See above */
+	  mu_error (_("%s:%u: cannot parse URL: %s"),
+		    loc->file, loc->line, mu_strerror (err));
 	  mu_url_destroy (&u);
 	  continue;
 	}
       
-      if (!mu_url_is_ticket (u, url))
+      if (!mu_url_matches_ticket (u, url, &n))
 	{
 	  mu_url_destroy (&u);
 	  continue;
 	}
       
-      if (ft->user)
+      if (!pret || n < weight)
 	{
-	  if (u->name && strcmp (u->name, "*") != 0
-	      && strcmp (ft->user, u->name) != 0)
-	    {
-	      mu_url_destroy (&u);
-	      continue;
-	    }
+	  pret = u;
+	  weight = n;
+	  line = loc->line;
+	  if (weight == 0)
+	    break;
 	}
-      
-      break;
     }
-  mu_stream_close (stream);
   free (buf);
     
-  mu_stream_destroy (&stream);
-
   if (rc == 0)
     {
-      if (u)
-	*pticket_url = u;
+      if (pret)
+	{
+	  *pticket_url = pret;
+	  loc->line = line;
+	}
       else
 	rc = MU_ERR_NOENT;
     }
@@ -324,6 +316,25 @@ get_ticket_url (mu_ticket_t ticket, mu_url_t url, mu_url_t *pticket_url)
   return rc;
 }
 
+int
+mu_wicket_file_match_url (const char *name, mu_url_t url,
+			  mu_url_t *pticket_url)
+{
+  mu_stream_t stream;
+  int rc;
+  struct mu_debug_locus loc;
+  
+  rc = mu_file_stream_create (&stream, name, MU_STREAM_READ);
+  if (rc)
+    return rc;
+  loc.file = name;
+  loc.line = 0;
+  rc = mu_wicket_stream_match_url (stream, &loc, url, pticket_url);
+  mu_stream_close (stream);
+  mu_stream_destroy (&stream);
+  return rc;
+}
+  
 int
 mu_file_wicket_create (mu_wicket_t *pwicket, const char *filename)
 {
