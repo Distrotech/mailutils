@@ -32,7 +32,8 @@ mu_SOURCES = \
  flt2047.c\
  $(POP_C)\
  query.c\
- shell.c
+ shell.c\
+ wicket.c
 
 mu_LDADD = \
  ${MU_APP_LIBRARIES}\

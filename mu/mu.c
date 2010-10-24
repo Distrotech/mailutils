@@ -33,6 +33,7 @@ Commands are:\n\
     mu filter - filter program\n\
     mu 2047   - decode/encode message headers as per RFC 2047\n\
     mu acl    - test access control lists\n\
+    mu wicket - find matching URL in wicket\n\
 \n\
 Try `mu COMMAND --help' to get help on a particular COMMAND.\n\
 \n\
@@ -106,6 +107,7 @@ struct mutool_action_tab mutool_action_tab[] = {
   { "2047", mutool_flt2047 },
   { "query", mutool_query },
   { "acl", mutool_acl },
+  { "wicket", mutool_wicket },
   { NULL }
 };
 

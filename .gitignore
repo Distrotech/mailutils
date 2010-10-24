@@ -23,6 +23,7 @@ config.h.in
 config.log
 config.status
 configure
+core
 git-describe
 git-describe.h
 libtool

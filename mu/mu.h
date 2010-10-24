@@ -35,6 +35,7 @@ int mutool_flt2047 (int argc, char **argv);
 int mutool_info (int argc, char **argv);
 int mutool_query (int argc, char **argv);
 int mutool_acl (int argc, char **argv);
+int mutool_wicket (int argc, char **argv);
 
 extern char *mutool_shell_prompt;
 extern mu_vartab_t mutool_prompt_vartab;
