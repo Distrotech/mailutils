@@ -7,8 +7,6 @@
 comsat/action.c
 comsat/comsat.c
 
-config/mailutils-config.c
-
 dotlock/dotlock.c
 
 frm/common.c
@@ -213,6 +211,9 @@ mu/mu.c
 mu/pop.c
 mu/query.c
 mu/shell.c
+mu/cflags.c
+mu/ldflags.c
+mu/wicket.c
 
 # EOF
 

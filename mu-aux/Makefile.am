@@ -24,3 +24,5 @@ EXTRA_DIST = \
  sqlmod.sh\
  generr.awk
 
+m4datadir = $(datadir)/aclocal
+dist_m4data_DATA = mailutils.m4

@@ -16,6 +16,7 @@
 ## along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
 
 bin_PROGRAMS = mu
+dist_bin_SCRIPTS = mailutils-config
 
 if MU_COND_SUPPORT_POP
  POP_C=pop.c
@@ -25,11 +26,13 @@ EXTRA_DIST=pop.c
 
 mu_SOURCES = \
  acl.c\
+ cflags.c\
  info.c\
  mu.h\
  mu.c\
  filter.c\
  flt2047.c\
+ ldflags.c\
  $(POP_C)\
  query.c\
  shell.c\
@@ -50,3 +53,11 @@ mu_LDADD = \
  @READLINE_LIBS@ @MU_COMMON_LIBRARIES@
 
 INCLUDES = @MU_APP_COMMON_INCLUDES@ @MU_AUTHINCS@
+AM_CPPFLAGS = \
+  -DCOMPILE_FLAGS="\"-I$(includedir)\"" \
+  -DLINK_FLAGS="\"-L$(libdir)\"" \
+  -DLINK_POSTFLAGS="\"$(MU_LINK_POSTFLAGS)\"" \
+  -DAUTHLIBS="\"$(MU_AUTHLIBS)\"" \
+  -DGUILE_LIBS="\"$(GUILE_LIBS)\"" \
+  -DPYTHON_LIBS="\"$(PYTHON_LIBS)\"" \
+  -DI18NLIBS="\"$(LIBINTL)\""

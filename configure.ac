@@ -1337,7 +1337,6 @@ AC_CONFIG_FILES([
  Makefile
  sql/Makefile
  comsat/Makefile
- config/Makefile
  doc/Makefile
  doc/man/Makefile
  doc/texinfo/Makefile

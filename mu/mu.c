@@ -34,6 +34,8 @@ Commands are:\n\
     mu 2047   - decode/encode message headers as per RFC 2047\n\
     mu acl    - test access control lists\n\
     mu wicket - find matching URL in wicket\n\
+    mu ldflags- list libraries required to link\n\
+    mu cflags - list compiler flags\n\
 \n\
 Try `mu COMMAND --help' to get help on a particular COMMAND.\n\
 \n\
@@ -108,6 +110,8 @@ struct mutool_action_tab mutool_action_tab[] = {
   { "query", mutool_query },
   { "acl", mutool_acl },
   { "wicket", mutool_wicket },
+  { "ldflags", mutool_ldflags },
+  { "cflags", mutool_cflags },
   { NULL }
 };
 

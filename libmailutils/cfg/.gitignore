@@ -1,3 +1,3 @@
-cfg_lexer.c
-cfg_parser.c
-cfg_parser.h
+lexer.c
+parser.c
+parser.h

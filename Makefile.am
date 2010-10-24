@@ -104,7 +104,6 @@ SUBDIRS = . \
  libmu_sieve\
  $(PYTHON_DIR)\
  doc\
- config\
  examples\
  mu\
  $(FRM_DIR)\
