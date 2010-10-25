@@ -1030,13 +1030,13 @@ mh_draft_message (const char *name, const char *msgspec, char **pname)
 char *
 mh_safe_make_file_name (const char *dir, const char *file)
 {
-  file = mu_make_file_name (dir, file);
-  if (!file)
+  char *name = mu_make_file_name (dir, file);
+  if (!name)
     {
       mu_diag_funcall (MU_DIAG_ERROR, "mu_make_file_name", NULL, ENOMEM);
       abort ();
     }
-  return file;
+  return name;
 }
 
 			  
