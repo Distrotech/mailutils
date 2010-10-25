@@ -284,6 +284,14 @@ mu_wicket_stream_match_url (mu_stream_t stream, struct mu_debug_locus *loc,
 	  mu_url_destroy (&u);
 	  continue;
 	}
+
+      if (!mu_url_has_flag (u, MU_URL_USER|MU_URL_SECRET))
+	{
+	  mu_error (_("%s:%u: URL is missing required parts"),
+		    loc->file, loc->line);
+	  mu_url_destroy (&u);
+	  continue;
+	}
       
       if (!mu_url_matches_ticket (u, url, &n))
 	{

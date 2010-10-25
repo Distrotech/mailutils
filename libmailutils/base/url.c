@@ -966,20 +966,25 @@ mu_url_decode (const char *s)
 
 #define is_wildcard(s) ((s)[0] == '*' && s[1] == 0)
 
+#define WEIGHT_SCHEME 3
+#define WEIGHT_USER   4
+#define WEIGHT_HOST   2
+#define WEIGHT_PORT   1
+
 int
 mu_url_matches_ticket (mu_url_t ticket, mu_url_t url, int *pwc)
 {
   int wcnt = 0;
-
+					      
   if (is_wildcard (ticket->scheme))
-    wcnt++;
+    wcnt += WEIGHT_SCHEME;
   else if (mu_c_strcasecmp (ticket->scheme, url->scheme))
     return 0;
 
   if (ticket->flags & MU_URL_HOST)
     {
       if (is_wildcard (ticket->host))
-	wcnt++;
+	wcnt += WEIGHT_HOST;
       else if (url->flags & MU_URL_HOST)
 	{
 	  if (mu_c_strcasecmp (ticket->host, url->host))
@@ -990,7 +995,7 @@ mu_url_matches_ticket (mu_url_t ticket, mu_url_t url, int *pwc)
 	return 0;
     }
   else
-    wcnt++;
+    wcnt += WEIGHT_HOST;
 
   if (ticket->flags & MU_URL_PORT)
     {
@@ -1000,16 +1005,16 @@ mu_url_matches_ticket (mu_url_t ticket, mu_url_t url, int *pwc)
 	  if (ticket->port != url->port)
 	    return 0;
 	  else
-	    wcnt++;
+	    wcnt += WEIGHT_PORT;
 	}
     }
   else
-    wcnt++;
+    wcnt += WEIGHT_PORT;
   
   if (ticket->flags & MU_URL_USER)
     {
       if (is_wildcard (ticket->user))
-	wcnt += 2;
+	wcnt += WEIGHT_USER;
       
       /* If ticket has a user or pass, but url doesn't, that's OK, we were
 	 looking for this info. But if url does have a user/pass, it
@@ -1021,7 +1026,7 @@ mu_url_matches_ticket (mu_url_t ticket, mu_url_t url, int *pwc)
 	}
     }
   else
-    wcnt++;
+    wcnt += WEIGHT_USER;
   
   /* Guess it matches. */
   if (pwc)
