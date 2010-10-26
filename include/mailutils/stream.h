@@ -176,14 +176,14 @@ int mu_streamref_create_abridged (mu_stream_t *pref, mu_stream_t str,
 int mu_streamref_create (mu_stream_t *pref, mu_stream_t str);
 
 int mu_tcp_stream_create_with_source_ip (mu_stream_t *stream,
-					 const char *host, int port,
+					 const char *host, unsigned port,
 					 unsigned long source_ip,
 					 int flags);
 int mu_tcp_stream_create_with_source_host (mu_stream_t *stream,
-					   const char *host, int port,
+					   const char *host, unsigned port,
 					   const char *source_host,
 					   int flags);
-int mu_tcp_stream_create (mu_stream_t *stream, const char *host, int port,
+int mu_tcp_stream_create (mu_stream_t *stream, const char *host, unsigned port,
 			  int flags);
 
 /* Transcript output levels */

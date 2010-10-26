@@ -77,7 +77,7 @@ int
 main ()
 {
   char str[1024];
-  long port = 0;
+  unsigned port = 0;
   mu_url_t u = NULL;
 
   while (fgets (str, sizeof (str), stdin) != NULL)
@@ -94,11 +94,6 @@ main ()
           fprintf (stderr, "mu_url_create %s ERROR: [%d] %s",
                    str, rc, mu_strerror (rc));
           exit (1);
-        }
-      if ((rc = mu_url_parse (u)) != 0)
-        {
-          fprintf (stderr, "%s\n", mu_errname (rc));
-          continue;
         }
 
       GET_AND_PRINT (scheme, u, buf, rc);
@@ -127,7 +122,7 @@ main ()
 	  mu_error ("cannot get %s: %s", "port", mu_strerror (rc));	
 	  exit (1);					
         }                                               
-      printf ("port %ld\n", port);
+      printf ("port %hu\n", port);
       
       GET_AND_PRINT (path, u, buf, rc);
       print_fvpairs (u);

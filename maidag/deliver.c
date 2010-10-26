@@ -385,13 +385,6 @@ do_delivery (mu_url_t url, mu_message_t msg, const char *name, char **errp)
 			auth->mailbox, mu_strerror (status));
 	  return exit_code = EX_UNAVAILABLE;
 	}
-      status = mu_url_parse (url);
-      if (status)
-	{
-	  maidag_error (_("error parsing URL %s: %s"),
-			auth->mailbox, mu_strerror (status));
-	  return exit_code = EX_UNAVAILABLE;
-	}
     }      
 
   status = mu_mailbox_create_from_url (&mbox, url);
@@ -435,14 +428,6 @@ deliver_to_url (mu_message_t msg, char *dest_id, char **errp)
     {
       maidag_error (_("%s: cannot create url: %s"), dest_id,
 		    mu_strerror (status));
-      return EX_NOUSER;
-    }
-  status = mu_url_parse (url);
-  if (status)
-    {
-      maidag_error (_("%s: cannot parse url: %s"), dest_id,
-		    mu_strerror (status));
-      mu_url_destroy (&url);
       return EX_NOUSER;
     }
   status = mu_url_sget_user (url, &name);

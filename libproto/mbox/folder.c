@@ -101,7 +101,7 @@ static struct _mu_record _mbox_record =
   MU_MBOX_PRIO,
   MU_MBOX_SCHEME,
   MU_RECORD_LOCAL,
-  MU_URL_PATH,
+  MU_URL_SCHEME | MU_URL_PATH,
   MU_URL_PATH,
   mu_url_expand_path, /* URL init.  */
   _mailbox_mbox_init, /* Mailbox init.  */

@@ -1387,6 +1387,7 @@ AC_CONFIG_FILES([
  libmailutils/server/Makefile
  libmailutils/string/Makefile
  libmailutils/stream/Makefile
+ libmailutils/url/Makefile
  libmailutils/Makefile
  messages/Makefile
  mh/Makefile

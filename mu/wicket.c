@@ -75,17 +75,15 @@ wicket_match (mu_stream_t stream, const char *str)
   int rc, ret;
   mu_url_t u, url;
   struct mu_debug_locus loc;
+  int flags = MU_URL_PARSE_ALL;
+
+  if (wicket_verbose > 2)
+    flags &= ~MU_URL_PARSE_HIDEPASS;
   
   rc = mu_url_create (&u, str);
   if (rc)
     {
       mu_diag_funcall (MU_DIAG_ERROR, "mu_url_create", str, rc);
-      return 2;
-    }
-  rc = mu_url_parse (u);
-  if (rc)
-    {
-      mu_diag_funcall (MU_DIAG_ERROR, "mu_url_parse", str, rc);
       return 2;
     }
 
@@ -97,7 +95,7 @@ wicket_match (mu_stream_t stream, const char *str)
     }
   loc.file = wicket_file;
   loc.line = 0;
-  rc = mu_wicket_stream_match_url (stream, &loc, u, &url);
+  rc = mu_wicket_stream_match_url (stream, &loc, u, flags, &url);
   switch (rc)
     {
     case 0:
@@ -106,27 +104,7 @@ wicket_match (mu_stream_t stream, const char *str)
 	{
 	  printf ("%s: %s:%d", str, loc.file, loc.line);
 	  if (wicket_verbose > 1)
-	    {
-	      printf (": %s", mu_url_to_string (url));
-	      if (wicket_verbose > 2)
-		{
-		  mu_secret_t s;
-		  rc = mu_url_get_secret (url, &s);
-		  if (rc == 0)
-		    {
-		      printf (": %s", mu_secret_password (s));
-		      mu_secret_password_unref (s);
-		      mu_secret_unref (s);
-		    }
-		  else if (rc == MU_ERR_NOENT)
-		    printf (": [%s]", _("no password"));
-		  else
-		    {
-		      printf (": [error: %s]", mu_strerror (rc));
-		      ret = 2;
-		    }
-		}
-	    }
+	    printf (": %s", mu_url_to_string (url));
 	  putchar ('\n');
 	}
       break;

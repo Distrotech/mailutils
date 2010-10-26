@@ -157,9 +157,7 @@ mu_folder_create (mu_folder_t *pfolder, const char *name)
   rc = mu_url_create (&url, name);
   if (rc)
     return rc;
-  rc = mu_url_parse (url);
-  if (rc == 0)
-    rc = mu_folder_create_from_record (pfolder, url, NULL);
+  rc = mu_folder_create_from_record (pfolder, url, NULL);
   if (rc)
     mu_url_destroy (&url);
   return rc;

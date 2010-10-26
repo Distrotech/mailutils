@@ -35,7 +35,8 @@ struct _mu_url
   mu_secret_t secret;
   char  *auth;
   char  *host;
-  long  port;
+  short port;
+  char  *portstr;
   char  *path;
   char  **fvpairs;
   int   fvcount;
@@ -53,7 +54,8 @@ struct _mu_url
   int   (*_get_secret) (const mu_url_t, mu_secret_t *);
   int   (*_get_auth)   (const mu_url_t, char *, size_t, size_t *);
   int   (*_get_host)   (const mu_url_t, char *, size_t, size_t *);
-  int   (*_get_port)   (const mu_url_t, long *);
+  int   (*_get_port)   (const mu_url_t, unsigned *);
+  int   (*_get_portstr)(const mu_url_t, char *, size_t, size_t *);
   int   (*_get_path)   (const mu_url_t, char *, size_t, size_t *);
   int   (*_get_query)  (const mu_url_t, char *, size_t, size_t *);
   int   (*_uplevel)    (const mu_url_t, mu_url_t *);

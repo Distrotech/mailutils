@@ -168,9 +168,7 @@ mu_mailer_create (mu_mailer_t * pmailer, const char *name)
   status = mu_url_create (&url, name);
   if (status)
     return status;
-  status = mu_url_parse (url);
-  if (status == 0)
-    status = mu_mailer_create_from_url (pmailer, url);
+  status = mu_mailer_create_from_url (pmailer, url);
   if (status)
     mu_url_destroy (&url);
   return status;

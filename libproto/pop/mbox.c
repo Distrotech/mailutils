@@ -105,7 +105,7 @@ pop_open (mu_mailbox_t mbox, int flags)
   struct _pop3_mailbox *mpd = mbox->data;
   int status;
   const char *host;
-  long port = mpd->pops ? MU_POPS_PORT : MU_POP_PORT;
+  unsigned port = mpd->pops ? MU_POPS_PORT : MU_POP_PORT;
   mu_stream_t stream;
   
   /* Sanity checks. */

@@ -78,8 +78,10 @@ int mu_file_wicket_create (mu_wicket_t *pwicket, const char *filename);
 
 struct mu_debug_locus;  
 int mu_wicket_stream_match_url (mu_stream_t stream, struct mu_debug_locus *loc,
-				mu_url_t url, mu_url_t *pticket_url);
+				mu_url_t url, int parse_flags,
+				mu_url_t *pticket_url);
 int mu_wicket_file_match_url (const char *name, mu_url_t url,
+			      int parse_flags,
 			      mu_url_t *pticket_url);
 
   

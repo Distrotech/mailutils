@@ -220,9 +220,7 @@ mu_registrar_lookup (const char *name, int flags,
   rc = mu_url_create (&url, name);
   if (rc)
     return rc;
-  rc = mu_url_parse (url);
-  if (rc == 0)
-    rc = mu_registrar_lookup_url (url, flags, precord, pflags);
+  rc = mu_registrar_lookup_url (url, flags, precord, pflags);
   mu_url_destroy (&url);
   return rc;
 }

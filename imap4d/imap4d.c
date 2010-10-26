@@ -172,7 +172,7 @@ parse_preauth_scheme (mu_debug_t debug, const char *scheme, mu_url_t url)
   else if (strcmp (scheme, "ident") == 0)
     {
       struct servent *sp;
-      long n;
+      unsigned n;
       if (url && mu_url_get_port (url, &n) == 0)
 	ident_port = (short) n;
       else if ((sp = getservbyname ("auth", "tcp")))
@@ -217,13 +217,6 @@ cb_preauth (mu_debug_t debug, void *data, mu_config_value_t *val)
       if (rc)
 	{
 	  mu_diag_funcall (MU_DIAG_ERROR, "mu_url_create", val->v.string, rc);
-	  return 1;
-	}
-      rc = mu_url_parse (url);
-      if (rc)
-	{
-	  mu_cfg_format_error (debug, MU_DEBUG_ERROR,
-			       "%s: %s", val->v.string, mu_strerror (rc));
 	  return 1;
 	}
 

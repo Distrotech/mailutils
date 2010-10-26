@@ -76,7 +76,7 @@ static struct _mu_record _mu_remote_smtp_record = {
   MU_SMTP_PRIO,
   "remote+smtp",
   MU_RECORD_DEFAULT,
-  MU_URL_CRED | MU_URL_INET | MU_URL_PATH | MU_URL_PARAM,
+  MU_URL_SCHEME | MU_URL_CRED | MU_URL_INET | MU_URL_PATH | MU_URL_PARAM,
   MU_URL_HOST,
   _url_remote_smtp_init,	/* url init.  */
   _mu_mailer_mailbox_init,      /* Mailbox init.  */
@@ -108,7 +108,7 @@ static struct _mu_record _mu_remote_sendmail_record =
   MU_SENDMAIL_PRIO,
   "remote+sendmail",
   MU_RECORD_DEFAULT,
-  MU_URL_PATH,
+  MU_URL_SCHEME | MU_URL_PATH,
   MU_URL_PATH,
   _url_remote_sendmail_init,    /* url init.  */
   _mu_mailer_mailbox_init,      /* Mailbox entry.  */
@@ -137,7 +137,7 @@ static struct _mu_record _mu_remote_prog_record =
   MU_PROG_PRIO,
   "remote+prog",
   MU_RECORD_DEFAULT,
-  MU_URL_CRED | MU_URL_PATH | MU_URL_QUERY,
+  MU_URL_SCHEME | MU_URL_CRED | MU_URL_PATH | MU_URL_QUERY,
   MU_URL_PATH,
   _url_remote_prog_init,    /* url init.  */
   _mu_mailer_mailbox_init,  /* Mailbox entry.  */

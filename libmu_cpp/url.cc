@@ -54,19 +54,17 @@ Url :: ~Url ()
 void
 Url :: parse ()
 {
-  int status = mu_url_parse (url);
-  if (status)
-    throw Exception ("Url::parse", status);
+  /* FIXME: Remove */
 }
 
-long
+unsigned
 Url :: get_port ()
 {
-  long port;
+  unsigned port;
   int status = mu_url_get_port (url, &port);
   if (status)
     throw Exception ("Url::get_port", status);
-  return port;
+  return (unsigned short) port;
 }
 
 std::string

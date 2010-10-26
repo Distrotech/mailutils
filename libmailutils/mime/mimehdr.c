@@ -29,8 +29,6 @@
 #include <mailutils/message.h>
 #include <mailutils/header.h>
 #include <mailutils/stream.h>
-#include <mailutils/url.h> /* FIXME: for mu_url_decode, which should
-			      be renamed! */
 #include <mailutils/mime.h>
 #include <mailutils/filter.h>
 #include <mailutils/util.h>
@@ -480,9 +478,9 @@ mu_mimehdr_decode_param (const char *value, int flags,
     }
   else
     {
-      decoded = mu_url_decode (value);
-      if (!decoded)
-	return ENOMEM;
+      rc = mu_str_url_decode (&decoded, value);
+      if (rc)
+	return rc;
   
       if ((flags & MU_MIMEHDR_CSINFO)
 	  && (lang = strchr (decoded, '\''))

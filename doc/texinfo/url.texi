@@ -186,7 +186,7 @@ for any particular scheme.
 @deftypefun  int mu_url_get_host (const mu_url_t, char *, size_t, size_t *)
 @end deftypefun
 
-@deftypefun  int mu_url_get_port (const mu_url_t, long *)
+@deftypefun  int mu_url_get_port (const mu_url_t, unsigned *)
 @end deftypefun
 
 @deftypefun  int mu_url_get_path (const mu_url_t, char *, size_t, size_t *)

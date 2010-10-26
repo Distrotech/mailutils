@@ -47,7 +47,7 @@ static struct _mu_record _prog_record =
   MU_RECORD_DEFAULT,
   /* FIXME: MU_URL_USER could be used to request running with this
      user privileges. */
-  MU_URL_PATH | MU_URL_QUERY, 
+  MU_URL_SCHEME | MU_URL_PATH | MU_URL_QUERY, 
   MU_URL_PATH,
   _url_prog_init,    /* url init.  */
   _mu_mailer_mailbox_init,  /* Mailbox entry.  */

@@ -25,14 +25,15 @@
 extern "C" {
 #endif
 
-#define MU_URL_USER   0x0001 /* Has a user part */
-#define MU_URL_SECRET 0x0002 /* Has a secret (password) part */
-#define MU_URL_AUTH   0x0004 /* Has auth part */
-#define MU_URL_HOST   0x0008 /* Has host part */
-#define MU_URL_PORT   0x0010 /* Has port part */  
-#define MU_URL_PATH   0x0020 /* Has path */
-#define MU_URL_PARAM  0x0040 /* Has parameters */
-#define MU_URL_QUERY  0x0080 /* Has query */
+#define MU_URL_SCHEME 0x0001
+#define MU_URL_USER   0x0002 /* Has a user part */
+#define MU_URL_SECRET 0x0004 /* Has a secret (password) part */
+#define MU_URL_AUTH   0x0008 /* Has auth part */
+#define MU_URL_HOST   0x0010 /* Has host part */
+#define MU_URL_PORT   0x0020 /* Has port part */  
+#define MU_URL_PATH   0x0040 /* Has path */
+#define MU_URL_PARAM  0x0080 /* Has parameters */
+#define MU_URL_QUERY  0x0100 /* Has query */
   
 #define MU_URL_CRED (MU_URL_USER | MU_URL_SECRET | MU_URL_AUTH)  
   /* Has some of authentication credentials */
@@ -45,6 +46,28 @@ extern "C" {
    MU_URL_PARAM | \
    MU_URL_QUERY)
 
+  /* Parser flags */
+#define MU_URL_PARSE_HEXCODE      0x0001  /* Decode % notations (RFC 1738,
+					     section 2.2) */
+#define MU_URL_PARSE_HIDEPASS     0x0002  /* Hide password in the URL */
+#define MU_URL_PARSE_PORTSRV      0x0004  /* Use getservbyname to determine
+					     port number */
+#define MU_URL_PARSE_PORTWC       0x0008  /* Allow wildcard (*) as a port
+					    number (for tickets) */
+#define MU_URL_PARSE_PIPE         0x0010  /* Translate "| ..." to
+					    "prog://..." */
+#define MU_URL_PARSE_SLASH        0x0020  /* Translate "/..." to
+					     "file:///..." */
+
+#define MU_URL_PARSE_DEFAULT \
+  (MU_URL_PARSE_HEXCODE|MU_URL_PARSE_HIDEPASS|MU_URL_PARSE_PORTSRV|\
+   MU_URL_PARSE_PIPE|MU_URL_PARSE_SLASH)
+#define MU_URL_PARSE_ALL (MU_URL_PARSE_DEFAULT|MU_URL_PARSE_PORTWC)  
+  
+int mu_url_create_hint (mu_url_t *purl, const char *str, int flags,
+			mu_url_t hint);
+int mu_url_copy_hints (mu_url_t url, mu_url_t hint);
+  
 int  mu_url_create    (mu_url_t *, const char *name);
 int  mu_url_dup       (mu_url_t old_url, mu_url_t *new_url);
 int  mu_url_uplevel   (mu_url_t url, mu_url_t *upurl);
@@ -53,7 +76,6 @@ int mu_url_get_flags (mu_url_t, int *);
 int mu_url_has_flag (mu_url_t, int);  
   
 void mu_url_destroy   (mu_url_t *);
-int  mu_url_parse     (mu_url_t);
 
 int mu_url_sget_scheme  (const mu_url_t, const char **);
 int mu_url_aget_scheme  (const mu_url_t, char **);  
@@ -80,7 +102,11 @@ int mu_url_get_path  (const mu_url_t, char *, size_t, size_t *);
 int mu_url_sget_query (const mu_url_t url, size_t *qc, char ***qv);
 int mu_url_aget_query (const mu_url_t url, size_t *qc, char ***qv);
 
-int mu_url_get_port    (const mu_url_t, long *);
+int mu_url_sget_portstr  (const mu_url_t, const char **);
+int mu_url_aget_portstr  (const mu_url_t, char **);  
+int mu_url_get_portstr   (const mu_url_t, char *, size_t, size_t *);
+  
+int mu_url_get_port    (const mu_url_t, unsigned *);
 
 int mu_url_sget_fvpairs (const mu_url_t url, size_t *fvc, char ***fvp);
 int mu_url_aget_fvpairs (const mu_url_t url, size_t *pfvc, char ***pfvp);
@@ -101,11 +127,9 @@ int mu_url_is_same_path   (mu_url_t, mu_url_t);
 int mu_url_is_same_host   (mu_url_t, mu_url_t);
 int mu_url_is_same_port   (mu_url_t, mu_url_t);
 
-char *mu_url_decode_len (const char *s, size_t len);  
-char *mu_url_decode     (const char *s);
-
 int mu_url_matches_ticket   (mu_url_t ticket, mu_url_t url, int *wcn);  
-int mu_url_init (mu_url_t url, int port, const char *scheme);
+
+int mu_url_decode (mu_url_t url);
   
 #ifdef __cplusplus
 }

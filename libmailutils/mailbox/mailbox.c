@@ -185,9 +185,7 @@ _create_mailbox (mu_mailbox_t *pmbox, const char *name)
   status = mu_url_create (&url, name);
   if (status)
     return status;
-  status = mu_url_parse (url);
-  if (status == 0)
-    status = _create_mailbox0 (pmbox, url, name);
+  status = _create_mailbox0 (pmbox, url, name);
   if (status)
     mu_url_destroy (&url);
   return status;
@@ -224,9 +222,7 @@ mu_mailbox_create_from_record (mu_mailbox_t *pmbox, mu_record_t record,
   rc = mu_url_create (&url, name);
   if (rc)
     return rc;
-  rc = mu_url_parse (url);
-  if (rc == 0)
-    rc = _mailbox_create_from_record (pmbox, record, url, name);
+  rc = _mailbox_create_from_record (pmbox, record, url, name);
   if (rc)
     mu_url_destroy (&url);
   return rc;

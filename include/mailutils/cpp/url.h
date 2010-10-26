@@ -42,7 +42,7 @@ class Url
   ~Url ();
 
   void parse ();
-  long get_port ();
+  unsigned get_port ();
   std::string get_scheme ();
   std::string get_user ();
   std::string get_auth ();

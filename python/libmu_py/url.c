@@ -102,6 +102,7 @@ api_url_destroy (PyObject *self, PyObject *args)
   return _ro (Py_None);
 }
 
+/* FIXME: Remove */
 static PyObject *
 api_url_parse (PyObject *self, PyObject *args)
 {
@@ -111,22 +112,21 @@ api_url_parse (PyObject *self, PyObject *args)
   if (!PyArg_ParseTuple (args, "O!", &PyUrlType, &py_url))
     return NULL;
 
-  status = mu_url_parse (py_url->url);
-  return _ro (PyInt_FromLong (status));
+  return _ro (0);
 }
 
 static PyObject *
 api_url_get_port (PyObject *self, PyObject *args)
 {
   int status;
-  long port;
+  unsigned port;
   PyUrl *py_url;
 
   if (!PyArg_ParseTuple (args, "O!", &PyUrlType, &py_url))
     return NULL;
 
   status = mu_url_get_port (py_url->url, &port);
-  return status_object (status, PyInt_FromLong (port));
+  return status_object (status, PyInt_FromLong ((long)port));
 }
 
 static PyObject *

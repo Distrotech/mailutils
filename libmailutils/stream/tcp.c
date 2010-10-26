@@ -27,6 +27,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <limits.h>
 
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -52,7 +53,7 @@ struct _tcp_instance
   struct _mu_stream stream;
   int 		fd;
   char 		*host;
-  int 		port;
+  unsigned short port;
   int		state;
   unsigned long	address;
   unsigned long source_addr;
@@ -304,7 +305,7 @@ _create_tcp_stream (int flags)
 
 int
 mu_tcp_stream_create_with_source_ip (mu_stream_t *pstream,
-				     const char *host, int port,
+				     const char *host, unsigned port,
 				     unsigned long source_ip,
 				     int flags)
 {
@@ -315,7 +316,7 @@ mu_tcp_stream_create_with_source_ip (mu_stream_t *pstream,
   if (host == NULL)
     return MU_ERR_TCP_NO_HOST;
 
-  if (port < 1)
+  if (port > USHRT_MAX)
     return MU_ERR_TCP_NO_PORT;
 
   tcp = _create_tcp_stream (flags | MU_STREAM_RDWR);
@@ -341,7 +342,7 @@ mu_tcp_stream_create_with_source_ip (mu_stream_t *pstream,
 
 int
 mu_tcp_stream_create_with_source_host (mu_stream_t *stream,
-				       const char *host, int port,
+				       const char *host, unsigned port,
 				       const char *source_host,
 				       int flags)
 {
@@ -354,7 +355,7 @@ mu_tcp_stream_create_with_source_host (mu_stream_t *stream,
 }
        
 int
-mu_tcp_stream_create (mu_stream_t *stream, const char *host, int port,
+mu_tcp_stream_create (mu_stream_t *stream, const char *host, unsigned port,
 		      int flags)
 {
   return mu_tcp_stream_create_with_source_ip (stream, host, port,

@@ -46,7 +46,7 @@ static struct _mu_record _nntp_record =
   MU_NNTP_PRIO,
   MU_NNTP_URL_SCHEME,
   MU_RECORD_DEFAULT,
-  MU_URL_CRED | MU_URL_INET | MU_URL_PATH,
+  MU_URL_SCHEME | MU_URL_CRED | MU_URL_INET | MU_URL_PATH,
   MU_URL_HOST,
   _nntp_url_init, /* Url init.  */
   _nntp_mailbox_init, /* Mailbox init.  */
@@ -104,7 +104,7 @@ nntp_folder_open (mu_folder_t folder, int flags)
   f_nntp_t f_nntp = folder->data;
   mu_stream_t carrier = NULL;
   const char *host;
-  long port = MU_NNTP_DEFAULT_PORT; /* default nntp port.  */
+  unsigned port = MU_NNTP_DEFAULT_PORT; /* default nntp port.  */
   int status = 0;
 
   /* If we are already open for business, noop.  */

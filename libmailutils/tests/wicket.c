@@ -38,15 +38,10 @@ match_string (const char *str)
 	       str, rc, mu_strerror (rc));
       return;
     }
-  if ((rc = mu_url_parse (u)) != 0)
-    {
-      fprintf (stderr, "%s\n", mu_errname (rc));
-      return;
-    }
   MU_ASSERT (mu_stream_seek (stream, 0, MU_SEEK_SET, NULL));
   loc.file = name;
   loc.line = 0;
-  rc = mu_wicket_stream_match_url (stream, &loc, u, &url);
+  rc = mu_wicket_stream_match_url (stream, &loc, u, MU_URL_PARSE_ALL, &url);
   switch (rc)
     {
     case 0:

@@ -42,7 +42,8 @@ int mu_unre_set_regex (const char *str, int caseflag, char **errp);
 int mu_unre_subject  (const char *subject, const char **new_subject);
 int mu_is_proto (const char *p);
 int mu_mh_delim (const char *str);
-
+void mu_str_url_decode_inline (char *str);
+int mu_str_url_decode (char **ptr, const char *s);
 
   /* ----------------------- */
   /* Date & time functions   */

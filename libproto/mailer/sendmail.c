@@ -271,9 +271,9 @@ static struct _mu_record _sendmail_record =
   MU_SENDMAIL_PRIO,
   MU_SENDMAIL_SCHEME,
   MU_RECORD_DEFAULT,
-  MU_URL_PATH,
-  0, /* Nothing is required in the URL, except scheme. Missing path means
-	using PATH_SENDMAIL. */
+  MU_URL_SCHEME | MU_URL_PATH,
+  MU_URL_SCHEME, /* Nothing is required in the URL, except scheme. 
+                    Missing path means using PATH_SENDMAIL. */
   _url_sendmail_init,    /* url init.  */
   _mu_mailer_mailbox_init,     /* Mailbox entry.  */
   _mu_mailer_sendmail_init, /* Mailer entry.  */

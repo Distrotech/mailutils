@@ -65,7 +65,7 @@ static struct _mu_record _smtp_record = {
   MU_SMTP_PRIO,
   MU_SMTP_SCHEME,
   MU_RECORD_DEFAULT,
-  MU_URL_CRED | MU_URL_INET | MU_URL_PARAM,
+  MU_URL_SCHEME | MU_URL_CRED | MU_URL_INET | MU_URL_PARAM,
   MU_URL_HOST,
   _url_smtp_init,		/* url init.  */
   _mu_mailer_mailbox_init,	/* Mailbox init.  */
@@ -113,7 +113,7 @@ static int
 smtp_open (mu_mailer_t mailer, int flags)
 {
   const char *host, *auth;
-  long port;
+  unsigned port;
   struct _smtp_mailer *smtp_mailer = mailer->data;
   int rc;
   size_t parmc = 0;

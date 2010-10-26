@@ -180,7 +180,9 @@ file_ticket_get_cred (mu_ticket_t ticket, mu_url_t url, const char *challenge,
 
   if (!ft->tickurl)
     {
-      int rc = mu_wicket_file_match_url (ft->filename, url, &ft->tickurl);
+      int rc = mu_wicket_file_match_url (ft->filename, url,
+					 MU_URL_PARSE_ALL,
+					 &ft->tickurl);
       if (rc)
 	return rc;
     }
@@ -245,7 +247,8 @@ _file_wicket_get_ticket (mu_wicket_t wicket, void *data,
   
 int
 mu_wicket_stream_match_url (mu_stream_t stream, struct mu_debug_locus *loc,
-			    mu_url_t url, mu_url_t *pticket_url)
+			    mu_url_t url, int parse_flags,
+			    mu_url_t *pticket_url)
 {
   int rc;
   mu_url_t u = NULL;
@@ -270,18 +273,11 @@ mu_wicket_stream_match_url (mu_stream_t stream, struct mu_debug_locus *loc,
       if (*p == 0 || *p == '#')
 	continue;
       
-      if ((err = mu_url_create (&u, p)) != 0)
+      if ((err = mu_url_create_hint (&u, p, parse_flags, NULL)) != 0)
 	{
 	  /* Skip erroneous entry */
 	  mu_error (_("%s:%u: cannot create URL: %s"),
 		    loc->file, loc->line, mu_strerror (err));
-	  continue;
-	}
-      if ((err = mu_url_parse (u)) != 0)
-	{
-	  mu_error (_("%s:%u: cannot parse URL: %s"),
-		    loc->file, loc->line, mu_strerror (err));
-	  mu_url_destroy (&u);
 	  continue;
 	}
 
@@ -326,6 +322,7 @@ mu_wicket_stream_match_url (mu_stream_t stream, struct mu_debug_locus *loc,
 
 int
 mu_wicket_file_match_url (const char *name, mu_url_t url,
+			  int parse_flags,
 			  mu_url_t *pticket_url)
 {
   mu_stream_t stream;
@@ -337,7 +334,8 @@ mu_wicket_file_match_url (const char *name, mu_url_t url,
     return rc;
   loc.file = name;
   loc.line = 0;
-  rc = mu_wicket_stream_match_url (stream, &loc, url, pticket_url);
+  rc = mu_wicket_stream_match_url (stream, &loc, url, parse_flags,
+				   pticket_url);
   mu_stream_close (stream);
   mu_stream_destroy (&stream);
   return rc;

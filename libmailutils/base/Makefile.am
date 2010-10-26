@@ -61,7 +61,6 @@ libbase_la_SOURCES = \
  tempfile.c\
  ticket.c\
  tilde.c\
- url.c\
  usremail.c\
  vartab.c\
  version.c\

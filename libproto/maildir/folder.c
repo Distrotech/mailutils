@@ -99,7 +99,7 @@ static struct _mu_record _maildir_record =
   MU_MAILDIR_PRIO,
   MU_MAILDIR_SCHEME,
   MU_RECORD_LOCAL,
-  MU_URL_PATH,
+  MU_URL_SCHEME | MU_URL_PATH,
   MU_URL_PATH,
   mu_url_expand_path, /* Url init.  */
   _mailbox_maildir_init, /* Mailbox init.  */

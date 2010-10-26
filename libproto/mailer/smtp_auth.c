@@ -77,15 +77,6 @@ _mu_smtp_fixup_params (mu_smtp_t smtp)
       return rc;
     }
 
-  rc = mu_url_parse (url);
-  if (rc)
-    {
-      mu_diag_output (MU_DIAG_ERROR, "cannot parse URL: %s",
-		      mu_strerror (rc));
-      mu_url_destroy (&url);
-      return rc;
-    }
-
   if (!(flags & _HAS_USERNAME))
     {
       rc = mu_url_sget_user (url, &str);

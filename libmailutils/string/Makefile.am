@@ -34,6 +34,7 @@ libstring_la_SOURCES = \
  asprintf.c\
  muctype.c\
  vasnprintf.c\
- mkfilename.c
+ mkfilename.c\
+ xdecode.c
 
 INCLUDES = @MU_LIB_COMMON_INCLUDES@ -I/libmailutils
