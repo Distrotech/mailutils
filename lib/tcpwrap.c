@@ -33,34 +33,6 @@ char *mu_tcp_wrapper_daemon;
 
 #ifdef WITH_LIBWRAP
 # include <tcpd.h>
-int deny_severity = LOG_INFO;
-int allow_severity = LOG_INFO;
-
-int
-mu_tcp_wrapper_cb_hosts_allow_syslog (mu_debug_t debug, void *data,
-				      mu_config_value_t *val)
-{
-  if (mu_cfg_assert_value_type (val, MU_CFG_STRING, debug))
-    return 1;
-  if (mu_string_to_syslog_priority (val->v.string, &allow_severity))
-    mu_cfg_format_error (debug, MU_DEBUG_ERROR, 
-			 _("unknown syslog priority `%s'"), 
-			 val->v.string);
-  return 0;
-}
-
-int
-mu_tcp_wrapper_cb_hosts_deny_syslog (mu_debug_t debug, void *data,
-				     mu_config_value_t *val)
-{
-  if (mu_cfg_assert_value_type (val, MU_CFG_STRING, debug))
-    return 1;
-  if (mu_string_to_syslog_priority (val->v.string, &deny_severity))
-    mu_cfg_format_error (debug, MU_DEBUG_ERROR, 
-			 _("unknown syslog priority `%s'"), 
-			 val->v.string);
-  return 0;
-}
 
 int
 mu_tcpwrapper_access (int fd)
@@ -94,14 +66,6 @@ struct mu_cfg_param tcpwrapper_param[] = {
     N_("Use file for negative client address access control "		      
        "(default: /etc/hosts.deny)."),					      
     N_("file") },							      
-  { "allow-syslog-priority", mu_cfg_callback, NULL, 0,	       	      
-    mu_tcp_wrapper_cb_hosts_allow_syslog,				      
-    N_("Log host allows at this syslog priority."),
-    N_("level") },							      
-  { "deny-syslog-priority", mu_cfg_callback, NULL, 0,			      
-    mu_tcp_wrapper_cb_hosts_deny_syslog,				      
-    N_("Log host denies at this syslog priority."),
-    N_("level") },
   { NULL }
 };
 
