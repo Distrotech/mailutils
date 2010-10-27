@@ -249,7 +249,7 @@ display_file (const char *type)
       mu_header_t hdr;
       char *text;
 
-      asprintf (&text, "Content-Type: %s\n", type);
+      mu_asprintf (&text, "Content-Type: %s\n", type);
       status = mu_header_create (&hdr, text, strlen (text));
       if (status)
 	mu_error (_("cannot create header: %s"), mu_strerror (status));

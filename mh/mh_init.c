@@ -496,12 +496,13 @@ mh_expand_name (const char *base, const char *name, int is_folder)
       if (memcmp (namep, "mh:/", 4) == 0)
 	return namep;
       else if (namep[0] == '/')
-	asprintf (&p, "mh:%s", namep);
+	mu_asprintf (&p, "mh:%s", namep);
       else
-	asprintf (&p, "mh:%s/%s", base ? base : mu_folder_directory (), namep);
+	mu_asprintf (&p, "mh:%s/%s", base ? base : mu_folder_directory (), 
+                     namep);
     }
   else if (namep[0] != '/')
-    asprintf (&p, "%s/%s", base ? base : mu_folder_directory (), namep);
+    mu_asprintf (&p, "%s/%s", base ? base : mu_folder_directory (), namep);
   else
     return namep;
   

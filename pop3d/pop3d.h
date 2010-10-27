@@ -23,8 +23,8 @@
 #endif
 #include <mailutils/types.h>
 #include <mailutils/stream.h>
+#include <mailutils/io.h>
 #include <mu_dbm.h>
-#include <mu_asprintf.h>
 #include <mu_umaxtostr.h>
 #include <muaux.h>
 

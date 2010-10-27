@@ -93,7 +93,7 @@ parse_headers (FILE *fp, compose_env_t *env)
 	      if (name)
 		{
 		  char *p = NULL;
-		  asprintf (&p, "%s\n%s", value, buf);
+		  mu_asprintf (&p, "%s\n%s", value, buf);
 		  free (value);
 		  value = p;
 		}

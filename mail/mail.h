@@ -79,7 +79,7 @@
 #include <mailutils/argcv.h>
 #include <mailutils/cctype.h>
 #include <mailutils/cstr.h>
-#include <mu_asprintf.h>
+#include <mailutils/io.h>
 
 #ifdef __cplusplus
 extern "C" {

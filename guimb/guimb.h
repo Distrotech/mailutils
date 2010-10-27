@@ -42,7 +42,7 @@
 #include <mailutils/util.h>
 #include <mailutils/attribute.h>
 #include <mailutils/envelope.h>
-#include <mu_asprintf.h>
+#include <mailutils/io.h>
 
 extern char *program_file;
 extern char *program_expr;

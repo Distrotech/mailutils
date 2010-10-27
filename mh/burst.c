@@ -594,7 +594,7 @@ main (int argc, char **argv)
 	last_uid += burst_map[i].count;
       VERBOSE ((_("Estimated last UID: %s"), mu_umaxtostr (0, last_uid)));
 
-      asprintf (&xargv[0], "%s-last", mu_umaxtostr (0, burst_map[0].msgno));
+      mu_asprintf (&xargv[0], "%s-last", mu_umaxtostr (0, burst_map[0].msgno));
       xargv[1] = NULL;
       mh_msgset_parse (mbox, &ms, 1, xargv, NULL);
       free (xargv[0]);

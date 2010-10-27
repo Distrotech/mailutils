@@ -375,7 +375,7 @@ edit (struct mh_whatnow_env *wh, int argc, char **argv, int *status)
 {
   char *name;
   
-  asprintf (&name, "%s-next", wh->editor);
+  mu_asprintf (&name, "%s-next", wh->editor);
   invoke (name, wh->editor, argc, argv, wh->file, NULL);
   free (name);
   
@@ -631,7 +631,7 @@ mh_usedraft (const char *filename)
   
   memset (&wh, 0, sizeof (wh));
   wh.file = xstrdup (filename);
-  asprintf (&wh.prompt, _("Use \"%s\"?"), filename);
+  mu_asprintf (&wh.prompt, _("Use \"%s\"?"), filename);
   rc = _whatnow (&wh, usedraft_tab);
   free (wh.prompt);
   free (wh.file);

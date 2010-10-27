@@ -91,7 +91,7 @@ expire_mark_message (mu_message_t msg, char **value)
       mu_attribute_t attr = NULL;
       
       if (!*value)
-	asprintf (value, "%lu", (unsigned long) time (NULL));
+	mu_asprintf (value, "%lu", (unsigned long) time (NULL));
       
       mu_message_get_header (msg, &header);
       mu_message_get_attribute (msg, &attr);

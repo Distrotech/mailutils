@@ -291,7 +291,7 @@ format_message (mu_mailbox_t mbox, mu_message_t msg, size_t num, void *data)
   
   if (fp->num)
     {
-      asprintf (&s, "\n------- Message %d\n", fp->num++);
+      mu_asprintf (&s, "\n------- Message %d\n", fp->num++);
       rc = mu_stream_write (fp->stream, s, strlen (s), NULL);
       free (s);
     }
@@ -357,7 +357,7 @@ finish_draft ()
       mbox_path = mu_url_to_string (url);
       if (memcmp (mbox_path, "mh:", 3) == 0)
 	mbox_path += 3;
-      asprintf (&str, "#forw [] +%s", mbox_path);
+      mu_asprintf (&str, "#forw [] +%s", mbox_path);
       rc = mu_stream_write (stream, str, strlen (str), NULL);
       free (str);
       for (i = 0; rc == 0 && i < msgset.count; i++)

@@ -30,7 +30,7 @@
 #else
 # include <sys/fcntl.h>
 #endif
-#include <mu_asprintf.h>
+#include <mailutils/io.h>
 
 /*
  * expands command into its command and arguments, then runs command
@@ -38,20 +38,21 @@
  * returns exit status of the command
  */
 int
-util_do_command (const char *c, ...)
+util_do_command (const char *fmt, ...)
 {
   int argc = 0;
   char **argv = NULL;
   int status = 0;
   const struct mail_command_entry *entry = NULL;
   char *cmd = NULL;
+  size_t size = 0;
   va_list ap;
   
-  va_start (ap, c);
-  status = vasprintf (&cmd, c, ap);
+  va_start (ap, fmt);
+  status = mu_vasnprintf (&cmd, &size, fmt, ap);
   va_end (ap);
-  if (status < 0)
-    return 0;
+  if (status)
+    return status;
 
   if (cmd)
     {
@@ -84,7 +85,7 @@ util_do_command (const char *c, ...)
 	      && ((strtoul (argv[0], &p, 10) > 0 && *p == 0)
 		  || (argv[0][1] == 0 && strchr("^$", argv[0][0]))))
 	    {
-	      asprintf (&p, "print %s", argv[0]);
+	      mu_asprintf (&p, "print %s", argv[0]);
 	      mu_argcv_free (argc, argv);
 	      mu_argcv_get (p, NULL, NULL, &argc, &argv);
 	      free (p);
@@ -685,7 +686,7 @@ util_outfolder_name (char *str)
       if (mailvar_get (&outfolder, "outfolder", mailvar_type_string, 0) == 0)
 	{
 	  char *ns = NULL;
-	  asprintf (&ns, "%s/%s", outfolder, str);
+	  mu_asprintf (&ns, "%s/%s", outfolder, str);
 	  str = util_fullpath (ns);
 	  free (ns);
 	}
@@ -1035,11 +1036,12 @@ util_noapp ()
 void
 util_cache_command (mu_list_t *list, const char *fmt, ...)
 {
-  char *cmd;
+  char *cmd = NULL;
+  size_t size = 0;
   va_list ap;
 
   va_start (ap, fmt);
-  vasprintf (&cmd, fmt, ap);
+  mu_vasnprintf (&cmd, &size, fmt, ap);
   va_end (ap);
 
   if (!*list)

@@ -175,14 +175,14 @@ parse_opt (int key, char *arg, struct argp_state *state)
 			    _("-f requires at most one command line argument"));
 	    }
 	  else if (args->user)
-	    asprintf (&args->file, "~/%s/mbox", args->user);
+	    mu_asprintf (&args->file, "~/%s/mbox", args->user);
 	  else
 	    args->file = "~/mbox";
 	}
       else if (args->argc || (args->hint & HINT_SEND_MODE))
 	util_cache_command (&command_list, "setq mode=send");
       else if (args->user)
-	asprintf (&args->file, "%%%s", args->user);
+	mu_asprintf (&args->file, "%%%s", args->user);
       break;
       
     default:

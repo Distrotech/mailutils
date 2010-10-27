@@ -73,7 +73,7 @@ ENVELOPE TO: <coyote@desert.example.org>
   16: --(boundary)
   17: Content-Type: message/delivery-status
   18: 
-  19: Reporting-UA: sieve; GNU Mailutils 2.2.90
+  19: Reporting-UA: sieve; GNU Mailutils AT_PACKAGE_VERSION
   20: Arrival-Date: (date)
   21: Final-Recipient: RFC822; foobar@nonexistent.net
   22: Action: deleted
@@ -122,7 +122,7 @@ ENVELOPE TO: <b1ff@de.res.example.com>
   16: --(boundary)
   17: Content-Type: message/delivery-status
   18: 
-  19: Reporting-UA: sieve; GNU Mailutils 2.2.90
+  19: Reporting-UA: sieve; GNU Mailutils AT_PACKAGE_VERSION
   20: Arrival-Date: (date)
   21: Final-Recipient: RFC822; foobar@nonexistent.net
   22: Action: deleted
@@ -169,7 +169,7 @@ ENVELOPE TO: <bar@dontmailme.org>
   16: --(boundary)
   17: Content-Type: message/delivery-status
   18: 
-  19: Reporting-UA: sieve; GNU Mailutils 2.2.90
+  19: Reporting-UA: sieve; GNU Mailutils AT_PACKAGE_VERSION
   20: Arrival-Date: (date)
   21: Final-Recipient: RFC822; foobar@nonexistent.net
   22: Action: deleted

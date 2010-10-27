@@ -26,7 +26,7 @@
 #include <mh_alias.h>
 #include <sys/stat.h>
 #include <mailutils/cctype.h>
-#include <mu_asprintf.h>
+#include <mailutils/io.h>
   
 char *ali_filename;  
 size_t ali_line_num;  
@@ -36,9 +36,10 @@ void
 va_ali_parse_error_loc (const char *name, size_t line,
 			      const char *fmt, va_list ap)
 {
-  char *buf;
+  char *buf = NULL;
+  size_t size = 0;
 
-  vasprintf (&buf, fmt, ap);
+  mu_vasnprintf (&buf, &size, fmt, ap);
   if (name)
     mu_error ("%s:%lu: %s", name, (unsigned long) line,  buf);
   else
@@ -372,8 +373,9 @@ SPEC [,:;+=\*]
 		    yylval.string[yyleng] = 0;
 		    return STRING;}
 .              { char *p;
-                 asprintf (&p,
-			   _("Stray character %03o in alias file"), yytext[0]);
+                 mu_asprintf (&p,
+			      _("Stray character %03o in alias file"), 
+                              yytext[0]);
                  yyerror (p);
 		 free (p); }
 %%

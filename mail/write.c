@@ -46,7 +46,7 @@ mail_write (int argc, char **argv)
           util_error (_("No applicable message"));
           return 1;
         }
-      asprintf (&p, "%lu", (unsigned long) n);
+      mu_asprintf (&p, "%lu", (unsigned long) n);
       filename = util_outfolder_name (p);
       free (p);
     }

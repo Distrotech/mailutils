@@ -201,7 +201,7 @@ msgset_preproc (mu_mailbox_t mbox, char *arg)
     {
       char *rest = msgset_preproc_part (mbox, tail+1, &tail);
       char *p = NULL;
-      asprintf (&p, "%s-%s", buf, rest);
+      mu_asprintf (&p, "%s-%s", buf, rest);
       free (rest);
       free (buf);
       buf = p;
@@ -210,7 +210,7 @@ msgset_preproc (mu_mailbox_t mbox, char *arg)
   if (tail[0])
     {
       char *p = NULL;
-      asprintf (&p, "%s%s", buf, tail);
+      mu_asprintf (&p, "%s%s", buf, tail);
       free (buf);
       buf = p;
     }

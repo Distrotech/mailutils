@@ -115,7 +115,7 @@ imap4d_unsubscribe (struct imap4d_command *command, imap4d_tokbuf_t tok)
       if (sd.result)
 	{
 	  char *tmpname = NULL;
-	  asprintf (&tmpname, "%s.%d", file, getpid ());
+	  mu_asprintf (&tmpname, "%s.%d", file, getpid ());
 	  sd.tmp = fopen (tmpname, "a");
 	  if (!sd.tmp)
 	    rc = -1;

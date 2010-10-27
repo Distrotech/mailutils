@@ -150,7 +150,7 @@ mutool_ldflags (int argc, char **argv)
 	    {
 	      if (p->flags & NOTALL)
 		continue;
-	      asprintf (&ptr, "-l%s", p->libname);
+	      mu_asprintf (&ptr, "-l%s", p->libname);
 	      add_entry (0, ptr);
 	      if (p->flags & NEEDAUTH)
 		add_entry (2, "-lmu_auth " AUTHLIBS);
@@ -166,7 +166,7 @@ mutool_ldflags (int argc, char **argv)
 
 	  if (p->name)
 	    {
-	      asprintf (&ptr, "-l%s", p->libname);
+	      mu_asprintf (&ptr, "-l%s", p->libname);
 	      add_entry (0, ptr);
 	      if (p->flags & NEEDAUTH)
 		add_entry (2, "-lmu_auth " AUTHLIBS);

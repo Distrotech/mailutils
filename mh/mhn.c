@@ -583,7 +583,7 @@ _mhn_profile_get (char *prefix, char *type, char *subtype, char *defval)
   
   if (subtype)
     {
-      asprintf (&name, "mhn-%s-%s/%s", prefix, type, subtype);
+      mu_asprintf (&name, "mhn-%s-%s/%s", prefix, type, subtype);
       str = mh_global_profile_get (name, NULL);
       free (name);
       if (!str)
@@ -591,7 +591,7 @@ _mhn_profile_get (char *prefix, char *type, char *subtype, char *defval)
     }
   else
     {
-      asprintf (&name, "mhn-%s-%s", prefix, type);
+      mu_asprintf (&name, "mhn-%s-%s", prefix, type);
       str = mh_global_profile_get (name, defval);
       free (name);
     }
@@ -1596,7 +1596,7 @@ store_handler (mu_message_t msg, msg_part_t part, char *type, char *encoding,
       char *p;
       int rc;
 	
-      asprintf (&p, _("File %s already exists. Rewrite"), name);
+      mu_asprintf (&p, _("File %s already exists. Rewrite"), name);
       rc = mh_getyn (p);
       free (p);
       if (!rc)
@@ -2131,7 +2131,7 @@ edit_forw (char *cmd, struct compose_env *env, mu_message_t *pmsg, int level)
   sp = strchr (val, ';');
   if (!sp)
     abort ();
-  asprintf (&newval, "multipart/digest%s", sp);
+  mu_asprintf (&newval, "multipart/digest%s", sp);
   mu_header_set_value (hdr, MU_HEADER_CONTENT_TYPE, newval, 1);
   free (val);
   free (newval);
@@ -2576,13 +2576,13 @@ mhn_compose ()
     {
       *p = 0;
       name = mu_tempname (input_file);
-      asprintf (&backup, "%s/,%s.orig", input_file, p + 1);
+      mu_asprintf (&backup, "%s/,%s.orig", input_file, p + 1);
       *p = '/';
     }
   else
     {
       name = mu_tempname (NULL);
-      asprintf (&backup, ",%s.orig", input_file);
+      mu_asprintf (&backup, ",%s.orig", input_file);
     }
   
   /* Create working draft file */

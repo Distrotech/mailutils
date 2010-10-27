@@ -35,7 +35,6 @@ noinst_HEADERS +=\
  mailcap.h\
  muaux.h\
  mu_dbm.h\
- mu_asprintf.h\
  tcpwrap.h
 
 EXTRA_DIST += utmp.c

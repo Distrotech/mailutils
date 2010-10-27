@@ -25,7 +25,7 @@
 #include <unistd.h>
 #include <mh_getopt.h>
 #include <xalloc.h>
-#include <mu_asprintf.h>
+#include <mailutils/io.h>
 
 #include <string.h>
 
@@ -53,8 +53,8 @@
 #include <mailutils/mailer.h>
 #include <mailutils/envelope.h>
 #include <mailutils/mime.h>
+#include <mailutils/io.h>
 
-#include <mu_asprintf.h>
 #include <mu_umaxtostr.h>
 
 #if !HAVE_DECL_STRCHRNUL

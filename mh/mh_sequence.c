@@ -22,7 +22,7 @@ private_sequence_name (const char *name)
 {
   char *p;
   char *mbox_dir = mh_expand_name (NULL, mh_current_folder (), 0);
-  asprintf (&p, "atr-%s-%s", name, mbox_dir);
+  mu_asprintf (&p, "atr-%s-%s", name, mbox_dir);
   free (mbox_dir);
   return p;
 }

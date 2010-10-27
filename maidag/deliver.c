@@ -140,8 +140,8 @@ notify_action (mu_observer_t obs, size_t type, void *data, void *action_data)
       char *buf;
       
       mu_mailbox_get_url (mbox, &url);
-      asprintf (&buf, "%s@%s:%s", biff_user_name,
-		qid, mu_url_to_string (url));
+      mu_asprintf (&buf, "%s@%s:%s", biff_user_name,
+		   qid, mu_url_to_string (url));
       if (buf)
 	{
 	  sendto (biff_fd, buf, strlen (buf), 0,
@@ -251,8 +251,8 @@ deliver_to_mailbox (mu_mailbox_t mbox, mu_message_t msg,
 	  maidag_error (_("%s: mailbox quota exceeded for this recipient"),
 			auth->name);
 	  if (errp)
-	    asprintf (errp, "%s: mailbox quota exceeded for this recipient",
-		      auth->name);
+	    mu_asprintf (errp, "%s: mailbox quota exceeded for this recipient",
+		         auth->name);
 	  exit_code = EX_QUOTA();
 	  failed++;
 	  break;
@@ -274,10 +274,10 @@ deliver_to_mailbox (mu_mailbox_t mbox, mu_message_t msg,
 			      "this recipient"),
 			    auth->name);
 	      if (errp)
-		asprintf (errp,
-			  "%s: message would exceed maximum mailbox size "
-			  "for this recipient",
-			  auth->name);
+		mu_asprintf (errp,
+			     "%s: message would exceed maximum mailbox size "
+			     "for this recipient",
+			     auth->name);
 	      exit_code = EX_QUOTA();
 	      failed++;
 	    }
@@ -339,7 +339,7 @@ do_delivery (mu_url_t url, mu_message_t msg, const char *name, char **errp)
 	{
 	  maidag_error (_("%s: no such user"), name);
 	  if (errp)
-	    asprintf (errp, "%s: no such user", name);
+	    mu_asprintf (errp, "%s: no such user", name);
 	  exit_code = EX_NOUSER;
 	  return EX_NOUSER;
 	}

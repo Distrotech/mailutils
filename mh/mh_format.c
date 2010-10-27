@@ -1136,7 +1136,7 @@ static void
 builtin_putnum (struct mh_machine *mach)
 {
   char *p;
-  asprintf (&p, "%ld", mach->arg_num);
+  mu_asprintf (&p, "%ld", mach->arg_num);
   print_string (mach, 0, p);
   free (p);
 }
@@ -1609,7 +1609,7 @@ builtin_pers (struct mh_machine *mach)
   if (mu_address_sget_personal (addr, 1, &str) == 0 && str)
     {
       char *p;
-      asprintf (&p, "\"%s\"", str);
+      mu_asprintf (&p, "\"%s\"", str);
       strobj_create (&mach->arg_str, p);
       free (p);
     }

@@ -26,7 +26,7 @@
 #include <sys/stat.h>
 #include <mimeview.h>
 #include <mimetypes-decl.h>  
-#include <mu_asprintf.h>
+#include <mailutils/io.h>
 
 static int line_num;
 static char *file_name;

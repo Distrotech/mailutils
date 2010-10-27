@@ -25,7 +25,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <mh_getopt.h>
-#include <mu_asprintf.h>
+#include <mailutils/io.h>
 
 static int mh_optind = 1;
 static char *mh_optarg;
@@ -55,7 +55,7 @@ mh_getopt (int argc, char **argv, struct mh_option *mh_opt, const char *doc)
     }
 
   if (strcmp (mh_optptr, "-version") == 0)
-    asprintf (&argv[mh_optind], "--version");
+    mu_asprintf (&argv[mh_optind], "--version");
   else
     {
       optlen = strlen (mh_optptr+1);
@@ -81,16 +81,16 @@ mh_getopt (int argc, char **argv, struct mh_option *mh_opt, const char *doc)
 		mh_optarg = "no";
 	      else
 		mh_optarg = "yes";
-	      asprintf (&argv[mh_optind], "--%s=%s", longopt, mh_optarg);
+	      mu_asprintf (&argv[mh_optind], "--%s=%s", longopt, mh_optarg);
 	      break;
 	      
 	    case MH_OPT_ARG:
-	      asprintf (&argv[mh_optind], "--%s", longopt);
+	      mu_asprintf (&argv[mh_optind], "--%s", longopt);
 	      mh_optarg = argv[++mh_optind];
 	      break;
 	      
 	    default:
-	      asprintf (&argv[mh_optind], "--%s", longopt);
+	      mu_asprintf (&argv[mh_optind], "--%s", longopt);
 	      mh_optarg = NULL;
 	    }
 	  mh_optind++;

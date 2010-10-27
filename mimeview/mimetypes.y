@@ -533,7 +533,7 @@ make_functional_node (char *ident, mu_list_t list)
       if (!p->name)
 	{
 	  char *s;
-	  asprintf (&s, _("%s: unknown function"), ident);
+	  mu_asprintf (&s, _("%s: unknown function"), ident);
 	  yyerror (s);
 	  free (s);
 	  return NULL;
@@ -549,7 +549,7 @@ make_functional_node (char *ident, mu_list_t list)
   if (count < i)
     {
       char *s;
-      asprintf (&s, _("too few arguments in call to `%s'"), ident);
+      mu_asprintf (&s, _("too few arguments in call to `%s'"), ident);
       yyerror (s);
       free (s);
       return NULL;
@@ -557,7 +557,7 @@ make_functional_node (char *ident, mu_list_t list)
   else if (count > i)
     {
       char *s;
-      asprintf (&s, _("too many arguments in call to `%s'"), ident);
+      mu_asprintf (&s, _("too many arguments in call to `%s'"), ident);
       yyerror (s);
       free (s);
       return NULL;
@@ -604,9 +604,9 @@ make_functional_node (char *ident, mu_list_t list)
  err:
   {
     char *s;
-    asprintf (&s,
-	      _("argument %lu has wrong type in call to `%s'"),
-	      (unsigned long) i, ident);
+    mu_asprintf (&s,
+	         _("argument %lu has wrong type in call to `%s'"),
+	         (unsigned long) i, ident);
     yyerror (s);
     free (s);
     return NULL;

@@ -30,7 +30,7 @@
 #include <syslog.h>
 #include <sysexits.h>
 
-#include <mu_asprintf.h>
+#include <mailutils/io.h>
 #include <mailutils/argcv.h>
 #include <mailutils/sieve.h>
 #include <mailutils/auth.h>

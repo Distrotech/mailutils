@@ -647,7 +647,7 @@ _action_send (void *item, void *data)
 	  const char *pers = get_sender_personal ();
 	  if (pers)
 	    {
-	      asprintf (&from, "\"%s\" <%s>", pers, email);
+	      mu_asprintf (&from, "\"%s\" <%s>", pers, email);
 	      free (email);
 	    }
 	  else
@@ -733,7 +733,7 @@ do_send (int argc, char **argv)
 
   /* Prepend url specifier to the folder dir. We won't need this
      when the default format becomes configurable */
-  asprintf (&p, "mh:%s", mu_folder_directory ());
+  mu_asprintf (&p, "mh:%s", mu_folder_directory ());
   mu_set_folder_directory (p);
   free (p);
   

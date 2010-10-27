@@ -658,7 +658,7 @@ display_stream_mailcap (const char *ident, mu_stream_t stream, mu_header_t hdr,
   if (!mailcap_path)
     {
       char *home = mu_get_homedir ();
-      asprintf (&mailcap_path, "%s/.mailcap:%s", home, DEFAULT_MAILCAP);
+      mu_asprintf (&mailcap_path, "%s/.mailcap:%s", home, DEFAULT_MAILCAP);
       free (home);
       if (!mailcap_path)
         return 1;

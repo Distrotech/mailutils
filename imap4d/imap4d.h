@@ -103,8 +103,8 @@
 #include <mailutils/vartab.h>
 #include <mailutils/cctype.h>
 #include <mailutils/cstr.h>
+#include <mailutils/io.h>
 
-#include <mu_asprintf.h>
 #include <mu_umaxtostr.h>
 #include <muaux.h>
 

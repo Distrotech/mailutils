@@ -27,7 +27,6 @@
 #include <unistd.h>
 #include <mailutils/mailutils.h>
 #include <mailutils/tls.h>
-#include <mu_asprintf.h>
 #include "mailutils/libargp.h"
 #include <muaux.h>
 
@@ -484,7 +483,7 @@ compatibility_mode (mu_mailbox_t *mbx, char *source_name, char *password,
       mu_error (_("hostname of the POP3 server is unknown"));
       exit (1);
     }
-  asprintf (&tmp, "pop://%s@%s", user_name, host);
+  mu_asprintf (&tmp, "pop://%s@%s", user_name, host);
   open_mailbox (mbx, tmp, flags, password);
   free (tmp);
 }
@@ -711,7 +710,7 @@ set_program_id (const char *source_name, const char *dest_name)
       
   rc = mu_vartab_expand (vtab, program_id_option, &id);
   mu_vartab_destroy (&vtab);
-  /*      asprintf (&id, "%s: %s", mu_program_name, s);
+  /*      mu_asprintf (&id, "%s: %s", mu_program_name, s);
 	  free (s);*/
   /* FIXME: Don't use mu_set_program_name here, because it
      plays wise with its argument. We need a mu_set_diag_prefix

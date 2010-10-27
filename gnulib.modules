@@ -20,8 +20,6 @@ mbswidth
 obstack
 realloc
 setenv
-snprintf
 stdint
 strtok_r
-vasprintf
 xalloc

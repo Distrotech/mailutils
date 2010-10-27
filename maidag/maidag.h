@@ -84,9 +84,9 @@
 #include <mailutils/acl.h>
 #include <mailutils/server.h>
 #include <mailutils/cctype.h>
+#include <mailutils/io.h>
 
 #include <mu_dbm.h>
-#include <mu_asprintf.h>
 
 #if defined (USE_DBM) || defined (USE_SQL)
 # define USE_MAILBOX_QUOTAS 1

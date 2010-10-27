@@ -132,20 +132,20 @@ mu_app_init (struct argp *myargp, const char **capa,
       char *canonical_name = get_canonical_name ();
       mu_stream_t stream;
       mu_stdio_stream_create (&stream, MU_STDOUT_FD, 0);
-      asprintf (&comment,
-		"Configuration file structure for %s utility.",
-		mu_program_name);
+      mu_asprintf (&comment,
+		   "Configuration file structure for %s utility.",
+		   mu_program_name);
       mu_cfg_format_docstring (stream, comment, 0);
       free (comment);
-      asprintf (&comment,
-		"For use in global configuration file (%s), enclose it "
-		"in `program %s { ... };",
-		MU_CONFIG_FILE,
-		mu_program_name);		   
+      mu_asprintf (&comment,
+		   "For use in global configuration file (%s), enclose it "
+		   "in `program %s { ... };",
+		   MU_CONFIG_FILE,
+		   mu_program_name);		   
       mu_cfg_format_docstring (stream, comment, 0);
       free (comment);
-      asprintf (&comment, "For more information, use `info %s'.",
-		canonical_name);
+      mu_asprintf (&comment, "For more information, use `info %s'.",
+		   canonical_name);
       mu_cfg_format_docstring (stream, comment, 0);
       free (comment);
       

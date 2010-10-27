@@ -62,7 +62,7 @@ display_status_1 (char *m, OM_uint32 code, int type)
 				     type, GSS_C_NO_OID, &msg_ctx, &msg);
       if (GSS_ERROR (maj_stat))
 	{
-	  asprintf ((char**)&msg.value, "code %d", code);
+	  mu_asprintf ((char**)&msg.value, "code %d", code);
 	  msg.length = strlen (msg.value);
 	}
 
@@ -136,7 +136,7 @@ auth_gssapi (struct imap4d_auth *ap)
      work (possibly due to a bug in krb5_gss_accept_sec_context()), so
      we acquire server credentials explicitly. */
 
-  asprintf ((char **) &tmp, "imap@%s", util_localname ());
+  mu_asprintf ((char **) &tmp, "imap@%s", util_localname ());
   tokbuf.value = tmp;
   tokbuf.length = strlen (tokbuf.value) + 1;
   maj_stat = gss_import_name (&min_stat, &tokbuf,
