@@ -139,7 +139,7 @@ static struct _mu_record _mh_record =
   MU_MH_PRIO,
   MU_MH_SCHEME,
   MU_RECORD_LOCAL,
-  MU_URL_SCHEME | MU_URL_PATH,
+  MU_URL_SCHEME | MU_URL_PATH | MU_URL_PARAM,
   MU_URL_PATH,
   mu_url_expand_path, /* Url init.  */
   _mailbox_mh_init, /* Mailbox init.  */
