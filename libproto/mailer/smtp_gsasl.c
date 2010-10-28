@@ -21,7 +21,8 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
-#include <mailutils/argcv.h>
+#include <mailutils/nls.h>
+#include <mailutils/wordsplit.h>
 #include <mailutils/diag.h>
 #include <mailutils/errno.h>
 #include <mailutils/cctype.h>
@@ -39,9 +40,8 @@ get_implemented_mechs (Gsasl *ctx, mu_list_t *plist)
   char *listmech;
   mu_list_t supp = NULL;
   int rc;
-  int mechc;
-  char **mechv;
-    
+  struct mu_wordsplit ws;
+  
   rc =  gsasl_server_mechlist (ctx, &listmech);
   if (rc != GSASL_OK)
     {
@@ -51,19 +51,26 @@ get_implemented_mechs (Gsasl *ctx, mu_list_t *plist)
       return 1;
     }
 
-  rc = mu_argcv_get (listmech, "", NULL, &mechc, &mechv);
-  if (rc == 0)
+  if (mu_wordsplit (listmech, &ws, MU_WRDSF_DEFFLAGS))
     {
-      int i;
-
+      mu_error (_("cannot split line `%s': %s"), listmech,
+		mu_wordsplit_strerror (&ws));
+      rc = errno;
+    }
+  else
+    {
+      size_t i;
+      
       rc = mu_list_create (&supp);
       if (rc == 0)
 	{
 	  mu_list_set_destroy_item (supp, mu_list_free_item);
-	  for (i = 0; i < mechc; i++) 
-	    mu_list_append (supp, mechv[i]);
+	  for (i = 0; i < ws.ws_wordc; i++) 
+	    mu_list_append (supp, ws.ws_wordv[i]);
 	}
-      free (mechv);
+      ws.ws_wordc = 0;
+      ws.ws_wordv = NULL;
+      mu_wordsplit_free (&ws);
     }
   free (listmech);
   *plist = supp;

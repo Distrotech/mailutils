@@ -94,7 +94,8 @@ pkginclude_HEADERS = \
  tls.h\
  url.h\
  vartab.h\
- version.h
+ version.h\
+ wordsplit.h
 
 if MU_COND_SUPPORT_CXX
   CPP_DIR = cpp

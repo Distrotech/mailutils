@@ -21,6 +21,9 @@ libbase_la_SOURCES = \
  alloc.c\
  amd.c\
  argcv.c\
+ argcvfree.c\
+ argcvjoin.c\
+ argcvrem.c\
  assoc.c\
  daemon.c\
  date.c\

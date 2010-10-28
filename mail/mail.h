@@ -77,6 +77,7 @@
 #include <mailutils/nls.h>
 #include <mailutils/tls.h>
 #include <mailutils/argcv.h>
+#include <mailutils/wordsplit.h>
 #include <mailutils/cctype.h>
 #include <mailutils/cstr.h>
 #include <mailutils/io.h>

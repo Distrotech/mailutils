@@ -40,7 +40,7 @@
 # include <crypt.h>
 #endif
 
-#include <mailutils/argcv.h>
+#include <mailutils/wordsplit.h>
 #include <mailutils/list.h>
 #include <mailutils/iterator.h>
 #include <mailutils/mailbox.h>
@@ -376,32 +376,32 @@ _locate (const char *name)
 static void
 _add_module_list (const char *modlist, int (*fun)(const char *name))
 {
-  int argc;
-  char **argv;
-  int rc, i;
-  
-  rc = mu_argcv_get (modlist, ":", NULL, &argc, &argv);
-  if (rc)
+  struct mu_wordsplit ws;
+  int i;
+
+  ws.ws_delim = ":";
+  if (mu_wordsplit (modlist, &ws, MU_WRDSF_DEFFLAGS|MU_WRDSF_DELIM))
     {
-      mu_error (_("cannot split line `%s': %s"), modlist, mu_strerror (rc));
+      mu_error (_("cannot split line `%s': %s"), modlist,
+		mu_wordsplit_strerror (&ws));
       exit (1);
     }
 
-  for (i = 0; i < argc; i += 2)
+  for (i = 0; i < ws.ws_wordc; i++)
     {
-      if (fun (argv[i]))
+      if (fun (ws.ws_wordv[i]))
         {
           /* Historically,auth functions used ENOENT. We support this
              return value for backward compatibility. */
           if (errno == ENOENT || errno == MU_ERR_NOENT)
-            mu_error (_("no such module: %s"), argv[i]);
+            mu_error (_("no such module: %s"), ws.ws_wordv[i]);
           else
             mu_error (_("failed to add module %s: %s"),
-                      argv[i], strerror (errno));
+                      ws.ws_wordv[i], strerror (errno));
           exit (1);
         }
     }
-  mu_argcv_free (argc, argv);
+  mu_wordsplit_free (&ws);
 }
 
 

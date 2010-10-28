@@ -565,30 +565,31 @@ smtp (mu_stream_t str)
   char *buf = NULL;
   size_t size = 0;
   char *rcpt_addr;
+  int wsflags = MU_WRDSF_DEFFLAGS;
+  struct mu_wordsplit ws;
   
   smtp_reply (str, 220, "Ready");
   for (state = STATE_INIT; state != STATE_QUIT; )
     {
-      char *s;
-      int argc;
-      char **argv;
       int kw;
       size_t len;
       
       if (mu_stream_getline (str, &buf, &size, &len) || len == 0)
 	exit (EX_PROTOCOL);
 
-      s = mu_str_stripws (buf);
-      
-      if (mu_argcv_get (s, "", NULL, &argc, &argv))
-	exit (EX_UNAVAILABLE);
+      if (mu_wordsplit (buf, &ws, wsflags))
+	{
+	  mu_error ("cannot split line `%s': %s", buf,
+		    mu_wordsplit_strerror (&ws));
+	  exit (EX_UNAVAILABLE);
+	}
+      wsflags |= MU_WRDSF_REUSE;
 
-      kw = smtp_kw (argv[0]);
+      kw = smtp_kw (ws.ws_wordv[0]);
       if (kw == KW_QUIT)
 	{
 	  smtp_reply (str, 221, "Done");
 	  state = STATE_QUIT;
-	  mu_argcv_free (argc, argv);
 	  continue;
 	}
       
@@ -599,13 +600,14 @@ smtp (mu_stream_t str)
 	    {
 	    case KW_EHLO:
 	    case KW_HELO:
-	      if (argc == 2)
+	      if (ws.ws_wordc == 2)
 		{
 		  smtp_reply (str, 250, "pleased to meet you");
 		  state = STATE_EHLO;
 		}
 	      else
-		smtp_reply (str, 501, "%s requires domain address", argv[0]);
+		smtp_reply (str, 501, "%s requires domain address",
+			    ws.ws_wordv[0]);
 	      break;
 
 	    default:
@@ -618,10 +620,11 @@ smtp (mu_stream_t str)
 	  switch (kw)
 	    {
 	    case KW_MAIL:
-	      if (argc == 2)
-		from_person = check_prefix (argv[1], "from:");
-	      else if (argc == 3 && mu_c_strcasecmp (argv[1], "from:") == 0)
-		from_person = argv[2];
+	      if (ws.ws_wordc == 2)
+		from_person = check_prefix (ws.ws_wordv[1], "from:");
+	      else if (ws.ws_wordc == 3 &&
+		       mu_c_strcasecmp (ws.ws_wordv[1], "from:") == 0)
+		from_person = ws.ws_wordv[2];
 	      else
 		from_person = NULL;
 
@@ -644,10 +647,11 @@ smtp (mu_stream_t str)
 	  switch (kw)
 	    {
 	    case KW_RCPT:
-	      if (argc == 2)
-		rcpt_addr = check_prefix (argv[1], "to:");
-	      else if (argc == 3 && mu_c_strcasecmp (argv[1], "to:") == 0)
-		rcpt_addr = argv[2];
+	      if (ws.ws_wordc == 2)
+		rcpt_addr = check_prefix (ws.ws_wordv[1], "to:");
+	      else if (ws.ws_wordc == 3 &&
+		       mu_c_strcasecmp (ws.ws_wordv[1], "to:") == 0)
+		rcpt_addr = ws.ws_wordv[2];
 	      else
 		rcpt_addr = NULL;
 	      
@@ -674,10 +678,11 @@ smtp (mu_stream_t str)
 	  switch (kw)
 	    {
 	    case KW_RCPT:
-	      if (argc == 2)
-		rcpt_addr = check_prefix (argv[1], "to:");
-	      else if (argc == 3 && mu_c_strcasecmp (argv[1], "to:") == 0)
-		rcpt_addr = argv[2];
+	      if (ws.ws_wordc == 2)
+		rcpt_addr = check_prefix (ws.ws_wordv[1], "to:");
+	      else if (ws.ws_wordc == 3 &&
+		       mu_c_strcasecmp (ws.ws_wordv[1], "to:") == 0)
+		rcpt_addr = ws.ws_wordv[2];
 	      else
 		rcpt_addr = NULL;
 	      
@@ -734,7 +739,6 @@ smtp (mu_stream_t str)
 	  break;
 
 	}
-      mu_argcv_free (argc, argv);
     }
 }
 

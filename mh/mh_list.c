@@ -149,42 +149,45 @@ parse_component (locus_t *loc, mu_list_t formlist, char *compname, char *str)
 static void
 parse_variable (locus_t *loc, mu_list_t formlist, char *str)
 {
-  int i, rc;
-  int argc;
-  char **argv;
+  size_t i;
+  struct mu_wordsplit ws;
   mh_format_t fmt;
-  
-  if ((rc = mu_argcv_get (str, ",=", NULL, &argc, &argv)) != 0)
+
+  ws.ws_delim = ",=";
+  if (mu_wordsplit (str, &ws,
+		    MU_WRDSF_DEFFLAGS|MU_WRDSF_DELIM|
+		    MU_WRDSF_WS|MU_WRDSF_RETURN_DELIMS))
     {
-      mu_error ("%s:%d: mu_argcv_get(%s): %s",
+      mu_error ("%s:%d: mu_wordsplit(%s): %s",
 		loc->filename,
 		loc->line,
 		str,
-		mu_strerror (rc));
+		mu_wordsplit_strerror (&ws));
       exit (1);
     }
 
-  for (i = 0; i < argc; i++)
+  for (i = 0; i < ws.ws_wordc; i++)
     {
-      mhl_stmt_t *stmt = stmt_alloc (stmt_variable);
-      char *name = argv[i];
+      mhl_stmt_t *stmt;
+      char *name = ws.ws_wordv[i];
       char *value = NULL;
       mhl_variable_t *var;
-      
+
+      stmt = stmt_alloc (stmt_variable);
       var = variable_lookup (name);
       if (!var)
 	{
 	  mu_error (_("%s:%d: unknown variable: %s"),
 		    loc->filename,
 		    loc->line,
-		    argv[i]);
+		    name);
 	  exit (1);
 	}
 
-      if (i + 1 < argc && argv[i+1][0] == '=')
+      if (i + 1 < ws.ws_wordc && ws.ws_wordv[i+1][0] == '=')
 	{
 	  i++;
-	  value = argv[++i];
+	  value = ws.ws_wordv[++i];
 	}
 
       if ((var->type == dt_flag && value)
@@ -227,14 +230,13 @@ parse_variable (locus_t *loc, mu_list_t formlist, char *str)
       mu_list_append (formlist, stmt);
 
       i++;
-      if (i < argc && argv[i][0] != ',')
+      if (i < ws.ws_wordc && ws.ws_wordv[i][0] != ',')
 	{
 	  mu_error (_("%s:%d: syntax error"), loc->filename, loc->line);
 	  exit (1);
 	}
     }
-
-  mu_argcv_free (argc, argv);
+  mu_wordsplit_free (&ws);
 }
 
 static int

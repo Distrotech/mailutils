@@ -28,7 +28,7 @@
 #include <mailutils/assoc.h>
 #include <mailutils/error.h>
 #include <mailutils/errno.h>
-#include <mailutils/argcv.h>
+#include <mailutils/wordsplit.h>
 #include <mailutils/debug.h>
 #include <mailutils/cfg.h>
 #include <mailutils/nls.h>
@@ -167,20 +167,22 @@ mu_debug_level_from_string (const char *string, mu_log_level_t *plev,
 int
 mu_global_debug_from_string (const char *string, const char *errpfx)
 {
-  int rc;
-  int argc;
-  char **argv;
-  int i;
-  
-  rc = mu_argcv_get (string, ";", NULL, &argc, &argv);
-  if (rc)
-    return rc;
+  struct mu_wordsplit ws;
+  size_t i;
 
-  for (i = 0; i < argc; i++)
+  ws.ws_delim = ";";
+  if (mu_wordsplit (string, &ws, MU_WRDSF_DEFFLAGS|MU_WRDSF_DELIM|MU_WRDSF_WS))
+    {
+      mu_error (_("cannot split line `%s': %s"), string,
+		mu_wordsplit_strerror (&ws));
+      return errno;
+    }
+
+  for (i = 0; i < ws.ws_wordc; i++)
     {
       char *p;
       mu_log_level_t level = MU_DEBUG_INHERIT;
-      char *object_name = argv[i];
+      char *object_name = ws.ws_wordv[i];
       
       for (p = object_name; *p && *p != '='; p++)
 	;
@@ -199,7 +201,7 @@ mu_global_debug_from_string (const char *string, const char *errpfx)
 		  mu_error ("%s: invalid debugging specification `%s': "
 			    "expected levels or number after `=', "
 			    "but found `%s'",
-			    errpfx, argv[i], p);
+			    errpfx, ws.ws_wordv[i], p);
 		  break;
 		}
 	    }
@@ -254,8 +256,7 @@ mu_global_debug_from_string (const char *string, const char *errpfx)
       
       mu_global_debug_set_level (object_name, level);
     }
-  
-  mu_argcv_free (argc, argv);
+  mu_wordsplit_free (&ws);
   return 0;
 }
 

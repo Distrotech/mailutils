@@ -32,7 +32,7 @@
 #include <mailutils/errno.h>
 #include <mailutils/error.h>
 #include <mailutils/debug.h>  
-#include <mailutils/argcv.h>
+#include <mailutils/wordsplit.h>
 #include <mailutils/alloc.h>  
 #include <mailutils/nls.h>
 #include <mailutils/cfg.h>
@@ -172,7 +172,7 @@ unescape_to_line (int c)
 {
   if (c != '\n')
     {
-      char t = mu_argcv_unquote_char (c);
+      char t = mu_wordsplit_c_unquote_char (c);
       if (t == c && t != '\\' && t != '\"')
 	mu_cfg_parse_error (_("unknown escape sequence '\\%c'"), c);
       mu_opool_append_char (pool, t);

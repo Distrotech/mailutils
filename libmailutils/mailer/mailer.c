@@ -29,6 +29,7 @@
 
 #include <sys/time.h>
 
+#include <mailutils/nls.h>
 #include <mailutils/cstr.h>
 #include <mailutils/address.h>
 #include <mailutils/debug.h>
@@ -45,7 +46,7 @@
 #include <mailutils/body.h>
 #include <mailutils/mailbox.h>
 #include <mailutils/message.h>
-#include <mailutils/argcv.h>
+#include <mailutils/wordsplit.h>
 #include <mailutils/util.h>
 #include <mailutils/mime.h>
 #include <mailutils/io.h>
@@ -289,7 +290,8 @@ save_fcc (mu_message_t msg)
 {
   mu_header_t hdr;
   size_t count = 0, i;
-  char buf[512], *fcc;
+  const char *buf;
+  char *fcc;
   
   if (mu_message_get_header (msg, &hdr))
     return;
@@ -302,17 +304,25 @@ save_fcc (mu_message_t msg)
     {
       mu_mailbox_t mbox;
       
-      mu_header_get_field_name (hdr, i, buf, sizeof buf, NULL);
+      mu_header_sget_field_name (hdr, i, &buf);
       if (mu_c_strcasecmp (buf, MU_HEADER_FCC) == 0
 	  && mu_header_aget_field_value (hdr, i, &fcc) == 0)
 	{
-	  int i, argc;
-	  char **argv;
-	  
-	  mu_argcv_get (fcc, ",", NULL, &argc, &argv);
-	  for (i = 0; i < argc; i += 2)
+	  size_t i;
+	  struct mu_wordsplit ws;
+
+	  ws.ws_delim = ",";
+	  if (mu_wordsplit (fcc, &ws,
+			    MU_WRDSF_DEFFLAGS|MU_WRDSF_DELIM|MU_WRDSF_WS))
 	    {
-	      if (mu_mailbox_create_default (&mbox, argv[i]))
+	      mu_error (_("cannot split line `%s': %s"), fcc,
+			mu_wordsplit_strerror (&ws));
+	      continue;
+	    }
+
+	  for (i = 0; i < ws.ws_wordc; i += 2)
+	    {
+	      if (mu_mailbox_create_default (&mbox, ws.ws_wordv[i]))
 		continue; /*FIXME: error message?? */
 	      if (mu_mailbox_open (mbox,
 				   MU_STREAM_RDWR | MU_STREAM_CREAT
@@ -324,7 +334,7 @@ save_fcc (mu_message_t msg)
 	      mu_mailbox_close (mbox);
 	      mu_mailbox_destroy (&mbox);
 	    }
-	  mu_argcv_free (argc, argv);
+	  mu_wordsplit_free (&ws);
 	  free (fcc);
 	}
     }

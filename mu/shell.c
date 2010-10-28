@@ -238,13 +238,12 @@ shell_help (int argc, char **argv)
 static int
 shell_prompt (int argc, char **argv)
 {
-  int quote;
   size_t size;
   
   free (mutool_shell_prompt);
-  size = mu_argcv_quoted_length (argv[1], &quote);
+  size = strlen (argv[1]);
   mutool_shell_prompt = xmalloc (size + 1);
-  mu_argcv_unquote_copy (mutool_shell_prompt, argv[1], size);
+  mu_wordsplit_c_unquote_copy (mutool_shell_prompt, argv[1], size);
   return 0;
 }
 
@@ -460,16 +459,22 @@ add_history (const char *s MU_ARG_UNUSED)
 int
 execute_line (char *line)
 {
+  struct mu_wordsplit ws;
   int argc;
   char **argv;
   int status = 0;
 
-  if (mu_argcv_get (line, NULL, "#", &argc, &argv))
+  ws.ws_comment = "#";
+  ws.ws_offs = 1; /* Keep extra slot for expansion in case when argmin == -1 */
+  if (mu_wordsplit (line, &ws,
+		    MU_WRDSF_DEFFLAGS|MU_WRDSF_COMMENT|MU_WRDSF_DOOFFS))
     {
-      mu_error("cannot parse input line");
+      mu_error("cannot parse input line: %s", mu_wordsplit_strerror (&ws));
       return 0;
     }
-
+  argc = ws.ws_wordc;
+  argv = ws.ws_wordv + 1;
+  
   if (argc >= 0)
     {
       struct mutool_command *cmd = find_command (argv[0]);
@@ -484,6 +489,7 @@ execute_line (char *line)
 	{
 	  if (cmd->argmin <= 0 && argc != 2)
 	    {
+	      size_t i;
 	      char *word = mu_str_skip_class (line, MU_CTYPE_SPACE);
 	      char *arg = mu_str_skip_class_comp (word, MU_CTYPE_SPACE);
 	      if (*arg)
@@ -491,18 +497,19 @@ execute_line (char *line)
 		  *arg++ = 0;
 		  arg = mu_str_skip_class (arg, MU_CTYPE_SPACE);
 		}
-	      
-	      mu_argcv_free (argc, argv);
-	      argc = 2;
-	      argv = xcalloc (argc + 1, sizeof (argv[0]));
-	      argv[0] = xstrdup (word);
-	      argv[1] = xstrdup (arg);
-	      argv[2] = NULL;
+	      for (i = 0; i < ws.ws_wordc; i++)
+		free (ws.ws_wordv[i + 1]);
+	      ws.ws_wordv[0] = xstrdup (word);
+	      ws.ws_wordv[1] = xstrdup (arg);
+	      ws.ws_wordv[2] = NULL;
+	      ws.ws_wordc = 2;
+	      argc = ws.ws_wordc;
+	      argv = ws.ws_wordv;
 	    }
 	  status = cmd->func (argc, argv);
 	}
     }
-  mu_argcv_free (argc, argv);
+  mu_wordsplit_free (&ws);
   return status;
 }
 

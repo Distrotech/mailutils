@@ -22,6 +22,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <mailutils/stream.h>
+#include <mailutils/io.h>
 #include "xalloc.h"
 #include <string.h>
 #ifdef MU_ALPHA_RELEASE

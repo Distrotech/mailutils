@@ -881,26 +881,24 @@ mhn_store_command (mu_message_t msg, msg_part_t part, char *name)
 static void
 split_args (char *argstr, int *pargc, char ***pargv)
 {
-  int argc;
-  char **argv;
+  struct mu_wordsplit ws;
 
-  if (mu_argcv_get (argstr, ";", NULL, &argc, &argv) == 0)
+  ws.ws_delim = ";";
+  if (mu_wordsplit (argstr, &ws,
+		    MU_WRDSF_DEFFLAGS | MU_WRDSF_DELIM | MU_WRDSF_WS))
     {
-      int i, j;
-      
-      for (i = j = 0; i < argc; i++)
-	{
-	  if (argv[i][0] != ';')
-	    argv[j++] = argv[i];
-	}
-      argv[j] = NULL;
-      *pargc = j;
-      *pargv = argv;
+      mu_error (_("cannot split line `%s': %s"), argstr,
+		mu_wordsplit_strerror (&ws));
+      *pargc = 0;
+      *pargv = NULL;
     }
   else
     {
-      *pargc = 0;
-      *pargv = NULL;
+      *pargc = ws.ws_wordc;
+      *pargv = ws.ws_wordv;
+      ws.ws_wordc = 0;
+      ws.ws_wordv = NULL;
+      mu_wordsplit_free (&ws);
     }
 }
 
@@ -1303,13 +1301,14 @@ mhn_run_command (mu_message_t msg, msg_part_t part,
     {
       /* pass content via a tempfile */
       int status;
-      int argc;
-      char **argv;
       mu_stream_t tmp;
-      
-      if (mu_argcv_get (cmd, "", "#", &argc, &argv))
+      struct mu_wordsplit ws;
+
+      ws.ws_comment = "#";
+      if (mu_wordsplit (cmd, &ws, MU_WRDSF_DEFFLAGS | MU_WRDSF_COMMENT))
 	{
-	  mu_error (_("cannot parse command line `%s'"), cmd);
+	  mu_error (_("cannot parse command line `%s': %s"), cmd,
+		    mu_wordsplit_strerror (&ws));
 	  return ENOSYS;
 	}
 
@@ -1318,15 +1317,15 @@ mhn_run_command (mu_message_t msg, msg_part_t part,
 	{
 	  mu_error (_("cannot create temporary stream (file %s): %s"),
 		    tempfile, mu_strerror (rc));
-	  mu_argcv_free (argc, argv);
+	  mu_wordsplit_free (&ws);
 	  return rc;
 	}
       show_internal (msg, part, encoding, tmp);      
       mu_stream_destroy (&tmp);
-      rc = mu_spawnvp (argv[0], argv, &status);
+      rc = mu_spawnvp (ws.ws_wordv[0], ws.ws_wordv, &status);
       if (status)
 	rc = status;
-      mu_argcv_free (argc, argv);
+      mu_wordsplit_free (&ws);
     }
   else
     rc = exec_internal (msg, part, encoding, cmd, flags);
@@ -2044,8 +2043,8 @@ edit_forw (char *cmd, struct compose_env *env, mu_message_t *pmsg, int level)
 {
   char *sp, *id = NULL, *descr = NULL;
   int stop = 0, status = 0;
-  int i, argc;
-  char **argv;
+  size_t i;
+  struct mu_wordsplit ws;
   mu_header_t hdr;
   mu_mime_t mime;
   mu_message_t msg;
@@ -2090,18 +2089,21 @@ edit_forw (char *cmd, struct compose_env *env, mu_message_t *pmsg, int level)
   if (status)
     return status;
 
-  if (mu_argcv_get (cmd, "\n", NULL, &argc, &argv))
+  ws.ws_delim = "\n";
+  if (mu_wordsplit (cmd, &ws,
+		    MU_WRDSF_DEFFLAGS | MU_WRDSF_DELIM | MU_WRDSF_WS))
     {
-      mu_error (_("%s:%lu: syntax error"),
+      mu_error (_("%s:%lu: cannot split line: %s"),
 		input_file,
-		(unsigned long) mhn_error_loc (env));
+		(unsigned long) mhn_error_loc (env),
+		mu_wordsplit_strerror (&ws));
       return 1;
     }
 
   mu_mime_create (&mime, NULL, 0);
   
-  mbox = mh_open_folder (argv[0], 0);
-  for (i = 1; i < argc; i++)
+  mbox = mh_open_folder (ws.ws_wordv[0], 0);
+  for (i = 1; i < ws.ws_wordc; i++)
     {
       mu_message_t input_msg;
       if (mh_get_message (mbox, i, &input_msg) == 0)
@@ -2117,7 +2119,7 @@ edit_forw (char *cmd, struct compose_env *env, mu_message_t *pmsg, int level)
 	break;
       mu_mime_add_part (mime, msg);
     }
-  mu_argcv_free (argc, argv);
+  mu_wordsplit_free (&ws);
 
   if (*pmsg)
     {

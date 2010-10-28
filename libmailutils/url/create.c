@@ -26,10 +26,12 @@
 #ifdef HAVE_STRINGS_H
 # include <strings.h>
 #endif
+#include <stdlib.h>
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <limits.h>
 
+#include <mailutils/wordsplit.h>
 #include <mailutils/util.h>
 #include <mailutils/errno.h>
 #include <mailutils/argcv.h>
@@ -375,19 +377,24 @@ _mu_url_create_internal (struct mu_url_ctx *ctx, mu_url_t hint)
 
   if ((ctx->flags & MU_URL_PARSE_PIPE) && ctx->input[0] == '|')
     {
+      struct mu_wordsplit ws;
+      
       rc = str_assign (&url->scheme, "prog");
       if (rc)
 	return rc;
       url->flags |= MU_URL_SCHEME;
       ctx->flags &= ~MU_URL_PARSE_HEXCODE;
-      rc = mu_argcv_get (ctx->input + 1, NULL, NULL, &url->qargc, &url->qargv);
+      if (mu_wordsplit (ctx->input + 1, &ws, MU_WRDSF_DEFFLAGS))
+	return errno;
+      url->qargc = ws.ws_wordc;
+      url->qargv = ws.ws_wordv;
+      ws.ws_wordc = 0;
+      ws.ws_wordv = NULL;
+      mu_wordsplit_free (&ws);
+      url->flags |= MU_URL_QUERY;
+      rc = str_assign (&url->path, url->qargv[0]);
       if (rc == 0)
-	{
-	  url->flags |= MU_URL_QUERY;
-	  rc = str_assign (&url->path, url->qargv[0]);
-	  if (rc == 0)
-	    url->flags |= MU_URL_PATH;
-	}
+	url->flags |= MU_URL_PATH;
     }
   else if ((ctx->flags & MU_URL_PARSE_SLASH) && ctx->input[0] == '/')
     {

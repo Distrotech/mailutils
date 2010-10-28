@@ -51,8 +51,8 @@ send_rcpt_command (void *item, void *data)
 static void
 update_list (mu_list_t *plist, const char *arg)
 {
-  int mc, j;
-  char **mv;
+  size_t j;
+  struct mu_wordsplit ws;
   mu_list_t list = *plist;
   
   if (!list)
@@ -61,13 +61,16 @@ update_list (mu_list_t *plist, const char *arg)
       *plist = list;
     }
 
-  MU_ASSERT (mu_argcv_get_np (arg, strlen (arg),
-			      ",", NULL,
-			      0,
-			      &mc, &mv, NULL));
-  for (j = 0; j < mc; j++)
-    MU_ASSERT (mu_list_append (list, mv[j]));
-  free (mv);
+  ws.ws_delim = ",";
+  if (mu_wordsplit (arg, &ws, MU_WRDSF_DEFFLAGS | MU_WRDSF_DELIM))
+    {
+      mu_error ("mu_wordsplit: %s", mu_wordsplit_strerror (&ws));
+      exit (1);
+    }
+  for (j = 0; j < ws.ws_wordc; j++)
+    MU_ASSERT (mu_list_append (list, ws.ws_wordv[j]));
+  ws.ws_wordc = 0;
+  mu_wordsplit_free (&ws);
 }
 
 static int

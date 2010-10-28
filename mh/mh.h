@@ -49,6 +49,7 @@
 #include <mailutils/errno.h>
 #include <mailutils/nls.h>
 #include <mailutils/argcv.h>
+#include <mailutils/wordsplit.h>
 #include <mailutils/debug.h>
 #include <mailutils/mailer.h>
 #include <mailutils/envelope.h>

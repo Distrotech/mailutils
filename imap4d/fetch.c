@@ -162,12 +162,21 @@ fetch_send_header_address (mu_header_t header, const char *name,
     fetch_send_address (defval);
 }
 
+static void
+imap4d_ws_alloc_die (struct mu_wordsplit *wsp)
+{
+  imap4d_bye (ERR_NO_MEM);
+}
+
+#define IMAP4D_WS_FLAGS \
+  (MU_WRDSF_DEFFLAGS | MU_WRDSF_DELIM | \
+   MU_WRDSF_ENOMEMABRT | MU_WRDSF_ALLOC_DIE)
+
 /* Send parameter list for the bodystructure.  */
 static void
 send_parameter_list (const char *buffer)
 {
-  int argc = 0;
-  char **argv;
+  struct mu_wordsplit ws;
   
   if (!buffer)
     {
@@ -175,9 +184,16 @@ send_parameter_list (const char *buffer)
       return;
     }
 
-  mu_argcv_get (buffer, " \t\r\n;=", NULL, &argc, &argv);
+  ws.ws_delim = " \t\r\n;=";
+  ws.ws_alloc_die = imap4d_ws_alloc_die;
+  if (mu_wordsplit (buffer, &ws, IMAP4D_WS_FLAGS))
+    {
+      mu_error (_("%s failed: %s"), "mu_wordsplit",
+		mu_wordsplit_strerror (&ws));
+      return; /* FIXME: a better error handling, maybe? */
+    }
   
-  if (argc == 0)
+  if (ws.ws_wordc == 0)
     io_sendf ("NIL");
   else
     {
@@ -185,16 +201,16 @@ send_parameter_list (const char *buffer)
       
       io_sendf ("(");
         
-      p = argv[0];
+      p = ws.ws_wordv[0];
       io_send_qstring (p);
 
-      if (argc > 1)
+      if (ws.ws_wordc > 1)
 	{
 	  int i, space = 0;
 	  char *lvalue = NULL;
 
 	  io_sendf ("(");
-	  for (i = 1; i < argc; i++)
+	  for (i = 1; i < ws.ws_wordc; i++)
 	    {
 	      if (lvalue)
 		{
@@ -205,22 +221,21 @@ send_parameter_list (const char *buffer)
 		  space = 1;
 		}
 	      
-	      switch (argv[i][0])
+	      switch (ws.ws_wordv[i][0])
 		{
 		case ';':
 		  continue;
 		  
 		case '=':
-		  if (++i < argc)
+		  if (++i < ws.ws_wordc)
 		    {
-		      char *p = argv[i];
 		      io_sendf (" ");
-		      io_send_qstring (p);
+		      io_send_qstring (ws.ws_wordv[i]);
 		    }
 		  break;
 		  
 		default:
-		  lvalue = argv[i];
+		  lvalue = ws.ws_wordv[i];
 		}
 	    }
 	  if (lvalue)
@@ -235,7 +250,7 @@ send_parameter_list (const char *buffer)
 	io_sendf (" NIL");
       io_sendf (")");
     }
-  mu_argcv_free (argc, argv);
+  mu_wordsplit_free (&ws);
 }
 
 static void
@@ -352,27 +367,33 @@ bodystructure (mu_message_t msg, int extension)
 
   if (mu_header_aget_value (header, MU_HEADER_CONTENT_TYPE, &buffer) == 0)
     {
-      int argc = 0;
-      char **argv;
+      struct mu_wordsplit ws;
       char *s, *p;
 	  
-      mu_argcv_get (buffer, " \t\r\n;=", NULL, &argc, &argv);
+      ws.ws_delim = " \t\r\n;=";
+      ws.ws_alloc_die = imap4d_ws_alloc_die;
+      if (mu_wordsplit (buffer, &ws, IMAP4D_WS_FLAGS))
+	{
+	  mu_error (_("%s failed: %s"), "mu_wordsplit",
+		    mu_wordsplit_strerror (&ws));
+	  return RESP_BAD; /* FIXME: a better error handling, maybe? */
+	}
 
-      if (mu_c_strcasecmp (argv[0], "MESSAGE/RFC822") == 0)
+      if (mu_c_strcasecmp (ws.ws_wordv[0], "MESSAGE/RFC822") == 0)
         message_rfc822 = 1;
-      else if (mu_c_strcasecmp (argv[0], "TEXT/PLAIN") == 0)
+      else if (mu_c_strcasecmp (ws.ws_wordv[0], "TEXT/PLAIN") == 0)
         text_plain = 1;
 
-      s = strchr (argv[0], '/');
+      s = strchr (ws.ws_wordv[0], '/');
       if (s)
 	*s++ = 0;
-      p = argv[0];
+      p = ws.ws_wordv[0];
       io_send_qstring (p);
       io_sendf (" ");
       io_send_qstring (s);
 
       /* body parameter parenthesized list: Content-type attributes */
-      if (argc > 1 || text_plain)
+      if (ws.ws_wordc > 1 || text_plain)
 	{
 	  int space = 0;
 	  char *lvalue = NULL;
@@ -380,7 +401,7 @@ bodystructure (mu_message_t msg, int extension)
 	  int i;
 	  
 	  io_sendf (" (");
-	  for (i = 1; i < argc; i++)
+	  for (i = 1; i < ws.ws_wordc; i++)
 	    {
 	      /* body parameter parenthesized list:
 		 Content-type parameter list. */
@@ -393,25 +414,23 @@ bodystructure (mu_message_t msg, int extension)
 		  space = 1;
 		}
 	      
-	      switch (argv[i][0])
+	      switch (ws.ws_wordv[i][0])
 		{
 		case ';':
 		  continue;
 		  
 		case '=':
-		  if (++i < argc)
+		  if (++i < ws.ws_wordc)
 		    {
-		      char *p = argv[i];
 		      io_sendf (" ");
-		      io_send_qstring (p);
+		      io_send_qstring (ws.ws_wordv[i]);
 		    }
 		  break;
 		  
 		default:
-		  lvalue = argv[i];
+		  lvalue = ws.ws_wordv[i];
 		  if (mu_c_strcasecmp (lvalue, "charset") == 0)
 		    have_charset = 1;
-
 		}
 	    }
 	  
@@ -432,7 +451,7 @@ bodystructure (mu_message_t msg, int extension)
 	}
       else
 	io_sendf (" NIL");
-      mu_argcv_free (argc, argv);
+      mu_wordsplit_free (&ws);
       free (buffer);
     }
   else
@@ -553,13 +572,19 @@ fetch_bodystructure0 (mu_message_t message, int extension)
       /* The subtype.  */
       if (mu_header_aget_value (header, MU_HEADER_CONTENT_TYPE, &buffer) == 0)
 	{
-	  int argc = 0;
-	  char **argv;
+	  struct mu_wordsplit ws;
 	  char *s;
-	  
-	  mu_argcv_get (buffer, " \t\r\n;=", NULL, &argc, &argv);
 
-	  s = strchr (argv[0], '/');
+	  ws.ws_delim = " \t\r\n;=";
+	  ws.ws_alloc_die = imap4d_ws_alloc_die;
+	  if (mu_wordsplit (buffer, &ws, IMAP4D_WS_FLAGS))
+	    {
+	      mu_error (_("%s failed: %s"), "mu_wordsplit",
+			mu_wordsplit_strerror (&ws));
+	      return RESP_BAD; /* FIXME: a better error handling, maybe? */
+	    }
+
+	  s = strchr (ws.ws_wordv[0], '/');
 	  if (s)
 	    s++;
 	  io_sendf (" ");
@@ -572,7 +597,7 @@ fetch_bodystructure0 (mu_message_t message, int extension)
 	      char *lvalue = NULL;
 	      
 	      io_sendf (" (");
-	      for (i = 1; i < argc; i++)
+	      for (i = 1; i < ws.ws_wordc; i++)
 		{
 		  /* body parameter parenthesized list:
 		     Content-type parameter list. */
@@ -585,22 +610,21 @@ fetch_bodystructure0 (mu_message_t message, int extension)
 		      space = 1;
 		    }
 
-		  switch (argv[i][0])
+		  switch (ws.ws_wordv[i][0])
 		    {
 		    case ';':
 		      continue;
 		      
 		    case '=':
-		      if (++i < argc)
+		      if (++i < ws.ws_wordc)
 			{
-			  char *p = argv[i];
 			  io_sendf (" ");
-			  io_send_qstring (p);
+			  io_send_qstring (ws.ws_wordv[i]);
 			}
 		      break;
 		      
 		    default:
-		      lvalue = argv[i];
+		      lvalue = ws.ws_wordv[i];
 		    }
 		}
 	      if (lvalue)
@@ -613,7 +637,7 @@ fetch_bodystructure0 (mu_message_t message, int extension)
 	    }
 	  else
 	    io_sendf (" NIL");
-	  mu_argcv_free (argc, argv);
+	  mu_wordsplit_free (&ws);
           free (buffer);
 	}
       else

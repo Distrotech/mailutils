@@ -28,8 +28,9 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <mailutils/nls.h>
 #include <mailutils/acl.h>
-#include <mailutils/argcv.h>
+#include <mailutils/wordsplit.h>
 #include <mailutils/list.h>
 #include <mailutils/debug.h>
 #include <mailutils/error.h>
@@ -581,14 +582,19 @@ spawn_prog (const char *cmdline, int *pstatus, struct run_closure *rp)
   if (pid == 0)
     {
       int i;
-      int argc;
-      char **argv;
+      struct mu_wordsplit ws;
 
-      mu_argcv_get (s, " \t", NULL, &argc, &argv);
+      if (mu_wordsplit (s, &ws, MU_WRDSF_DEFFLAGS))
+	{
+	  mu_error (_("cannot split line `%s': %s"), s,
+		    mu_wordsplit_strerror (&ws));
+	  _exit (127);
+	}
+      
       for (i = getmaxfd (); i > 2; i--)
 	close (i);
-      execvp (argv[0], argv);
-      exit (127);
+      execvp (ws.ws_wordv[0], ws.ws_wordv);
+      _exit (127);
     }
 
   free (s);

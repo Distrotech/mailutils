@@ -31,8 +31,9 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <mailutils/nls.h>
 #include <mailutils/address.h>
-#include <mailutils/argcv.h>
+#include <mailutils/wordsplit.h>
 #include <mailutils/debug.h>
 #include <mailutils/errno.h>
 #include <mailutils/header.h>
@@ -95,18 +96,19 @@ struct _smtp_mailer
 static void
 smtp_mailer_add_auth_mech (struct _smtp_mailer *smtp_mailer, const char *str)
 {
-  int mc, i, rc;
-  char **mv;
-  
-  rc = mu_argcv_get_np (str, strlen (str),
-			",", NULL,
-			0,
-			&mc, &mv, NULL);
-  if (rc == 0)
-    for (i = 0; i < mc; i++)
-      mu_smtp_add_auth_mech (smtp_mailer->smtp, mv[i]);
-  
-  free (mv);
+  struct mu_wordsplit ws;
+
+  ws.ws_delim = ",";
+  if (mu_wordsplit (str, &ws, MU_WRDSF_DEFFLAGS|MU_WRDSF_DELIM|MU_WRDSF_WS))
+    mu_error (_("cannot split line `%s': %s"), str,
+	      mu_wordsplit_strerror (&ws));
+  else
+    {
+      size_t i;
+      for (i = 0; i < ws.ws_wordc; i++)
+	mu_smtp_add_auth_mech (smtp_mailer->smtp, ws.ws_wordv[i]);
+      mu_wordsplit_free (&ws);
+    }
 }
 
 static int

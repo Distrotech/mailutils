@@ -29,7 +29,7 @@
 #include <mailutils/mailer.h>
 #include <mailutils/url.h>
 #include <mailutils/util.h>
-#include <mailutils/argcv.h>
+#include <mailutils/wordsplit.h>
 #include <mailutils/message.h>
 #include <mailutils/envelope.h>
 #include <mailutils/header.h>
@@ -124,8 +124,8 @@ static int
 parse_received (mu_header_t hdr, char **sptr)
 {
   const char *recv;
-  int wc, i;
-  char **ws;
+  size_t i;
+  struct mu_wordsplit ws;
   enum { rcv_init, rcv_from, rcv_by, rcv_for } state;
   int status;
   char *s;
@@ -134,27 +134,26 @@ parse_received (mu_header_t hdr, char **sptr)
   status = mu_header_sget_value (hdr, MU_HEADER_RECEIVED, &recv);
   if (status)
     return status;
-  status = mu_argcv_get (recv, NULL, NULL, &wc, &ws);
-  if (status)
+  if (mu_wordsplit (recv, &ws, MU_WRDSF_DEFFLAGS))
     return status;
 
   state = rcv_init;
-  for (i = 0; i < wc && state != rcv_for; i++)
+  for (i = 0; i < ws.ws_wordc && state != rcv_for; i++)
     {
       switch (state)
 	{
 	case rcv_init:
-	  if (strcmp (ws[i], "from") == 0)
+	  if (strcmp (ws.ws_wordv[i], "from") == 0)
 	    state = rcv_from;
 	  break;
 	  
 	case rcv_from:
-	  if (strcmp (ws[i], "by") == 0)
+	  if (strcmp (ws.ws_wordv[i], "by") == 0)
 	    state = rcv_by;
 	  break;
 	  
 	case rcv_by:
-	  if (strcmp (ws[i], "for") == 0)
+	  if (strcmp (ws.ws_wordv[i], "for") == 0)
 	    state = rcv_for;
 	  break;
 
@@ -163,10 +162,10 @@ parse_received (mu_header_t hdr, char **sptr)
 	}
     }
 
-  if (state != rcv_for || ws[i] == NULL)
+  if (state != rcv_for || ws.ws_wordv[i] == NULL)
     return MU_ERR_NOENT;
 
-  s = ws[i];
+  s = ws.ws_wordv[i];
   len = strlen (s);
   if (s[len - 1] == ';')
     len--;
@@ -183,7 +182,7 @@ parse_received (mu_header_t hdr, char **sptr)
       memcpy (*sptr, s, len);
       (*sptr)[len - 1] = 0;
     }
-  mu_argcv_free (wc, ws);
+  mu_wordsplit_free (&ws);
   return status;
 } 
   
@@ -262,6 +261,7 @@ remote_mbox_append_message (mu_mailbox_t mbox, mu_message_t msg)
 	  const char *hstr;
 	  int hc; 
 	  char **hv;
+	  struct mu_wordsplit ws;
 	  
 	  if (mu_url_sget_param (mbox->url, "recipient-headers", &hstr) == 0)
 	    {
@@ -272,10 +272,12 @@ remote_mbox_append_message (mu_mailbox_t mbox, mu_message_t msg)
 		}
 	      else
 		{
-		  status = mu_argcv_get_np (hstr, strlen (hstr), ",", NULL, 0,
-					    &hc, &hv, NULL);
-		  if (status)
-		    return status;
+		  ws.ws_delim = ",";
+		  if (mu_wordsplit (hstr, &ws,
+				    MU_WRDSF_DEFFLAGS|MU_WRDSF_DELIM|MU_WRDSF_WS))
+		    return errno;
+		  hc = 1;
+		  hv = ws.ws_wordv;
 		}
 	    }
 	  else
@@ -286,7 +288,7 @@ remote_mbox_append_message (mu_mailbox_t mbox, mu_message_t msg)
 	  
 	  status = guess_message_recipient (msg, hv, &rcpt);
 	  if (hc)
-	    mu_argcv_free (hc, hv);
+	    mu_wordsplit_free (&ws);
 	}
 
       if (status != MU_ERR_NOENT)

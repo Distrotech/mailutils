@@ -16,7 +16,6 @@
    along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include "pop3d.h"
-#include <mailutils/argcv.h>
 #include <xalloc.h>
 #include "mailutils/libargp.h"
 
@@ -30,6 +29,7 @@ int db_make (char *input_name, char *output_name);
 #define ACT_CHPASS  4
 
 static int permissions = 0600;
+static int compatibility_option = 0;
 
 struct action_data {
   int action;
@@ -60,6 +60,8 @@ static error_t popauth_parse_opt  (int key, char *arg,
 
 void popauth_version (FILE *stream, struct argp_state *state);
 
+#define COMPATIBILITY_OPTION 256
+
 static struct argp_option options[] = 
 {
   { NULL, 0, NULL, 0, N_("Actions are:"), 1 },
@@ -80,6 +82,8 @@ static struct argp_option options[] =
   { "password", 'p', N_("STRING"), 0, N_("specify user's password"), 3 },
   { "user", 'u', N_("USERNAME"), 0, N_("specify user name"), 3 },
   { "permissions", 'P', N_("PERM"), 0, N_("force given permissions on the database"), 3 },
+  { "compatibility", COMPATIBILITY_OPTION, NULL, 0,
+    N_("backward compatibility mode") },
   { NULL, }
 };
 
@@ -171,7 +175,11 @@ popauth_parse_opt (int key, char *arg, struct argp_state *astate)
     case 'P':
       set_db_perms (astate, arg, &permissions);
       break;
-      
+
+    case COMPATIBILITY_OPTION:
+      compatibility_option = 1;
+      break;
+	
     case ARGP_KEY_FINI:
       if (ap->action == -1)
 	{
@@ -269,6 +277,23 @@ check_user_perm (int action, struct action_data *ap)
   return 1;
 }
 
+static void
+print_entry (FILE *fp, DBM_DATUM key, DBM_DATUM contents)
+{
+  if (compatibility_option)
+    fprintf (fp, "%.*s: %.*s\n",
+	     (int) MU_DATUM_SIZE (key),
+	     (char*) MU_DATUM_PTR (key),
+	     (int) MU_DATUM_SIZE (contents),
+	     (char*) MU_DATUM_PTR (contents));
+  else
+    fprintf (fp, "%.*s %.*s\n",
+	     (int) MU_DATUM_SIZE (key),
+	     (char*) MU_DATUM_PTR (key),
+	     (int) MU_DATUM_SIZE (contents),
+	     (char*) MU_DATUM_PTR (contents));
+}
+
 int
 action_list (struct action_data *ap)
 {
@@ -309,11 +334,7 @@ action_list (struct action_data *ap)
 	}
       else
 	{
-	  fprintf (fp, "%.*s: %.*s\n",
-		   (int) MU_DATUM_SIZE (key),
-		   (char*) MU_DATUM_PTR (key),
-		   (int) MU_DATUM_SIZE (contents),
-		   (char*) MU_DATUM_PTR (contents));
+	  print_entry (fp, key, contents);
 	  mu_dbm_datum_free (&contents);
 	}
     }
@@ -324,11 +345,7 @@ action_list (struct action_data *ap)
 	{
 	  memset (&contents, 0, sizeof contents);
 	  mu_dbm_fetch (db, key, &contents);
-	  fprintf (fp, "%.*s: %.*s\n",
-		   (int) MU_DATUM_SIZE (key),
-		   (char*) MU_DATUM_PTR (key),
-		   (int) MU_DATUM_SIZE (contents),
-		   (char*) MU_DATUM_PTR (contents));
+	  print_entry (fp, key, contents);
 	  mu_dbm_datum_free (&contents);
 	}
     }
@@ -341,85 +358,89 @@ action_list (struct action_data *ap)
 int
 action_create (struct action_data *ap)
 {
-  FILE *fp;
+  int rc;
+  mu_stream_t in;
   DBM_FILE db;
   DBM_DATUM key;
   DBM_DATUM contents;
-  char buf[256];
+  char *buf = NULL;
+  size_t size = 0, len;
   int line = 0;
-
+  
   /* Make sure we have proper privileges if popauth is setuid */
   setuid (getuid ());
   
   if (ap->input_name)
     {
-      fp = fopen (ap->input_name, "r");
-      if (!fp)
+      rc = mu_file_stream_create (&in, ap->input_name, MU_STREAM_READ);
+      if (rc)
 	{
 	  mu_error (_("cannot open file %s: %s"),
-		    ap->input_name, mu_strerror (errno));
+		    ap->input_name, mu_strerror (rc));
 	  return 1;
 	}
     }
   else
     {
       ap->input_name = "";
-      fp = stdin;
+      rc = mu_stdio_stream_create (&in, MU_STDIN_FD, MU_STREAM_READ);
+      if (rc)
+	{
+	  mu_error (_("cannot open standard input: %s"),
+		    mu_strerror (rc));
+	  return 1;
+	}
     }
   
   if (!ap->output_name)
     ap->output_name = APOP_PASSFILE;
   if (mu_dbm_open (ap->output_name, &db, MU_STREAM_CREAT, permissions))
     {
-      mu_error (_("cannot create database %s: %s"), ap->output_name, mu_strerror (errno));
+      mu_error (_("cannot create database %s: %s"),
+		ap->output_name, mu_strerror (errno));
       return 1;
     }
 
   line = 0;
-  while (fgets (buf, sizeof buf - 1, fp))
+  while ((rc = mu_stream_getline (in, &buf, &size, &len)) == 0
+	 && len > 0)
     {
-      int len;
-      int argc;
-      char **argv;
+      char *str, *pass;
 
-      len = strlen (buf);
-      if (buf[len-1] == '\n')
-	buf[--len] = 0;
-      
       line++;
-      if (mu_argcv_get (buf, ":", NULL, &argc, &argv))
-	{
-	  mu_argcv_free (argc, argv);
-	  continue;
-	}
-
-      if (argc == 0 || argv[0][0] == '#')
-	{
-	  mu_argcv_free (argc, argv);
-	  continue;
-	}
-      
-      if (argc != 3 || argv[1][0] != ':' || argv[1][1] != 0)
+      str = mu_str_stripws (buf);
+      if (*str == 0 || *str == '#')
+	continue;
+      pass = mu_str_skip_class_comp (str, MU_CTYPE_SPACE);
+      if (*pass == 0)
 	{
 	  mu_error (_("%s:%d: malformed line"), ap->input_name, line);
-	  mu_argcv_free (argc, argv);
 	  continue;
 	}
-
+      /* Strip trailing semicolon, when in compatibility mode. */
+      if (compatibility_option && pass > str && pass[-1] == ':')
+	pass[-1] = 0;
+      *pass++ = 0;
+      pass = mu_str_skip_class (pass, MU_CTYPE_SPACE);
+      if (*pass == 0)
+	{
+	  mu_error (_("%s:%d: malformed line"), ap->input_name, line);
+	  continue;
+	}
+      
       memset (&key, 0, sizeof key);
       memset (&contents, 0, sizeof contents);
-      MU_DATUM_PTR (key) = argv[0];
-      MU_DATUM_SIZE (key) = strlen (argv[0]);
-      MU_DATUM_PTR (contents) = argv[2];
-      MU_DATUM_SIZE (contents) = strlen (argv[2]);
+      MU_DATUM_PTR (key) = str;
+      MU_DATUM_SIZE (key) = strlen (str);
+      MU_DATUM_PTR (contents) = pass;
+      MU_DATUM_SIZE (contents) = strlen (pass);
 
       if (mu_dbm_insert (db, key, contents, 1))
 	mu_error (_("%s:%d: cannot store datum"), ap->input_name, line);
-
-      mu_argcv_free (argc, argv);
     }
+  free (buf);
   mu_dbm_close (db);
-  fclose (fp);
+  mu_stream_destroy (&in);
   return 0;
 }
 

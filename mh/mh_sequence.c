@@ -124,19 +124,23 @@ mh_seq_delete (const char *name, mh_msgset_t *mset, int flags)
   const char *value = mh_seq_read (name, flags);
   char *new_val;
   char *p;
-  int argc, i, count;
-  char **argv;
+  size_t i, count;
+  struct mu_wordsplit ws;
   
   if (!value)
     return 0;
 
-  if (mu_argcv_get (value, "", NULL, &argc, &argv))
-    return 0;
+  if (mu_wordsplit (value, &ws, MU_WRDSF_DEFFLAGS))
+    {
+      mu_error (_("cannot split line `%s': %s"), value,
+		mu_wordsplit_strerror (&ws));
+      return 0;
+    }
 
-  for (i = 0; i < argc; i++)
+  for (i = 0; i < ws.ws_wordc; i++)
     {
       char *p;
-      size_t num = strtoul (argv[i], &p, 10);
+      size_t num = strtoul (ws.ws_wordv[i], &p, 10);
 
       if (*p)
 	continue;
@@ -144,19 +148,19 @@ mh_seq_delete (const char *name, mh_msgset_t *mset, int flags)
       if (bsearch (&num, mset->list, mset->count, sizeof (mset->list[0]),
 		   cmp_msgnum))
 	{
-	  free (argv[i]);
-	  argv[i] = NULL;
+	  free (ws.ws_wordv[i]);
+	  ws.ws_wordv[i] = NULL;
 	}
     }
 
   new_val = xstrdup (value);
   p = new_val;
   count = 0;
-  for (i = 0; i < argc; i++)
+  for (i = 0; i < ws.ws_wordc; i++)
     {
-      if (argv[i])
+      if (ws.ws_wordv[i])
 	{
-	  strcpy (p, argv[i]);
+	  strcpy (p, ws.ws_wordv[i]);
 	  p += strlen (p);
 	  *p++ = ' ';
 	  count++;
@@ -164,7 +168,7 @@ mh_seq_delete (const char *name, mh_msgset_t *mset, int flags)
     }
   *p = 0;
   write_sequence (name, count > 0 ? new_val : NULL, flags & SEQ_PRIVATE);
-  mu_argcv_free (argc, argv);
+  mu_wordsplit_free (&ws);
   free (new_val);
   
   return 0;

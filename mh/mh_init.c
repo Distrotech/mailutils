@@ -539,33 +539,36 @@ mh_iterate (mu_mailbox_t mbox, mh_msgset_t *msgset,
 int
 mh_spawnp (const char *prog, const char *file)
 {
-  int argc, i, rc, status;
-  char **argv, **xargv;
+  struct mu_wordsplit ws;
+  size_t i;
+  int rc, status;
+  char **xargv;
 
-  if ((rc = mu_argcv_get (prog, "", "#", &argc, &argv)) != 0)
+  ws.ws_comment = "#";
+  if (mu_wordsplit (prog, &ws, MU_WRDSF_DEFFLAGS | MU_WRDSF_COMMENT))
     {
-      mu_diag_funcall (MU_DIAG_ERROR, "mu_argcv_get", prog, rc);
-      mu_argcv_free (argc, argv);
+      mu_error (_("cannot split line `%s': %s"), prog,
+		mu_wordsplit_strerror (&ws));
       return 1;
     }
 
-  xargv = calloc (argc + 2, sizeof (*xargv));
+  xargv = calloc (ws.ws_wordc + 2, sizeof (*xargv));
   if (!xargv)
     {
       mh_err_memory (0);
-      mu_argcv_free (argc, argv);
+      mu_wordsplit_free (&ws);
       return 1;
     }
 
-  for (i = 0; i < argc; i++)
-    xargv[i] = argv[i];
+  for (i = 0; i < ws.ws_wordc; i++)
+    xargv[i] = ws.ws_wordv[i];
   xargv[i++] = (char*) file;
   xargv[i++] = NULL;
-
+  
   rc = mu_spawnvp (xargv[0], xargv, &status);
 
   free (xargv);
-  mu_argcv_free (argc, argv);
+  mu_wordsplit_free (&ws);
 
   return rc;
 }

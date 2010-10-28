@@ -519,17 +519,26 @@ action_list ()
 static void
 get_stack (int *pc, char ***pv)
 {
-  int status;
+  struct mu_wordsplit ws;
   const char *stack = mh_global_context_get ("Folder-Stack", NULL);
   if (!stack)
     {
       *pc = 0;
       *pv = NULL;
     }
-  else if ((status = mu_argcv_get (stack, NULL, "#", pc, pv)) != 0)
+  else if (mu_wordsplit (stack, &ws, MU_WRDSF_DEFFLAGS))
     {
-      mu_diag_funcall (MU_DIAG_ERROR, "mu_argcv_get", stack, status);
+      mu_error (_("cannot split line `%s': %s"), stack,
+		mu_wordsplit_strerror (&ws));
       exit (1);
+    }
+  else
+    {
+      *pc = ws.ws_wordc;
+      *pv = ws.ws_wordv;
+      ws.ws_wordc = 0;
+      ws.ws_wordv = NULL;
+      mu_wordsplit_free (&ws);
     }
 }
 
@@ -762,26 +771,32 @@ pack_xlate (struct pack_tab *pack_tab, size_t count, size_t n)
 static int
 _fixup (const char *name, const char *value, struct fixup_data *fd, int flags)
 {
-  int i, j, argc;
-  char **argv;
+  size_t i, j;
+  struct mu_wordsplit ws;
   mh_msgset_t msgset;
 
   if (verbose)
     fprintf (stderr, "Sequence `%s'...\n", name);
-  
-  if (mu_argcv_get (value, "", NULL, &argc, &argv))
-    return 0;
 
-  msgset.list = xcalloc (argc, sizeof msgset.list[0]);
-  for (i = j = 0; i < argc; i++)
+  if (mu_wordsplit (value, &ws, MU_WRDSF_DEFFLAGS))
+    {
+      mu_error (_("cannot split line `%s': %s"), value,
+		mu_wordsplit_strerror (&ws));
+      return 0;
+    }
+
+  msgset.list = xcalloc (ws.ws_wordc, sizeof msgset.list[0]);
+  for (i = j = 0; i < ws.ws_wordc; i++)
     {
       size_t n = pack_xlate (fd->pack_tab, fd->count,
-			     strtoul (argv[i], NULL, 0));
+			     strtoul (ws.ws_wordv[i], NULL, 0));
       if (n)
 	msgset.list[j++] = n;
     }
   msgset.count = j;
 
+  mu_wordsplit_free (&ws);
+  
   mh_seq_add (name, &msgset, flags | SEQ_ZERO);
   free (msgset.list);
 

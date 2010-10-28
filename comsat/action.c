@@ -204,7 +204,7 @@ expand_line (const char *str, mu_message_t msg)
 	  p++;
 	  if (*p)
 	    {
-	      c = mu_argcv_unquote_char (*p);
+	      c = mu_wordsplit_c_unquote_char (*p);
 	      obstack_1grow (&stk, c);
 	    }
 	  break;
@@ -300,7 +300,8 @@ action_exec (FILE *tty, int argc, char **argv)
 
   if (argv[0][0] != '/')
     {
-      mu_diag_output (MU_DIAG_ERROR, _("not an absolute pathname: %s"), argv[0]);
+      mu_diag_output (MU_DIAG_ERROR, _("not an absolute pathname: %s"),
+		      argv[0]);
       return;
     }
 
@@ -388,15 +389,14 @@ run_user_action (FILE *tty, const char *cr, mu_message_t msg)
       
       while ((n = act_getline (fp, &stmt, &size)))
 	{
-	  int argc;
-	  char **argv;
+	  struct mu_wordsplit ws;
 
-	  if (mu_argcv_get (stmt, "", NULL, &argc, &argv) == 0
-	      && argc
-	      && argv[0][0] != '#')
+	  ws.ws_comment = "#";
+	  if (mu_wordsplit (stmt, &ws, MU_WRDSF_DEFFLAGS | MU_WRDSF_COMMENT)
+	      && ws.ws_wordc)
 	    {
 	      mu_debug_set_locus (debug, rcname, line);
-	      if (strcmp (argv[0], "beep") == 0)
+	      if (strcmp (ws.ws_wordv[0], "beep") == 0)
 		{
 		  /* FIXME: excess arguments are ignored */
 		  action_beep (tty);
@@ -406,25 +406,27 @@ run_user_action (FILE *tty, const char *cr, mu_message_t msg)
 		{
 		  /* Rest of actions require keyword expansion */
 		  int i;
-		  int n_option = argc > 1 && strcmp (argv[1], "-n") == 0;
+		  int n_option = ws.ws_wordc > 1 &&
+		                 strcmp (ws.ws_wordv[1], "-n") == 0;
 		  
-		  for (i = 1; i < argc; i++)
+		  for (i = 1; i < ws.ws_wordc; i++)
 		    {
-		      char *oldarg = argv[i];
-		      argv[i] = expand_line (argv[i], msg);
+		      char *oldarg = ws.ws_wordv[i];
+		      ws.ws_wordv[i] = expand_line (ws.ws_wordv[i], msg);
 		      free (oldarg);
-		      if (!argv[i])
+		      if (!ws.ws_wordv[i])
 			break;
 		    }
 		  
-		  if (strcmp (argv[0], "echo") == 0)
+		  if (strcmp (ws.ws_wordv[0], "echo") == 0)
 		    {
-		      action_echo (tty, cr, n_option, argc - 1, argv + 1);
+		      action_echo (tty, cr, n_option,
+				   ws.ws_wordc - 1, ws.ws_wordv + 1);
 		      nact++;
 		    }
-		  else if (strcmp (argv[0], "exec") == 0)
+		  else if (strcmp (ws.ws_wordv[0], "exec") == 0)
 		    {
-		      action_exec (tty, argc - 1, argv + 1);
+		      action_exec (tty, ws.ws_wordc - 1, ws.ws_wordv + 1);
 		      nact++;
 		    }
 		  else
@@ -432,12 +434,12 @@ run_user_action (FILE *tty, const char *cr, mu_message_t msg)
 		      fprintf (tty, _(".biffrc:%d: unknown keyword"), line);
 		      fprintf (tty, "\r\n");
 		      mu_diag_output (MU_DIAG_ERROR, _("unknown keyword %s"),
-				      argv[0]);
+				      ws.ws_wordv[0]);
 		      break;
 		    }
 		} 
 	    }
-	  mu_argcv_free (argc, argv);
+	  mu_wordsplit_free (&ws);
 	  line += n;
 	}
       fclose (fp);

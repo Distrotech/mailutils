@@ -40,8 +40,9 @@
 int
 util_do_command (const char *fmt, ...)
 {
-  int argc = 0;
-  char **argv = NULL;
+  struct mu_wordsplit ws;
+  int argc;
+  char **argv;
   int status = 0;
   const struct mail_command_entry *entry = NULL;
   char *cmd = NULL;
@@ -76,19 +77,29 @@ util_do_command (const char *fmt, ...)
 	    return 0;
 	}
 
-      if (mu_argcv_get (cmd, NULL, NULL, &argc, &argv) == 0 && argc > 0)
+      ws.ws_offs = 1; /* Keep one extra slot in case we need it
+			 for expansion (see below) */
+      if (mu_wordsplit (cmd, &ws, MU_WRDSF_DEFFLAGS|MU_WRDSF_DOOFFS))
+	{
+	  mu_error (_("%s failed: %s"), "mu_wordsplit",
+		    mu_wordsplit_strerror (&ws));
+	}
+      else
 	{
 	  char *p;
 
+	  argc = ws.ws_wordc;
+	  argv = ws.ws_wordv + 1;
+	  
 	  /* Special case: a number alone implies "print" */
 	  if (argc == 1
 	      && ((strtoul (argv[0], &p, 10) > 0 && *p == 0)
 		  || (argv[0][1] == 0 && strchr("^$", argv[0][0]))))
 	    {
-	      mu_asprintf (&p, "print %s", argv[0]);
-	      mu_argcv_free (argc, argv);
-	      mu_argcv_get (p, NULL, NULL, &argc, &argv);
-	      free (p);
+	      /* Use the extra slot for "print" command */
+	      argc++;
+	      argv--;
+	      argv[0] = "print";
 	    }
 
 	  entry = mail_find_command (argv[0]);
@@ -114,12 +125,16 @@ util_do_command (const char *fmt, ...)
       
       if (strlen (p))
 	{
+	  /* Expand contracted form.  That's what we have kept an extra
+	     ws slot for. */
 	  argc++;
-	  argv = xrealloc (argv, (argc + 1)*sizeof argv[0]);
-	  if (argc > 2)
-	    memmove (argv + 2, argv + 1, (argc - 2)*sizeof argv[0]);
+	  argv--;
+	  argv[0] = argv[1];
 	  argv[1] = xstrdup (p);
 	  *p = 0;
+	  /* Register the new entry in WS */
+	  ws.ws_wordc++;
+	  ws.ws_offs = 0;
 	}
       
       entry = mail_find_command (argv[0]);
@@ -140,7 +155,7 @@ util_do_command (const char *fmt, ...)
       status = 1;
     }
 
-  mu_argcv_free (argc, argv);
+  mu_wordsplit_free (&ws);
   return status;
 }
 

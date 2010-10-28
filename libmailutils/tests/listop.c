@@ -21,7 +21,6 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <mailutils/argcv.h>
 #include <mailutils/mailutils.h>
 
 static int interactive;
@@ -467,9 +466,8 @@ shell (mu_list_t list)
     {
       char *text = NULL;
       char buf[80];
-      int argc;
-      char **argv;
-
+      struct mu_wordsplit ws;
+      
       if (!itr[num])
 	{
 	  rc = mu_list_get_iterator (list, &itr[num]);
@@ -487,40 +485,44 @@ shell (mu_list_t list)
       if (fgets (buf, sizeof buf, stdin) == NULL)
 	return;
 
-      rc = mu_argcv_get (buf, "", "#", &argc, &argv);
-      if (rc)
-	lperror ("mu_argcv_get", rc);
-
-      if (argc > 0)
+      ws.ws_comment = "#";
+      if (mu_wordsplit (buf, &ws, MU_WRDSF_DEFFLAGS|MU_WRDSF_COMMENT))
 	{
-	  if (strcmp (argv[0], "count") == 0)
+	  mu_error ("cannot split line `%s': %s", buf,
+		    mu_wordsplit_strerror (&ws));
+	  exit (1);
+	}
+
+      if (ws.ws_wordc > 0)
+	{
+	  if (strcmp (ws.ws_wordv[0], "count") == 0)
 	    count (list);
-	  else if (strcmp (argv[0], "next") == 0)
-	    next (itr[num], argv[1]);
-	  else if (strcmp (argv[0], "first") == 0)
+	  else if (strcmp (ws.ws_wordv[0], "next") == 0)
+	    next (itr[num], ws.ws_wordv[1]);
+	  else if (strcmp (ws.ws_wordv[0], "first") == 0)
 	    mu_iterator_first (itr[num]);
-	  else if (strcmp (argv[0], "del") == 0)
-	    delete (list, argc, argv);
-	  else if (strcmp (argv[0], "add") == 0)
-	    add (list, argc, argv);
-	  else if (strcmp (argv[0], "prep") == 0)
-	    prep (list, argc, argv);
-	  else if (strcmp (argv[0], "ins") == 0)
-	    ins (list, argc, argv);
-	  else if (strcmp (argv[0], "repl") == 0)
-	    repl (list, argc, argv);
-	  else if (strcmp (argv[0], "ictl") == 0)
-	    ictl (itr[num], argc, argv);
-	  else if (strcmp (argv[0], "print") == 0)
+	  else if (strcmp (ws.ws_wordv[0], "del") == 0)
+	    delete (list, ws.ws_wordc, ws.ws_wordv);
+	  else if (strcmp (ws.ws_wordv[0], "add") == 0)
+	    add (list, ws.ws_wordc, ws.ws_wordv);
+	  else if (strcmp (ws.ws_wordv[0], "prep") == 0)
+	    prep (list, ws.ws_wordc, ws.ws_wordv);
+	  else if (strcmp (ws.ws_wordv[0], "ins") == 0)
+	    ins (list, ws.ws_wordc, ws.ws_wordv);
+	  else if (strcmp (ws.ws_wordv[0], "repl") == 0)
+	    repl (list, ws.ws_wordc, ws.ws_wordv);
+	  else if (strcmp (ws.ws_wordv[0], "ictl") == 0)
+	    ictl (itr[num], ws.ws_wordc, ws.ws_wordv);
+	  else if (strcmp (ws.ws_wordv[0], "print") == 0)
 	    print (list);
-	  else if (strcmp (argv[0], "cur") == 0)
+	  else if (strcmp (ws.ws_wordv[0], "cur") == 0)
 	    cur (num, itr[num]);
-	  else if (strcmp (argv[0], "quit") == 0)
+	  else if (strcmp (ws.ws_wordv[0], "quit") == 0)
 	    return;
-	  else if (strcmp (argv[0], "iter") == 0)
+	  else if (strcmp (ws.ws_wordv[0], "iter") == 0)
 	    {
 	      int n;
-	      if (iter (&n, argc, argv) == 0 && !itr[n])
+	      if (iter (&n, ws.ws_wordc, ws.ws_wordv) == 0 && !itr[n])
 		{
 		  rc = mu_list_get_iterator (list, &itr[n]);
 		  if (rc)
@@ -529,24 +531,24 @@ shell (mu_list_t list)
 		}
 	      num = n;
 	    }
-	  else if (strcmp (argv[0], "close") == 0)
+	  else if (strcmp (ws.ws_wordv[0], "close") == 0)
 	    {
 	      int n;
-	      if (iter (&n, argc, argv) == 0)
+	      if (iter (&n, ws.ws_wordc, ws.ws_wordv) == 0)
 		{
 		  mu_iterator_destroy (&itr[n]);
 		  if (n == num && ++num == NITR)
 		    num = 0;
 		}
 	    }
-	  else if (strcmp (argv[0], "find") == 0)
-	    find (itr[num], argv[1]);
-	  else if (strcmp (argv[0], "help") == 0)
+	  else if (strcmp (ws.ws_wordv[0], "find") == 0)
+	    find (itr[num], ws.ws_wordv[1]);
+	  else if (strcmp (ws.ws_wordv[0], "help") == 0)
 	    help ();
-	  else if (argc == 1)
+	  else if (ws.ws_wordc == 1)
 	    {
 	      char *p;
-	      size_t n = strtoul (argv[0], &p, 0);
+	      size_t n = strtoul (ws.ws_wordv[0], &p, 0);
 	      if (*p != 0)
 		fprintf (stderr, "?\n");
 	      else
@@ -561,7 +563,7 @@ shell (mu_list_t list)
 	  else
 	    fprintf (stderr, "?\n");
 	}
-      mu_argcv_free (argc, argv);
+      mu_wordsplit_free (&ws);
     }
 }
 

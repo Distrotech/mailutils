@@ -18,11 +18,12 @@
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
+#include <stdlib.h>
 #include <mailutils/alloc.h>
 #include <mailutils/stream.h>
 #include <mailutils/error.h>
 #include <mailutils/cfg.h>
-#include <mailutils/argcv.h>
+#include <mailutils/wordsplit.h>
 #include <mailutils/nls.h>
 #include <mailutils/iterator.h>
 #include <ctype.h>
@@ -50,7 +51,7 @@ format_string_value (struct tree_print *tp, const char *str)
   int quote;
   char *p;
 
-  size = mu_argcv_quoted_length (str, &quote);
+  size = mu_wordsplit_c_quoted_length (str, 1, &quote);
   if (quote)
     size += 2;
   size++;
@@ -69,7 +70,7 @@ format_string_value (struct tree_print *tp, const char *str)
       p++;
     }
   tp->buf[size-1] = 0;
-  mu_argcv_quote_copy (p, str);
+  mu_wordsplit_c_quote_copy (p, str, 1);
   mu_stream_write (tp->stream, tp->buf, size - 1, NULL);
 }
 

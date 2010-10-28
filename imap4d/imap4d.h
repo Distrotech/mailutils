@@ -98,7 +98,7 @@
 #include <mailutils/pam.h>
 #include <mailutils/acl.h>
 #include <mailutils/server.h>
-#include <mailutils/argcv.h>
+#include <mailutils/wordsplit.h>
 #include <mailutils/alloc.h>
 #include <mailutils/vartab.h>
 #include <mailutils/cctype.h>

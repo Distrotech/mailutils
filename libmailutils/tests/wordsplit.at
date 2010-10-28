@@ -1,0 +1,304 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# GNU Mailutils is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+
+dnl ------------------------------------------------------------
+dnl TESTWSP([NAME], [KW = `'], [OPTS], [INPUT], [STDOUT = `'],
+dnl         [STDERR = `'], [ENV])
+dnl
+m4_pushdef([TESTWSP],[
+m4_pushdef([MU_TEST_GROUP],[Wordsplit])
+m4_pushdef([MU_TEST_KEYWORDS],[wordsplit wsp])
+m4_pushdef([MU_TEST_COMMAND],[$7 wsp $3])
+MU_GENERIC_TEST([$1],[$2],[$4],[],[$5],[$6])
+m4_popdef([MU_TEST_COMMAND])
+m4_popdef([MU_TEST_KEYWORDS])
+m4_popdef([MU_TEST_GROUP])
+])
+
+dnl ------------------------------------------------------------
+dnl The first part reproduces legacy argcv tests
+dnl ------------------------------------------------------------
+
+TESTWSP([simple input],[],[],
+[1 2 3],
+[NF: 3
+0: 1
+1: 2
+2: 3
+])
+
+TESTWSP([quoted space],[],[],
+[quoted\ space],
+[NF: 1
+0: "quoted space"
+])
+
+TESTWSP([tab character],[],[],
+[a "tab	character"],
+[NF: 2
+0: a
+1: tab\tcharacter
+])
+
+TESTWSP([octal and hex escapes],[],[],
+[\157\143\164\141\154\40and\x20\x68\x65\x78],
+[NF: 1
+0: "octal and hex"
+])
+
+TESTWSP([octal and hex escapes 2],[],[],
+[\157\143\164\141\154\40 and \x20\x68\x65\x78],
+[NF: 3
+0: "octal "
+1: and
+2: " hex"
+])
+
+TESTWSP([escape representation],[],[],
+[A\x3-\48\39],
+[NF: 1
+0: A\003-\0048\0039
+])
+
+dnl ------------------------------------------------------------
+dnl Test worsplit-specific behavior
+dnl ------------------------------------------------------------
+TESTWSP([append],[],[append],
+[jeden dwa trzy
+cztery
+piec szesc],
+[NF: 3
+0: jeden
+1: dwa
+2: trzy
+NF: 4
+0: jeden
+1: dwa
+2: trzy
+3: cztery
+NF: 6
+0: jeden
+1: dwa
+2: trzy
+3: cztery
+4: piec
+5: szesc
+])
+
+TESTWSP([dooffs],[],[dooffs 3 jeden dwa trzy],
+[cztery piec],
+[NF: 2 (3)
+(0): jeden
+(1): dwa
+(2): trzy
+3: cztery
+4: piec
+])
+
+TESTWSP([variable substitutions: single var],[],[],
+[a $FOO test],
+[NF: 3
+0: a
+1: bar
+2: test
+],
+[],
+[FOO=bar])
+
+TESTWSP([variable substitutions: concatenated vars],[],[],
+[a $FOO${BAR}ent test],
+[NF: 3
+0: a
+1: stringent
+2: test
+],
+[],
+[FOO=str BAR=ing])
+
+TESTWSP([variable substitutions: field splitting],[],[],
+[a $FOO test],
+[NF: 4
+0: a
+1: variable
+2: substitution
+3: test
+],
+[],
+[FOO="variable substitution"])
+
+TESTWSP([variable substitutions: double-quoted variable],[],[],
+[a "$FOO" test],
+[NF: 3
+0: a
+1: "variable substitution"
+2: test
+],
+[],
+[FOO="variable substitution"])
+
+TESTWSP([variable substitutions: single-quoted variable],[],[],
+[a '$FOO' test],
+[NF: 3
+0: a
+1: $FOO
+2: test
+],
+[],
+[FOO="variable substitution"])
+
+TESTWSP([undefined variables 1],[],[],
+[a $FOO test a${FOO}b],
+[NF: 3
+0: a
+1: test
+2: ab
+],
+[],
+[unset FOO;])
+
+TESTWSP([undefined variables 2],[],[keepundef],
+[a $FOO test a${FOO}b],
+[NF: 4
+0: a
+1: $FOO
+2: test
+3: a${FOO}b
+],
+[],
+[unset FOO;])
+
+TESTWSP([warn about undefined variables],[],[warnundef],
+[$FOO],
+[NF: 0
+],
+[warning: undefined variable `FOO'
+],
+[unset FOO;])
+
+TESTWSP([bail out on undefined variables],[],[undef],
+[$FOO],
+[],
+[undefined variable
+],
+[unset FOO;])
+
+TESTWSP([disable variable expansion],[],[novar],
+[$FOO],
+[NF: 1
+0: $FOO
+],
+[],
+[FOO=bar])
+
+TESTWSP([nosplit with expansion],[],[nosplit],
+[a $FOO test],
+[NF: 1
+0: "a variable expansion test\n"
+],
+[],
+[FOO="variable expansion"])
+
+TESTWSP([nosplit without expansion],[],[nosplit novar],
+[a $FOO test],
+[NF: 1
+0: "a $FOO test\n"
+],
+[],
+[FOO="variable expansion"])
+
+TESTWSP([ignore quotes],[],[-quote],
+["a text"],
+[NF: 2
+0: "\"a"
+1: "text\""
+])
+
+TESTWSP([custom delimiters (squeeze)],[],[delim : -ws trimnl],
+[semicolon: separated::list: of :words],
+[NF: 5
+0: semicolon
+1: " separated"
+2: list
+3: " of "
+4: words
+])
+
+TESTWSP([custom delimiters (no squeeze)],[],[delim : -ws -squeeze_delims trimnl],
+[semicolon: separated::list: of :words],
+[NF: 6
+0: semicolon
+1: " separated"
+2: ""
+3: list
+4: " of "
+5: words
+])
+
+TESTWSP([custom, with returned delimiters],[],[delim : -ws trimnl return_delims],
+[semicolon: separated::list: of :words],
+[NF: 9
+0: semicolon
+1: :
+2: " separated"
+3: :
+4: list
+5: :
+6: " of "
+7: :
+8: words
+])
+
+TESTWSP([custom, with returned & squeezed delimiters],[],[delim : -ws trimnl return_delims -squeeze_delims],
+[semicolon: separated::list: of :words],
+[NF: 9
+0: semicolon
+1: :
+2: " separated"
+3: ::
+4: list
+5: :
+6: " of "
+7: :
+8: words
+])
+
+TESTWSP([sed expressions],[],[sed],
+[arg1 s/foo/bar/g;s/bar baz/quz quux/ arg2],
+[NF: 3
+0: arg1
+1: "s/foo/bar/g;s/bar baz/quz quux/"
+2: arg2
+])
+
+TESTWSP([C escapes on],[],[cescapes],
+[a\ttab form\ffeed and new\nline],
+[NF: 4
+0: a\ttab
+1: form\ffeed
+2: and
+3: new\nline
+])
+
+TESTWSP([C escapes off],[],[-cescapes],
+[a\ttab form\ffeed and new\nline],
+[NF: 4
+0: attab
+1: formffeed
+2: and
+3: newnline
+])
+
+m4_popdef([TESTWSP])

@@ -29,6 +29,7 @@
 #include <mailutils/types.h>
 #include <mailutils/alloc.h>
 #include <mailutils/argcv.h>
+#include <mailutils/wordsplit.h>
 #include <mailutils/error.h>
 #include <mailutils/errno.h>
 #include <mailutils/nls.h>
@@ -390,17 +391,25 @@ struct _mu_prog_stream *
 _prog_stream_create (const char *progname, int flags)
 {
   struct _mu_prog_stream *fs;
+  struct mu_wordsplit ws;
   
   fs = (struct _mu_prog_stream *) _mu_stream_create (sizeof (*fs), flags);
   if (!fs)
     return NULL;
 
-  if (mu_argcv_get (progname, "", "#", &fs->argc, &fs->argv))
+  ws.ws_comment = "#";
+  if (mu_wordsplit (progname, &ws, MU_WRDSF_DEFFLAGS|MU_WRDSF_COMMENT))
     {
-      mu_argcv_free (fs->argc, fs->argv);
+      mu_error (_("cannot split line `%s': %s"), progname,
+		mu_wordsplit_strerror (&ws));
       free (fs);
       return NULL;
     }
+  fs->argc = ws.ws_wordc;
+  fs->argv = ws.ws_wordv;
+  ws.ws_wordc = 0;
+  ws.ws_wordv = NULL;
+  mu_wordsplit_free (&ws);
 
   fs->stream.read = _prog_read;
   fs->stream.write = _prog_write;

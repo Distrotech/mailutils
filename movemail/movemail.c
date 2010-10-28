@@ -267,23 +267,21 @@ cb_mailbox_ownership (mu_debug_t debug, void *data, mu_config_value_t *val)
 	return _cb_mailbox_ownership (debug, str);
       else
 	{
-	  int argc;
-	  char **argv;
+	  struct mu_wordsplit ws;
 
-	  if (mu_argcv_get_np (str, strlen (str), ",", NULL, 0,
-			       &argc, &argv, NULL))
+	  ws.ws_delim = ",";
+	  if (mu_wordsplit (str, &ws, MU_WRDSF_DEFFLAGS|MU_WRDSF_DELIM))
 	    {
 	      mu_cfg_format_error (debug, MU_DEBUG_ERROR, 
-				   _("cannot parse %s"),
-				   str);
+				   _("cannot parse %s: %s"),
+				   str, mu_wordsplit_strerror (&ws));
 	      return 1;
 	    }
 
-	  for (i = 0; i < argc; i++)
-	    if (_cb_mailbox_ownership (debug, argv[i]))
+	  for (i = 0; i < ws.ws_wordc; i++)
+	    if (_cb_mailbox_ownership (debug, ws.ws_wordv[i]))
 	      return 1;
-
-	  mu_argcv_free (argc, argv);
+	  mu_wordsplit_free (&ws);
 	  return 0;
 	}
     }
