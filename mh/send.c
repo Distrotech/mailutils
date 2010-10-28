@@ -497,49 +497,53 @@ fix_fcc (mu_message_t msg)
   mu_message_get_header (msg, &hdr);
   if (mu_header_aget_value (hdr, MU_HEADER_FCC, &fcc) == 0)
     {
-      int i, argc;
-      char **argv;
+      struct mu_wordsplit ws;
       int need_fixup = 0;
       size_t fixup_len = 0;
-      
-      mu_argcv_get (fcc, ",", NULL, &argc, &argv);
-      for (i = 0; i < argc; i += 2)
+
+      ws.ws_delim = ",";
+      if (mu_wordsplit (fcc, &ws,
+			MU_WRDSF_DEFFLAGS | MU_WRDSF_DELIM | MU_WRDSF_WS))
 	{
-	  if (strchr ("+%~/=", argv[i][0]) == NULL)
-	    {
-	      need_fixup++;
-	      fixup_len ++;
-	    }
-	  fixup_len += strlen (argv[i]);
+	  mu_error (_("cannot split line `%s': %s"), fcc,
+		    mu_wordsplit_strerror (&ws));
 	}
-
-      if (need_fixup)
+      else
 	{
-	  char *p;
-
-	  /* the new fcc string contains: folder names - fixup_len characters
-	     long, (argc - 2)/2 comma-space pairs and a terminating
-	     nul */
-	  fcc = realloc (fcc, fixup_len + argc - 2 + 1);
-	  for (i = 0, p = fcc; i < argc; i++)
+	  size_t i;
+	  
+	  for (i = 0; i < ws.ws_wordc; i += 2)
 	    {
-	      if (i % 2 == 0)
+	      if (strchr ("+%~/=", ws.ws_wordv[i][0]) == NULL)
 		{
-		  if (strchr ("+%~/=", argv[i][0]) == NULL)
-		    *p++ = '+';
-		  strcpy (p, argv[i]);
-		  p += strlen (argv[i]);
+		  need_fixup++;
+		  fixup_len ++;
 		}
-	      else
+	      fixup_len += strlen (ws.ws_wordv[i]);
+	    }
+
+	  if (need_fixup)
+	    {
+	      char *p;
+	      
+	      /* the new fcc string contains: folder names - fixup_len
+		 characters, ws.ws_wordc - 1 comma-space pairs and a
+		 terminating nul */
+	      fcc = realloc (fcc, fixup_len + ws.ws_wordc - 1 + 1);
+	      for (i = 0, p = fcc; i < ws.ws_wordc; i++)
 		{
+		  if (strchr ("+%~/=", ws.ws_wordv[i][0]) == NULL)
+		    *p++ = '+';
+		  strcpy (p, ws.ws_wordv[i]);
+		  p += strlen (p);
 		  *p++ = ',';
 		  *p++ = ' ';
 		}
+	      *p = 0;
 	    }
-	  *p = 0;
 	}
 
-      mu_argcv_free (argc, argv);
+      mu_wordsplit_free (&ws);
 
       if (need_fixup)
 	{

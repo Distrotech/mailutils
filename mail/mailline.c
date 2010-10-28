@@ -230,32 +230,38 @@ ml_reread (const char *prompt, char **text)
 char **
 ml_command_completion (char *cmd, int start, int end)
 {
-  int argc;
-  char **argv;
   char **ret;
   char *p;
-
+  struct mu_wordsplit ws;
+  
   for (p = rl_line_buffer; p < rl_line_buffer + start && mu_isblank (*p); p++)
     ;
-  
-  if (mu_argcv_get_n (p, end, NULL, NULL, &argc, &argv))
-    return NULL;
+
+  if (mu_wordsplit_len (p, end, &ws, MU_WRDSF_DEFFLAGS))
+    {
+      mu_error (_("mu_wordsplit_len failed: %s"),
+		mu_wordsplit_strerror (&ws));
+      return NULL;
+    }
   rl_completion_append_character = ' ';
   
-  if (argc == 0 || (argc == 1 && strlen (argv[0]) <= end - start))
+  if (ws.ws_wordc == 0 ||
+      (ws.ws_wordc == 1 && strlen (ws.ws_wordv[0]) <= end - start))
     {
       ret = rl_completion_matches (cmd, ml_command_generator);
       rl_attempted_completion_over = 1;
     }
   else
     {
-      const struct mail_command_entry *entry = mail_find_command (argv[0]);
+      const struct mail_command_entry *entry =
+	mail_find_command (ws.ws_wordv[0]);
       if (entry && entry->command_completion)
-	ret = entry->command_completion (argc, argv, start == end);
+	ret = entry->command_completion (ws.ws_wordc, ws.ws_wordv,
+					 start == end);
       else
 	ret = NULL;
     }
-  mu_argcv_free (argc, argv);
+  mu_wordsplit_free (&ws);
   return ret;
 }
 

@@ -489,9 +489,9 @@ main (int argc, char **argv)
 {
   int c;
   char buf[512];
-  char **prevv;
+  char **prevv = NULL;
   int prevc = 0;
-  
+
   interactive = isatty (0);
   while ((c = getopt (argc, argv, "f:h")) != EOF)
     {
@@ -525,36 +525,36 @@ main (int argc, char **argv)
 	}
     }
   
-  while (prompt(0), fgets(buf, sizeof buf, stdin))
+  while (prompt (0), fgets (buf, sizeof buf, stdin))
     {
-      int c;
-      char **v;
-      int status;
+      struct mu_wordsplit ws;
 
       line_num++;
-      status = mu_argcv_get (buf, NULL, "#", &c, &v);
-      if (status)
+      ws.ws_comment = "#";
+      if (mu_wordsplit (buf, &ws, MU_WRDSF_DEFFLAGS | MU_WRDSF_COMMENT))
 	{
-	  mu_error ("%u: cannot parse: %s",
-		   line_num, mu_strerror (status));
+	  mu_error ("cannot split line `%s': %s", buf,
+		    mu_wordsplit_strerror (&ws));
 	  continue;
 	}
-
-      if (c == 0)
+      
+      if (ws.ws_wordc == 0)
 	{
 	  if (prevc)
 	    docmd (prevc, prevv);
-	  else
-	    mu_argcv_free (c, v);
 	}
       else
 	{
-	  docmd (c, v);
+	  docmd (ws.ws_wordc, ws.ws_wordv);
 	  mu_argcv_free (prevc, prevv);
-	  prevc = c;
-	  prevv = v;
+	  prevc = ws.ws_wordc;
+	  prevv = ws.ws_wordv;
+	  ws.ws_wordc = 0;
+	  ws.ws_wordv = NULL;
 	}
+      mu_wordsplit_free (&ws);
     }
+  mu_argcv_free (prevc, prevv);
   exit (0);
 }
 

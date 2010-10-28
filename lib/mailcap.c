@@ -414,21 +414,31 @@ create_filter (char *cmd, int outfd, int *infd)
   if (pid == 0)
     {
       /* Child process */
+      struct mu_wordsplit ws;
       int argc;
       char **argv;
-
+      
       if (need_shell_p (cmd))
 	{
+	  char *x_argv[4];
 	  argc = 3;
-	  argv = xmalloc ((argc + 1) * sizeof *argv);
+	  argv = x_argv;
 	  argv[0] = getenv ("SHELL");
 	  argv[1] = "-c";
 	  argv[2] = cmd;
 	  argv[3] = NULL;
 	}
       else
-	mu_argcv_get (cmd, "", NULL, &argc, &argv);
-      
+	{
+	  if (mu_wordsplit (cmd, &ws, MU_WRDSF_DEFFLAGS))
+	    {
+	      mu_error (_("%s failed: %s"), "mu_wordsplit",
+			mu_wordsplit_strerror (&ws));
+	      _exit (127);
+	    }
+	  argc = ws.ws_wordc;
+	  argv = ws.ws_wordv;
+	}      
       /* Create input channel: */
       if (infd)
 	{
@@ -440,7 +450,7 @@ create_filter (char *cmd, int outfd, int *infd)
       /* Create output channel */
       if (outfd != -1 && outfd != 1)
 	dup2 (outfd, 1);
-
+      
       execvp (argv[0], argv);
       mu_error (_("cannot execute `%s': %s"), cmd, mu_strerror (errno));
       _exit (127);
@@ -491,8 +501,7 @@ run_test (mu_mailcap_entry_t entry, struct mime_context *ctx)
   
   if (mu_mailcap_entry_get_test (entry, NULL, 0, &size) == 0)
     {
-      int argc;
-      char **argv;
+      struct mu_wordsplit ws;
       char *str;
 
       obstack_blank (&expand_stack, size + 1);
@@ -500,11 +509,16 @@ run_test (mu_mailcap_entry_t entry, struct mime_context *ctx)
       mu_mailcap_entry_get_test (entry, str, size + 1, NULL);
 
       expand_string (ctx, &str);
-      mu_argcv_get (str, "", NULL, &argc, &argv);
+      if (mu_wordsplit (str, &ws, MU_WRDSF_DEFFLAGS))
+	{
+	  mu_error (_("%s failed: %s"), "mu_wordsplit",
+		    mu_wordsplit_strerror (&ws));
+	  return 1;
+	}
       
-      if (mu_spawnvp (argv[0], argv, &status))
+      if (mu_spawnvp (ws.ws_wordv[0], ws.ws_wordv, &status))
 	status = 1;
-      mu_argcv_free (argc, argv);
+      mu_wordsplit_free (&ws);
     }
   return status;
 }

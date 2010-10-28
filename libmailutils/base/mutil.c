@@ -22,8 +22,9 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <stdlib.h>
 #include <time.h>
-#include <mailutils/argcv.h>
+#include <mailutils/wordsplit.h>
 #include <mailutils/error.h>
 #include <mailutils/errno.h>
 #include <mailutils/nls.h>
@@ -78,20 +79,20 @@ mutil_parse_field_map (const char *map, mu_assoc_t *passoc_tab, int *perr)
 {
   int rc;
   int i;
-  int argc;
-  char **argv;
+  struct mu_wordsplit ws;
   mu_assoc_t assoc_tab = NULL;
 
-  rc = mu_argcv_get (map, ":", NULL, &argc, &argv);
-  if (rc)
+  ws.ws_delim = ":";
+  if (mu_wordsplit (map, &ws, MU_WRDSF_DEFFLAGS|MU_WRDSF_DELIM))
     {
-      mu_error (_("cannot split line `%s': %s"), map, mu_strerror (rc));
+      mu_error (_("cannot split line `%s': %s"), map,
+		mu_wordsplit_strerror (&ws));
       return rc;
     }
 
-  for (i = 0; i < argc; i += 2)
+  for (i = 0; i < ws.ws_wordc; i++)
     {
-      char *tok = argv[i];
+      char *tok = ws.ws_wordv[i];
       char *p = strchr (tok, '=');
       char *pptr;
       
@@ -123,7 +124,7 @@ mutil_parse_field_map (const char *map, mu_assoc_t *passoc_tab, int *perr)
 	}
     }
 
-  mu_argcv_free (argc, argv);
+  mu_wordsplit_free (&ws);
   if (rc && perr)
     *perr = i;
   return rc;

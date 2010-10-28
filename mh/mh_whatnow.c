@@ -328,28 +328,30 @@ _whatnow (struct mh_whatnow_env *wh, struct action_tab *tab)
     {
       char *line = NULL;
       size_t size = 0;
-      int argc;
-      char **argv;
+      struct mu_wordsplit ws;
       handler_fp fun;
       
       printf ("%s ", wh->prompt);
       getline (&line, &size, stdin);
       if (!line)
 	continue;
-      rc = mu_argcv_get (line, "", "#", &argc, &argv);
+
+      ws.ws_comment = "#";
+      rc = mu_wordsplit (line, &ws, MU_WRDSF_DEFFLAGS|MU_WRDSF_COMMENT);
       free (line);
       if (rc)
 	{
-	  mu_argcv_free (argc, argv);
+	  mu_error (_("cannot split line `%s': %s"), line,
+		    mu_wordsplit_strerror (&ws));
 	  break;
 	}
 
-      fun = func (tab, argv[0]);
+      fun = func (tab, ws.ws_wordv[0]);
       if (fun)
-	rc = fun (wh, argc, argv, &status);
+	rc = fun (wh, ws.ws_wordc, ws.ws_wordv, &status);
       else
 	rc = 0;
-      mu_argcv_free (argc, argv);
+      mu_wordsplit_free (&ws);
     }
   while (rc == 0);
   return status;

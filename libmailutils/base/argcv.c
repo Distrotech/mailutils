@@ -22,15 +22,13 @@
 
 #include <ctype.h>
 #include <errno.h>
+#define MU_ARCGV_DEPRECATED
 #include <mailutils/argcv.h>
 
 /* Keep mailutils namespace clean */
 #define argcv_get            mu_argcv_get 
 #define argcv_get_n          mu_argcv_get_n 
 #define argcv_get_np         mu_argcv_get_np 
-#define argcv_string         mu_argcv_string
-#define argcv_free           mu_argcv_free
-#define argv_free            mu_argv_free 
 #define argcv_unquote_char   mu_argcv_unquote_char
 #define argcv_quote_char     mu_argcv_quote_char  
 #define argcv_quoted_length  mu_argcv_quoted_length
@@ -404,7 +402,7 @@ argcv_get_np (const char *command, int len,
       argv[i] = calloc (n + 1,  sizeof (char));
       if (argv[i] == NULL)
 	{
-	  argcv_free (i, argv);
+	  mu_argcv_free (i, argv);
 	  return ENOMEM;
 	}
       if (unquote)
@@ -438,111 +436,5 @@ argcv_get (const char *command, const char *delim, const char *cmnt,
 }
 
 
-/*
- * frees all elements of an argv array
- * argc is the number of elements
- * argv is the array
- */
-void
-argcv_free (int argc, char **argv)
-{
-  if (argc <= 0)
-    return;
-  while (--argc >= 0)
-    if (argv[argc])
-      free (argv[argc]);
-  free (argv);
-}
-
-void
-argv_free (char **argv)
-{
-  int i;
-
-  for (i = 0; argv[i]; i++)
-    free (argv[i]);
-  free (argv);
-}
-
-/* Make a argv an make string separated by ' '.  */
-
-int
-argcv_string (int argc, char **argv, char **pstring)
-{
-  size_t i, j, len;
-  char *buffer;
-
-  /* No need.  */
-  if (pstring == NULL)
-    return EINVAL;
-
-  buffer = malloc (1);
-  if (buffer == NULL)
-    return ENOMEM;
-  *buffer = '\0';
-
-  for (len = i = j = 0; i < argc; i++)
-    {
-      int quote;
-      int toklen;
-
-      toklen = argcv_quoted_length (argv[i], &quote);
-      
-      len += toklen + 2;
-      if (quote)
-	len += 2;
-      
-      buffer = realloc (buffer, len);
-      if (buffer == NULL)
-        return ENOMEM;
-
-      if (i != 0)
-	buffer[j++] = ' ';
-      if (quote)
-	buffer[j++] = '"';
-      argcv_quote_copy (buffer + j, argv[i]);
-      j += toklen;
-      if (quote)
-	buffer[j++] = '"';
-    }
-
-  for (; j > 0 && isspace (buffer[j-1]); j--)
-    ;
-  buffer[j] = 0;
-  if (pstring)
-    *pstring = buffer;
-  return 0;
-}
-
-void
-mu_argcv_remove (int *pargc, char ***pargv,
-		 int (*sel) (const char *, void *), void *data)
-{
-  int i, j;
-  int argc = *pargc;
-  char **argv = *pargv;
-  int cnt = 0;
-  
-  for (i = j = 0; i < argc; i++)
-    {
-      if (sel (argv[i], data))
-	{
-	  free (argv[i]);
-	  cnt++;
-	}
-      else
-	{
-	  if (i != j)
-	    argv[j] = argv[i];
-	  j++;
-	}
-    }
-  if (i != j)
-    argv[j] = NULL;
-  argc -= cnt;
-
-  *pargc = argc;
-  *pargv = argv;
-}
       
  

@@ -22,6 +22,7 @@
 #include <string.h>
 #include <errno.h>
 #include <unistd.h>
+#define MU_ARCGV_DEPRECATED
 #include <mailutils/argcv.h>
 #include <mailutils/errno.h>
 

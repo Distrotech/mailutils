@@ -31,7 +31,7 @@
 #include <errno.h>
 #include <string.h>
 #include <mailutils/cctype.h>
-#include <mailutils/argcv.h>
+#include <mailutils/wordsplit.h>
 #include <sieve-priv.h>
 #include <sieve-gram.h>
   
@@ -640,7 +640,7 @@ str_unescape (char *text, size_t len)
 {
   char *str = mu_sieve_alloc (len);
   memcpy (str, text, len - 2);
-  str[len - 2] = mu_argcv_unquote_char (text[len - 1]);
+  str[len - 2] = mu_wordsplit_c_unquote_char (text[len - 1]);
   str[len - 1] = 0;
   return str;
 }

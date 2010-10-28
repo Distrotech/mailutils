@@ -297,6 +297,7 @@ main (int argc, char **argv)
   int i;
   int index;
   mu_mailbox_t mbox = NULL;
+  struct mu_wordsplit ws;
   char **weedv;
   int weedc;
   int unix_header = 0;
@@ -351,27 +352,32 @@ main (int argc, char **argv)
   if (weedlist == NULL)
     weedlist = "Date To Cc Subject From Apparently-";
 
-  status = mu_argcv_get (weedlist, WEEDLIST_SEPARATOR, NULL,
-			 &weedc, &weedv);
+  ws.ws_delim = WEEDLIST_SEPARATOR;
+  status = mu_wordsplit (weedlist, &ws, MU_WRDSF_DEFFLAGS | MU_WRDSF_DELIM);
   if (status)
     {
-      mu_error (_("cannot parse weedlist: %s"), mu_strerror (status));
+      mu_error (_("cannot parse weedlist: %s"), mu_wordsplit_strerror (&ws));
       exit (2);
     }
 
-  for (i = 0; i < weedc; i++)
+  if (ws.ws_wordc)
     {
-      if (mu_c_strcasecmp (weedv[i], "From_") == 0)
+      for (i = 0; i < ws.ws_wordc; i++)
 	{
-	  int j;
-	  unix_header = 1;
-	  free (weedv[i]);
-	  for (j = i; j < weedc; j++)
-	    weedv[j] = weedv[j+1];
-	  weedc--;
-	  if (weedc == 0 && !all_header)
-	    no_header = 1;
+	  if (mu_c_strcasecmp (ws.ws_wordv[i], "From_") == 0)
+	    {
+	      int j;
+	      unix_header = 1;
+	      free (ws.ws_wordv[i]);
+	      for (j = i; j < ws.ws_wordc; j++)
+		ws.ws_wordv[j] = ws.ws_wordv[j+1];
+	      ws.ws_wordc--;
+	      if (ws.ws_wordc == 0 && !all_header)
+		no_header = 1;
+	    }
 	}
+      weedc = ws.ws_wordc;
+      weedv = ws.ws_wordv;
     }
   
   if (all_header)

@@ -62,8 +62,8 @@ read_rules (FILE *fp)
 {
   char buf[512];
   int line = 0;
-  int argc = 0;
-  char **argv;
+  int wsflags = MU_WRDSF_DEFFLAGS | MU_WRDSF_COMMENT;
+  struct mu_wordsplit ws;
   int rc;
   
   rc = mu_acl_create (&acl);
@@ -72,7 +72,8 @@ read_rules (FILE *fp)
       mu_error ("cannot create acl: %s", mu_strerror (rc));
       exit (1);
     }
-  
+
+  ws.ws_comment = "#";
   while (fgets (buf, sizeof buf, fp))
     {
       unsigned long netmask;
@@ -95,17 +96,20 @@ read_rules (FILE *fp)
       if (buf[0] == '#')
 	continue;
 
-      if (argc)
-	mu_argcv_free (argc, argv);
-
-      mu_argcv_get (buf, " \t", "#", &argc, &argv);
-      if (argc < 2)
+      if (mu_wordsplit (buf, &ws, wsflags))
+	{
+	  mu_error ("cannot split line `%s': %s", buf,
+		    mu_wordsplit_strerror (&ws));
+	  continue;
+	}
+      wsflags |= MU_WRDSF_REUSE;
+      if (ws.ws_wordc < 2)
 	{
  	  mu_error ("%d: invalid input", line);
 	  continue;
 	}
 
-      p = strchr (argv[1], '/');
+      p = strchr (ws.ws_wordv[1], '/');
       if (p)
 	{
 	  char *q;
@@ -144,7 +148,7 @@ read_rules (FILE *fp)
       else
 	netmask = 0xfffffffful;
       
-      sa = parse_address (&salen, argv[1]);
+      sa = parse_address (&salen, ws.ws_wordv[1]);
       
       /* accept addr
 	 deny addr
@@ -152,7 +156,7 @@ read_rules (FILE *fp)
 	 exec addr [rest ...]
 	 execif addr rest ....]
       */
-      if (mu_acl_string_to_action (argv[0], &action))
+      if (mu_acl_string_to_action (ws.ws_wordv[0], &action))
 	{
 	  mu_error ("%d: invalid command", line);
 	  continue;
@@ -167,7 +171,7 @@ read_rules (FILE *fp)
 	case mu_acl_log:
 	case mu_acl_exec:
 	case mu_acl_ifexec:
-	  data = strdup (argv[2]);
+	  data = strdup (ws.ws_wordv[2]);
 	}
 
       rc = mu_acl_append (acl, action, data, sa, salen, netmask);
@@ -175,6 +179,7 @@ read_rules (FILE *fp)
 	mu_error ("%d: cannot append acl entry: %s", line,
 		  mu_strerror (rc));
     }
+  mu_wordsplit_free (&ws);
 }
 
 int

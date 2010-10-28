@@ -504,32 +504,33 @@ mail_send0 (compose_env_t * env, int save_to)
 	    }
 	  else
 	    {
-	      int argc;
-	      char **argv;
+	      struct mu_wordsplit ws;
 	      int status;
 
 	      ofile = env->file;
 
-	      if (mu_argcv_get (buf + 1, "", NULL, &argc, &argv) == 0)
+	      if (mu_wordsplit (buf + 1, &ws, MU_WRDSF_DEFFLAGS) == 0)
 		{
-		  if (argc > 0)
+		  if (ws.ws_wordc > 0)
 		    {
 		      const struct mail_escape_entry *entry = 
-			            mail_find_escape (argv[0]);
+			mail_find_escape (ws.ws_wordv[0]);
 
 		      if (entry)
-			status = (*entry->escfunc) (argc, argv, env);
+			status = (*entry->escfunc) (ws.ws_wordc, ws.ws_wordv,
+						    env);
 		      else
-			util_error (_("Unknown escape %s"), argv[0]);
+			util_error (_("Unknown escape %s"), ws.ws_wordv[0]);
 		    }
 		  else
 		    util_error (_("Unfinished escape"));
+		  mu_wordsplit_free (&ws);
 		}
 	      else
 		{
-		  util_error (_("Cannot parse escape sequence"));
+		  util_error (_("Cannot parse escape sequence: %s"),
+			      mu_wordsplit_strerror (&ws));
 		}
-	      mu_argcv_free (argc, argv);
 
 	      ofile = env->ofile;
 	    }

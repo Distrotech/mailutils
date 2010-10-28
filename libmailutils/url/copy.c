@@ -24,7 +24,7 @@
 #ifdef HAVE_STRINGS_H
 # include <strings.h>
 #endif
-
+#include <stdlib.h>
 #include <mailutils/types.h>
 #include <mailutils/argcv.h>
 #include <mailutils/secret.h>

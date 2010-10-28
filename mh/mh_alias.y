@@ -496,16 +496,20 @@ mh_read_aliases ()
   p = mh_global_profile_get ("Aliasfile", NULL);
   if (p)
     {
-      int argc;
-      char **argv;
-      int rc = mu_argcv_get (p, NULL, NULL, &argc, &argv);
-      if (rc == 0)
+      struct mu_wordsplit ws;
+
+      if (mu_wordsplit (p, &ws, MU_WRDSF_DEFFLAGS))
 	{
-	  int i;
-	  for (i = 0; i < argc; i++) 
-	    mh_alias_read (argv[i], 1);
+	  mu_error (_("cannot split line `%s': %s"), p,
+		    mu_wordsplit_strerror (&ws));
 	}
-      mu_argcv_free (argc, argv);
+      else
+	{
+	  size_t i;
+	  for (i = 0; i < ws.ws_wordc; i++) 
+	    mh_alias_read (ws.ws_wordv[i], 1);
+	  mu_wordsplit_free (&ws);
+	}
     }
   mh_alias_read (DEFAULT_ALIAS_FILE, 0);
   return 0;

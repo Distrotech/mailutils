@@ -579,9 +579,7 @@ set_mailbox_debug_level (mu_log_level_t level)
 static void
 set_debug (struct mailvar_variable *var)
 {
-  int rc;
-  int argc;
-  char **argv;
+  struct mu_wordsplit ws;
   int i;
   mu_debug_t dbg;
 
@@ -600,19 +598,25 @@ set_debug (struct mailvar_variable *var)
     }
   
   mu_diag_get_debug (&dbg);
-  
-  rc = mu_argcv_get (var->value.string, ";", NULL, &argc, &argv);
-  if (rc)
+
+  ws.ws_delim = ";";
+
+  if (mu_wordsplit (var->value.string, &ws,
+		    MU_WRDSF_NOCMD | MU_WRDSF_NOVAR |
+		    MU_WRDSF_SQUEEZE_DELIMS |
+		    MU_WRDSF_DELIM | MU_WRDSF_WS |
+		    MU_WRDSF_ERROR))
     {
-      mu_error (_("Cannot parse string: %s"), mu_strerror (rc));
+      mu_error (_("%s failed: %s"), "mu_wordsplit",
+		mu_wordsplit_strerror (&ws));
       return;
     }
 
-  for (i = 0; i < argc; i++)
+  for (i = 0; i < ws.ws_wordc; i++)
     {
       char *p;
       mu_log_level_t level = MU_DEBUG_INHERIT;
-      char *object_name = argv[i];
+      char *object_name = ws.ws_wordv[i];
       
       for (p = object_name; *p && *p != '='; p++)
 	;
@@ -629,6 +633,7 @@ set_debug (struct mailvar_variable *var)
 	set_mailbox_debug_level (level);
       mu_global_debug_set_level (object_name, level);
     }
+  mu_wordsplit_free (&ws);
 }
 
 

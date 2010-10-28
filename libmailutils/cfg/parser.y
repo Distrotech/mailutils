@@ -27,6 +27,7 @@
 #include <netdb.h>
 #include "intprops.h"
 #include <mailutils/argcv.h>
+#include <mailutils/wordsplit.h>
 #include <mailutils/nls.h>
 #include <mailutils/cfg.h>
 #include <mailutils/alloc.h>
@@ -1579,7 +1580,6 @@ mu_cfg_value_eq (mu_config_value_t *a, mu_config_value_t *b)
 static int
 split_cfg_path (const char *path, int *pargc, char ***pargv)
 {
-  int rc;
   int argc;
   char **argv;
   char *delim = MU_CFG_PATH_DELIM_STR;
@@ -1598,25 +1598,36 @@ split_cfg_path (const char *path, int *pargc, char ***pargv)
 	}
       argv[1] = NULL;
       argc = 1;
-      rc = 0;
     }
   else
     {
+      struct mu_wordsplit ws;
+      
       if (mu_ispunct (path[0]))
 	{
 	  delim = static_delim;
 	  delim[0] = path[0];
 	  path++;
 	}
-      rc = mu_argcv_get_np (path, strlen (path), delim, NULL, 0,
-			    &argc, &argv, NULL);
+      ws.ws_delim = delim;
+
+      if (mu_wordsplit (path, &ws, MU_WRDSF_DEFFLAGS|MU_WRDSF_DELIM))
+	{
+	  mu_error (_("cannot split line `%s': %s"), path,
+		    mu_wordsplit_strerror (&ws));
+	  return errno;
+	}
+      argc = ws.ws_wordc;
+      argv = ws.ws_wordv;
+      ws.ws_wordc = 0;
+      ws.ws_wordv = NULL;
+      mu_wordsplit_free (&ws);
     }
-  if (rc == 0)
-    {
-      *pargc = argc;
-      *pargv = argv;
-    }
-  return rc;
+
+  *pargc = argc;
+  *pargv = argv;
+
+  return 0;
 }
 
 struct find_data
@@ -1665,53 +1676,63 @@ static mu_config_value_t *
 parse_label (const char *str)
 {
   mu_config_value_t *val = NULL;
-  int count, i;
-  char **vect;
+  size_t i;
+  struct mu_wordsplit ws;
   size_t len = strlen (str);
   
   if (len > 1 && str[0] == '(' && str[len-1] == ')')
     {
       mu_list_t lst;
-      mu_argcv_get_np (str + 1, len - 2,
-		       ", \t", NULL,
-		       0,
-		       &count, &vect, NULL);
+
+      ws.ws_delim = ",";
+      if (mu_wordsplit_len (str + 1, len - 2, &ws,
+			    MU_WRDSF_DEFFLAGS|MU_WRDSF_DELIM|MU_WRDSF_WS))
+	{
+	  mu_error (_("cannot split line `%s': %s"), str,
+		    mu_wordsplit_strerror (&ws));
+	  return NULL;
+	}
+
       mu_list_create (&lst);
       mu_list_set_destroy_item (lst, destroy_value);
-      for (i = 0; i < count; i++)
+      for (i = 0; i < ws.ws_wordc; i++)
 	{
 	  mu_config_value_t *p = mu_alloc (sizeof (*p));
 	  p->type = MU_CFG_STRING;
-	  p->v.string = vect[i];
+	  p->v.string = ws.ws_wordv[i];
 	  mu_list_append (lst, p);
 	}
-      free (vect);
       val = mu_alloc (sizeof (*val));
       val->type = MU_CFG_LIST;
       val->v.list = lst;
     }
   else
     {      
-      mu_argcv_get (str, NULL, NULL, &count, &vect);
+      if (mu_wordsplit (str, &ws, MU_WRDSF_DEFFLAGS))
+	{
+	  mu_error (_("cannot split line `%s': %s"), str,
+		    mu_wordsplit_strerror (&ws));
+	  return NULL;
+	}
       val = mu_alloc (sizeof (*val));
-      if (count == 1)
+      if (ws.ws_wordc == 1)
 	{
 	  val->type = MU_CFG_STRING;
-	  val->v.string = vect[0];
-	  free (vect);
+	  val->v.string = ws.ws_wordv[0];
 	}
       else
 	{
 	  val->type = MU_CFG_ARRAY;
-	  val->v.arg.c = count;
-	  val->v.arg.v = mu_alloc (count * sizeof (val->v.arg.v[0]));
-	  for (i = 0; i < count; i++)
+	  val->v.arg.c = ws.ws_wordc;
+	  val->v.arg.v = mu_alloc (ws.ws_wordc * sizeof (val->v.arg.v[0]));
+	  for (i = 0; i < ws.ws_wordc; i++)
 	    {
 	      val->v.arg.v[i].type = MU_CFG_STRING;
-	      val->v.arg.v[i].v.string = vect[i];
+	      val->v.arg.v[i].v.string = ws.ws_wordv[i];
 	    }
-	  free (vect);
 	}
+      ws.ws_wordc = 0;
+      mu_wordsplit_free (&ws);
     }
   return val;
 }

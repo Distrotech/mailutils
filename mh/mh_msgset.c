@@ -235,8 +235,7 @@ static int _mh_msgset_parse (mu_mailbox_t mbox, mh_msgset_t *msgset,
 int
 expand_user_seq (mu_mailbox_t mbox, mh_msgset_t *msgset, char *arg)
 {
-  int argc;
-  char **argv;
+  struct mu_wordsplit ws;
   char *p;
   const char *listp;
   int rc = 1;
@@ -260,10 +259,18 @@ expand_user_seq (mu_mailbox_t mbox, mh_msgset_t *msgset, char *arg)
       if (!listp)
 	return 1;
     }
+
+  if (mu_wordsplit (listp, &ws, MU_WRDSF_DEFFLAGS))
+    {
+      mu_error (_("cannot split line `%s': %s"), listp,
+		mu_wordsplit_strerror (&ws));
+    }
+  else
+    {
+      rc = _mh_msgset_parse (mbox, msgset, ws.ws_wordc, ws.ws_wordv);
+      mu_wordsplit_free (&ws);
+    }
   
-  if (mu_argcv_get (listp, "", NULL, &argc, &argv) == 0)
-    rc = _mh_msgset_parse (mbox, msgset, argc, argv);
-  mu_argcv_free (argc, argv);
   if (rc)
     return rc;
 

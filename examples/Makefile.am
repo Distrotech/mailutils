@@ -15,10 +15,6 @@
 ## You should have received a copy of the GNU General Public License
 ## along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
 
-if MU_COND_SUPPORT_POP
-  POP3CLIENT = pop3client
-endif
-
 if MU_COND_SUPPORT_NNTP
   NNTPCLIENT = nntpclient
 endif
@@ -46,10 +42,9 @@ noinst_PROGRAMS = \
  murun\
  musocio\
  $(NNTPCLIENT)\
- $(POP3CLIENT)\
  sfrom
 
-EXTRA_PROGRAMS = pop3client nntpclient
+EXTRA_PROGRAMS = nntpclient
 
 ## NOTE: Numaddr must be an installable target, otherwise libtool
 ## will not create a shared library and `make check' will fail in
@@ -93,15 +88,6 @@ sfrom_LDADD =\
  ${MU_LIB_AUTH}\
  @MU_AUTHLIBS@\
  ${MU_LIB_MAILUTILS}
-
-pop3client_CPPFLAGS = @MU_APP_COMMON_INCLUDES@
-pop3client_LDADD = \
- ../lib/libmuaux.a\
- ${MU_LIB_POP}\
- ${MU_LIB_AUTH}\
- @MU_AUTHLIBS@\
- ${MU_LIB_MAILUTILS}\
- @READLINE_LIBS@
 
 nntpclient_LDADD = \
  ../lib/libmuaux.a\

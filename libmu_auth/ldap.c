@@ -19,15 +19,18 @@
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
+#include <stdlib.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <ctype.h>
 
 #include <mailutils/mu_auth.h>
 #include <mailutils/cstr.h>
+#include <mailutils/io.h>
 
 #ifdef WITH_LDAP
 #include "mailutils/argcv.h"
+#include "mailutils/wordsplit.h"
 #include "mailutils/assoc.h"
 #include "mailutils/list.h"
 #include "mailutils/iterator.h"
@@ -129,10 +132,9 @@ _mu_conn_setup (LDAP **pld)
 	    {
 	      /* if no host but a DN is provided, try DNS SRV to gather the
 		 host list */
-	      char	*domain = NULL, *hostlist = NULL, **hosts = NULL;
-	      int hostcnt;
-	      int i;
-	      int len_proto = strlen(lud->lud_scheme);
+	      char *domain = NULL, *hostlist = NULL;
+	      size_t i;
+	      struct mu_wordsplit ws;
 	      
 	      if (ldap_dn2domain (lud->lud_dn, &domain) || !domain)
 		{
@@ -148,16 +150,15 @@ _mu_conn_setup (LDAP **pld)
 			    domain);
 		  goto dnssrv_free;
 		}
-	      
-	      rc = mu_argcv_get (hostlist, " ", NULL, &hostcnt, &hosts);
-	      if (rc)
+
+	      if (mu_wordsplit (hostlist, &ws, MU_WRDSF_DEFFLAGS))
 		{
 		  mu_error (_("DNS SRV: could not parse hostlist=\"%s\": %s"),
-			    hostlist, mu_strerror (rc));
+			    hostlist, mu_wordsplit_strerror (&ws));
 		  goto dnssrv_free;
 		}
 	      
-	      tmp = realloc (urls, sizeof(char *) * (nurls + hostcnt + 1));
+	      tmp = realloc (urls, sizeof(char *) * (nurls + ws.ws_wordc + 1));
 	      if (!tmp)
 		{
 		  mu_error ("DNS SRV %s", mu_strerror (errno));
@@ -167,28 +168,23 @@ _mu_conn_setup (LDAP **pld)
 	      urls = tmp;
 	      urls[nurls] = NULL;
 	      
-	      for (i = 0; i < hostcnt; i++)
+	      for (i = 0; i < ws.ws_wordc; i++)
 		{
-		  size_t len = len_proto + sizeof "://" - 1
-		               + strlen (hosts[i])
-			       + 1;
-
 		  urls[nurls + i + 1] = NULL;
-		  urls[nurls + i] = malloc (len);
-		  if (!urls[nurls + i])
+		  rc = mu_asprintf (&urls[nurls + i],
+				    "%s://%s",
+				    lud->lud_scheme, ws.ws_wordv[i]);
+		  if (rc)
 		    {
-		      mu_error ("DNS SRV %s", mu_strerror (errno));
+		      mu_error ("DNS SRV %s", mu_strerror (rc));
 		      goto dnssrv_free;
 		    }
-		  
-		  snprintf (urls[nurls + i], len, "%s://%s",
-			    lud->lud_scheme, hosts[i]);
 		}
 	      
 	      nurls += i;
 	      
 	    dnssrv_free:
-	      mu_argcv_free (hostcnt, hosts);
+	      mu_wordsplit_free (&ws);
 	      ber_memfree (hostlist);
 	      ber_memfree (domain);
 	    }

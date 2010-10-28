@@ -219,24 +219,31 @@ mh_argp_parse (int *pargc, char **pargv[],
     {
       int argc;
       char **argv;
-      int xargc;
-      char **xargv;
       int i, j;
+      struct mu_wordsplit ws;
       
-      mu_argcv_get (val, "", NULL, &xargc, &xargv);
+      if (mu_wordsplit (val, &ws, MU_WRDSF_DEFFLAGS))
+	{
+	  mu_error (_("cannot split line `%s': %s"), val,
+		    mu_wordsplit_strerror (&ws));
+	  exit (1);
+	}
 
-      argc = *pargc + xargc;
-      argv = calloc (argc+1, sizeof *argv);
+      argc = *pargc + ws.ws_wordc;
+      argv = calloc (argc + 1, sizeof *argv);
       if (!argv)
         mh_err_memory (1);
 
       i = 0;
       argv[i++] = (*pargv)[0];
-      for (j = 0; j < xargc; i++, j++)
-	argv[i] = xargv[j];
+      for (j = 0; j < ws.ws_wordc; i++, j++)
+	argv[i] = ws.ws_wordv[j];
       for (j = 1; i < argc; i++, j++)
 	argv[i] = (*pargv)[j];
       argv[i] = NULL;
+
+      ws.ws_wordc = 0;
+      mu_wordsplit_free (&ws);
       
       mh_argv_preproc (argc, argv, &data);
 
@@ -246,7 +253,6 @@ mh_argp_parse (int *pargc, char **pargv[],
 
       *pargc = argc;
       *pargv = argv;
-      free (xargv);
     }
   else
     {

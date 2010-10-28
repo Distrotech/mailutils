@@ -35,13 +35,14 @@
 #include <mailutils/iterator.h>
 #include <mailutils/mailbox.h>
 #include <mailutils/radius.h>
-#include <mailutils/argcv.h>
+#include <mailutils/wordsplit.h>
 #include <mailutils/mu_auth.h>
 #include <mailutils/error.h>
 #include <mailutils/errno.h>
 #include <mailutils/nls.h>
 #include <mailutils/vartab.h>
 #include <mailutils/io.h>
+#include <mailutils/cctype.h>
 
 #ifdef ENABLE_RADIUS
 
@@ -87,9 +88,8 @@ enum parse_state
 int
 parse_pairlist (grad_avp_t **plist, char *input)
 {
-  int rc;
-  int i, argc;
-  char **argv;
+  size_t i;
+  struct mu_wordsplit ws;
   enum parse_state state;
   grad_locus_t loc;
   char *name;
@@ -98,34 +98,38 @@ parse_pairlist (grad_avp_t **plist, char *input)
   if (!input)
     return 1;
 
-  if ((rc = mu_argcv_get (input, ",", NULL, &argc, &argv)))
+  ws.ws_delim = ",";
+  if (mu_wordsplit (input, &ws,
+		    MU_WRDSF_DEFFLAGS|MU_WRDSF_DELIM|MU_WRDSF_RETURN_DELIMS))
     {
-      mu_error (_("cannot parse input `%s': %s"), input, mu_strerror (rc));
+      mu_error (_("cannot parse input `%s': %s"), input,
+		mu_wordsplit_strerror (&ws));
       return 1;
     }
 
   loc.file = "<configuration>"; /*FIXME*/
   loc.line = 0;
 
-  for (i = 0, state = state_lhs; i < argc; i++)
+  for (i = 0, state = state_lhs; i < ws.ws_wordc; i++)
     {
       grad_avp_t *pair;
 
       switch (state)
 	{
 	case state_lhs:
-	  name = argv[i];
+	  name = ws.ws_wordv[i];
 	  state = state_op;
 	  break;
 
 	case state_op:
-	  op = argv[i];
+	  op = ws.ws_wordv[i];
 	  state = state_rhs;
 	  break;
 
 	case state_rhs:
 	  loc.line = i; /* Just to keep track of error location */
-	  pair = grad_create_pair (&loc, name, grad_operator_equal, argv[i]);
+	  pair = grad_create_pair (&loc, name, grad_operator_equal,
+				   ws.ws_wordv[i]);
 	  if (!pair)
 	    {
 	      mu_error (_("cannot create radius A/V pair `%s'"), name);
@@ -136,22 +140,22 @@ parse_pairlist (grad_avp_t **plist, char *input)
 	  break;
 
 	case state_delim:
-	  if (strcmp (argv[i], ","))
+	  if (strcmp (ws.ws_wordv[i], ","))
 	    {
-	      mu_error (_("expected `,' but found `%s'"), argv[i]);
+	      mu_error (_("expected `,' but found `%s'"), ws.ws_wordv[i]);
 	      return 1;
 	    }
 	  state = state_lhs;
 	}
     }
-
+  mu_wordsplit_free (&ws);
+  
   if (state != state_delim && state != state_delim)
     {
       mu_error (_("malformed radius A/V list"));
       return 1;
     }
 
-  mu_argcv_free (argc, argv);
   return 0;
 }
 

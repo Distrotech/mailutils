@@ -48,7 +48,8 @@ noinst_PROGRAMS = \
  listop\
  mailcap\
  url-parse\
- wicket
+ wicket\
+ wsp
 
 LDADD = ${MU_LIB_MAILUTILS}
 
@@ -70,7 +71,8 @@ TESTSUITE_AT = \
  mailcap.at\
  testsuite.at\
  url.at\
- wicket.at
+ wicket.at\
+ wordsplit.at
 
 TESTSUITE = $(srcdir)/testsuite
 M4=m4
