@@ -650,70 +650,98 @@ _compare_uidls (const void *item, const void *value)
 
   return strcmp (a->uidl, b->uidl);
 }
+
+struct movemail_getvar_closure
+{
+  const char *source_name;
+  const char *dest_name;
+  mu_url_t source_url;
+  mu_url_t dest_url;
+};
 
-#define __cat2__(a,b) a ## b
-#define DCL_VTX(what)						\
-static int							\
- __cat2__(_vtx_,what) (const char *name, void *data, char **p)	\
-{								\
-  mu_url_t url = data;			                        \
-  int rc = __cat2__(mu_url_aget_,what) (url, p);                \
-  if (rc == MU_ERR_NOENT)	                                \
-    {                                                           \
-      *p = strdup ("");						\
-      return 0;                                                 \
-    }                                                           \
-  return rc;                                                    \
+#define SEQ(s, n, l) \
+  (((l) == (sizeof(s) - 1)) && memcmp (s, n, l) == 0)
+
+static const char *
+get_url_part (mu_url_t url, const char *name, size_t nlen)
+{
+  int rc = MU_ERR_NOENT;
+  const char *s;
+  
+  if (!url)
+    return NULL;
+  if (SEQ ("user", name, nlen))
+    rc = mu_url_sget_user (url, &s);
+  else if (SEQ ("host", name, nlen))
+    rc = mu_url_sget_host (url, &s);
+  else if (SEQ ("port", name, nlen))
+    rc = mu_url_sget_portstr (url, &s);
+  else if (SEQ ("path", name, nlen))
+    rc = mu_url_sget_path (url, &s);
+
+  if (rc)
+    return NULL;
+  return s;
 }
+    
+static const char *
+movemail_getvar (const char *name, size_t nlen, void *data)
+{
+  struct movemail_getvar_closure *pc = data;
+  
+  if (SEQ ("progname", name, nlen))
+    return mu_program_name;
+  if (SEQ ("source", name, nlen))
+    return pc->source_name;
+  if (SEQ ("dest", name, nlen))
+    return pc->dest_name;
 
-DCL_VTX (host)
-DCL_VTX (user)
-DCL_VTX (path)
+  if (nlen > 7 && memcmp ("source_", name, 7) == 0)
+    return get_url_part (pc->source_url, name + 7, nlen - 7);
+  if (nlen > 5 && memcmp ("dest_", name, 5) == 0)
+    return get_url_part (pc->dest_url, name + 5, nlen - 5);
+  
+  return NULL;
+}
 
 static void
 set_program_id (const char *source_name, const char *dest_name)
 {
   int rc;
-  mu_vartab_t vtab;
-  char *id;
-  mu_url_t url;
-      
-  mu_vartab_create (&vtab);
-  mu_vartab_define (vtab, "progname", mu_program_name, 1);
-  mu_vartab_define (vtab, "source", source_name, 1);
-  rc = mu_mailbox_get_url (source, &url);
+  struct mu_wordsplit ws;
+  struct movemail_getvar_closure clos;
+
+  clos.source_name = source_name;
+  clos.dest_name = dest_name;
+  rc = mu_mailbox_get_url (source, &clos.source_url);
   if (rc)
     mu_diag_output (MU_DIAG_INFO,
 		    _("cannot obtain source mailbox URL: %s"),
 		    mu_strerror (rc));
-  else
-    {
-      mu_vartab_define_exp (vtab, "source:user", _vtx_user, NULL, url);
-      mu_vartab_define_exp (vtab, "source:host", _vtx_host, NULL, url);
-      mu_vartab_define_exp (vtab, "source:path", _vtx_path, NULL, url);
-    }
-      
-  mu_vartab_define (vtab, "dest", dest_name, 1);
-  rc = mu_mailbox_get_url (dest, &url);
+  rc = mu_mailbox_get_url (dest, &clos.dest_url);
   if (rc)
     mu_diag_output (MU_DIAG_INFO,
 		    _("cannot obtain destination mailbox URL: %s"),
 		    mu_strerror (rc));
-  else
+  
+  ws.ws_getvar = movemail_getvar;
+  ws.ws_closure = &clos;
+  if (mu_wordsplit (program_id_option, &ws,
+		    MU_WRDSF_NOSPLIT | MU_WRDSF_NOCMD |
+		    MU_WRDSF_GETVAR | MU_WRDSF_CLOSURE))
     {
-      mu_vartab_define_exp (vtab, "dest:user", _vtx_user, NULL, url);
-      mu_vartab_define_exp (vtab, "dest:host", _vtx_host, NULL, url);
-      mu_vartab_define_exp (vtab, "dest:path", _vtx_path, NULL, url);
+      mu_error (_("cannot expand line `%s': %s"), program_id_option,
+		mu_wordsplit_strerror (&ws));
+      return;
     }
-      
-  rc = mu_vartab_expand (vtab, program_id_option, &id);
-  mu_vartab_destroy (&vtab);
-  /*      mu_asprintf (&id, "%s: %s", mu_program_name, s);
-	  free (s);*/
+  
   /* FIXME: Don't use mu_set_program_name here, because it
      plays wise with its argument. We need a mu_set_diag_prefix
      function. */
-  mu_program_name = id;
+  mu_program_name = ws.ws_wordv[0];
+  ws.ws_wordv[0] = NULL;
+  ws.ws_wordc = 0;
+  mu_wordsplit_free (&ws);
 }
 
 int

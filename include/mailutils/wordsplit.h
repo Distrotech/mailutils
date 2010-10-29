@@ -35,8 +35,9 @@ struct mu_wordsplit
 		    __attribute__ ((__format__ (__printf__, 1, 2)));
 	
   const char **ws_env;
-  char *(*ws_getvar) (const char *, size_t); 
-	
+  const char *(*ws_getvar) (const char *, size_t, void *); 
+  void *ws_closure;
+  
   const char *ws_input;
   size_t ws_len;
   size_t ws_endp;
@@ -102,6 +103,9 @@ struct mu_wordsplit
 #define MU_WRDSF_WARNUNDEF         0x0800000
 /* Handle C escapes */
 #define MU_WRDSF_CESCAPES          0x1000000
+
+/* ws_closure is set */
+#define MU_WRDSF_CLOSURE           0x2000000
 
 #define MU_WRDSF_DEFFLAGS	       \
   (MU_WRDSF_NOVAR | MU_WRDSF_NOCMD | \

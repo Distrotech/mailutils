@@ -151,9 +151,10 @@ mu_wordsplit_init (struct mu_wordsplit *wsp, const char *input, size_t len,
       wsp->ws_wordc = 0;
       wsp->ws_wordn = 0;
     }
-  if (wsp->ws_flags & MU_WRDSF_DOOFFS)
-    wsp->ws_wordn += wsp->ws_offs;
 
+  if (!(wsp->ws_flags & MU_WRDSF_CLOSURE))
+    wsp->ws_closure = NULL;
+  
   wsp->ws_endp = 0;
   wsp->ws_errno = 0;
   wsp->ws_head = wsp->ws_tail = NULL;
@@ -311,7 +312,11 @@ wsnode_remove (struct mu_wordsplit *wsp, struct mu_wordsplit_node *node)
 
   p = node->prev;
   if (p)
-    p->next = node->next;
+    {
+      p->next = node->next;
+      if (!node->next)
+	p->flags &= ~_WSNF_JOIN;
+    }
   else
     wsp->ws_head = node->next;
 
@@ -666,7 +671,7 @@ expvar (struct mu_wordsplit *wsp, const char *str, size_t len,
 {
   size_t i = 0;
   const char *defstr = NULL;
-  char *value;
+  const char *value;
   const char *vptr;
   struct mu_wordsplit_node *newnode;
   const char *start = str - 1;
@@ -738,7 +743,7 @@ expvar (struct mu_wordsplit *wsp, const char *str, size_t len,
 	return _wsplt_nomem (wsp);
     }
   else if (wsp->ws_flags & MU_WRDSF_GETVAR)
-    value = wsp->ws_getvar (str, i);
+    value = wsp->ws_getvar (str, i, wsp->ws_closure);
   else if (wsp->ws_flags & MU_WRDSF_UNDEF)
     {
       wsp->ws_errno = MU_WRDSE_UNDEF;
@@ -821,6 +826,14 @@ expvar (struct mu_wordsplit *wsp, const char *str, size_t len,
 	return _wsplt_nomem (wsp);
       memcpy (newnode->v.word, start, size);
       newnode->v.word[size] = 0;
+    }
+  else
+    {
+      if (wsnode_new (wsp, &newnode))
+	return 1;
+      wsnode_insert (wsp, newnode, *ptail, 0);
+      *ptail = newnode;
+      newnode->flags = _WSNF_NULL;
     }
   return 0;
 }
