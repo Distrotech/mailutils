@@ -203,6 +203,16 @@ TESTWSP([disable variable expansion],[],[novar],
 [],
 [FOO=bar])
 
+TESTWSP([K/V environment],[],[env_kv],
+[$FOO a$BAZ],
+[NF: 2
+0: bar
+1: aqux
+],
+[],
+[FOO=bar BAZ=qux])
+
+
 TESTWSP([nosplit with expansion],[],[nosplit],
 [a $FOO test],
 [NF: 1

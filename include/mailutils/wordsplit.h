@@ -106,6 +106,9 @@ struct mu_wordsplit
 
 /* ws_closure is set */
 #define MU_WRDSF_CLOSURE           0x2000000
+/* ws_env is a Key/Value environment, i.e. the value of a variable is
+   stored in the element that follows its name. */
+#define MU_WRDSF_ENV_KV            0x4000000
 
 #define MU_WRDSF_DEFFLAGS	       \
   (MU_WRDSF_NOVAR | MU_WRDSF_NOCMD | \

@@ -44,6 +44,7 @@ struct mu_kwd bool_keytab[] = {
   { "warnundef", MU_WRDSF_WARNUNDEF },
   { "cescapes", MU_WRDSF_CESCAPES },
   { "default", MU_WRDSF_DEFFLAGS },
+  { "env_kv", MU_WRDSF_ENV_KV },
   { NULL, 0 }
 };
 
@@ -112,6 +113,49 @@ print_qword (const char *word, int plaintext)
     printf ("%s", qbuf);
 }
 
+/* Convert environment to K/V form */
+static char **
+make_env_kv ()
+{
+  size_t i, j, size;
+  char **newenv;
+  
+  /* Count the number of entries */
+  for (i = 0; environ[i]; i++)
+    ;
+
+  size = (i - 1) * 2 + 1;
+  newenv = calloc (size, sizeof (newenv[0]));
+  if (!newenv)
+    {
+      mu_error ("not enough memory");
+      exit (1);
+    }
+
+  for (i = j = 0; environ[i]; i++)
+    {
+      size_t len = strcspn (environ[i], "=");
+      char *p = malloc (len+1);
+      if (!p)
+	{
+	  mu_error ("not enough memory");
+	  exit (1);
+	}
+      memcpy (p, environ[i], len);
+      p[len] = 0;
+      newenv[j++] = p;
+      p = strdup (environ[i] + len + 1);
+      if (!p)
+	{
+	  mu_error ("not enough memory");
+	  exit (1);
+	}
+      newenv[j++] = p;
+    }
+  newenv[j] = NULL;
+  return newenv;
+}
+    
 int
 main (int argc, char **argv)
 {
@@ -161,7 +205,7 @@ main (int argc, char **argv)
 	  plaintext_option = !negate;
 	  continue;
 	}
-
+	  
       if (mu_kwd_xlat_name (bool_keytab, opt, &flag) == 0)
 	{
 	  if (negate)
@@ -239,7 +283,10 @@ main (int argc, char **argv)
       exit (1);
     }
 
-  ws.ws_env = (const char **) environ;
+  if (wsflags & MU_WRDSF_ENV_KV)
+    ws.ws_env = (const char **) make_env_kv ();
+  else
+    ws.ws_env = (const char **) environ;
 	
   while (fgets (buf, sizeof (buf), stdin))
     {

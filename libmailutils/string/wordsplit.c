@@ -651,16 +651,35 @@ mu_wordsplit_find_env (struct mu_wordsplit *wsp, const char *name, size_t len)
 
   if (!(wsp->ws_flags & MU_WRDSF_ENV))
     return NULL;
-  for (i = 0; wsp->ws_env[i]; i++)
-    {
-      size_t j;
-      const char *var = wsp->ws_env[i];
 
-      for (j = 0; j < len; j++)
-	if (name[j] != var[j])
-	  break;
-      if (j == len && var[j] == '=')
-	return var + j + 1;
+  if (wsp->ws_flags & MU_WRDSF_ENV_KV)
+    {
+      /* A key-value pair environment */
+      for (i = 0; wsp->ws_env[i]; i++)
+	{
+	  size_t elen = strlen (wsp->ws_env[i]);
+	  if (elen == len && memcmp (wsp->ws_env[i], name, elen) == 0)
+	    return wsp->ws_env[i + 1];
+	  /* Skip the value.  Break the loop if it is NULL. */
+	  i++;
+	  if (wsp->ws_env[i] == NULL)
+	    break;
+	}
+    }
+  else
+    {
+      /* Usual (A=B) environment. */
+      for (i = 0; wsp->ws_env[i]; i++)
+	{
+	  size_t j;
+	  const char *var = wsp->ws_env[i];
+	  
+	  for (j = 0; j < len; j++)
+	    if (name[j] != var[j])
+	      break;
+	  if (j == len && var[j] == '=')
+	    return var + j + 1;
+	}
     }
   return NULL;
 }
