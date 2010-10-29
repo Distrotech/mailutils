@@ -31,20 +31,9 @@
 #endif
 
 char *mutool_shell_prompt;
-mu_vartab_t mutool_prompt_vartab;
+char **mutool_prompt_env;
 int mutool_shell_interactive;
 mu_stream_t mustrin, mustrout;
-
-static char *
-expand_prompt ()
-{
-  char *str;
-  
-  if (!mutool_prompt_vartab
-      || mu_vartab_expand (mutool_prompt_vartab, mutool_shell_prompt, &str))
-    str = strdup (mutool_shell_prompt);
-  return str;
-}
 
 
 static int shell_exit (int, char **);
@@ -516,9 +505,22 @@ execute_line (char *line)
 static char *
 input_line_interactive ()
 {
-  char *p = expand_prompt ();
-  char *line = readline (p);
-  free (p);
+  char *line;
+  int wsflags = MU_WRDSF_NOSPLIT | MU_WRDSF_NOCMD;
+  struct mu_wordsplit ws;
+  
+  if (mutool_prompt_env)
+    {
+      ws.ws_env = (const char **)mutool_prompt_env;
+      wsflags |= MU_WRDSF_ENV | MU_WRDSF_ENV_KV;
+    }
+  if (mu_wordsplit (mutool_shell_prompt, &ws, wsflags))
+    line = readline (mutool_shell_prompt);
+  else
+    {
+      line = readline (ws.ws_wordv[0]);
+      mu_wordsplit_free (&ws);
+    }
   return line;
 }
 

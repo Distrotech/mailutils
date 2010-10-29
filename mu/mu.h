@@ -40,7 +40,7 @@ int mutool_ldflags (int argc, char **argv);
 int mutool_cflags (int argc, char **argv);
   
 extern char *mutool_shell_prompt;
-extern mu_vartab_t mutool_prompt_vartab;
+extern char **mutool_prompt_env;
 extern int mutool_shell_interactive;
 extern mu_stream_t mustrin, mustrout;
 int mutool_shell (const char *name, struct mutool_command *cmd);

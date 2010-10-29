@@ -152,26 +152,35 @@ pop_session_str (enum pop_session_status stat)
 }
 
 static void
-pop_prompt_vartab ()
+pop_prompt_env ()
 {
-  mu_vartab_t vtab;
-  
-  if (mu_vartab_create (&vtab))
-    return;
-  mu_vartab_define (vtab, "user",
-		    (pop_session_status == pop_session_logged_in) ?
-		      username : "not logged in", 1);
-  mu_vartab_define (vtab, "host",
-		    (pop_session_status != pop_session_disconnected) ?
-		      host : "not connected", 1);
-  mu_vartab_define (vtab, "program-name", mu_program_name, 1);
-  mu_vartab_define (vtab, "canonical-program-name", "mu", 1);
-  mu_vartab_define (vtab, "package", PACKAGE, 1);
-  mu_vartab_define (vtab, "version", PACKAGE_VERSION, 1);
-  mu_vartab_define (vtab, "status", pop_session_str (pop_session_status), 1);
-  
-  mu_vartab_destroy (&mutool_prompt_vartab);
-  mutool_prompt_vartab = vtab;
+  if (!mutool_prompt_env)
+    mutool_prompt_env = xcalloc (2*7 + 1, sizeof(mutool_prompt_env[0]));
+
+  mutool_prompt_env[0] = "user";
+  mutool_prompt_env[1] = (pop_session_status == pop_session_logged_in) ?
+                           username : "[nouser]";
+
+  mutool_prompt_env[2] = "host"; 
+  mutool_prompt_env[3] = (pop_session_status != pop_session_disconnected) ?
+                           host : "[nohost]";
+
+  mutool_prompt_env[4] = "program-name";
+  mutool_prompt_env[5] = (char*) mu_program_name;
+
+  mutool_prompt_env[6] = "canonical-program-name";
+  mutool_prompt_env[7] = "mu";
+
+  mutool_prompt_env[8] = "package";
+  mutool_prompt_env[9] = PACKAGE;
+
+  mutool_prompt_env[10] = "version";
+  mutool_prompt_env[11] = PACKAGE_VERSION;
+
+  mutool_prompt_env[12] = "status";
+  mutool_prompt_env[13] = (char*) pop_session_str (pop_session_status);
+
+  mutool_prompt_env[14] = NULL;
 }
 
 
@@ -295,7 +304,7 @@ com_user (int argc, char **argv)
   if (status == 0)
     {
       username = strdup (argv[1]);
-      pop_prompt_vartab ();
+      pop_prompt_env ();
     }
   return status;
 }
@@ -495,7 +504,7 @@ com_pass (int argc, char **argv)
   if (status == 0)
     {
       pop_session_status = pop_session_logged_in;
-      pop_prompt_vartab ();
+      pop_prompt_env ();
     }
   free (passbuf);
   return status;
@@ -593,7 +602,7 @@ com_disconnect (int argc MU_ARG_UNUSED, char **argv MU_ARG_UNUSED)
       connect_argc = 0;
       connect_argv = NULL;
       pop_session_status = pop_session_disconnected;
-      pop_prompt_vartab ();
+      pop_prompt_env ();
     }
   return 0;
 }
@@ -689,7 +698,7 @@ com_connect (int argc, char **argv)
       port = n;
       pop_session_status = pop_session_connected;
 
-      pop_prompt_vartab ();
+      pop_prompt_env ();
     }
   
   return status;
@@ -794,7 +803,7 @@ mutool_pop (int argc, char **argv)
 
   /* Command line prompt */
   mutool_shell_prompt = xstrdup ("pop> ");
-  pop_prompt_vartab ();
+  pop_prompt_env ();
   mutool_shell ("pop", pop_comtab);
   return 0;
 }
