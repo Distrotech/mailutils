@@ -36,7 +36,6 @@
 #include <mailutils/error.h>
 #include <mailutils/errno.h>
 #include <mailutils/kwd.h>
-#include <mailutils/vartab.h>
 #include <mailutils/io.h>
 
 struct _mu_acl_entry
@@ -500,17 +499,11 @@ struct run_closure
   unsigned idx;
   mu_debug_t debug;
   struct sockaddr *sa;
+  char *numbuf;
+  char *portbuf;
   int salen;
   mu_acl_result_t *result;
 };
-
-static int
-_expand_aclno (const char *name, void *data, char **p)
-{
-  struct run_closure *rp = data;
-  /*FIXME: memory leak*/
-  return mu_asprintf (p, "%u", rp->idx);
-}
 
 #if defined (HAVE_SYSCONF) && defined (_SC_OPEN_MAX)
 # define getmaxfd() sysconf (_SC_OPEN_MAX)
@@ -520,52 +513,103 @@ _expand_aclno (const char *name, void *data, char **p)
 # define getmaxfd() 64
 #endif
 
-static int
-expand_arg (const char *cmdline, struct run_closure *rp, char **s)
+#define SEQ(s, n, l) \
+  (((l) == (sizeof(s) - 1)) && memcmp (s, n, l) == 0)
+
+static const char *
+acl_getvar (const char *name, size_t nlen, void *data)
 {
-  int rc;
-  mu_vartab_t vtab;
+  struct run_closure *rp = data;
+
+  if (SEQ ("aclno", name, nlen))
+    {
+      if (!rp->numbuf && mu_asprintf (&rp->numbuf, "%u", rp->idx))
+	return NULL;
+      return rp->numbuf;
+    }
   
-  MU_DEBUG1 (rp->debug, MU_DEBUG_TRACE0, "Expanding \"%s\" => ", cmdline);
-  
-  mu_vartab_create (&vtab);
-  mu_vartab_define_exp (vtab, "aclno", _expand_aclno, NULL, rp);
   switch (rp->sa->sa_family)
     {
     case AF_INET:
       {
 	struct sockaddr_in *s_in = (struct sockaddr_in *)rp->sa;
-	struct in_addr addr = s_in->sin_addr;
-	char *p;
-	
-	mu_vartab_define (vtab, "family", "AF_INET", 1);
-	addr.s_addr = htonl (addr.s_addr);
-	mu_vartab_define (vtab, "address", inet_ntoa (addr), 0);
-	if (mu_asprintf (&p, "%hu", ntohs (s_in->sin_port)) == 0)
+
+	if (SEQ ("address", name, nlen))
 	  {
-	    mu_vartab_define (vtab, "port", p, 0);
-	    free (p);
+	    struct in_addr addr = s_in->sin_addr;
+	    addr.s_addr = htonl (addr.s_addr);
+	    return inet_ntoa (addr);
+	  }
+
+	if (SEQ ("port", name, nlen))
+	  {
+	    if (!rp->portbuf &&
+		mu_asprintf (&rp->portbuf, "%hu", ntohs (s_in->sin_port)))
+	      return NULL;
+	    return rp->portbuf;
+	  }
+	break;
+	
+      case AF_UNIX:
+	if (SEQ ("address", name, nlen))
+	  {
+	    struct sockaddr_un *s_un = (struct sockaddr_un *)rp->sa;
+	    if (rp->salen == sizeof (s_un->sun_family))
+	      return NULL;
+	    else
+	      return s_un->sun_path;
 	  }
       }
       break;
-      
+    }
+  return NULL;
+}
+
+static int
+expand_arg (const char *cmdline, struct run_closure *rp, char **s)
+{
+  int rc;
+  struct mu_wordsplit ws;
+  const char *env[3];
+  
+  MU_DEBUG1 (rp->debug, MU_DEBUG_TRACE0, "Expanding \"%s\" => ", cmdline);
+  env[0] = "family";
+  switch (rp->sa->sa_family)
+    {
+    case AF_INET:
+      env[1] = "AF_INET";
+      break;
+
     case AF_UNIX:
-      {
-	struct sockaddr_un *s_un = (struct sockaddr_un *)rp->sa;
-	
-	mu_vartab_define (vtab, "family", "AF_UNIX", 1);
-	mu_vartab_define (vtab, "address", s_un->sun_path, 1);
-      }
+      env[1] = "AF_UNIX";
       break;
     }
-  
-  rc = mu_vartab_expand (vtab, cmdline, s);
-  mu_vartab_destroy (&vtab);
+  env[2] = NULL;
+  ws.ws_env = env;
+  ws.ws_getvar = acl_getvar;
+  ws.ws_closure = rp;
+  rc = mu_wordsplit (cmdline, &ws,
+		     MU_WRDSF_NOSPLIT | MU_WRDSF_NOCMD |
+		     MU_WRDSF_ENV | MU_WRDSF_ENV_KV |
+		     MU_WRDSF_GETVAR | MU_WRDSF_CLOSURE);
 
   if (rc == 0)
-    MU_DEBUG1 (rp->debug, MU_DEBUG_TRACE0, "\"%s\". ", *s);
+    {
+      *s = strdup (ws.ws_wordv[0]);
+      mu_wordsplit_free (&ws);
+      if (!*s)
+	{
+	  MU_DEBUG (rp->debug, MU_DEBUG_TRACE0, "failed: not enough memory. ");
+	  return ENOMEM;
+	}
+      MU_DEBUG1 (rp->debug, MU_DEBUG_TRACE0, "\"%s\". ", *s);
+    }
   else
-    MU_DEBUG (rp->debug, MU_DEBUG_TRACE0, "failed. ");
+    {
+      MU_DEBUG1 (rp->debug, MU_DEBUG_TRACE0, "failed: %s",
+		 mu_wordsplit_strerror (&ws));
+      rc = errno;
+    }
   return rc;
 }
 
@@ -744,7 +788,10 @@ mu_acl_check_sockaddr (mu_acl_t acl, const struct sockaddr *sa, int salen,
   r.debug = acl->debug;
   r.result = pres;
   *r.result = mu_acl_result_undefined;
+  r.numbuf = r.portbuf = NULL;
   mu_list_do (acl->aclist, _run_entry, &r);
+  free (r.numbuf);
+  free (r.portbuf);
   free (r.sa);
   return 0;
 }

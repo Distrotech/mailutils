@@ -140,6 +140,7 @@ libmailutils/server/ipsrv.c
 libmailutils/server/msrv.c
 
 libmailutils/mailbox/message.c
+libmailutils/mailbox/mbx_default.c
 libmailutils/mailer/mailer.c
 libmailutils/mailer/smtp.c
 libmailutils/mailer/smtp_gsasl.c

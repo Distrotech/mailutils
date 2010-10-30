@@ -49,7 +49,6 @@
 #include <mailutils/nls.h>
 #include <mailutils/util.h>
 #include <mailutils/sql.h>
-#include <mailutils/vartab.h>
 #include <mailutils/cstr.h>
 #include "sql.h"
 
@@ -91,20 +90,34 @@ mu_sql_expand_query (const char *query, const char *ustr)
   int rc;
   char *res;
   char *esc_ustr;
-  mu_vartab_t vtab;
-  
+  struct mu_wordsplit ws;
+  const char *env[2 + 1];
+
   if (!query)
     return NULL;
 
   esc_ustr = sql_escape_string (ustr);
-  mu_vartab_create (&vtab);
-  mu_vartab_define (vtab, "user", ustr, 1);
-  mu_vartab_define (vtab, "u", ustr, 1);
-  rc = mu_vartab_expand (vtab, query, &res);
-  if (rc)
-    res = NULL;
-  mu_vartab_destroy (&vtab);
+  env[0] = "user";
+  env[1] = (char*) ustr;
+  env[2] = NULL;
 
+  ws.ws_env = env;
+  if (mu_wordsplit (query, &ws,
+		    MU_WRDSF_NOSPLIT | MU_WRDSF_NOCMD |
+		    MU_WRDSF_ENV | MU_WRDSF_ENV_KV))
+    {
+      mu_error (_("cannot expand line `%s': %s"), query,
+		mu_wordsplit_strerror (&ws));
+      return NULL;
+    }
+  else if (ws.ws_wordc == 0)
+    {
+      mu_error (_("expanding %s yields empty string"), query);
+      mu_wordsplit_free (&ws);
+      return NULL;
+    }
+  res = strdup (ws.ws_wordv[0]);
+  mu_wordsplit_free (&ws);
   free (esc_ustr);
   return res;
 }

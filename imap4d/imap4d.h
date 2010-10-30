@@ -100,7 +100,6 @@
 #include <mailutils/server.h>
 #include <mailutils/wordsplit.h>
 #include <mailutils/alloc.h>
-#include <mailutils/vartab.h>
 #include <mailutils/cctype.h>
 #include <mailutils/cstr.h>
 #include <mailutils/io.h>

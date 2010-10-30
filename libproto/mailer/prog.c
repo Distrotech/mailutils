@@ -32,7 +32,7 @@
 #include <mailutils/message.h>
 #include <mailutils/observer.h>
 #include <mailutils/progmailer.h>
-#include <mailutils/vartab.h>
+#include <mailutils/wordsplit.h>
 
 #include <mailutils/sys/url.h>
 #include <mailutils/sys/mailer.h>
@@ -140,25 +140,23 @@ prog_close (mu_mailer_t mailer)
   return mu_progmailer_close (mailer->data);
 }
 
-static int
-_expand_sender (const char *name, void *data, char **p)
-{
-  mu_address_t addr = data;
-  char *email;
-  int status = mu_address_aget_email (addr, 1, &email);
-
-  if (status != 0)
-    return status;
-  *p = email;
-  return 0;
-}
-
-struct ex_rcpt
+struct prog_exp
 {
   mu_message_t msg;
-  mu_address_t addr;
-  char *string;
+  mu_address_t sender_addr;
+  char *sender_str;
+  mu_address_t rcpt_addr;
+  char *rcpt_str;
 };
+
+static const char *
+_expand_sender (struct prog_exp *pe)
+{
+  if (!pe->sender_str &&
+      mu_address_aget_email (pe->sender_addr, 1, &pe->sender_str))
+    return NULL;
+  return pe->sender_str;
+}
 
 static int
 address_add (mu_address_t *paddr, const char *value)
@@ -206,28 +204,27 @@ message_read_rcpt (mu_message_t msg, mu_address_t *paddr)
   return 0;
 }
 
-static int
-_expand_rcpt (const char *name, void *data, char **p)
+static const char *
+_expand_rcpt (struct prog_exp *pe)
 {
-  struct ex_rcpt *exrcpt = data;
   int status;
 
-  if (!exrcpt->string)
+  if (!pe->rcpt_str)
     {
       size_t i, count = 0;
       size_t len = 0;
       char *str;
       mu_address_t tmp_addr = NULL, addr;
       
-      if (exrcpt->addr)
-	addr = exrcpt->addr;
+      if (pe->rcpt_addr)
+	addr = pe->rcpt_addr;
       else
 	{
-	  status = message_read_rcpt (exrcpt->msg, &tmp_addr);
+	  status = message_read_rcpt (pe->msg, &tmp_addr);
 	  if (status)
 	    {
 	      mu_address_destroy (&tmp_addr);
-	      return status;
+	      return NULL;
 	    }
 	  addr = tmp_addr;
 	}
@@ -241,7 +238,7 @@ _expand_rcpt (const char *name, void *data, char **p)
 	  if ((status = mu_address_sget_email (addr, i, &email)) != 0)
 	    {
 	      mu_address_destroy (&tmp_addr);
-	      return status;
+	      return NULL;
 	    }
 	  len += strlen (email);
 	}
@@ -250,9 +247,9 @@ _expand_rcpt (const char *name, void *data, char **p)
       if (!str)
 	{
 	  mu_address_destroy (&tmp_addr);
-	  return ENOMEM;
+	  return NULL;
 	}
-      exrcpt->string = str;
+      pe->rcpt_str = str;
       
       for (i = 1; i <= count; i++)
 	{
@@ -267,14 +264,22 @@ _expand_rcpt (const char *name, void *data, char **p)
       *str = 0;
       mu_address_destroy (&tmp_addr);
     }  
-  *p = exrcpt->string;
-  return 0;
+  return pe->rcpt_str;
 }
 
-void
-_free_rcpt (void *data, char *value)
+#define SEQ(s, n, l) \
+  (((l) == (sizeof(s) - 1)) && memcmp (s, n, l) == 0)
+
+static const char *
+prog_getvar (const char *name, size_t nlen, void *data)
 {
-  free (value);
+  struct prog_exp *pe = data;
+  
+  if (SEQ ("sender", name, nlen))
+    return _expand_sender (pe);
+  if (SEQ ("rcpt", name, nlen))
+    return _expand_rcpt (pe);
+  return NULL;
 }
 
 static int
@@ -283,41 +288,58 @@ url_to_argv (mu_url_t url, mu_message_t msg,
 	     int *pargc, char ***pargv)
 {
   int rc;
-  mu_vartab_t vtab;
-  struct ex_rcpt ex_rcpt;
+  struct prog_exp pe;
   char **query;
   size_t i;
   size_t argc;
   char **argv;
+  struct mu_wordsplit ws;
+  int wsflags;
   
-  ex_rcpt.msg = msg;
-  ex_rcpt.addr = to;
-  ex_rcpt.string = NULL;
-  mu_vartab_create (&vtab);
-  mu_vartab_define_exp (vtab, "sender", _expand_sender, NULL, from);
-  mu_vartab_define_exp (vtab, "rcpt", _expand_rcpt, _free_rcpt, &ex_rcpt);
+  pe.msg = msg;
+  pe.rcpt_addr = to;
+  pe.sender_addr = from;
+  pe.sender_str = pe.rcpt_str = NULL;
+
+  ws.ws_getvar = prog_getvar;
+  ws.ws_closure = &pe;
+  wsflags = MU_WRDSF_NOSPLIT | MU_WRDSF_NOCMD |
+            MU_WRDSF_GETVAR | MU_WRDSF_CLOSURE;
 
   rc = mu_url_sget_query (url, &argc, &query);
   if (rc)
     return rc;
 
-  argv = calloc (argc + 1, sizeof (argv[0]));
+  argv = calloc (argc + 2, sizeof (argv[0]));
   if (!argv)
     return ENOMEM;
 
+  rc = mu_url_aget_path (url, &argv[0]);
+  if (rc)
+    {
+      free (argv);
+      return rc;
+    }
+  
   for (i = 0; i < argc; i++)
     {
-      if ((rc = mu_vartab_expand (vtab, query[i], &argv[i])))
+      if (mu_wordsplit (query[i], &ws, wsflags))
 	{
 	  mu_argcv_free (i, argv);
-	  mu_vartab_destroy (&vtab);
-	  return rc;
+	  mu_wordsplit_free (&ws);
+	  return errno;
 	}
+      if (ws.ws_wordc == 0)
+	argv[i+1] = strdup ("");
+      else
+	argv[i+1] = strdup (ws.ws_wordv[0]);
+      wsflags |= MU_WRDSF_REUSE;
     }
-  argv[i] = NULL;
+  argv[i+1] = NULL;
+  mu_wordsplit_free (&ws);
+  free (pe.sender_str);
+  free (pe.rcpt_str);
   
-  mu_vartab_destroy (&vtab);
-
   *pargc = argc;
   *pargv = argv;
   return 0;

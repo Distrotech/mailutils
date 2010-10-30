@@ -40,7 +40,6 @@
 #include <mailutils/error.h>
 #include <mailutils/errno.h>
 #include <mailutils/nls.h>
-#include <mailutils/vartab.h>
 #include <mailutils/io.h>
 #include <mailutils/cctype.h>
 
@@ -245,40 +244,37 @@ mu_radius_module_init (enum mu_gocs_op op, void *data)
 static char *
 _expand_query (const char *query, const char *ustr, const char *passwd)
 {
-  int rc;
-  mu_vartab_t vtab;
-  char *str, *ret;
+  struct mu_wordsplit ws;
+  const char *env[2 * 2 + 1];
+  char *ret;
+  
+  env[0] = "user";
+  env[1] = (char*) ustr;
+  env[2] = "passwd";
+  env[3] = (char*) passwd;
+  env[4] = NULL;
 
-  if (!query)
-    return NULL;
-
-  mu_vartab_create (&vtab);
-  if (ustr)
+  ws.ws_env = env;
+  if (mu_wordsplit (query, &ws,
+		    MU_WRDSF_NOSPLIT | MU_WRDSF_NOCMD |
+		    MU_WRDSF_ENV | MU_WRDSF_ENV_KV))
     {
-      mu_vartab_define (vtab, "user", ustr, 1);
-      mu_vartab_define (vtab, "u", ustr, 1);
+      mu_error (_("cannot expand line `%s': %s"), query,
+		mu_wordsplit_strerror (&ws));
+      return NULL;
     }
-
-  if (passwd)
+  else if (ws.ws_wordc == 0)
     {
-      mu_vartab_define (vtab, "passwd", passwd, 1);
-      mu_vartab_define (vtab, "p", passwd, 1);
+      mu_error (_("expanding %s yields empty string"), query);
+      mu_wordsplit_free (&ws);
+      return NULL;
     }
-
-  rc = mu_vartab_expand (vtab, query, &str);
-  if (rc == 0)
-    {
-      ret = grad_emalloc (strlen (str) + 1);
-      strcpy (ret, str);
-      free (str);
-    }
-  else
-    ret = NULL;
-
-  mu_vartab_destroy (&vtab);
+  
+  ret = grad_emalloc (strlen (ws.ws_wordv[0]) + 1);
+  strcpy (ret, ws.ws_wordv[0]);
+  mu_wordsplit_free (&ws);
   return ret;
 }
-
 
 
 static grad_avp_t *

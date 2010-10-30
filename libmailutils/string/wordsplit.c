@@ -143,7 +143,7 @@ mu_wordsplit_init (struct mu_wordsplit *wsp, const char *input, size_t len,
   if (wsp->ws_flags & MU_WRDSF_REUSE)
     {
       if (!(wsp->ws_flags & MU_WRDSF_APPEND))
-	wsp->ws_wordc = 0;
+	mu_wordsplit_free_words (wsp);
     }
   else
     {
@@ -1427,7 +1427,7 @@ mu_wordsplit (const char *command, struct mu_wordsplit *ws, int flags)
 }
 
 void
-mu_wordsplit_free (struct mu_wordsplit *ws)
+mu_wordsplit_free_words (struct mu_wordsplit *ws)
 {
   size_t i;
 
@@ -1435,8 +1435,18 @@ mu_wordsplit_free (struct mu_wordsplit *ws)
     {
       char *p = ws->ws_wordv[ws->ws_offs + i];
       if (p)
-	free (p);
+	{
+	  free (p);
+	  ws->ws_wordv[ws->ws_offs + i] = NULL;
+	}
     }
+  ws->ws_wordc = 0;
+}
+
+void
+mu_wordsplit_free (struct mu_wordsplit *ws)
+{
+  mu_wordsplit_free_words (ws);
   free (ws->ws_wordv);
   ws->ws_wordv = NULL;
 }

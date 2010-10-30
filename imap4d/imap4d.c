@@ -308,21 +308,34 @@ imap4d_session_setup0 ()
 
   if (modify_homedir)
     {
-      int rc;
-      mu_vartab_t vtab;
       char *expr = mu_tilde_expansion (modify_homedir, "/", real_homedir);
+      struct mu_wordsplit ws;
+      const char *env[3];
 
-      mu_vartab_create (&vtab);
-      mu_vartab_define (vtab, "user", auth_data->name, 0);
-      mu_vartab_define (vtab, "home", real_homedir, 0);
-      rc = mu_vartab_expand (vtab, expr, &imap4d_homedir);
-      mu_vartab_destroy (&vtab);
-      free (expr);
-      if (rc)
+      env[0] = "user";
+      env[1] = auth_data->name;
+      env[2] = "home";
+      env[3] = real_homedir;
+      env[4] = NULL;
+
+      ws.ws_env = env;
+      if (mu_wordsplit (expr, &ws,
+			MU_WRDSF_NOSPLIT | MU_WRDSF_NOCMD |
+			MU_WRDSF_ENV | MU_WRDSF_ENV_KV))
 	{
-	  free (real_homedir);
-	  mu_diag_funcall (MU_DIAG_ERROR, "mu_vartab_expand",
-			   modify_homedir, rc);
+	  mu_error (_("cannot expand line `%s': %s"), expr,
+		    mu_wordsplit_strerror (&ws));
+	  return 1;
+	}
+      else if (ws.ws_wordc == 0)
+	{
+	  mu_error (_("expanding %s yields empty string"), expr);
+	  return 1;
+	}
+      imap4d_homedir = strdup (ws.ws_wordv[0]);
+      if (!imap4d_homedir)
+	{
+	  mu_error ("%s", mu_strerror (errno));
 	  return 1;
 	}
     }

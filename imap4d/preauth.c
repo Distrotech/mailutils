@@ -61,22 +61,6 @@ ident_extract_username (char *reply)
 }
 
 static int
-trimcrlf (char *buf)
-{
-  int len = strlen (buf);
-  if (len == 0)
-    return 0;
-  if (buf[len-1] == '\n')
-    {
-      len--;
-      if (buf[len-1] == '\r')
-	len--;
-      buf[len] = 0;
-    }
-  return len;
-}
-
-static int
 is_des_p (const char *name)
 {
   int len = strlen (name);
@@ -369,8 +353,7 @@ do_preauth_ident (struct sockaddr *clt_sa, struct sockaddr *srv_sa)
       return NULL;
     }
   mu_diag_output (MU_DIAG_INFO, "Got %s", buf);
-  trimcrlf (buf);
-  name = ident_extract_username (buf);
+  name = ident_extract_username (mu_str_stripws (buf));
   if (!name)
     mu_diag_output (MU_DIAG_INFO,
 		    _("malformed IDENT response: `%s', from %s:%d"),
@@ -405,48 +388,83 @@ do_preauth_ident (struct sockaddr *clt_sa, struct sockaddr *srv_sa)
 }
 
 
+#define SEQ(s, n, l) \
+  (((l) == (sizeof(s) - 1)) && memcmp (s, n, l) == 0)
+
+struct preauth_closure
+{
+  struct sockaddr_in *s_clt, *s_srv;
+};
+
+static const char *
+preauth_getvar (const char *name, size_t nlen, void *data)
+{
+  struct preauth_closure *clos = data;
+  
+  if (clos->s_clt && clos->s_clt->sin_family == AF_INET)
+    {
+      if (SEQ ("client_address", name, nlen))
+        return inet_ntoa (clos->s_clt->sin_addr);
+      if (SEQ ("client_prot", name, nlen))
+        return mu_umaxtostr (0, ntohs (clos->s_clt->sin_port));
+    }
+  if (clos->s_srv && clos->s_srv->sin_family == AF_INET)
+    {
+      if (SEQ ("server_address", name, nlen))
+        return inet_ntoa (clos->s_srv->sin_addr);
+      if (SEQ ("server_port", name, nlen))
+        return mu_umaxtostr (0, ntohs (clos->s_srv->sin_port));
+    }
+  return NULL;
+}
+  
 /* External (program) preauth */
 static char *
 do_preauth_program (struct sockaddr *pcs, struct sockaddr *sa)
 {
   int rc;
-  mu_vartab_t vtab;
-  char *cmd;
-  FILE *fp;
+  mu_stream_t str;
   char *buf = NULL;
-  size_t size = 0;
-  
-  mu_vartab_create (&vtab);
-  if (pcs && pcs->sa_family == AF_INET)
-    {
-      struct sockaddr_in *s_in = (struct sockaddr_in *)pcs;
-      mu_vartab_define (vtab, "client_address", inet_ntoa (s_in->sin_addr), 0);
-      mu_vartab_define (vtab, "client_port",
-			mu_umaxtostr (0, ntohs (s_in->sin_port)), 0);
-    }
-  if (sa && sa->sa_family == AF_INET)
-    {
-      struct sockaddr_in *s_in = (struct sockaddr_in *) sa;
-      mu_vartab_define (vtab, "server_address", inet_ntoa (s_in->sin_addr), 0);
-      mu_vartab_define (vtab, "server_port",
-			mu_umaxtostr (0, ntohs (s_in->sin_port)), 0);
-    }
-  rc = mu_vartab_expand (vtab, preauth_program, &cmd);
-  mu_vartab_destroy (&vtab);
-  if (rc)
-    return NULL;
+  size_t size = 0, n;
+  struct mu_wordsplit ws;
+  struct preauth_closure clos;
 
-  fp = popen (cmd, "r");
-  free (cmd);
-  rc = getline (&buf, &size, fp);
-  pclose (fp);
-  if (rc > 0)
+  clos.s_clt = (struct sockaddr_in *) pcs;
+  clos.s_srv = (struct sockaddr_in *) sa;
+
+  ws.ws_getvar = preauth_getvar;
+  ws.ws_closure = &clos;
+  if (mu_wordsplit (preauth_program, &ws,
+		    MU_WRDSF_NOSPLIT | MU_WRDSF_NOCMD |
+		    MU_WRDSF_GETVAR | MU_WRDSF_CLOSURE))
     {
-      if (trimcrlf (buf) == 0)
-	{
-	  free (buf);
-	  return NULL;
-	}
+      mu_error (_("cannot expand line `%s': %s"), preauth_program,
+		mu_wordsplit_strerror (&ws));
+      return NULL;
+    }
+  else if (ws.ws_wordc == 0)
+    {
+      mu_wordsplit_free (&ws);
+      mu_error (_("`%s' expands to an empty line"), preauth_program);
+      return NULL;
+    }
+
+  rc = mu_prog_stream_create (&str, ws.ws_wordv[0], MU_STREAM_READ);
+  mu_wordsplit_free (&ws);
+  if (rc)
+    {
+      mu_error (_("cannot open input pipe from %s"), preauth_program);
+      return NULL;
+    }
+  rc = mu_stream_getline (str, &buf, &size, &n);
+  mu_stream_destroy (&str);
+  if (rc)
+    {
+      mu_error (_("read from `%s' failed"), preauth_program);
+    }
+  else
+    {
+      mu_rtrim_cset (buf, "\r\n");
       return buf;
     }
   return NULL;

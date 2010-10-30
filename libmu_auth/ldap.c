@@ -46,7 +46,6 @@
 #include "mailutils/md5.h"
 #include "mailutils/sha1.h"
 #include "mailutils/ldap.h"
-#include "mailutils/vartab.h"
 
 #include <ldap.h>
 #include <lber.h>
@@ -504,33 +503,43 @@ _mu_ldap_search (LDAP *ld, const char *filter_pat, const char *key,
 		 struct mu_auth_data **return_data)
 {
   int rc;
-  char *filter;
   char **attrs;
   size_t nattrs;
   LDAPMessage *res, *msg;
   ber_int_t msgid;
-  mu_vartab_t vtab;
+  const char *env[3];
+  struct mu_wordsplit ws;
 
   rc = _construct_attr_array (&nattrs, &attrs);
   if (rc)
     return rc;
 
-  mu_vartab_create (&vtab);
-  mu_vartab_define (vtab, "user", key, 1);
-  mu_vartab_define (vtab, "u", key, 1);
-  rc = mu_vartab_expand (vtab, filter_pat, &filter);
-  mu_vartab_destroy (&vtab);
-  if (rc)
-    {
-      mu_argcv_free (nattrs, attrs);
-      return ENOMEM;
-    }
+  env[0] = "user";
+  env[1] = key;
+  env[3] = NULL;
 
+  ws.ws_env = env;
+  if (mu_wordsplit (filter_pat, &ws,
+		    MU_WRDSF_NOSPLIT | MU_WRDSF_NOCMD |
+		    MU_WRDSF_ENV | MU_WRDSF_ENV_KV))
+    {
+      mu_error (_("cannot expand line `%s': %s"), filter_pat,
+		mu_wordsplit_strerror (&ws));
+      return MU_ERR_FAILURE;
+    }
+  else if (ws.ws_wordc == 0)
+    {
+      mu_error (_("expanding %s yields empty string"), filter_pat);
+      mu_wordsplit_free (&ws);
+      mu_argcv_free (nattrs, attrs);
+      return MU_ERR_FAILURE;
+    }
+  
   rc = ldap_search_ext (ld, ldap_param.base, LDAP_SCOPE_SUBTREE,
-			filter, attrs, 0,
+			ws.ws_wordv[0], attrs, 0,
 			NULL, NULL, NULL, -1, &msgid);
+  mu_wordsplit_free (&ws);
   mu_argcv_free (nattrs, attrs);
-  free (filter);
 
   if (rc != LDAP_SUCCESS)
     {
