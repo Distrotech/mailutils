@@ -126,6 +126,7 @@ int mu_wordsplit (const char *s, struct mu_wordsplit *p, int flags);
 int mu_wordsplit_len (const char *s, size_t len,
 		      struct mu_wordsplit *p, int flags);
 void mu_wordsplit_free (struct mu_wordsplit *p);
+void mu_wordsplit_free_words (struct mu_wordsplit *ws);
 
 int mu_wordsplit_c_unquote_char (int c);
 int mu_wordsplit_c_quote_char (int c);

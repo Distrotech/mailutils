@@ -50,6 +50,7 @@
 #include <mailutils/util.h>
 #include <mailutils/sql.h>
 #include <mailutils/cstr.h>
+#include <mailutils/wordsplit.h>
 #include "sql.h"
 
 #ifdef USE_SQL
