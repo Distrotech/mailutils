@@ -266,7 +266,7 @@ mu_streamref_create_abridged (mu_stream_t *pref, mu_stream_t str,
   mu_off_t off;
   int flags;
   struct _mu_streamref *sp;
-
+  
   rc = mu_stream_seek (str, 0, MU_SEEK_SET, &off);
   if (rc)
     return rc;
@@ -302,6 +302,9 @@ mu_streamref_create_abridged (mu_stream_t *pref, mu_stream_t str,
     off = start;
   sp->offset = off;
   *pref = (mu_stream_t) sp;
+
+  mu_stream_set_buffer (*pref, mu_buffer_full, 0);
+
   return 0;
 }
 
