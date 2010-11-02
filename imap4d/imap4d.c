@@ -90,7 +90,6 @@ static const char *imap4d_capa[] = {
   "mailbox",
   "locking",
   "logging",
-  "license",
   NULL
 };
 

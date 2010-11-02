@@ -24,7 +24,6 @@
 static struct mu_cmdline_capa *all_cmdline_capa[] = {
   &mu_common_cmdline,
   &mu_logging_cmdline,
-  &mu_license_cmdline,
   &mu_mailer_cmdline,
   &mu_debug_cmdline,
   &mu_tls_cmdline,

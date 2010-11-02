@@ -73,7 +73,6 @@ static struct argp argp = {
 static const char *mu_tool_capa[] = {
   "common",
   "debug",
-  "license",
   "locking",
   "mailbox",
   "auth",

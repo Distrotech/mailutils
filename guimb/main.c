@@ -139,7 +139,6 @@ static const char *guimb_argp_capa[] = {
   "debug",
   "mailbox",
   "locking",
-  "license",
   NULL
 };
 

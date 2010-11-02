@@ -139,7 +139,6 @@ static const char *pop3d_argp_capa[] = {
   "mailbox",
   "locking",
   "logging",
-  "license",
   NULL
 };
 

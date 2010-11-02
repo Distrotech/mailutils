@@ -57,7 +57,7 @@ find_cfg_capa (const char *name)
 static int
 reserved_name (const char *name)
 {
-  static char *reserved[] = { "common", "license", NULL };
+  static char *reserved[] = { "common", NULL };
   char **p;
   for (p = reserved; *p; p++)
     if (strcmp (name, *p) == 0)

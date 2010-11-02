@@ -197,49 +197,6 @@ struct mu_cmdline_capa mu_logging_cmdline = {
 
 
 /* ************************************************************************* */
-/* License                                                                   */
-/* ************************************************************************* */
-
-/* Option to print the license. */
-static struct argp_option mu_license_argp_option[] = {
-  { "license", OPT_LICENSE, NULL, 0, N_("print license and exit"), -2 },
-  { NULL,      0, NULL, 0, NULL, 0 }
-};
-
-static error_t
-mu_license_argp_parser (int key, char *arg, struct argp_state *state)
-{
-  switch (key)
-    {
-    case OPT_LICENSE:
-      printf (_("License for %s:\n\n"), argp_program_version);
-      printf ("%s", mu_license_text);
-      exit (0);
-
-    default:
-      return ARGP_ERR_UNKNOWN;
-    }
-  return 0;
-}
-
-struct argp mu_license_argp = {
-  mu_license_argp_option,
-  mu_license_argp_parser,
-};
-
-struct argp_child mu_license_argp_child = {
-  &mu_license_argp,
-  0,
-  NULL,
-  0
-};
-
-struct mu_cmdline_capa mu_license_cmdline = {
-  "license", &mu_license_argp_child 
-};
-
-
-/* ************************************************************************* */
 /* Mailer                                                                    */
 /* ************************************************************************* */
 

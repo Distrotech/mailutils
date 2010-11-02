@@ -307,7 +307,6 @@ static const char *sieve_argp_capa[] =
   "debug",
   "mailbox",
   "locking",
-  "license",
   "logging",
   "mailer",
   NULL

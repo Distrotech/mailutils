@@ -299,7 +299,6 @@ find_init_function (struct mu_gocs_entry *tab, const char *capa)
 
 static struct mu_gocs_entry std_gocs_table[] = {
   { "common", mu_gocs_dummy },
-  { "license", mu_gocs_dummy },
   { "mailbox", mu_gocs_mailbox_init },
   { "locking", mu_gocs_locking_init },
   { "address", mu_gocs_source_email_init },

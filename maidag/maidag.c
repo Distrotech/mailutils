@@ -131,7 +131,6 @@ static const char *maidag_argp_capa[] = {
   "auth",
   "common",
   "debug",
-  "license",
   "logging",
   "mailbox",
   "locking",

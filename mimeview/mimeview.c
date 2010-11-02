@@ -178,7 +178,6 @@ struct mu_cfg_param mimeview_cfg_param[] = {
 static const char *capa[] = {
   "common",
   "debug",
-  "license",
   NULL
 };
 

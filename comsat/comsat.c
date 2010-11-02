@@ -87,7 +87,6 @@ static const char *comsat_argp_capa[] = {
   "logging",
   "mailbox",
   "locking",
-  "license",
   NULL
 };
 

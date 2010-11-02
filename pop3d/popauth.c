@@ -98,7 +98,6 @@ static struct argp argp = {
 
 static const char *popauth_argp_capa[] = {
   "common",
-  "license",
   NULL
 };
 

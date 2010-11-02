@@ -47,7 +47,6 @@ extern int (*mu_app_cfg_verifier) (void);
   
 extern struct mu_cmdline_capa mu_common_cmdline;
 extern struct mu_cmdline_capa mu_logging_cmdline;
-extern struct mu_cmdline_capa mu_license_cmdline;
 extern struct mu_cmdline_capa mu_mailbox_cmdline;
 extern struct mu_cmdline_capa mu_locking_cmdline;
 extern struct mu_cmdline_capa mu_address_cmdline;

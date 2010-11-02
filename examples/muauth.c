@@ -31,7 +31,6 @@ static char args_doc[] = "key";
 
 static const char *capa[] = {
   "auth",
-  "license",
   "common",
   "debug",
   NULL
