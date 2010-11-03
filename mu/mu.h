@@ -14,6 +14,8 @@
    You should have received a copy of the GNU General Public License
    along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>. */
 
+#include <mailutils/types.h>
+
 typedef int (*mutool_action_t) (int argc, char **argv);
 
 struct mutool_command
@@ -28,20 +30,13 @@ struct mutool_command
   const char *docstring;/* Documentation for this function.  */
 };
 
-
-int mutool_pop (int argc, char **argv);
-int mutool_filter (int argc, char **argv);
-int mutool_flt2047 (int argc, char **argv);
-int mutool_info (int argc, char **argv);
-int mutool_query (int argc, char **argv);
-int mutool_acl (int argc, char **argv);
-int mutool_wicket (int argc, char **argv);
-int mutool_ldflags (int argc, char **argv);
-int mutool_cflags (int argc, char **argv);
-  
 extern char *mutool_shell_prompt;
 extern char **mutool_prompt_env;
 extern int mutool_shell_interactive;
 extern mu_stream_t mustrin, mustrout;
 int mutool_shell (const char *name, struct mutool_command *cmd);
 mu_stream_t mutool_open_pager (void);
+
+int mu_help (void);
+mutool_action_t dispatch_find_action (const char *name);
+char *dispatch_docstring (const char *text);

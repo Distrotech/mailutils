@@ -23,6 +23,7 @@
 #include <argp.h>
 
 static char wicket_doc[] = N_("mu wicket - find matching URL in wicket");
+char wicket_docstring[] = N_("scan wickets for matching URLs");
 static char wicket_args_doc[] = N_("NAME");
 
 static struct argp_option wicket_options[] = {
@@ -172,3 +173,11 @@ mutool_wicket (int argc, char **argv)
   mu_stream_destroy (&stream);
   return exit_code;
 }
+
+
+/*
+  MU Setup: wicket
+  mu-handler: mutool_wicket
+  mu-docstring: wicket_docstring
+  End MU Setup:
+*/

@@ -23,6 +23,7 @@
 #include <argp.h>
 
 static char cflags_doc[] = N_("mu cflags - show compiler options");
+char cflags_docstring[] = N_("show compiler options");
 
 static struct argp cflags_argp = {
   NULL,
@@ -43,4 +44,10 @@ mutool_cflags (int argc, char **argv)
   return 0;
 }
 
+/*
+  MU Setup: cflags
+  mu-handler: mutool_cflags
+  mu-docstring: cflags_docstring
+  End MU Setup:
+*/
 

@@ -22,21 +22,27 @@ if MU_COND_SUPPORT_POP
  POP_C=pop.c
 endif
 
-EXTRA_DIST=pop.c
+EXTRA_DIST=pop.c mu-setup.h mu-setup.c mu-setup.awk
+BUILT_SOURCES=mu-setup.h mu-setup.c
 
-mu_SOURCES = \
+MODULES = \
  acl.c\
  cflags.c\
- info.c\
- mu.h\
- mu.c\
  filter.c\
  flt2047.c\
+ help.c\
+ info.c\
  ldflags.c\
  $(POP_C)\
  query.c\
- shell.c\
  wicket.c
+
+mu_SOURCES = \
+ dispatch.c\
+ mu.h\
+ mu.c\
+ shell.c\
+ $(MODULES)
 
 mu_LDADD = \
  ${MU_APP_LIBRARIES}\
@@ -61,3 +67,9 @@ AM_CPPFLAGS = \
   -DGUILE_LIBS="\"$(GUILE_LIBS)\"" \
   -DPYTHON_LIBS="\"$(PYTHON_LIBS)\"" \
   -DI18NLIBS="\"$(LIBINTL)\""
+
+mu-setup.h: Makefile.am $(MODULES)
+	$(AM_V_GEN)$(AWK) -f $(top_srcdir)/mu/mu-setup.awk -v mode=h $(MODULES) > mu-setup.h
+
+mu-setup.c: Makefile.am $(MODULES)
+	$(AM_V_GEN)$(AWK) -f $(top_srcdir)/mu/mu-setup.awk -v mode=c $(MODULES) > mu-setup.c

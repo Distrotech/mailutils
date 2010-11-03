@@ -23,6 +23,7 @@
 #include <argp.h>
 
 static char ldflags_doc[] = N_("mu ldflags - list libraries required to link");
+char ldflags_docstring[] = N_("list libraries required to link");
 static char ldflags_args_doc[] = N_("KEYWORD [KEYWORD...]");
 
 static struct argp ldflags_argp = {
@@ -191,3 +192,9 @@ mutool_ldflags (int argc, char **argv)
   return 0;
 }
 
+/*
+  MU Setup: ldflags
+  mu-handler: mutool_ldflags
+  mu-docstring: ldflags_docstring
+  End MU Setup:
+*/

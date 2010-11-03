@@ -25,25 +25,7 @@
 #include "mu.h"
 
 static char args_doc[] = N_("COMMAND [CMDOPTS]");
-static char doc[] = N_("mu -- GNU Mailutils multi-purpose tool.\n\
-Commands are:\n\
-    mu info   - show Mailutils configuration\n\
-    mu query  - query configuration values\n\
-    mu pop    - POP3 client program\n\
-    mu filter - filter program\n\
-    mu 2047   - decode/encode message headers as per RFC 2047\n\
-    mu acl    - test access control lists\n\
-    mu wicket - find matching URL in wicket\n\
-    mu ldflags- list libraries required to link\n\
-    mu cflags - list compiler flags\n\
-\n\
-Try `mu COMMAND --help' to get help on a particular COMMAND.\n\
-\n\
-Options are:\n");
-/* FIXME: add
-    mu imap
-    mu send [opts]
- */
+static char doc[] = N_("mu -- GNU Mailutils multi-purpose tool.");
 
 static struct argp_option options[] = {
   { NULL }
@@ -60,13 +42,31 @@ parse_opt (int key, char *arg, struct argp_state *state)
   return 0;
 }
 
+static char *
+mu_help_filter (int key, const char *text, void *input)
+{
+  char *s;
+  
+  switch (key)
+    {
+    case ARGP_KEY_HELP_PRE_DOC:
+      s = dispatch_docstring (text);
+      break;
+      
+    default:
+      s = (char*) text;
+    }
+  return s;
+}
+
+
 static struct argp argp = {
   options,
   parse_opt,
   args_doc,
   doc,
   NULL,
-  NULL,
+  mu_help_filter,
   NULL
 };
 
@@ -83,46 +83,16 @@ struct mu_cfg_param mu_tool_param[] = {
   { NULL }
 };
 
-struct mutool_action_tab
+int
+mu_help ()
 {
-  const char *name;
-  mutool_action_t action;
-};
-
-static int
-mutool_nosys (int argc, char **argv)
-{
-  mu_error (_("%s is not available because required code is not compiled"),
-	    argv[0]);
-  return 1;
-}
-
-struct mutool_action_tab mutool_action_tab[] = {
-  { "info", mutool_info },
-#ifdef ENABLE_POP
-  { "pop", mutool_pop },
-#else
-  { "pop", mutool_nosys },
-#endif
-  { "filter", mutool_filter },
-  { "2047", mutool_flt2047 },
-  { "query", mutool_query },
-  { "acl", mutool_acl },
-  { "wicket", mutool_wicket },
-  { "ldflags", mutool_ldflags },
-  { "cflags", mutool_cflags },
-  { NULL }
-};
-
-static mutool_action_t
-find_action (const char *name)
-{
-  struct mutool_action_tab *p;
-
-  for (p = mutool_action_tab; p->name; p++)
-    if (strcmp (p->name, name) == 0)
-      return p->action;
-  return NULL;
+  char *x_argv[3];
+    
+  x_argv[0] = (char*) mu_program_name;
+  x_argv[1] = "--help";
+  x_argv[2] = NULL;
+  return mu_app_init (&argp, mu_tool_capa, mu_tool_param, 
+		      2, x_argv, 0, NULL, NULL);
 }
 
 int
@@ -155,7 +125,7 @@ main (int argc, char **argv)
       exit (1);
     }
 	
-  action = find_action (argv[0]);
+  action = dispatch_find_action (argv[0]);
   if (!action)
     {
       mu_error (_("don't know what %s is"), argv[0]);

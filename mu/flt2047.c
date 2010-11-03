@@ -24,6 +24,7 @@
 #include "mu.h"
 
 static char flt2047_doc[] = N_("mu 2047 - decode/encode message headers.");
+char flt2047_docstring[] = N_("decode/encode email message headers");
 static char flt2047_args_doc[] = N_("[text]");
 
 static struct argp_option flt2047_options[] = {
@@ -153,3 +154,10 @@ mutool_flt2047 (int argc, char **argv)
   
   return 0;
 }
+
+/*
+  MU Setup: 2047
+  mu-handler: mutool_flt2047
+  mu-docstring: flt2047_docstring
+  End MU Setup:
+*/

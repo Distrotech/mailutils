@@ -25,6 +25,7 @@
 #include "mu.h"
 
 static char query_doc[] = N_("mu query - query configuration values.");
+char query_docstring[] = N_("query configuration values");
 static char query_args_doc[] = N_("path [path...]");
 
 char *file_name;
@@ -118,4 +119,11 @@ mutool_query (int argc, char **argv)
   return 0;
 }
  
+
+/*
+  MU Setup: query
+  mu-handler: mutool_query
+  mu-docstring: query_docstring
+  End MU Setup:
+*/
   

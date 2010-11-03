@@ -28,6 +28,7 @@
 #include "xalloc.h"
 
 static char pop_doc[] = N_("mu pop - POP3 client shell.");
+char pop_docstring[] = N_("POP3 client shell");
 static char pop_args_doc[] = "";
 
 static struct argp_option pop_options[] = {
@@ -807,3 +808,10 @@ mutool_pop (int argc, char **argv)
   mutool_shell ("pop", pop_comtab);
   return 0;
 }
+
+/*
+  MU Setup: pop
+  mu-handler: mutool_pop
+  mu-docstring: pop_docstring
+  End MU Setup:
+*/

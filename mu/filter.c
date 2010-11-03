@@ -23,7 +23,8 @@
 #include "argp.h"
 #include "mu.h"
 
-static char filter_doc[] = N_("mu filter");
+static char filter_doc[] = N_("mu filter - apply a filter to the input");
+char filter_docstring[] = N_("apply a filter to the input");
 static char filter_args_doc[] = N_("NAME");
 
 static struct argp_option filter_options[] = {
@@ -157,3 +158,10 @@ mutool_filter (int argc, char **argv)
   
   return 0;
 }
+
+/*
+  MU Setup: filter
+  mu-handler: mutool_filter
+  mu-docstring: filter_docstring
+  End MU Setup:
+*/

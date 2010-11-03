@@ -620,3 +620,4 @@ mutool_shell (const char *name, struct mutool_command *cmd)
   mu_stream_destroy (&mustrout);
   return 0;
 }
+

@@ -30,6 +30,7 @@
 #include "xalloc.h"
 
 static char acl_doc[] = N_("mu acl - test access control lists.");
+char acl_docstring[] = N_("test access control lists");
 static char acl_args_doc[] = N_("ADDRESS [ADDRESS...]");
 
 static struct argp_option acl_options[] = {
@@ -191,3 +192,10 @@ mutool_acl (int argc, char **argv)
 
   return 0;
 }
+
+/*
+  MU Setup: acl
+  mu-handler: mutool_acl
+  mu-docstring: acl_docstring
+  End MU Setup:
+*/
