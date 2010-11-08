@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2004, 2007, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2010 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -19,43 +19,29 @@
 # include <config.h>
 #endif
 
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 #include <errno.h>
-#include <mailutils/sys/pop3.h>
+#include <mailutils/sys/imap.h>
 
 int
-mu_pop3_set_carrier (mu_pop3_t pop3, mu_stream_t carrier)
+mu_imap_disconnect (mu_imap_t imap)
 {
   /* Sanity checks.  */
-  if (pop3 == NULL)
+  if (imap == NULL)
     return EINVAL;
 
-  if (pop3->carrier)
-    {
-      /* Close any old carrier.  */
-      mu_pop3_disconnect (pop3);
-      mu_stream_destroy (&pop3->carrier);
-    }
-  mu_stream_ref (carrier);
-  pop3->carrier = carrier;
-  if (MU_POP3_FISSET (pop3, MU_POP3_TRACE))
-    _mu_pop3_trace_enable (pop3);
-  pop3->state = MU_POP3_CONNECT;
-  return 0;
-}
+  imap->state = MU_IMAP_NO_STATE;
+  MU_IMAP_FCLR (imap, MU_IMAP_RESP);
 
-/* FIXME: Is it needed? */
-int
-mu_pop3_get_carrier (mu_pop3_t pop3, mu_stream_t *pcarrier)
-{
-  /* Sanity checks.  */
-  if (pop3 == NULL)
-    return EINVAL;
-  if (pcarrier == NULL)
-    return MU_ERR_OUT_PTR_NULL;
+  if (imap->rdbuf)
+    imap->rdbuf[0] = 0;
 
-  mu_stream_ref (pop3->carrier);
-  *pcarrier = pop3->carrier;
+  mu_list_clear (imap->untagged_resp);
+  mu_list_clear (imap->capa);
+  
+  /* Close the stream.  */
+  if (mu_stream_is_open (imap->carrier))
+    return mu_stream_close (imap->carrier);
   return 0;
 }

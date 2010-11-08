@@ -64,7 +64,9 @@ mu_list_clear (mu_list_t list)
 {
   struct list_data *current;
   struct list_data *previous;
-  
+
+  if (!list)
+    return;
   mu_monitor_wrlock (list->monitor);
   for (current = list->head.next; current != &list->head;)
     {

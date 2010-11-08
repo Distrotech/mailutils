@@ -67,6 +67,13 @@ mu_pop3_response (mu_pop3_t pop3, size_t *pnread)
   else if (pop3->ackbuf)
     n = strlen (pop3->ackbuf);
 
+  if (n < 3)
+    status = MU_ERR_BADREPLY;
+  else if (strncmp (pop3->ackbuf, "-ERR", 4) == 0)
+    status = MU_ERR_REPLY;
+  else if (strncmp (pop3->ackbuf, "+OK", 3))
+    status = MU_ERR_BADREPLY;
+  
   if (pnread)
     *pnread = n;
   return status;

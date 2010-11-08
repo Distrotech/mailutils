@@ -19,9 +19,7 @@
 #endif
 #include <stdlib.h>
 #include <string.h>
-#include <termios.h>
 #include <unistd.h>
-#include <netdb.h>
 #include <mailutils/mailutils.h>
 #include "mu.h"
 #include "argp.h"
@@ -56,67 +54,8 @@ static struct argp pop_argp = {
   NULL
 };
 
-int
-get_bool (const char *str, int *pb)
-{
-  if (mu_c_strcasecmp (str, "yes") == 0
-      || mu_c_strcasecmp (str, "on") == 0
-      || mu_c_strcasecmp (str, "true") == 0)
-    *pb = 1;
-  else if (mu_c_strcasecmp (str, "no") == 0
-      || mu_c_strcasecmp (str, "off") == 0
-      || mu_c_strcasecmp (str, "false") == 0)
-    *pb = 0;
-  else
-    return 1;
-
-  return 0;
-}
-
-int
-get_port (const char *port_str, int *pn)
-{
-  short port_num;
-  long num;
-  char *p;
-  
-  num = port_num = strtol (port_str, &p, 0);
-  if (*p == 0)
-    {
-      if (num != port_num)
-	{
-	  mu_error ("bad port number: %s", port_str);
-	  return 1;
-	}
-    }
-  else
-    {
-      struct servent *sp = getservbyname (port_str, "tcp");
-      if (!sp)
-	{
-	  mu_error ("unknown port name");
-	  return 1;
-	}
-      port_num = ntohs (sp->s_port);
-    }
-  *pn = port_num;
-  return 0;
-}
-
-
 /* Global handle for pop3.  */
-mu_pop3_t pop3;
-
-/* Flag if verbosity is needed.  */
-int verbose;
-#define VERBOSE_MASK(n) (1<<((n)+1))
-#define SET_VERBOSE_MASK(n) (verbose |= VERBOSE_MASK (n))
-#define CLR_VERBOSE_MASK(n) (verbose &= VERBOSE_MASK (n))
-#define QRY_VERBOSE_MASK(n) (verbose & VERBOSE_MASK (n))
-#define HAS_VERBOSE_MASK(n) (verbose & ~1)
-#define SET_VERBOSE() (verbose |= 1)
-#define CLR_VERBOSE() (verbose &= ~1)
-#define QRY_VERBOSE() (verbose & 1)
+static mu_pop3_t pop3;
 
 enum pop_session_status
   {
@@ -125,15 +64,15 @@ enum pop_session_status
     pop_session_logged_in
   };
 
-enum pop_session_status pop_session_status;
+static enum pop_session_status pop_session_status;
 
-int connect_argc;
-char **connect_argv;
+static int connect_argc;
+static char **connect_argv;
 
 /* Host we are connected to. */
 #define host connect_argv[0]
-int port = 110;
-char *username;
+static int port = 110;
+static char *username;
 
 const char *
 pop_session_str (enum pop_session_status stat)
@@ -185,63 +124,27 @@ pop_prompt_env ()
 }
 
 
-static int
-string_to_xlev (const char *name, int *pv)
+static void
+pop_set_verbose (void)
 {
-  if (strcmp (name, "secure") == 0)
-    *pv = MU_XSCRIPT_SECURE;
-  else if (strcmp (name, "payload") == 0)
-    *pv = MU_XSCRIPT_PAYLOAD;
-  else
-    return 1;
-  return 0;
-}
-
-static int
-change_verbose_mask (int set, int argc, char **argv)
-{
-  int i;
-  
-  for (i = 0; i < argc; i++)
-    {
-      int lev;
-      
-      if (string_to_xlev (argv[i], &lev))
-	{
-	  mu_error ("unknown level: %s", argv[i]);
-	  return 1;
-	}
-      if (set)
-	SET_VERBOSE_MASK (lev);
-      else
-	CLR_VERBOSE_MASK (lev);
-    }
-  return 0;
-}
-
-void
-set_verbose (mu_pop3_t p)
-{
-  if (p)
+  if (pop3)
     {
       if (QRY_VERBOSE ())
-	{
-	  mu_pop3_trace (p, MU_POP3_TRACE_SET);
-	}
+	mu_pop3_trace (pop3, MU_POP3_TRACE_SET);
       else
-	mu_pop3_trace (p, MU_POP3_TRACE_CLR);
+	mu_pop3_trace (pop3, MU_POP3_TRACE_CLR);
     }
 }
 
-void
-set_verbose_mask (mu_pop3_t p)
+static void
+pop_set_verbose_mask (void)
 {
-  if (p)
+  if (pop3)
     {
-      mu_pop3_trace_mask (p, QRY_VERBOSE_MASK (MU_XSCRIPT_SECURE)
+      mu_pop3_trace_mask (pop3, QRY_VERBOSE_MASK (MU_XSCRIPT_SECURE)
 			          ? MU_POP3_TRACE_SET : MU_POP3_TRACE_CLR,
 			      MU_XSCRIPT_SECURE);
-      mu_pop3_trace_mask (p, QRY_VERBOSE_MASK (MU_XSCRIPT_PAYLOAD)
+      mu_pop3_trace_mask (pop3, QRY_VERBOSE_MASK (MU_XSCRIPT_PAYLOAD)
 			          ? MU_POP3_TRACE_SET : MU_POP3_TRACE_CLR,
 			      MU_XSCRIPT_PAYLOAD);
     }
@@ -250,50 +153,8 @@ set_verbose_mask (mu_pop3_t p)
 static int
 com_verbose (int argc, char **argv)
 {
-  if (argc == 1)
-    {
-      if (QRY_VERBOSE ())
-	{
-	  mu_stream_printf (mustrout, "verbose is on");
-	  if (HAS_VERBOSE_MASK ())
-	    {
-	      char *delim = " (";
-	    
-	      if (QRY_VERBOSE_MASK (MU_XSCRIPT_SECURE))
-		{
-		  mu_stream_printf (mustrout, "%ssecure", delim);
-		  delim = ", ";
-		}
-	      if (QRY_VERBOSE_MASK (MU_XSCRIPT_PAYLOAD))
-		mu_stream_printf (mustrout, "%spayload", delim);
-	      mu_stream_printf (mustrout, ")");
-	    }
-	  mu_stream_printf (mustrout, "\n");
-	}
-      else
-	mu_stream_printf (mustrout, "verbose is off\n");
-    }
-  else
-    {
-      int bv;
-
-      if (get_bool (argv[1], &bv) == 0)
-	{
-	  verbose |= bv;
-	  if (argc > 2)
-	    change_verbose_mask (verbose, argc - 2, argv + 2);
-	  set_verbose (pop3);
-	}
-      else if (strcmp (argv[1], "mask") == 0)
-	change_verbose_mask (1, argc - 2, argv + 2);
-      else if (strcmp (argv[1], "unmask") == 0)
-	change_verbose_mask (0, argc - 2, argv + 2);
-      else
-	mu_error ("unknown subcommand");
-      set_verbose_mask (pop3);
-    }
-
-  return 0;
+  return shell_verbose (argc, argv,
+			pop_set_verbose, pop_set_verbose_mask);
 }
 
 static int
@@ -655,8 +516,8 @@ com_connect (int argc, char **argv)
 
       if (QRY_VERBOSE ())
 	{
-	  set_verbose (pop3);
-	  set_verbose_mask (pop3);
+	  pop_set_verbose ();
+	  pop_set_verbose_mask ();
 	}
       status = mu_tcp_stream_create (&tcp, argv[0], n, MU_STREAM_READ);
       if (status == 0)
@@ -779,7 +640,7 @@ struct mutool_command pop_comtab[] = {
     N_("NAME"),
     N_("send login") },
   { "verbose",    1, 4, com_verbose,
-    "[on|off|mask|unmask] [secret [payload]]",
+    "[on|off|mask|unmask] [secure [payload]]",
     N_("control the protocol tracing") },
   { NULL }
 };
@@ -813,5 +674,6 @@ mutool_pop (int argc, char **argv)
   MU Setup: pop
   mu-handler: mutool_pop
   mu-docstring: pop_docstring
+  mu-cond: ENABLE_POP
   End MU Setup:
 */

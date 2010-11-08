@@ -18,16 +18,24 @@
 bin_PROGRAMS = mu
 dist_bin_SCRIPTS = mailutils-config
 
+IDLE_MODULES=
+
 if MU_COND_SUPPORT_POP
  POP_C=pop.c
+else
+ IDLE_MODULES+=pop.c
 endif
 
-EXTRA_DIST=pop.c mu-setup.h mu-setup.c mu-setup.awk
-BUILT_SOURCES=mu-setup.h mu-setup.c
+if MU_COND_SUPPORT_IMAP
+ IMAP_C=imap.c
+else
+ IDLE_MODULES+=imap.c
+endif
 
 MODULES = \
  acl.c\
  cflags.c\
+ $(IMAP_C)\
  filter.c\
  flt2047.c\
  help.c\
@@ -39,9 +47,11 @@ MODULES = \
 
 mu_SOURCES = \
  dispatch.c\
+ getarg.c\
  mu.h\
  mu.c\
  shell.c\
+ verbose.c\
  $(MODULES)
 
 mu_LDADD = \
@@ -68,8 +78,10 @@ AM_CPPFLAGS = \
   -DPYTHON_LIBS="\"$(PYTHON_LIBS)\"" \
   -DI18NLIBS="\"$(LIBINTL)\""
 
-mu-setup.h: Makefile.am $(MODULES)
-	$(AM_V_GEN)$(AWK) -f $(top_srcdir)/mu/mu-setup.awk -v mode=h $(MODULES) > mu-setup.h
+mu-setup.h: Makefile.am $(MODULES) $(IDLE_MODULES) 
+	$(AM_V_GEN)$(AWK) -f $(top_srcdir)/mu/mu-setup.awk -v mode=h \
+           $(MODULES) $(IDLE_MODULES) > mu-setup.h
 
 mu-setup.c: Makefile.am $(MODULES)
-	$(AM_V_GEN)$(AWK) -f $(top_srcdir)/mu/mu-setup.awk -v mode=c $(MODULES) > mu-setup.c
+	$(AM_V_GEN)$(AWK) -f $(top_srcdir)/mu/mu-setup.awk -v mode=c \
+           $(MODULES) $(IDLE_MODULES) > mu-setup.c

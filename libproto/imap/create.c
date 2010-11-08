@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2004, 2007, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2010 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -19,43 +19,49 @@
 # include <config.h>
 #endif
 
-#include <string.h>
 #include <stdlib.h>
 #include <errno.h>
-#include <mailutils/sys/pop3.h>
+#include <mailutils/errno.h>
+#include <mailutils/sys/imap.h>
+#include <mailutils/list.h>
 
 int
-mu_pop3_set_carrier (mu_pop3_t pop3, mu_stream_t carrier)
+mu_imap_create (mu_imap_t *pimap)
 {
-  /* Sanity checks.  */
-  if (pop3 == NULL)
+  mu_imap_t imap;
+
+  /* Sanity check.  */
+  if (pimap == NULL)
     return EINVAL;
 
-  if (pop3->carrier)
-    {
-      /* Close any old carrier.  */
-      mu_pop3_disconnect (pop3);
-      mu_stream_destroy (&pop3->carrier);
-    }
-  mu_stream_ref (carrier);
-  pop3->carrier = carrier;
-  if (MU_POP3_FISSET (pop3, MU_POP3_TRACE))
-    _mu_pop3_trace_enable (pop3);
-  pop3->state = MU_POP3_CONNECT;
+  imap = calloc (1, sizeof *imap);
+  if (imap == NULL)
+    return ENOMEM;
+
+  _mu_imap_init (imap);
+
+  *pimap = imap;
   return 0;
 }
 
-/* FIXME: Is it needed? */
 int
-mu_pop3_get_carrier (mu_pop3_t pop3, mu_stream_t *pcarrier)
+_mu_imap_init (mu_imap_t imap)
 {
-  /* Sanity checks.  */
-  if (pop3 == NULL)
+  if (imap == NULL)
     return EINVAL;
-  if (pcarrier == NULL)
-    return MU_ERR_OUT_PTR_NULL;
-
-  mu_stream_ref (pop3->carrier);
-  *pcarrier = pop3->carrier;
+  if (imap->carrier == 0)
+    {
+      int rc;
+      
+      if (imap->untagged_resp)
+	mu_list_clear (imap->untagged_resp);
+      mu_list_destroy (&imap->capa);
+      _mu_imap_clrerrstr (imap);
+      rc = _mu_imap_tag_clr (imap);
+      imap->flags = 0;
+      if (rc)
+	return rc;
+    }
+  imap->state = MU_IMAP_NO_STATE; /* Init with no state.  */
   return 0;
 }

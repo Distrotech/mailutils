@@ -88,7 +88,6 @@ sql_escape_string (const char *ustr)
 char *
 mu_sql_expand_query (const char *query, const char *ustr)
 {
-  int rc;
   char *res;
   char *esc_ustr;
   struct mu_wordsplit ws;

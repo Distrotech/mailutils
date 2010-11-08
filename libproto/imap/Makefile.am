@@ -13,7 +13,7 @@
 ## General Public License for more details.
 ##
 ## You should have received a copy of the GNU General Public License
-## along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>. 
+## along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
 
 INCLUDES = @MU_LIB_COMMON_INCLUDES@ 
 
@@ -21,8 +21,24 @@ lib_LTLIBRARIES = libmu_imap.la
 libmu_imap_la_LDFLAGS=-version-info @VI_CURRENT@:@VI_REVISION@:@VI_AGE@
 libmu_imap_la_LIBADD = ${MU_LIB_AUTH} ${MU_LIB_MAILUTILS} @INTLLIBS@ 
 
+# FIXME: Put these back when ready
+
+#  folder.c\
+#  mbox.c\
+#  url.c
 libmu_imap_la_SOURCES = \
- folder.c\
- mbox.c\
- url.c
+ fake-folder.c\
+ capability.c\
+ capatst.c\
+ carrier.c\
+ connect.c\
+ create.c\
+ destroy.c\
+ disconnect.c\
+ err.c\
+ logout.c\
+ response.c\
+ state.c\
+ tag.c\
+ trace.c
 

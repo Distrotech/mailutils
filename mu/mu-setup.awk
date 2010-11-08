@@ -55,7 +55,11 @@ END {
       print "extern int", setup[name,"handler"], "(int argc, char **argv);"
       print "extern char " setup[name,"docstring"] "[];"
     } else {
+      if (setup[name,"cond"])
+	print "#ifdef", setup[name,"cond"]
       print "{", "\"" name "\",", setup[name,"handler"] ",", setup[name,"docstring"], "},"
+      if (setup[name,"cond"])
+	print "#endif"
     }
   }
 }

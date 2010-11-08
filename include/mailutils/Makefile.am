@@ -52,6 +52,7 @@ pkginclude_HEADERS = \
  gsasl.h\
  guile.h\
  header.h\
+ imap.h\
  io.h\
  iterator.h\
  kwd.h\

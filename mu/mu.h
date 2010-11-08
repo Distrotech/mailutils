@@ -40,3 +40,21 @@ mu_stream_t mutool_open_pager (void);
 int mu_help (void);
 mutool_action_t dispatch_find_action (const char *name);
 char *dispatch_docstring (const char *text);
+
+
+#define VERBOSE_MASK(n) (1<<((n)+1))
+#define SET_VERBOSE_MASK(n) (shell_verbose_flags |= VERBOSE_MASK (n))
+#define CLR_VERBOSE_MASK(n) (shell_verbose_flags &= ~VERBOSE_MASK (n))
+#define QRY_VERBOSE_MASK(n) (shell_verbose_flags & VERBOSE_MASK (n))
+#define HAS_VERBOSE_MASK(n) (shell_verbose_flags & ~1)
+#define SET_VERBOSE() (shell_verbose_flags |= 1)
+#define CLR_VERBOSE() (shell_verbose_flags &= ~1)
+#define QRY_VERBOSE() (shell_verbose_flags & 1)
+
+extern int shell_verbose_flags;
+int shell_verbose (int argc, char **argv,
+		   void (*set_verbose) (void), void (*set_mask) (void));
+
+
+int get_bool (const char *str, int *pb);
+int get_port (const char *port_str, int *pn);

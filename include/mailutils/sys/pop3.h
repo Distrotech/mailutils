@@ -93,28 +93,31 @@ int _mu_pop3_trace_disable (mu_pop3_t pop3);
 
 int _mu_pop3_init (mu_pop3_t pop3);
   
-/* Check for non recoverable error.
-   The error is consider not recoverable if not part of the signal set:
-   EAGAIN, EINPROGRESS, EINTR.
-   For unrecoverable error we reset, by moving the working ptr
-   to the begining of the buffer and setting the state to error.
+/* Check if status indicates an error.
+   If the error is recoverable just return the status.
+   Otherwise, set the error state and return the status
  */
 #define MU_POP3_CHECK_EAGAIN(pop3, status)	\
   do						\
     {						\
-      if (status != 0)				\
-	{								\
-	  if (status != EAGAIN && status != EINPROGRESS && status != EINTR) \
-	    {								\
-	      pop3->state = MU_POP3_ERROR;				\
-	    }								\
-	  return status;						\
-	}								\
-    }									\
+      switch (status)				\
+	{					\
+        case 0:                                 \
+	  break;				\
+        case EAGAIN:                            \
+        case EINPROGRESS:                       \
+        case EINTR:                             \
+        case MU_ERR_REPLY:                      \
+        case MU_ERR_BADREPLY:                   \
+	  return status;                        \
+        default:                                \
+          pop3->state = MU_POP3_ERROR;		\
+	  return status;			\
+	}					\
+    }						\
   while (0)
 
-/* If error return.
-   Check status an reset(see MU_POP2_CHECK_EAGAIN) the buffer.
+/* If status indicates an error, return.
   */
 #define MU_POP3_CHECK_ERROR(pop3, status)	\
   do						\
