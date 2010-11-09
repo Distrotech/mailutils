@@ -41,6 +41,7 @@ struct _mu_filter_stream
   struct _mu_stream stream;
   mu_stream_t transport;
   int mode;
+  int eof;
   
   struct _mu_filter_buffer inbuf, outbuf;
   mu_filter_xcode_t xcode;

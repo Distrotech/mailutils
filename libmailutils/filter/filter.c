@@ -182,7 +182,7 @@ mu_filter_create (mu_stream_t *pstream, mu_stream_t stream, const char *name,
 
   status = ((flags & MU_STREAM_WRITE) ? filter_create_wr : filter_create_rd)
                    (pstream, stream,
-		    frec->max_line_length,
+		    mode == MU_FILTER_ENCODE ? frec->max_line_length : 0,
 		    mode,
 		    mode == MU_FILTER_ENCODE ? frec->encoder : frec->decoder,
 		    xdata,

@@ -93,7 +93,7 @@ mu_filter_record_t mu_binary_filter = &_binary_filter;
 
 
 static struct _mu_filter_record _bit8_filter = {
-  "bit8",
+  "8bit",
   0,
   NULL,
   _copy_codec,
@@ -103,7 +103,7 @@ static struct _mu_filter_record _bit8_filter = {
 mu_filter_record_t mu_bit8_filter = &_bit8_filter;
 
 static struct _mu_filter_record _bit7_filter = {
-  "bit7",
+  "7bit",
   0,
   NULL,
   _bit7_coder,

@@ -127,6 +127,9 @@ filter_read (mu_stream_t stream, char *buf, size_t size, size_t *pret)
 	{
 	  enum mu_filter_result res;
 	  int rc;
+
+	  if (fs->eof)
+	    break;
 	  
 	  if (MFB_RDBYTES (fs->inbuf) < min_input_level && !again)
 	    {
@@ -174,7 +177,7 @@ filter_read (mu_stream_t stream, char *buf, size_t size, size_t *pret)
 	      again = 0;
 	      if (cmd == mu_filter_lastbuf || iobuf.eof)
 		{
-		  _mu_stream_seteof (stream);
+		  fs->eof = 1;
 		  stop = 1;
 		}
 	      break;
@@ -517,8 +520,10 @@ mu_filter_stream_create (mu_stream_t *pflt,
   fs->xcode = xcode;
   fs->xdata = xdata;
   fs->mode = mode;
+  fs->eof = 0;
   
-  mu_stream_set_buffer ((mu_stream_t) fs, mu_buffer_full, MU_FILTER_BUF_SIZE);
+  mu_stream_set_buffer ((mu_stream_t) fs, mu_buffer_full,
+			MU_FILTER_BUF_SIZE);
 
   rc = filter_stream_init (fs);
   if (rc)

@@ -368,7 +368,7 @@ mu_stream_clearerr (mu_stream_t stream)
 int
 mu_stream_eof (mu_stream_t stream)
 {
-  return stream->flags & _MU_STR_EOF;
+  return (stream->flags & _MU_STR_EOF) && (stream->pos == stream->level);
 }
 
 int
@@ -589,7 +589,7 @@ _stream_read_unbuffered (mu_stream_t stream, void *buf, size_t size,
   if (stream->flags & _MU_STR_ERR)
     return stream->last_err;
     
-  if ((stream->flags & _MU_STR_EOF) || size == 0)
+  if (mu_stream_eof (stream) || size == 0)
     {
       if (pnread)
 	*pnread = 0;
