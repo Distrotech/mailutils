@@ -358,6 +358,102 @@ com_capability (int argc, char **argv)
   return status;
 }
 
+static int
+com_login (int argc, char **argv)
+{
+  int status;
+  char *pwd, *passbuf = NULL;
+
+  if (argc == 2)
+    {
+      if (!mutool_shell_interactive)
+	{
+	  mu_error (_("login: password required"));
+	  return 1;
+	}
+      status = mu_getpass (mustrin, mustrout, "Password:", &passbuf);
+      if (status)
+	return status;
+      pwd = passbuf;
+    }
+  else
+    pwd = argv[2];
+
+  status = mu_imap_login (imap, argv[1], pwd);
+  memset (pwd, 0, strlen (pwd));
+  free (passbuf);
+  if (status == 0)
+    imap_prompt_env ();
+  else
+    {
+      const char *str;
+      
+      mu_error ("authentication failed: %s", mu_strerror (status));
+      if (mu_imap_strerror (imap, &str) == 0)
+	mu_error ("server reply: %s", str);
+    }
+  return 0;
+}
+
+
+static int
+_print_id (void *item, void *data)
+{
+  const char *id = item;
+  mu_stream_printf (mustrout, "ID: %s %s\n", id, id + strlen (id) + 1);
+  return 0;
+}
+
+static int
+com_id (int argc, char **argv)
+{
+  mu_list_t list;
+  char *test = NULL;
+  int status;
+  
+  argv++;
+  if (argv[0] && strcmp (argv[0], "-test") == 0)
+    {
+      argv++;
+      if (argv[0] == NULL)
+	{
+	  mu_error ("id -test requires an argument");
+	  return 0;
+	}
+      test = argv[0];
+      argv++;
+    }
+  
+  status = mu_imap_id (imap, argv + 1, &list);
+  if (status == 0)
+    {
+      if (test)
+	{
+	  const char *res;
+	  int rc = mu_list_locate (list, test, (void*)&res);
+
+	  switch (rc)
+	    {
+	    case 0:
+	      mu_stream_printf (mustrout, "%s: %s\n", test,
+				res + strlen (res) + 1);
+	      break;
+	      
+	    case MU_ERR_NOENT:
+	      mu_stream_printf (mustrout, "%s is not set\n", test);
+	      break;
+
+	    default:
+	      return rc;
+	    }
+	}
+      else
+	mu_list_do (list, _print_id, NULL);
+      mu_list_destroy (&list);
+    }
+  return status;
+}
+
 
 struct mutool_command imap_comtab[] = {
   { "capability", 1, -1, com_capability,
@@ -375,9 +471,15 @@ struct mutool_command imap_comtab[] = {
     com_disconnect,
     NULL,
     N_("close connection") },
+  { "login",        2, 3, com_login,
+    N_("USER [PASS]"),
+    N_("login to the server") },
   { "logout",       1, 1, com_logout,
     NULL,
     N_("quit imap session") },
+  { "id",           1, -1, com_id,
+    N_("[-test KW] [ARG [ARG...]]"),
+    N_("send ID command") },
   { "quit",         1, 1, com_logout,
     NULL,
     N_("same as `logout'") },

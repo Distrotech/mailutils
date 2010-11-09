@@ -33,6 +33,7 @@ struct mu_kwd bool_keytab[] = {
   /*{ "reuse",  MU_WRDSF_REUSE },*/
   { "undef",  MU_WRDSF_UNDEF },
   { "novar",  MU_WRDSF_NOVAR },
+  { "nocmd",  MU_WRDSF_NOCMD },
   { "ws",     MU_WRDSF_WS },
   { "quote",  MU_WRDSF_QUOTE },
   { "squeeze_delims", MU_WRDSF_SQUEEZE_DELIMS },
@@ -205,7 +206,7 @@ main (int argc, char **argv)
 	  plaintext_option = !negate;
 	  continue;
 	}
-	  
+    
       if (mu_kwd_xlat_name (bool_keytab, opt, &flag) == 0)
 	{
 	  if (negate)

@@ -85,12 +85,24 @@ _mu_imap_response (mu_imap_t imap)
 		  imap->tagbuf = np;
 		}
 	      strcpy (imap->tagbuf, p);
-	      if (IS_PREFIX(p, len, "OK"))
-		imap->resp_code = MU_IMAP_OK;
-	      else if (IS_PREFIX(p, len, "NO"))
-		imap->resp_code = MU_IMAP_NO;
-	      else if (IS_PREFIX(p, len, "BAD"))
-		imap->resp_code = MU_IMAP_BAD;
+	      if (IS_PREFIX (p, len, "OK"))
+		{
+		  imap->resp_code = MU_IMAP_OK;
+		  p = mu_str_skip_cset (p + 2, " ");
+		  _mu_imap_seterrstr (imap, p, strlen (p));
+		}
+	      else if (IS_PREFIX (p, len, "NO"))
+		{
+		  imap->resp_code = MU_IMAP_NO;
+		  p = mu_str_skip_cset (p + 2, " ");
+		  _mu_imap_seterrstr (imap, p, strlen (p));
+		}
+	      else if (IS_PREFIX (p, len, "BAD"))
+		{
+		  imap->resp_code = MU_IMAP_BAD;
+		  p = mu_str_skip_cset (p + 2, " ");
+		  _mu_imap_seterrstr (imap, p, strlen (p));
+		}
 	      else
 		status = MU_ERR_BADREPLY;
 	      MU_IMAP_FSET (imap, MU_IMAP_RESP);

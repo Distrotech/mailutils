@@ -40,7 +40,9 @@ enum mu_imap_client_state
     MU_IMAP_GREETINGS,
     MU_IMAP_CONNECTED,
     MU_IMAP_CAPABILITY_RX,
+    MU_IMAP_LOGIN_RX,
     MU_IMAP_LOGOUT_RX,
+    MU_IMAP_ID_RX,
   };
 
 enum mu_imap_response

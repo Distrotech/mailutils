@@ -32,6 +32,7 @@ _mu_imap_seterrstr (mu_imap_t imap, const char *str, size_t len)
       if (!p)
 	return ENOMEM;
       imap->errsize = len + 1;
+      imap->errstr = p;
     }
   memcpy (imap->errstr, str, len);
   imap->errstr[len] = 0;

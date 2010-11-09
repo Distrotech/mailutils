@@ -36,6 +36,8 @@ libmu_imap_la_SOURCES = \
  destroy.c\
  disconnect.c\
  err.c\
+ id.c\
+ login.c\
  logout.c\
  response.c\
  state.c\

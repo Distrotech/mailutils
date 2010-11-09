@@ -81,6 +81,7 @@ mu_imap_capability (mu_imap_t imap, int reread, mu_iterator_t *piter)
       status = mu_stream_printf (imap->carrier, "%s CAPABILITY\r\n",
 				 imap->tag_str); 
       MU_IMAP_CHECK_EAGAIN (imap, status);
+      MU_IMAP_FCLR (imap, MU_IMAP_RESP);
       imap->state = MU_IMAP_CAPABILITY_RX;
 
     case MU_IMAP_CAPABILITY_RX:
@@ -103,7 +104,7 @@ mu_imap_capability (mu_imap_t imap, int reread, mu_iterator_t *piter)
 
 	      if (mu_wordsplit (str, &ws,
 				MU_WRDSF_NOVAR | MU_WRDSF_NOCMD |
-				MU_WRDSF_SQUEEZE_DELIMS))
+				MU_WRDSF_QUOTE | MU_WRDSF_SQUEEZE_DELIMS))
 		{
 		  int ec = errno;
 		  mu_error ("mu_imap_capability: cannot split line: %s",
