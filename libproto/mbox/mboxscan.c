@@ -34,6 +34,8 @@
 
 #include <stdlib.h>
 #include <mbox0.h>
+#include <mailutils/cctype.h>
+#include <mailutils/cstr.h>
 
 /* Parsing.
    The approach is to detect the "From " as start of a new message, give the
@@ -279,6 +281,26 @@ do                                                                           \
  && (buf[5] == 'S' || buf[5] == 's')                                          \
  && (buf[6] == ':' || buf[6] == ' ' || buf[6] == '\t'))
 
+#define IS_X_UID(buf) (						\
+ (buf[0] == 'X' || buf[0] == 'x')		                \
+  && buf[1] == '-'						\
+  && (buf[2] == 'U' || buf[2] == 'u')				\
+  && (buf[3] == 'I' || buf[3] == 'i')				\
+  && (buf[4] == 'D' || buf[4] == 'd')				\
+  && (buf[5] == ':' || buf[5] == ' ' || buf[5] == '\t'))
+#define IS_X_IMAPBASE(buf) (					\
+ (buf[0] == 'X' || buf[0] == 'x')		                \
+  && buf[1] == '-'						\
+  && (buf[2] == 'I' || buf[2] == 'i')				\
+  && (buf[3] == 'M' || buf[3] == 'm')				\
+  && (buf[4] == 'A' || buf[4] == 'a')				\
+  && (buf[5] == 'P' || buf[5] == 'p')				\
+  && (buf[6] == 'B' || buf[6] == 'b')				\
+  && (buf[7] == 'A' || buf[7] == 'a')				\
+  && (buf[8] == 'S' || buf[8] == 's')				\
+  && (buf[9] == 'E' || buf[9] == 'e')				\
+  && (buf[10] == ':' || buf[10] == ' ' || buf[10] == '\t'))
+
 #define MBOX_SCAN_NOTIFY 0x1
 #define MBOX_SCAN_ONEMSG 0x2
 
@@ -298,7 +320,7 @@ mbox_scan_internal (mu_mailbox_t mailbox, mbox_message_t mum,
   int newline;
   size_t n = 0;
   mu_stream_t stream;
-  size_t min_uid = 0;
+  size_t min_uid = 1;
   int zn, isfrom = 0;
   char *temp;
   
@@ -345,9 +367,9 @@ mbox_scan_internal (mu_mailbox_t mailbox, mbox_message_t mum,
 		  mum->body_end = total - n - newline;
 		  mum->body_lines = --lines - newline;
 
-		  if (mum->uid <= min_uid)
+		  if (mum->uid < min_uid)
 		    {
-		      mum->uid = ++min_uid;
+		      mum->uid = min_uid++;
 		      /* Note that modification for when expunging.  */
 		      mum->attr_flags |= MU_ATTRIBUTE_MODIFIED;
 		    }
@@ -370,12 +392,31 @@ mbox_scan_internal (mu_mailbox_t mailbox, mbox_message_t mum,
 	      mum->attr_flags = 0;
 	      lines = 0;
 	    }
-	  else if (ISSTATUS(buf))
+	  else if (ISSTATUS (buf))
 	    {
 	      ATTRIBUTE_SET(buf, mum, 'r', 'R', MU_ATTRIBUTE_READ);
 	      ATTRIBUTE_SET(buf, mum, 'o', 'O', MU_ATTRIBUTE_SEEN);
 	      ATTRIBUTE_SET(buf, mum, 'a', 'A', MU_ATTRIBUTE_ANSWERED);
 	      ATTRIBUTE_SET(buf, mum, 'd', 'D', MU_ATTRIBUTE_DELETED);
+	    }
+	  else if (IS_X_UID (buf))
+	    {
+	      char *p;
+	      unsigned long n = strtoul (buf + 6, &p, 10);
+	      if (*p == 0 || mu_isspace (*p))
+		mum->uid = min_uid = n;
+	    }
+	  else if (mud->messages_count == 1 && IS_X_IMAPBASE (buf))
+	    {
+	      char *p;
+	      unsigned long n = strtoul (buf + 11, &p, 10);
+	      if (mu_isspace (*p))
+		mud->uidvalidity = n;
+	      n = strtoul (mu_str_skip_cset (p, " \t"), &p, 10);
+	      if (*p == 0 || mu_isspace (*p))
+		mud->uidnext = n;
+	      else
+		mud->uidvalidity = 0;
 	    }
 	}
 
@@ -410,9 +451,9 @@ mbox_scan_internal (mu_mailbox_t mailbox, mbox_message_t mum,
       mum->body_end = total - newline;
       mum->body_lines = lines - newline;
 
-      if (mum->uid <= min_uid)
+      if (mum->uid < min_uid)
 	{
-	  mum->uid = ++min_uid;
+	  mum->uid = min_uid++;
 	  /* Note that modification for when expunging.  */
 	  mum->attr_flags |= MU_ATTRIBUTE_MODIFIED;
 	}
@@ -498,7 +539,7 @@ mbox_scan0 (mu_mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notif)
 	}
     }
       
-  if (mud->messages_count > 0 && min_uid >= mud->uidnext)
+  if (mud->messages_count > 0 && min_uid > mud->uidnext)
     {
       mum = mud->umessages[0];
       mud->uidnext = min_uid + 1;

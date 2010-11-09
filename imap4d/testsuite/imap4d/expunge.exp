@@ -63,7 +63,7 @@ imap4d_test "SELECT mbox1" \
 "1 EXISTS"\
 "0 RECENT"\
 -re {OK \[UIDVALIDITY [0-9]+\] UID valididy status}\
-"OK \[UIDNEXT 2\] Predicted next uid"\
+"OK \[UIDNEXT 6\] Predicted next uid"\
 "OK \[UNSEEN 1\] first unseen messsage"\
 "FLAGS (\\Answered \\Flagged \\Deleted \\Seen \\Draft)"\
 "OK \[PERMANENTFLAGS (\\Answered \\Deleted \\Seen)\] Permanent flags" \

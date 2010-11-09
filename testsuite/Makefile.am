@@ -42,7 +42,8 @@ INCLUDES = @MU_LIB_COMMON_INCLUDES@
 noinst_PROGRAMS = \
  mbdel\
  mimetest\
- smtpsend
+ smtpsend\
+ ufms
 
 LDADD = \
  ${MU_LIB_MBOX}\
@@ -68,6 +69,7 @@ smtpsend_LDADD = \
 TESTSUITE_AT = \
  mbdel.at\
  mime.at\
+ ufms.at\
  testsuite.at
 
 TESTSUITE = $(srcdir)/testsuite

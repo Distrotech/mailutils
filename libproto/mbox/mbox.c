@@ -349,6 +349,7 @@ _msg_body_setup (mu_message_t msg, mbox_message_t mum)
       mu_body_set_stream (body, stream, msg);
       mu_body_set_size (body, mbox_body_size, msg);
       mu_body_set_lines (body, mbox_body_lines, msg);
+      mu_body_clear_modified (body);
       mu_message_set_body (msg, body, mum);
     }
   return status;
@@ -570,6 +571,8 @@ new_message (mu_mailbox_t mailbox, mbox_message_t mum, mu_message_t *pmsg)
   /* Attach the message to the mailbox mbox data.  */
   mum->message = msg;
   mu_message_set_mailbox (msg, mailbox, mum);
+
+  mu_message_clear_modified (msg);
 
   *pmsg = msg;
   
@@ -1149,37 +1152,18 @@ mbox_append_message (mu_mailbox_t mailbox, mu_message_t msg)
 
 
 static void
-mbox_reset (mu_mailbox_t mailbox, size_t dirty, int remove_deleted)
+mbox_reset (mu_mailbox_t mailbox)
 {
   mbox_data_t mud = mailbox->data;
   size_t i;
-  size_t dlast;
 
   mu_monitor_wrlock (mailbox->monitor);
-  for (i = dirty, dlast = mud->messages_count - 1; i <= dlast; i++)
+  for (i = 0; i < mud->messages_count; i++)
     {
       /* Clear all the references */
       mbox_message_t mum = mud->umessages[i];
-      if (remove_deleted && ATTRIBUTE_IS_DELETED (mum->attr_flags))
-	{
-	  if ((i + 1) <= dlast)
-	    {
-	      /* Move all the pointers up.  So the message pointer
-		 part of mum will be at the right position.  */
-	      memmove (mud->umessages + i, mud->umessages + i + 1,
-		       (dlast - i) * sizeof (mum));
-	      memset (mum, 0, sizeof (*mum));
-	      /* We are not free()ing the useless mum, but instead
-		 we put it back in the pool, to be reused.  */
-	      mud->umessages[dlast] = mum;
-	      dlast--;
-	      /* Set mum to the new value after the memmove so it
-		 gets cleared to.  */
-	      mum = mud->umessages[i];
-	    }
-	  else
-	    memset (mum, 0, sizeof (*mum));
-	}
+      mu_message_destroy (&mum->message, mum);
+      memset (mum, 0, sizeof (*mum));
       mum->envel_from = mum->envel_from_end = 0;
       mum->body = mum->body_end = 0;
       mum->header_lines = mum->body_lines = 0;
@@ -1187,7 +1171,7 @@ mbox_reset (mu_mailbox_t mailbox, size_t dirty, int remove_deleted)
   mu_monitor_unlock (mailbox->monitor);
   /* This resets the messages_count, the last argument 0 means
      not to send event notification.  */
-  mbox_scan0 (mailbox, dirty, NULL, 0);
+  mbox_scan0 (mailbox, 1, NULL, 0);
 }
 
 static int
@@ -1434,7 +1418,7 @@ mbox_expunge0 (mu_mailbox_t mailbox, int remove_deleted)
       mu_stream_destroy (&tempstr);
       
       if (status == 0)
-	mbox_reset (mailbox, dirty, remove_deleted);
+	mbox_reset (mailbox);
     }
   if (mailbox->locker)
     mu_locker_unlock (mailbox->locker);
