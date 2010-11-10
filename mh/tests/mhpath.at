@@ -1,0 +1,110 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2010 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# GNU Mailutils is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+
+m4_pushdef[MH_KEYWORDS],[mhpath])
+
+MH_CHECK([mhpath],[mhpath00],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
+echo 'Current-Folder: inbox' > Mail/context
+mhpath | sed 's|^'"$dir"'/||'
+],
+[0],
+[Mail/inbox
+])
+
+MH_CHECK([mhpath +],[mhpath01 mhpath+],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
+echo 'Current-Folder: inbox' > Mail/context
+mhpath +| sed 's|^'"$dir"'/||'
+],
+[0],
+[Mail
+])
+
+MH_CHECK([mhpath msgs],[mhpath02 mhparam_msgs],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
+dir=`pwd`
+mhpath 1-3 | sed 's|^'"$dir"'/||'
+],
+[0],
+[Mail/inbox/1
+Mail/inbox/2
+Mail/inbox/3
+])
+
+MH_CHECK([mhpath msgs (some nonexistent)],[mhpath03 mhparam_msgs_some_nonex],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
+dir=`pwd`
+mhpath 4-10 | sed 's|^'"$dir"'/||'
+],
+[0],
+[Mail/inbox/4
+Mail/inbox/5
+])
+
+MH_CHECK([mhpath msgs (all nonexistent)],[mhpath04 mhparam_msgs_all_nonex],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
+dir=`pwd`
+mhpath 8-10 | sed 's|^'"$dir"'/||'
+],
+[0],
+[],
+[mhpath: no messages in range 8-10
+])
+
+# FIXME: This test is dubious:
+#  1. Both MH and nmh manuals claim that:
+#
+#      2) Within a message list, the following designations may refer to  mes-
+#         sages that do not exist: a single numeric message name[...]
+#
+#     However, neither mhpath implementation follows this claim.  Should we?
+#  2. If a single non-existent message number is given, both MH and nmh
+#     implementations of mhpath produce the following error message:
+#
+#      mhpath: message N out of range X-Y
+#
+#     The diagnostics produced by my implementation differs.  This should
+#     be fixed, all the more that:
+#  3. The rest of utilities, when given a single non-existent message number,
+#     produce the following error message:
+#      
+#      folder: message N doesn't exist
+#
+#     Note the contracted negation, in place of a full one in MU diagnostics.
+#
+
+MH_CHECK([mhpath nonexistent],[mhpath05 mhparam_nonexistent],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
+dir=`pwd`
+mhpath 10 | sed 's|^'"$dir"'/||'
+],
+[0],
+[],
+[mhpath: message 10 does not exist
+])
+
+MH_CHECK([mhpath new],[mhpath06 mhparam_new],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
+dir=`pwd`
+mhpath new | sed 's|^'"$dir"'/||'
+],
+[0],
+[Mail/inbox/6
+])
+
+m4_popdef[MH_KEYWORDS])
+# End of mhpath.at

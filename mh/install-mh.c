@@ -57,7 +57,7 @@ opt_handler (int key, char *arg, struct argp_state *state)
 int
 main (int argc, char **argv)
 {
-  char *home, *name;
+  char *name;
   extern int mh_auto_install;
   
   /* Native Language Support */
@@ -68,10 +68,17 @@ main (int argc, char **argv)
   mh_argp_parse (&argc, &argv, 0, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, NULL);
 
-  home = mu_get_homedir ();
-  if (!home)
-    abort (); /* shouldn't happen */
-  name = mh_safe_make_file_name (home, MH_USER_PROFILE);
+  name = getenv ("MH");
+  if (name)
+    name = mu_tilde_expansion (name, "/", NULL);
+  else
+    {
+      char *home = mu_get_homedir ();
+      if (!home)
+	abort (); /* shouldn't happen */
+      name = mh_safe_make_file_name (home, MH_USER_PROFILE);
+      free (home);
+    }
   mh_install (name, automode);
   return 0;
 }

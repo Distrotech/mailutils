@@ -1,0 +1,75 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2010 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# GNU Mailutils is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+
+m4_pushdef[MH_KEYWORDS],[refile])
+
+MH_CHECK([refile],[refile00],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/teaparty,[Mail/teaparty])
+echo 'Current-Folder: teaparty' > Mail/context
+refile 3 4 +inbox || exit $?
+find Mail/inbox -name '[[0-9]]' | sort
+cmp Mail/inbox/6 Mail/teaparty/,3 >/dev/null || echo "Message 3 differs"
+cmp Mail/inbox/7 Mail/teaparty/,4 >/dev/null || echo "Message 4 differs"
+],
+[0],
+[Mail/inbox/1
+Mail/inbox/2
+Mail/inbox/3
+Mail/inbox/4
+Mail/inbox/5
+Mail/inbox/6
+Mail/inbox/7
+])
+
+MH_CHECK([refile -file],[refile01 refile-file],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
+echo 'Current-Folder: inbox' > Mail/context
+cp Mail/inbox/2 message
+refile -file `pwd`/message +inbox || exit $?
+find Mail/inbox -name '[[0-9]]' | sort
+cmp Mail/inbox/2 Mail/inbox/6 >/dev/null || echo "Message differs"
+],
+[0],
+[Mail/inbox/1
+Mail/inbox/2
+Mail/inbox/3
+Mail/inbox/4
+Mail/inbox/5
+Mail/inbox/6
+])
+
+MH_CHECK([refile --copy],[refile02 refile--copy],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/teaparty,[Mail/teaparty])
+echo 'Current-Folder: teaparty' > Mail/context
+refile --copy 3 4 +inbox || exit $?
+find Mail/inbox -name '[[0-9]]' | sort
+cmp Mail/inbox/6 Mail/teaparty/3 >/dev/null || echo "Message 3 differs"
+cmp Mail/inbox/7 Mail/teaparty/4 >/dev/null || echo "Message 4 differs"
+],
+[0],
+[Mail/inbox/1
+Mail/inbox/2
+Mail/inbox/3
+Mail/inbox/4
+Mail/inbox/5
+Mail/inbox/6
+Mail/inbox/7
+])
+
+m4_popdef[MH_KEYWORDS])
+# End of refile.at

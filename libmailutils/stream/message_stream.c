@@ -129,6 +129,20 @@ _message_size (mu_stream_t stream, mu_off_t *psize)
     *psize -= s->envelope_length + s->mark_length;
   return rc;
 }
+
+static char *
+copy_trimmed_value (const char *str)
+{
+  char *p;
+  size_t len;
+  
+  str = mu_str_skip_class (str, MU_CTYPE_SPACE);
+  len = strlen (str) - 1;
+  p = malloc (len);
+  memcpy (p, str, len);
+  p[len] = 0;
+  return p;
+}
   
 static int
 scan_stream (struct _mu_message_stream *str)
@@ -180,21 +194,17 @@ scan_stream (struct _mu_message_stream *str)
       	  if (!from && mu_c_strncasecmp (buffer, MU_HEADER_FROM,
 				         sizeof (MU_HEADER_FROM) - 1) == 0)
 	    
-	    from = mu_strdup (mu_str_skip_class (buffer +
-						 sizeof (MU_HEADER_FROM),
-						 MU_CTYPE_SPACE));
+	    from = copy_trimmed_value (buffer + sizeof (MU_HEADER_FROM));
 	  else if (!env_from
 		   && mu_c_strncasecmp (buffer, MU_HEADER_ENV_SENDER,
 				        sizeof (MU_HEADER_ENV_SENDER) - 1) == 0)
-	    env_from = mu_strdup (mu_str_skip_class (buffer +
-					sizeof (MU_HEADER_ENV_SENDER),
-						     MU_CTYPE_SPACE));
+	    env_from = copy_trimmed_value (buffer +
+					   sizeof (MU_HEADER_ENV_SENDER));
 	  else if (!env_date
 		   && mu_c_strncasecmp (buffer, MU_HEADER_ENV_DATE,
 				        sizeof (MU_HEADER_ENV_DATE) - 1) == 0)
-	    env_date = mu_strdup (mu_str_skip_class (buffer +
-						  sizeof (MU_HEADER_ENV_DATE),
-						     MU_CTYPE_SPACE));
+	    env_date = copy_trimmed_value (buffer +
+					   sizeof (MU_HEADER_ENV_DATE));
 	}
     }
 

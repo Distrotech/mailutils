@@ -506,7 +506,7 @@ action_list ()
   const char *stack = mh_global_context_get ("Folder-Stack", NULL);
 
   printf ("%s", mh_current_folder ());
-  if (stack)
+  if (stack && stack[0])
     printf (" %s", stack);
   printf ("\n");
   return 0;

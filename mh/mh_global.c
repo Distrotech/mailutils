@@ -163,7 +163,7 @@ _mh_init_global_sequences ()
 void
 mh_global_sequences_drop ()
 {
-  sequences = NULL;
+  mh_context_destroy (&sequences);
 }
 
 const char *

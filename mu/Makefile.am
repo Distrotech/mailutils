@@ -78,6 +78,9 @@ AM_CPPFLAGS = \
   -DPYTHON_LIBS="\"$(PYTHON_LIBS)\"" \
   -DI18NLIBS="\"$(LIBINTL)\""
 
+BUILD_SOURCES=mu-setup.c mu-setup.h
+EXTRA_DIST=mu-setup.c mu-setup.h
+
 mu-setup.h: Makefile.am $(MODULES) $(IDLE_MODULES) 
 	$(AM_V_GEN)$(AWK) -f $(top_srcdir)/mu/mu-setup.awk -v mode=h \
            $(MODULES) $(IDLE_MODULES) > mu-setup.h

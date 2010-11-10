@@ -80,80 +80,81 @@ mh_context_merge (mh_context_t *dst, mh_context_t *src)
 int 
 mh_context_read (mh_context_t *ctx)
 {
-  int status;
+  int rc;
   char *blurb, *p;
-  struct stat st;
-  FILE *fp;
+  mu_stream_t stream;
+  mu_off_t stream_size;
   char *buf = NULL;
-  size_t size = 0;
+  size_t size = 0, n;
   
   if (!ctx)
     return MU_ERR_OUT_NULL;
   
-  if (stat (ctx->name, &st))
-    return errno;
+  rc = mu_file_stream_create (&stream, ctx->name, MU_STREAM_READ);
+  if (rc)
+    return rc;
 
-  blurb = malloc (st.st_size);
-  if (!blurb)
-    return ENOMEM;
-  
-  fp = fopen (ctx->name, "r");
-  if (!fp)
+  rc = mu_stream_size (stream, &stream_size);
+  if (rc)
     {
-      free (blurb);
-      return errno;
+      mu_stream_destroy (&stream);
+      return rc;
     }
 
-  p = blurb;
-  while (getline (&buf, &size, fp) > 0)
+  blurb = malloc (stream_size + 1);
+  if (!blurb)
     {
-      char *q;
-
-      for (q = buf; *q && mu_isspace (*q); q++)
-	;
+      mu_stream_destroy (&stream);
+      return ENOMEM;
+    }
+  
+  p = blurb;
+  while (mu_stream_getline (stream, &buf, &size, &n) == 0 && n > 0)
+    {
+      char *q = mu_str_skip_class (buf, MU_CTYPE_SPACE);
       if (!*q || *q == '#')
 	continue;
-      
       for (q = buf; *q;)
 	*p++ = *q++;
     }
-  fclose (fp);
-
-  status = mu_header_create (&ctx->header, blurb, p - blurb);
+  mu_stream_destroy (&stream);
+  rc = mu_header_create (&ctx->header, blurb, p - blurb);
   free (blurb);
 
-  return status;
+  return rc;
 }
 
 int 
 mh_context_write (mh_context_t *ctx)
 {
-  mu_stream_t stream;
-  char buffer[512];
-  size_t n;
-  FILE *fp;
+  int rc;
+  mu_stream_t instream, outstream;
+  mu_off_t size;
   
   if (!ctx)
     return MU_ERR_OUT_NULL;
 
-  fp = fopen (ctx->name, "w");
-  if (!fp)
+  rc = mu_file_stream_create (&outstream, ctx->name,
+			      MU_STREAM_WRITE|MU_STREAM_CREAT);
+  if (rc)
     {
-      mu_error (_("cannot open context file %s: %s"),
-		ctx->name, strerror (errno));
+      mu_error (_("cannot open context file %s for writing: %s"),
+		ctx->name, mu_strerror (rc));
       return MU_ERR_FAILURE;
     }
-
-  /* FIXME: Use mu_stream+copy */
-  mu_header_get_streamref (ctx->header, &stream);
-  while (mu_stream_read (stream, buffer, sizeof buffer - 1, &n) == 0
-	 && n != 0)
+  
+  mu_header_get_streamref (ctx->header, &instream);
+  rc = mu_stream_copy (outstream, instream, 0, &size);
+  if (rc)
     {
-      buffer[n] = '\0';
-      fprintf (fp, "%s", buffer);
+      mu_error (_("error writing to context file %s: %s"),
+		ctx->name, mu_strerror (rc));
+      return MU_ERR_FAILURE;
     }
-  mu_stream_destroy (&stream);
-  fclose (fp);
+  else
+    rc = mu_stream_truncate (outstream, size);
+  mu_stream_destroy (&instream);
+  mu_stream_destroy (&outstream);
   return 0;
 }
 
@@ -194,13 +195,35 @@ mh_context_iterate (mh_context_t *ctx, mh_context_iterator fp, void *data)
   
   if (!ctx)
     return EINVAL;
-  mu_header_get_field_count (ctx->header, &nfields);
+  if (!ctx->header)
+    return 0;
+  rc = mu_header_get_field_count (ctx->header, &nfields);
+  if (rc)
+    {
+      mu_error (_("cannot obtain field count for context %s"), ctx->name);
+      return rc;
+    }
+  
   for (i = 1; i <= nfields && rc == 0; i++)
     {
       const char *name, *value;
       
-      mu_header_sget_field_name (ctx->header, i, &name);
-      mu_header_sget_field_value (ctx->header, i, &value);
+      rc = mu_header_sget_field_name (ctx->header, i, &name);
+      if (rc)
+	{
+	  mu_error (_("cannot obtain field name for context %s:%d: %s"),
+		    ctx->name,i,mu_strerror (rc));
+	  break;
+	}
+      
+      rc = mu_header_sget_field_value (ctx->header, i, &value);
+      if (rc)
+	{
+	  mu_error (_("cannot obtain field value for context %s:%d: %s"),
+		    ctx->name,i,mu_strerror (rc));
+	  break;
+	}
+      
       rc = fp (name, value, data);
     }
 

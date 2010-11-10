@@ -1,0 +1,52 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2010 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# GNU Mailutils is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+
+m4_include([testsuite.inc])
+
+m4_define([MH_SETUP],[
+test -d Mail || mkdir Mail
+dir=`pwd`
+MH=$dir/mh_profile
+export MH
+echo "Path: $dir/Mail" > $MH
+exec <&-
+])
+
+m4_define([MH_KEYWORDS])
+
+dnl --------------------------------------------------------------
+dnl MH_CHECK(DESCR, [KW = `'], COMMANDS, [STATUS = `0'],
+dnl          [STDOUT = `'], [STDERR = `']
+dnl
+m4_define([MH_CHECK],[
+AT_SETUP($1)
+AT_KEYWORDS(MH_KEYWORDS[ $2])
+MH_SETUP
+AT_CHECK([$3],[$4],[$5],[$6])
+AT_CLEANUP
+])
+
+AT_INIT
+
+m4_include([folder.at])
+m4_include([inc.at])
+m4_include([scan.at])
+m4_include([rmm.at])
+m4_include([rmf.at])
+m4_include([mark.at])
+m4_include([mhparam.at])
+m4_include([refile.at])
+m4_include([mhpath.at])

@@ -1,0 +1,51 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2010 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# GNU Mailutils is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+
+m4_pushdef[MH_KEYWORDS],[rmm])
+
+MH_CHECK([rmm msg],[rmm00 rmm-msg],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
+echo 'Current-Folder: inbox' > Mail/context
+rmm 4 || exit $?
+find Mail/inbox -name '[[0-9]]' | sort
+],
+[0],
+[Mail/inbox/1
+Mail/inbox/2
+Mail/inbox/3
+Mail/inbox/5
+])
+
+MH_CHECK([rmm seq],[rmm01 rmm-seq],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
+echo 'Current-Folder: inbox' > Mail/context
+cat > Mail/inbox/.mh_sequences <<EOT
+test: 2 3 5 
+cur: 1
+EOT
+rmm test || exit $?
+find Mail/inbox -name '[[0-9]]' | sort
+sed '/^$/d' Mail/inbox/.mh_sequences
+],
+[0],
+[Mail/inbox/1
+Mail/inbox/4
+test: 2 3 5 
+cur: 1
+])
+
+m4_popdef[MH_KEYWORDS])
+# End of rmm.at

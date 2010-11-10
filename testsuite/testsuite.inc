@@ -44,14 +44,18 @@ AT_CLEANUP
 ])
 
 dnl ------------------------------------------------------------
-dnl MUT_MBCOPY(SRC, DST)  -- Copy mailbox SRC to DST.
+dnl MUT_MBCOPY(SRC, [DST = `.'])  -- Copy mailbox SRC to DST.
 dnl 
 dnl
 m4_define([MUT_MBCOPY],[
 m4_pushdef([__dst],[m4_if([$2],,[.],[$2])])
 m4_pushdef([__basename],[m4_bregexp($1,[.*/\([^/]+\)$],\1)])
 cp -r $1 __dst
-chmod -R +w __dst/__basename
+if test -e __dst/__basename; then
+ chmod -R +w __dst/__basename
+else
+ chmod -R +w __dst
+fi
 m4_popdef([__basename])
 m4_popdef([__dst])
 ])

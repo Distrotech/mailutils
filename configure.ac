@@ -1217,6 +1217,7 @@ AC_CONFIG_TESTDIR(maidag/tests)
 AC_CONFIG_TESTDIR(messages/tests)
 AC_CONFIG_TESTDIR(readmsg/tests)
 AC_CONFIG_TESTDIR(sieve/tests)
+AC_CONFIG_TESTDIR(mh/tests)
 
 AC_CONFIG_FILES([libmailutils/tests/Makefile
                  libmailutils/tests/atlocal
@@ -1231,7 +1232,9 @@ AC_CONFIG_FILES([libmailutils/tests/Makefile
 		 readmsg/tests/Makefile
 		 readmsg/tests/atlocal
                  sieve/tests/Makefile
-                 sieve/tests/atlocal]) 
+                 sieve/tests/atlocal
+		 mh/tests/Makefile
+		 mh/tests/atlocal]) 
 AM_MISSING_PROG([AUTOM4TE], [autom4te])
 
 dnl Make sysconfdir available to the application

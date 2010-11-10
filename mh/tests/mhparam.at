@@ -1,0 +1,72 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2010 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# GNU Mailutils is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+
+m4_pushdef[MH_KEYWORDS],[mhparam])
+
+MH_CHECK([mhparam -all],[mhparam00 mhparam-all],[
+cat >>$MH <<EOT
+Sequence-Negation: not
+Draft-Folder: Mail/drafts
+Aliasfile: .mh_aliases
+EOT
+mhparam -all | tr '\t' ' ' | sed 's/^Path:.*/Path: Mail/;s/  */ /g'
+],
+[0],
+[Path: Mail
+Sequence-Negation: not
+Draft-Folder: Mail/drafts
+Aliasfile: .mh_aliases
+])
+
+MH_CHECK([mhparam comp],[mhparam01 mhparam_comp],[
+cat >>$MH <<EOT
+Sequence-Negation: not
+Draft-Folder: Mail/drafts
+Aliasfile: .mh_aliases
+EOT
+mhparam Sequence-Negation
+],
+[0],
+[not
+])
+
+MH_CHECK([mhparam comp comp],[mhparam02 mhparam_comp_comp],[
+cat >>$MH <<EOT
+Sequence-Negation: not
+Draft-Folder: Mail/drafts
+Aliasfile: .mh_aliases
+EOT
+mhparam Sequence-Negation Aliasfile | tr '\t' ' '
+],
+[0],
+[Sequence-Negation: not
+Aliasfile: .mh_aliases
+])
+
+MH_CHECK([mhparam -component comp],[mhparam03 mhparam-component_comp],[
+cat >>$MH <<EOT
+Sequence-Negation: not
+Draft-Folder: Mail/drafts
+Aliasfile: .mh_aliases
+EOT
+mhparam -component Sequence-Negation | tr '\t' ' ' | sed 's/  */ /g'
+],
+[0],
+[Sequence-Negation: not
+])
+
+m4_popdef[MH_KEYWORDS])
+# End of mhparam.at

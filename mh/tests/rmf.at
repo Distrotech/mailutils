@@ -1,0 +1,45 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2010 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# GNU Mailutils is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+
+m4_pushdef[MH_KEYWORDS],[rmm])
+
+MH_CHECK([rmf +folder],[rmf00 rmf+folder],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/teaparty,[Mail])
+echo 'Current-Folder: inbox' > Mail/context
+rmf +teaparty || exit $?
+find Mail -type d
+],
+[0],
+[Mail
+Mail/inbox
+])
+
+MH_CHECK([rmf],[rmf01 rmf_cur],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/teaparty,[Mail])
+echo 'Current-Folder: teaparty' > Mail/context
+rmf || exit $?
+find Mail -type d
+],
+[0],
+[[[+inbox now current]]
+Mail
+Mail/inbox
+])
+
+m4_popdef[MH_KEYWORDS])
+# End of rmf.at

@@ -1,0 +1,147 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2010 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# GNU Mailutils is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+
+m4_pushdef[MH_KEYWORDS],[folder])
+
+MH_CHECK([folder],[folder00 folder-print],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/teaparty,[Mail])
+echo 'Current-Folder: inbox' > Mail/context
+folder
+],
+[0],
+[                 inbox+ has    5 messages (   1-   5).
+])
+
+MH_CHECK([folder -all],[folder01 folder-all],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/teaparty,[Mail])
+echo 'Current-Folder: inbox' > Mail/context
+folder -all
+],
+[0],
+[dnl
+Folder                  # of messages     (  range  )  cur msg   (other files)
+                 inbox+ has    5 messages (   1-   5).
+              teaparty  has   95 messages (   1-  95).
+
+                   TOTAL= 100 messages in    2 folders
+])
+
+MH_CHECK([folder -all -fast],[folder02 folder-all folder-all-fast],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/teaparty,[Mail])
+echo 'Current-Folder: inbox' > Mail/context
+folder -all -fast
+],
+[0],
+[inbox
+teaparty
+])
+
+MH_CHECK([folder +mbox],[folder03 folder+mbox],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/teaparty,[Mail])
+echo 'Current-Folder: inbox' > Mail/context
+folder +teaparty
+sed -n 's/^\(Current-Folder\): *\(.*\)/\1: \2/p' Mail/context
+],
+[0],
+[dnl
+              teaparty+ has   95 messages (   1-  95).
+Current-Folder: teaparty	      
+])
+
+MH_CHECK([folder +mbox msg],[folder04 folder+mbox_msg],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/teaparty,[Mail])
+echo 'Current-Folder: inbox' > Mail/context
+folder +teaparty 35
+sed -n 's/^\(Current-Folder\): *\(.*\)/context: \1: \2/p' Mail/context
+sed -n 's/^\(cur\): *\(.*\)/mh_sequences: \1: \2/p' Mail/teaparty/.mh_sequences
+],
+[0],
+[dnl
+              teaparty+ has   95 messages (   1-  95); cur=  35.
+context: Current-Folder: teaparty
+mh_sequences: cur: 35
+])
+
+MH_CHECK([folder -pack],[folder05 folder-pack],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
+for i in 2 3 4 5
+do
+  mv Mail/inbox/$i Mail/inbox/${i}0
+done
+folder -pack || exit $?
+find Mail/inbox
+],
+[0],
+[Mail/inbox
+Mail/inbox/1
+Mail/inbox/2
+Mail/inbox/3
+Mail/inbox/4
+Mail/inbox/5
+Mail/inbox/.mh_sequences
+])
+
+MH_CHECK([folder --pack=N],[folder06 folder--pack=N],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
+for i in 1 2 3 4 5
+do
+  mv Mail/inbox/$i Mail/inbox/${i}0
+done
+folder --pack=1 || exit $?
+find Mail/inbox
+],
+[0],
+[Mail/inbox
+Mail/inbox/1
+Mail/inbox/2
+Mail/inbox/3
+Mail/inbox/4
+Mail/inbox/5
+Mail/inbox/.mh_sequences
+])
+
+MH_CHECK([folder -push/-pop],[folder07 folder-push folder-pop folder-push-pop],
+[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/teaparty,[Mail])
+folder -push +teaparty
+folder -pop
+folder -push +teaparty
+folder -push
+folder -pop
+],
+[0],
+[teaparty inbox
+inbox
+teaparty inbox
+inbox teaparty
+teaparty
+])
+
+MH_CHECK([folder -create],[folder08 folder-create],[
+folder -create +new
+],
+[0],
+[                   new+ has no messages.
+])
+
+m4_popdef[MH_KEYWORDS])
+# End of folder.at
