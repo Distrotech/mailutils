@@ -188,24 +188,10 @@ split_content (const char *content, char **type, char **subtype)
 }
 
 int
-_get_hdr_value (mu_header_t hdr, const char *name, char **value)
-{
-  int status = mu_header_aget_value (hdr, name, value);
-  if (status == 0)
-    {
-      /* Remove the newlines.  */
-      char *nl;
-      while ((nl = strchr (*value, '\n')) != NULL)
-	*nl = ' ';
-    }
-  return status;
-}
-
-int
 _get_content_type (mu_header_t hdr, char **value, char **rest)
 {
   char *type = NULL;
-  _get_hdr_value (hdr, MU_HEADER_CONTENT_TYPE, &type);
+  mu_header_aget_value_unfold (hdr, MU_HEADER_CONTENT_TYPE, &type);
   if (type == NULL || *type == '\0')
     {
       if (type)
@@ -230,7 +216,8 @@ static int
 _get_content_encoding (mu_header_t hdr, char **value)
 {
   char *encoding = NULL;
-  _get_hdr_value (hdr, MU_HEADER_CONTENT_TRANSFER_ENCODING, &encoding);
+  mu_header_aget_value_unfold (hdr, MU_HEADER_CONTENT_TRANSFER_ENCODING,
+			       &encoding);
   if (encoding == NULL || *encoding == '\0')
     {
       if (encoding)
@@ -406,7 +393,8 @@ opt_handler (int key, char *arg, struct argp_state *state)
 
 /* *********************** Message part functions ************************* */
 
-struct _msg_part {
+struct _msg_part
+{
   int level;
   int maxlevel;
   size_t *part;
@@ -1094,9 +1082,12 @@ handle_message (mu_message_t msg, msg_part_t part, msg_handler_t fun, void *data
 }
 
 int
-mhn_message_size (mu_message_t msg, size_t *psize)
+mhn_message_size (mu_message_t msg, mu_off_t *psize)
 {
+  int rc;
+  size_t size;
   mu_body_t body;
+  
   *psize = 0;
   mu_message_get_body (msg, &body);
   if (mode_options & OPT_REALSIZE)
@@ -1107,8 +1098,6 @@ mhn_message_size (mu_message_t msg, size_t *psize)
 	{
 	  mu_header_t hdr;
 	  char *encoding;
-	  size_t size = 0;
-	  int rc;
 	  
 	  mu_message_get_header (msg, &hdr);
 	  _get_content_encoding (hdr, &encoding);
@@ -1119,22 +1108,27 @@ mhn_message_size (mu_message_t msg, size_t *psize)
 	  free (encoding);
 	  if (rc == 0)
 	    {
-	      char buf[512];
-	      size_t n;
+	      mu_stream_stat_buffer stat;
+	      mu_stream_t null;
 
-	      while (mu_stream_read (dstr, buf, sizeof buf, &n) == 0
-		     && n > 0)
-		size += n;
-
+	      mu_nullstream_create (&null, MU_STREAM_WRITE);
+	      mu_stream_set_stat (null,
+				  MU_STREAM_STAT_MASK (MU_STREAM_STAT_OUT),
+				  stat);
+	      mu_stream_copy (null, dstr, 0, NULL);
+	      mu_stream_destroy (&null);
 	      mu_stream_destroy (&dstr);
-	      *psize = size;
+	      *psize = stat[MU_STREAM_STAT_OUT];
 	      return 0;
 	    }
 	  mu_stream_destroy (&bstr);
 	}
     }
 
-  return mu_body_size (body, psize);
+  rc = mu_body_size (body, &size);
+  if (rc == 0)
+    *psize = size;
+  return rc;
 }
 
 
@@ -1144,7 +1138,7 @@ int
 list_handler (mu_message_t msg, msg_part_t part, char *type, char *encoding,
 	      void *data)
 {
-  size_t size;
+  mu_off_t size;
   mu_header_t hdr;
   
   if (msg_part_level (part) == 0)
@@ -1161,9 +1155,9 @@ list_handler (mu_message_t msg, msg_part_t part, char *type, char *encoding,
   if (size < 1024)
     printf (" %4lu", (unsigned long) size);
   else if (size < 1024*1024)
-    printf ("%4luK", (unsigned long) size / 1024);
+    printf ("%4luK", (unsigned long) (size + 1024 - 1) / 1024);
   else
-    printf ("%4luM", (unsigned long) size / 1024 / 1024);
+    printf ("%4luM", (unsigned long) (size + 1024*1024 - 1) / 1024 / 1024);
   
   if (mu_message_get_header (msg, &hdr) == 0)
     {
@@ -1360,7 +1354,7 @@ show_handler (mu_message_t msg, msg_part_t part, char *type, char *encoding,
     {
       char *str;
       const char *p;
-      size_t size = 0;
+      mu_off_t size = 0;
 
       str = (char*) _("part ");
       mu_stream_write (out, str, strlen (str), NULL);
@@ -1662,7 +1656,8 @@ mhn_store ()
 
 /* ***************************** Compose Mode **************************** */
 
-struct compose_env {
+struct compose_env
+{
   mu_stream_t input;
   mu_mime_t mime;
   size_t line;
@@ -1881,20 +1876,13 @@ copy_header (mu_message_t msg, mu_header_t out)
   mu_header_get_field_count (hdr, &count);
   for (i = 1; i <= count; i++)
     {
-      char *name, *value;
+      const char *name, *value;
 
-      if (mu_header_aget_field_name (hdr, i, &name))
-        continue;
-
-      if (mu_header_aget_field_value (hdr, i, &value))
-	{
-          free (name);
-          continue;
-        }
+      if (mu_header_sget_field_name (hdr, i, &name) ||
+	  mu_header_sget_field_value (hdr, i, &value))
+	continue;
 
       mu_header_set_value (out, name, value, 0);
-      free (name);
-      free (value);
     }
 }
 
@@ -2216,7 +2204,8 @@ edit_mime (char *cmd, struct compose_env *env, mu_message_t *msg, int level)
   
   /* Create filter */
 
-  if (_get_hdr_value (hdr, MU_HEADER_CONTENT_TRANSFER_ENCODING, &encoding))
+  if (mu_header_aget_value_unfold (hdr, MU_HEADER_CONTENT_TRANSFER_ENCODING,
+				   &encoding))
     {
       char *typestr, *type, *subtype;
       

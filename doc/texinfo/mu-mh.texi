@@ -4,7 +4,7 @@
 @comment *******************************************************************
 
 The primary aim of this implementation is to provide an interface
-between Mailutils and Emacs using mh-e module. 
+between Mailutils and Emacs using mh-e module.
 
 To use Mailutils MH with Emacs, add the following line to your
 site-start.el or .emacs file:
