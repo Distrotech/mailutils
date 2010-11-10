@@ -148,9 +148,6 @@ extern int mu_message_unencapsulate (mu_message_t msg, mu_message_t *newmsg,
 extern int mu_mime_io_buffer_create (mu_mime_io_buffer_t *pinfo);
 extern void mu_mime_io_buffer_destroy (mu_mime_io_buffer_t *pinfo);
   
-extern void mu_mime_io_buffer_set_size (mu_mime_io_buffer_t info, size_t size);
-extern void mu_mime_io_buffer_get_size (mu_mime_io_buffer_t info,
-					size_t *psize);
 extern int mu_mime_io_buffer_set_charset (mu_mime_io_buffer_t info,
 					  const char *charset);
 extern void mu_mime_io_buffer_sget_charset (mu_mime_io_buffer_t info,

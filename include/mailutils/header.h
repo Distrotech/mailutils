@@ -35,7 +35,7 @@ extern "C" {
 #define MU_HEADER_RESENT_FROM               "Resent-From"
 #define MU_HEADER_SUBJECT                   "Subject"
 #define MU_HEADER_SENDER                    "Sender"
-#define MU_HEADER_RESENT_SENDER             "Resent-SENDER"
+#define MU_HEADER_RESENT_SENDER             "Resent-Sender"
 #define MU_HEADER_TO                        "To"
 #define MU_HEADER_RESENT_TO                 "Resent-To"
 #define MU_HEADER_CC                        "Cc"
@@ -54,7 +54,7 @@ extern "C" {
 #define MU_HEADER_STATUS                    "Status"
 #define MU_HEADER_CONTENT_LENGTH            "Content-Length"
 #define MU_HEADER_CONTENT_LANGUAGE          "Content-Language"
-#define MU_HEADER_CONTENT_TRANSFER_ENCODING "Content-transfer-encoding"
+#define MU_HEADER_CONTENT_TRANSFER_ENCODING "Content-Transfer-Encoding"
 #define MU_HEADER_CONTENT_ID                "Content-ID"
 #define MU_HEADER_CONTENT_TYPE              "Content-Type"
 #define MU_HEADER_CONTENT_DESCRIPTION       "Content-Description"
@@ -68,8 +68,8 @@ extern "C" {
 #define MU_HEADER_ENV_SENDER                "X-Envelope-Sender"
 #define MU_HEADER_ENV_DATE                  "X-Envelope-Date"
 #define MU_HEADER_FCC                       "Fcc"
-#define MU_HEADER_DELIVERY_DATE             "Delivery-date"
-#define MU_HEADER_ENVELOPE_TO               "Envelope-to"
+#define MU_HEADER_DELIVERY_DATE             "Delivery-Date"
+#define MU_HEADER_ENVELOPE_TO               "Envelope-To"
 #define MU_HEADER_X_EXPIRE_TIMESTAMP        "X-Expire-Timestamp"
   
 #define MU_HEADER_REPLACE 0x01
