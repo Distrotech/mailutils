@@ -33,6 +33,22 @@ int printable = 0;
 static void
 c_copy (mu_stream_t out, mu_stream_t in)
 {
+  mu_stream_stat_buffer instat, outstat;
+
+  if (verbose)
+    {
+      mu_stream_set_stat (in,
+			  MU_STREAM_STAT_MASK (MU_STREAM_STAT_IN) |
+			  MU_STREAM_STAT_MASK (MU_STREAM_STAT_READS) |
+			  MU_STREAM_STAT_MASK (MU_STREAM_STAT_SEEKS),
+			  instat);
+      mu_stream_set_stat (out,
+			  MU_STREAM_STAT_MASK (MU_STREAM_STAT_OUT) |
+			  MU_STREAM_STAT_MASK (MU_STREAM_STAT_WRITES) |
+			  MU_STREAM_STAT_MASK (MU_STREAM_STAT_SEEKS),
+			  outstat);
+    }
+
   if (printable)
     {
       char c;
@@ -58,9 +74,23 @@ c_copy (mu_stream_t out, mu_stream_t in)
   mu_stream_close (out);
   mu_stream_close (in);
   if (verbose)
-    fprintf (stderr, "\ntotal: %lu/%lu bytes\n",
-	     (unsigned long) mu_stream_bytes_in (in),
-	     (unsigned long) mu_stream_bytes_out (out));
+    {
+      fprintf (stderr, "\nInput stats:\n");
+      fprintf (stderr, "Bytes in: %lu\n",
+	       (unsigned long) instat[MU_STREAM_STAT_IN]);
+      fprintf (stderr, "Reads: %lu\n",
+	       (unsigned long) instat[MU_STREAM_STAT_READS]);
+      fprintf (stderr, "Seeks: %lu\n",
+	       (unsigned long) instat[MU_STREAM_STAT_SEEKS]);
+
+      fprintf (stderr, "\nOutput stats:\n");
+      fprintf (stderr, "Bytes out: %lu\n",
+	       (unsigned long) outstat[MU_STREAM_STAT_OUT]);
+      fprintf (stderr, "Writes: %lu\n",
+	       (unsigned long) outstat[MU_STREAM_STAT_WRITES]);
+      fprintf (stderr, "Seeks: %lu\n",
+	       (unsigned long) outstat[MU_STREAM_STAT_SEEKS]);
+    }
 }
 
 /* Set the maximum line length for the filter NAME to LENGTH.

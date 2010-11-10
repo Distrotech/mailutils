@@ -25,6 +25,7 @@ libstream_la_SOURCES = \
  mapfile_stream.c\
  memory_stream.c\
  message_stream.c\
+ nullstream.c\
  prog_stream.c\
  rdcache_stream.c\
  socket_stream.c\

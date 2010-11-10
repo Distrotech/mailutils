@@ -46,6 +46,19 @@ size_t mu_stream_default_buffer_size = MU_STREAM_DEFBUFSIZ;
     }								\
   while (0)
 
+#define _stream_stat_incr(s, k, n) \
+  (((s)->statmask & MU_STREAM_STAT_MASK(k)) ? ((s)->statbuf[k] += n) : 0)
+
+#define _stream_read(str, buf, size, rdbytes) \
+  (_stream_stat_incr ((str), MU_STREAM_STAT_READS, 1),  \
+   (str)->read (str, buf, size, rdbytes))
+#define _stream_write(str, buf, size, wrbytes) \
+  (_stream_stat_incr ((str), MU_STREAM_STAT_WRITES, 1),  \
+   (str)->write (str, buf, size, wrbytes))
+#define _stream_seek(str, pos, poff)			\
+  (_stream_stat_incr ((str), MU_STREAM_STAT_SEEKS, 1),		\
+   (str)->seek (str, pos, poff))
+
 static int _stream_read_unbuffered (mu_stream_t stream, void *buf, size_t size,
 				    int full_read, size_t *pnread);
 static int _stream_write_unbuffered (mu_stream_t stream,
@@ -180,7 +193,7 @@ _stream_flush_buffer (struct _mu_stream *stream, int flags)
       if ((stream->flags & MU_STREAM_SEEK) && stream->seek)
 	{
 	  mu_off_t off;
-	  rc = stream->seek (stream, stream->offset, &off);
+	  rc = _stream_seek (stream, stream->offset, &off);
 	  if (rc)
 	    return rc;
 	}
@@ -306,7 +319,9 @@ mu_stream_unref (mu_stream_t stream)
 static void
 _stream_init (mu_stream_t stream)
 {
-  stream->bytes_in = stream->bytes_out = 0;
+  if (stream->statmask)
+    memset (stream->statbuf, 0,
+	    _MU_STREAM_STAT_MAX * sizeof (stream->statbuf[0]));
   stream->flags &= ~_MU_STR_INTERN_MASK;
   _stream_setflag (stream, _MU_STR_OPEN);
   stream->offset = 0;
@@ -431,7 +446,7 @@ mu_stream_seek (mu_stream_t stream, mu_off_t offset, int whence,
 	return rc;
       if (stream->offset != offset)
 	{
-	  rc = stream->seek (stream, offset, &stream->offset);
+	  rc = _stream_seek (stream, offset, &stream->offset);
 	  if (rc == ESPIPE)
 	    return rc;
 	  if (rc)
@@ -602,7 +617,7 @@ _stream_read_unbuffered (mu_stream_t stream, void *buf, size_t size,
 
       nread = 0;
       while (size > 0
-	     && (rc = stream->read (stream, buf, size, &rdbytes)) == 0)
+	     && (rc = _stream_read (stream, buf, size, &rdbytes)) == 0)
 	{
 	  if (rdbytes == 0)
 	    {
@@ -612,19 +627,19 @@ _stream_read_unbuffered (mu_stream_t stream, void *buf, size_t size,
 	  buf += rdbytes;
 	  nread += rdbytes;
 	  size -= rdbytes;
-	  stream->bytes_in += rdbytes;
+	  _stream_stat_incr (stream, MU_STREAM_STAT_IN, rdbytes);
 	}
       if (size && rc)
 	rc = mu_stream_seterr (stream, rc, 0);
     }
   else
     {
-      rc = stream->read (stream, buf, size, &nread);
+      rc = _stream_read (stream, buf, size, &nread);
       if (rc == 0)
 	{
 	  if (nread == 0)
 	    _stream_setflag (stream, _MU_STR_EOF);
-	  stream->bytes_in += nread;
+	  _stream_stat_incr (stream, MU_STREAM_STAT_IN, nread);
 	}
       mu_stream_seterr (stream, rc, rc != 0);
     }
@@ -665,7 +680,7 @@ _stream_write_unbuffered (mu_stream_t stream,
 
       nwritten = 0;
       while (size > 0
-	     && (rc = stream->write (stream, bufp, size, &wrbytes))
+	     && (rc = _stream_write (stream, bufp, size, &wrbytes))
 	     == 0)
 	{
 	  if (wrbytes == 0)
@@ -676,14 +691,14 @@ _stream_write_unbuffered (mu_stream_t stream,
 	  bufp += wrbytes;
 	  nwritten += wrbytes;
 	  size -= wrbytes;
-	  stream->bytes_out += wrbytes;
+	  _stream_stat_incr (stream, MU_STREAM_STAT_OUT, wrbytes);
 	}
     }
   else
     {
-      rc = stream->write (stream, buf, size, &nwritten);
+      rc = _stream_write (stream, buf, size, &nwritten);
       if (rc == 0)
-	stream->bytes_out += nwritten;
+	_stream_stat_incr (stream, MU_STREAM_STAT_OUT, nwritten);
     }
   _stream_setflag (stream, _MU_STR_WRT);
   if (pnwritten)
@@ -1101,18 +1116,6 @@ mu_stream_size (mu_stream_t stream, mu_off_t *psize)
   return mu_stream_seterr (stream, rc, rc != 0);
 }
 
-mu_off_t
-mu_stream_bytes_in (mu_stream_t stream)
-{
-  return stream->bytes_in;
-}
-
-mu_off_t
-mu_stream_bytes_out (mu_stream_t stream)
-{
-  return stream->bytes_out;
-}
-
 int
 mu_stream_ioctl (mu_stream_t stream, int code, void *ptr)
 {
@@ -1215,3 +1218,27 @@ mu_stream_clr_flags (mu_stream_t stream, int fl)
   return 0;
 }
 
+int
+mu_stream_set_stat (mu_stream_t stream, int statmask,
+		    mu_stream_stat_buffer statbuf)
+{
+  if (stream == NULL)
+    return EINVAL;
+  stream->statmask = statmask;
+  stream->statbuf = statbuf;
+  memset (stream->statbuf, 0,
+	  _MU_STREAM_STAT_MAX * sizeof (stream->statbuf[0]));
+  return 0;
+}
+
+int
+mu_stream_get_stat (mu_stream_t stream, int *pstatmask,
+		    mu_off_t **pstatbuf)
+{
+  if (stream == NULL)
+    return EINVAL;
+  *pstatmask = stream->statmask;
+  *pstatbuf = stream->statbuf;
+  return 0;
+}
+  

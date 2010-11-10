@@ -45,7 +45,9 @@ struct _mu_stream
 
   int flags;
   mu_off_t offset;
-  mu_off_t bytes_in, bytes_out;
+  
+  int statmask;
+  mu_off_t *statbuf;
   
   int last_err;
 

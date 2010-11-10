@@ -407,7 +407,7 @@ static int
 filter_wr_close (mu_stream_t stream)
 {
   struct _mu_filter_stream *fs = (struct _mu_filter_stream *)stream;
-  if (!mu_stream_eof (stream))
+  if (!mu_stream_eof (stream) && !fs->eof)
     {
       size_t dummy;
       int rc = filter_write_internal (stream, mu_filter_lastbuf, NULL, 0,

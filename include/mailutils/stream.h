@@ -76,12 +76,31 @@ enum mu_buffer_type
 
 #define MU_IOCTL_GET_ECHO        12     
 #define MU_IOCTL_SET_ECHO        13  
+
+/* The following ioctls are for nullstreams only: */  
+#define MU_IOCTL_NULLSTREAM_SET_PATTERN 14
+  /* Set read pattern.
+     Argument: struct mu_nullstream_pattern *pat.
+     If pat==NULL, any reads from that stream will return EOF. */
+#define MU_IOCTL_NULLSTREAM_SET_PATCLASS 15
+  /* Set pattern class for reads:  Argument int *pclass (a class mask
+     from mailutils/cctype.h */
+#define MU_IOCTL_NULLSTREAM_SETSIZE 16
+  /* Limit stream size.  Argument: mu_off_t *psize; */
+#define MU_IOCTL_NULLSTREAM_CLRSIZE 17
+  /* Lift the size limit.  Argument: NULL */
   
 #define MU_TRANSPORT_INPUT  0
 #define MU_TRANSPORT_OUTPUT 1
 #define MU_TRANSPORT_VALID_TYPE(n) \
   ((n) == MU_TRANSPORT_INPUT || (n) == MU_TRANSPORT_OUTPUT)
 
+struct mu_nullstream_pattern
+{
+  char *pattern;
+  size_t size;
+};
+  
 struct mu_buffer_query
 {
   int type;                     /* One of MU_TRANSPORT_ defines */
@@ -89,6 +108,28 @@ struct mu_buffer_query
   size_t bufsize;               /* Buffer size */
 };
 
+/* Statistics */  
+#define MU_STREAM_STAT_IN       0
+#define MU_STREAM_STAT_OUT      1
+#define MU_STREAM_STAT_READS    2 
+#define MU_STREAM_STAT_WRITES   3
+#define MU_STREAM_STAT_SEEKS    4
+#define _MU_STREAM_STAT_MAX     5   
+
+#define MU_STREAM_STAT_MASK(n)  (1U<<(n+1))
+#define MU_STREAM_STAT_MASK_ALL  \
+  (MU_STREAM_STAT_MASK (MU_STREAM_STAT_IN) | \
+   MU_STREAM_STAT_MASK (MU_STREAM_STAT_OUT) |   \
+   MU_STREAM_STAT_MASK (MU_STREAM_STAT_READS) | \
+   MU_STREAM_STAT_MASK (MU_STREAM_STAT_WRITES) | \
+   MU_STREAM_STAT_MASK (MU_STREAM_STAT_SEEKS))
+
+typedef mu_off_t mu_stream_stat_buffer[_MU_STREAM_STAT_MAX];
+int mu_stream_set_stat (mu_stream_t stream, int statmask,
+			mu_stream_stat_buffer statbuf);
+int mu_stream_get_stat (mu_stream_t stream, int *pstatmask,
+			mu_off_t **pstatbuf);
+  
 #define MU_STREAM_DEFBUFSIZ 8192
 extern size_t mu_stream_default_buffer_size;
 
@@ -127,8 +168,6 @@ int mu_stream_writeline (mu_stream_t stream, const char *buf, size_t size);
 int mu_stream_flush (mu_stream_t stream);
 int mu_stream_close (mu_stream_t stream);
 int mu_stream_size (mu_stream_t stream, mu_off_t *psize);
-mu_off_t mu_stream_bytes_in (mu_stream_t stream);
-mu_off_t mu_stream_bytes_out (mu_stream_t stream);
 int mu_stream_ioctl (mu_stream_t stream, int code, void *ptr);
 int mu_stream_truncate (mu_stream_t stream, mu_off_t);
 int mu_stream_shutdown (mu_stream_t stream, int how);
@@ -202,6 +241,8 @@ int mu_dbgstream_create(mu_stream_t *pref, mu_debug_t debug,
 int mu_rdcache_stream_create (mu_stream_t *pstream, mu_stream_t transport,
 			      int flags);
 
+int mu_nullstream_create (mu_stream_t *pref, int flags);
+  
 #ifdef __cplusplus
 }
 #endif
