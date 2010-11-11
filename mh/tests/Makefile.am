@@ -39,6 +39,7 @@ $(srcdir)/package.m4: $(top_srcdir)/configure.ac
 ## ------------ ##
 
 TESTSUITE_AT = \
+ anno.at\
  folder.at\
  inc.at\
  mark.at\

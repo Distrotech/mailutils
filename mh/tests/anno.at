@@ -1,0 +1,62 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2010 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# GNU Mailutils is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+
+m4_pushdef[MH_KEYWORDS],[anno])
+
+MH_CHECK([anno],[anno00],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
+echo "Current-Folder: inbox" > Mail/context
+echo "cur: 1" > Mail/inbox/.mh_sequences
+echo Replied | anno || exit $?
+sed -n '1{s/Replied: .*/REPLIED/p}' Mail/inbox/1
+],
+[0],
+[REPLIED
+])
+
+MH_CHECK([anno -component],[anno01 anno-component],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
+echo "Current-Folder: inbox" > Mail/context
+anno -component Replied 1 || exit $?
+sed -n '1{s/Replied: .*/REPLIED/p}' Mail/inbox/1
+],
+[0],
+[REPLIED
+])
+
+MH_CHECK([anno -component -text],[anno02 anno-component-text],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
+echo "Current-Folder: inbox" > Mail/context
+anno -component Replied -text OK 1 || exit $?
+sed -n '3,$d;/Replied/{s/Replied: [[A-Z][a-z][a-z], [0-9][0-9] [A-Z][a-z][a-z] [0-9][0-9][0-9][0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9] .*]/Replied: DATE/;p}' Mail/inbox/1
+],
+[0],
+[Replied: OK
+Replied: DATE
+])
+
+MH_CHECK([anno -component -text -nodate],[anno03 anno-component-text-nodate],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
+echo "Current-Folder: inbox" > Mail/context
+anno -component Replied -text OK -nodate 1 || exit $?
+sed -n '3,$d;/Replied/{s/Replied: [[A-Z][a-z][a-z], [0-9][0-9] [A-Z][a-z][a-z] [0-9][0-9][0-9][0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9] .*]/Replied: DATE/;p}' Mail/inbox/1
+],
+[0],
+[Replied: OK
+])
+
+m4_popdef[MH_KEYWORDS])
+# End of anno.at

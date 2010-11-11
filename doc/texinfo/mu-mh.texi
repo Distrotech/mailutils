@@ -211,6 +211,16 @@ For more information, please see @xref{reply_regex function}.
 @subsubsection Differences in MH Program Behavior
 
 @table @command
+@item anno
+
+The prompt in interactive mode is @samp{Component name:}, instead
+of @samp{Enter component name:} displayed by the RAND @command{anno}.
+
+If a @option{-component field} is not specified and standard input
+is not connected to a terminal, @command{anno} does not display
+the prompt before reading the component from the standard input.
+RAND @command{anno} displays the prompt anyway.
+
 @item burst
 
 The utility is able to burst both RFC 934 digest messages and MIME

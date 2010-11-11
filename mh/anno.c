@@ -109,7 +109,7 @@ main (int argc, char **argv)
   mu_mailbox_t mbox;
   mh_msgset_t msgset;
   size_t len;
-  
+
   MU_APP_INIT_NLS ();
 
   mh_argp_init ();
@@ -120,11 +120,37 @@ main (int argc, char **argv)
 
   if (!component)
     {
-      size_t n;
+      mu_stream_t in;
+      size_t size = 0;
+      char *p;
       
-      printf (_("Component name: "));
-      if (getline (&component, &n, stdin) <= 0 || *component == 0)
-	exit (1);
+      rc = mu_stdio_stream_create (&in, MU_STDIN_FD, 0);
+      if (rc)
+	{
+	  mu_error (_("cannot create input stream: %s"), mu_strerror (rc));
+	  exit (1);
+	}
+
+      if (isatty (0))
+	{
+	  printf (_("Component name: "));
+	  fflush (stdout);
+	}
+      rc = mu_stream_getline (in, &component, &size, NULL);
+      mu_stream_destroy (&in);
+      if (rc)
+	{
+	  mu_error (_("error reading input stream: %s"), mu_strerror (rc));
+	  exit (1);
+	}
+      p = mu_str_stripws (component);
+      if (*p == 0)
+	{
+	  mu_error (_("invalid component name"));
+	  exit (1);
+	}
+      if (p > component)
+	memmove (component, p, strlen (p) + 1);
     }
 
   if (!anno_text && !anno_date)
