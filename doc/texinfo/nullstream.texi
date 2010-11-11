@@ -1,0 +1,279 @@
+@c This is part of the GNU Mailutils manual.
+@c Copyright (C) 2010 Free Software Foundation, Inc.
+@c See file mailutils.texi for copying conditions.
+@c *******************************************************************
+
+@section Null stream
+@cindex null stream
+@cindex stream, null
+
+A @dfn{null stream} is similar to the system @file{/dev/null} device.
+It is not connected to any particular physical storage.  Any data
+written to such stream are irrevocably lost.  Reading from such a
+stream returns fixed data, depending on the mode of the stream.
+
+An instance of the null stream is created using the following function:
+
+@deffn {stream function} int mu_nullstream_create (mu_stream_t *pstr, int mode)
+Create an instance of the null stream and return it in the memory
+location pointed to by @var{pstr}.  The @var{mode} argument specifies
+the access mode for this stream.  It can be a binary @samp{or} of the
+following values:
+
+@table @code
+@item MU_STREAM_READ
+Stream is opened for reading.
+@item MU_STREAM_WRITE
+Stream is opened for writing.
+@end table
+
+The returned stream is always seekable, so the @code{MU_STREAM_SEEK}
+mode is implied.
+
+Any other bits set in the @var{mode} argument are silently ignored.
+@end deffn
+
+Writing to an instance of null stream and seeking in such streams
+always succeeds.  If the stream was created with the
+@code{MU_STREAM_READ} on, the reads from it normally behave as if
+it were connected to an endless source of zero bytes, i.e. each call
+to:
+
+@smallexample
+  mu_stream_read (str, buf, size, &n);
+@end smallexample
+
+@noindent
+results in filling @var{buf} with @var{size} zeroes.  This is similar
+to reading from the system @file{/dev/zero} device@footnote{Note that
+the internal implementation of @dfn{null streams} has nothing to do
+with @file{/dev/null}, or @file{/dev/zero}.  We refer to these devices
+only to illustrate the behavior of @dfn{null streams}.}.
+
+This is the default behavior when reading.  It can be altered using
+the following @dfn{ioctls}.
+
+@defvr {ioctl} MU_IOCTL_NULLSTREAM_SET_PATTERN
+Set the @dfn{pattern} for reads.  The argument is a pointer to
+@dfn{struct mu_nullstream_pattern}, defined as:
+
+@smallexample
+@group
+struct mu_nullstream_pattern
+@{
+  char *pattern;   /* Return pattern */          
+  size_t size;     /* Number of bytes in pattern */
+@};
+@end group
+@end smallexample
+
+The @samp{pattern} member points to @samp{size} bytes of data which
+are returned cyclically at each read.  For example, suppose that
+@var{str} is a null stream instance, and consider the following code:
+
+@smallexample
+  struct mu_nullstream_pattern pat;
+  char buf[16];
+  size_t n;
+  
+  pat.pattern = "01234567";
+  pat.size = 8;
+  mu_stream_ioctl (str, MU_IOCTL_NULLSTREAM_SET_PATTERN, &pat);
+
+  mu_stream_read (str, buf, sizeof (buf), &n);
+@end smallexample
+
+Then, after the call to @code{mu_stream_read}, we will have:
+
+@smallexample
+@group
+n @result{} 16
+buf @result{} "0123456701234567"
+@end group
+@end smallexample
+
+Similarly, the following code:
+
+@smallexample
+  mu_stream_seek (str, 3, MU_SEEK_SET, NULL);
+  mu_stream_read (str, buf, sizeof (buf), &n);
+@end smallexample
+
+@noindent
+will yield:
+
+@smallexample
+@group
+n @result{} 16
+buf @result{} "3456701234567012"
+@end group
+@end smallexample
+
+The default behavior corresponds to the following initialization:
+
+@smallexample
+@group
+  pat.pattern = "";
+  pat.size = 1;
+  mu_stream_ioctl (str, MU_IOCTL_NULLSTREAM_SET_PATTERN, &pat);
+@end group  
+@end smallexample
+
+Calling the @samp{MU_IOCTL_NULLSTREAM_SET_PATTERN} with a @samp{NULL}
+argument causes all subsequent reads from that stream to return @samp{EOF}:
+
+@smallexample
+@group
+  mu_stream_ioctl (str, MU_IOCTL_NULLSTREAM_SET_PATTERN, NULL);
+  @dots{}
+  rc = mu_stream_read (str, buf, sizeof (buf), &n);
+
+  rc @result{} 0
+  n @result{} 0
+@end group  
+@end smallexample
+@end defvr
+
+@defvr {ioctl} MU_IOCTL_NULLSTREAM_SET_PATCLASS
+Set read pattern in terms of @dfn{C character classes}
+(@FIXME-pxref{C character classes}).  Argument is a pointer
+to an integer containing a bitwise @samp{OR} of the desired
+character classes from @file{mailutils/cctype.h}.  For example,
+the following code:
+
+@smallexample
+  int class = MU_CTYPE_DIGIT|MU_CTYPE_XLETR;
+  mu_stream_ioctl (str, MU_IOCTL_NULLSTREAM_SET_PATCLASS, &class);
+@end smallexample
+
+@noindent
+initializes the read pattern to the following string:
+
+@smallexample
+0123456789ABCDEFabcdef
+@end smallexample
+@end defvr
+
+Two ioctls are provided to control the @dfn{size} of a null stream
+available to seek and read operations.
+
+@defvr {ioctl} MU_IOCTL_NULLSTREAM_SETSIZE
+Limit the addressable size of a null stream.  Argument is a pointer
+to @samp{mu_off_t} object specifying the new size.  The example below
+limits the stream size to 32 bytes:
+
+@smallexample
+@group
+  mu_off_t limit = 32;
+  mu_stream_ioctl (str, MU_IOCTL_NULLSTREAM_SETSIZE, &limit);
+@end group  
+@end smallexample
+@end defvr
+
+Another way to set the null stream size is via the
+@samp{mu_stream_truncate} function:
+
+@smallexample
+  mu_stream_truncate (str, 32);
+@end smallexample
+
+Setting the stream size to @samp{0} causes all subsequent reads from
+that stream to return @samp{EOF}.  The similar effect has the
+@samp{MU_IOCTL_NULLSTREAM_SET_PATTERN} ioctl with the @samp{NULL} argument.
+
+@defvr {ioctl} MU_IOCTL_NULLSTREAM_CLRSIZE
+Cancel the size limitation imposed by a previous
+@samp{MU_IOCTL_NULLSTREAM_SETSIZE} ioctl or a call to
+@samp{mu_stream_truncate}.  Argument must be @samp{NULL}.
+@end defvr
+
+@menu
+* null stream usage::
+@end menu
+
+@node null stream usage
+@subsection null stream usage
+
+Due to their nature, null streams are not among the most used stream
+flavors.  They are mainly useful for testing or measuring purposes.
+
+The @command{mhn} utility from GNU Mailutils MH suite gives a nice
+example of using a null stream instance to compute the actual
+(decoded) size of a part of a MIME message.  In the example below
+we present a simplified version of this code.  It defines the
+function @samp{decoded_size}:
+
+@deffn {example function} mu_off_t decoded_size (mu_stream_t mime_str, @
+       const char *encoding)
+Return the size of the decoded input strem.  Arguments are:
+
+@table @var
+@item mime_str
+A stream obtained from the MIME part.
+
+@item encoding
+Encoding type, as obtained from the @samp{Content-Transfer-Encoding}
+MIME header.
+@end table
+
+@example
+mu_off_t
+decoded_size (mu_stream_t mime_str, const char *encoding)
+@{
+  int rc;           /* Result code */
+  mu_stream_t fstr  /* Filter stream */
+  mu_stream_stat_buffer stat; /* Statistics buffer */
+  mu_stream_t null; /* Null stream */
+@end example
+
+First, create the filter stream for decoding the message part:
+@example
+  rc = mu_filter_create (&fstr, mime_str, encoding,
+                         MU_FILTER_DECODE, MU_STREAM_READ);
+  if (rc)
+    abort ();
+@end example
+
+Then, create an instance of the null stream which will act
+as a receiver:
+
+@example
+  mu_nullstream_create (&null, MU_STREAM_WRITE);
+@end example
+
+The data will be read from @var{fstr} and written to @var{null}.
+Number of bytes written will give the decoded size of the message.
+To get this number, attach the statistics buffer to the null
+stream:
+
+@example
+  mu_stream_set_stat (null, MU_STREAM_STAT_MASK (MU_STREAM_STAT_OUT),
+                      stat);
+@end example
+
+The second argument instructs the stream to keep track of the
+bytes output (i.e. written) to the stream.
+
+Now, copy the entire contents of @var{fstr} to @var{null}:
+
+@example
+  rc = mu_stream_copy (null, fstr, 0, NULL);
+  if (rc)
+    abort ();
+@end example
+
+When done, destroy both streams (they are not needed any more), and
+return the value of @samp{MU_STREAM_STAT_OUT} element from @var{stat}:
+
+@example
+  mu_stream_destroy (&null);
+  mu_stream_destroy (&fstr);
+  return stat[MU_STREAM_STAT_OUT];
+@}  
+@end example
+
+
+
+
+
+

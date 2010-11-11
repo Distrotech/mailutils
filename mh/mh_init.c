@@ -707,14 +707,21 @@ mh_real_install (char *name, int automode)
   char *home = mu_get_homedir ();
   char *mhdir;
   char *ctx;
+  mu_stream_t in;
+  int rc;
   FILE *fp;
-  
+
+  rc = mu_stdio_stream_create (&in, MU_STDIN_FD, 0);
+  if (rc)
+    {
+      mu_error (_("cannot create input stream: %s"), mu_strerror (rc));
+      exit (1);
+    }
+
   mhdir = mh_safe_make_file_name (home, "Mail");
   
   if (!automode)
     {
-      size_t n = 0;
-      
       /* TRANSLATORS: This is a question and will be followed
 	 by question mark on output. */
       if (mh_getyn_interactive (_("Do you need help")))
@@ -725,7 +732,8 @@ mh_real_install (char *name, int automode)
       if (!mh_getyn_interactive (_("Do you want the standard MH path \"%s\""), mhdir))
 	{
 	  int local;
-	  char *p;
+	  char *p, *buf = NULL;
+	  size_t size = 0;
 	  
 	  /* TRANSLATORS: This is a question and will be followed
 	     by question mark on output. */
@@ -734,16 +742,12 @@ mh_real_install (char *name, int automode)
 	    printf (_("What is the path? "));
 	  else
 	    printf (_("What is the full path? "));
-	  if (getline (&p, &n, stdin) <= 0)
+	  if (mu_stream_getline (in, &buf, &size, NULL))
 	    exit (1);
-
-	  n = strlen (p);
-	  if (n == 0)
-	    exit (1);
-
-	  if (p[n-1] == '\n')
-	    p[n-1] = 0;
-
+	  p = mu_str_stripws (buf);
+	  if (p > buf)
+	    memmove (buf, p, strlen (p) + 1);
+	  
 	  free (mhdir);
 	  if (local)
 	    {

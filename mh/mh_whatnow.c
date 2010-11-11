@@ -323,37 +323,51 @@ static int
 _whatnow (struct mh_whatnow_env *wh, struct action_tab *tab)
 {
   int rc, status = 0;
+  mu_stream_t in;
+  char *line = NULL;
+  size_t size = 0;
+  struct mu_wordsplit ws;
+  int wsflags = MU_WRDSF_DEFFLAGS|MU_WRDSF_COMMENT;
+  
+  rc = mu_stdio_stream_create (&in, MU_STDIN_FD, 0);
+  if (rc)
+    {
+      mu_error (_("cannot create input stream: %s"), mu_strerror (rc));
+      exit (1);
+    }
   
   do
     {
-      char *line = NULL;
-      size_t size = 0;
-      struct mu_wordsplit ws;
       handler_fp fun;
       
       printf ("%s ", wh->prompt);
-      getline (&line, &size, stdin);
-      if (!line)
-	continue;
+      fflush (stdout);
+      status = mu_stream_getline (in, &line, &size, NULL);
+      if (rc)
+	{
+	  mu_error (_("cannot read input stream: %s"), mu_strerror (rc));
+	  break;
+	}
 
       ws.ws_comment = "#";
-      rc = mu_wordsplit (line, &ws, MU_WRDSF_DEFFLAGS|MU_WRDSF_COMMENT);
-      free (line);
+      rc = mu_wordsplit (line, &ws, wsflags);
       if (rc)
 	{
 	  mu_error (_("cannot split line `%s': %s"), line,
 		    mu_wordsplit_strerror (&ws));
 	  break;
 	}
-
+      wsflags |= MU_WRDSF_REUSE;
       fun = func (tab, ws.ws_wordv[0]);
       if (fun)
 	rc = fun (wh, ws.ws_wordc, ws.ws_wordv, &status);
       else
 	rc = 0;
-      mu_wordsplit_free (&ws);
     }
   while (rc == 0);
+  if (wsflags & MU_WRDSF_REUSE)
+    mu_wordsplit_free (&ws);
+  free (line);
   return status;
 }
 
