@@ -152,11 +152,22 @@ parse_variable (locus_t *loc, mu_list_t formlist, char *str)
   size_t i;
   struct mu_wordsplit ws;
   mh_format_t fmt;
-
-  ws.ws_delim = ",=";
-  if (mu_wordsplit (str, &ws,
-		    MU_WRDSF_DEFFLAGS|MU_WRDSF_DELIM|
-		    MU_WRDSF_WS|MU_WRDSF_RETURN_DELIMS))
+  int wsflags;
+  
+  if (strncmp (str, "ignores=", 8) == 0 && str[8] != '"')
+    {
+      /* A hack to allow for traditional use of "ignores=", i.e.
+	 as a single statement on a line, without double-quotes around
+	 the argument */
+      wsflags = MU_WRDSF_NOCMD | MU_WRDSF_NOVAR | MU_WRDSF_NOSPLIT;
+    }
+  else
+    {
+      ws.ws_delim = ",";
+      wsflags = MU_WRDSF_DEFFLAGS|MU_WRDSF_DELIM|
+	        MU_WRDSF_WS|MU_WRDSF_RETURN_DELIMS;
+    }
+  if (mu_wordsplit (str, &ws, wsflags))
     {
       mu_error ("%s:%d: mu_wordsplit(%s): %s",
 		loc->filename,
@@ -172,7 +183,10 @@ parse_variable (locus_t *loc, mu_list_t formlist, char *str)
       char *name = ws.ws_wordv[i];
       char *value = NULL;
       mhl_variable_t *var;
-
+      
+      value = strchr (name, '=');
+      if (value)
+	*value++ = 0;
       stmt = stmt_alloc (stmt_variable);
       var = variable_lookup (name);
       if (!var)
@@ -182,12 +196,6 @@ parse_variable (locus_t *loc, mu_list_t formlist, char *str)
 		    loc->line,
 		    name);
 	  exit (1);
-	}
-
-      if (i + 1 < ws.ws_wordc && ws.ws_wordv[i+1][0] == '=')
-	{
-	  i++;
-	  value = ws.ws_wordv[++i];
 	}
 
       if ((var->type == dt_flag && value)
@@ -256,45 +264,39 @@ parse_line (locus_t *loc, mu_list_t formlist, char *str)
 mu_list_t 
 mhl_format_compile (char *name)
 {
-  FILE *fp;
+  mu_stream_t stream;
   mu_list_t formlist;
   char *buf = NULL;
-  size_t n = 0;
+  size_t size = 0, n;
   locus_t loc;
   int rc;
-  
-  fp = fopen (name, "r");
-  if (!fp)
+
+  rc = mu_file_stream_create (&stream, name, MU_STREAM_READ);
+  if (rc)
     {
-      mu_error (_("cannot open file %s: %s"), name, mu_strerror (errno));
+      mu_error (_("cannot open format file %s: %s"), name, mu_strerror (rc));
       return NULL;
     }
 
   if ((rc = mu_list_create (&formlist)) != 0)
     {
-      fclose (fp);
       mu_diag_funcall (MU_DIAG_ERROR, "mu_list_create", NULL, rc);
+      mu_stream_destroy (&stream);
       return NULL;
     }
 
   loc.filename = name;
   loc.line = 1;
-  while (getline (&buf, &n, fp) > 0)
+  while (mu_stream_getline (stream, &buf, &size, &n) == 0 && n > 0)
     {
-      char *p = buf;
-
-      while (*p && mu_isspace (*p))
-	;
-
-      if (*p == 0 || *p == ';')
-	continue;
-
-      parse_line (&loc, formlist, p);
+      char *p = mu_str_stripws (buf);
+      if (!(*p == 0 || *p == ';'))
+	parse_line (&loc, formlist, p);
       loc.line++;
     }
 
   free (buf);
-  fclose (fp);
+  mu_stream_destroy (&stream);
   
   return formlist;
 }
@@ -470,13 +472,13 @@ _comp_name (void *item, void *date)
 }
 
 int
-header_is_printed (struct eval_env *env, char *name)
+header_is_printed (struct eval_env *env, const char *name)
 {
-  return mu_list_do (env->printed_fields, _comp_name, name) == 1;
+  return mu_list_do (env->printed_fields, _comp_name, (void*) name) == 1;
 }
 
 int
-want_header (struct eval_env *env, char *name)
+want_header (struct eval_env *env, const char *name)
 {
   char *p, *str = env->svar[S_IGNORES];
 
@@ -546,9 +548,8 @@ ovf_print (struct eval_env *env, char *str, int size, int nloff)
 	      mu_stream_write (env->output, env->prefix,
 			       strlen (env->prefix), NULL);
 	      env->pos += strlen (env->prefix);
-	      
-	      goto_offset (env, nloff);
 	    }
+	  goto_offset (env, nloff);
 	}
       
       if (env->pos + len > env->ivar[I_WIDTH])
@@ -656,19 +657,33 @@ print_header_value (struct eval_env *env, char *val)
   return 0;
 }
 
+void
+print_component_name (struct eval_env *env)
+{
+  if (!env->bvar[B_NOCOMPONENT])
+    {
+      print (env, env->svar[S_COMPONENT], 0);
+      if (mu_c_strcasecmp (env->svar[S_COMPONENT], "body"))
+	print (env, ": ", 0);
+    }
+}
+
 int
 eval_component (struct eval_env *env, char *name)
 {
   mu_header_t hdr;
   char *val;
-  
+
   mu_message_get_header (env->msg, &hdr);
   if (mu_header_aget_value (hdr, name, &val))
     return 0;
 
+  print_component_name (env);
   mu_list_append (env->printed_fields, name);
   print_header_value (env, val);
   free (val);
+  if (env->bvar[B_NEWLINE])
+    newline (env);
   return 0;
 }
 
@@ -680,9 +695,12 @@ eval_body (struct eval_env *env)
   char buf[128]; /* FIXME: Fixed size. Bad */
   size_t n;
   mu_body_t body = NULL;
-
+  int nl;
+  
   if (env->bvar[B_DISABLE_BODY])
     return 0;
+
+  print_component_name (env);
   
   env->prefix = env->svar[S_COMPONENT];
 
@@ -712,8 +730,11 @@ eval_body (struct eval_env *env)
     {
       buf[n] = 0;
       print (env, buf, 0);
+      nl = buf[n-1] == '\n';
     }
   mu_stream_destroy (&input);
+  if (!nl && env->bvar[B_NEWLINE])
+    newline (env);
   return 0;
 }
 
@@ -722,25 +743,30 @@ eval_extras (struct eval_env *env)
 {
   mu_header_t hdr;
   size_t i, num;
-  char buf[512];
+  char *str;
 
+  print_component_name (env);
   mu_message_get_header (env->msg, &hdr);
   mu_header_get_field_count (hdr, &num);
   for (i = 1; i <= num; i++)
     {
-      mu_header_get_field_name (hdr, i, buf, sizeof buf, NULL);
-      if (want_header (env, buf)
-	  && !header_is_printed (env, buf))
+      mu_header_aget_field_name (hdr, i, &str);
+      if (want_header (env, str)
+	  && !header_is_printed (env, str))
 	{
 	  goto_offset (env, env->ivar[I_OFFSET]);
-	  print (env, buf, 0);
-	  print (env, ":", 0);
-	  mu_header_get_field_value (hdr, i, buf, sizeof buf, NULL);
-	  print_header_value (env, buf);
-	  if (env->bvar[B_NEWLINE])
+	  print (env, str, 0);
+	  print (env, ": ", 0);
+	  free (str);
+	  mu_header_aget_field_value (hdr, i, &str);
+	  print_header_value (env, str);
+	  if (i < num && env->bvar[B_NEWLINE])
 	    newline (env);
 	}
+      free (str);
     }
+  if (env->bvar[B_NEWLINE])
+    newline (env);
   return 0;
 }
 
@@ -756,13 +782,6 @@ eval_comp (struct eval_env *env, char *compname, mu_list_t format)
   if (!lenv.svar[S_COMPONENT])
     lenv.svar[S_COMPONENT] = compname;
   
-  if (!lenv.bvar[B_NOCOMPONENT])
-    {
-      print (&lenv, lenv.svar[S_COMPONENT], 0);
-      if (strcmp (compname, "body"))
-	print (&lenv, ":", 0);
-    }
-
   if (strcmp (compname, "extras") == 0)
     eval_extras (&lenv);
   else if (strcmp (compname, "body") == 0)
@@ -770,9 +789,6 @@ eval_comp (struct eval_env *env, char *compname, mu_list_t format)
   else
     eval_component (&lenv, compname);
   
-  if (lenv.bvar[B_NEWLINE])
-    newline (&lenv);
-
   env->pos = lenv.pos;
   env->nlines = lenv.nlines;
   

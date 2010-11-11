@@ -142,7 +142,7 @@ open_output ()
 
   if (interactive && !nomoreproc)
     {
-      if (!moreproc)
+      if (!moreproc || !moreproc[0])
 	moreproc = mh_global_profile_get ("moreproc", getenv ("PAGER"));
     }
   else

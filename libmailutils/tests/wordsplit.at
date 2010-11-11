@@ -212,7 +212,6 @@ TESTWSP([K/V environment],[],[env_kv],
 [],
 [FOO=bar BAZ=qux])
 
-
 TESTWSP([nosplit with expansion],[],[nosplit],
 [a $FOO test],
 [NF: 1
@@ -310,5 +309,20 @@ TESTWSP([C escapes off],[],[-cescapes],
 2: and
 3: newnline
 ])
+
+TESTWSP([empty quotes],[],[delim : ws return_delims],
+[t=""],
+[NF: 1
+0: t=
+])
+
+TESTWSP([delimiter following empty quotes],[],[delim : ws return_delims],
+[t="":r],
+[NF: 3
+0: t=
+1: :
+2: r
+])
+
 
 m4_popdef([TESTWSP])

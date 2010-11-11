@@ -1028,7 +1028,7 @@ scan_qstring (struct mu_wordsplit *wsp, size_t start, size_t * end)
       j++;
   if (j < len && command[j] == q)
     {
-      int flags = _WSNF_QUOTE;
+      int flags = _WSNF_QUOTE|_WSNF_EMPTYOK;
       if (q == '\'')
 	flags |= _WSNF_NOEXPAND;
       if (mu_wordsplit_add_segm (wsp, start + 1, j, flags))
@@ -1355,6 +1355,9 @@ mu_wordsplit_len (const char *command, size_t len, struct mu_wordsplit *wsp,
     {
       while ((rc = scan_word (wsp, start)) == _MU_WRDS_OK)
 	start = skip_delim (wsp);
+      /* Make sure tail element is not joinable */
+      if (wsp->ws_tail)
+	wsp->ws_tail->flags &= ~_WSNF_JOIN;
     }
 
   if (wsp->ws_flags & MU_WRDSF_SHOWDBG)

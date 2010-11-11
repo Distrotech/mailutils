@@ -14,40 +14,25 @@
 # You should have received a copy of the GNU General Public License
 # along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
 
-m4_include([testsuite.inc])
+m4_pushdef[MH_KEYWORDS],[mhl])
 
-m4_define([MH_SETUP],[
-test -d Mail || mkdir Mail
-dir=`pwd`
-MH=$dir/mh_profile
-export MH
-echo "Path: $dir/Mail" > $MH
-exec <&-
-])
+MH_CHECK([mhl],[mhl00],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/teaparty,[Mail/inbox])
+mhl -form $abs_top_srcdir/mh/mhl.format Mail/inbox/2
+],
+[0],
+[ -- using template mhl.format --
+Date:    Mon, 29 Jul 2002 22:00:02 +0100
+To:      March Hare  <hare@wonder.land>
 
-m4_define([MH_KEYWORDS])
+From:    Alice  <alice@wonder.land>
+Subject: Re: Invitation
 
-dnl --------------------------------------------------------------
-dnl MH_CHECK(DESCR, [KW = `'], COMMANDS, [STATUS = `0'],
-dnl          [STDOUT = `'], [STDERR = `']
-dnl
-m4_define([MH_CHECK],[
-AT_SETUP($1)
-AT_KEYWORDS(MH_KEYWORDS[ $2])
-MH_SETUP
-AT_CHECK([$3],[$4],[$5],[$6])
-AT_CLEANUP
-])
+X-Envelope-Date: Mon Jul 29 22:00:09 2002
+X-Envelope-Sender: alice@wonder.land
 
-AT_INIT
+I don't see any wine
+]) 
 
-m4_include([folder.at])
-m4_include([inc.at])
-m4_include([scan.at])
-m4_include([rmm.at])
-m4_include([rmf.at])
-m4_include([mark.at])
-m4_include([mhparam.at])
-m4_include([refile.at])
-m4_include([mhpath.at])
-m4_include([mhl.at])
+m4_popdef[MH_KEYWORDS])
+# End of mhl.at

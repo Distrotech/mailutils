@@ -241,12 +241,28 @@ This command is not provided. Use @option{fmtcheck} instead.
 
 @item mhl
 
-If the argument to @code{ignores} contains more than one component name
-it must be enclosed in double-quotes. Dangling equal sign is an error,
-to set a string variable to the empty value assign it an empty string, e.g.:
-@code{overflowtext=""} (see the supplied @file{mhl.format} file).
+The @samp{ignores} keyword can be used in variable list.  In that
+case, if its value contains  more than one component name
+it must be enclosed in double-quotes, e.g.:
+
+@smallexample
+leftadjust,compwidth=9,"ignores=msgid,message-id,received"
+@end smallexample
+
+@noindent
+The above is equivalent to the following traditional notation:
+
+@smallexample
+leftadjust,compwidth=9
+ignores=msgid,message-id,received
+@end smallexample
+
+The @samp{MessageName} component is not yet implemented.
 
 Interactive prompting is not yet implemented.
+
+The following format variables are silently ignored: @samp{center},
+@samp{split}, @samp{datefield}.
 
 @item mhn
 

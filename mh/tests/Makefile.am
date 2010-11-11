@@ -42,6 +42,7 @@ TESTSUITE_AT = \
  folder.at\
  inc.at\
  mark.at\
+ mhl.at\
  mhparam.at\
  mhpath.at\
  scan.at\
