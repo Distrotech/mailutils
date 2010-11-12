@@ -83,12 +83,12 @@ that's clear, at any rate...
 
 End
 Message: 3
-From: Sergey Poznyakoff <gray@Mirddin.farlep.net>
+From: Sergey Poznyakoff <gray@example.net>
 Subject: Simple MIME
 Number of parts in message - 2
-Total message size - 1625/42
+Total message size - 1569/42
 Type of part 1 = text/plain
-Message part size - 371/13: 141/4, 230/9
+Message part size - 364/13: 134/4, 230/9
 Text Message
 Begin
 How doth the little crocodile
@@ -103,7 +103,7 @@ With gently smiling jaws!
 
 End
 Type of part 2 = application/octet-stream
-Message part size - 645/11: 183/5, 462/6
+Message part size - 638/11: 176/5, 462/6
 Attachment - saving [[msg.21]]
 Begin
 `You are old, Father William,' the young man said,
@@ -119,12 +119,12 @@ Why, I do it again and again.'
 
 End
 Message: 4
-From: Sergey Poznyakoff <gray@Mirddin.farlep.net>
+From: Sergey Poznyakoff <gray@example.net>
 Subject: Nested MIME
 Number of parts in message - 2
-Total message size - 3483/84
+Total message size - 3399/84
 Type of part 1 = text/plain
-Message part size - 496/14: 155/4, 341/10
+Message part size - 489/14: 148/4, 341/10
 Text Message
 Begin
 `You are old, Father William,' the young man said,
@@ -140,11 +140,11 @@ Why, I do it again and again.'
 
 End
 Type of part 2 = multipart/mixed
-Message part size - 2378/52: 114/3, 2264/49
+Message part size - 2343/52: 107/3, 2236/49
 Encapsulated message : 	
 Begin
 Type of part 1 = application/octet-stream
-Message part size - 663/12: 184/5, 479/7
+Message part size - 656/12: 177/5, 479/7
 Attachment - saving [[msg.22]]
 Begin
 `You are old,' said the youth, `as I mentioned before,
@@ -159,11 +159,11 @@ Allow me to sell you a couple?'
 
 End
 Type of part 2 = multipart/mixed
-Message part size - 1531/32: 114/3, 1417/29
+Message part size - 1510/32: 107/3, 1403/29
 Encapsulated message : 	
 Begin
 Type of part 1 = application/octet-stream
-Message part size - 668/12: 185/5, 483/7
+Message part size - 661/12: 178/5, 483/7
 Attachment - saving [[msg.23]]
 Begin
 `You are old,' said the youth, `and your jaws are too weak
@@ -178,7 +178,7 @@ Has lasted the rest of my life.'
 
 End
 Type of part 2 = application/octet-stream
-Message part size - 679/12: 184/5, 495/7
+Message part size - 672/12: 177/5, 495/7
 Attachment - saving [[msg.24]]
 Begin
 `You are old,' said the youth, `one would hardly suppose
@@ -197,18 +197,18 @@ End
 
 End
 Message: 5
-From: Sergey Poznyakoff <gray@Mirddin.farlep.net>
+From: Sergey Poznyakoff <gray@example.net>
 Subject: Empty MIME Parts
 Number of parts in message - 2
-Total message size - 913/27
+Total message size - 857/27
 Type of part 1 = text/plain
-Message part size - 143/4: 143/4, 0/0
+Message part size - 136/4: 136/4, 0/0
 Text Message
 Begin
 
 End
 Type of part 2 = text/plain
-Message part size - 156/5: 155/4, 1/1
+Message part size - 149/5: 148/4, 1/1
 Text Message
 Begin
 

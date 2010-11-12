@@ -48,9 +48,9 @@ scan +mbox1 -format '%4(msg) %(decode(friendly{from})) - %(decode(friendly{to}))
 [0],
 [   1 Foo Bar <foobar@nonexistent.net> - Bar <bar@dontmailme.org>
    2 Bar <bar@dontmailme.org> - Foo Bar <foobar@nonexistent.net>
-   3 Sergey Poznyakoff <gray@Mirddin.farlep.net> - Foo Bar <foobar@nonexistent.
-   4 Sergey Poznyakoff <gray@Mirddin.farlep.net> - Foo Bar <foobar@nonexistent.
-   5 Sergey Poznyakoff <gray@Mirddin.farlep.net> - Foo Bar <foobar@nonexistent.
+   3 Sergey Poznyakoff <gray@example.net> - Foo Bar <foobar@nonexistent.net>
+   4 Sergey Poznyakoff <gray@example.net> - Foo Bar <foobar@nonexistent.net>
+   5 Sergey Poznyakoff <gray@example.net> - Foo Bar <foobar@nonexistent.net>
 ])
 
 MH_CHECK([scan -form],[scan03 scan-form],[
@@ -61,9 +61,9 @@ scan +mbox1 -form formfile
 [0],
 [   1 Foo Bar <foobar@nonexistent.net> - Bar <bar@dontmailme.org>
    2 Bar <bar@dontmailme.org> - Foo Bar <foobar@nonexistent.net>
-   3 Sergey Poznyakoff <gray@Mirddin.farlep.net> - Foo Bar <foobar@nonexistent.
-   4 Sergey Poznyakoff <gray@Mirddin.farlep.net> - Foo Bar <foobar@nonexistent.
-   5 Sergey Poznyakoff <gray@Mirddin.farlep.net> - Foo Bar <foobar@nonexistent.
+   3 Sergey Poznyakoff <gray@example.net> - Foo Bar <foobar@nonexistent.net>
+   4 Sergey Poznyakoff <gray@example.net> - Foo Bar <foobar@nonexistent.net>
+   5 Sergey Poznyakoff <gray@example.net> - Foo Bar <foobar@nonexistent.net>
 ])
 
 MH_CHECK([scan -reverse],[scan04 scan-reverse],[

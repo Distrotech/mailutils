@@ -41,15 +41,15 @@ mail_test "delete" "No applicable messages"
 mail_start -reuse-spool "--file=%mbox1"
 mail_test "h" \
 	">U   1 Bar                Fri Dec 28 23:28  16/578   Re: Jabberwocky"\
-	" U   2 Sergey Poznyakoff  Sat Jul 13 00:43  44/1644  Simple MIME"\
-	" U   3 Sergey Poznyakoff  Sat Jul 13 00:43  29/932   Empty MIME Parts"
+	" U   2 Sergey Poznyakoff  Sat Jul 13 00:43  44/1588  Simple MIME"\
+	" U   3 Sergey Poznyakoff  Sat Jul 13 00:43  29/876   Empty MIME Parts"
 
 # Send first message to mbox...
 mail_command "mbox 1"
 mail_test "h" \
 	">M   1 Bar                Fri Dec 28 23:28  16/578   Re: Jabberwocky"\
-	" U   2 Sergey Poznyakoff  Sat Jul 13 00:43  44/1644  Simple MIME"\
-	" U   3 Sergey Poznyakoff  Sat Jul 13 00:43  29/932   Empty MIME Parts"
+	" U   2 Sergey Poznyakoff  Sat Jul 13 00:43  44/1588  Simple MIME"\
+	" U   3 Sergey Poznyakoff  Sat Jul 13 00:43  29/876   Empty MIME Parts"
 
 # ... and quit
 mail_test -noprompt "quit" \
@@ -59,16 +59,16 @@ mail_test -noprompt "quit" \
 # Now check the mbox contents
 mail_start -reuse-spool "--file=%mbox"
 mail_test "headers" \
-	">N   1 Sergey Poznyakoff  Tue Jul 16 12:11  12/425   MBOX"\
+	">N   1 Sergey Poznyakoff  Tue Jul 16 12:11  12/390   MBOX"\
 	" U   2 Bar                Fri Dec 28 23:28  16/578   Re: Jabberwocky"
 
 # Save messages to the third mailbox
 mail_command "set folder=\"$MU_FOLDER_DIR\""
 mail_test "save 1 2 +three" \
-	"\"$MU_FOLDER_DIR/three\"  28/1003"
+	"\"$MU_FOLDER_DIR/three\"  28/968"
 
 mail_test "headers" \
-	">*   1 Sergey Poznyakoff  Tue Jul 16 12:11  12/425   MBOX"\
+	">*   1 Sergey Poznyakoff  Tue Jul 16 12:11  12/390   MBOX"\
 	" *   2 Bar                Fri Dec 28 23:28  16/578   Re: Jabberwocky"
 
 mail_test -noprompt "quit" \
@@ -77,19 +77,19 @@ mail_test -noprompt "quit" \
 # Examine its contents
 mail_start -reuse-spool "--file=$MU_FOLDER_DIR/three"
 mail_test "headers" \
-	">N   1 Sergey Poznyakoff  Tue Jul 16 12:11  12/425   MBOX"\
+	">N   1 Sergey Poznyakoff  Tue Jul 16 12:11  12/390   MBOX"\
 	" U   2 Bar                Fri Dec 28 23:28  16/578   Re: Jabberwocky"
 
 # Test uppercase commands (Save and Copy)
 mail_command "set outfolder=\"$MU_FOLDER_DIR\""
 mail_test "Save" \
-	"\"$MU_FOLDER_DIR/gray\"  12/425"
+	"\"$MU_FOLDER_DIR/gray\"  12/390"
 
 mail_test "file \"$MU_FOLDER_DIR/gray\"" \
 	"Held 2 messages in $MU_FOLDER_DIR/three"
 
 mail_test "headers" \
-	">N   1 Sergey Poznyakoff  Tue Jul 16 12:11  12/425   MBOX"
+	">N   1 Sergey Poznyakoff  Tue Jul 16 12:11  12/390   MBOX"
 mail_exit
 
 # Test write 

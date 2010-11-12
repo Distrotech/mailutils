@@ -71,11 +71,11 @@ that's clear, at any rate...
 To: Foo Bar <foobar@nonexistent.net>
 Subject: Simple MIME
 Date: Sat, 13 Jul 2002 00:43:18 +0300
-From: Sergey Poznyakoff <gray@Mirddin.farlep.net>
+From: Sergey Poznyakoff <gray@example.net>
 
 ------- =_aaaaaaaaaa0
 Content-Type: text/plain; name="msg.1"; charset="us-ascii"
-Content-ID: <5082.1026510189.1@Mirddin.farlep.net>
+Content-ID: <5082.1026510189.1@example.net>
 Content-Description: How doth
 
 How doth the little crocodile
@@ -90,7 +90,7 @@ With gently smiling jaws!
 
 ------- =_aaaaaaaaaa0
 Content-Type: application/octet-stream; name="msg.21"
-Content-ID: <5082.1026510189.2@Mirddin.farlep.net>
+Content-ID: <5082.1026510189.2@example.net>
 Content-Description: Father William Part I
 Content-Transfer-Encoding: base64
 
@@ -106,11 +106,11 @@ ZWN0bHkgc3VyZSBJIGhhdmUgbm9uZSwKV2h5LCBJIGRvIGl0IGFnYWluIGFuZCBhZ2Fpbi4nCgo=
 To: Foo Bar <foobar@nonexistent.net>
 Subject: Nested MIME
 Date: Sat, 13 Jul 2002 00:50:58 +0300
-From: Sergey Poznyakoff <gray@Mirddin.farlep.net>
+From: Sergey Poznyakoff <gray@example.net>
 
 ------- =_aaaaaaaaaa0
 Content-Type: text/plain; name="msg.21"; charset="us-ascii"
-Content-ID: <5122.1026510654.2@Mirddin.farlep.net>
+Content-ID: <5122.1026510654.2@example.net>
 Content-Description: Father William Part I
 
 `You are old, Father William,' the young man said,
@@ -126,11 +126,11 @@ Why, I do it again and again.'
 
 ------- =_aaaaaaaaaa0
 Content-Type: multipart/mixed; boundary="----- =_aaaaaaaaaa1"
-Content-ID: <5122.1026510654.3@Mirddin.farlep.net>
+Content-ID: <5122.1026510654.3@example.net>
 
 ------- =_aaaaaaaaaa1
 Content-Type: application/octet-stream; name="msg.22"
-Content-ID: <5122.1026510654.4@Mirddin.farlep.net>
+Content-ID: <5122.1026510654.4@example.net>
 Content-Description: Father William Part II
 Content-Transfer-Encoding: base64
 
@@ -144,11 +144,11 @@ IGNvdXBsZT8nCg==
 
 ------- =_aaaaaaaaaa1
 Content-Type: multipart/mixed; boundary="----- =_aaaaaaaaaa2"
-Content-ID: <5122.1026510654.5@Mirddin.farlep.net>
+Content-ID: <5122.1026510654.5@example.net>
 
 ------- =_aaaaaaaaaa2
 Content-Type: application/octet-stream; name="msg.23"
-Content-ID: <5122.1026510654.6@Mirddin.farlep.net>
+Content-ID: <5122.1026510654.6@example.net>
 Content-Description: Father William Part III
 Content-Transfer-Encoding: base64
 
@@ -162,7 +162,7 @@ dCBvZiBteSBsaWZlLicK
 
 ------- =_aaaaaaaaaa2
 Content-Type: application/octet-stream; name="msg.24"
-Content-ID: <5122.1026510654.7@Mirddin.farlep.net>
+Content-ID: <5122.1026510654.7@example.net>
 Content-Description: Father William Part IV
 Content-Transfer-Encoding: base64
 
@@ -183,17 +183,17 @@ IGtpY2sgeW91IGRvd24gc3RhaXJzIScK
 To: Foo Bar <foobar@nonexistent.net>
 Subject: Empty MIME Parts
 Date: Sat, 13 Jul 2002 00:43:18 +0300
-From: Sergey Poznyakoff <gray@Mirddin.farlep.net>
+From: Sergey Poznyakoff <gray@example.net>
 
 ------- =_aaaaaaaaaa0
 Content-Type: text/plain; name="empty"; charset="us-ascii"
-Content-ID: <5082.1026510189.1@Mirddin.farlep.net>
+Content-ID: <5082.1026510189.1@example.net>
 Content-Description: Empty part
 
 
 ------- =_aaaaaaaaaa0
 Content-Type: text/plain; name="single.line"; charset="us-ascii"
-Content-ID: <5082.1026510189.2@Mirddin.farlep.net>
+Content-ID: <5082.1026510189.2@example.net>
 Content-Description: Single line part
 
 

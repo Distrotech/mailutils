@@ -62,14 +62,14 @@ contradict to RFC 3028.
 From bar@dontmailme.org Sun May  6 22:17:15 2001
 From: Bar <bar@dontmailme.org>
 Received: from c.host.net ([1.1.1.3]) 
-	by Mirddin.farlep.net with ESMTP id g6G9BZb00791
-	for <gray@mirddin.farlep.net>; Tue, 16 Jul 2002 12:11:35 +0300
+	by example.net with ESMTP id g6G9BZb00791
+	for <gray@example.net>; Tue, 16 Jul 2002 12:11:35 +0300
 Received: from b.host.net ([1.1.1.2]) 
 	by c.host.net with ESMTP id g6G9BZb00791
-	for <gray@mirddin.farlep.net>; Tue, 16 Jul 2002 12:11:35 +0300
+	for <gray@example.net>; Tue, 16 Jul 2002 12:11:35 +0300
 Received: from a.host.net ([1.1.1.1]) 
 	by b.host.net with ESMTP id g6G9BZb00791
-	for <gray@mirddin.farlep.net>; Tue, 16 Jul 2002 12:11:35 +0300
+	for <gray@example.net>; Tue, 16 Jul 2002 12:11:35 +0300
 To: foo@example.com.invalid, baz@example.com.invalid, qux@example.com.invalid,
     me@foo.example.com.invalid, b1ff@de.res.example.com,
     roadrunner@acme.example.com

@@ -27,16 +27,16 @@ mail_command "set readonly"
 mail_test "size *" \
 "> 1  44/1254 "\
 "  2  13/534  "\
-"  3  42/1625 "\
-"  4  84/3483 "
+"  3  42/1569 "\
+"  4  84/3399 "
 
 ###########################################################################
 # `headers' and `print'
 mail_test "headers" \
 ">N   1 Foo Bar            Fri Dec 28 22:18  44/1254  Jabberwocky" \
 " N   2 Bar                Fri Dec 28 23:28  13/534   Re: Jabberwocky" \
-" N   3 Sergey Poznyakoff  Sat Jul 13 00:43  42/1625  Simple MIME" \
-" N   4 Sergey Poznyakoff  Sat Jul 13 00:50  84/3483  Nested MIME" \
+" N   3 Sergey Poznyakoff  Sat Jul 13 00:43  42/1569  Simple MIME" \
+" N   4 Sergey Poznyakoff  Sat Jul 13 00:50  84/3399  Nested MIME" \
 
 mail_test "print"\
 	"Received: (from foobar@nonexistent.net)"\
@@ -158,8 +158,8 @@ mail_test -message "top (2)" "top" \
 mail_test -message "headers (2)" "headers" \
 ">R   1 Foo Bar            Fri Dec 28 22:18  44/1254  Jabberwocky" \
 " N   2 Bar                Fri Dec 28 23:28  13/534   Re: Jabberwocky" \
-" N   3 Sergey Poznyakoff  Sat Jul 13 00:43  42/1625  Simple MIME" \
-" N   4 Sergey Poznyakoff  Sat Jul 13 00:50  84/3483  Nested MIME" \
+" N   3 Sergey Poznyakoff  Sat Jul 13 00:43  42/1569  Simple MIME" \
+" N   4 Sergey Poznyakoff  Sat Jul 13 00:50  84/3399  Nested MIME" \
 
 ###########################################################################
 # `next' should display the 2nd message
@@ -185,8 +185,8 @@ mail_test "next" \
 mail_test -message "headers (3)" "headers" \
 " R   1 Foo Bar            Fri Dec 28 22:18  44/1254  Jabberwocky" \
 ">R   2 Bar                Fri Dec 28 23:28  13/534   Re: Jabberwocky" \
-" N   3 Sergey Poznyakoff  Sat Jul 13 00:43  42/1625  Simple MIME" \
-" N   4 Sergey Poznyakoff  Sat Jul 13 00:50  84/3483  Nested MIME" \
+" N   3 Sergey Poznyakoff  Sat Jul 13 00:43  42/1569  Simple MIME" \
+" N   4 Sergey Poznyakoff  Sat Jul 13 00:50  84/3399  Nested MIME" \
 
 ###########################################################################
 # Check for `prev'
@@ -212,8 +212,8 @@ mail_test "prev"\
 mail_test -message "headers (4)" "headers" \
 ">R   1 Foo Bar            Fri Dec 28 22:18  44/1254  Jabberwocky" \
 " R   2 Bar                Fri Dec 28 23:28  13/534   Re: Jabberwocky" \
-" N   3 Sergey Poznyakoff  Sat Jul 13 00:43  42/1625  Simple MIME" \
-" N   4 Sergey Poznyakoff  Sat Jul 13 00:50  84/3483  Nested MIME" \
+" N   3 Sergey Poznyakoff  Sat Jul 13 00:43  42/1569  Simple MIME" \
+" N   4 Sergey Poznyakoff  Sat Jul 13 00:50  84/3399  Nested MIME" \
 
 ###########################################################################
 # print with an argument
@@ -245,7 +245,7 @@ mail_test -message "decoding simple MIME messages" \
 "| Encoding=7bit"\
 "+------------------------------------------------------------------------------+"\
 "Content-Type: text/plain; name=\"msg.1\"; charset=\"us-ascii\""\
-"Content-ID: <5082.1026510189.1@Mirddin.farlep.net>"\
+"Content-ID: <5082.1026510189.1@example.net>"\
 "Content-Description: How doth"\
 ""\
 "How doth the little crocodile"\
@@ -263,7 +263,7 @@ mail_test -message "decoding simple MIME messages" \
 "| Encoding=base64"\
 "+------------------------------------------------------------------------------+"\
 "Content-Type: application/octet-stream; name=\"msg.21\""\
-"Content-ID: <5082.1026510189.2@Mirddin.farlep.net>"\
+"Content-ID: <5082.1026510189.2@example.net>"\
 "Content-Description: Father William Part I"\
 "Content-Transfer-Encoding: base64"\
 ""\
@@ -285,7 +285,7 @@ mail_test -message "decoding nested MIME messages" \
 "| Encoding=7bit"\
 "+------------------------------------------------------------------------------+"\
 "Content-Type: text/plain; name=\"msg.21\"; charset=\"us-ascii\""\
-"Content-ID: <5122.1026510654.2@Mirddin.farlep.net>"\
+"Content-ID: <5122.1026510654.2@example.net>"\
 "Content-Description: Father William Part I"\
 ""\
 "`You are old, Father William,' the young man said,"\
@@ -304,7 +304,7 @@ mail_test -message "decoding nested MIME messages" \
 "| Encoding=base64"\
 "+------------------------------------------------------------------------------+"\
 "Content-Type: application/octet-stream; name=\"msg.22\""\
-"Content-ID: <5122.1026510654.4@Mirddin.farlep.net>"\
+"Content-ID: <5122.1026510654.4@example.net>"\
 "Content-Description: Father William Part II"\
 "Content-Transfer-Encoding: base64"\
 ""\
@@ -323,7 +323,7 @@ mail_test -message "decoding nested MIME messages" \
 "| Encoding=base64"\
 "+------------------------------------------------------------------------------+"\
 "Content-Type: application/octet-stream; name=\"msg.23\""\
-"Content-ID: <5122.1026510654.6@Mirddin.farlep.net>"\
+"Content-ID: <5122.1026510654.6@example.net>"\
 "Content-Description: Father William Part III"\
 "Content-Transfer-Encoding: base64"\
 ""\
@@ -342,7 +342,7 @@ mail_test -message "decoding nested MIME messages" \
 "| Encoding=base64"\
 "+------------------------------------------------------------------------------+"\
 "Content-Type: application/octet-stream; name=\"msg.24\""\
-"Content-ID: <5122.1026510654.7@Mirddin.farlep.net>"\
+"Content-ID: <5122.1026510654.7@example.net>"\
 "Content-Description: Father William Part IV"\
 "Content-Transfer-Encoding: base64"\
 ""\
@@ -364,7 +364,7 @@ mail_test -message "Addressing parts of a MIME message" \
 "| Encoding=base64"\
 "+------------------------------------------------------------------------------+"\
 "Content-Type: application/octet-stream; name=\"msg.23\""\
-"Content-ID: <5122.1026510654.6@Mirddin.farlep.net>"\
+"Content-ID: <5122.1026510654.6@example.net>"\
 "Content-Description: Father William Part III"\
 "Content-Transfer-Encoding: base64"\
 ""\
@@ -386,7 +386,7 @@ mail_test -message "Addressing parts of a MIME message (2)" \
 "| Encoding=base64"\
 "+------------------------------------------------------------------------------+"\
 "Content-Type: application/octet-stream; name=\"msg.23\""\
-"Content-ID: <5122.1026510654.6@Mirddin.farlep.net>"\
+"Content-ID: <5122.1026510654.6@example.net>"\
 "Content-Description: Father William Part III"\
 "Content-Transfer-Encoding: base64"\
 ""\
@@ -405,7 +405,7 @@ mail_test -message "Addressing parts of a MIME message (2)" \
 "| Encoding=base64"\
 "+------------------------------------------------------------------------------+"\
 "Content-Type: application/octet-stream; name=\"msg.24\""\
-"Content-ID: <5122.1026510654.7@Mirddin.farlep.net>"\
+"Content-ID: <5122.1026510654.7@example.net>"\
 "Content-Description: Father William Part IV"\
 "Content-Transfer-Encoding: base64"\
 ""\

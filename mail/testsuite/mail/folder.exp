@@ -53,7 +53,7 @@ mail_test "file &" \
 mail_test "sum" \
  "\"$MU_SPOOL_DIR/mbox\": 1 message 1 new"
 mail_test "headers" \
- ">N   1 Sergey Poznyakoff  Tue Jul 16 12:11  12/425   MBOX"	
+ ">N   1 Sergey Poznyakoff  Tue Jul 16 12:11  12/390   MBOX"	
 
 mail_stop
 

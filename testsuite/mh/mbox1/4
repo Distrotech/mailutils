@@ -1,21 +1,21 @@
 Organization: Mailutils-tests
-Received: from Mirddin.farlep.net (localhost [127.0.0.1])
-	by Mirddin.farlep.net with ESMTP id g6CLowb05126
-	for <gray@mirddin.farlep.net>; Sat, 13 Jul 2002 00:50:58 +0300
-Message-Id: <200207122150.g6CLowb05126@Mirddin.farlep.net>
+Received: from example.net (localhost [127.0.0.1])
+	by example.net with ESMTP id g6CLowb05126
+	for <gray@example.net>; Sat, 13 Jul 2002 00:50:58 +0300
+Message-Id: <200207122150.g6CLowb05126@example.net>
 To: Foo Bar <foobar@nonexistent.net>
 Subject: Nested MIME
 MIME-Version: 1.0
 Content-Type: multipart/mixed; boundary="----- =_aaaaaaaaaa0"
-Content-ID: <5122.1026510654.1@Mirddin.farlep.net>
+Content-ID: <5122.1026510654.1@example.net>
 Date: Sat, 13 Jul 2002 00:50:58 +0300
-From: Sergey Poznyakoff <gray@Mirddin.farlep.net>
+From: Sergey Poznyakoff <gray@example.net>
 X-Envelope-Date: Sat Jul 13 00:50:58 2002
-X-Envelope-Sender: gray@Mirddin.farlep.net
+X-Envelope-Sender: gray@example.net
 
 ------- =_aaaaaaaaaa0
 Content-Type: text/plain; name="msg.21"; charset="us-ascii"
-Content-ID: <5122.1026510654.2@Mirddin.farlep.net>
+Content-ID: <5122.1026510654.2@example.net>
 Content-Description: Father William Part I
 
 `You are old, Father William,' the young man said,
@@ -31,11 +31,11 @@ Why, I do it again and again.'
 
 ------- =_aaaaaaaaaa0
 Content-Type: multipart/mixed; boundary="----- =_aaaaaaaaaa1"
-Content-ID: <5122.1026510654.3@Mirddin.farlep.net>
+Content-ID: <5122.1026510654.3@example.net>
 
 ------- =_aaaaaaaaaa1
 Content-Type: application/octet-stream; name="msg.22"
-Content-ID: <5122.1026510654.4@Mirddin.farlep.net>
+Content-ID: <5122.1026510654.4@example.net>
 Content-Description: Father William Part II
 Content-Transfer-Encoding: base64
 
@@ -49,11 +49,11 @@ IGNvdXBsZT8nCg==
 
 ------- =_aaaaaaaaaa1
 Content-Type: multipart/mixed; boundary="----- =_aaaaaaaaaa2"
-Content-ID: <5122.1026510654.5@Mirddin.farlep.net>
+Content-ID: <5122.1026510654.5@example.net>
 
 ------- =_aaaaaaaaaa2
 Content-Type: application/octet-stream; name="msg.23"
-Content-ID: <5122.1026510654.6@Mirddin.farlep.net>
+Content-ID: <5122.1026510654.6@example.net>
 Content-Description: Father William Part III
 Content-Transfer-Encoding: base64
 
@@ -67,7 +67,7 @@ dCBvZiBteSBsaWZlLicK
 
 ------- =_aaaaaaaaaa2
 Content-Type: application/octet-stream; name="msg.24"
-Content-ID: <5122.1026510654.7@Mirddin.farlep.net>
+Content-ID: <5122.1026510654.7@example.net>
 Content-Description: Father William Part IV
 Content-Transfer-Encoding: base64
 
