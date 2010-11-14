@@ -31,6 +31,8 @@ static int mh_optind = 1;
 static char *mh_optarg;
 static char *mh_optptr;
 
+void (*mh_help_hook) ();
+
 int
 mh_getopt (int argc, char **argv, struct mh_option *mh_opt, const char *doc)
 {
@@ -142,6 +144,8 @@ mh_help (struct mh_option *mh_opt, const char *doc)
 	printf (" %s", p->arg);
       printf ("\n");
     }
+  if (mh_help_hook)
+    mh_help_hook ();
   printf ("  -help\n");
   printf ("  -version\n");
   printf (_("\nPlease use GNU long options instead.\n"

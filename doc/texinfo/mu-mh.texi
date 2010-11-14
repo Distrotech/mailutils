@@ -332,11 +332,20 @@ The @code{rmmproc} profile component is not used.
 
 @item pick
 
-The non-standard command line syntax @option{--@var{field}
-@var{string}}), where @var{field} is any string, is deprecated. It is
-recognized only if @command{pick} is called from within another
-program, so that existing application continue to work. Please use the
-following syntax instead:
+The command line syntax @option{--@var{component} @var{string}}) is
+recognized only if at least one of the following conditions is met:
+
+@itemize @bullet
+@item The word @var{component} contains at least one capital letter.
+E.g. @option{--User-Agent Mailutils}.
+
+@item The word @var{component} ends with a colon, as in
+@option{user-agent: Mailutils}.
+
+@item Standard input is not connected to a terminal.
+@end itemize
+
+The GNU syntax for component matching is:
 
 @smallexample
 pick --component @var{field} --pattern @var{string}

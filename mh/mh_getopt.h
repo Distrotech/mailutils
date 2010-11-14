@@ -181,6 +181,8 @@ enum mh_arg {
   ARG_ZERO
 };
 
+extern void (*mh_help_hook) (void);
+
 void mh_argp_init (void);
 void mh_argv_preproc (int argc, char **argv, struct mh_argp_data *data);
 int mh_getopt (int argc, char **argv, struct mh_option *mh_opt, const char *doc);

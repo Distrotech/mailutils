@@ -26,7 +26,17 @@
 #include <obstack.h>
 
 static char doc[] = N_("GNU MH pick")"\v"
-N_("Use -help to obtain the list of traditional MH options.");
+N_("Compatibility syntax for picking a matching component is:\n\
+\n\
+  --Component pattern\n\
+\n\
+where Component is the component name, containing at least one capital\n\
+letter or followed by a colon, e.g.:\n\
+\n\
+  --User-Agent Mailutils\n\
+  --user-agent: Mailutils\n\
+\n\
+Use -help to obtain a list of traditional MH options.");
 static char args_doc[] = N_("[messages]");
 
 /* GNU options */
@@ -140,8 +150,6 @@ add_sequence (char *name)
 static error_t
 opt_handler (int key, char *arg, struct argp_state *state)
 {
-  char *s, *p;
-  
   switch (key)
     {
     case ARG_FOLDER: 
@@ -254,32 +262,6 @@ opt_handler (int key, char *arg, struct argp_state *state)
       seq_flags &= ~SEQ_ZERO;
       break;
 	
-    case ARGP_KEY_ERROR:
-      s = state->argv[state->next - 1];
-      if (memcmp (s, "--", 2))
-	{
-	  argp_error (state, _("invalid option -- %s"), s);
-	  exit (1);
-	}
-      p = strchr (s, '=');
-      if (p)
-	*p++ = 0;
-	
-      pick_add_token (&lexlist, T_COMP, s + 2);
-
-      if (!p)
-	{
-	  if (state->next == state->argc)
-	    {
-	      mu_error (_("invalid option -- %s"), s);
-	      exit (1);
-	    }
-	  p = state->argv[state->next++];
-	}
-      
-      pick_add_token (&lexlist, T_STRING, p);
-      break;
-
     default:
       return ARGP_ERR_UNKNOWN;
     }
@@ -310,24 +292,43 @@ action_add (void *item, void *data)
   return 0;
 }
 
-/* NOTICE: For the compatibility with the RAND MH we have to support
+void
+pick_help_hook (void)
+{
+  printf ("\n");
+  printf (_("To match another component, use:\n\n"));
+  printf (_("  --Component pattern\n\n"));
+  printf (_("Note, that the component name must either be capitalized,\n"
+	    "or followed by a colon.\n"));
+  printf ("\n");
+}
+
+/* NOTICE: For compatibility with RAND MH we have to support
    the following command line syntax:
 
-       --FIELD STRING
+       --COMP STRING
 
-   where `FIELD' may be any string and which is equivalent to
-   `--field FIELD --pattern STRING'. Obviously this is in conflict
+   where `COMP' may be any string and which is equivalent to
+   `--component FIELD --pattern STRING'. Obviously this is in conflict
    with the usual GNU long options paradigm which requires that any
-   unrecognized long option produce an error. Unfortunately, mh-pick.el
-   relies heavily on this syntax, so it can't be simply removed.
-   The approach taken here allows to properly recognize such syntax,
-   however it has an undesirable side effect: due to the specifics of
-   the underlying arpg library the --help and --usage options get
-   disabled. To make them work as well, the following approach is
-   taken: the mh-compatible syntax gets enabled only if the file
-   descriptor of stdin is not connected to a terminal, which is true
-   when invoked from mh-pick.el module. Otherwise, it is disabled
-   and the standard GNU long option syntax is in force. */
+   unrecognized long option produce an error. The following
+   compromise solution is used:
+
+   The arguments `--COMP STRING' is recognized as a component matching
+   request if any of the following conditions is met:
+
+   1. The word `COMP' contains at least one capital letter.  E.g.:
+
+       --User-Agent Mailutils
+       
+   2. The word `COMP' ends with a colon, e.g.:
+
+       --user-agent: Mailutils
+   
+   3. Standard input is not connected to a terminal.  This is always
+      true when pick is invoked from mh-pick.el Emacs module.
+*/
+
 int
 main (int argc, char **argv)
 {
@@ -335,12 +336,35 @@ main (int argc, char **argv)
   int index;
   mu_mailbox_t mbox;
   mh_msgset_t msgset;
-  int flags;
+  int interactive = mh_interactive_mode_p ();
 
-  flags = mh_interactive_mode_p () ? 0 : ARGP_NO_ERRS;
   MU_APP_INIT_NLS ();
+
+  for (index = 1; index < argc; index++)
+    {
+      int colon = 0, cpos;
+      if (argv[index][0] == '-' && argv[index][1] == '-' &&
+	  !strchr (argv[index], '=') &&
+	  (!interactive ||
+	   (colon = argv[index][cpos = strlen (argv[index]) - 1] == ':') ||
+	   *mu_str_skip_class_comp (argv[index], MU_CTYPE_UPPER)) &&
+	  index + 1 < argc)
+	{
+	  if (colon)
+	    {
+	      cpos -= 2;
+	      mu_asprintf (&argv[index], "--component=%*.*s", cpos, cpos,
+			   argv[index] + 2);
+	    }
+	  else
+	    mu_asprintf (&argv[index], "--component=%s", argv[index] + 2);
+	  mu_asprintf (&argv[index + 1], "--pattern=%s", argv[index + 1]);
+	  index++;
+	}
+    }
+  mh_help_hook = pick_help_hook;
   mh_argp_init ();
-  mh_argp_parse (&argc, &argv, flags, options, mh_option,
+  mh_argp_parse (&argc, &argv, 0, options, mh_option,
 		 args_doc, doc, opt_handler, NULL, &index);
   if (pick_parse (lexlist))
     return 1;
