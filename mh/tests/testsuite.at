@@ -41,6 +41,7 @@ AT_CLEANUP
 
 AT_INIT
 
+m4_include([install-mh.at])
 m4_include([folder.at])
 m4_include([inc.at])
 m4_include([scan.at])
@@ -52,3 +53,4 @@ m4_include([refile.at])
 m4_include([mhpath.at])
 m4_include([mhl.at])
 m4_include([anno.at])
+m4_include([pick.at])

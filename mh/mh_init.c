@@ -808,13 +808,12 @@ mh_install (char *name, int automode)
   else if ((st.st_mode & S_IFREG) || (st.st_mode & S_IFLNK)) 
     {
       mu_error(_("You already have an MH profile, use an editor to modify it"));
-      exit (0);
+      exit (1);
     }
   else
     {
-      mu_error(_("You already have file %s which is not a regular file or a symbolic link.\n"
-		 "Please remove it and try again"),
-	       name);
+      mu_error (_("You already have file %s which is not a regular file or a symbolic link."), name);
+      mu_error (_("Please remove it and try again"));
       exit (1);
     }
 }

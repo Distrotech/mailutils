@@ -1,0 +1,313 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2010 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# GNU Mailutils is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+
+m4_pushdef[MH_KEYWORDS],[pick])
+
+MH_CHECK([pick -from],[pick00 pick-from],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/teaparty,[Mail/inbox])
+echo "Current-Folder: inbox" > Mail/context
+echo "cur: 1" > Mail/inbox/.mh_sequences
+pick -from dormouse
+],
+[0],
+[17
+31
+49
+61
+65
+67
+69
+77
+79
+81
+83
+88
+89
+91
+92
+])
+
+MH_CHECK([pick -from -sequence],[pick01 pick-from-sequence],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/teaparty,[Mail/inbox])
+echo "Current-Folder: inbox" > Mail/context
+echo "cur: 1" > Mail/inbox/.mh_sequences
+pick -from dormouse -sequence dormouse || exit $?
+sed -n '/^dormouse:/{s/  */ /g;s/ $//;p}' Mail/inbox/.mh_sequences
+],
+[0],
+[dormouse: 17 31 49 61 65 67 69 77 79 81 83 88 89 91 92
+])
+
+MH_CHECK([pick -search],[pick02 pick-search],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/teaparty,[Mail/inbox])
+echo "Current-Folder: inbox" > Mail/context
+echo "cur: 1" > Mail/inbox/.mh_sequences
+pick -search 'Why not'
+],
+[0],
+[91
+])
+
+MH_CHECK([pick -search regex],[pick03 pick-search-regex],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/teaparty,[Mail/inbox])
+echo "Current-Folder: inbox" > Mail/context
+echo "cur: 1" > Mail/inbox/.mh_sequences
+pick -search 'I.*think'
+],
+[0],
+[36
+86
+93
+])
+
+MH_CHECK([pick -subject -from],[pick04 pick-subject-from],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/teaparty,[Mail/inbox])
+echo "Current-Folder: inbox" > Mail/context
+echo "cur: 1" > Mail/inbox/.mh_sequences
+pick -subject Story -from Dormouse
+],
+[0],
+[61
+65
+67
+69
+77
+79
+81
+83
+88
+89
+91
+92
+])
+
+MH_CHECK([pick -subject -and -from],[pick05 pick-subject-and-from],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/teaparty,[Mail/inbox])
+echo "Current-Folder: inbox" > Mail/context
+echo "cur: 1" > Mail/inbox/.mh_sequences
+pick -subject Story -and -from Dormouse
+],
+[0],
+[61
+65
+67
+69
+77
+79
+81
+83
+88
+89
+91
+92
+])
+
+MH_CHECK([pick -subject -or -from],[pick06 pick-subject-or-from],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/teaparty,[Mail/inbox])
+echo "Current-Folder: inbox" > Mail/context
+echo "cur: 1" > Mail/inbox/.mh_sequences
+pick -subject Story -or -from Dormouse
+],
+[0],
+[17
+31
+49
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+76
+77
+78
+79
+80
+81
+82
+83
+85
+86
+87
+88
+89
+90
+91
+92
+93
+])
+
+MH_CHECK([pick -- default precedence],[pick07 pick-subject-and-from-or-from],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/teaparty,[Mail/inbox])
+echo "Current-Folder: inbox" > Mail/context
+echo "cur: 1" > Mail/inbox/.mh_sequences
+pick -subject Story -and -from Dormouse -or -from Alice
+],
+[0],
+[2
+4
+6
+8
+10
+12
+14
+20
+25
+27
+29
+33
+36
+38
+40
+43
+45
+47
+51
+53
+55
+57
+59
+61
+63
+65
+66
+67
+68
+69
+70
+72
+74
+76
+77
+78
+79
+80
+81
+82
+83
+85
+87
+88
+89
+90
+91
+92
+93
+95
+])
+
+MH_CHECK([pick -- explicit precedence (1)],[pick08 pick-expl-1],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/teaparty,[Mail/inbox])
+echo "Current-Folder: inbox" > Mail/context
+echo "cur: 1" > Mail/inbox/.mh_sequences
+pick -lbrace -subject Story -and -from Dormouse -rbrace -or -from Alice
+],
+[0],
+[2
+4
+6
+8
+10
+12
+14
+20
+25
+27
+29
+33
+36
+38
+40
+43
+45
+47
+51
+53
+55
+57
+59
+61
+63
+65
+66
+67
+68
+69
+70
+72
+74
+76
+77
+78
+79
+80
+81
+82
+83
+85
+87
+88
+89
+90
+91
+92
+93
+95
+])
+
+MH_CHECK([pick -- explicit precedence (2)],[pick09 pick-expl-2],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/teaparty,[Mail/inbox])
+echo "Current-Folder: inbox" > Mail/context
+echo "cur: 1" > Mail/inbox/.mh_sequences
+pick -subject Story -and -lbrace -from Dormouse -or -from Alice -rbrace
+],
+[0],
+[59
+61
+63
+65
+66
+67
+68
+69
+70
+76
+77
+78
+79
+80
+81
+82
+83
+85
+87
+88
+89
+90
+91
+92
+93
+])
+
+m4_popdef[MH_KEYWORDS])
+# End of pick.at

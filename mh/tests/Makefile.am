@@ -42,10 +42,12 @@ TESTSUITE_AT = \
  anno.at\
  folder.at\
  inc.at\
+ install-mh.at\
  mark.at\
  mhl.at\
  mhparam.at\
  mhpath.at\
+ pick.at\
  scan.at\
  refile.at\
  rmf.at\
