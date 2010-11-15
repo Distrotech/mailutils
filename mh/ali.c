@@ -26,7 +26,7 @@
 
 static char doc[] = N_("GNU MH ali")"\v"
 N_("Use -help to obtain the list of traditional MH options.");
-static char args_doc[] = N_("aliases ...");
+static char args_doc[] = N_("ALIAS [ALIAS...]");
 
 /* GNU options */
 static struct argp_option options[] = {

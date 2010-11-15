@@ -22,7 +22,7 @@
 static char doc[] = N_("GNU MH anno")"\v"
 N_("Options marked with `*' are not yet implemented.\n\
 Use -help to obtain the list of traditional MH options.");
-static char args_doc[] = N_("[msg [msg...]]");
+static char args_doc[] = N_("[MSGLIST]");
 
 /* GNU options */
 static struct argp_option options[] = {

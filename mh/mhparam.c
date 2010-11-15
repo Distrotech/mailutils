@@ -21,7 +21,7 @@
 
 static char doc[] = N_("GNU MH mhparam")"\v"
 N_("Use -help to obtain the list of traditional MH options.");
-static char args_doc[] = N_("[components]");
+static char args_doc[] = N_("[COMPONENT [COMPONENT...]]");
 
 /* GNU options */
 static struct argp_option options[] = {

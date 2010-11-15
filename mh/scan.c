@@ -28,7 +28,7 @@
 
 static char doc[] = N_("GNU MH scan")"\v"
 N_("Use -help to obtain the list of traditional MH options.");
-static char args_doc[] = N_("[+folder] [msgs]");
+static char args_doc[] = N_("[+FOLDER] [MSGLIST]");
 
 /* GNU options */
 static struct argp_option options[] = {

@@ -21,7 +21,6 @@
 
 static char doc[] = N_("GNU MH fmtcheck")"\v"
 N_("Use -help to obtain the list of traditional MH options.");
-static char args_doc[] = "";
 
 /* GNU options */
 static struct argp_option options[] = {
@@ -34,7 +33,7 @@ static struct argp_option options[] = {
   { "debug",  ARG_DEBUG, NULL,     0,
     N_("enable parser debugging output"),},
 
-  { 0 }
+  { NULL }
 };
 
 /* Traditional MH options */
@@ -97,7 +96,7 @@ main (int argc, char **argv)
   MU_APP_INIT_NLS ();
 
   mh_argp_init ();
-  mh_argp_parse (&argc, &argv, 0, options, mh_option, args_doc, doc,
+  mh_argp_parse (&argc, &argv, 0, options, mh_option, NULL, doc,
 		 opt_handler, NULL, NULL);
 
   if (format_str && mh_format_parse (format_str, &format))

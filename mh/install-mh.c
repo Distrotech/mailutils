@@ -19,7 +19,6 @@
 
 static char doc[] = N_("GNU MH install-mh")"\v"
 N_("Use -help to obtain the list of traditional MH options.");
-static char args_doc[] = "";
 
 /* GNU options */
 static struct argp_option options[] = {
@@ -65,7 +64,7 @@ main (int argc, char **argv)
 
   mh_argp_init ();
   mh_auto_install = 0;
-  mh_argp_parse (&argc, &argv, 0, options, mh_option, args_doc, doc,
+  mh_argp_parse (&argc, &argv, 0, options, mh_option, NULL, doc,
 		 opt_handler, NULL, NULL);
 
   name = getenv ("MH");

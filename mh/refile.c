@@ -27,7 +27,7 @@
 static char doc[] = N_("GNU MH refile")"\v"
 N_("Options marked with `*' are not yet implemented.\n\
 Use -help to obtain the list of traditional MH options.");
-static char args_doc[] = N_("messages folder [folder...]");
+static char args_doc[] = N_("MSGLIST FOLDER [FOLDER...]");
 
 /* GNU options */
 static struct argp_option options[] = {

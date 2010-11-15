@@ -24,7 +24,7 @@
 
 static char doc[] = N_("GNU MH sortm")"\v"
 N_("Use -help to obtain the list of traditional MH options.");
-static char args_doc[] = N_("[msgs]");
+static char args_doc[] = N_("[MSGLIST]");
 
 #define ARG_QUICKSORT 1024
 #define ARG_SHELL     1025

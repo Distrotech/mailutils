@@ -25,7 +25,7 @@
 static char doc[] = N_("GNU MH repl")"\v"
 N_("Options marked with `*' are not yet implemented.\n\
 Use -help to obtain the list of traditional MH options.");
-static char args_doc[] = N_("[+folder] [msg]");
+static char args_doc[] = N_("[+FOLDER] [MESSAGE]");
 
 
 /* GNU options */

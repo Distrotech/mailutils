@@ -27,63 +27,69 @@
 static char doc[] = N_("GNU MH mhn")"\v"
 N_("Options marked with `*' are not yet implemented.\n\
 Use -help to obtain the list of traditional MH options.");
-static char args_doc[] = "[msgs]";
+static char args_doc[] = N_("[MSGLIST]");
 
 static struct argp_option options[] = {
   {"folder",       ARG_FOLDER,       N_("FOLDER"), 0,
    N_("specify folder to operate upon"), 0},
   {"file",         ARG_FILE,         N_("FILE"),   0,
    N_("specify file to operate upon"), 0},
-  
-  {N_("MIME editing options"),   0,  NULL, OPTION_DOC,  NULL, 5},
-  {"compose",      ARG_COMPOSE,      N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("compose the MIME message (default)"), 6},
-  {"nocompose",    ARG_NOCOMPOSE,    NULL, OPTION_HIDDEN, "", 6},
-  
-  {N_("Listing options"),   0,  NULL, OPTION_DOC,  NULL, 0},
-  {"list",         ARG_LIST,         N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("list the table of contents"), 11 },
-  {"nolist",       ARG_NOLIST,       NULL, OPTION_HIDDEN, "", 11 },
-  {"headers",      ARG_HEADER,       N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("print the banner above the listing"), 12},
-  {"noheaders",    ARG_NOHEADERS,    NULL, OPTION_HIDDEN, "", 12 },
-  {"realsize",     ARG_REALSIZE,     N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("list the decoded sizes"), 12},
-  {"norealsize",   ARG_NOREALSIZE,   NULL, OPTION_HIDDEN, "", 12 },
 
-  {N_("Display options"),   0,  NULL, OPTION_DOC,  NULL, 20},
+#define GRID 10
+  {N_("MIME editing options"),   0,  NULL, OPTION_DOC,  NULL, GRID},
+  {"compose",      ARG_COMPOSE,      N_("BOOL"), OPTION_ARG_OPTIONAL,
+   N_("compose the MIME message (default)"), GRID+1},
+  {"nocompose",    ARG_NOCOMPOSE,    NULL, OPTION_HIDDEN, "", GRID+1},
+#undef GRID
+#define GRID 20  
+  {N_("Listing options"),   0,  NULL, OPTION_DOC,  NULL, GRID},
+  {"list",         ARG_LIST,         N_("BOOL"), OPTION_ARG_OPTIONAL,
+   N_("list the table of contents"), GRID+1 },
+  {"nolist",       ARG_NOLIST,       NULL, OPTION_HIDDEN, "", GRID+1 },
+  {"headers",      ARG_HEADER,       N_("BOOL"), OPTION_ARG_OPTIONAL,
+   N_("print the banner above the listing"), GRID+1 },
+  {"noheaders",    ARG_NOHEADERS,    NULL, OPTION_HIDDEN, "", GRID+1 },
+  {"realsize",     ARG_REALSIZE,     N_("BOOL"), OPTION_ARG_OPTIONAL,
+   N_("list the decoded sizes"), GRID+1 },
+  {"norealsize",   ARG_NOREALSIZE,   NULL, OPTION_HIDDEN, "", GRID+1 },
+#undef GRID
+#define GRID 40
+  {N_("Display options"),   0,  NULL, OPTION_DOC,  NULL, GRID},
   {"show",         ARG_SHOW,         N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("display the contents of the messages"), 21},
-  {"noshow",       ARG_NOSHOW,       NULL, OPTION_HIDDEN, "", 21 },
+   N_("display the contents of the messages"), GRID+1},
+  {"noshow",       ARG_NOSHOW,       NULL, OPTION_HIDDEN, "", GRID+1 },
   {"serialonly",   ARG_SERIALONLY,   N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("* display messages serially"), 22},
-  {"noserialonly", ARG_NOSERIALONLY, NULL, OPTION_HIDDEN, "", 22 },
+   N_("* display messages serially"), GRID+1},
+  {"noserialonly", ARG_NOSERIALONLY, NULL, OPTION_HIDDEN, "", GRID+1 },
   {"form",         ARG_FORM,         N_("FILE"), 0,
-   N_("read mhl format from FILE"), 22},
+   N_("read mhl format from FILE"), GRID+1},
   {"pause",        ARG_PAUSE,        N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("pause prior to displaying content"), 22},
-  {"nopause",      ARG_NOPAUSE,      NULL, OPTION_HIDDEN, "", 22 },
-   
-  {N_("Saving options"),   0,  NULL, OPTION_DOC,  NULL, 30},
+   N_("pause prior to displaying content"), GRID+1},
+  {"nopause",      ARG_NOPAUSE,      NULL, OPTION_HIDDEN, "", GRID+1 },
+#undef GRID
+#define GRID 50
+  {N_("Saving options"),   0,  NULL, OPTION_DOC,  NULL, GRID},
   {"store",        ARG_STORE,        N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("store the contents of the messages on disk"), 31},
-  {"nostore",      ARG_NOSTORE,      NULL, OPTION_HIDDEN, "", 31 },
+   N_("write extracted message parts to disk"), GRID+1},
+  {"nostore",      ARG_NOSTORE,      NULL, OPTION_HIDDEN, "", GRID+1 },
   {"auto",         ARG_AUTO,         N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("use filenames from the content headers"), 31},
-  {"noauto",       ARG_NOAUTO,       NULL, OPTION_HIDDEN, "", 31 },
+   N_("use filenames from the content headers"), GRID+1},
+  {"noauto",       ARG_NOAUTO,       NULL, OPTION_HIDDEN, "", GRID+1 },
   {"charset",      ARG_CHARSET,      N_("NAME"), 0,
-   N_("use this charset to represent attachment file names"), 31},
-  
-  {N_("Other options"),    0,  NULL, OPTION_DOC,  NULL, 40},
+   N_("use this charset to represent attachment file names"), GRID+1},
+#undef GRID
+#define GRID 60
+  {N_("Other options"),    0,  NULL, OPTION_DOC,  NULL, GRID},
   {"part",         ARG_PART,         N_("PART"), 0,
-   N_("limit the scope of the operation to the given part"), 41},
+   N_("limit the scope of the operation to the given part"), GRID+1},
   {"type",         ARG_TYPE,         N_("CONTENT"), 0,
-   N_("operate on message part with given multipart content"), 41 },
+   N_("operate on message part with given multipart content"), GRID+1 },
   {"verbose",      ARG_VERBOSE,     N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("print additional information"), 41 },
-  {"noverbose",    ARG_NOVERBOSE,   NULL, OPTION_HIDDEN, "", 41 },
+   N_("print additional information"), GRID+1 },
+  {"noverbose",    ARG_NOVERBOSE,   NULL, OPTION_HIDDEN, "", GRID+1 },
   {"quiet",        ARG_QUIET, 0, 0,
-   N_("be quiet")},
+   N_("be quiet"), GRID+1},
+#undef GRID
   {NULL}
 };
 

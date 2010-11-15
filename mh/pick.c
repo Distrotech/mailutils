@@ -37,67 +37,80 @@ letter or followed by a colon, e.g.:\n\
   --user-agent: Mailutils\n\
 \n\
 Use -help to obtain a list of traditional MH options.");
-static char args_doc[] = N_("[messages]");
+static char args_doc[] = N_("[MSGLIST]");
 
 /* GNU options */
 static struct argp_option options[] = {
-  {"folder",  ARG_FOLDER, N_("FOLDER"), 0,
-   N_("specify folder to operate upon"), 0},
+#define GRID 10
+  { "folder",  ARG_FOLDER, N_("FOLDER"), 0,
+    N_("specify folder to operate upon"), GRID },
+#undef GRID
 
-  {N_("Specifying search patterns:"), 0,  NULL, OPTION_DOC,  NULL, 0},
-  {"component", ARG_COMPONENT, N_("FIELD"), 0,
-   N_("search the named header field"), 1},
-  {"pattern", ARG_PATTERN, N_("STRING"), 0,
-   N_("set pattern to look for"), 1},
-  {"search",  0, NULL, OPTION_ALIAS, NULL, 1},
-  {"cflags",  ARG_CFLAGS,  N_("STRING"), 0,
-   N_("flags controlling the type of regular expressions. STRING must consist of one or more of the following letters: B=basic, E=extended, I=ignore case, C=case sensitive. Default is \"EI\". The flags remain in effect until the next occurrence of --cflags option. The option must occur right before --pattern or --component option (or its alias).") },
-  {"cc",      ARG_CC,      N_("STRING"), 0,
-   N_("same as --component cc --pattern STRING"), 1},
-  {"date",    ARG_DATE,    N_("STRING"), 0,
-   N_("same as --component date --pattern STRING"), 1},
-  {"from",    ARG_FROM,    N_("STRING"), 0,
-   N_("same as --component from --pattern STRING"), 1},
-  {"subject", ARG_SUBJECT, N_("STRING"), 0,
-   N_("same as --component subject --pattern STRING"), 1},
-  {"to",      ARG_TO,      N_("STRING"), 0,
-   N_("same as --component to --pattern STRING"), 1},
+#define GRID 20
+  { N_("Search patterns"), 0,  NULL, OPTION_DOC,  NULL, GRID },
+  { "component", ARG_COMPONENT, N_("FIELD"), 0,
+    N_("search the named header field"), GRID+1},
+  { "pattern", ARG_PATTERN, N_("STRING"), 0,
+    N_("set pattern to look for"), GRID+1 },
+  { "search",  0, NULL, OPTION_ALIAS, NULL, GRID+1 },
+  { "cflags",  ARG_CFLAGS,  N_("STRING"), 0,
+    N_("flags controlling the type of regular expressions. STRING must consist of one or more of the following letters: B=basic, E=extended, I=ignore case, C=case sensitive. Default is \"EI\". The flags remain in effect until the next occurrence of --cflags option. The option must occur right before --pattern or --component option (or its alias)."), GRID+1 },
+  { "cc",      ARG_CC,      N_("STRING"), 0,
+    N_("same as --component cc --pattern STRING"), GRID+1 },
+  { "date",    ARG_DATE,    N_("STRING"), 0,
+    N_("same as --component date --pattern STRING"), GRID+1 },
+  { "from",    ARG_FROM,    N_("STRING"), 0,
+    N_("same as --component from --pattern STRING"), GRID+1 },
+  { "subject", ARG_SUBJECT, N_("STRING"), 0,
+    N_("same as --component subject --pattern STRING"), GRID+1 },
+  { "to",      ARG_TO,      N_("STRING"), 0,
+    N_("same as --component to --pattern STRING"), GRID+1 },
+#undef GRID
 
-  {N_("Date constraint operations:"), 0,  NULL, OPTION_DOC, NULL, 1},
-  {"datefield",ARG_DATEFIELD, N_("STRING"), 0,
-   N_("search in the named date header field (default is `Date:')"), 2},
-  {"after",    ARG_AFTER,     N_("DATE"), 0,
-   N_("match messages after the given date"), 2},
-  {"before",   ARG_BEFORE,    N_("DATE"), 0,
-   N_("match messages before the given date"), 2},
+#define GRID 30  
+  { N_("Date constraint operations"), 0,  NULL, OPTION_DOC, NULL, GRID },
+  { "datefield",ARG_DATEFIELD, N_("STRING"), 0,
+    N_("search in the named date header field (default is `Date:')"), GRID+1 },
+  { "after",    ARG_AFTER,     N_("DATE"), 0,
+    N_("match messages after the given date"), GRID+1 },
+  { "before",   ARG_BEFORE,    N_("DATE"), 0,
+    N_("match messages before the given date"), GRID+1 },
+#undef GRID
 
-  {N_("Logical operations and grouping:"), 0, NULL, OPTION_DOC, NULL, 2},
-  {"and",     ARG_AND,    NULL, 0,
-   N_("logical AND (default)"), 3 },
-  {"or",      ARG_OR,     NULL, 0,
-   N_("logical OR"), 3 },
-  {"not",     ARG_NOT,    NULL, 0,
-   N_("logical NOT"), 3},
-  {"lbrace",  ARG_LBRACE, NULL, 0,
-   N_("open group"), 3},
-  {"(",       0, NULL, OPTION_ALIAS, NULL, 3},
-  {"rbrace",  ARG_RBRACE, NULL, 0,
-   N_("close group"), 3},
-  {")",       0, NULL, OPTION_ALIAS, NULL, 3},
+#define GRID 40
+  { N_("Logical operations and grouping"), 0, NULL, OPTION_DOC, NULL, GRID },
+  { "and",     ARG_AND,    NULL, 0,
+    N_("logical AND (default)"), GRID+1 },
+  { "or",      ARG_OR,     NULL, 0,
+    N_("logical OR"), GRID+1 },
+  { "not",     ARG_NOT,    NULL, 0,
+    N_("logical NOT"), GRID+1 },
+  { "lbrace",  ARG_LBRACE, NULL, 0,
+    N_("open group"), GRID+1 },
+  { "(",       0, NULL, OPTION_ALIAS, NULL, GRID+1 },
+  { "rbrace",  ARG_RBRACE, NULL, 0,
+    N_("close group"), GRID+1},
+  { ")",       0, NULL, OPTION_ALIAS, NULL, GRID+1 },
+#undef GRID
 
-  {N_("Operations over the selected messages:"), 0, NULL, OPTION_DOC, NULL, 3},
-  {"list",   ARG_LIST,       N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("list the numbers of the selected messages (default)"), 4},
-  {"nolist", ARG_NOLIST,     NULL, OPTION_HIDDEN, "", 4 },
-  {"sequence", ARG_SEQUENCE,  N_("NAME"), 0,
-   N_("add matching messages to the given sequence"), 4},
-  {"public", ARG_PUBLIC, N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("create public sequence"), 4},
-  {"nopublic", ARG_NOPUBLIC, NULL, OPTION_HIDDEN, "", 4 },
-  {"zero",     ARG_ZERO,     N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("empty the sequence before adding messages"), 4},
-  {"nozero", ARG_NOZERO, NULL, OPTION_HIDDEN, "", 4 },
-  {NULL},
+#define GRID 50
+  { N_("Operations over the selected messages"), 0, NULL, OPTION_DOC, NULL,
+    GRID },
+  { "list",   ARG_LIST,       N_("BOOL"), OPTION_ARG_OPTIONAL,
+    N_("list the numbers of the selected messages (default)"), GRID+1 },
+  { "nolist", ARG_NOLIST,     NULL, OPTION_HIDDEN, "", GRID+1 },
+  { "sequence", ARG_SEQUENCE,  N_("NAME"), 0,
+    N_("add matching messages to the given sequence"), GRID+1 },
+  { "public", ARG_PUBLIC, N_("BOOL"), OPTION_ARG_OPTIONAL,
+    N_("create public sequence"), GRID+1 },
+  { "nopublic", ARG_NOPUBLIC, NULL, OPTION_HIDDEN, "", GRID+1 },
+  { "zero",     ARG_ZERO,     N_("BOOL"), OPTION_ARG_OPTIONAL,
+    N_("empty the sequence before adding messages"), GRID+1 },
+  { "nozero", ARG_NOZERO, NULL, OPTION_HIDDEN, "", GRID+1 },
+#undef GRID
+
+  { NULL }
+  
 };
 
 /* Traditional MH options */

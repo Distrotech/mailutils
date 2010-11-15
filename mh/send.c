@@ -26,7 +26,7 @@
 static char doc[] = N_("GNU MH send")"\v"
 N_("Options marked with `*' are not yet implemented.\n\
 Use -help to obtain the list of traditional MH options.");
-static char args_doc[] = N_("file [file...]");
+static char args_doc[] = N_("FILE [FILE...]");
 
 /* GNU options */
 static struct argp_option options[] = {

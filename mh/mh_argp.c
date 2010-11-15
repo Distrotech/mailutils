@@ -180,7 +180,7 @@ struct argp mu_debug_argp = {
 };
 
 struct argp_child mh_argp_children[] = {
-  { &mu_debug_argp, 0, N_("Global debugging settings"), 0 },
+  { &mu_debug_argp, 0, N_("Global debugging settings"), -2 },
   { NULL }
 };
 
