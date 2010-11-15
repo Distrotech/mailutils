@@ -72,21 +72,21 @@ static struct argp_option options[] = {
 
 /* Traditional MH options */
 struct mh_option mh_option[] = {
-  {"annotate",      1, MH_OPT_BOOL },
-  {"build",         1, },
-  {"form",          4, MH_OPT_ARG, "formatfile"},
-  {"format",        5,  MH_OPT_ARG, "string"},
-  {"draftfolder",   6, MH_OPT_ARG, "folder"},
-  {"nodraftfolder", 3 },
-  {"draftmessage",  6, },
-  {"editor",        1, MH_OPT_ARG, "program"},
-  {"noedit",        3, },
-  {"filter",        2, MH_OPT_ARG, "program"},
-  {"inplace",       1, MH_OPT_BOOL },
-  {"whatnowproc",   2, MH_OPT_ARG, "program"},
-  {"nowhatnowproc", 3 },
-  {"mime",          2, MH_OPT_BOOL, NULL},
-  {NULL}
+  { "annotate",      MH_OPT_BOOL },
+  { "build" },
+  { "form",          MH_OPT_ARG, "formatfile"},
+  { "format",        MH_OPT_ARG, "string"},
+  { "draftfolder",   MH_OPT_ARG, "folder"},
+  { "nodraftfolder" },
+  { "draftmessage" },
+  { "editor",        MH_OPT_ARG, "program"},
+  { "noedit" },
+  { "filter",        MH_OPT_ARG, "program"},
+  { "inplace",       MH_OPT_BOOL },
+  { "whatnowproc",   MH_OPT_ARG, "program"},
+  { "nowhatnowproc" },
+  { "mime",          MH_OPT_BOOL },
+  { NULL }
 };
 
 enum encap_type {

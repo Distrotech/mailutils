@@ -79,25 +79,25 @@ static struct argp_option options[] = {
 
 /* Traditional MH options */
 struct mh_option mh_option[] = {
-  {"alias",         1, 0, "aliasfile" },
-  {"draft",         5, 0, NULL },
-  {"draftfolder",   6, 0, "folder" },
-  {"draftmessage",  6, 0, "message"},
-  {"nodraftfolder", 3, 0, NULL },
-  {"filter",        2, 0, "filterfile"},
-  {"nofilter",      3, 0, NULL },
-  {"format",        4, MH_OPT_BOOL, NULL},
-  {"forward",       4, MH_OPT_BOOL, NULL},
-  {"mime",          2, MH_OPT_BOOL, NULL},
-  {"msgid",         2, MH_OPT_BOOL, NULL},
-  {"push",          2, MH_OPT_BOOL, NULL},
-  {"preserve",      2, MH_OPT_BOOL, NULL},
-  {"keep",          1, MH_OPT_BOOL, NULL},
-  {"split",         1, 0, "seconds"},
-  {"verbose",       1, MH_OPT_BOOL, NULL},
-  {"watch",         2, MH_OPT_BOOL, NULL},
-  {"width",         2, 0, NULL },
-  { 0 }
+  { "alias",         MH_OPT_ARG, "aliasfile" },
+  { "draft" },
+  { "draftfolder",   MH_OPT_ARG, "folder" },
+  { "draftmessage",  MH_OPT_ARG, "message" },
+  { "nodraftfolder" },
+  { "filter",        MH_OPT_ARG, "filterfile" },
+  { "nofilter" },
+  { "format",        MH_OPT_BOOL },
+  { "forward",       MH_OPT_BOOL },
+  { "mime",          MH_OPT_BOOL },
+  { "msgid",         MH_OPT_BOOL },
+  { "push",          MH_OPT_BOOL },
+  { "preserve",      MH_OPT_BOOL },
+  { "keep",          MH_OPT_BOOL },
+  { "split",         MH_OPT_ARG, "seconds" },
+  { "verbose",       MH_OPT_BOOL },
+  { "watch",         MH_OPT_BOOL },
+  { "width" },
+  { NULL }
 };
 
 static int use_draft;            /* Use the prepared draft */

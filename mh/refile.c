@@ -49,12 +49,12 @@ static struct argp_option options[] = {
 
 /* Traditional MH options */
 struct mh_option mh_option[] = {
-  {"file",     2, 0, "input-file"},
-  {"draft",    1, 0, NULL },
-  {"link",     1, MH_OPT_BOOL, NULL },
-  {"preserve", 1, MH_OPT_BOOL, NULL },
-  {"src",      1, 0, "+folder" },
-  { 0 }
+  { "file",     MH_OPT_ARG, "input-file"},
+  { "draft" },
+  { "link",     MH_OPT_BOOL },
+  { "preserve", MH_OPT_BOOL },
+  { "src",      MH_OPT_ARG, "folder" },
+  { NULL }
 };
 
 int link_flag = 0;

@@ -43,12 +43,12 @@ static struct argp_option options[] = {
 };
 
 struct mh_option mh_option[] = {
-  {"sequence", 1, },
-  {"add", 1, }, 
-  {"delete", 1, },
-  {"list", 1, },
-  {"public", 1, MH_OPT_BOOL },
-  {"zero", 1, MH_OPT_BOOL },
+  { "sequence" },
+  { "add" }, 
+  { "delete" },
+  { "list" },
+  { "public", MH_OPT_BOOL },
+  { "zero", MH_OPT_BOOL },
   { NULL }
 };
 

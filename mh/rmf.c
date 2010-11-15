@@ -47,7 +47,7 @@ static struct argp_option options[] = {
 
 /* Traditional MH options */
 struct mh_option mh_option[] = {
-  {"interactive", 1, MH_OPT_BOOL, NULL},
+  { "interactive", MH_OPT_BOOL },
   { 0 }
 };
 

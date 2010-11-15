@@ -32,7 +32,7 @@ static struct argp_option options[] = {
 
 /* Traditional MH options */
 struct mh_option mh_option[] = {
-  { 0 }
+  { NULL }
 };
 
 static error_t

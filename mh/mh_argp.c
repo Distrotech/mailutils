@@ -201,7 +201,8 @@ mh_argp_parse (int *pargc, char **pargv[],
 
   mu_set_program_name ((*pargv)[0]);
   mh_init ();
-  
+
+  mh_option_init (mh_option);
   memset (&argp, 0, sizeof (argp));
   argp.options = option;
   argp.parser = parse_opt;

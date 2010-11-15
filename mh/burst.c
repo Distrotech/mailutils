@@ -50,10 +50,10 @@ static struct argp_option options[] = {
 
 /* Traditional MH options */
 struct mh_option mh_option[] = {
-  {"inplace",    1, MH_OPT_BOOL },
-  {"quiet",      1, MH_OPT_BOOL },
-  {"verbose",    1, MH_OPT_BOOL },
-  {NULL}
+  { "inplace",    MH_OPT_BOOL },
+  { "quiet",      MH_OPT_BOOL },
+  { "verbose",    MH_OPT_BOOL },
+  { NULL }
 };
 
 /* Command line switches */

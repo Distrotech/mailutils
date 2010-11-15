@@ -29,8 +29,8 @@ static struct argp_option options[] = {
 };
 
 struct mh_option mh_option[] = {
-  {"auto",     1, 0, },
-  {"compat",     1, 0, },
+  { "auto" },
+  { "compat" },
   { NULL }
 };
 

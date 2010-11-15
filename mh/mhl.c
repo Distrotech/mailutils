@@ -50,13 +50,13 @@ static struct argp_option options[] = {
    
 /* Traditional MH options */
 struct mh_option mh_option[] = {
-  { "bell",       1,  MH_OPT_BOOL },
-  { "clear",      1,  MH_OPT_BOOL },
-  { "form",       1,  MH_OPT_ARG, "formatfile"},
-  { "width",      1,  MH_OPT_ARG, "number"},
-  { "length",     1,  MH_OPT_ARG, "number"},
-  { "moreproc",   1,  MH_OPT_ARG, "program"},
-  { "nomoreproc", 3, },
+  { "bell",       MH_OPT_BOOL },
+  { "clear",      MH_OPT_BOOL },
+  { "form",       MH_OPT_ARG, "formatfile"},
+  { "width",      MH_OPT_ARG, "number"},
+  { "length",     MH_OPT_ARG, "number"},
+  { "moreproc",   MH_OPT_ARG, "program"},
+  { "nomoreproc" },
   { NULL }
 };
 

@@ -89,20 +89,20 @@ static struct argp_option options[] = {
 
 /* Traditional MH options */
 struct mh_option mh_option[] = {
-  {"file",          2, 0, "filename"},
-  {"list",          1, MH_OPT_BOOL, NULL},
-  {"headers",       1, MH_OPT_BOOL, NULL},
-  {"realsize",      1, MH_OPT_BOOL, NULL},
-  {"show",          2, MH_OPT_BOOL, NULL},
-  {"serialonly",    2, MH_OPT_BOOL, NULL},
-  {"form",          2, 0, "formfile"},
-  {"pause",         3, MH_OPT_BOOL, NULL},
-  {"store",         1, MH_OPT_BOOL, NULL},
-  {"auto",          1, MH_OPT_BOOL, NULL},
-  {"part",          3, 0, "part"},
-  {"type",          1, 0, "type"},
-  {"verbose",       1, MH_OPT_BOOL, NULL},
-  {NULL}
+  { "file",          MH_OPT_ARG, "filename" },
+  { "list",          MH_OPT_BOOL },
+  { "headers",       MH_OPT_BOOL },
+  { "realsize",      MH_OPT_BOOL },
+  { "show",          MH_OPT_BOOL },
+  { "serialonly",    MH_OPT_BOOL },
+  { "form",          MH_OPT_ARG, "formfile" },
+  { "pause",         MH_OPT_BOOL },
+  { "store",         MH_OPT_BOOL },
+  { "auto",          MH_OPT_BOOL },
+  { "part",          MH_OPT_ARG, "part" },
+  { "type",          MH_OPT_ARG, "type" },
+  { "verbose",       MH_OPT_BOOL },
+  { NULL }
 };
 
 typedef struct _msg_part *msg_part_t;

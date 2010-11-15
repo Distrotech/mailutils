@@ -45,12 +45,12 @@ static struct argp_option options[] = {
 
 /* Traditional MH options */
 struct mh_option mh_option[] = {
-  { "alias", 1, MH_OPT_ARG, "aliasfile" },
-  { "noalias", 3, },
-  { "list", 1, MH_OPT_BOOL },
-  { "normalize", 3, MH_OPT_BOOL },
-  { "user", 1, MH_OPT_BOOL },
-  { 0 }
+  { "alias", MH_OPT_ARG, "aliasfile" },
+  { "noalias", },
+  { "list", MH_OPT_BOOL },
+  { "normalize", MH_OPT_BOOL },
+  { "user", MH_OPT_BOOL },
+  { NULL }
 };
 
 static int list_mode;

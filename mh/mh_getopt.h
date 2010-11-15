@@ -25,9 +25,9 @@
 struct mh_option
 {
   char *opt;
-  int match_len;
   int flags;
   char *arg;
+  size_t match_len;
 };
 
 struct mh_argp_data
@@ -182,6 +182,8 @@ enum mh_arg {
 };
 
 extern void (*mh_help_hook) (void);
+
+void mh_option_init (struct mh_option *opt);
 
 void mh_argp_init (void);
 void mh_argv_preproc (int argc, char **argv, struct mh_argp_data *data);

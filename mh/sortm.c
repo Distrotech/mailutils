@@ -78,13 +78,13 @@ static struct argp_option options[] = {
 
 /* Traditional MH options */
 struct mh_option mh_option[] = {
-  {"datefield",     1, 0, "field" },
-  {"nodatefield",   3, 0, 0 },
-  {"textfield",     1, 0, "field" },
-  {"notextfield",   3, 0, 0 },
-  {"limit",         1, 0, "days" },
-  {"nolimit",       3, 0, 0 },
-  {"verbose",       1, MH_OPT_BOOL, NULL},
+  { "datefield",     MH_OPT_ARG, "field" },
+  { "nodatefield" },
+  { "textfield",     MH_OPT_ARG, "field" },
+  { "notextfield" },
+  { "limit",         MH_OPT_ARG, "days" },
+  { "nolimit" },
+  { "verbose",       MH_OPT_BOOL },
   { NULL },
 };
 

@@ -42,10 +42,10 @@ static struct argp_option options[] = {
 };
 
 struct mh_option mh_option[] = {
-  {"inplace",   1, MH_OPT_BOOL },
-  {"date",      1, MH_OPT_BOOL },
-  {"component", 1, MH_OPT_ARG, "field"},
-  {"text",      1, MH_OPT_ARG, "body"},
+  { "inplace",   MH_OPT_BOOL },
+  { "date",      MH_OPT_BOOL },
+  { "component", MH_OPT_ARG, "field" },
+  { "text",      MH_OPT_ARG, "body" },
   { NULL }
 };
 

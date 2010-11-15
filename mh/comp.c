@@ -58,17 +58,17 @@ static struct argp_option options[] = {
 
 /* Traditional MH options */
 struct mh_option mh_option[] = {
-  {"build",         1, },
-  {"file",          2, MH_OPT_ARG, "draftfile"},
-  {"form",          2, MH_OPT_ARG, "formatfile"},
-  {"draftfolder",   6, MH_OPT_ARG, "folder"},
-  {"nodraftfolder", 3, },
-  {"draftmessage",  6, },
-  {"editor",        1, MH_OPT_ARG, "program"},
-  {"noedit",        3, },
-  {"whatnowproc",   2, MH_OPT_ARG, "program"},
-  {"nowhatnowproc", 3, },
-  { 0 }
+  { "build" },
+  { "file",          MH_OPT_ARG, "draftfile" },
+  { "form",          MH_OPT_ARG, "formatfile" },
+  { "draftfolder",   MH_OPT_ARG, "folder" },
+  { "nodraftfolder" },
+  { "draftmessage" },
+  { "editor",        MH_OPT_ARG, "program" },
+  { "noedit" },
+  { "whatnowproc",   MH_OPT_ARG, "program" },
+  { "nowhatnowproc" },
+  { NULL }
 };
 
 struct mh_whatnow_env wh_env = { 0 };

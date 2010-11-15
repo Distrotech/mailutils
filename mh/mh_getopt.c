@@ -153,6 +153,52 @@ mh_help (struct mh_option *mh_opt, const char *doc)
             mu_program_name);
 }
 
+
+static int
+optcmp (const void *a, const void *b)
+{
+  struct mh_option const *opta = a, *optb = b;
+  return strcmp (opta->opt, optb->opt);
+}
+
+void
+mh_option_init (struct mh_option *opt)
+{
+  size_t count, i;
+
+  /* Count number of elements and initialize minimum abbreviation
+     lengths to 1. */
+  for (count = 0; opt[count].opt; count++)
+    opt[count].match_len = 1;
+  /* Sort them alphabetically */
+  qsort (opt, count, sizeof (opt[0]), optcmp);
+  /* Determine minimum abbreviations */
+  for (i = 0; i < count; i++)
+    {
+      const char *sample = opt[i].opt;
+      size_t sample_len = strlen (sample);
+      size_t minlen = opt[i].match_len;
+      size_t j;
+      
+      for (j = i + 1; j < count; j++)
+	{
+	  size_t len = strlen (opt[j].opt);
+	  if (len >= minlen && memcmp (opt[j].opt, sample, minlen) == 0)
+	    do
+	      {
+		minlen++;
+		opt[j].match_len = minlen;
+		if (minlen == sample_len)
+		  break;
+	      }
+	    while (len >= minlen && memcmp (opt[j].opt, sample, minlen) == 0);
+	  else
+	    break;
+	}
+      opt[i].match_len = minlen;
+    }
+}
+
 void
 mh_opt_notimpl (const char *name)
 {

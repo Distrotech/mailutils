@@ -34,9 +34,9 @@ static struct argp_option options[] = {
 
 /* Traditional MH options */
 struct mh_option mh_option[] = {
-  { "all", 1, 0 },
-  { "component", 1, MH_OPT_BOOL},
-  { 0 }
+  { "all" },
+  { "component", MH_OPT_BOOL },
+  { NULL }
 };
 
 static int display_all;

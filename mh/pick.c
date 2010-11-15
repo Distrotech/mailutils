@@ -102,28 +102,28 @@ static struct argp_option options[] = {
 
 /* Traditional MH options */
 struct mh_option mh_option[] = {
-  {"component", 1,  0, "field" },
-  {"pattern",   1,  0, "pattern" },
-  {"search",    1,  0, "pattern" },
-  {"cc",        1,  0, "pattern" },
-  {"date",      1,  0, "pattern" },
-  {"from",      1,  0, "pattern" },
-  {"subject",   1,  0, "pattern" },
-  {"to",        1,  0, "pattern" },
-  {"datefield", 1,  0, "field" },
-  {"after",     1,  0, "date" },
-  {"before",    1,  0, "date"},
-  {"and",       1,  0, NULL },
-  {"or",        1,  0, NULL }, 
-  {"not",       1,  0, NULL },
-  {"lbrace",    1,  0, NULL },
-  {"rbrace",    1,  0, NULL },
+  { "component", MH_OPT_ARG, "field" },
+  { "pattern",   MH_OPT_ARG, "pattern" },
+  { "search",    MH_OPT_ARG, "pattern" },
+  { "cc",        MH_OPT_ARG, "pattern" },
+  { "date",      MH_OPT_ARG, "pattern" },
+  { "from",      MH_OPT_ARG, "pattern" },
+  { "subject",   MH_OPT_ARG, "pattern" },
+  { "to",        MH_OPT_ARG, "pattern" },
+  { "datefield", MH_OPT_ARG, "field" },
+  { "after",     MH_OPT_ARG, "date" },
+  { "before",    MH_OPT_ARG, "date" },
+  { "and" },
+  { "or" }, 
+  { "not" },
+  { "lbrace" },
+  { "rbrace" },
 
-  {"list",      1,  MH_OPT_BOOL, },
-  {"sequence",  1,  0, NULL },
-  {"public",    1,  MH_OPT_BOOL },
-  {"zero",      1,  MH_OPT_BOOL },
-  {NULL}
+  { "list",      MH_OPT_BOOL },
+  { "sequence",  MH_OPT_ARG, "name" },
+  { "public",    MH_OPT_BOOL },
+  { "zero",      MH_OPT_BOOL },
+  { NULL }
 };
 
 static int list = 1;

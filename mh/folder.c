@@ -83,18 +83,18 @@ static struct argp_option options[] = {
 
 /* Traditional MH options */
 struct mh_option mh_option[] = {
-  {"print",   2, 0, NULL },
-  {"list",    1, 0, NULL },
-  {"push",    2, 0, NULL },
-  {"pop",     2, 0, NULL },
-  {"all",     1, 0, NULL },
-  {"pack",    2, 0, NULL },
-  {"create",  1, MH_OPT_BOOL, NULL},
-  {"fast",    1, MH_OPT_BOOL, NULL},
-  {"header",  1, MH_OPT_BOOL, NULL},
-  {"recurse", 1, MH_OPT_BOOL, NULL},
-  {"total",   1, MH_OPT_BOOL, NULL},
-  {NULL},
+  { "print" },
+  { "list" },
+  { "push" },
+  { "pop" },
+  { "all" },
+  { "pack" },
+  { "create",  MH_OPT_BOOL },
+  { "fast",    MH_OPT_BOOL },
+  { "header",  MH_OPT_BOOL },
+  { "recurse", MH_OPT_BOOL },
+  { "total",   MH_OPT_BOOL },
+  { NULL }
 };
 
 typedef int (*folder_action) ();
