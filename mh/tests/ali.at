@@ -1,0 +1,126 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2010 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# GNU Mailutils is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+
+m4_pushdef([MH_KEYWORDS],[ali])
+
+MH_CHECK([ali: simple aliases],[ali00],[
+AT_DATA([mh_aliases],[
+devel: gray, polak
+admin: gray, jeff
+])
+ali -a ./mh_aliases devel
+],
+[0],
+[gray, polak
+])
+
+MH_CHECK([ali: recursive aliases],[ali01],[
+AT_DATA([mh_aliases],[
+devel: gray, polak, admin
+admin: gray, jeff
+])
+ali -a ./mh_aliases devel
+],
+[0],
+[gray, polak, gray, jeff
+])
+
+MH_CHECK([ali: file inlcusion],[ali02 ali-include],[
+AT_DATA([Mail/mh_aliases2],[
+admin: gray, jeff
+])
+AT_DATA([mh_aliases],[
+devel: gray, polak, admin
+<mh_aliases2
+])
+ali -a ./mh_aliases devel
+],
+[0],
+[gray, polak, gray, jeff
+])
+
+MH_CHECK([ali: recursive inlcusion],[ali03 ali-include-recursive],[
+AT_DATA([Mail/mh_aliases2],[
+<mh_aliases
+])
+AT_DATA([Mail/mh_aliases],[
+devel: gray, polak, admin
+<mh_aliases2
+])
+ali -a ./Mail/mh_aliases devel 2>errout
+code=$?
+dir=`cd Mail;pwd`
+sed "s|$dir/||g" errout >&2
+exit $code
+],
+[0],
+[gray, polak, admin
+],
+[ali: mh_aliases2:2: recursive inclusion
+ali: mh_aliases2:2: `mh_aliases' already included at top level
+])
+
+MH_CHECK([ali: group name],[ali04 ali-group-name],[
+grep ^root: /etc/group >/dev/null || AT_SKIP_TEST
+AT_DATA([mh_aliases],[
+korzen: =root
+])
+awk -F : '$1=="root" { print $4 }' /etc/group | tr -d ' ' > expout
+ali -a ./mh_aliases korzen | tr -d ' '
+],
+[0],
+[expout])
+
+MH_CHECK([ali: group id],[ali05 ali-group-id ali-gid],[
+awk -F : '$4==0 { print $1 }' /etc/passwd > expout
+test -s expout || AT_SKIP_TEST
+name=`awk -F : '$3==0 { print $1 }' /etc/group`
+test -z "$name" && AT_SKIP_TEST
+
+AT_DATA([mh_aliases],[
+korzen: +root
+])
+# FIXME: Do I need to sort the output?
+ali -list -a ./mh_aliases korzen
+],
+[0],
+[expout])
+
+MH_CHECK([ali: everybody],[ali06 ali-everybody],[
+awk -F : '$3>200 { print $1 }' /etc/passwd > expout
+test -s expout || AT_SKIP_TEST
+AT_DATA([mh_aliases],[
+everybody: *
+])
+ali -list -a ./mh_aliases everybody
+],
+[0],
+[expout])
+
+MH_CHECK([ali: simple aliases],[ali00],[
+AT_DATA([mh_aliases],[
+devel: gray, polak
+admin: gray, jeff
+])
+ali -a ./mh_aliases devel
+],
+[0],
+[gray, polak
+])
+
+m4_popdef[MH_KEYWORDS])
+# End of ali.at
+

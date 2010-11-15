@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
 
-m4_pushdef[MH_KEYWORDS],[mhl])
+m4_pushdef([MH_KEYWORDS],[mhl])
 
 MH_CHECK([mhl],[mhl00],[
 MUT_MBCOPY($abs_top_srcdir/testsuite/mh/teaparty,[Mail/inbox])

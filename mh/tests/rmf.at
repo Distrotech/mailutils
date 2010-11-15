@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
 
-m4_pushdef[MH_KEYWORDS],[rmm])
+m4_pushdef([MH_KEYWORDS],[rmm])
 
 MH_CHECK([rmf +folder],[rmf00 rmf+folder],[
 MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])

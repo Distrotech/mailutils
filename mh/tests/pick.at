@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
 
-m4_pushdef[MH_KEYWORDS],[pick])
+m4_pushdef([MH_KEYWORDS],[pick])
 
 MH_CHECK([pick -from],[pick00 pick-from],[
 MUT_MBCOPY($abs_top_srcdir/testsuite/mh/teaparty,[Mail/inbox])
@@ -157,7 +157,7 @@ pick -subject Story -or -from Dormouse
 93
 ])
 
-MH_CHECK([pick -- default precedence],[pick07 pick-subject-and-from-or-from],[
+MH_CHECK([pick: default precedence],[pick07 pick-subject-and-from-or-from],[
 MUT_MBCOPY($abs_top_srcdir/testsuite/mh/teaparty,[Mail/inbox])
 echo "Current-Folder: inbox" > Mail/context
 echo "cur: 1" > Mail/inbox/.mh_sequences
@@ -216,7 +216,7 @@ pick -subject Story -and -from Dormouse -or -from Alice
 95
 ])
 
-MH_CHECK([pick -- explicit precedence (1)],[pick08 pick-expl-1],[
+MH_CHECK([pick: explicit precedence (1)],[pick08 pick-expl-1],[
 MUT_MBCOPY($abs_top_srcdir/testsuite/mh/teaparty,[Mail/inbox])
 echo "Current-Folder: inbox" > Mail/context
 echo "cur: 1" > Mail/inbox/.mh_sequences
@@ -275,7 +275,7 @@ pick -lbrace -subject Story -and -from Dormouse -rbrace -or -from Alice
 95
 ])
 
-MH_CHECK([pick -- explicit precedence (2)],[pick09 pick-expl-2],[
+MH_CHECK([pick: explicit precedence (2)],[pick09 pick-expl-2],[
 MUT_MBCOPY($abs_top_srcdir/testsuite/mh/teaparty,[Mail/inbox])
 echo "Current-Folder: inbox" > Mail/context
 echo "cur: 1" > Mail/inbox/.mh_sequences
@@ -307,6 +307,38 @@ pick -subject Story -and -lbrace -from Dormouse -or -from Alice -rbrace
 91
 92
 93
+])
+
+MH_CHECK([pick -before],[pick10 pick-before],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/teaparty,[Mail/inbox])
+echo "Current-Folder: inbox" > Mail/context
+pick -before 'Mon, 29 Jul 2002 21:00:03 +0000'
+],
+[0],
+[1
+2
+])
+
+MH_CHECK([pick --Component pattern],[pick11 pick-component],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/teaparty,[Mail/inbox])
+pick --X-Envelope-Sender hare
+],
+[0],
+[1
+3
+5
+7
+9
+11
+13
+16
+22
+24
+35
+42
+58
+62
+71
 ])
 
 m4_popdef[MH_KEYWORDS])

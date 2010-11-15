@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
 
-m4_pushdef[MH_KEYWORDS],[mhparam])
+m4_pushdef([MH_KEYWORDS],[mhparam])
 
 MH_CHECK([mhparam -all],[mhparam00 mhparam-all],[
 cat >>$MH <<EOT

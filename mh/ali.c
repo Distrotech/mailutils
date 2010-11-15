@@ -117,15 +117,11 @@ ali_print_name_list (mu_list_t list, int off)
   
   if (list_mode)
     {
-      mu_iterator_first (itr);
-      mu_iterator_current (itr, (void **)&item);
-      printf ("%s\n", item);
-      for (mu_iterator_next (itr); !mu_iterator_is_done (itr); mu_iterator_next (itr))
+      for (mu_iterator_first (itr);
+	   !mu_iterator_is_done (itr); mu_iterator_next (itr))
 	{
-	  int len;
 	  mu_iterator_current (itr, (void **)&item);
-	  len = off + strlen (item);
-	  printf ("%*.*s\n", len, len, item);
+	  printf ("%s\n", item);
 	}
     }
   else
