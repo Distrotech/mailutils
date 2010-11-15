@@ -138,7 +138,7 @@ copy_trimmed_value (const char *str)
   
   str = mu_str_skip_class (str, MU_CTYPE_SPACE);
   len = strlen (str) - 1;
-  p = malloc (len);
+  p = malloc (len + 1);
   memcpy (p, str, len);
   p[len] = 0;
   return p;
