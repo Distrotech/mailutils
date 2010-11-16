@@ -291,7 +291,7 @@ flush_stream (struct burst_stream *bs, char *buf, size_t size)
 
 /* Burst an RFC 934 digest.  Return 0 if OK, 1 if the message is not
    a valid digest.
-   FIXME: On errors, cleanup and return -1
+   FIXME: On errors, cleanup and return -1.
 */
 int
 burst_digest (mu_message_t msg)
@@ -299,7 +299,6 @@ burst_digest (mu_message_t msg)
   mu_stream_t is;
   char c;
   size_t n;
-  size_t count;
   int state = S1;
   int eb_length = 0;
   struct burst_stream bs;
@@ -311,8 +310,7 @@ burst_digest (mu_message_t msg)
   mh_message_number (msg, &bs.msgno);
   
   mu_message_get_streamref (msg, &is);
-  while (mu_stream_read (is, &c, 1, &n) == 0
-	 && n == 1)
+  while (mu_stream_read (is, &c, 1, &n) == 0 && n == 1)
     {
       int newstate = transtab[state - 1][token_num (c)];
       int silent = 0;
@@ -340,7 +338,7 @@ burst_digest (mu_message_t msg)
 		}
 	    }
 	  else
-	    for (; eb_length; eb_length--, count++)
+	    for (; eb_length; eb_length--)
 	      flush_stream (&bs, "-", 1);
 	  eb_length = 0;
 	}
@@ -360,10 +358,7 @@ burst_digest (mu_message_t msg)
 	}
       state = newstate;
       if (!silent)
-	{
-	  flush_stream (&bs, &c, 1);
-	  count++;
-	}
+	flush_stream (&bs, &c, 1);
     }
   mu_stream_destroy (&is);
 
@@ -639,9 +634,9 @@ main (int argc, char **argv)
       mh_msgset_uids (mbox, &ms);
 	
       mu_mailbox_get_url (mbox, &dst_url);
-      dir = mu_url_to_string (dst_url);
-      VERBOSE ((_("changing to `%s'"), dir + 3));
-      if (chdir (dir+3))
+      mu_url_sget_path (dst_url, &dir);
+      VERBOSE ((_("changing to `%s'"), dir));
+      if (chdir (dir))
 	{
 	  mu_error (_("cannot change to `%s': %s"), dir, mu_strerror (errno));
 	  exit (1);

@@ -125,13 +125,12 @@ Sergey
 MH_CHECK([burst mime],[burst02 burst-mime],[
 MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
 burst +inbox 3 || exit $?
-grep -v ^X-Envelope-Date: Mail/inbox/6
+grep -v ^X-Envelope- Mail/inbox/6
 ],
 [0],
 [Content-Type: text/plain; name="msg.1"; charset="us-ascii"
 Content-ID: <5082.1026510189.1@example.net>
 Content-Description: How doth
-X-Envelope-Sender: gray@Trurl.gnu.org.ua
 
 How doth the little crocodile
 Improve his shining tail,
@@ -147,16 +146,15 @@ With gently smiling jaws!
 MH_CHECK([burst mime recursive],[burst03 burst-mime-recursive],[
 MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
 burst +inbox --recursive 4 || exit $?
-grep -v ^X-Envelope-Date: Mail/inbox/6
-grep -v ^X-Envelope-Date: Mail/inbox/7
-grep -v ^X-Envelope-Date: Mail/inbox/8
-grep -v ^X-Envelope-Date: Mail/inbox/9
+grep -v ^X-Envelope- Mail/inbox/6
+grep -v ^X-Envelope- Mail/inbox/7
+grep -v ^X-Envelope- Mail/inbox/8
+grep -v ^X-Envelope- Mail/inbox/9
 ],
 [0],
 [Content-Type: text/plain; name="msg.21"; charset="us-ascii"
 Content-ID: <5122.1026510654.2@example.net>
 Content-Description: Father William Part I
-X-Envelope-Sender: gray@Trurl.gnu.org.ua
 
 `You are old, Father William,' the young man said,
 `And your hair has become very white;
@@ -172,7 +170,6 @@ Content-Type: application/octet-stream; name="msg.22"
 Content-ID: <5122.1026510654.4@example.net>
 Content-Description: Father William Part II
 Content-Transfer-Encoding: base64
-X-Envelope-Sender: gray@Trurl.gnu.org.ua
 
 YFlvdSBhcmUgb2xkLCcgc2FpZCB0aGUgeW91dGgsIGBhcyBJIG1lbnRpb25lZCBiZWZvcmUsCkFu
 ZCBoYXZlIGdyb3duIG1vc3QgdW5jb21tb25seSBmYXQ7CllldCB5b3UgdHVybmVkIGEgYmFjay1z
@@ -185,7 +182,6 @@ Content-Type: application/octet-stream; name="msg.23"
 Content-ID: <5122.1026510654.6@example.net>
 Content-Description: Father William Part III
 Content-Transfer-Encoding: base64
-X-Envelope-Sender: gray@Trurl.gnu.org.ua
 
 YFlvdSBhcmUgb2xkLCcgc2FpZCB0aGUgeW91dGgsIGBhbmQgeW91ciBqYXdzIGFyZSB0b28gd2Vh
 awpGb3IgYW55dGhpbmcgdG91Z2hlciB0aGFuIHN1ZXQ7CllldCB5b3UgZmluaXNoZWQgdGhlIGdv
@@ -198,7 +194,6 @@ Content-Type: application/octet-stream; name="msg.24"
 Content-ID: <5122.1026510654.7@example.net>
 Content-Description: Father William Part IV
 Content-Transfer-Encoding: base64
-X-Envelope-Sender: gray@Trurl.gnu.org.ua
 
 YFlvdSBhcmUgb2xkLCcgc2FpZCB0aGUgeW91dGgsIGBvbmUgd291bGQgaGFyZGx5IHN1cHBvc2UK
 VGhhdCB5b3VyIGV5ZSB3YXMgYXMgc3RlYWR5IGFzIGV2ZXI7CllldCB5b3UgYmFsYW5jZWQgYW4g
