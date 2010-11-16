@@ -192,6 +192,8 @@ mh_option_init (struct mh_option *opt)
 		  break;
 	      }
 	    while (len >= minlen && memcmp (opt[j].opt, sample, minlen) == 0);
+	  else if (opt[j].opt[0] == sample[0])
+	    opt[j].match_len = minlen;
 	  else
 	    break;
 	}
