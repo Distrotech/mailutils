@@ -82,6 +82,7 @@ main (int argc, char **argv)
   mu_mailbox_expunge (mbox);
   mu_mailbox_close (mbox);
   mu_mailbox_destroy (&mbox);
+  mh_global_save_state ();
   return status;
 }
 
