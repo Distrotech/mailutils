@@ -134,7 +134,7 @@ struct burst_map
 struct burst_map map;        /* Currently built map */
 struct burst_map *burst_map; /* Finished burst map */
 size_t burst_count;          /* Number of items in burst_map */
-mu_mailbox_t tmpbox;         /* Temporaty mailbox */			 
+mu_mailbox_t tmpbox;         /* Temporary mailbox */
 struct obstack stk;          /* Stack for building burst_map, etc. */
 
 static int burst_or_copy (mu_message_t msg, int recursive, int copy);
@@ -217,33 +217,70 @@ token_num(int c)
     }
 }
 
-static void
-finish_stream (mu_stream_t *pstr)
+#define F_FIRST  0x01  /* First part of the message (no EB seen so far) */
+#define F_ENCAPS 0x02  /* Within encapsulated part */
+
+struct burst_stream
 {
-  mu_message_t msg;
-  mu_stream_seek (*pstr, 0, SEEK_SET, NULL);
-  msg = mh_stream_to_message (*pstr);
-  if (!map.first)
-    mu_mailbox_uidnext (tmpbox, &map.first);
-  burst_or_copy (msg, recursive, 1);
-  mu_stream_close (*pstr);
-  mu_stream_destroy (pstr);
+  mu_stream_t stream;  /* Output stream */
+  int flags;           /* See F_ flags above */
+  size_t msgno;        /* Number of the current message */
+  size_t partno;       /* Number of the part within the message */
+};
+
+static void
+finish_stream (struct burst_stream *bs)
+{
+  if (bs->stream)
+    {
+      mu_message_t msg;
+      
+      mu_stream_seek (bs->stream, 0, SEEK_SET, NULL);
+      msg = mh_stream_to_message (bs->stream);
+      if (!map.first)
+	mu_mailbox_uidnext (tmpbox, &map.first);
+      burst_or_copy (msg, recursive, 1);
+      mu_message_destroy (&msg, mu_message_get_owner (msg));
+      mu_stream_unref (bs->stream);
+      bs->stream = 0;
+      
+      bs->partno++;
+      bs->flags &= ~F_FIRST;
+    }
 }  
 
 static void
-flush_stream (mu_stream_t *pstr, char *buf, size_t size)
+flush_stream (struct burst_stream *bs, char *buf, size_t size)
 {
   int rc;
 
   if (size == 0)
     return;
-  if ((rc = mu_temp_file_stream_create (pstr, NULL))) 
+  if (!bs->stream)
     {
-      mu_error (_("Cannot open temporary file: %s"),
-		mu_strerror (rc));
-      exit (1);
+      if ((rc = mu_temp_file_stream_create (&bs->stream, NULL))) 
+	{
+	  mu_error (_("Cannot open temporary file: %s"),
+		    mu_strerror (rc));
+	  exit (1);
+	}
+      mu_stream_printf (bs->stream, "X-Burst-Part: %lu %lu %02x\n",
+			(unsigned long) bs->msgno,
+			(unsigned long) bs->partno, bs->flags);
+      if (!bs->flags)
+	mu_stream_write (bs->stream, "\n", 1, NULL);
+
+      if (verbose && !inplace)
+	{
+	  size_t nextuid;
+	  mu_mailbox_uidnext (tmpbox, &nextuid);
+	  printf (_("message %lu of digest %lu becomes message %lu\n"),
+		  (unsigned long) bs->partno,
+		  (unsigned long) bs->msgno,
+		  (unsigned long) nextuid);
+	}
     }
-  rc = mu_stream_write (*pstr, buf, size, NULL);
+  rc = mu_stream_write (bs->stream, buf, size, NULL);
   if (rc)
     {
       mu_error (_("error writing temporary stream: %s"),
@@ -252,95 +289,100 @@ flush_stream (mu_stream_t *pstr, char *buf, size_t size)
     }
 }
 
+/* Burst an RFC 934 digest.  Return 0 if OK, 1 if the message is not
+   a valid digest.
+   FIXME: On errors, cleanup and return -1
+*/
 int
 burst_digest (mu_message_t msg)
 {
-  mu_stream_t is, os = NULL;
-  char *buf;
-  size_t bufsize;
+  mu_stream_t is;
+  char c;
   size_t n;
+  size_t count;
   int state = S1;
-  size_t count = 0;
   int eb_length = 0;
+  struct burst_stream bs;
+  int result;
   
-  mu_message_size (msg, &bufsize);
-
-  for (; bufsize > 1; bufsize >>= 1)
-    if ((buf = malloc (bufsize)))
-      break;
-
-  if (!buf)
-    {
-      mu_error (_("cannot burst message: %s"), mu_strerror (ENOMEM));
-      exit (1);
-    }
-
+  bs.stream = NULL;
+  bs.flags = F_FIRST;
+  bs.partno = 1;
+  mh_message_number (msg, &bs.msgno);
+  
   mu_message_get_streamref (msg, &is);
-  while (mu_stream_read (is, buf, bufsize, &n) == 0
-	 && n > 0)
+  while (mu_stream_read (is, &c, 1, &n) == 0
+	 && n == 1)
     {
-      size_t start, i;
-	
-      for (i = start = 0; i < n; i++)
+      int newstate = transtab[state - 1][token_num (c)];
+      int silent = 0;
+      
+      if (newstate < 0)
 	{
-	  int newstate = transtab[state-1][token_num(buf[i])];
-	  
-	  if (newstate < 0)
-	    {
-	      newstate = -newstate;
-	      flush_stream (&os, buf + start, i - start);
-	      start = i + 1;
-	    }
-
-	  if (state == S1)
-	    {
-	      /* GNU extension: check if we have seen enough dashes to
-		 constitute a valid encapsulation boundary. */
-	      if (newstate == S3)
-		{
-		  eb_length++;
-		  if (eb_length < eb_min_length)
-		    continue; /* Ignore state change */
-		}
-	      else if (eb_length)
-		while (eb_length--)
-		  flush_stream (&os, "-", 1);
-	      eb_length = 0;
-	    }
-	  else if (state == S5 && newstate == S2)
-	    {
-	      /* As the automaton traverses from state S5 to S2, the
-		 bursting agent should consider a new message started
-		 and output the first character. */
-	      os = NULL;
-	      count++;
-	    }
-	  else if (state == S3 && newstate == S4)
-	    {
-	      /* As the automaton traverses from state S3 to S4, the
-		 bursting agent should consider the current message ended. */
-	      finish_stream (&os);
-	    }
-	  
-	  state = newstate;
+	  newstate = -newstate;
+	  silent = 1;
 	}
 
-      flush_stream (&os, buf + start, i - start);
+      if (state == S1)
+	{
+	  /* GNU extension: check if we have seen enough dashes to
+	     constitute a valid encapsulation boundary. */
+	  if (newstate == S3)
+	    {
+	      eb_length++;
+	      if (eb_length < eb_min_length)
+		continue; /* Ignore state change */
+	      if (eb_min_length > 1)
+		{
+		  newstate = S4;
+		  finish_stream (&bs);
+		  bs.flags ^= F_ENCAPS;
+		}
+	    }
+	  else
+	    for (; eb_length; eb_length--, count++)
+	      flush_stream (&bs, "-", 1);
+	  eb_length = 0;
+	}
+      else if (state == S5 && newstate == S2)
+	{
+	  /* As the automaton traverses from state S5 to S2, the
+	     bursting agent should consider a new message started
+	     and output the first character. */
+	  finish_stream (&bs);
+	}
+      else if (state == S3 && newstate == S4)
+	{
+	  /* As the automaton traverses from state S3 to S4, the
+	     bursting agent should consider the current message ended. */
+	  finish_stream (&bs);
+	  bs.flags ^= F_ENCAPS;
+	}
+      state = newstate;
+      if (!silent)
+	{
+	  flush_stream (&bs, &c, 1);
+	  count++;
+	}
     }
   mu_stream_destroy (&is);
-  
-  free (buf);
-  if (os)
+
+  if (bs.flags == F_FIRST)
     {
-      if (count)
-	finish_stream (&os);
-      else
-	{
-	  mu_stream_close (os);
-	  mu_stream_destroy (&os);
-	}
+      mu_stream_destroy (&bs.stream);
+      result = 1;
     }
-  return count > 0;
+  else if (bs.stream)
+    {
+      mu_off_t size = 0;
+      mu_stream_size (bs.stream, &size);
+      if (size)
+	finish_stream (&bs);
+      else
+	mu_stream_destroy (&bs.stream);
+      result = 0;
+    }
+  return result;
 }
 
 
@@ -358,7 +400,7 @@ burst_or_copy (mu_message_t msg, int recursive, int copy)
 	    map.mime = 1;
 	  return burst_mime (msg);
 	}
-      else if (burst_digest (msg))
+      else if (burst_digest (msg) == 0)
 	return 0;
     }
 
@@ -380,9 +422,6 @@ burst_or_copy (mu_message_t msg, int recursive, int copy)
 	      
 	      mu_message_get_body (msg, &body);
 	      mu_body_get_streamref (body, &str);
-	      /* FIXME: Check if str is actually destroyed.
-		 See mailbox/message_stream.c
-	      */
 	      msg = mh_stream_to_message (str);
 	    }
 	  free (value);
@@ -404,7 +443,7 @@ burst_or_copy (mu_message_t msg, int recursive, int copy)
       map.count++;
       return 0;
     }      
-   
+	      
   return 1;
 }
 
@@ -490,7 +529,6 @@ msg_copy (size_t num, const char *file)
 
   mu_mailbox_get_message (tmpbox, num, &msg);
   mu_message_get_streamref (msg, &istream);
-  /* FIXME: Implement RFC 934 FSA? */
   rc = mu_stream_copy (ostream, istream, 0, NULL);
   if (rc)
     {
@@ -499,7 +537,7 @@ msg_copy (size_t num, const char *file)
     }
   
   mu_stream_destroy (&istream);
-  
+
   mu_stream_close (ostream);
   mu_stream_destroy (&ostream);
 

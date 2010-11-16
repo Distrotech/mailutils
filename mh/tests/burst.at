@@ -1,0 +1,223 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2010 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# GNU Mailutils is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+
+m4_pushdef([MH_KEYWORDS],[burst])
+
+MH_CHECK([burst digest],[burst00 burst-digest],[
+mkdir Mail/inbox
+AT_DATA([Mail/inbox/1],[
+From: Sergey Poznyakoff <gray@example.net>
+To: root@example.com
+Subject: digest
+
+Initial text.
+
+------- Forwarded message
+From: Puszcza hackers
+To: Sergey Poznyakoff <gray@gnu.org>
+Subject: Hello
+
+Greetings
+- ---------
+How are you?
+------- End of Forwarded message
+
+Regards,
+Sergey
+])
+
+burst +inbox 1 || exit $?
+grep -v ^X-Envelope-Date Mail/inbox/2
+grep -v ^X-Envelope-Date Mail/inbox/3
+grep -v ^X-Envelope-Date Mail/inbox/4
+],
+[0],
+[X-Burst-Part: 1 1 01
+From: Sergey Poznyakoff <gray@example.net>
+To: root@example.com
+Subject: digest
+X-Envelope-Sender: gray@example.net
+
+Initial text.
+
+X-Burst-Part: 1 2 02
+From: Puszcza hackers
+To: Sergey Poznyakoff <gray@gnu.org>
+Subject: Hello
+X-Envelope-Sender: GNU-Mailutils
+
+Greetings
+---------
+How are you?
+X-Burst-Part: 1 3 00
+X-Envelope-Sender: GNU-MH
+
+Regards,
+Sergey
+])
+
+MH_CHECK([burst digest /w EB length limit],[burst01 burst-digest-eb-length],[
+mkdir Mail/inbox
+AT_DATA([Mail/inbox/1],[
+From: Sergey Poznyakoff <gray@example.net>
+To: root@example.com
+Subject: digest
+
+Initial text.
+
+------- Forwarded message
+From: Puszcza hackers
+To: Sergey Poznyakoff <gray@gnu.org>
+Subject: Hello
+
+Greetings
+-----
+How are you?
+------- End of Forwarded message
+
+Regards,
+Sergey
+])
+
+burst +inbox --length=7 1 || exit $?
+grep -v ^X-Envelope-Date Mail/inbox/2
+grep -v ^X-Envelope-Date Mail/inbox/3
+grep -v ^X-Envelope-Date Mail/inbox/4
+],
+[0],
+[X-Burst-Part: 1 1 01
+From: Sergey Poznyakoff <gray@example.net>
+To: root@example.com
+Subject: digest
+X-Envelope-Sender: gray@example.net
+
+Initial text.
+
+X-Burst-Part: 1 2 02
+From: Puszcza hackers
+To: Sergey Poznyakoff <gray@gnu.org>
+Subject: Hello
+X-Envelope-Sender: GNU-Mailutils
+
+Greetings
+-----
+How are you?
+X-Burst-Part: 1 3 00
+X-Envelope-Sender: GNU-MH
+
+Regards,
+Sergey
+])
+
+MH_CHECK([burst mime],[burst02 burst-mime],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
+burst +inbox 3 || exit $?
+grep -v ^X-Envelope-Date: Mail/inbox/6
+],
+[0],
+[Content-Type: text/plain; name="msg.1"; charset="us-ascii"
+Content-ID: <5082.1026510189.1@example.net>
+Content-Description: How doth
+X-Envelope-Sender: gray@Trurl.gnu.org.ua
+
+How doth the little crocodile
+Improve his shining tail,
+And pour the waters of the Nile
+On every golden scale!
+
+`How cheerfully he seems to grin,
+How neatly spread his claws,
+And welcome little fishes in
+With gently smiling jaws!
+])
+
+MH_CHECK([burst mime recursive],[burst03 burst-mime-recursive],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
+burst +inbox --recursive 4 || exit $?
+grep -v ^X-Envelope-Date: Mail/inbox/6
+grep -v ^X-Envelope-Date: Mail/inbox/7
+grep -v ^X-Envelope-Date: Mail/inbox/8
+grep -v ^X-Envelope-Date: Mail/inbox/9
+],
+[0],
+[Content-Type: text/plain; name="msg.21"; charset="us-ascii"
+Content-ID: <5122.1026510654.2@example.net>
+Content-Description: Father William Part I
+X-Envelope-Sender: gray@Trurl.gnu.org.ua
+
+`You are old, Father William,' the young man said,
+`And your hair has become very white;
+And yet you incessantly stand on your head--
+Do you think, at your age, it is right?'
+
+`In my youth,' Father William replied to his son,
+`I feared it might injure the brain;
+But, now that I'm perfectly sure I have none,
+Why, I do it again and again.'
+
+Content-Type: application/octet-stream; name="msg.22"
+Content-ID: <5122.1026510654.4@example.net>
+Content-Description: Father William Part II
+Content-Transfer-Encoding: base64
+X-Envelope-Sender: gray@Trurl.gnu.org.ua
+
+YFlvdSBhcmUgb2xkLCcgc2FpZCB0aGUgeW91dGgsIGBhcyBJIG1lbnRpb25lZCBiZWZvcmUsCkFu
+ZCBoYXZlIGdyb3duIG1vc3QgdW5jb21tb25seSBmYXQ7CllldCB5b3UgdHVybmVkIGEgYmFjay1z
+b21lcnNhdWx0IGluIGF0IHRoZSBkb29yLS0KUHJheSwgd2hhdCBpcyB0aGUgcmVhc29uIG9mIHRo
+YXQ/JwoKYEluIG15IHlvdXRoLCcgc2FpZCB0aGUgc2FnZSwgYXMgaGUgc2hvb2sgaGlzIGdyZXkg
+bG9ja3MsCmBJIGtlcHQgYWxsIG15IGxpbWJzIHZlcnkgc3VwcGxlCkJ5IHRoZSB1c2Ugb2YgdGhp
+cyBvaW50bWVudC0tb25lIHNoaWxsaW5nIHRoZSBib3gtLQpBbGxvdyBtZSB0byBzZWxsIHlvdSBh
+IGNvdXBsZT8nCg==
+Content-Type: application/octet-stream; name="msg.23"
+Content-ID: <5122.1026510654.6@example.net>
+Content-Description: Father William Part III
+Content-Transfer-Encoding: base64
+X-Envelope-Sender: gray@Trurl.gnu.org.ua
+
+YFlvdSBhcmUgb2xkLCcgc2FpZCB0aGUgeW91dGgsIGBhbmQgeW91ciBqYXdzIGFyZSB0b28gd2Vh
+awpGb3IgYW55dGhpbmcgdG91Z2hlciB0aGFuIHN1ZXQ7CllldCB5b3UgZmluaXNoZWQgdGhlIGdv
+b3NlLCB3aXRoIHRoZSBib25lcyBhbmQgdGhlIGJlYWstLQpQcmF5IGhvdyBkaWQgeW91IG1hbmFn
+ZSB0byBkbyBpdD8nCgpgSW4gbXkgeW91dGgsJyBzYWlkIGhpcyBmYXRoZXIsIGBJIHRvb2sgdG8g
+dGhlIGxhdywKQW5kIGFyZ3VlZCBlYWNoIGNhc2Ugd2l0aCBteSB3aWZlOwpBbmQgdGhlIG11c2N1
+bGFyIHN0cmVuZ3RoLCB3aGljaCBpdCBnYXZlIHRvIG15IGphdywKSGFzIGxhc3RlZCB0aGUgcmVz
+dCBvZiBteSBsaWZlLicK
+Content-Type: application/octet-stream; name="msg.24"
+Content-ID: <5122.1026510654.7@example.net>
+Content-Description: Father William Part IV
+Content-Transfer-Encoding: base64
+X-Envelope-Sender: gray@Trurl.gnu.org.ua
+
+YFlvdSBhcmUgb2xkLCcgc2FpZCB0aGUgeW91dGgsIGBvbmUgd291bGQgaGFyZGx5IHN1cHBvc2UK
+VGhhdCB5b3VyIGV5ZSB3YXMgYXMgc3RlYWR5IGFzIGV2ZXI7CllldCB5b3UgYmFsYW5jZWQgYW4g
+ZWVsIG9uIHRoZSBlbmQgb2YgeW91ciBub3NlLS0KV2hhdCBtYWRlIHlvdSBzbyBhd2Z1bGx5IGNs
+ZXZlcj8nCgpgSSBoYXZlIGFuc3dlcmVkIHRocmVlIHF1ZXN0aW9ucywgYW5kIHRoYXQgaXMgZW5v
+dWdoLCcKU2FpZCBoaXMgZmF0aGVyOyBgZG9uJ3QgZ2l2ZSB5b3Vyc2VsZiBhaXJzIQpEbyB5b3Ug
+dGhpbmsgSSBjYW4gbGlzdGVuIGFsbCBkYXkgdG8gc3VjaCBzdHVmZj8KQmUgb2ZmLCBvciBJJ2xs
+IGtpY2sgeW91IGRvd24gc3RhaXJzIScK
+])
+
+MH_CHECK([burst non-digest],[burst04 burst-non-digest],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
+burst +inbox 1 || exit $?
+],
+[0],
+[],
+[burst: message 1 not in digest format
+])
+
+m4_popdef[MH_KEYWORDS])
+# End of burst.at
+
