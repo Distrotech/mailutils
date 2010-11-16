@@ -192,30 +192,168 @@ burst_mime (mu_message_t msg)
 #define S5 5
 
 /* Negative state means no write */
-int transtab[][4] = {
-/*          DEF    '\n'   ' '   '-' */
-/* S1 */ {  S2,    S1,    S2,   -S3 },
-/* S2 */ {  S2,    S1,    S2,    S2 },
-/* S3 */ { -S4,   -S4,   -S2,   -S4 }, 
-/* S4 */ { -S4,   -S5,   -S4,   -S4 },
-/* S5 */ {  S2,   -S5,    S2,    S2 }
+int transtab[5][256] = {
+/* S1 */ {  S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S1,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2, -S3,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2 },
+/* S2 */ {  S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S1,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2 },
+/* S3 */ { -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4, 
+           -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4, 
+           -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4, 
+           -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4, 
+           -S2, -S4, -S4, -S4, -S4, -S4, -S4, -S4, 
+           -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4, 
+           -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4, 
+           -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4, 
+           -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4, 
+           -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4, 
+           -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4, 
+           -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4, 
+           -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4, 
+           -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4, 
+           -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4, 
+           -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4, 
+           -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4, 
+           -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4, 
+           -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4, 
+           -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4, 
+           -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4, 
+           -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4, 
+           -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4, 
+           -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4, 
+           -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4, 
+           -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4, 
+           -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4, 
+           -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4, 
+           -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4, 
+           -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4, 
+           -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4, 
+           -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4 },
+/* S4 */ { -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4, 
+           -S4, -S4, -S5, -S4, -S4, -S4, -S4, -S4, 
+           -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4, 
+           -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4, 
+           -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4, 
+           -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4, 
+           -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4, 
+           -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4, 
+           -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4, 
+           -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4, 
+           -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4, 
+           -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4, 
+           -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4, 
+           -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4, 
+           -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4, 
+           -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4, 
+           -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4, 
+           -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4, 
+           -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4, 
+           -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4, 
+           -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4, 
+           -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4, 
+           -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4, 
+           -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4, 
+           -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4, 
+           -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4, 
+           -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4, 
+           -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4, 
+           -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4, 
+           -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4, 
+           -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4, 
+           -S4, -S4, -S4, -S4, -S4, -S4, -S4, -S4 },
+/* S5 */ {  S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2, -S5,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2, 
+            S2,  S2,  S2,  S2,  S2,  S2,  S2,  S2 }
 };
-
-static int
-token_num(int c)
-{
-  switch (c)
-    {
-    case '\n':
-      return 1;
-    case ' ':
-      return 2;
-    case '-':
-      return 3;
-    default:
-      return 0;
-    }
-}
 
 #define F_FIRST  0x01  /* First part of the message (no EB seen so far) */
 #define F_ENCAPS 0x02  /* Within encapsulated part */
@@ -228,7 +366,7 @@ struct burst_stream
   size_t partno;       /* Number of the part within the message */
 };
 
-static void
+static inline void
 finish_stream (struct burst_stream *bs)
 {
   if (bs->stream)
@@ -249,7 +387,7 @@ finish_stream (struct burst_stream *bs)
     }
 }  
 
-static void
+static inline void
 flush_stream (struct burst_stream *bs, char *buf, size_t size)
 {
   int rc;
@@ -297,7 +435,7 @@ int
 burst_digest (mu_message_t msg)
 {
   mu_stream_t is;
-  char c;
+  unsigned char c;
   size_t n;
   int state = S1;
   int eb_length = 0;
@@ -312,7 +450,7 @@ burst_digest (mu_message_t msg)
   mu_message_get_streamref (msg, &is);
   while (mu_stream_read (is, &c, 1, &n) == 0 && n == 1)
     {
-      int newstate = transtab[state - 1][token_num (c)];
+      int newstate = transtab[state - 1][c];
       int silent = 0;
       
       if (newstate < 0)
@@ -358,7 +496,7 @@ burst_digest (mu_message_t msg)
 	}
       state = newstate;
       if (!silent)
-	flush_stream (&bs, &c, 1);
+	flush_stream (&bs, (char*)&c, 1);
     }
   mu_stream_destroy (&is);
 
