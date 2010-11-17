@@ -583,34 +583,19 @@ mh_spawnp (const char *prog, const char *file)
   return rc;
 }
 
+/* Copy data from FROM to TO, creating the latter if necessary.
+   FIXME: How about formats?
+*/
 int
 mh_file_copy (const char *from, const char *to)
 {
-  char *buffer;
-  size_t bufsize, rdsize;
-  struct stat st;
-  mu_stream_t in;
-  mu_stream_t out;
+  mu_stream_t in, out, flt;
   int rc;
   
-  if (stat (from, &st))
-    {
-      mu_error ("mh_copy: %s", mu_strerror (errno));
-      return -1;
-    }
-
-  for (bufsize = st.st_size; bufsize > 0 && (buffer = malloc (bufsize)) == 0;
-       bufsize /= 2)
-    ;
-
-  if (!bufsize)
-    mh_err_memory (1);
-
   if ((rc = mu_file_stream_create (&in, from, MU_STREAM_READ)))
     {
       mu_error (_("cannot open input file `%s': %s"),
 		from, mu_strerror (rc));
-      free (buffer);
       return 1;
     }
 
@@ -618,31 +603,28 @@ mh_file_copy (const char *from, const char *to)
     {
       mu_error (_("cannot open output file `%s': %s"),
 		to, mu_strerror (rc));
-      free (buffer);
-      mu_stream_close (in);
       mu_stream_destroy (&in);
       return 1;
     }
 
-  while (st.st_size > 0
-	 && (rc = mu_stream_read (in, buffer, bufsize, &rdsize)) == 0
-	 && rdsize > 0)
+  rc = mu_filter_create (&flt, in, "INLINE-COMMENT", MU_FILTER_DECODE,
+			 MU_STREAM_READ);
+  mu_stream_unref (in);
+  if (rc)
     {
-      if ((rc = mu_stream_write (out, buffer, rdsize, NULL)) != 0)
-	{
-	  mu_error (_("write error on `%s': %s"),
-		    to, mu_strerror (rc));
-	  break;
-	}
-      st.st_size -= rdsize;
+      mu_error (_("cannot open filter stream: %s"), mu_strerror (rc));
+      mu_stream_destroy (&out);
+      return 1;
     }
-
-  free (buffer);
-
-  mu_stream_close (in);
-  mu_stream_close (out);
-  mu_stream_destroy (&in);
+  
+  rc = mu_stream_copy (out, flt, 0, NULL);
+      
+  mu_stream_destroy (&flt);
   mu_stream_destroy (&out);
+
+  if (rc)
+    mu_error (_("error copying file `%s' to `%s': %s"),
+	      from, to, mu_strerror (rc));
   
   return rc;
 }

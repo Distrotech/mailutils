@@ -78,6 +78,7 @@ mu_filter_get_list (mu_list_t *plist)
       mu_list_append (filter_list, mu_rfc_2047_Q_filter);
       mu_list_append (filter_list, mu_rfc_2047_B_filter);
       mu_list_append (filter_list, mu_from_filter);
+      mu_list_append (filter_list, mu_inline_comment_filter);
       /* FIXME: add the default encodings?  */
     }
   *plist = filter_list;
@@ -129,7 +130,7 @@ filter_create_wr (mu_stream_t *pstream, mu_stream_t stream,
 {
   int status;
   mu_stream_t fltstream, instream = NULL, tmpstr;
-
+  
   flags &= ~MU_STREAM_AUTOCLOSE;
 
   if (max_line_length)
@@ -157,13 +158,15 @@ filter_create_wr (mu_stream_t *pstream, mu_stream_t stream,
 }
 
 int
-mu_filter_create (mu_stream_t *pstream, mu_stream_t stream, const char *name,
-		  int mode, int flags)
+mu_filter_create_args (mu_stream_t *pstream, mu_stream_t stream,
+		       const char *name, int argc, const char **argv,
+		       int mode, int flags)
 {
   int status;
   mu_filter_record_t frec;
   mu_list_t list;
   void *xdata = NULL;
+  mu_filter_xcode_t xcode;
   
   if ((flags & MU_STREAM_RDWR) == MU_STREAM_RDWR)
     return EINVAL;
@@ -173,9 +176,13 @@ mu_filter_create (mu_stream_t *pstream, mu_stream_t stream, const char *name,
   if (status)
     return status;
 
+  xcode = mode == MU_FILTER_ENCODE ? frec->encoder : frec->decoder;
+  if (!xcode)
+    return MU_ERR_EMPTY_VFN;
+  
   if (frec->newdata)
     {
-      status = frec->newdata (&xdata, mode, NULL);
+      status = frec->newdata (&xdata, mode, argc, argv);
       if (status)
 	return status;
     }
@@ -184,10 +191,22 @@ mu_filter_create (mu_stream_t *pstream, mu_stream_t stream, const char *name,
                    (pstream, stream,
 		    mode == MU_FILTER_ENCODE ? frec->max_line_length : 0,
 		    mode,
-		    mode == MU_FILTER_ENCODE ? frec->encoder : frec->decoder,
+		    xcode,
 		    xdata,
 		    flags);
   if (status)
     free (xdata);
   return status;
 }
+
+int
+mu_filter_create (mu_stream_t *pstream, mu_stream_t stream, const char *name,
+		  int mode, int flags)
+{
+  const char *argv[2];
+  argv[0] = name;
+  argv[1] = NULL;
+  return mu_filter_create_args (pstream, stream, name, 1, argv, mode,
+				flags);
+}
+

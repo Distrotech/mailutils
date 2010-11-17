@@ -262,7 +262,8 @@ _from_encoder (void *xd,
 }
 
 static int
-_from_alloc_state (void **pret, int mode, void *data MU_ARG_UNUSED)
+_from_alloc_state (void **pret, int mode,
+		   int argc MU_ARG_UNUSED, const char **argv MU_ARG_UNUSED)
 {
   *pret = malloc (sizeof (int));
   if (!*pret)

@@ -248,7 +248,8 @@ _dot_encoder (void *xd,
 }
 
 static int
-alloc_state (void **pret, int mode MU_ARG_UNUSED, void *data MU_ARG_UNUSED)
+alloc_state (void **pret, int mode MU_ARG_UNUSED,
+	     int argc MU_ARG_UNUSED, const char **argv MU_ARG_UNUSED)
 {
   *pret = malloc (sizeof (int));
   if (!*pret)

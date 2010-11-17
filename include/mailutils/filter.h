@@ -64,11 +64,16 @@ enum mu_filter_result
 
 #define MU_FILTER_MAX_AGAIN 5
 
-typedef int (*mu_filter_new_data_t) (void **, int, void *);
-typedef enum mu_filter_result (*mu_filter_xcode_t) (void *data,
-						    enum mu_filter_command cmd,
-						    struct mu_filter_io *iobuf);
+typedef int (*mu_filter_new_data_t) (void **, int, int argc,
+				     const char **argv);
+typedef enum mu_filter_result
+       (*mu_filter_xcode_t) (void *data, enum mu_filter_command cmd,
+			     struct mu_filter_io *iobuf);
 
+int mu_filter_create_args (mu_stream_t *pstream, mu_stream_t stream,
+			   const char *name, int argc, const char **argv,
+			   int mode, int flags);
+  
 int mu_filter_stream_create (mu_stream_t *pflt,
 			     mu_stream_t str,
 			     int mode, 
@@ -103,6 +108,7 @@ extern mu_filter_record_t mu_bit7_filter;
 extern mu_filter_record_t mu_rfc_2047_Q_filter;
 extern mu_filter_record_t mu_rfc_2047_B_filter;
 extern mu_filter_record_t mu_from_filter;
+extern mu_filter_record_t mu_inline_comment_filter;
 
 enum mu_iconv_fallback_mode
   {

@@ -34,7 +34,7 @@ mh_comp_draft (const char *formfile, const char *defformfile,
   if (formfile)
     {
       s = mh_expand_name (MHLIBDIR, formfile, 0);
-      if (mh_file_copy (s, draftfile) == 0)
+      if (mh_file_copy (s, draftfile))
 	exit (1);
     }
   else

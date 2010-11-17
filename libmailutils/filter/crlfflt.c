@@ -140,7 +140,8 @@ _crlf_decoder (void *xd MU_ARG_UNUSED,
 }
 
 static int
-alloc_state (void **pret, int mode, void *data MU_ARG_UNUSED)
+alloc_state (void **pret, int mode,
+	     int argc MU_ARG_UNUSED, const char **argv MU_ARG_UNUSED)
 {
   switch (mode)
     {

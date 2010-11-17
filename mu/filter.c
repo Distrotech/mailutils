@@ -25,13 +25,14 @@
 
 static char filter_doc[] = N_("mu filter - apply a filter to the input");
 char filter_docstring[] = N_("apply a filter to the input");
-static char filter_args_doc[] = N_("NAME");
+static char filter_args_doc[] = N_("NAME [ARGS]");
 
 static struct argp_option filter_options[] = {
   { "encode", 'e', NULL, 0, N_("encode the input (default)") },
   { "decode", 'd', NULL, 0, N_("decode the input") },
   { "line-length", 'l', N_("NUMBER"), 0, N_("limit output line length") },
   { "newline", 'n', NULL, 0, N_("print additional newline") },
+  { "list", 'L', NULL, 0, N_("list supported filters") },
   { NULL }
 };
 
@@ -39,6 +40,7 @@ static int filter_mode = MU_FILTER_ENCODE;
 static int newline_option = 0;
 static size_t line_length;
 static int line_length_option = 0;
+static int list_option;
 
 static error_t
 filter_parse_opt (int key, char *arg, struct argp_state *state)
@@ -64,6 +66,10 @@ filter_parse_opt (int key, char *arg, struct argp_state *state)
       if (*p)
 	argp_error (state, N_("not a number"));
       line_length_option = 1;
+      break;
+
+    case 'L':
+      list_option = 1;
       break;
       
     default:
@@ -98,6 +104,28 @@ reset_line_length (const char *name, size_t length)
   /* don't bail out, leave that to mu_filter_create */
 }
 
+static int
+filter_printer (void *item, void *data)
+{
+  mu_filter_record_t rec = item;
+  printf ("%s\n", rec->name);
+  return 0;
+}
+
+static int
+list_filters ()
+{
+  mu_list_t list;
+  int rc = mu_filter_get_list (&list);
+
+  if (rc)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_filter_get_list", NULL, rc);
+      return 1;
+    }
+  return mu_list_do (list, filter_printer, NULL);
+}
+
 int
 mutool_filter (int argc, char **argv)
 {
@@ -111,7 +139,17 @@ mutool_filter (int argc, char **argv)
   argc -= index;
   argv += index;
 
-  if (argc != 1)
+  if (list_option)
+    {
+      if (argc)
+	{
+	  mu_error (_("excess arguments"));
+	  return 1;
+	}
+      return list_filters ();
+    }
+  
+  if (argc == 0)
     {
       mu_error (_("what filter do you want?"));
       return 1;
@@ -136,7 +174,8 @@ mutool_filter (int argc, char **argv)
   if (line_length_option)
     reset_line_length (fltname, line_length);
 
-  rc = mu_filter_create (&flt, in, fltname, filter_mode, MU_STREAM_READ);
+  rc = mu_filter_create_args (&flt, in, fltname, argc, (const char **)argv,
+			      filter_mode, MU_STREAM_READ);
   if (rc)
     {
       mu_error (_("cannot open filter stream: %s"), mu_strerror (rc));
