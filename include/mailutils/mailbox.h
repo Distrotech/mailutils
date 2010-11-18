@@ -97,6 +97,7 @@ extern int  mu_mailbox_set_locker      (mu_mailbox_t, mu_locker_t);
 /* Property.  */
 extern int  mu_mailbox_get_flags       (mu_mailbox_t, int *);
 extern int  mu_mailbox_get_property    (mu_mailbox_t, mu_property_t *);
+extern int  mu_mailbox_set_property (mu_mailbox_t, mu_property_t);
 
 /* URL.  */
 extern int  mu_mailbox_get_url         (mu_mailbox_t, mu_url_t *);

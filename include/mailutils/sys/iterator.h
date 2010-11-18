@@ -39,6 +39,7 @@ struct _mu_iterator
   int (*curitem_p) (void *owner, void *item);
   int (*finished_p) (void *owner);
   int (*itrctl) (void *owner, enum mu_itrctl_req req, void *arg);
+  void *(*dataptr) (void *);
 };
 
 # ifdef __cplusplus

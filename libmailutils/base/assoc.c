@@ -391,10 +391,11 @@ first (void *owner)
   mu_assoc_t assoc = itr->assoc;
   unsigned hash_max = hash_size[assoc->hash_num];
   unsigned i;
-  
-  for (i = 0; i < hash_max; i++)
-    if ((ASSOC_ELEM (assoc, i))->name)
-      break;
+
+  if (assoc->tab)
+    for (i = 0; i < hash_max; i++)
+      if ((ASSOC_ELEM (assoc, i))->name)
+	break;
   itr->index = i;
   return 0;
 }

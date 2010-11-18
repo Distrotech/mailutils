@@ -52,7 +52,6 @@ libbase_la_SOURCES = \
  opool.c\
  parsedate.c\
  permstr.c\
- property.c\
  registrar.c\
  refcount.c\
  rfc2047.c\

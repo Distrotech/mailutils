@@ -89,6 +89,10 @@ extern int  mu_folder_set_authority  (mu_folder_t, mu_authority_t);
 extern int  mu_folder_get_url        (mu_folder_t, mu_url_t *);
 extern int  mu_folder_set_url        (mu_folder_t, mu_url_t);
 
+/* Property */
+extern int  mu_folder_set_property   (mu_folder_t, mu_property_t);  
+extern int  mu_folder_get_property   (mu_folder_t, mu_property_t *);
+  
 /* FIXME: not implemented */
 extern int  mu_folder_decrement      (mu_folder_t);
 

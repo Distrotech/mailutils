@@ -51,6 +51,7 @@ struct _mu_mailer
   int (*_open)         (mu_mailer_t, int flags);
   int (*_close)        (mu_mailer_t);
   int (*_send_message) (mu_mailer_t, mu_message_t, mu_address_t, mu_address_t);
+  int (*_get_property) (mu_mailer_t, mu_property_t *);
 };
 
 int _mu_mailer_mailbox_init (mu_mailbox_t mailbox);

@@ -35,6 +35,7 @@
 #include <mailutils/stream.h>
 #include <mailutils/url.h>
 #include <mailutils/errno.h>
+#include <mailutils/property.h>
 
 #include <mailutils/sys/folder.h>
 
@@ -208,6 +209,8 @@ mu_folder_destroy (mu_folder_t *pfolder)
 	    mu_stream_destroy (&folder->stream);
 	  if (folder->url)
 	    mu_url_destroy (&folder->url);
+	  if (folder->property)
+	    mu_property_destroy (&folder->property);
 	  free (folder);
 	}
       mu_monitor_unlock (monitor);
@@ -216,6 +219,31 @@ mu_folder_destroy (mu_folder_t *pfolder)
       *pfolder = NULL;
     }
 }
+
+int
+mu_folder_get_property (mu_folder_t folder, mu_property_t *prop)
+{
+  if (folder == NULL)
+    return EINVAL;
+  if (prop == NULL)
+    return MU_ERR_OUT_PTR_NULL;
+  
+  if (folder->property == NULL)
+    {
+      int status;
+
+      if (folder->_get_property)
+	status = folder->_get_property (folder, &folder->property);
+      else
+	status = mu_property_create_init (&folder->property,
+					  mu_assoc_property_init, NULL);
+      if (status != 0)
+	return status;
+    }
+  *prop = folder->property;
+  return 0;
+}
+
 
 /* Cover functions.  */
 int

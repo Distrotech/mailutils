@@ -31,18 +31,41 @@
 extern "C" {
 # endif
 
-struct property_item
-{
-  char *value;
-};
-
+#define MU_PROP_INIT     0x01
+#define MU_PROP_FILL     0x02
+#define MU_PROP_MODIFIED 0x04
+  
 struct _mu_property
 {
-  mu_assoc_t assoc;
-  void *owner;
-  mu_monitor_t lock;
+  size_t _prop_ref_count;    /* Reference counter */
+  int _prop_flags;           /* Flags describing the state of this object */
+  void *_prop_data;          /* Implementation-specific data */
+  void *_prop_init_data;     /* Initialization data */
+
+  /* Methods */
+
+  /* Delayed initialization.  This function must allocate _prop_data,
+     if needed, and initialize the rest of _prop_* methods. */
+  int (*_prop_init)  (struct _mu_property *);
+  /* Free memory allocated in _prop_data */
+  void (*_prop_done) (struct _mu_property *);
+  /* Fill in the properties from an external storage */
+  int (*_prop_fill)  (struct _mu_property *);
+  /* Write the properties to an external storage */
+  int (*_prop_save)  (struct _mu_property *);
+  /* Get the value of the property named in the 2nd argument.  If 3rd
+     arg is NULL, _prop_getval tests whether the given property is set. */
+  int (*_prop_getval) (struct _mu_property *, const char *, const char **);
+  /* Set the property */
+  int (*_prop_setval) (struct _mu_property *, const char *, const char *, int);
+  /* Unset (delete) the property */
+  int (*_prop_unset) (struct _mu_property *, const char *);
+  /* Return iterator for this property object */
+  int (*_prop_getitr) (struct _mu_property *, mu_iterator_t *);
 };
 
+int _mu_property_check (mu_property_t prop);
+  
 # ifdef __cplusplus
 }
 # endif

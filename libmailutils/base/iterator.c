@@ -103,6 +103,15 @@ mu_iterator_set_itrctl (mu_iterator_t itr,
 }
 
 int
+mu_iterator_set_dataptr (mu_iterator_t itr, void *(*dataptr) (void *))
+{
+  if (!itr)
+    return EINVAL;
+  itr->dataptr = dataptr;
+  return 0;
+}
+
+int
 mu_iterator_set_destroy (mu_iterator_t itr, int (*destroy) (mu_iterator_t, void *))
 {
   if (!itr)
@@ -202,14 +211,23 @@ mu_iterator_skip (mu_iterator_t iterator, ssize_t count)
 int
 mu_iterator_current (mu_iterator_t iterator, void **pitem)
 {
-  return iterator->getitem (iterator->owner, pitem, NULL);
+  return mu_iterator_current_kv (iterator, NULL, pitem);
 }
 
 int
 mu_iterator_current_kv (mu_iterator_t iterator, 
                         const void **pkey, void **pitem)
 {
-  return iterator->getitem (iterator->owner, (void**)pitem, pkey);
+  void *ptr;
+  int rc = iterator->getitem (iterator->owner, &ptr, pkey);
+  if (rc == 0)
+    {
+      if (iterator->dataptr)
+	*pitem = iterator->dataptr (ptr);
+      else
+	*pitem = ptr;
+    }
+  return rc;
 }
 
 int

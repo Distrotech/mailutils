@@ -72,6 +72,8 @@ extern int mu_iterator_set_itrctl (mu_iterator_t itr,
 				   int (*itrctl) (void *,
 						  enum mu_itrctl_req,
 						  void *));
+extern int mu_iterator_set_dataptr (mu_iterator_t itr,
+				    void *(*dataptr) (void *));
 #ifdef __cplusplus
 }
 #endif

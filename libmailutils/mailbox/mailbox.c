@@ -272,7 +272,7 @@ mu_mailbox_destroy (mu_mailbox_t *pmbox)
 	mu_folder_destroy (&mbox->folder);
 
       if (mbox->property)
-	mu_property_destroy (&mbox->property, mbox);
+	mu_property_destroy (&mbox->property);
 
       free (mbox);
       *pmbox = NULL;
@@ -648,6 +648,18 @@ mu_mailbox_get_observable (mu_mailbox_t mbox, mu_observable_t *pobservable)
 }
 
 int
+mu_mailbox_set_property (mu_mailbox_t mbox, mu_property_t property)
+{
+  if (mbox == NULL)
+    return MU_ERR_MBX_NULL;
+  if (mbox->property)
+    mu_property_unref (mbox->property);
+  mbox->property = property;
+  mu_property_ref (property);
+  return 0;
+}
+
+int
 mu_mailbox_get_property (mu_mailbox_t mbox, mu_property_t *pproperty)
 {
   if (mbox == NULL)
@@ -657,7 +669,13 @@ mu_mailbox_get_property (mu_mailbox_t mbox, mu_property_t *pproperty)
   
   if (mbox->property == NULL)
     {
-      int status = mu_property_create (&mbox->property, mbox);
+      int status;
+
+      if (mbox->_get_property)
+	status = mbox->_get_property (mbox, &mbox->property);
+      else
+	status = mu_property_create_init (&mbox->property,
+					  mu_assoc_property_init, NULL);
       if (status != 0)
 	return status;
     }

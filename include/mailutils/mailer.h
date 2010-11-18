@@ -50,6 +50,8 @@ extern int mu_mailer_get_url_default       (const char** url);
 
 /* Accessor functions. */
 extern int mu_mailer_get_property   (mu_mailer_t, mu_property_t *);
+int mu_mailer_set_property (mu_mailer_t, mu_property_t);
+  
 extern int mu_mailer_get_stream     (mu_mailer_t, mu_stream_t *)
                                       __attribute__ ((deprecated));
 extern int mu_mailer_get_streamref  (mu_mailer_t, mu_stream_t *);

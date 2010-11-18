@@ -210,7 +210,7 @@ mu_mailer_destroy (mu_mailer_t * pmailer)
 	mu_debug_destroy (&(mailer->debug), mailer);
 
       if (mailer->property)
-	mu_property_destroy (&(mailer->property), mailer);
+	mu_property_destroy (&mailer->property);
 
       free (mailer);
       *pmailer = NULL;
@@ -706,6 +706,18 @@ mu_mailer_get_observable (mu_mailer_t mailer, mu_observable_t * pobservable)
 }
 
 int
+mu_mailer_set_property (mu_mailer_t mailer, mu_property_t property)
+{
+  if (mailer == NULL)
+    return EINVAL;
+  if (mailer->property)
+    mu_property_unref (mailer->property);
+  mailer->property = property;
+  mu_property_ref (property);
+  return 0;
+}
+
+int
 mu_mailer_get_property (mu_mailer_t mailer, mu_property_t * pproperty)
 {
   if (mailer == NULL)
@@ -714,7 +726,13 @@ mu_mailer_get_property (mu_mailer_t mailer, mu_property_t * pproperty)
     return MU_ERR_OUT_PTR_NULL;
   if (mailer->property == NULL)
     {
-      int status = mu_property_create (&(mailer->property), mailer);
+      int status;
+
+      if (mailer->_get_property)
+	status = mailer->_get_property (mailer, &mailer->property);
+      else
+	status = mu_property_create_init (&mailer->property,
+					  mu_assoc_property_init, NULL);
       if (status != 0)
 	return status;
     }

@@ -38,6 +38,7 @@ struct _mu_folder
   mu_authority_t authority;
   mu_observable_t observable;
   mu_debug_t debug;
+  mu_property_t property;
   mu_stream_t stream;
   mu_monitor_t monitor;
   mu_url_t url;
@@ -63,6 +64,7 @@ struct _mu_folder
   int  (*_rename)      (mu_folder_t, const char *, const char *);
   int  (*_subscribe)   (mu_folder_t, const char *);
   int  (*_unsubscribe) (mu_folder_t, const char *);
+  int  (*_get_property)(mu_folder_t, mu_property_t *);
 };
 
 # ifdef __cplusplus

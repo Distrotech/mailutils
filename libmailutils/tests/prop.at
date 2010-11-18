@@ -1,0 +1,101 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2010 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+# This file is part of Mailfromd testsuite. 
+
+dnl ------------------------------------------------------------------
+dnl TESTPROP([NAME], [KW = `'], [PROG], [STDOUT = `'], [STDERR = `'])
+dnl
+m4_pushdef([TESTPROP],[
+AT_SETUP([prop: $1])
+AT_KEYWORDS([prop $2])
+AT_CHECK([$3],[0],[$4],[$5])
+AT_CLEANUP])
+
+TESTPROP([set],[prop00],[
+prop foo=bar ?foo +foo
+],
+[0: foo=bar: Success
+1: foo is set
+2: foo=bar
+])
+
+TESTPROP([overwrite],[prop01],[
+prop foo=bar foo=baz +foo
+],
+[0: foo=bar: Success
+1: foo=baz: Success
+2: foo=baz
+])
+
+TESTPROP([set without overwrite],[prop03],[
+prop foo=bar foo:=baz +foo
+],
+[0: foo=bar: Success
+1: foo=baz: Item already exists
+2: foo=bar
+])
+
+TESTPROP([set/unset],[prop04],[
+prop foo=bar ?foo +foo -foo ?foo
+],
+[0: foo=bar: Success
+1: foo is set
+2: foo=bar
+3: unset foo: Success
+4: foo is not set
+])
+
+TESTPROP([read/save],[prop06],[
+prop --file=db user=gray package=mailutils org=GNU test=6.a
+if test -f db; then
+  prop --file=db | sort
+else
+  echo 2>&1 "failed to create file"
+  exit 1
+fi
+
+prop --file=db -test
+prop --file=db | sort
+
+prop --file=db test=6.b descr="New test"
+prop --file=db | sort
+],
+[0: user=gray: Success
+1: package=mailutils: Success
+2: org=GNU: Success
+3: test=6.a: Success
+Property dump:
+org=GNU
+package=mailutils
+test=6.a
+user=gray
+0: unset test: Success
+Property dump:
+org=GNU
+package=mailutils
+user=gray
+0: test=6.b: Success
+1: descr=New test: Success
+Property dump:
+descr=New test
+org=GNU
+package=mailutils
+test=6.b
+user=gray
+])
+
+m4_popdef([TESTPROP])
+

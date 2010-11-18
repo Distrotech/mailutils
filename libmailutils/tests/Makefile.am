@@ -47,6 +47,7 @@ noinst_PROGRAMS = \
  fltst\
  listop\
  mailcap\
+ prop\
  url-parse\
  wicket\
  wsp
@@ -69,6 +70,7 @@ TESTSUITE_AT = \
  fromflt.at\
  list.at\
  mailcap.at\
+ prop.at\
  testsuite.at\
  url.at\
  wicket.at\

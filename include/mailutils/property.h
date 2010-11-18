@@ -27,23 +27,36 @@
 extern "C" {
 #endif
 
-extern int  mu_property_create   (mu_property_t *, void *);
-extern void mu_property_destroy (mu_property_t *, void *);
-extern void *mu_property_get_owner (mu_property_t);
+int mu_property_create   (mu_property_t *);
+int mu_property_create_init (mu_property_t *pprop,
+			     int (*initfun) (mu_property_t), void *initdata);
+int mu_property_set_init (mu_property_t prop,
+			  int (*initfun) (mu_property_t), void *initdata);
+int mu_property_set_init_data (mu_property_t prop, void *data,
+			       void **old_data);
+void mu_property_destroy (mu_property_t *pprop);
 
-extern int  mu_property_set_value (mu_property_t, const char *, const char *, int);
-extern int mu_property_get_value (mu_property_t, const char *, char *, size_t, 
-				  size_t *);
-extern int mu_property_sget_value (mu_property_t prop, const char *key,
-				   const char **buffer);
-extern int mu_property_aget_value (mu_property_t prop, const char *key,
-				   char **buffer);
+void mu_property_ref (mu_property_t prop);
+void mu_property_unref (mu_property_t prop);
+int mu_property_save (mu_property_t prop);
+int mu_property_set_value (mu_property_t, const char *, const char *, int);
+int mu_property_get_value (mu_property_t, const char *, char *, size_t, 
+			   size_t *);
+int mu_property_sget_value (mu_property_t prop, const char *key,
+			    const char **buffer);
+int mu_property_aget_value (mu_property_t prop, const char *key,
+			    char **buffer);
 
 /* Helper functions.  */
-extern int mu_property_set  (mu_property_t, const char *);
-extern int mu_property_unset (mu_property_t, const char *);
-extern int mu_property_is_set (mu_property_t, const char *);
+int mu_property_set  (mu_property_t, const char *);
+int mu_property_unset (mu_property_t, const char *);
+int mu_property_is_set (mu_property_t, const char *);
 
+int mu_property_get_iterator (mu_property_t, mu_iterator_t *itr);
+  
+/* Implementation init functions */
+int mu_assoc_property_init (mu_property_t);
+  
 #ifdef __cplusplus
 }
 #endif
