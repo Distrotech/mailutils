@@ -248,6 +248,7 @@ main (int argc, char **argv)
 	    }
 	  while (cont);
 
+	  mu_opool_append_char (opool, 0);
 	  newval = mu_opool_finish (opool, NULL);
 	  if (!is_empty_string (newval))
 	    mu_stream_printf (tmp, "%s: %s\n", name, newval);
