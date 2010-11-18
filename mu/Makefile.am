@@ -78,7 +78,7 @@ AM_CPPFLAGS = \
   -DPYTHON_LIBS="\"$(PYTHON_LIBS)\"" \
   -DI18NLIBS="\"$(LIBINTL)\""
 
-BUILD_SOURCES=mu-setup.c mu-setup.h
+BUILT_SOURCES=mu-setup.c mu-setup.h
 EXTRA_DIST=mu-setup.c mu-setup.h
 
 mu-setup.h: Makefile.am $(MODULES) $(IDLE_MODULES) 

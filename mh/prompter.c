@@ -263,7 +263,7 @@ main (int argc, char **argv)
   if (prepend_option)
     {
       mu_stream_printf (strout, "\n--------%s\n\n", _("Enter initial text"));
-      while (newval = prompter_get_line ())
+      while ((newval = prompter_get_line ()))
 	{
 	  mu_stream_write (tmp, newval, strlen (newval), NULL);
 	  free (newval);
@@ -286,7 +286,7 @@ main (int argc, char **argv)
   if (!prepend_option && !rapid_option)
     {
       printf ("\n--------%s\n\n", _("Enter additional text"));
-      while (newval = prompter_get_line ())
+      while ((newval = prompter_get_line ()))
 	{
 	  mu_stream_write (tmp, newval, strlen (newval), NULL);
 	  free (newval);
