@@ -179,6 +179,8 @@ mh/mhl.c
 mh/mhn.c
 mh/mhpath.c
 mh/pick.c
+mh/prompter.c
+mh/prompter-tty.c
 mh/refile.c
 mh/repl.c
 mh/rmf.c

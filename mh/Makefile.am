@@ -34,6 +34,7 @@ bin_PROGRAMS = \
  mhparam\
  mhpath\
  pick\
+ prompter\
  refile\
  repl\
  rmf\
@@ -43,6 +44,21 @@ bin_PROGRAMS = \
  sortm\
  whatnow\
  whom
+
+prompter_LDADD = $(mh_LIBS)
+
+if MU_COND_READLINE
+  PROMPTER_FUN=prompter-rl.c
+  prompter_LDADD += @READLINE_LIBS@
+else
+  PROMPTER_FUN=prompter-tty.c
+  prompter_LDADD += @CURSES_LIBS@
+endif
+
+prompter_SOURCES = \
+ prompter.c\
+ prompter.h\
+ $(PROMPTER_FUN)
 
 noinst_LIBRARIES = libmh.a
 

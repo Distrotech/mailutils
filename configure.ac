@@ -909,7 +909,7 @@ AC_SUBST(CURSES_LIBS)
 dnl Check for GNU Readline
 AC_SUBST(READLINE_LIBS)
 
-if test x"$usereadline" = x"yes"; then
+if test "$usereadline" = "yes"; then
 
 	dnl FIXME This should only link in the curses libraries if it's
 	dnl really needed!
@@ -919,7 +919,7 @@ if test x"$usereadline" = x"yes"; then
 	AC_CHECK_LIB(readline, readline, mu_have_readline=yes)
 	LIBS=$saved_LIBS
 
-	if test x"$mu_have_readline" = x"yes"; then
+	if test "$mu_have_readline" = "yes"; then
 		AC_CHECK_HEADERS(readline/readline.h,
 			AC_DEFINE(WITH_READLINE,1,[Enable use of readline]))
 			READLINE_LIBS="-lreadline $CURSES_LIBS"
@@ -932,6 +932,8 @@ if test x"$usereadline" = x"yes"; then
 	fi
 
 fi
+
+AM_CONDITIONAL([MU_COND_READLINE], [test "$usereadline" = "yes"])
 
 AH_BOTTOM([
 /* Newer versions of readline have rl_completion_matches */

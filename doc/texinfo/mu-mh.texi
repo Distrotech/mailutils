@@ -311,25 +311,6 @@ behaviour is disabled when @option{--quiet} option was given.
 
 The @option{--all} mode does not display commented out entries.
 
-@item repl
-
-Understands @option{--use} option. Disposition shell provides
-@code{use} command. 
-
-@item rmm
-
-@enumerate 1
-@item
-Different behaviour if one of the messages in the list does not exist:
-
-Mailutils @command{rmm} does not delete any messages. Standard
-@command{rmm} in this case deletes all messages preceding the
-non-existent one. 
-
-@item
-The @code{rmmproc} profile component is not used.
-@end enumerate
-
 @item pick
 
 The command line syntax @option{--@var{component} @var{string}}) is
@@ -388,6 +369,31 @@ pick --before '1 year ago'
 etc...
 @end smallexample
 
+@item prompter
+@enumerate
+@item
+Prompter attempts to use GNU Readline library, if it is installed.
+Consequently, arguments to @option{-erase} and @option{-kill} option
+must follow GNU style key sequence notation (@pxref{Readline Init File
+Syntax, keyseq,,readline,GNU Readline Library}).
+
+If @command{prompter} is built without @command{readline}, it accepts
+the following character notations:
+
+@table @asis
+@item \@var{nnnn}
+Here, @var{n} stands for a single octal digit.
+
+@item ^@var{chr}
+This notation is translated to the ASCII code @samp{@var{chr} + 0100}.
+@end table
+
+@item
+Component continuation lines are not required to begin with a
+whitespace.  If leading whitespace is not present, @command{prompter}
+will add it automatically.
+@end enumerate
+
 @item refile
 
 @enumerate
@@ -403,6 +409,25 @@ compatibility only.
 
 @item
 Message specs and folder names may be interspersed.
+@end enumerate
+
+@item repl
+
+Understands @option{--use} option. Disposition shell provides
+@code{use} command. 
+
+@item rmm
+
+@enumerate 1
+@item
+Different behaviour if one of the messages in the list does not exist:
+
+Mailutils @command{rmm} does not delete any messages. Standard
+@command{rmm} in this case deletes all messages preceding the
+non-existent one. 
+
+@item
+The @code{rmmproc} profile component is not used.
 @end enumerate
 
 @item sortm
