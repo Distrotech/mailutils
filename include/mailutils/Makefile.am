@@ -67,6 +67,7 @@ pkginclude_HEADERS = \
  mailutils.h\
  md5.h\
  message.h\
+ mh.h\
  mime.h\
  monitor.h\
  mu_auth.h\

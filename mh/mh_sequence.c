@@ -28,7 +28,7 @@ private_sequence_name (const char *name)
 }
 
 const char *
-mh_seq_read (const char *name, int flags)
+mh_seq_read (mu_mailbox_t mbox, const char *name, int flags)
 {
   const char *value;
 
@@ -39,12 +39,12 @@ mh_seq_read (const char *name, int flags)
       free (p);
     }
   else
-    value = mh_global_sequences_get (name, NULL);
+    value = mh_global_sequences_get (mbox, name, NULL);
   return value;
 }
 
 static void
-write_sequence (const char *name, char *value, int private)
+write_sequence (mu_mailbox_t mbox, const char *name, char *value, int private)
 {
   if (private)
     {
@@ -53,24 +53,24 @@ write_sequence (const char *name, char *value, int private)
       free (p);
     }
   else
-    mh_global_sequences_set (name, value);
+    mh_global_sequences_set (mbox, name, value);
 }
 
 static void
-delete_sequence (const char *name, int private)
+delete_sequence (mu_mailbox_t mbox, const char *name, int private)
 {
-  write_sequence (name, NULL, private);
+  write_sequence (mbox, name, NULL, private);
 }
 
 void
-mh_seq_add (const char *name, mh_msgset_t *mset, int flags)
+mh_seq_add (mu_mailbox_t mbox, const char *name, mh_msgset_t *mset, int flags)
 {
-  const char *value = mh_seq_read (name, flags);
+  const char *value = mh_seq_read (mbox, name, flags);
   char *new_value, *p;
   const char *buf;
   size_t i, len;
 
-  delete_sequence (name, !(flags & SEQ_PRIVATE));
+  delete_sequence (mbox, name, !(flags & SEQ_PRIVATE));
 
   if (flags & SEQ_ZERO)
     value = NULL;
@@ -99,9 +99,11 @@ mh_seq_add (const char *name, mh_msgset_t *mset, int flags)
       *p++ = ' ';
     }
   *p = 0;
-  write_sequence (name, new_value, flags & SEQ_PRIVATE);
+  write_sequence (mbox, name, new_value, flags & SEQ_PRIVATE);
+  /* FIXME
   if (mu_c_strcasecmp (name, "cur") == 0)
     current_message = strtoul (new_value, NULL, 0);
+  */
   free (new_value);
 }
 
@@ -119,9 +121,10 @@ cmp_msgnum (const void *a, const void *b)
 }
 
 int
-mh_seq_delete (const char *name, mh_msgset_t *mset, int flags)
+mh_seq_delete (mu_mailbox_t mbox, const char *name,
+	       mh_msgset_t *mset, int flags)
 {
-  const char *value = mh_seq_read (name, flags);
+  const char *value = mh_seq_read (mbox, name, flags);
   char *new_val;
   char *p;
   size_t i, count;
@@ -167,7 +170,7 @@ mh_seq_delete (const char *name, mh_msgset_t *mset, int flags)
 	}
     }
   *p = 0;
-  write_sequence (name, count > 0 ? new_val : NULL, flags & SEQ_PRIVATE);
+  write_sequence (mbox, name, count > 0 ? new_val : NULL, flags & SEQ_PRIVATE);
   mu_wordsplit_free (&ws);
   free (new_val);
   

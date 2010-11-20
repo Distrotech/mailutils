@@ -122,7 +122,7 @@ mu_property_save (mu_property_t prop)
   return rc;
 }
 
-static int
+int
 _mu_property_init (mu_property_t prop)
 {
   int rc = 0;

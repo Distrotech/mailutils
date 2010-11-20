@@ -67,7 +67,6 @@ void
 mh_init2 ()
 {
   mh_current_folder ();
-  mh_global_sequences_get ("cur", NULL);
 }
 
 int

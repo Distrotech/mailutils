@@ -20,8 +20,11 @@ noinst_LTLIBRARIES = libproperty.la
 libproperty_la_SOURCES = \
  assocprop.c\
  create.c\
+ mhprop.c\
+ propclr.c\
  propget.c\
  propitr.c\
+ propinv.c\
  propset.c
 
 INCLUDES = @MU_LIB_COMMON_INCLUDES@ -I/libmailutils

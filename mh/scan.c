@@ -219,7 +219,8 @@ main (int argc, char **argv)
 
   clear_screen ();
   mh_global_save_state ();
-  
+  mu_mailbox_close (mbox);
+  mu_mailbox_destroy (&mbox);
   return status;
 }
 

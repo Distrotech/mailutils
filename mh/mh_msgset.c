@@ -18,7 +18,6 @@
 /* MH message sets. */
 
 #include <mh.h>
-#include <mailutils/argcv.h>
 
 /* Expand a message set (msgcnt;msglist) to accomodate `inc' more
    elements */
@@ -72,13 +71,16 @@ msgset_cur (mu_mailbox_t mbox, size_t *pnum)
 {
   size_t i, count = 0;
   static int cached_n = 0;
+  size_t cur;
 
+  mh_mailbox_get_cur (mbox, &cur);
+  
   if (cached_n)
     {
       *pnum = cached_n;
       return 0;
     }
-  
+
   mu_mailbox_messages_count (mbox, &count);
   for (i = 1; i <= count; i++)
     {
@@ -87,7 +89,7 @@ msgset_cur (mu_mailbox_t mbox, size_t *pnum)
       
       mu_mailbox_get_message (mbox, i, &msg);
       mh_message_number (msg, &uid);
-      if (uid == current_message)
+      if (uid == cur)
 	{
 	  *pnum = cached_n = i;
 	  return 0;
@@ -244,7 +246,7 @@ expand_user_seq (mu_mailbox_t mbox, mh_msgset_t *msgset, char *arg)
   p = strchr (arg, ':');
   if (p)
     *p++ = 0;
-  listp = mh_global_sequences_get (arg, NULL);
+  listp = mh_global_sequences_get (mbox, arg, NULL);
   if (!listp)
     {
       int len;
@@ -255,7 +257,7 @@ expand_user_seq (mu_mailbox_t mbox, mh_msgset_t *msgset, char *arg)
       if (strncmp (arg, neg, len))
 	return 1;
       negate = 1;
-      listp = mh_global_sequences_get (arg + len, NULL);
+      listp = mh_global_sequences_get (mbox, arg + len, NULL);
       if (!listp)
 	return 1;
     }
@@ -569,13 +571,21 @@ mh_msgset_reverse (mh_msgset_t *msgset)
 
 /* Set the current message to that contained at position `index'
    in the given message set */
-int
+void
 mh_msgset_current (mu_mailbox_t mbox, mh_msgset_t *msgset, int index)
 {
   mu_message_t msg = NULL;
-  if (mu_mailbox_get_message (mbox, msgset->list[index], &msg))
-    return 1;
-  return mh_message_number (msg, &current_message);
+  int rc;
+  size_t cur;
+  
+  rc = mu_mailbox_get_message (mbox, msgset->list[index], &msg);
+  if (rc)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_mailbox_get_message", NULL, rc);
+      exit (1);
+    }
+  mh_message_number (msg, &cur);
+  mh_mailbox_set_cur (mbox, cur);
 }
 
 /* Free memory allocated for the message set. Note, that the msgset

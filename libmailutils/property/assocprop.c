@@ -66,7 +66,7 @@ _assoc_prop_setval (struct _mu_property *prop, const char *key,
   int rc;
 
   rc = mu_assoc_ref_install (assoc, key, (void **)&item);
-  if (rc == MU_ERR_NOENT)
+  if (rc == 0)
     {
       item->value = strdup (val);
       if (!item->value)
@@ -75,7 +75,7 @@ _assoc_prop_setval (struct _mu_property *prop, const char *key,
 	  return ENOMEM;
 	}
     }
-  else if (overwrite)
+  else if (rc == MU_ERR_EXISTS && overwrite)
     {
       char *newval = strdup (val);
       if (!newval)
@@ -84,7 +84,7 @@ _assoc_prop_setval (struct _mu_property *prop, const char *key,
       item->value = newval;
     }
   else
-    return MU_ERR_EXISTS;
+    return rc;
   return 0;
 }
 
@@ -94,6 +94,14 @@ _assoc_prop_unset (struct _mu_property *prop, const char *key)
   mu_assoc_t assoc = prop->_prop_data;
 
   return mu_assoc_remove (assoc, key);
+}
+
+static int
+_assoc_prop_clear (struct _mu_property *prop)
+{
+  mu_assoc_t assoc = prop->_prop_data;
+  mu_assoc_clear (assoc);
+  return 0;
 }
 
 
@@ -186,7 +194,6 @@ _assoc_prop_save (struct _mu_property *prop)
     rc = mu_stream_truncate (str, off);
   return rc;
 }
-
 
 int
 mu_assoc_property_init (struct _mu_property *prop)
@@ -203,8 +210,6 @@ mu_assoc_property_init (struct _mu_property *prop)
   prop->_prop_done = _assoc_prop_done;
   if (prop->_prop_init_data)
     {
-      mu_stream_t str = prop->_prop_init_data;
-      mu_stream_ref (str);
       prop->_prop_fill = _assoc_prop_fill;
       prop->_prop_save = _assoc_prop_save;
     }
@@ -217,6 +222,7 @@ mu_assoc_property_init (struct _mu_property *prop)
   prop->_prop_setval = _assoc_prop_setval;
   prop->_prop_unset = _assoc_prop_unset;
   prop->_prop_getitr = _assoc_prop_getitr;
+  prop->_prop_clear = _assoc_prop_clear;
   return 0;
 }
 

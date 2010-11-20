@@ -22,8 +22,6 @@
 # include <config.h>
 #endif
 
-#ifdef ENABLE_MH
-
 #include <sys/types.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -63,6 +61,7 @@
 #include <mailutils/observer.h>
 #include <mailutils/io.h>
 #include <mailutils/cctype.h>
+#include <mailutils/mh.h>
 #include <mailutils/sys/mailbox.h>
 #include <mailutils/sys/registrar.h>
 #include <mailutils/sys/amd.h>
@@ -359,6 +358,30 @@ mh_remove (struct _amd_data *amd)
 }
 
 
+static int
+mh_get_property (mu_mailbox_t mailbox, mu_property_t *pprop)
+{
+  struct _amd_data *amd = mailbox->data;
+  mu_property_t property = NULL;
+  struct mu_mh_prop *mhprop;
+  const char *p;
+  
+  mhprop = calloc (1, sizeof (mhprop[0]));
+  if (!mhprop)
+    return ENOMEM;
+  p = mu_mhprop_get_value (mu_mh_profile, "mh-sequences",
+			   MU_MH_SEQUENCES_FILE);
+  mhprop->filename = mu_make_file_name (amd->name, p);
+  mu_property_create_init (&property, mu_mh_property_init, mhprop);
+  mu_mailbox_set_property (mailbox, property);
+      
+  /*FIXME mu_property_set_value (property, "TYPE", "MH", 1);*/
+  *pprop = property;
+  return 0;
+}
+
+
+
 
 int
 _mailbox_mh_init (mu_mailbox_t mailbox)
@@ -383,14 +406,9 @@ _mailbox_mh_init (mu_mailbox_t mailbox)
   amd->next_uid = _mh_next_seq;
   amd->remove = mh_remove;
 
-  /* Set our properties.  */
-  {
-    mu_property_t property = NULL;
-    mu_mailbox_get_property (mailbox, &property);
-    mu_property_set_value (property, "TYPE", "MH", 1);
-  }
-
+  mailbox->_get_property = mh_get_property;
+  
   return 0;
 }
 
-#endif
+

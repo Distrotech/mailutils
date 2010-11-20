@@ -22,6 +22,7 @@ libmu_mh_la_LDFLAGS=-version-info @VI_CURRENT@:@VI_REVISION@:@VI_AGE@
 libmu_mh_la_LIBADD = ${MU_LIB_MAILUTILS}
 libmu_mh_la_SOURCES = \
  folder.c\
- mbox.c
+ mbox.c\
+ profile.c
 
 

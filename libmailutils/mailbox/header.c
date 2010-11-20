@@ -611,7 +611,23 @@ mu_header_insert (mu_header_t header,
   HEADER_SET_MODIFIED (header);
   return 0;
 }
+
+int
+mu_header_clear (mu_header_t header)
+{
+  int status;
   
+  if (header == NULL)
+    return EINVAL;
+
+  status = mu_header_fill (header);
+  if (status)
+    return status;
+  mu_header_invalidate (header);
+  HEADER_SET_MODIFIED (header);
+  return 0;
+}
+
 
 int
 mu_header_sget_value_n (mu_header_t header,
@@ -630,8 +646,8 @@ mu_header_sget_value_n (mu_header_t header,
   ent = mu_hdrent_find (header, name, n);
   if (!ent)
     return MU_ERR_NOENT;
-
-  *pval = MU_HDRENT_VALUE (header, ent);
+  if (pval)
+    *pval = MU_HDRENT_VALUE (header, ent);
   return 0;
 }
 

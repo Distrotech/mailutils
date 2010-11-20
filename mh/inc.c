@@ -175,6 +175,8 @@ main (int argc, char **argv)
   mh_argp_init ();
   mh_argp_parse (&argc, &argv, 0, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, NULL);
+  /* Inc sets missing cur to 1 */
+  mh_mailbox_cur_default = 1;
 
   if (!quiet && mh_format_parse (format_str, &format))
     {
@@ -256,9 +258,11 @@ main (int argc, char **argv)
       if (n == 1 && changecur)
 	{
 	  mu_message_t msg = NULL;
-      
-	  mu_mailbox_get_message (output, lastmsg+1, &msg);
-	  mh_message_number (msg, &current_message);
+	  size_t cur;
+	  
+	  mu_mailbox_get_message (output, lastmsg + 1, &msg);
+	  mh_message_number (msg, &cur);
+	  mh_mailbox_set_cur (output, cur);
 	}
 	  
       if (!quiet)
@@ -272,8 +276,12 @@ main (int argc, char **argv)
 	}
     }
 
-  if (changecur)
-    mh_global_save_state ();
+  if (!changecur)
+    {
+      mu_property_t prop = mh_mailbox_get_property (output);
+      mu_property_invalidate (prop);
+    }
+  mh_global_save_state ();
   
   mu_mailbox_close (output);
   mu_mailbox_destroy (&output);

@@ -255,6 +255,7 @@ main (int argc, char **argv)
 	  mu_opool_destroy (&opool);
 	}
     }
+  mu_iterator_destroy (&itr);
   mu_stream_printf (strout, "--------\n");
   mu_stream_write (tmp, "\n", 1, NULL);
 

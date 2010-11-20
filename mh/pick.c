@@ -298,10 +298,18 @@ pick_message (mu_mailbox_t mbox, mu_message_t msg, size_t num, void *data)
     }
 }
 
+
+struct pick_closure
+{
+  mu_mailbox_t mbox;
+  mh_msgset_t *msgset;
+};
+
 static int
 action_add (void *item, void *data)
 {
-  mh_seq_add ((char *)item, (mh_msgset_t *)data, seq_flags);
+  struct pick_closure *clos = data;
+  mh_seq_add (clos->mbox, (char *)item, clos->msgset, seq_flags);
   return 0;
 }
 
@@ -395,13 +403,18 @@ main (int argc, char **argv)
 
   if (seq_list)
     {
+      struct pick_closure clos;
       mh_msgset_t msgset;
       msgset.count = msgno_count;
       msgset.list = obstack_finish (&msgno_stk);
-      mu_list_do (seq_list, action_add, (void*) &msgset);
+      clos.mbox = mbox;
+      clos.msgset = &msgset;
+      mu_list_do (seq_list, action_add, &clos);
     }
 
   mh_global_save_state ();
+  mu_mailbox_close (mbox);
+  mu_mailbox_destroy (&mbox);
   return status;
 }
   

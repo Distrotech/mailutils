@@ -55,6 +55,7 @@
 #include <mailutils/envelope.h>
 #include <mailutils/mime.h>
 #include <mailutils/io.h>
+#include <mailutils/property.h>
 
 #include <mu_umaxtostr.h>
 
@@ -233,9 +234,9 @@ typedef int (*mh_context_iterator) (const char *field, const char *value,
 #define SEQ_PRIVATE 1
 #define SEQ_ZERO    2
 
-extern size_t current_message;
 extern char mh_list_format[];
 extern int rcpt_mask;
+extern int mh_mailbox_cur_default;
 
 void mh_init (void);
 void mh_init2 (void);
@@ -251,13 +252,19 @@ const char *mh_global_context_get (const char *name, const char *defval);
 int mh_global_context_set (const char *name, const char *value);
 const char *mh_set_current_folder (const char *val);
 const char *mh_current_folder (void);
-const char *mh_global_sequences_get (const char *name, const char *defval);
-int mh_global_sequences_set (const char *name, const char *value);
+
+mu_property_t mh_mailbox_get_property (mu_mailbox_t mbox);
+const char *mh_global_sequences_get (mu_mailbox_t mbox,
+				     const char *name, const char *defval);
+void mh_global_sequences_set (mu_mailbox_t mbox,
+			      const char *name, const char *value);
+void mh_global_sequences_iterate (mu_mailbox_t mbox,
+				  mh_context_iterator fp, void *data);
+void mh_global_sequences_drop (mu_mailbox_t mbox);
+
 void mh_global_save_state (void);
 int mh_global_profile_iterate (mh_context_iterator fp, void *data);
 int mh_global_context_iterate (mh_context_iterator fp, void *data);
-int mh_global_sequences_iterate (mh_context_iterator fp, void *data);
-void mh_global_sequences_drop (void);
 
 int mh_interactive_mode_p (void);
 int mh_getyn (const char *fmt, ...) MU_PRINTFLIKE(1,2);
@@ -300,7 +307,7 @@ int mh_msgset_parse (mu_mailbox_t mbox, mh_msgset_t *msgset,
 int mh_msgset_member (mh_msgset_t *msgset, size_t num);
 void mh_msgset_reverse (mh_msgset_t *msgset);
 void mh_msgset_negate (mu_mailbox_t mbox, mh_msgset_t *msgset);
-int mh_msgset_current (mu_mailbox_t mbox, mh_msgset_t *msgset, int index);
+void mh_msgset_current (mu_mailbox_t mbox, mh_msgset_t *msgset, int index);
 void mh_msgset_free (mh_msgset_t *msgset);
 void mh_msgset_uids (mu_mailbox_t mbox, mh_msgset_t *msgset);
 
@@ -358,9 +365,11 @@ int mhl_format_run (mu_list_t fmt, int width, int length, int flags,
 		    mu_message_t msg, mu_stream_t output);
 void mhl_format_destroy (mu_list_t *fmt);
 
-void mh_seq_add (const char *name, mh_msgset_t *mset, int flags);
-int mh_seq_delete (const char *name, mh_msgset_t *mset, int flags);
-const char *mh_seq_read (const char *name, int flags);
+void mh_seq_add (mu_mailbox_t mbox, const char *name, mh_msgset_t *mset,
+		 int flags);
+int mh_seq_delete (mu_mailbox_t mbox, const char *name, mh_msgset_t *mset,
+		   int flags);
+const char *mh_seq_read (mu_mailbox_t mbox, const char *name, int flags);
 
 void mh_comp_draft (const char *formfile, const char *defformfile,
 		    const char *draftfile);
@@ -371,3 +380,6 @@ void ali_verbatim (int enable);
 
 char *mh_safe_make_file_name (const char *dir, const char *file);
   
+void mh_mailbox_get_cur (mu_mailbox_t mbox, size_t *pcur);
+void mh_mailbox_set_cur (mu_mailbox_t mbox, size_t cur);
+

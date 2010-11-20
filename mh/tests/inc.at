@@ -22,7 +22,7 @@ inc -notruncate -file ./mbox1 | sed 's/ *$//'
 cmp $abs_top_srcdir/testsuite/spool/mbox1 mbox1
 ],
 [0],
-[   1  12/28 Foo Bar <foobar@n  Jabberwocky<<`Twas brillig, and the slithy toves
+[   1+ 12/28 Foo Bar <foobar@n  Jabberwocky<<`Twas brillig, and the slithy toves
    2  12/28 Bar <bar@dontmail  Re: Jabberwocky<<It seems very pretty, but it's
    3  07/13 Sergey Poznyakoff  Simple MIME<<------- =_aaaaaaaaaa0 Content-Type:
    4  07/13 Sergey Poznyakoff  Nested MIME<<------- =_aaaaaaaaaa0 Content-Type:
@@ -36,7 +36,7 @@ echo "Next"
 inc -truncate -file ./mbox1 | sed 's/ *$//'
 ],
 [0],
-[   1  12/28 Foo Bar <foobar@n  Jabberwocky<<`Twas brillig, and the slithy toves
+[   1+ 12/28 Foo Bar <foobar@n  Jabberwocky<<`Twas brillig, and the slithy toves
    2  12/28 Bar <bar@dontmail  Re: Jabberwocky<<It seems very pretty, but it's
    3  07/13 Sergey Poznyakoff  Simple MIME<<------- =_aaaaaaaaaa0 Content-Type:
    4  07/13 Sergey Poznyakoff  Nested MIME<<------- =_aaaaaaaaaa0 Content-Type:
@@ -50,12 +50,42 @@ mkdir Mail/new
 inc +new -file ./mbox1 | sed 's/ *$//'
 ],
 [0],
-[   1  12/28 Foo Bar <foobar@n  Jabberwocky<<`Twas brillig, and the slithy toves
+[   1+ 12/28 Foo Bar <foobar@n  Jabberwocky<<`Twas brillig, and the slithy toves
    2  12/28 Bar <bar@dontmail  Re: Jabberwocky<<It seems very pretty, but it's
    3  07/13 Sergey Poznyakoff  Simple MIME<<------- =_aaaaaaaaaa0 Content-Type:
    4  07/13 Sergey Poznyakoff  Nested MIME<<------- =_aaaaaaaaaa0 Content-Type:
    5  07/13 Sergey Poznyakoff  Empty MIME Parts<<------- =_aaaaaaaaaa0 Content-
 ])
+
+MH_CHECK([inc -changecur],[inc03 inc-changecur],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
+MUT_MBCOPY([$abs_top_srcdir/testsuite/spool/mbox1])
+inc -changecur -file ./mbox1 | sed 's/ *$//'
+],
+[0],
+[   6+ 12/28 Foo Bar <foobar@n  Jabberwocky<<`Twas brillig, and the slithy toves
+   7  12/28 Bar <bar@dontmail  Re: Jabberwocky<<It seems very pretty, but it's
+   8  07/13 Sergey Poznyakoff  Simple MIME<<------- =_aaaaaaaaaa0 Content-Type:
+   9  07/13 Sergey Poznyakoff  Nested MIME<<------- =_aaaaaaaaaa0 Content-Type:
+  10  07/13 Sergey Poznyakoff  Empty MIME Parts<<------- =_aaaaaaaaaa0 Content-
+])
+
+MH_CHECK([inc -nochangecur],[inc04 inc-nochangecur],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
+echo "cur: 1" > Mail/inbox/.mh_sequences
+MUT_MBCOPY([$abs_top_srcdir/testsuite/spool/mbox1])
+inc -nochangecur -file ./mbox1 | sed 's/ *$//'
+grep ^cur: Mail/inbox/.mh_sequences
+],
+[0],
+[   6  12/28 Foo Bar <foobar@n  Jabberwocky<<`Twas brillig, and the slithy toves
+   7  12/28 Bar <bar@dontmail  Re: Jabberwocky<<It seems very pretty, but it's
+   8  07/13 Sergey Poznyakoff  Simple MIME<<------- =_aaaaaaaaaa0 Content-Type:
+   9  07/13 Sergey Poznyakoff  Nested MIME<<------- =_aaaaaaaaaa0 Content-Type:
+  10  07/13 Sergey Poznyakoff  Empty MIME Parts<<------- =_aaaaaaaaaa0 Content-
+cur: 1  
+])
+
 
 m4_popdef[MH_KEYWORDS])
 # End of inc.at

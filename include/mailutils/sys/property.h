@@ -62,8 +62,11 @@ struct _mu_property
   int (*_prop_unset) (struct _mu_property *, const char *);
   /* Return iterator for this property object */
   int (*_prop_getitr) (struct _mu_property *, mu_iterator_t *);
+  /* Clear all properties. */
+  int (*_prop_clear) (struct _mu_property *);
 };
 
+int _mu_property_init (mu_property_t prop);
 int _mu_property_check (mu_property_t prop);
   
 # ifdef __cplusplus

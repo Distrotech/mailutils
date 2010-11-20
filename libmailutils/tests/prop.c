@@ -29,6 +29,8 @@ help (char *progname)
   printf (" ?X       query whether X is set\n");
   printf (" +X       query the value of the property X\n");
   printf (" -X       unset property X\n");
+  printf (" 0        clear all properties\n");
+  printf (" !        invalidate properties\n");
   exit (0);
 }
 
@@ -66,7 +68,6 @@ main (int argc, char **argv)
     {
       MU_ASSERT (mu_file_stream_create (&str, filename,
 					MU_STREAM_RDWR|MU_STREAM_CREAT));
-      mu_stream_unref (str);
       if (i == argc)
 	dumpit = 1;
     }
@@ -119,6 +120,16 @@ main (int argc, char **argv)
 	  else
 	    printf ("%d: %s=%s\n", j, key, val);
 	}
+      else if (key[0] == '0' && key[1] == 0)
+	{
+	  rc = mu_property_clear (prop);
+	  printf ("%d: clear: %s\n", j, mu_strerror (rc));
+	}
+      else if (key[0] == '!' && key[1] == 0)
+	{
+	  rc = mu_property_invalidate (prop);
+	  printf ("%d: invalidate: %s\n", j, mu_strerror (rc));
+	}      
       else
 	{
 	  mu_error ("%d: unrecognized command", i);

@@ -53,7 +53,7 @@ struct mh_option mh_option[] = {
 
 int explicit_folder; /* Was the folder explicitly given */
 int interactive; /* Ask for confirmation before deleting */
-int recurse;     /* Recursively process all the sub-directories */
+int recursive;     /* Recursively process all the sub-directories */
 
 static char *cur_folder_path; /* Full pathname of the current folder */
 static char *folder_name;     /* Name of the (topmost) folder to be
@@ -78,11 +78,11 @@ opt_handler (int key, char *arg, struct argp_state *state)
       break;
 	
     case ARG_RECURSIVE:
-      recurse = is_true (arg);
+      recursive = is_true (arg);
       break;
       
     case ARG_NORECURSIVE:
-      recurse = 0;
+      recursive = 0;
       break;
 
     default:
@@ -106,6 +106,31 @@ current_folder_path ()
 
 static int
 rmf (const char *name)
+{
+  mu_mailbox_t mbox = NULL;
+  int rc;
+  
+  rc = mu_mailbox_create_default (&mbox, name);
+  if (rc)
+    {
+      mu_error (_("cannot create mailbox %s: %s"),
+		name, strerror (rc));
+      return 1;
+    }
+
+  rc = mu_mailbox_remove (mbox);
+  mu_mailbox_destroy (&mbox);
+  if (rc)
+    {
+      mu_error (_("cannot remove %s: %s"), name, mu_strerror (rc));
+      return 1;
+    }
+  return 0;
+}
+
+/* Recursive rmf */
+static int
+recrmf (const char *name)
 {
   DIR *dir;
   struct dirent *entry;
@@ -137,50 +162,24 @@ rmf (const char *name)
 	  mu_diag_funcall (MU_DIAG_ERROR, "stat", p, errno);
 	}
       else if (S_ISDIR (st.st_mode))
-	{
-	  if (recurse)
-	    failures += rmf (p);
-	  else
-	    {
-	      printf ("%s: file `%s' not deleted, continuing...\n",
-		      mu_program_name, p);
-	      failures++;
-	    }
-	}
-      else
-	{
-	  if (unlink (p))
-	    {
-	      mu_diag_funcall (MU_DIAG_ERROR, "unlink", p, errno);
-	      failures++;
-	    }
-	}
+	failures += recrmf (p);
       free (p);
     }
   closedir (dir);
 
   if (failures == 0)
-    failures += rmdir (name);
+    failures += rmf (name);
   else
     printf ("%s: folder `%s' not removed\n",
 	    mu_program_name, name);
 
-  if (failures == 0)
-    {
-      if (cur_folder_path && strcmp (name, cur_folder_path) == 0)
-	{
-	  mh_set_current_folder ("inbox");
-	  mh_global_sequences_drop ();
-	  mh_global_save_state ();
-	  printf ("[+inbox now current]\n");
-	}
-    }
   return failures;
 }
 
 int
 main (int argc, char **argv)
 {
+  int status;
   char *name;
 
   /* Native Language Support */
@@ -199,6 +198,23 @@ main (int argc, char **argv)
     }
   else
     name = mh_expand_name (NULL, folder_name, 0);
-  rmf (name);
-  return 0;
+  if (recursive)
+    status = recrmf (name);
+  else
+    {
+      if (interactive && !mh_getyn (_("Remove folder %s"), name))
+	exit (0);
+      status = rmf (name);
+    }
+  if (status == 0)
+    {
+      if (cur_folder_path && strcmp (name, cur_folder_path) == 0)
+	{
+	  mh_set_current_folder ("inbox");
+	  mh_global_save_state ();
+	  printf ("[+inbox now current]\n");
+	}
+      return 0;
+    }      
+  return 1;
 }

@@ -913,8 +913,19 @@ static void
 builtin_cur (struct mh_machine *mach)
 {
   size_t msgno = mach->msgno;
+  size_t cur;
+  int rc;
+  mu_mailbox_t mbox;
+  
+  rc = mu_message_get_mailbox (mach->message, &mbox);
+  if (rc)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_message_get_mailbox", NULL, rc);
+      exit (1);
+    }
   mh_message_number (mach->message, &msgno);
-  mach->arg_num = msgno == current_message;
+  mh_mailbox_get_cur (mbox, &cur); /* FIXME: Cache this */
+  mach->arg_num = msgno == cur;
 }
 
 static void

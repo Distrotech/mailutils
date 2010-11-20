@@ -116,31 +116,41 @@ opt_handler (int key, char *arg, struct argp_state *state)
     }
   return 0;
 }
+
+
+struct mark_closure
+{
+  mu_mailbox_t mbox;
+  mh_msgset_t *msgset;
+};
 
 static int
 action_add (void *item, void *data)
 {
-  mh_seq_add ((char *)item, (mh_msgset_t *)data, seq_flags);
+  struct mark_closure *clos = data;
+  mh_seq_add (clos->mbox, (char *)item, clos->msgset, seq_flags);
   return 0;
 }
 
 static int
 action_delete (void *item, void *data)
 {
-  mh_seq_delete ((char *)item, (mh_msgset_t *)data, seq_flags);
+  struct mark_closure *clos = data;
+  mh_seq_delete (clos->mbox, (char *)item, clos->msgset, seq_flags);
   return 0;
 }
 
 static int
 action_list (void *item, void *data)
 {
+  struct mark_closure *clos = data;
   char *name = item;
   const char *val;
   
-  val = mh_seq_read (name, 0);
+  val = mh_seq_read (clos->mbox, name, 0);
   if (val)
     printf ("%s: %s\n", name, val);
-  else if ((val = mh_seq_read (name, SEQ_PRIVATE)))
+  else if ((val = mh_seq_read (clos->mbox, name, SEQ_PRIVATE)))
     printf ("%s (%s): %s\n", name, _("private"), val);
   return 0;
 }
@@ -171,9 +181,9 @@ list_public (const char *name, const char *value, void *data)
 }
 
 static void
-list_all ()
+list_all (mu_mailbox_t mbox)
 {
-  mh_global_sequences_iterate (list_public, NULL);
+  mh_global_sequences_iterate (mbox, list_public, NULL);
   mh_global_context_iterate (list_private, NULL);
 }
 
@@ -184,6 +194,7 @@ main (int argc, char **argv)
   mh_msgset_t msgset;
   mu_mailbox_t mbox;
   mu_url_t url;
+  struct mark_closure clos;
   
   MU_APP_INIT_NLS ();
   mh_argp_init ();
@@ -201,6 +212,8 @@ main (int argc, char **argv)
   mh_msgset_parse (mbox, &msgset, argc, argv, "cur");
   mh_msgset_uids (mbox, &msgset);
   
+  clos.mbox = mbox;
+  clos.msgset = &msgset;
   switch (action)
     {
     case ARG_ADD:
@@ -209,7 +222,7 @@ main (int argc, char **argv)
 	  mu_error (_("--add requires at least one --sequence argument"));
 	  return 1;
 	}
-      mu_list_do (seq_list, action_add, (void *) &msgset);
+      mu_list_do (seq_list, action_add, (void *) &clos);
       mh_global_save_state ();
       break;
       
@@ -219,17 +232,18 @@ main (int argc, char **argv)
 	  mu_error (_("--delete requires at least one --sequence argument"));
 	  return 1;
 	}
-      mu_list_do (seq_list, action_delete, (void *) &msgset);
+      mu_list_do (seq_list, action_delete, (void *) &clos);
       mh_global_save_state ();
       break;
       
     case ARG_LIST:
       if (!seq_list)
-	list_all ();
+	list_all (mbox);
       else
-	mu_list_do (seq_list, action_list, NULL);
+	mu_list_do (seq_list, action_list, &clos);
       break;
     }
-
+  mu_mailbox_close (mbox);
+  mu_mailbox_destroy (&mbox);
   return 0;
 }

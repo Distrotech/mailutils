@@ -96,7 +96,6 @@ Mail/inbox/2
 Mail/inbox/3
 Mail/inbox/4
 Mail/inbox/5
-Mail/inbox/.mh_sequences
 ])
 
 MH_CHECK([folder --pack=N],[folder06 folder--pack=N],[
@@ -115,7 +114,6 @@ Mail/inbox/2
 Mail/inbox/3
 Mail/inbox/4
 Mail/inbox/5
-Mail/inbox/.mh_sequences
 ])
 
 MH_CHECK([folder -push/-pop],[folder07 folder-push folder-pop folder-push-pop],

@@ -64,6 +64,7 @@ noinst_LIBRARIES = libmh.a
 
 libmh_a_SOURCES= \
  compcommon.c\
+ mboxprop.c\
  mh_alias_gram.c\
  mh_alias_lex.c\
  mh_argp.c\

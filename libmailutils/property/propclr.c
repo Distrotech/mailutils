@@ -1,6 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2004, 2005, 2007, 2008, 2010 Free
-   Software Foundation, Inc.
+   Copyright (C) 2010 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -25,46 +24,15 @@
 #include <mailutils/sys/property.h>
 
 int
-mu_property_set_value (mu_property_t prop, const char *key,
-		       const char *value, int overwrite)
-{
-  int rc;
-  
-  if (!value)
-    rc = mu_property_unset (prop, key);
-  else
-    {
-      rc = _mu_property_check (prop);
-      if (rc)
-	return rc;
-      if (!prop->_prop_setval)
-	return MU_ERR_EMPTY_VFN;
-      rc = prop->_prop_setval (prop, key, value, overwrite);
-      if (rc == 0)
-	prop->_prop_flags |= MU_PROP_MODIFIED;
-    }
-  return rc;
-}
-
-int
-mu_property_unset (mu_property_t prop, const char *key)
+mu_property_clear (mu_property_t prop)
 {
   int rc = _mu_property_check (prop);
   if (rc)
     return rc;
-  if (!prop->_prop_unset)
+  if (!prop->_prop_clear)
     return MU_ERR_EMPTY_VFN;
-  rc = prop->_prop_unset (prop, key);
+  rc = prop->_prop_clear (prop);
   if (rc == 0)
     prop->_prop_flags |= MU_PROP_MODIFIED;
   return rc;
 }
-
-int
-mu_property_set (mu_property_t prop, const char *key)
-{
-  return mu_property_set_value (prop, key, "", 1);
-}
-
-  
-

@@ -740,6 +740,7 @@ roll_back (const char *folder_name, struct pack_tab *pack_tab, size_t i)
 
 struct fixup_data
 {
+  mu_mailbox_t mbox;
   const char *folder_dir;
   struct pack_tab *pack_tab;
   size_t count;
@@ -797,12 +798,12 @@ _fixup (const char *name, const char *value, struct fixup_data *fd, int flags)
 
   mu_wordsplit_free (&ws);
   
-  mh_seq_add (name, &msgset, flags | SEQ_ZERO);
+  mh_seq_add (fd->mbox, name, &msgset, flags | SEQ_ZERO);
   free (msgset.list);
 
   if (verbose)
     {
-      const char *p = mh_seq_read (name, flags);
+      const char *p = mh_seq_read (fd->mbox, name, flags);
       fprintf (stderr, "Sequence %s: %s\n", name, p);
     }
   
@@ -917,18 +918,23 @@ action_pack ()
     fprintf (stderr, _("Finished packing messages.\n"));
 
   /* Fix-up sequences */
-  fd.folder_dir = folder_dir;
-  fd.pack_tab = pack_tab;
-  fd.count = count;
-  if (verbose)
-    fprintf (stderr, _("Fixing global sequences\n"));
-  mh_global_sequences_iterate (fixup_global, &fd);
-  if (verbose)
-    fprintf (stderr, _("Fixing private sequences\n"));
-  mh_global_context_iterate (fixup_private, &fd);
-
   if (!dry_run)
-    mh_global_save_state ();
+    {
+      mbox = mh_open_folder (mh_current_folder (), 0);
+      fd.mbox = mbox;
+      fd.folder_dir = folder_dir;
+      fd.pack_tab = pack_tab;
+      fd.count = count;
+      if (verbose)
+	fprintf (stderr, _("Fixing global sequences\n"));
+      mh_global_sequences_iterate (mbox, fixup_global, &fd);
+      if (verbose)
+	fprintf (stderr, _("Fixing private sequences\n"));
+      mh_global_context_iterate (fixup_private, &fd);
+      mu_mailbox_close (mbox);
+      mu_mailbox_destroy (&mbox);
+      mh_global_save_state ();
+    }
   
   return 0;
 }

@@ -97,5 +97,28 @@ test=6.b
 user=gray
 ])
 
+TESTPROP([clear],[prop07],[
+prop --dump user=gray package=mailutils org=GNU 0 ?org
+],
+[0: user=gray: Success
+1: package=mailutils: Success
+2: org=GNU: Success
+3: clear: Success
+4: org is not set
+Property dump:
+])
+
+TESTPROP([invalidate],[prop08],[
+prop --file=db user=foo
+prop --file=db ?user user=bar +user '!' +user
+],
+[0: user=foo: Success
+0: user is set
+1: user=bar: Success
+2: user=bar
+3: invalidate: Success
+4: user=foo
+])
+
 m4_popdef([TESTPROP])
 

@@ -28,6 +28,7 @@ mhpath
 pick
 pick-gram.c
 pick-gram.h
+prompter
 refile
 repl
 rmf

@@ -49,7 +49,7 @@ struct mh_machine
 
   mu_list_t addrlist;       /* The list of email addresses output this far */
   int fmtflags;             /* Current formatting flags */
-  
+
   mu_message_t message;     /* Current message */
   size_t msgno;             /* Its number */
 };

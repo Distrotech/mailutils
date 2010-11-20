@@ -46,6 +46,8 @@ int mu_property_sget_value (mu_property_t prop, const char *key,
 			    const char **buffer);
 int mu_property_aget_value (mu_property_t prop, const char *key,
 			    char **buffer);
+int mu_property_clear (mu_property_t prop);
+int mu_property_invalidate (mu_property_t prop);
 
 /* Helper functions.  */
 int mu_property_set  (mu_property_t, const char *);
@@ -56,6 +58,14 @@ int mu_property_get_iterator (mu_property_t, mu_iterator_t *itr);
   
 /* Implementation init functions */
 int mu_assoc_property_init (mu_property_t);
+
+struct mu_mh_prop
+{
+  char *filename;
+  int ro;
+};
+
+int mu_mh_property_init (mu_property_t);
   
 #ifdef __cplusplus
 }

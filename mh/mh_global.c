@@ -20,10 +20,8 @@
 #include <mh.h>
 
 static const char *current_folder = NULL;
-size_t current_message = 0;
 mh_context_t *context;
 mh_context_t *profile;
-mh_context_t *sequences;
 int rcpt_mask = RCPT_DEFAULT;
 int mh_auto_install = 1;
 
@@ -137,54 +135,88 @@ mh_set_current_folder (const char *val)
   current_folder = mh_current_folder ();
   return current_folder;
 }
-
+
 /* Global sequences */
-
-void
-_mh_init_global_sequences ()
+mu_property_t
+mh_mailbox_get_property (mu_mailbox_t mbox)
 {
-  const char *name;
-  char *p, *seq_name;
-
-  if (sequences)
-    return;
-  
-  _mh_init_global_context ();
-  name = mh_global_profile_get ("mh-sequences", MH_SEQUENCES_FILE);
-  p = mh_expand_name (NULL, current_folder, 0);
-  seq_name = mh_safe_make_file_name (p, name);
-  free (p);
-  sequences = mh_context_create (seq_name, 1);
-  if (mh_context_read (sequences) == 0)
-    current_message = strtoul (mh_context_get_value (sequences, "cur", "0"),
-			       NULL, 10);
+  mu_property_t prop;
+  int rc = mu_mailbox_get_property (mbox, &prop);
+  if (rc)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_mailbox_get_property", NULL, rc);
+      exit (1);
+    }
+  return prop;
 }
-
+  
 void
-mh_global_sequences_drop ()
+mh_global_sequences_drop (mu_mailbox_t mbox)
 {
-  mh_context_destroy (&sequences);
+  mu_property_t prop = mh_mailbox_get_property (mbox);
+  int rc = mu_property_clear (prop);
+  if (rc)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_property_clear", NULL, rc);
+      exit (1);
+    }
 }
 
 const char *
-mh_global_sequences_get (const char *name, const char *defval)
+mh_global_sequences_get (mu_mailbox_t mbox, const char *name,
+			 const char *defval)
 {
-  _mh_init_global_sequences ();
-  return mh_context_get_value (sequences, name, defval);
+  mu_property_t prop = mh_mailbox_get_property (mbox);
+  const char *s;
+  int rc = mu_property_sget_value (prop, name, &s);
+  if (rc == MU_ERR_NOENT)
+    s = defval;
+  else if (rc)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_property_sget_value", name, rc);
+      exit (1);
+    }
+  return s;
 }
 
-int
-mh_global_sequences_set (const char *name, const char *value)
+void
+mh_global_sequences_set (mu_mailbox_t mbox, const char *name,
+			 const char *value)
 {
-  _mh_init_global_sequences ();
-  return mh_context_set_value (sequences, name, value);
+  mu_property_t prop = mh_mailbox_get_property (mbox);
+  int rc = mu_property_set_value (prop, name, value, 1);
+  if (rc && !(!value && rc == MU_ERR_NOENT))
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_property_set_value", name, rc);
+      exit (1);
+    }
 }
 
-int
-mh_global_sequences_iterate (mh_context_iterator fp, void *data)
+/* FIXME: Rewrite using mu_mhprop_iterate */
+void
+mh_global_sequences_iterate (mu_mailbox_t mbox,
+			     mh_context_iterator fp, void *data)
 {
-  _mh_init_global_context ();
-  return mh_context_iterate (sequences, fp, data);
+  int rc;
+  mu_iterator_t itr;
+  mu_property_t prop = mh_mailbox_get_property (mbox);
+
+  rc = mu_property_get_iterator (prop, &itr);
+  if (rc)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_property_get_iterator", NULL, rc);
+      exit (1);
+    }
+  for (mu_iterator_first (itr); !mu_iterator_is_done (itr);
+       mu_iterator_next (itr))
+    {
+      const char *name, *val;
+      
+      mu_iterator_current_kv (itr, (const void **)&name, (void**)&val);
+      if (fp (name, val, data))
+	break;
+    }
+  mu_iterator_destroy (&itr);
 }
 
 /* Global state */
@@ -192,9 +224,6 @@ mh_global_sequences_iterate (mh_context_iterator fp, void *data)
 void
 mh_global_save_state ()
 {
-  mh_context_set_value (sequences, "cur", mu_umaxtostr (0, current_message));
-  mh_context_write (sequences);
-
   mh_context_set_value (context, "Current-Folder", current_folder);
   mh_context_write (context);
 }
