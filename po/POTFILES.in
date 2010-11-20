@@ -165,6 +165,7 @@ mh/forw.c
 mh/inc.c
 mh/install-mh.c
 mh/mark.c
+mh/mboxprop.c
 mh/mh_argp.c
 mh/mh_ctx.c
 mh/mh_fmtgram.y

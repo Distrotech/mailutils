@@ -20,29 +20,70 @@
 #include <mh.h>
 
 static const char *current_folder = NULL;
-mh_context_t *context;
-mh_context_t *profile;
 int rcpt_mask = RCPT_DEFAULT;
 int mh_auto_install = 1;
 
+mu_property_t
+mh_read_property_file (char *name, int ro)
+{
+  mu_property_t prop;
+  struct mu_mh_prop *mhprop;
+  int rc;
+  
+  mhprop = xzalloc (sizeof (mhprop[0]));
+  mhprop->filename = name;
+  mhprop->ro = ro;
+  rc = mu_property_create_init (&prop, mu_mh_property_init, mhprop);
+  if (rc)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_property_create_init", name, rc);
+      exit (1);
+    }
+  return prop;
+}
+
+static int
+prop_merger (const char *field, const char *value, void *data)
+{
+  mu_property_t dst;
+  return mu_property_set_value (dst, field, value, 1);
+}
+
+void
+mh_property_merge (mu_property_t dst, mu_property_t src)
+{
+  int rc;
+  
+  if (!src)
+    return;
+  rc = mu_mhprop_iterate (src, prop_merger, dst);
+  if (rc)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_mhprop_iterate", NULL, rc);
+      exit (1);
+    }
+}
+  
 /* Global profile */
 
-const char *
-mh_global_profile_get (const char *name, const char *defval)
+void
+_mh_init_global_context ()
 {
-  return mh_context_get_value (profile, name, defval);
-}
+  char *p, *ctx_name;
+  
+  if (mu_mh_context)
+    return;
+  p = getenv ("CONTEXT");
+  if (!p)
+    p = MH_CONTEXT_FILE;
+  ctx_name = mh_expand_name (NULL, p, 0);
 
-int
-mh_global_profile_set (const char *name, const char *value)
-{
-  return mh_context_set_value (profile, name, value);
-}
-
-int
-mh_global_profile_iterate (mh_context_iterator fp, void *data)
-{
-  return mh_context_iterate (profile, fp, data);
+  mu_mh_context = mh_read_property_file (ctx_name, 0);
+  
+  if (!current_folder)
+    current_folder = mh_global_context_get ("Current-Folder",
+					    mh_global_profile_get ("Inbox",
+								   "inbox"));
 }
 
 void
@@ -66,8 +107,7 @@ mh_read_profile ()
   if (mh_auto_install && access (p, R_OK))
     mh_install (p, 1);
 
-  profile = mh_context_create (p, 1);
-  mh_context_read (profile);
+  mu_mh_profile = mh_read_property_file (p, 0);
 
   mu_set_folder_directory (mh_get_dir ());
 
@@ -75,55 +115,15 @@ mh_read_profile ()
   fallback = mh_global_profile_get ("Decode-Fallback", NULL);
   if (fallback && mu_set_default_fallback (fallback))
     mu_error (_("Incorrect value for decode-fallback"));
+
+  _mh_init_global_context ();
 }
 
 /* Global context */
 
-void
-_mh_init_global_context ()
-{
-  char *p, *ctx_name;
-  
-  if (context)
-    return;
-  p = getenv ("CONTEXT");
-  if (!p)
-    p = MH_CONTEXT_FILE;
-  ctx_name = mh_expand_name (NULL, p, 0);
-  context = mh_context_create (ctx_name, 1);
-  mh_context_read (context);
-  
-  if (!current_folder)
-    current_folder = mh_context_get_value (context, "Current-Folder",
-					   mh_global_profile_get ("Inbox",
-							          "inbox"));
-}
-
-const char *
-mh_global_context_get (const char *name, const char *defval)
-{
-  _mh_init_global_context ();
-  return mh_context_get_value (context, name, defval);
-}
-
-int
-mh_global_context_set (const char *name, const char *value)
-{
-  _mh_init_global_context ();
-  return mh_context_set_value (context, name, value);
-}
-
-int
-mh_global_context_iterate (mh_context_iterator fp, void *data)
-{
-  _mh_init_global_context ();
-  return mh_context_iterate (context, fp, data);
-}
-
 const char *
 mh_current_folder ()
 {
-  _mh_init_global_context ();
   return mh_global_context_get ("Current-Folder",
 				mh_global_profile_get ("Inbox", "inbox"));
 }
@@ -131,7 +131,13 @@ mh_current_folder ()
 const char *
 mh_set_current_folder (const char *val)
 {
-  mh_global_context_set ("Current-Folder", val);
+  int rc = mh_global_context_set ("Current-Folder", val);
+  if (rc)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mh_global_context_set",
+		       "Current-Folder", rc);
+      exit (1);
+    }
   current_folder = mh_current_folder ();
   return current_folder;
 }
@@ -192,10 +198,9 @@ mh_global_sequences_set (mu_mailbox_t mbox, const char *name,
     }
 }
 
-/* FIXME: Rewrite using mu_mhprop_iterate */
 void
 mh_global_sequences_iterate (mu_mailbox_t mbox,
-			     mh_context_iterator fp, void *data)
+                             mu_mhprop_iterator_t fp, void *data)
 {
   int rc;
   mu_iterator_t itr;
@@ -207,16 +212,7 @@ mh_global_sequences_iterate (mu_mailbox_t mbox,
       mu_diag_funcall (MU_DIAG_ERROR, "mu_property_get_iterator", NULL, rc);
       exit (1);
     }
-  for (mu_iterator_first (itr); !mu_iterator_is_done (itr);
-       mu_iterator_next (itr))
-    {
-      const char *name, *val;
-      
-      mu_iterator_current_kv (itr, (const void **)&name, (void**)&val);
-      if (fp (name, val, data))
-	break;
-    }
-  mu_iterator_destroy (&itr);
+  mu_mhprop_iterate (prop, fp, data);
 }
 
 /* Global state */
@@ -224,6 +220,15 @@ mh_global_sequences_iterate (mu_mailbox_t mbox,
 void
 mh_global_save_state ()
 {
-  mh_context_set_value (context, "Current-Folder", current_folder);
-  mh_context_write (context);
+  int rc;
+  
+  mh_global_context_set ("Current-Folder", current_folder);
+  rc = mu_property_save (mu_mh_context);
+  if (rc)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_profile_save", "context", rc);
+      exit (1);
+    }
 }
+
+

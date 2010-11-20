@@ -68,7 +68,6 @@ libmh_a_SOURCES= \
  mh_alias_gram.c\
  mh_alias_lex.c\
  mh_argp.c\
- mh_ctx.c\
  mh_getopt.c\
  mh_global.c\
  mh_format.c\

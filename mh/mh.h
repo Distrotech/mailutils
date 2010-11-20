@@ -56,6 +56,7 @@
 #include <mailutils/mime.h>
 #include <mailutils/io.h>
 #include <mailutils/property.h>
+#include <mailutils/mh.h>
 
 #include <mu_umaxtostr.h>
 
@@ -228,9 +229,6 @@ struct mh_whatnow_env     /* whatnow shell environment */
 #define DISP_USE 1
 #define DISP_REPLACE 2
 
-typedef int (*mh_context_iterator) (const char *field, const char *value,
-				    void *data);
-
 #define SEQ_PRIVATE 1
 #define SEQ_ZERO    2
 
@@ -246,10 +244,23 @@ mu_message_t mh_file_to_message (const char *folder, const char *file_name);
 mu_message_t mh_stream_to_message (mu_stream_t stream);
 void mh_install (char *name, int automode);
 
-const char *mh_global_profile_get (const char *name, const char *defval);
-int mh_global_profile_set (const char *name, const char *value);
-const char *mh_global_context_get (const char *name, const char *defval);
-int mh_global_context_set (const char *name, const char *value);
+mu_property_t mh_read_property_file (char *name, int ro);
+void mh_property_merge (mu_property_t dst, mu_property_t src);
+
+#define mh_global_profile_get(name, defval) \
+  mu_mhprop_get_value (mu_mh_profile, name, defval)
+#define mh_global_profile_set(name, value) \
+  mu_property_set_value (mu_mh_profile, name, value, 1))
+#define mh_global_profile_iterate(fp, data) \
+  mu_mhprop_iterate (mu_mh_profile, fp, data)
+
+#define mh_global_context_get(name, defval) \
+  mu_mhprop_get_value (mu_mh_context, name, defval)
+#define mh_global_context_set(name, value) \
+  mu_property_set_value (mu_mh_context, name, value, 1)
+#define mh_global_context_iterate(fp, data) \
+  mu_mhprop_iterate (mu_mh_context, fp, data)
+
 const char *mh_set_current_folder (const char *val);
 const char *mh_current_folder (void);
 
@@ -259,12 +270,10 @@ const char *mh_global_sequences_get (mu_mailbox_t mbox,
 void mh_global_sequences_set (mu_mailbox_t mbox,
 			      const char *name, const char *value);
 void mh_global_sequences_iterate (mu_mailbox_t mbox,
-				  mh_context_iterator fp, void *data);
+				  mu_mhprop_iterator_t fp, void *data);
 void mh_global_sequences_drop (mu_mailbox_t mbox);
 
 void mh_global_save_state (void);
-int mh_global_profile_iterate (mh_context_iterator fp, void *data);
-int mh_global_context_iterate (mh_context_iterator fp, void *data);
 
 int mh_interactive_mode_p (void);
 int mh_getyn (const char *fmt, ...) MU_PRINTFLIKE(1,2);
@@ -286,17 +295,6 @@ void mh_err_memory (int fatal);
 
 FILE *mh_audit_open (char *name, mu_mailbox_t mbox);
 void mh_audit_close (FILE *fp);
-
-mh_context_t *mh_context_create (const char *name, int copy);
-int mh_context_read (mh_context_t *ctx);
-int mh_context_write (mh_context_t *ctx);
-const char *mh_context_get_value (mh_context_t *ctx, const char *name,
-				  const char *defval);
-int mh_context_set_value (mh_context_t *ctx, const char *name,
-			  const char *value);
-int mh_context_iterate (mh_context_t *ctx, mh_context_iterator fp, void *data);
-void mh_context_destroy (mh_context_t **pctx);
-void mh_context_merge (mh_context_t *dst, mh_context_t *src);
 
 int mh_message_number (mu_message_t msg, size_t *pnum);
 

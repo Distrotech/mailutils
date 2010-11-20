@@ -272,18 +272,15 @@ static void
 read_seq_file (struct folder_info *info, const char *prefix, const char *name)
 {
   char *pname = NULL;
-  mh_context_t *ctx;
+  mu_property_t prop;
   const char *p;
   
   pname = mh_safe_make_file_name (prefix, name);
-  ctx = mh_context_create (pname, 1);
-  mh_context_read (ctx);
+  prop = mh_read_property_file (pname, 1);
   
-  p = mh_context_get_value (ctx, "cur", NULL);
-  if (p)
+  if (mu_property_sget_value (prop, "cur", &p) == 0)
     info->cur = strtoul (p, NULL, 0);
-  free (pname);
-  free (ctx);
+  mu_property_destroy (&prop);
 }
 
 static void

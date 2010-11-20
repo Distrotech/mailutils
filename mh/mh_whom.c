@@ -202,26 +202,22 @@ int
 mh_whom (const char *filename, int check)
 {
   int rc = 0;
-  mh_context_t *ctx;
 
-  mh_read_aliases ();
-  ctx = mh_context_create (filename, 1);
-  if ((rc = mh_context_read (ctx)))
+  if (access (filename, R_OK))
     {
-      if (rc == ENOENT)
-	mu_error ("%s: %s", filename, mu_strerror (rc));
-      else
-	mu_error ("%s: %s (%s)", filename, _("malformed message"),
-		  mu_strerror (rc));
+      mu_error ("%s: %s", filename, mu_strerror (rc));
       rc = -1;
     }
   else
     {
       size_t count = 0;
+      mu_property_t prop;
       
-      scan_addrs (mh_context_get_value (ctx, MU_HEADER_TO, NULL), 0);
-      scan_addrs (mh_context_get_value (ctx, MU_HEADER_CC, NULL), 0);
-      scan_addrs (mh_context_get_value (ctx, MU_HEADER_BCC, NULL), 1);
+      mh_read_aliases ();
+      prop = mh_read_property_file (xstrdup (filename), 1);
+      scan_addrs (mu_mhprop_get_value (prop, MU_HEADER_TO, NULL), 0);
+      scan_addrs (mu_mhprop_get_value (prop, MU_HEADER_CC, NULL), 0);
+      scan_addrs (mu_mhprop_get_value (prop, MU_HEADER_BCC, NULL), 1);
 
       if (local_rcp)
 	{
@@ -240,8 +236,8 @@ mh_whom (const char *filename, int check)
 	  mu_error(_("no recipients"));
 	  rc = -1;
 	}
+      mu_property_destroy (&prop);
     }
-  free (ctx);
   destroy_addrs (&network_rcp);
   destroy_addrs (&local_rcp);
   return rc;

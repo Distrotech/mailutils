@@ -283,7 +283,7 @@ struct list_elt           /* Element of the send list */
 };
 
 static mu_list_t mesg_list;
-static mh_context_t *mts_profile;
+static mu_property_t mts_profile;
 
 int
 check_file (char *name)
@@ -313,36 +313,42 @@ check_file (char *name)
 void
 read_mts_profile ()
 {
+  char *name;
   const char *p;
   char *hostname = NULL;
   int rc;
-  mh_context_t *local_profile;
+  mu_property_t local_profile;
 
-  p = mh_expand_name (MHLIBDIR, "mtstailor", 0);
-  mts_profile = mh_context_create (p, 1);
-  mh_context_read (mts_profile);
+  name = mh_expand_name (MHLIBDIR, "mtstailor", 0);
+  mts_profile = mh_read_property_file (name, 1);
 
-  p = mu_tilde_expansion ("~/.mtstailor", "/", NULL);
-  local_profile = mh_context_create (p, 1);
-  if (mh_context_read (local_profile) == 0)
-    mh_context_merge (mts_profile, local_profile);
-  mh_context_destroy (&local_profile);
+  name = mu_tilde_expansion ("~/.mtstailor", "/", NULL);
+  local_profile = mh_read_property_file (name, 1);
 
-  if ((p = mh_context_get_value (mts_profile, "localname", NULL)))
+  mh_property_merge (mts_profile, local_profile);
+  mu_property_destroy (&local_profile);
+
+  rc = mu_property_aget_value (mts_profile, "localname", &hostname);
+  if (rc == MU_ERR_NOENT)
     {
-      hostname = xstrdup (p);
-      mu_set_user_email_domain (p);
+      rc = mu_get_host_name (&hostname);
+      if (rc)
+	{
+	  mu_error (_("cannot get system host name: %s"), mu_strerror (rc));
+	  exit (1);
+	}
     }
-  else if ((rc = mu_get_host_name (&hostname)))
-    mu_error (_("cannot get system host name: %s"), mu_strerror (rc));
+  else
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_profile_aget_value", "localname", rc);
+      exit (1);
+    }
 
-  if ((p = mh_context_get_value (mts_profile, "localdomain", NULL)))
+  rc = mu_property_sget_value (mts_profile, "localdomain", &p);
+  if (rc == 0)
     {
       char *newdomain;
 
-      if (!hostname)
-	exit (1);
-      
       newdomain = xmalloc (strlen (hostname) + 1 + strlen (p) + 1);
       strcpy (newdomain, hostname);
       strcat (newdomain, ".");
@@ -355,8 +361,15 @@ read_mts_profile ()
 	  exit (1);
 	}
     }
-
-  if ((p = mh_context_get_value (mts_profile, "username", NULL)))
+  else if (rc != MU_ERR_NOENT)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_profile_sget_value",
+		       "localdomain", rc);
+      exit (1);
+    }
+  
+  rc = mu_property_sget_value (mts_profile, "username", &p);
+  if (rc == 0)
     {
       size_t len;
       const char *domain;
@@ -385,15 +398,21 @@ read_mts_profile ()
       
       free (newemail);
     }
+  else if (rc != MU_ERR_NOENT)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_profile_sget_value",
+		       "username", rc);
+      exit (1);
+    }
 }
 
 
 mu_mailer_t
 open_mailer ()
 {
-  const char *url = mh_context_get_value (mts_profile,
-					  "url",
-					  "sendmail:/usr/sbin/sendmail");
+  const char *url = mu_mhprop_get_value (mts_profile,
+					 "url",
+					 "sendmail:/usr/sbin/sendmail");
   mu_mailer_t mailer;
   int status;
     
@@ -667,8 +686,8 @@ _action_send (void *item, void *data)
 
       if (mu_header_get_value (hdr, MU_HEADER_X_MAILER, NULL, 0, &n))
 	{
-	  const char *p = mh_context_get_value (mts_profile,
-						"x-mailer", "yes");
+	  const char *p = mu_mhprop_get_value (mts_profile,
+					       "x-mailer", "yes");
 
 	  if (!strcmp (p, "yes"))
 	    mu_header_set_value (hdr, MU_HEADER_X_MAILER,
