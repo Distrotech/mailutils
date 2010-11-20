@@ -56,7 +56,7 @@ enum mu_filter_command
 enum mu_filter_result
   {
     mu_filter_ok,
-    mu_filter_falure,
+    mu_filter_failure,
     mu_filter_moreinput,
     mu_filter_moreoutput,
     mu_filter_again
@@ -109,6 +109,7 @@ extern mu_filter_record_t mu_rfc_2047_Q_filter;
 extern mu_filter_record_t mu_rfc_2047_B_filter;
 extern mu_filter_record_t mu_from_filter;
 extern mu_filter_record_t mu_inline_comment_filter;
+extern mu_filter_record_t mu_header_filter;
 
 enum mu_iconv_fallback_mode
   {

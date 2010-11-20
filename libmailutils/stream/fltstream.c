@@ -60,7 +60,7 @@ filter_stream_init (struct _mu_filter_stream *fs)
     {
       struct mu_filter_io iobuf;
       memset (&iobuf, 0, sizeof (iobuf));
-      if (fs->xcode (fs->xdata, mu_filter_init, &iobuf) == mu_filter_falure)
+      if (fs->xcode (fs->xdata, mu_filter_init, &iobuf) == mu_filter_failure)
 	return iobuf.errcode;
     }
   return 0;
@@ -182,7 +182,7 @@ filter_read (mu_stream_t stream, char *buf, size_t size, size_t *pret)
 		}
 	      break;
 	  
-	    case mu_filter_falure:
+	    case mu_filter_failure:
 	      return iobuf.errcode;
 	      
 	    case mu_filter_moreinput:
@@ -288,7 +288,7 @@ filter_write_internal (mu_stream_t stream, enum mu_filter_command cmd,
 	    }
 	  break;
 	  
-	case mu_filter_falure:
+	case mu_filter_failure:
 	  return iobuf.errcode;
 	  
 	case mu_filter_moreinput:

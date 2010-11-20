@@ -82,7 +82,7 @@ _gsasl_encoder (void *xdata,
       if (status)
 	{
 	  flt->gsasl_err = status;
-	  return mu_filter_falure;
+	  return mu_filter_failure;
 	}
     }
     
@@ -141,7 +141,7 @@ _gsasl_decoder (void *xdata,
 	  
 	default:
 	  flt->gsasl_err = status;
-	  return mu_filter_falure;
+	  return mu_filter_failure;
 	}
     }
 

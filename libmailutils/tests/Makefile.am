@@ -68,6 +68,8 @@ TESTSUITE_AT = \
  decode2047.at\
  encode2047.at\
  fromflt.at\
+ hdrflt.at\
+ inline-comment.at\
  list.at\
  mailcap.at\
  prop.at\

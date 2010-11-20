@@ -1,0 +1,113 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2010 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# GNU Mailutils is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+
+dnl -------------------------------------------------------------------
+dnl INLINECOM(NAME, [KW = `'], [OPTS = `'], [TEXT], [OUTPUT = `'])
+dnl -------------------------------------------------------------------
+m4_pushdef([INLINECOM],[
+AT_SETUP([inline-comment: $1])
+AT_KEYWORDS([filter inline-comment icmt $2])
+sed 's/\$.*//' > input <<EOT
+$4
+EOT
+sed 's/\$.*//' > expout <<EOT
+$5
+EOT
+
+AT_CHECK([fltst inline-comment decode read $3 < input],
+[0],
+[expout])
+AT_CHECK([fltst inline-comment decode write $3 < input],
+[0],
+[expout])
+AT_CLEANUP
+])
+
+dnl -------------------------------------------------------------------
+
+INLINECOM([default], [icmt00], [],
+[; comment 1
+text 1
+; comment 2
+text 2
+
+text 3
+; comment 3
+],
+[text 1
+text 2
+
+text 3
+])
+
+INLINECOM([change comment starter], [icmt02], [-- %],
+[% comment 1
+text 1
+% comment 2
+text 2
+
+text 3
+% comment 3
+],
+[text 1
+text 2
+
+text 3
+])
+
+INLINECOM([remove empty lines],[icmt03],[-- -r],
+[; comment 1
+text 1
+; comment 2
+; comment 3
+text 2
+
+	text 3
+
+	$
+text 4
+     text 5
+],
+[text 1
+text 2
+	text 3
+text 4
+     text 5[]dnl
+])	
+
+INLINECOM([remove empty lines/squeeze whitespace],[icmt04],[-- -r -s],
+[; comment 1
+text 1
+; comment 2
+; comment 3
+text 2
+
+	text 3
+
+	$
+text 4
+     text 5
+],
+[text 1
+text 2
+ text 3
+text 4
+ text 5[]dnl
+])	
+
+
+m4_popdef([INLINECOM])
+# End of inline-comment.at

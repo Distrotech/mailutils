@@ -66,4 +66,6 @@ m4_include([encode2047.at])
 m4_include([fromflt.at])
 m4_include([wicket.at])
 m4_include([prop.at])
+m4_include([inline-comment.at])
+m4_include([hdrflt.at])
 

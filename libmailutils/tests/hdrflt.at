@@ -1,0 +1,42 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2010 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# GNU Mailutils is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+
+AT_SETUP([header filter])
+AT_KEYWORDS([header-filter hdrflt])
+
+AT_DATA([input],
+[From: gray@gnu.org
+To: root@example.com
+Subject: test
+
+Mon beau pays par l'hiver soumis
+Quand reverrons-nous l'hirondelle
+Noire et blanche, noire et blanche
+Quand reverrons-nous l'hirondelle
+Blanche au ventre et noire aux ailes
+])
+
+AT_DATA([expout],[dnl
+From: gray@gnu.org
+To: root@example.com
+Subject: test
+])
+
+
+AT_CHECK([fltst header decode read < input],[0],[expout])
+AT_CHECK([fltst header decode write < input],[0],[expout])
+
+AT_CLEANUP

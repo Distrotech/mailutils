@@ -100,7 +100,7 @@ _mh_prop_read_stream (mu_header_t *phdr, mu_stream_t stream)
 {
   int rc;
   mu_stream_t flt;
-  const char *argv[3];
+  const char *argv[4];
   mu_off_t size;
   size_t total;
   char *blurb;
@@ -111,7 +111,8 @@ _mh_prop_read_stream (mu_header_t *phdr, mu_stream_t stream)
   
   argv[0] = "INLINE-COMMENT";
   argv[1] = "#";
-  argv[2] = NULL;
+  argv[2] = "-r";
+  argv[3] = NULL;
   rc = mu_filter_create_args (&flt, stream, argv[0], 2, argv,
 			      MU_FILTER_DECODE, MU_STREAM_READ);
   if (rc)

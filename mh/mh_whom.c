@@ -197,7 +197,65 @@ _print_local_recipient (void *item, void *data)
   (*count)++;
   return 0;
 }
-		  
+
+static mu_header_t
+read_header (mu_stream_t stream)
+{
+  int rc;
+  mu_stream_t flt;
+  mu_off_t size;
+  size_t total;
+  char *blurb;
+  mu_header_t hdr;
+  
+  rc = mu_stream_size (stream, &size);
+  if (rc)
+    {
+      mu_error (_("cannot get stream size: %s"), mu_strerror (rc));
+      exit (1);
+    }
+  
+  rc = mu_filter_create (&flt, stream, "HEADER",
+			 MU_FILTER_DECODE, MU_STREAM_READ);
+  if (rc)
+    {
+      mu_error (_("cannot open filter stream: %s"), mu_strerror (rc));
+      exit (1);
+    }
+
+  blurb = xmalloc (size + 1);
+
+  total = 0;
+  while (1)
+    {
+      size_t n;
+      
+      rc = mu_stream_read (flt, blurb + total, size - total, &n);
+      if (rc)
+	break;
+      if (n == 0)
+	break;
+      total += n;
+    }
+
+  mu_stream_destroy (&flt);
+  if (rc)
+    {
+      free (blurb);
+      mu_error (_("read error: %s"), mu_strerror (rc));
+      exit (1);
+    }
+
+  rc = mu_header_create (&hdr, blurb, total);
+  free (blurb);
+  if (rc)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_header_create", NULL, rc);
+      exit (1);
+    }
+  return hdr;
+}
+
 int
 mh_whom (const char *filename, int check)
 {
@@ -205,19 +263,35 @@ mh_whom (const char *filename, int check)
 
   if (access (filename, R_OK))
     {
-      mu_error ("%s: %s", filename, mu_strerror (rc));
+      mu_error ("%s: %s", filename, mu_strerror (errno));
       rc = -1;
     }
   else
     {
       size_t count = 0;
-      mu_property_t prop;
-      
+      mu_header_t hdr;
+      mu_stream_t str;
+      int rc;
+      const char *val;
+
+      rc = mu_file_stream_create (&str, filename, MU_STREAM_READ);
+      if (rc)
+	{
+	  mu_diag_funcall (MU_DIAG_ERROR, "mu_file_stream_create",
+			   filename, rc);
+	  exit (1);
+	}
+      hdr = read_header (str);
+      mu_stream_unref (str);
+
       mh_read_aliases ();
-      prop = mh_read_property_file (xstrdup (filename), 1);
-      scan_addrs (mu_mhprop_get_value (prop, MU_HEADER_TO, NULL), 0);
-      scan_addrs (mu_mhprop_get_value (prop, MU_HEADER_CC, NULL), 0);
-      scan_addrs (mu_mhprop_get_value (prop, MU_HEADER_BCC, NULL), 1);
+
+      if (mu_header_sget_value (hdr, MU_HEADER_TO, &val) == 0)
+	scan_addrs (val, 0);
+      if (mu_header_sget_value (hdr, MU_HEADER_CC, &val) == 0)
+	scan_addrs (val, 0);
+      if (mu_header_sget_value (hdr, MU_HEADER_BCC, &val) == 0)
+	scan_addrs (val, 1);
 
       if (local_rcp)
 	{
@@ -236,7 +310,7 @@ mh_whom (const char *filename, int check)
 	  mu_error(_("no recipients"));
 	  rc = -1;
 	}
-      mu_property_destroy (&prop);
+      mu_header_destroy (&hdr);
     }
   destroy_addrs (&network_rcp);
   destroy_addrs (&local_rcp);

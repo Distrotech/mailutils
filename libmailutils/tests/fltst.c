@@ -99,7 +99,7 @@ usage (const char *diag)
     fp = stdout;
 
   fprintf (fp, "%s",
-	   "usage: fltst FILTER {encode|decode} {read|write} [shift=N] [linelen=N] [verbose] [printable] [nl]\n");
+	   "usage: fltst FILTER {encode|decode} {read|write} [shift=N] [linelen=N] [verbose] [printable] [nl] [-- args]\n");
   exit (diag ? 1 : 0);
 }
 
@@ -152,9 +152,17 @@ main (int argc, char * argv [])
 	printable++;
       else if (strcmp (argv[i], "nl") == 0)
 	newline_option++;
+      else if (strcmp (argv[i], "--") == 0)
+	{
+	  argv[i] = fltname;
+	  break;
+	}
       else
 	usage ("wrong option");
     }
+
+  argc -= i;
+  argv += i;
   
   MU_ASSERT (mu_stdio_stream_create (&in, MU_STDIN_FD, 0));
   MU_ASSERT (mu_stdio_stream_create (&out, MU_STDOUT_FD, 0));
@@ -164,17 +172,21 @@ main (int argc, char * argv [])
   
   if (flags == MU_STREAM_READ)
     {
-      MU_ASSERT (mu_filter_create (&flt, in, fltname, mode,
-				   MU_STREAM_READ|MU_STREAM_SEEK|
-				   MU_STREAM_AUTOCLOSE));
+      MU_ASSERT (mu_filter_create_args (&flt, in, fltname,
+					argc, (const char **)argv,
+					mode,
+					MU_STREAM_READ|MU_STREAM_SEEK|
+					MU_STREAM_AUTOCLOSE));
       if (shift)
 	MU_ASSERT (mu_stream_seek (flt, shift, MU_SEEK_SET, NULL));
       c_copy (out, flt);
     }
   else
     {
-      MU_ASSERT (mu_filter_create (&flt, out, fltname, mode,
-				   MU_STREAM_WRITE));
+      MU_ASSERT (mu_filter_create_args (&flt, out, fltname,
+					argc, (const char **)argv,
+					mode,
+					MU_STREAM_WRITE));
       if (shift)
 	MU_ASSERT (mu_stream_seek (in, shift, MU_SEEK_SET, NULL));
       c_copy (flt, in);

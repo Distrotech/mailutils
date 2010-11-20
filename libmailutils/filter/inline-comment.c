@@ -36,22 +36,65 @@
 #include <string.h>
 #include <mailutils/errno.h>
 #include <mailutils/filter.h>
+#include <mailutils/cctype.h>
 
 enum ilcmt_state
   {
     ilcmt_initial,
     ilcmt_newline,
     ilcmt_copy,
-    ilcmt_comment
+    ilcmt_comment,
+    ilcmt_ws,
+    ilcmt_rollback
   };
+
+#define ILCMT_REMOVE_EMPTY_LINES 0x01
+#define ILCMT_SQUEEZE_WS         0x02
 
 struct ilcmt_data
 {
   enum ilcmt_state state;
   int cstart;
+  int flags;
+  char *buf;
+  size_t size;
+  size_t level;
+  size_t replay;
 };
 
+enum ilcmt_action
+  {
+    action_echo,
+    action_noecho,
+    action_error
+  };
+
+#define ILCMT_BUF_INIT 80
+#define ILCMT_BUF_INCR 16
+
 static int
+ilcmt_save (struct ilcmt_data *pd, int c)
+{
+  if (pd->level == pd->size)
+    {
+      size_t nsz;
+      char *np;
+      
+      if (pd->size == 0)
+	nsz = ILCMT_BUF_INIT;
+      else
+	nsz = pd->size + ILCMT_BUF_INCR;
+      np = realloc (pd->buf, nsz);
+      if (!np)
+	return 1;
+      pd->buf = np;
+      pd->size = nsz;
+    }
+  pd->buf[pd->level++] = c;
+  return 0;
+}
+
+static enum ilcmt_action
 new_ilcmt_state (struct ilcmt_data *pd, int c)
 {
   switch (pd->state)
@@ -61,11 +104,47 @@ new_ilcmt_state (struct ilcmt_data *pd, int c)
       if (c == pd->cstart)
 	{
 	  pd->state = ilcmt_comment;
-	  return 0;
+	  return action_noecho;
+	}
+      else if (c == '\n')
+	{
+	  if (pd->flags & ILCMT_REMOVE_EMPTY_LINES)
+	    return action_noecho;
+	}
+      else if (mu_isspace (c))
+	{
+	  if (pd->flags & ILCMT_REMOVE_EMPTY_LINES)
+	    {
+	      pd->state = ilcmt_ws;
+	      pd->level = 0;
+	      if (!(pd->flags & ILCMT_SQUEEZE_WS))
+		{
+		  if (ilcmt_save (pd, c))
+		    return action_error;
+		}
+	      return action_noecho;
+	    }
+	}
+      pd->state = ilcmt_copy;
+      break;
+
+    case ilcmt_ws:
+      if (c == '\n')
+	pd->state = ilcmt_newline;
+      else if (mu_isspace (c))
+	{
+	  if (!(pd->flags & ILCMT_SQUEEZE_WS))
+	    {
+	      if (ilcmt_save (pd, c))
+		return action_error;
+	    }
 	}
       else
-	pd->state = ilcmt_copy;
-      break;
+	{
+	  pd->replay = 0;
+	  pd->state = ilcmt_rollback;
+	}
+      return action_noecho;
       
     case ilcmt_copy:
       if (c == '\n')
@@ -75,9 +154,13 @@ new_ilcmt_state (struct ilcmt_data *pd, int c)
     case ilcmt_comment:
       if (c == '\n')
 	pd->state = ilcmt_newline;
-      return 0;
+      return action_noecho;
+
+    default:
+      /* should not happen */
+      break;
     }
-  return 1;
+  return action_echo;
 }
 
 static enum mu_filter_result
@@ -109,11 +192,50 @@ _ilcmt_decoder (void *xd, enum mu_filter_command cmd,
   optr = iobuf->output;
   osize = iobuf->osize;
 
-  for (i = j = 0; i < isize && j < osize; i++)
+  i = j = 0;
+  if (pd->state == ilcmt_rollback)
+    {
+      if (pd->flags & ILCMT_SQUEEZE_WS)
+	{
+	  if (j == osize)
+	    {
+	      iobuf->osize = 1;
+	      return mu_filter_moreoutput;
+	    }
+	  optr[j++] = ' ';
+	  pd->state = ilcmt_copy;
+	}
+      else
+	while (j < osize)
+	  {
+	    if (pd->replay == pd->level)
+	      {
+		pd->state = ilcmt_copy;
+		break;
+	      }
+	    optr[j++] = pd->buf[pd->replay++];
+	  }
+      
+      if (pd->state == ilcmt_copy)
+	{
+	  /* Clear the buffer state. */
+	  pd->level = pd->replay = 0;
+	}
+    }
+    
+  for (; i < isize && j < osize; i++)
     {
       unsigned char c = *iptr++;
-      if (new_ilcmt_state (pd, c))
+      enum ilcmt_action action = new_ilcmt_state (pd, c);
+      if (action == action_echo)
 	optr[j++] = c;
+      else if (action == action_noecho)
+	{
+	  if (pd->state == ilcmt_rollback)
+	    break;
+	}
+      else
+	return mu_filter_failure;
     }
 
   iobuf->isize = i;
@@ -125,14 +247,39 @@ static int
 alloc_state (void **pret, int mode MU_ARG_UNUSED, int argc, const char **argv)
 {
   struct ilcmt_data *pd = malloc (sizeof (*pd));
+  int i;
   
   if (!pd)
     return ENOMEM;
 
-  if (argc == 2)
-    pd->cstart = argv[1][0];
-  else
-    pd->cstart = ';';
+  pd->cstart = ';';
+  pd->flags = 0;
+  pd->buf = NULL;
+  pd->size = pd->level = pd->replay = 0;
+
+  for (i = 1; i < argc; i++)
+    {
+      if (argv[i][1] == 0)
+	pd->cstart = argv[i][0];
+      else if (argv[i][0] == '-')
+	{
+	  switch (argv[i][1])
+	    {
+	    case 'r':
+	      pd->flags |= ILCMT_REMOVE_EMPTY_LINES;
+	      break;
+
+	    case 's':
+	      pd->flags |= ILCMT_SQUEEZE_WS;
+	      break;
+
+	    default:
+	      free (pd);
+	      return MU_ERR_PARSE;
+	    }
+	}
+    }
+
   *pret = pd;
   
   return 0;
