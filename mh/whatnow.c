@@ -50,19 +50,15 @@ struct mh_option mh_option[] = {
 struct mh_whatnow_env wh_env = { 0 };
 static int initial_edit = 1;
 static char *draftmessage = "cur";
+static const char *draftfolder = NULL;
 
 static error_t
 opt_handler (int key, char *arg, struct argp_state *state)
 {
   switch (key)
     {
-    case ARGP_KEY_INIT:
-      wh_env.draftfolder = mh_global_profile_get ("Draft-Folder",
-						  mu_folder_directory ());
-      break;
-      
     case ARG_DRAFTFOLDER:
-      wh_env.draftfolder = arg;
+      draftfolder = arg;
       break;
       
     case ARG_EDITOR:
@@ -70,7 +66,7 @@ opt_handler (int key, char *arg, struct argp_state *state)
       break;
       
     case ARG_NODRAFTFOLDER:
-      wh_env.draftfolder = NULL;
+      draftfolder = NULL;
       break;
 
     case ARG_NOEDIT:
@@ -99,22 +95,22 @@ main (int argc, char **argv)
   MU_APP_INIT_NLS ();
 
   mh_argp_init ();
+  mh_whatnow_env_from_environ (&wh_env);
   mh_argp_parse (&argc, &argv, 0, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, &index);
   argc -= index;
   argv += index;
   if (argc)
     wh_env.draftfile = argv[0];
-  else if (wh_env.draftfolder)
+  else if (draftfolder)
     {
-      if (mh_draft_message (wh_env.draftfolder, draftmessage,
-			    &wh_env.file))
+      if (mh_draft_message (draftfolder, draftmessage, &wh_env.file))
 	return 1;
     }
   else
-    wh_env.draftfile = mh_expand_name (wh_env.draftfolder, "draft", 0);
+    wh_env.draftfile = mh_expand_name (draftfolder, "draft", 0);
   wh_env.draftfile = wh_env.file;
-  wh_env.msg = getenv ("mhaltmsg");
+
   return mh_whatnow (&wh_env, initial_edit);
 }
   

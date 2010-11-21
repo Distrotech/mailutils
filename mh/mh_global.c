@@ -45,7 +45,7 @@ mh_read_property_file (char *name, int ro)
 static int
 prop_merger (const char *field, const char *value, void *data)
 {
-  mu_property_t dst;
+  mu_property_t dst = data;
   return mu_property_set_value (dst, field, value, 1);
 }
 

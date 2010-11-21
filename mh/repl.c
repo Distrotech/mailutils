@@ -61,9 +61,9 @@ static struct argp_option options[] = {
    N_("query for addresses to place in To: and Cc: lists")},
   {"width", ARG_WIDTH, N_("NUMBER"), 0, N_("set output width")},
   {"whatnowproc", ARG_WHATNOWPROC, N_("PROG"), 0,
-   N_("* set the replacement for whatnow program")},
+   N_("set the replacement for whatnow program")},
   {"nowhatnowproc", ARG_NOWHATNOWPROC, NULL, 0,
-   N_("* ignore whatnowproc variable; use standard `whatnow' shell instead")},
+   N_("ignore whatnowproc variable; use standard `whatnow' shell instead")},
   {"use", ARG_USE, N_("BOOL"), OPTION_ARG_OPTIONAL, N_("use draft file preserved after the last session") },
   { 0 }
 };
@@ -110,6 +110,7 @@ static int width = 80;
 
 struct mh_whatnow_env wh_env = { 0 };
 static int initial_edit = 1;
+static const char *whatnowproc;
 static mh_msgset_t msgset;
 static mu_mailbox_t mbox;
 static int build_only = 0; /* --build flag */
@@ -118,6 +119,7 @@ static int use_draft = 0;  /* --use flag */
 static char *mhl_filter = NULL; /* --filter flag */
 static int annotate;       /* --annotate flag */
 static char *draftmessage = "new";
+static const char *draftfolder = NULL;
 static struct obstack fcc_stack;
 static int has_fcc;
 
@@ -141,8 +143,9 @@ opt_handler (int key, char *arg, struct argp_state *state)
   switch (key)
     {
     case ARGP_KEY_INIT:
-      wh_env.draftfolder = mh_global_profile_get ("Draft-Folder",
-						  mu_folder_directory ());
+      draftfolder = mh_global_profile_get ("Draft-Folder",
+					   mu_folder_directory ());
+      whatnowproc = mh_global_profile_get ("whatnowproc", NULL);
       break;
       
     case ARG_ANNOTATE:
@@ -162,7 +165,7 @@ opt_handler (int key, char *arg, struct argp_state *state)
       break;
 	
     case ARG_DRAFTFOLDER:
-      wh_env.draftfolder = arg;
+      draftfolder = arg;
       break;
       
     case ARG_EDITOR:
@@ -214,7 +217,7 @@ opt_handler (int key, char *arg, struct argp_state *state)
       break;
 
     case ARG_NODRAFTFOLDER:
-      wh_env.draftfolder = NULL;
+      draftfolder = NULL;
       break;
 
     case ARG_NOEDIT:
@@ -255,8 +258,11 @@ opt_handler (int key, char *arg, struct argp_state *state)
       break;
       
     case ARG_WHATNOWPROC:
+      whatnowproc = arg;
+      break;
+
     case ARG_NOWHATNOWPROC:
-      mh_opt_notimpl ("-[no]whatnowproc");
+      whatnowproc = NULL;
       break;
 
     case ARGP_KEY_FINI:
@@ -412,14 +418,14 @@ main (int argc, char **argv)
     }
   
   if (build_only)
-    wh_env.file = mh_expand_name (wh_env.draftfolder, "reply", 0);
-  else if (wh_env.draftfolder)
+    wh_env.file = mh_expand_name (draftfolder, "reply", 0);
+  else if (draftfolder)
     {
-      if (mh_draft_message (wh_env.draftfolder, draftmessage, &wh_env.file))
+      if (mh_draft_message (draftfolder, draftmessage, &wh_env.file))
 	return 1;
     }
   else
-    wh_env.file = mh_expand_name (wh_env.draftfolder, "draft", 0);
+    wh_env.file = mh_expand_name (draftfolder, "draft", 0);
   wh_env.draftfile = wh_env.file;
 
   make_draft (mbox, DISP_REPLACE, &wh_env);
@@ -428,7 +434,7 @@ main (int argc, char **argv)
   if (build_only)
     return 0;
 
-  rc = mh_whatnow (&wh_env, initial_edit);
+  rc = mh_whatnowproc (&wh_env, initial_edit, whatnowproc);
   
   mu_mailbox_sync (mbox);
   mu_mailbox_close (mbox);

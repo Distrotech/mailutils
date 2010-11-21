@@ -17,6 +17,14 @@
 
 #include <mh.h>
 
+#if defined (HAVE_SYSCONF) && defined (_SC_OPEN_MAX)
+# define getmaxfd() sysconf (_SC_OPEN_MAX)
+#elif defined (HAVE_GETDTABLESIZE)
+# define getmaxfd() getdtablesize ()
+#else
+# define getmaxfd() 64
+#endif
+
 typedef int (*handler_fp) (struct mh_whatnow_env *wh,
 			   int argc, char **argv,
 			   int *status);
@@ -342,10 +350,11 @@ _whatnow (struct mh_whatnow_env *wh, struct action_tab *tab)
       
       printf ("%s ", wh->prompt);
       fflush (stdout);
-      status = mu_stream_getline (in, &line, &size, NULL);
+      rc = mu_stream_getline (in, &line, &size, NULL);
       if (rc)
 	{
 	  mu_error (_("cannot read input stream: %s"), mu_strerror (rc));
+	  status = 1;
 	  break;
 	}
 
@@ -355,6 +364,7 @@ _whatnow (struct mh_whatnow_env *wh, struct action_tab *tab)
 	{
 	  mu_error (_("cannot split line `%s': %s"), line,
 		    mu_wordsplit_strerror (&ws));
+	  status = 1;
 	  break;
 	}
       wsflags |= MU_WRDSF_REUSE;
@@ -554,8 +564,8 @@ static struct action_tab whatnow_tab[] = {
   { NULL }
 };
 
-int
-mh_whatnow (struct mh_whatnow_env *wh, int initial_edit)
+static void
+set_default_editor (struct mh_whatnow_env *wh)
 {
   if (!wh->editor)
     {
@@ -565,6 +575,12 @@ mh_whatnow (struct mh_whatnow_env *wh, int initial_edit)
 					    p : (p = (getenv ("EDITOR"))) ?
 					          p : "prompter");	  
     }
+}
+
+int
+mh_whatnow (struct mh_whatnow_env *wh, int initial_edit)
+{
+  set_default_editor (wh);
   
   if (initial_edit)
     mh_spawnp (wh->editor, wh->file);
@@ -573,6 +589,62 @@ mh_whatnow (struct mh_whatnow_env *wh, int initial_edit)
     wh->prompt = (char*) _("What now?");
   
   return _whatnow (wh, whatnow_tab);
+}
+
+int
+mh_whatnowproc (struct mh_whatnow_env *wh, int initial_edit, const char *prog)
+{
+  int rc;
+  pid_t pid;
+  
+  if (!prog)
+    return mh_whatnow (wh, initial_edit);
+
+  pid = fork ();
+  if (pid == -1)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "fork", NULL, errno);
+      return 1;
+    }
+  
+  if (pid == 0)
+    {
+      struct mu_wordsplit ws;
+      int i;
+      
+      if (mu_wordsplit (prog, &ws,
+			MU_WRDSF_DEFFLAGS & ~MU_WRDSF_CESCAPES))
+	{
+	  mu_error (_("cannot parse command line (%s): %s"), prog,
+		    mu_wordsplit_strerror (&ws));
+	  _exit (127);
+	}
+      
+      set_default_editor (wh);
+      mh_whatnow_env_to_environ (wh);
+      for (i = getmaxfd (); i > 2; i--)
+	close (i);
+      execvp (ws.ws_wordv[0], ws.ws_wordv);
+      mu_diag_funcall (MU_DIAG_ERROR, "execvp", prog, errno);
+      _exit (127);
+    }
+
+  /* Master */
+  rc = 0;
+  while (1)
+    {
+      int status;
+      
+      if (waitpid (pid, &status, 0) == (pid_t)-1)
+	{
+	  if (errno == EINTR)
+	    continue;
+	  mu_diag_funcall (MU_DIAG_ERROR, "waitpid", prog, errno);
+	  rc = 1;
+	}
+      break;
+    }
+  return rc;
 }
 
 /* Disposition shell */

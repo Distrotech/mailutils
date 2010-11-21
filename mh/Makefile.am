@@ -78,7 +78,8 @@ libmh_a_SOURCES= \
  mh_sequence.c\
  mh_stream.c\
  mh_whatnow.c\
- mh_whom.c
+ mh_whom.c\
+ whatnowenv.c
 noinst_HEADERS = mh.h mh_alias.h mh_format.h mh_getopt.h
 
 LISPSRC = mailutils-mh.el

@@ -60,9 +60,9 @@ static struct argp_option options[] = {
   {"nomime",        ARG_NOMIME,        NULL, OPTION_HIDDEN, "" },
   {"width", ARG_WIDTH, N_("NUMBER"), 0, N_("Set output width")},
   {"whatnowproc",   ARG_WHATNOWPROC,   N_("PROG"), 0,
-   N_("* set the replacement for whatnow program")},
+   N_("set the replacement for whatnow program")},
   {"nowhatnowproc", ARG_NOWHATNOWPROC, NULL, 0,
-   N_("* ignore whatnowproc variable, use standard `whatnow' shell instead")},
+   N_("ignore whatnowproc variable, use standard `whatnow' shell instead")},
   {"use",           ARG_USE,           N_("BOOL"), OPTION_ARG_OPTIONAL,
    N_("use draft file preserved after the last session") },
   {"nouse",         ARG_NOUSE,         N_("BOOL"), OPTION_HIDDEN, "" },
@@ -98,6 +98,7 @@ enum encap_type {
 static char *formfile;
 struct mh_whatnow_env wh_env = { 0 };
 static int initial_edit = 1;
+static const char *whatnowproc;
 static char *mhl_filter = NULL; /* --filter flag */
 static int build_only = 0;      /* --build flag */
 static int annotate = 0;        /* --annotate flag */
@@ -106,6 +107,7 @@ static enum encap_type encap = encap_clear; /* controlled by --format, --form
 static int use_draft = 0;       /* --use flag */
 static int width = 80;          /* --width flag */
 static char *draftmessage = "new";
+static const char *draftfolder = NULL;
 
 static mh_msgset_t msgset;
 static mu_mailbox_t mbox;
@@ -116,8 +118,9 @@ opt_handler (int key, char *arg, struct argp_state *state)
   switch (key)
     {
     case ARGP_KEY_INIT:
-      wh_env.draftfolder = mh_global_profile_get ("Draft-Folder",
-                                                   mu_folder_directory ());
+      draftfolder = mh_global_profile_get ("Draft-Folder",
+					   mu_folder_directory ());
+      whatnowproc = mh_global_profile_get ("whatnowproc", NULL);
       break;
 
     case ARG_ANNOTATE:
@@ -129,11 +132,11 @@ opt_handler (int key, char *arg, struct argp_state *state)
       break;
 
     case ARG_DRAFTFOLDER:
-      wh_env.draftfolder = arg;
+      draftfolder = arg;
       break;
 
     case ARG_NODRAFTFOLDER:
-      wh_env.draftfolder = NULL;
+      draftfolder = NULL;
       break;
       
     case ARG_DRAFTMESSAGE:
@@ -202,10 +205,13 @@ opt_handler (int key, char *arg, struct argp_state *state)
       break;
 
     case ARG_WHATNOWPROC:
-    case ARG_NOWHATNOWPROC:
-      mh_opt_notimpl ("-[no]whatnowproc");
+      whatnowproc = arg;
       break;
- 
+
+    case ARG_NOWHATNOWPROC:
+      whatnowproc = NULL;
+      break;
+
     default:
       return ARGP_ERR_UNKNOWN;
     }
@@ -428,7 +434,7 @@ main (int argc, char **argv)
   mbox = mh_open_folder (mh_current_folder (), 0);
   mh_msgset_parse (mbox, &msgset, argc, argv, "cur");
   
-  if (build_only || !wh_env.draftfolder)
+  if (build_only || !draftfolder)
     wh_env.file = mh_expand_name (NULL, "draft", 0);
   else 
     {
@@ -460,7 +466,7 @@ main (int argc, char **argv)
       return 0;
     }
   
-  rc = mh_whatnow (&wh_env, initial_edit);
+  rc = mh_whatnowproc (&wh_env, initial_edit, whatnowproc);
 
   mu_mailbox_sync (mbox);
   mu_mailbox_close (mbox);

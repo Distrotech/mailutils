@@ -982,10 +982,14 @@ mh_draft_message (const char *name, const char *msgspec, char **pname)
 
   if (strcmp (msgspec, "new") == 0)
     {
+      mu_property_t prop;
+      
       rc = mu_mailbox_uidnext (mbox, &uid);
       if (rc)
 	mu_error (_("cannot obtain sequence number for the new message: %s"),
 		  mu_strerror (rc));
+      mu_mailbox_get_property (mbox, &prop);
+      mu_property_set_value (prop, "cur", mu_umaxtostr (0, uid), 1);
     }
   else
     {

@@ -133,6 +133,11 @@ opt_handler (int key, char *arg, struct argp_state *state)
   
   switch (key)
     {
+    case ARGP_KEY_INIT:
+      draft_folder = mh_global_profile_get ("Draft-Folder",
+					    mu_folder_directory ());
+      break;
+      
     case ARG_ALIAS:
       mh_alias_read (arg, 1);
       break;
@@ -785,7 +790,25 @@ main (int argc, char **argv)
     {
       struct stat st;
       static char *xargv[2];
-      xargv[0] = mh_draft_name ();
+
+      if (draft_folder)
+	{
+	  mh_msgset_t msgset;
+	  mu_mailbox_t mbox;
+	  mu_url_t url;
+	  const char *path;
+	  
+	  mbox = mh_open_folder (draft_folder, 1);
+	  mh_msgset_parse (mbox, &msgset, argc, argv, "cur");
+	  mu_mailbox_get_url (mbox, &url);
+	  mu_url_sget_path (url, &path);
+	  xargv[0] = mu_make_file_name (path,
+					mu_umaxtostr (0, msgset.list[0]));
+	  mu_mailbox_destroy (&mbox);
+	  mh_msgset_free (&msgset);
+	}
+      else
+	xargv[0] = mh_draft_name ();
 
       if (stat (xargv[0], &st))
 	{

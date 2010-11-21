@@ -47,9 +47,9 @@ static struct argp_option options[] = {
   {"form",          ARG_FORM, N_("FILE"), 0,
    N_("read format from given file")},
   {"whatnowproc",   ARG_WHATNOWPROC, N_("PROG"), 0,
-   N_("* set the replacement for whatnow program")},
+   N_("set the replacement for whatnow program")},
   {"nowhatnowproc", ARG_NOWHATNOWPROC, NULL, 0,
-   N_("* ignore whatnowproc variable. Use standard `whatnow' shell instead.")},
+   N_("ignore whatnowproc variable. Use standard `whatnow' shell instead.")},
   {"use",           ARG_USE, N_("BOOL"), OPTION_ARG_OPTIONAL,
    N_("use draft file preserved after the last session") },
   {"nouse",         ARG_NOUSE, NULL, OPTION_HIDDEN, ""},
@@ -68,15 +68,18 @@ struct mh_option mh_option[] = {
   { "noedit" },
   { "whatnowproc",   MH_OPT_ARG, "program" },
   { "nowhatnowproc" },
+  { "use" },
   { NULL }
 };
 
 struct mh_whatnow_env wh_env = { 0 };
-const char *formfile;
 static int initial_edit = 1;
+static const char *whatnowproc;
+const char *formfile;
 static int build_only = 0; /* --build flag */
 static int use_draft = 0;  /* --use flag */
 static char *draftmessage = "new";
+static const char *draftfolder = NULL;
 
 static error_t
 opt_handler (int key, char *arg, struct argp_state *state)
@@ -84,8 +87,9 @@ opt_handler (int key, char *arg, struct argp_state *state)
   switch (key)
     {
     case ARGP_KEY_INIT:
-      wh_env.draftfolder = mh_global_profile_get ("Draft-Folder",
-						  mu_folder_directory ());
+      draftfolder = mh_global_profile_get ("Draft-Folder",
+					   mu_folder_directory ());
+      whatnowproc = mh_global_profile_get ("whatnowproc", NULL);
       break;
 
     case ARG_BUILD:
@@ -93,7 +97,7 @@ opt_handler (int key, char *arg, struct argp_state *state)
       break;
       
     case ARG_DRAFTFOLDER:
-      wh_env.draftfolder = arg;
+      draftfolder = arg;
       break;
       
     case ARG_EDITOR:
@@ -126,7 +130,7 @@ opt_handler (int key, char *arg, struct argp_state *state)
       break;
 	
     case ARG_NODRAFTFOLDER:
-      wh_env.draftfolder = NULL;
+      draftfolder = NULL;
       break;
 
     case ARG_NOEDIT:
@@ -134,8 +138,11 @@ opt_handler (int key, char *arg, struct argp_state *state)
       break;
       
     case ARG_WHATNOWPROC:
+      whatnowproc = arg;
+      break;
+
     case ARG_NOWHATNOWPROC:
-      mh_opt_notimpl ("-[no]whatnowproc");
+      whatnowproc = NULL;
       break;
 
     default:
@@ -143,7 +150,8 @@ opt_handler (int key, char *arg, struct argp_state *state)
     }
   return 0;
 }
-  
+
+/* Copy Nth message from mailbox MBOX to FILE. */
 int
 copy_message (mu_mailbox_t mbox, size_t n, const char *file)
 {
@@ -188,16 +196,48 @@ main (int argc, char **argv)
   mh_argp_init ();
   mh_argp_parse (&argc, &argv, 0, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, &index);
-
-  if (build_only || !wh_env.draftfolder)
-    wh_env.file = mh_expand_name (NULL, "draft", 0);
-  else if (wh_env.draftfolder)
+  
+  if (wh_env.draftfile)
     {
-      if (mh_draft_message (wh_env.draftfolder, draftmessage, &wh_env.file))
-	return 1;
+      if (build_only)
+	{
+	  mu_error (_("--build and --file cannot be used together"));
+	  exit (1);
+	}
     }
-  wh_env.draftfile = wh_env.file;
-
+  else
+    {
+      if (build_only || !draftfolder)
+	wh_env.file = mh_expand_name (NULL, "draft", 0);
+      else if (draftfolder)
+	{
+	  /* Comp accepts a `file', and it will, if given
+	     `-draftfolder +folder'  treat this arguments  as `msg'. */
+	  if (index < argc)
+	    {
+	      mh_msgset_t msgset;
+	      mu_mailbox_t mbox;
+	      
+	      mbox = mh_open_folder (draftfolder, 1);
+	      mh_msgset_parse (mbox, &msgset, argc - index, argv + index,
+			       "new");
+	      mu_mailbox_destroy (&mbox);
+	      if (msgset.count != 1)
+		{
+		  mu_error (_("only one message at a time!"));
+		  return 1;
+		}
+	      draftmessage = mu_umaxtostr (0, msgset.list[0]);
+	      mh_msgset_free (&msgset);
+	      index = argc;
+	    }
+	  if (mh_draft_message (draftfolder, draftmessage,
+				&wh_env.file))
+	    return 1;
+	}
+      wh_env.draftfile = wh_env.file;
+    }
+  
   switch (check_draft_disposition (&wh_env, use_draft))
     {
     case DISP_QUIT:
@@ -211,8 +251,8 @@ main (int argc, char **argv)
   
       if (index < argc)
 	{
-	  static mh_msgset_t msgset;
-	  static mu_mailbox_t mbox;
+	  mh_msgset_t msgset;
+	  mu_mailbox_t mbox;
 	  
 	  mbox = mh_open_folder (mh_current_folder (), 0);
 	  mh_msgset_parse (mbox, &msgset, argc - index, argv + index, "cur");
@@ -222,6 +262,8 @@ main (int argc, char **argv)
 	      return 1;
 	    }
 	  copy_message (mbox, msgset.list[0], wh_env.file);
+	  mu_mailbox_destroy (&mbox);
+	  mh_msgset_free (&msgset);
 	}
       else
 	mh_comp_draft (formfile, "components", wh_env.file);
@@ -231,5 +273,5 @@ main (int argc, char **argv)
   if (build_only)
     return 0;
 
-  return mh_whatnow (&wh_env, initial_edit);
+  return mh_whatnowproc (&wh_env, initial_edit, whatnowproc);
 }

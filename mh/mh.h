@@ -218,11 +218,11 @@ struct mh_whatnow_env     /* whatnow shell environment */
   char *file;             /* The file being processed */
   char *msg;              /* File name of the original message (if any) */
   char *draftfile;        /* File to preserve the draft into */
-  const char *draftfolder;
   const char *editor;
   char *prompt;
   char *anno_field;       /* Annotate field to be used */
   mu_list_t anno_list;    /* List of messages (mu_message_t) to annotate */
+  mu_mailbox_t mbox;
 };
 
 #define DISP_QUIT 0
@@ -330,6 +330,9 @@ int mh_draft_message (const char *name, const char *msgspec, char **pname);
      
 int mh_spawnp (const char *prog, const char *file);
 int mh_whatnow (struct mh_whatnow_env *wh, int initial_edit);
+int mh_whatnowproc (struct mh_whatnow_env *wh, int initial_edit,
+		    const char *prog);
+
 int mh_disposition (const char *filename);
 int mh_usedraft (const char *filename);
 int mh_file_copy (const char *from, const char *to);
@@ -381,3 +384,5 @@ char *mh_safe_make_file_name (const char *dir, const char *file);
 void mh_mailbox_get_cur (mu_mailbox_t mbox, size_t *pcur);
 void mh_mailbox_set_cur (mu_mailbox_t mbox, size_t cur);
 
+void mh_whatnow_env_from_environ (struct mh_whatnow_env *wh);
+void mh_whatnow_env_to_environ (struct mh_whatnow_env *wh);
