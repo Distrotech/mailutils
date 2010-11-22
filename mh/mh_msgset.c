@@ -19,27 +19,6 @@
 
 #include <mh.h>
 
-int
-mh_uid_to_msgno (mu_mailbox_t mbox, size_t uid, size_t *msgno)
-{
-  size_t num = mh_get_message (mbox, uid, NULL);
-  if (num == 0)
-    return MU_ERR_NOENT;
-  *msgno = num;
-  return 0;
-}
-
-int
-mh_msgno_to_uid (mu_mailbox_t mbox, size_t msgno, size_t *uid)
-{
-  mu_message_t msg;
-  int rc = mu_mailbox_get_message (mbox, msgno, &msg);
-  if (rc)
-    return rc;
-  return mu_message_get_uid (msg, uid);
-}
-
-
 void
 mh_msgset_init (mh_msgset_t *msgset)
 {
@@ -196,75 +175,6 @@ mh_msgset_uids (mu_mailbox_t mbox, mh_msgset_t *msgset)
     }
   msgset->flags |= MH_MSGSET_UID;
 }
-
-/* Auxiliary function. Performs binary search for a message with the
-   given sequence number */
-static size_t
-mh_search_message (mu_mailbox_t mbox, size_t start, size_t stop,
-		   size_t seqno, mu_message_t *mesg)
-{
-  mu_message_t mid_msg = NULL;
-  size_t num = 0, middle;
-
-  middle = (start + stop) / 2;
-  if (mu_mailbox_get_message (mbox, middle, &mid_msg)
-      || mh_message_number (mid_msg, &num))
-    return 0;
-
-  if (num == seqno)
-    {
-      if (mesg)
-	*mesg = mid_msg;
-      return middle;
-    }
-      
-  if (start >= stop)
-    return 0;
-
-  if (num > seqno)
-    return mh_search_message (mbox, start, middle-1, seqno, mesg);
-  else /*if (num < seqno)*/
-    return mh_search_message (mbox, middle+1, stop, seqno, mesg);
-}
-
-/* Retrieve the message with the given sequence number.
-   Returns ordinal number of the message in the mailbox if found,
-   zero otherwise. The retrieved message is stored in the location
-   pointed to by mesg, unless it is NULL. */
-   
-size_t
-mh_get_message (mu_mailbox_t mbox, size_t seqno, mu_message_t *mesg)
-{
-  size_t num, count;
-  mu_message_t msg;
-
-  if (mu_mailbox_get_message (mbox, 1, &msg)
-      || mh_message_number (msg, &num))
-    return 0;
-  if (seqno < num)
-    return 0;
-  else if (seqno == num)
-    {
-      if (mesg)
-	*mesg = msg;
-      return 1;
-    }
-
-  if (mu_mailbox_messages_count (mbox, &count)
-      || mu_mailbox_get_message (mbox, count, &msg)
-      || mh_message_number (msg, &num))
-    return 0;
-  if (seqno > num)
-    return 0;
-  else if (seqno == num)
-    {
-      if (mesg)
-	*mesg = msg;
-      return count;
-    }
-
-  return mh_search_message (mbox, 1, count, seqno, mesg);
-}
 
 
 struct msgset_parser
@@ -415,7 +325,7 @@ msgset_cur (mu_mailbox_t mbox, size_t *pnum)
 {
   size_t num;
   mh_mailbox_get_cur (mbox, &num);
-  return mh_uid_to_msgno (mbox, num, pnum);
+  return mu_mailbox_translate (mbox, MU_MAILBOX_UID_TO_MSGNO, num, pnum);
 }
 
 static int
@@ -518,7 +428,8 @@ parse_term (struct msgset_parser *parser, int seq)
       if (endp != parser->curp)
 	msgset_abort (term);
       
-      if (mh_uid_to_msgno (parser->mbox, num, &parser->number))
+      if (mu_mailbox_translate (parser->mbox, MU_MAILBOX_UID_TO_MSGNO,
+				num, &parser->number))
 	{
 	  parser->validuid = 0;
 	  parser->number = num;
@@ -617,7 +528,8 @@ parse_range (struct msgset_parser *parser)
 	{
 	  size_t total, lastuid;
 	  msgset_last (parser->mbox, &total);
-	  mh_msgno_to_uid (parser->mbox, total, &lastuid);
+	  mu_mailbox_translate (parser->mbox, MU_MAILBOX_MSGNO_TO_UID,
+				total, &lastuid);
 	  if (start > lastuid)
 	    {
 	      if (!parser->sign)
@@ -647,7 +559,9 @@ parse_range (struct msgset_parser *parser)
 	  size_t total;
 
 	  msgset_last (parser->mbox, &total);
-	  mh_msgno_to_uid (parser->mbox, total, &lastuid);
+	  mu_mailbox_translate (parser->mbox, MU_MAILBOX_MSGNO_TO_UID,
+				total, &lastuid);
+
 	  if (parser->number > lastuid)
 	    parser->number = total;
 	  else if (!validuid)
@@ -659,7 +573,8 @@ parse_range (struct msgset_parser *parser)
 	    {
 	      size_t total;
 	      msgset_last (parser->mbox, &total);
-	      mh_msgno_to_uid (parser->mbox, total, &lastuid);
+	      mu_mailbox_translate (parser->mbox, MU_MAILBOX_MSGNO_TO_UID,
+				    total, &lastuid);
 	    }
 	  if (start > lastuid && !parser->validuid)
 	    emptyrange_abort (parser->argv[-1]);
@@ -719,4 +634,30 @@ mh_msgset_parse (mu_mailbox_t mbox, mh_msgset_t *msgset,
   msgset_parser_run (&parser);
 
   mh_msgset_optimize (msgset);
+}
+
+
+/* Retrieve the message with the given sequence number.
+   Returns ordinal number of the message in the mailbox if found,
+   zero otherwise. The retrieved message is stored in the location
+   pointed to by mesg, unless it is NULL. */
+   
+size_t
+mh_get_message (mu_mailbox_t mbox, size_t seqno, mu_message_t *mesg)
+{
+  int rc;
+  size_t num;
+
+  if (mu_mailbox_translate (mbox, MU_MAILBOX_UID_TO_MSGNO, seqno, &num))
+    return 0;
+  if (mesg)
+    {
+      rc = mu_mailbox_get_message (mbox, num, mesg);
+      if (rc)
+	{
+	  mu_diag_funcall (MU_DIAG_ERROR, "mu_mailbox_get_message", NULL, rc);
+	  exit (1);
+	}
+    }
+  return num;
 }

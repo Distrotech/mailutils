@@ -116,6 +116,12 @@ extern int mu_mailbox_unlock (mu_mailbox_t mbox);
 
 extern int mu_mailbox_get_iterator (mu_mailbox_t mbx,
 				    mu_iterator_t *piterator);
+
+/* ID translation */
+#define MU_MAILBOX_UID_TO_MSGNO 0
+#define MU_MAILBOX_MSGNO_TO_UID 1
+
+extern int mu_mailbox_translate (mu_mailbox_t, int, size_t, size_t *);  
   
 #ifdef __cplusplus
 }

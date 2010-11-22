@@ -161,7 +161,13 @@ copy_message (mu_mailbox_t mbox, size_t n, const char *file)
   mu_stream_t out;
   int rc;
   
-  mu_mailbox_get_message (mbox, n, &msg);
+  rc = mu_mailbox_get_message (mbox, n, &msg);
+  if (rc)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_mailbox_get_message", NULL, rc);
+      exit (1);
+    }
+  
   mu_message_get_streamref (msg, &in);
   
   if ((rc = mu_file_stream_create (&out,

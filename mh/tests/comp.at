@@ -143,6 +143,61 @@ Subject: test input
 message body
 ])
 
+MH_CHECK([comp -draftfolder],[comp05 comp-draftfolder],[
+mkdir Mail/drafts
+dir=`pwd`
+echo 'quit' | compcmd -draftfolder drafts | sed "s|$dir/*||;s|  *$||"
+cat Mail/drafts/1
+],
+[0],
+[-- Editor invocation: Mail/drafts/1
+-- Input file:
+To:
+cc:
+Subject:
+--------
+-- Input file end
+What now? draft left on "Mail/drafts/1".
+To:
+cc:
+Subject:
+--------
+Seen by mhed
+])
+
+MH_CHECK([comp +draftfolder -use],[comp06 comp-draftfolder-use],[
+mkdir Mail/drafts
+AT_DATA([Mail/drafts/1],[From: gray
+To: root
+Subject: test input
+
+message body
+])
+echo "cur: 1" > Mail/drafts/.mh_sequences
+
+dir=`pwd`
+echo 'quit' | compcmd -draftfolder drafts -use| sed "s|$dir/*||;s|  *$||"
+cat Mail/drafts/1
+],
+[0],
+[-- Editor invocation: Mail/drafts/1
+-- Input file:
+From: gray
+To: root
+Subject: test input
+
+message body
+-- Input file end
+What now? draft left on "Mail/drafts/1".
+From: gray
+To: root
+Subject: test input
+
+message body
+Seen by mhed
+])
+
+
 m4_popdef([compcmd])
 m4_popdef([MH_KEYWORDS])
 

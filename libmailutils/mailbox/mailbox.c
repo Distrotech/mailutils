@@ -829,4 +829,116 @@ mu_mailbox_get_uidls (mu_mailbox_t mbox, mu_list_t *plist)
   return status;
 }
 
+
+/* Auxiliary function. Performs binary search for a message with the
+   given UID number */
+static int
+_uid_bsearch (mu_mailbox_t mbox, size_t start, size_t stop, size_t uid,
+	      size_t *msgno)
+{
+  mu_message_t mid_msg = NULL;
+  size_t num = 0, middle;
+  int rc;
+  
+  middle = (start + stop) / 2;
+  rc = mu_mailbox_get_message (mbox, middle, &mid_msg);
+  if (rc)
+    return rc;
+  rc = mu_message_get_uid (mid_msg, &num);
+  if (rc)
+    return rc;
+
+  if (num == uid)
+    {
+      *msgno = middle;
+      return 0;
+    }
+      
+  if (start >= stop)
+    return MU_ERR_NOENT;
+
+  if (num > uid)
+    return _uid_bsearch (mbox, start, middle - 1, uid, msgno);
+  else /*if (num < seqno)*/
+    return _uid_bsearch (mbox, middle + 1, stop, uid, msgno);
+}
+
+static int
+_search_message_uid (mu_mailbox_t mbox, size_t uid, size_t *result)
+{
+  int rc;
+  size_t num, count;
+  mu_message_t msg;
+
+  rc = mu_mailbox_get_message (mbox, 1, &msg);
+  if (rc)
+    return rc;
+  rc = mu_message_get_uid (msg, &num);
+  if (rc)
+    return rc;
+  if (uid < num)
+    return MU_ERR_NOENT;
+  else if (uid == num)
+    {
+      *result = 1;
+      return 0;
+    }
+
+  rc = mu_mailbox_messages_count (mbox, &count);
+  if (rc)
+    return rc;
+  rc = mu_mailbox_get_message (mbox, count, &msg);
+  if (rc)
+    return rc;
+  rc = mu_message_get_uid (msg, &num);
+  if (rc)
+    return rc;
+
+  if (uid > num)
+    return MU_ERR_NOENT;
+  else if (uid == num)
+    {
+      *result = count;
+      return 0;
+    }
+  return _uid_bsearch (mbox, 1, count, uid, result);
+}
+
+/* Translat message UIDs to message numbers and vice versa. */
+int
+mu_mailbox_translate (mu_mailbox_t mbox, int cmd, size_t from, size_t *to)
+{
+  int rc = ENOSYS;
+  mu_message_t msg;
+  
+  if (mbox == NULL)
+    return MU_ERR_MBX_NULL;
+  if (to == NULL)
+    return EINVAL;
+  if (mbox->flags & MU_STREAM_QACCESS)
+    return MU_ERR_BADOP;
+
+  if (mbox->_translate)
+    rc = mbox->_translate (mbox, cmd, from, to);
+  if (rc == ENOSYS)
+    {
+      switch (cmd)
+	{
+	case MU_MAILBOX_UID_TO_MSGNO:
+	  rc = _search_message_uid (mbox, from, to);
+	  break;
 	  
+	case MU_MAILBOX_MSGNO_TO_UID:
+	  rc = mu_mailbox_get_message (mbox, from, &msg);
+	  if (rc)
+	    return rc;
+	  rc = mu_message_get_uid (msg, to);
+	  break;
+	  
+	default:
+	  break;
+	}
+    }
+  return rc;
+}
+

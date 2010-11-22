@@ -51,6 +51,7 @@
 #include <mailutils/debug.h>
 #include <mailutils/envelope.h>
 #include <mailutils/error.h>
+#include <mailutils/errno.h>
 #include <mailutils/header.h>
 #include <mailutils/locker.h>
 #include <mailutils/message.h>
@@ -380,6 +381,39 @@ mh_get_property (mu_mailbox_t mailbox, mu_property_t *pprop)
   return 0;
 }
 
+
+
+static int
+mh_translate (mu_mailbox_t mbox, int cmd, size_t from, size_t *to)
+{
+  struct _amd_data *amd = mbox->data;
+  struct _mh_message msg, *mp;
+  size_t n;
+
+  /* Make sure the mailbox has been scanned */ 
+  mu_mailbox_messages_count (mbox, &n);
+    
+  switch (cmd)
+    {
+    case MU_MAILBOX_UID_TO_MSGNO:
+      msg.seq_number = from;
+      if (amd_msg_lookup (amd, (struct _amd_message*) &msg, &n))
+	return MU_ERR_NOENT;
+      *to = n;
+      break;
+
+    case MU_MAILBOX_MSGNO_TO_UID:
+      mp = (struct _mh_message *) _amd_get_message (amd, from);
+      if (!mp)
+	return MU_ERR_NOENT;
+      *to = mp->seq_number;
+      break;
+
+    default:
+      return ENOSYS;
+    }
+  return 0;
+}
 
 
 
@@ -407,6 +441,7 @@ _mailbox_mh_init (mu_mailbox_t mailbox)
   amd->remove = mh_remove;
 
   mailbox->_get_property = mh_get_property;
+  mailbox->_translate = mh_translate;
   
   return 0;
 }

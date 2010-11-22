@@ -970,15 +970,14 @@ mh_draft_message (const char *name, const char *msgspec, char **pname)
   mu_url_t url;
   size_t uid;
   int rc;
-  const char *urlstr;
   mu_mailbox_t mbox;
-
+  const char *path;
+  
   mbox = mh_open_folder (name, 0);
   if (!mbox)
     return 1;
   
   mu_mailbox_get_url (mbox, &url);
-  urlstr = mu_url_to_string (url);
 
   if (strcmp (msgspec, "new") == 0)
     {
@@ -986,8 +985,11 @@ mh_draft_message (const char *name, const char *msgspec, char **pname)
       
       rc = mu_mailbox_uidnext (mbox, &uid);
       if (rc)
-	mu_error (_("cannot obtain sequence number for the new message: %s"),
-		  mu_strerror (rc));
+	{
+	  mu_error (_("cannot obtain sequence number for the new message: %s"),
+		    mu_strerror (rc));
+	  exit (1);
+	}
       mu_mailbox_get_property (mbox, &prop);
       mu_property_set_value (prop, "cur", mu_umaxtostr (0, uid), 1);
     }
@@ -1008,21 +1010,13 @@ mh_draft_message (const char *name, const char *msgspec, char **pname)
 	}
       mh_msgset_free (&msgset);
     }
-  
-  if (rc == 0)
+
+  mu_url_sget_path (url, &path);
+  rc = mu_asprintf (pname, "%s/%lu", path, (unsigned long) uid);
+  if (rc)
     {
-      const char *dir;
-      const char *msg;
-      size_t len;
-      
-      dir = urlstr + 3; /* FIXME */
-      
-      msg = mu_umaxtostr (0, uid);
-      len = strlen (dir) + 1 + strlen (msg) + 1;
-      *pname = xmalloc (len);
-      strcpy (*pname, dir);
-      strcat (*pname, "/");
-      strcat (*pname, msg);
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_asprintf", NULL, rc);
+      exit (1);
     }
   mu_mailbox_close (mbox);
   mu_mailbox_destroy (&mbox);

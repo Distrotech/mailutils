@@ -167,7 +167,7 @@ amd_msg_bsearch (struct _amd_data *amd, mu_off_t first, mu_off_t last,
 
 /* Search for message MSG in the message array of AMD.
    If found, return 0 and store index of the located entry in the
-   variable PRET. Otherwise, return 1 and place into PRET index of
+   variable PRET. Otherwise, return 1 and store in PRET the index of
    the array element that is less than MSG (in the sense of
    amd->msg_cmp)
    Index returned in PRET is 1-based, so *PRET == 0 means that MSG

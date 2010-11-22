@@ -74,6 +74,8 @@ struct _mu_mailbox
 
   int  (*_quick_get_message) (mu_mailbox_t, mu_message_qid_t, mu_message_t *);
   int  (*_get_uidls) (mu_mailbox_t, mu_list_t);
+
+  int  (*_translate) (mu_mailbox_t, int cmd, size_t, size_t *);
 };
 
 # ifdef __cplusplus
