@@ -23,6 +23,7 @@ mh_alias_lex.c
 mh_fmtgram.c
 mhl
 mhn
+mhseq
 mhparam
 mhpath
 pick

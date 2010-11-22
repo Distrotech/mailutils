@@ -80,6 +80,7 @@ static int build_only = 0; /* --build flag */
 static int use_draft = 0;  /* --use flag */
 static char *draftmessage = "new";
 static const char *draftfolder = NULL;
+static int folder_set; /* Folder is set on the command line */
 
 static error_t
 opt_handler (int key, char *arg, struct argp_state *state)
@@ -87,8 +88,7 @@ opt_handler (int key, char *arg, struct argp_state *state)
   switch (key)
     {
     case ARGP_KEY_INIT:
-      draftfolder = mh_global_profile_get ("Draft-Folder",
-					   mu_folder_directory ());
+      draftfolder = mh_global_profile_get ("Draft-Folder", NULL);
       whatnowproc = mh_global_profile_get ("whatnowproc", NULL);
       break;
 
@@ -106,6 +106,7 @@ opt_handler (int key, char *arg, struct argp_state *state)
       
     case ARG_FOLDER: 
       mh_set_current_folder (arg);
+      folder_set = 1;
       break;
 
     case ARG_FORM:
@@ -126,7 +127,7 @@ opt_handler (int key, char *arg, struct argp_state *state)
       break;
       
     case ARG_FILE:
-      wh_env.draftfile = mh_expand_name (NULL, arg, 0);
+      wh_env.file = mh_expand_name (NULL, arg, 0);
       break;
 	
     case ARG_NODRAFTFOLDER:
@@ -197,7 +198,7 @@ main (int argc, char **argv)
   mh_argp_parse (&argc, &argv, 0, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, &index);
   
-  if (wh_env.draftfile)
+  if (wh_env.file)
     {
       if (build_only)
 	{
@@ -205,68 +206,90 @@ main (int argc, char **argv)
 	  exit (1);
 	}
     }
+  else if (folder_set)
+    {
+      wh_env.file = mh_expand_name (NULL, "draft", 0);
+    }
   else
     {
       if (build_only || !draftfolder)
-	wh_env.file = mh_expand_name (NULL, "draft", 0);
+	{
+	  switch (argc - index)
+	    {
+	    case 0:
+	      wh_env.file = mh_expand_name (NULL, "draft", 0);
+	      break;
+
+	    case 1:
+	      wh_env.file = mh_expand_name (NULL, argv[index], 0);
+	      break;
+	      
+	    default:
+	      mu_error (_("only one message at a time!"));
+	      return 1;
+	    }
+	}
       else if (draftfolder)
 	{
 	  /* Comp accepts a `file', and it will, if given
 	     `-draftfolder +folder'  treat this arguments  as `msg'. */
-	  if (index < argc)
+	  if (use_draft || index < argc)
 	    {
 	      mh_msgset_t msgset;
 	      mu_mailbox_t mbox;
 	      
 	      mbox = mh_open_folder (draftfolder, 1);
-	      mh_msgset_parse (mbox, &msgset, argc - index, argv + index,
-			       "new");
+	      mh_msgset_parse (mbox, &msgset, 
+	                       argc - index, argv + index,
+			       use_draft ? "cur" : "new");
 	      mu_mailbox_destroy (&mbox);
 	      if (msgset.count != 1)
 		{
 		  mu_error (_("only one message at a time!"));
 		  return 1;
 		}
+              mh_msgset_uids (mbox, &msgset);	
 	      draftmessage = mu_umaxtostr (0, msgset.list[0]);
 	      mh_msgset_free (&msgset);
-	      index = argc;
 	    }
 	  if (mh_draft_message (draftfolder, draftmessage,
 				&wh_env.file))
 	    return 1;
 	}
-      wh_env.draftfile = wh_env.file;
     }
-  
-  switch (check_draft_disposition (&wh_env, use_draft))
-    {
-    case DISP_QUIT:
-      exit (0);
+  wh_env.draftfile = wh_env.file;
 
-    case DISP_USE:
-      break;
-	  
-    case DISP_REPLACE:
-      unlink (wh_env.draftfile);
-  
-      if (index < argc)
+  if (folder_set && index < argc)
+    {
+      mh_msgset_t msgset;
+      mu_mailbox_t mbox;
+      
+      mbox = mh_open_folder (mh_current_folder (), 0);
+      mh_msgset_parse (mbox, &msgset, argc - index, argv + index, "cur");
+      if (msgset.count != 1)
 	{
-	  mh_msgset_t msgset;
-	  mu_mailbox_t mbox;
-	  
-	  mbox = mh_open_folder (mh_current_folder (), 0);
-	  mh_msgset_parse (mbox, &msgset, argc - index, argv + index, "cur");
-	  if (msgset.count != 1)
-	    {
-	      mu_error (_("only one message at a time!"));
-	      return 1;
-	    }
-	  copy_message (mbox, msgset.list[0], wh_env.file);
-	  mu_mailbox_destroy (&mbox);
-	  mh_msgset_free (&msgset);
+	  mu_error (_("only one message at a time!"));
+	  return 1;
 	}
-      else
-	mh_comp_draft (formfile, "components", wh_env.file);
+      unlink (wh_env.file);
+      copy_message (mbox, msgset.list[0], wh_env.file);
+      mu_mailbox_destroy (&mbox);
+      mh_msgset_free (&msgset);
+    }
+  else
+    {
+      switch (check_draft_disposition (&wh_env, use_draft))
+	{
+	case DISP_QUIT:
+	  exit (0);
+
+	case DISP_USE:
+	  break;
+	  
+	case DISP_REPLACE:
+	  unlink (wh_env.draftfile);
+	  mh_comp_draft (formfile, "components", wh_env.file);
+	}
     }
   
   /* Exit immediately if --build is given */

@@ -113,7 +113,7 @@ _mh_prop_read_stream (mu_header_t *phdr, mu_stream_t stream)
   argv[1] = "#";
   argv[2] = "-r";
   argv[3] = NULL;
-  rc = mu_filter_create_args (&flt, stream, argv[0], 2, argv,
+  rc = mu_filter_create_args (&flt, stream, argv[0], 3, argv,
 			      MU_FILTER_DECODE, MU_STREAM_READ);
   if (rc)
     {

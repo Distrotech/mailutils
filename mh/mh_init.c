@@ -998,14 +998,14 @@ mh_draft_message (const char *name, const char *msgspec, char **pname)
       
       argv[0] = (char*) msgspec;
       argv[1] = NULL;
-      rc = mh_msgset_parse (mbox, &msgset, 1, argv, "cur");
-      if (rc)
-	mu_error (_("invalid message number: %s"), msgspec);
-      else if (msgset.count > 1)
+      mh_msgset_parse (mbox, &msgset, 1, argv, "cur");
+      if (msgset.count > 1)
 	mu_error (_("only one message at a time!"));
       else
-	uid = msgset.list[0];
-
+	{
+	  mh_msgset_uids (mbox, &msgset);
+	  uid = msgset.list[0];
+	}
       mh_msgset_free (&msgset);
     }
   

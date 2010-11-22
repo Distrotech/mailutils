@@ -346,18 +346,21 @@ _whatnow (struct mh_whatnow_env *wh, struct action_tab *tab)
   
   do
     {
+      size_t n;
       handler_fp fun;
       
       printf ("%s ", wh->prompt);
       fflush (stdout);
-      rc = mu_stream_getline (in, &line, &size, NULL);
+      rc = mu_stream_getline (in, &line, &size, &n);
       if (rc)
 	{
 	  mu_error (_("cannot read input stream: %s"), mu_strerror (rc));
 	  status = 1;
 	  break;
 	}
-
+      if (n == 0)
+	break;
+      
       ws.ws_comment = "#";
       rc = mu_wordsplit (line, &ws, wsflags);
       if (rc)
@@ -462,7 +465,10 @@ static int
 call_send (struct mh_whatnow_env *wh, int argc, char **argv, int *status)
 {
   if (invoke ("sendproc", MHBINDIR "/send", argc, argv, wh->file, NULL) == 0)
-    annotate (wh);
+    {
+      annotate (wh);
+      return 1;
+    }
   return 0;
 }
 

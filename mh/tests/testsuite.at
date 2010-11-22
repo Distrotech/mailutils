@@ -42,6 +42,7 @@ AT_CLEANUP
 AT_INIT
 
 m4_include([install-mh.at])
+m4_include([mhseq.at])
 m4_include([ali.at])
 m4_include([folder.at])
 m4_include([inc.at])
@@ -56,3 +57,4 @@ m4_include([mhl.at])
 m4_include([anno.at])
 m4_include([pick.at])
 m4_include([burst.at])
+m4_include([comp.at])

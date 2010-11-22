@@ -42,6 +42,7 @@ TESTSUITE_AT = \
  ali.at\
  anno.at\
  burst.at\
+ comp.at\
  folder.at\
  inc.at\
  install-mh.at\
@@ -49,6 +50,7 @@ TESTSUITE_AT = \
  mhl.at\
  mhparam.at\
  mhpath.at\
+ mhseq.at\
  pick.at\
  scan.at\
  refile.at\

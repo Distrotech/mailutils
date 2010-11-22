@@ -195,10 +195,14 @@ typedef struct
   mu_header_t header;
 } mh_context_t;
 
+#define MH_MSGSET_UID   0x01
+
 typedef struct
 {
-  size_t count;
+  int flags;
   size_t *list;
+  size_t count;
+  size_t size;
 } mh_msgset_t;
 
 typedef void (*mh_iterator_fp) (mu_mailbox_t mbox, mu_message_t msg,
@@ -300,8 +304,8 @@ int mh_message_number (mu_message_t msg, size_t *pnum);
 
 mu_mailbox_t mh_open_folder (const char *folder, int create);
 
-int mh_msgset_parse (mu_mailbox_t mbox, mh_msgset_t *msgset,
-		     int argc, char **argv, char *def);
+void mh_msgset_parse (mu_mailbox_t mbox, mh_msgset_t *msgset,
+		      int argc, char **argv, char *def);
 int mh_msgset_member (mh_msgset_t *msgset, size_t num);
 void mh_msgset_reverse (mh_msgset_t *msgset);
 void mh_msgset_negate (mu_mailbox_t mbox, mh_msgset_t *msgset);

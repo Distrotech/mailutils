@@ -1,0 +1,148 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2010 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# GNU Mailutils is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+
+m4_pushdef([MH_KEYWORDS],[comp])
+m4_pushdef([compcmd],[comp dnl
+-form $abs_top_srcdir/mh/components dnl
+-editor $abs_top_srcdir/mh/tests/mhed])
+
+MH_CHECK([comp -file],[comp00 comp-file],[
+dir=`pwd`
+echo quit | compcmd -file ./infile | sed "s|$dir/*||;s|  *$||"
+cat infile
+],
+[0],
+[-- Editor invocation: ./infile
+-- Input file:
+To:
+cc:
+Subject:
+--------
+-- Input file end
+What now? draft left on "./infile".
+To:
+cc:
+Subject:
+--------
+Seen by mhed
+])
+
+MH_CHECK([comp -file (del)],[comp01 comp-file_del],[
+dir=`pwd`
+echo 'quit -delete' | compcmd -file ./infile | sed "s|$dir/*||;s|  *$||"
+],
+[0],
+[-- Editor invocation: ./infile
+-- Input file:
+To:
+cc:
+Subject:
+--------
+-- Input file end
+What now?])
+
+MH_CHECK([comp file],[comp02 comp_file],[
+echo 'quit' | compcmd file | sed "s|$dir/*||;s|  *$||"
+cat Mail/file 
+],
+[0], 
+[-- Editor invocation: Mail/file
+-- Input file:
+To:
+cc:
+Subject:
+--------
+-- Input file end
+What now? draft left on "Mail/file".
+To:
+cc:
+Subject:
+--------
+Seen by mhed
+])
+
+MH_CHECK([comp -use file],[comp03 comp-use_file],[
+AT_DATA([Mail/file],[From: gray
+To: root
+Subject: test input
+
+message body
+])
+
+echo 'quit' | compcmd -use file | sed "s|$dir/*||;s|  *$||"
+cat Mail/file 
+],
+[0], 
+[-- Editor invocation: Mail/file
+-- Input file:
+From: gray
+To: root
+Subject: test input
+
+message body
+-- Input file end
+What now? draft left on "Mail/file".
+From: gray
+To: root
+Subject: test input
+
+message body
+Seen by mhed
+])
+
+MH_CHECK([comp +folder msg],[comp04 comp+folder_msg],[
+mkdir Mail/inbox
+AT_DATA([Mail/inbox/1],[From: gray
+To: root
+Subject: test input
+
+message body
+])
+
+echo 'quit' | compcmd +inbox 1 | sed "s|$dir/*||;s|  *$||"
+echo Mail/draft
+cat Mail/draft
+echo Message
+cat Mail/inbox/1
+],
+[0], 
+[-- Editor invocation: Mail/draft
+-- Input file:
+From: gray
+To: root
+Subject: test input
+
+message body
+-- Input file end
+What now? draft left on "Mail/draft".
+Mail/draft
+From: gray
+To: root
+Subject: test input
+
+message body
+Seen by mhed
+Message
+From: gray
+To: root
+Subject: test input
+
+message body
+])
+
+m4_popdef([compcmd])
+m4_popdef([MH_KEYWORDS])
+

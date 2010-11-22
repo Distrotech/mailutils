@@ -19,458 +19,80 @@
 
 #include <mh.h>
 
-/* Expand a message set (msgcnt;msglist) to accomodate `inc' more
-   elements */
-static void
-_expand (size_t *msgcnt, size_t **msglist, size_t inc)
+int
+mh_uid_to_msgno (mu_mailbox_t mbox, size_t uid, size_t *msgno)
 {
-  if (!inc)
-    return;
-
-  *msgcnt += inc;
-  *msglist = realloc (*msglist, (*msgcnt)*sizeof(**msglist));
-  if (!*msglist)
-    mh_err_memory (1);
-}
-
-/* Fatal error handler */ 
-static void
-msgset_abort (const char *arg)
-{
-  mu_error (_("bad message list `%s'"), arg);
-  exit (1);
-}
-
-/* Handlers for expansion of the reserved message names */
-
-static int
-msgset_first (mu_mailbox_t mbox, size_t *pnum)
-{
-  *pnum = 1;
+  size_t num = mh_get_message (mbox, uid, NULL);
+  if (num == 0)
+    return MU_ERR_NOENT;
+  *msgno = num;
   return 0;
 }
 
-static int
-msgset_last (mu_mailbox_t mbox, size_t *pnum)
+int
+mh_msgno_to_uid (mu_mailbox_t mbox, size_t msgno, size_t *uid)
 {
-  int rc;
-  size_t count = 0;
-
-  rc = mu_mailbox_messages_count (mbox, &count);
+  mu_message_t msg;
+  int rc = mu_mailbox_get_message (mbox, msgno, &msg);
   if (rc)
-    {
-      mu_error (_("cannot get last message: %s"), mu_strerror (rc));
-      exit (1);
-    }
-  *pnum = count;
-  return 0;
+    return rc;
+  return mu_message_get_uid (msg, uid);
 }
 
-static int
-msgset_cur (mu_mailbox_t mbox, size_t *pnum)
+
+void
+mh_msgset_init (mh_msgset_t *msgset)
 {
-  size_t i, count = 0;
-  static int cached_n = 0;
-  size_t cur;
-
-  mh_mailbox_get_cur (mbox, &cur);
-  
-  if (cached_n)
-    {
-      *pnum = cached_n;
-      return 0;
-    }
-
-  mu_mailbox_messages_count (mbox, &count);
-  for (i = 1; i <= count; i++)
-    {
-      mu_message_t msg = NULL;
-      size_t uid = 0;
-      
-      mu_mailbox_get_message (mbox, i, &msg);
-      mh_message_number (msg, &uid);
-      if (uid == cur)
-	{
-	  *pnum = cached_n = i;
-	  return 0;
-	}
-    }
-  mu_error (_("no cur message"));
-  exit (1);
+  memset (msgset, 0, sizeof (*msgset));
 }
 
-static int
-msgset_prev (mu_mailbox_t mbox, size_t *pnum)
+void
+mh_msgset_expand (mh_msgset_t *msgset, size_t count)
 {
-  size_t cur_n = 0;
-  msgset_cur (mbox, &cur_n);
-  if (cur_n < 1)
+  size_t rest = msgset->size - msgset->count;
+
+  if (rest < count)
     {
-      mu_error (_("no prev message"));
-      exit (1);
+      msgset->size += count;
+      msgset->list = xrealloc (msgset->list,
+			       msgset->size * sizeof (msgset->list[0]));
     }
-  *pnum = cur_n - 1;
-  return 0;
 }
 
-static int
-msgset_next (mu_mailbox_t mbox, size_t *pnum)
+void
+mh_msgset_add (mh_msgset_t *msgset, size_t n)
 {
-  size_t cur_n = 0, total = 0;
-  msgset_cur (mbox, &cur_n);
-  mu_mailbox_messages_count (mbox, &total);
-  if (cur_n + 1 > total)
-    {
-      mu_error (_("no next message"));
-      exit (1);
-    }
-  *pnum = cur_n + 1;
-  return 0;
-}
-
-static struct msgset_keyword {
-  char *name;
-  int (*handler) (mu_mailbox_t mbox, size_t *pnum);
-} keywords[] = {
-  { "first", msgset_first },
-  { "last", msgset_last },
-  { "prev", msgset_prev },
-  { "next", msgset_next },
-  { "cur", msgset_cur },
-  { NULL },
-};
-
-/* Preprocess a part of a complex message designation. Returns
-   a pointer to the allocated memory containing expanded part of
-   the designation. Pointer to the beginning of the not expanded
-   part (in arg) is placed into *rest */
-static char *
-msgset_preproc_part (mu_mailbox_t mbox, char *arg, char **rest)
-{
-  struct msgset_keyword *p;
-  char *cp;
-  
-  for (p = keywords; p->name; p++)
-    if (strncmp (arg, p->name, strlen (p->name)) == 0)
-      {
-	int rc;
-	size_t uid, num;
-	mu_message_t msg;
-	
-	if (p->handler (mbox, &num))
-	  msgset_abort (arg);
-	rc = mu_mailbox_get_message (mbox, num, &msg);
-	if (rc)
-	  {
-	    mu_error (_("cannot get message %lu: %s"),
-		      (unsigned long) num, mu_strerror (rc));
-	    exit (1);
-	  }
-	*rest = arg + strlen (p->name);
-	mu_message_get_uid (msg, &uid);
-	return xstrdup (mu_umaxtostr (0, uid));
-      }
-  cp = strchr (arg, '-');
-  if (cp)
-    {
-      char *ret;
-
-      *rest = cp;
-      ret = xmalloc (cp - arg + 1);
-      memcpy (ret, arg, cp - arg);
-      ret[cp - arg] = 0;
-      return ret;
-    }
-
-  *rest = arg + strlen (arg);
-  return strdup (arg);
-}
-
-/* Preprocess (expand) a single message designation */
-static char *
-msgset_preproc (mu_mailbox_t mbox, char *arg)
-{
-  char *buf, *tail;
-  
-  if (strcmp (arg, "all") == 0 || strcmp (arg, ".") == 0)
-    {
-      /* Special case */
-      arg = "first-last";
-    }
-
-  buf = msgset_preproc_part (mbox, arg, &tail);
-  if (tail[0] == '-')
-    {
-      char *rest = msgset_preproc_part (mbox, tail+1, &tail);
-      char *p = NULL;
-      mu_asprintf (&p, "%s-%s", buf, rest);
-      free (rest);
-      free (buf);
-      buf = p;
-    }
-  
-  if (tail[0])
-    {
-      char *p = NULL;
-      mu_asprintf (&p, "%s%s", buf, tail);
-      free (buf);
-      buf = p;
-    }
-  return buf;
+  mh_msgset_expand (msgset, 1);
+  msgset->list[msgset->count++] = n;
 }
 
 static int
 comp_mesg (const void *a, const void *b)
 {
-  if (*(size_t*)a > *(size_t*)b)
+  size_t an = *(size_t*)a;
+  size_t bn = *(size_t*)b;
+  if (an > bn)
     return 1;
-  else if (*(size_t*)a < *(size_t*)b)
+  else if (an < bn)
     return -1;
   return 0;
 }
 
-static int _mh_msgset_parse (mu_mailbox_t mbox, mh_msgset_t *msgset,
-			     int argc, char **argv);
-
-/* Treat arg as a name of user-defined sequence and attempt to
-   expand it. Return 0 if succeeded, non-zero otherwise. */
-int
-expand_user_seq (mu_mailbox_t mbox, mh_msgset_t *msgset, char *arg)
+void
+mh_msgset_optimize (mh_msgset_t *msgset)
 {
-  struct mu_wordsplit ws;
-  char *p;
-  const char *listp;
-  int rc = 1;
-  int negate = 0;
-  
-  p = strchr (arg, ':');
-  if (p)
-    *p++ = 0;
-  listp = mh_global_sequences_get (mbox, arg, NULL);
-  if (!listp)
-    {
-      int len;
-      const char *neg = mh_global_profile_get ("Sequence-Negation", NULL);
-      if (!neg)
-	return 1;
-      len = strlen (neg);
-      if (strncmp (arg, neg, len))
-	return 1;
-      negate = 1;
-      listp = mh_global_sequences_get (mbox, arg + len, NULL);
-      if (!listp)
-	return 1;
-    }
-
-  if (mu_wordsplit (listp, &ws, MU_WRDSF_DEFFLAGS))
-    {
-      mu_error (_("cannot split line `%s': %s"), listp,
-		mu_wordsplit_strerror (&ws));
-    }
-  else
-    {
-      rc = _mh_msgset_parse (mbox, msgset, ws.ws_wordc, ws.ws_wordv);
-      mu_wordsplit_free (&ws);
-    }
-  
-  if (rc)
-    return rc;
-
-  if (negate)
-    mh_msgset_negate (mbox, msgset);
-  
-  if (p)
-    {
-      int first, num;
-      
-      num = strtoul (p, &p, 0);
-      if (*p)
-	{
-	  mh_msgset_free (msgset);
-	  return 1;
-	}
-      if (num < 0)
-	{
-	  first = num + msgset->count;
-	  num = - num;
-	}
-      else
-	first = 0;
-      if (num > msgset->count)
-	{
-	  mh_msgset_free (msgset);
-	  return 1;
-	}
-
-      if (first > 0)
-	memmove (msgset->list, &msgset->list[first],
-		 sizeof (msgset->list[0]) * num);
-      msgset->count = num;
-    }
-  
-  return rc;
-}
-
-/* Parse a message specification from (argc;argv). Returned msgset is
-   not sorted nor optimised */
-int
-_mh_msgset_parse (mu_mailbox_t mbox, mh_msgset_t *msgset, int argc, char **argv)
-{
-  size_t msgcnt;
-  size_t *msglist;
   size_t i, msgno;
-  
-  if (argc == 0)
-    return 1;
-  
-  msgcnt = argc;
-  msglist = calloc (msgcnt, sizeof(*msglist));
-  for (i = 0, msgno = 0; i < argc; i++)
-    {
-      char *p = NULL, *q;
-      size_t start, end;
-      size_t msg_first, n;
-      long num;
-      char *arg = msgset_preproc (mbox, argv[i]);
-
-      if (!mu_isdigit (arg[0]))
-	{
-	  int j;
-	  mh_msgset_t m;
-	  
-	  if (expand_user_seq (mbox, &m, arg))
-	    {
-	      mu_error (_("message set %s does not exist"), arg);
-	      exit (1);
-	    }
-	  _expand (&msgcnt, &msglist, m.count);
-	  for (j = 0; j < m.count; j++)
-	    msglist[msgno++] = m.list[j];
-	  mh_msgset_free (&m);
-	}
-      else
-	{
-	  start = strtoul (arg, &p, 0);
-	  switch (*p)
-	    {
-	    case 0:
-	      n = mh_get_message (mbox, start, NULL);
-	      if (!n)
-		{
-		  mu_error (_("message %lu does not exist"),
-			    (unsigned long) start);
-		  exit (1);
-		}
-	      msglist[msgno++] = n;
-	      break;
-	      
-	    case '-':
-	      end = strtoul (p+1, &p, 0);
-	      if (*p)
-		msgset_abort (argv[i]);
-	      if (end < start)
-		{
-		  size_t t = start;
-		  start = end;
-		  end = t;
-		}
-	      _expand (&msgcnt, &msglist, end - start);
-	      msg_first  = msgno;
-	      for (; start <= end; start++)
-		{
-		  n = mh_get_message (mbox, start, NULL);
-		  if (n)
-		    msglist[msgno++] = n;
-		}
-	      if (msgno == msg_first)
-		{
-		  mu_error (_("no messages in range %s"), argv[i]);
-		  exit (1);
-		}
-	      break;
-	      
-	    case ':':
-	      num = strtoul (p+1, &q, 0);
-	      if (*q)
-		msgset_abort (argv[i]);
-	      if (p[1] != '+' && p[1] != '-')
-		{
-		  if (strncmp (argv[i], "last:", 5) == 0
-		      || strncmp (argv[i], "prev:", 5) == 0)
-		    num = -num;
-		}
-	      end = start + num;
-	      if (end < start)
-		{
-		  size_t t = start;
-		  start = end + 1;
-		  end = t;
-		}
-	      else
-		end--;
-	      _expand (&msgcnt, &msglist, end - start);
-	      msg_first  = msgno;
-	      for (; start <= end; start++)
-		{
-		  n = mh_get_message (mbox, start, NULL);
-		  if (n)
-		    msglist[msgno++] = n;
-		}
-	      if (msgno == msg_first)
-		{
-		  mu_error (_("no messages in range %s"), argv[i]);
-		  exit (1);
-		}
-	      break;
-	      
-	    default:
-	      msgset_abort (argv[i]);
-	    }
-	}
-      free (arg);
-    }
-
-  msgset->count = msgno;
-  msgset->list = msglist;
-  return 0;
-}
-
-/* Parse a message specification from (argc;argv). Returned msgset is
-   sorted and optimised (i.e. it does not contain duplicate message
-   numbers) */
-int
-mh_msgset_parse (mu_mailbox_t mbox, mh_msgset_t *msgset,
-		 int argc, char **argv, char *def)
-{
-  char *xargv[2];
-  int rc;
-  
-  if (argc == 0)
-    {
-      argc = 1;
-      argv = xargv;
-      argv[0] = def ? def : "cur";
-      argv[1] = NULL;
-    }
-  
-  rc = _mh_msgset_parse (mbox, msgset, argc, argv);
-
-  if (rc == 0)
-    {
-      size_t i, msgno;
-      size_t msgcnt = msgset->count;
-      size_t *msglist = msgset->list;
+  size_t msgcnt = msgset->count;
+  size_t *msglist = msgset->list;
       
-      /* Sort the resulting message set */
-      qsort (msglist, msgcnt, sizeof (*msgset->list), comp_mesg);
+  /* Sort the resulting message set */
+  qsort (msglist, msgcnt, sizeof (*msgset->list), comp_mesg);
 
-      /* Remove duplicates. */
-      for (i = 0, msgno = 1; i < msgset->count; i++)
-	if (msglist[msgno-1] != msglist[i])
-	  msglist[msgno++] = msglist[i];
-      msgset->count = msgno;
-    }
-  return rc;
+  /* Remove duplicates. */
+  for (i = 0, msgno = 1; i < msgset->count; i++)
+    if (msglist[msgno-1] != msglist[i])
+      msglist[msgno++] = msglist[i];
+  msgset->count = msgno;
 }
 
 /* Check if message with ordinal number `num' is contained in the
@@ -484,75 +106,6 @@ mh_msgset_member (mh_msgset_t *msgset, size_t num)
     if (msgset->list[i] == num)
       return i + 1;
   return 0;
-}
-
-/* Auxiliary function. Performs binary search for a message with the
-   given sequence number */
-static size_t
-mh_search_message (mu_mailbox_t mbox, size_t start, size_t stop,
-		   size_t seqno, mu_message_t *mesg)
-{
-  mu_message_t mid_msg = NULL;
-  size_t num = 0, middle;
-
-  middle = (start + stop) / 2;
-  if (mu_mailbox_get_message (mbox, middle, &mid_msg)
-      || mh_message_number (mid_msg, &num))
-    return 0;
-
-  if (num == seqno)
-    {
-      if (mesg)
-	*mesg = mid_msg;
-      return middle;
-    }
-      
-  if (start >= stop)
-    return 0;
-
-  if (num > seqno)
-    return mh_search_message (mbox, start, middle-1, seqno, mesg);
-  else /*if (num < seqno)*/
-    return mh_search_message (mbox, middle+1, stop, seqno, mesg);
-}
-
-/* Retrieve the message with the given sequence number.
-   Returns ordinal number of the message in the mailbox if found,
-   zero otherwise. The retrieved message is stored in the location
-   pointed to by mesg, unless it is NULL. */
-   
-size_t
-mh_get_message (mu_mailbox_t mbox, size_t seqno, mu_message_t *mesg)
-{
-  size_t num, count;
-  mu_message_t msg;
-
-  if (mu_mailbox_get_message (mbox, 1, &msg)
-      || mh_message_number (msg, &num))
-    return 0;
-  if (seqno < num)
-    return 0;
-  else if (seqno == num)
-    {
-      if (mesg)
-	*mesg = msg;
-      return 1;
-    }
-
-  if (mu_mailbox_messages_count (mbox, &count)
-      || mu_mailbox_get_message (mbox, count, &msg)
-      || mh_message_number (msg, &num))
-    return 0;
-  if (seqno > num)
-    return 0;
-  else if (seqno == num)
-    {
-      if (mesg)
-	*mesg = msg;
-      return count;
-    }
-
-  return mh_search_message (mbox, 1, count, seqno, mesg);
 }
 
 /* Reverse the order of messages in the message set */
@@ -632,10 +185,538 @@ void
 mh_msgset_uids (mu_mailbox_t mbox, mh_msgset_t *msgset)
 {
   size_t i;
+
+  if (msgset->flags & MH_MSGSET_UID)
+    return;
   for (i = 0; i < msgset->count; i++)
     {
       mu_message_t msg;
       mu_mailbox_get_message (mbox, msgset->list[i], &msg);
       mh_message_number (msg, &msgset->list[i]);
     }
+  msgset->flags |= MH_MSGSET_UID;
+}
+
+/* Auxiliary function. Performs binary search for a message with the
+   given sequence number */
+static size_t
+mh_search_message (mu_mailbox_t mbox, size_t start, size_t stop,
+		   size_t seqno, mu_message_t *mesg)
+{
+  mu_message_t mid_msg = NULL;
+  size_t num = 0, middle;
+
+  middle = (start + stop) / 2;
+  if (mu_mailbox_get_message (mbox, middle, &mid_msg)
+      || mh_message_number (mid_msg, &num))
+    return 0;
+
+  if (num == seqno)
+    {
+      if (mesg)
+	*mesg = mid_msg;
+      return middle;
+    }
+      
+  if (start >= stop)
+    return 0;
+
+  if (num > seqno)
+    return mh_search_message (mbox, start, middle-1, seqno, mesg);
+  else /*if (num < seqno)*/
+    return mh_search_message (mbox, middle+1, stop, seqno, mesg);
+}
+
+/* Retrieve the message with the given sequence number.
+   Returns ordinal number of the message in the mailbox if found,
+   zero otherwise. The retrieved message is stored in the location
+   pointed to by mesg, unless it is NULL. */
+   
+size_t
+mh_get_message (mu_mailbox_t mbox, size_t seqno, mu_message_t *mesg)
+{
+  size_t num, count;
+  mu_message_t msg;
+
+  if (mu_mailbox_get_message (mbox, 1, &msg)
+      || mh_message_number (msg, &num))
+    return 0;
+  if (seqno < num)
+    return 0;
+  else if (seqno == num)
+    {
+      if (mesg)
+	*mesg = msg;
+      return 1;
+    }
+
+  if (mu_mailbox_messages_count (mbox, &count)
+      || mu_mailbox_get_message (mbox, count, &msg)
+      || mh_message_number (msg, &num))
+    return 0;
+  if (seqno > num)
+    return 0;
+  else if (seqno == num)
+    {
+      if (mesg)
+	*mesg = msg;
+      return count;
+    }
+
+  return mh_search_message (mbox, 1, count, seqno, mesg);
+}
+
+
+struct msgset_parser
+{
+  mu_mailbox_t mbox;
+  mh_msgset_t *msgset;
+  char *curp;
+  int argc;
+  char **argv;
+
+  int sign;
+  size_t number;
+  int validuid;
+};
+
+static void
+msgset_parser_init (struct msgset_parser *parser, mu_mailbox_t mbox,
+		    mh_msgset_t *msgset, int argc, char **argv)
+{
+  parser->mbox = mbox;
+  parser->msgset = msgset;
+  parser->argc = argc;
+  parser->argv = argv;
+  parser->curp = "";
+
+  parser->sign = 0;
+  parser->number = 0;
+}
+
+static void
+msgset_abort (const char *arg)
+{
+  mu_error (_("bad message list `%s'"), arg);
+  exit (1);
+}
+
+static void
+emptyrange_abort (const char *range)
+{
+  mu_error (_("no messages in range %s"), range);
+  exit (1);
+}
+
+/* Advance parser to the next argument */
+static int
+nextarg (struct msgset_parser *parser)
+{
+  if (parser->argc == 0)
+    return 0;
+  parser->argc--;
+  parser->curp = *parser->argv++;
+  return 1;
+}
+
+static void msgset_parser_run (struct msgset_parser *parser);
+
+static int
+_expand_sequence (struct msgset_parser *parser, char *term)
+{
+  struct mu_wordsplit ws;
+  const char *listp;
+  int negate = 0;
+
+  listp = mh_global_sequences_get (parser->mbox, term, NULL);
+  if (!listp)
+    {
+      int len;
+      const char *neg = mh_global_profile_get ("Sequence-Negation", NULL);
+      if (!neg)
+	return 1;
+      len = strlen (neg);
+      if (strncmp (term, neg, len))
+	return 1;
+      negate = 1;
+      listp = mh_global_sequences_get (parser->mbox, term + len, NULL);
+      if (!listp)
+	return 1;
+    }
+
+  if (mu_wordsplit (listp, &ws, MU_WRDSF_DEFFLAGS))
+    {
+      mu_error (_("cannot split line `%s': %s"), listp,
+		mu_wordsplit_strerror (&ws));
+      exit (1);
+    }
+  else
+    {
+      struct msgset_parser clone;
+      
+      msgset_parser_init (&clone, parser->mbox,  parser->msgset,
+			  ws.ws_wordc, ws.ws_wordv);
+      msgset_parser_run (&clone);
+      mu_wordsplit_free (&ws);
+    }
+  
+  if (negate)
+    mh_msgset_negate (parser->mbox, parser->msgset);
+  return 0;
+}
+
+static int
+parse_count (struct msgset_parser *parser)
+{
+  char *endp;
+  if (!*parser->curp && nextarg (parser) == 0)
+    return 0;
+  if (*parser->curp == '-')
+    {
+      parser->sign = 1;
+      parser->curp++;
+    }
+  else if (*parser->curp == '+')
+    {
+      parser->sign = 0;
+      parser->curp++;
+    }
+  parser->number = strtoul (parser->curp, &endp, 10);
+  if (*endp)
+    msgset_abort (parser->curp);
+  parser->curp = endp;
+  return 1;
+}
+
+
+static int
+msgset_first (mu_mailbox_t mbox, size_t *pnum)
+{
+  *pnum = 1;
+  return 0;
+}
+
+static int
+msgset_last (mu_mailbox_t mbox, size_t *pnum)
+{
+  int rc;
+
+  rc = mu_mailbox_messages_count (mbox, pnum);
+  if (rc)
+    {
+      mu_error (_("cannot get last message: %s"), mu_strerror (rc));
+      exit (1);
+    }
+  return 0;
+}
+
+static int
+msgset_cur (mu_mailbox_t mbox, size_t *pnum)
+{
+  size_t num;
+  mh_mailbox_get_cur (mbox, &num);
+  return mh_uid_to_msgno (mbox, num, pnum);
+}
+
+static int
+msgset_prev (mu_mailbox_t mbox, size_t *pnum)
+{
+  size_t cur_n = 0;
+  msgset_cur (mbox, &cur_n);
+  if (cur_n < 1)
+    {
+      mu_error (_("no prev message"));
+      exit (1);
+    }
+  *pnum = cur_n - 1;
+  return 0;
+}
+
+static int
+msgset_next (mu_mailbox_t mbox, size_t *pnum)
+{
+  size_t cur_n = 0, total = 0;
+  msgset_cur (mbox, &cur_n);
+  mu_mailbox_messages_count (mbox, &total);
+  if (cur_n + 1 > total)
+    {
+      mu_error (_("no next message"));
+      exit (1);
+    }
+  *pnum = cur_n + 1;
+  return 0;
+}
+
+struct msgset_keyword
+{
+  char *name;
+  size_t len;
+  int (*handler) (mu_mailbox_t mbox, size_t *pnum);
+  int sign;
+};
+
+static struct msgset_keyword keywords[] = {
+#define S(s) #s, sizeof (#s) - 1
+  { S(first), msgset_first, 0 },
+  { S(last), msgset_last, 1 },
+  { S(prev), msgset_prev, 1 },
+  { S(next), msgset_next, 0 },
+  { S(cur), msgset_cur, 0 },
+  { NULL }
+};
+
+#define PARSE_EOF  0
+#define PARSE_MORE 1
+#define PARSE_SUCCESS 2
+
+/* term : NUMBER
+        | "first"
+	| "last"
+	| "cur"
+	| "prev"
+	| "next"
+	;
+*/
+static int
+parse_term (struct msgset_parser *parser, int seq)
+{
+  size_t tlen;
+  char *term;
+  
+  if (!*parser->curp && nextarg (parser) == 0)
+    return PARSE_EOF;
+
+  term = parser->curp;
+  parser->curp = mu_str_skip_class (term, MU_CTYPE_ALPHA|MU_CTYPE_DIGIT);
+  tlen = parser->curp - term;
+  if (mu_isalpha (*term))
+    {
+      struct msgset_keyword *p;
+
+      for (p = keywords; p->name; p++)
+	if (tlen == p->len && memcmp (p->name, term, tlen) == 0)
+	  {
+	    if (p->handler (parser->mbox, &parser->number))
+	      msgset_abort (term);
+	    parser->sign = p->sign;
+	    parser->validuid = 1;
+	    return PARSE_MORE;
+	  }
+
+      if (*parser->curp == 0 && seq)
+	{
+	  /* See if it is a user-defined sequence */
+	  if (_expand_sequence (parser, term) == 0)
+	    return PARSE_SUCCESS;
+	}
+      msgset_abort (term);
+    }
+  else if (mu_isdigit (*term))
+    {
+      char *endp;
+      size_t num = strtoul (term, &endp, 10);
+      if (endp != parser->curp)
+	msgset_abort (term);
+      
+      if (mh_uid_to_msgno (parser->mbox, num, &parser->number))
+	{
+	  parser->validuid = 0;
+	  parser->number = num;
+	}
+      else
+	parser->validuid = 1;
+      parser->sign = 0;
+    }
+  else
+    msgset_abort (term);
+  return PARSE_MORE;
+}
+
+static void
+add_messages (struct msgset_parser *parser, size_t start, size_t count,
+	      int sign)
+{
+  size_t i;
+
+  if (start == 0)
+    start = 1;
+  mh_msgset_expand (parser->msgset, count);
+  if (sign)
+    {
+      if (count > start)
+	count = start;
+      for (i = 0; i < count; i++, start--)
+	parser->msgset->list[parser->msgset->count++] = start;
+    }
+  else
+    {
+      size_t total;
+  
+      mu_mailbox_messages_count (parser->mbox, &total);
+      if (start + count > total)
+	count = total - start + 1;
+      for (i = 0; i < count; i++, start++)
+	parser->msgset->list[parser->msgset->count++] = start;
+    }
+  if (count == 0)
+    emptyrange_abort (parser->argv[-1]);
+}
+
+static void
+add_message_range (struct msgset_parser *parser, size_t start, size_t end)
+{
+  if (end == start)
+    emptyrange_abort (parser->argv[-1]);
+
+  if (end < start)
+    {
+      size_t t = start;
+      start = end;
+      end = t;
+    }
+  mh_msgset_expand (parser->msgset, end - start + 1);
+
+  for (; start <= end; start++)
+    parser->msgset->list[parser->msgset->count++] = start;
+}
+
+/* range: term '-' term
+        | term ':' count
+	;
+   count: NUMBER
+        | '+' NUMBER
+	| '-' NUMBER
+	;
+*/	
+static int
+parse_range (struct msgset_parser *parser)
+{
+  size_t start;
+
+  switch (parse_term (parser, 1))
+    {
+    case PARSE_EOF:
+      return 0;
+
+    case PARSE_SUCCESS:
+      return 1;
+
+    case PARSE_MORE:
+      break;
+    }
+      
+  start = parser->number;
+
+  if (*parser->curp == ':')
+    {
+      int validuid = parser->validuid;
+      parser->curp++;
+      if (parse_count (parser) == 0)
+	return 0;
+      if (!validuid)
+	{
+	  size_t total, lastuid;
+	  msgset_last (parser->mbox, &total);
+	  mh_msgno_to_uid (parser->mbox, total, &lastuid);
+	  if (start > lastuid)
+	    {
+	      if (!parser->sign)
+		emptyrange_abort (parser->argv[-1]);
+	      start = total;
+	    }
+	  else
+	    {
+	      if (parser->sign)
+		emptyrange_abort (parser->argv[-1]);
+	      start = 1;
+	    }
+	}
+      add_messages (parser, start, parser->number, parser->sign);
+      return 1;
+    }
+  else if (*parser->curp == '-')
+    {
+      size_t lastuid = 0;
+      int validuid = parser->validuid;
+      
+      parser->curp++;
+      if (parse_term (parser, 0) == PARSE_EOF)
+	return 0;
+      if (!parser->validuid)
+	{
+	  size_t total;
+
+	  msgset_last (parser->mbox, &total);
+	  mh_msgno_to_uid (parser->mbox, total, &lastuid);
+	  if (parser->number > lastuid)
+	    parser->number = total;
+	  else if (!validuid)
+	    emptyrange_abort (parser->argv[-1]);
+	}
+      if (!validuid)
+	{
+	  if (!lastuid)
+	    {
+	      size_t total;
+	      msgset_last (parser->mbox, &total);
+	      mh_msgno_to_uid (parser->mbox, total, &lastuid);
+	    }
+	  if (start > lastuid && !parser->validuid)
+	    emptyrange_abort (parser->argv[-1]);
+	  start = 1;
+	}
+      add_message_range (parser, start, parser->number);
+    }
+  else if (!parser->validuid)
+    {
+      mu_error (_("message %s does not exist"), parser->argv[-1]);
+      exit (1);
+    }
+  else
+    mh_msgset_add (parser->msgset, start);
+  return 1;
+}
+  
+  
+/* Parse a message specification. The composed msgset is
+   not sorted nor optimised */
+static void
+msgset_parser_run (struct msgset_parser *parser)
+{
+  while (parse_range (parser))
+    ;
+}
+
+/* Parse a message specification from (argc;argv). Returned msgset is
+   sorted and optimised (i.e. it does not contain duplicate message
+   numbers) */
+void
+mh_msgset_parse (mu_mailbox_t mbox, mh_msgset_t *msgset, 
+		 int argc, char **argv, char *def)
+{
+  struct msgset_parser parser;
+  char *xargv[2];
+  
+  if (argc == 0)
+    {
+      argc = 1;
+      argv = xargv;
+      argv[0] = def ? def : "cur";
+      argv[1] = NULL;
+    }
+
+  if (argc == 1 &&
+      (strcmp (argv[0], "all") == 0 || strcmp (argv[0], ".") == 0))
+    {
+      argc = 1;
+      argv = xargv;
+      argv[0] = "first-last";
+      argv[1] = NULL;
+    }
+  
+  mh_msgset_init (msgset);
+  msgset_parser_init (&parser, mbox, msgset, argc, argv);
+  msgset_parser_run (&parser);
+
+  mh_msgset_optimize (msgset);
 }

@@ -33,6 +33,7 @@ bin_PROGRAMS = \
  mhn\
  mhparam\
  mhpath\
+ mhseq\
  pick\
  prompter\
  refile\
