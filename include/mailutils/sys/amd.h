@@ -82,7 +82,8 @@ struct _amd_data
   int (*message_uid) (mu_message_t msg, size_t *puid);
   size_t (*next_uid) (struct _amd_data *mhd);
   int (*remove) (struct _amd_data *);
-  
+  int (*delete_msg) (struct _amd_data *, struct _amd_message *);
+		     
   /* List of messages: */
   size_t msg_count; /* number of messages in the list */
   size_t msg_max;   /* maximum message buffer capacity */

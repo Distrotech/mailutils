@@ -427,7 +427,12 @@ Mailutils @command{rmm} does not delete any messages. Standard
 non-existent one. 
 
 @item
-The @code{rmmproc} profile component is not used.
+The @command{rmm} utility will unlink messages, if the @code{rmmproc}
+profile component has empty value, e.g.:
+
+@example
+rmmproc:
+@end example
 @end enumerate
 
 @item sortm

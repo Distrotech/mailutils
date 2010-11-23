@@ -47,5 +47,36 @@ test: 2 3 5
 cur: 1
 ])
 
+MH_CHECK([rmm rmmproc],[rmm02 rmmproc],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
+echo "rmmproc: $abs_top_srcdir/mh/tests/movemsg" >> $MH
+rmm 1 4 || exit $?
+find Mail/inbox -name '[[0-9]]' | sort
+find Mail/removed -name '[[0-9]]' | sort
+],
+[0],
+[Mail/inbox/2
+Mail/inbox/3
+Mail/inbox/5
+Mail/removed/1
+Mail/removed/4
+])
+
+MH_CHECK([rmm -- null rmmproc],[rmm03 null-rmmproc],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
+echo "rmmproc:" >> $MH
+rmm 1 4 || exit $?
+find Mail/inbox -name '[[0-9]]' | sort
+test -f Mail/inbox/,1 || echo OK
+test -f Mail/inbox/,4 || echo OK
+],
+[0],
+[Mail/inbox/2
+Mail/inbox/3
+Mail/inbox/5
+OK
+OK
+])
+
 m4_popdef[MH_KEYWORDS])
 # End of rmm.at

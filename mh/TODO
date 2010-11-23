@@ -24,8 +24,8 @@ State	Nice	Utility		Comments
 *	-20	forw		--inplace
 *	-20	send		--alias,--filter,--format,--forward,--mime,
 				--width
-*	-20	refile		--link copies messages; rmmproc ignored.
-*	-20	rmm		rmproc:	
+*	-20	refile		--link copies messages
++	-20	rmm		
 +	-15	folder(s)	
 +	-15	mhn		
 +	-10	rmf

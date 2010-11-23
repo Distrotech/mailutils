@@ -351,6 +351,38 @@ _mh_msg_init (struct _amd_data *amd, struct _amd_message *amm)
   return 0;
 }
 
+static int
+_mh_msg_delete (struct _amd_data *amd, struct _amd_message *amm)
+{
+  int rc, status;
+  char *name;
+  char *argv[3];
+  /* FIXME: Cache this value */
+  const char *proc = mu_mhprop_get_value (mu_mh_profile, "rmmproc", NULL);
+  if (!proc)
+    return ENOSYS;
+
+  rc = amd->cur_msg_file_name (amm, &name);
+  if (rc)
+    return rc;
+  
+  if (proc[0] == 0)
+    {
+      rc = unlink (name);
+      if (rc)
+	rc = errno;
+    }
+  else
+    {
+      argv[0] = (char*) proc;
+      argv[1] = name;
+      argv[2] = NULL;
+      rc = mu_spawnvp (proc, argv, &status);
+    }
+  free (name);
+  return rc;
+}
+
 
 static int
 mh_remove (struct _amd_data *amd)
@@ -442,6 +474,10 @@ _mailbox_mh_init (mu_mailbox_t mailbox)
 
   mailbox->_get_property = mh_get_property;
   mailbox->_translate = mh_translate;
+
+  if (mu_mhprop_get_value (mu_mh_profile, "rmmproc", NULL))
+    amd->delete_msg = _mh_msg_delete;
+    
   
   return 0;
 }

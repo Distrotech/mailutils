@@ -1166,37 +1166,46 @@ amd_expunge (mu_mailbox_t mailbox)
       if (mhm->attr_flags & MU_ATTRIBUTE_DELETED)
 	{
 	  int rc;
-	  char *old_name;
-	  char *new_name;
 
-	  rc = amd->cur_msg_file_name (mhm, &old_name);
-	  if (rc)
-	    return rc;
-	  rc = amd->new_msg_file_name (mhm, mhm->attr_flags, 1,
-				       &new_name);
-	  if (rc)
+	  if (amd->delete_msg)
 	    {
-	      free (old_name);
-	      return rc;
-	    }
-
-	  if (new_name)
-	    {
-	      /* FIXME: It may be a good idea to have a capability flag
-		 in struct _amd_data indicating that no actual removal
-		 is needed (e.g. for traditional MH). It will allow to
-		 bypass lots of no-op code here. */
-	      if (strcmp (old_name, new_name))
-		/* Rename original message */
-		rename (old_name, new_name);
+	      rc = amd->delete_msg (amd, mhm);
+	      if (rc)
+		return rc;
 	    }
 	  else
-	    /* Unlink original file */
-	    unlink (old_name);
-	  
-	  free (old_name);
-	  free (new_name);
+	    {
+	      char *old_name;
+	      char *new_name;
 
+	      rc = amd->cur_msg_file_name (mhm, &old_name);
+	      if (rc)
+		return rc;
+	      rc = amd->new_msg_file_name (mhm, mhm->attr_flags, 1,
+					   &new_name);
+	      if (rc)
+		{
+		  free (old_name);
+		  return rc;
+		}
+
+	      if (new_name)
+		{
+		  /* FIXME: It may be a good idea to have a capability flag
+		     in struct _amd_data indicating that no actual removal
+		     is needed (e.g. for traditional MH). It will allow to
+		     bypass lots of no-op code here. */
+		  if (strcmp (old_name, new_name))
+		    /* Rename original message */
+		    rename (old_name, new_name);
+		}
+	      else
+		/* Unlink original file */
+		unlink (old_name);
+	      
+	      free (old_name);
+	      free (new_name);
+	    }
 	  _amd_message_delete (amd, mhm);
 	  updated = 1;
 	  /* Do not increase i! */
