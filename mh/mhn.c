@@ -2083,9 +2083,7 @@ edit_forw (char *cmd, struct compose_env *env, mu_message_t *pmsg, int level)
   if (status)
     return status;
 
-  ws.ws_delim = "\n";
-  if (mu_wordsplit (cmd, &ws,
-		    MU_WRDSF_DEFFLAGS | MU_WRDSF_DELIM | MU_WRDSF_WS))
+  if (mu_wordsplit (cmd, &ws, MU_WRDSF_DEFFLAGS))
     {
       mu_error (_("%s:%lu: cannot split line: %s"),
 		input_file,
@@ -2100,7 +2098,19 @@ edit_forw (char *cmd, struct compose_env *env, mu_message_t *pmsg, int level)
   for (i = 1; i < ws.ws_wordc; i++)
     {
       mu_message_t input_msg;
-      if (mh_get_message (mbox, i, &input_msg) == 0)
+      char *endp;
+      size_t n = strtoul (ws.ws_wordv[i], &endp, 10);
+
+      if (*endp)
+	{
+	  mu_error (_("%s:%lu: malformed directive near %s"),
+		    input_file,
+		    (unsigned long) mhn_error_loc (env),
+		    endp);
+	  return 1;
+	}
+		    
+      if (mh_get_message (mbox, n, &input_msg) == 0)
 	{
 	  mu_error (_("%s:%lu: no such message: %lu"),
 		    input_file,
@@ -2326,6 +2336,8 @@ mhn_edit (struct compose_env *env, int level)
 	      if (line_count)
 		/* Close and append the previous part */
 		finish_text_msg (env, &msg, ascii_buf);
+
+	      mu_rtrim_cset (buf, "\n");
 	      
 	      /* Execute the directive */
 	      tok = buf;

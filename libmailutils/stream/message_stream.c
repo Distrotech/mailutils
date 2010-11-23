@@ -145,51 +145,62 @@ copy_trimmed_value (const char *str)
 }
   
 static int
-scan_stream (struct _mu_message_stream *str)
+_message_open (mu_stream_t stream)
 {
+  struct _mu_message_stream *str = (struct _mu_message_stream*) stream;
   char *from = NULL;
   char *env_from = NULL;
   char *env_date = NULL;
   int rc;
   char *buffer = NULL;
   size_t bufsize = 0;
-  size_t len;
+  size_t offset, len;
   mu_off_t body_start, body_end;
-  mu_stream_t stream = str->transport;
-
-  if (str->envelope)
-    {
-      char *s = str->envelope + 5;
-      char *p = strchr (s, ' ');
-      size_t len;
-
-      if (p)
-	{
-	  len = p - s;
-	  env_from = mu_alloc (len + 1);
-	  if (!env_from)
-	    return ENOMEM;
-	  memcpy (env_from, s, len);
-	  env_from[len] = 0;
-	  env_date = mu_strdup (p + 1);
-	  if (!env_date)
-	    {
-	      free (env_from);
-	      return ENOMEM;
-	    }
-	}
-    }
-
-  rc = mu_stream_seek (stream, 0, MU_SEEK_SET, NULL);
+  mu_stream_t transport = str->transport;
+  
+  rc = mu_stream_seek (transport, 0, MU_SEEK_SET, NULL);
   if (rc)
     return rc;
-  while ((rc = mu_stream_getline (stream, &buffer, &bufsize, &len)) == 0
+  offset = 0;
+  while ((rc = mu_stream_getline (transport, &buffer, &bufsize, &len)) == 0
 	 && len > 0)
     {
-      if (buffer[0] == '\n')
-	break;
+      if (offset == 0 && memcmp (buffer, "From ", 5) == 0)
+	{
+	  char *s, *p;
+	  
+	  str->envelope_length = len;
+	  str->envelope = mu_strdup (buffer);
+	  if (!str->envelope)
+	    return ENOMEM;
+	  str->envelope[len - 1] = 0;
 
-      if (!env_from || !env_date)
+	  s = str->envelope + 5;
+	  p = strchr (s, ' ');
+
+	  if (p)
+	    {
+	      len = p - s;
+	      env_from = mu_alloc (len + 1);
+	      if (!env_from)
+		return ENOMEM;
+	      memcpy (env_from, s, len);
+	      env_from[len] = 0;
+	      env_date = mu_strdup (p + 1);
+	      if (!env_date)
+		{
+		  free (env_from);
+		  return ENOMEM;
+		}
+	    }
+	}
+      else if (mu_mh_delim (buffer))
+	{
+	  str->mark_offset = offset;
+	  str->mark_length = len - 1; /* do not count the terminating newline */
+	  break;
+	}
+      else if (!env_from || !env_date)
 	{
       	  if (!from && mu_c_strncasecmp (buffer, MU_HEADER_FROM,
 				         sizeof (MU_HEADER_FROM) - 1) == 0)
@@ -206,14 +217,15 @@ scan_stream (struct _mu_message_stream *str)
 	    env_date = copy_trimmed_value (buffer +
 					   sizeof (MU_HEADER_ENV_DATE));
 	}
+      offset += len;
     }
 
   free (buffer);
 
-  rc = mu_stream_seek (stream, 0, MU_SEEK_CUR, &body_start);
+  rc = mu_stream_seek (transport, 0, MU_SEEK_CUR, &body_start);
   if (rc)
     return rc;
-  rc = mu_stream_size (stream, &body_end);
+  rc = mu_stream_size (transport, &body_end);
   if (rc)
     return rc;
   
@@ -253,43 +265,6 @@ scan_stream (struct _mu_message_stream *str)
   str->body_end = body_end - 1;
   
   return 0;
-}
-
-static int
-_message_open (mu_stream_t stream)
-{
-  struct _mu_message_stream *s = (struct _mu_message_stream*) stream;
-  size_t offset, len;
-  char *buffer = NULL;
-  size_t bufsize = 0;
-  int rc;
-
-  offset = 0;
-  mu_stream_seek (s->transport, 0, MU_SEEK_SET, NULL);
-  while ((rc = mu_stream_getline (s->transport, &buffer, &bufsize,
-				  &len)) == 0
-	 && len > 0)
-    {
-      if (offset == 0 && memcmp (buffer, "From ", 5) == 0)
-	{
-	  s->envelope_length = len;
-	  s->envelope = mu_strdup (buffer);
-	  if (!s->envelope)
-	    return ENOMEM;
-	  s->envelope[len - 1] = 0;
-	}
-      else if (mu_mh_delim (buffer))
-	{
-	  s->mark_offset = offset;
-	  s->mark_length = len - 1; /* do not count the terminating newline */
-	  break;
-	}
-
-      offset += len;
-    }
-  free (buffer);
-
-  return scan_stream (s);
 }
 
 static int
