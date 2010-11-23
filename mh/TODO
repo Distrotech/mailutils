@@ -19,7 +19,7 @@ State	Nice	Utility		Comments
 -------------------------------------------
 +	-20	scan
 +	-20	inc
-*	-20	repl		--inplace
+*	-20	repl		--inplace,--query
 +	-20	comp		
 *	-20	forw		--inplace
 *	-20	send		--alias,--filter,--format,--forward,--mime,

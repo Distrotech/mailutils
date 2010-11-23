@@ -1,0 +1,82 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2010 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# GNU Mailutils is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+
+m4_pushdef([MH_KEYWORDS],[repl])
+m4_pushdef([replcmd],[repl dnl
+-editor $abs_top_srcdir/mh/tests/mhed])
+
+MH_CHECK([repl msg],[repl00 repl-msg],[
+mkdir Mail/inbox
+AT_DATA([Mail/inbox/1],[From: gray@example.com
+To: root@example.com
+Subject: test input
+
+message body
+])
+echo "quit" | replcmd +inbox 1 | sed "s|$dir/*||;s|  *$||"
+echo == Mail/draft ==
+cat Mail/draft
+],
+[0],
+[-- Editor invocation: Mail/draft
+-- Input file:
+To: <gray@example.com>
+Subject: Re: test input
+X-Mailer: MH (AT_PACKAGE_NAME AT_PACKAGE_VERSION)
+--------
+-- Input file end
+What now? draft left on "Mail/draft".
+== Mail/draft ==
+To: <gray@example.com>
+Subject: Re: test input
+X-Mailer: MH (AT_PACKAGE_NAME AT_PACKAGE_VERSION)
+--------
+Seen by mhed
+])
+
+MH_CHECK([repl -draftfolder],[repl01 repl-draftfolder],[
+mkdir Mail/inbox
+mkdir Mail/drafts
+AT_DATA([Mail/inbox/1],[From: gray@example.com
+To: root@example.com
+Subject: test input
+
+message body
+])
+echo "quit" | replcmd -draftfolder drafts +inbox 1 | sed "s|$dir/*||;s|  *$||"
+echo == Mail/drafts/1 ==
+cat Mail/drafts/1
+],
+[0],
+[-- Editor invocation: Mail/drafts/1
+-- Input file:
+To: <gray@example.com>
+Subject: Re: test input
+X-Mailer: MH (AT_PACKAGE_NAME AT_PACKAGE_VERSION)
+--------
+-- Input file end
+What now? draft left on "Mail/drafts/1".
+== Mail/drafts/1 ==
+To: <gray@example.com>
+Subject: Re: test input
+X-Mailer: MH (AT_PACKAGE_NAME AT_PACKAGE_VERSION)
+--------
+Seen by mhed
+])
+
+m4_popdef([replcmd])
+m4_popdef([MH_KEYWORDS])
+# End of repl.at

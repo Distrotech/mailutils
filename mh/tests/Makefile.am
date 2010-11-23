@@ -55,6 +55,7 @@ TESTSUITE_AT = \
  pick.at\
  scan.at\
  refile.at\
+ repl.at\
  rmf.at\
  rmm.at\
  testsuite.at

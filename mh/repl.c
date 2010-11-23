@@ -58,7 +58,7 @@ static struct argp_option options[] = {
   {"inplace", ARG_INPLACE, N_("BOOL"), OPTION_ARG_OPTIONAL,
    N_("* annotate the message in place")},
   {"query", ARG_QUERY, N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("query for addresses to place in To: and Cc: lists")},
+   N_("* query for addresses to place in To: and Cc: lists")},
   {"width", ARG_WIDTH, N_("NUMBER"), 0, N_("set output width")},
   {"whatnowproc", ARG_WHATNOWPROC, N_("PROG"), 0,
    N_("set the replacement for whatnow program")},
@@ -143,8 +143,7 @@ opt_handler (int key, char *arg, struct argp_state *state)
   switch (key)
     {
     case ARGP_KEY_INIT:
-      draftfolder = mh_global_profile_get ("Draft-Folder",
-					   mu_folder_directory ());
+      draftfolder = mh_global_profile_get ("Draft-Folder", NULL);
       whatnowproc = mh_global_profile_get ("whatnowproc", NULL);
       break;
       
@@ -225,6 +224,7 @@ opt_handler (int key, char *arg, struct argp_state *state)
       break;
       
     case ARG_QUERY:
+      mh_opt_notimpl_warning ("-inplace");
       query_mode = is_true (arg);
       break;
       
