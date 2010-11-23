@@ -143,7 +143,7 @@ Subject: test input
 message body
 ])
 
-MH_CHECK([comp -draftfolder],[comp05 comp-draftfolder],[
+MH_CHECK([comp -draftfolder],[comp05 comp-draftfolder draftfolder],[
 mkdir Mail/drafts
 dir=`pwd`
 echo 'quit' | compcmd -draftfolder drafts | sed "s|$dir/*||;s|  *$||"
@@ -165,7 +165,7 @@ Subject:
 Seen by mhed
 ])
 
-MH_CHECK([comp +draftfolder -use],[comp06 comp-draftfolder-use],[
+MH_CHECK([comp +draftfolder -use],[comp06 comp-draftfolder-use draftfolder],[
 mkdir Mail/drafts
 AT_DATA([Mail/drafts/1],[From: gray
 To: root
@@ -201,3 +201,4 @@ Seen by mhed
 m4_popdef([compcmd])
 m4_popdef([MH_KEYWORDS])
 
+# End of comp.at

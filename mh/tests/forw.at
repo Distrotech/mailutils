@@ -1,0 +1,348 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2010 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# GNU Mailutils is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+
+m4_pushdef([MH_KEYWORDS],[forw])
+m4_pushdef([forwcmd],[forw dnl
+-form $abs_top_srcdir/mh/components dnl
+-editor $abs_top_srcdir/mh/tests/mhed])
+
+MH_CHECK([forw msg],[forw00 forw-msg],[
+mkdir Mail/inbox
+AT_DATA([Mail/inbox/1],[From: gray
+To: root
+Subject: test input
+
+message body
+])
+
+dir=`pwd`
+echo quit | forwcmd +inbox 1 | sed "s|$dir/*||;s|  *$||"
+echo == Mail/draft ==
+cat Mail/draft
+echo == Message ==
+# FIXME: AMD adds this header to the first message.  Find a better way.
+# See also the same sed hacks below.
+sed '/^X-IMAPbase/d' Mail/inbox/1
+],
+[0],
+[-- Editor invocation: Mail/draft
+-- Input file:
+To:
+cc:
+Subject:
+--------
+
+------- Forwarded message
+From: gray
+To: root
+Subject: test input
+
+message body
+
+------- End of Forwarded message
+
+-- Input file end
+What now? draft left on "Mail/draft".
+== Mail/draft ==
+To:
+cc:
+Subject:
+--------
+
+------- Forwarded message
+From: gray
+To: root
+Subject: test input
+
+message body
+
+------- End of Forwarded message
+
+Seen by mhed
+== Message ==
+From: gray
+To: root
+Subject: test input
+
+message body
+])
+
+MH_CHECK([forw msgs],[forw01 forw-msgs],[
+mkdir Mail/inbox
+AT_DATA([Mail/inbox/1],[From: gray
+To: root
+Subject: test input
+
+message body
+])
+AT_DATA([Mail/inbox/2],[From: gray
+To: marlow
+Subject: 2nd message
+
+2nd message body
+])
+
+dir=`pwd`
+echo quit | forwcmd +inbox 1 2 | sed "s|$dir/*||;s|  *$||"
+echo == Mail/draft ==
+cat Mail/draft
+echo == Message 1 ==
+sed '/^X-IMAPbase/d' Mail/inbox/1
+echo == Message 2 ==
+cat Mail/inbox/2
+],
+[0],
+[-- Editor invocation: Mail/draft
+-- Input file:
+To:
+cc:
+Subject:
+--------
+
+------- Forwarded messages
+
+------- Message 1
+From: gray
+To: root
+Subject: test input
+
+message body
+
+------- Message 2
+From: gray
+To: marlow
+Subject: 2nd message
+
+2nd message body
+
+------- End of Forwarded messages
+
+-- Input file end
+What now? draft left on "Mail/draft".
+== Mail/draft ==
+To:
+cc:
+Subject:
+--------
+
+------- Forwarded messages
+
+------- Message 1
+From: gray
+To: root
+Subject: test input
+
+message body
+
+------- Message 2
+From: gray
+To: marlow
+Subject: 2nd message
+
+2nd message body
+
+------- End of Forwarded messages
+
+Seen by mhed
+== Message 1 ==
+From: gray
+To: root
+Subject: test input
+
+message body
+== Message 2 ==
+From: gray
+To: marlow
+Subject: 2nd message
+
+2nd message body
+])
+
+MH_CHECK([forw -build msg],[forw02 forw-build-msg],[
+mkdir Mail/inbox
+AT_DATA([Mail/inbox/1],[From: gray
+To: root
+Subject: test input
+
+message body
+])
+
+dir=`pwd`
+forwcmd -build +inbox 1 | sed "s|$dir/*||;s|  *$||"
+echo == Mail/draft ==
+cat Mail/draft
+echo == Message ==
+sed '/^X-IMAPbase/d' Mail/inbox/1
+],
+[0],
+[== Mail/draft ==
+To:
+cc:
+Subject:
+--------
+
+------- Forwarded message
+From: gray
+To: root
+Subject: test input
+
+message body
+
+------- End of Forwarded message
+
+== Message ==
+From: gray
+To: root
+Subject: test input
+
+message body
+])
+
+MH_CHECK([forw -build -mime msgs],[forw03 forw-build-mime-msg],[
+mkdir Mail/inbox
+AT_DATA([Mail/inbox/1],[From: gray
+To: root
+Subject: test input
+
+message body
+])
+AT_DATA([Mail/inbox/2],[From: gray
+To: marlow
+Subject: 2nd message
+
+2nd message body
+])
+
+dir=`pwd`
+forwcmd -build -mime +inbox 1 2 | sed "s|$dir/*||;s|  *$||"
+echo == Mail/draft ==
+sed "s|$dir/*||;s|  *$||" Mail/draft
+echo == Message 1 ==
+sed '/^X-IMAPbase/d' Mail/inbox/1
+echo == Message 2 ==
+cat Mail/inbox/2
+],
+[0],
+[== Mail/draft ==
+To:
+cc:
+Subject:
+--------
+#forw [] +Mail/inbox 1 2
+
+== Message 1 ==
+From: gray
+To: root
+Subject: test input
+
+message body
+== Message 2 ==
+From: gray
+To: marlow
+Subject: 2nd message
+
+2nd message body
+])
+
+MH_CHECK([forw -draftfolder],[forw04 forw-draftfolder draftfolder],[
+mkdir Mail/inbox
+mkdir Mail/drafts
+AT_DATA([Mail/inbox/1],[From: gray
+To: root
+Subject: test input
+
+message body
+])
+
+echo "quit" | forwcmd -draftfolder drafts 1 | sed "s|$dir/*||;s|  *$||"
+echo == Mail/drafts/1 ==
+cat Mail/drafts/1
+echo == Message ==
+sed '/^X-IMAPbase/d' Mail/inbox/1
+],
+[0],
+[-- Editor invocation: Mail/drafts/1
+-- Input file:
+To:
+cc:
+Subject:
+--------
+
+------- Forwarded message
+From: gray
+To: root
+Subject: test input
+
+message body
+
+------- End of Forwarded message
+
+-- Input file end
+What now? draft left on "Mail/drafts/1".
+== Mail/drafts/1 ==
+To:
+cc:
+Subject:
+--------
+
+------- Forwarded message
+From: gray
+To: root
+Subject: test input
+
+message body
+
+------- End of Forwarded message
+
+Seen by mhed
+== Message ==
+From: gray
+To: root
+Subject: test input
+
+message body
+])
+
+MH_CHECK([forw -file],[forw05 forw-file],[
+AT_DATA([infile],[From: gray
+To: root
+Subject: test input
+
+message body
+])
+
+echo "quit" | forwcmd -file infile | sed "s|$dir/*||;s|  *$||"
+],
+[0],
+[-- Editor invocation: Mail/draft
+-- Input file:
+To:
+cc:
+Subject:
+--------
+From: gray
+To: root
+Subject: test input
+
+message body
+-- Input file end
+What now? draft left on "Mail/draft".
+])
+
+m4_popdef([forwcmd])
+m4_popdef([MH_KEYWORDS])
+
+# End of forw.at

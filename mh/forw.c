@@ -42,6 +42,8 @@ static struct argp_option options[] = {
    N_("set the editor program to use")},
   {"noedit",        ARG_NOEDIT,        0, 0,
    N_("suppress the initial edit")},
+  {"file",          ARG_FILE, N_("FILE"), 0,
+   N_("read message from FILE")},
   {"format",        ARG_FORMAT,        N_("BOOL"), 0, 
    N_("format messages")},
   {"noformat",      ARG_NOFORMAT,      NULL, 0,
@@ -74,26 +76,28 @@ static struct argp_option options[] = {
 struct mh_option mh_option[] = {
   { "annotate",      MH_OPT_BOOL },
   { "build" },
-  { "form",          MH_OPT_ARG, "formatfile"},
-  { "format",        MH_OPT_ARG, "string"},
-  { "draftfolder",   MH_OPT_ARG, "folder"},
+  { "file",          MH_OPT_ARG, "msgfile" },
+  { "form",          MH_OPT_ARG, "formatfile" },
+  { "format",        MH_OPT_ARG, "string" },
+  { "draftfolder",   MH_OPT_ARG, "folder" },
   { "nodraftfolder" },
   { "draftmessage" },
-  { "editor",        MH_OPT_ARG, "program"},
+  { "editor",        MH_OPT_ARG, "program" },
   { "noedit" },
-  { "filter",        MH_OPT_ARG, "program"},
+  { "filter",        MH_OPT_ARG, "program" },
   { "inplace",       MH_OPT_BOOL },
-  { "whatnowproc",   MH_OPT_ARG, "program"},
+  { "whatnowproc",   MH_OPT_ARG, "program" },
   { "nowhatnowproc" },
   { "mime",          MH_OPT_BOOL },
   { NULL }
 };
 
-enum encap_type {
-  encap_clear,
-  encap_mhl,
-  encap_mime
-};
+enum encap_type
+  {
+    encap_clear,
+    encap_mhl,
+    encap_mime
+  };
 
 static char *formfile;
 struct mh_whatnow_env wh_env = { 0 };
@@ -108,6 +112,7 @@ static int use_draft = 0;       /* --use flag */
 static int width = 80;          /* --width flag */
 static char *draftmessage = "new";
 static const char *draftfolder = NULL;
+static char *input_file;        /* input file name (--file option) */
 
 static mh_msgset_t msgset;
 static mu_mailbox_t mbox;
@@ -118,8 +123,7 @@ opt_handler (int key, char *arg, struct argp_state *state)
   switch (key)
     {
     case ARGP_KEY_INIT:
-      draftfolder = mh_global_profile_get ("Draft-Folder",
-					   mu_folder_directory ());
+      draftfolder = mh_global_profile_get ("Draft-Folder", NULL);
       whatnowproc = mh_global_profile_get ("whatnowproc", NULL);
       break;
 
@@ -131,6 +135,10 @@ opt_handler (int key, char *arg, struct argp_state *state)
       build_only = 1;
       break;
 
+    case ARG_FILE:
+      input_file = arg;
+      break;
+      
     case ARG_DRAFTFOLDER:
       draftfolder = arg;
       break;
@@ -218,7 +226,8 @@ opt_handler (int key, char *arg, struct argp_state *state)
   return 0;
 }
 
-struct format_data {
+struct format_data
+{
   int num;
   mu_stream_t stream;
   mu_list_t format;
@@ -286,26 +295,41 @@ msg_copy (mu_message_t msg, mu_stream_t ostream)
 }
 
 void
-format_message (mu_mailbox_t mbox, mu_message_t msg, size_t num, void *data)
+format_message (mu_stream_t outstr, mu_message_t msg, int num,
+		mu_list_t format)
 {
-  struct format_data *fp = data;
-  char *s;
-  int rc;
+  int rc = 0;
   
   if (annotate)
     mu_list_append (wh_env.anno_list, msg);
   
-  if (fp->num)
-    {
-      mu_asprintf (&s, "\n------- Message %d\n", fp->num++);
-      rc = mu_stream_write (fp->stream, s, strlen (s), NULL);
-      free (s);
-    }
+  if (num)
+    rc = mu_stream_printf (outstr, "\n------- Message %d\n", num);
 
-  if (fp->format)
-    rc = mhl_format_run (fp->format, width, 0, 0, msg, fp->stream);
-  else
-    rc = msg_copy (msg, fp->stream);
+  if (rc == 0)
+    {
+      if (format)
+	rc = mhl_format_run (format, width, 0, 0, msg, outstr);
+      else
+	rc = msg_copy (msg, outstr);
+    }
+  
+  if (rc)
+    {
+      mu_error (_("cannot copy message: %s"), mu_strerror (rc));
+      exit (1);
+    }
+}
+
+void
+format_message_itr (mu_mailbox_t mbox MU_ARG_UNUSED,
+		    mu_message_t msg, size_t num, void *data)
+{
+  struct format_data *fp = data;
+
+  format_message (fp->stream, msg, fp->num, fp->format);
+  if (fp->num)
+    fp->num++;
 }
 
 void
@@ -316,23 +340,6 @@ finish_draft ()
   mu_list_t format = NULL;
   struct format_data fd;
   char *str;
-  
-  if (!mhl_filter)
-    {
-      char *s = mh_expand_name (MHLIBDIR, "mhl.forward", 0);
-      if (access (s, R_OK) == 0)
-	mhl_filter = "mhl.forward";
-      free (s);
-    }
-
-  if (mhl_filter)
-    {
-      char *s = mh_expand_name (MHLIBDIR, mhl_filter, 0);
-      format = mhl_format_compile (s);
-      if (!format)
-	exit (1);
-      free (s);
-    }
   
   if ((rc = mu_file_stream_create (&stream,
 				   wh_env.file,
@@ -345,73 +352,120 @@ finish_draft ()
 
   mu_stream_seek (stream, 0, SEEK_END, NULL);
 
-  if (annotate)
+  if (input_file)
     {
-      wh_env.anno_field = "Forwarded";
-      mu_list_create (&wh_env.anno_list);
-    }
+      mu_stream_t instr;
+      int rc;
   
-  if (encap == encap_mime)
-    {
-      mu_url_t url;
-      const char *mbox_path;
-      const char *p;
-      size_t i;
-      
-      mu_mailbox_get_url (mbox, &url);
-      
-      mbox_path = mu_url_to_string (url);
-      if (memcmp (mbox_path, "mh:", 3) == 0)
-	mbox_path += 3;
-      mu_asprintf (&str, "#forw [] +%s", mbox_path);
-      rc = mu_stream_write (stream, str, strlen (str), NULL);
-      free (str);
-      for (i = 0; rc == 0 && i < msgset.count; i++)
+      if ((rc = mu_file_stream_create (&stream,
+				       wh_env.file,
+				       MU_STREAM_WRITE|MU_STREAM_CREAT)))
 	{
-          mu_message_t msg;
-	  size_t num;
-		  
-	  mu_mailbox_get_message (mbox, msgset.list[i], &msg);
-	  if (annotate)
-	    mu_list_append (wh_env.anno_list, msg);
-	  mh_message_number (msg, &num);
-          p = mu_umaxtostr (0, num);
-          rc = mu_stream_write (stream, p, strlen (p), NULL);
+	  mu_error (_("cannot open output file `%s': %s"),
+		    wh_env.file, mu_strerror (rc));
+	  exit (1);
 	}
+
+      mu_stream_seek (stream, 0, SEEK_END, NULL);
+      
+      rc = mu_file_stream_create (&instr, input_file, MU_STREAM_READ);
+      if (rc)
+	{
+	  mu_diag_funcall (MU_DIAG_ERROR, "mu_file_stream_create",
+			   input_file, rc);
+	  exit (1);
+	}
+      
+      rc = mu_stream_copy (stream, instr, 0, NULL);
+      mu_stream_unref (instr);
     }
   else
     {
-      str = "\n------- ";
-      rc = mu_stream_write (stream, str, strlen (str), NULL);
-
-      if (msgset.count == 1)
+      if (!mhl_filter)
 	{
-	  fd.num = 0;
-	  str = (char*) _("Forwarded message\n");
+	  char *s = mh_expand_name (MHLIBDIR, "mhl.forward", 0);
+	  if (access (s, R_OK) == 0)
+	    mhl_filter = "mhl.forward";
+	  free (s);
 	}
-      else
+      
+      if (mhl_filter)
 	{
-	  fd.num = 1;
-	  str = (char*) _("Forwarded messages\n");
+	  char *s = mh_expand_name (MHLIBDIR, mhl_filter, 0);
+	  format = mhl_format_compile (s);
+	  if (!format)
+	    exit (1);
+	  free (s);
 	}
   
-      rc = mu_stream_write (stream, str, strlen (str), NULL);
-      fd.stream = stream;
-      fd.format = format;
-      rc = mh_iterate (mbox, &msgset, format_message, &fd);
+      if (annotate)
+	{
+	  wh_env.anno_field = "Forwarded";
+	  mu_list_create (&wh_env.anno_list);
+	}
       
-      str = "\n------- ";
-      rc = mu_stream_write (stream, str, strlen (str), NULL);
+      if (encap == encap_mime)
+	{
+	  mu_url_t url;
+	  const char *mbox_path;
+	  const char *p;
+	  size_t i;
       
-      if (msgset.count == 1)
-	str = (char*) _("End of Forwarded message");
+	  mu_mailbox_get_url (mbox, &url);
+	  mu_url_sget_path (url, &mbox_path);
+	  mu_asprintf (&str, "#forw [] +%s", mbox_path);
+	  rc = mu_stream_write (stream, str, strlen (str), NULL);
+	  free (str);
+	  for (i = 0; rc == 0 && i < msgset.count; i++)
+	    {
+	      mu_message_t msg;
+	      size_t num;
+	      
+	      mu_mailbox_get_message (mbox, msgset.list[i], &msg);
+	      if (annotate)
+		mu_list_append (wh_env.anno_list, msg);
+	      mh_message_number (msg, &num);
+	      p = mu_umaxtostr (0, num);
+	      rc = mu_stream_write (stream, " ", 1, NULL);
+	      if (rc)
+		break;
+	      rc = mu_stream_write (stream, p, strlen (p), NULL);
+	    }
+	}
       else
-	str = (char*) _("End of Forwarded messages");
+	{
+	  str = "\n------- ";
+	  rc = mu_stream_write (stream, str, strlen (str), NULL);
+	  
+	  if (msgset.count == 1)
+	    {
+	      fd.num = 0;
+	      str = (char*) _("Forwarded message\n");
+	    }
+	  else
+	    {
+	      fd.num = 1;
+	      str = (char*) _("Forwarded messages\n");
+	    }
+	  
+	  rc = mu_stream_write (stream, str, strlen (str), NULL);
+	  fd.stream = stream;
+	  fd.format = format;
+	  rc = mh_iterate (mbox, &msgset, format_message_itr, &fd);
       
-      rc = mu_stream_write (stream, str, strlen (str), NULL);
+	  str = "\n------- ";
+	  rc = mu_stream_write (stream, str, strlen (str), NULL);
+	  
+	  if (msgset.count == 1)
+	    str = (char*) _("End of Forwarded message");
+	  else
+	    str = (char*) _("End of Forwarded messages");
+	  
+	  rc = mu_stream_write (stream, str, strlen (str), NULL);
+	}
+      
+      rc = mu_stream_write (stream, "\n\n", 2, NULL);
     }
-  
-  rc = mu_stream_write (stream, "\n\n", 2, NULL);
   mu_stream_close (stream);
   mu_stream_destroy (&stream);
 }
@@ -431,27 +485,43 @@ main (int argc, char **argv)
   argc -= index;
   argv += index;
 
-  mbox = mh_open_folder (mh_current_folder (), 0);
-  mh_msgset_parse (mbox, &msgset, argc, argv, "cur");
+  if (input_file)
+    {
+      if (encap == encap_mime)
+	{
+	  mu_error (_("--build disables --mime"));
+	  encap = encap_clear;
+	}
+      if (argc)
+	{
+	  mu_error (_("can't mix files and folders/msgs"));
+	  exit (1);
+	}
+    }
+  else
+    {
+      mbox = mh_open_folder (mh_current_folder (), 0);
+      mh_msgset_parse (mbox, &msgset, argc, argv, "cur");
+    }
   
   if (build_only || !draftfolder)
     wh_env.file = mh_expand_name (NULL, "draft", 0);
-  else 
+  else if (draftfolder)
     {
-      if (mh_draft_message (NULL, draftmessage, &wh_env.file))
+      if (mh_draft_message (draftfolder, draftmessage, &wh_env.file))
 	return 1;
     }
   wh_env.draftfile = wh_env.file;
 
   switch (build_only ?
-	    DISP_REPLACE : check_draft_disposition (&wh_env, use_draft))
+	  DISP_REPLACE : check_draft_disposition (&wh_env, use_draft))
     {
     case DISP_QUIT:
       exit (0);
-
+      
     case DISP_USE:
       break;
-	  
+      
     case DISP_REPLACE:
       unlink (wh_env.draftfile);
       mh_comp_draft (formfile, "forwcomps", wh_env.file);

@@ -187,7 +187,8 @@ mh_option_init (struct mh_option *opt)
 	    do
 	      {
 		minlen++;
-		opt[j].match_len = minlen;
+		if (minlen <= strlen (opt[j].opt))
+		  opt[j].match_len = minlen;
 		if (minlen == sample_len)
 		  break;
 	      }
@@ -197,7 +198,8 @@ mh_option_init (struct mh_option *opt)
 	  else
 	    break;
 	}
-      opt[i].match_len = minlen;
+      if (minlen <= sample_len)
+	opt[i].match_len = minlen;
     }
 }
 

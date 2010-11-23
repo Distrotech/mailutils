@@ -44,6 +44,7 @@ TESTSUITE_AT = \
  burst.at\
  comp.at\
  folder.at\
+ forw.at\
  inc.at\
  install-mh.at\
  mark.at\
