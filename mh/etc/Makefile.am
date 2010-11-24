@@ -26,6 +26,7 @@ MH_FILES   = \
  forwcomps\
  mhl.format\
  mhl.forward\
+ mhl.headers\
  mhl.repl\
  mhl.usenet\
  replcomps\

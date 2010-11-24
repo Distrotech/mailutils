@@ -96,6 +96,7 @@ static struct argp_option options[] = {
 /* Traditional MH options */
 struct mh_option mh_option[] = {
   { "file",          MH_OPT_ARG, "filename" },
+  { "compose" },
   { "list",          MH_OPT_BOOL },
   { "headers",       MH_OPT_BOOL },
   { "realsize",      MH_OPT_BOOL },
@@ -357,7 +358,7 @@ opt_handler (int key, char *arg, struct argp_state *state)
       break;
 
     case ARG_FORM:
-      formfile = arg;
+      mh_find_file (arg, &formfile);
       break;
 
       /* Common options */
@@ -388,6 +389,11 @@ opt_handler (int key, char *arg, struct argp_state *state)
 	
     case ARG_CHARSET:
       charset = arg;
+      break;
+      
+    case ARGP_KEY_FINI:
+      if (!formfile)
+	mh_find_file ("mhl.headers", &formfile);
       break;
       
     default:
@@ -1444,22 +1450,7 @@ mhn_show ()
       exit (1);
     }
   
-  if (formfile)
-    {
-      char *s = mh_expand_name (MHLIBDIR, "mhl.headers", 0);
-      if (access (s, R_OK) == 0)
-	formfile = "mhl.headers";
-      free (s);
-    }
-
-  if (formfile)
-    {
-      char *s = mh_expand_name (MHLIBDIR, formfile, 0);
-      mhl_format = mhl_format_compile (s);
-      if (!mhl_format)
-	exit (1);
-      free (s);
-    }
+  mhl_format = mhl_format_compile (formfile);
     
   if (message)
     rc = show_message (message, 0, ostr);
@@ -1895,22 +1886,27 @@ copy_header (mu_message_t msg, mu_header_t out)
 void
 copy_header_to_stream (mu_message_t msg, mu_stream_t stream)
 {
+  int rc;
   mu_header_t hdr;
-  mu_stream_t in;
-  char *buf = NULL;
-  size_t bufsize = 0, n = 0;
-  
+  mu_stream_t flt, str;
+
   mu_message_get_header (msg, &hdr);
-  mu_header_get_streamref (hdr, &in);
-  /* FIXME: Use mu_stream_copy */
-  while (mu_stream_getline (in, &buf, &bufsize, &n) == 0 && n > 0)
+  mu_header_get_streamref (hdr, &str);
+  rc = mu_filter_create (&flt, str, "HEADER",
+			 MU_FILTER_DECODE, MU_STREAM_READ);
+  mu_stream_unref (str);
+  if (rc)
     {
-      if (n == 1 && buf[0] == '\n')
-	break;
-      mu_stream_write (stream, buf, n, NULL);
+      mu_error (_("cannot open filter stream: %s"), mu_strerror (rc));
+      exit (1);
     }
-  mu_stream_destroy (&in);
-  free (buf);
+  rc = mu_stream_copy (stream, flt, 0, NULL);
+  if (rc)
+    {
+      mu_error (_("error reading headers: %s"), mu_strerror (rc));
+      exit (1);
+    }
+  mu_stream_destroy (&flt);
 }
 
 void

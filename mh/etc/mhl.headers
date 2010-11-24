@@ -1,0 +1,20 @@
+; mhl.headers
+;
+; GNU Mailutils -- a suite of utilities for electronic mail
+; Copyright (C) 2010 Free Software Foundation, Inc.
+; Distributed under GPLv3+.  See <http://gnu.org/licenses/gpl.html>.
+;
+; Mhn uses this format file for displaying headers in MIME messages. 
+;
+overflowtext="***",overflowoffset=5
+leftadjust,compwidth=9
+ignores=msgid,message-id,received,content-type,content-transfer-encoding,content-id
+Date:formatfield="%<(nodate{text})%{text}%|%(pretty{text})%>"
+To:
+cc:
+From:decode
+Subject:decode
+:
+extras:nocomponent
+:
+; End of mhl.headers
