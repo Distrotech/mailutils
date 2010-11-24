@@ -80,7 +80,68 @@ Subject: test input
 message body
 ])
 
-MH_CHECK([forw msgs],[forw01 forw-msgs],[
+MH_CHECK([forw -format msg],[forw01 forw-format-msg],[
+mkdir Mail/inbox
+AT_DATA([Mail/inbox/1],[From: gray
+To: root
+Subject: test input
+
+message body
+])
+
+dir=`pwd`
+echo quit | forwcmd -format +inbox 1 | sed "s|$dir/*||;s|  *$||"
+echo == Mail/draft ==
+cat Mail/draft
+echo == Message ==
+# FIXME: AMD adds this header to the first message.  Find a better way.
+# See also the same sed hacks below.
+sed '/^X-IMAPbase/d' Mail/inbox/1
+],
+[0],
+[-- Editor invocation: Mail/draft
+-- Input file:
+To:
+cc:
+Subject:
+--------
+
+------- Forwarded message
+From:    gray
+To:      root
+Subject: test input
+
+message body
+
+------- End of Forwarded message
+
+-- Input file end
+What now? draft left on "Mail/draft".
+== Mail/draft ==
+To:
+cc:
+Subject:
+--------
+
+------- Forwarded message
+From:    gray
+To:      root
+Subject: test input
+
+message body
+
+------- End of Forwarded message
+
+Seen by mhed
+== Message ==
+From: gray
+To: root
+Subject: test input
+
+message body
+])
+
+MH_CHECK([forw msgs],[forw02 forw-msgs],[
 mkdir Mail/inbox
 AT_DATA([Mail/inbox/1],[From: gray
 To: root
@@ -171,7 +232,7 @@ Subject: 2nd message
 2nd message body
 ])
 
-MH_CHECK([forw -build msg],[forw02 forw-build-msg],[
+MH_CHECK([forw -build msg],[forw03 forw-build-msg],[
 mkdir Mail/inbox
 AT_DATA([Mail/inbox/1],[From: gray
 To: root
@@ -211,7 +272,7 @@ Subject: test input
 message body
 ])
 
-MH_CHECK([forw -build -mime msgs],[forw03 forw-build-mime-msg],[
+MH_CHECK([forw -build -mime msgs],[forw04 forw-build-mime-msg],[
 mkdir Mail/inbox
 AT_DATA([Mail/inbox/1],[From: gray
 To: root
@@ -257,7 +318,7 @@ Subject: 2nd message
 2nd message body
 ])
 
-MH_CHECK([forw -draftfolder],[forw04 forw-draftfolder draftfolder],[
+MH_CHECK([forw -draftfolder],[forw05 forw-draftfolder draftfolder],[
 mkdir Mail/inbox
 mkdir Mail/drafts
 AT_DATA([Mail/inbox/1],[From: gray
@@ -316,7 +377,7 @@ Subject: test input
 message body
 ])
 
-MH_CHECK([forw -file],[forw05 forw-file],[
+MH_CHECK([forw -file],[forw06 forw-file],[
 AT_DATA([infile],[From: gray
 To: root
 Subject: test input

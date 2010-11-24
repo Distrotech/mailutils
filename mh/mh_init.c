@@ -77,20 +77,34 @@ mh_read_formfile (char *name, char **pformat)
   char *ptr;
   size_t off = 0;
   char *format_str;
-
-  if (stat (name, &st))
+  char *file_name;
+  int rc;
+  
+  rc = mh_find_file (name, &file_name);
+  if (rc)
     {
-      mu_error (_("cannot stat format file %s: %s"), name, strerror (errno));
+      mu_error (_("cannot access format file %s: %s"), name, strerror (rc));
       return -1;
     }
   
-  fp = fopen (name, "r");
-  if (!fp)
+  if (stat (file_name, &st))
     {
-      mu_error (_("cannot open format file %s: %s"), name, strerror (errno));
+      mu_error (_("cannot stat format file %s: %s"), file_name,
+		strerror (errno));
+      free (file_name);
       return -1;
     }
-
+  
+  fp = fopen (file_name, "r");
+  if (!fp)
+    {
+      mu_error (_("cannot open format file %s: %s"), file_name,
+		strerror (errno));
+      free (file_name);
+      return -1;
+    }
+  free (file_name);
+  
   format_str = xmalloc (st.st_size+1);
   while ((ptr = fgets (format_str + off, st.st_size - off + 1, fp)) != NULL)
     {
@@ -517,6 +531,68 @@ mh_expand_name (const char *base, const char *name, int is_folder)
   
   free (namep);
   return p;
+}
+
+int
+mh_find_file (const char *name, char **resolved_name)
+{
+  char *s;
+  int rc;
+  
+  if (name[0] == '/' ||
+      (name[0] == '.' && name[1] == '/') ||
+      (name[0] == '.' && name[1] == '.' && name[2] == '/'))
+    {
+      if (access (name, R_OK) == 0)
+	{
+	  *resolved_name = xstrdup (name);
+	  return 0;
+	}
+      return errno;
+    }
+
+  if (name[0] == '~')
+    {
+      s = mu_tilde_expansion (name, "/", NULL);
+      if (access (s, R_OK) == 0)
+	{
+	  *resolved_name = s;
+	  return 0;
+	}
+      return errno;
+    }
+  
+  s = mh_expand_name (NULL, name, 0);
+  if (access (s, R_OK) == 0)
+    {
+      *resolved_name = s;
+      return 0;
+    }
+  if (errno != ENOENT)
+    mu_diag_output (MU_DIAG_WARNING,
+		    _("cannot access %s: %s"), s, mu_strerror (errno));
+  free (s);
+
+  s = mh_expand_name (mh_global_profile_get ("mhetcdir", MHLIBDIR), name, 0);
+  if (access (s, R_OK) == 0)
+    {
+      *resolved_name = s;
+      return 0;
+    }
+  if (errno != ENOENT)
+    mu_diag_output (MU_DIAG_WARNING,
+		    _("cannot access %s: %s"), s, mu_strerror (errno));
+  free (s);
+
+  *resolved_name = xstrdup (name);
+  if (access (name, R_OK) == 0)
+    return 0;
+  rc = errno;
+  if (rc != ENOENT)
+    mu_diag_output (MU_DIAG_WARNING,
+		    _("cannot access %s: %s"), s, mu_strerror (rc));
+
+  return rc;
 }
 
 int

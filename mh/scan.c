@@ -99,7 +99,8 @@ opt_handler (int key, char *arg, struct argp_state *state)
       break;
       
     case ARG_FORM:
-      mh_read_formfile (arg, &format_str);
+      if (mh_read_formfile (arg, &format_str))
+	exit (1);
       break;
       
     case ARG_FORMAT:

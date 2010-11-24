@@ -314,6 +314,7 @@ void mh_msgset_free (mh_msgset_t *msgset);
 void mh_msgset_uids (mu_mailbox_t mbox, mh_msgset_t *msgset);
 
 char *mh_get_dir (void);
+int mh_find_file (const char *name, char **resolved_name);
 char *mh_expand_name (const char *base, const char *name, int is_folder);
 void mh_quote (const char *in, char **out);
 void mh_expand_aliases (mu_message_t msg, mu_address_t *addr_to,
@@ -366,6 +367,7 @@ void mh_annotate (mu_message_t msg, char *field, char *text, int date);
 #define MHL_DISABLE_BODY 8
 
 mu_list_t mhl_format_compile (char *name);
+
 int mhl_format_run (mu_list_t fmt, int width, int length, int flags,
 		    mu_message_t msg, mu_stream_t output);
 void mhl_format_destroy (mu_list_t *fmt);

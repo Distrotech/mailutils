@@ -22,10 +22,11 @@ Sequence-Negation: not
 Draft-Folder: Mail/drafts
 Aliasfile: .mh_aliases
 EOT
-mhparam -all | tr '\t' ' ' | sed 's/^Path:.*/Path: Mail/;s/  */ /g'
+mhparam -all | tr '\t' ' ' | sed 's/^Path:.*/Path: Mail/;s/^mhetcdir:.*/mhetcdir: dir/;s/  */ /g'
 ],
 [0],
 [Path: Mail
+mhetcdir: dir
 Sequence-Negation: not
 Draft-Folder: Mail/drafts
 Aliasfile: .mh_aliases

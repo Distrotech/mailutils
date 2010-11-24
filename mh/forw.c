@@ -78,7 +78,7 @@ struct mh_option mh_option[] = {
   { "build" },
   { "file",          MH_OPT_ARG, "msgfile" },
   { "form",          MH_OPT_ARG, "formatfile" },
-  { "format",        MH_OPT_ARG, "string" },
+  { "format",        MH_OPT_BOOL },
   { "draftfolder",   MH_OPT_ARG, "folder" },
   { "nodraftfolder" },
   { "draftmessage" },
@@ -103,7 +103,9 @@ static char *formfile;
 struct mh_whatnow_env wh_env = { 0 };
 static int initial_edit = 1;
 static const char *whatnowproc;
-static char *mhl_filter = NULL; /* --filter flag */
+
+static char *mhl_filter_file = NULL; /* --filter flag */
+
 static int build_only = 0;      /* --build flag */
 static int annotate = 0;        /* --annotate flag */
 static enum encap_type encap = encap_clear; /* controlled by --format, --form
@@ -184,15 +186,18 @@ opt_handler (int key, char *arg, struct argp_state *state)
       if (is_true (arg))
 	{
 	  encap = encap_mhl;
-	  break;
+	  mh_find_file ("mhl.forward", &mhl_filter_file);
 	}
-      /*FALLTHRU*/
-    case ARG_NOFORMAT:
-      if (encap == encap_mhl)
+      else
 	encap = encap_clear;
+      break;
+      
+    case ARG_NOFORMAT:
+      encap = encap_clear;
       break;
 
     case ARG_FILTER:
+      mh_find_file (arg, &mhl_filter_file);
       encap = encap_mhl;
       break;
 	
@@ -381,23 +386,16 @@ finish_draft ()
     }
   else
     {
-      if (!mhl_filter)
+      if (encap == encap_mhl)
 	{
-	  char *s = mh_expand_name (MHLIBDIR, "mhl.forward", 0);
-	  if (access (s, R_OK) == 0)
-	    mhl_filter = "mhl.forward";
-	  free (s);
+	  if (mhl_filter_file)
+	    {
+	      format = mhl_format_compile (mhl_filter_file);
+	      if (!format)
+		exit (1);
+	    }
 	}
       
-      if (mhl_filter)
-	{
-	  char *s = mh_expand_name (MHLIBDIR, mhl_filter, 0);
-	  format = mhl_format_compile (s);
-	  if (!format)
-	    exit (1);
-	  free (s);
-	}
-  
       if (annotate)
 	{
 	  wh_env.anno_field = "Forwarded";

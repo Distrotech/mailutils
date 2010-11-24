@@ -21,7 +21,10 @@ test -d Mail || mkdir Mail
 dir=`pwd`
 MH=$dir/mh_profile
 export MH
-echo "Path: $dir/Mail" > $MH
+cat > $MH <<EOT
+Path: $dir/Mail
+mhetcdir: $abs_top_srcdir/mh
+EOT
 exec <&-
 ])
 
