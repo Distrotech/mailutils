@@ -324,5 +324,15 @@ TESTWSP([delimiter following empty quotes],[],[delim : ws return_delims],
 2: r
 ])
 
+TESTWSP([suppress ws trimming within quotes],[],
+[default delim , ws return_delims],
+[nocomponent,nonewline, formatfield="In message %{text}, "],
+[NF: 5
+0: nocomponent
+1: ,
+2: nonewline
+3: ,
+4: "formatfield=In message %{text}, "
+])
 
 m4_popdef([TESTWSP])

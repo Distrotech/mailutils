@@ -946,6 +946,9 @@ mu_wordsplit_trimws (struct mu_wordsplit *wsp)
   for (p = wsp->ws_head; p; p = p->next)
     {
       size_t n;
+
+      if (p->flags & _WSNF_QUOTE)
+	continue;
       
       /* Skip leading whitespace: */
       for (n = p->v.segm.beg; n < p->v.segm.end && ISWS (wsp->ws_input[n]);
