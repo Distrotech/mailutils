@@ -23,7 +23,7 @@ MH=$dir/mh_profile
 export MH
 cat > $MH <<EOT
 Path: $dir/Mail
-mhetcdir: $abs_top_srcdir/mh
+mhetcdir: $abs_top_srcdir/mh/etc
 EOT
 exec <&-
 ])

@@ -1397,6 +1397,7 @@ AC_CONFIG_FILES([
  libmailutils/Makefile
  messages/Makefile
  mh/Makefile
+ mh/etc/Makefile
  mimeview/Makefile
  movemail/Makefile
  po/Makefile.in

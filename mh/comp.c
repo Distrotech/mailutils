@@ -75,7 +75,7 @@ struct mh_option mh_option[] = {
 struct mh_whatnow_env wh_env = { 0 };
 static int initial_edit = 1;
 static const char *whatnowproc;
-const char *formfile;
+char *formfile;
 static int build_only = 0; /* --build flag */
 static int use_draft = 0;  /* --use flag */
 static char *draftmessage = "new";
@@ -110,7 +110,7 @@ opt_handler (int key, char *arg, struct argp_state *state)
       break;
 
     case ARG_FORM:
-      formfile = mh_expand_name (MHLIBDIR, arg, 0);
+      mh_find_file (arg, &formfile);
       break;
 
     case ARG_DRAFTMESSAGE:

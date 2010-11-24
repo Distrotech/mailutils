@@ -99,7 +99,7 @@ enum encap_type
     encap_mime
   };
 
-static char *formfile;
+char *formfile;
 struct mh_whatnow_env wh_env = { 0 };
 static int initial_edit = 1;
 static const char *whatnowproc;
@@ -179,7 +179,7 @@ opt_handler (int key, char *arg, struct argp_state *state)
       break;
 
     case ARG_FORM:
-      formfile = arg;
+      mh_find_file (arg, &formfile);
       break;
 
     case ARG_FORMAT:

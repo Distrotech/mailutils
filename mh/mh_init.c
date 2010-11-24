@@ -543,22 +543,18 @@ mh_find_file (const char *name, char **resolved_name)
       (name[0] == '.' && name[1] == '/') ||
       (name[0] == '.' && name[1] == '.' && name[2] == '/'))
     {
+      *resolved_name = xstrdup (name);
       if (access (name, R_OK) == 0)
-	{
-	  *resolved_name = xstrdup (name);
-	  return 0;
-	}
+	return 0;
       return errno;
     }
 
   if (name[0] == '~')
     {
       s = mu_tilde_expansion (name, "/", NULL);
+      *resolved_name = s;
       if (access (s, R_OK) == 0)
-	{
-	  *resolved_name = s;
-	  return 0;
-	}
+	return 0;
       return errno;
     }
   

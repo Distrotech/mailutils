@@ -15,9 +15,9 @@
 ## You should have received a copy of the GNU General Public License
 ## along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>. 
 
-SUBDIRS = . tests
+SUBDIRS = . etc tests
 bindir = @MH_BIN_DIR@
-mhlibdir = $(pkgdatadir)/mh
+
 bin_PROGRAMS = \
  ali\
  anno\
@@ -83,10 +83,6 @@ libmh_a_SOURCES= \
  whatnowenv.c
 noinst_HEADERS = mh.h mh_alias.h mh_format.h mh_getopt.h
 
-LISPSRC = mailutils-mh.el
-lisp_LISP=@lisp_LISP@
-EXTRA_LISP = mailutils-mh.el
-
 BUILT_SOURCES= \
 	mh_fmtgram.c \
         pick-gram.c \
@@ -97,17 +93,7 @@ BUILT_SOURCES= \
 
 MAINTAINERCLEANFILES=$(BUILT_SOURCES)
 
-mhlib_DATA = components replcomps replgroupcomps mhl.format mhl.forward\
- mhl.repl mhl.usenet $(LISPSRC)
-EXTRA_DIST = components replcomps replgroupcomps mhl.format mhl.forward\
- mhl.repl mhl.usenet mailutils-mh.eli mh_fmtgram.y pick.y mh_alias.y mh_alias.l
-DISTCLEANFILES = mailutils-mh.el
-
-SUFFIXES = .eli .el
-mailutils-mh.el: mailutils-mh.eli
-
-.eli.el:
-	sed "s,BINDIR,$(bindir),g;s,MHLIBDIR,$(mhlibdir),g" $< > $@
+EXTRA_DIST = mailutils-mh.eli mh_fmtgram.y pick.y mh_alias.y mh_alias.l
 
 INCLUDES = @MU_APP_COMMON_INCLUDES@ 
 AM_CPPFLAGS = -D_GNU_SOURCE -DMHLIBDIR=\"$(mhlibdir)\" -DMHBINDIR=\"$(bindir)\"

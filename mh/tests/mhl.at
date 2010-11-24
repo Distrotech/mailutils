@@ -18,7 +18,7 @@ m4_pushdef([MH_KEYWORDS],[mhl])
 
 MH_CHECK([mhl],[mhl00],[
 MUT_MBCOPY($abs_top_srcdir/testsuite/mh/teaparty,[Mail/inbox])
-mhl -form $abs_top_srcdir/mh/mhl.format Mail/inbox/2
+mhl -form mhl.format Mail/inbox/2
 ],
 [0],
 [ -- using template mhl.format --
@@ -36,7 +36,7 @@ I don't see any wine
 
 MH_CHECK([mhl repl],[mhl01 mhl.repl],[
 MUT_MBCOPY($abs_top_srcdir/testsuite/mh/teaparty,[Mail/inbox])
-mhl -form $abs_top_srcdir/mh/mhl.repl Mail/inbox/15
+mhl -form mhl.repl Mail/inbox/15
 ],
 [0],
 [
@@ -47,7 +47,7 @@ mhl -form $abs_top_srcdir/mh/mhl.repl Mail/inbox/15
 
 MH_CHECK([mhl usenet],[mhl02 mhl.usenet],[
 MUT_MBCOPY($abs_top_srcdir/testsuite/mh/teaparty,[Mail/inbox])
-mhl -form $abs_top_srcdir/mh/mhl.usenet Mail/inbox/15
+mhl -form mhl.usenet Mail/inbox/15
 ],
 [0],
 [
