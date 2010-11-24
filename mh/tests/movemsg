@@ -1,0 +1,5 @@
+#! /bin/sh
+set -e
+dir=`mhpath +`/removed
+test -d $dir || mkdir $dir
+mv $* $dir
