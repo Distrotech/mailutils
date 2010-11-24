@@ -700,8 +700,6 @@ eval_body (struct eval_env *env)
   if (env->bvar[B_DISABLE_BODY])
     return 0;
 
-  print_component_name (env);
-  
   env->prefix = env->svar[S_COMPONENT];
 
   mu_message_get_body (env->msg, &body);
@@ -728,7 +726,7 @@ eval_body (struct eval_env *env)
   while (mu_stream_readline (input, buf, sizeof buf, &n) == 0
 	 && n > 0)
     {
-      buf[n] = 0;
+      goto_offset (env, env->ivar[I_OFFSET]);
       print (env, buf, 0);
       nl = buf[n-1] == '\n';
     }

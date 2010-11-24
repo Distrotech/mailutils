@@ -22,8 +22,8 @@ echo "Current-Folder: inbox" > Mail/context
 scan | sed 's/ *$//'
 ],
 [0],
-[   1  12/28 Foo Bar <foobar@n  Jabberwocky<<`Twas brillig, and the slithy toves
-   2  12/28 Bar <bar@dontmail  Re: Jabberwocky<<It seems very pretty, but it's
+[   1  12/28 Foo Bar            Jabberwocky<<`Twas brillig, and the slithy toves
+   2  12/28 Bar                Re: Jabberwocky<<It seems very pretty, but it's
    3  07/13 Sergey Poznyakoff  Simple MIME<<------- =_aaaaaaaaaa0 Content-Type:
    4  07/13 Sergey Poznyakoff  Nested MIME<<------- =_aaaaaaaaaa0 Content-Type:
    5  07/13 Sergey Poznyakoff  Empty MIME Parts<<------- =_aaaaaaaaaa0 Content-
@@ -34,8 +34,8 @@ MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
 scan +inbox | sed 's/ *$//'
 ],
 [0],
-[   1  12/28 Foo Bar <foobar@n  Jabberwocky<<`Twas brillig, and the slithy toves
-   2  12/28 Bar <bar@dontmail  Re: Jabberwocky<<It seems very pretty, but it's
+[   1  12/28 Foo Bar            Jabberwocky<<`Twas brillig, and the slithy toves
+   2  12/28 Bar                Re: Jabberwocky<<It seems very pretty, but it's
    3  07/13 Sergey Poznyakoff  Simple MIME<<------- =_aaaaaaaaaa0 Content-Type:
    4  07/13 Sergey Poznyakoff  Nested MIME<<------- =_aaaaaaaaaa0 Content-Type:
    5  07/13 Sergey Poznyakoff  Empty MIME Parts<<------- =_aaaaaaaaaa0 Content-
@@ -43,7 +43,7 @@ scan +inbox | sed 's/ *$//'
 
 MH_CHECK([scan -format],[scan02 scan-format],[
 MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail])
-scan +mbox1 -format '%4(msg) %(decode(friendly{from})) - %(decode(friendly{to}))'
+scan +mbox1 -format '%4(msg) %{from} - %{to}'
 ],
 [0],
 [   1 Foo Bar <foobar@nonexistent.net> - Bar <bar@dontmailme.org>
@@ -59,11 +59,11 @@ echo '%4(msg) %(decode(friendly{from})) - %(decode(friendly{to}))' > formfile
 scan +mbox1 -form formfile
 ],
 [0],
-[   1 Foo Bar <foobar@nonexistent.net> - Bar <bar@dontmailme.org>
-   2 Bar <bar@dontmailme.org> - Foo Bar <foobar@nonexistent.net>
-   3 Sergey Poznyakoff <gray@example.net> - Foo Bar <foobar@nonexistent.net>
-   4 Sergey Poznyakoff <gray@example.net> - Foo Bar <foobar@nonexistent.net>
-   5 Sergey Poznyakoff <gray@example.net> - Foo Bar <foobar@nonexistent.net>
+[   1 Foo Bar - Bar
+   2 Bar - Foo Bar
+   3 Sergey Poznyakoff - Foo Bar
+   4 Sergey Poznyakoff - Foo Bar
+   5 Sergey Poznyakoff - Foo Bar
 ])
 
 MH_CHECK([scan -reverse],[scan04 scan-reverse],[
@@ -74,8 +74,8 @@ scan +mbox1 -reverse | sed 's/ *$//'
 [   5  07/13 Sergey Poznyakoff  Empty MIME Parts<<------- =_aaaaaaaaaa0 Content-
    4  07/13 Sergey Poznyakoff  Nested MIME<<------- =_aaaaaaaaaa0 Content-Type:
    3  07/13 Sergey Poznyakoff  Simple MIME<<------- =_aaaaaaaaaa0 Content-Type:
-   2  12/28 Bar <bar@dontmail  Re: Jabberwocky<<It seems very pretty, but it's
-   1  12/28 Foo Bar <foobar@n  Jabberwocky<<`Twas brillig, and the slithy toves
+   2  12/28 Bar                Re: Jabberwocky<<It seems very pretty, but it's
+   1  12/28 Foo Bar            Jabberwocky<<`Twas brillig, and the slithy toves
 ])
 
 m4_popdef[MH_KEYWORDS])

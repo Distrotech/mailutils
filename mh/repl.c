@@ -55,6 +55,7 @@ static struct argp_option options[] = {
   {"form",   ARG_FORM, N_("FILE"), 0, N_("read format from given file")},
   {"format", ARG_FORMAT, N_("BOOL"), OPTION_ARG_OPTIONAL,
    N_("include a copy of the message being replied; the message will be processed using either the default filter \"mhl.reply\", or the filter specified by --filter option") },
+  {"noformat", ARG_NOFORMAT, 0,          OPTION_HIDDEN, "" },
   {"inplace", ARG_INPLACE, N_("BOOL"), OPTION_ARG_OPTIONAL,
    N_("* annotate the message in place")},
   {"query", ARG_QUERY, N_("BOOL"), OPTION_ARG_OPTIONAL,
@@ -178,17 +179,15 @@ opt_handler (int key, char *arg, struct argp_state *state)
     case ARG_FORM:
       free (format_str);
       format_str = NULL;
-      s = mh_expand_name (MHLIBDIR, arg, 0);
-      mh_read_formfile (s, &format_str);
-      free (s);
+      if (mh_read_formfile (arg, &format_str))
+	exit (1);
       break;
 
     case ARG_GROUP:
       if (is_true (arg))
 	{
-	  s = mh_expand_name (MHLIBDIR, "replgroupcomps", 0);
-	  mh_read_formfile (s, &format_str);
-	  free (s);
+	  if (mh_read_formfile ("replgroupcomps", &format_str))
+	    exit (1);
 	  rcpt_mask |= RCPT_ALL;
 	}
       else
@@ -229,17 +228,18 @@ opt_handler (int key, char *arg, struct argp_state *state)
       break;
       
     case ARG_FILTER:
-      mhl_filter = arg;
+      mh_find_file (arg, &mhl_filter);
       break;
 
     case ARG_FORMAT:
       if (is_true (arg))
-	{
-	  if (!mhl_filter)
-	    mhl_filter = mh_expand_name (MHLIBDIR, "mhl.repl", 0);
-	}
+	mh_find_file ("mhl.repl", &mhl_filter);
       else
 	mhl_filter = NULL;
+      break;
+
+    case ARG_NOFORMAT:
+      mhl_filter = NULL;
       break;
       
     case ARG_FCC:

@@ -1,0 +1,10 @@
+; USENET-style format file for GNU repl
+;
+; GNU Mailutils -- a suite of utilities for electronic mail
+; Copyright (C) 2003, 2010 Free Software Foundation, Inc.
+; Distributed under GPLv3+.  See <http://gnu.org/licenses/gpl.html>.
+;
+:
+message-id:nocomponent,nonewline,formatfield="In message %{text}, "
+from:nocomponent,formatfield="%(friendly{text}) writes:"
+body:component=">",overflowtext=">",overflowoffset=0

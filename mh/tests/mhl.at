@@ -34,5 +34,28 @@ X-Envelope-Sender: alice@wonder.land
 I don't see any wine
 ]) 
 
+MH_CHECK([mhl repl],[mhl01 mhl.repl],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/teaparty,[Mail/inbox])
+mhl -form $abs_top_srcdir/mh/mhl.repl Mail/inbox/15
+],
+[0],
+[
+         Not the same thing a bit! You might just
+         as well say that "I see what I eat" is the same thing as "I eat
+         what I see"!
+])		  
+
+MH_CHECK([mhl usenet],[mhl02 mhl.usenet],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/teaparty,[Mail/inbox])
+mhl -form $abs_top_srcdir/mh/mhl.usenet Mail/inbox/15
+],
+[0],
+[
+In message <200207292200.3315@wonder.land>, Hatter writes:
+>Not the same thing a bit! You might just
+>as well say that "I see what I eat" is the same thing as "I eat
+>what I see"!
+])		  
+
 m4_popdef[MH_KEYWORDS])
 # End of mhl.at

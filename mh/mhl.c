@@ -99,7 +99,7 @@ opt_handler (int key, char *arg, struct argp_state *state)
       break;
       
     case ARG_FORM:
-      formfile = arg;
+      mh_find_file (arg, &formfile);
       break;
       
     case ARG_WIDTH:

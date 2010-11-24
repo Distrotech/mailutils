@@ -1583,7 +1583,20 @@ builtin_proper (struct mh_machine *mach)
 static void
 builtin_friendly (struct mh_machine *mach)
 {
-  /*FIXME: noop*/
+  mu_address_t addr;
+  const char *str;
+  int rc;
+  
+  rc = mu_address_create (&addr, strobj_ptr (&mach->arg_str));
+  if (rc)
+    return;
+
+  if (mu_address_sget_personal (addr, 1, &str) == 0 && str)
+    {
+      strobj_free (&mach->arg_str);
+      strobj_create (&mach->arg_str, str);
+    }
+  mu_address_destroy (&addr);
 }
 
 /*     addr       addr     string   mbox@host or host!mbox rendering*/
@@ -1618,12 +1631,7 @@ builtin_pers (struct mh_machine *mach)
     return;
 
   if (mu_address_sget_personal (addr, 1, &str) == 0 && str)
-    {
-      char *p;
-      mu_asprintf (&p, "\"%s\"", str);
-      strobj_create (&mach->arg_str, p);
-      free (p);
-    }
+    strobj_create (&mach->arg_str, str);
   mu_address_destroy (&addr);
 }
 
