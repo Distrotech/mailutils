@@ -224,3 +224,33 @@ mu_memory_stream_create (mu_stream_t *pstream, int flags)
   return rc;
 }
   
+int
+mu_static_memory_stream_create (mu_stream_t *pstream, const void *mem,
+				size_t size)
+{
+  mu_stream_t stream;
+  struct _mu_memory_stream *str;
+
+  str = (struct _mu_memory_stream *)
+    _mu_stream_create (sizeof (*str), MU_STREAM_READ | MU_STREAM_SEEK);
+  
+  if (!str)
+    return ENOMEM;
+
+  str->ptr = (void*) mem;
+  str->size = size;
+  str->offset = 0;
+  str->capacity = size;
+
+  str->stream.flags |= _MU_STR_OPEN;
+  str->stream.read = _memory_read;
+  str->stream.size = _memory_size;
+  str->stream.ctl = _memory_ioctl;
+  str->stream.seek = _memory_seek;
+  
+  stream = (mu_stream_t) str;
+  *pstream = stream;
+
+  return 0;
+}
+  

@@ -160,8 +160,7 @@ mu_rfc2047_decode (const char *tocode, const char *input, char **ptostr)
 	  if (status != 0)
 	    break;
 
-	  mu_memory_stream_create (&in_stream, 0);
-	  mu_stream_write (in_stream, encoded_text, size, NULL);
+	  mu_static_memory_stream_create (&in_stream, encoded_text, size);
 	  mu_stream_seek (in_stream, 0, MU_SEEK_SET, NULL);
 	  status = mu_decode_filter (&filter, in_stream, filter_type, fromcode,
 				     tocode);
@@ -266,12 +265,9 @@ mu_rfc2047_encode (const char *charset, const char *encoding,
   else if (encoding[1] || !strchr ("BQ", encoding[0]))
     return MU_ERR_BAD_2047_ENCODING;
 
-  rc = mu_memory_stream_create (&input_stream, 0);
+  rc = mu_static_memory_stream_create (&input_stream, text, strlen (text));
   if (rc)
     return rc;
-  
-  mu_stream_write (input_stream, text, strlen (text), NULL);
-  mu_stream_seek (input_stream, 0, MU_SEEK_SET, NULL);
   rc = mu_filter_create (&output_stream, input_stream,
 			 encoding, MU_FILTER_ENCODE,
 			 MU_STREAM_READ | MU_STREAM_AUTOCLOSE);

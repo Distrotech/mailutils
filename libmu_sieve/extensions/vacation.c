@@ -60,7 +60,7 @@ build_mime (mu_sieve_machine_t mach, mu_list_t tags, mu_mime_t *pmime,
   mu_message_create (&newmsg, NULL);
   mu_message_get_body (newmsg, &body);
 
-  if ((rc = mu_memory_stream_create (&input, MU_STREAM_RDWR)))
+  if ((rc = mu_static_memory_stream_create (&input, text, strlen (text))))
     {
       mu_sieve_error (mach,
 		      _("cannot create temporary stream: %s"),
@@ -69,8 +69,6 @@ build_mime (mu_sieve_machine_t mach, mu_list_t tags, mu_mime_t *pmime,
       mu_message_destroy (&newmsg, NULL);
       return 1;
     }
-
-  mu_stream_write (input, text, strlen (text), NULL);
 
   if (mu_sieve_tag_lookup (tags, "mime", NULL))
     {

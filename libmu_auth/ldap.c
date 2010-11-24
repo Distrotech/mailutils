@@ -598,10 +598,9 @@ chk_md5 (const char *db_pass, const char *pass)
   mu_md5_process_bytes (pass, strlen (pass), &md5context);
   mu_md5_finish_ctx (&md5context, md5digest);
 
-  mu_memory_stream_create (&str, 0);
+  mu_static_memory_stream_create (&str, db_pass, strlen (db_pass));
   mu_filter_create (&flt, str, "base64", MU_FILTER_DECODE,
 		    MU_STREAM_READ | MU_STREAM_AUTOCLOSE);
-  mu_stream_write (str, db_pass, strlen (db_pass), NULL);
 
   mu_stream_read (flt, (char*) d1, sizeof d1, NULL);
   mu_stream_destroy (&flt);
@@ -620,11 +619,10 @@ chk_smd5 (const char *db_pass, const char *pass)
   mu_stream_t str = NULL, flt = NULL;
   size_t size;
   
-  mu_memory_stream_create (&str, 0);
+  size = strlen (db_pass);
+  mu_static_memory_stream_create (&str, db_pass, size);
   mu_filter_create (&flt, str, "base64", MU_FILTER_DECODE,
 		    MU_STREAM_READ | MU_STREAM_AUTOCLOSE);
-  size = strlen (db_pass);
-  mu_stream_write (str, db_pass, size, NULL);
 
   d1 = malloc (size);
   if (!d1)
@@ -665,10 +663,9 @@ chk_sha (const char *db_pass, const char *pass)
   mu_sha1_process_bytes (pass, strlen (pass), &sha1context);
   mu_sha1_finish_ctx (&sha1context, sha1digest);
 
-  mu_memory_stream_create (&str, 0);
+  mu_static_memory_stream_create (&str, db_pass, strlen (db_pass));
   mu_filter_create (&flt, str, "base64", MU_FILTER_DECODE,
 		    MU_STREAM_READ | MU_STREAM_AUTOCLOSE);
-  mu_stream_write (str, db_pass, strlen (db_pass), NULL);
 
   mu_stream_read (flt, (char*) d1, sizeof d1, NULL);
   mu_stream_destroy (&flt);
@@ -687,11 +684,10 @@ chk_ssha (const char *db_pass, const char *pass)
   mu_stream_t str = NULL, flt = NULL;
   size_t size;
   
-  mu_memory_stream_create (&str, 0);
+  size = strlen (db_pass);
+  mu_static_memory_stream_create (&str, db_pass, size);
   mu_filter_create (&flt, str, "base64", MU_FILTER_DECODE,
 		    MU_STREAM_READ | MU_STREAM_AUTOCLOSE);
-  size = strlen (db_pass);
-  mu_stream_write (str, db_pass, size, NULL);
 
   d1 = malloc (size);
   if (!d1)

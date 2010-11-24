@@ -74,12 +74,6 @@ imap4d_append0 (mu_mailbox_t mbox, int flags, char *date_time, char *text,
   if (mu_message_create (&msg, &tm))
     return 1;
 
-  if (mu_memory_stream_create (&stream, MU_STREAM_RDWR))
-    {
-      mu_message_destroy (&msg, &tm);
-      return 1;
-    }
-
   /* If a date_time is specified, the internal date SHOULD be set in the
      resulting message; otherwise, the internal date of the resulting
      message is set to the current date and time by default. */
@@ -96,10 +90,14 @@ imap4d_append0 (mu_mailbox_t mbox, int flags, char *date_time, char *text,
   
   tm = gmtime (&t);
 
-  while (*text && mu_isblank (*text))
-    text++;
+  text = mu_str_skip_class (text, MU_CTYPE_BLANK);
 
-  mu_stream_write (stream, text, strlen (text), NULL);
+  if (mu_static_memory_stream_create (&stream, text, strlen (text)))
+    {
+      mu_message_destroy (&msg, &tm);
+      return 1;
+    }
+
   mu_message_set_stream (msg, stream, &tm);
   mu_message_set_size (msg, _append_size, &tm);
 

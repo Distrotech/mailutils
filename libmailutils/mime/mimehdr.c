@@ -506,10 +506,8 @@ mu_mimehdr_decode_param (const char *value, int flags,
 		  size_t total = 0, pos;
 		  size_t nbytes;
 
-		  rc = mu_memory_stream_create (&instr, 0);
-		  if (rc)
-		    break;
-		  rc = mu_stream_write (instr, data, strlen (data), NULL);
+		  rc = mu_static_memory_stream_create (&instr, data,
+						       strlen (data));
 		  if (rc)
 		    break;
 

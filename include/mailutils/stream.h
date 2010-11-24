@@ -205,6 +205,9 @@ int mu_prog_stream_create (mu_stream_t *pstream, const char *progname, int flags
 int mu_filter_prog_stream_create (mu_stream_t *pstream, const char *progname,
 				  mu_stream_t input);
 int mu_memory_stream_create (mu_stream_t *pstream, int flags);
+int mu_static_memory_stream_create (mu_stream_t *pstream, const void *mem,
+				    size_t size);
+
 int mu_mapfile_stream_create (mu_stream_t *pstream, const char *filename,
 			      int flags);
 int mu_socket_stream_create (mu_stream_t *pstream, const char *filename,
