@@ -378,8 +378,7 @@ int mh_seq_delete (mu_mailbox_t mbox, const char *name, mh_msgset_t *mset,
 		   int flags);
 const char *mh_seq_read (mu_mailbox_t mbox, const char *name, int flags);
 
-void mh_comp_draft (const char *formfile, const char *defformfile,
-		    const char *draftfile);
+void mh_comp_draft (const char *formfile, const char *draftfile);
 int check_draft_disposition (struct mh_whatnow_env *wh, int use_draft);
 
 void ali_parse_error (const char *fmt, ...) MU_PRINTFLIKE(1,2); 

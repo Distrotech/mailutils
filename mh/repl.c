@@ -139,8 +139,6 @@ decode_cc_flag (const char *opt, const char *arg)
 static error_t
 opt_handler (int key, char *arg, struct argp_state *state)
 {
-  char *s;
-  
   switch (key)
     {
     case ARGP_KEY_INIT:

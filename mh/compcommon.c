@@ -27,53 +27,44 @@ static char *default_format_str =
 "--------\n";
 
 void
-mh_comp_draft (const char *formfile, const char *defformfile,
-	       const char *draftfile)
+mh_comp_draft (const char *formfile, const char *draftfile)
 {
-  char *s = NULL;
-  if (formfile)
+  char *s;
+
+  if (mh_find_file (formfile, &s) == 0)
     {
-      s = mh_expand_name (MHLIBDIR, formfile, 0);
       if (mh_file_copy (s, draftfile))
 	exit (1);
+      free (s);
     }
   else
     {
-      s = mh_expand_name (MHLIBDIR, defformfile, 0);
-      if (access (s, R_OK) == 0)
+      /* I doubt if we need that: */
+      int rc;
+      mu_stream_t stream;
+      
+      if ((rc = mu_file_stream_create (&stream,
+				       draftfile,
+				       MU_STREAM_WRITE|MU_STREAM_CREAT)))
 	{
-	  if (mh_file_copy (s, draftfile))
-	    exit (1);
+	  mu_error (_("cannot open output file \"%s\": %s"),
+		    draftfile, mu_strerror (rc));
+	  exit (1);
 	}
-      else
+      
+      rc = mu_stream_write (stream, 
+			    default_format_str,
+			    strlen (default_format_str), NULL);
+      mu_stream_close (stream);
+      mu_stream_destroy (&stream);
+      
+      if (rc)
 	{
-	  int rc;
-	  mu_stream_t stream;
-	  
-	  if ((rc = mu_file_stream_create (&stream,
-					draftfile,
-					MU_STREAM_WRITE|MU_STREAM_CREAT)))
-	    {
-	      mu_error (_("cannot open output file \"%s\": %s"),
-			draftfile, mu_strerror (rc));
-	      exit (1);
-	    }
-	  
-	  rc = mu_stream_write (stream, 
-				default_format_str,
-				strlen (default_format_str), NULL);
-	  mu_stream_close (stream);
-	  mu_stream_destroy (&stream);
-
-	  if (rc)
-	    {
-	      mu_error (_("error writing to \"%s\": %s"),
-			draftfile, mu_strerror (rc));
-	      exit (1);
-	    }
+	  mu_error (_("error writing to \"%s\": %s"),
+		    draftfile, mu_strerror (rc));
+	  exit (1);
 	}
     }
-  free (s);
 }
 
 int 

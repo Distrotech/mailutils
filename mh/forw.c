@@ -225,6 +225,11 @@ opt_handler (int key, char *arg, struct argp_state *state)
       whatnowproc = NULL;
       break;
 
+    case ARGP_KEY_FINI:
+      if (!formfile)
+	mh_find_file ("forwcomps", &formfile);
+      break;
+      
     default:
       return ARGP_ERR_UNKNOWN;
     }
@@ -522,7 +527,7 @@ main (int argc, char **argv)
       
     case DISP_REPLACE:
       unlink (wh_env.draftfile);
-      mh_comp_draft (formfile, "forwcomps", wh_env.file);
+      mh_comp_draft (formfile, wh_env.file);
       finish_draft ();
     }
   

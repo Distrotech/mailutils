@@ -8,14 +8,11 @@ ali
 anno
 burst
 comp
-elc-stamp
 fmtcheck
 folder
 forw
 inc
 install-mh
-mailutils-mh.el
-mailutils-mh.elc
 mark
 mh_alias.h
 mh_alias_gram.c

@@ -15,9 +15,7 @@
 # along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
 
 m4_pushdef([MH_KEYWORDS],[forw])
-m4_pushdef([forwcmd],[forw dnl
--form components dnl
--editor $abs_top_srcdir/mh/tests/mhed])
+m4_pushdef([forwcmd],[forw -editor $abs_top_srcdir/mh/tests/mhed])
 
 MH_CHECK([forw msg],[forw00 forw-msg],[
 mkdir Mail/inbox

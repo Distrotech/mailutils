@@ -1,0 +1,19 @@
+%; "Size"-format for GNU MH scan.
+%;
+%; GNU Mailutils -- a suite of utilities for electronic mail
+%; Copyright (C) 2003, 2010 Free Software Foundation, Inc.
+%; Distributed under GPLv3+.  See <http://gnu.org/licenses/gpl.html>.
+%;
+%; This format is similar to scan.default, except that it prints the
+%; size of the message before the sender name column.
+%;
+%4(msg)\
+%<(cur)+%| %>\
+%<{replied}-%?{encrypted}E%| %>\
+%02(mon{date})/%02(mday{date})\
+%<{date} %|*%>\
+%5(size) \
+%<(mymbox{from})%<{to}To:%14(decode(friendly{to}))%>%>\
+%<(zero)%17(decode(friendly{from}))%>\
+  %(decode{subject})%<{body}<<%{body}%>
+%; End of scan.size

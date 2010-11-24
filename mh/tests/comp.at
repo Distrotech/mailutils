@@ -15,9 +15,7 @@
 # along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
 
 m4_pushdef([MH_KEYWORDS],[comp])
-m4_pushdef([compcmd],[comp dnl
--form components dnl
--editor $abs_top_srcdir/mh/tests/mhed])
+m4_pushdef([compcmd],[comp -editor $abs_top_srcdir/mh/tests/mhed])
 
 MH_CHECK([comp -file],[comp00 comp-file],[
 dir=`pwd`
