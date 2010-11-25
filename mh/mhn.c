@@ -576,7 +576,8 @@ msg_part_subpart (msg_part_t p, int level)
 /* *********************** Context file accessors ************************* */
 
 const char *
-_mhn_profile_get (char *prefix, char *type, char *subtype, char *defval)
+_mhn_profile_get (const char *prefix, const char *type, const char *subtype,
+		  const char *defval)
 {
   char *name;
   const char *str;
@@ -670,6 +671,26 @@ mhn_compose_command (char *typestr, int *flags, char *file)
   return (char*) str;
 }
 
+static void
+mhn_tempfile_name (char **tempfile, const char *type, const char *subtype)
+{
+  struct mu_tempfile_hints hints;
+  int flags = 0, rc;
+  const char *s = _mhn_profile_get ("suffix", type, subtype, NULL);;
+  
+  if (s)
+    {
+      hints.suffix = (char*) s;
+      flags |= MU_TEMPFILE_SUFFIX;
+    }
+  rc = mu_tempfile (&hints, flags, NULL, tempfile);
+  if (rc)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_tempfile", NULL, rc);
+      exit (1);
+    }
+}
+
 char *
 mhn_show_command (mu_message_t msg, msg_part_t part, int *flags,
 		  char **tempfile)
@@ -722,7 +743,7 @@ mhn_show_command (mu_message_t msg, msg_part_t part, int *flags,
 	    case 'f':
 	      /* filename containing content */
 	      if (!*tempfile)
-		*tempfile = mu_tempname (NULL);
+		mhn_tempfile_name (tempfile, type, subtype);
 	      obstack_grow (&stk, *tempfile, strlen (*tempfile));
 	      break;
 				     
@@ -730,7 +751,7 @@ mhn_show_command (mu_message_t msg, msg_part_t part, int *flags,
 	      /* %e, %f, and stdin is terminal not content */
 	      *flags |= MHN_STDIN|MHN_EXCLUSIVE_EXEC;
 	      if (!*tempfile)
-		*tempfile = mu_tempname (NULL);
+		mhn_tempfile_name (tempfile, type, subtype);
 	      obstack_grow (&stk, *tempfile, strlen (*tempfile));
 	      break;
 	      
@@ -1318,7 +1339,8 @@ mhn_run_command (mu_message_t msg, msg_part_t part,
 	  return ENOSYS;
 	}
 
-      rc = mu_file_stream_create (&tmp, tempfile, MU_STREAM_RDWR);
+      rc = mu_file_stream_create (&tmp, tempfile,
+				  MU_STREAM_RDWR|MU_STREAM_CREAT);
       if (rc)
 	{
 	  mu_error (_("cannot create temporary stream (file %s): %s"),
