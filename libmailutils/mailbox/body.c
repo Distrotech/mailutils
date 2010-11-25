@@ -79,13 +79,6 @@ mu_body_destroy (mu_body_t *pbody, void *owner)
       mu_body_t body = *pbody;
       if (body->owner == owner)
 	{
-	  if (body->filename)
-	    {
-	      /* FIXME: should we do this?  */
-	      remove (body->filename);
-	      free (body->filename);
-	    }
-
 	  if (body->stream)
 	    mu_stream_destroy (&body->stream);
 
@@ -123,26 +116,6 @@ mu_body_clear_modified (mu_body_t body)
   return 0;
 }
 
-int
-mu_body_get_filename (mu_body_t body, char *filename, size_t len, size_t *pn)
-{
-  int n = 0;
-  if (body == NULL)
-    return EINVAL;
-  if (body->filename)
-    {
-      n = strlen (body->filename);
-      if (filename && len > 0)
-	{
-	  len--; /* Space for the null.  */
-	  strncpy (filename, body->filename, len)[len] = '\0';
-	}
-    }
-  if (pn)
-    *pn = n;
-  return 0;
-}
-
 
 struct _mu_body_stream
 {
@@ -177,9 +150,8 @@ _body_get_stream (mu_body_t body, mu_stream_t *pstream, int ref)
 	    return ENOMEM;
 	  
 	  /* Create the temporary file.  */
-	  body->filename = mu_tempname (NULL);
-	  status = mu_file_stream_create (&body->fstream, 
-					  body->filename, MU_STREAM_RDWR);
+
+	  status = mu_temp_file_stream_create (&body->fstream, NULL, 0);
 	  if (status != 0)
 	    return status;
 	  mu_stream_set_buffer (body->fstream, mu_buffer_full, 0);

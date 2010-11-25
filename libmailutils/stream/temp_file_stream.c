@@ -59,6 +59,9 @@ mu_temp_file_stream_create (mu_stream_t *pstream,
   int rc;
   struct _mu_file_stream *str;
   mu_stream_t stream;
+
+  if (flags && !hints)
+    return EINVAL;
   rc = _mu_file_stream_create (&str,
 			       sizeof (struct _mu_temp_file_stream),
 			       NULL,

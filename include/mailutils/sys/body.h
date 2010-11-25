@@ -32,7 +32,6 @@ extern "C" {
 struct _mu_body
 {
   void *owner;
-  char *filename;
   mu_stream_t stream;
   mu_stream_t fstream;
   int flags;
