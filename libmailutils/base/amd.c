@@ -597,13 +597,18 @@ amd_quick_get_message (mu_mailbox_t mailbox, mu_message_qid_t qid,
   return ENOSYS;
 }
 
-static FILE *
-_amd_tempfile(struct _amd_data *amd, char **namep)
+static int
+_amd_tempfile (struct _amd_data *amd, FILE **pfile, char **namep)
 {
-  int fd = mu_tempfile (amd->name, namep);
-  if (fd == -1)
-      return NULL;
-  return fdopen (fd, "w");
+  struct mu_tempfile_hints hints;
+  int fd, rc;
+
+  hints.tmpdir = amd->name;
+  rc = mu_tempfile (&hints, MU_TEMPFILE_TMPDIR, &fd, namep);
+  if (rc == 0)
+    if ((*pfile = fdopen (fd, "w")) == NULL)
+      rc = errno;
+  return rc;
 }
 
 static int
@@ -658,11 +663,11 @@ _amd_message_save (struct _amd_data *amd, struct _amd_message *mhm,
       return status;
     }      
     
-  fp = _amd_tempfile (mhm->amd, &name);
-  if (!fp)
+  status = _amd_tempfile (mhm->amd, &fp, &name);
+  if (status)
     {
       free (msg_name);
-      return errno;
+      return status;
     }
 
   /* Try to allocate large buffer */

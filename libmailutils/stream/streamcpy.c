@@ -98,10 +98,7 @@ mu_stream_copy (mu_stream_t dst, mu_stream_t src, mu_off_t size,
 	if (status)
 	  break;
 	if (n == 0)
-	  {
-	    status = EIO;
-	    break;
-	  }
+	  break;
 	status = mu_stream_write (dst, buf, n, NULL);
 	if (status)
 	  break;
@@ -120,6 +117,10 @@ mu_stream_copy (mu_stream_t dst, mu_stream_t src, mu_off_t size,
 
   if (pcsz)
     *pcsz = total;
+  /* FIXME: When EOF error code is implemented:
+  else if (total == 0)
+    status = EIO;
+  */
   free (buf);
   return status;
 }

@@ -388,9 +388,17 @@ int
 mu_fd_stream_create (mu_stream_t *pstream, char *filename, int fd, int flags)
 {
   struct _mu_file_stream *fstr;
-  int rc = _mu_file_stream_create (&fstr,
-				   sizeof (struct _mu_file_stream),
-				   filename, fd, flags|_MU_STR_OPEN);
+  int rc;
+
+  if (flags & MU_STREAM_SEEK)
+    {
+      if (lseek (fd, 0, SEEK_SET))
+	return errno;
+    }
+
+  rc = _mu_file_stream_create (&fstr,
+			       sizeof (struct _mu_file_stream),
+			       filename, fd, flags|_MU_STR_OPEN);
   if (rc == 0)
     {
       mu_stream_t stream = (mu_stream_t) fstr;

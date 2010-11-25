@@ -197,6 +197,7 @@ mime_context_get_content_type_value (struct mime_context *ctx,
   return rc;
 }
 
+/* FIXME: Rewrite via mu_stream_copy */
 static void
 mime_context_write_input (struct mime_context *ctx, int fd)
 {
@@ -219,8 +220,8 @@ mime_context_get_temp_file (struct mime_context *ctx, char **ptr)
 {
   if (!ctx->temp_file)
     {
-      int fd = mu_tempfile (NULL, &ctx->temp_file);
-      if (fd == -1)
+      int fd;
+      if (mu_tempfile (NULL, 0, &fd, &ctx->temp_file))
 	return -1;
       mime_context_write_input (ctx, fd);
       close (fd);

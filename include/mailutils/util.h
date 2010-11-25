@@ -82,9 +82,27 @@ char *mu_tilde_expansion (const char *ref, const char *delim,
 int mu_readlink (const char *name, char **pbuf, size_t *psize, size_t *plen);
 int mu_unroll_symlink (const char *name, char **pout);
 char *mu_getcwd (void);
-int mu_tempfile (const char *tmpdir, char **namep);
+char *mu_make_file_name_suf (const char *dir, const char *file,
+			     const char *suf);
+#define mu_make_file_name(dir, file) mu_make_file_name_suf (dir, file, NULL)
+
+  /* ------------------------ */
+  /* Temporary file creation. */
+  /* ------------------------ */
+#define MU_TEMPFILE_TMPDIR  0x01   /* tmpdir is set */
+#define MU_TEMPFILE_SUFFIX  0x02   /* suffix is set */  
+#define MU_TEMPFILE_MKDIR   0x04   /* create a directory, not a file */
+  
+struct mu_tempfile_hints
+{
+  const char *tmpdir;
+  const char *suffix;
+};
+
+  /*int mu_tempfile (const char *tmpdir, char **namep);*/
+int mu_tempfile (struct mu_tempfile_hints *hints, int flags,
+		 int *pfd, char **namep);
 char *mu_tempname (const char *tmpdir);
-char *mu_make_file_name (const char *dir, const char *file);
   
   /* ----------------------- */
   /* Current user email.     */

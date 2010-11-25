@@ -48,6 +48,7 @@ noinst_PROGRAMS = \
  listop\
  mailcap\
  prop\
+ tempfile\
  url-parse\
  wicket\
  wsp

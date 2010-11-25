@@ -25,22 +25,27 @@
 #include <mailutils/util.h>
 
 char *
-mu_make_file_name (const char *dir, const char *file)
+mu_make_file_name_suf (const char *dir, const char *file, const char *suf)
 {
   char *tmp;
   size_t dirlen = strlen (dir);
+  size_t suflen = suf ? strlen (suf) : 0;
+  size_t fillen = strlen (file);
   size_t len;
 
   while (dirlen > 0 && dir[dirlen-1] == '/')
     dirlen--;
   
-  len = dirlen + 1 + strlen (file);
+  len = dirlen + 1 + fillen + suflen;
   tmp = mu_alloc (len + 1);
   if (tmp)
     {
       memcpy (tmp, dir, dirlen);
       tmp[dirlen++] = '/';
-      strcpy (tmp + dirlen, file);
+      memcpy (tmp + dirlen, file, fillen);
+      if (suf)
+	memcpy (tmp + dirlen + fillen, suf, suflen);
+      tmp[len] = 0;
     }
   return tmp;
 }

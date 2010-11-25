@@ -324,11 +324,19 @@ escape_run_editor (char *ed, int argc, char **argv, compose_env_t *env)
   if (!mailvar_get (NULL, "editheaders", mailvar_type_boolean, 0))
     {
       char *filename;
-      int fd = mu_tempfile (NULL, &filename);
-      FILE *fp = fdopen (fd, "w+");
+      int fd;
+      FILE *fp;
       char buffer[512];
       int rc;
       
+      rc = mu_tempfile (NULL, 0, &fd, &filename);
+      if (rc)
+        {
+           mu_diag_funcall (MU_DIAG_ERROR, "mu_tempfile", NULL, rc);
+           return rc;
+        }
+
+      fp = fdopen (fd, "w+");
       dump_headers (fp, env);
 
       rewind (env->file);
@@ -639,8 +647,7 @@ escape_pipe (int argc, char **argv, compose_env_t *env)
       return 1;
     }
 
-  fd = mu_tempfile (NULL, NULL);
-  if (fd == -1)
+  if (mu_tempfile (NULL, 0, &fd, NULL))
     return 1;
 
   if ((pid = fork ()) < 0)

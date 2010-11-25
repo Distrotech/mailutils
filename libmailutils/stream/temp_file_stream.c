@@ -37,11 +37,10 @@ static int
 fd_temp_open (struct _mu_stream *str)
 {
   struct _mu_file_stream *fstr = (struct _mu_file_stream *) str;
-  int fd = mu_tempfile (fstr->filename, NULL);
-  if (fd == -1)
-    return errno;
-  fstr->fd = fd;
-  return 0;
+  struct mu_tempfile_hints hints;
+
+  hints.tmpdir = fstr->filename;
+  return mu_tempfile (&hints, MU_TEMPFILE_TMPDIR, &fstr->fd, NULL);
 }
   
 int

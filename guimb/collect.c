@@ -55,8 +55,7 @@ collect_open_mailbox_file ()
   int fd;
 
   /* Create input mailbox */
-  fd = mu_tempfile (NULL, &temp_filename);
-  if (fd == -1)
+  if (mu_tempfile (NULL, 0, &fd, &temp_filename))
     exit (1);
 
   temp_file = fdopen (fd, "w");

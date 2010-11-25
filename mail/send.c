@@ -305,8 +305,18 @@ fill_body (mu_message_t msg, mu_stream_t instr)
   mu_stream_t stream = NULL;
   mu_off_t n;
   
-  mu_message_get_body (msg, &body);
-  mu_body_get_streamref (body, &stream);
+  rc = mu_message_get_body (msg, &body);
+  if (rc)
+    {
+      mu_error (_("cannot get message body: %s"), mu_strerror (rc));
+      return 1;
+    }
+  rc = mu_body_get_streamref (body, &stream);
+  if (rc)
+    {
+      mu_error (_("cannot get body: %s"), mu_strerror (rc));
+      return 1;
+    }
 
   rc = mu_stream_copy (stream, instr, 0, &n);
   mu_stream_destroy (&stream);
@@ -428,16 +438,16 @@ int
 mail_send0 (compose_env_t * env, int save_to)
 {
   int done = 0;
-  int fd;
+  int fd, rc;
   char *filename;
   char *savefile = NULL;
   int int_cnt;
   char *escape;
 
-  fd = mu_tempfile (NULL, &filename);
-  if (fd == -1)
+  rc = mu_tempfile (NULL, 0, &fd, &filename);
+  if (rc)
     {
-      util_error (_("Cannot open temporary file"));
+      util_error (_("Cannot open temporary file: %s"), mu_strerror (rc));
       return 1;
     }
 
