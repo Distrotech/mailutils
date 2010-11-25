@@ -203,7 +203,7 @@ _get_content_type (mu_header_t hdr, char **value, char **rest)
     {
       if (type)
 	free (type);
-      type = strdup ("text/plain"); /* Default.  */
+      type = xstrdup ("text/plain"); /* Default.  */
       if (rest)
 	*rest = NULL;
     }
@@ -229,7 +229,7 @@ _get_content_encoding (mu_header_t hdr, char **value)
     {
       if (encoding)
 	free (encoding);
-      encoding = strdup ("7bit"); /* Default.  */
+      encoding = xstrdup ("7bit"); /* Default.  */
     }
   *value = encoding;
   return 0;
@@ -665,7 +665,7 @@ mhn_compose_command (char *typestr, int *flags, char *file)
   if (!*p)
     str = NULL;
   else
-    str = strdup (p);
+    str = xstrdup (p);
 
   obstack_free (&stk, NULL);
   return (char*) str;
@@ -695,8 +695,7 @@ char *
 mhn_show_command (mu_message_t msg, msg_part_t part, int *flags,
 		  char **tempfile)
 {
-  const char *p, *str;
-  char *tmp;
+  const char *p, *str, *tmp;
   char *typestr, *type, *subtype, *typeargs;
   struct obstack stk;
   mu_header_t hdr;
@@ -772,12 +771,9 @@ mhn_show_command (mu_message_t msg, msg_part_t part, int *flags,
 	      
 	    case 'd':
 	      /* content description */
-	      if (mu_header_aget_value (hdr, MU_HEADER_CONTENT_DESCRIPTION,
-				     &tmp) == 0)
-		{
-		  obstack_grow (&stk, tmp, strlen (tmp));
-		  free (tmp);
-		}
+	      if (mu_header_sget_value (hdr, MU_HEADER_CONTENT_DESCRIPTION,
+					&tmp) == 0)
+		obstack_grow (&stk, tmp, strlen (tmp));
 	      break;
 	      
 	    default:
@@ -799,7 +795,7 @@ mhn_show_command (mu_message_t msg, msg_part_t part, int *flags,
   if (!*p)
     str = NULL;
   else
-    str = strdup (p);
+    str = xstrdup (p);
 
   obstack_free (&stk, NULL);
   return (char*) str;
@@ -808,8 +804,7 @@ mhn_show_command (mu_message_t msg, msg_part_t part, int *flags,
 char *
 mhn_store_command (mu_message_t msg, msg_part_t part, char *name)
 {
-  const char *p, *str;
-  char *tmp;
+  const char *p, *str, *tmp;
   char *typestr, *type, *subtype, *typeargs;
   struct obstack stk;
   mu_header_t hdr;
@@ -863,12 +858,9 @@ mhn_store_command (mu_message_t msg, msg_part_t part, char *name)
 	      
 	    case 'd':
 	      /* content description */
-	      if (mu_header_aget_value (hdr, MU_HEADER_CONTENT_DESCRIPTION,
+	      if (mu_header_sget_value (hdr, MU_HEADER_CONTENT_DESCRIPTION,
 				        &tmp) == 0)
-		{
-		  obstack_grow (&stk, tmp, strlen (tmp));
-		  free (tmp);
-		}
+		obstack_grow (&stk, tmp, strlen (tmp));
 	      break;
 	      
 	    default:
@@ -890,7 +882,7 @@ mhn_store_command (mu_message_t msg, msg_part_t part, char *name)
   if (!*p)
     str = NULL;
   else
-    str = strdup (p);
+    str = xstrdup (p);
   
   obstack_free (&stk, NULL);
   return (char*) str;
@@ -900,13 +892,13 @@ mhn_store_command (mu_message_t msg, msg_part_t part, char *name)
 /* ************************* Auxiliary functions ************************** */
 
 static void
-split_args (char *argstr, int *pargc, char ***pargv)
+split_args (const char *argstr, size_t len, int *pargc, char ***pargv)
 {
   struct mu_wordsplit ws;
 
   ws.ws_delim = ";";
-  if (mu_wordsplit (argstr, &ws,
-		    MU_WRDSF_DEFFLAGS | MU_WRDSF_DELIM | MU_WRDSF_WS))
+  if (mu_wordsplit_len (argstr, len, &ws,
+			MU_WRDSF_DEFFLAGS | MU_WRDSF_DELIM | MU_WRDSF_WS))
     {
       mu_error (_("cannot split line `%s': %s"), argstr,
 		mu_wordsplit_strerror (&ws));
@@ -938,7 +930,7 @@ _message_is_external_body (mu_message_t msg, char ***env)
   if (rc && env)
     {
       int c;
-      split_args (argstr, &c, env);
+      split_args (argstr, strlen (argstr), &c, env);
     }
 
   free (typestr);
@@ -1001,7 +993,7 @@ get_extbody_params (mu_message_t msg, char **content, char **descr)
 	{
 	  p = mu_str_skip_class (buf + sizeof (MU_HEADER_CONTENT_DESCRIPTION),
 				 MU_CTYPE_SPACE);
-	  *descr = strdup (p);
+	  *descr = xstrdup (p);
 	}
       else if (content
 	       && mu_c_strncasecmp (buf, MU_HEADER_CONTENT_TYPE ":",
@@ -1013,7 +1005,7 @@ get_extbody_params (mu_message_t msg, char **content, char **descr)
 	  q = strchr (p, ';');
 	  if (q)
 	    *q = 0;
-	  *content = strdup (p);
+	  *content = xstrdup (p);
 	}
     }
   mu_stream_destroy (&stream);
@@ -1194,12 +1186,9 @@ list_handler (mu_message_t msg, msg_part_t part, char *type, char *encoding,
   
   if (mu_message_get_header (msg, &hdr) == 0)
     {
-      char *descr;
-      if (mu_header_aget_value (hdr, "Content-Description", &descr) == 0)
-	{
-	  printf (" %s", descr);
-	  free (descr);
-	}
+      const char *descr;
+      if (mu_header_sget_value (hdr, "Content-Description", &descr) == 0)
+	printf (" %s", descr);
     }
   
   printf ("\n");
@@ -2060,7 +2049,8 @@ edit_forw (char *cmd, struct compose_env *env, mu_message_t *pmsg, int level)
   mu_header_t hdr;
   mu_mime_t mime;
   mu_message_t msg;
-  char *val, *newval;
+  const char *val;
+  char *newval;
   
   skipws (cmd);
   while (stop == 0 && status == 0 && *cmd)
@@ -2151,13 +2141,12 @@ edit_forw (char *cmd, struct compose_env *env, mu_message_t *pmsg, int level)
   
   mu_mime_get_message (mime, &msg);
   mu_message_get_header (msg, &hdr);
-  mu_header_aget_value (hdr, MU_HEADER_CONTENT_TYPE, &val);
+  mu_header_sget_value (hdr, MU_HEADER_CONTENT_TYPE, &val);
   sp = strchr (val, ';');
   if (!sp)
     abort ();
   mu_asprintf (&newval, "multipart/digest%s", sp);
   mu_header_set_value (hdr, MU_HEADER_CONTENT_TYPE, newval, 1);
-  free (val);
   free (newval);
 
   if (!id)
@@ -2246,11 +2235,11 @@ edit_mime (char *cmd, struct compose_env *env, mu_message_t *msg, int level)
       _get_content_type (hdr, &typestr, NULL);
       split_content (typestr, &type, &subtype);
       if (mu_c_strcasecmp (type, "message") == 0)
-	encoding = strdup ("7bit");
+	encoding = xstrdup ("7bit");
       else if (mu_c_strcasecmp (type, "text") == 0)
-	encoding = strdup ("quoted-printable");
+	encoding = xstrdup ("quoted-printable");
       else
-	encoding = strdup ("base64");
+	encoding = xstrdup ("base64");
       mu_header_set_value (hdr, MU_HEADER_CONTENT_TRANSFER_ENCODING, encoding, 1);
       free (typestr);
       free (type);
@@ -2278,7 +2267,7 @@ edit_mime (char *cmd, struct compose_env *env, mu_message_t *msg, int level)
 }
 
 static int
-has_nonascii (char *buf, size_t n)
+has_nonascii (const char *buf, size_t n)
 {
   size_t i;
   for (i = 0; i < n; i++)
@@ -2441,55 +2430,61 @@ mhn_edit (struct compose_env *env, int level)
 }
 
 int
-parse_header_directive (char *val, char **encoding, char **charset, char **subject)
+parse_header_directive (const char *val, char **encoding, char **charset,
+			char **subject)
 {
-  char *p;
+  const char *p;
 
   /* Provide default values */
   *encoding = NULL;
   *charset = NULL;
-  *subject = val;
+  *subject = NULL;
 
   if (*val != '#')
-    return 1;
+    {
+      *subject = xstrdup (val);
+      return 1;
+    }
   val++;
   
   switch (*val)
     {
     case '#':
-      *subject = val;
-      return 1;
+      break;
 
     case '<':
-      for (p = val; *p; p++)
-	if (*p == '>')
-	  {
-	    int i, argc;
-	    char **argv;
+      p = strchr (val, '>');
+      if (p)
+	{
+	  int i, argc;
+	  char **argv;
 	    
-	    *subject = p + 1;
-	    *p = 0;
-	    split_args (val + 1, &argc, &argv);
-	    for (i = 0; i < argc; i++)
-	      {
-		if (strlen (argv[i]) > 8
-		    && memcmp (argv[i], "charset=", 8) == 0)
-		  {
-		    free (*charset);
-		    *charset = strdup (argv[i] + 8);
-		  }
-		else if (strlen (argv[i]) > 9
-			 && memcmp (argv[i], "encoding=", 9) == 0)
-		  {
-		    free (*encoding);
-		    *encoding = strdup (argv[i] + 9);
-		  }
-	      }
-	    mu_argcv_free (argc, argv);
-	    return 0;
-	  }
+	  *subject = xstrdup (p + 1);
+	  split_args (val + 1, p - val - 1, &argc, &argv);
+	  for (i = 0; i < argc; i++)
+	    {
+	      if (strlen (argv[i]) > 8
+		  && memcmp (argv[i], "charset=", 8) == 0)
+		{
+		  free (*charset);
+		  *charset = xstrdup (argv[i] + 8);
+		}
+	      else if (strlen (argv[i]) > 9
+		       && memcmp (argv[i], "encoding=", 9) == 0)
+		{
+		  free (*encoding);
+		  *encoding = xstrdup (argv[i] + 9);
+		}
+	    }
+	  mu_argcv_free (argc, argv);
+	  return 0;
+	}
       break;
+
+    default:
+      val--;
     }
+  *subject = xstrdup (val);
   return 1;
 }
 
@@ -2498,10 +2493,10 @@ void
 mhn_header (mu_message_t msg, mu_message_t omsg)
 {
   mu_header_t hdr = NULL;
-  char *val;
+  const char *val;
   
   mu_message_get_header (msg, &hdr);
-  if (mu_header_aget_value (hdr, MU_HEADER_SUBJECT, &val) == 0)
+  if (mu_header_sget_value (hdr, MU_HEADER_SUBJECT, &val) == 0)
     {
       char *subject, *encoding, *charset;
       
@@ -2530,12 +2525,12 @@ mhn_header (mu_message_t msg, mu_message_t omsg)
 		      int i, argc;
 		      char **argv;
 		      
-		      split_args (typeargs, &argc, &argv);
+		      split_args (typeargs, strlen (typeargs), &argc, &argv);
 		      for (i = 0; i < argc; i++)
 			if (strlen (argv[i]) > 8
 			    && memcmp (argv[i], "charset=", 8) == 0)
 			  {
-			    charset = strdup (argv[i]+8);
+			    charset = xstrdup (argv[i]+8);
 			    break;
 			  }
 		      mu_argcv_free (argc, argv);
@@ -2553,7 +2548,7 @@ mhn_header (mu_message_t msg, mu_message_t omsg)
 	  if (!encoding || strcmp (encoding, "7bit") == 0)
 	    {
 	      free (encoding);
-	      encoding = strdup ("base64");
+	      encoding = xstrdup ("base64");
 	    }
  	  rc = mu_rfc2047_encode (charset, encoding, subject, &p);
 	  if (rc)
@@ -2567,6 +2562,7 @@ mhn_header (mu_message_t msg, mu_message_t omsg)
 	}
       free (charset);
       free (encoding);
+      free (subject);
     }
 }
 
