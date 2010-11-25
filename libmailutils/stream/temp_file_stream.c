@@ -29,36 +29,64 @@
 #include <mailutils/nls.h>
 #include <mailutils/stream.h>
 #include <mailutils/sys/stream.h>
-#include <mailutils/sys/file_stream.h>
+#include <mailutils/sys/temp_file_stream.h>
 #include <mailutils/util.h>
 
 
 static int
 fd_temp_open (struct _mu_stream *str)
 {
-  struct _mu_file_stream *fstr = (struct _mu_file_stream *) str;
-  struct mu_tempfile_hints hints;
-
-  hints.tmpdir = fstr->filename;
-  return mu_tempfile (&hints, MU_TEMPFILE_TMPDIR, &fstr->fd, NULL);
+  struct _mu_temp_file_stream *fstr = (struct _mu_temp_file_stream *) str;
+  return mu_tempfile (&fstr->hints, fstr->hflags, &fstr->stream.fd, NULL);
 }
-  
+
+static void
+fd_temp_done (struct _mu_stream *str)
+{
+  struct _mu_temp_file_stream *fstr = (struct _mu_temp_file_stream *) str;
+  if (fstr->hflags & MU_TEMPFILE_TMPDIR)
+    free (fstr->hints.tmpdir);
+  if (fstr->hflags & MU_TEMPFILE_SUFFIX)
+    free (fstr->hints.suffix);
+  if (fstr->file_done)
+    fstr->file_done (&fstr->stream.stream);
+}
+
 int
-mu_temp_file_stream_create (mu_stream_t *pstream, const char *dir)
+mu_temp_file_stream_create (mu_stream_t *pstream,
+			    struct mu_tempfile_hints *hints, int flags)
 {
   int rc;
   struct _mu_file_stream *str;
   mu_stream_t stream;
   rc = _mu_file_stream_create (&str,
-			       sizeof (struct _mu_file_stream),
-			       dir,
+			       sizeof (struct _mu_temp_file_stream),
+			       NULL,
 			       -1,
 			       MU_STREAM_RDWR | MU_STREAM_SEEK |
 			       MU_STREAM_CREAT | 
 			       MU_STREAM_AUTOCLOSE);
   if (rc == 0)
     {
-      str->stream.open = fd_temp_open;
+      struct _mu_temp_file_stream *tstr = (struct _mu_temp_file_stream *)str;
+      tstr->stream.stream.open = fd_temp_open;
+      tstr->file_done = tstr->stream.stream.done;
+      tstr->stream.stream.done = fd_temp_done;
+
+      if ((flags & MU_TEMPFILE_TMPDIR) &&
+	  (tstr->hints.tmpdir = strdup (hints->tmpdir)) == NULL)
+	{
+	  mu_stream_unref ((mu_stream_t) str);
+	  return ENOMEM;
+	}
+      if ((flags & MU_TEMPFILE_SUFFIX) &&
+	  (tstr->hints.suffix = strdup (hints->suffix)) == NULL)
+	{
+	  mu_stream_unref ((mu_stream_t) str);
+	  return ENOMEM;
+	}
+      tstr->hflags = flags & ~MU_TEMPFILE_MKDIR;
+      
       str->flags = _MU_FILE_STREAM_TEMP;
       stream = (mu_stream_t) str;
       rc = mu_stream_open (stream);

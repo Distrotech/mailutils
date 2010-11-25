@@ -95,8 +95,8 @@ char *mu_make_file_name_suf (const char *dir, const char *file,
   
 struct mu_tempfile_hints
 {
-  const char *tmpdir;
-  const char *suffix;
+  char *tmpdir;
+  char *suffix;
 };
 
   /*int mu_tempfile (const char *tmpdir, char **namep);*/

@@ -193,7 +193,7 @@ main (int argc, char **argv)
       return 1;
     }
   
-  if ((rc = mu_temp_file_stream_create (&tmp, NULL))) 
+  if ((rc = mu_temp_file_stream_create (&tmp, NULL, 0))) 
     {
       mu_error (_("Cannot open temporary file: %s"),
 		mu_strerror (rc));

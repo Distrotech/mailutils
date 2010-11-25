@@ -53,6 +53,7 @@ sysinclude_HEADERS = \
  streamref.h\
  streamtrans.h\
  stream.h\
+ temp_file_stream.h\
  tls-stream.h\
  url.h\
  xscript-stream.h

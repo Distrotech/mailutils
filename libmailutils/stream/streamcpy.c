@@ -119,7 +119,7 @@ mu_stream_copy (mu_stream_t dst, mu_stream_t src, mu_off_t size,
     *pcsz = total;
   /* FIXME: When EOF error code is implemented:
   else if (total == 0)
-    status = EIO;
+    status = EOF;
   */
   free (buf);
   return status;

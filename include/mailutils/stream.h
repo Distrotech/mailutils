@@ -192,7 +192,9 @@ int mu_stream_copy (mu_stream_t dst, mu_stream_t src, mu_off_t size,
 
 
 int mu_file_stream_create (mu_stream_t *pstream, const char *filename, int flags);
-int mu_temp_file_stream_create (mu_stream_t *pstream, const char *dir);
+struct mu_tempfile_hints;  
+int mu_temp_file_stream_create (mu_stream_t *pstream,
+				struct mu_tempfile_hints *hints, int flags);
 int mu_fd_stream_create (mu_stream_t *pstream, char *filename, int fd,
 			 int flags);
 

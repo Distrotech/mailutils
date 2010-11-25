@@ -366,7 +366,7 @@ cfun_data (mu_stream_t iostr, char *arg)
       return 1;
     }
 
-  rc = mu_temp_file_stream_create (&tempstr, NULL);
+  rc = mu_temp_file_stream_create (&tempstr, NULL, 0);
   if (rc)
     {
       maidag_error (_("unable to open temporary file: %s"), mu_strerror (rc));

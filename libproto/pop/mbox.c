@@ -361,7 +361,7 @@ _pop_message_get_stream (struct _pop3_message *mpm, mu_stream_t *pstr)
 	  
 	  if (!mpd->cache)
 	    {
-	      status = mu_temp_file_stream_create (&mpd->cache, NULL);
+	      status = mu_temp_file_stream_create (&mpd->cache, NULL, 0);
 	      if (status)
 		/* FIXME: Try to recover first */
 		break;

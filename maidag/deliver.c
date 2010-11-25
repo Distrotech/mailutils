@@ -34,7 +34,7 @@ make_tmp (const char *from)
       exit (EX_TEMPFAIL);
     } 
 
-  rc = mu_temp_file_stream_create (&out, NULL);
+  rc = mu_temp_file_stream_create (&out, NULL, 0);
   if (rc)
     {
       maidag_error (_("unable to open temporary file: %s"), mu_strerror (rc));
