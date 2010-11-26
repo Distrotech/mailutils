@@ -49,6 +49,7 @@ TESTSUITE_AT = \
  install-mh.at\
  mark.at\
  mhl.at\
+ mhn.at\
  mhparam.at\
  mhpath.at\
  mhseq.at\

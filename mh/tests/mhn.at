@@ -1,0 +1,131 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2010 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# GNU Mailutils is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+
+m4_pushdef([MH_KEYWORDS],[mhn])
+
+dnl -------------------------------------------------------------------
+dnl 1. List mode
+dnl -------------------------------------------------------------------
+
+MH_CHECK([mhn -list],[mhn00 mhn-list],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
+mhn +inbox -list all
+],
+[0],
+[ msg part type/subtype              size  description
+   1      text/plain                 937
+   2      text/plain                 215
+   3      multipart/mixed             2K
+     1    text/plain                 230 How doth
+     2    application/octet-stream   462 Father William Part I
+   4      multipart/mixed             3K
+     1    text/plain                 341 Father William Part I
+     2    multipart/mixed             3K
+     2.1  application/octet-stream   479 Father William Part II
+     2.2  multipart/mixed             2K
+     2.2.1 application/octet-stream   483 Father William Part III
+     2.2.2 application/octet-stream   495 Father William Part IV
+   5      multipart/mixed            355
+     1    text/plain                   0 Empty part
+     2    text/plain                   1 Single line part
+])
+
+MH_CHECK([mhn -list -realsize],[mhn01 mhn-list-realsize],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
+mhn +inbox -list -realsize all
+],
+[0],
+[ msg part type/subtype              size  description
+   1      text/plain                 937
+   2      text/plain                 215
+   3      multipart/mixed             2K
+     1    text/plain                 230 How doth
+     2    application/octet-stream   341 Father William Part I
+   4      multipart/mixed             3K
+     1    text/plain                 341 Father William Part I
+     2    multipart/mixed             3K
+     2.1  application/octet-stream   352 Father William Part II
+     2.2  multipart/mixed             2K
+     2.2.1 application/octet-stream   357 Father William Part III
+     2.2.2 application/octet-stream   366 Father William Part IV
+   5      multipart/mixed            355
+     1    text/plain                   0 Empty part
+     2    text/plain                   1 Single line part
+])
+
+dnl -------------------------------------------------------------------
+dnl 2. Store mode
+dnl -------------------------------------------------------------------
+
+MH_CHECK([mhn -store],[mhn02 mhn-store],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
+mhn +inbox -store 4 || exit $?
+for file in 4.1.plain 4.2.1.octet-stream 4.2.2.1.octet-stream 4.2.2.2.octet-stream
+do
+  echo == $file ==
+  cat $file
+done
+],
+[0],
+[storing message 4 part 1 as file 4.1.plain
+storing message 4 part 2.1 as file 4.2.1.octet-stream
+storing message 4 part 2.2.1 as file 4.2.2.1.octet-stream
+storing message 4 part 2.2.2 as file 4.2.2.2.octet-stream
+== 4.1.plain ==
+`You are old, Father William,' the young man said,
+`And your hair has become very white;
+And yet you incessantly stand on your head--
+Do you think, at your age, it is right?'
+
+`In my youth,' Father William replied to his son,
+`I feared it might injure the brain;
+But, now that I'm perfectly sure I have none,
+Why, I do it again and again.'
+
+== 4.2.1.octet-stream ==
+`You are old,' said the youth, `as I mentioned before,
+And have grown most uncommonly fat;
+Yet you turned a back-somersault in at the door--
+Pray, what is the reason of that?'
+
+`In my youth,' said the sage, as he shook his grey locks,
+`I kept all my limbs very supple
+By the use of this ointment--one shilling the box--
+Allow me to sell you a couple?'
+== 4.2.2.1.octet-stream ==
+`You are old,' said the youth, `and your jaws are too weak
+For anything tougher than suet;
+Yet you finished the goose, with the bones and the beak--
+Pray how did you manage to do it?'
+
+`In my youth,' said his father, `I took to the law,
+And argued each case with my wife;
+And the muscular strength, which it gave to my jaw,
+Has lasted the rest of my life.'
+== 4.2.2.2.octet-stream ==
+`You are old,' said the youth, `one would hardly suppose
+That your eye was as steady as ever;
+Yet you balanced an eel on the end of your nose--
+What made you so awfully clever?'
+
+`I have answered three questions, and that is enough,'
+Said his father; `don't give yourself airs!
+Do you think I can listen all day to such stuff?
+Be off, or I'll kick you down stairs!'
+])
+
+m4_popdef[MH_KEYWORDS])
+# End of mhn.at

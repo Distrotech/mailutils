@@ -39,7 +39,11 @@ static struct argp_option options[] = {
   {N_("MIME editing options"),   0,  NULL, OPTION_DOC,  NULL, GRID},
   {"compose",      ARG_COMPOSE,      N_("BOOL"), OPTION_ARG_OPTIONAL,
    N_("compose the MIME message (default)"), GRID+1},
-  {"nocompose",    ARG_NOCOMPOSE,    NULL, OPTION_HIDDEN, "", GRID+1},
+  {"build",        0,                NULL,       OPTION_ALIAS,
+   NULL, GRID+1 },
+  {"nocompose",    ARG_NOCOMPOSE,    NULL, OPTION_HIDDEN, NULL, GRID+1},
+  {"nobuild",      ARG_NOCOMPOSE,    NULL, OPTION_HIDDEN|OPTION_ALIAS,
+   NULL, GRID+1},
 #undef GRID
 #define GRID 20  
   {N_("Listing options"),   0,  NULL, OPTION_DOC,  NULL, GRID},
@@ -97,6 +101,7 @@ static struct argp_option options[] = {
 struct mh_option mh_option[] = {
   { "file",          MH_OPT_ARG, "filename" },
   { "compose" },
+  { "build" },
   { "list",          MH_OPT_BOOL },
   { "headers",       MH_OPT_BOOL },
   { "realsize",      MH_OPT_BOOL },
@@ -801,18 +806,71 @@ mhn_show_command (mu_message_t msg, msg_part_t part, int *flags,
   return (char*) str;
 }
 
-char *
-mhn_store_command (mu_message_t msg, msg_part_t part, char *name)
+enum store_destination
+  {
+    store_to_folder,
+    store_to_folder_msg,
+    store_to_file,
+    store_to_command,
+    store_to_stdout
+  };
+
+enum store_destination
+mhn_store_command (mu_message_t msg, msg_part_t part, const char *name,
+		   char **return_string)
 {
   const char *p, *str, *tmp;
   char *typestr, *type, *subtype, *typeargs;
   struct obstack stk;
   mu_header_t hdr;
+  enum store_destination dest;
   
   mu_message_get_header (msg, &hdr);
   _get_content_type (hdr, &typestr, &typeargs);
   split_content (typestr, &type, &subtype);
-  str = _mhn_profile_get ("store", type, subtype, "%m%P.%s");
+  str = _mhn_profile_get ("store", type, subtype, NULL);
+
+  if (!str)
+    {
+      /* FIXME:
+	 [If the mhn-store component] isn't found, mhn will check to see if
+	 the content is application/octet-stream with parameter "type=tar".
+	 If so, mhn will choose an appropriate filename.
+      */
+
+      if (mu_c_strcasecmp (type, "message") == 0)
+	{
+	  /* If the content is not application/octet-stream, then mhn
+	     will check to see if the content is a message.  If so, mhn
+	     will use the value "+".  */
+	  *return_string = xstrdup (mh_current_folder ());
+	  return store_to_folder_msg;
+	}
+      else
+	str = "%m%P.%s";
+    }
+  
+  switch (str[0])
+    {
+    case '+':
+      if (str[1])
+	*return_string = xstrdup (str);
+      else
+	*return_string = xstrdup (mh_current_folder ());
+      return store_to_folder;
+
+    case '-':
+      *return_string = NULL;
+      return store_to_stdout;
+
+    case '|':
+      dest = store_to_command;
+      str = mu_str_skip_class (str + 1, MU_CTYPE_SPACE);
+      break;
+
+    default:
+      dest = store_to_file;
+    }
   
   /* Expand macro-notations:
      %m  message number
@@ -880,12 +938,12 @@ mhn_store_command (mu_message_t msg, msg_part_t part, char *name)
   str = obstack_finish (&stk);
   p = mu_str_skip_class (str, MU_CTYPE_SPACE);
   if (!*p)
-    str = NULL;
+    *return_string = NULL;
   else
-    str = xstrdup (p);
+    *return_string = xstrdup (p);
   
   obstack_free (&stk, NULL);
-  return (char*) str;
+  return dest;
 }
 
 
@@ -1539,13 +1597,14 @@ int
 store_handler (mu_message_t msg, msg_part_t part, char *type, char *encoding,
 	       void *data)
 {
-  char *prefix = data;
+  const char *prefix = data;
   char *name = NULL;
-  char *tmp;
+  char *partstr;
   int ismime;
   int rc;
   mu_stream_t out;
   const char *dir = mh_global_profile_get ("mhn-storage", NULL);
+  enum store_destination dest = store_to_file;
   
   if (mu_message_is_multipart (msg, &ismime) == 0 && ismime)
     return 0;
@@ -1559,6 +1618,7 @@ store_handler (mu_message_t msg, msg_part_t part, char *type, char *encoding,
 	{
 	  name = normalize_path (dir, val);
 	  free (val);
+	  dest = store_to_file;
 	}
       else if (rc != MU_ERR_NOENT)
 	{
@@ -1571,57 +1631,126 @@ store_handler (mu_message_t msg, msg_part_t part, char *type, char *encoding,
     }
   
   if (!name)
-    {
-      char *fname = mhn_store_command (msg, part, prefix);
-      if (dir)
-	name = mh_safe_make_file_name (dir, fname);
-      else
-	name = fname;
-    }
-  
-  tmp = msg_part_format (part);
-  if (prefix)
-    printf (_("storing message %s part %s as file %s\n"),
-	    prefix,
-	    tmp,
-	    name);
-  else
-    printf (_("storing message %s part %s as file %s\n"),
-	    mu_umaxtostr (0, msg_part_subpart (part, 0)),
-	    tmp,
-	    name);
-  free (tmp);
+    dest = mhn_store_command (msg, part, prefix, &name);
 
-  if (!(mode_options & OPT_QUIET) && access (name, R_OK) == 0)
+  partstr = msg_part_format (part);
+  /* Set prefix for diagnostic purposes */
+  if (!prefix)
+    prefix = mu_umaxtostr (0, msg_part_subpart (part, 0));
+  out = NULL;
+  rc = 0;
+  switch (dest)
     {
-      char *p;
-      int rc;
+    case store_to_folder_msg:
+    case store_to_folder:
+      {
+	mu_mailbox_t mbox = mh_open_folder (name, 1);
+	size_t uid;
+
+	mu_mailbox_uidnext (mbox, &uid);
+	printf (_("storing message %s part %s to folder %s as message %lu\n"),
+		prefix, partstr, name, (unsigned long) uid);
+	if (dest == store_to_folder_msg)
+	  {
+	    mu_body_t body;
+	    mu_stream_t str;
+	    mu_message_t tmpmsg;
+	    
+	    rc = mu_message_get_body (msg, &body);
+	    if (rc)
+	      {
+		mu_diag_funcall (MU_DIAG_ERROR, "mu_message_get_body",
+				 NULL, rc);
+		break;
+	      }
+	    rc = mu_body_get_streamref (body, &str);
+	    if (rc)
+	      {
+		mu_diag_funcall (MU_DIAG_ERROR, "mu_body_get_stream",
+				 NULL, rc);
+		break;
+	      }
+	    rc = mu_stream_to_message (str, &tmpmsg);
+	    mu_stream_unref (str);
+	    if (rc)
+	      {
+		mu_diag_funcall (MU_DIAG_ERROR, "mu_stream_to_message",
+				 NULL, rc);
+		break;
+	      }
+	    
+	    rc = mu_mailbox_append_message (mbox, tmpmsg);
+	    mu_message_destroy (&tmpmsg, mu_message_get_owner (tmpmsg));
+	  }
+	else
+	  rc = mu_mailbox_append_message (mbox, msg);
 	
-      mu_asprintf (&p, _("File %s already exists. Rewrite"), name);
-      rc = mh_getyn (p);
-      free (p);
-      if (!rc)
-	{
-	  free (name);
-	  return 0;
-	}
-      unlink (name);
-    }
-  
-  rc = mu_file_stream_create (&out, name, MU_STREAM_WRITE|MU_STREAM_CREAT);
-  if (rc)
-    {
-      mu_error (_("cannot create output stream (file %s): %s"),
-		name, mu_strerror (rc));
-      free (name);
-      return rc;
-    }
-  show_internal (msg, part, encoding, out);      
+	if (rc)
+	  mu_diag_funcall (MU_DIAG_ERROR, "mu_mailbox_append_message", NULL,
+			   rc);
+	mu_mailbox_close (mbox);
+	mu_mailbox_destroy (&mbox);
+      }
+      break;
 
-  mu_stream_destroy (&out);
-  free (name);
+    case store_to_file:
+      printf (_("storing message %s part %s as file %s\n"),
+	      prefix, partstr, name);
+
+      if (!(mode_options & OPT_QUIET) && access (name, R_OK) == 0)
+	{
+	  char *p;
+	  int ok;
+	  
+	  mu_asprintf (&p, _("File %s already exists. Rewrite"), name);
+	  ok = mh_getyn (p);
+	  free (p);
+	  if (!ok)
+	    {
+	      free (name);
+	      return 0;
+	    }
+	  unlink (name);
+	}
   
-  return 0;
+      rc = mu_file_stream_create (&out, name, MU_STREAM_WRITE|MU_STREAM_CREAT);
+      if (rc)
+	mu_error (_("cannot create output stream (file %s): %s"),
+		  name, mu_strerror (rc));
+      break;
+
+    case store_to_command:
+      /* FIXME: Change to homedir, reflect this in the message below.
+	 Chdir should better be implemented within mu_prog_stream_create
+	 Example message:
+	   storing msg 4 part 1 using command (cd /home/gray;  less)
+      */
+      printf (_("storing msg %s part %s using command %s\n"),
+	      prefix, partstr, name);
+      rc = mu_prog_stream_create (&out, name, MU_STREAM_WRITE);
+      if (rc)
+	mu_diag_funcall (MU_DIAG_ERROR, "mu_prog_stream_create", NULL, rc);
+      break;
+      
+    case store_to_stdout:
+      printf (_("storing msg %s part %s to stdout\n"),
+	      prefix, partstr);
+      rc = mu_stdio_stream_create (&out, MU_STDOUT_FD, 0);
+      if (rc)
+	mu_diag_funcall (MU_DIAG_ERROR, "mu_stdio_stream_create", NULL, rc);
+      break;
+    }
+			   
+  if (out)
+    {
+      show_internal (msg, part, encoding, out);
+      mu_stream_destroy (&out);
+    }
+      
+  free (name);
+  free (partstr);
+  
+  return rc;
 }
 
 void
@@ -2663,7 +2792,9 @@ main (int argc, char **argv)
 	  mu_error (_("extra arguments"));
 	  return 1;
 	}
-      message = mh_file_to_message (mu_folder_directory (), input_file);
+      input_file = mh_expand_name (mu_folder_directory (),
+				   argc == 1 ? argv[0] : "draft", 0);
+      message = mh_file_to_message (NULL, input_file);
       if (!message)
 	return 1;
     }
@@ -2674,8 +2805,9 @@ main (int argc, char **argv)
 	  mu_error (_("extra arguments"));
 	  return 1;
 	}
-      input_file = argc == 1 ? argv[0] : "draft";
-      message = mh_file_to_message (mu_folder_directory (), input_file);
+      input_file = mh_expand_name (mu_folder_directory (),
+				   argc == 1 ? argv[0] : "draft", 0);
+      message = mh_file_to_message (NULL, input_file);
       if (!message)
 	return 1;
     }
@@ -2688,9 +2820,6 @@ main (int argc, char **argv)
   switch (mode)
     {
     case mode_compose:
-      /* Prepare filename for diagnostic purposes */
-      if (input_file[0] != '/')
-	input_file = mh_safe_make_file_name (mu_folder_directory (), input_file);
       rc = mhn_compose ();
       break;
       
