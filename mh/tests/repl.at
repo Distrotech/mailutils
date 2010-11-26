@@ -26,7 +26,7 @@ Subject: test input
 
 message body
 ])
-echo "quit" | replcmd +inbox 1 | sed "s|$dir/*||;s|  *$||"
+echo "quit" | replcmd +inbox 1 | remove_curdir
 echo == Mail/draft ==
 cat Mail/draft
 ],
@@ -56,7 +56,7 @@ Subject: test input
 
 message body
 ])
-echo "quit" | replcmd -draftfolder drafts +inbox 1 | sed "s|$dir/*||;s|  *$||"
+echo "quit" | replcmd -draftfolder drafts +inbox 1 | remove_curdir
 echo == Mail/drafts/1 ==
 cat Mail/drafts/1
 ],

@@ -44,7 +44,6 @@ MH_CHECK([mark -add -nopublic],[mark02 mark-add-nopublic],[
 MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
 echo 'Current-Folder: inbox' > Mail/context
 mark -nopublic -sequence andro -add 1 2 3
-dir=`pwd`
 sed -n '/^atr-andro/{s/  */ /g;s/ $//;s/^[[^:]]*:/atr-andro:/;p}' Mail/context
 ],
 [0],

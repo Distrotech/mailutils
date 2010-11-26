@@ -585,17 +585,16 @@ _mhn_profile_get (const char *prefix, const char *type, const char *subtype,
 		  const char *defval)
 {
   char *name;
-  const char *str;
+  const char *str = NULL;
   
   if (subtype)
     {
       mu_asprintf (&name, "mhn-%s-%s/%s", prefix, type, subtype);
       str = mh_global_profile_get (name, NULL);
       free (name);
-      if (!str)
-	return _mhn_profile_get (prefix, type, NULL, defval);
     }
-  else
+
+  if (!str)
     {
       mu_asprintf (&name, "mhn-%s-%s", prefix, type);
       str = mh_global_profile_get (name, defval);
@@ -1533,58 +1532,16 @@ mhn_show ()
 char *
 normalize_path (const char *cwd, char *path)
 {
-  int len;
-  char *p;
+  size_t len;
   char *pcwd = NULL;
   
   if (!path)
     return path;
 
-  if (path[0] == '/')
-    return NULL;
-
   if (!cwd)
     cwd = pcwd = mu_getcwd ();
 
-  path = mh_safe_make_file_name (cwd, path);
-
-  /* delete trailing delimiter if any */
-  if (len && path[len-1] == '/')
-    path[len-1] = 0;
-
-  /* Eliminate any /../ */
-  for (p = strchr (path, '.'); p; p = strchr (p, '.'))
-    {
-      if (p > path && p[-1] == '/')
-	{
-	  if (p[1] == '.' && (p[2] == 0 || p[2] == '/'))
-	    /* found */
-	    {
-	      char *q, *s;
-
-	      /* Find previous delimiter */
-	      for (q = p-2; *q != '/' && q >= path; q--)
-		;
-
-	      if (q < path)
-		break;
-	      /* Copy stuff */
-	      s = p + 2;
-	      p = q;
-	      while ((*q++ = *s++))
-		;
-	      continue;
-	    }
-	}
-
-      p++;
-    }
-
-  if (path[0] == 0)
-    {
-      path[0] = '/';
-      path[1] = 0;
-    }
+  path = mu_normalize_path (mh_safe_make_file_name (cwd, path));
 
   len = strlen (cwd);
   if (strlen (path) < len || memcmp (path, cwd, len))
@@ -1694,6 +1651,18 @@ store_handler (mu_message_t msg, msg_part_t part, char *type, char *encoding,
       break;
 
     case store_to_file:
+      if (dir && name[0] != '/')
+	{
+	  char *s = mu_make_file_name (dir, name);
+	  if (!s)
+	    {
+	      rc = ENOMEM;
+	      mu_diag_funcall (MU_DIAG_ERROR, "mu_make_file_name", NULL, rc);
+	      break;
+	    }
+	  free (name);
+	  name = s;
+	}
       printf (_("storing message %s part %s as file %s\n"),
 	      prefix, partstr, name);
 

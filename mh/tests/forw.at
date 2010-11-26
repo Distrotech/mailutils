@@ -26,8 +26,7 @@ Subject: test input
 message body
 ])
 
-dir=`pwd`
-echo quit | forwcmd +inbox 1 | sed "s|$dir/*||;s|  *$||"
+echo quit | forwcmd +inbox 1 | remove_curdir
 echo == Mail/draft ==
 cat Mail/draft
 echo == Message ==
@@ -87,8 +86,7 @@ Subject: test input
 message body
 ])
 
-dir=`pwd`
-echo quit | forwcmd -format +inbox 1 | sed "s|$dir/*||;s|  *$||"
+echo quit | forwcmd -format +inbox 1 | remove_curdir
 echo == Mail/draft ==
 cat Mail/draft
 echo == Message ==
@@ -154,8 +152,7 @@ Subject: 2nd message
 2nd message body
 ])
 
-dir=`pwd`
-echo quit | forwcmd +inbox 1 2 | sed "s|$dir/*||;s|  *$||"
+echo quit | forwcmd +inbox 1 2 | remove_curdir
 echo == Mail/draft ==
 cat Mail/draft
 echo == Message 1 ==
@@ -239,8 +236,7 @@ Subject: test input
 message body
 ])
 
-dir=`pwd`
-forwcmd -build +inbox 1 | sed "s|$dir/*||;s|  *$||"
+forwcmd -build +inbox 1 | remove_curdir
 echo == Mail/draft ==
 cat Mail/draft
 echo == Message ==
@@ -285,10 +281,9 @@ Subject: 2nd message
 2nd message body
 ])
 
-dir=`pwd`
-forwcmd -build -mime +inbox 1 2 | sed "s|$dir/*||;s|  *$||"
+forwcmd -build -mime +inbox 1 2 | remove_curdir
 echo == Mail/draft ==
-sed "s|$dir/*||;s|  *$||" Mail/draft
+remove_curdir Mail/draft
 echo == Message 1 ==
 sed '/^X-IMAPbase/d' Mail/inbox/1
 echo == Message 2 ==
@@ -326,7 +321,7 @@ Subject: test input
 message body
 ])
 
-echo "quit" | forwcmd -draftfolder drafts 1 | sed "s|$dir/*||;s|  *$||"
+echo "quit" | forwcmd -draftfolder drafts 1 | remove_curdir
 echo == Mail/drafts/1 ==
 cat Mail/drafts/1
 echo == Message ==
@@ -383,7 +378,7 @@ Subject: test input
 message body
 ])
 
-echo "quit" | forwcmd -file infile | sed "s|$dir/*||;s|  *$||"
+echo "quit" | forwcmd -file infile | remove_curdir
 ],
 [0],
 [-- Editor invocation: Mail/draft

@@ -18,11 +18,11 @@ m4_include([testsuite.inc])
 
 m4_define([MH_SETUP],[
 test -d Mail || mkdir Mail
-dir=`pwd`
-MH=$dir/mh_profile
+curdir=`pwd`
+MH=$curdir/mh_profile
 export MH
 cat > $MH <<EOT
-Path: $dir/Mail
+Path: $curdir/Mail
 mhetcdir: $abs_top_srcdir/mh/etc
 EOT
 exec <&-

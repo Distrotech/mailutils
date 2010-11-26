@@ -19,7 +19,7 @@ m4_pushdef([MH_KEYWORDS],[mhpath])
 MH_CHECK([mhpath],[mhpath00],[
 MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
 echo 'Current-Folder: inbox' > Mail/context
-mhpath | sed 's|^'"$dir"'/||'
+mhpath | remove_curdir
 ],
 [0],
 [Mail/inbox
@@ -28,7 +28,7 @@ mhpath | sed 's|^'"$dir"'/||'
 MH_CHECK([mhpath +],[mhpath01 mhpath+],[
 MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
 echo 'Current-Folder: inbox' > Mail/context
-mhpath +| sed 's|^'"$dir"'/||'
+mhpath +| remove_curdir
 ],
 [0],
 [Mail
@@ -36,8 +36,7 @@ mhpath +| sed 's|^'"$dir"'/||'
 
 MH_CHECK([mhpath msgs],[mhpath02 mhparam_msgs],[
 MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
-dir=`pwd`
-mhpath 1-3 | sed 's|^'"$dir"'/||'
+mhpath 1-3 | remove_curdir
 ],
 [0],
 [Mail/inbox/1
@@ -47,8 +46,7 @@ Mail/inbox/3
 
 MH_CHECK([mhpath msgs (some nonexistent)],[mhpath03 mhparam_msgs_some_nonex],[
 MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
-dir=`pwd`
-mhpath 4-10 | sed 's|^'"$dir"'/||'
+mhpath 4-10 | remove_curdir
 ],
 [0],
 [Mail/inbox/4
@@ -57,8 +55,7 @@ Mail/inbox/5
 
 MH_CHECK([mhpath msgs (all nonexistent)],[mhpath04 mhparam_msgs_all_nonex],[
 MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
-dir=`pwd`
-mhpath 8-10 | sed 's|^'"$dir"'/||'
+mhpath 8-10 | remove_curdir
 ],
 [0],
 [],
@@ -89,8 +86,7 @@ mhpath 8-10 | sed 's|^'"$dir"'/||'
 
 MH_CHECK([mhpath nonexistent],[mhpath05 mhparam_nonexistent],[
 MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
-dir=`pwd`
-mhpath 10 | sed 's|^'"$dir"'/||'
+mhpath 10 | remove_curdir
 ],
 [0],
 [],
@@ -99,8 +95,7 @@ mhpath 10 | sed 's|^'"$dir"'/||'
 
 MH_CHECK([mhpath new],[mhpath06 mhparam_new],[
 MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
-dir=`pwd`
-mhpath new | sed 's|^'"$dir"'/||'
+mhpath new | remove_curdir
 ],
 [0],
 [Mail/inbox/6

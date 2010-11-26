@@ -127,5 +127,144 @@ Do you think I can listen all day to such stuff?
 Be off, or I'll kick you down stairs!'
 ])
 
+MH_CHECK([mhn -store -auto],[mhn03 mhn-store-auto],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
+mhn +inbox -store -auto 4 | remove_curdir || exit $?
+],
+[0],
+[storing message 4 part 1 as file msg.21
+storing message 4 part 2.1 as file msg.22
+storing message 4 part 2.2.1 as file msg.23
+storing message 4 part 2.2.2 as file msg.24
+])
+
+MH_CHECK([mhn -store -auto -part],[mhn04 mhn-store-auto-part],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
+mhn +inbox -store -auto -part 2.2.1 4 | remove_curdir || exit $?
+],
+[0],
+[storing message 4 part 2.2.1 as file msg.23
+])
+
+MH_CHECK([mhn -store -auto (pathname safety)],[mhn05 mhn-store-auto-safety],[
+mkdir Mail/inbox
+sed 's|; *name="msg|; name="../msg|' \
+  $abs_top_srcdir/testsuite/mh/mbox1/4 > Mail/inbox/4
+mhn +inbox -store -auto -part 2.1 4 || echo $?
+echo == 4.2.1.octet-stream ==
+cat 4.2.1.octet-stream
+],
+[0],
+[storing message 4 part 2.1 as file 4.2.1.octet-stream
+== 4.2.1.octet-stream ==
+`You are old,' said the youth, `as I mentioned before,
+And have grown most uncommonly fat;
+Yet you turned a back-somersault in at the door--
+Pray, what is the reason of that?'
+
+`In my youth,' said the sage, as he shook his grey locks,
+`I kept all my limbs very supple
+By the use of this ointment--one shilling the box--
+Allow me to sell you a couple?'
+])
+
+MH_CHECK([mhn-storage],[mhn06 mhn-store-auto],[
+mkdir Mail/inbox
+cp $abs_top_srcdir/testsuite/mh/mbox1/4 Mail/inbox
+
+mkdir out
+echo "mhn-storage: $curdir/out" >> $MH
+
+mhn +inbox -store 4 | remove_curdir || echo $?
+],
+[0],
+[storing message 4 part 1 as file out/4.1.plain
+storing message 4 part 2.1 as file out/4.2.1.octet-stream
+storing message 4 part 2.2.1 as file out/4.2.2.1.octet-stream
+storing message 4 part 2.2.2 as file out/4.2.2.2.octet-stream
+])
+
+MH_CHECK([mhn-store-: all escapes],[mhn07 mhn-store_escapes],[
+mkdir Mail/inbox
+cp $abs_top_srcdir/testsuite/mh/mbox1/4 Mail/inbox
+echo "mhn-store-application: %%-%m%P.%s-%p" >> $MH
+mhn +inbox -store 4 | remove_curdir || exit $?
+find . -name '%*'
+],
+[0],
+[storing message 4 part 1 as file 4.1.plain
+storing message 4 part 2.1 as file %4.2.1.octet-stream-2.1
+storing message 4 part 2.2.1 as file %4.2.2.1.octet-stream-2.2.1
+storing message 4 part 2.2.2 as file %4.2.2.2.octet-stream-2.2.2
+./%4.2.1.octet-stream-2.1
+./%4.2.2.1.octet-stream-2.2.1
+./%4.2.2.2.octet-stream-2.2.2
+])
+
+MH_CHECK([mhn-store-: absolute path],[mhn08 mhn-store_abspath],[
+mkdir Mail/inbox
+mkdir out
+cp $abs_top_srcdir/testsuite/mh/mbox1/4 Mail/inbox
+echo "mhn-store-application: $curdir/out/%m%P.%s" >> $MH
+mhn +inbox -store 4 | remove_curdir || exit $?
+],
+[0],
+[storing message 4 part 1 as file 4.1.plain
+storing message 4 part 2.1 as file out/4.2.1.octet-stream
+storing message 4 part 2.2.1 as file out/4.2.2.1.octet-stream
+storing message 4 part 2.2.2 as file out/4.2.2.2.octet-stream
+])
+
+MH_CHECK([mhn-store-: +folder],[mhn09 mhn-store+folder],[
+mkdir Mail/inbox
+mkdir Mail/app
+cp $abs_top_srcdir/testsuite/mh/mbox1/4 Mail/inbox
+echo "mhn-store-application: +app" >> $MH
+mhn +inbox -store 4 | remove_curdir || exit $?
+],
+[0],
+[storing message 4 part 1 as file 4.1.plain
+storing message 4 part 2.1 to folder +app as message 1
+storing message 4 part 2.2.1 to folder +app as message 2
+storing message 4 part 2.2.2 to folder +app as message 3
+])
+
+MH_CHECK([mhn-store-: +],[mhn10 mhn-store+],[
+mkdir Mail/inbox
+cp $abs_top_srcdir/testsuite/mh/mbox1/4 Mail/inbox
+echo "Current-Folder: inbox" > Mail/context
+cat >> $MH <<EOT
+mhn-store-application/octet-stream: +
+EOT
+mhn +inbox -store -part 2.2.1 4 | remove_curdir || exit $?
+],
+[0],
+[storing message 4 part 2.2.1 to folder inbox as message 5
+])
+
+MH_CHECK([mhn-store-: pipe],[mhn11 mhn-store-pipe],[
+mkdir Mail/inbox
+cp $abs_top_srcdir/testsuite/mh/mbox1/4 Mail/inbox
+echo "Current-Folder: inbox" > Mail/context
+echo "mhn-store-text: | $abs_top_srcdir/mh/tests/mhed -" >> $MH
+mhn +inbox -store -part 1 4 | sed 's| *$||' || exit $?
+],
+[0],
+[-- Editor invocation: -
+-- Input file:
+`You are old, Father William,' the young man said,
+`And your hair has become very white;
+And yet you incessantly stand on your head--
+Do you think, at your age, it is right?'
+
+`In my youth,' Father William replied to his son,
+`I feared it might injure the brain;
+But, now that I'm perfectly sure I have none,
+Why, I do it again and again.'
+
+-- Input file end
+storing msg 4 part 1 using command /home/gray/gnu/mailutils/mh/tests/mhed -
+])
+
 m4_popdef[MH_KEYWORDS])
 # End of mhn.at

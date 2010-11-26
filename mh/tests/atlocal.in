@@ -3,4 +3,6 @@
 # Copyright (C) 2004, 2010 Free Software Foundation, Inc.
 
 PATH=@abs_builddir@:@abs_top_builddir@/mh:$top_srcdir:$srcdir:$PATH
-  
+remove_curdir() {
+	sed "s|$curdir/*||;s|  *$||" $*
+}	
