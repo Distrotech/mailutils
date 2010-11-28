@@ -23,6 +23,7 @@
 #define obstack_chunk_alloc xmalloc
 #define obstack_chunk_free free
 #include <obstack.h>
+#include <setjmp.h>
 
 static char doc[] = N_("GNU MH mhn")"\v"
 N_("Options marked with `*' are not yet implemented.\n\
@@ -141,13 +142,13 @@ static enum mhn_mode mode = mode_compose;
 
 #define OPT_HEADERS    001
 #define OPT_REALSIZE   002
-#define OPT_PAUSE      004
-#define OPT_AUTO       010
-#define OPT_SERIALONLY 020
-#define OPT_VERBOSE    040
-#define OPT_QUIET      100
+#define OPT_AUTO       004
+#define OPT_SERIALONLY 010
+#define OPT_VERBOSE    020
+#define OPT_QUIET      040
 
 static int mode_options = OPT_HEADERS;
+static int pause_option = -1; /* -pause option. -1 means "not given" */
 static char *formfile;
 static char *content_type;
 static char *content_subtype;
@@ -165,7 +166,7 @@ static msg_part_t req_part;
 #define MHN_EXCLUSIVE_EXEC  001
 #define MHN_STDIN           002
 #define MHN_LISTING         004
-#define MHN_CONFIRM         010
+#define MHN_PAUSE           010
 
 void
 sfree (char **ptr)
@@ -196,6 +197,30 @@ split_content (const char *content, char **type, char **subtype)
       *type = xmalloc (strlen (content) + 1);
       strcpy (*type, content);
       *subtype = NULL;
+    }
+}
+
+static void
+split_args (const char *argstr, size_t len, int *pargc, char ***pargv)
+{
+  struct mu_wordsplit ws;
+
+  ws.ws_delim = ";";
+  if (mu_wordsplit_len (argstr, len, &ws,
+			MU_WRDSF_DEFFLAGS | MU_WRDSF_DELIM | MU_WRDSF_WS))
+    {
+      mu_error (_("cannot split line `%s': %s"), argstr,
+		mu_wordsplit_strerror (&ws));
+      *pargc = 0;
+      *pargv = NULL;
+    }
+  else
+    {
+      *pargc = ws.ws_wordc;
+      *pargv = ws.ws_wordv;
+      ws.ws_wordc = 0;
+      ws.ws_wordv = NULL;
+      mu_wordsplit_free (&ws);
     }
 }
 
@@ -340,14 +365,11 @@ opt_handler (int key, char *arg, struct argp_state *state)
       break;
 
     case ARG_PAUSE:
-      if (is_true (arg))
-	{
-	  mode_options |= OPT_PAUSE;
-	  break;
-	}
-      /*FALLTHRU*/
+      pause_option = is_true (arg);
+      break;
+      
     case ARG_NOPAUSE:
-      mode_options &= ~OPT_PAUSE;
+      pause_option = 0;
       break;
 
       /* Store options */
@@ -399,6 +421,8 @@ opt_handler (int key, char *arg, struct argp_state *state)
     case ARGP_KEY_FINI:
       if (!formfile)
 	mh_find_file ("mhl.headers", &formfile);
+      if (!isatty (0))
+	pause_option = 0;
       break;
       
     default:
@@ -695,6 +719,32 @@ mhn_tempfile_name (char **tempfile, const char *type, const char *subtype)
     }
 }
 
+static int
+check_type (const char *typeargs, const char *typeval)
+{
+  int rc = 1;
+  
+  if (typeargs)
+    {
+      int i, argc;
+      char **argv;
+		      
+      split_args (typeargs, strlen (typeargs), &argc, &argv);
+      for (i = 0; i < argc; i++)
+	{
+	  if (strlen (argv[i]) > 5
+	      && memcmp (argv[i], "type=", 5) == 0
+	      && mu_c_strcasecmp (argv[i] + 5, typeval) == 0)
+	    {
+	      rc = 0;
+	      break;
+	    }
+	}
+      mu_argcv_free (argc, argv);
+    }
+  return rc;
+}
+
 char *
 mhn_show_command (mu_message_t msg, msg_part_t part, int *flags,
 		  char **tempfile)
@@ -703,13 +753,51 @@ mhn_show_command (mu_message_t msg, msg_part_t part, int *flags,
   char *typestr, *type, *subtype, *typeargs;
   struct obstack stk;
   mu_header_t hdr;
-
+  char *temp_cmd = NULL;
+  
   mu_message_get_header (msg, &hdr);
   _get_content_type (hdr, &typestr, &typeargs);
   split_content (typestr, &type, &subtype);
   str = _mhn_profile_get ("show", type, subtype, NULL);
-  if (!str) /* FIXME */
-    return NULL;
+  if (!str)
+    {
+      if (mu_c_strcasecmp (typestr, "text/plain") == 0
+	  /* FIXME: The following one should produce
+	     %pshow -file '%F' */
+	  || mu_c_strcasecmp (typestr, "message/rfc822") == 0)
+	{
+	  int rc;
+	  const char *moreproc = mh_global_profile_get ("moreproc",
+							getenv ("PAGER"));
+	  if (!moreproc)
+	    return NULL;
+	  rc = mu_asprintf (&temp_cmd, "%%p%s '%%F'", moreproc);
+	  if (rc)
+	    {
+	      mu_diag_funcall (MU_DIAG_ERROR, "mu_asprintf", NULL, rc);
+	      return NULL;
+	    }
+	  str = temp_cmd;
+	}
+      else if (mu_c_strcasecmp (typestr, "application/octet-stream") == 0 &&
+	       check_type (typeargs, "tar") == 0)
+	/* Use temporary file to get tar a chance to select appropriate
+	   decompressor, if the archive is compressed. */
+	str = "tar tvf '%F'";
+      else
+	{
+	  char *parts = msg_part_format (part);
+	  
+	  /* FIXME: This message should in fact occupy two lines (exactly
+	     as split below), but mu_error malfunctions if a \n appears
+	     within the format string */
+	  mu_error (_("don't know how to display content"
+		      " (content %s in message %lu, part %s)"),
+		    typestr, (unsigned long)part->part[0], parts);
+	  free (parts);
+	  return NULL;
+	}
+    }
   
   /* Expand macro-notations:
     %a  additional arguments
@@ -765,7 +853,7 @@ mhn_show_command (mu_message_t msg, msg_part_t part, int *flags,
 	      
 	    case 'p':
 	      /* %l, and ask for confirmation */
-	      *flags |= MHN_LISTING|MHN_CONFIRM;
+	      *flags |= MHN_LISTING|MHN_PAUSE;
 	      break;
 	      
 	    case 's':
@@ -793,7 +881,8 @@ mhn_show_command (mu_message_t msg, msg_part_t part, int *flags,
   free (typestr);
   free (type);
   free (subtype);
-
+  free (temp_cmd);
+  
   str = obstack_finish (&stk);
   p = mu_str_skip_class (str, MU_CTYPE_SPACE);
   if (!*p)
@@ -831,12 +920,6 @@ mhn_store_command (mu_message_t msg, msg_part_t part, const char *name,
 
   if (!str)
     {
-      /* FIXME:
-	 [If the mhn-store component] isn't found, mhn will check to see if
-	 the content is application/octet-stream with parameter "type=tar".
-	 If so, mhn will choose an appropriate filename.
-      */
-
       if (mu_c_strcasecmp (type, "message") == 0)
 	{
 	  /* If the content is not application/octet-stream, then mhn
@@ -845,6 +928,12 @@ mhn_store_command (mu_message_t msg, msg_part_t part, const char *name,
 	  *return_string = xstrdup (mh_current_folder ());
 	  return store_to_folder_msg;
 	}
+      else if (mu_c_strcasecmp (typestr, "application/octet-stream") == 0 &&
+	       check_type (typeargs, "tar") == 0)
+	/* [If the mhn-store component] isn't found, mhn will check to see if
+	   the content is application/octet-stream with parameter "type=tar".
+	   If so, mhn will choose an appropriate filename. */
+	str = "%m%P.tar";
       else
 	str = "%m%P.%s";
     }
@@ -947,30 +1036,6 @@ mhn_store_command (mu_message_t msg, msg_part_t part, const char *name,
 
 
 /* ************************* Auxiliary functions ************************** */
-
-static void
-split_args (const char *argstr, size_t len, int *pargc, char ***pargv)
-{
-  struct mu_wordsplit ws;
-
-  ws.ws_delim = ";";
-  if (mu_wordsplit_len (argstr, len, &ws,
-			MU_WRDSF_DEFFLAGS | MU_WRDSF_DELIM | MU_WRDSF_WS))
-    {
-      mu_error (_("cannot split line `%s': %s"), argstr,
-		mu_wordsplit_strerror (&ws));
-      *pargc = 0;
-      *pargv = NULL;
-    }
-  else
-    {
-      *pargc = ws.ws_wordc;
-      *pargv = ws.ws_wordv;
-      ws.ws_wordc = 0;
-      ws.ws_wordv = NULL;
-      mu_wordsplit_free (&ws);
-    }
-}
 
 int
 _message_is_external_body (mu_message_t msg, char ***env)
@@ -1310,7 +1375,8 @@ mhn_list ()
 static mu_list_t mhl_format;
 
 int
-show_internal (mu_message_t msg, msg_part_t part, char *encoding, mu_stream_t out)
+show_internal (mu_message_t msg, msg_part_t part, char *encoding,
+	       mu_stream_t out)
 {
   int rc;
   mu_body_t body = NULL;
@@ -1407,6 +1473,41 @@ mhn_run_command (mu_message_t msg, msg_part_t part,
   return rc;
 }
 
+static RETSIGTYPE
+sigint (int sig)
+{
+  /* nothing */
+}
+
+static int
+mhn_pause ()
+{
+  int c;
+  int rc = 0;
+  RETSIGTYPE (*saved_sig) (int) = signal (SIGINT, sigint);
+  printf (_("Press <return> to show content..."));
+  fflush (stdout);
+  do
+    {
+      fd_set set;
+      int res;
+      
+      FD_ZERO (&set);
+      FD_SET (0, &set);
+      res = select (1, &set, NULL, NULL, NULL);
+      if (res != 1
+	  || read (0, &c, 1) != 1)
+	{
+	  putchar ('\n');
+	  rc = 1;
+	  break;
+	}
+    }
+  while (c != '\n');
+  signal (SIGINT, saved_sig);
+  return rc;
+}  
+
 int
 show_handler (mu_message_t msg, msg_part_t part, char *type, char *encoding,
 	      void *data)
@@ -1414,69 +1515,49 @@ show_handler (mu_message_t msg, msg_part_t part, char *type, char *encoding,
   mu_stream_t out = data;
   char *cmd;
   int flags = 0;
-  int fd = 1;
   char *tempfile = NULL;
   int ismime;
-  mu_transport_t trans[2];
- 
+  
   if (mu_message_is_multipart (msg, &ismime) == 0 && ismime)
     return 0;
 
-  mu_stream_ioctl (out, MU_IOCTL_GET_TRANSPORT, trans);
-  fd = (int) trans[0]; /* FIXME */
-
-  if (mode_options & OPT_PAUSE)
-    flags |= MHN_CONFIRM;
   cmd = mhn_show_command (msg, part, &flags, &tempfile);
   if (!cmd)
-    flags |= MHN_LISTING;
+    return 0;
+  if (pause_option == 0)
+    flags &= ~MHN_PAUSE;
+  else if (pause_option > 0)
+    flags |= MHN_PAUSE;
+  
   if (flags & MHN_LISTING)
     {
-      char *str;
-      const char *p;
+      mu_header_t hdr = NULL;
+      char *parts;
+      const char *descr;
       mu_off_t size = 0;
 
-      str = (char*) _("part ");
-      mu_stream_write (out, str, strlen (str), NULL);
-      str = msg_part_format (part);
-      mu_stream_write (out, str, strlen (str), NULL);
-      free (str);
-      mu_stream_write (out, " ", 1, NULL);
-      mu_stream_write (out, type, strlen (type), NULL);
       mhn_message_size (msg, &size);
-      p = mu_umaxtostr (0, size);
-      mu_stream_write (out, p, strlen (p), NULL);
+      parts = msg_part_format (part);
+      mu_stream_printf (out, _("part %5s %-24.24s %lu"), parts, type, 
+			(unsigned long) size);
+      free (parts);
+      if (mu_message_get_header (msg, &hdr) == 0 &&
+	  mu_header_sget_value (hdr, MU_HEADER_CONTENT_DESCRIPTION,
+				&descr) == 0)
+	mu_stream_printf (out, " %s", descr);
       mu_stream_write (out, "\n", 1, NULL);
       mu_stream_flush (out);
     }
 
-  if (flags & MHN_CONFIRM)
+  if (!((flags & MHN_PAUSE) && mhn_pause ()))
+    mhn_run_command (msg, part, encoding, cmd, flags, tempfile);
+  free (cmd);
+  if (tempfile)
     {
-      if (isatty (fd) && isatty (0))
-	{
-          char buf[64];
-	  printf (_("Press <return> to show content..."));
-	  if (!fgets (buf, sizeof buf, stdin) || buf[0] != '\n')
-	    return 0;
-	}
-    } 
-      
-  if (!cmd)
-    {
-      const char *pager = mh_global_profile_get ("moreproc", getenv ("PAGER"));
-      if (pager)
-	exec_internal (msg, part, encoding, pager, 0);
-      else
-	show_internal (msg, part, encoding, out);
-    }
-  else
-    {
-      mhn_run_command (msg, part, encoding, cmd, flags, tempfile);
-      free (cmd);
       unlink (tempfile);
       free (tempfile);
     }
-
+  
   return 0;
 }
 
@@ -1510,7 +1591,7 @@ mhn_show ()
 {
   int rc;
   mu_stream_t ostr;
-  
+
   rc = mu_stdio_stream_create (&ostr, MU_STDOUT_FD, 0);
   if (rc)
     {
@@ -1519,7 +1600,7 @@ mhn_show ()
     }
   
   mhl_format = mhl_format_compile (formfile);
-    
+
   if (message)
     rc = show_message (message, 0, ostr);
   else

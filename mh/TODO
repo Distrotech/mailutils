@@ -27,7 +27,7 @@ State	Nice	Utility		Comments
 *	-20	refile		--link copies messages
 +	-20	rmm		
 +	-15	folder(s)	
-+	-15	mhn		
+*	-15	mhn		-[rw]?cache, -type
 +	-10	rmf
 +	0	install-mh	
 *	4	mhl		Following format variables are ignored:
