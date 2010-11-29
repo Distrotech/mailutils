@@ -364,7 +364,8 @@ Initial text.
 [mhn: don't know how to display content (content application/x-tar in message 1, part 2)
 ])
 
-MH_CHECK([mhn-show- variable (with subtype)],[mhn15 mhn-show-with-subtype],[
+MH_CHECK([mhn-show- variable (with subtype)],
+[mhn15 mhn-show-with-subtype],[
 MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mime,[Mail/inbox])
 echo "mhn-show-application/x-tar: %ltar tvf '%F'" >> $MH
 mhn -show 1 | sed '/^X-IMAPbase/d;s/  *$//'
@@ -387,7 +388,8 @@ part     2 application/x-tar        13835
 -rw-r--r-- gray/staff      937 2010-11-29 13:58 Jabberwocky
 ])
 
-MH_CHECK([mhn-show- variable (with subtype)],[mhn16 mhn-show-without-subtype],[
+MH_CHECK([mhn-show- variable (without subtype)],
+[mhn16 mhn-show-without-subtype],[
 MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mime,[Mail/inbox])
 echo "mhn-show-application: %ltar tvf '%F'" >> $MH
 mhn -show 1 | sed '/^X-IMAPbase/d;s/  *$//'

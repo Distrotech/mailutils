@@ -2493,7 +2493,10 @@ mhn_edit (struct compose_env *env, int level)
       if (buf[0] == '#')
 	{
 	  if (buf[1] == '#')
-	    mu_stream_write (output, buf+1, n-1, NULL);
+	    {
+	      mu_stream_write (output, buf+1, n-1, NULL);
+	      line_count++;
+	    }
 	  else
 	    {
 	      char *b2 = NULL;
@@ -2518,13 +2521,15 @@ mhn_edit (struct compose_env *env, int level)
 		}
 	      free (b2);
 
-	      mu_stream_close (output);
-	      mu_stream_destroy (&output);
 	      
 	      if (line_count)
-		/* Close and append the previous part */
-		finish_text_msg (env, &msg, ascii_buf);
-
+		{
+		  /* Close and append the previous part */
+		  mu_stream_close (output);
+		  mu_stream_destroy (&output);
+		  finish_text_msg (env, &msg, ascii_buf);
+		}
+	      
 	      mu_rtrim_cset (buf, "\n");
 	      
 	      /* Execute the directive */
