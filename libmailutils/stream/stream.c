@@ -1147,7 +1147,7 @@ mu_stream_wait (mu_stream_t stream, int *pflags, struct timeval *tvp)
   /* FIXME: How about MU_STREAM_READY_WR? */
   if ((*pflags) & MU_STREAM_READY_RD 
       && stream->buftype != mu_buffer_none
-      && stream->level > 0)
+      && stream->pos < stream->level)
     {
       flg = MU_STREAM_READY_RD;
       *pflags &= ~MU_STREAM_READY_RD;
@@ -1155,7 +1155,14 @@ mu_stream_wait (mu_stream_t stream, int *pflags, struct timeval *tvp)
 
   if (stream->wait)
     {
-      int rc = stream->wait (stream, pflags, tvp);
+      int rc;
+
+      if (flg && *pflags == 0)
+	/* Don't call wait method if our modifications (see above) resulted
+	   in empty *pflags. */
+	rc = 0;
+      else
+        rc = stream->wait (stream, pflags, tvp);
       if (rc == 0)
 	*pflags |= flg;
       return rc;
