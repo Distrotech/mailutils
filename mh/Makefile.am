@@ -93,7 +93,7 @@ BUILT_SOURCES= \
 
 MAINTAINERCLEANFILES=$(BUILT_SOURCES)
 
-EXTRA_DIST = mailutils-mh.eli mh_fmtgram.y pick.y mh_alias.y mh_alias.l
+EXTRA_DIST = mh_fmtgram.y pick.y mh_alias.y mh_alias.l
 
 INCLUDES = @MU_APP_COMMON_INCLUDES@ 
 AM_CPPFLAGS = -D_GNU_SOURCE -DMHLIBDIR=\"$(mhlibdir)\" -DMHBINDIR=\"$(bindir)\"
