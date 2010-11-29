@@ -65,7 +65,8 @@ _mime_is_multipart_digest (mu_mime_t mime)
 }
 
 static int
-_mime_append_part (mu_mime_t mime, mu_message_t msg, int offset, int len, int lines)
+_mime_append_part (mu_mime_t mime, mu_message_t msg,
+		   size_t offset, size_t len, size_t lines)
 {
   struct _mime_part *mime_part, **part_arr;
   int             ret;
@@ -90,7 +91,7 @@ _mime_append_part (mu_mime_t mime, mu_message_t msg, int offset, int len, int li
   mime->mtp_parts[mime->nmtp_parts++] = mime_part;
   if (msg == NULL)
     {
-      if ((ret = mu_message_create (&(mime_part->msg), mime_part)) == 0)
+      if ((ret = mu_message_create (&mime_part->msg, mime_part)) == 0)
 	{
 	  if ((ret =
 	       mu_header_create (&hdr, mime->header_buf,
@@ -258,8 +259,9 @@ static int
 _mime_parse_mpart_message (mu_mime_t mime)
 {
   char           *cp, *cp2;
-  int             blength, mb_length, mb_offset, mb_lines, ret;
-  size_t          nbytes;
+  size_t         blength, mb_length, mb_offset, mb_lines;
+  int            ret;
+  size_t         nbytes;
 
   if (!(mime->flags & MIME_PARSER_ACTIVE))
     {
@@ -538,25 +540,36 @@ _mime_set_content_type (mu_mime_t mime)
 static int
 _mime_part_size (mu_mime_t mime, size_t *psize)
 {
-  int i, ret;
-  size_t size, total = 0;
+  size_t total;
+  int ret;
 
   if (mime->nmtp_parts == 0)
     return EINVAL;
 
   if ((ret = _mime_set_content_type (mime)) != 0)
     return ret;
-  for (i = 0; i < mime->nmtp_parts; i++)
+  if (mime->nmtp_parts == 1)
     {
-      mu_message_size (mime->mtp_parts[i]->msg, &size);
-      total += size;
-      if (mime->nmtp_parts > 1)	/* boundary line */
-	total += strlen (mime->boundary) + 3;
+      ret = mu_message_size (mime->mtp_parts[0]->msg, &total);
     }
-  if (mime->nmtp_parts > 1)	/* ending boundary line */
-    total += 2;
+  else
+    {
+      size_t i, size, boundary_len;
+
+      boundary_len = strlen (mime->boundary);
+      total = boundary_len + 3;
+
+      for (i = 0; i < mime->nmtp_parts; i++)
+	{
+	  ret = mu_message_size (mime->mtp_parts[i]->msg, &size);
+	  if (ret)
+	    break;
+	  total += size + boundary_len + 4;
+	}
+      total += 2; /* ending boundary line */
+    }
   *psize = total;
-  return 0;
+  return ret;
 }
 
 
@@ -954,8 +967,9 @@ mu_mime_get_part (mu_mime_t mime, size_t part, mu_message_t *msg)
       else
 	{
 	  mime_part = mime->mtp_parts[part - 1];
-	  if (!mime_part->body_created
-	      && (ret = mu_body_create (&body, mime_part->msg)) == 0)
+	  if (mime->stream &&
+	      !mime_part->body_created &&
+	      (ret = mu_body_create (&body, mime_part->msg)) == 0)
 	    {
 	      mu_body_set_size (body, _mimepart_body_size, mime_part->msg);
 	      mu_body_set_lines (body, _mimepart_body_lines, mime_part->msg);
