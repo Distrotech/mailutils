@@ -2223,15 +2223,14 @@ edit_extern (char *cmd, struct compose_env *env, mu_message_t *msg, int level)
 int
 edit_forw (char *cmd, struct compose_env *env, mu_message_t *pmsg, int level)
 {
-  char *sp, *id = NULL, *descr = NULL;
+  char *id = NULL, *descr = NULL;
   int stop = 0, status = 0;
-  size_t i;
+  size_t i, npart;
   struct mu_wordsplit ws;
   mu_header_t hdr;
   mu_mime_t mime;
   mu_message_t msg;
   const char *val;
-  char *newval;
   
   skipws (cmd);
   while (stop == 0 && status == 0 && *cmd)
@@ -2282,11 +2281,23 @@ edit_forw (char *cmd, struct compose_env *env, mu_message_t *pmsg, int level)
     }
 
   mu_mime_create (&mime, NULL, 0);
-  
-  mbox = mh_open_folder (ws.ws_wordv[0], 0);
-  for (i = 1; i < ws.ws_wordc; i++)
+
+  if (ws.ws_wordv[0][0] == '+')
     {
-      mu_message_t input_msg;
+      mbox = mh_open_folder (ws.ws_wordv[0], 0);
+      i = 1;
+    }
+  else
+    {
+      mbox = mh_open_folder (mh_current_folder (), 0);
+      i = 0;
+    }
+  
+  for (npart = 1; i < ws.ws_wordc; i++, npart++)
+    {
+      mu_message_t input_msg, newmsg;
+      mu_body_t body;
+      mu_stream_t input_str, bstr;
       char *endp;
       size_t n = strtoul (ws.ws_wordv[i], &endp, 10);
 
@@ -2308,9 +2319,47 @@ edit_forw (char *cmd, struct compose_env *env, mu_message_t *pmsg, int level)
 	  return 1;
 	}
 
-      if ((status = mu_message_create_copy (&msg, input_msg)))
-	break;
-      mu_mime_add_part (mime, msg);
+      status = mu_message_get_streamref (input_msg, &input_str);
+      if (status)
+	{
+	  mu_diag_funcall (MU_DIAG_ERROR, "mu_message_get_streamref", NULL,
+			   status);
+	  exit (1);
+	}
+	
+      status = mu_message_create (&newmsg, NULL);
+      if (status)
+	{
+	  mu_diag_funcall (MU_DIAG_ERROR, "mu_message_create", NULL, status);
+	  exit (1);
+	}
+      status = mu_message_get_body (newmsg, &body);
+      if (status)
+	{
+	  mu_diag_funcall (MU_DIAG_ERROR, "mu_message_get_body", NULL,
+			   status);
+	  exit (1);
+	}
+      status = mu_body_get_streamref (body, &bstr);
+      if (status)
+	{
+	  mu_diag_funcall (MU_DIAG_ERROR, "mu_body_get_streamref", NULL,
+			   status);
+	  exit (1);
+	}
+      status = mu_stream_copy (bstr, input_str, 0, NULL);
+      if (status)
+	{
+	  mu_diag_funcall (MU_DIAG_ERROR, "mu_stream_copy", NULL,
+			   status);
+	  exit (1);
+	}
+      mu_stream_unref (bstr);
+      mu_stream_unref (input_str);
+
+      mu_message_get_header (newmsg, &hdr);
+      mu_header_set_value (hdr, MU_HEADER_CONTENT_TYPE, "message/rfc822", 1);
+      mu_mime_add_part (mime, newmsg);
     }
   mu_wordsplit_free (&ws);
 
@@ -2319,16 +2368,23 @@ edit_forw (char *cmd, struct compose_env *env, mu_message_t *pmsg, int level)
       mu_message_unref (*pmsg);
       *pmsg = NULL;
     }
-  
+
   mu_mime_get_message (mime, &msg);
   mu_message_get_header (msg, &hdr);
-  mu_header_sget_value (hdr, MU_HEADER_CONTENT_TYPE, &val);
-  sp = strchr (val, ';');
-  if (!sp)
-    abort ();
-  mu_asprintf (&newval, "multipart/digest%s", sp);
-  mu_header_set_value (hdr, MU_HEADER_CONTENT_TYPE, newval, 1);
-  free (newval);
+  
+  if (npart > 2)
+    {
+      char *newval, *sp;
+      
+      mu_header_sget_value (hdr, MU_HEADER_CONTENT_TYPE, &val);
+      sp = strchr (val, ';');
+      if (sp)
+	{
+	  mu_asprintf (&newval, "multipart/digest%s", sp);
+	  mu_header_set_value (hdr, MU_HEADER_CONTENT_TYPE, newval, 1);
+	  free (newval);
+	}
+    }
 
   if (!id)
     id = mh_create_message_id (env->subpart);
@@ -2463,7 +2519,6 @@ mhn_edit (struct compose_env *env, int level)
   int status = 0;
   char *buf = NULL;
   size_t bufsize = 0, n;
-  mu_body_t body;
   mu_stream_t output = NULL;
   mu_message_t msg = NULL;
   size_t line_count = 0;
@@ -2483,6 +2538,11 @@ mhn_edit (struct compose_env *env, int level)
 	  /* Create new message */
 	  mu_message_create (&msg, NULL);
 	  mu_message_get_header (msg, &hdr);
+	}
+      if (!output)
+	{
+	  mu_body_t body;
+
 	  mu_message_get_body (msg, &body);
 	  mu_body_get_streamref (body, &output);
 	  line_count = 0;
@@ -2841,7 +2901,7 @@ main (int argc, char **argv)
   argv += index;
 
   signal (SIGPIPE, SIG_IGN);
-  
+
   if (input_file)
     {
       if (argc)
@@ -2849,9 +2909,9 @@ main (int argc, char **argv)
 	  mu_error (_("extra arguments"));
 	  return 1;
 	}
-      input_file = mh_expand_name (mu_folder_directory (),
-				   argc == 1 ? argv[0] : "draft", 0);
-      message = mh_file_to_message (NULL, input_file);
+      message = mh_file_to_message (NULL,
+				    mu_tilde_expansion (input_file,
+							"/", NULL));
       if (!message)
 	return 1;
     }

@@ -6,3 +6,34 @@ PATH=@abs_builddir@:@abs_top_builddir@/mh:$top_srcdir:$srcdir:$PATH
 remove_curdir() {
 	sed "s|$curdir/*||;s|  *$||" $*
 }	
+# mimeflt [FILE]
+# Filter out all variable information from a MIME message in FILE.
+# If FILE is not given, filter stdin.
+# "Variable information" means part boundary and Content-ID header values.
+# These elements are likely to change between invocations of mhn -build.
+mimeflt() {
+awk '
+/^Content-Type:/ {
+  if (match($0, /boundary=".*"/)) {
+    s=substr($0,RSTART+10,RLENGTH-11)
+    boundary[++boundary_num] = s
+    sub(/boundary=".*"/,"boundary=\"BOUNDARY-" boundary_num "\"")
+  }
+}
+/^X-IMAPbase:/ { next }
+/^Content-ID:/ {
+	content_id[$2]++
+	print "Content-ID:", ++content_id_num
+	next
+}
+{  
+  if ($0 == ("--" boundary[boundary_num])) {
+    print "--BOUNDARY-" boundary_num
+  } else if ($0 == ("--" boundary[boundary_num] "--")) {
+    print "--BOUNDARY-" boundary_num "--"
+    boundary_num--
+  } else
+    print
+}
+' $*
+}
