@@ -131,12 +131,13 @@ static msg_part_t msg_part_parse (char *str);
 static int msg_part_level (msg_part_t p);
 static size_t msg_part_subpart (msg_part_t p, int level);
 
-enum mhn_mode {
-  mode_compose,
-  mode_list,
-  mode_show,
-  mode_store,
-};
+enum mhn_mode
+  {
+    mode_compose,
+    mode_list,
+    mode_show,
+    mode_store,
+  };
 
 static enum mhn_mode mode = mode_compose;
 
@@ -781,7 +782,7 @@ mhn_show_command (mu_message_t msg, msg_part_t part, int *flags,
 	}
       else if (mu_c_strcasecmp (typestr, "application/octet-stream") == 0 &&
 	       check_type (typeargs, "tar") == 0)
-	/* Use temporary file to get tar a chance to select appropriate
+	/* Use temporary file to give tar a chance to select appropriate
 	   decompressor, if the archive is compressed. */
 	str = "tar tvf '%F'";
       else
@@ -1482,9 +1483,10 @@ sigint (int sig)
 static int
 mhn_pause ()
 {
-  int c;
+  char c;
   int rc = 0;
   RETSIGTYPE (*saved_sig) (int) = signal (SIGINT, sigint);
+
   printf (_("Press <return> to show content..."));
   fflush (stdout);
   do

@@ -320,5 +320,96 @@ And the mome raths outgrabe.
 
 ])
 
+MH_CHECK([mhn-show type=tar],[mhn13 mhn-show-type=tar],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mime,[Mail/inbox])
+mhn -show 2 | sed /^X-IMAPbase/d
+],
+[0],
+[Date:    Mon, 29 Nov 2010 14:04:19 +0200
+To:      <gray@example.net>
+From:    Sergey Poznyakoff <gray@example.net>
+Subject: Verses (type=tar)
+
+MIME-Version: 1.0
+X-Envelope-Date: Mon Nov 29 14:04:19 2010
+X-Envelope-Sender: gray@example.net
+
+part     1 text/plain               15
+Initial text.
+
+-rw-r--r-- gray/staff     1418 2010-11-29 13:58 Father_William
+-rw-r--r-- gray/staff      937 2010-11-29 13:58 Jabberwocky
+])
+
+# FIXME: What about exit code?
+# FIXME: See comment about the error message, near mhn.c:792
+MH_CHECK([mhn-show unsupported type],[mhn14 mhn-show-unsupported-type],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mime,[Mail/inbox])
+mhn -show 1 | sed /^X-IMAPbase/d
+],
+[0],
+[Date:    Mon, 29 Nov 2010 14:00:03 +0200
+To:      <gray@example.net>
+From:    Sergey Poznyakoff <gray@example.net>
+Subject: Verses (x-tar)
+
+MIME-Version: 1.0
+X-Envelope-Date: Mon Nov 29 14:00:03 2010
+X-Envelope-Sender: gray@example.net
+
+part     1 text/plain               15
+Initial text.
+
+],
+[mhn: don't know how to display content (content application/x-tar in message 1, part 2)
+])
+
+MH_CHECK([mhn-show- variable (with subtype)],[mhn15 mhn-show-with-subtype],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mime,[Mail/inbox])
+echo "mhn-show-application/x-tar: %ltar tvf '%F'" >> $MH
+mhn -show 1 | sed '/^X-IMAPbase/d;s/  *$//'
+],
+[0],
+[Date:    Mon, 29 Nov 2010 14:00:03 +0200
+To:      <gray@example.net>
+From:    Sergey Poznyakoff <gray@example.net>
+Subject: Verses (x-tar)
+
+MIME-Version: 1.0
+X-Envelope-Date: Mon Nov 29 14:00:03 2010
+X-Envelope-Sender: gray@example.net
+
+part     1 text/plain               15
+Initial text.
+
+part     2 application/x-tar        13835
+-rw-r--r-- gray/staff     1418 2010-11-29 13:58 Father_William
+-rw-r--r-- gray/staff      937 2010-11-29 13:58 Jabberwocky
+])
+
+MH_CHECK([mhn-show- variable (with subtype)],[mhn16 mhn-show-without-subtype],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mime,[Mail/inbox])
+echo "mhn-show-application: %ltar tvf '%F'" >> $MH
+mhn -show 1 | sed '/^X-IMAPbase/d;s/  *$//'
+],
+[0],
+[Date:    Mon, 29 Nov 2010 14:00:03 +0200
+To:      <gray@example.net>
+From:    Sergey Poznyakoff <gray@example.net>
+Subject: Verses (x-tar)
+
+MIME-Version: 1.0
+X-Envelope-Date: Mon Nov 29 14:00:03 2010
+X-Envelope-Sender: gray@example.net
+
+part     1 text/plain               15
+Initial text.
+
+part     2 application/x-tar        13835
+-rw-r--r-- gray/staff     1418 2010-11-29 13:58 Father_William
+-rw-r--r-- gray/staff      937 2010-11-29 13:58 Jabberwocky
+])
+
+
 m4_popdef[MH_KEYWORDS])
 # End of mhn.at
