@@ -36,12 +36,13 @@ mu_make_file_name_suf (const char *dir, const char *file, const char *suf)
   while (dirlen > 0 && dir[dirlen-1] == '/')
     dirlen--;
   
-  len = dirlen + 1 + fillen + suflen;
+  len = dirlen + (dir[0] ? 1 : 0) + fillen + suflen;
   tmp = mu_alloc (len + 1);
   if (tmp)
     {
       memcpy (tmp, dir, dirlen);
-      tmp[dirlen++] = '/';
+      if (dir[0])
+	tmp[dirlen++] = '/';
       memcpy (tmp + dirlen, file, fillen);
       if (suf)
 	memcpy (tmp + dirlen + fillen, suf, suflen);
