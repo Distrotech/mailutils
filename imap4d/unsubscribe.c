@@ -16,59 +16,7 @@
    along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include "imap4d.h"
-
-struct scan_data
-{
-  int result;
-  char *name;
-  FILE *tmp;
-};
-
-static int
-scan_mailbox_list (char *filename,
-		   int (*handler) (struct scan_data *data, char *name),
-		   struct scan_data *data)
-{
-  FILE *fp;
-  char buffer[124];
-
-  fp = fopen (filename, "r");
-  if (!fp)
-    return -1;
-    
-  while (fgets (buffer, sizeof (buffer), fp))
-    {
-      size_t n = strlen (buffer);
-      if (n && buffer[n - 1] == '\n')
-	buffer[n - 1] = '\0';
-      if (handler (data, buffer))
-	break;
-    }
-  fclose (fp);
-  return 0;
-}
-
-static int
-scan_only (struct scan_data *data, char *name)
-{
-  if (strcmp (data->name, name) == 0)
-    {
-      data->result = 1;
-      return 1;
-    }
-  return 0;
-}
-
-static int
-unsubscribe (struct scan_data *data, char *name)
-{
-  if (strcmp (data->name, name))
-    {
-      fputs (name, data->tmp);
-      fputs ("\n", data->tmp);
-    }
-  return 0;
-}
+#include <mailutils/property.h>
 
 /*
 6.3.7.  UNSUBSCRIBE Command
@@ -89,50 +37,33 @@ unsubscribe (struct scan_data *data, char *name)
 int
 imap4d_unsubscribe (struct imap4d_command *command, imap4d_tokbuf_t tok)
 {
-  char *name;
-  char *file;
-  struct scan_data sd;
   int rc;
-  
+  char *name;
+  mu_property_t prop;
+
   if (imap4d_tokbuf_argc (tok) != 3)
     return io_completion_response (command, RESP_BAD, "Invalid arguments");
 
   name = imap4d_tokbuf_getarg (tok, IMAP4_ARG_1);
 
-  file = mu_make_file_name (real_homedir, ".mailboxlist");
-  if (!file)
+  prop = open_subscription ();
+  if (!prop)
+    return io_completion_response (command, RESP_NO, "Cannot unsubscribe");
+  rc = mu_property_unset (prop, name);
+  if (rc == MU_ERR_NOENT)
+    rc = 0;
+  else if (rc)
+    mu_diag_funcall (MU_DIAG_ERROR, "mu_property_unset", name, rc);
+  else
     {
-      mu_diag_funcall (MU_DIAG_ERROR, "mu_make_file_name", NULL, ENOMEM);
-      return io_completion_response (command, RESP_NO, "Cannot unsubscribe");
-    }
-
-  sd.result = 0;
-  sd.name = name;
-
-  rc = scan_mailbox_list (file, scan_only, &sd); 
-  if (rc == 0)
-    {
-      if (sd.result)
-	{
-	  char *tmpname = NULL;
-	  mu_asprintf (&tmpname, "%s.%d", file, getpid ());
-	  sd.tmp = fopen (tmpname, "a");
-	  if (!sd.tmp)
-	    rc = -1;
-	  else
-	    {
-	      rc = scan_mailbox_list (file, unsubscribe, &sd);
-	      fclose (sd.tmp);
-	      if (rc == 0)
-		rename (tmpname, file);
-	    }
-	  free (tmpname);
-	}
-    }
-
-  free (file);
+      rc = mu_property_save (prop);
+      if (rc)
+	mu_diag_funcall (MU_DIAG_ERROR, "mu_property_save", NULL, rc);
+    }  
+  mu_property_destroy (&prop);
+  
   if (rc)
     return io_completion_response (command, RESP_NO, "Cannot unsubscribe");
-
+   
   return io_completion_response (command, RESP_OK, "Completed");
 }

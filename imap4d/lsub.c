@@ -16,6 +16,7 @@
    along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include "imap4d.h"
+#include <mailutils/property.h>
 
 /*
 6.3.9.  LSUB Command
@@ -32,12 +33,13 @@
 int
 imap4d_lsub (struct imap4d_command *command, imap4d_tokbuf_t tok)
 {
+  int rc;
   char *ref;
   char *wcard;
-  char *file;
   char *pattern;
   const char *delim = "/";
-  FILE *fp;
+  mu_property_t prop;
+  mu_iterator_t itr;
   
   if (imap4d_tokbuf_argc (tok) != 4)
     return io_completion_response (command, RESP_BAD, "Invalid arguments");
@@ -48,35 +50,25 @@ imap4d_lsub (struct imap4d_command *command, imap4d_tokbuf_t tok)
   pattern = mu_make_file_name (ref, wcard);
   if (!pattern)
     return io_completion_response (command, RESP_NO, "Not enough memory");
-  
-  file = mu_make_file_name (real_homedir, ".mailboxlist");
-  if (!file)
+
+  prop = open_subscription ();
+  if (!prop)
+    return io_completion_response (command, RESP_NO, "Cannot unsubscribe");
+
+  if ((rc = mu_property_get_iterator (prop, &itr)) == 0)
     {
-      free (pattern);
-      return io_completion_response (command, RESP_NO, "Not enough memory");
-    }
-  
-  fp = fopen (file, "r");
-  free (file);
-  if (fp)
-    {
-      char *buf = NULL;
-      size_t n = 0;
-	
-      while (getline (&buf, &n, fp) > 0)
+      for (mu_iterator_first (itr); !mu_iterator_is_done (itr);
+	   mu_iterator_next (itr))
 	{
-	  int len = strlen (buf);
-	  if (buf[len - 1] == '\n')
-	    buf[len - 1] = '\0';
-	  if (util_wcard_match (buf, pattern, delim) == 0)
-	    io_untagged_response (RESP_NONE, "LIST () \"%s\" %s", 
-	                             delim, buf);
+	  const char *name, *val;
+	  
+	  mu_iterator_current_kv (itr, (const void **)&name, (void**)&val);
+
+	  if (util_wcard_match (name, pattern, delim) == 0)
+	    io_untagged_response (RESP_NONE, "LIST () \"%s\" %s", delim, name);
 	}
-      fclose (fp);
-      free (buf);
-      return io_completion_response (command, RESP_OK, "Completed");
     }
-  else if (errno == ENOENT)
-    return io_completion_response (command, RESP_OK, "Completed");
-  return io_completion_response (command, RESP_NO, "Cannot list subscriber");
+  else
+    mu_diag_funcall (MU_DIAG_ERROR, "mu_property_get_iterator", NULL, rc);
+  return io_completion_response (command, RESP_OK, "Completed");
 }

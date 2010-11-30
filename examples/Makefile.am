@@ -34,6 +34,7 @@ noinst_PROGRAMS = \
  http\
  iconv\
  lsf\
+ mblconv\
  msg-send\
  mta\
  mucat\

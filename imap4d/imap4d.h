@@ -285,7 +285,6 @@ extern int  imap4d_expunge (struct imap4d_command *, imap4d_tokbuf_t);
 extern int  imap4d_fetch (struct imap4d_command *, imap4d_tokbuf_t);
 extern int  imap4d_fetch0 (imap4d_tokbuf_t tok, int isuid, char **err_text);
 extern int  imap4d_list (struct imap4d_command *, imap4d_tokbuf_t);
-extern int  imap4d_lsub (struct imap4d_command *, imap4d_tokbuf_t);
 extern int  imap4d_login (struct imap4d_command *, imap4d_tokbuf_t);
 extern int  imap4d_logout (struct imap4d_command *, imap4d_tokbuf_t);
 extern int  imap4d_noop (struct imap4d_command *, imap4d_tokbuf_t);
@@ -303,9 +302,13 @@ extern void starttls_init (void);
 extern int  imap4d_status (struct imap4d_command *, imap4d_tokbuf_t);
 extern int  imap4d_store (struct imap4d_command *, imap4d_tokbuf_t);
 extern int  imap4d_store0 (imap4d_tokbuf_t, int, char **);
+
+mu_property_t open_subscription (void);
 extern int  imap4d_subscribe (struct imap4d_command *, imap4d_tokbuf_t);
-extern int  imap4d_uid (struct imap4d_command *, imap4d_tokbuf_t);
 extern int  imap4d_unsubscribe (struct imap4d_command *, imap4d_tokbuf_t);
+extern int  imap4d_lsub (struct imap4d_command *, imap4d_tokbuf_t);
+
+extern int  imap4d_uid (struct imap4d_command *, imap4d_tokbuf_t);
 extern int  imap4d_namespace (struct imap4d_command *, imap4d_tokbuf_t);
 extern int  imap4d_version (struct imap4d_command *, imap4d_tokbuf_t);
 extern int  imap4d_idle (struct imap4d_command *, imap4d_tokbuf_t);
