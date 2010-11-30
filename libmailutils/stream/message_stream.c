@@ -180,12 +180,12 @@ _message_open (mu_stream_t stream)
 
 	  if (p)
 	    {
-	      len = p - s;
-	      env_from = mu_alloc (len + 1);
+	      size_t n = p - s;
+	      env_from = mu_alloc (n + 1);
 	      if (!env_from)
 		return ENOMEM;
-	      memcpy (env_from, s, len);
-	      env_from[len] = 0;
+	      memcpy (env_from, s, n);
+	      env_from[n] = 0;
 	      env_date = mu_strdup (p + 1);
 	      if (!env_date)
 		{
