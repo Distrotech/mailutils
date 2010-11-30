@@ -1,0 +1,197 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2010 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# GNU Mailutils is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+
+m4_pushdef([MH_KEYWORDS],[send])
+
+MH_CHECK([send file],[send00 send-file],[
+MH_MTSTAILOR()
+AT_DATA([input],
+[From: mhtester@example.net
+To: gray@example.net
+Subject: Send file test
+------
+Message body
+])
+send ./input || exit $?
+sed 's/: Date: .*/: Date: now/' $MTA_DIAG
+find . -name ,input
+],
+[0],
+[ENVELOPE FROM: mhtester@example.net
+ENVELOPE TO: <gray@example.net>
+   0: X-Mailer: MH (AT_PACKAGE_NAME AT_PACKAGE_VERSION)
+   1: Date: now
+   2: From: mhtester@example.net
+   3: To: <gray@example.net>
+   4: Subject: Send file test
+   5:
+   6: Message body
+END OF MESSAGE
+./,input
+])
+
+MH_CHECK([send files],[send01 send-files],[
+MH_MTSTAILOR()
+AT_DATA([input.1],
+[From: mhtester@example.net
+To: gray@example.net
+Subject: Send file test 1
+------
+Message body 1
+])
+
+AT_DATA([input.2],
+[From: mhtester@example.net
+To: gray@example.org
+Subject: Send file test 2
+------
+Message body 2
+])
+
+MTA_APPEND=1
+export MTA_APPEND
+
+send ./input.1 ./input.2 || exit $?
+sed 's/: Date: .*/: Date: now/' $MTA_DIAG
+find . -name ',input.[[12]]'
+],
+[0],
+[ENVELOPE FROM: mhtester@example.net
+ENVELOPE TO: <gray@example.net>
+   0: X-Mailer: MH (AT_PACKAGE_NAME AT_PACKAGE_VERSION)
+   1: Date: now
+   2: From: mhtester@example.net
+   3: To: <gray@example.net>
+   4: Subject: Send file test 1
+   5:
+   6: Message body 1
+END OF MESSAGE
+ENVELOPE FROM: mhtester@example.net
+ENVELOPE TO: <gray@example.org>
+   0: X-Mailer: MH (AT_PACKAGE_NAME AT_PACKAGE_VERSION)
+   1: Date: now
+   2: From: mhtester@example.net
+   3: To: <gray@example.org>
+   4: Subject: Send file test 2
+   5:
+   6: Message body 2
+END OF MESSAGE
+./,input.1
+./,input.2
+])
+
+MH_CHECK([send -draft],[send02 send-draft],[
+MH_MTSTAILOR()
+AT_DATA([Mail/draft],
+[From: mhtester@example.net
+To: gray@example.net
+Subject: Send file test
+------
+Message body
+])
+send -draft || exit $?
+sed 's/: Date: .*/: Date: now/' $MTA_DIAG
+echo == Mail/,draft ==
+cat Mail/,draft
+],
+[0],
+[ENVELOPE FROM: mhtester@example.net
+ENVELOPE TO: <gray@example.net>
+   0: X-Mailer: MH (AT_PACKAGE_NAME AT_PACKAGE_VERSION)
+   1: Date: now
+   2: From: mhtester@example.net
+   3: To: <gray@example.net>
+   4: Subject: Send file test
+   5:
+   6: Message body
+END OF MESSAGE
+== Mail/,draft ==
+From: mhtester@example.net
+To: gray@example.net
+Subject: Send file test
+------
+Message body
+])
+
+MH_CHECK([send -draftfolder],
+[send03 send-draftfolder draftfolder draftmessage],[
+MH_MTSTAILOR()
+mkdir Mail/drafts
+AT_DATA([Mail/drafts/2],
+[From: mhtester@example.net
+To: gray@example.net
+Subject: Draftfolder test
+
+Message body
+])
+echo "cur: 2" > Mail/drafts/.mh_sequences
+
+send -draftfolder +drafts || echo $?
+sed 's/: Date: .*/: Date: now/' $MTA_DIAG
+],
+[0],
+[ENVELOPE FROM: mhtester@example.net
+ENVELOPE TO: <gray@example.net>
+   0: X-Mailer: MH (AT_PACKAGE_NAME AT_PACKAGE_VERSION)
+   1: Date: now
+   2: From: mhtester@example.net
+   3: To: <gray@example.net>
+   4: Subject: Draftfolder test
+   5:
+   6: Message body
+END OF MESSAGE
+])
+
+MH_CHECK([send -draftmessage],
+[send04 send-draftmessage draftfolder draftmessage],[
+MH_MTSTAILOR()
+mkdir Mail/drafts
+AT_DATA([Mail/drafts/2],
+[From: mhtester@example.net
+To: gray@example.net
+Subject: Draftfolder test
+
+Message body
+])
+
+AT_DATA([Mail/drafts/5],
+[From: mhtester@example.net
+To: gray@example.org
+Subject: Draftmessage test
+
+Message body
+])
+echo "cur: 2" > Mail/drafts/.mh_sequences
+
+send -draftfolder +drafts -draftmessage 5 || echo $?
+sed 's/: Date: .*/: Date: now/' $MTA_DIAG
+],
+[0],
+[ENVELOPE FROM: mhtester@example.net
+ENVELOPE TO: <gray@example.org>
+   0: X-Mailer: MH (AT_PACKAGE_NAME AT_PACKAGE_VERSION)
+   1: Date: now
+   2: From: mhtester@example.net
+   3: To: <gray@example.org>
+   4: Subject: Draftmessage test
+   5:
+   6: Message body
+END OF MESSAGE
+])
+
+m4_popdef([MH_KEYWORDS])
+
+# End of send.at

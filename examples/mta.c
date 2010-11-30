@@ -348,7 +348,9 @@ mta_send (mu_message_t msg)
 	{
 	  if (newline)
 	    {
-	      fprintf (diag, "%4lu: ", (unsigned long) line);
+	      fprintf (diag, "%4lu:", (unsigned long) line);
+	      if (buffer[i] != '\n')
+		fputc (' ', diag);
 	      newline = 0;
 	    }
 	  fputc (buffer[i], diag);
@@ -837,4 +839,3 @@ mta_smtp (int argc, char **argv)
   
   return 0;
 }
-

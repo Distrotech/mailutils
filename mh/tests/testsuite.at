@@ -25,7 +25,23 @@ cat > $MH <<EOT
 Path: $curdir/Mail
 mhetcdir: $abs_top_srcdir/mh/etc
 EOT
+MTSTAILOR=$curdir/mtstailor
+export MTSTAILOR
 exec <&-
+])
+
+m4_define([MH_MTSTAILOR],[
+cat > $MTSTAILOR <<EOT
+localname: darkstar
+localdomain: example.net
+username: mhtester
+url: sendmail://$abs_top_srcdir/examples/mta
+EOT
+
+MTA_DIAG=$curdir/mta.diag
+export MTA_DIAG
+MTA_DOMAIN=example.net
+export MTA_DOMAIN
 ])
 
 m4_define([MH_KEYWORDS])
@@ -64,3 +80,4 @@ m4_include([comp.at])
 m4_include([forw.at])
 m4_include([repl.at])
 m4_include([mhn.at])
+m4_include([send.at])

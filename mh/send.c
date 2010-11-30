@@ -101,7 +101,8 @@ struct mh_option mh_option[] = {
 };
 
 static int use_draft;            /* Use the prepared draft */
-static const char *draft_folder; /* Use this draft folder */
+static const char *draftfolder;  /* Use this draft folder */
+static char *draftmessage = "cur";
 static int reformat_recipients;  /* --format option */
 static int forward_notice;       /* Forward the failure notice to the sender,
 				    --forward flag */
@@ -133,11 +134,6 @@ opt_handler (int key, char *arg, struct argp_state *state)
   
   switch (key)
     {
-    case ARGP_KEY_INIT:
-      draft_folder = mh_global_profile_get ("Draft-Folder",
-					    mu_folder_directory ());
-      break;
-      
     case ARG_ALIAS:
       mh_alias_read (arg, 1);
       break;
@@ -156,17 +152,15 @@ opt_handler (int key, char *arg, struct argp_state *state)
       break;
 	
     case ARG_DRAFTFOLDER:
-      draft_folder = arg;
+      draftfolder = arg;
       break;
       
     case ARG_NODRAFTFOLDER:
-      draft_folder = NULL;
+      draftfolder = NULL;
       break;
       
     case ARG_DRAFTMESSAGE:
-      if (!draft_folder)
-	draft_folder = mh_global_profile_get ("Draft-Folder",
-					      mu_folder_directory ());
+      draftmessage = arg;
       break;
       
     case ARG_FILTER:
@@ -295,7 +289,7 @@ check_file (char *name)
 {
   struct list_elt *elt;
   mu_message_t msg;
-  char *file_name = mh_expand_name (draft_folder, name, 0);
+  char *file_name = mh_expand_name (draftfolder, name, 0);
   
   msg = mh_file_to_message (NULL, file_name);
   if (!msg)
@@ -322,16 +316,23 @@ read_mts_profile ()
   const char *p;
   char *hostname = NULL;
   int rc;
-  mu_property_t local_profile;
 
-  name = mh_expand_name (MHLIBDIR, "mtstailor", 0);
-  mts_profile = mh_read_property_file (name, 1);
+  name = getenv ("MTSTAILOR");
+  if (name)
+    mts_profile = mh_read_property_file (name, 1);
+  else
+    {
+      mu_property_t local_profile;
 
-  name = mu_tilde_expansion ("~/.mtstailor", "/", NULL);
-  local_profile = mh_read_property_file (name, 1);
+      name = mh_expand_name (MHLIBDIR, "mtstailor", 0);
+      mts_profile = mh_read_property_file (name, 1);
 
-  mh_property_merge (mts_profile, local_profile);
-  mu_property_destroy (&local_profile);
+      name = mu_tilde_expansion ("~/.mtstailor", "/", NULL);
+      local_profile = mh_read_property_file (name, 1);
+
+      mh_property_merge (mts_profile, local_profile);
+      mu_property_destroy (&local_profile);
+    }
 
   rc = mu_property_aget_value (mts_profile, "localname", &hostname);
   if (rc == MU_ERR_NOENT)
@@ -343,7 +344,7 @@ read_mts_profile ()
 	  exit (1);
 	}
     }
-  else
+  else if (rc)
     {
       mu_diag_funcall (MU_DIAG_ERROR, "mu_profile_aget_value", "localname", rc);
       exit (1);
@@ -738,16 +739,88 @@ _action_send (void *item, void *data)
   return 0;
 }
 
-static int
-do_send (int argc, char **argv)
+int
+main (int argc, char **argv)
 {
-  int i, rc;
+  mu_mailbox_t mbox = NULL;
+  int index;
   char *p;
+  int rc;
   
-  /* Verify all arguments */
-  for (i = 0; i < argc; i++)
-    if (check_file (argv[i]))
-      return 1;
+  MU_APP_INIT_NLS ();
+  
+  mh_argp_init ();
+  mh_argp_parse (&argc, &argv, 0, options, mh_option, args_doc, doc,
+		 opt_handler, NULL, &index);
+
+  mh_read_aliases ();
+  
+  argc -= index;
+  argv += index;
+
+  if (draftfolder)
+    {
+      mh_msgset_t msgset;
+      mu_url_t url;
+      const char *path;
+      size_t i;
+      
+      mbox = mh_open_folder (draftfolder, 1);
+      mh_msgset_parse (mbox, &msgset, argc, argv, draftmessage);
+      mu_mailbox_get_url (mbox, &url);
+      mu_url_sget_path (url, &path);
+      if ((rc = mu_list_create (&mesg_list)))
+	{
+	  mu_error (_("cannot create message list: %s"), mu_strerror (rc));
+	  exit (1);
+	}
+      for (i = 0; i < msgset.count; i++)
+	{
+	  struct list_elt *elt;
+	  size_t uid;
+	  
+	  elt = xmalloc (sizeof *elt);
+	  mu_mailbox_get_message (mbox, msgset.list[i], &elt->msg);
+	  mu_message_get_uid (elt->msg, &uid);
+	  elt->file_name =
+	    mu_make_file_name (path, mu_umaxtostr (0, uid));
+	  rc = mu_list_append (mesg_list, elt);
+	  if (rc)
+	    {
+	      mu_diag_funcall (MU_DIAG_ERROR, "mu_list_append", NULL, rc);
+	      exit (1);
+	    }
+	}
+      
+      mh_msgset_free (&msgset);
+    }
+  else
+    {
+      int i;
+      
+      if (argc == 0)
+	{
+	  char *xargv[2];
+	  struct stat st;
+	  
+	  xargv[0] = mh_draft_name ();
+
+	  if (stat (xargv[0], &st))
+	    {
+	      mu_diag_funcall (MU_DIAG_ERROR, "stat", xargv[0], errno);
+	      return 1;
+	    }
+
+	  if (!use_draft && !mh_usedraft (xargv[0]))
+	    exit (0);
+	  xargv[1] = NULL;
+	  argv = xargv;
+	  argc = 1;
+	}
+      for (i = 0; i < argc; i++)
+	if (check_file (argv[i]))
+	  return 1;
+    }
 
   /* Process the mtstailor file and detach from the console if
      required */
@@ -767,61 +840,8 @@ do_send (int argc, char **argv)
   
   /* Finally, do the work */
   rc = mu_list_do (mesg_list, _action_send, NULL);
-  return rc;
+
+  mu_mailbox_destroy (&mbox);
+  return !!rc;
 }
-	  
-int
-main (int argc, char **argv)
-{
-  int index;
-  
-  MU_APP_INIT_NLS ();
-  
-  mh_argp_init ();
-  mh_argp_parse (&argc, &argv, 0, options, mh_option, args_doc, doc,
-		 opt_handler, NULL, &index);
 
-  mh_read_aliases ();
-  
-  argc -= index;
-  argv += index;
-
-  if (argc == 0)
-    {
-      struct stat st;
-      static char *xargv[2];
-
-      if (draft_folder)
-	{
-	  mh_msgset_t msgset;
-	  mu_mailbox_t mbox;
-	  mu_url_t url;
-	  const char *path;
-	  
-	  mbox = mh_open_folder (draft_folder, 1);
-	  mh_msgset_parse (mbox, &msgset, argc, argv, "cur");
-	  mu_mailbox_get_url (mbox, &url);
-	  mu_url_sget_path (url, &path);
-	  xargv[0] = mu_make_file_name (path,
-					mu_umaxtostr (0, msgset.list[0]));
-	  mu_mailbox_destroy (&mbox);
-	  mh_msgset_free (&msgset);
-	}
-      else
-	xargv[0] = mh_draft_name ();
-
-      if (stat (xargv[0], &st))
-	{
-	  mu_diag_funcall (MU_DIAG_ERROR, "stat", xargv[0], errno);
-	  return 1;
-	}
-
-      if (!use_draft && !mh_usedraft (xargv[0]))
-	exit (0);
-      xargv[1] = NULL;
-      argv = xargv;
-      argc = 1;
-    }
-
-  return do_send (argc, argv);  
-}

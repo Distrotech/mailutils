@@ -55,6 +55,7 @@ TESTSUITE_AT = \
  mhseq.at\
  pick.at\
  scan.at\
+ send.at\
  refile.at\
  repl.at\
  rmf.at\
