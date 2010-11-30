@@ -443,14 +443,13 @@ mh_message_number (mu_message_t msg, size_t *pnum)
 }
 
 mu_mailbox_t
-mh_open_folder (const char *folder, int create)
+mh_open_folder (const char *folder, int flags)
 {
   mu_mailbox_t mbox = NULL;
   char *name;
-  int flags = MU_STREAM_RDWR;
   
   name = mh_expand_name (NULL, folder, 1);
-  if (create && mh_check_folder (name, 1))
+  if ((flags & MU_STREAM_CREAT) && mh_check_folder (name, 1))
     exit (0);
     
   if (mu_mailbox_create_default (&mbox, name))
@@ -460,9 +459,6 @@ mh_open_folder (const char *folder, int create)
       exit (1);
     }
 
-  if (create)
-    flags |= MU_STREAM_CREAT;
-  
   if (mu_mailbox_open (mbox, flags))
     {
       mu_error (_("cannot open mailbox %s: %s"), name, strerror (errno));
@@ -1045,7 +1041,7 @@ mh_draft_message (const char *name, const char *msgspec, char **pname)
   mu_mailbox_t mbox;
   const char *path;
   
-  mbox = mh_open_folder (name, 0);
+  mbox = mh_open_folder (name, MU_STREAM_RDWR);
   if (!mbox)
     return 1;
   

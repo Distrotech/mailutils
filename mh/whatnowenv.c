@@ -42,7 +42,7 @@ mh_whatnow_env_from_environ (struct mh_whatnow_env *wh)
 	      size_t i;
 	      struct mu_wordsplit ws;
 	      mh_msgset_t msgset;
-	      mu_mailbox_t mbox = mh_open_folder (folder, 0);
+	      mu_mailbox_t mbox = mh_open_folder (folder, MU_STREAM_RDWR);
 	      
 	      if (mu_wordsplit (p, &ws,
 				MU_WRDSF_DEFFLAGS & ~MU_WRDSF_CESCAPES))

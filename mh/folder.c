@@ -839,7 +839,7 @@ int
 action_pack ()
 {
   const char *folder_dir = mh_expand_name (NULL, mh_current_folder (), 0);
-  mu_mailbox_t mbox = mh_open_folder (mh_current_folder (), 0);
+  mu_mailbox_t mbox = mh_open_folder (mh_current_folder (), MU_STREAM_RDWR);
   struct pack_tab *pack_tab;
   size_t i, count, start;
   int status;
@@ -917,7 +917,7 @@ action_pack ()
   /* Fix-up sequences */
   if (!dry_run)
     {
-      mbox = mh_open_folder (mh_current_folder (), 0);
+      mbox = mh_open_folder (mh_current_folder (), MU_STREAM_RDWR);
       fd.mbox = mbox;
       fd.folder_dir = folder_dir;
       fd.pack_tab = pack_tab;
@@ -967,7 +967,7 @@ main (int argc, char **argv)
     
   if (argc - index == 1)
     {
-      mu_mailbox_t mbox = mh_open_folder (mh_current_folder (), 0);
+      mu_mailbox_t mbox = mh_open_folder (mh_current_folder (), MU_STREAM_RDWR);
       mh_msgset_parse (mbox, &msgset, argc - index, argv + index, "cur");
       mh_msgset_current (mbox, &msgset, 0);
       mh_global_save_state ();

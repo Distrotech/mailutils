@@ -87,7 +87,7 @@ main (int argc, char **argv)
       exit (0);
     }
   
-  mbox = mh_open_folder (current_folder, 0);
+  mbox = mh_open_folder (current_folder, MU_STREAM_RDWR);
 
   mu_mailbox_messages_count (mbox, &total);
   mu_mailbox_get_url (mbox, &url);

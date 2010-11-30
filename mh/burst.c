@@ -721,7 +721,7 @@ main (int argc, char **argv)
   argv += index;
 
   VERBOSE ((_("Opening folder `%s'"), mh_current_folder ()));
-  mbox = mh_open_folder (mh_current_folder (), 0);
+  mbox = mh_open_folder (mh_current_folder (), MU_STREAM_RDWR);
   mh_msgset_parse (mbox, &msgset, argc, argv, "cur");
 
   if (inplace)
@@ -729,7 +729,7 @@ main (int argc, char **argv)
       size_t i, count;
       
       VERBOSE ((_("Opening temporary folder `%s'"), tempfolder));
-      tmpbox = mh_open_folder (tempfolder, 1);
+      tmpbox = mh_open_folder (tempfolder, MU_STREAM_RDWR|MU_STREAM_CREAT);
       VERBOSE ((_("Cleaning up temporary folder")));
       mu_mailbox_messages_count (tmpbox, &count);
       for (i = 1; i <= count; i++)

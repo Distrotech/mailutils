@@ -765,7 +765,7 @@ main (int argc, char **argv)
       const char *path;
       size_t i;
       
-      mbox = mh_open_folder (draftfolder, 1);
+      mbox = mh_open_folder (draftfolder, MU_STREAM_RDWR|MU_STREAM_CREAT);
       mh_msgset_parse (mbox, &msgset, argc, argv, draftmessage);
       mu_mailbox_get_url (mbox, &url);
       mu_url_sget_path (url, &path);

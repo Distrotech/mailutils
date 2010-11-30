@@ -56,6 +56,7 @@ TESTSUITE_AT = \
  pick.at\
  scan.at\
  send.at\
+ sortm.at\
  refile.at\
  repl.at\
  rmf.at\

@@ -1,0 +1,328 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2010 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# GNU Mailutils is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+
+m4_pushdef([MH_KEYWORDS],[sortm])
+m4_pushdef([scancmd],[scan -format '%4(msg)%<(cur)+%| %> %02(mon{date})/%02(mday{date}) %24(friendly{from}) %{subject}'])
+
+MH_CHECK([sortm -textfield],[sortm00 sortm-textfield],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/teaparty,[Mail])
+echo "cur: 11" > Mail/teaparty/.mh_sequences
+sortm -text From -nodate +teaparty || exit $?
+scancmd
+],
+[0],
+[   1  07/29 Alice                    Re: Invitation
+   2  07/29 Alice                    Re: Invitation
+   3  07/29 Alice                    Re: Invitation
+   4  07/29 Alice                    Re: Personal remark
+   5  07/29 Alice                    Re: Riddle
+   6  07/29 Alice                    Re: Riddle
+   7  07/29 Alice                    Re: Be specific
+   8  07/29 Alice                    Re: Watch
+   9  07/29 Alice                    Funny watch (was Re: Watch)
+  10  07/29 Alice                    Re: Funny watch
+  11  07/29 Alice                    Re: Funny watch
+  12  07/29 Alice                    Re: Riddle
+  13  07/29 Alice                    Re: Riddle
+  14  07/29 Alice                    Re: Discussing Time
+  15  07/29 Alice                    Re: Discussing Time
+  16  07/29 Alice                    Re: Discussing Time
+  17  07/29 Alice                    Re: Discussing Time
+  18  07/29 Alice                    Re: Discussing Time
+  19  07/29 Alice                    Re: Discussing Time
+  20  07/29 Alice                    A guess (was Re: Discussing Time)
+  21  07/29 Alice                    Re: A guess
+  22  07/29 Alice                    Re: A guess
+  23  07/29 Alice                    Re: Request for a story
+  24  07/29 Alice                    Re: Request for a story
+  25  07/29 Alice                    Re: Story
+  26  07/29 Alice                    Re: Story
+  27  07/29 Alice                    Re: Story
+  28  07/29 Alice                    Re: Remark
+  29  07/29 Alice                    Personal remark
+  30  07/29 Alice                    Re: Story
+  31  07/29 Alice                    Re: Story
+  32  07/29 Alice                    Re: Story
+  33  07/29 Alice                    Re: Story
+  34  07/29 Alice                    Re: Story
+  35  07/29 Alice                    Re: Story
+  36  07/29 Alice                    Re: Story
+  37  07/29 Alice                    Re: Story
+  38  07/29 Alice                    Thoughts
+  39  07/29 Dormouse                 Re: Be specific
+  40  07/29 Dormouse                 Re: Remark
+  41  07/29 Dormouse                 Re: Discussing Time
+  42  07/29 Dormouse                 Re: Request for a story
+  43  07/29 Dormouse                 Story (was Re: Request for a story)
+  44  07/29 Dormouse                 Re: Story
+  45  07/29 Dormouse                 Re: Story
+  46  07/29 Dormouse                 Re: Story
+  47  07/29 Dormouse                 Re: Story
+  48  07/29 Dormouse                 Re: Story
+  49  07/29 Dormouse                 Re: Story
+  50  07/29 Dormouse                 Re: Story
+  51  07/29 Dormouse                 Re: Story
+  52  07/29 Dormouse                 Re: Story
+  53  07/29 Dormouse                 Re: Story
+  54  07/29 Hatter                   Re: Be specific
+  55  07/29 Hatter                   Re: Be specific
+  56  07/29 Hatter                   Watch
+  57  07/29 Hatter                   Re: Watch
+  58  07/29 Hatter                   Re: Watch
+  59  07/29 Hatter                   Re: Funny watch
+  60  07/29 Hatter                   Re: Funny watch
+  61  07/29 Hatter                   Remark
+  62  07/29 Hatter                   Re: Riddle
+  63  07/29 Hatter                   Re: Riddle
+  64  07/29 Hatter                   Discussing Time
+  65  07/29 Hatter                   Re: Discussing Time
+  66  07/29 Hatter                   Re: Discussing Time
+  67  07/29 Hatter                   Re: Discussing Time
+  68  07/29 Hatter                   Re: Discussing Time
+  69  07/29 Hatter                   Re: Discussing Time
+  70  07/29 Hatter                   Re: Discussing Time
+  71  07/29 Hatter                   Re: Discussing Time
+  72  07/29 Hatter                   Re: A guess
+  73  07/29 Hatter                   Re: A guess
+  74  07/29 Hatter                   Re: Request for a story
+  75  07/29 Hatter                   Re: Request for a story
+  76  07/29 Hatter                   Re: Remark
+  77  07/29 Hatter                   Re: Personal remark
+  78  07/29 Hatter                   Let's move
+  79  07/29 Hatter                   Re: Story
+  80  07/29 Hatter                   Rude remark
+  81  07/29 March Hare               Invitation
+  82  07/29 March Hare               Re: Invitation
+  83  07/29 March Hare               Re: Invitation
+  84  07/29 March Hare               Personal remark
+  85  07/29 March Hare               Riddle (was Re: Personal remark)
+  86+ 07/29 March Hare               Re: Riddle
+  87  07/29 March Hare               Be specific (was Re: Riddle)
+  88  07/29 March Hare               Re: Be specific
+  89  07/29 March Hare               Re: Watch
+  90  07/29 March Hare               Re: Watch
+  91  07/29 March Hare               Re: Riddle
+  92  07/29 March Hare               Thought apart Re: Discussing Time
+  93  07/29 March Hare               Request for a story (was Re: A guess)
+  94  07/29 March Hare               Re: Request for a story
+  95  07/29 March Hare               Remark
+])
+
+MH_CHECK([sortm -datefield],[sortm01 sortm-datefield],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/teaparty,[Mail])
+echo "cur: 11" > Mail/teaparty/.mh_sequences
+sortm -text From -nodate +teaparty || exit $?
+scancmd
+sortm
+scancmd
+],
+[0],
+[   1  07/29 Alice                    Re: Invitation
+   2  07/29 Alice                    Re: Invitation
+   3  07/29 Alice                    Re: Invitation
+   4  07/29 Alice                    Re: Personal remark
+   5  07/29 Alice                    Re: Riddle
+   6  07/29 Alice                    Re: Riddle
+   7  07/29 Alice                    Re: Be specific
+   8  07/29 Alice                    Re: Watch
+   9  07/29 Alice                    Funny watch (was Re: Watch)
+  10  07/29 Alice                    Re: Funny watch
+  11  07/29 Alice                    Re: Funny watch
+  12  07/29 Alice                    Re: Riddle
+  13  07/29 Alice                    Re: Riddle
+  14  07/29 Alice                    Re: Discussing Time
+  15  07/29 Alice                    Re: Discussing Time
+  16  07/29 Alice                    Re: Discussing Time
+  17  07/29 Alice                    Re: Discussing Time
+  18  07/29 Alice                    Re: Discussing Time
+  19  07/29 Alice                    Re: Discussing Time
+  20  07/29 Alice                    A guess (was Re: Discussing Time)
+  21  07/29 Alice                    Re: A guess
+  22  07/29 Alice                    Re: A guess
+  23  07/29 Alice                    Re: Request for a story
+  24  07/29 Alice                    Re: Request for a story
+  25  07/29 Alice                    Re: Story
+  26  07/29 Alice                    Re: Story
+  27  07/29 Alice                    Re: Story
+  28  07/29 Alice                    Re: Remark
+  29  07/29 Alice                    Personal remark
+  30  07/29 Alice                    Re: Story
+  31  07/29 Alice                    Re: Story
+  32  07/29 Alice                    Re: Story
+  33  07/29 Alice                    Re: Story
+  34  07/29 Alice                    Re: Story
+  35  07/29 Alice                    Re: Story
+  36  07/29 Alice                    Re: Story
+  37  07/29 Alice                    Re: Story
+  38  07/29 Alice                    Thoughts
+  39  07/29 Dormouse                 Re: Be specific
+  40  07/29 Dormouse                 Re: Remark
+  41  07/29 Dormouse                 Re: Discussing Time
+  42  07/29 Dormouse                 Re: Request for a story
+  43  07/29 Dormouse                 Story (was Re: Request for a story)
+  44  07/29 Dormouse                 Re: Story
+  45  07/29 Dormouse                 Re: Story
+  46  07/29 Dormouse                 Re: Story
+  47  07/29 Dormouse                 Re: Story
+  48  07/29 Dormouse                 Re: Story
+  49  07/29 Dormouse                 Re: Story
+  50  07/29 Dormouse                 Re: Story
+  51  07/29 Dormouse                 Re: Story
+  52  07/29 Dormouse                 Re: Story
+  53  07/29 Dormouse                 Re: Story
+  54  07/29 Hatter                   Re: Be specific
+  55  07/29 Hatter                   Re: Be specific
+  56  07/29 Hatter                   Watch
+  57  07/29 Hatter                   Re: Watch
+  58  07/29 Hatter                   Re: Watch
+  59  07/29 Hatter                   Re: Funny watch
+  60  07/29 Hatter                   Re: Funny watch
+  61  07/29 Hatter                   Remark
+  62  07/29 Hatter                   Re: Riddle
+  63  07/29 Hatter                   Re: Riddle
+  64  07/29 Hatter                   Discussing Time
+  65  07/29 Hatter                   Re: Discussing Time
+  66  07/29 Hatter                   Re: Discussing Time
+  67  07/29 Hatter                   Re: Discussing Time
+  68  07/29 Hatter                   Re: Discussing Time
+  69  07/29 Hatter                   Re: Discussing Time
+  70  07/29 Hatter                   Re: Discussing Time
+  71  07/29 Hatter                   Re: Discussing Time
+  72  07/29 Hatter                   Re: A guess
+  73  07/29 Hatter                   Re: A guess
+  74  07/29 Hatter                   Re: Request for a story
+  75  07/29 Hatter                   Re: Request for a story
+  76  07/29 Hatter                   Re: Remark
+  77  07/29 Hatter                   Re: Personal remark
+  78  07/29 Hatter                   Let's move
+  79  07/29 Hatter                   Re: Story
+  80  07/29 Hatter                   Rude remark
+  81  07/29 March Hare               Invitation
+  82  07/29 March Hare               Re: Invitation
+  83  07/29 March Hare               Re: Invitation
+  84  07/29 March Hare               Personal remark
+  85  07/29 March Hare               Riddle (was Re: Personal remark)
+  86+ 07/29 March Hare               Re: Riddle
+  87  07/29 March Hare               Be specific (was Re: Riddle)
+  88  07/29 March Hare               Re: Be specific
+  89  07/29 March Hare               Re: Watch
+  90  07/29 March Hare               Re: Watch
+  91  07/29 March Hare               Re: Riddle
+  92  07/29 March Hare               Thought apart Re: Discussing Time
+  93  07/29 March Hare               Request for a story (was Re: A guess)
+  94  07/29 March Hare               Re: Request for a story
+  95  07/29 March Hare               Remark
+   1  07/29 March Hare               Invitation
+   2  07/29 Alice                    Re: Invitation
+   3  07/29 March Hare               Re: Invitation
+   4  07/29 Alice                    Re: Invitation
+   5  07/29 March Hare               Re: Invitation
+   6  07/29 Alice                    Re: Invitation
+   7  07/29 March Hare               Personal remark
+   8  07/29 Alice                    Re: Personal remark
+   9  07/29 March Hare               Riddle (was Re: Personal remark)
+  10  07/29 Alice                    Re: Riddle
+  11+ 07/29 March Hare               Re: Riddle
+  12  07/29 Alice                    Re: Riddle
+  13  07/29 March Hare               Be specific (was Re: Riddle)
+  14  07/29 Alice                    Re: Be specific
+  15  07/29 Hatter                   Re: Be specific
+  16  07/29 March Hare               Re: Be specific
+  17  07/29 Dormouse                 Re: Be specific
+  18  07/29 Hatter                   Re: Be specific
+  19  07/29 Hatter                   Watch
+  20  07/29 Alice                    Re: Watch
+  21  07/29 Hatter                   Re: Watch
+  22  07/29 March Hare               Re: Watch
+  23  07/29 Hatter                   Re: Watch
+  24  07/29 March Hare               Re: Watch
+  25  07/29 Alice                    Funny watch (was Re: Watch)
+  26  07/29 Hatter                   Re: Funny watch
+  27  07/29 Alice                    Re: Funny watch
+  28  07/29 Hatter                   Re: Funny watch
+  29  07/29 Alice                    Re: Funny watch
+  30  07/29 Hatter                   Remark
+  31  07/29 Dormouse                 Re: Remark
+  32  07/29 Hatter                   Re: Riddle
+  33  07/29 Alice                    Re: Riddle
+  34  07/29 Hatter                   Re: Riddle
+  35  07/29 March Hare               Re: Riddle
+  36  07/29 Alice                    Re: Riddle
+  37  07/29 Hatter                   Discussing Time
+  38  07/29 Alice                    Re: Discussing Time
+  39  07/29 Hatter                   Re: Discussing Time
+  40  07/29 Alice                    Re: Discussing Time
+  41  07/29 Hatter                   Re: Discussing Time
+  42  07/29 March Hare               Thought apart Re: Discussing Time
+  43  07/29 Alice                    Re: Discussing Time
+  44  07/29 Hatter                   Re: Discussing Time
+  45  07/29 Alice                    Re: Discussing Time
+  46  07/29 Hatter                   Re: Discussing Time
+  47  07/29 Alice                    Re: Discussing Time
+  48  07/29 Hatter                   Re: Discussing Time
+  49  07/29 Dormouse                 Re: Discussing Time
+  50  07/29 Hatter                   Re: Discussing Time
+  51  07/29 Alice                    Re: Discussing Time
+  52  07/29 Hatter                   Re: Discussing Time
+  53  07/29 Alice                    A guess (was Re: Discussing Time)
+  54  07/29 Hatter                   Re: A guess
+  55  07/29 Alice                    Re: A guess
+  56  07/29 Hatter                   Re: A guess
+  57  07/29 Alice                    Re: A guess
+  58  07/29 March Hare               Request for a story (was Re: A guess)
+  59  07/29 Alice                    Re: Request for a story
+  60  07/29 Hatter                   Re: Request for a story
+  61  07/29 Dormouse                 Re: Request for a story
+  62  07/29 March Hare               Re: Request for a story
+  63  07/29 Alice                    Re: Request for a story
+  64  07/29 Hatter                   Re: Request for a story
+  65  07/29 Dormouse                 Story (was Re: Request for a story)
+  66  07/29 Alice                    Re: Story
+  67  07/29 Dormouse                 Re: Story
+  68  07/29 Alice                    Re: Story
+  69  07/29 Dormouse                 Re: Story
+  70  07/29 Alice                    Re: Story
+  71  07/29 March Hare               Remark
+  72  07/29 Alice                    Re: Remark
+  73  07/29 Hatter                   Re: Remark
+  74  07/29 Alice                    Personal remark
+  75  07/29 Hatter                   Re: Personal remark
+  76  07/29 Alice                    Re: Story
+  77  07/29 Dormouse                 Re: Story
+  78  07/29 Alice                    Re: Story
+  79  07/29 Dormouse                 Re: Story
+  80  07/29 Alice                    Re: Story
+  81  07/29 Dormouse                 Re: Story
+  82  07/29 Alice                    Re: Story
+  83  07/29 Dormouse                 Re: Story
+  84  07/29 Hatter                   Let's move
+  85  07/29 Alice                    Re: Story
+  86  07/29 Hatter                   Re: Story
+  87  07/29 Alice                    Re: Story
+  88  07/29 Dormouse                 Re: Story
+  89  07/29 Dormouse                 Re: Story
+  90  07/29 Alice                    Re: Story
+  91  07/29 Dormouse                 Re: Story
+  92  07/29 Dormouse                 Re: Story
+  93  07/29 Alice                    Re: Story
+  94  07/29 Hatter                   Rude remark
+  95  07/29 Alice                    Thoughts
+])
+
+m4_popdef([scancmd])
+m4_popdef([MH_KEYWORDS])
+
+# End of sortm.at

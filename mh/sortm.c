@@ -93,6 +93,7 @@ static int verbose;
 static mu_mailbox_t mbox;
 static const char *mbox_path;
 static mh_msgset_t msgset;
+static size_t current_num;
 
 #define ACTION_REORDER   0
 #define ACTION_DRY_RUN   1
@@ -193,7 +194,8 @@ opt_handler (int key, char *arg, struct argp_state *state)
 
 
 /* *********************** Comparison functions **************************** */
-struct comp_op {
+struct comp_op
+{
   char *field;
   compfun comp;
 };
@@ -219,7 +221,8 @@ addop (char *field, compfun comp)
   mu_list_append (oplist, op);
 }
 
-struct rem_data {
+struct rem_data
+{
   struct comp_op *op;
   compfun comp;
 };
@@ -244,7 +247,8 @@ remop (compfun comp)
   mu_list_remove (oplist, d.op);
 }
 
-struct comp_data {
+struct comp_data
+{
   int r;
   mu_message_t m[2];
 };
@@ -491,7 +495,7 @@ sort ()
   switch (algorithm)
     {
     case ARG_QUICKSORT:
-      qsort(msgset.list, msgset.count, sizeof(msgset.list[0]),
+      qsort(msgset.list, msgset.count, sizeof (msgset.list[0]),
 	    comp);
       break;
 
@@ -528,13 +532,35 @@ sort ()
 	      mh_message_number (msg, &new_num);
 	      transpose (i, oldlist[i]);
 	      if (verbose)
-		fprintf (stderr, "{%s, %s}\n",
-			 mu_umaxtostr (0, old_num),
-			 mu_umaxtostr (1, new_num));
+		{
+		  fprintf (stderr, "{%s, %s}",
+			   mu_umaxtostr (0, old_num),
+			   mu_umaxtostr (1, new_num));
+		}
+	      if (old_num == current_num)
+		{
+		  if (verbose)
+		    fputc ('*', stderr);
+		  current_num = new_num;
+		}
+	      else if (new_num == current_num)
+		{
+		  if (verbose)
+		    fputc ('*', stderr);
+		  current_num = old_num;
+		}
+	      if (verbose)
+		fputc ('\n', stderr);
 	      if (action == ACTION_REORDER)
 		swap_message (old_num, new_num);
 	    }
 	}
+    }
+  if (action == ACTION_REORDER)
+    {
+      mu_mailbox_close (mbox);
+      mu_mailbox_open (mbox, MU_STREAM_RDWR);
+      mh_mailbox_set_cur (mbox, current_num);
     }
 }
 
@@ -560,7 +586,7 @@ main (int argc, char **argv)
       exit (1);
     }
   
-  mbox = mh_open_folder (mh_current_folder (), 0);
+  mbox = mh_open_folder (mh_current_folder (), MU_STREAM_READ);
   mu_mailbox_get_url (mbox, &url);
   mbox_path = mu_url_to_string (url);
   if (memcmp (mbox_path, "mh:", 3) == 0)
@@ -569,7 +595,12 @@ main (int argc, char **argv)
   argc -= index;
   argv += index;
 
+  mh_mailbox_get_cur (mbox, &current_num);
+
   mh_msgset_parse (mbox, &msgset, argc, argv, "all");
-  sort (mbox, msgset);
+  sort ();
+  mh_global_save_state ();
+  mu_mailbox_destroy (&mbox);
+  
   return 0;
 }

@@ -249,7 +249,8 @@ main (int argc, char **argv)
 	      mh_msgset_t msgset;
 	      mu_mailbox_t mbox;
 	      
-	      mbox = mh_open_folder (draftfolder, 1);
+	      mbox = mh_open_folder (draftfolder, 
+                                     MU_STREAM_RDWR|MU_STREAM_CREAT);
 	      mh_msgset_parse (mbox, &msgset, 
 	                       argc - index, argv + index,
 			       use_draft ? "cur" : "new");
@@ -275,7 +276,7 @@ main (int argc, char **argv)
       mh_msgset_t msgset;
       mu_mailbox_t mbox;
       
-      mbox = mh_open_folder (mh_current_folder (), 0);
+      mbox = mh_open_folder (mh_current_folder (), MU_STREAM_RDWR);
       mh_msgset_parse (mbox, &msgset, argc - index, argv + index, "cur");
       if (msgset.count != 1)
 	{

@@ -104,7 +104,7 @@ open_folders ()
       mu_mailbox_t mbox;
       
       mu_iterator_current (itr, (void **)&name);
-      mbox = mh_open_folder (name, 1);
+      mbox = mh_open_folder (name, MU_STREAM_RDWR|MU_STREAM_CREAT);
       mu_list_append (folder_mbox_list, mbox);
       free (name);
     }
@@ -261,7 +261,7 @@ main (int argc, char **argv)
     }
   else
     {
-      mbox = mh_open_folder (mh_current_folder (), 0);
+      mbox = mh_open_folder (mh_current_folder (), MU_STREAM_RDWR);
       mh_msgset_parse (mbox, &msgset, argc, argv, "cur");
 
       status = mh_iterate (mbox, &msgset, refile_iterator, NULL);

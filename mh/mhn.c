@@ -1684,7 +1684,8 @@ store_handler (mu_message_t msg, msg_part_t part, char *type, char *encoding,
     case store_to_folder_msg:
     case store_to_folder:
       {
-	mu_mailbox_t mbox = mh_open_folder (name, 1);
+	mu_mailbox_t mbox = mh_open_folder (name, 
+                                            MU_STREAM_RDWR|MU_STREAM_CREAT);
 	size_t uid;
 
 	mu_mailbox_uidnext (mbox, &uid);
@@ -2284,12 +2285,12 @@ edit_forw (char *cmd, struct compose_env *env, mu_message_t *pmsg, int level)
 
   if (ws.ws_wordv[0][0] == '+')
     {
-      mbox = mh_open_folder (ws.ws_wordv[0], 0);
+      mbox = mh_open_folder (ws.ws_wordv[0], MU_STREAM_RDWR);
       i = 1;
     }
   else
     {
-      mbox = mh_open_folder (mh_current_folder (), 0);
+      mbox = mh_open_folder (mh_current_folder (), MU_STREAM_RDWR);
       i = 0;
     }
   
@@ -2930,7 +2931,7 @@ main (int argc, char **argv)
     }
   else
     {
-      mbox = mh_open_folder (mh_current_folder (), 0);
+      mbox = mh_open_folder (mh_current_folder (), MU_STREAM_RDWR);
       mh_msgset_parse (mbox, &msgset, argc, argv, "cur");
     }
   

@@ -302,7 +302,7 @@ void mh_audit_close (FILE *fp);
 
 int mh_message_number (mu_message_t msg, size_t *pnum);
 
-mu_mailbox_t mh_open_folder (const char *folder, int create);
+mu_mailbox_t mh_open_folder (const char *folder, int flags);
 
 void mh_msgset_parse (mu_mailbox_t mbox, mh_msgset_t *msgset,
 		      int argc, char **argv, char *def);

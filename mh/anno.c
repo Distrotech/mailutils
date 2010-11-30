@@ -116,7 +116,7 @@ main (int argc, char **argv)
   mh_argp_parse (&argc, &argv, 0, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, &index);
 
-  mbox = mh_open_folder (mh_current_folder (), 0);
+  mbox = mh_open_folder (mh_current_folder (), MU_STREAM_RDWR);
 
   if (!component)
     {

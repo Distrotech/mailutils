@@ -219,7 +219,7 @@ main (int argc, char **argv)
       exit (1);
     }
 
-  output = mh_open_folder (append_folder, 1);
+  output = mh_open_folder (append_folder, MU_STREAM_RDWR|MU_STREAM_CREAT);
   if ((rc = mu_mailbox_messages_count (output, &lastmsg)) != 0)
     {
       mu_error (_("cannot read output mailbox: %s"),
