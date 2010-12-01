@@ -92,7 +92,9 @@ static struct argp_option options[] =
    
   {"email", 'e', N_("ADDRESS"), 0,
    N_("override user email address"), 0},
-
+  {"expression", 'E', NULL, 0,
+   N_("treat SCRIPT as Sieve program text"), 0},
+  
   {"no-program-name", ARG_NO_PROGRAM_NAME, NULL, 0,
    N_("do not prefix diagnostic messages with the program name"), 0},
   
@@ -106,6 +108,7 @@ int debug_level;
 int sieve_debug;
 int verbose;
 char *script;
+int expression_option;
 
 static int sieve_print_locus = 1; /* Should the log messages include the
 				     locus */
@@ -172,6 +175,10 @@ parser (int key, char *arg, struct argp_state *state)
   
   switch (key)
     {
+    case 'E':
+      expression_option = 1;
+      break;
+      
     case 'e':
       mu_argp_node_list_new (lst, "email", arg);
       break;
@@ -510,8 +517,12 @@ main (int argc, char *argv[])
   mu_sieve_set_debug (mach, _sieve_debug_printer);
   if (verbose)
     mu_sieve_set_logger (mach, _sieve_action_log);
-  
-  rc = mu_sieve_compile (mach, script);
+
+  if (expression_option)
+    rc = mu_sieve_compile_buffer (mach, script, strlen (script),
+				  "stdin", 1);
+  else
+    rc = mu_sieve_compile (mach, script);
   if (rc)
     return EX_CONFIG;
 

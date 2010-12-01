@@ -98,7 +98,7 @@ thunderbird, roundcube.
 
 ** implement AUTHENTICATE KERBEROS_V4 and SKEY and SRP?
 
-* Implement extensions:
+** Implement extensions:
 
  - QUOTA     : RFC 2087
  - ACL       : RFC 4314

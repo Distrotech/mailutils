@@ -57,45 +57,44 @@ static void sieve_searchpath (void);
 static char *str_unescape (char *text, size_t len);
 static int isemptystr (char *text);
 
-static const char *input_string_ptr;
-static int input_string_level; 
+static mu_stream_t input_stream;
  
 static int
-fillbuf(char *buf, int max_size)
+fillbuf (char *buf, size_t max_size)
 {
-  if (input_string_ptr)
-    {
-      int n = input_string_level;
-      if (n > max_size)
-	n = max_size;
-      memcpy (buf, input_string_ptr, n);
-      input_string_ptr += n;
-      input_string_level -= n;
-      return n;
-    }
-  else if (feof (yyin))
+  int rc;
+
+  if (!input_stream)
     return 0;
-  else
-    return fread (buf, 1, max_size, yyin);
-} 
+  
+  rc = mu_stream_read (input_stream, buf, max_size, &max_size);
+  if (rc)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_stream_read",
+		       mu_sieve_locus.source_file, rc);
+      return 0;
+    }
+  return max_size;
+}
  
 #undef YY_INPUT
-#define YY_INPUT(buf,result,max_size) result = fillbuf(buf, max_size)
+#define YY_INPUT(buf,result,max_size) result = fillbuf (buf, max_size)
 #define LEX_BUFFER_STATE YY_BUFFER_STATE
 #define SET_BUFFER_STATE(s) do { \
         (s) = YY_CURRENT_BUFFER; \
-        yy_switch_to_buffer(yy_create_buffer(yyin, YY_BUF_SIZE)); \
+        yy_switch_to_buffer(yy_create_buffer (yyin, YY_BUF_SIZE)); \
 } while (0)
 #define RESTORE_BUFFER_STATE(s) do { \
-        yy_delete_buffer(YY_CURRENT_BUFFER); \
-        yy_switch_to_buffer(s); \
+        yy_delete_buffer (YY_CURRENT_BUFFER); \
+        yy_switch_to_buffer (s); \
 } while (0)
 
-struct buffer_ctx {
+struct buffer_ctx
+{
   struct buffer_ctx *prev;
   mu_sieve_locus_t locus;
   ino_t i_node;
-  FILE *yyin;
+  mu_stream_t input;
   LEX_BUFFER_STATE state;
 };
 
@@ -119,7 +118,8 @@ ctx_lookup (ino_t ino)
 int
 push_source (const char *name)
 {
-  FILE *fp;
+  int rc;
+  mu_stream_t stream;
   struct buffer_ctx *ctx;
   struct stat st;
         
@@ -148,13 +148,13 @@ push_source (const char *name)
 		             name);
       return 1;
     }
-                
-  fp = fopen (name, "r");
-  if (!fp)
+
+  rc = mu_file_stream_create (&stream, name, MU_STREAM_READ);
+  if (rc)
     {
       mu_sv_compile_error (&mu_sieve_locus, 
                            _("cannot open file `%s': %s"),
-			   name, strerror (errno));
+			   name, mu_strerror (rc));
       return 1;
     }
 
@@ -164,16 +164,14 @@ push_source (const char *name)
       ctx = mu_sieve_alloc (sizeof (*ctx));
       ctx->locus = mu_sieve_locus;
       ctx->i_node = sieve_source_inode;
-      ctx->yyin = yyin;
+      ctx->input = input_stream;
       ctx->prev = context_stack;
       context_stack = ctx;
-      
+
       /* Switch to the new context */
-      yyin = fp;
       SET_BUFFER_STATE (ctx->state);
     }
-  else
-    yyrestart (fp);
+  input_stream = stream;
   
   mu_sieve_locus.source_file = strdup (name);
   mu_sieve_locus.source_line = 1;
@@ -189,14 +187,13 @@ pop_source ()
 {
   struct buffer_ctx *ctx;
 
-  if (yyin)
-    fclose (yyin);
+  mu_stream_destroy (&input_stream);
 
   if (mu_sieve_locus.source_file)
     free (mu_sieve_locus.source_file);
   if (!context_stack)
     {
-      yyin = NULL;
+      input_stream = NULL;
       mu_sieve_locus.source_file = NULL;
       return 1;
     }
@@ -429,12 +426,20 @@ int
 mu_sv_lex_begin_string (const char *buf, int bufsize,
 			const char *fname, int line)
 {
+  int rc;
+  
   if (!fname)
     return 1;
   yyrestart (NULL);
 
-  input_string_ptr = buf;
-  input_string_level = bufsize;
+  rc = mu_static_memory_stream_create (&input_stream, buf, bufsize);
+  if (rc)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_static_memory_stream_create",
+		       NULL, rc);
+      return 1;
+    }
+
   mu_sieve_locus.source_file = strdup (fname);
   mu_sieve_locus.source_line = line;
   sieve_source_inode = 0;
