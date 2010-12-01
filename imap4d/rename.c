@@ -17,6 +17,74 @@
 
 #include "imap4d.h"
 
+int
+make_interdir (const char *name, int delim, int perms)
+{
+  int rc;
+  size_t i;
+  struct mu_wordsplit ws;
+  char *namebuf;
+  size_t namelen = 0;
+  char delimbuf[2];
+  
+  namebuf = malloc (strlen (name) + 1);
+  if (!namebuf)
+    imap4d_bye (ERR_NO_MEM);
+  if (name[0] == '/')
+    namebuf[namelen++] = name[0];
+
+  delimbuf[0] = delim;
+  delimbuf[1] = 0;
+  ws.ws_delim = delimbuf;
+  if (mu_wordsplit (name, &ws,
+		    MU_WRDSF_DELIM|MU_WRDSF_SQUEEZE_DELIMS|
+		    MU_WRDSF_NOVAR|MU_WRDSF_NOCMD))
+    {
+      mu_error (_("cannot split line `%s': %s"), name,
+		mu_wordsplit_strerror (&ws));
+      free (namebuf);
+      return 1;
+    }
+
+  rc = 0;
+  for (i = 0; rc == 0 && i < ws.ws_wordc - 1; i++)
+    {
+      struct stat st;
+      
+      strcpy (namebuf + namelen, ws.ws_wordv[i]);
+      namelen += strlen (ws.ws_wordv[i]);
+
+      if (stat (namebuf, &st))
+	{
+	  if (errno == ENOENT)
+	    {
+	      if (mkdir (namebuf, perms))
+		{
+		  mu_error (_("cannot create directory %s: %s"), namebuf,
+			    mu_strerror (errno));
+		  rc = 1;
+		}
+	    }
+	  else
+	    {
+	      mu_error (_("cannot stat file %s: %s"),
+			namebuf, mu_strerror (errno));
+	      rc = 1;
+	    }
+	}
+      else if (!S_ISDIR (st.st_mode))
+	{
+	  mu_error (_("component %s is not a directory"), namebuf);
+	  rc = 1;
+	}
+      namebuf[namelen++] = '/';
+    }
+  
+  mu_wordsplit_free (&ws);
+  free (namebuf);
+  return rc;
+}
+
 /*
 6.3.5.  RENAME Command
 
@@ -71,6 +139,12 @@ imap4d_rename (struct imap4d_command *command, imap4d_tokbuf_t tok)
 	}
     }
 
+  if (make_interdir (newname, delim[0], MKDIR_PERMISSIONS))
+    {
+      free (newname);
+      return io_completion_response (command, RESP_NO, "Cannot rename");
+    }
+  
   /* Renaming INBOX is permitted, and has special behavior.  It moves
      all messages in INBOX to a new mailbox with the given name,
      leaving INBOX empty.  */
@@ -119,7 +193,7 @@ imap4d_rename (struct imap4d_command *command, imap4d_tokbuf_t tok)
 	}
       mu_mailbox_close (newmbox);
       mu_mailbox_destroy (&newmbox);
-      return io_completion_response (command, RESP_OK, "Already exist");
+      return io_completion_response (command, RESP_OK, "Rename successful");
     }
 
   oldname = namespace_getfullpath (oldname, delim, NULL);
@@ -127,14 +201,25 @@ imap4d_rename (struct imap4d_command *command, imap4d_tokbuf_t tok)
   /* It must exist.  */
   /* FIXME: 1. What if odlname or newname is a remote mailbox?
             2. If newname is local and is in another namespace, its
-  	       permissions must be fixed */
-  if (!oldname || rename (oldname, newname) != 0)
+  	       permissions must be fixed.
+            3. All in all, it would perhaps be better to use the same
+	       algorithm as for INBOX, and delete source mailbox afterwards.
+  */
+  if (!oldname)
     {
       rc = RESP_NO;
       msg = "Failed";
     }
-  if (oldname)
-    free (oldname);
+  else
+    {
+      if (rename (oldname, newname) != 0)
+	{
+	  mu_diag_funcall (MU_DIAG_ERROR, "rename", oldname, errno);
+          rc = RESP_NO;
+          msg = "Failed";
+	}
+      free (oldname);
+    }
   free (newname);
   return io_completion_response (command, rc, msg);
 }

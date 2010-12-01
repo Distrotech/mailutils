@@ -319,6 +319,11 @@ extern int imap4d_check_home_dir (const char *dir, uid_t uid, gid_t gid);
 /* Shared between fetch and store */  
 extern void fetch_flags0 (const char *prefix, mu_message_t msg, int isuid);
 
+/* Permissions for creating intermediate directories.
+   FIXME: These should better be configurable. */
+#define MKDIR_PERMISSIONS 0700
+int make_interdir (const char *name, int delim, int perms);
+
 /* Synchronisation on simultaneous access.  */
 extern int imap4d_sync (void);
 extern int imap4d_sync_flags (size_t);

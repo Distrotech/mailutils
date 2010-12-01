@@ -44,7 +44,7 @@ echo "" >> expout.0
 
 echo "ENVELOPE FROM: gulliver@example.net" > expout.1
 echo "ENVELOPE TO: <foo@bar.baz>" >> expout.1
-awk '{printf("% 4d: %s\n", NR-1,$0)}' $abs_top_srcdir/maidag/tests/input.msg >> expout.1
+awk '{printf("% 4d:",NR-1); if (NF!=0) printf(" %s",$0); print ""}' $abs_top_srcdir/maidag/tests/input.msg >> expout.1
 echo "END OF MESSAGE" >> expout.1
 
 MTA_DIAG=mta.diag

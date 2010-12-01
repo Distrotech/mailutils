@@ -64,8 +64,8 @@ static struct argp_option options[] = {
   { "daemon", 'd', N_("NUMBER"), OPTION_ARG_OPTIONAL,
     N_("runs in daemon mode with a maximum of NUMBER children"), 0 },
 
-  {"preauth", OPT_PREAUTH, NULL, 0,
-   N_("start in preauth mode") },
+  { "preauth", OPT_PREAUTH, NULL, 0,
+    N_("start in preauth mode") },
   
   {NULL, 0, NULL, 0, NULL, 0}
 };
@@ -436,6 +436,8 @@ imap4d_mainloop (int ifd, int ofd)
   tokp = imap4d_tokbuf_init ();
   while (1)
     {
+      if (idle_timeout && io_wait_input (idle_timeout) != 1)
+	imap4d_bye (ERR_TIMEOUT);
       imap4d_readline (tokp);
       /* check for updates */
       imap4d_sync ();

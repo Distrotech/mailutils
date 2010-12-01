@@ -532,7 +532,7 @@ imap4d_tokbuf_getline (struct imap4d_tokbuf *tok)
 {
   char buffer[512];
   size_t level = tok->level;
-  
+
   do
     {
       size_t len;

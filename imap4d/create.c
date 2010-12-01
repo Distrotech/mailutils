@@ -18,51 +18,6 @@
 #include "imap4d.h"
 #include <unistd.h>
 
-#define MKDIR_PERMISSIONS 0700
-
-/* FIXME: take permissions as argument */
-static int
-mkdir_p (char *name, int delim)
-{
-  char *p, *dir;
-  int rc = 0;
-
-  dir = name;
-  if (dir[0] == delim)
-    dir++;
-  for (; rc == 0 && (p = strchr (dir, delim)); dir = p)
-    {
-      struct stat st;
-      
-      *p++ = 0;
-      if (stat (name, &st) == 0)
-	{
-	  if (!S_ISDIR (st.st_mode))
-	    {
-	      mu_diag_output (MU_DIAG_ERR,
-			      _("component %s is not a directory"), name);
-	      rc = 1;
-	    }
-	}
-      else if (errno != ENOENT)
-	{
-	  mu_diag_output (MU_DIAG_ERR,
-			  _("cannot stat file %s: %s"),
-			  name, mu_strerror (errno));
-	  rc = 1;
-	}
-      else if (mkdir (name, MKDIR_PERMISSIONS))
-	{
-	  mu_diag_output (MU_DIAG_ERR,
-			  _("cannot create directory %s: %s"), name,
-			  mu_strerror (errno));
-	  rc = 1;
-	}
-      p[-1] = delim;
-    }
-  return 0;
-}
-
 /*
 6.3.3.  CREATE Command
 
@@ -120,7 +75,7 @@ imap4d_create (struct imap4d_command *command, imap4d_tokbuf_t tok)
   /* It will fail if the mailbox already exists.  */
   if (access (name, F_OK) != 0)
     {
-      if (mkdir_p (name, delim[0]))
+      if (make_interdir (name, delim[0], MKDIR_PERMISSIONS))
 	{
 	  rc = RESP_NO;
 	  msg = "Cannot create mailbox";

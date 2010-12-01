@@ -23,6 +23,14 @@ imap4d_bye (int reason)
   return imap4d_bye0 (reason, NULL);
 }
 
+static jmp_buf pipejmp;
+
+static RETSIGTYPE
+sigpipe (int sig)
+{
+  longjmp (pipejmp, 1);
+}
+
 int
 imap4d_bye0 (int reason, struct imap4d_command *command)
 {
@@ -97,8 +105,15 @@ imap4d_bye0 (int reason, struct imap4d_command *command)
     }
 
   if (status == EX_OK && command)
-     io_completion_response (command, RESP_OK, "Completed");
-
+    {
+      /* Some clients may close the connection immediately after sending
+	 LOGOUT.  Do not treat this as error (RFC 2683). */
+      static int sigtab[] = { SIGPIPE };
+      mu_set_signals (sigpipe, sigtab, MU_ARRAY_SIZE (sigtab));
+      if (setjmp (pipejmp) == 0)
+	io_completion_response (command, RESP_OK, "Completed");
+    }
+  
   util_bye ();
 
   closelog ();
