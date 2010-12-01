@@ -159,9 +159,8 @@ _message_stream_seek (struct _mu_stream *str, mu_off_t off, mu_off_t *ppos)
     return rc;
   mu_header_size (sp->msg->header, &hsize);
   mu_body_size (sp->msg->body, &size);
-  size += hsize;
   
-  if (off < 0 || off >= size)
+  if (off < 0 || off >= size + hsize)
     return ESPIPE;
 
   switch (sp->state)
@@ -224,6 +223,10 @@ _message_stream_read (struct _mu_stream *str, char *buf, size_t bufsize,
       if (sp->state == _mss_eof)
 	break;
       rc = mu_stream_read (sp->transport, buf, bufsize, &n);
+      if (rc)
+	break;
+      if (n == 0)
+	continue;
       nread += n;
       buf += n;
       bufsize -= n;
@@ -249,9 +252,13 @@ _message_stream_readdelim (struct _mu_stream *str, char *buf, size_t bufsize,
       if (sp->state == _mss_eof)
 	break;
       rc = mu_stream_readdelim (sp->transport, buf, bufsize, delim, &n);
-      if (rc || n == 0)
+      if (rc)
 	break;
+      if (n == 0)
+	continue;
       nread += n;
+      if (buf[n-1] == delim)
+	break;
       buf += n;
       bufsize -= n;
     }
