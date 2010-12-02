@@ -217,7 +217,7 @@ struct mailvar_symbol mailvar_tab[] =
       set_replyregex },
     { { "save", },
       MAILVAR_TYPEMASK (mailvar_type_boolean),
-      N_("stored aborted messages in the user's dead.file") },
+      N_("store aborted messages in the user's dead.file") },
     { { "screen", },
       MAILVAR_TYPEMASK (mailvar_type_number),
       N_("number of lines on terminal screen"),

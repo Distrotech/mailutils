@@ -447,12 +447,35 @@ quote0 (msgset_t *mspec, mu_message_t mesg, void *data)
   size_t size = 0;
   size_t n = 0;
   char *prefix = "\t";
+  mu_stream_t outstr, flt;
+  char *argv[3];
   
   fprintf (stdout, _("Interpolating: %lu\n"),
 	   (unsigned long) mspec->msg_part[0]);
 
   mailvar_get (&prefix, "indentprefix", mailvar_type_string, 0);
 
+  fflush (ofile);
+  rc = mu_stdio_stream_create (&outstr, fileno (ofile), MU_STREAM_WRITE);
+  if (rc)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_stdio_stream_create", NULL, rc);
+      return rc;
+    }
+  argv[0] = "INLINE-COMMENT";
+  argv[1] = prefix;
+  argv[2] = NULL;
+  rc = mu_filter_create_args (&flt, outstr, "INLINE-COMMENT",
+			      2, argv,
+			      MU_FILTER_ENCODE,
+			      MU_STREAM_WRITE);
+  mu_stream_unref (outstr);
+  if (rc)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_filter_create_args", NULL, rc);
+      return rc;
+    }
+  
   if (*(int*)data)
     {
       size_t i, num = 0;
@@ -468,20 +491,15 @@ quote0 (msgset_t *mspec, mu_message_t mesg, void *data)
 	    {
 	      const char *value;
 	      
-	      fprintf (ofile, "%s%s: ", prefix, sptr);
+	      mu_stream_printf (flt, "%s: ", sptr);
 	      if (mu_header_sget_value (hdr, sptr, &value) == 0)
 		{
-		  for (; *value; value++)
-		    {
-		      fputc (*value, ofile);
-		      if (*value == '\n')
-			fprintf (ofile, "%s", prefix);
-		    }
-		  fputc ('\n', ofile);
+		  mu_stream_write (flt, value, strlen (value), NULL); 
+		  mu_stream_write (flt, "\n", 1, NULL);
 		}
 	    }
 	}
-      fprintf (ofile, "%s\n", prefix);
+      mu_stream_write (flt, "\n", 1, NULL);
       mu_message_get_body (mesg, &body);
       rc = mu_body_get_streamref (body, &stream);
     }
@@ -494,11 +512,11 @@ quote0 (msgset_t *mspec, mu_message_t mesg, void *data)
       return rc;
     }
 
-  /* FIXME: Use mu_stream_copy? */
-  while (mu_stream_getline (stream, &buffer, &size, &n) == 0 && n != 0)
-    fprintf (ofile, "%s%s", prefix, buffer);
-  free (buffer);
+  mu_stream_copy (flt, stream, 0, NULL);
+
   mu_stream_destroy (&stream);
+  mu_stream_destroy (&flt);
+  
   return 0;
 }
 

@@ -14,12 +14,14 @@
 # You should have received a copy of the GNU General Public License
 # along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
 
+m4_pushdef([FILTER_MODE],[decode])
+
 dnl -------------------------------------------------------------------
 dnl INLINECOM(NAME, [KW = `'], [OPTS = `'], [TEXT], [OUTPUT = `'])
 dnl -------------------------------------------------------------------
 m4_pushdef([INLINECOM],[
 AT_SETUP([inline-comment: $1])
-AT_KEYWORDS([filter inline-comment icmt $2])
+AT_KEYWORDS([filter FILTER_MODE inline-comment icmt $2])
 sed 's/\$.*//' > input <<EOT
 $4
 EOT
@@ -27,10 +29,10 @@ sed 's/\$.*//' > expout <<EOT
 $5
 EOT
 
-AT_CHECK([fltst inline-comment decode read $3 < input],
+AT_CHECK([fltst inline-comment FILTER_MODE read $3 < input],
 [0],
 [expout])
-AT_CHECK([fltst inline-comment decode write $3 < input],
+AT_CHECK([fltst inline-comment FILTER_MODE write $3 < input],
 [0],
 [expout])
 AT_CLEANUP
@@ -108,6 +110,74 @@ text 4
  text 5[]dnl
 ])	
 
+INLINECOM([multichar comment starter],[icmt05],[-- rem],
+[Text line 1
+rem remark text
+Text line 2
+remark text (sic!)
+Text line 3
+],
+[Text line 1
+Text line 2
+Text line 3
+])
+
+INLINECOM([multichar comment starter; follow ws; follow ws mode],[icmt06],
+[-- rem -S],
+[Text line 1
+rem remark text
+Text line 2
+remark text (sic!)
+Text line 3
+],
+[Text line 1
+Text line 2
+remark text (sic!)
+Text line 3
+])
+
+INLINECOM([multichar; squeeze; remove empty],[icmt06],[-- rem -S -r],
+[rem comment 1
+text 1
+rem comment 2
+rem comment 3
+text 2
+
+	text 3
+
+	$
+text 4
+     text 5
+],
+[text 1
+text 2
+	text 3
+text 4
+     text 5[]dnl
+])	
+
+m4_define([FILTER_MODE],[encode])
+INLINECOM([encode],[icmt07],[],
+[C'est dans dix ans je m'en irai
+J'entends le loup et le renard chanter
+J'entends le loup, le renard et la belette
+J'entends le loup et le renard chanter],
+[;C'est dans dix ans je m'en irai
+;J'entends le loup et le renard chanter
+;J'entends le loup, le renard et la belette
+;J'entends le loup et le renard chanter])
+
+INLINECOM([encode multichar; add ws],[icmt07],[-- NB: -S],
+[Tri martolod yaouank
+O voned da voyagi
+Gant'el oant bet kaset
+Betek an douar nevez],
+[NB: Tri martolod yaouank
+NB: O voned da voyagi
+NB: Gant'el oant bet kaset
+NB: Betek an douar nevez])
 
 m4_popdef([INLINECOM])
+m4_popdef([FILTER_MODE])
+
 # End of inline-comment.at
