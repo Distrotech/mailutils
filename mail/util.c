@@ -935,36 +935,45 @@ util_header_expand (mu_header_t *phdr)
   mu_header_get_field_count (*phdr, &nfields);
   for (i = 1; i <= nfields; i++)
     {
-      char *name, *value;
+      const char *name, *value;
       
-      if (mu_header_aget_field_name (*phdr, i, &name))
+      if (mu_header_sget_field_name (*phdr, i, &name))
 	continue;
 
-      if (mu_header_aget_field_value (*phdr, i, &value))
-	{
-	  free (name);
-	  continue;
-	}
+      if (mu_header_sget_field_value (*phdr, i, &value))
+	continue;
       
       if (is_address_field (name))
 	{
-	  char *p, *s, *exp = NULL;
+	  const char *s;
 	  mu_address_t addr = NULL;
-
-	  if (mu_header_aget_value (hdr, name, &exp) == 0)
-	    {
-	      mu_address_create (&addr, exp);
-	      free (exp);
-	    }
+	  struct mu_wordsplit ws;
+	  size_t j;
 	  
-	  for (p = strtok_r (value, ",", &s); p; p = strtok_r (NULL, ",", &s))
+	  if (mu_header_sget_value (hdr, name, &s) == 0)
+	    mu_address_create (&addr, s);
+
+	  ws.ws_delim = ",";
+	  if (mu_wordsplit (value, &ws,
+			    MU_WRDSF_DELIM|MU_WRDSF_SQUEEZE_DELIMS|
+			    MU_WRDSF_WS|
+			    MU_WRDSF_NOVAR|MU_WRDSF_NOCMD))
 	    {
+	      errcnt++;
+	      mu_error (_("cannot split line `%s': %s"), value,
+			mu_wordsplit_strerror (&ws));
+	      break;
+	    }
+
+	  for (j = 0; j < ws.ws_wordc; j++)
+	    {
+	      const char *exp;
 	      mu_address_t new_addr;
+	      char *p = ws.ws_wordv[j];
 	      
-	      while (*p && mu_isspace (*p))
-		p++;
 	      /* If inplacealiases was set, the value was already expanded */
-	      if (mailvar_get (NULL, "inplacealiases", mailvar_type_boolean, 0))
+	      if (mailvar_get (NULL, "inplacealiases",
+			       mailvar_type_boolean, 0))
 		exp = alias_expand (p);
 	      rc = mu_address_create (&new_addr, exp ? exp : p);
 	      if (rc)
@@ -978,28 +987,25 @@ util_header_expand (mu_header_t *phdr)
 				p, mu_strerror (rc));
 		}
 	      
-	      free (exp);
 	      mu_address_union (&addr, new_addr);
 	      mu_address_destroy (&new_addr);
 	    }
 	  
 	  if (addr)
 	    {
+	      char *newvalue;
 	      size_t n = 0;
 	      
-	      free (value);
 	      mu_address_to_string (addr, NULL, 0, &n);
-	      value = xmalloc (n + 1);
-	      mu_address_to_string (addr, value, n + 1, NULL);
+	      newvalue = xmalloc (n + 1);
+	      mu_address_to_string (addr, newvalue, n + 1, NULL);
 	      mu_address_destroy (&addr);
-	      mu_header_set_value (hdr, name, value, 1);
+	      mu_header_set_value (hdr, name, newvalue, 1);
+	      free (newvalue);
 	    }
 	}
       else
 	mu_header_set_value (hdr, name, value, 0);
-      
-      free (value);
-      free (name);
     }
 
   if (errcnt == 0)
@@ -1083,8 +1089,7 @@ util_run_cached_commands (mu_list_t *list)
 void
 util_rfc2047_decode (char **value)
 {
-  char locale[32];
-  const char *charset = NULL;
+  char *charset = NULL;
   char *tmp;
   int rc;
 
@@ -1093,29 +1098,25 @@ util_rfc2047_decode (char **value)
 
   if (mu_c_strcasecmp (charset, "auto") == 0)
     {
-      memset (locale, 0, sizeof (locale));
+      static char *saved_charset;
 
-      /* Try to deduce the charset from LC_ALL or LANG variables */
-
-      tmp = getenv ("LC_ALL");
-      if (!tmp)
-	tmp = getenv ("LANG");
-
-      if (tmp)
+      if (!saved_charset)
 	{
-	  char *sp;
-	  char *lang;
-	  char *terr;
+	  /* Try to deduce the charset from LC_ALL or LANG variables */
 
-	  strncpy (locale, tmp, sizeof (locale) - 1);
+	  tmp = getenv ("LC_ALL");
+	  if (!tmp)
+	    tmp = getenv ("LANG");
 
-	  lang = strtok_r (locale, "_", &sp);
-	  terr = strtok_r (NULL, ".", &sp);
-	  charset = strtok_r (NULL, "@", &sp);
-
-	  if (!charset)
-	    charset = mu_charset_lookup (lang, terr);
+	  if (tmp)
+	    {
+	      struct mu_lc_all lc_all;
+	      
+	      if (mu_parse_lc_all (tmp, &lc_all, MU_LC_CSET) == 0)
+		saved_charset = lc_all.charset;
+	    }
 	}
+      charset = saved_charset; /* NOTE: a minor memory leak */
     }
 
   if (!charset)

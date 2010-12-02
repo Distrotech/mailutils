@@ -267,7 +267,7 @@ mu_streamref_create_abridged (mu_stream_t *pref, mu_stream_t str,
   int flags;
   struct _mu_streamref *sp;
   
-  rc = mu_stream_seek (str, 0, MU_SEEK_SET, &off);
+  rc = mu_stream_seek (str, 0, MU_SEEK_SET, &off);//FIXME: SEEK_CUR?
   if (rc)
     return rc;
   mu_stream_get_flags (str, &flags);

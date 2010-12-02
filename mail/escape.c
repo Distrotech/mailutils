@@ -443,7 +443,8 @@ quote0 (msgset_t *mspec, mu_message_t mesg, void *data)
   mu_header_t hdr;
   mu_body_t body;
   mu_stream_t stream;
-  char buffer[512];
+  char *buffer = NULL;
+  size_t size = 0;
   size_t n = 0;
   char *prefix = "\t";
   
@@ -465,22 +466,18 @@ quote0 (msgset_t *mspec, mu_message_t mesg, void *data)
 	  mu_header_sget_field_name (hdr, i, &sptr);
 	  if (mail_header_is_visible (sptr))
 	    {
-	      char *value;
+	      const char *value;
 	      
 	      fprintf (ofile, "%s%s: ", prefix, sptr);
-	      if (mu_header_aget_value (hdr, sptr, &value) == 0)
+	      if (mu_header_sget_value (hdr, sptr, &value) == 0)
 		{
-		  int i;
-		  char *p, *s;
-
-		  for (i = 0, p = strtok_r (value, "\n", &s); p;
-		       p = strtok_r (NULL, "\n", &s), i++)
+		  for (; *value; value++)
 		    {
-		      if (i)
+		      fputc (*value, ofile);
+		      if (*value == '\n')
 			fprintf (ofile, "%s", prefix);
-		      fprintf (ofile, "%s\n", p);
 		    }
-		  free (value);
+		  fputc ('\n', ofile);
 		}
 	    }
 	}
@@ -498,12 +495,9 @@ quote0 (msgset_t *mspec, mu_message_t mesg, void *data)
     }
 
   /* FIXME: Use mu_stream_copy? */
-  while (mu_stream_readline (stream, buffer, sizeof buffer - 1, &n) == 0
-	 && n != 0)
-    {
-      buffer[n] = '\0';
-      fprintf (ofile, "%s%s", prefix, buffer);
-    }
+  while (mu_stream_getline (stream, &buffer, &size, &n) == 0 && n != 0)
+    fprintf (ofile, "%s%s", prefix, buffer);
+  free (buffer);
   mu_stream_destroy (&stream);
   return 0;
 }

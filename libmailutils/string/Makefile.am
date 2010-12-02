@@ -27,6 +27,7 @@ libstring_la_SOURCES = \
  strltrim.c\
  strskip.c\
  stripws.c\
+ strlst.c\
  strrtrim.c\
  trueans.c\
  unfold.c\

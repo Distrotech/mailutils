@@ -63,10 +63,6 @@ get_charset ()
   if (!output_charset)
     {
       char *tmp;
-      const char *str = NULL;
-      char locale[32];
-      
-      memset (locale, 0, sizeof (locale));
 
       /* Try to deduce the charset from LC_ALL or LANG variables */
 
@@ -76,24 +72,14 @@ get_charset ()
 
       if (tmp)
 	{
-	  char *sp = NULL;
-	  char *lang;
-	  char *terr;
-
-	  strncpy (locale, tmp, sizeof (locale) - 1);
+	  struct mu_lc_all lc_all;
 	  
-	  lang = strtok_r (locale, "_", &sp);
-	  terr = strtok_r (NULL, ".", &sp);
-	  str = strtok_r (NULL, "@", &sp);
-
-	  if (!str)
-	    str = mu_charset_lookup (lang, terr);
+	  if (mu_parse_lc_all (tmp, &lc_all, MU_LC_CSET) == 0)
+	    output_charset = lc_all.charset;
 	}
       
-      if (!str)
-	str = "ASCII";
-
-      output_charset = xstrdup (str);
+      if (!output_charset)
+	output_charset = xstrdup ("ASCII");
     }
   return output_charset;
 }

@@ -22,6 +22,8 @@
 extern "C" {
 #endif
 
+# include <mailutils/types.h>
+  
 int mu_strlower (char *);
 int mu_strupper (char *);
 
@@ -41,6 +43,8 @@ char *mu_str_skip_class_comp (const char *str, int __class);
 char *mu_str_skip_cset_comp (const char *str, const char *cset);
 
 char *mu_str_stripws (char *string);  
+
+int mu_string_split (const char *string, char *delim, mu_list_t list);
   
 #ifdef __cplusplus
 }

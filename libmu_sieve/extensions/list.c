@@ -31,41 +31,63 @@
 
 
 /* Auxiliary functions */
-struct header_closure {
-  mu_header_t header;        /* Message header */
+struct header_closure
+{
+  mu_header_t header;     /* Message header */
   int index;              /* Header index */
   char *delim;            /* List delimiter */
-  char *value;            /* Retrieved header value */
-  char *save;             /* Save pointer for strtok_r */
+  char **valv;            /* Retrieved and split-out header values */
+  size_t valc;            /* Number of values in valv */
+  size_t vali;            /* Current index in valv */  
 };
 
 static void
 cleanup (struct header_closure *hc)
 {
-  free (hc->value);
-  hc->value = hc->save = NULL;
+  mu_argcv_free (hc->valc, hc->valv);
+  hc->valv = NULL;
+  hc->valc = hc->vali = 0;
 }
 
 static int
 retrieve_next_header (struct header_closure *hc, char *name, char **pval)
 {
-  char buf[512];
-  size_t n;
+  const char *buf;
 
   cleanup (hc);
-  while (!mu_header_get_field_name (hc->header, hc->index, buf, sizeof(buf), &n))
+  while (!mu_header_sget_field_name (hc->header, hc->index, &buf))
     {
       int i = hc->index++;
       if (mu_c_strcasecmp (buf, name) == 0)
 	{
-	  if (mu_header_aget_field_value (hc->header, i, &hc->value))
+	  const char *value;
+	  struct mu_wordsplit ws;
+	  
+	  if (mu_header_sget_field_value (hc->header, i, &value))
 	    return 1;
-	  *pval = strtok_r (hc->value, hc->delim, &hc->save);
-	  if (*pval == NULL)
+	  ws.ws_delim = hc->delim;
+	  if (mu_wordsplit (value, &ws,
+			    MU_WRDSF_DELIM|MU_WRDSF_SQUEEZE_DELIMS|
+			    MU_WRDSF_WS|
+			    MU_WRDSF_NOVAR|MU_WRDSF_NOCMD))
 	    {
-	      cleanup (hc);
+	      mu_error (_("cannot split line `%s': %s"), value,
+			mu_wordsplit_strerror (&ws));
 	      return 1;
 	    }
+	  if (ws.ws_wordc == 0)
+	    {
+	      cleanup (hc);
+	      mu_wordsplit_free (&ws);
+	      return 1;
+	    }
+	  hc->valv = ws.ws_wordv;
+	  hc->valc = ws.ws_wordc;
+	  hc->vali = 0;
+	  ws.ws_wordv = NULL;
+	  ws.ws_wordc = 0;
+	  mu_wordsplit_free (&ws);
+	  *pval = hc->valv[hc->vali++];
 	  return 0;
 	}
     }
@@ -84,20 +106,18 @@ list_retrieve_header (void *item, void *data, int idx, char **pval)
 
   while (1)
     {
-      if (!hc->value)
+      if (!hc->valv)
 	{
 	  if (retrieve_next_header (hc, (char*) item, &p))
 	    return 1;
 	}
-      else
+      else if (hc->vali == hc->valc)
 	{
-	  p = strtok_r (NULL, hc->delim, &hc->save);
-	  if (!p)
-	    {
-	      cleanup (hc);
-	      continue;
-	    }
-	}
+	  cleanup (hc);
+	  continue;
+	}	  
+      else
+	p = hc->valv[hc->vali++];
   
       *pval = strdup (p);
       return 0;
@@ -163,9 +183,10 @@ list_test (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
     }
 
   mu_message_get_header (mu_sieve_get_message (mach), &clos.header);
-  result = mu_sieve_vlist_compare (h, v, comp, mu_sieve_get_relcmp (mach, tags),
-				list_retrieve_header,
-				&clos, NULL) > 0;
+  result = mu_sieve_vlist_compare (h, v, comp,
+				   mu_sieve_get_relcmp (mach, tags),
+				   list_retrieve_header,
+				   &clos, NULL) > 0;
   cleanup (&clos);
   return result; 
 }

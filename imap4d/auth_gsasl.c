@@ -181,21 +181,37 @@ static void
 auth_gsasl_capa_init (int disable)
 {
   int rc;
-  char *listmech, *name, *s;
-
+  char *listmech;
+  struct mu_wordsplit ws;
+  
   rc =  gsasl_server_mechlist (ctx, &listmech);
   if (rc != GSASL_OK)
     return;
 
-  for (name = strtok_r (listmech, " ", &s); name;
-       name = strtok_r (NULL, " ", &s))
+  ws.ws_delim = " ";
+  if (mu_wordsplit (listmech, &ws,
+		    MU_WRDSF_DELIM|MU_WRDSF_SQUEEZE_DELIMS|
+		    MU_WRDSF_NOVAR|MU_WRDSF_NOCMD))
     {
-      if (disable)
-	auth_remove (name);
-      else
-	auth_add (strdup (name), auth_gsasl);
+      mu_error (_("cannot split line `%s': %s"), listmech,
+		mu_wordsplit_strerror (&ws));
     }
-      
+  else
+    {
+      size_t i;
+
+      for (i = 0; i < ws.ws_wordc; i++)
+	{
+	  if (disable)
+	    auth_remove (ws.ws_wordv[i]);
+	  else
+	    {
+	      auth_add (ws.ws_wordv[i], auth_gsasl);
+	      ws.ws_wordv[i] = NULL;
+	    }
+	}
+      mu_wordsplit_free (&ws);
+    }
   free (listmech);
 }
 

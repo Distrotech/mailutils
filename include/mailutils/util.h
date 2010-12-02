@@ -176,7 +176,6 @@ int mu_getpass (mu_stream_t in, mu_stream_t out, const char *prompt,
 /* Get the host name, doing a gethostbyname() if possible. */
 int mu_get_host_name (char **host);
 int mu_spawnvp(const char *prog, char *av[], int *stat);
-const char *mu_charset_lookup (char *lang, char *terr);
 int mu_scheme_autodetect_p (mu_url_t);
 
 struct timeval; 

@@ -526,7 +526,7 @@ main (int argc, char *argv[])
   if (rc)
     return EX_CONFIG;
 
-  /* We can finish if its only a compilation check. */
+  /* We can finish if it's only a compilation check. */
   if (compile_only)
     {
       if (compile_only == 2)

@@ -46,6 +46,24 @@ extern void mu_init_nls (void);
 extern char *mu_set_locale (const char *locale);
 void mu_restore_locale (void);
 
+#define MU_LC_LANG 0x01
+#define MU_LC_TERR 0x02
+#define MU_LC_CSET 0x04
+#define MU_LC_MOD  0x08
+
+struct mu_lc_all
+{
+  int flags;
+  char *language;
+  char *territory;
+  char *charset;
+  char *modifier;
+};
+
+int mu_parse_lc_all (const char *arg, struct mu_lc_all *str, int flags);  
+void mu_lc_all_free (struct mu_lc_all *str);
+const char *mu_charset_lookup (char *lang, char *terr);
+
 #ifdef __cplusplus
 }
 #endif

@@ -1,4 +1,4 @@
-GNU mailutils TODO list. 2010-12-01
+GNU mailutils TODO list. 2010-12-02
 Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2010 Free
 Software Foundation, Inc.
 
@@ -12,7 +12,9 @@ Software Foundation, Inc.
 
 * use the above in message_stream.
 
-* eliminate uses of strtok(_r)
+* envelope: date returned by mu_envelope_?get_date must not end with a \n
+
+See also mu_rfc2822_in_reply_to.
 
 * mail: rewrite I/O support using streams.
 
@@ -50,6 +52,10 @@ See frm/common.c (near line 425).
 See guimb/scm/Makefile.am for a discussion.
 
 * lib/mailcap.c: rewrite using streams
+
+* sieve: needs an option to add directory at the head of the search path
+
+* sieve: extension tests
 
 * mu_address_createv: pass hints as in mu_address_create_hint?
 

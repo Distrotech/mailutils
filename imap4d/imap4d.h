@@ -201,10 +201,6 @@ extern mu_list_t imap4d_id_list;
 extern int imap4d_argc;                 
 extern char **imap4d_argv;
 
-#ifndef HAVE_STRTOK_R
-extern char *strtok_r (char *s, const char *delim, char **save_ptr);
-#endif
-
 /* Input functions */
 extern mu_stream_t iostream;
 extern int  io_untagged_response (int, const char *, ...) MU_PRINTFLIKE(2,3);

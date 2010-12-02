@@ -61,7 +61,6 @@ cb_clear_include_path (mu_debug_t debug, void *data, mu_config_value_t *val)
 static int
 _add_path (mu_debug_t debug, const char *arg, void *data)
 {
-  char *p, *tmp;
   mu_list_t *plist = data;
     
   if (!*plist)
@@ -75,12 +74,7 @@ _add_path (mu_debug_t debug, const char *arg, void *data)
 	}
       mu_list_set_destroy_item (*plist, mu_list_free_item);
     }
-  /* FIXME: Use mu_argcv */
-  tmp = strdup (arg);
-  for (p = strtok (tmp, ":"); p; p = strtok (NULL, ":"))
-    mu_list_append (*plist, strdup (p));
-  free (tmp);
-  return 0;
+  return mu_string_split (arg, ":", *plist);
 }
 
 static int

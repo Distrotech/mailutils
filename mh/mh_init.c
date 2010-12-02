@@ -930,25 +930,16 @@ mh_charset (const char *dfl)
     return NULL;
   if (mu_c_strcasecmp (charset, "auto") == 0)
     {
-      /* Try to deduce the charset from LC_ALL variable */
-      
-      char *lc_all = getenv ("LC_ALL");
-      if (lc_all)
+      static char *saved_charset;
+
+      if (!saved_charset)
 	{
-	  char *sp;
-	  char *lang;
-	  char *terr;
-
-	  char *tmp = strdup (lc_all);
-	  lang = strtok_r (tmp, "_", &sp);
-	  terr = strtok_r (NULL, ".", &sp);
-	  charset = strtok_r (NULL, "@", &sp);
-
-	  if (!charset)
-	    charset = mu_charset_lookup (lang, terr);
-	  
-	  free (tmp);
+	  /* Try to deduce the charset from LC_ALL variable */
+	  struct mu_lc_all lc_all;
+	  if (mu_parse_lc_all (getenv ("LC_ALL"), &lc_all, MU_LC_CSET) == 0)
+	    saved_charset = lc_all.charset; /* FIXME: Memory leak */
 	}
+      charset = saved_charset;
     }
   return charset;
 }

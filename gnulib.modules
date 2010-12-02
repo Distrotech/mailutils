@@ -21,5 +21,4 @@ obstack
 realloc
 setenv
 stdint
-strtok_r
 xalloc

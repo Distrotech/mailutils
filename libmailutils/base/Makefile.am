@@ -36,6 +36,7 @@ libbase_la_SOURCES = \
  hostname.c\
  iterator.c\
  kwd.c\
+ lcall.c\
  list.c\
  listlist.c\
  locale.c\

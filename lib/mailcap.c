@@ -53,7 +53,6 @@ struct mime_context
   char *temp_file;
   int unlink_temp_file;
 
-  char *no_ask_str;
   mu_list_t no_ask_types;
   int debug_level;
   int flags;
@@ -66,15 +65,28 @@ mime_context_fill (struct mime_context *ctx, const char *file,
 		   mu_stream_t input, mu_header_t hdr, const char *no_ask,
 		   int interactive, int dry_run, int debug_level)
 {
-  char *p, *sp;
- 
+  struct mu_wordsplit ws;
+  size_t i;
+  
   memset (ctx, 0, sizeof *ctx);
   ctx->input = input;
   ctx->hdr = hdr;
   if (mu_header_aget_value (hdr, MU_HEADER_CONTENT_TYPE,
-			 &ctx->content_type_buffer))
+			    &ctx->content_type_buffer))
     return 1;
-  ctx->content_type = strtok_r (ctx->content_type_buffer, ";", &sp);
+  ws.ws_delim = ";";
+  if (mu_wordsplit (ctx->content_type_buffer, &ws,
+		    MU_WRDSF_DELIM|MU_WRDSF_SQUEEZE_DELIMS|MU_WRDSF_WS|
+		    MU_WRDSF_NOVAR|MU_WRDSF_NOCMD))
+    {
+      mu_error (_("cannot split line `%s': %s"),
+		ctx->content_type_buffer,
+		mu_wordsplit_strerror (&ws));
+      return 1;
+    }
+
+  ctx->content_type = ws.ws_wordv[0];
+  ws.ws_wordv[0] = NULL;
   ctx->temp_file = file ? strdup (file) : NULL; 
   ctx->unlink_temp_file = 0;
 
@@ -85,24 +97,20 @@ mime_context_fill (struct mime_context *ctx, const char *file,
   ctx->debug_level = debug_level;
   
   mu_list_create (&ctx->values);
-  while ((p = strtok_r (NULL, ";", &sp)))
+
+  for (i = 1; i < ws.ws_wordc; i++)
     {
-      while (*p && isspace (*p))
-	p++;
-      mu_list_append (ctx->values, p);
+      mu_list_append (ctx->values, ws.ws_wordv[i]);
+      ws.ws_wordv[i] = NULL;
     }
+  mu_wordsplit_free (&ws);
   
   if (no_ask)
     {
-      ctx->no_ask_str = xstrdup (no_ask);
       mu_list_create (&ctx->no_ask_types);
-      for (p = strtok_r (ctx->no_ask_str, ",", &sp); p;
-	   p = strtok_r (NULL, ",", &sp))
-	{
-	  while (*p && isspace (*p))
-	    p++;
-	  mu_list_append (ctx->no_ask_types, p);
-	}
+      mu_list_set_destroy_item (ctx->no_ask_types, mu_list_free_item);
+      if (mu_string_split (no_ask, ",", ctx->no_ask_types))
+	return 1;
     }
   return 0;
 }
@@ -115,7 +123,6 @@ mime_context_release (struct mime_context *ctx)
     unlink (ctx->temp_file);
   free (ctx->temp_file);
   mu_list_destroy (&ctx->values);
-  free (ctx->no_ask_str);
   mu_list_destroy (&ctx->no_ask_types);
 }
 
@@ -208,8 +215,11 @@ mime_context_write_input (struct mime_context *ctx, int fd)
   
   mime_context_get_input (ctx, &input);
   status = mu_stream_seek (input, 0, SEEK_SET, NULL);
-  if (status)
-    abort (); /* FIXME */
+  if (status && status != ENOSYS)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_stream_seek", NULL, status);
+      abort (); /* FIXME */
+    }
   while ((status = mu_stream_read (input, buf, sizeof buf, &n)) == 0
 	 && n)
     write (fd, buf, n);
@@ -661,8 +671,8 @@ display_stream_mailcap (const char *ident, mu_stream_t stream, mu_header_t hdr,
 			const char *no_ask, int interactive, int dry_run,
 			int debug_level)
 {
-  char *p, *sp;
-  char *mailcap_path;
+  char *mailcap_path, *mailcap_path_tmp = NULL;
+  struct mu_wordsplit ws;
   struct mime_context ctx;
   int rc = 1;
   
@@ -673,24 +683,37 @@ display_stream_mailcap (const char *ident, mu_stream_t stream, mu_header_t hdr,
   if (!mailcap_path)
     {
       char *home = mu_get_homedir ();
-      mu_asprintf (&mailcap_path, "%s/.mailcap:%s", home, DEFAULT_MAILCAP);
+      mailcap_path_tmp = mu_make_file_name_suf (home, ".mailcap:",
+						DEFAULT_MAILCAP);
       free (home);
-      if (!mailcap_path)
+      if (!mailcap_path_tmp)
         return 1;
+      mailcap_path = mailcap_path_tmp;
     }
-  else
-    mailcap_path = strdup (mailcap_path);
   
   obstack_init (&expand_stack);
-  
-  for (p = strtok_r (mailcap_path, ":", &sp); p; p = strtok_r (NULL, ":", &sp))
-    {
-      if ((rc = find_entry (p, &ctx)) == 0)
-	break;
-    }
 
+  ws.ws_delim = ":";
+  if (mu_wordsplit (mailcap_path, &ws,
+		    MU_WRDSF_DELIM|MU_WRDSF_SQUEEZE_DELIMS|
+		    MU_WRDSF_NOVAR|MU_WRDSF_NOCMD))
+    {
+      mu_error (_("cannot split line `%s': %s"), mailcap_path,
+		mu_wordsplit_strerror (&ws));
+    }
+  else
+    {
+      size_t i;
+
+      for (i = 0; i < ws.ws_wordc; i++)
+	{
+	  if ((rc = find_entry (ws.ws_wordv[i], &ctx)) == 0)
+	    break;
+	}
+      mu_wordsplit_free (&ws);
+    }
   obstack_free (&expand_stack, NULL);
-  free (mailcap_path);
+  free (mailcap_path_tmp);
   mime_context_release (&ctx);
   return rc;
 }

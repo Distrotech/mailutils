@@ -118,15 +118,25 @@ mu_debug_level_from_string (const char *string, mu_log_level_t *plev,
     }
   else
     {
-      char *p = strdup (string);
-      size_t len = strlen (p);
-      if (len > 0 && p[len-1] == '\n')
-	p[len-1] = 0;
-      for (q = strtok (p, ","); q; q = strtok (NULL, ","))
+      size_t i;
+      struct mu_wordsplit ws;
+
+      if (mu_wordsplit (string, &ws,
+			MU_WRDSF_DELIM|MU_WRDSF_SQUEEZE_DELIMS|
+			MU_WRDSF_WS|
+			MU_WRDSF_NOVAR|MU_WRDSF_NOCMD))
+	{
+	  mu_error (_("cannot split line `%s': %s"), string,
+		    mu_wordsplit_strerror (&ws));
+	  return MU_ERR_FAILURE;
+	}
+
+      for (i = 0; i < ws.ws_wordc; i++)
 	{
 	  int flag;
 	  int revert = 0;
 	  int upto = 0;
+	  const char *q = ws.ws_wordv[i];
 	  
 	  if (*q == '!')
 	    {
@@ -158,7 +168,7 @@ mu_debug_level_from_string (const char *string, mu_log_level_t *plev,
 		level |= MU_DEBUG_LEVEL_MASK (flag);
 	    }
 	}
-      free (p);
+      mu_wordsplit_free (&ws);
     }
   *plev = level;
   return 0;
@@ -207,12 +217,24 @@ mu_global_debug_from_string (const char *string, const char *errpfx)
 	    }
 	  else
 	    {
-	      char *q;
-	      for (q = strtok (p, ","); q; q = strtok (NULL, ","))
+	      size_t j;
+	      struct mu_wordsplit ws1;
+
+	      ws.ws_delim = ",";
+	      if (mu_wordsplit (p, &ws1,
+				MU_WRDSF_DELIM|MU_WRDSF_NOVAR|MU_WRDSF_NOCMD))
+		{
+		  mu_error (_("cannot split line `%s': %s"), p,
+			    mu_wordsplit_strerror (&ws));
+		  return MU_ERR_FAILURE;
+		}
+
+	      for (j = 0; j < ws1.ws_wordc; j++)
 		{
 		  int flag;
 		  int revert = 0;
 		  int upto = 0;
+		  const char *q = ws1.ws_wordv[j];
 		  
 		  if (*q == '!')
 		    {
@@ -243,6 +265,7 @@ mu_global_debug_from_string (const char *string, const char *errpfx)
 			level |= MU_DEBUG_LEVEL_MASK (flag);
 		    }
 		}
+	      mu_wordsplit_free (&ws1);
 	    }   
 	}	  
       else

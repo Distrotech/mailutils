@@ -220,7 +220,7 @@ mu_tempname (const char *tmpdir)
   struct mu_tempfile_hints hints;
   char *filename = NULL;
   int fd;
-  hints.tmpdir = tmpdir;
+  hints.tmpdir = (char*)tmpdir;
   if (mu_tempfile (&hints, MU_TEMPFILE_TMPDIR, &fd, &filename))
     return NULL;
   close (fd);
