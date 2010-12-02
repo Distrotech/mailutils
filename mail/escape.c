@@ -440,12 +440,7 @@ int
 quote0 (msgset_t *mspec, mu_message_t mesg, void *data)
 {
   int rc;
-  mu_header_t hdr;
-  mu_body_t body;
   mu_stream_t stream;
-  char *buffer = NULL;
-  size_t size = 0;
-  size_t n = 0;
   char *prefix = "\t";
   mu_stream_t outstr, flt;
   char *argv[3];
@@ -466,7 +461,7 @@ quote0 (msgset_t *mspec, mu_message_t mesg, void *data)
   argv[1] = prefix;
   argv[2] = NULL;
   rc = mu_filter_create_args (&flt, outstr, "INLINE-COMMENT",
-			      2, argv,
+			      2, (const char**) argv,
 			      MU_FILTER_ENCODE,
 			      MU_STREAM_WRITE);
   mu_stream_unref (outstr);
@@ -478,27 +473,23 @@ quote0 (msgset_t *mspec, mu_message_t mesg, void *data)
   
   if (*(int*)data)
     {
-      size_t i, num = 0;
-      const char *sptr;
-
+      mu_header_t hdr;
+      mu_body_t body;
+      mu_iterator_t itr;
+	
       mu_message_get_header (mesg, &hdr);
-      mu_header_get_field_count (hdr, &num);
-
-      for (i = 1; i <= num; i++)
+      mu_header_get_iterator (hdr, &itr);
+      for (mu_iterator_first (itr); !mu_iterator_is_done (itr);
+	   mu_iterator_next (itr))
 	{
-	  mu_header_sget_field_name (hdr, i, &sptr);
-	  if (mail_header_is_visible (sptr))
-	    {
-	      const char *value;
-	      
-	      mu_stream_printf (flt, "%s: ", sptr);
-	      if (mu_header_sget_value (hdr, sptr, &value) == 0)
-		{
-		  mu_stream_write (flt, value, strlen (value), NULL); 
-		  mu_stream_write (flt, "\n", 1, NULL);
-		}
-	    }
+	  const char *name, *value;
+
+	  if (mu_iterator_current_kv (itr, (const void **)&name,
+				      (void**)&value) == 0 &&
+	      mail_header_is_visible (name))
+	    mu_stream_printf (flt, "%s: %s\n", name, value);
 	}
+      mu_iterator_destroy (&itr);
       mu_stream_write (flt, "\n", 1, NULL);
       mu_message_get_body (mesg, &body);
       rc = mu_body_get_streamref (body, &stream);
