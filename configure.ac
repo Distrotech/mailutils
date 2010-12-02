@@ -492,22 +492,13 @@ else
 fi
 AC_FUNC_MMAP
 
-AC_CHECK_DECLS([strtok_r, strchrnul, strndup, asprintf, vasprintf, strsignal],
- , , [
-#include <stdio.h>
-#include <string.h>
-#ifdef HAVE_STRINGS_H
-# include <strings.h>
-#endif])
+AC_CHECK_DECLS([strsignal])
 
 AC_CHECK_DECLS(environ, , ,
   [ #include <unistd.h>
     #include <stdlib.h> ])
 
 AH_BOTTOM([
-#if !HAVE_DECL_STRTOK_R
-extern char *strtok_r (char *s, const char *delim, char **save_ptr);
-#endif
 #if !HAVE_DECL_STRSIGNAL
 extern char *strsignal (int);
 #endif

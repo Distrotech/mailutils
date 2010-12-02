@@ -59,10 +59,11 @@ void
 lmtp_reply (mu_stream_t iostr, char *code, char *enh, char *fmt, ...)
 {
   va_list ap;
-  char *str;
+  char *str = NULL;
+  size_t size = 0;
   
   va_start (ap, fmt);
-  vasprintf (&str, fmt, ap);
+  mu_vasnprintf (&str, &size, fmt, ap);
   va_end (ap);
 
   if (!str)

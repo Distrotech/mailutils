@@ -60,10 +60,6 @@
 
 #include <mu_umaxtostr.h>
 
-#if !HAVE_DECL_STRCHRNUL
-extern char *strchrnul (const char *s, int c_in);
-#endif
-
 #define MH_FMT_RALIGN  0x1000
 #define MH_FMT_ZEROPAD 0x2000
 #define MH_FMT_COMPWS  0x4000

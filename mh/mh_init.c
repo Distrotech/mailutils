@@ -937,7 +937,7 @@ mh_charset (const char *dfl)
 	  /* Try to deduce the charset from LC_ALL variable */
 	  struct mu_lc_all lc_all;
 	  if (mu_parse_lc_all (getenv ("LC_ALL"), &lc_all, MU_LC_CSET) == 0)
-	    saved_charset = lc_all.charset; /* FIXME: Memory leak */
+	    saved_charset = lc_all.charset; /* FIXME: Mild memory leak */
 	}
       charset = saved_charset;
     }

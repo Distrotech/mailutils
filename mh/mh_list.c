@@ -480,16 +480,24 @@ header_is_printed (struct eval_env *env, const char *name)
 int
 want_header (struct eval_env *env, const char *name)
 {
-  char *p, *str = env->svar[S_IGNORES];
+  const char *p, *str;
 
-  for (p = strchrnul (str, ','); *str; p = strchrnul (str, ','))
+  for (str = env->svar[S_IGNORES], p = name; *str; str++)
     {
-      if (mu_c_strncasecmp (name, str, p - str) == 0)
-	return 0;
-      str = p;
-      if (*str)
-	str++;
+      if (p)
+	{
+	  if (*p == 0 && *str == ',')
+	    break;
+	  if (mu_tolower (*p) == mu_tolower (*str))
+	    p++;
+	  else
+	    p = NULL;
+	}
+      else if (*str == ',')
+	p = name;
     }
+  if (p && *p == 0)
+    return 0;
   return 1;
 }
 
@@ -577,16 +585,15 @@ print (struct eval_env *env, char *str, int nloff)
 	  newline (env);
 	  str++;
 	}
-      else
+      else if (*str)
 	{
-	  char *p = strchrnul (str, '\n');
-	  ovf_print (env, str, p - str, nloff);
-	  str = p;
-	  if (*p)
+	  size_t size = strcspn (str, "\n");
+	  ovf_print (env, str, size, nloff);
+	  str += size;
+	  if (*str == '\n')
 	    {
 	      newline (env);
-	      for (str++; *str && mu_isspace (*str); str++)
-		;
+	      str = mu_str_skip_class (str + 1, MU_CTYPE_SPACE);
 	    }
 	}
     }
