@@ -65,5 +65,6 @@
 #include <mailutils/cctype.h>
 #include <mailutils/cstr.h>
 #include <mailutils/wordsplit.h>
+#include <mailutils/log.h>
 
 /* EOF */

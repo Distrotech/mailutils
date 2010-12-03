@@ -63,8 +63,8 @@ _dbg_done (struct _mu_stream *str)
 }
 
 int
-mu_dbgstream_create(mu_stream_t *pref, mu_debug_t debug, mu_log_level_t level,
-		    int flags)
+mu_dbgstream_create (mu_stream_t *pref, mu_debug_t debug, mu_log_level_t level,
+		     int flags)
 {
   int rc;
   mu_stream_t stream;

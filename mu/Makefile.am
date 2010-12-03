@@ -41,6 +41,7 @@ MODULES = \
  help.c\
  info.c\
  ldflags.c\
+ logger.c\
  $(POP_C)\
  query.c\
  wicket.c
@@ -79,7 +80,7 @@ AM_CPPFLAGS = \
   -DI18NLIBS="\"$(LIBINTL)\""
 
 BUILT_SOURCES=mu-setup.c mu-setup.h
-EXTRA_DIST=mu-setup.c mu-setup.h
+EXTRA_DIST=mu-setup.c mu-setup.h template.c
 
 mu-setup.h: Makefile.am $(MODULES) $(IDLE_MODULES) 
 	$(AM_V_GEN)$(AWK) -f $(top_srcdir)/mu/mu-setup.awk -v mode=h \

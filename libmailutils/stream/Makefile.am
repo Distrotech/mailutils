@@ -22,6 +22,7 @@ libstream_la_SOURCES = \
  file_stream.c\
  fltstream.c\
  iostream.c\
+ logstream.c\
  mapfile_stream.c\
  memory_stream.c\
  message_stream.c\
@@ -35,6 +36,7 @@ libstream_la_SOURCES = \
  stream_vprintf.c\
  streamcpy.c\
  streamref.c\
+ syslogstream.c\
  tcp.c\
  temp_file_stream.c\
  xscript-stream.c

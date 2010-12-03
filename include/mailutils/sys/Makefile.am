@@ -33,6 +33,7 @@ sysinclude_HEADERS = \
  iterator.h\
  iostream.h\
  list.h\
+ logstream.h\
  mailbox.h\
  mailer.h\
  mapfile_stream.h\
@@ -53,6 +54,7 @@ sysinclude_HEADERS = \
  streamref.h\
  streamtrans.h\
  stream.h\
+ syslogstream.h\
  temp_file_stream.h\
  tls-stream.h\
  url.h\

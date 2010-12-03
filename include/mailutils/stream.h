@@ -76,7 +76,7 @@ enum mu_buffer_type
 
 #define MU_IOCTL_GET_ECHO        12     
 #define MU_IOCTL_SET_ECHO        13  
-
+  
 /* The following ioctls are for nullstreams only: */  
 #define MU_IOCTL_NULLSTREAM_SET_PATTERN 14
   /* Set read pattern.
@@ -89,6 +89,23 @@ enum mu_buffer_type
   /* Limit stream size.  Argument: mu_off_t *psize; */
 #define MU_IOCTL_NULLSTREAM_CLRSIZE 17
   /* Lift the size limit.  Argument: NULL */
+
+/* The following are for logstreams */
+  /* Get or set logging severity.
+     Arg: unsigned *
+  */
+#define MU_IOCTL_LOGSTREAM_GET_SEVERITY 18
+#define MU_IOCTL_LOGSTREAM_SET_SEVERITY 19
+  /* Get or set locus.
+     Arg: struct mu_locus *
+  */
+#define MU_IOCTL_LOGSTREAM_GET_LOCUS    20
+#define MU_IOCTL_LOGSTREAM_SET_LOCUS    21
+  /* Get or set log mode.
+     Arg: int *
+  */
+#define MU_IOCTL_LOGSTREAM_GET_MODE     22
+#define MU_IOCTL_LOGSTREAM_SET_MODE     23
   
 #define MU_TRANSPORT_INPUT  0
 #define MU_TRANSPORT_OUTPUT 1
