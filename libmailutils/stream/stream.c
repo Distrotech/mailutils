@@ -554,6 +554,13 @@ mu_stream_set_buffer (mu_stream_t stream, enum mu_buffer_type type,
   if (size == 0)
     size = mu_stream_default_buffer_size;
 
+  if (stream->setbuf_hook)
+    {
+      int rc = stream->setbuf_hook (stream, type, size);
+      if (rc)
+	return rc;
+    }
+  
   if (stream->buffer)
     {
       mu_stream_flush (stream);
