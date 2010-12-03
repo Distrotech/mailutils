@@ -68,6 +68,8 @@ struct _mu_stream
   void (*event_cb) (struct _mu_stream *, int code, unsigned long, void *);
   int  event_mask;
   void *event_cb_data;
+
+  int (*setbuf_hook) (mu_stream_t, enum mu_buffer_type, size_t);
   
   const char *(*error_string) (struct _mu_stream *, int);
   
