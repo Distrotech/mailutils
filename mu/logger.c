@@ -44,7 +44,7 @@ static struct argp_option logger_options[] = {
 };
 
 static char *input_file = NULL;
-static int use_syslog = 0;
+static int logger_type = MU_STRERR_STDERR;
 static int log_severity = MU_LOG_ERROR;
 static struct mu_locus locus;
 static int syslog_facility = LOG_USER;
@@ -61,11 +61,11 @@ logger_parse_opt (int key, char *arg, struct argp_state *state)
       break;
 
     case OPT_SYSLOG:
-      use_syslog = 1;
+      logger_type = MU_STRERR_SYSLOG;
       break;
 
     case OPT_STDERR:
-      use_syslog = 0;
+      logger_type = MU_STRERR_STDERR;
       break;
 
     case 's':
@@ -96,7 +96,7 @@ logger_parse_opt (int key, char *arg, struct argp_state *state)
 	if (s &&
 	    mu_string_to_syslog_priority (s, &syslog_priority))
 	  argp_error (state, _("unknown priority: %s"), s);
-	use_syslog = 1;
+	logger_type = MU_STRERR_SYSLOG;
 	break;
       }
       
@@ -142,7 +142,7 @@ int
 mutool_logger (int argc, char **argv)
 {
   int index;
-  mu_stream_t transport, logger;
+  mu_stream_t logger, input;
   int rc, mode;
   
   if (argp_parse (&logger_argp, argc, argv, ARGP_IN_ORDER, &index, NULL))
@@ -158,49 +158,13 @@ mutool_logger (int argc, char **argv)
 
   if (!syslog_tag)
     syslog_tag = "mu-logger";
-  if (use_syslog)
+  if (mu_stdstream_strerr_create (&logger, logger_type,
+				  syslog_facility, syslog_priority,
+				  syslog_tag, NULL))
     {
-      openlog (syslog_tag, LOG_PID, syslog_facility);
-
-      rc = mu_syslog_stream_create (&transport, syslog_priority);
-      if (rc)
-	{
-	  mu_error (_("cannot create syslog stream: %s"),
-		    mu_strerror (rc));
-	  exit (1);
-	}
-    }
-  else
-    {
-      mu_stream_t str;
-      char *fltargs[3] = { "INLINE-COMMENT", };
-      
-      rc = mu_stdio_stream_create (&str, MU_STDERR_FD, 0);
-      if (rc)
-	{
-	  mu_error (_("cannot open error stream: %s"), mu_strerror (rc));
-	  return 1;
-	}
-      mu_asprintf (&fltargs[1], "%s: ", syslog_tag);
-      fltargs[2] = NULL;
-      rc = mu_filter_create_args (&transport, str,
-				  "INLINE-COMMENT", 2, (const char *)fltargs,
-				  MU_FILTER_ENCODE, MU_STREAM_WRITE);
-      mu_stream_unref (str);
-      free (fltargs[1]);
-      if (rc)
-	{
-	  mu_error (_("cannot open filter stream: %s"), mu_strerror (rc));
-	  return 1;
-	}
-    }
-
-  rc = mu_log_stream_create (&logger, transport);
-  mu_stream_unref (transport);
-  if (rc)
-    {
-      mu_error (_("cannot open logger stream: %s"), mu_strerror (rc));
-      return 1;
+      mu_error (_("cannot create log stream: %s"),
+		mu_strerror (rc));
+      exit (1);
     }
 
   mode = MU_LOGMODE_SEVERITY | MU_LOGMODE_LOCUS;
@@ -223,16 +187,12 @@ mutool_logger (int argc, char **argv)
     }
   else if (!input_file || strcmp (input_file, "-") == 0)
     {
-      rc = mu_stdio_stream_create (&transport, MU_STDIN_FD, 0);
-      if (rc)
-	{
-	  mu_error (_("cannot open input stream: %s"), mu_strerror (rc));
-	  return 1;
-	}
+      mu_stream_ref (mu_strin);
+      input = mu_strin;
     }
   else
     {
-      rc = mu_file_stream_create (&transport, input_file, MU_STREAM_READ);
+      rc = mu_file_stream_create (&input, input_file, MU_STREAM_READ);
       if (rc)
 	{
 	  mu_error (_("cannot open input stream %s: %s"),
@@ -241,8 +201,8 @@ mutool_logger (int argc, char **argv)
 	}
     } 
 
-  rc = mu_stream_copy (logger, transport, 0, NULL);
-  mu_stream_unref (transport);
+  rc = mu_stream_copy (logger, input, 0, NULL);
+  mu_stream_unref (input);
   mu_stream_unref (logger);
   return !!rc;
 }

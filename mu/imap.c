@@ -284,12 +284,11 @@ com_logout (int argc MU_ARG_UNUSED, char **argv MU_ARG_UNUSED)
 	}
       else
 	{
-	  mu_stream_printf (mustrout, "Try 'exit' to leave %s\n",
-			    mu_program_name);
+	  mu_printf ("Try 'exit' to leave %s\n", mu_program_name);
 	}
     }
   else
-    mu_stream_printf (mustrout, "Try 'exit' to leave %s\n", mu_program_name);
+    mu_printf ("Try 'exit' to leave %s\n", mu_program_name);
   return status;
 }
 
@@ -325,13 +324,13 @@ com_capability (int argc, char **argv)
 	    {
 	    case 0:
 	      if (*elt)
-		mu_stream_printf (mustrout, "%s: %s\n", argv[i], elt);
+		mu_printf ("%s: %s\n", argv[i], elt);
 	      else
-		mu_stream_printf (mustrout, "%s is set\n", argv[i]);
+		mu_printf ("%s is set\n", argv[i]);
 	      break;
 
 	    case MU_ERR_NOENT:
-	      mu_stream_printf (mustrout, "%s is not set\n", argv[i]);
+	      mu_printf ("%s is not set\n", argv[i]);
 	      break;
 
 	    default:
@@ -350,7 +349,7 @@ com_capability (int argc, char **argv)
 	    {
 	      char *capa = NULL;
 	      mu_iterator_current (iterator, (void **) &capa);
-	      mu_stream_printf (mustrout, "CAPA: %s\n", capa ? capa : "");
+	      mu_printf ("CAPA: %s\n", capa ? capa : "");
 	    }
 	  mu_iterator_destroy (&iterator);
 	}
@@ -371,7 +370,7 @@ com_login (int argc, char **argv)
 	  mu_error (_("login: password required"));
 	  return 1;
 	}
-      status = mu_getpass (mustrin, mustrout, "Password:", &passbuf);
+      status = mu_getpass (mu_strin, mu_strout, "Password:", &passbuf);
       if (status)
 	return status;
       pwd = passbuf;
@@ -400,7 +399,7 @@ static int
 _print_id (void *item, void *data)
 {
   const char *id = item;
-  mu_stream_printf (mustrout, "ID: %s %s\n", id, id + strlen (id) + 1);
+  mu_printf ("ID: %s %s\n", id, id + strlen (id) + 1);
   return 0;
 }
 
@@ -435,12 +434,11 @@ com_id (int argc, char **argv)
 	  switch (rc)
 	    {
 	    case 0:
-	      mu_stream_printf (mustrout, "%s: %s\n", test,
-				res + strlen (res) + 1);
+	      mu_printf ("%s: %s\n", test, res + strlen (res) + 1);
 	      break;
 	      
 	    case MU_ERR_NOENT:
-	      mu_stream_printf (mustrout, "%s is not set\n", test);
+	      mu_printf ("%s is not set\n", test);
 	      break;
 
 	    default:

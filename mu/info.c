@@ -74,7 +74,7 @@ mutool_info (int argc, char **argv)
   argv += index;
 
   if (argc == 0)
-    mu_fprint_options (stdout, verbose);
+    mu_format_options (mu_strout, verbose);
   else
     {
       int i, found = 0;
@@ -85,7 +85,7 @@ mutool_info (int argc, char **argv)
 	  if (opt)
 	    {
 	      found++;
-	      mu_fprint_conf_option (stdout, opt, verbose);
+	      mu_format_conf_option (mu_strout, opt, verbose);
 	    }
 	}
       return found == argc ? 0 : 1;

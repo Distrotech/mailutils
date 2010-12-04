@@ -186,7 +186,7 @@ com_apop (int argc, char **argv)
     }
   else
     {
-      status = mu_getpass (mustrin, mustrout, "Password:", &passbuf);
+      status = mu_getpass (mu_strin, mu_strout, "Password:", &passbuf);
       if (status)
 	return status;
       pwd = passbuf;
@@ -234,13 +234,13 @@ com_capa (int argc, char **argv)
 	    {
 	    case 0:
 	      if (*elt)
-		mu_stream_printf (mustrout, "%s: %s\n", argv[i], elt);
+		mu_printf ("%s: %s\n", argv[i], elt);
 	      else
-		mu_stream_printf (mustrout, "%s is set\n", argv[i]);
+		mu_printf ("%s is set\n", argv[i]);
 	      break;
 
 	    case MU_ERR_NOENT:
-	      mu_stream_printf (mustrout, "%s is not set\n", argv[i]);
+	      mu_printf ("%s is not set\n", argv[i]);
 	      break;
 
 	    default:
@@ -259,7 +259,7 @@ com_capa (int argc, char **argv)
 	    {
 	      char *capa = NULL;
 	      mu_iterator_current (iterator, (void **) &capa);
-	      mu_stream_printf (mustrout, "CAPA: %s\n", capa ? capa : "");
+	      mu_printf ("CAPA: %s\n", capa ? capa : "");
 	    }
 	  mu_iterator_destroy (&iterator);
 	}
@@ -296,7 +296,7 @@ com_uidl (int argc, char **argv)
       unsigned int msgno = strtoul (argv[1], NULL, 10);
       status = mu_pop3_uidl (pop3, msgno, &uidl);
       if (status == 0)
-	mu_stream_printf (mustrout, "Msg: %d UIDL: %s\n", msgno, uidl ? uidl : "");
+	mu_printf ("Msg: %d UIDL: %s\n", msgno, uidl ? uidl : "");
       free (uidl);
     }
   return status;
@@ -331,7 +331,7 @@ com_list (int argc, char **argv)
       unsigned int msgno = strtoul (argv[1], NULL, 10);
       status = mu_pop3_list (pop3, msgno, &size);
       if (status == 0)
-	mu_stream_printf (mustrout, "Msg: %u Size: %lu\n", msgno, (unsigned long) size);
+	mu_printf ("Msg: %u Size: %lu\n", msgno, (unsigned long) size);
     }
   return status;
 }
@@ -355,7 +355,7 @@ com_pass (int argc, char **argv)
 	  mu_error (_("pass: password required"));
 	  return 1;
 	}
-      status = mu_getpass (mustrin, mustrout, "Password:", &passbuf);
+      status = mu_getpass (mu_strin, mu_strout, "Password:", &passbuf);
       if (status)
 	return status;
       pwd = passbuf;
@@ -380,8 +380,8 @@ com_stat (int argc MU_ARG_UNUSED, char **argv MU_ARG_UNUSED)
   int status = 0;
 
   status = mu_pop3_stat (pop3, &count, &size);
-  mu_stream_printf (mustrout, "Mesgs: %lu Size %lu\n",
-		    (unsigned long) count, (unsigned long) size);
+  mu_printf ("Mesgs: %lu Size %lu\n",
+	     (unsigned long) count, (unsigned long) size);
   return status;
 }
 
@@ -578,11 +578,11 @@ com_quit (int argc MU_ARG_UNUSED, char **argv MU_ARG_UNUSED)
 	}
       else
 	{
-	  mu_stream_printf (mustrout, "Try 'exit' to leave %s\n", mu_program_name);
+	  mu_printf ("Try 'exit' to leave %s\n", mu_program_name);
 	}
     }
   else
-    mu_stream_printf (mustrout, "Try 'exit' to leave %s\n", mu_program_name);
+    mu_printf ("Try 'exit' to leave %s\n", mu_program_name);
   return status;
 }
 

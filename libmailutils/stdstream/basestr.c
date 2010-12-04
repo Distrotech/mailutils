@@ -77,4 +77,17 @@ mu_stdstream_setup ()
   if (mu_stdstream_strerr_create (&mu_strerr, MU_STRERR_STDERR, 0, 0,
 				  NULL, NULL))
     abort ();
+  /* FIXME: atexit (flushall) */
+}
+
+int
+mu_printf (const char *fmt, ...)
+{
+  int rc;
+  va_list ap;
+
+  va_start (ap, fmt);
+  rc = mu_stream_vprintf (mu_strout, fmt, ap);
+  va_end (ap);
+  return rc;
 }

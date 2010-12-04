@@ -104,6 +104,8 @@ main (int argc, char **argv)
   /* Native Language Support */
   MU_APP_INIT_NLS ();
   MU_AUTH_REGISTER_ALL_MODULES ();
+
+  mu_stdstream_setup ();
   
   /* Register the desired mailbox formats.  */
   mu_register_all_mbox_formats ();

@@ -103,16 +103,16 @@ wicket_match (mu_stream_t stream, const char *str)
       ret = 0;
       if (wicket_verbose)
 	{
-	  printf ("%s: %s:%d", str, loc.file, loc.line);
+	  mu_printf ("%s: %s:%d", str, loc.file, loc.line);
 	  if (wicket_verbose > 1)
-	    printf (": %s", mu_url_to_string (url));
-	  putchar ('\n');
+	    mu_printf (": %s", mu_url_to_string (url));
+	  mu_printf ("\n");
 	}
       break;
 
     case MU_ERR_NOENT:
       if (wicket_verbose)
-	printf ("%s: %s\n", str, _("not found"));
+	mu_printf ("%s: %s\n", str, _("not found"));
       ret = 1;
       break;
 

@@ -18,7 +18,7 @@
 #ifndef _MAILUTILS_VERSION_H
 #define _MAILUTILS_VERSION_H
 
-#include <stdio.h>  
+#include <mailutils/types.h>  
 
 #ifdef __cplusplus
 extern "C" {
@@ -31,8 +31,9 @@ struct mu_conf_option
 };
   
 extern void mu_print_options (void);
-extern void mu_fprint_options (FILE *fp, int verbose);
-extern void mu_fprint_conf_option (FILE *fp, const struct mu_conf_option *opt,
+extern void mu_format_options (mu_stream_t, int verbose);
+extern void mu_format_conf_option (mu_stream_t,
+                                   const struct mu_conf_option *opt,
 				   int verbose);
 extern const struct mu_conf_option *mu_check_option (char *name);
 

@@ -184,12 +184,12 @@ mutool_ldflags (int argc, char **argv)
   sort_entries ();
 	  
   /* At least one entry is always present */
-  printf ("%s", lib_entry[0].ptr);
+  mu_printf ("%s", lib_entry[0].ptr);
 
   /* Print the rest of them separated by a space */
   for (j = 1; j < nentry; j++)
-    printf (" %s", lib_entry[j].ptr);
-  putchar ('\n');
+    mu_printf (" %s", lib_entry[j].ptr);
+  mu_printf ("\n");
   return 0;
 }
 

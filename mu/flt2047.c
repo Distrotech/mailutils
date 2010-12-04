@@ -88,7 +88,6 @@ int
 mutool_flt2047 (int argc, char **argv)
 {
   int rc, index;
-  mu_stream_t in, out;
   char *p;
   
   if (argp_parse (&flt2047_argp, argc, argv, ARGP_IN_ORDER, &index, NULL))
@@ -97,20 +96,6 @@ mutool_flt2047 (int argc, char **argv)
   argc -= index;
   argv += index;
 
-  rc = mu_stdio_stream_create (&in, MU_STDIN_FD, 0);
-  if (rc)
-    {
-      mu_error (_("cannot open input stream: %s"), mu_strerror (rc));
-      return 1;
-    }
-  
-  rc = mu_stdio_stream_create (&out, MU_STDOUT_FD, 0);
-  if (rc)
-    {
-      mu_error (_("cannot open output stream: %s"), mu_strerror (rc));
-      return 1;
-    }
-      
   if (argc)
     {
       char *p;
@@ -127,7 +112,7 @@ mutool_flt2047 (int argc, char **argv)
 	      mu_error ("%s", mu_strerror (rc));
 	      return 1;
 	    }
-	  mu_stream_printf (out, "%s\n", p);
+	  mu_printf ("%s\n", p);
 	}
     }
   else
@@ -135,7 +120,8 @@ mutool_flt2047 (int argc, char **argv)
       size_t size = 0, n;
       char *buf = NULL;
 
-      while ((rc = mu_stream_getline (in, &buf, &size, &n)) == 0 && n > 0)
+      while ((rc = mu_stream_getline (mu_strin, &buf, &size, &n)) == 0
+	     && n > 0)
 	{
 	  mu_rtrim_class (buf, MU_CTYPE_SPACE);
 	  if (decode_mode)
@@ -147,10 +133,10 @@ mutool_flt2047 (int argc, char **argv)
 	      mu_error ("%s", mu_strerror (rc));
 	      return 1;
 	    }
-	  mu_stream_printf (out, "%s\n", p);
+	  mu_printf ("%s\n", p);
 	}
     }
-  mu_stream_flush (out);
+  mu_stream_flush (mu_strout);
   
   return 0;
 }

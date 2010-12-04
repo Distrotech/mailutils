@@ -67,24 +67,24 @@ shell_verbose (int argc, char **argv,
     {
       if (QRY_VERBOSE ())
 	{
-	  mu_stream_printf (mustrout, "verbose is on");
+	  mu_printf ("verbose is on");
 	  if (HAS_VERBOSE_MASK ())
 	    {
 	      char *delim = " (";
 	    
 	      if (QRY_VERBOSE_MASK (MU_XSCRIPT_SECURE))
 		{
-		  mu_stream_printf (mustrout, "%ssecure", delim);
+		  mu_printf ("%ssecure", delim);
 		  delim = ", ";
 		}
 	      if (QRY_VERBOSE_MASK (MU_XSCRIPT_PAYLOAD))
-		mu_stream_printf (mustrout, "%spayload", delim);
-	      mu_stream_printf (mustrout, ")");
+		mu_printf ("%spayload", delim);
+	      mu_printf (")");
 	    }
-	  mu_stream_printf (mustrout, "\n");
+	  mu_printf ("\n");
 	}
       else
-	mu_stream_printf (mustrout, "verbose is off\n");
+	mu_printf ("verbose is off\n");
     }
   else
     {
