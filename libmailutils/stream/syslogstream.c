@@ -57,7 +57,7 @@ _syslog_ctl (struct _mu_stream *str, int op, void *arg)
 	return EINVAL;
       sp->prio = *(int*)arg;
       break;
-      
+
     default:
       return ENOSYS;
     }

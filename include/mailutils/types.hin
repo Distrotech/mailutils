@@ -33,6 +33,10 @@
 # define MU_PRINTFLIKE(fmt,narg) __attribute__ ((__format__ (__printf__, fmt, narg)))
 #endif
 
+#ifndef MU_DEPRECATED
+# define MU_DEPRECATED __attribute__ ((deprecated))
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif

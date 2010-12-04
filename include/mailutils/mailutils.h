@@ -59,12 +59,12 @@
 #include <mailutils/url.h>
 #include <mailutils/gocs.h>
 #include <mailutils/version.h>
-#include <mailutils/vartab.h>
 #include <mailutils/io.h>
 #include <mailutils/secret.h>
 #include <mailutils/cctype.h>
 #include <mailutils/cstr.h>
 #include <mailutils/wordsplit.h>
 #include <mailutils/log.h>
+#include <mailutils/stdstream.h>
 
 /* EOF */

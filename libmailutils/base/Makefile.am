@@ -20,7 +20,6 @@ noinst_LTLIBRARIES = libbase.la
 libbase_la_SOURCES = \
  alloc.c\
  amd.c\
- argcv.c\
  argcvfree.c\
  argcvjoin.c\
  argcvrem.c\
@@ -65,7 +64,6 @@ libbase_la_SOURCES = \
  ticket.c\
  tilde.c\
  usremail.c\
- vartab.c\
  version.c\
  wicket.c
 

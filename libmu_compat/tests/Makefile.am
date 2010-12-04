@@ -39,43 +39,17 @@ $(srcdir)/package.m4: $(top_srcdir)/configure.ac
 ## -------------------------- ##
 
 INCLUDES = @MU_LIB_COMMON_INCLUDES@ 
-noinst_PROGRAMS = \
- addr\
- decode2047\
- encode2047\
- fltst\
- listop\
- mailcap\
- prop\
- tempfile\
- url-parse\
- wicket\
- wsp
+noinst_PROGRAMS = argcv
 
-LDADD = ${MU_LIB_MAILUTILS}
-
-EXTRA_DIST += Encode Decode Wicketfile
+LDADD = ../libmu_compat.la ${MU_LIB_MAILUTILS}
 
 ## ------------ ##
 ## Test suite.  ##
 ## ------------ ##
 
 TESTSUITE_AT = \
- address.at\
- base64d.at\
- base64e.at\
- decode2047.at\
- encode2047.at\
- fromflt.at\
- hdrflt.at\
- inline-comment.at\
- list.at\
- mailcap.at\
- prop.at\
- testsuite.at\
- url.at\
- wicket.at\
- wordsplit.at
+ argcv.at\
+ testsuite.at
 
 TESTSUITE = $(srcdir)/testsuite
 M4=m4

@@ -1205,6 +1205,7 @@ AC_ARG_WITH([mh-bindir],
 # Initialize the (autotest) test suite.
 AC_CONFIG_TESTDIR(libmailutils/tests)
 AC_CONFIG_TESTDIR(testsuite)
+AC_CONFIG_TESTDIR(libmu_compat/tests)
 AC_CONFIG_TESTDIR(frm/tests)
 AC_CONFIG_TESTDIR(maidag/tests)
 AC_CONFIG_TESTDIR(messages/tests)
@@ -1214,6 +1215,8 @@ AC_CONFIG_TESTDIR(mh/tests)
 
 AC_CONFIG_FILES([libmailutils/tests/Makefile
                  libmailutils/tests/atlocal
+		 libmu_compat/tests/Makefile
+		 libmu_compat/tests/atlocal
 	         testsuite/Makefile
                  testsuite/atlocal
                  frm/tests/Makefile
@@ -1368,6 +1371,7 @@ AC_CONFIG_FILES([
  libproto/pop/Makefile
  libproto/nntp/Makefile
  libproto/imap/Makefile
+ libmu_compat/Makefile
  maidag/Makefile
  mail/Makefile
  mail/testsuite/Makefile
@@ -1384,6 +1388,7 @@ AC_CONFIG_FILES([
  libmailutils/server/Makefile
  libmailutils/string/Makefile
  libmailutils/stream/Makefile
+ libmailutils/stdstream/Makefile
  libmailutils/url/Makefile
  libmailutils/Makefile
  messages/Makefile

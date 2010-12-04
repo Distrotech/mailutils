@@ -158,7 +158,7 @@ _log_write (struct _mu_stream *str, const char *buf, size_t size,
 
   if (severity >= _mu_severity_num)
     severity = MU_LOG_EMERG;
-  
+
   if (logmode & MU_LOGMODE_LOCUS)
     {
       if (fname)

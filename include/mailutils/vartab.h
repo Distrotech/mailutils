@@ -20,17 +20,27 @@
 
 #include <mailutils/types.h>
 
+#ifdef MU_SUPPRESS_DEPRECATION
+# undef MU_DEPRECATED
+# define MU_DEPRECATED
+#else
+# warning "Mailutils support for vartab functions has been deprecated."
+# warning "Revise your code to use <mailutils/wordsplit.h>."
+#endif
+
 typedef int (*mu_var_expansion_fp) (const char *name, void *data, char **p);
 typedef void (*mu_var_free_fp) (void *data, char *value);
 
-int mu_vartab_create (mu_vartab_t *pvar);
-int mu_vartab_destroy (mu_vartab_t *pvar);
+int mu_vartab_create (mu_vartab_t *pvar) MU_DEPRECATED;
+int mu_vartab_destroy (mu_vartab_t *pvar) MU_DEPRECATED;
 int mu_vartab_define (mu_vartab_t var, const char *name, const char *value,
-		      int isstatic);
+		      int isstatic) MU_DEPRECATED;
 int mu_vartab_define_exp (mu_vartab_t var, const char *name,
 			  mu_var_expansion_fp fun, mu_var_free_fp free,
-			  void *data);
-int mu_vartab_count (mu_vartab_t vt, size_t *pcount);
-int mu_vartab_getvar (mu_vartab_t vt, const char *name, const char **pvalue);
-int mu_vartab_expand (mu_vartab_t vt, const char *str, char **pres);
+			  void *data) MU_DEPRECATED;
+int mu_vartab_count (mu_vartab_t vt, size_t *pcount) MU_DEPRECATED;
+int mu_vartab_getvar (mu_vartab_t vt, const char *name, const char **pvalue)
+   MU_DEPRECATED;
+int mu_vartab_expand (mu_vartab_t vt, const char *str, char **pres)
+   MU_DEPRECATED;
 #endif

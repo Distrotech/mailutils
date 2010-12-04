@@ -84,7 +84,6 @@ logger_parse_opt (int key, char *arg, struct argp_state *state)
 
     case 't':
       syslog_tag = arg;
-      use_syslog = 1;
       break;
       
     case 'p':
@@ -157,10 +156,10 @@ mutool_logger (int argc, char **argv)
       exit (1);
     }
 
+  if (!syslog_tag)
+    syslog_tag = "mu-logger";
   if (use_syslog)
     {
-      if (!syslog_tag)
-	syslog_tag = "mu-logger";
       openlog (syslog_tag, LOG_PID, syslog_facility);
 
       rc = mu_syslog_stream_create (&transport, syslog_priority);
@@ -173,10 +172,25 @@ mutool_logger (int argc, char **argv)
     }
   else
     {
-      rc = mu_stdio_stream_create (&transport, MU_STDERR_FD, 0);
+      mu_stream_t str;
+      char *fltargs[3] = { "INLINE-COMMENT", };
+      
+      rc = mu_stdio_stream_create (&str, MU_STDERR_FD, 0);
       if (rc)
 	{
 	  mu_error (_("cannot open error stream: %s"), mu_strerror (rc));
+	  return 1;
+	}
+      mu_asprintf (&fltargs[1], "%s: ", syslog_tag);
+      fltargs[2] = NULL;
+      rc = mu_filter_create_args (&transport, str,
+				  "INLINE-COMMENT", 2, (const char *)fltargs,
+				  MU_FILTER_ENCODE, MU_STREAM_WRITE);
+      mu_stream_unref (str);
+      free (fltargs[1]);
+      if (rc)
+	{
+	  mu_error (_("cannot open filter stream: %s"), mu_strerror (rc));
 	  return 1;
 	}
     }
@@ -227,7 +241,10 @@ mutool_logger (int argc, char **argv)
 	}
     } 
 
-  return !!mu_stream_copy (logger, transport, 0, NULL);
+  rc = mu_stream_copy (logger, transport, 0, NULL);
+  mu_stream_unref (transport);
+  mu_stream_unref (logger);
+  return !!rc;
 }
 
 /*

@@ -24,6 +24,8 @@
 #include <unistd.h>
 #include <string.h>
 
+#include <mailutils/types.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -37,20 +39,22 @@ enum mu_argcv_escape
     mu_argcv_escape_c
     /*    mu_argcv_escape_sh */
   };
+
 int mu_argcv_join (int argc, char **argv, char *delim,
 		   enum mu_argcv_escape esc,
 		   char **pstring);
-int mu_argcv_string (int argc, char **argv, char **string);
-
 void mu_argcv_remove (int *pargc, char ***pargv,
 		      int (*sel) (const char *, void *), void *);
-  
+int mu_argcv_string (int argc, char **argv, char **string);
+
+  
 /* Deprecated interfaces */  
+
 #define MU_ARGCV_RETURN_DELIMS 0x01
 
 #ifndef MU_ARCGV_DEPRECATED
-# define MU_ARCGV_DEPRECATED __attribute__((deprecated))
-#endif  
+# define MU_ARCGV_DEPRECATED MU_DEPRECATED
+#endif
   
 int mu_argcv_get    (const char *command, const char *delim,
 		     const char *cmnt,

@@ -106,7 +106,7 @@ enum mu_buffer_type
   */
 #define MU_IOCTL_LOGSTREAM_GET_MODE     22
 #define MU_IOCTL_LOGSTREAM_SET_MODE     23
-  
+
 #define MU_TRANSPORT_INPUT  0
 #define MU_TRANSPORT_OUTPUT 1
 #define MU_TRANSPORT_VALID_TYPE(n) \

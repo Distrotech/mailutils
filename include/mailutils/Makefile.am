@@ -61,6 +61,7 @@ pkginclude_HEADERS = \
  libcfg.h\
  list.h\
  locker.h\
+ log.h\
  mailbox.h\
  mailcap.h\
  mailer.h\
@@ -90,6 +91,7 @@ pkginclude_HEADERS = \
  server.h\
  sieve.h\
  smtp.h\
+ stdstream.h\
  stream.h\
  syslog.h\
  sql.h\

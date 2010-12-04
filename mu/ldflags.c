@@ -57,6 +57,7 @@ struct lib_descr {
   { "nntp",   "mu_nntp", 0 },
   { "mailer", "mu_mailer", 0 },
   { "sieve",  "mu_sieve", NOTALL },
+  { "compat", "mu_compat" },
   { NULL }
 };
 
