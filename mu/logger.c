@@ -184,6 +184,7 @@ mutool_logger (int argc, char **argv)
 	  mu_stream_write (logger, argv[i], strlen (argv[i]), NULL);
 	}
       mu_stream_write (logger, "\n", 1, NULL);
+      return 0;
     }
   else if (!input_file || strcmp (input_file, "-") == 0)
     {

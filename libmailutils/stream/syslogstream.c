@@ -21,6 +21,7 @@
 #include <syslog.h>
 #include <errno.h>
 #include <string.h>
+#include <mailutils/errno.h>
 #include <mailutils/stream.h>
 #include <mailutils/sys/syslogstream.h>
 
@@ -39,23 +40,44 @@ _syslog_stream_write (struct _mu_stream *stream, const char *buf,
   return 0;
 }
 
+static int sev2prio[] = {
+  LOG_DEBUG,
+  LOG_INFO,
+  LOG_NOTICE,
+  LOG_WARNING,
+  LOG_ERR,
+  LOG_CRIT,
+  LOG_ALERT,
+  LOG_EMERG
+};
+
 static int
 _syslog_ctl (struct _mu_stream *str, int op, void *arg)
 {
   struct _mu_syslog_stream *sp = (struct _mu_syslog_stream *)str;
-
+  unsigned n;
+  
   switch (op)
     {
     case MU_IOCTL_LOGSTREAM_GET_SEVERITY:
       if (!arg)
 	return EINVAL;
-      *(int*)arg = sp->prio;
-      break;
+      for (n = 0; n < MU_ARRAY_SIZE (sev2prio); n++)
+	if (sev2prio[n] == sp->prio)
+	  {
+	    *(int*)arg = n;
+	    break;
+	  }
+      return MU_ERR_FAILURE;
       
     case MU_IOCTL_LOGSTREAM_SET_SEVERITY:
       if (!arg)
 	return EINVAL;
-      sp->prio = *(int*)arg;
+      n = *(unsigned*)arg;
+      if (n < MU_ARRAY_SIZE (sev2prio))
+	sp->prio = sev2prio[n];
+      else
+	return EINVAL;
       break;
 
     default:
