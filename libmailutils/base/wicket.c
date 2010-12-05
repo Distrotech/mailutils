@@ -246,7 +246,7 @@ _file_wicket_get_ticket (mu_wicket_t wicket, void *data,
 }
   
 int
-mu_wicket_stream_match_url (mu_stream_t stream, struct mu_debug_locus *loc,
+mu_wicket_stream_match_url (mu_stream_t stream, struct mu_locus *loc,
 			    mu_url_t url, int parse_flags,
 			    mu_url_t *pticket_url)
 {
@@ -257,7 +257,7 @@ mu_wicket_stream_match_url (mu_stream_t stream, struct mu_debug_locus *loc,
   size_t len;
   mu_url_t pret = NULL;
   int weight = 0;
-  int line = loc->line;
+  int line = loc->mu_line;
     
   while ((rc = mu_stream_getline (stream, &buf, &bufsize, &len)) == 0
 	 && len > 0)
@@ -266,7 +266,7 @@ mu_wicket_stream_match_url (mu_stream_t stream, struct mu_debug_locus *loc,
       int err;
       int n;
       
-      loc->line++;
+      loc->mu_line++;
       p = mu_str_stripws (buf);
       
       /* Skip empty lines and comments. */
@@ -277,14 +277,14 @@ mu_wicket_stream_match_url (mu_stream_t stream, struct mu_debug_locus *loc,
 	{
 	  /* Skip erroneous entry */
 	  mu_error (_("%s:%u: cannot create URL: %s"),
-		    loc->file, loc->line, mu_strerror (err));
+		    loc->mu_file, loc->mu_line, mu_strerror (err));
 	  continue;
 	}
 
       if (!mu_url_has_flag (u, MU_URL_USER|MU_URL_SECRET))
 	{
 	  mu_error (_("%s:%u: URL is missing required parts"),
-		    loc->file, loc->line);
+		    loc->mu_file, loc->mu_line);
 	  mu_url_destroy (&u);
 	  continue;
 	}
@@ -299,7 +299,7 @@ mu_wicket_stream_match_url (mu_stream_t stream, struct mu_debug_locus *loc,
 	{
 	  pret = u;
 	  weight = n;
-	  line = loc->line;
+	  line = loc->mu_line;
 	  if (weight == 0)
 	    break;
 	}
@@ -311,7 +311,7 @@ mu_wicket_stream_match_url (mu_stream_t stream, struct mu_debug_locus *loc,
       if (pret)
 	{
 	  *pticket_url = pret;
-	  loc->line = line;
+	  loc->mu_line = line;
 	}
       else
 	rc = MU_ERR_NOENT;
@@ -327,13 +327,14 @@ mu_wicket_file_match_url (const char *name, mu_url_t url,
 {
   mu_stream_t stream;
   int rc;
-  struct mu_debug_locus loc;
+  struct mu_locus loc;
   
   rc = mu_file_stream_create (&stream, name, MU_STREAM_READ);
   if (rc)
     return rc;
-  loc.file = name;
-  loc.line = 0;
+  loc.mu_file = (char*) name;
+  loc.mu_line = 0;
+  loc.mu_col = 0;
   rc = mu_wicket_stream_match_url (stream, &loc, url, parse_flags,
 				   pticket_url);
   mu_stream_close (stream);

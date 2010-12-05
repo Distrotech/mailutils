@@ -33,7 +33,6 @@ struct mutool_command
 extern char *mutool_shell_prompt;
 extern char **mutool_prompt_env;
 extern int mutool_shell_interactive;
-extern mu_stream_t mustrin, mustrout;
 int mutool_shell (const char *name, struct mutool_command *cmd);
 mu_stream_t mutool_open_pager (void);
 

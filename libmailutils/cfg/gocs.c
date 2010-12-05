@@ -32,6 +32,9 @@
 #include <mailutils/debug.h>
 #include <mailutils/syslog.h>
 #include <mailutils/registrar.h>
+#include <mailutils/stdstream.h>
+#include <mailutils/stream.h>
+#include <mailutils/log.h>
 #include <syslog.h>
 
 int mu_load_user_rcfile = 1;
@@ -208,27 +211,9 @@ mu_gocs_mailer_init (enum mu_gocs_op op, void *data)
 int
 mu_gocs_logging_init (enum mu_gocs_op op, void *data)
 {
-  struct mu_gocs_logging *p = data;
-
-  if (op == mu_gocs_op_set)
-    {
-      if (!p)
-	{
-	  static struct mu_gocs_logging default_gocs_logging = { LOG_FACILITY };
-	  p = &default_gocs_logging;
-	}
-  
-      if (p->facility)
-	{
-	  mu_log_facility = p->facility;
-	  mu_debug_default_printer = mu_debug_syslog_printer;
-	}
-      else
-	mu_debug_default_printer = mu_debug_stderr_printer;
-
-      if (p->tag)
-	mu_log_tag = strdup (p->tag);
-    }
+  if (mu_log_syslog >= 0)
+    mu_stdstream_strerr_setup (mu_log_syslog ?
+			       MU_STRERR_SYSLOG : MU_STRERR_STDERR);
   return 0;
 }
 
@@ -238,11 +223,8 @@ mu_gocs_debug_init (enum mu_gocs_op op, void *data)
   if (op == mu_gocs_op_set && data)
     {
       struct mu_gocs_debug *p = data;
-      if (p->string && p->errpfx)
-	{
-	  mu_global_debug_from_string (p->string, p->errpfx);
-	  free (p->errpfx);
-	}
+      if (p->string)
+	mu_debug_parse_spec (p->string);
       if (p->line_info >= 0)
 	mu_debug_line_info = p->line_info;
     }

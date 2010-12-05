@@ -46,71 +46,6 @@ mu_error (const char *fmt, ...)
   return 0;
 }
 
-
-/* Compatibility layer */
-int
-mu_default_error_printer (const char *fmt, va_list ap)
-{
-  if (mu_program_name)
-    fprintf (stderr, "%s: ", mu_program_name);
-  vfprintf (stderr, fmt, ap);
-  fputc ('\n', stderr);
-  return 0;
-}
 
-int
-mu_syslog_error_printer (const char *fmt, va_list ap)
-{
-#ifdef HAVE_VSYSLOG
-  vsyslog (LOG_CRIT, fmt, ap);
-#else
-  char buf[128];
-  vsnprintf (buf, sizeof buf, fmt, ap);
-  syslog (LOG_CRIT, "%s", buf);
-#endif
-  return 0;
-}
-
-static void
-compat_error_printer0 (mu_error_pfn_t pfn, const char *fmt, ...)
-{
-  va_list ap;
-  va_start (ap, fmt);
-  pfn (fmt, ap);
-  va_end (ap);
-}
-
-static int
-compat_error_printer (void *data, mu_log_level_t level, const char *buf)
-{
-  if (!data)
-    mu_diag_stderr_printer (NULL, level, buf);
-  else
-    {
-      int len = strlen (buf);
-      if (len > 0 && buf[len-1] == '\n')
-	len--;
-      compat_error_printer0 (data, "%-.*s", len, buf);
-    }
-  return 0;
-}
-
-void
-mu_error_set_print (mu_error_pfn_t pfn)
-{
-  mu_debug_t debug;
-  mu_diag_get_debug (&debug);
-  mu_debug_set_print (debug, compat_error_printer, NULL);
-  mu_debug_set_data (debug, pfn, NULL, NULL);
-#if 0
- {
-   static int warned;
-   if (!warned)
-     {
-       warned = 1;
-       mu_diag_output ("this program uses mu_error_set_print, which is deprecated");
-     }
-#endif
-}
 
 

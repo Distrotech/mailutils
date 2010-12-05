@@ -102,11 +102,6 @@ extern int  mu_mailbox_set_property (mu_mailbox_t, mu_property_t);
 /* URL.  */
 extern int  mu_mailbox_get_url         (mu_mailbox_t, mu_url_t *);
 
-/* For any debuging */
-extern int  mu_mailbox_has_debug       (mu_mailbox_t);
-extern int  mu_mailbox_get_debug       (mu_mailbox_t, mu_debug_t *);
-extern int  mu_mailbox_set_debug       (mu_mailbox_t, mu_debug_t);
-
 /* Events.  */
 extern int  mu_mailbox_get_observable  (mu_mailbox_t, mu_observable_t *);
 

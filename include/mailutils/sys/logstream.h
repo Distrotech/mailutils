@@ -14,18 +14,19 @@
    You should have received a copy of the GNU Lesser General Public License
    along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>. */
 
-#ifndef _MAILUTILS_SYS_DBGSTREAM_H
-# define _MAILUTILS_SYS_DBGSTREAM_H
+#ifndef _MAILUTILS_SYS_LOGSTREAM_H
+#define _MAILUTILS_SYS_LOGSTREAM_H
 
-# include <mailutils/types.h>
-# include <mailutils/stream.h>
-# include <mailutils/sys/stream.h>
+#include <mailutils/types.h>
+#include <mailutils/sys/stream.h>
 
-struct _mu_dbgstream
+struct _mu_log_stream
 {
-  struct _mu_stream stream;
-  mu_debug_t debug;
-  mu_log_level_t level;
+  struct _mu_stream base;
+  mu_stream_t transport;
+  unsigned severity;
+  int logmode;
+  struct mu_locus locus;
 };
 
 #endif

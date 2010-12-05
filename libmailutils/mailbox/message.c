@@ -1252,39 +1252,34 @@ mu_message_get_observable (mu_message_t msg, mu_observable_t *pobservable)
 }
 
 int
-mu_message_save_to_mailbox (mu_message_t msg, 
-                            mu_debug_t debug,
-			    const char *toname, int perms)
+mu_message_save_to_mailbox (mu_message_t msg, const char *toname, int perms)
 {
   int rc = 0;
   mu_mailbox_t to = 0;
 
   if ((rc = mu_mailbox_create_default (&to, toname)))
     {
-      MU_DEBUG2 (debug, MU_DEBUG_ERROR,
-		 "mu_mailbox_create_default (%s) failed: %s\n", toname,
-		 mu_strerror (rc));
+      mu_debug (MU_DEBCAT_MESSAGE, MU_DEBUG_ERROR, 		 
+		("mu_mailbox_create_default (%s) failed: %s\n", toname,
+		 mu_strerror (rc)));
       goto end;
     }
-
-  if (debug && (rc = mu_mailbox_set_debug (to, debug)))
-	goto end;
 
   if ((rc = mu_mailbox_open (to,
 			     MU_STREAM_WRITE | MU_STREAM_CREAT
 			     | (perms & MU_STREAM_IMASK))))
     {
-      MU_DEBUG2 (debug, MU_DEBUG_ERROR,
-		 "mu_mailbox_open (%s) failed: %s\n", toname,
-		 mu_strerror (rc));
+      mu_debug (MU_DEBCAT_MESSAGE, MU_DEBUG_ERROR, 		 
+		("mu_mailbox_open (%s) failed: %s", toname,
+		 mu_strerror (rc)));
       goto end;
     }
 
   if ((rc = mu_mailbox_append_message (to, msg)))
     {
-      MU_DEBUG2 (debug, MU_DEBUG_ERROR,
-		 "mu_mailbox_append_message (%s) failed: %s\n", toname,
-		 mu_strerror (rc));
+      mu_debug (MU_DEBCAT_MESSAGE, MU_DEBUG_ERROR, 		 
+		("mu_mailbox_append_message (%s) failed: %s", toname,
+		 mu_strerror (rc)));
       goto end;
     }
 
@@ -1293,9 +1288,9 @@ end:
   if (!rc)
     {
       if ((rc = mu_mailbox_close (to)))
-	MU_DEBUG2 (debug, MU_DEBUG_ERROR,
-		   "mu_mailbox_close (%s) failed: %s\n", toname,
-		   mu_strerror (rc));
+        mu_debug (MU_DEBCAT_MESSAGE, MU_DEBUG_ERROR, 		 
+		  ("mu_mailbox_close (%s) failed: %s", toname,
+		   mu_strerror (rc)));
     }
   else
     mu_mailbox_close (to);

@@ -59,26 +59,18 @@ remote_mbox_open (mu_mailbox_t mbox, int flags)
   struct remote_mbox_data *dat = mbox->data;
   int status;
   int mflags = 0;
-  mu_log_level_t lev = 0;
   
   if (!dat->mailer)
     return EINVAL;
 
-  mu_debug_get_level (mbox->debug, &lev);
-  if (lev & MU_DEBUG_TRACE7)
+  if (mu_debug_level_p (MU_DEBCAT_MAILBOX, MU_DEBUG_TRACE7))
     mflags = MAILER_FLAG_DEBUG_DATA;
   status = mu_mailer_open (dat->mailer, mflags);
   if (status)
     {
-      MU_DEBUG1 (mbox->debug, MU_DEBUG_ERROR,
-		 "cannot open mailer: %s\n", mu_strerror (status));
+      mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR,
+		("cannot open mailer: %s", mu_strerror (status)));
       return status;
-    }
-  if (lev & MU_DEBUG_INHERIT)
-    {
-      mu_debug_t debug;
-      if (mu_mailer_get_debug (dat->mailer, &debug) == 0)
-	mu_debug_set_level (debug, lev);
     }
   mbox->flags = flags;
   return 0;
@@ -90,11 +82,11 @@ remote_mbox_close (mu_mailbox_t mbox)
   struct remote_mbox_data *dat = mbox->data;
   int status;
   
-  MU_DEBUG (mbox->debug, MU_DEBUG_TRACE1, "remote_mbox_close\n");
+  mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_TRACE1, ("remote_mbox_close"));
   status = mu_mailer_close (dat->mailer);
   if (status)
-    MU_DEBUG1 (mbox->debug, MU_DEBUG_ERROR, "closing mailer failed: %s\n",
-	       mu_strerror (status));
+    mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR, ("closing mailer failed: %s",
+	       mu_strerror (status)));
   return status;
 }
 
@@ -109,9 +101,9 @@ mkaddr (mu_mailbox_t mbox, mu_property_t property,
       int status = mu_address_create (addr, str);
       if (status)
 	{
-	  MU_DEBUG3 (mbox->debug, MU_DEBUG_ERROR,
-		     "%s: %s mu_address_create failed: %s\n",
-		     str, key, mu_strerror (status));
+	  mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR,
+		    ("%s: %s mu_address_create failed: %s",
+		     str, key, mu_strerror (status)));
 	  return status;
 	}
     }
@@ -240,8 +232,9 @@ remote_mbox_append_message (mu_mailbox_t mbox, mu_message_t msg)
 
   status = mu_mailbox_get_property (mbox, &property);
   if (status)
-    MU_DEBUG1 (mbox->debug, MU_DEBUG_ERROR, "failed to get property: %s\n",
-	       mu_strerror (status));
+    mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR, 
+              ("failed to get property: %s",
+	        mu_strerror (status)));
 
   mkaddr (mbox, property, "FROM", &from);
   mkaddr (mbox, property, "TO", &to);
@@ -298,9 +291,9 @@ remote_mbox_append_message (mu_mailbox_t mbox, mu_message_t msg)
 	  
 	  if (status)
 	    {
-	      MU_DEBUG1 (mbox->debug, MU_DEBUG_ERROR,
-			 "failed to get recipient: %s\n",
-			 mu_strerror (status));
+	      mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR,
+			("failed to get recipient: %s",
+			 mu_strerror (status)));
 	      return status;
 	    }
 
@@ -322,9 +315,9 @@ remote_mbox_append_message (mu_mailbox_t mbox, mu_message_t msg)
 	  free (rcpt);
 	  if (status)
 	    {
-	      MU_DEBUG3 (mbox->debug, MU_DEBUG_ERROR,
-			 "%s: %s mu_address_create failed: %s\n",
-			 rcpt, "TO", mu_strerror (status));
+	      mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR,
+			("%s: %s mu_address_create failed: %s",
+			 rcpt, "TO", mu_strerror (status)));
 	      return status;
 	    }
 	}
@@ -333,8 +326,8 @@ remote_mbox_append_message (mu_mailbox_t mbox, mu_message_t msg)
   status = mu_mailer_send_message (dat->mailer, msg, from, to);
 
   if (status)
-    MU_DEBUG1 (mbox->debug, MU_DEBUG_ERROR,
-	       "Sending message failed: %s\n", mu_strerror (status));
+    mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR,
+	      ("Sending message failed: %s", mu_strerror (status)));
   return status;
 }
 
@@ -371,9 +364,9 @@ _mu_mailer_mailbox_init (mu_mailbox_t mailbox)
   if (mailbox == NULL)
     return EINVAL;
 
-  MU_DEBUG1 (mailbox->debug, MU_DEBUG_TRACE1,
-	     "_mu_mailer_mailbox_init(%s)\n",
-	     mu_url_to_string (mailbox->url));
+  mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_TRACE1,
+	    ("_mu_mailer_mailbox_init(%s)",
+	     mu_url_to_string (mailbox->url)));
 
   rc = mu_url_dup (mailbox->url, &url);
   if (rc)
@@ -382,9 +375,9 @@ _mu_mailer_mailbox_init (mu_mailbox_t mailbox)
   rc = mu_mailer_create_from_url (&mailer, url);
   if (rc)
     {
-      MU_DEBUG2 (mailbox->debug, MU_DEBUG_ERROR,
-		 "_mu_mailer_mailbox_init(%s): cannot create mailer: %s\n",
-		 mu_url_to_string (url), mu_strerror (rc));
+      mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR,
+		("_mu_mailer_mailbox_init(%s): cannot create mailer: %s",
+		 mu_url_to_string (url), mu_strerror (rc)));
       mu_url_destroy (&url);
       return rc;
     }

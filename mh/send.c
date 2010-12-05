@@ -432,9 +432,8 @@ open_mailer ()
 
   if (verbose)
     {
-      mu_debug_t debug = NULL;
-      mu_mailer_get_debug (mailer, &debug);
-      mu_debug_set_level (debug, MU_DEBUG_LEVEL_UPTO (MU_DEBUG_PROT));
+      mu_debug_set_category_level (MU_DEBCAT_MAILER,
+                                   MU_DEBUG_LEVEL_UPTO (MU_DEBUG_PROT));
     }
 
   WATCH ((_("Opening mailer %s"), url));

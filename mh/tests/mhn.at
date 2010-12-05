@@ -247,7 +247,7 @@ mkdir Mail/inbox
 cp $abs_top_srcdir/testsuite/mh/mbox1/4 Mail/inbox
 echo "Current-Folder: inbox" > Mail/context
 echo "mhn-store-text: | $abs_top_srcdir/mh/tests/mhed -" >> $MH
-mhn +inbox -store -part 1 4 | sed 's| *$||' || exit $?
+mhn +inbox -store -part 1 4 | sed "s|$abs_top_srcdir/mh/tests/||;s|  *$||" || exit $?
 ],
 [0],
 [-- Editor invocation: -
@@ -263,7 +263,7 @@ But, now that I'm perfectly sure I have none,
 Why, I do it again and again.'
 
 -- Input file end
-storing msg 4 part 1 using command /home/gray/gnu/mailutils/mh/tests/mhed -
+storing msg 4 part 1 using command mhed -
 ])
 
 dnl -------------------------------------------------------------------

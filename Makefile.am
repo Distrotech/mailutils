@@ -94,6 +94,7 @@ SUBDIRS = . \
  sql\
  libmu_auth\
  libproto\
+ libmu_compat\
  testsuite\
  lib\
  libmu_argp\

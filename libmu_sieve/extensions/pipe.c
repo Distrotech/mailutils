@@ -72,11 +72,7 @@ sieve_action_pipe (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   mu_sieve_log_action (mach, "PIPE", NULL);
   if (mu_sieve_get_debug_level (mach) & MU_SIEVE_DEBUG_TRACE)
     {
-      mu_sieve_locus_t locus;
-      mu_sieve_get_locus (mach, &locus);
-      mu_sieve_debug (mach, "%s:%lu: PIPE\n",
-		      locus.source_file,
-		      (unsigned long) locus.source_line);
+      mu_sieve_debug (mach, "PIPE");
     }
 
   if (mu_sieve_is_dry_run (mach))

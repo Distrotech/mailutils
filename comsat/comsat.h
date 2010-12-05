@@ -52,6 +52,7 @@
 #include <mailutils/util.h>
 #include <mailutils/registrar.h>
 #include <mailutils/stream.h>
+#include <mailutils/stdstream.h>
 #include <mailutils/mu_auth.h>
 #include <mailutils/wordsplit.h>
 #include <mailutils/nls.h>

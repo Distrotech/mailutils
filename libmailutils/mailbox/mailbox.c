@@ -79,7 +79,6 @@ _mailbox_create_from_record (mu_mailbox_t *pmbox,
 			     mu_url_t url, 
 			     const char *name)
 {
-  mu_log_level_t level;
   int (*m_init) (mu_mailbox_t) = NULL;
       
   mu_record_get_mailbox (record, &m_init);
@@ -143,23 +142,7 @@ _mailbox_create_from_record (mu_mailbox_t *pmbox,
 	  mu_mailbox_destroy (&mbox);
 	}
       else
-	{
-	  *pmbox = mbox;
-	  
-	  level = mu_global_debug_level ("mailbox");
-	  if (level)
-	    {
-	      int status = mu_debug_create (&mbox->debug, mbox);
-	      if (status)
-		return 0; /* FIXME: don't want to bail out just because I
-			     failed to create a *debug* object. But I may
-			     be wrong... */
-	      mu_debug_set_level (mbox->debug, level);
-	      if (level & MU_DEBUG_INHERIT)
-		mu_folder_set_debug (mbox->folder, mbox->debug);
-	    }
-	}
-      
+	*pmbox = mbox;
       return status;
     }
   return MU_ERR_NO_HANDLER;
@@ -264,9 +247,6 @@ mu_mailbox_destroy (mu_mailbox_t *pmbox)
 
       if (mbox->locker)
 	mu_locker_destroy (&mbox->locker);
-
-      if (mbox->debug)
-	mu_debug_destroy (&mbox->debug, mbox);
 
       if (mbox->folder)
 	mu_folder_destroy (&mbox->folder);
@@ -680,49 +660,6 @@ mu_mailbox_get_property (mu_mailbox_t mbox, mu_property_t *pproperty)
 	return status;
     }
   *pproperty = mbox->property;
-  return 0;
-}
-
-int
-mu_mailbox_has_debug (mu_mailbox_t mailbox)
-{
-  if (mailbox == NULL)
-    return 0;
-
-  return mailbox->debug ? 1 : 0;
-}
-
-int
-mu_mailbox_set_debug (mu_mailbox_t mbox, mu_debug_t debug)
-{
-  if (mbox == NULL)
-    return MU_ERR_MBX_NULL;
-  if (mbox->debug)
-    mu_debug_destroy (&mbox->debug, mbox);
-  mbox->debug = debug;
-  /* FIXME: Honor MU_DEBUG_INHERIT */
-  if (!mu_folder_has_debug (mbox->folder))
-    mu_folder_set_debug (mbox->folder, debug);
-  return 0;
-}
-
-int
-mu_mailbox_get_debug (mu_mailbox_t mbox, mu_debug_t *pdebug)
-{
-  if (mbox == NULL)
-    return MU_ERR_MBX_NULL;
-  if (pdebug == NULL)
-    return MU_ERR_OUT_PTR_NULL;
-  if (mbox->debug == NULL)
-    {
-      int status = mu_debug_create (&mbox->debug, mbox);
-      if (status != 0)
-	return status;
-      /* FIXME: MU_DEBUG_INHERIT?? */
-      if (!mu_folder_has_debug (mbox->folder))
-	mu_folder_set_debug (mbox->folder, mbox->debug);
-    }
-  *pdebug = mbox->debug;
   return 0;
 }
 

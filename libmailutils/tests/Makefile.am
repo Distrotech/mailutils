@@ -41,7 +41,6 @@ $(srcdir)/package.m4: $(top_srcdir)/configure.ac
 INCLUDES = @MU_LIB_COMMON_INCLUDES@ 
 noinst_PROGRAMS = \
  addr\
- argcv\
  decode2047\
  encode2047\
  fltst\
@@ -63,7 +62,6 @@ EXTRA_DIST += Encode Decode Wicketfile
 
 TESTSUITE_AT = \
  address.at\
- argcv.at\
  base64d.at\
  base64e.at\
  decode2047.at\

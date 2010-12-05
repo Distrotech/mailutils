@@ -32,21 +32,10 @@ extern "C" {
 
 typedef struct mu_sieve_machine *mu_sieve_machine_t;
 
-typedef struct
-{
-  char *source_file;
-  size_t source_line;
-}
-mu_sieve_locus_t;
-
 typedef int (*mu_sieve_handler_t) (mu_sieve_machine_t mach,
 				   mu_list_t args, mu_list_t tags);
-typedef int (*mu_sieve_printf_t) (void *data, const char *fmt, va_list ap);
-typedef int (*mu_sieve_parse_error_t) (void *data,
-				       const char *filename, int lineno,
-				       const char *fmt, va_list ap);
 typedef void (*mu_sieve_action_log_t) (void *data,
-				       const mu_sieve_locus_t * locus,
+				       mu_stream_t stream,
 				       size_t msgno, mu_message_t msg,
 				       const char *action,
 				       const char *fmt, va_list ap);
@@ -202,7 +191,10 @@ int mu_sieve_vlist_compare (mu_sieve_value_t * a, mu_sieve_value_t * b,
 			    void *data, size_t * count);
 
 /* Functions to create and destroy sieve machine */
-int mu_sieve_machine_init (mu_sieve_machine_t * mach, void *data);
+int mu_sieve_machine_init (mu_sieve_machine_t *mach);
+int mu_sieve_machine_init_ex (mu_sieve_machine_t *pmach,
+			      void *data,
+			      mu_stream_t errstream);
 int mu_sieve_machine_dup (mu_sieve_machine_t const in,
 			  mu_sieve_machine_t *out);
 int mu_sieve_machine_inherit (mu_sieve_machine_t const in,
@@ -212,21 +204,19 @@ int mu_sieve_machine_add_destructor (mu_sieve_machine_t mach,
 				     mu_sieve_destructor_t destr, void *ptr);
 
 /* Functions for accessing sieve machine internals */
+void mu_sieve_get_diag_stream (mu_sieve_machine_t mach, mu_stream_t *pstr);
+void mu_sieve_set_diag_stream (mu_sieve_machine_t mach, mu_stream_t str);
+
 void *mu_sieve_get_data (mu_sieve_machine_t mach);
+void mu_sieve_set_data (mu_sieve_machine_t mach, void *);
 mu_message_t mu_sieve_get_message (mu_sieve_machine_t mach);
 size_t mu_sieve_get_message_num (mu_sieve_machine_t mach);
 int mu_sieve_get_debug_level (mu_sieve_machine_t mach);
 mu_mailer_t mu_sieve_get_mailer (mu_sieve_machine_t mach);
-int mu_sieve_get_locus (mu_sieve_machine_t mach, mu_sieve_locus_t *);
+int mu_sieve_get_locus (mu_sieve_machine_t mach, struct mu_locus *);
 char *mu_sieve_get_daemon_email (mu_sieve_machine_t mach);
 const char *mu_sieve_get_identifier (mu_sieve_machine_t mach);
 
-void mu_sieve_set_error (mu_sieve_machine_t mach,
-			 mu_sieve_printf_t error_printer);
-void mu_sieve_set_parse_error (mu_sieve_machine_t mach,
-			       mu_sieve_parse_error_t p);
-void mu_sieve_set_debug (mu_sieve_machine_t mach, mu_sieve_printf_t debug);
-void mu_sieve_set_debug_object (mu_sieve_machine_t mach, mu_debug_t dbg);
 void mu_sieve_set_debug_level (mu_sieve_machine_t mach, int level);
 void mu_sieve_set_logger (mu_sieve_machine_t mach,
 			  mu_sieve_action_log_t logger);

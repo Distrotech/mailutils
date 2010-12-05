@@ -24,6 +24,7 @@
 #include <mailutils/stream.h>
 #include <mailutils/errno.h>
 #include <mailutils/iterator.h>
+#define MU_SUPPRESS_DEPRECATION
 #include <mailutils/vartab.h>
 
 struct _mu_vartab

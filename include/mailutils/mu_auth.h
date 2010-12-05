@@ -130,8 +130,6 @@ extern int mu_auth_data_alloc (struct mu_auth_data **ptr,
 extern void mu_auth_data_set_quota (struct mu_auth_data *ptr, mu_off_t q);
 extern void mu_auth_data_free (struct mu_auth_data *ptr);
 extern void mu_auth_data_destroy (struct mu_auth_data **ptr);
-extern mu_debug_t mu_auth_set_debug (mu_debug_t debug);
-
 
 extern struct mu_auth_module mu_auth_system_module;
 extern struct mu_auth_module mu_auth_generic_module;

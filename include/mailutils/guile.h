@@ -69,7 +69,7 @@ extern void mu_scm_message_add_owner (SCM MESG, SCM owner);
 
 extern void mu_scm_mutil_init (void);
 
-SCM mu_scm_make_debug_port (mu_debug_t debug, mu_log_level_t level);
+SCM mu_scm_make_debug_port (int level);
 void mu_scm_debug_port_init (void);
 
 

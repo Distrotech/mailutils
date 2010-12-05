@@ -35,7 +35,6 @@ int
 _mu_smtp_trace_enable (mu_smtp_t smtp)
 {
   int rc = 0;
-  mu_debug_t debug;
   mu_stream_t dstr, xstr;
 
   if (!smtp->carrier)
@@ -44,9 +43,7 @@ _mu_smtp_trace_enable (mu_smtp_t smtp)
       return 0;
     }
   
-  mu_diag_get_debug (&debug);
-  
-  rc = mu_dbgstream_create (&dstr, debug, MU_DIAG_DEBUG, 0);
+  rc = mu_dbgstream_create (&dstr, MU_DIAG_DEBUG);
   if (rc)
     mu_error (_("cannot create debug stream; transcript disabled: %s"),
 	      mu_strerror (rc));

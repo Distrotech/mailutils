@@ -130,7 +130,7 @@ int
 mutool_filter (int argc, char **argv)
 {
   int rc, index;
-  mu_stream_t in, out, flt;
+  mu_stream_t flt;
   const char *fltname;
   
   if (argp_parse (&filter_argp, argc, argv, ARGP_IN_ORDER, &index, NULL))
@@ -156,25 +156,12 @@ mutool_filter (int argc, char **argv)
     }
 
   fltname = argv[0];
-  
-  rc = mu_stdio_stream_create (&in, MU_STDIN_FD, 0);
-  if (rc)
-    {
-      mu_error (_("cannot open input stream: %s"), mu_strerror (rc));
-      return 1;
-    }
-  
-  rc = mu_stdio_stream_create (&out, MU_STDOUT_FD, 0);
-  if (rc)
-    {
-      mu_error (_("cannot open output stream: %s"), mu_strerror (rc));
-      return 1;
-    }
 
   if (line_length_option)
     reset_line_length (fltname, line_length);
 
-  rc = mu_filter_create_args (&flt, in, fltname, argc, (const char **)argv,
+  rc = mu_filter_create_args (&flt, mu_strin, fltname,
+			      argc, (const char **)argv,
 			      filter_mode, MU_STREAM_READ);
   if (rc)
     {
@@ -182,7 +169,7 @@ mutool_filter (int argc, char **argv)
       return 1;
     }
 
-  rc = mu_stream_copy (out, flt, 0, NULL);
+  rc = mu_stream_copy (mu_strout, flt, 0, NULL);
 
   if (rc)
     {
@@ -191,9 +178,10 @@ mutool_filter (int argc, char **argv)
     }
 
   if (newline_option)
-    mu_stream_write (out, "\n", 1, NULL);
+    mu_stream_write (mu_strout, "\n", 1, NULL);
 
-  mu_stream_flush (out);
+  mu_stream_destroy (&flt);
+  mu_stream_flush (mu_strout);
   
   return 0;
 }

@@ -40,7 +40,7 @@ mutool_cflags (int argc, char **argv)
 {
   if (argp_parse (&cflags_argp, argc, argv, ARGP_IN_ORDER, NULL, NULL))
     return 1;
-  printf ("%s\n", COMPILE_FLAGS);
+  mu_printf ("%s\n", COMPILE_FLAGS);
   return 0;
 }
 

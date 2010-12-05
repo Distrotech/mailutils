@@ -35,7 +35,7 @@
 #include <sieve-priv.h>
 #include <sieve-gram.h>
   
-mu_sieve_locus_t mu_sieve_locus;
+struct mu_locus mu_sieve_locus;
 ino_t sieve_source_inode;
 
 static mu_list_t string_list;
@@ -71,7 +71,7 @@ fillbuf (char *buf, size_t max_size)
   if (rc)
     {
       mu_diag_funcall (MU_DIAG_ERROR, "mu_stream_read",
-		       mu_sieve_locus.source_file, rc);
+		       mu_sieve_locus.mu_file, rc);
       return 0;
     }
   return max_size;
@@ -92,7 +92,7 @@ fillbuf (char *buf, size_t max_size)
 struct buffer_ctx
 {
   struct buffer_ctx *prev;
-  mu_sieve_locus_t locus;
+  struct mu_locus locus;
   ino_t i_node;
   mu_stream_t input;
   LEX_BUFFER_STATE state;
@@ -130,7 +130,7 @@ push_source (const char *name)
       return 1;
     }
 
-  if (mu_sieve_locus.source_file && st.st_ino == sieve_source_inode)
+  if (mu_sieve_locus.mu_file && st.st_ino == sieve_source_inode)
     {
       yyerror (_("recursive inclusion"));
       return 1;
@@ -159,7 +159,7 @@ push_source (const char *name)
     }
 
   /* Push current context */
-  if (mu_sieve_locus.source_file)
+  if (mu_sieve_locus.mu_file)
     {
       ctx = mu_sieve_alloc (sizeof (*ctx));
       ctx->locus = mu_sieve_locus;
@@ -173,8 +173,9 @@ push_source (const char *name)
     }
   input_stream = stream;
   
-  mu_sieve_locus.source_file = strdup (name);
-  mu_sieve_locus.source_line = 1;
+  mu_sieve_locus.mu_file = strdup (name);
+  mu_sieve_locus.mu_line = 1;
+  mu_sieve_locus.mu_col = 0; /* FIXME: not used */
   sieve_source_inode = st.st_ino;
 
   mu_sv_change_source ();
@@ -189,17 +190,17 @@ pop_source ()
 
   mu_stream_destroy (&input_stream);
 
-  if (mu_sieve_locus.source_file)
-    free (mu_sieve_locus.source_file);
+  if (mu_sieve_locus.mu_file)
+    free (mu_sieve_locus.mu_file);
   if (!context_stack)
     {
       input_stream = NULL;
-      mu_sieve_locus.source_file = NULL;
+      mu_sieve_locus.mu_file = NULL;
       return 1;
     }
   /* Restore previous context */
   mu_sieve_locus = context_stack->locus;
-  mu_sieve_locus.source_line++; /* #include rule did not increment it */
+  mu_sieve_locus.mu_line++; /* #include rule did not increment it */
   sieve_source_inode = context_stack->i_node;
   RESTORE_BUFFER_STATE (context_stack->state);
   ctx = context_stack->prev;
@@ -222,13 +223,13 @@ SIZESUF [kKmMgG]
 "/*"         BEGIN(COMMENT);
 <COMMENT>[^*\n]*        /* eat anything that's not a '*' */
 <COMMENT>"*"+[^*/\n]*   /* eat up '*'s not followed by '/'s */
-<COMMENT>\n             ++mu_sieve_locus.source_line;
+<COMMENT>\n             ++mu_sieve_locus.mu_line;
 <COMMENT>"*"+"/"        BEGIN(INITIAL);
          /* Preprocessor directives (an extension) */
 #[ \t]*include.*\n      { sieve_include (); }
 #[ \t]*searchpath.*\n          { sieve_searchpath (); } 
          /* End-of-line comments */
-#.*\n   { mu_sieve_locus.source_line++; }
+#.*\n   { mu_sieve_locus.mu_line++; }
 #.*     /* end-of-file comment */;
          /* Reserved words */
 require return REQUIRE; 
@@ -259,23 +260,23 @@ not     return NOT;
          /* Multiline strings */
 text:-?[ \t]*#.*\n       { BEGIN(ML);
                            multiline_begin ();
-			   mu_sieve_locus.source_line++; }
+			   mu_sieve_locus.mu_line++; }
 text:-?[ \t]*\n          { BEGIN(ML);
                            multiline_begin ();
-			   mu_sieve_locus.source_line++; }
+			   mu_sieve_locus.mu_line++; }
 text:-?\\?{IDENT}[ \t]*#.*\n { BEGIN(ML); multiline_begin ();
-                               mu_sieve_locus.source_line++; }
+                               mu_sieve_locus.mu_line++; }
 text:-?\\?{IDENT}[ \t]*\n    { BEGIN(ML); multiline_begin ();
-                               mu_sieve_locus.source_line++; }
+                               mu_sieve_locus.mu_line++; }
 <ML>#[ \t]*include.*\n    { if (multiline_delimiter[0] == '\\')
                               {
-				mu_sieve_locus.source_line++;
+				mu_sieve_locus.mu_line++;
                                 multiline_add (NULL);
 			      }
                             else
                               sieve_include (); }
 <ML>.*\n { char *p = multiline_strip_tabs (yytext);
-           mu_sieve_locus.source_line++;
+           mu_sieve_locus.mu_line++;
 	   
            if (strncmp (p, multiline_delimiter, strlen (multiline_delimiter))
 	        == 0
@@ -290,7 +291,7 @@ text:-?\\?{IDENT}[ \t]*\n    { BEGIN(ML); multiline_begin ();
 	    multiline_add (NULL); } 
 {WS}     ;
          /* Other tokens */
-\n { mu_sieve_locus.source_line++; } 
+\n { mu_sieve_locus.mu_line++; } 
 . return yytext[0];
 
 %%
@@ -440,8 +441,8 @@ mu_sv_lex_begin_string (const char *buf, int bufsize,
       return 1;
     }
 
-  mu_sieve_locus.source_file = strdup (fname);
-  mu_sieve_locus.source_line = line;
+  mu_sieve_locus.mu_file = strdup (fname);
+  mu_sieve_locus.mu_line = line;
   sieve_source_inode = 0;
 
   mu_sv_change_source ();

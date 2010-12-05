@@ -79,9 +79,11 @@ void
 mu_argp_node_list_new (mu_list_t lst, const char *tag, const char *label)
 {
   mu_cfg_node_t *node;
-  mu_cfg_locus_t loc = { "command line", 0 };
+  size_t n;
+  struct mu_locus loc = { "command line", 0 };
 
-  mu_list_count (lst, &loc.line);
+  mu_list_count (lst, &n);
+  loc.mu_line = n;
   node = mu_cfg_tree_create_node (mu_argp_tree, mu_cfg_node_param,
 				  &loc, tag, label, NULL);
   mu_argp_node_list_add (lst, node);

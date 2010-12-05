@@ -45,8 +45,6 @@ struct in_addr;
 int mu_acl_create (mu_acl_t *acl);
 int mu_acl_destroy (mu_acl_t *acl);
 int mu_acl_count (mu_acl_t acl, size_t *pcount);
-int mu_acl_get_debug (mu_acl_t acl, mu_debug_t *pdebug);
-int mu_acl_set_debug (mu_acl_t acl, mu_debug_t debug);
 int mu_acl_get_iterator (mu_acl_t acl, mu_iterator_t *pitr);
 int mu_acl_append (mu_acl_t acl, mu_acl_action_t act, void *data,
 		   struct sockaddr *sa, int salen,

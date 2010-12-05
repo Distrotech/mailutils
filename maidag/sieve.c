@@ -17,26 +17,16 @@
 
 #include "maidag.h"
 
-static int
-_sieve_debug_printer (void *unused, const char *fmt, va_list ap)
-{
-  mu_diag_vprintf (MU_DIAG_DEBUG, fmt, ap);
-  return 0;
-}
-
 static void
 _sieve_action_log (void *user_name,
-		   const mu_sieve_locus_t *locus, size_t msgno,
+		   mu_stream_t stream, size_t msgno,
 		   mu_message_t msg,
 		   const char *action, const char *fmt, va_list ap)
 {
   int pfx = 0;
-  mu_debug_t debug;
 
-  mu_diag_get_debug (&debug);
-  mu_debug_set_locus (debug, locus->source_file, locus->source_line);
-  
-  mu_diag_printf (MU_DIAG_NOTICE, _("(user %s) "), (char*) user_name);
+  mu_stream_printf (stream, "\033s<%d>", MU_LOG_NOTICE);
+  mu_stream_printf (stream, _("(user %s) "), (char*) user_name);
   if (message_id_header)
     {
       mu_header_t hdr = NULL;
@@ -46,7 +36,7 @@ _sieve_action_log (void *user_name,
 	  || mu_header_aget_value (hdr, MU_HEADER_MESSAGE_ID, &val) == 0)
 	{
 	  pfx = 1;
-	  mu_diag_printf (MU_DIAG_NOTICE, _("%s on msg %s"), action, val);
+	  mu_stream_printf (stream, _("%s on msg %s"), action, val);
 	  free (val);
 	}
     }
@@ -55,34 +45,16 @@ _sieve_action_log (void *user_name,
     {
       size_t uid = 0;
       mu_message_get_uid (msg, &uid);
-      mu_diag_printf (MU_DIAG_NOTICE, _("%s on msg uid %lu"), action,
-		      (unsigned long) uid);
+      mu_stream_printf (stream, _("%s on msg uid %lu"), action,
+			(unsigned long) uid);
     }
   
   if (fmt && strlen (fmt))
     {
-      mu_diag_printf (MU_DIAG_NOTICE, "; ");
-      mu_diag_vprintf (MU_DIAG_NOTICE, fmt, ap);
+      mu_stream_printf (stream, "; ");
+      mu_stream_vprintf (stream, fmt, ap);
     }
-  mu_diag_printf (MU_DIAG_NOTICE, "\n");
-  mu_debug_set_locus (debug, NULL, 0);
-}
-
-static int
-_sieve_parse_error (void *user_name, const char *filename, int lineno,
-		    const char *fmt, va_list ap)
-{
-  mu_debug_t debug;
-
-  mu_diag_get_debug (&debug);
-  if (filename)
-    mu_debug_set_locus (debug, filename, lineno);
-
-  mu_diag_printf (MU_DIAG_ERROR, _("(user %s) "), (char*) user_name);
-  mu_diag_vprintf (MU_DIAG_ERROR, fmt, ap);
-  mu_diag_printf (MU_DIAG_ERROR, "\n");
-  mu_debug_set_locus (debug, NULL, 0);
-  return 0;
+  mu_stream_printf (stream, "\n");
 }
 
 int
@@ -91,7 +63,7 @@ sieve_check_msg (mu_message_t msg, struct mu_auth_data *auth, const char *prog)
   int rc;
   mu_sieve_machine_t mach;
 
-  rc = mu_sieve_machine_init (&mach, auth->name);
+  rc = mu_sieve_machine_init (&mach);
   if (rc)
     {
       mu_error (_("Cannot initialize sieve machine: %s"),
@@ -99,15 +71,14 @@ sieve_check_msg (mu_message_t msg, struct mu_auth_data *auth, const char *prog)
     }
   else
     {
-      mu_sieve_set_debug (mach, _sieve_debug_printer);
-      mu_sieve_set_debug_level (mach, sieve_debug_flags);
-      mu_sieve_set_parse_error (mach, _sieve_parse_error);
+      mu_sieve_set_data (mach, auth->name);
       if (sieve_enable_log)
 	mu_sieve_set_logger (mach, _sieve_action_log);
 	  
       rc = mu_sieve_compile (mach, prog);
       if (rc == 0)
 	mu_sieve_message (mach, msg);
+      mu_sieve_machine_destroy (&mach);
     }
   return 0;
 }

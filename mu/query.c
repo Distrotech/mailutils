@@ -72,10 +72,9 @@ static struct argp query_argp = {
 int
 mutool_query (int argc, char **argv)
 {
-  int rc, index;
+  int index;
   mu_cfg_tree_t *tree = NULL;
   int fmtflags = 0;
-  mu_stream_t stream;
   
   if (argp_parse (&query_argp, argc, argv, ARGP_IN_ORDER, &index, NULL))
     return 1;
@@ -100,12 +99,6 @@ mutool_query (int argc, char **argv)
     return 1;
   if (!tree)
     return 0;
-  rc = mu_stdio_stream_create (&stream, MU_STDOUT_FD, 0);
-  if (rc)
-    {
-      mu_error ("mu_stdio_stream_create: %s", mu_strerror (rc));
-      return 1;
-    }
   if (verbose_option)
     fmtflags = MU_CFG_FMT_LOCUS;
   for ( ; argc > 0; argc--, argv++)
@@ -114,7 +107,7 @@ mutool_query (int argc, char **argv)
       mu_cfg_node_t *node;
 
       if (mu_cfg_find_node (tree, path, &node) == 0)
-	mu_cfg_format_node (stream, node, fmtflags);
+	mu_cfg_format_node (mu_strout, node, fmtflags);
     }
   return 0;
 }

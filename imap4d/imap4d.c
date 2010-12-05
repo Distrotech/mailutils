@@ -135,21 +135,19 @@ imap4d_parse_opt (int key, char *arg, struct argp_state *state)
 }
 
 static int
-cb_mode (mu_debug_t debug, void *data, mu_config_value_t *val)
+cb_mode (void *data, mu_config_value_t *val)
 {
   char *p;
-  if (mu_cfg_assert_value_type (val, MU_CFG_STRING, debug))
+  if (mu_cfg_assert_value_type (val, MU_CFG_STRING))
     return 1;
   home_dir_mode = strtoul (val->v.string, &p, 8);
   if (p[0] || (home_dir_mode & ~0777))
-    mu_cfg_format_error (debug, MU_DEBUG_ERROR, 
-                         _("invalid mode specification: %s"),
-			 val->v.string);
+    mu_error (_("invalid mode specification: %s"), val->v.string);
   return 0;
 }
 
 int
-parse_preauth_scheme (mu_debug_t debug, const char *scheme, mu_url_t url)
+parse_preauth_scheme (const char *scheme, mu_url_t url)
 {
   int rc = 0;
   if (strcmp (scheme, "stdio") == 0)
@@ -160,9 +158,7 @@ parse_preauth_scheme (mu_debug_t debug, const char *scheme, mu_url_t url)
       rc = mu_url_aget_path (url, &path);
       if (rc)
 	{
-	  mu_cfg_format_error (debug, MU_DEBUG_ERROR,
-			       _("URL error: cannot get path: %s"),
-			       mu_strerror (rc));
+	  mu_error (_("URL error: cannot get path: %s"), mu_strerror (rc));
 	  return 1;
 	}
       preauth_program = path;
@@ -182,7 +178,7 @@ parse_preauth_scheme (mu_debug_t debug, const char *scheme, mu_url_t url)
     }
   else
     {
-      mu_cfg_format_error (debug, MU_DEBUG_ERROR, _("unknown preauth scheme"));
+      mu_error (_("unknown preauth scheme"));
       rc = 1;
     }
 
@@ -194,14 +190,14 @@ parse_preauth_scheme (mu_debug_t debug, const char *scheme, mu_url_t url)
    preauth stdio
 */
 static int
-cb_preauth (mu_debug_t debug, void *data, mu_config_value_t *val)
+cb_preauth (void *data, mu_config_value_t *val)
 {
-  if (mu_cfg_assert_value_type (val, MU_CFG_STRING, debug))
+  if (mu_cfg_assert_value_type (val, MU_CFG_STRING))
     return 1;
   if (strcmp (val->v.string, "stdio") == 0)
     preauth_mode = preauth_stdio;
   else if (strcmp (val->v.string, "ident") == 0)
-    return parse_preauth_scheme (debug, val->v.string, NULL);
+    return parse_preauth_scheme (val->v.string, NULL);
   else if (val->v.string[0] == '/')
     {
       preauth_program = xstrdup (val->v.string);
@@ -223,12 +219,11 @@ cb_preauth (mu_debug_t debug, void *data, mu_config_value_t *val)
       if (rc)
 	{
 	  mu_url_destroy (&url);
-	  mu_cfg_format_error (debug, MU_DEBUG_ERROR,
-			       _("URL error: %s"), mu_strerror (rc));
+	  mu_error (_("URL error: %s"), mu_strerror (rc));
 	  return 1;
 	}
 
-      rc = parse_preauth_scheme (debug, scheme, url);
+      rc = parse_preauth_scheme (scheme, url);
       mu_url_destroy (&url);
       free (scheme);
       return rc;
@@ -237,14 +232,13 @@ cb_preauth (mu_debug_t debug, void *data, mu_config_value_t *val)
 }
 
 static int
-cb_mailbox_mode (mu_debug_t debug, void *data, mu_config_value_t *val)
+cb_mailbox_mode (void *data, mu_config_value_t *val)
 {
   const char *p;
-  if (mu_cfg_assert_value_type (val, MU_CFG_STRING, debug))
+  if (mu_cfg_assert_value_type (val, MU_CFG_STRING))
     return 1;
   if (mu_parse_stream_perm_string ((int *)data, val->v.string, &p))
-    mu_cfg_format_error (debug, MU_DEBUG_ERROR,
-			 _("invalid mode string near %s"), p);
+    mu_error (_("invalid mode string near %s"), p);
   return 0;
 }
 
@@ -533,6 +527,8 @@ main (int argc, char **argv)
   mu_m_server_set_timeout (server, 1800);  /* RFC2060: 30 minutes. */
   mu_m_server_set_strexit (server, mu_strexit);
   
+  mu_log_syslog = 1;
+
   if (mu_app_init (&argp, imap4d_capa, imap4d_cfg_param, 
 		   argc, argv, 0, NULL, server))
     exit (EX_CONFIG); /* FIXME: No way to discern from EX_USAGE? */
@@ -584,19 +580,8 @@ main (int argc, char **argv)
   /* Set the signal handlers.  */
   mu_set_signals (imap4d_master_signal, sigtab, MU_ARRAY_SIZE (sigtab));
 
-  /* Set up for syslog.  */
-  openlog (MU_LOG_TAG (), LOG_PID, mu_log_facility);
-
-  /* Redirect any stdout error from the library to syslog, they
-     should not go to the client.  */
-  {
-    mu_debug_t debug;
-
-    mu_diag_get_debug (&debug);
-    mu_debug_set_print (debug, mu_diag_syslog_printer, NULL);
-
-    mu_debug_default_printer = mu_debug_syslog_printer;
-  }
+  mu_stdstream_strerr_setup (mu_log_syslog ?
+			     MU_STRERR_SYSLOG : MU_STRERR_STDERR);
 
   umask (S_IROTH | S_IWOTH | S_IXOTH);	/* 007 */
 

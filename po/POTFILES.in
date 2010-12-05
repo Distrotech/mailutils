@@ -127,12 +127,12 @@ libmailutils/cfg/gocs.c
 libmailutils/diag/debug.c
 libmailutils/diag/diag.c
 libmailutils/diag/errors
-libmailutils/diag/gdebug.c
 
 libmailutils/server/acl.c
 
 libmailutils/stream/file_stream.c
 libmailutils/stream/prog_stream.c
+libmailutils/stream/logstream.c
 
 libmailutils/filter/filter_iconv.c
 
@@ -155,6 +155,10 @@ libmailutils/base/version.c
 libmailutils/base/tempfile.c
 
 libmailutils/string/trueans.c
+
+libmailutils/stdstream/basestr.c
+libmailutils/stdstream/strerr.c
+libmailutils/stdstream/dbgstream.c
 
 messages/messages.c
 
@@ -226,6 +230,7 @@ mu/shell.c
 mu/cflags.c
 mu/ldflags.c
 mu/wicket.c
+mu/logger.c
 
 # EOF
 

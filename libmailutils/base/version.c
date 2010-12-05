@@ -22,7 +22,11 @@
 #include <mailutils/nls.h>
 #include <mailutils/version.h>
 #include <mailutils/cstr.h>
+#include <mailutils/stream.h>
+#include <mailutils/stdstream.h>
+#include <mailutils/errno.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include <confpaths.h>
@@ -121,27 +125,41 @@ static struct mu_conf_option mu_conf_option[] = {
 };
 
 void
-mu_fprint_conf_option (FILE *fp, const struct mu_conf_option *opt, int verbose)
+mu_format_conf_option (mu_stream_t stream, const struct mu_conf_option *opt,
+		       int verbose)
 {
-  fprintf (fp, "%s", opt->name);
+  mu_stream_printf (stream, "%s", opt->name);
   if (verbose && opt->descr)
-    fprintf (fp, " \t- %s", _(opt->descr));
-  fputc('\n', fp);
+    mu_stream_printf (stream, " \t- %s", _(opt->descr));
+  mu_stream_printf (stream, "\n");
 }
 
 void
-mu_fprint_options (FILE *fp, int verbose)
+mu_format_options (mu_stream_t stream, int verbose)
 {
   int i;
   
   for (i = 0; mu_conf_option[i].name; i++)
-    mu_fprint_conf_option (fp, mu_conf_option + i, verbose);
+    mu_format_conf_option (stream, mu_conf_option + i, verbose);
 }
 
 void
 mu_print_options ()
 {
-  mu_fprint_options (stdout, 1);
+  if (mu_strout)
+    mu_stream_ref (mu_strout);
+  else
+    {
+      int rc = mu_stdio_stream_create (&mu_strout, MU_STDOUT_FD, 0);
+      if (rc)
+	{
+	  fprintf (stderr, "mu_stdio_stream_create(%d): %s\n",
+		   MU_STDOUT_FD, mu_strerror (rc));
+	  abort ();
+	}
+    }
+  mu_format_options (mu_strout, 1);
+  mu_stream_unref (mu_strout);
 }
 
 const struct mu_conf_option *

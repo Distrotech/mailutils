@@ -355,43 +355,6 @@ mu_folder_get_match (mu_folder_t folder, mu_folder_match_fp *pmatch)
   return 0;
 }
 
-int
-mu_folder_has_debug (mu_folder_t folder)
-{
-  if (folder == NULL)
-    return 0;
-
-  return folder->debug ? 1 : 0;
-}
-
-int
-mu_folder_set_debug (mu_folder_t folder, mu_debug_t debug)
-{
-  if (folder == NULL)
-    return EINVAL;
-  if (folder->debug)
-    mu_debug_destroy (&folder->debug, folder);
-  folder->debug = debug;
-  return 0;
-}
-
-int
-mu_folder_get_debug (mu_folder_t folder, mu_debug_t *pdebug)
-{
-  if (folder == NULL)
-    return EINVAL;
-  if (pdebug == NULL)
-    return MU_ERR_OUT_PTR_NULL;
-  if (folder->debug == NULL)
-    {
-      int status = mu_debug_create (&folder->debug, folder);
-      if (status != 0)
-        return status;
-    }
-  *pdebug = folder->debug;
-  return 0;
-}
-
 void
 mu_list_response_free (void *data)
 {

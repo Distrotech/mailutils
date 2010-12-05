@@ -24,7 +24,8 @@
 
 typedef void (*sieve_instr_t) (mu_sieve_machine_t mach);
 
-typedef union {
+typedef union
+{
   sieve_instr_t instr;
   mu_sieve_handler_t handler;
   mu_sieve_value_t *val;
@@ -35,9 +36,10 @@ typedef union {
   size_t line;
 } sieve_op_t;
 
-struct mu_sieve_machine {
+struct mu_sieve_machine
+{
   /* Static data */
-  mu_sieve_locus_t locus;    /* Approximate location in the code */
+  struct mu_locus locus;    /* Approximate location in the code */
 
   mu_list_t memory_pool;     /* Pool of allocated memory objects */
   mu_list_t destr_list;      /* List of destructor functions */
@@ -66,30 +68,26 @@ struct mu_sieve_machine {
   int action_count;          /* Number of actions executed over this message */
 			    
   /* User supplied data */
-  mu_sieve_parse_error_t parse_error_printer;
-  mu_sieve_printf_t error_printer; 
-  mu_sieve_printf_t debug_printer;
+  mu_stream_t errstream;
+  
   mu_sieve_action_log_t logger;
   
   mu_mailer_t mailer;
-  mu_debug_t debug;
   char *daemon_email;
   void *data;
 };
 
-extern mu_sieve_locus_t mu_sieve_locus;
+extern struct mu_locus mu_sieve_locus;
 extern mu_sieve_machine_t mu_sieve_machine;
 extern int mu_sieve_error_count; 
 
 #define TAG_COMPFUN "__compfun__"
 #define TAG_RELFUN  "__relfun__"
 
-void mu_sv_compile_error (mu_sieve_locus_t *locus,
+void mu_sv_compile_error (struct mu_locus *locus,
 			  const char *fmt, ...) MU_PRINTFLIKE(2,3);
-void mu_sv_print_value_list (mu_list_t list, mu_sieve_printf_t printer,
-			     void *data);
-void mu_sv_print_tag_list (mu_list_t list, mu_sieve_printf_t printer,
-			   void *data);
+void mu_sv_print_value_list (mu_list_t list, mu_stream_t str);
+void mu_sv_print_tag_list (mu_list_t list, mu_stream_t str);
 
 int mu_sv_lex_begin (const char *name);
 int mu_sv_lex_begin_string (const char *buf, int bufsize,

@@ -552,6 +552,7 @@ main (int argc, char **argv)
   /* FIXME mu_m_server_set_pidfile (); */
   mu_m_server_set_default_port (server, 512);
   /* FIXME: timeout is not needed. How to disable it? */
+  mu_log_syslog = 1;
   
   if (mu_app_init (&argp, comsat_argp_capa, comsat_cfg_param, argc, argv, 0,
 		   &ind, server))
@@ -564,6 +565,7 @@ main (int argc, char **argv)
       argc -= ind;
       argv += ind;
   
+      mu_stdstream_strerr_setup (MU_STRERR_STDERR);
       if (argc < 2 || argc > 2)
 	{
 	  mu_error (_("mailbox URL and message QID are required in test mode"));
@@ -590,17 +592,8 @@ main (int argc, char **argv)
       exit (0);
     }
   
-  /* Set up error messaging  */
-  openlog (MU_LOG_TAG (), LOG_PID, mu_log_facility);
-
-  {
-    mu_debug_t debug;
-
-    mu_diag_get_debug (&debug);
-    mu_debug_set_print (debug, mu_diag_syslog_printer, NULL);
-
-    mu_debug_default_printer = mu_debug_syslog_printer;
-  }
+  mu_stdstream_strerr_setup (mu_log_syslog ?
+			     MU_STRERR_SYSLOG : MU_STRERR_STDERR);
 
   if (mu_m_server_mode (server) == MODE_DAEMON)
     {

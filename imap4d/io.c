@@ -55,12 +55,9 @@ io_setio (int ifd, int ofd)
   if (imap4d_transcript)
     {
       int rc;
-      mu_debug_t debug;
       mu_stream_t dstr, xstr;
       
-      mu_diag_get_debug (&debug);
-      
-      rc = mu_dbgstream_create (&dstr, debug, MU_DIAG_DEBUG, 0);
+      rc = mu_dbgstream_create (&dstr, MU_DIAG_DEBUG);
       if (rc)
 	mu_error (_("cannot create debug stream; transcript disabled: %s"),
 		  mu_strerror (rc));

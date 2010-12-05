@@ -43,7 +43,6 @@ struct _mu_ip_server
   int addrlen;
   int fd;
   int type;
-  mu_debug_t debug;
   mu_acl_t acl;
   mu_ip_server_conn_fp f_conn;
   mu_ip_server_intr_fp f_intr;
@@ -71,7 +70,6 @@ mu_ip_server_create (mu_ip_server_t *psrv, struct sockaddr *addr,
 		     int addrlen, int type)
 {
   struct _mu_ip_server *srv;
-  mu_log_level_t level;
 
   switch (type)
     {
@@ -95,12 +93,6 @@ mu_ip_server_create (mu_ip_server_t *psrv, struct sockaddr *addr,
   memcpy (srv->addr, addr, addrlen);
   srv->addrlen = addrlen;
   srv->type = type;
-  level = mu_global_debug_level ("ip_server");
-  if (level)
-    {
-      mu_debug_create (&srv->debug, NULL);
-      mu_debug_set_level (srv->debug, level);
-    }
   srv->fd = -1;
   switch (type)
     {
@@ -134,25 +126,6 @@ mu_ip_server_destroy (mu_ip_server_t *psrv)
     free (srv->v.udp_data.buf);
   free (srv);
   *psrv = NULL;
-  return 0;
-}
-
-int
-mu_ip_server_set_debug (mu_ip_server_t srv, mu_debug_t debug)
-{
-  if (!srv)
-    return EINVAL;
-  mu_debug_destroy (&srv->debug, NULL);
-  srv->debug = debug;
-  return 0;
-}
-
-int
-mu_ip_server_get_debug (mu_ip_server_t srv, mu_debug_t *pdebug)
-{
-  if (!srv)
-    return EINVAL;
-  *pdebug = srv->debug;
   return 0;
 }
 
@@ -274,12 +247,10 @@ mu_ip_server_open (mu_ip_server_t srv)
   if (!srv || srv->fd != -1)
     return EINVAL;
 
-  if (mu_debug_check_level (srv->debug, MU_DEBUG_TRACE0))
+  if (mu_debug_level_p (MU_DEBCAT_SERVER, MU_DEBUG_TRACE0))
     {
       char *p = mu_sockaddr_to_astr (srv->addr, srv->addrlen);
-      __MU_DEBUG2 (srv->debug, MU_DEBUG_TRACE0,
-		   "opening server \"%s\" %s\n", IDENTSTR (srv),
-		   p);
+      mu_debug_log ("opening server \"%s\" %s", IDENTSTR (srv), p);
       free (p);
     }
 
@@ -287,8 +258,8 @@ mu_ip_server_open (mu_ip_server_t srv)
 	       ((srv->type == MU_IP_UDP) ? SOCK_DGRAM : SOCK_STREAM), 0);
   if (fd == -1)
     {
-      MU_DEBUG2 (srv->debug, MU_DEBUG_ERROR,
-		 "%s: socket: %s\n", IDENTSTR (srv), mu_strerror (errno));
+      mu_debug (MU_DEBCAT_SERVER, MU_DEBUG_ERROR,
+		("%s: socket: %s", IDENTSTR (srv), mu_strerror (errno)));
       return errno;
     }
   
@@ -303,26 +274,26 @@ mu_ip_server_open (mu_ip_server_t srv)
 	  {
 	    if (errno != ENOENT)
 	      {
-		MU_DEBUG3 (srv->debug, MU_DEBUG_ERROR,
-			   _("%s: file %s exists but cannot be stat'd: %s"),
+		mu_debug (MU_DEBCAT_SERVER, MU_DEBUG_ERROR,
+			  ("%s: file %s exists but cannot be stat'd: %s",
 			   IDENTSTR (srv),
 			   s_un->sun_path,
-			   mu_strerror (errno));
+			   mu_strerror (errno)));
 		return EAGAIN;
 	      }
 	  }
 	else if (!S_ISSOCK (st.st_mode))
 	  {
-	    MU_DEBUG2 (srv->debug, MU_DEBUG_ERROR,
-		       _("%s: file %s is not a socket"),
-		       IDENTSTR (srv), s_un->sun_path);
+	    mu_debug (MU_DEBCAT_SERVER, MU_DEBUG_ERROR,
+		      ("%s: file %s is not a socket",
+		       IDENTSTR (srv), s_un->sun_path));
 	    return EAGAIN;
 	  }
 	else if (unlink (s_un->sun_path))
 	  {
-	    MU_DEBUG3 (srv->debug, MU_DEBUG_ERROR,
-		       _("%s: cannot unlink file %s: %s"),
-		       IDENTSTR (srv), s_un->sun_path, mu_strerror (errno));
+            mu_debug (MU_DEBCAT_SERVER,  MU_DEBUG_ERROR,
+		      ("%s: cannot unlink file %s: %s",
+		       IDENTSTR (srv), s_un->sun_path, mu_strerror (errno)));
 	    return EAGAIN;
 	  }
       }
@@ -339,8 +310,8 @@ mu_ip_server_open (mu_ip_server_t srv)
   
   if (bind (fd, srv->addr, srv->addrlen) == -1)
     {
-      MU_DEBUG2 (srv->debug, MU_DEBUG_ERROR,
-		 "%s: bind: %s\n", IDENTSTR (srv), mu_strerror (errno));
+      mu_debug (MU_DEBCAT_SERVER, MU_DEBUG_ERROR,
+		("%s: bind: %s", IDENTSTR (srv), mu_strerror (errno)));
       close (fd);
       return errno;
     }
@@ -349,8 +320,8 @@ mu_ip_server_open (mu_ip_server_t srv)
     {
       if (listen (fd, srv->v.tcp_data.backlog) == -1) 
 	{
-	  MU_DEBUG2 (srv->debug, MU_DEBUG_ERROR,
-		     "%s: listen: %s\n", IDENTSTR (srv), mu_strerror (errno));
+	  mu_debug (MU_DEBCAT_SERVER, MU_DEBUG_ERROR,
+		    ("%s: listen: %s", IDENTSTR (srv), mu_strerror (errno)));
 	  close (fd);
 	  return errno;
 	}
@@ -365,12 +336,10 @@ mu_ip_server_shutdown (mu_ip_server_t srv)
 {
   if (!srv || srv->fd != -1)
     return EINVAL;
-  if (mu_debug_check_level (srv->debug, MU_DEBUG_TRACE0))
+  if (mu_debug_level_p (MU_DEBCAT_SERVER, MU_DEBUG_TRACE0))
     {
       char *p = mu_sockaddr_to_astr (srv->addr, srv->addrlen);
-      __MU_DEBUG2 (srv->debug, MU_DEBUG_TRACE0,
-		   "closing server \"%s\" %s\n", IDENTSTR (srv),
-		   p);
+      mu_debug_log ("closing server \"%s\" %s", IDENTSTR (srv), p);
       free (p);
     }
   close (srv->fd);
@@ -411,9 +380,9 @@ mu_ip_tcp_accept (mu_ip_server_t srv, void *call_data)
       mu_acl_result_t res;
       int rc = mu_acl_check_sockaddr (srv->acl, &client.sa, size, &res);
       if (rc)
-	MU_DEBUG2 (srv->debug, MU_DEBUG_ERROR,
-		   "%s: mu_acl_check_sockaddr: %s\n",
-		   IDENTSTR (srv), strerror (rc));
+	mu_debug (MU_DEBCAT_SERVER, MU_DEBUG_ERROR,
+		  ("%s: mu_acl_check_sockaddr: %s",
+		   IDENTSTR (srv), strerror (rc)));
       if (res == mu_acl_result_deny)
 	{
 	  char *p = mu_sockaddr_to_astr (&client.sa, size);
@@ -477,9 +446,9 @@ mu_ip_udp_accept (mu_ip_server_t srv, void *call_data)
 		   0, &client.sa, &salen);
   if (size < 0)
     {
-      MU_DEBUG2 (srv->debug, MU_DEBUG_ERROR,
-		 "%s: recvfrom: %s",
-		 IDENTSTR (srv), strerror (errno));
+      mu_debug (MU_DEBCAT_SERVER, MU_DEBUG_ERROR,
+		("%s: recvfrom: %s",
+		 IDENTSTR (srv), strerror (errno)));
       return MU_ERR_FAILURE;
     }
   srv->v.udp_data.rdsize = size;
@@ -489,9 +458,9 @@ mu_ip_udp_accept (mu_ip_server_t srv, void *call_data)
       mu_acl_result_t res;
       int rc = mu_acl_check_sockaddr (srv->acl, &client.sa, size, &res);
       if (rc)
-	MU_DEBUG2 (srv->debug, MU_DEBUG_ERROR,
-		   "%s: mu_acl_check_sockaddr: %s\n",
-		   IDENTSTR (srv), strerror (rc));
+	mu_debug (MU_DEBCAT_SERVER, MU_DEBUG_ERROR,
+		  ("%s: mu_acl_check_sockaddr: %s\n",
+		   IDENTSTR (srv), strerror (rc)));
       if (res == mu_acl_result_deny)
 	{
 	  char *p = mu_sockaddr_to_astr (srv->addr, srv->addrlen);

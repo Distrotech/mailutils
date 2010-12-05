@@ -17,7 +17,7 @@
 # <http://www.gnu.org/licenses/>.
 
 SUBDIRS = auth base address cfg diag filter mailbox mailer mime\
- server string stream property url . tests 
+ server string stream stdstream property url . tests 
 
 lib_LTLIBRARIES = libmailutils.la
 
@@ -38,6 +38,7 @@ libmailutils_la_LIBADD = \
  server/libserver.la\
  string/libstring.la\
  stream/libstream.la\
+ stdstream/libstdstream.la\
  url/liburl.la
 
 libmailutils_la_LDFLAGS = -version-info @VI_CURRENT@:@VI_REVISION@:@VI_AGE@

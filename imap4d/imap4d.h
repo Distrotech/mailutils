@@ -92,6 +92,7 @@
 #include <mailutils/parse822.h>
 #include <mailutils/registrar.h>
 #include <mailutils/stream.h>
+#include <mailutils/stdstream.h>
 #include <mailutils/tls.h>
 #include <mailutils/url.h>
 #include <mailutils/daemon.h>

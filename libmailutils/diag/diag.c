@@ -27,9 +27,10 @@
 #include <mailutils/diag.h>
 #include <mailutils/nls.h>
 #include <mailutils/errno.h>
+#include <mailutils/stdstream.h>
+#include <mailutils/stream.h>
 
 const char *mu_program_name;
-mu_debug_t mu_diag_debug;
 
 void
 mu_set_program_name (const char *name)
@@ -56,45 +57,58 @@ mu_set_program_name (const char *name)
 void
 mu_diag_init ()
 {
-  if (!mu_diag_debug)
-    {
-      int rc = mu_debug_create (&mu_diag_debug, NULL);
-      if (rc)
-	{
-	  fprintf (stderr,
-		   _("cannot initialize debug object for diagnostics: %s\n"),
-		   mu_strerror (rc));
-	  /* That's a fatal error */
-	  abort ();
-	}
-      mu_debug_set_print (mu_diag_debug, mu_diag_stderr_printer, NULL);
-    }
+  if (!mu_strerr)
+    mu_stdstream_setup ();
 }
 
 void
-mu_diag_get_debug (mu_debug_t *pdebug)
-{
-  mu_diag_init ();
-  *pdebug = mu_diag_debug;
-}
-
-void
-mu_diag_set_debug (mu_debug_t debug)
-{
-  if (mu_diag_debug)
-    mu_debug_destroy (&mu_diag_debug, NULL);
-  mu_diag_debug = debug;
-}
-
-void
-mu_diag_vprintf (mu_log_level_t level, const char *fmt, va_list ap)
+mu_diag_voutput (int level, const char *fmt, va_list ap)
 {
   mu_diag_init ();  
-  mu_debug_vprintf (mu_diag_debug, level, fmt, ap);
+  mu_stream_printf (mu_strerr, "\033s<%d>", level);
+  mu_stream_vprintf (mu_strerr, fmt, ap);
+  mu_stream_write (mu_strerr, "\n", 1, NULL);
 }
 
 void
-mu_diag_printf (mu_log_level_t level, const char *fmt, ...)
+mu_diag_output (int level, const char *fmt, ...)
+{
+  va_list ap;
+  va_start (ap, fmt);
+  mu_diag_voutput (level, fmt, ap);
+  va_end (ap);
+}
+
+void
+mu_diag_at_locus (int level, struct mu_locus const *loc, const char *fmt, ...)
+{
+  va_list ap;
+
+  va_start (ap, fmt);
+  mu_stream_printf (mu_strerr, "\033f<%d>%s\033l<%u>\033c<%u>",
+		    strlen (loc->mu_file), loc->mu_file, loc->mu_line,
+		    loc->mu_col);
+  mu_diag_voutput (level, fmt, ap);
+  va_end (ap);
+}
+
+void
+mu_diag_vprintf (int level, const char *fmt, va_list ap)
+{
+  mu_diag_init ();
+  mu_stream_printf (mu_strerr, "\033<%d>", level);
+  mu_stream_vprintf (mu_strerr, fmt, ap);
+}
+
+void
+mu_diag_cont_vprintf (const char *fmt, va_list ap)
+{
+  mu_diag_init ();
+  mu_stream_vprintf (mu_strerr, fmt, ap);
+}
+
+void
+mu_diag_printf (int level, const char *fmt, ...)
 {
   va_list ap;
   va_start (ap, fmt);
@@ -103,24 +117,16 @@ mu_diag_printf (mu_log_level_t level, const char *fmt, ...)
 }
 
 void
-mu_diag_voutput (mu_log_level_t level, const char *fmt, va_list ap)
-{
-  mu_diag_init ();  
-  mu_debug_vprintf (mu_diag_debug, level, fmt, ap);
-  mu_debug_printf (mu_diag_debug, level, "\n");
-}
-
-void
-mu_diag_output (mu_log_level_t level, const char *fmt, ...)
+mu_diag_cont_printf (const char *fmt, ...)
 {
   va_list ap;
   va_start (ap, fmt);
-  mu_diag_voutput (level, fmt, ap);
+  mu_diag_cont_vprintf (fmt, ap);
   va_end (ap);
 }
 
 const char *
-mu_diag_level_to_string (mu_log_level_t level)
+mu_diag_level_to_string (int level)
 {
   switch (level)
     {
@@ -149,17 +155,6 @@ mu_diag_level_to_string (mu_log_level_t level)
       return _("debug");
     }
   return _("unknown");
-}
-
-int
-mu_diag_stderr_printer (void *data, mu_log_level_t level, const char *buf)
-{
-  if (mu_program_name)
-    fprintf (stderr, "%s: ", mu_program_name);
-  if (level != MU_DIAG_ERROR)
-    fprintf (stderr, "%s: ", mu_diag_level_to_string (level));
-  fputs (buf, stderr);
-  return 0;
 }
 
 void

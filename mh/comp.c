@@ -254,15 +254,15 @@ main (int argc, char **argv)
 	      mh_msgset_parse (mbox, &msgset, 
 	                       argc - index, argv + index,
 			       use_draft ? "cur" : "new");
-	      mu_mailbox_destroy (&mbox);
+              mh_msgset_uids (mbox, &msgset);	
 	      if (msgset.count != 1)
 		{
 		  mu_error (_("only one message at a time!"));
 		  return 1;
 		}
-              mh_msgset_uids (mbox, &msgset);	
 	      draftmessage = mu_umaxtostr (0, msgset.list[0]);
 	      mh_msgset_free (&msgset);
+	      mu_mailbox_destroy (&mbox);
 	    }
 	  if (mh_draft_message (draftfolder, draftmessage,
 				&wh_env.file))

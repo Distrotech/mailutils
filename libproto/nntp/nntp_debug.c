@@ -24,27 +24,15 @@
 #include <mailutils/sys/nntp.h>
 
 int
-mu_nntp_set_debug (mu_nntp_t nntp, mu_debug_t debug)
-{
-  if (nntp == NULL)
-    return EINVAL;
-  if (nntp->debug)
-    mu_debug_destroy (&nntp->debug, NULL);
-  nntp->debug = debug;
-  return 0;
-}
-
-/* FIXME: should be a macro */
-int
 mu_nntp_debug_cmd (mu_nntp_t nntp)
 {
-  MU_DEBUG (nntp->debug, MU_DEBUG_PROT, nntp->io.buf);
+  mu_debug (MU_DEBCAT_FOLDER, MU_DEBUG_PROT, ("%s", nntp->io.buf));
   return 0;
 }
 
 int
 mu_nntp_debug_ack (mu_nntp_t nntp)
 {
-  MU_DEBUG1 (nntp->debug, MU_DEBUG_PROT, "%s\n", nntp->ack.buf);
+  mu_debug (MU_DEBCAT_FOLDER, MU_DEBUG_PROT, "%s", nntp->ack.buf);
   return 0;
 }

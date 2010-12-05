@@ -55,7 +55,6 @@ AT_INIT
 
 m4_include([list.at])
 m4_include([address.at])
-m4_include([argcv.at])
 m4_include([wordsplit.at])
 m4_include([url.at])
 m4_include([mailcap.at])

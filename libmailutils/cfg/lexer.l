@@ -49,8 +49,7 @@ extern void mu_cfg_set_debug (void);
 static void
 mu_cfg_set_lex_debug (void)
 {
-  yy_flex_debug = mu_debug_check_level (mu_cfg_get_debug (),
-					MU_DEBUG_TRACE2);
+  yy_flex_debug = mu_debug_level_p (MU_DEBCAT_CONFIG, MU_DEBUG_TRACE2);
 }
  
 static void _mu_line_add_unescape_last (char *text, size_t len);
@@ -81,22 +80,17 @@ P [1-9][0-9]*
 "/*"         BEGIN(COMMENT);
 <COMMENT>[^*\n]*        /* eat anything that's not a '*' */
 <COMMENT>"*"+[^*/\n]*   /* eat up '*'s not followed by '/'s */
-<COMMENT>\n             ++mu_cfg_locus.line;
+<COMMENT>\n             ++mu_cfg_locus.mu_line;
 <COMMENT>"*"+"/"        BEGIN (INITIAL);
          /* End-of-line comments */
 #debug=.*\n {
-          mu_log_level_t lev;
-          mu_debug_t dbg = mu_cfg_get_debug ();
-          if (mu_debug_level_from_string (yytext + 7, &lev, dbg) == 0)
-            {
-	      mu_debug_set_level (dbg, lev);
-	      mu_cfg_set_debug ();
-	      mu_cfg_set_lex_debug ();
-	    }
-          }
-#.*\n     { mu_cfg_locus.line++; }
+          mu_debug_parse_spec (yytext + 7); 
+          mu_cfg_set_debug ();
+          mu_cfg_set_lex_debug ();
+      }
+#.*\n     { mu_cfg_locus.mu_line++; }
 #.*     /* end-of-file comment */;
-"//".*\n  { mu_cfg_locus.line++; }
+"//".*\n  { mu_cfg_locus.mu_line++; }
 "//".*    /* end-of-file comment */;
         /* Identifiers */
 <INITIAL>{ID}         {
@@ -134,7 +128,7 @@ P [1-9][0-9]*
 "<<"(-" "?)?\"{ID}\"[ \t]*\n {
                         BEGIN (ML);
 			multiline_begin (yytext+2);
-			mu_cfg_locus.line++;
+			mu_cfg_locus.mu_line++;
 		  }
 <ML>.*\n { char *p = multiline_strip_tabs (yytext);
 	   
@@ -147,17 +141,20 @@ P [1-9][0-9]*
 	       yylval.string = multiline_finish ();
 	       return MU_TOK_MSTRING;
 	     }
-           mu_cfg_locus.line++;
+           mu_cfg_locus.mu_line++;
 	   multiline_add (p); } 
 {WS}     ;
          /* Other tokens */
-\n       { mu_cfg_locus.line++; } 
+\n       { mu_cfg_locus.mu_line++; } 
 [,;{}()] return yytext[0];
 .        { if (mu_isprint (yytext[0]))
-              mu_cfg_parse_error (_("stray character %c"), yytext[0]);
+              mu_diag_at_locus (MU_LOG_ERROR, &mu_cfg_locus,
+                                _("stray character %c"), yytext[0]);
            else 
-              mu_cfg_parse_error (_("stray character \\%03o"),
+              mu_diag_at_locus (MU_LOG_ERROR, &mu_cfg_locus,
+                                _("stray character \\%03o"),
 				  (unsigned char) yytext[0]);
+           mu_cfg_error_count++;  
          }
 %%
 
@@ -174,7 +171,11 @@ unescape_to_line (int c)
     {
       char t = mu_wordsplit_c_unquote_char (c);
       if (t == c && t != '\\' && t != '\"')
-	mu_cfg_parse_error (_("unknown escape sequence '\\%c'"), c);
+        {
+          mu_diag_at_locus (MU_LOG_ERROR, &mu_cfg_locus, 
+	                    _("unknown escape sequence '\\%c'"), c);
+          mu_cfg_error_count++;
+	}
       mu_opool_append_char (pool, t);
     }
 }
@@ -360,10 +361,10 @@ mu_cfg_parse_file (mu_cfg_tree_t **return_tree, const char *file, int flags)
      to this copy. Free full_name: it is not used after that. */
   _mu_line_begin ();
   _mu_line_add (full_name, strlen (full_name));
-  mu_cfg_locus.file = _mu_line_finish ();
+  mu_cfg_locus.mu_file = _mu_line_finish ();
   free (full_name); 
   /* 2. Initialize line number */
-  mu_cfg_locus.line = 1;
+  mu_cfg_locus.mu_line = 1;
   
   /* Parse configuration */
   yyrestart (fp);
@@ -371,7 +372,7 @@ mu_cfg_parse_file (mu_cfg_tree_t **return_tree, const char *file, int flags)
   fclose (fp);
   if (flags & MU_PARSE_CONFIG_VERBOSE)
     mu_diag_output (MU_DIAG_INFO, _("finished parsing file `%s'"),
-		    mu_cfg_locus.file);
+		    mu_cfg_locus.mu_file);
 
   return rc == 0 ? 0 : MU_ERR_FAILURE;
 }

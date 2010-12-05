@@ -37,8 +37,6 @@ mu_list_t script_list;
 char *forward_file = NULL;
 int forward_file_checks = FWD_ALL;
 
-int log_to_stderr = -1;
-
 /* Debuggig options */
 int debug_level;           /* General debugging level */ 
 int sieve_debug_flags;     /* Sieve debugging flags */
@@ -141,7 +139,7 @@ static const char *maidag_argp_capa[] = {
 #define D_DEFAULT "9,s"
 
 static void
-set_debug_flags (mu_debug_t debug, const char *arg)
+set_debug_flags (const char *arg)
 {
   while (*arg)
     {
@@ -171,16 +169,14 @@ set_debug_flags (mu_debug_t debug, const char *arg)
 		break;
 	  
 	      default:
-		mu_cfg_format_error (debug, MU_DEBUG_ERROR,
-				     _("%c is not a valid debug flag"), *arg);
+		mu_error (_("%c is not a valid debug flag"), *arg);
 		break;
 	      }
 	  }
       if (*arg == ',')
 	arg++;
       else if (*arg)
-	mu_cfg_format_error (debug, MU_DEBUG_ERROR,
-			     _("expected comma, but found %c"), *arg);
+	mu_error (_("expected comma, but found %c"), *arg);
     }
 }
 
@@ -284,36 +280,49 @@ parse_opt (int key, char *arg, struct argp_state *state)
 
 
 static int
-cb_debug (mu_debug_t debug, void *data, mu_config_value_t *val)
+cb_debug (void *data, mu_config_value_t *val)
 {
-  if (mu_cfg_assert_value_type (val, MU_CFG_STRING, debug))
+  if (mu_cfg_assert_value_type (val, MU_CFG_STRING))
     return 1;
-  set_debug_flags (debug, val->v.string);
+  set_debug_flags (val->v.string);
   return 0;
 }
 
 static int
-cb2_group (mu_debug_t debug, const char *gname, void *data)
+cb_stderr (void *data, mu_config_value_t *val)
+{
+  int res;
+  
+  if (mu_cfg_assert_value_type (val, MU_CFG_STRING))
+    return 1;
+  if (mu_cfg_parse_boolean (val->v.string, &res))
+    mu_error (_("not a boolean"));
+  mu_log_syslog = !res;
+  return 0;
+}
+    
+static int
+cb2_group (const char *gname, void *data)
 {
   mu_list_t list = data;
   struct group *group;
 
   group = getgrnam (gname);
   if (!group)
-    mu_cfg_format_error (debug, MU_DEBUG_ERROR, _("unknown group: %s"), gname);
+    mu_error (_("unknown group: %s"), gname);
   else
     mu_list_append (list, (void*)group->gr_gid);
   return 0;
 }
   
 static int
-cb_group (mu_debug_t debug, void *data, mu_config_value_t *arg)
+cb_group (void *data, mu_config_value_t *arg)
 {
   mu_list_t *plist = data;
 
   if (!*plist)
     mu_list_create (plist);
-  return mu_cfg_string_value_cb (debug, arg, cb2_group, *plist);
+  return mu_cfg_string_value_cb (arg, cb2_group, *plist);
 }
 
 static struct mu_kwd forward_checks[] = {
@@ -333,7 +342,7 @@ static struct mu_kwd forward_checks[] = {
 };
 
 static int
-cb2_forward_file_checks (mu_debug_t debug, const char *name, void *data)
+cb2_forward_file_checks (const char *name, void *data)
 {
   int negate = 0;
   const char *str;
@@ -354,8 +363,7 @@ cb2_forward_file_checks (mu_debug_t debug, const char *name, void *data)
     str = name;
 
   if (mu_kwd_xlat_name_ci (forward_checks, str, &val))
-    mu_cfg_format_error (debug, MU_DEBUG_ERROR, _("unknown keyword: %s"),
-			 name);
+    mu_error (_("unknown keyword: %s"), name);
   else
     {
       if (negate)
@@ -367,31 +375,29 @@ cb2_forward_file_checks (mu_debug_t debug, const char *name, void *data)
 }
 
 static int
-cb_forward_file_checks (mu_debug_t debug, void *data, mu_config_value_t *arg)
+cb_forward_file_checks (void *data, mu_config_value_t *arg)
 {
-  return mu_cfg_string_value_cb (debug, arg, cb2_forward_file_checks, data);
+  return mu_cfg_string_value_cb (arg, cb2_forward_file_checks, data);
 }
 
 static int
-cb_script_language (mu_debug_t debug, void *data, mu_config_value_t *val)
+cb_script_language (void *data, mu_config_value_t *val)
 {
-  if (mu_cfg_assert_value_type (val, MU_CFG_STRING, debug))
+  if (mu_cfg_assert_value_type (val, MU_CFG_STRING))
     return 1;
   script_handler = script_lang_handler (val->v.string);
   if (!script_handler)
     {
-      mu_cfg_format_error (debug, MU_DEBUG_ERROR,
-			   _("unsupported language: %s"),
-			   val->v.string);
+      mu_error (_("unsupported language: %s"), val->v.string);
       return 1;
     }
   return 0;
 }
 
 static int
-cb_script_pattern (mu_debug_t debug, void *data, mu_config_value_t *val)
+cb_script_pattern (void *data, mu_config_value_t *val)
 {
-  if (mu_cfg_assert_value_type (val, MU_CFG_STRING, debug))
+  if (mu_cfg_assert_value_type (val, MU_CFG_STRING))
     return 1;
   
   switch (script_register (val->v.string))
@@ -400,14 +406,11 @@ cb_script_pattern (mu_debug_t debug, void *data, mu_config_value_t *val)
       break;
 
     case EINVAL:
-      mu_cfg_format_error (debug, MU_DEBUG_ERROR,
-			   _("%s has unknown file suffix"),
-			   val->v.string);
+      mu_error (_("%s has unknown file suffix"), val->v.string);
       break;
 
     default:
-      mu_cfg_format_error (debug, MU_DEBUG_ERROR,
-			   _("error registering script"));
+      mu_error (_("error registering script"));
     }
   return 0;
 }
@@ -421,7 +424,7 @@ struct mu_cfg_param filter_cfg_param[] = {
 };
 
 static int
-cb_delivery_mode (mu_debug_t debug, void *data, mu_config_value_t *val)
+cb_delivery_mode (void *data, mu_config_value_t *val)
 {
   static mu_kwd_t mode_tab[] = {
     { "mda", mode_mda },
@@ -431,15 +434,17 @@ cb_delivery_mode (mu_debug_t debug, void *data, mu_config_value_t *val)
   };
   int n;
   
-  if (mu_cfg_assert_value_type (val, MU_CFG_STRING, debug))
+  if (mu_cfg_assert_value_type (val, MU_CFG_STRING))
     return 1;
 
   if (mu_kwd_xlat_name (mode_tab, val->v.string, &n) == 0)
-    maidag_mode = n;
+    {
+      maidag_mode = n;
+      if (maidag_mode == mode_url)
+	mu_log_syslog = 0;
+    }
   else
-    mu_cfg_format_error (debug, MU_DEBUG_ERROR,
-			 _("%s is unknonw"),
-			 val->v.string);
+    mu_error (_("%s is unknonw"), val->v.string);
   return 0;
 }
 
@@ -475,7 +480,7 @@ struct mu_cfg_param maidag_cfg_param[] = {
        "  t - sieve trace (MU_SIEVE_DEBUG_TRACE)\n"
        "  i - sieve instructions trace (MU_SIEVE_DEBUG_INSTR)\n"
        "  l - sieve action logs\n") },
-  { "stderr", mu_cfg_bool, &log_to_stderr, 0, NULL,
+  { "stderr", mu_cfg_callback, NULL, 0, cb_stderr,
     N_("Log to stderr instead of syslog.") },
   { "forward-file", mu_cfg_string, &forward_file, 0, NULL,
     N_("Process forward file.") },
@@ -525,7 +530,6 @@ int
 main (int argc, char *argv[])
 {
   int arg_index;
-  mu_debug_t debug;
   maidag_delivery_fn delivery_fun = NULL;
   
   /* Preparative work: close inherited fds, force a reasonable umask
@@ -548,12 +552,6 @@ main (int argc, char *argv[])
   /* Register all supported mailbox and mailer formats */
   mu_register_all_formats ();
   mu_registrar_record (mu_smtp_record);
-
-  /* FIXME: These are for compatibility with MU 2.0.
-     Remove in 2.1 */
-  mu_registrar_record (mu_remote_smtp_record);
-  mu_registrar_record (mu_remote_sendmail_record);
-  mu_registrar_record (mu_remote_prog_record);
   
   mu_gocs_register ("sieve", mu_sieve_module_init);
 
@@ -574,29 +572,23 @@ main (int argc, char *argv[])
   mu_m_server_set_mode (server, MODE_INTERACTIVE);
   mu_m_server_set_max_children (server, 20);
   mu_m_server_set_timeout (server, 600);
+
+  mu_log_syslog = -1;
+  mu_log_print_severity = 1;
   
   if (mu_app_init (&argp, maidag_argp_capa, maidag_cfg_param, 
 		   argc, argv, 0, &arg_index, server))
     exit (EX_CONFIG);
 
   current_uid = getuid ();
-  
-  if (log_to_stderr == -1)
-    log_to_stderr = maidag_mode == mode_url;
-  
-  mu_diag_get_debug (&debug);
-  if (!log_to_stderr)
-    {
-      openlog (MU_LOG_TAG (), LOG_PID, mu_log_facility);
-      mu_debug_set_print (debug, mu_diag_syslog_printer, NULL);
-      mu_debug_default_printer = mu_debug_syslog_printer;
-    }
-  else
-    {
-      mu_debug_set_print (debug, mu_diag_stderr_printer, NULL);
-      mu_debug_default_printer = mu_debug_stderr_printer;
-    }
 
+  if (mu_log_syslog == -1)
+    {
+      mu_log_syslog = !(maidag_mode == mode_url);
+      mu_stdstream_strerr_setup (mu_log_syslog ?
+				 MU_STRERR_SYSLOG : MU_STRERR_STDERR);
+    }
+  
   argc -= arg_index;
   argv += arg_index;
 

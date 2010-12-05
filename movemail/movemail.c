@@ -178,7 +178,7 @@ static struct argp argp = {
 
 
 static int
-_cb_mailbox_ownership (mu_debug_t debug, const char *str)
+_cb_mailbox_ownership (const char *str)
 {
   if (strcmp (str, "clear") == 0)
     so_method_num = 0;
@@ -191,9 +191,7 @@ _cb_mailbox_ownership (mu_debug_t debug, const char *str)
 	  
       if (mu_kwd_xlat_name_len (method_kwd, str, len, &code))
 	{
-	  mu_cfg_format_error (debug, MU_DEBUG_ERROR, 
-			       _("invalid ownership method: %s"),
-			       str);
+	  mu_error (_("invalid ownership method: %s"), str);
 	  return 1;
 	}
       
@@ -208,9 +206,7 @@ _cb_mailbox_ownership (mu_debug_t debug, const char *str)
 	case set_owner_id:
 	  if (!str[len])
 	    {
-	      mu_cfg_format_error (debug, MU_DEBUG_ERROR, 
-				   _("ownership method %s requires value"),
-				   str);
+	      mu_error (_("ownership method %s requires value"), str);
 	      return 1;
 	    }
 	  str += len + 1;
@@ -223,17 +219,13 @@ _cb_mailbox_ownership (mu_debug_t debug, const char *str)
 		  meth->owner.id.gid = strtoul (str, &p, 0);
 		  if (*p)
 		    {
-		      mu_cfg_format_error (debug, MU_DEBUG_ERROR, 
-					   _("expected gid number, but found %s"),
-					   str);
+		      mu_error (_("expected gid number, but found %s"), str);
 		      return 1;
 		    }
 		}
 	      else
 		{
-		  mu_cfg_format_error (debug, MU_DEBUG_ERROR, 
-				       _("expected uid number, but found %s"),
-				       str);
+		  mu_error (_("expected uid number, but found %s"), str);
 		  return 1;
 		}
 	    }
@@ -244,9 +236,7 @@ _cb_mailbox_ownership (mu_debug_t debug, const char *str)
 	case set_owner_name:
 	  if (!str[len])
 	    {
-	      mu_cfg_format_error (debug, MU_DEBUG_ERROR, 
-				   _("ownership method %s requires value"),
-				   str);
+	      mu_error (_("ownership method %s requires value"), str);
 	      return 1;
 	    }
 	  meth->owner.name = mu_strdup (str + len + 1);
@@ -256,7 +246,7 @@ _cb_mailbox_ownership (mu_debug_t debug, const char *str)
 }
 
 static int
-cb_mailbox_ownership (mu_debug_t debug, void *data, mu_config_value_t *val)
+cb_mailbox_ownership (void *data, mu_config_value_t *val)
 {
   int i;
   
@@ -264,7 +254,7 @@ cb_mailbox_ownership (mu_debug_t debug, void *data, mu_config_value_t *val)
     {
       const char *str = val->v.string;
       if (!strchr (str, ','))
-	return _cb_mailbox_ownership (debug, str);
+	return _cb_mailbox_ownership (str);
       else
 	{
 	  struct mu_wordsplit ws;
@@ -272,28 +262,27 @@ cb_mailbox_ownership (mu_debug_t debug, void *data, mu_config_value_t *val)
 	  ws.ws_delim = ",";
 	  if (mu_wordsplit (str, &ws, MU_WRDSF_DEFFLAGS|MU_WRDSF_DELIM))
 	    {
-	      mu_cfg_format_error (debug, MU_DEBUG_ERROR, 
-				   _("cannot parse %s: %s"),
-				   str, mu_wordsplit_strerror (&ws));
+	      mu_error (_("cannot parse %s: %s"),
+			str, mu_wordsplit_strerror (&ws));
 	      return 1;
 	    }
 
 	  for (i = 0; i < ws.ws_wordc; i++)
-	    if (_cb_mailbox_ownership (debug, ws.ws_wordv[i]))
+	    if (_cb_mailbox_ownership (ws.ws_wordv[i]))
 	      return 1;
 	  mu_wordsplit_free (&ws);
 	  return 0;
 	}
     }
 		
-  if (mu_cfg_assert_value_type (val, MU_CFG_LIST, debug))
+  if (mu_cfg_assert_value_type (val, MU_CFG_LIST))
     return 1;
 
   for (i = 0; i < val->v.arg.c; i++)
     {
-      if (mu_cfg_assert_value_type (&val->v.arg.v[i], MU_CFG_STRING, debug))
+      if (mu_cfg_assert_value_type (&val->v.arg.v[i], MU_CFG_STRING))
 	return 1;
-      if (_cb_mailbox_ownership (debug, val->v.arg.v[i].v.string))
+      if (_cb_mailbox_ownership (val->v.arg.v[i].v.string))
 	return 1;
     }
   return 0;
@@ -782,11 +771,11 @@ main (int argc, char **argv)
     }
 
   if (emacs_mode)
-    {
+    {      
       /* Undo the effect of configuration options that may affect
 	 interaction with Emacs. */
       mu_registrar_set_default_record (mu_mbox_record);
-      mu_debug_default_printer = mu_debug_stderr_printer;
+      mu_stdstream_strerr_setup (MU_STRERR_STDERR);
     }
   
   atexit (close_mailboxes);

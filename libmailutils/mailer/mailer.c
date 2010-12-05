@@ -33,6 +33,7 @@
 #include <mailutils/cstr.h>
 #include <mailutils/address.h>
 #include <mailutils/debug.h>
+#include <mailutils/sys/debcat.h>
 #include <mailutils/errno.h>
 #include <mailutils/iterator.h>
 #include <mailutils/list.h>
@@ -90,19 +91,6 @@ mu_mailer_get_url_default (const char **url)
   return 0;
 }
 
-static void
-set_default_debug (mu_mailer_t mailer)
-{
-  mu_log_level_t level = mu_global_debug_level ("mailer");
-  if (level)
-    {
-      mu_debug_t debug;
-      if (mu_mailer_get_debug (mailer, &debug))
-	return;
-      mu_debug_set_level (debug, level);
-    }
-}
-
 int
 mu_mailer_create_from_url (mu_mailer_t *pmailer, mu_url_t url)
 {
@@ -149,7 +137,6 @@ mu_mailer_create_from_url (mu_mailer_t *pmailer, mu_url_t url)
 	  mailer->url = url;
 	  *pmailer = mailer;
 
-	  set_default_debug (mailer);
 	  return status;
 	}
     }
@@ -205,9 +192,6 @@ mu_mailer_destroy (mu_mailer_t * pmailer)
 
       if (mailer->url)
 	mu_url_destroy (&(mailer->url));
-
-      if (mailer->debug)
-	mu_debug_destroy (&(mailer->debug), mailer);
 
       if (mailer->property)
 	mu_property_destroy (&mailer->property);
@@ -382,9 +366,9 @@ _set_from (mu_address_t *pfrom, mu_message_t msg, mu_address_t from,
 
 	  /* Use the From: header. */
 	case 0:
-	  MU_DEBUG1 (mailer->debug, MU_DEBUG_TRACE,
-		     "mu_mailer_send_message(): using From: %s\n",
-		     mail_from);
+	  mu_debug (MU_DEBCAT_MAILER, MU_DEBUG_TRACE,
+		     ("mu_mailer_send_message(): using From: %s",
+		      mail_from));
 	  break;
 
 	case MU_ERR_NOENT:
@@ -396,14 +380,14 @@ _set_from (mu_address_t *pfrom, mu_message_t msg, mu_address_t from,
 	  mail_from = mu_get_user_email (NULL);
 
 	  if (mail_from)
-            MU_DEBUG1 (mailer->debug, MU_DEBUG_TRACE,
-		       "mu_mailer_send_message(): using user's address: %s\n",
-		       mail_from);
+            mu_debug (MU_DEBCAT_MAILER, MU_DEBUG_TRACE,
+		       ("mu_mailer_send_message(): using user's address: %s",
+			mail_from));
 	  else
 	    {
-	      MU_DEBUG (mailer->debug, MU_DEBUG_ERROR,
-			"mu_mailer_send_message(): "
-			"no user's address, failing\n");
+	      mu_debug (MU_DEBCAT_MAILER, MU_DEBUG_ERROR,
+			("mu_mailer_send_message(): "
+			 "no user's address, failing"));
 	      return errno;
 	    }
 	  /* FIXME: should we add the From: header? */
@@ -440,9 +424,9 @@ _set_to (mu_address_t *paddr, mu_message_t msg, mu_address_t to,
 	default:
 	  return status;
 	}
-      MU_DEBUG1 (mailer->debug, MU_DEBUG_TRACE,
-		 "mu_mailer_send_message(): using RCPT TO: %s\n",
-		 rcpt_to);
+      mu_debug (MU_DEBCAT_MAILER, MU_DEBUG_TRACE,
+		("mu_mailer_send_message(): using RCPT TO: %s",
+		 rcpt_to));
       status = mu_address_create (paddr, rcpt_to);
     }
   
@@ -737,33 +721,6 @@ mu_mailer_get_property (mu_mailer_t mailer, mu_property_t * pproperty)
 	return status;
     }
   *pproperty = mailer->property;
-  return 0;
-}
-
-int
-mu_mailer_set_debug (mu_mailer_t mailer, mu_debug_t debug)
-{
-  if (mailer == NULL)
-    return EINVAL;
-  mu_debug_destroy (&(mailer->debug), mailer);
-  mailer->debug = debug;
-  return 0;
-}
-
-int
-mu_mailer_get_debug (mu_mailer_t mailer, mu_debug_t * pdebug)
-{
-  if (mailer == NULL)
-    return EINVAL;
-  if (pdebug == NULL)
-    return MU_ERR_OUT_PTR_NULL;
-  if (mailer->debug == NULL)
-    {
-      int status = mu_debug_create (&(mailer->debug), mailer);
-      if (status != 0)
-	return status;
-    }
-  *pdebug = mailer->debug;
   return 0;
 }
 

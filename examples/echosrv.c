@@ -207,7 +207,7 @@ main (int argc, char **argv)
 	  break;
 	  
 	case 'd':
-	  mu_global_debug_from_string (optarg, "command line");
+	  mu_debug_parse_spec (optarg);
 	  break;
 
 	default:

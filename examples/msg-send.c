@@ -111,12 +111,8 @@ main (int argc, char *argv[])
   MU_ASSERT (mu_message_set_stream (msg, in, NULL));
   MU_ASSERT (mu_mailer_create (&mailer, optmailer));
 
-  if (optdebug)
-    {
-      mu_debug_t debug;
-      mu_mailer_get_debug (mailer, &debug);
-      mu_debug_set_level (debug, MU_DEBUG_LEVEL_UPTO (MU_DEBUG_PROT));
-    }
+  mu_debug_set_category_level (MU_DEBCAT_MAILER, 
+                               MU_DEBUG_LEVEL_UPTO (MU_DEBUG_PROT));
 
   MU_ASSERT (mu_mailer_open (mailer, 0));
 

@@ -163,7 +163,7 @@ mutool_acl (int argc, char **argv)
       const char *ap = *argv++;
 
       target_sa = parse_address (&target_salen, ap);
-      printf ("Testing %s:\n", ap);
+      mu_printf ("Testing %s:\n", ap);
       rc = mu_acl_check_sockaddr (acl, target_sa, target_salen, &result);
       if (rc)
 	{
@@ -174,15 +174,15 @@ mutool_acl (int argc, char **argv)
       switch (result)
 	{
 	case mu_acl_result_undefined:
-	  printf ("%s: undefined\n", ap);
+	  mu_printf ("%s: undefined\n", ap);
 	  break;
       
 	case mu_acl_result_accept:
-	  printf ("%s: accept\n", ap);
+	  mu_printf ("%s: accept\n", ap);
 	  break;
 
 	case mu_acl_result_deny:
-	  printf ("%s: deny\n", ap);
+	  mu_printf ("%s: deny\n", ap);
 	  break;
 	}
     }

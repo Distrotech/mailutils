@@ -109,9 +109,8 @@ sendmail_open (mu_mailer_t mailer, int flags)
 
   if (access (path, X_OK) == -1)
     return errno;
-  mu_progmailer_set_debug (pm, mailer->debug);
   status = mu_progmailer_set_command (pm, path);
-  MU_DEBUG1 (mailer->debug, MU_DEBUG_TRACE, "sendmail (%s)\n", path);
+  mu_debug (MU_DEBCAT_MAILER, MU_DEBUG_TRACE, ("sendmail (%sn", path));
   return status;
 }
 
@@ -155,18 +154,18 @@ sendmail_send_message (mu_mailer_t mailer, mu_message_t msg, mu_address_t from,
     {
       if ((status = mu_address_sget_email (from, 1, &emailfrom)) != 0)
 	{
-	  MU_DEBUG1 (mailer->debug, MU_DEBUG_ERROR,
-		     "cannot get recipient email: %s\n",
-		     mu_strerror (status));
+	  mu_debug (MU_DEBCAT_MAILER, MU_DEBUG_ERROR,
+		    ("cannot get recipient email: %s",
+		     mu_strerror (status)));
 	  return status;
 	}
 
       if (!emailfrom)
 	{
 	  /* the address wasn't fully qualified, choke (for now) */
-	  MU_DEBUG1 (mailer->debug, MU_DEBUG_TRACE,
-		     "envelope from (%s) not fully qualifed\n",
-		     emailfrom);
+	  mu_debug (MU_DEBCAT_MAILER, MU_DEBUG_TRACE,
+		    ("envelope from (%s) not fully qualifed\n",
+		     emailfrom));
 	  return MU_ERR_BAD_822_FORMAT;
 	}
 
@@ -181,8 +180,7 @@ sendmail_send_message (mu_mailer_t mailer, mu_message_t msg, mu_address_t from,
 
       if (tocount == 0)
 	{
-	  MU_DEBUG (mailer->debug, MU_DEBUG_TRACE,
-		    "missing recipients\n");
+	  mu_debug (MU_DEBCAT_MAILER, MU_DEBUG_TRACE, ("missing recipients"));
 	  return MU_ERR_NOENT;
 	}
       
@@ -229,17 +227,17 @@ sendmail_send_message (mu_mailer_t mailer, mu_message_t msg, mu_address_t from,
 	  if ((status = mu_address_sget_email (to, i, &email)) != 0)
 	    {
 	      free (argvec);
-	      MU_DEBUG2 (mailer->debug, MU_DEBUG_ERROR,
-			 "cannot get email of recipient #%lu: %s\n",
-			 (unsigned long) i, mu_strerror (status));
+	      mu_debug (MU_DEBCAT_MAILER, MU_DEBUG_ERROR,
+			("cannot get email of recipient #%lu: %s",
+			 (unsigned long) i, mu_strerror (status)));
 	      return status;
 	    }
 	  
 	  if (!email)
 	    {
-	      MU_DEBUG1 (mailer->debug, MU_DEBUG_TRACE,
-			 "envelope to (%s) not fully qualifed\n",
-			 email);
+	      mu_debug (MU_DEBCAT_MAILER, MU_DEBUG_TRACE,
+			("envelope to (%s) not fully qualifed",
+			 email));
 	      free (argvec);
 	      return MU_ERR_BAD_822_FORMAT;
 	    }
@@ -248,7 +246,6 @@ sendmail_send_message (mu_mailer_t mailer, mu_message_t msg, mu_address_t from,
     }
   argvec[argc] = NULL;
   
-  mu_progmailer_set_debug (pm, mailer->debug);
   status = mu_progmailer_open (pm, (char**) argvec);
   if (status == 0)
     {
@@ -257,9 +254,8 @@ sendmail_send_message (mu_mailer_t mailer, mu_message_t msg, mu_address_t from,
 	  mu_observable_notify (mailer->observable, MU_EVT_MAILER_MESSAGE_SENT,
 				msg);
       else
-	MU_DEBUG1 (mailer->debug, MU_DEBUG_ERROR,
-		   "progmailer error: %s\n",
-		   mu_strerror (status));
+	mu_debug (MU_DEBCAT_MAILER, MU_DEBUG_ERROR,
+		  ("progmailer error: %s", mu_strerror (status)));
     }
   
   free (argvec);

@@ -47,7 +47,6 @@ struct _mu_progmailer
   int fd;
   pid_t pid;
   RETSIGTYPE (*sighandler)();
-  mu_debug_t debug;
   char *command;
 };
 
@@ -63,7 +62,6 @@ mu_progmailer_create (struct _mu_progmailer **ppm)
   pm->fd = -1;
   pm->pid = -1;
   pm->sighandler = SIG_ERR;
-  pm->debug = NULL;
   pm->command = NULL;
   *ppm = pm;
   return 0;
@@ -95,15 +93,6 @@ mu_progmailer_sget_command (mu_progmailer_t pm, const char **command)
   return 0;
 }
 
-int
-mu_progmailer_set_debug (mu_progmailer_t pm, mu_debug_t debug)
-{
-  if (!pm)
-    return EINVAL;
-  pm->debug = debug;
-  return 0;
-}
-
 void
 mu_progmailer_destroy (struct _mu_progmailer **ppm)
 {
@@ -128,8 +117,8 @@ mu_progmailer_open (struct _mu_progmailer *pm, char **argv)
   if ((pm->sighandler = signal (SIGCHLD, SIG_DFL)) == SIG_ERR)
     {
       status = errno;
-      MU_DEBUG1 (pm->debug, MU_DEBUG_ERROR,
-		 "setting SIGCHLD failed: %s\n", mu_strerror (status));
+      mu_debug (MU_DEBCAT_MAILER, MU_DEBUG_ERROR,
+		("setting SIGCHLD failed: %s", mu_strerror (status)));
       return status;
     }
       
@@ -150,20 +139,23 @@ mu_progmailer_open (struct _mu_progmailer *pm, char **argv)
       else if (pm->pid == -1)
 	{
 	  status = errno;
-	  MU_DEBUG1 (pm->debug, MU_DEBUG_ERROR,
-		     "fork failed: %s\n", mu_strerror (status));
+	  mu_debug (MU_DEBCAT_MAILER, MU_DEBUG_ERROR,
+		    ("fork failed: %s", mu_strerror (status)));
 	}
     }
   else
     {
       status = errno;
-      MU_DEBUG1 (pm->debug, MU_DEBUG_ERROR,
-		 "pipe() failed: %s\n", mu_strerror (status));
+      mu_debug (MU_DEBCAT_MAILER, MU_DEBUG_ERROR,
+		("pipe() failed: %s\n", mu_strerror (status)));
     }
-  MU_DEBUG1 (pm->debug, MU_DEBUG_TRACE, "exec %s argv:", pm->command);
-  for (i = 0; argv[i]; i++)
-    MU_DEBUG1 (pm->debug, MU_DEBUG_TRACE, " %s", argv[i]);
-  MU_DEBUG (pm->debug, MU_DEBUG_TRACE, "\n");
+  if (mu_debug_level_p (MU_DEBCAT_MAILER, 10))
+    {
+      mu_debug_log_begin ("exec %s argv:", pm->command);
+      for (i = 0; argv[i]; i++)
+        mu_debug_log_cont (" %s", argv[i]);
+      mu_debug_log_end ("");
+    }
   close (tunnel[0]);
 
   if (status != 0)
@@ -190,11 +182,11 @@ mu_progmailer_send (struct _mu_progmailer *pm, mu_message_t msg)
   status = mu_header_get_streamref (hdr, &stream);
   if (status)
     {
-      MU_DEBUG1 (pm->debug, MU_DEBUG_ERROR,
-		 "cannot get header stream: %s\n", mu_strerror (status));
+      mu_debug (MU_DEBCAT_MAILER, MU_DEBUG_ERROR,
+		("cannot get header stream: %s", mu_strerror (status)));
       return status;
     }
-  MU_DEBUG (pm->debug, MU_DEBUG_TRACE, "Sending headers...\n");
+  mu_debug (MU_DEBCAT_MAILER, MU_DEBUG_TRACE, ("Sending headers..."));
   mu_stream_seek (stream, 0, MU_SEEK_SET, NULL);
   while ((status = mu_stream_readline (stream, buffer, sizeof (buffer),
 				       &len)) == 0
@@ -202,13 +194,13 @@ mu_progmailer_send (struct _mu_progmailer *pm, mu_message_t msg)
     {
       if (mu_c_strncasecmp (buffer, MU_HEADER_FCC, sizeof (MU_HEADER_FCC) - 1))
 	{
-	  MU_DEBUG1 (pm->debug, MU_DEBUG_PROT, "Header: %s", buffer);
+	  mu_debug (MU_DEBCAT_MAILER, MU_DEBUG_PROT, ("Header: %s", buffer));
 	  if (write (pm->fd, buffer, len) == -1)
 	    {
 	      status = errno;
 	      
-	      MU_DEBUG1 (pm->debug, MU_DEBUG_TRACE,
-			 "write failed: %s\n", strerror (status));
+	      mu_debug (MU_DEBCAT_MAILER, MU_DEBUG_ERROR,
+			("write failed: %s", strerror (status)));
 	      break;
 	    }
 	}
@@ -221,19 +213,19 @@ mu_progmailer_send (struct _mu_progmailer *pm, mu_message_t msg)
 	{
 	  status = errno;
 		
-	  MU_DEBUG1 (pm->debug, MU_DEBUG_TRACE,
-		     "write failed: %s\n", strerror (status));
+	  mu_debug (MU_DEBCAT_MAILER, MU_DEBUG_ERROR,
+		    ("write failed: %s", strerror (status)));
 	}
     }
   mu_stream_destroy (&stream);
   
-  MU_DEBUG (pm->debug, MU_DEBUG_TRACE, "Sending body...\n");
+  mu_debug (MU_DEBCAT_MAILER, MU_DEBUG_TRACE, ("Sending body..."));
   mu_message_get_body (msg, &body);
   status = mu_body_get_streamref (body, &stream);
   if (status)
     {
-      MU_DEBUG1 (pm->debug, MU_DEBUG_ERROR,
-		 "cannot get body stream: %s\n", mu_strerror (status));
+      mu_debug (MU_DEBCAT_MAILER, MU_DEBUG_ERROR,
+		("cannot get body stream: %s\n", mu_strerror (status)));
       return status;
     }
 
@@ -246,8 +238,8 @@ mu_progmailer_send (struct _mu_progmailer *pm, mu_message_t msg)
 	{
 	  status = errno;
 	  
-	  MU_DEBUG1 (pm->debug, MU_DEBUG_TRACE,
-		     "write failed: %s\n", strerror (status));
+	  mu_debug (MU_DEBCAT_MAILER, MU_DEBUG_ERROR,
+		    ("write failed: %s\n", strerror (status)));
 	  break;
 	}
     }
@@ -265,17 +257,17 @@ mu_progmailer_send (struct _mu_progmailer *pm, mu_message_t msg)
 	  else
 	    { 
 	      status = errno;
-	      MU_DEBUG2 (pm->debug, MU_DEBUG_TRACE,
-			 "waitpid(%lu) failed: %s\n",
-			 (unsigned long) pm->pid, strerror (status));
+	      mu_debug (MU_DEBCAT_MAILER, MU_DEBUG_ERROR,
+			("waitpid(%lu) failed: %s\n",
+			 (unsigned long) pm->pid, strerror (status)));
 	    }
 	}
       else if (WIFEXITED (exit_status))
 	{
 	  exit_status = WEXITSTATUS (exit_status);
-	  MU_DEBUG2 (pm->debug, MU_DEBUG_TRACE,
-		     "%s exited with: %d\n",
-		     pm->command, exit_status);
+	  mu_debug (MU_DEBCAT_MAILER, MU_DEBUG_TRACE,
+		    ("%s exited with: %d\n",
+		     pm->command, exit_status));
 	  status = (exit_status == 0) ? 0 : MU_ERR_PROCESS_EXITED;
 	}
       else if (WIFSIGNALED (exit_status))
@@ -305,8 +297,8 @@ mu_progmailer_close (struct _mu_progmailer *pm)
       && signal (SIGCHLD, pm->sighandler) == SIG_ERR)
     {
       status = errno;
-      MU_DEBUG1 (pm->debug, MU_DEBUG_ERROR,
-		 "resetting SIGCHLD failed: %s\n", mu_strerror (status));
+      mu_debug (MU_DEBCAT_MAILER, MU_DEBUG_ERROR,
+		("resetting SIGCHLD failed: %s\n", mu_strerror (status)));
     }
   pm->sighandler = SIG_ERR;
   return status;

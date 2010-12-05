@@ -391,9 +391,7 @@ send_message (mu_message_t msg)
 	    {
 	      if (mailvar_get (NULL, "verbose", mailvar_type_boolean, 0) == 0)
 		{
-		  mu_debug_t debug = NULL;
-		  mu_mailer_get_debug (mailer, &debug);
-		  mu_debug_set_level (debug,
+		  mu_debug_set_category_level (MU_DEBCAT_MAILER,
 				      MU_DEBUG_LEVEL_UPTO (MU_DEBUG_PROT));
 		}
 	      status = mu_mailer_open (mailer, MU_STREAM_RDWR);

@@ -186,8 +186,7 @@ extern int mu_message_aget_decoded_attachment_name (mu_message_t msg,
 						    char **name,
 						    char **plang);
 
-extern int mu_message_save_to_mailbox (mu_message_t msg, 
-				       mu_debug_t debug, const char *toname,
+extern int mu_message_save_to_mailbox (mu_message_t msg, const char *toname,
 				       int perms);
 
 
