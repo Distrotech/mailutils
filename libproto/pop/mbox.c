@@ -151,11 +151,11 @@ pop_open (mu_mailbox_t mbox, int flags)
     }
   mu_pop3_set_carrier (mpd->pop3, stream);
 
-  if (mu_debug_check_level (mbox->debug, MU_DEBUG_PROT))
+  if (mu_debug_level_p (MU_DEBCAT_MAILBOX, MU_DEBUG_PROT))
     mu_pop3_trace (mpd->pop3, MU_POP3_TRACE_SET);
-  if (mu_debug_check_level (mbox->debug, MU_DEBUG_TRACE6))
+  if (mu_debug_level_p (MU_DEBCAT_MAILBOX, MU_DEBUG_TRACE6))
     mu_pop3_trace_mask (mpd->pop3, MU_POP3_TRACE_SET, MU_XSCRIPT_SECURE);
-  if (mu_debug_check_level (mbox->debug, MU_DEBUG_TRACE7))
+  if (mu_debug_level_p (MU_DEBCAT_MAILBOX, MU_DEBUG_TRACE7))
     mu_pop3_trace_mask (mpd->pop3, MU_POP3_TRACE_SET, MU_XSCRIPT_PAYLOAD);
     
   do

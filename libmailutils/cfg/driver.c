@@ -463,7 +463,7 @@ struct include_data
 };
 
 static int
-_cb_include (mu_debug_t debug, void *data, mu_config_value_t *val)
+_cb_include (void *data, mu_config_value_t *val)
 {
   int ret = 0;
   struct stat sb;
@@ -471,7 +471,7 @@ _cb_include (mu_debug_t debug, void *data, mu_config_value_t *val)
   struct include_data *idp = data;
   char *tmp = NULL;
 
-  if (mu_cfg_assert_value_type (val, MU_CFG_STRING, debug))
+  if (mu_cfg_assert_value_type (val, MU_CFG_STRING))
     return 1;
 
   dirname = val->v.string;
@@ -500,15 +500,13 @@ _cb_include (mu_debug_t debug, void *data, mu_config_value_t *val)
     }
   else if (errno == ENOENT)
     {
-      mu_cfg_format_error (debug, MU_DEBUG_ERROR,
-			   _("include file or directory does not exist"));
+      mu_error (_("include file or directory does not exist"));
       ret = 1;
     }
   else
     {
-      mu_cfg_format_error (debug, MU_DEBUG_ERROR,
-			   _("cannot stat include file or directory: %s"),
-			   mu_strerror (errno));
+      mu_error (_("cannot stat include file or directory: %s"),
+		mu_strerror (errno));
       ret = 1;
     }
   free (tmp);
@@ -672,12 +670,11 @@ _first_value_ptr (mu_config_value_t *val)
 }
 
 int
-mu_cfg_assert_value_type (mu_config_value_t *val, int type, mu_debug_t debug)
+mu_cfg_assert_value_type (mu_config_value_t *val, int type)
 {
   if (!val)
     { 
-      mu_cfg_format_error (debug, MU_DEBUG_ERROR,
-                           _("required argument missing"));
+      mu_error (_("required argument missing"));
       return 1;
     }
 
@@ -696,17 +693,15 @@ mu_cfg_assert_value_type (mu_config_value_t *val, int type, mu_debug_t debug)
   if (val->type != type)
     {
       /* FIXME */
-      mu_cfg_format_error (debug, MU_DEBUG_ERROR,
-			   _("unexpected value: %s"), 
-			   _first_value_ptr (val));
+      mu_error (_("unexpected value: %s"), _first_value_ptr (val));
       return 1;
     }
   return 0;
 }
 
 int
-mu_cfg_string_value_cb (mu_debug_t debug, mu_config_value_t *val,
-			int (*fun) (mu_debug_t, const char *, void *),
+mu_cfg_string_value_cb (mu_config_value_t *val,
+			int (*fun) (const char *, void *),
 			void *data)
 {
   int rc = 0;
@@ -714,7 +709,7 @@ mu_cfg_string_value_cb (mu_debug_t debug, mu_config_value_t *val,
   switch (val->type)
     {
     case MU_CFG_STRING:
-      return fun (debug, val->v.string, data);
+      return fun (val->v.string, data);
       break;
 
     case MU_CFG_ARRAY:
@@ -724,9 +719,9 @@ mu_cfg_string_value_cb (mu_debug_t debug, mu_config_value_t *val,
 	for (i = 0; i < val->v.arg.c; i++)
 	  {
 	    if (mu_cfg_assert_value_type (&val->v.arg.v[i],
-					  MU_CFG_STRING, debug))
+					  MU_CFG_STRING))
 	      return 1;
-	    fun (debug, val->v.arg.v[i].v.string, data);
+	    fun (val->v.arg.v[i].v.string, data);
 	  }
       }
       break;
@@ -740,12 +735,12 @@ mu_cfg_string_value_cb (mu_debug_t debug, mu_config_value_t *val,
 	  {
 	    mu_config_value_t *pval;
 	    mu_iterator_current (itr, (void*) &pval);
-	    if (mu_cfg_assert_value_type (pval, MU_CFG_STRING, debug))
+	    if (mu_cfg_assert_value_type (pval, MU_CFG_STRING))
 	      {
 		rc = 1;
 		break;
 	      }
-	    fun (debug, pval->v.string, data);
+	    fun (pval->v.string, data);
 	  }
 	mu_iterator_destroy (&itr);
       }

@@ -68,7 +68,7 @@ maidag_error (const char *fmt, ...)
 
   guess_retval (errno);
   va_start (ap, fmt);
-  if (log_to_stderr)
+  if (!mu_log_syslog)
     {
       vfprintf (stderr, fmt, ap);
       fputc ('\n', stderr);

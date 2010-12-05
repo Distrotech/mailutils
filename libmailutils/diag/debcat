@@ -1,4 +1,4 @@
-# GNU Mailutils -- a suite of utilities for electronic mail
+# List of default debug categories for GNU Mailutils.
 # Copyright (C) 2010 Free Software Foundation, Inc.
 #
 # This library is free software; you can redistribute it and/or
@@ -15,29 +15,29 @@
 # Public License along with this library.  If not, see
 # <http://www.gnu.org/licenses/>.
 
-noinst_LTLIBRARIES = libstream.la
-
-libstream_la_SOURCES = \
- file_stream.c\
- fltstream.c\
- iostream.c\
- logstream.c\
- mapfile_stream.c\
- memory_stream.c\
- message_stream.c\
- nullstream.c\
- prog_stream.c\
- rdcache_stream.c\
- socket_stream.c\
- stdio_stream.c\
- stream.c\
- stream_printf.c\
- stream_vprintf.c\
- streamcpy.c\
- streamref.c\
- syslogstream.c\
- tcp.c\
- temp_file_stream.c\
- xscript-stream.c
-
-INCLUDES = @MU_LIB_COMMON_INCLUDES@ -I/libmailutils
+address
+attribute
+auth
+body
+config
+envelope
+filter
+folder
+header
+iterator
+list
+locker
+mailbox
+mailer
+message
+mime
+mailcap
+property
+remote
+stream
+ticket
+url
+wicket
+assoc
+acl
+server

@@ -366,7 +366,7 @@ sieve_check_source_changed ()
   if (sieve_source_changed)
     {
       sieve_source_changed = 0;
-      return mu_sv_code_source (mu_sieve_locus.source_file);
+      return mu_sv_code_source (mu_sieve_locus.mu_file);
     }
   return 0;
 }
@@ -375,7 +375,7 @@ int
 mu_sv_code_action (mu_sieve_register_t *reg, mu_list_t arglist)
 {
   return sieve_check_source_changed ()
-         || mu_sv_code_line (mu_sieve_locus.source_line)
+         || mu_sv_code_line (mu_sieve_locus.mu_line)
          || mu_sv_code_instr (_mu_sv_instr_action)
          || mu_sv_code_command (reg, arglist);
 }
@@ -384,7 +384,7 @@ int
 mu_sv_code_test (mu_sieve_register_t *reg, mu_list_t arglist)
 {
   return sieve_check_source_changed ()
-         || mu_sv_code_line (mu_sieve_locus.source_line)
+         || mu_sv_code_line (mu_sieve_locus.mu_line)
          || mu_sv_code_instr (_mu_sv_instr_test)
          || mu_sv_code_command (reg, arglist);
 }

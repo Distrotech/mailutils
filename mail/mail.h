@@ -81,6 +81,7 @@
 #include <mailutils/cctype.h>
 #include <mailutils/cstr.h>
 #include <mailutils/io.h>
+#include <mailutils/stdstream.h>
 
 #ifdef __cplusplus
 extern "C" {

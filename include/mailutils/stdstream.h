@@ -37,7 +37,9 @@ void mu_stdstream_setup (void);
 int mu_stdstream_strerr_create (mu_stream_t *str, int type, int facility,
 				int priority, const char *tag,
 				const char *fname);
-int mu_printf (const char *fmt, ...);
+int mu_stdstream_strerr_setup (int type);
+  
+int mu_printf (const char *fmt, ...) MU_PRINTFLIKE(1,2);
   
 #ifdef __cplusplus
 }

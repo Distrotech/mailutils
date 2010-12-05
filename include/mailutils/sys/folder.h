@@ -37,7 +37,6 @@ struct _mu_folder
   /* Data */
   mu_authority_t authority;
   mu_observable_t observable;
-  mu_debug_t debug;
   mu_property_t property;
   mu_stream_t stream;
   mu_monitor_t monitor;

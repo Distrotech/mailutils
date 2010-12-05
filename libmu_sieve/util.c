@@ -186,16 +186,19 @@ mu_sieve_value_get (mu_list_t vlist, size_t index)
 }
 
 void
-mu_sv_compile_error (mu_sieve_locus_t *ploc, const char *fmt, ...)
+mu_sv_compile_error (struct mu_locus *ploc, const char *fmt, ...)
 {
   va_list ap;
 
   va_start (ap, fmt);
   mu_sieve_error_count++;
-  mu_sieve_machine->parse_error_printer (mu_sieve_machine->data,
-				         ploc->source_file,
-				         ploc->source_line,
-                                         fmt, ap);
+  mu_stream_ioctl (mu_sieve_machine->errstream, MU_IOCTL_LOGSTREAM_SET_LOCUS,
+		   ploc);
+  mu_stream_printf (mu_sieve_machine->errstream,
+		    "\033s<%d>\033O<%d>",
+		    MU_LOG_ERROR, MU_LOGMODE_LOCUS);
+  mu_stream_vprintf (mu_sieve_machine->errstream, fmt, ap);
+  mu_stream_write (mu_sieve_machine->errstream, "\n", 1, NULL);
   va_end (ap);
 }
 
@@ -205,23 +208,12 @@ mu_sieve_error (mu_sieve_machine_t mach, const char *fmt, ...)
   va_list ap;
   
   va_start (ap, fmt);
+  mu_stream_printf (mach->errstream, "\033s<%d>\033O<%d>",
+		    MU_LOG_ERROR, MU_LOGMODE_LOCUS);
   if (mach->identifier)
-    {
-      char *new_fmt = malloc (strlen (mach->identifier) + 2 +
-			      strlen (fmt) + 1);
-      if (new_fmt)
-	{
-	  strcpy (new_fmt, mach->identifier);
-	  strcat (new_fmt, ": ");
-	  strcat (new_fmt, fmt);
-	  mach->error_printer (mach->data, new_fmt, ap);
-	  free (new_fmt);
-	}
-      else
-	mach->error_printer (mach->data, fmt, ap);
-    }
-  else
-    mach->error_printer (mach->data, fmt, ap);
+    mu_stream_printf (mach->errstream, "%s: ", mach->identifier);
+  mu_stream_printf (mach->errstream, fmt, ap);
+  mu_stream_write (mach->errstream, "\n", 1, NULL);
   va_end (ap);
 }
 
@@ -231,27 +223,17 @@ mu_sieve_arg_error (mu_sieve_machine_t mach, int n)
   mu_sieve_error (mach, _("cannot retrieve argument %d"), n);
 }
 
-static void sieve_debug_internal (mu_sieve_printf_t printer, void *data,
-				  const char *fmt, ...) MU_PRINTFLIKE(3,4);
-
-static void
-sieve_debug_internal (mu_sieve_printf_t printer, void *data,
-                      const char *fmt, ...)
-{
-  va_list ap;
-
-  va_start (ap, fmt);
-  printer (data, fmt, ap);
-  va_end (ap);
-}
-
 void
 mu_sieve_debug (mu_sieve_machine_t mach, const char *fmt, ...)
 {
   va_list ap;
 
   va_start (ap, fmt);
-  mach->debug_printer (mach->data, fmt, ap);
+  mu_stream_printf (mach->errstream,
+		    "\033s<%d>\033O<%d>",
+		    MU_LOG_DEBUG, MU_LOGMODE_LOCUS);
+  mu_stream_vprintf (mach->errstream, fmt, ap);
+  mu_stream_write (mach->errstream, "\n", 1, NULL);
   va_end (ap);
 }
 
@@ -260,11 +242,11 @@ mu_sieve_log_action (mu_sieve_machine_t mach, const char *action,
 		     const char *fmt, ...)
 {
   va_list ap;
-
+  
   if (!mach->logger)
     return;
   va_start (ap, fmt);
-  mach->logger (mach->data, &mach->locus, mach->msgno, mach->msg,
+  mach->logger (mach->data, mach->errstream, mach->msgno, mach->msg,
 		action, fmt, ap);
   va_end (ap);
 }
@@ -302,100 +284,92 @@ mu_sieve_type_str (mu_sieve_data_type type)
   return "unknown";
 }
 
-struct debug_data {
-  mu_sieve_printf_t printer;
-  void *data;
-};
-
 static int
-string_printer (char *s, struct debug_data *dbg)
+string_printer (void *item, void *data)
 {
-  sieve_debug_internal (dbg->printer, dbg->data, "\"%s\" ", s);
+  char *s = item;
+  mu_stream_t str = data;
+
+  mu_stream_printf (str, "\"%s\" ", s);
   return 0;
 }
 
-static void sieve_print_value (mu_sieve_value_t *, mu_sieve_printf_t,
-			       void *);
+static void sieve_print_value (mu_sieve_value_t *, mu_stream_t str);
 
 static int
-value_printer (mu_sieve_value_t *val, struct debug_data *dbg)
+value_printer (void *item, void *data)
 {
-  sieve_print_value (val, dbg->printer, dbg->data);
-  sieve_debug_internal (dbg->printer, dbg->data, " ");
+  mu_sieve_value_t *val = item;
+  mu_stream_t str = data;
+  
+  sieve_print_value (val, str);
+  mu_stream_printf (str, " ");
   return 0;
 }
 
 static void
-sieve_print_value (mu_sieve_value_t *val, mu_sieve_printf_t printer,
-		   void *data)
+sieve_print_value (mu_sieve_value_t *val, mu_stream_t str)
 {
-  struct debug_data dbg;
-
-  dbg.printer = printer;
-  dbg.data = data;
-
-  sieve_debug_internal (printer, data, "%s(", mu_sieve_type_str (val->type));
+  mu_stream_printf (str, "%s(", mu_sieve_type_str (val->type));
   switch (val->type)
     {
     case SVT_VOID:
       break;
       
     case SVT_NUMBER:
-      sieve_debug_internal (printer, data, "%lu",
-			    (unsigned long) val->v.number);
+      mu_stream_printf (str, "%lu", (unsigned long) val->v.number);
       break;
       
     case SVT_TAG:
     case SVT_IDENT:
     case SVT_STRING:
-      sieve_debug_internal (printer, data, "%s", val->v.string);
+      mu_stream_printf (str, "%s", val->v.string);
       break;
       
     case SVT_STRING_LIST:
-      mu_list_do (val->v.list, (mu_list_action_t*) string_printer, &dbg);
+      mu_list_do (val->v.list, string_printer, str);
       break;
 
     case SVT_VALUE_LIST:
-      mu_list_do (val->v.list, (mu_list_action_t*) value_printer, &dbg);
+      mu_list_do (val->v.list, value_printer, str);
 
     case SVT_POINTER:
-      sieve_debug_internal (printer, data, "%p", val->v.ptr);
+      mu_stream_printf (str, "%p", val->v.ptr);
     }
-  sieve_debug_internal (printer, data, ")");
+  mu_stream_printf (str, ")");
 } 
 
 void
-mu_sv_print_value_list (mu_list_t list, mu_sieve_printf_t printer, void *data)
+mu_sv_print_value_list (mu_list_t list, mu_stream_t str)
 {
   mu_sieve_value_t val;
   
   val.type = SVT_VALUE_LIST;
   val.v.list = list;
-  sieve_print_value (&val, printer, data);
+  sieve_print_value (&val, str);
 }
 
 static int
-tag_printer (mu_sieve_runtime_tag_t *val, struct debug_data *dbg)
+tag_printer (void *item, void *data)
 {
-  sieve_debug_internal (dbg->printer, dbg->data, "%s", val->tag);
+  mu_sieve_runtime_tag_t *val = item;
+  mu_stream_t str = data;
+  
+  mu_stream_printf (str, "%s", val->tag);
   if (val->arg)
     {
-      sieve_debug_internal (dbg->printer, dbg->data, "(");
-      sieve_print_value (val->arg, dbg->printer, dbg->data);
-      sieve_debug_internal (dbg->printer, dbg->data, ")");
+      mu_stream_printf (str, "(");
+      sieve_print_value (val->arg, str);
+      mu_stream_printf (str, ")");
     }
-  sieve_debug_internal (dbg->printer, dbg->data, " ");
+  mu_stream_printf (str, " ");
   return 0;
 }
 
 void
-mu_sv_print_tag_list (mu_list_t list, mu_sieve_printf_t printer, void *data)
+mu_sv_print_tag_list (mu_list_t list, mu_stream_t str)
 {
-  struct debug_data dbg;
-
-  dbg.printer = printer;
-  dbg.data = data;
-  mu_list_do (list, (mu_list_action_t*) tag_printer, &dbg);
+  mu_list_do (list, tag_printer, str);
 }
 
 static int

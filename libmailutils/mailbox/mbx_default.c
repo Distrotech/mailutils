@@ -350,8 +350,8 @@ attach_auth_ticket (mu_mailbox_t mbox)
       mu_wicket_t wicket;
       int rc;
   
-      MU_DEBUG1 (mbox->debug, MU_DEBUG_TRACE1,
-		 "Reading user ticket file %s\n", filename);
+      mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_TRACE1,
+		("Reading user ticket file %s", filename));
       if ((rc = mu_file_wicket_create (&wicket, filename)) == 0)
 	{
 	  mu_ticket_t ticket;
@@ -359,18 +359,18 @@ attach_auth_ticket (mu_mailbox_t mbox)
 	  if ((rc = mu_wicket_get_ticket (wicket, NULL, &ticket)) == 0)
 	    {
 	      rc = mu_authority_set_ticket (auth, ticket);
-	      MU_DEBUG1 (mbox->debug, MU_DEBUG_TRACE1,
-			 "Retrieved and set ticket: %d\n", rc);
+	      mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_TRACE1,
+			("Retrieved and set ticket: %d", rc));
 	    }
 	  else
-	    MU_DEBUG1 (mbox->debug, MU_DEBUG_ERROR,
-		       "Error retrieving ticket: %s\n",
-		       mu_strerror (rc));
+	    mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR,
+		      ("Error retrieving ticket: %s\n",
+		       mu_strerror (rc)));
 	  mu_wicket_destroy (&wicket);
 	}
       else
-	MU_DEBUG1 (mbox->debug, MU_DEBUG_ERROR,
-		   "Error creating wicket: %s\n", mu_strerror (rc));
+        mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR,
+		  ("Error creating wicket: %s\n", mu_strerror (rc)));
       free (filename);
     }
 }

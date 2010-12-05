@@ -20,16 +20,14 @@ noinst_LTLIBRARIES = libdiag.la
 libdiag_la_SOURCES = \
  debug.c\
  diag.c\
- gdebug.c\
  muerror.c\
  muerrno.c\
- syslog.c\
- dbgstderr.c\
- dbgsyslog.c
+ syslog.c
 
 INCLUDES = @MU_LIB_COMMON_INCLUDES@ -I/libmailutils
 
 EXTRA_DIST = \
+ debcat\
  errors\
  muerrno.cin
 

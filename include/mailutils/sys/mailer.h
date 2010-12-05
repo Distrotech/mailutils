@@ -37,7 +37,6 @@ struct _mu_mailer
 {
   mu_stream_t stream;
   mu_observable_t observable;
-  mu_debug_t debug;
   mu_url_t url;
   int flags;
   mu_monitor_t monitor;

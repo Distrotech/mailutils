@@ -107,6 +107,17 @@ enum mu_buffer_type
 #define MU_IOCTL_LOGSTREAM_GET_MODE     22
 #define MU_IOCTL_LOGSTREAM_SET_MODE     23
 
+  /* Advance locus line.
+     Arg: NULL (increment by 1)
+          int *
+  */
+#define MU_LOGSTREAM_ADVANCE_LOCUS_LINE 24
+  /* Advance locus column.
+     Arg: NULL (increment by 1)
+          int *
+  */
+#define MU_LOGSTREAM_ADVANCE_LOCUS_COL  25
+  
 #define MU_TRANSPORT_INPUT  0
 #define MU_TRANSPORT_OUTPUT 1
 #define MU_TRANSPORT_VALID_TYPE(n) \
@@ -257,8 +268,7 @@ int mu_xscript_stream_create(mu_stream_t *pref, mu_stream_t transport,
 			     const char *prefix[]);
 
 int mu_iostream_create (mu_stream_t *pref, mu_stream_t in, mu_stream_t out);
-int mu_dbgstream_create(mu_stream_t *pref, mu_debug_t debug,
-			mu_log_level_t level, int flags);
+int mu_dbgstream_create(mu_stream_t *pref, int severity);
 
 int mu_rdcache_stream_create (mu_stream_t *pstream, mu_stream_t transport,
 			      int flags);

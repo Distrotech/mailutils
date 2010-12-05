@@ -286,7 +286,7 @@ _sieve_debug_printer (void *data, const char *fmt, va_list ap)
 }
 
 static void
-_sieve_action_printer (void *data, const mu_sieve_locus_t *locus,
+_sieve_action_printer (void *data, const struct mu_locus *locus,
 		       size_t msgno, mu_message_t msg,
 		       const char *action, const char *fmt, va_list ap)
 {

@@ -76,11 +76,6 @@ extern int mu_folder_get_match (mu_folder_t folder,
   /* Notifications.  */
 extern int  mu_folder_get_observable (mu_folder_t, mu_observable_t *);
 
-  /* Debug.  */
-extern int  mu_folder_has_debug      (mu_folder_t folder);
-extern int  mu_folder_get_debug      (mu_folder_t, mu_debug_t *);
-extern int  mu_folder_set_debug      (mu_folder_t, mu_debug_t);
-
 /* Authentication.  */
 extern int  mu_folder_get_authority  (mu_folder_t, mu_authority_t *);
 extern int  mu_folder_set_authority  (mu_folder_t, mu_authority_t);

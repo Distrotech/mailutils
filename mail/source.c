@@ -23,16 +23,11 @@ source_readline (void *closure, int cont MU_ARG_UNUSED)
   FILE *fp = closure;
   size_t s = 0;
   char *buf = NULL;
-  mu_debug_t debug;
-  struct mu_debug_locus locus;
   
   if (getline (&buf, &s, fp) >= 0)
     {
       mu_rtrim_class (buf, MU_CTYPE_SPACE);
-
-      mu_diag_get_debug (&debug);
-      mu_debug_get_locus (debug, &locus);
-      mu_debug_set_locus (debug, locus.file, locus.line + 1);
+      mu_stream_ioctl (mu_strerr, MU_LOGSTREAM_ADVANCE_LOCUS_LINE, NULL);
       return buf;
     }
   
@@ -48,7 +43,7 @@ mail_source (int argc, char **argv)
 {
   FILE *fp;
   int save_term;
-  mu_debug_t debug;
+  struct mu_locus locus;
   
   if (argc != 2)
     {
@@ -67,11 +62,13 @@ mail_source (int argc, char **argv)
 
   save_term = interactive;
   interactive = 0;
-  mu_diag_get_debug (&debug);
-  mu_debug_set_locus (debug, argv[1], 0);
+  locus.mu_file = argv[1];
+  locus.mu_line = 0; 
+  locus.mu_col = 0;
+  mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM_SET_LOCUS, &locus);
   mail_mainloop (source_readline, fp, 0);
   interactive = save_term;
-  mu_debug_set_locus (debug, NULL, 0);
+  mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM_SET_LOCUS, NULL);
   fclose (fp);
   return 0;
 }

@@ -1076,9 +1076,8 @@ SCM_DEFINE_PUBLIC (scm_mu_message_send, "mu-message-send", 1, 3, 0,
 
   if (scm_to_int (MU_SCM_SYMBOL_VALUE ("mu-debug")))
     {
-      mu_debug_t debug = NULL;
-      mu_mailer_get_debug (mailer_c, &debug);
-      mu_debug_set_level (debug, MU_DEBUG_LEVEL_UPTO (MU_DEBUG_PROT));
+      mu_debug_set_category_level (MU_DEBCAT_MAILER, 
+                                   MU_DEBUG_LEVEL_UPTO (MU_DEBUG_PROT));
     }
 
   status = mu_mailer_open (mailer_c, MU_STREAM_RDWR);

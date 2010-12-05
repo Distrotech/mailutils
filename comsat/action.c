@@ -371,11 +371,11 @@ run_user_action (FILE *tty, const char *cr, mu_message_t msg)
   fp = open_rc (BIFF_RC, tty);
   if (fp)
     {
-      unsigned line = 1, n;
-      mu_debug_t debug;
+      unsigned n;
       char *cwd = mu_getcwd ();
       char *rcname;
-
+      struct mu_locus locus;
+      
       rcname = mu_make_file_name (cwd, BIFF_RC);
       free (cwd);
       if (!rcname)
@@ -385,8 +385,9 @@ run_user_action (FILE *tty, const char *cr, mu_message_t msg)
           return;
         }
         
-      mu_diag_get_debug (&debug);
-      
+      locus.mu_file = rcname;
+      locus.mu_line = 1;
+      locus.mu_col = 0;
       while ((n = act_getline (fp, &stmt, &size)))
 	{
 	  struct mu_wordsplit ws;
@@ -395,7 +396,7 @@ run_user_action (FILE *tty, const char *cr, mu_message_t msg)
 	  if (mu_wordsplit (stmt, &ws, MU_WRDSF_DEFFLAGS | MU_WRDSF_COMMENT)
 	      && ws.ws_wordc)
 	    {
-	      mu_debug_set_locus (debug, rcname, line);
+	      mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM_SET_LOCUS, &locus);
 	      if (strcmp (ws.ws_wordv[0], "beep") == 0)
 		{
 		  /* FIXME: excess arguments are ignored */
@@ -431,7 +432,8 @@ run_user_action (FILE *tty, const char *cr, mu_message_t msg)
 		    }
 		  else
 		    {
-		      fprintf (tty, _(".biffrc:%d: unknown keyword"), line);
+		      fprintf (tty, _(".biffrc:%d: unknown keyword"),
+			       locus.mu_line);
 		      fprintf (tty, "\r\n");
 		      mu_diag_output (MU_DIAG_ERROR, _("unknown keyword %s"),
 				      ws.ws_wordv[0]);
@@ -440,10 +442,10 @@ run_user_action (FILE *tty, const char *cr, mu_message_t msg)
 		} 
 	    }
 	  mu_wordsplit_free (&ws);
-	  line += n;
+	  locus.mu_line += n;
 	}
       fclose (fp);
-      mu_debug_set_locus (debug, NULL, 0);
+      mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM_SET_LOCUS, NULL);
       free (rcname);
     }
 

@@ -38,6 +38,11 @@ mu_stdstream_setup ()
   int rc;
   int fd;
 
+  /* If the streams are already open, close them */
+  mu_stream_destroy (&mu_strin);
+  mu_stream_destroy (&mu_strout);
+  mu_stream_destroy (&mu_strerr);
+  
   /* Ensure that first 3 descriptors are open in proper mode */
   fd = open ("/dev/null", O_WRONLY);
   switch (fd)
@@ -75,7 +80,7 @@ mu_stdstream_setup ()
     }
 
   if (mu_stdstream_strerr_create (&mu_strerr, MU_STRERR_STDERR, 0, 0,
-				  NULL, NULL))
+				  mu_program_name, NULL))
     abort ();
   /* FIXME: atexit (flushall) */
 }

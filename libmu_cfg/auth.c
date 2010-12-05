@@ -29,7 +29,7 @@
 /* Resource-style configuration                                              */
 /* ************************************************************************* */
 static int
-cb_authentication (mu_debug_t err, void *data, mu_config_value_t *val)
+cb_authentication (void *data, mu_config_value_t *val)
 {
   if (val->type == MU_CFG_STRING)
     {
@@ -44,7 +44,7 @@ cb_authentication (mu_debug_t err, void *data, mu_config_value_t *val)
       int i;
       for (i = 0; i < val->v.arg.c; i++)
 	{
-	  if (mu_cfg_assert_value_type (&val->v.arg.v[i], MU_CFG_STRING, err))
+	  if (mu_cfg_assert_value_type (&val->v.arg.v[i], MU_CFG_STRING))
 	    return 1;
 	  if (strcmp (val->v.arg.v[i].v.string, "clear") == 0)
 	    mu_authentication_clear_list ();
@@ -54,14 +54,14 @@ cb_authentication (mu_debug_t err, void *data, mu_config_value_t *val)
     }
   else
     {
-      mu_cfg_format_error (err, MU_DEBUG_ERROR, _("expected string value"));
+      mu_error (_("expected string value"));
       return 1;
     }
   return 0;
 }
 
 static int
-cb_authorization (mu_debug_t err, void *data, mu_config_value_t *val)
+cb_authorization (void *data, mu_config_value_t *val)
 {
   if (val->type == MU_CFG_STRING)
     {
@@ -76,7 +76,7 @@ cb_authorization (mu_debug_t err, void *data, mu_config_value_t *val)
       int i;
       for (i = 0; i < val->v.arg.c; i++)
 	{
-	  if (mu_cfg_assert_value_type (&val->v.arg.v[i], MU_CFG_STRING, err))
+	  if (mu_cfg_assert_value_type (&val->v.arg.v[i], MU_CFG_STRING))
 	    return 1;
 	  if (strcmp (val->v.arg.v[i].v.string, "clear") == 0)
 	    mu_authorization_clear_list ();
@@ -86,7 +86,7 @@ cb_authorization (mu_debug_t err, void *data, mu_config_value_t *val)
     }
   else
     {
-      mu_cfg_format_error (err, MU_DEBUG_ERROR, _("expected string value"));
+      mu_error (_("expected string value"));
       return 1;
     }
   return 0;

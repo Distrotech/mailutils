@@ -20,8 +20,7 @@ sysinclude_HEADERS = \
  attribute.h\
  auth.h\
  body.h\
- dbgstream.h\
- debug.h\
+ debcat.h\
  envelope.h\
  file_stream.h\
  filter.h\
@@ -59,3 +58,9 @@ sysinclude_HEADERS = \
  tls-stream.h\
  url.h\
  xscript-stream.h
+
+BUILT_SOURCES = debcat.h
+
+debcat.h: $(top_srcdir)/libmailutils/diag/debcat
+	$(AM_V_GEN)$(AWK) -f $(mu_aux_dir)/debcat.awk $^ > $@
+

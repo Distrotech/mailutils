@@ -30,7 +30,7 @@ match_string (const char *str)
 {
   int rc;
   mu_url_t u, url;
-  struct mu_debug_locus loc;
+  struct mu_locus loc;
   
   if ((rc = mu_url_create (&u, str)) != 0)
     {
@@ -39,15 +39,16 @@ match_string (const char *str)
       return;
     }
   MU_ASSERT (mu_stream_seek (stream, 0, MU_SEEK_SET, NULL));
-  loc.file = name;
-  loc.line = 0;
+  loc.mu_file = name;
+  loc.mu_line = 0;
+  loc.mu_col = 0;
   rc = mu_wicket_stream_match_url (stream, &loc, u, MU_URL_PARSE_ALL, &url);
   switch (rc)
     {
     case 0:
       printf ("%s matches %s at %s:%d\n",
 	      mu_url_to_string (u), mu_url_to_string (url),
-	      loc.file, loc.line);
+	      loc.mu_file, loc.mu_line);
       mu_url_destroy (&url);
       break;
 

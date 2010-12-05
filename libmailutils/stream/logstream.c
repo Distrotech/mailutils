@@ -31,14 +31,14 @@
 #include <mailutils/sys/logstream.h>
 
 char *_mu_severity_str[] = {
-  N_("DEBUG"),
-  N_("INFO"),
-  N_("NOTICE"),
-  N_("WARNING"),
-  N_("ERROR"),
-  N_("CRIT"),
-  N_("ALERT"),
-  N_("EMERG"),
+  N_("debug"),
+  N_("info"),
+  N_("notice"),
+  N_("warning"),
+  N_("error"),
+  N_("crit"),
+  N_("alert"),
+  N_("emerg"),
 };
 int _mu_severity_num = MU_ARRAY_SIZE (_mu_severity_str);
 
@@ -74,6 +74,7 @@ _log_write (struct _mu_stream *str, const char *buf, size_t size,
   unsigned flen = 0;
   int save_locus = 0;
   int rc;
+  int escape_error = 0;
   
 #define NEXT do { buf++; size--; if (size == 0) return EINVAL; } while (0)
 #define READNUM(n) do {				\
@@ -96,7 +97,7 @@ _log_write (struct _mu_stream *str, const char *buf, size_t size,
   *pnwrite = size;
   
   /* Process escapes */
-  while (*buf == '\033')
+  while (!escape_error && *buf == '\033')
     {
       int code;
       unsigned n;
@@ -113,10 +114,15 @@ _log_write (struct _mu_stream *str, const char *buf, size_t size,
 
 	case 's':
 	  /* Severity code in decimal (single digit) */
-	  if (!mu_isdigit (*buf))
+	  if (*buf == '<')
+	    READNUM (severity);
+	  else if (mu_isdigit (*buf))
+	    {
+	      severity = *buf - '0';
+	      NEXT;
+	    }
+	  else
 	    return EINVAL;
-	  severity = *buf - '0';
-	  NEXT;
 	  break;
 	  
 	case 'O':
@@ -152,7 +158,9 @@ _log_write (struct _mu_stream *str, const char *buf, size_t size,
 	  break;
 
 	default:
-	  return EINVAL;
+	  buf -= 2;
+	  size += 2;
+	  escape_error = 1;
 	}
     }
 
@@ -323,7 +331,21 @@ _log_ctl (struct _mu_stream *str, int op, void *arg)
 	  }
 	break;
       }
-      
+
+    case MU_LOGSTREAM_ADVANCE_LOCUS_LINE:
+      if (!arg)
+	sp->locus.mu_line++;
+      else
+	sp->locus.mu_line += *(int*)arg;
+      break;
+
+    case MU_LOGSTREAM_ADVANCE_LOCUS_COL:
+      if (!arg)
+	sp->locus.mu_col++;
+      else
+	sp->locus.mu_col += *(int*)arg;
+      break;
+	
     default:
       return ENOSYS;
     }

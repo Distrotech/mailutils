@@ -68,9 +68,9 @@ static struct argp_option options[] = {
 };
 
 static int
-cb_bulletin_source (mu_debug_t debug, void *data, mu_config_value_t *val)
+cb_bulletin_source (void *data, mu_config_value_t *val)
 {
-  if (mu_cfg_assert_value_type (val, MU_CFG_STRING, debug))
+  if (mu_cfg_assert_value_type (val, MU_CFG_STRING))
     return 1;
   set_bulletin_source (val->v.string); /* FIXME: Error reporting? */
   return 0;
@@ -78,9 +78,9 @@ cb_bulletin_source (mu_debug_t debug, void *data, mu_config_value_t *val)
 
 #ifdef USE_DBM
 static int
-cb_bulletin_db (mu_debug_t debug, void *data, mu_config_value_t *val)
+cb_bulletin_db (void *data, mu_config_value_t *val)
 {
-  if (mu_cfg_assert_value_type (val, MU_CFG_STRING, debug))
+  if (mu_cfg_assert_value_type (val, MU_CFG_STRING))
     return 1;
   set_bulletin_db (val->v.string); /* FIXME: Error reporting? */
   return 0;
@@ -333,6 +333,8 @@ main (int argc, char **argv)
   mu_m_server_set_strexit (server, mu_strexit);
 
   mu_alloc_die_hook = pop3d_alloc_die;
+
+  mu_log_syslog = 1;
   
   if (mu_app_init (&argp, pop3d_argp_capa, pop3d_cfg_param, 
 		   argc, argv, 0, NULL, server))
@@ -382,18 +384,8 @@ main (int argc, char **argv)
   /* Set the signal handlers.  */
   mu_set_signals (pop3d_master_signal, sigtab, MU_ARRAY_SIZE (sigtab));
 
-  /* Set up for syslog.  */
-  openlog (MU_LOG_TAG (), LOG_PID, mu_log_facility);
-  /* Redirect any stdout error from the library to syslog, they
-     should not go to the client.  */
-  {
-    mu_debug_t debug;
-
-    mu_diag_get_debug (&debug);
-    mu_debug_set_print (debug, mu_diag_syslog_printer, NULL);
-    
-    mu_debug_default_printer = mu_debug_syslog_printer;
-  }
+  mu_stdstream_strerr_setup (mu_log_syslog ?
+			     MU_STRERR_SYSLOG : MU_STRERR_STDERR);
   
   umask (S_IROTH | S_IWOTH | S_IXOTH);	/* 007 */
 

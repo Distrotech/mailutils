@@ -43,8 +43,8 @@ mbox_destroy (mu_mailbox_t mailbox)
     {
       size_t i;
       mbox_data_t mud = mailbox->data;
-      MU_DEBUG1 (mailbox->debug, MU_DEBUG_TRACE1,
-		 "mbox_destroy (%s)\n", mud->name);
+      mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_TRACE1,
+		("mbox_destroy (%s)", mud->name));
       mu_monitor_wrlock (mailbox->monitor);
       for (i = 0; i < mud->umessages_count; i++)
 	{
@@ -103,8 +103,8 @@ mbox_open (mu_mailbox_t mailbox, int flags)
 
   mu_stream_set_buffer (mailbox->stream, mu_buffer_full, 0);
 
-  MU_DEBUG2 (mailbox->debug, MU_DEBUG_TRACE1, "mbox_open (%s, 0x%x)\n",
-	     mud->name, mailbox->flags);
+  mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_TRACE1, 
+            ("mbox_open (%s, 0x%x)", mud->name, mailbox->flags));
 
   if (mailbox->locker == NULL &&
       (flags & (MU_STREAM_WRITE | MU_STREAM_APPEND | MU_STREAM_CREAT)))
@@ -121,8 +121,8 @@ mbox_close (mu_mailbox_t mailbox)
   if (mud == NULL)
     return EINVAL;
 
-  MU_DEBUG1 (mailbox->debug, MU_DEBUG_TRACE1,
-	     "mbox_close (%s)\n", mud->name);
+  mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_TRACE1,
+	    ("mbox_close (%s)", mud->name));
 
   /* Make sure that we do not hold any file locking.  */
   mu_locker_unlock (mailbox->locker);
@@ -166,8 +166,8 @@ mbox_remove (mu_mailbox_t mailbox)
 {
   mbox_data_t mud = mailbox->data;
 
-  MU_DEBUG1 (mailbox->debug, MU_DEBUG_TRACE1,
-	     "mbox_remove (%s)\n", mud->name);
+  mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_TRACE1,
+	    ("mbox_remove (%s)", mud->name));
   return unlink (mud->name) == 0 ? 0 : errno;
 }
 
@@ -178,7 +178,7 @@ mbox_scan (mu_mailbox_t mailbox, size_t msgno, size_t *pcount)
 {
   size_t i;
   mbox_data_t mud = mailbox->data;
-  MU_DEBUG1 (mailbox->debug, MU_DEBUG_TRACE1, "mbox_scan (%s)\n", mud->name);
+  mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_TRACE1, ("mbox_scan (%s)", mud->name));
   if (! mbox_is_updated (mailbox))
     return mbox_scan0 (mailbox, msgno, pcount, 1);
   /* Since the mailbox is already updated fake the scan. */
@@ -616,8 +616,8 @@ mbox_get_message (mu_mailbox_t mailbox, size_t msgno, mu_message_t *pmsg)
       return 0;
     }
 
-  MU_DEBUG2 (mailbox->debug, MU_DEBUG_TRACE1, "mbox_get_message (%s, %lu)\n",
-	     mud->name, (unsigned long) msgno);
+  mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_TRACE1, ("mbox_get_message (%s, %lu)",
+	     mud->name, (unsigned long) msgno));
 
   return new_message (mailbox, mum, pmsg);
 }
@@ -1112,14 +1112,14 @@ mbox_append_message (mu_mailbox_t mailbox, mu_message_t msg)
   if (msg == NULL || mud == NULL)
     return EINVAL;
 
-  MU_DEBUG1 (mailbox->debug, MU_DEBUG_TRACE1, "mbox_append_message (%s)\n",
-	     mud->name);
+  mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_TRACE1, ("mbox_append_message (%s)",
+	     mud->name));
 
   if (mailbox->locker &&
       (status = mu_locker_lock (mailbox->locker)) != 0)
     {
-      MU_DEBUG1 (mailbox->debug, MU_DEBUG_TRACE1,
-		 "mbox_append_message: %s\n", mu_strerror(status));
+      mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_TRACE1,
+		("mbox_append_message: %s", mu_strerror(status)));
       return status;
     }
 
@@ -1364,8 +1364,8 @@ mbox_expunge0 (mu_mailbox_t mailbox, int remove_deleted)
   if (mud == NULL)
     return EINVAL;
 
-  MU_DEBUG1 (mailbox->debug, MU_DEBUG_TRACE1,
-	     "mbox_expunge (%s)\n", mud->name);
+  mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_TRACE1,
+	    ("mbox_expunge (%s)", mud->name));
 
   /* Noop.  */
   if (mud->messages_count == 0)
@@ -1494,7 +1494,7 @@ _mailbox_mbox_init (mu_mailbox_t mailbox)
     mu_property_set_value (property, "TYPE", "MBOX", 1);
   }
 
-  MU_DEBUG1 (mailbox->debug, MU_DEBUG_TRACE1, "mbox_init (%s)\n", mud->name);
+  mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_TRACE1, ("mbox_init (%s)", mud->name));
   return 0; /* okdoke */
 }
 

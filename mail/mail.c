@@ -309,15 +309,6 @@ static char *default_setup[] = {
   "set nosendwait",
 };
 
-static int
-mail_diag_stderr_printer (void *data, mu_log_level_t level, const char *buf)
-{
-  if (level != MU_DIAG_ERROR)
-    fprintf (stderr, "%s: ", mu_diag_level_to_string (level));
-  fputs (buf, stderr);
-  return 0;
-}
-
 static void
 do_and_quit (const char *command)
 {
@@ -408,12 +399,7 @@ main (int argc, char **argv)
   util_run_cached_commands (&command_list);
 
   if (interactive)
-    {
-      mu_debug_t debug;
-
-      mu_diag_get_debug (&debug);
-      mu_debug_set_print (debug, mail_diag_stderr_printer, NULL);
-    }
+    /* nothing? */;
   else
     {
       util_do_command ("set nocrt");

@@ -25,9 +25,10 @@
 #include <mailutils/syslog.h>
 #include <mailutils/mailbox.h>
 #include <mailutils/io.h>
+#include <mailutils/stream.h>
+#include <mailutils/stdstream.h>
 
 static struct mu_gocs_locking locking_settings;
-static struct mu_gocs_logging logging_settings;
 static struct mu_gocs_mailbox mailbox_settings;
 static struct mu_gocs_source_email address_settings;
 static struct mu_gocs_mailer mailer_settings;
@@ -39,9 +40,9 @@ static struct mu_gocs_debug debug_settings;
 /* ************************************************************************* */
 
 static int
-_cb_folder (mu_debug_t debug, void *data, mu_config_value_t *val)
+_cb_folder (void *data, mu_config_value_t *val)
 {
-  if (mu_cfg_assert_value_type (val, MU_CFG_STRING, debug))
+  if (mu_cfg_assert_value_type (val, MU_CFG_STRING))
     return 1;
   mu_set_folder_directory (val->v.string);
   return 0;
@@ -128,23 +129,25 @@ DCL_CFG_CAPA (mailer);
 /* Logging                                                                   */
 /* ************************************************************************* */
 
-int
-cb_facility (mu_debug_t debug, void *data, mu_config_value_t *val)
+static int
+cb_facility (void *data, mu_config_value_t *val)
 {
-  if (mu_cfg_assert_value_type (val, MU_CFG_STRING, debug))
+  if (mu_cfg_assert_value_type (val, MU_CFG_STRING))
     return 1;
   
-  if (mu_string_to_syslog_facility (val->v.string, &logging_settings.facility))
+  if (mu_string_to_syslog_facility (val->v.string, &mu_log_facility))
     {
-      mu_cfg_format_error (debug, MU_DEBUG_ERROR, 
-                           _("unknown syslog facility `%s'"), 
-			   val->v.string);
+      mu_error (_("unknown syslog facility `%s'"), val->v.string);
       return 1;
     }
    return 0;
 }
 
 static struct mu_cfg_param mu_logging_param[] = {
+  { "syslog", mu_cfg_bool, &mu_log_syslog, 0, NULL,
+    N_("Send diagnostics to syslog.") },
+  { "print-severity", mu_cfg_bool, &mu_log_print_severity, 0, NULL,
+    N_("Print message severity levels.") },
   { "facility", mu_cfg_callback, NULL, 0, cb_facility,
     N_("Set syslog facility. Arg is one of the following: user, daemon, "
        "auth, authpriv, mail, cron, local0 through local7 (case-insensitive), "
@@ -154,6 +157,7 @@ static struct mu_cfg_param mu_logging_param[] = {
   { NULL }
 };
 
+static int logging_settings; /* Dummy variable */
 DCL_CFG_CAPA (logging);
 
 
@@ -162,41 +166,16 @@ DCL_CFG_CAPA (logging);
 /* ************************************************************************* */
 
 static int
-_cb2_debug_level (mu_debug_t debug, const char *arg, void *data MU_ARG_UNUSED)
+_cb2_debug_level (const char *arg, void *data MU_ARG_UNUSED)
 {
-  char *pfx;
-  struct mu_debug_locus locus;
-
-  if (debug_settings.string)
-    free (debug_settings.string);
-  debug_settings.string = strdup (arg);
-  if (mu_debug_get_locus (debug, &locus) == 0)
-    {
-      int status = mu_asprintf (&pfx, "%s:%lu",
-				locus.file, (unsigned long) locus.line);
-      if (status)
-	{
-	  mu_cfg_format_error (debug, MU_DEBUG_ERROR,
-			       "%s", mu_strerror (status));
-	  return 1;
-	}
-    }
-  else
-    pfx = strdup ("command line");/*FIXME*/
-  /*FIXME: this is suboptimal, there's no use parsing 1st arg in
-    mu_global_debug_from_string */
-  mu_global_debug_from_string (debug_settings.string, pfx);
-  free (pfx);
-  free (debug_settings.string);
-  free (debug_settings.errpfx);
-  memset (&debug_settings, 0, sizeof debug_settings);
+  mu_debug_parse_spec (arg);
   return 0;
 }
 
 static int
-cb_debug_level (mu_debug_t debug, void *data, mu_config_value_t *val)
+cb_debug_level (void *data, mu_config_value_t *val)
 {
-  return mu_cfg_string_value_cb (debug, val, _cb2_debug_level, NULL);
+  return mu_cfg_string_value_cb (val, _cb2_debug_level, NULL);
 }
 
 static struct mu_cfg_param mu_debug_param[] = {

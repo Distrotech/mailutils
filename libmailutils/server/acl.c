@@ -33,6 +33,7 @@
 #include <mailutils/wordsplit.h>
 #include <mailutils/list.h>
 #include <mailutils/debug.h>
+#include <mailutils/sys/debcat.h>
 #include <mailutils/error.h>
 #include <mailutils/errno.h>
 #include <mailutils/kwd.h>
@@ -49,7 +50,6 @@ struct _mu_acl_entry
 
 struct _mu_acl
 {
-  mu_debug_t debug;
   mu_list_t aclist;
 };
 
@@ -118,7 +118,6 @@ mu_acl_create (mu_acl_t *pacl)
 {
   int rc;
   mu_acl_t acl;
-  mu_log_level_t level;
 
   acl = calloc (1, sizeof (*acl));
   if (!acl)
@@ -130,14 +129,6 @@ mu_acl_create (mu_acl_t *pacl)
     *pacl = acl;
   mu_list_set_destroy_item (acl->aclist, _destroy_acl_entry);
 
-  level = mu_global_debug_level ("acl");
-  if (level)
-    {
-      int status = mu_debug_create (&acl->debug, NULL);
-      if (status == 0)
-	mu_debug_set_level (acl->debug, level);
-    }
-  
   return rc;
 }
 
@@ -157,32 +148,11 @@ mu_acl_destroy (mu_acl_t *pacl)
     return EINVAL;
   acl = *pacl;
   mu_list_destroy (&acl->aclist);
-  mu_debug_destroy (&acl->debug, NULL);
   free (acl);
   *pacl = acl;
   return 0;
 }
 		   
-int
-mu_acl_get_debug (mu_acl_t acl, mu_debug_t *pdebug)
-{
-  if (!acl)
-    return EINVAL;
-  if (!pdebug)
-    return MU_ERR_OUT_NULL;
-  *pdebug = acl->debug;
-  return 0;
-}
-
-int
-mu_acl_set_debug (mu_acl_t acl, mu_debug_t debug)
-{
-  if (!acl)
-    return EINVAL;
-  acl->debug = debug;
-  return 0;
-}
-
 int
 mu_acl_get_iterator (mu_acl_t acl, mu_iterator_t *pitr)
 {
@@ -204,16 +174,16 @@ mu_acl_append (mu_acl_t acl, mu_acl_action_t act,
   rc = mu_acl_entry_create (&ent, act, data, sa, salen, netmask);
   if (rc)
     {
-      MU_DEBUG1 (acl->debug, MU_DEBUG_ERROR, "Cannot allocate ACL entry: %s",
-		 mu_strerror (rc));
+      mu_debug (MU_DEBCAT_ACL, MU_DEBUG_ERROR, 
+                ("Cannot allocate ACL entry: %s", mu_strerror (rc)));
       return ENOMEM;
     }
   
   rc = mu_list_append (acl->aclist, ent);
   if (rc)
     {
-      MU_DEBUG1 (acl->debug, MU_DEBUG_ERROR, "Cannot append ACL entry: %s",
-		 mu_strerror (rc));
+      mu_debug (MU_DEBCAT_ACL, MU_DEBUG_ERROR, 
+                ("Cannot append ACL entry: %s", mu_strerror (rc)));
       free (ent);
     }
   return rc;
@@ -231,15 +201,15 @@ mu_acl_prepend (mu_acl_t acl, mu_acl_action_t act, void *data,
   rc = mu_acl_entry_create (&ent, act, data, sa, salen, netmask);
   if (rc)
     {
-      MU_DEBUG1 (acl->debug, MU_DEBUG_ERROR, "Cannot allocate ACL entry: %s",
-		 mu_strerror (rc));
+      mu_debug (MU_DEBCAT_ACL, MU_DEBUG_ERROR,
+                ("Cannot allocate ACL entry: %s", mu_strerror (rc)));
       return ENOMEM;
     }
   rc = mu_list_prepend (acl->aclist, ent); 
   if (rc)
     {
-      MU_DEBUG1 (acl->debug, MU_DEBUG_ERROR, "Cannot prepend ACL entry: %s",
-		 mu_strerror (rc));
+      mu_debug (MU_DEBCAT_ACL, MU_DEBUG_ERROR, 
+                ("Cannot prepend ACL entry: %s", mu_strerror (rc)));
       free (ent);
     }
   return rc;
@@ -260,22 +230,22 @@ mu_acl_insert (mu_acl_t acl, size_t pos, int before,
   rc = mu_list_get (acl->aclist, pos, &ptr);
   if (rc)
     {
-      MU_DEBUG1 (acl->debug, MU_DEBUG_ERROR, "No such entry %lu",
-		 (unsigned long) pos);
+      mu_debug (MU_DEBCAT_ACL, MU_DEBUG_ERROR,
+                ("No such entry %lu", (unsigned long) pos));
       return rc;
     }
   rc = mu_acl_entry_create (&ent, act, data, sa, salen, netmask);
   if (!ent)
     {
-      MU_DEBUG1 (acl->debug, MU_DEBUG_ERROR, "Cannot allocate ACL entry: %s",
-		 mu_strerror (rc));
+      mu_debug (MU_DEBCAT_ACL, MU_DEBUG_ERROR, 
+                ("Cannot allocate ACL entry: %s", mu_strerror (rc)));
       return ENOMEM;
     }
   rc = mu_list_insert (acl->aclist, ptr, ent, before);
   if (rc)
     {
-      MU_DEBUG1 (acl->debug, MU_DEBUG_ERROR, "Cannot insert ACL entry: %s",
-		 mu_strerror (rc));
+      mu_debug (MU_DEBCAT_ACL, MU_DEBUG_ERROR, 
+                ("Cannot insert ACL entry: %s", mu_strerror (rc)));
       free (ent);
     }
   return rc;
@@ -311,8 +281,7 @@ mu_acl_string_to_action (const char *str, mu_acl_action_t *pres)
   ((salen < mu_offsetof (struct sockaddr_un,sun_path)) ? "" : (sa)->sun_path)
 
 static void
-debug_sockaddr (mu_debug_t dbg, mu_log_level_t lvl, struct sockaddr *sa,
-		int salen)
+debug_sockaddr (struct sockaddr *sa, int salen)
 {
   switch (sa->sa_family)
     {
@@ -320,8 +289,8 @@ debug_sockaddr (mu_debug_t dbg, mu_log_level_t lvl, struct sockaddr *sa,
       {
 	struct sockaddr_in s_in = *(struct sockaddr_in *)sa;
 	s_in.sin_addr.s_addr = htonl (s_in.sin_addr.s_addr);
-	mu_debug_printf (dbg, lvl, "{AF_INET %s:%d}",
-			 inet_ntoa (s_in.sin_addr), ntohs (s_in.sin_port));
+	mu_debug_log_cont ("{AF_INET %s:%d}",
+			   inet_ntoa (s_in.sin_addr), ntohs (s_in.sin_port));
 	break;
       }
 
@@ -329,14 +298,14 @@ debug_sockaddr (mu_debug_t dbg, mu_log_level_t lvl, struct sockaddr *sa,
       {
 	struct sockaddr_un *s_un = (struct sockaddr_un *)sa;
 	if (MU_S_UN_NAME(s_un, salen)[0] == 0)
-	  mu_debug_printf (dbg, lvl, "{AF_UNIX}");
+	  mu_debug_log_cont ("{AF_UNIX}");
 	else
-	  mu_debug_printf (dbg, lvl, "{AF_UNIX %s}", s_un->sun_path);
+	  mu_debug_log_cont ("{AF_UNIX %s}", s_un->sun_path);
 	break;
       }
 
     default:
-      mu_debug_printf (dbg, lvl, "{Unsupported family: %d}", sa->sa_family);
+      mu_debug_log_cont ("{Unsupported family: %d}", sa->sa_family);
     }
 }
 
@@ -425,24 +394,23 @@ mu_sockaddr_to_astr (const struct sockaddr *sa, int salen)
 }
 
 int
-_acl_match (mu_debug_t debug, struct _mu_acl_entry *ent, struct sockaddr *sa,
-	    int salen)
+_acl_match (struct _mu_acl_entry *ent, struct sockaddr *sa, int salen)
 {
 #define RESMATCH(word)                                   \
-  if (mu_debug_check_level (debug, MU_DEBUG_TRACE0))     \
-    mu_debug_printf (debug, MU_DEBUG_TRACE0, "%s; ", word);
+  if (mu_debug_level_p (MU_DEBCAT_ACL, 10))     \
+    mu_debug_log_end ("%s; ", word);
 							      
-  if (mu_debug_check_level (debug, MU_DEBUG_TRACE0))
+  if (mu_debug_level_p (MU_DEBCAT_ACL, 10))
     {
       struct in_addr a;
       
-      __MU_DEBUG1 (debug, MU_DEBUG_TRACE0, "%s", "Does ");
-      debug_sockaddr (debug, MU_DEBUG_TRACE0, sa, salen);
-      mu_debug_printf (debug, MU_DEBUG_TRACE0, " match ");
-      debug_sockaddr (debug, MU_DEBUG_TRACE0, ent->sa, salen);
+      mu_debug_log_begin ("Does ");
+      debug_sockaddr (sa, salen);
+      mu_debug_log_cont (" match ");
+      debug_sockaddr (ent->sa, salen);
       a.s_addr = ent->netmask;
       a.s_addr = htonl (a.s_addr);
-      mu_debug_printf (debug, MU_DEBUG_TRACE0, " netmask %s? ", inet_ntoa (a));
+      mu_debug_log_cont (" netmask %s? ", inet_ntoa (a));
     }
 
   if (ent->sa->sa_family != sa->sa_family)
@@ -497,7 +465,6 @@ _acl_match (mu_debug_t debug, struct _mu_acl_entry *ent, struct sockaddr *sa,
 struct run_closure
 {
   unsigned idx;
-  mu_debug_t debug;
   struct sockaddr *sa;
   char *numbuf;
   char *portbuf;
@@ -572,7 +539,7 @@ expand_arg (const char *cmdline, struct run_closure *rp, char **s)
   struct mu_wordsplit ws;
   const char *env[3];
   
-  MU_DEBUG1 (rp->debug, MU_DEBUG_TRACE0, "Expanding \"%s\" => ", cmdline);
+  mu_debug (MU_DEBCAT_ACL, MU_DEBUG_TRACE, ("Expanding \"%s\"", cmdline));
   env[0] = "family";
   switch (rp->sa->sa_family)
     {
@@ -599,15 +566,16 @@ expand_arg (const char *cmdline, struct run_closure *rp, char **s)
       mu_wordsplit_free (&ws);
       if (!*s)
 	{
-	  MU_DEBUG (rp->debug, MU_DEBUG_TRACE0, "failed: not enough memory. ");
+	  mu_debug (MU_DEBCAT_ACL, MU_DEBUG_ERROR, 
+	            ("failed: not enough memory."));
 	  return ENOMEM;
 	}
-      MU_DEBUG1 (rp->debug, MU_DEBUG_TRACE0, "\"%s\". ", *s);
+      mu_debug (MU_DEBCAT_ACL, MU_DEBUG_TRACE, ("Expansion: \"%s\". ", *s));
     }
   else
     {
-      MU_DEBUG1 (rp->debug, MU_DEBUG_TRACE0, "failed: %s",
-		 mu_wordsplit_strerror (&ws));
+      mu_debug (MU_DEBCAT_ACL, MU_DEBUG_ERROR, 
+                ("failed: %s", mu_wordsplit_strerror (&ws)));
       rc = errno;
     }
   return rc;
@@ -645,8 +613,8 @@ spawn_prog (const char *cmdline, int *pstatus, struct run_closure *rp)
 
   if (pid == (pid_t)-1)
     {
-      MU_DEBUG1 (rp->debug, MU_DEBUG_ERROR, "cannot fork: %s",
-		 mu_strerror (errno));
+      mu_debug (MU_DEBCAT_ACL, MU_DEBUG_ERROR, 
+                ("cannot fork: %s", mu_strerror (errno)));
       return errno;
     }
 
@@ -657,15 +625,15 @@ spawn_prog (const char *cmdline, int *pstatus, struct run_closure *rp)
       if (WIFEXITED (status))
 	{
 	  status = WEXITSTATUS (status);
-	  MU_DEBUG1 (rp->debug, MU_DEBUG_TRACE0,
-		     "Program finished with code %d.", status);
+	  mu_debug (MU_DEBCAT_ACL, MU_DEBUG_TRACE,
+		    ("Program finished with code %d.", status));
 	  *pstatus = status;
 	}
       else if (WIFSIGNALED (status))
 	{
-	  MU_DEBUG1 (rp->debug, MU_DEBUG_ERROR,
-		     "Program terminated on signal %d.",
-		     WTERMSIG (status));
+          mu_debug (MU_DEBCAT_ACL, MU_DEBUG_ERROR,
+		    ("Program terminated on signal %d.",
+		     WTERMSIG (status)));
 	  return MU_ERR_PROCESS_SIGNALED;
 	}
       else
@@ -685,14 +653,14 @@ _run_entry (void *item, void *data)
 
   rp->idx++;
 
-  if (mu_debug_check_level (rp->debug, MU_DEBUG_TRACE0))
+  if (mu_debug_level_p (MU_DEBCAT_ACL, 10))
     {
       const char *s = "undefined";
       mu_acl_action_to_string (ent->action, &s);
-      __MU_DEBUG2 (rp->debug, MU_DEBUG_TRACE0, "%d:%s: ", rp->idx, s);
+      mu_debug_log_begin ("%d:%s: ", rp->idx, s);
     }
   
-  if (_acl_match (rp->debug, ent, rp->sa, rp->salen) == 0)
+  if (_acl_match (ent, rp->sa, rp->salen) == 0)
     {
       switch (ent->action)
 	{
@@ -709,17 +677,19 @@ _run_entry (void *item, void *data)
 	case mu_acl_log:
 	  {
 	    char *s;
-	    mu_debug_t dbg = NULL;
-	    mu_diag_get_debug (&dbg);
 	    if (ent->arg && expand_arg (ent->arg, rp, &s) == 0)
 	      {
-		mu_debug_printf (dbg, MU_DIAG_INFO, "%s\n", s);
+		if (mu_debug_level_p (MU_DEBCAT_ACL, 10))
+		  mu_debug_log_end ("%s", s);
 		free (s);
 	      }
 	    else
 	      {
-		debug_sockaddr (dbg, MU_DIAG_INFO, rp->sa, rp->salen);
-		mu_debug_printf (dbg, MU_DIAG_INFO, "\n");
+		if (mu_debug_level_p (MU_DEBCAT_ACL, 10))
+		  {
+		    debug_sockaddr (rp->sa, rp->salen);
+		    mu_debug_log_end ("");
+		  }
 	      }
 	  }
 	  break;
@@ -751,8 +721,8 @@ _run_entry (void *item, void *data)
 	}
     }
   
-  if (mu_debug_check_level (rp->debug, MU_DEBUG_TRACE0))                     
-    mu_debug_printf (rp->debug, MU_DEBUG_TRACE0, "\n");
+  if (mu_debug_level_p (MU_DEBCAT_ACL, 10))
+     mu_debug_log_end ("");
   
   return status;
 }
@@ -777,15 +747,14 @@ mu_acl_check_sockaddr (mu_acl_t acl, const struct sockaddr *sa, int salen,
     }
   r.salen = salen;
   
-  if (mu_debug_check_level (acl->debug, MU_DEBUG_TRACE0))
+  if (mu_debug_level_p (MU_DEBCAT_ACL, 10))
     {
-      __MU_DEBUG1 (acl->debug, MU_DEBUG_TRACE0, "%s", "Checking sockaddr ");
-      debug_sockaddr (acl->debug, MU_DEBUG_TRACE0, r.sa, r.salen);
-      mu_debug_printf (acl->debug, MU_DEBUG_TRACE0, "\n");
+      mu_debug_log_begin ("Checking sockaddr ");
+      debug_sockaddr (r.sa, r.salen);
+      mu_debug_log_end ("");
     }
 
   r.idx = 0;
-  r.debug = acl->debug;
   r.result = pres;
   *r.result = mu_acl_result_undefined;
   r.numbuf = r.portbuf = NULL;
@@ -826,9 +795,9 @@ mu_acl_check_fd (mu_acl_t acl, int fd, mu_acl_result_t *pres)
 
   if (getpeername (fd, (struct sockaddr *) &cs, &len) < 0)
     {
-      MU_DEBUG1 (acl->debug, MU_DEBUG_ERROR, 
-		 "Cannot obtain IP address of client: %s",
-		 mu_strerror (errno));
+      mu_debug (MU_DEBCAT_ACL, MU_DEBUG_ERROR, 
+		("Cannot obtain IP address of client: %s",
+		 mu_strerror (errno)));
       return MU_ERR_FAILURE;
     }
 

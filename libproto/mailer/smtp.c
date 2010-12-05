@@ -126,12 +126,12 @@ smtp_open (mu_mailer_t mailer, int flags)
   rc = mu_smtp_create (&smtp_mailer->smtp);
   if (rc)
     return rc;
-  if (mu_debug_check_level (mailer->debug, MU_DEBUG_PROT))
+  if (mu_debug_level_p (MU_DEBCAT_MAILER, MU_DEBUG_PROT))
     mu_smtp_trace (smtp_mailer->smtp, MU_SMTP_TRACE_SET);
-  if (mu_debug_check_level (mailer->debug, MU_DEBUG_TRACE6))
+  if (mu_debug_level_p (MU_DEBCAT_MAILER, MU_DEBUG_TRACE6))
     mu_smtp_trace_mask (smtp_mailer->smtp, MU_SMTP_TRACE_SET,
 			MU_XSCRIPT_SECURE);
-  if (mu_debug_check_level (mailer->debug, MU_DEBUG_TRACE7))
+  if (mu_debug_level_p (MU_DEBCAT_MAILER, MU_DEBUG_TRACE7))
     mu_smtp_trace_mask (smtp_mailer->smtp, MU_SMTP_TRACE_SET,
 			MU_XSCRIPT_PAYLOAD);
   
@@ -275,8 +275,8 @@ _smtp_set_rcpt (struct _smtp_mailer *smp, mu_message_t msg, mu_address_t to)
       /* Use the specified mu_address_t. */
       if ((status = mu_mailer_check_to (to)) != 0)
 	{
-	  MU_DEBUG (smp->mailer->debug, MU_DEBUG_ERROR,
-		    "mu_mailer_send_message(): explicit to not valid\n");
+	  mu_debug (MU_DEBCAT_MAILER, MU_DEBUG_ERROR,
+		    ("mu_mailer_send_message(): explicit to not valid"));
 	  return status;
 	}
       smp->rcpt_to = to;

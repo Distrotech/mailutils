@@ -69,7 +69,7 @@ char *mimeview_file;       /* Name of the file to view */
 FILE *mimeview_fp;     /* Its descriptor */
 
 static void
-set_debug_flags (mu_debug_t debug, const char *arg)
+set_debug_flags (const char *arg)
 {
   for (; *arg; arg++)
     {
@@ -152,11 +152,11 @@ static struct argp argp = {
 
 
 static int
-cb_debug (mu_debug_t debug, void *data, mu_config_value_t *val)
+cb_debug (void *data, mu_config_value_t *val)
 {
-  if (mu_cfg_assert_value_type (val, MU_CFG_STRING, debug))
+  if (mu_cfg_assert_value_type (val, MU_CFG_STRING))
     return 1;
-  set_debug_flags (debug, val->v.string);
+  set_debug_flags (val->v.string);
   return 0;
 }
 

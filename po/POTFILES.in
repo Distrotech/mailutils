@@ -127,7 +127,6 @@ libmailutils/cfg/gocs.c
 libmailutils/diag/debug.c
 libmailutils/diag/diag.c
 libmailutils/diag/errors
-libmailutils/diag/gdebug.c
 
 libmailutils/server/acl.c
 
@@ -157,8 +156,9 @@ libmailutils/base/tempfile.c
 
 libmailutils/string/trueans.c
 
-libmailutils/stdstream/baseio.c
+libmailutils/stdstream/basestr.c
 libmailutils/stdstream/strerr.c
+libmailutils/stdstream/dbgstream.c
 
 messages/messages.c
 

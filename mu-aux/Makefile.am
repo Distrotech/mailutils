@@ -16,7 +16,7 @@
 ## along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>. 
 
 EXTRA_DIST = \
- debugdef.m4\
+ debcat.awk\
  gylwrap\
  mailutils.spec\
  mailutils.spec.in\

@@ -34,7 +34,6 @@ struct _mu_mailbox
 {
   /* Data */
   mu_observable_t observable;
-  mu_debug_t debug;
   mu_property_t property;
   mu_locker_t locker;
   mu_stream_t stream;

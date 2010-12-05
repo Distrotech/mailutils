@@ -58,11 +58,7 @@ timestamp_test (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   
   if (mu_sieve_get_debug_level (mach) & MU_SIEVE_DEBUG_TRACE)
     {
-      mu_sieve_locus_t locus;
-      mu_sieve_get_locus (mach, &locus);
-      mu_sieve_debug (mach, "%s:%lu: TIMESTAMP\n",
-		   locus.source_file,
-		   (unsigned long) locus.source_line);
+      mu_sieve_debug (mach, "TIMESTAMP");
     }
 
   /* Retrieve required arguments: */

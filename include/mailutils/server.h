@@ -58,8 +58,6 @@ int mu_ip_server_create (mu_ip_server_t *psrv, struct sockaddr *addr,
 			 int len, int type);
 int mu_ip_server_destroy (mu_ip_server_t *psrv);
 int mu_ip_server_get_type (mu_ip_server_t srv, int *ptype);
-int mu_ip_server_set_debug (mu_ip_server_t srv, mu_debug_t debug);
-int mu_ip_server_get_debug (mu_ip_server_t srv, mu_debug_t *pdebug);
 int mu_ip_server_set_ident (mu_ip_server_t srv, const char *ident);
 int mu_ip_server_set_acl (mu_ip_server_t srv, mu_acl_t acl);
 int mu_ip_server_set_conn (mu_ip_server_t srv, mu_ip_server_conn_fp conn);

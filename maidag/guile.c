@@ -30,15 +30,13 @@ scheme_check_msg (mu_message_t msg, struct mu_auth_data *auth,
   if (!initialized)
     {
       mu_guile_init (debug_guile);
-      if (!log_to_stderr)
+      if (mu_log_syslog)
 	{
-	  mu_debug_t debug;
 	  SCM port;
 	  
-	  mu_diag_get_debug (&debug);
-	  port = mu_scm_make_debug_port (debug, MU_DIAG_ERROR);
+	  port = mu_scm_make_debug_port (MU_DIAG_ERROR);
 	  scm_set_current_error_port (port);
-	  port = mu_scm_make_debug_port (debug, MU_DIAG_INFO);
+	  port = mu_scm_make_debug_port (MU_DIAG_INFO);
 	  scm_set_current_output_port (port);
 	}
       initialized = 1;

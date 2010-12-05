@@ -19,6 +19,7 @@ noinst_LTLIBRARIES = libstdstream.la
 
 libstdstream_la_SOURCES = \
  basestr.c\
+ dbgstream.c\
  strerr.c
 
 INCLUDES = @MU_LIB_COMMON_INCLUDES@ -I/libmailutils

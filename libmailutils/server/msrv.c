@@ -758,7 +758,7 @@ m_srv_conn (int fd, struct sockaddr *sa, int salen,
 
 
 unsigned short
-get_port (mu_debug_t debug, const char *p)
+get_port (const char *p)
 {
   if (p)
     {
@@ -768,8 +768,7 @@ get_port (mu_debug_t debug, const char *p)
 	{
 	  if (n > USHRT_MAX)
 	    {
-	      mu_debug_printf (debug, MU_DIAG_ERROR,
-				   _("invalid port number: %s\n"), p);
+	      mu_error (_("invalid port number: %s"), p);
 	      return 1;
 	    }
 	  
@@ -847,7 +846,7 @@ is_ip_addr (const char *arg)
 }  
 
 int
-_mu_m_server_parse_url (mu_debug_t debug, const char *arg, union m_sockaddr *s,
+_mu_m_server_parse_url (const char *arg, union m_sockaddr *s,
 			int *psalen, struct sockaddr *defsa)
 {
   char *p;
@@ -858,7 +857,7 @@ _mu_m_server_parse_url (mu_debug_t debug, const char *arg, union m_sockaddr *s,
     s->s_sa.sa_family = AF_INET;
   else if (get_family (&arg, &s->s_sa.sa_family))
     {
-      mu_debug_printf (debug, MU_DIAG_ERROR, _("invalid family\n"));
+      mu_error (_("invalid family"));
       return EINVAL;
     }
       
@@ -866,7 +865,7 @@ _mu_m_server_parse_url (mu_debug_t debug, const char *arg, union m_sockaddr *s,
     {
     case AF_INET:
       *psalen = sizeof (s->s_in);
-      if ((n = get_port (debug, arg)))
+      if ((n = get_port (arg)))
 	{
 	  s->s_in.sin_addr.s_addr = htonl (INADDR_ANY);
 	  s->s_in.sin_port = htons (n);	  
@@ -883,18 +882,16 @@ _mu_m_server_parse_url (mu_debug_t debug, const char *arg, union m_sockaddr *s,
 		s->s_in.sin_addr.s_addr = *(unsigned long *)hp->h_addr;
 	      else
 		{
-		  mu_debug_printf (debug, MU_DIAG_ERROR,
-				   _("invalid IP address: %s\n"), arg);
+		  mu_error (_("invalid IP address: %s"), arg);
 		  return EINVAL;
 		}
 	    }
 	  if (p)
 	    {
-	      n = get_port (debug, p);
+	      n = get_port (p);
 	      if (!n)
 		{
-		  mu_debug_printf (debug, MU_DIAG_ERROR,
-				   _("invalid port number: %s\n"), p);
+		  mu_error (_("invalid port number: %s"), p);
 		  return EINVAL;
 		}
 	      s->s_in.sin_port = n;
@@ -903,8 +900,7 @@ _mu_m_server_parse_url (mu_debug_t debug, const char *arg, union m_sockaddr *s,
 	    s->s_in.sin_port = ((struct sockaddr_in*)defsa)->sin_port;
 	  else
 	    {
-	      mu_debug_printf (debug, MU_DIAG_ERROR,
-			       _("missing port number\n"));
+	      mu_error (_("missing port number"));
 	      return EINVAL;
 	    }
 	}
@@ -931,10 +927,8 @@ mu_m_server_parse_url (mu_m_server_t msrv, char *arg,
   int rc;
   union m_sockaddr s;
   int salen;
-  mu_debug_t debug;
-  
-  mu_diag_get_debug (&debug);
-  rc = _mu_m_server_parse_url (debug, arg, &s, &salen, &msrv->defaddr.s.s_sa);
+
+  rc = _mu_m_server_parse_url (arg, &s, &salen, &msrv->defaddr.s.s_sa);
   if (rc)
     return rc;
   if (sa)
@@ -948,12 +942,11 @@ mu_m_server_parse_url (mu_m_server_t msrv, char *arg,
 }
 
 static int
-server_block_begin (mu_debug_t debug, const char *arg, mu_m_server_t msrv,
-		    void **pdata)
+server_block_begin (const char *arg, mu_m_server_t msrv, void **pdata)
 {
   union m_sockaddr s;
   int salen;
-  if (_mu_m_server_parse_url (debug, arg, &s, &salen, &msrv->defaddr.s.s_sa))
+  if (_mu_m_server_parse_url (arg, &s, &salen, &msrv->defaddr.s.s_sa))
     return 1;
   *pdata = add_server (msrv, &s.s_sa, salen, msrv->deftype);
   return 0;
@@ -973,7 +966,7 @@ server_section_parser (enum mu_cfg_section_stage stage,
 	if (node->label == NULL || node->label->type != MU_CFG_STRING)
 	  return 1;
 	/* FIXME: should not modify 2nd arg, or it should not be const */
-	return server_block_begin (tree->debug, node->label->v.string,
+	return server_block_begin (node->label->v.string,
 				   *section_data, section_data);
       }
       break;
@@ -990,11 +983,11 @@ server_section_parser (enum mu_cfg_section_stage stage,
 }
 
 static int
-_cb_daemon_mode (mu_debug_t debug, void *data, mu_config_value_t *val)
+_cb_daemon_mode (void *data, mu_config_value_t *val)
 {
   int *pmode = data;
   
-  if (mu_cfg_assert_value_type (val, MU_CFG_STRING, debug))
+  if (mu_cfg_assert_value_type (val, MU_CFG_STRING))
     return 1;
   if (strcmp (val->v.string, "inetd") == 0
       || strcmp (val->v.string, "interactive") == 0)
@@ -1003,21 +996,21 @@ _cb_daemon_mode (mu_debug_t debug, void *data, mu_config_value_t *val)
     *pmode = MODE_DAEMON;
   else
     {
-      mu_cfg_format_error (debug, MU_DEBUG_ERROR, _("unknown daemon mode"));
+      mu_error (_("unknown daemon mode"));
       return 1;
     }
   return 0;
 }
 
 static int
-_cb_port (mu_debug_t debug, void *data, mu_config_value_t *val)
+_cb_port (void *data, mu_config_value_t *val)
 {
   struct m_default_address *ap = data;
   unsigned short num;
 
-  if (mu_cfg_assert_value_type (val, MU_CFG_STRING, debug))
+  if (mu_cfg_assert_value_type (val, MU_CFG_STRING))
     return 1;
-  num = get_port (debug, val->v.string);
+  num = get_port (val->v.string);
   if (!num)
     return 1;
   ap->s.s_in.sin_family = AF_INET;

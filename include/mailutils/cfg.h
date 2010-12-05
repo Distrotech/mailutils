@@ -31,7 +31,6 @@ extern "C" {
 
 typedef enum mu_cfg_node_type mu_cfg_node_type_t;
 typedef struct mu_cfg_node mu_cfg_node_t;
-typedef struct mu_cfg_locus mu_cfg_locus_t;
 typedef struct mu_cfg_tree mu_cfg_tree_t;
 
 #define MU_CFG_STRING 0
@@ -62,15 +61,9 @@ enum mu_cfg_node_type
     mu_cfg_node_param
   };
 
-struct mu_cfg_locus
-{
-  char *file;
-  size_t line;
-};
-
 struct mu_cfg_node
 {
-  mu_cfg_locus_t locus;
+  struct mu_locus locus;
   enum mu_cfg_node_type type;
   char *tag;
   mu_config_value_t *label;
@@ -80,7 +73,6 @@ struct mu_cfg_node
 struct mu_cfg_tree
 {
   mu_list_t nodes;   /* a list of mu_cfg_node_t */
-  mu_debug_t debug;
   mu_opool_t pool;
 };
 
@@ -88,17 +80,9 @@ int mu_cfg_parse (mu_cfg_tree_t **ptree);
 int mu_cfg_tree_union (mu_cfg_tree_t **pa, mu_cfg_tree_t **pb);
 int mu_cfg_tree_postprocess (mu_cfg_tree_t *tree, int flags);
 
-extern mu_cfg_locus_t mu_cfg_locus;
+extern struct mu_locus mu_cfg_locus;
 
 mu_opool_t mu_cfg_lexer_pool (void);
-
-void mu_cfg_vperror (mu_debug_t, const mu_cfg_locus_t *,
-		     const char *fmt, va_list ap);
-void mu_cfg_perror (mu_debug_t debug, const mu_cfg_locus_t *,
-		    const char *, ...) MU_PRINTFLIKE(3,4);
-void mu_cfg_parse_error (const char *, ...) MU_PRINTFLIKE(1,2);
-void mu_cfg_format_error (mu_debug_t debug, size_t, const char *fmt, ...)
-      MU_PRINTFLIKE(3,4);
 
 #define MU_CFG_ITER_OK   0
 #define MU_CFG_ITER_SKIP 1
@@ -144,7 +128,7 @@ enum mu_cfg_param_data_type
 #define MU_CFG_TYPE(t) ((t) & ~MU_CFG_LIST_MASK)
 #define MU_CFG_IS_LIST(t) ((t) & MU_CFG_LIST_MASK)
   
-typedef int (*mu_cfg_callback_t) (mu_debug_t, void *, mu_config_value_t *);
+typedef int (*mu_cfg_callback_t) (void *, mu_config_value_t *);
 
 struct mu_cfg_param
 {
@@ -245,8 +229,6 @@ int mu_config_register_plain_section (const char *parent_path,
 				      const char *ident,
 				      struct mu_cfg_param *params);
 
-mu_debug_t mu_cfg_get_debug (void);
-
 #define MU_PARSE_CONFIG_GLOBAL  0x1
 #define MU_PARSE_CONFIG_VERBOSE 0x2
 #define MU_PARSE_CONFIG_DUMP    0x4
@@ -282,10 +264,9 @@ void mu_format_config_tree (mu_stream_t stream, const char *progname,
 int mu_cfg_tree_reduce (mu_cfg_tree_t *parse_tree, const char *progname,
 		        struct mu_cfg_param *progparam,
 		        int flags, void *target_ptr);
-int mu_cfg_assert_value_type (mu_config_value_t *val, int type,
-			      mu_debug_t debug);
-int mu_cfg_string_value_cb (mu_debug_t debug, mu_config_value_t *val,
-			    int (*fun) (mu_debug_t, const char *, void *),
+int mu_cfg_assert_value_type (mu_config_value_t *val, int type);
+int mu_cfg_string_value_cb (mu_config_value_t *val,
+			    int (*fun) (const char *, void *),
 			    void *data);
 
 int mu_cfg_parse_file (mu_cfg_tree_t **return_tree, const char *file,
@@ -297,10 +278,9 @@ int mu_get_config (const char *file, const char *progname,
 		   void *target_ptr) MU_CFG_DEPRECATED;
 
 int mu_cfg_tree_create (struct mu_cfg_tree **ptree);
-void mu_cfg_tree_set_debug (struct mu_cfg_tree *tree, mu_debug_t debug);
 mu_cfg_node_t *mu_cfg_tree_create_node (struct mu_cfg_tree *tree,
 					enum mu_cfg_node_type type,
-					const mu_cfg_locus_t *loc,
+					const struct mu_locus *loc,
 					const char *tag,
 					const char *label,
 					mu_list_t nodelist);

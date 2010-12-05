@@ -117,6 +117,8 @@ extern int expire_on_exit;
 #include <mailutils/acl.h>
 #include <mailutils/server.h>
 #include <mailutils/filter.h>
+#include <mailutils/stdstream.h>
+#include <mailutils/stream.h>
 
 /* For Berkley DB2 APOP password file */
 #ifdef HAVE_DB_H

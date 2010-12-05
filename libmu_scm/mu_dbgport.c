@@ -19,22 +19,25 @@
 
 struct _mu_debug_port
 {
-  mu_debug_t      debug;
-  mu_log_level_t  level;
+  mu_stream_t stream;
+  int level;
 };
 
 static long     scm_tc16_mu_debug_port;
 
 SCM
-mu_scm_make_debug_port (mu_debug_t debug, mu_log_level_t level)
+mu_scm_make_debug_port (int level)
 {
   struct _mu_debug_port *dp;
   SCM             port;
   scm_port       *pt;
-
+  mu_stream_t str;
+  
+  if (mu_dbgstream_create (&str, level))
+    return SCM_BOOL_F;
   dp = scm_gc_malloc (sizeof (struct _mu_debug_port), "mu-debug-port");
-  dp->debug = debug;
   dp->level = level;
+  dp->stream = str;
   port = scm_cell (scm_tc16_mu_debug_port, 0);
   pt = scm_add_to_port_table (port);
   SCM_SETPTAB_ENTRY (port, pt);
@@ -94,7 +97,7 @@ _mu_debug_port_write (SCM port, const void *data, size_t size)
 {
   struct _mu_debug_port *dp = MU_DEBUG_PORT (port);
 
-  mu_debug_printf (dp->debug, dp->level, "%.*s", size, (const char *)data);
+  mu_stream_write (dp->stream, data, size, NULL);
 }
 
 static int

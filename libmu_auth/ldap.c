@@ -313,7 +313,7 @@ _mu_ldap_bind (LDAP *ld)
       || (info && info[0])
       || refs)
     {
-      /* FIXME: Use mu_debug_t for that */
+      /* FIXME: Use debug output for that */
       mu_error ("ldap_bind: %s (%d)%s", ldap_err2string (err), err, msgbuf);
 
       if (matched && *matched) 
@@ -431,9 +431,9 @@ _mu_entry_to_auth_data (LDAP *ld, LDAPMessage *msg,
   
   memset (&d, 0, sizeof d);
   
-  /* FIXME: should use mu_debug_t */
   rc = ldap_get_dn_ber (ld, msg, &ber, &bv);
   ufn = ldap_dn2ufn (bv.bv_val);
+  /* FIXME: Use debug or diag functions */
   mu_error ("INFO: %s", ufn);
   ldap_memfree (ufn);
   

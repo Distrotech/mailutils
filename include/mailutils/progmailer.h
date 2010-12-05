@@ -27,8 +27,6 @@ extern "C" {
 int mu_progmailer_create (mu_progmailer_t *pm);
 int mu_progmailer_set_command (mu_progmailer_t pm, const char *command);
 int mu_progmailer_sget_command (mu_progmailer_t pm, const char **command);
-  /* FIXME: missing _aget_ and _get_ */
-int mu_progmailer_set_debug (mu_progmailer_t pm, mu_debug_t debug);  
 int mu_progmailer_open (mu_progmailer_t pm, char **argv);
 int mu_progmailer_send (mu_progmailer_t pm, mu_message_t msg);
 int mu_progmailer_close (mu_progmailer_t pm);

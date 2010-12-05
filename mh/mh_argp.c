@@ -161,7 +161,7 @@ mu_debug_argp_parser (int key, char *arg, struct argp_state *state)
   switch (key)
     {
     case OPT_DEBUG_LEVEL:
-      mu_global_debug_from_string (arg, "command line");
+      mu_debug_parse_spec (arg);
       break;
 
     case OPT_DEBUG_LINE_INFO:

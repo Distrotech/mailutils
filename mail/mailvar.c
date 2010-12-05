@@ -562,78 +562,20 @@ set_screen (struct mailvar_variable *var)
   page_invalidate (1);
 }
 
-static void
-set_mailbox_debug_level (mu_log_level_t level)
-{
-  if (mbox)
-    {
-      mu_debug_t mdbg;
-      mu_mailbox_get_debug (mbox, &mdbg);
-      mu_debug_set_level (mdbg, level);
-    }
-}  
-
-#define DEFAULT_DEBUG_LEVEL  \
-  (MU_DEBUG_INHERIT | MU_DEBUG_LEVEL_UPTO (MU_DEBUG_TRACE7))
+#define DEFAULT_DEBUG_LEVEL  MU_DEBUG_LEVEL_UPTO (MU_DEBUG_TRACE7)
 
 static void
 set_debug (struct mailvar_variable *var)
 {
-  struct mu_wordsplit ws;
-  int i;
-  mu_debug_t dbg;
-
-  mu_global_debug_clear_level (NULL);
-  set_mailbox_debug_level (0);
+  mu_debug_clear_all ();
 
   if (var->type == mailvar_type_boolean)
     {
       if (var->set)
-	{
-	  /* FIXME: What to set here? 
-	     mu_global_debug_set_level ("*", DEFAULT_DEBUG_LEVEL); */
-	  set_mailbox_debug_level (DEFAULT_DEBUG_LEVEL);
-	}
+        mu_debug_set_category_level (MU_DEBCAT_ALL, DEFAULT_DEBUG_LEVEL);
       return;
     }
-  
-  mu_diag_get_debug (&dbg);
-
-  ws.ws_delim = ";";
-
-  if (mu_wordsplit (var->value.string, &ws,
-		    MU_WRDSF_NOCMD | MU_WRDSF_NOVAR |
-		    MU_WRDSF_SQUEEZE_DELIMS |
-		    MU_WRDSF_DELIM | MU_WRDSF_WS |
-		    MU_WRDSF_ERROR))
-    {
-      mu_error (_("%s failed: %s"), "mu_wordsplit",
-		mu_wordsplit_strerror (&ws));
-      return;
-    }
-
-  for (i = 0; i < ws.ws_wordc; i++)
-    {
-      char *p;
-      mu_log_level_t level = MU_DEBUG_INHERIT;
-      char *object_name = ws.ws_wordv[i];
-      
-      for (p = object_name; *p && *p != '='; p++)
-	;
-
-      if (*p == '=')
-	{
-	  *p++ = 0;
-	  mu_debug_level_from_string (p, &level, dbg);
-	}
-      else
-	level |= MU_DEBUG_LEVEL_UPTO (MU_DEBUG_PROT);
-      
-      if (strcmp (object_name, "mailbox") == 0)
-	set_mailbox_debug_level (level);
-      mu_global_debug_set_level (object_name, level);
-    }
-  mu_wordsplit_free (&ws);
+  mu_debug_parse_spec (var->value.string); 
 }
 
 

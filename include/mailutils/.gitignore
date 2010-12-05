@@ -1,5 +1,4 @@
 Makefile
 Makefile.in
-debug.h
 errno.h
 types.h

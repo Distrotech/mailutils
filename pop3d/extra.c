@@ -159,12 +159,9 @@ pop3d_setio (int ifd, int ofd)
   if (pop3d_transcript)
     {
       int rc;
-      mu_debug_t debug;
       mu_stream_t dstr, xstr;
       
-      mu_diag_get_debug (&debug);
-      
-      rc = mu_dbgstream_create (&dstr, debug, MU_DIAG_DEBUG, 0);
+      rc = mu_dbgstream_create (&dstr, MU_DIAG_DEBUG);
       if (rc)
 	mu_error (_("cannot create debug stream; transcript disabled: %s"),
 		  mu_strerror (rc));
@@ -337,10 +334,9 @@ set_xscript_level (int xlev)
     {
       if (xlev != MU_XSCRIPT_NORMAL)
 	{
-	  mu_log_level_t n = xlev == MU_XSCRIPT_SECURE ?
-	                      MU_DEBUG_TRACE6 : MU_DEBUG_TRACE7;
-	  
-	  if (mu_global_debug_level ("pop3") & MU_DEBUG_LEVEL_MASK (n))
+	  if (mu_debug_level_p (MU_DEBCAT_REMOTE,
+	                        xlev == MU_XSCRIPT_SECURE ?
+	                            MU_DEBUG_TRACE6 : MU_DEBUG_TRACE7))
 	    return MU_XSCRIPT_NORMAL;
 	}
 

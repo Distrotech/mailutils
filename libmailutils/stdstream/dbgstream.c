@@ -14,18 +14,29 @@
    You should have received a copy of the GNU Lesser General Public License
    along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>. */
 
-#ifndef _MAILUTILS_SYS_DBGSTREAM_H
-# define _MAILUTILS_SYS_DBGSTREAM_H
-
-# include <mailutils/types.h>
-# include <mailutils/stream.h>
-# include <mailutils/sys/stream.h>
-
-struct _mu_dbgstream
-{
-  struct _mu_stream stream;
-  mu_debug_t debug;
-  mu_log_level_t level;
-};
-
+#ifdef HAVE_CONFIG_H
+# include <config.h>
 #endif
+
+#include <mailutils/types.h>
+#include <mailutils/stream.h>
+#include <mailutils/log.h>
+#include <mailutils/stdstream.h>
+
+int
+mu_dbgstream_create (mu_stream_t *pstr, int severity)
+{
+  int rc;
+  mu_transport_t trans[2];
+
+  rc = mu_stream_ioctl (mu_strerr, MU_IOCTL_GET_TRANSPORT, trans);
+  if (rc)
+    return rc;
+  rc = mu_log_stream_create (pstr, (mu_stream_t) trans[0]);
+  if (rc)
+    return rc;
+  mu_stream_ioctl (*pstr, MU_IOCTL_LOGSTREAM_SET_SEVERITY, &severity);
+  return 0;
+}
+
+  

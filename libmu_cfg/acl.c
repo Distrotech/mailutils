@@ -36,18 +36,18 @@
 #define SKIPWS(p) while (*(p) && ISSPACE (*(p))) (p)++;
 
 static const char *
-getword (mu_config_value_t *val, int *pn, mu_debug_t err)
+getword (mu_config_value_t *val, int *pn)
 {
   int n = (*pn)++;
   mu_config_value_t *v;
 
   if (n >= val->v.arg.c)
     {
-      mu_cfg_format_error (err, MU_DEBUG_ERROR, _("not enough arguments"));
+      mu_error (_("not enough arguments"));
       return NULL;
     }
   v = &val->v.arg.v[n];
-  if (mu_cfg_assert_value_type (v, MU_CFG_STRING, err))
+  if (mu_cfg_assert_value_type (v, MU_CFG_STRING))
     return NULL;
   return v->v.string;
 }
@@ -64,7 +64,7 @@ struct netdef
 #endif
 
 int
-parse_address (mu_debug_t err, const char *str, struct netdef *nd)
+parse_address (const char *str, struct netdef *nd)
 {
   struct sockaddr_in in;
   
@@ -76,7 +76,7 @@ parse_address (mu_debug_t err, const char *str, struct netdef *nd)
     }
   else if (inet_aton (str, &in.sin_addr) == 0)
     {
-      mu_cfg_format_error (err, MU_DEBUG_ERROR, _("invalid IPv4: %s"), str);
+      mu_error (_("invalid IPv4: %s"), str);
       return 1;
     }
   in.sin_port = 0;
@@ -84,7 +84,7 @@ parse_address (mu_debug_t err, const char *str, struct netdef *nd)
   nd->sa = malloc (nd->len);
   if (!nd->sa)
     {
-      mu_cfg_format_error (err, MU_DEBUG_ERROR, "%s", mu_strerror (errno));
+      mu_error ("%s", mu_strerror (errno));
       return 1;
     }
   memcpy (nd->sa, &in, sizeof (in));
@@ -92,22 +92,21 @@ parse_address (mu_debug_t err, const char *str, struct netdef *nd)
 }
 
 static int
-parsearg (mu_debug_t err, mu_config_value_t *val, struct netdef *pnd,
-	  char **prest) 
+parsearg (mu_config_value_t *val, struct netdef *pnd, char **prest) 
 {
   const char *w;
   char *p;  
   unsigned long netmask;
   int n = 0;
 
-  if (mu_cfg_assert_value_type (val, MU_CFG_ARRAY, err))
+  if (mu_cfg_assert_value_type (val, MU_CFG_ARRAY))
     return 1;
   
-  w = getword (val, &n, err);
+  w = getword (val, &n);
   if (!w)
     return 1;
   if (strcmp (w, "from") == 0) {
-    w = getword (val, &n, err);
+    w = getword (val, &n);
     if (!w)
       return 1;
   }
@@ -138,14 +137,14 @@ parsearg (mu_debug_t err, mu_config_value_t *val, struct netdef *pnd,
 	      
 	  if (inet_aton (p, &addr) == 0)
 	    {
-	      mu_cfg_format_error (err, MU_DEBUG_ERROR, _("invalid netmask"));
+	      mu_error (_("invalid netmask"));
 	      return 1;
 	    }
 	  netmask = addr.s_addr;
 	}
       else
 	{
-	  mu_cfg_format_error (err, MU_DEBUG_ERROR, _("invalid netmask"));
+	  mu_error (_("invalid netmask"));
 	  return 1;
 	}
     }
@@ -153,7 +152,7 @@ parsearg (mu_debug_t err, mu_config_value_t *val, struct netdef *pnd,
     netmask = 0xfffffffful;
 
   pnd->netmask = netmask;
-  if (parse_address (err, w, pnd))
+  if (parse_address (w, pnd))
     return 1;
 
   if (prest)
@@ -168,8 +167,7 @@ parsearg (mu_debug_t err, mu_config_value_t *val, struct netdef *pnd,
 	  
 	  for (i = n; i < val->v.arg.c; i++)
 	    {
-	      if (mu_cfg_assert_value_type (&val->v.arg.v[i], MU_CFG_STRING,
-					    err))
+	      if (mu_cfg_assert_value_type (&val->v.arg.v[i], MU_CFG_STRING))
 		return 1;
 	      size += strlen (val->v.arg.v[i].v.string) + 1;
 	    }
@@ -177,8 +175,7 @@ parsearg (mu_debug_t err, mu_config_value_t *val, struct netdef *pnd,
 	  buf = malloc (size);
 	  if (!buf)
 	    {
-	      mu_cfg_format_error (err, MU_DEBUG_ERROR,
-				   "%s", mu_strerror (errno));
+	      mu_error ("%s", mu_strerror (errno));
 	      return 1;
 	    }	    
 
@@ -195,106 +192,96 @@ parsearg (mu_debug_t err, mu_config_value_t *val, struct netdef *pnd,
     }
   else if (n != val->v.arg.c)
     {
-      mu_cfg_format_error (err, MU_DEBUG_ERROR, _("junk after IP address"));
+      mu_error (_("junk after IP address"));
       return 1;
     }
   return 0;
 }
 
 static int
-cb_allow (mu_debug_t err, void *data, mu_config_value_t *val)
+cb_allow (void *data, mu_config_value_t *val)
 {
   int rc;
   mu_acl_t acl = *(mu_acl_t*)data;
   struct netdef ndef;
   
-  if (parsearg (err, val, &ndef, NULL))
+  if (parsearg (val, &ndef, NULL))
     return 1;
   rc = mu_acl_append (acl, mu_acl_accept, NULL, ndef.sa, ndef.len,
 		      ndef.netmask);
   if (rc)
-    mu_cfg_format_error (err, MU_DEBUG_ERROR,
-			 _("cannot append acl entry: %s"), 
-			 mu_strerror (rc));
+    mu_error (_("cannot append acl entry: %s"), mu_strerror (rc));
   free (ndef.sa);
   return rc;
 }
 
 static int
-cb_deny (mu_debug_t err, void *data, mu_config_value_t *val)
+cb_deny (void *data, mu_config_value_t *val)
 {
   int rc;
   mu_acl_t acl = *(mu_acl_t*)data;
   struct netdef ndef;
   
-  if (parsearg (err, val, &ndef, NULL))
+  if (parsearg (val, &ndef, NULL))
     return 1;
   rc = mu_acl_append (acl, mu_acl_deny, NULL, ndef.sa, ndef.len,
 		      ndef.netmask);
   if (rc)
-    mu_cfg_format_error (err, MU_DEBUG_ERROR,
-			 _("cannot append acl entry: %s"), 
-			 mu_strerror (rc));
+    mu_error (_("cannot append acl entry: %s"), mu_strerror (rc));
   free (ndef.sa);
   return rc;
 }
 
 static int
-cb_log (mu_debug_t err, void *data, mu_config_value_t *val)
+cb_log (void *data, mu_config_value_t *val)
 {
   int rc;
   mu_acl_t acl = *(mu_acl_t*)data;
   struct netdef ndef;
   char *rest;
   
-  if (parsearg (err, val, &ndef, &rest))
+  if (parsearg (val, &ndef, &rest))
     return 1;
   rc = mu_acl_append (acl, mu_acl_log, rest, ndef.sa, ndef.len,
 		      ndef.netmask);
   if (rc)
-    mu_cfg_format_error (err, MU_DEBUG_ERROR,
-			 _("cannot append acl entry: %s"), 
-			 mu_strerror (rc));
+    mu_error (_("cannot append acl entry: %s"), mu_strerror (rc));
   free (ndef.sa);
   return rc;
 }
 
 static int
-cb_exec (mu_debug_t err, void *data, mu_config_value_t *val)
+cb_exec (void *data, mu_config_value_t *val)
 {
   int rc;
   mu_acl_t acl = *(mu_acl_t*)data;
   struct netdef ndef;
   char *rest;
   
-  if (parsearg (err, val, &ndef, &rest))
+  if (parsearg (val, &ndef, &rest))
     return 1;
   rc = mu_acl_append (acl, mu_acl_exec, rest, ndef.sa, ndef.len,
 		      ndef.netmask);
   if (rc)
-    mu_cfg_format_error (err, MU_DEBUG_ERROR,
-			 _("cannot append acl entry: %s"), 
-			 mu_strerror (rc));
+    mu_error (_("cannot append acl entry: %s"), mu_strerror (rc));
   free (ndef.sa);
   return rc;
 }
 
 static int
-cb_ifexec (mu_debug_t err, void *data, mu_config_value_t *val)
+cb_ifexec (void *data, mu_config_value_t *val)
 {
   int rc;
   mu_acl_t acl = *(mu_acl_t*)data;
   struct netdef ndef;
   char *rest;
   
-  if (parsearg (err, val, &ndef, &rest))
+  if (parsearg (val, &ndef, &rest))
     return 1;
   rc = mu_acl_append (acl, mu_acl_ifexec, rest, ndef.sa, ndef.len,
 		      ndef.netmask);
   if (rc)
-    mu_cfg_format_error (err, MU_DEBUG_ERROR,
-			 _("cannot append acl entry: %s"), 
-			 mu_strerror (rc));
+    mu_error (_("cannot append acl entry: %s"), mu_strerror (rc));
   free (ndef.sa);
   return rc;
 }

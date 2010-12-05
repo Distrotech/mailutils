@@ -128,9 +128,8 @@ prog_open (mu_mailer_t mailer, int flags)
   if (access (path, X_OK) == -1)
     return errno;
 
-  mu_progmailer_set_debug (pm, mailer->debug);
   status = mu_progmailer_set_command (pm, path);
-  MU_DEBUG1 (mailer->debug, MU_DEBUG_TRACE, "prog (%s)\n", path);
+  mu_debug (MU_DEBCAT_MAILER, MU_DEBUG_TRACE, ("prog (%s)", path));
   return status;
 }
 
@@ -358,30 +357,29 @@ prog_send_message (mu_mailer_t mailer, mu_message_t msg, mu_address_t from,
   status = mu_url_sget_path (mailer->url, &command);
   if (status && status != MU_ERR_NOENT)
     {
-      MU_DEBUG1 (mailer->debug, MU_DEBUG_ERROR,
-		 "cannot get path from URL: %s\n",
-		 mu_strerror (status));
+      mu_debug (MU_DEBCAT_MAILER, MU_DEBUG_ERROR,
+		("cannot get path from URL: %s",
+		 mu_strerror (status)));
       return status;
     }
   status = mu_progmailer_set_command (pm, command);
   if (status)
     {
-      MU_DEBUG1 (mailer->debug, MU_DEBUG_ERROR,
-		 "cannot set progmailer command: %s\n",
-		 mu_strerror (status));
+      mu_debug (MU_DEBCAT_MAILER, MU_DEBUG_ERROR,
+		("cannot set progmailer command: %s",
+		 mu_strerror (status)));
       return status;
     }
       
   status = url_to_argv (mailer->url, msg, from, to, &argc, &argv);
   if (status)
     {
-      MU_DEBUG1 (mailer->debug, MU_DEBUG_ERROR,
-		 "cannot convert URL to command line: %s\n",
-		 mu_strerror (status));
+      mu_debug (MU_DEBCAT_MAILER, MU_DEBUG_ERROR,
+		("cannot convert URL to command line: %s",
+		 mu_strerror (status)));
       return status;
     }
 
-  mu_progmailer_set_debug (pm, mailer->debug);
   status = mu_progmailer_open (pm, argv);
   if (status == 0)
     {
@@ -390,9 +388,8 @@ prog_send_message (mu_mailer_t mailer, mu_message_t msg, mu_address_t from,
 	mu_observable_notify (mailer->observable, MU_EVT_MAILER_MESSAGE_SENT,
 			      msg);
       else
-	MU_DEBUG1 (mailer->debug, MU_DEBUG_ERROR,
-		   "progmailer error: %s\n",
-		   mu_strerror (status));
+	mu_debug (MU_DEBCAT_MAILER, MU_DEBUG_ERROR,
+		  ("progmailer error: %s", mu_strerror (status)));
     }
   
   mu_argcv_free (argc, argv);

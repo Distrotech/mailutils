@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <mailutils/stream.h>
 #include <mailutils/io.h>
+#include <mailutils/stdstream.h>
 #include "xalloc.h"
 #include <string.h>
 #ifdef MU_ALPHA_RELEASE
@@ -106,6 +107,9 @@ mu_app_init (struct argp *myargp, const char **capa,
   struct mu_cfg_tree *parse_tree = NULL;
   
   mu_set_program_name (argv[0]);
+  mu_log_tag = (char*)mu_program_name;
+  mu_stdstream_setup ();
+  
   mu_libargp_init ();
   if (capa)
     for (i = 0; capa[i]; i++)

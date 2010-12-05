@@ -550,9 +550,8 @@ frm_scan (char *mailbox_name, frm_select_t fun, size_t *total)
 
   if (frm_debug)
     {
-      mu_debug_t debug;
-      mu_mailbox_get_debug (mbox, &debug);
-      mu_debug_set_level (debug, MU_DEBUG_LEVEL_UPTO (MU_DEBUG_PROT));
+      mu_debug_set_category_level (MU_DEBCAT_MAILBOX, 
+                                   MU_DEBUG_LEVEL_UPTO (MU_DEBUG_PROT));
     }
 
   mu_mailbox_get_url (mbox, &url);

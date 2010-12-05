@@ -104,8 +104,7 @@ sieve_action_fileinto (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   if (mu_sieve_is_dry_run (mach))
     return 0;
 
-  rc = mu_message_save_to_mailbox (mach->msg, mach->debug,
-				   val->v.string, mbflags);
+  rc = mu_message_save_to_mailbox (mach->msg, val->v.string, mbflags);
   if (rc)
     mu_sieve_error (mach, _("cannot save to mailbox: %s"),
 		    mu_strerror (rc));

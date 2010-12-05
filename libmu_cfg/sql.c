@@ -29,34 +29,31 @@ static struct mu_sql_module_config sql_settings;
 
 /* Resource file configuration */
 static int
-cb_password_type (mu_debug_t debug, void *data, mu_config_value_t *val)
+cb_password_type (void *data, mu_config_value_t *val)
 {
-  if (mu_cfg_assert_value_type (val, MU_CFG_STRING, debug))
+  if (mu_cfg_assert_value_type (val, MU_CFG_STRING))
     return 1;
   
   if (mu_sql_decode_password_type (val->v.string, &sql_settings.password_type))
-    mu_cfg_format_error (debug, MU_DEBUG_ERROR,
-			 _("unknown password type `%s'"),
-			 val->v.string);
+    mu_error (_("unknown password type `%s'"), val->v.string);
   return 0;
 }
 
 static int
-_cb2_field_map (mu_debug_t debug, const char *arg, void *data)
+_cb2_field_map (const char *arg, void *data)
 {
   int err;
   int rc = mutil_parse_field_map (arg, &sql_settings.field_map, &err);
   if (rc)
     /* FIXME: this message may be misleading */
-    mu_cfg_format_error (debug, MU_DEBUG_ERROR, _("error near element %d: %s"),
-			 err, mu_strerror (rc));
+    mu_error (_("error near element %d: %s"), err, mu_strerror (rc));
   return 0;
 }
 
 static int
-cb_field_map (mu_debug_t debug, void *data, mu_config_value_t *val)
+cb_field_map (void *data, mu_config_value_t *val)
 {
-  return mu_cfg_string_value_cb (debug, val, _cb2_field_map, NULL);
+  return mu_cfg_string_value_cb (val, _cb2_field_map, NULL);
 }
 
 static struct mu_cfg_param mu_sql_param[] = {

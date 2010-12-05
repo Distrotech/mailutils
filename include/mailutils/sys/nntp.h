@@ -141,8 +141,6 @@ struct _mu_nntp
 
     unsigned timeout;  /* Default is 10 minutes.  */
 
-    mu_debug_t debug; /* debugging trace.  */
-
     enum mu_nntp_state state;  /* Indicate the state of the running command.  */
 
     mu_stream_t carrier; /* TCP Connection.  */

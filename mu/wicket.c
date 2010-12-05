@@ -75,7 +75,7 @@ wicket_match (mu_stream_t stream, const char *str)
 {
   int rc, ret;
   mu_url_t u, url;
-  struct mu_debug_locus loc;
+  struct mu_locus loc;
   int flags = MU_URL_PARSE_ALL;
 
   if (wicket_verbose > 2)
@@ -94,8 +94,8 @@ wicket_match (mu_stream_t stream, const char *str)
       mu_diag_funcall (MU_DIAG_ERROR, "mu_stream_seek", "0", rc);
       return 2;
     }
-  loc.file = wicket_file;
-  loc.line = 0;
+  loc.mu_file = wicket_file;
+  loc.mu_line = 0;
   rc = mu_wicket_stream_match_url (stream, &loc, u, flags, &url);
   switch (rc)
     {
@@ -103,7 +103,7 @@ wicket_match (mu_stream_t stream, const char *str)
       ret = 0;
       if (wicket_verbose)
 	{
-	  mu_printf ("%s: %s:%d", str, loc.file, loc.line);
+	  mu_printf ("%s: %s:%d", str, loc.mu_file, loc.mu_line);
 	  if (wicket_verbose > 1)
 	    mu_printf (": %s", mu_url_to_string (url));
 	  mu_printf ("\n");

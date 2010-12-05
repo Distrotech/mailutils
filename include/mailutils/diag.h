@@ -22,6 +22,7 @@
 #include <stdarg.h>
 
 #include <mailutils/types.h>
+#include <mailutils/log.h>
 #include <mailutils/debug.h>
 
 #ifdef __cplusplus
@@ -30,32 +31,32 @@ extern "C" {
 
 extern const char *mu_program_name;
 
-#define MU_DIAG_EMERG    0
-#define MU_DIAG_ALERT    1
-#define MU_DIAG_CRIT     2
-#define MU_DIAG_ERROR    3
+#define MU_DIAG_EMERG    MU_LOG_EMERG
+#define MU_DIAG_ALERT    MU_LOG_ALERT
+#define MU_DIAG_CRIT     MU_LOG_CRIT
+#define MU_DIAG_ERROR    MU_LOG_ERROR
 #define MU_DIAG_ERR MU_DIAG_ERROR
-#define MU_DIAG_WARNING  4 
-#define MU_DIAG_NOTICE   5
-#define MU_DIAG_INFO     6 
-#define MU_DIAG_DEBUG    7
+#define MU_DIAG_WARNING  MU_LOG_WARNING
+#define MU_DIAG_NOTICE   MU_LOG_NOTICE
+#define MU_DIAG_INFO     MU_LOG_INFO
+#define MU_DIAG_DEBUG    MU_LOG_DEBUG
   
 void mu_set_program_name (const char *);
 void mu_diag_init (void);
-void mu_diag_get_debug (mu_debug_t *);
-void mu_diag_set_debug (mu_debug_t);
-void mu_diag_vprintf (mu_log_level_t, const char *, va_list);
-void mu_diag_printf (mu_log_level_t, const char *, ...) MU_PRINTFLIKE(2,3);
-void mu_diag_voutput (mu_log_level_t, const char *, va_list);
-void mu_diag_output (mu_log_level_t, const char *, ...) MU_PRINTFLIKE(2,3);
+void mu_diag_vprintf (int, const char *, va_list);
+void mu_diag_cont_vprintf (const char *, va_list);
+void mu_diag_printf (int, const char *, ...) MU_PRINTFLIKE(2,3);
+void mu_diag_cont_printf (const char *fmt, ...) MU_PRINTFLIKE(1,2);
+  
+void mu_diag_voutput (int, const char *, va_list);
+void mu_diag_output (int, const char *, ...) MU_PRINTFLIKE(2,3);
+void mu_diag_at_locus (int level, struct mu_locus const *loc,
+		       const char *fmt, ...);
 
-int mu_diag_syslog_printer (void *, mu_log_level_t, const char *);
-int mu_diag_stderr_printer (void *, mu_log_level_t, const char *);
+int mu_diag_level_to_syslog (int level);
+const char *mu_diag_level_to_string (int level);
 
-int mu_diag_level_to_syslog (mu_log_level_t level);
-const char *mu_diag_level_to_string (mu_log_level_t level);
-
-void mu_diag_funcall (mu_log_level_t level, const char *func,
+void mu_diag_funcall (int level, const char *func,
 		      const char *arg, int err);
   
 #ifdef __cplusplus

@@ -1,12 +1,10 @@
-GNU mailutils TODO list. 2010-12-02
+GNU mailutils TODO list. 2010-12-06
 Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2010 Free
 Software Foundation, Inc.
 
 * Provide a generic way to store UID, UIDNEXT and UIDVALIDITY in mailboxes.
 
 * prog_stream: find a way to initialize start directory value and environment
-
-* stream: associate with input location (mu_locus_t or the like).
 
 * redo the support of the default user email and mail domain.
 
@@ -17,8 +15,6 @@ Software Foundation, Inc.
 See also mu_rfc2822_in_reply_to.
 
 * mail: rewrite I/O support using streams.
-
-* redo debugging & logging support the way it is implemented in dico/mailfromd
 
 * re-implement imap4 client (in progress)
 
@@ -128,6 +124,12 @@ libmailbox?
 * utilities
 
 ** mimeview: support nametemplate
+
+* stream: associate with input location (mu_locus_t or the like).
+
+This is already implemented in logstream.  Does it make sense for
+streams in general?
+
 
 
 Local variables:

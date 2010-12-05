@@ -26,21 +26,20 @@
 static struct mu_ldap_module_config ldap_settings;
 
 static int
-_cb2_field_map (mu_debug_t debug, const char *arg, void *data)
+_cb2_field_map (const char *arg, void *data)
 {
   int err;
   int rc = mutil_parse_field_map (arg, &ldap_settings.field_map, &err);
   if (rc)
-    /* FIXME: this message may be misleading */
-    mu_cfg_format_error (debug, MU_DEBUG_ERROR, _("error near element %d: %s"),
-			 err, mu_strerror (rc));
+    /* FIXME: this message can be misleading */
+    mu_error (_("error near element %d: %s"), err, mu_strerror (rc));
   return 0;
 }
 
 static int
-cb_field_map (mu_debug_t debug, void *data, mu_config_value_t *val)
+cb_field_map (void *data, mu_config_value_t *val)
 {
-  return mu_cfg_string_value_cb (debug, val, _cb2_field_map, NULL);
+  return mu_cfg_string_value_cb (val, _cb2_field_map, NULL);
 }
 
 static struct mu_cfg_param mu_ldap_param[] = {

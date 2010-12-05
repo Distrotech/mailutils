@@ -29,9 +29,6 @@ mu_sieve_machine_t mu_sieve_machine;
 int mu_sieve_error_count;
 
 static void branch_fixup (size_t start, size_t end);
-static int _sieve_default_error_printer (void *, const char *, va_list);
-static int _sieve_default_parse_error (void *, const char *, int,
-				       const char *, va_list);
 %}
 
 %union {
@@ -347,11 +344,11 @@ yyerror (const char *s)
 }
 
 int
-mu_sieve_machine_init (mu_sieve_machine_t *pmach, void *data)
+mu_sieve_machine_init_ex (mu_sieve_machine_t *pmach,
+			  void *data, mu_stream_t errstream)
 {
   int rc;
   mu_sieve_machine_t mach;
-  size_t level;
   
   mach = malloc (sizeof (*mach));
   if (!mach)
@@ -363,20 +360,19 @@ mu_sieve_machine_init (mu_sieve_machine_t *pmach, void *data)
       free (mach);
       return rc;
     }
-  
-  mach->data = data;
-  mach->error_printer = _sieve_default_error_printer;
-  mach->parse_error_printer = _sieve_default_parse_error;
 
-  level = mu_global_debug_level ("sieve");
-  if (level)
-    {
-      mu_debug_create (&mach->debug, mach);
-      mu_debug_set_level (mach->debug, level);
-    }
+  mach->data = data;
+  mach->errstream = errstream;
+  mu_stream_ref (mu_strerr);
   
   *pmach = mach;
   return 0;
+}
+
+int
+mu_sieve_machine_init (mu_sieve_machine_t *pmach)
+{
+  return mu_sieve_machine_init_ex (pmach, NULL, mu_strerr);
 }
 
 int
@@ -386,13 +382,12 @@ mu_sieve_machine_inherit (mu_sieve_machine_t const parent,
   mu_sieve_machine_t child;
   int rc;
   
-  rc = mu_sieve_machine_init (&child, parent->data);
+  rc = mu_sieve_machine_init_ex (&child, parent->data, parent->errstream);
   if (rc)
     return rc;
+
   child->logger = parent->logger;
-  child->debug = parent->debug;
   child->debug_level = parent->debug_level;
-  child->debug_printer = parent->debug_printer;
   *pmach = child;
   return 0;
 }
@@ -427,12 +422,11 @@ mu_sieve_machine_dup (mu_sieve_machine_t const in, mu_sieve_machine_t *out)
 
   mach->debug_level = in->debug_level;
   
+  mach->errstream = in->errstream;
+  mu_stream_ref (mach->errstream);
+  
   mach->data = in->data;
-  mach->error_printer = in->error_printer;
-  mach->parse_error_printer = in->parse_error_printer;
-  mach->debug_printer = in->debug_printer;
   mach->logger = in->logger;
-  mach->debug = in->debug;
   mach->daemon_email = in->daemon_email;
 
   *out = mach;
@@ -440,28 +434,18 @@ mu_sieve_machine_dup (mu_sieve_machine_t const in, mu_sieve_machine_t *out)
 }
 
 void
-mu_sieve_set_error (mu_sieve_machine_t mach, mu_sieve_printf_t error_printer)
+mu_sieve_get_diag_stream (mu_sieve_machine_t mach, mu_stream_t *pstr)
 {
-  mach->error_printer = error_printer ?
-                           error_printer : _sieve_default_error_printer;
+  *pstr = mach->errstream;
+  mu_stream_ref (*pstr);
 }
 
 void
-mu_sieve_set_parse_error (mu_sieve_machine_t mach, mu_sieve_parse_error_t p)
+mu_sieve_set_diag_stream (mu_sieve_machine_t mach, mu_stream_t str)
 {
-  mach->parse_error_printer = p ? p : _sieve_default_parse_error;
-}
-
-void
-mu_sieve_set_debug (mu_sieve_machine_t mach, mu_sieve_printf_t debug)
-{
-  mach->debug_printer = debug;
-}
-
-void
-mu_sieve_set_debug_object (mu_sieve_machine_t mach, mu_debug_t dbg)
-{
-  mach->debug = dbg;
+  mu_stream_unref (mach->errstream);
+  mach->errstream = str;
+  mu_stream_ref (mach->errstream);
 }
 
 void
@@ -480,12 +464,7 @@ mu_mailer_t
 mu_sieve_get_mailer (mu_sieve_machine_t mach)
 {
   if (!mach->mailer)
-    {
-      mu_mailer_create (&mach->mailer, NULL);
-      if (mach->debug)
-	mu_mailer_set_debug (mach->mailer, mach->debug);
-    }
-
+    mu_mailer_create (&mach->mailer, NULL);
   return mach->mailer;
 }
 
@@ -507,8 +486,8 @@ mu_sieve_get_daemon_email (mu_sieve_machine_t mach)
       
       mu_get_user_email_domain (&domain);
       mach->daemon_email = mu_sieve_malloc (mach,
-					 sizeof(MAILER_DAEMON_PFX) +
-					 strlen (domain));
+					    sizeof(MAILER_DAEMON_PFX) +
+					    strlen (domain));
       sprintf (mach->daemon_email, "%s%s", MAILER_DAEMON_PFX, domain);
     }
   return mach->daemon_email;
@@ -556,6 +535,9 @@ void
 mu_sieve_machine_destroy (mu_sieve_machine_t *pmach)
 {
   mu_sieve_machine_t mach = *pmach;
+  /* FIXME: Restore stream state (locus & mode) */
+  mu_stream_ioctl (mach->errstream, MU_IOCTL_LOGSTREAM_SET_LOCUS, NULL);
+  mu_stream_destroy (&mach->errstream);
   mu_mailer_destroy (&mach->mailer);
   mu_list_do (mach->destr_list, _run_destructor, NULL);
   mu_list_destroy (&mach->destr_list);
@@ -656,24 +638,5 @@ branch_fixup (size_t start, size_t end)
   mu_sieve_machine->prog[start].pc = end - start - 1;
 }
 
-static int
-_sieve_default_error_printer (void *unused, const char *fmt, va_list ap)
-{
-  return mu_verror (fmt, ap);
-}
 
-static int
-_sieve_default_parse_error (void *unused, const char *filename, int lineno,
-			    const char *fmt, va_list ap)
-{
-  mu_debug_t debug;
-
-  mu_diag_get_debug (&debug);
-  if (filename)
-    mu_debug_set_locus (debug, filename, lineno);
-  mu_diag_vprintf (MU_DIAG_ERROR, fmt, ap);
-  mu_diag_printf (MU_DIAG_ERROR, "\n");
-  mu_debug_set_locus (debug, NULL, 0);
-  return 0;
-}
 

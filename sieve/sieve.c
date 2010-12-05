@@ -125,7 +125,7 @@ is_true_p (char *p)
 }
 
 static void
-set_debug_level (mu_debug_t debug, const char *arg)
+set_debug_level (const char *arg)
 {
   for (; *arg; arg++)
     {
@@ -152,11 +152,7 @@ set_debug_level (mu_debug_t debug, const char *arg)
 	  break;
 	  
 	default:
-	  if (debug)
-	    mu_cfg_format_error (debug, MU_DEBUG_ERROR,
-				 _("%c is not a valid debug flag"), *arg);
-	  else
-	    mu_error (_("%c is not a valid debug flag"), *arg);
+	  mu_error (_("%c is not a valid debug flag"), *arg);
 	}
     }
 }
@@ -221,11 +217,7 @@ parser (int key, char *arg, struct argp_state *state)
       break;
 
     case ARG_NO_PROGRAM_NAME:
-      {
-	mu_debug_t debug;
-	mu_diag_get_debug (&debug);
-	mu_debug_set_print (debug, mu_compat_printer, NULL);
-      }
+      mu_log_tag = NULL;
       break;
       
     case ARGP_KEY_ARG:
@@ -259,25 +251,24 @@ static struct argp argp =
 
 
 static int 
-cb_debug (mu_debug_t debug, void *data, mu_config_value_t *val)
+cb_debug (void *data, mu_config_value_t *val)
 {
-  if (mu_cfg_assert_value_type (val, MU_CFG_STRING, debug))
+  if (mu_cfg_assert_value_type (val, MU_CFG_STRING))
     return 1;
-  set_debug_level (debug, val->v.string);
+  set_debug_level (val->v.string);
   return 0;
 }
 
 static int
-cb_email (mu_debug_t debug, void *data, mu_config_value_t *val)
+cb_email (void *data, mu_config_value_t *val)
 {
   int rc;
   
-  if (mu_cfg_assert_value_type (val, MU_CFG_STRING, debug))
+  if (mu_cfg_assert_value_type (val, MU_CFG_STRING))
     return 1;
   rc = mu_set_user_email (val->v.string);
   if (rc)
-    mu_cfg_format_error (debug, MU_DEBUG_ERROR, _("invalid email: %s"),
-			 mu_strerror (rc));
+    mu_error (_("invalid email: %s"), mu_strerror (rc));
   return rc;
 }
 
@@ -319,40 +310,26 @@ static const char *sieve_argp_capa[] =
   NULL
 };
 
-static int
-_sieve_debug_printer (void *unused, const char *fmt, va_list ap)
-{
-  mu_diag_vprintf (MU_DIAG_DEBUG, fmt, ap);
-  return 0;
-}
-
 static void
 _sieve_action_log (void *unused,
-		   const mu_sieve_locus_t *locus, size_t msgno,
+		   mu_stream_t stream, size_t msgno,
 		   mu_message_t msg,
 		   const char *action, const char *fmt, va_list ap)
 {
   size_t uid = 0;
-  mu_debug_t debug;
-
-  if (sieve_print_locus)
-    {
-      mu_diag_get_debug (&debug);
-      mu_debug_set_locus (debug, locus->source_file, locus->source_line);
-    }
   
   mu_message_get_uid (msg, &uid);
-  mu_diag_printf (MU_DIAG_NOTICE, _("%s on msg uid %lu"),
+  mu_stream_printf (stream, "\033s<%d>\033%c<%d>", MU_LOG_NOTICE,
+		    sieve_print_locus ? 'O' : 'X', MU_LOGMODE_LOCUS);
+  mu_stream_printf (stream, _("%s on msg uid %lu"),
 		  action, (unsigned long) uid);
   
   if (fmt && strlen (fmt))
     {
-      mu_diag_printf (MU_DIAG_NOTICE, ": ");
-      mu_diag_vprintf (MU_DIAG_NOTICE, fmt, ap);
+      mu_stream_printf (stream, ": ");
+      mu_stream_vprintf (stream, fmt, ap);
     }
-  mu_diag_printf (MU_DIAG_NOTICE, "\n");
-  if (sieve_print_locus)
-    mu_debug_set_locus (debug, NULL, 0);
+  mu_stream_printf (stream, "\n");
 }
 
 static int
@@ -387,7 +364,7 @@ sieve_message (mu_sieve_machine_t mach)
 }
 
 static int
-sieve_mailbox (mu_sieve_machine_t mach, mu_debug_t debug)
+sieve_mailbox (mu_sieve_machine_t mach)
 {
   int rc;
   mu_mailbox_t mbox = NULL;
@@ -401,12 +378,6 @@ sieve_mailbox (mu_sieve_machine_t mach, mu_debug_t debug)
       else
 	mu_error (_("could not create default mailbox: %s"),
 		  mu_strerror (rc));
-      goto cleanup;
-    }
-
-  if (debug && (rc = mu_mailbox_set_debug (mbox, debug)))
-    {
-      mu_diag_funcall (MU_DIAG_ERROR, "mu_mailbox_set_debug", NULL, rc);
       goto cleanup;
     }
 
@@ -470,7 +441,6 @@ int
 main (int argc, char *argv[])
 {
   mu_sieve_machine_t mach;
-  mu_debug_t debug = 0;
   int rc;
 
   /* Native Language Support */
@@ -498,23 +468,13 @@ main (int argc, char *argv[])
     }
   
   /* Sieve interpreter setup. */
-  rc = mu_sieve_machine_init (&mach, NULL);
+  rc = mu_sieve_machine_init (&mach);
   if (rc)
     {
       mu_error (_("cannot initialize sieve machine: %s"), mu_strerror (rc));
       return EX_SOFTWARE;
     }
 
-  if (mu_log_facility)
-    {
-      mu_debug_t debug;
-
-      mu_diag_get_debug (&debug);
-      openlog (MU_LOG_TAG (), LOG_PID, mu_log_facility);
-      mu_debug_set_print (debug, mu_diag_syslog_printer, NULL);
-    }
-
-  mu_sieve_set_debug (mach, _sieve_debug_printer);
   if (verbose)
     mu_sieve_set_logger (mach, _sieve_action_log);
 
@@ -534,29 +494,12 @@ main (int argc, char *argv[])
       return EX_OK;
     }
 
-  /* Create a debug object, if needed. */
-  if (debug_level)
-    {
-      if ((rc = mu_debug_create (&debug, mach)))
-	{
-	  mu_diag_funcall (MU_DIAG_ERROR, "mu_debug_create", NULL, rc);
-	  return EX_SOFTWARE;
-	}
-      if ((rc = mu_debug_set_level (debug, debug_level)))
-	{
-	  mu_diag_funcall (MU_DIAG_ERROR, "mu_debug_set_level", NULL, rc);
-	  return EX_SOFTWARE;
-	}
-      mu_sieve_set_debug_object (mach, debug);
-    }
-  
   mu_sieve_set_debug_level (mach, sieve_debug);
 
   if (mbox_url && strcmp (mbox_url, "-") == 0)
     rc = sieve_message (mach);
   else
-    rc = sieve_mailbox (mach, debug);
-  mu_debug_destroy (&debug, mach);
+    rc = sieve_mailbox (mach);
 
   return rc;
 }

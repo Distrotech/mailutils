@@ -131,11 +131,7 @@ diag (mu_sieve_machine_t mach)
 {
   if (mu_sieve_get_debug_level (mach) & MU_SIEVE_DEBUG_TRACE)
     {
-      mu_sieve_locus_t locus;
-      mu_sieve_get_locus (mach, &locus);
-      mu_sieve_debug (mach, "%s:%lu: VACATION\n",
-		   locus.source_file,
-		   (unsigned long) locus.source_line);
+      mu_sieve_debug (mach, "VACATION");
     }
 
   mu_sieve_log_action (mach, "VACATION", NULL);

@@ -120,9 +120,7 @@ sieve_test_address (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   size_t count;
   
   if (mach->debug_level & MU_SIEVE_DEBUG_TRACE)
-    mu_sieve_debug (mach, "%s:%lu: ADDRESS\n",
-		 mach->locus.source_file,
-		 (unsigned long) mach->locus.source_line);
+    mu_sieve_debug (mach, "ADDRESS");
 
   h = mu_sieve_value_get (args, 0);
   if (!h)
@@ -186,9 +184,7 @@ sieve_test_header (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   struct header_closure clos;
   
   if (mach->debug_level & MU_SIEVE_DEBUG_TRACE)
-    mu_sieve_debug (mach, "%s:%lu: HEADER\n",
-		 mach->locus.source_file,
-		 (unsigned long) mach->locus.source_line);
+    mu_sieve_debug (mach, "HEADER");
 
   h = mu_sieve_value_get (args, 0);
   if (!h)
@@ -272,9 +268,7 @@ sieve_test_envelope (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   size_t count;
   
   if (mach->debug_level & MU_SIEVE_DEBUG_TRACE)
-    mu_sieve_debug (mach, "%s:%lu: ENVELOPE\n",
-		 mach->locus.source_file,
-		 (unsigned long) mach->locus.source_line);
+    mu_sieve_debug (mach, "ENVELOPE");
 
   h = mu_sieve_value_get (args, 0);
   if (!h)
@@ -329,8 +323,7 @@ int
 sieve_test_true (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
 {
   if (mach->debug_level & MU_SIEVE_DEBUG_TRACE)
-    mu_sieve_debug (mach, "%s:%lu: TRUE\n", mach->locus.source_file,
-		 (unsigned long) mach->locus.source_line);
+    mu_sieve_debug (mach, "TRUE");
   return 1;
 }
 
@@ -338,8 +331,7 @@ int
 sieve_test_false (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
 {
   if (mach->debug_level & MU_SIEVE_DEBUG_TRACE)
-    mu_sieve_debug (mach, "%s:%lu: FALSE\n", mach->locus.source_file,
-		 (unsigned long) mach->locus.source_line);
+    mu_sieve_debug (mach, "FALSE");
   return 0;
 }
 
@@ -359,8 +351,7 @@ sieve_test_exists (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   mu_sieve_value_t *val;   
 
   if (mach->debug_level & MU_SIEVE_DEBUG_TRACE)
-    mu_sieve_debug (mach, "%s:%lu: EXISTS\n", mach->locus.source_file,
-		 (unsigned long) mach->locus.source_line);
+    mu_sieve_debug (mach, "EXISTS");
 
   mu_message_get_header (mu_sieve_get_message (mach), &header);
   val = mu_sieve_value_get (args, 0);

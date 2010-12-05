@@ -43,8 +43,6 @@ extern int  mu_nntp_disconnect      (mu_nntp_t nntp);
 extern int  mu_nntp_set_timeout     (mu_nntp_t nntp, int timeout);
 extern int  mu_nntp_get_timeout     (mu_nntp_t nntp, int *timeout);
 
-extern int  mu_nntp_set_debug       (mu_nntp_t nntp, mu_debug_t debug);
-
 extern int  mu_nntp_stls            (mu_nntp_t nntp);
 
 

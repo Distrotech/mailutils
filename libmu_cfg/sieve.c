@@ -25,15 +25,15 @@
 static struct mu_gocs_sieve sieve_settings;
 
 static int
-cb_clear_library_path (mu_debug_t debug, void *data, mu_config_value_t *val)
+cb_clear_library_path (void *data, mu_config_value_t *val)
 {
   int flag;
 
-  if (mu_cfg_assert_value_type (val, MU_CFG_STRING, debug))
+  if (mu_cfg_assert_value_type (val, MU_CFG_STRING))
     return 1;
   if (mu_cfg_parse_boolean (val->v.string, &flag))
     {
-      mu_cfg_format_error (debug, MU_DEBUG_ERROR, _("not a boolean"));
+      mu_error (_("not a boolean"));
       return 1;
     }
   if (flag)
@@ -42,15 +42,15 @@ cb_clear_library_path (mu_debug_t debug, void *data, mu_config_value_t *val)
 }
 
 static int
-cb_clear_include_path (mu_debug_t debug, void *data, mu_config_value_t *val)
+cb_clear_include_path (void *data, mu_config_value_t *val)
 {
   int flag;
   
-  if (mu_cfg_assert_value_type (val, MU_CFG_STRING, debug))
+  if (mu_cfg_assert_value_type (val, MU_CFG_STRING))
     return 1;
   if (mu_cfg_parse_boolean (val->v.string, &flag))
     {
-      mu_cfg_format_error (debug, MU_DEBUG_ERROR, _("not a boolean"));
+      mu_error (_("not a boolean"));
       return 1;
     }
   if (flag)
@@ -59,7 +59,7 @@ cb_clear_include_path (mu_debug_t debug, void *data, mu_config_value_t *val)
 }
 
 static int
-_add_path (mu_debug_t debug, const char *arg, void *data)
+_add_path (const char *arg, void *data)
 {
   mu_list_t *plist = data;
     
@@ -68,8 +68,7 @@ _add_path (mu_debug_t debug, const char *arg, void *data)
       int rc = mu_list_create (plist);
       if (rc)
 	{
-	  mu_cfg_format_error (debug, MU_DEBUG_ERROR,
-			       _("cannot create list: %s"), mu_strerror (rc));
+	  mu_error (_("cannot create list: %s"), mu_strerror (rc));
 	  exit (1);
 	}
       mu_list_set_destroy_item (*plist, mu_list_free_item);
@@ -78,16 +77,16 @@ _add_path (mu_debug_t debug, const char *arg, void *data)
 }
 
 static int
-cb_include_path (mu_debug_t debug, void *data, mu_config_value_t *val)
+cb_include_path (void *data, mu_config_value_t *val)
 {
-  return mu_cfg_string_value_cb (debug, val, _add_path,
+  return mu_cfg_string_value_cb (val, _add_path,
 				 &sieve_settings.include_path);
 }  
 
 static int
-cb_library_path (mu_debug_t debug, void *data, mu_config_value_t *val)
+cb_library_path (void *data, mu_config_value_t *val)
 {
-  return mu_cfg_string_value_cb (debug, val, _add_path,
+  return mu_cfg_string_value_cb (val, _add_path,
 				 &sieve_settings.library_path);
 }
 

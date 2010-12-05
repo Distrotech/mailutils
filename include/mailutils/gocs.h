@@ -26,16 +26,9 @@
 extern "C" { 
 #endif
 
-struct mu_gocs_logging
-{
-  int facility;
-  char *tag;
-};
-
 struct mu_gocs_debug
 {
   char *string;
-  char *errpfx;
   int line_info;
 };
 
