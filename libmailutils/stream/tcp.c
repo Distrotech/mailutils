@@ -193,21 +193,32 @@ _tcp_open (mu_stream_t stream)
 }
 
 static int
-_tcp_ioctl (mu_stream_t stream, int code, void *ptr)
+_tcp_ioctl (mu_stream_t stream, int code, int opcode, void *ptr)
 {
   struct _tcp_instance *tcp = (struct _tcp_instance *)stream;
-  mu_transport_t *ptrans;
 
   switch (code)
     {
-    case MU_IOCTL_GET_TRANSPORT:
+    case MU_IOCTL_TRANSPORT:
       if (!ptr)
 	return EINVAL;
-      ptrans = ptr;
-      ptrans[0] = (mu_transport_t) tcp->fd;
-      ptrans[1] = NULL;
+      else
+	{
+	  mu_transport_t *ptrans = ptr;
+	  switch (opcode)
+	    {
+	    case MU_IOCTL_OP_GET:
+	      ptrans[0] = (mu_transport_t) tcp->fd;
+	      ptrans[1] = NULL;
+	      break;
+	    case MU_IOCTL_OP_SET:
+	      return ENOSYS;
+	    default:
+	      return EINVAL;
+	    }
+	}
       break;
-
+      
     default:
       return ENOSYS;
     }

@@ -40,13 +40,13 @@ mu_getpass (mu_stream_t in, mu_stream_t out, const char *prompt,
   if (status)
     return status;
   mu_stream_flush (out);
-  status = mu_stream_ioctl (in, MU_IOCTL_SET_ECHO, &echo_state);
+  status = mu_stream_ioctl (in, MU_IOCTL_ECHO, MU_IOCTL_OP_SET, &echo_state);
   if (status == 0)
     echo_state = 1;
   status = mu_stream_getline (in, &buf, &size, NULL);
   if (echo_state)
     {
-      mu_stream_ioctl (in, MU_IOCTL_SET_ECHO, &echo_state);
+      mu_stream_ioctl (in, MU_IOCTL_ECHO, MU_IOCTL_OP_SET, &echo_state);
       mu_stream_write (out, "\n", 1, NULL);
     }
   if (status == 0)

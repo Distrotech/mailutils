@@ -683,7 +683,8 @@ set_xscript_level (int xlev)
 	    return MU_XSCRIPT_NORMAL;
 	}
 
-      if (mu_stream_ioctl (iostream, MU_IOCTL_LEVEL, &xlev) == 0)
+      if (mu_stream_ioctl (iostream, MU_IOCTL_XSCRIPTSTREAM,
+                           MU_IOCTL_XSCRIPTSTREAM_LEVEL, &xlev) == 0)
 	return xlev;
     }
   return 0;

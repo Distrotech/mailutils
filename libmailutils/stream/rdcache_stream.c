@@ -116,23 +116,34 @@ rdcache_wait (struct _mu_stream *str, int *pflags, struct timeval *tvp)
 /* FIXME: Truncate? */
 
 static int
-rdcache_ioctl (struct _mu_stream *str, int op, void *arg)
+rdcache_ioctl (struct _mu_stream *str, int code, int opcode, void *arg)
 {
   struct _mu_rdcache_stream *sp = (struct _mu_rdcache_stream *) str;
-  mu_transport_t *ptrans;
 
-  switch (op)
+  switch (code)
     {
-    case MU_IOCTL_GET_TRANSPORT:
+    case MU_IOCTL_TRANSPORT:
       if (!arg)
 	return EINVAL;
-      ptrans = arg;
-      ptrans[0] = (mu_transport_t) sp->transport;
-      ptrans[1] = NULL;
-      break;
+      else
+	{
+	  mu_transport_t *ptrans = arg;
 
-    case MU_IOCTL_GET_TRANSPORT_BUFFER:
-    case MU_IOCTL_SET_TRANSPORT_BUFFER:
+	  switch (opcode)
+	    {
+	    case MU_IOCTL_OP_GET:
+	      ptrans[0] = (mu_transport_t) sp->transport;
+	      ptrans[1] = NULL;
+	      break;
+	    case MU_IOCTL_OP_SET:
+	      return ENOSYS;
+	    default:
+	      return EINVAL;
+	    }
+	}
+      break;
+	      
+    case MU_IOCTL_TRANSPORT_BUFFER:
       if (!arg)
 	return EINVAL;
       else
@@ -140,7 +151,7 @@ rdcache_ioctl (struct _mu_stream *str, int op, void *arg)
 	  struct mu_buffer_query *qp = arg;
 	  if (qp->type != MU_TRANSPORT_INPUT || !sp->transport)
 	    return EINVAL;
-	  return mu_stream_ioctl (sp->transport, op, arg);
+	  return mu_stream_ioctl (sp->transport, code, opcode, arg);
 	}
 
     default:

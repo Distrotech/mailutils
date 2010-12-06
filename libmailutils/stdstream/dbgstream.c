@@ -29,13 +29,14 @@ mu_dbgstream_create (mu_stream_t *pstr, int severity)
   int rc;
   mu_transport_t trans[2];
 
-  rc = mu_stream_ioctl (mu_strerr, MU_IOCTL_GET_TRANSPORT, trans);
+  rc = mu_stream_ioctl (mu_strerr, MU_IOCTL_TRANSPORT, MU_IOCTL_OP_GET, trans);
   if (rc)
     return rc;
   rc = mu_log_stream_create (pstr, (mu_stream_t) trans[0]);
   if (rc)
     return rc;
-  mu_stream_ioctl (*pstr, MU_IOCTL_LOGSTREAM_SET_SEVERITY, &severity);
+  mu_stream_ioctl (*pstr, MU_IOCTL_LOGSTREAM, MU_IOCTL_LOGSTREAM_SET_SEVERITY, 
+                   &severity);
   return 0;
 }
 

@@ -144,32 +144,49 @@ _memory_open (mu_stream_t stream)
 }
 
 static int
-_memory_ioctl (struct _mu_stream *stream, int code, void *ptr)
+_memory_ioctl (struct _mu_stream *stream, int code, int opcode, void *ptr)
 {
   struct _mu_memory_stream *mfs = (struct _mu_memory_stream *) stream;
-  mu_transport_t *ptrans;
   
   switch (code)
     {
-    case MU_IOCTL_GET_TRANSPORT:
+    case MU_IOCTL_TRANSPORT:
       if (!ptr)
 	return EINVAL;
-      ptrans = ptr;
-      ptrans[0] = (mu_transport_t) mfs->ptr;
-      ptrans[1] = NULL;
+      else
+	{
+	  mu_transport_t *ptrans = ptr;
+	  switch (code)
+	    {
+	    case MU_IOCTL_OP_GET:
+	      ptrans[0] = (mu_transport_t) mfs->ptr;
+	      ptrans[1] = NULL;
+	      break;
+	    case MU_IOCTL_OP_SET:
+	      return ENOSYS;
+	    default:
+	      return EINVAL;
+	    }
+	}
       break;
-
-    case MU_IOCTL_GET_TRANSPORT_BUFFER:
-      {
-        struct mu_buffer_query *qp = ptr;
-	return mu_stream_get_buffer (stream, qp);
-      }
-      
-    case MU_IOCTL_SET_TRANSPORT_BUFFER:
-      {
-        struct mu_buffer_query *qp = ptr;
-	return mu_stream_set_buffer (stream, qp->buftype, qp->bufsize);
-      }
+	      
+    case MU_IOCTL_TRANSPORT_BUFFER:
+      if (!ptr)
+	return EINVAL;
+      else
+	{
+	  struct mu_buffer_query *qp = ptr;
+	  switch (code)
+	    {
+	    case MU_IOCTL_OP_GET:
+	      return mu_stream_get_buffer (stream, qp);
+	    case MU_IOCTL_OP_SET:
+	      return mu_stream_set_buffer (stream, qp->buftype, qp->bufsize);
+	    default:
+	      return EINVAL;
+	    }
+	}
+      break;
       
     default:
       return ENOSYS;

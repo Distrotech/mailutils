@@ -108,11 +108,14 @@ _nullstream_truncate (struct _mu_stream *str, mu_off_t size)
 }
 
 static int
-_nullstream_ctl (struct _mu_stream *str, int op, void *arg)
+_nullstream_ctl (struct _mu_stream *str, int code, int opcode, void *arg)
 {
   struct _mu_nullstream *np = (struct _mu_nullstream *)str;
 
-  switch (op)
+  if (code != MU_IOCTL_NULLSTREAM)
+    /* Only this code is supported */
+    return ENOSYS;
+  switch (opcode)
     {
     case MU_IOCTL_NULLSTREAM_SET_PATTERN:
       if (!arg)

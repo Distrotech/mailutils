@@ -536,7 +536,8 @@ mu_sieve_machine_destroy (mu_sieve_machine_t *pmach)
 {
   mu_sieve_machine_t mach = *pmach;
   /* FIXME: Restore stream state (locus & mode) */
-  mu_stream_ioctl (mach->errstream, MU_IOCTL_LOGSTREAM_SET_LOCUS, NULL);
+  mu_stream_ioctl (mach->errstream, MU_IOCTL_LOGSTREAM,
+                   MU_IOCTL_LOGSTREAM_SET_LOCUS, NULL);
   mu_stream_destroy (&mach->errstream);
   mu_mailer_destroy (&mach->mailer);
   mu_list_do (mach->destr_list, _run_destructor, NULL);

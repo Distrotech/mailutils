@@ -206,30 +206,50 @@ _mapfile_flush (mu_stream_t stream)
 }
 
 static int
-_mapfile_ioctl (struct _mu_stream *str, int code, void *ptr)
+_mapfile_ioctl (struct _mu_stream *str, int code, int opcode, void *ptr)
 {
   struct _mu_mapfile_stream *mfs = (struct _mu_mapfile_stream *) str;
-  mu_transport_t ptrans[2];
   
   switch (code)
     {
-    case MU_IOCTL_GET_TRANSPORT:
-      ptrans[0] = (mu_transport_t) mfs->fd;
-      ptrans[1] = NULL;
+    case MU_IOCTL_TRANSPORT:
+      if (!ptr)
+	return EINVAL;
+      else
+	{
+	  mu_transport_t *ptrans = ptr;
+	  switch (opcode)
+	    {
+	    case MU_IOCTL_OP_GET:
+	      ptrans[0] = (mu_transport_t) mfs->fd;
+	      ptrans[1] = NULL;
+	      break;
+	    case MU_IOCTL_OP_SET:
+	      return ENOSYS;
+	    default:
+	      return EINVAL;
+	    }
+	}
       break;
 
-    case MU_IOCTL_GET_TRANSPORT_BUFFER:
-      {
-        struct mu_buffer_query *qp = ptr;
-	return mu_stream_get_buffer (str, qp);
-      }
+    case MU_IOCTL_TRANSPORT_BUFFER:
+      if (!ptr)
+	return EINVAL;
+      else
+	{
+	  struct mu_buffer_query *qp = ptr;
+	  switch (opcode)
+	    {
+	    case MU_IOCTL_OP_GET:
+	      return mu_stream_get_buffer (str, qp);
+	    case MU_IOCTL_OP_SET:
+	      return mu_stream_set_buffer (str, qp->buftype, qp->bufsize);
+	    default:
+	      return EINVAL;
+	    }
+	}
+      break;
       
-    case MU_IOCTL_SET_TRANSPORT_BUFFER:
-      {
-        struct mu_buffer_query *qp = ptr;
-	return mu_stream_set_buffer (str, qp->buftype, qp->bufsize);
-      }
-
     default:
       return ENOSYS;
     }

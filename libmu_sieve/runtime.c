@@ -42,7 +42,8 @@ void
 _mu_sv_instr_source (mu_sieve_machine_t mach)
 {
   mach->locus.mu_file = (char*) SIEVE_ARG (mach, 0, string);
-  mu_stream_ioctl (mach->errstream, MU_IOCTL_LOGSTREAM_SET_LOCUS,
+  mu_stream_ioctl (mach->errstream, MU_IOCTL_LOGSTREAM,
+                   MU_IOCTL_LOGSTREAM_SET_LOCUS,
 		   &mach->locus);
   if (INSTR_DEBUG (mach))
     mu_sieve_debug (mach, "%4lu: SOURCE %s",
@@ -55,7 +56,8 @@ void
 _mu_sv_instr_line (mu_sieve_machine_t mach)
 {
   mach->locus.mu_line = SIEVE_ARG (mach, 0, line);
-  mu_stream_ioctl (mach->errstream, MU_IOCTL_LOGSTREAM_SET_LOCUS,
+  mu_stream_ioctl (mach->errstream, MU_IOCTL_LOGSTREAM,
+                   MU_IOCTL_LOGSTREAM_SET_LOCUS,
 		   &mach->locus);
   if (INSTR_DEBUG (mach))
     mu_sieve_debug (mach, "%4lu: LINE %u",

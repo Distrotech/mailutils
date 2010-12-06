@@ -59,74 +59,83 @@ enum mu_buffer_type
 #define MU_STREAM_IWOTH       0x00008000
 #define MU_STREAM_IMASK       0x0000F000
 
-#define MU_IOCTL_GET_TRANSPORT   1
-#define MU_IOCTL_GET_STATUS      2
-#define MU_IOCTL_GET_PID         3
-#define MU_IOCTL_SET_SEEK_LIMITS 4
-#define MU_IOCTL_ABRIDGE_SEEK MU_IOCTL_SET_SEEK_LIMITS
-#define MU_IOCTL_GET_SEEK_LIMITS 5
-#define MU_IOCTL_SET_TRANSPORT   6
-#define MU_IOCTL_GET_STREAM      7
-#define MU_IOCTL_SET_STREAM      8  
+  /* Ioctl families */
+#define MU_IOCTL_TRANSPORT        0  
+#define MU_IOCTL_PROGSTREAM       1 /* Program stream */
+#define MU_IOCTL_SEEK_LIMITS      2 /* Seek limits (get/set),
+				       Arg: mu_off_t[2] */
+#define MU_IOCTL_SUBSTREAM        3 /* Substream (get/set) */
+#define MU_IOCTL_TRANSPORT_BUFFER 4 /* get/set */
+#define MU_IOCTL_ECHO             5 /* get/set */
+#define MU_IOCTL_NULLSTREAM       6 /* Null stream (see below) */
+#define MU_IOCTL_LOGSTREAM        7 /* Log stream (see below) */
+#define MU_IOCTL_XSCRIPTSTREAM    8 /* Transcript stream (see below) */
 
-#define MU_IOCTL_LEVEL           9
-
-#define MU_IOCTL_GET_TRANSPORT_BUFFER 10
-#define MU_IOCTL_SET_TRANSPORT_BUFFER 11
-
-#define MU_IOCTL_GET_ECHO        12     
-#define MU_IOCTL_SET_ECHO        13  
+  /* Opcodes common for various families */
+#define MU_IOCTL_OP_GET 0
+#define MU_IOCTL_OP_SET 1  
   
-/* The following ioctls are for nullstreams only: */  
-#define MU_IOCTL_NULLSTREAM_SET_PATTERN 14
+  /* Opcodes for MU_IOCTL_PROGSTREAM */  
+#define MU_IOCTL_PROG_STATUS 0
+#define MU_IOCTL_PROG_PID    1
+
+  /* Opcodes for MU_IOCTL_NULLSTREAM */
   /* Set read pattern.
      Argument: struct mu_nullstream_pattern *pat.
      If pat==NULL, any reads from that stream will return EOF. */
-#define MU_IOCTL_NULLSTREAM_SET_PATCLASS 15
+#define MU_IOCTL_NULLSTREAM_SET_PATTERN 0
   /* Set pattern class for reads:  Argument int *pclass (a class mask
      from mailutils/cctype.h */
-#define MU_IOCTL_NULLSTREAM_SETSIZE 16
+#define MU_IOCTL_NULLSTREAM_SET_PATCLASS 1
   /* Limit stream size.  Argument: mu_off_t *psize; */
-#define MU_IOCTL_NULLSTREAM_CLRSIZE 17
+#define MU_IOCTL_NULLSTREAM_SETSIZE 2
   /* Lift the size limit.  Argument: NULL */
-
-/* The following are for logstreams */
-  /* Get or set logging severity.
+#define MU_IOCTL_NULLSTREAM_CLRSIZE 3
+  
+    /* Get or set logging severity.
      Arg: unsigned *
   */
-#define MU_IOCTL_LOGSTREAM_GET_SEVERITY 18
-#define MU_IOCTL_LOGSTREAM_SET_SEVERITY 19
+#define MU_IOCTL_LOGSTREAM_GET_SEVERITY 0
+#define MU_IOCTL_LOGSTREAM_SET_SEVERITY 1
   /* Get or set locus.
      Arg: struct mu_locus *
   */
-#define MU_IOCTL_LOGSTREAM_GET_LOCUS    20
-#define MU_IOCTL_LOGSTREAM_SET_LOCUS    21
+#define MU_IOCTL_LOGSTREAM_GET_LOCUS    2
+#define MU_IOCTL_LOGSTREAM_SET_LOCUS    3
   /* Get or set log mode.
      Arg: int *
   */
-#define MU_IOCTL_LOGSTREAM_GET_MODE     22
-#define MU_IOCTL_LOGSTREAM_SET_MODE     23
+#define MU_IOCTL_LOGSTREAM_GET_MODE     4
+#define MU_IOCTL_LOGSTREAM_SET_MODE     5
 
   /* Advance locus line.
      Arg: NULL (increment by 1)
           int *
   */
-#define MU_IOCTL_LOGSTREAM_ADVANCE_LOCUS_LINE 24
+#define MU_IOCTL_LOGSTREAM_ADVANCE_LOCUS_LINE 6
   /* Advance locus column.
      Arg: NULL (increment by 1)
           int *
   */
-#define MU_IOCTL_LOGSTREAM_ADVANCE_LOCUS_COL  25
+#define MU_IOCTL_LOGSTREAM_ADVANCE_LOCUS_COL  7
 
   /* Suppress output of messages having severity lower than the
      given threshold.
      Arg: int *
   */
-#define MU_IOCTL_LOGSTREAM_SUPPRESS_SEVERITY  26
+#define MU_IOCTL_LOGSTREAM_SUPPRESS_SEVERITY  8
   /* Same as above, but:
      Arg: const char *
   */
-#define MU_IOCTL_LOGSTREAM_SUPPRESS_SEVERITY_NAME 27
+#define MU_IOCTL_LOGSTREAM_SUPPRESS_SEVERITY_NAME 9
+
+  /* Opcodes for MU_IOCTL_XSCRIPTSTREAM */
+  /* Swap transcript levels.
+     Arg: int *X
+
+     New transcript level is set to *X.  Previous level is stored in X.
+  */
+#define MU_IOCTL_XSCRIPTSTREAM_LEVEL 0  
   
 #define MU_TRANSPORT_INPUT  0
 #define MU_TRANSPORT_OUTPUT 1
@@ -206,7 +215,7 @@ int mu_stream_writeline (mu_stream_t stream, const char *buf, size_t size);
 int mu_stream_flush (mu_stream_t stream);
 int mu_stream_close (mu_stream_t stream);
 int mu_stream_size (mu_stream_t stream, mu_off_t *psize);
-int mu_stream_ioctl (mu_stream_t stream, int code, void *ptr);
+int mu_stream_ioctl (mu_stream_t stream, int family, int opcode, void *ptr);
 int mu_stream_truncate (mu_stream_t stream, mu_off_t);
 int mu_stream_shutdown (mu_stream_t stream, int how);
 

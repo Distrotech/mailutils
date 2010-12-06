@@ -117,10 +117,12 @@ mu_stdstream_strerr_setup (int type)
       if (mu_log_print_severity)
 	{
 	  int mode = MU_LOGMODE_SEVERITY;
-	  mu_stream_ioctl (str, MU_IOCTL_LOGSTREAM_SET_MODE, &mode);
+	  mu_stream_ioctl (str, MU_IOCTL_LOGSTREAM, 
+                           MU_IOCTL_LOGSTREAM_SET_MODE, &mode);
 	}
       if (mu_log_severity_threshold > MU_LOG_DEBUG)
-	mu_stream_ioctl (str, MU_IOCTL_LOGSTREAM_SUPPRESS_SEVERITY,
+	mu_stream_ioctl (str, MU_IOCTL_LOGSTREAM,
+                         MU_IOCTL_LOGSTREAM_SUPPRESS_SEVERITY,
 			 &mu_log_severity_threshold);
       mu_stream_destroy (&mu_strerr);
       mu_strerr = str;

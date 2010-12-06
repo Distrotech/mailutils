@@ -27,7 +27,8 @@ source_readline (void *closure, int cont MU_ARG_UNUSED)
   if (getline (&buf, &s, fp) >= 0)
     {
       mu_rtrim_class (buf, MU_CTYPE_SPACE);
-      mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM_ADVANCE_LOCUS_LINE, NULL);
+      mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM,
+                       MU_IOCTL_LOGSTREAM_ADVANCE_LOCUS_LINE, NULL);
       return buf;
     }
   
@@ -65,10 +66,12 @@ mail_source (int argc, char **argv)
   locus.mu_file = argv[1];
   locus.mu_line = 0; 
   locus.mu_col = 0;
-  mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM_SET_LOCUS, &locus);
+  mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM,
+                   MU_IOCTL_LOGSTREAM_SET_LOCUS, &locus);
   mail_mainloop (source_readline, fp, 0);
   interactive = save_term;
-  mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM_SET_LOCUS, NULL);
+  mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM,
+                   MU_IOCTL_LOGSTREAM_SET_LOCUS, NULL);
   fclose (fp);
   return 0;
 }

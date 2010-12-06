@@ -254,106 +254,119 @@ _xscript_size (struct _mu_stream *str, mu_off_t *psize)
 }
 
 static int
-_xscript_ctl (struct _mu_stream *str, int op, void *arg)
+_xscript_ctl (struct _mu_stream *str, int code, int opcode, void *arg)
 {
   struct _mu_xscript_stream *sp = (struct _mu_xscript_stream *)str;
-  mu_transport_t *ptrans;
   int status = 0;
   
-  switch (op)
+  switch (code)
     {
-    case MU_IOCTL_GET_TRANSPORT:
+    case MU_IOCTL_TRANSPORT:
       if (!arg)
 	return EINVAL;
-      ptrans = arg;
-      ptrans[0] = (mu_transport_t) sp->transport;
-      ptrans[1] = (mu_transport_t) sp->logstr;
-      break;
-
-    case MU_IOCTL_SET_TRANSPORT:
-      if (!arg)
-	return EINVAL;
-      ptrans = arg;
-      if (ptrans[0])
-	sp->transport = (mu_stream_t) ptrans[0];
-      if (ptrans[1])
-	sp->logstr = (mu_stream_t) ptrans[1];
-      break;
-
-    case MU_IOCTL_GET_STREAM:
-      if (!arg)
-	return EINVAL;
-      if (!sp->transport)
-	status = ENOSYS;
       else
-	status = mu_stream_ioctl (sp->transport, op, arg);
-      if (status == EINVAL || status == ENOSYS)
 	{
-	  mu_stream_t *pstr = arg;
+	  mu_transport_t *ptrans = arg;
+	  switch (opcode)
+	    {
+	    case MU_IOCTL_OP_GET:
+	      ptrans[0] = (mu_transport_t) sp->transport;
+	      ptrans[1] = (mu_transport_t) sp->logstr;
+	      break;
 
-	  pstr[0] = sp->transport;
-	  mu_stream_ref (pstr[0]);
-	  pstr[1] = sp->transport;
-	  mu_stream_ref (pstr[1]);
-	  status = 0;
+	    case MU_IOCTL_OP_SET:
+	      ptrans = arg;
+	      if (ptrans[0])
+		sp->transport = (mu_stream_t) ptrans[0];
+	      if (ptrans[1])
+		sp->logstr = (mu_stream_t) ptrans[1];
+	      break;
+
+	    default:
+	      return EINVAL;
+	    }
 	}
       break;
 
-    case MU_IOCTL_SET_STREAM:
+    case MU_IOCTL_SUBSTREAM:
       if (!arg)
 	return EINVAL;
-      if (!sp->transport)
-	status = ENOSYS;
-      else
-	status = mu_stream_ioctl (sp->transport, op, arg);
-      if (status == EINVAL || status == ENOSYS)
+      switch (opcode)
 	{
-	  mu_stream_t *pstr = arg;
-	  mu_stream_t tmp;
-	  
-	  if (pstr[0] != pstr[1])
-	    {
-	      status = mu_iostream_create (&tmp, pstr[0], pstr[1]);
-	      if (status)
-		return status;
-	      sp->flags |= TRANS_IOSTREAM;
-	    }
+	case MU_IOCTL_OP_GET:
+	  if (!sp->transport)
+	    status = ENOSYS;
 	  else
+	    status = mu_stream_ioctl (sp->transport, code, opcode, arg);
+	  if (status == EINVAL || status == ENOSYS)
 	    {
-	      tmp = pstr[0];
-	      mu_stream_ref (tmp);
-	      mu_stream_ref (tmp);
+	      mu_stream_t *pstr = arg;
+
+	      pstr[0] = sp->transport;
+	      mu_stream_ref (pstr[0]);
+	      pstr[1] = sp->transport;
+	      mu_stream_ref (pstr[1]);
 	      status = 0;
 	    }
+	  break;
 
-	  mu_stream_unref (sp->transport);
-	  sp->transport = tmp;
+	case MU_IOCTL_OP_SET:
+	  if (!sp->transport)
+	    status = ENOSYS;
+	  else
+	    status = mu_stream_ioctl (sp->transport, code, opcode, arg);
+	  if (status == EINVAL || status == ENOSYS)
+	    {
+	      mu_stream_t *pstr = arg;
+	      mu_stream_t tmp;
+	  
+	      if (pstr[0] != pstr[1])
+		{
+		  status = mu_iostream_create (&tmp, pstr[0], pstr[1]);
+		  if (status)
+		    return status;
+		  sp->flags |= TRANS_IOSTREAM;
+		}
+	      else
+		{
+		  tmp = pstr[0];
+		  mu_stream_ref (tmp);
+		  mu_stream_ref (tmp);
+		  status = 0;
+		}
+
+	      mu_stream_unref (sp->transport);
+	      sp->transport = tmp;
+	    }
 	}
       break;
 
-    case MU_IOCTL_GET_TRANSPORT_BUFFER:
-    case MU_IOCTL_SET_TRANSPORT_BUFFER:
-      {
-        if (!sp->transport)
-          return EINVAL;
-        return mu_stream_ioctl (sp->transport, op, arg);
-      }
+    case MU_IOCTL_TRANSPORT_BUFFER:
+      if (!sp->transport)
+	return EINVAL;
+      return mu_stream_ioctl (sp->transport, code, opcode, arg);
 
-    case MU_IOCTL_LEVEL:
+    case  MU_IOCTL_XSCRIPTSTREAM:
       if (!arg)
 	return EINVAL;
-      else
+      switch (opcode)
 	{
-	  int oldlev = sp->level;
-	  sp->level = *(int*)arg;
-	  sp->flags &= TRANS_DISABLED;
-	  sp->flags |= TRANS_READ | TRANS_WRITE;
-	  *(int*)arg = oldlev;
+	case MU_IOCTL_XSCRIPTSTREAM_LEVEL:
+	  {
+	    int oldlev = sp->level;
+	    sp->level = *(int*)arg;
+	    sp->flags &= TRANS_DISABLED;
+	    sp->flags |= TRANS_READ | TRANS_WRITE;
+	    *(int*)arg = oldlev;
+	  }
+	  break;
+	default:
+	  return EINVAL;
 	}
       break;
       
     default:
-      return mu_stream_ioctl (sp->transport, op, arg);
+      return mu_stream_ioctl (sp->transport, code, opcode, arg);
     }
   return status;
 }

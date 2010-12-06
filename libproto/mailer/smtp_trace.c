@@ -75,7 +75,7 @@ _mu_smtp_trace_disable (mu_smtp_t smtp)
   if (!xstr)
     return 0;
   
-  rc = mu_stream_ioctl (xstr, MU_IOCTL_GET_TRANSPORT, stream);
+  rc = mu_stream_ioctl (xstr, MU_IOCTL_TRANSPORT, MU_IOCTL_OP_GET, stream);
   if (rc)
     return rc;
 
@@ -137,7 +137,8 @@ mu_smtp_trace_mask (mu_smtp_t smtp, int op, int lev)
 int
 _mu_smtp_xscript_level (mu_smtp_t smtp, int xlev)
 {
-  if (mu_stream_ioctl (smtp->carrier, MU_IOCTL_LEVEL, &xlev) == 0)
+  if (mu_stream_ioctl (smtp->carrier, MU_IOCTL_XSCRIPTSTREAM,
+                       MU_IOCTL_XSCRIPTSTREAM_LEVEL, &xlev) == 0)
     return xlev;
   return MU_XSCRIPT_NORMAL;
 }

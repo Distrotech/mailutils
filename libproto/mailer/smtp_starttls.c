@@ -33,7 +33,8 @@ _mu_smtp_get_streams (mu_smtp_t smtp, mu_stream_t *streams)
   int rc;
   
   if (MU_SMTP_FISSET (smtp, _MU_SMTP_TRACE))
-    rc = mu_stream_ioctl (smtp->carrier, MU_IOCTL_GET_STREAM, streams);
+    rc = mu_stream_ioctl (smtp->carrier, MU_IOCTL_SUBSTREAM, MU_IOCTL_OP_GET,
+                          streams);
   else
     {
       streams[0] = smtp->carrier;
@@ -51,7 +52,8 @@ _mu_smtp_set_streams (mu_smtp_t smtp, mu_stream_t *streams)
   int rc;
   
   if (MU_SMTP_FISSET (smtp, _MU_SMTP_TRACE))
-    rc = mu_stream_ioctl (smtp->carrier, MU_IOCTL_SET_STREAM, streams);
+    rc = mu_stream_ioctl (smtp->carrier, MU_IOCTL_SUBSTREAM, MU_IOCTL_OP_SET,
+                          streams);
   else
     {
       mu_stream_t tmp;

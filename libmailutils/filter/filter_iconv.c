@@ -384,26 +384,32 @@ _icvt_strerror (mu_stream_t stream, int rc)
 }
 
 static int
-_icvt_ioctl (mu_stream_t stream, int code, void *ptr)
+_icvt_ioctl (mu_stream_t stream, int code, int opcode, void *ptr)
 {
   struct icvt_stream *s = (struct icvt_stream *)stream;
   mu_transport_t *ptrans;
   
   switch (code)
     {
-    case MU_IOCTL_GET_TRANSPORT:
+    case MU_IOCTL_TRANSPORT:
       if (!ptr)
 	return EINVAL;
-      ptrans = ptr;
-      ptrans[0] = (mu_transport_t) s->transport;
-      ptrans[1] = NULL;
+      switch (opcode)
+	{
+	case MU_IOCTL_OP_GET:
+	  ptrans = ptr;
+	  ptrans[0] = (mu_transport_t) s->transport;
+	  ptrans[1] = NULL;
+	  break;
+
+	default:
+	  return ENOSYS;
+	}
       break;
 
-    case MU_IOCTL_GET_STREAM:
-    case MU_IOCTL_SET_STREAM:
-    case MU_IOCTL_GET_TRANSPORT_BUFFER:
-    case MU_IOCTL_SET_TRANSPORT_BUFFER:
-      return mu_stream_ioctl (s->transport, code, ptr);
+    case MU_IOCTL_SUBSTREAM:
+    case MU_IOCTL_TRANSPORT_BUFFER:
+      return mu_stream_ioctl (s->transport, code, opcode, ptr);
       
     default:
       return ENOSYS;

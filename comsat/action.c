@@ -396,7 +396,8 @@ run_user_action (FILE *tty, const char *cr, mu_message_t msg)
 	  if (mu_wordsplit (stmt, &ws, MU_WRDSF_DEFFLAGS | MU_WRDSF_COMMENT)
 	      && ws.ws_wordc)
 	    {
-	      mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM_SET_LOCUS, &locus);
+	      mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM,
+                               MU_IOCTL_LOGSTREAM_SET_LOCUS, &locus);
 	      if (strcmp (ws.ws_wordv[0], "beep") == 0)
 		{
 		  /* FIXME: excess arguments are ignored */
@@ -445,7 +446,8 @@ run_user_action (FILE *tty, const char *cr, mu_message_t msg)
 	  locus.mu_line += n;
 	}
       fclose (fp);
-      mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM_SET_LOCUS, NULL);
+      mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM,
+                       MU_IOCTL_LOGSTREAM_SET_LOCUS, NULL);
       free (rcname);
     }
 

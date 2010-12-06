@@ -52,12 +52,15 @@ static int sev2prio[] = {
 };
 
 static int
-_syslog_ctl (struct _mu_stream *str, int op, void *arg)
+_syslog_ctl (struct _mu_stream *str, int code, int opcode, void *arg)
 {
   struct _mu_syslog_stream *sp = (struct _mu_syslog_stream *)str;
   unsigned n;
+
+  if (code != MU_IOCTL_LOGSTREAM)
+    return ENOSYS;
   
-  switch (op)
+  switch (opcode)
     {
     case MU_IOCTL_LOGSTREAM_GET_SEVERITY:
       if (!arg)

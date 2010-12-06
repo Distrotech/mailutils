@@ -83,7 +83,7 @@ imap4d_init_tls_server ()
   mu_stream_t tlsstream, stream[2];
   int rc;
 
-  rc = mu_stream_ioctl (iostream, MU_IOCTL_GET_STREAM, stream);
+  rc = mu_stream_ioctl (iostream, MU_IOCTL_SUBSTREAM, MU_IOCTL_OP_GET, stream);
   if (rc)
     {
       mu_error (_("%s failed: %s"), "MU_IOCTL_GET_STREAM",
@@ -103,7 +103,7 @@ imap4d_init_tls_server ()
   mu_stream_unref (stream[1]);
   stream[0] = stream[1] = tlsstream;
 
-  rc = mu_stream_ioctl (iostream, MU_IOCTL_SET_STREAM, stream);
+  rc = mu_stream_ioctl (iostream, MU_IOCTL_SUBSTREAM, MU_IOCTL_OP_SET, stream);
   if (rc)
     {
       mu_error (_("%s failed: %s"), "MU_IOCTL_SET_STREAM",

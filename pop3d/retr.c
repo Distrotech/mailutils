@@ -27,12 +27,12 @@ pop3d_send_payload (mu_stream_t stream, mu_stream_t linestr, size_t maxlines)
   int xscript_level = set_xscript_level (MU_XSCRIPT_PAYLOAD);
 
   oldbuf.type = MU_TRANSPORT_OUTPUT;
-  mu_stream_ioctl (iostream, MU_IOCTL_GET_TRANSPORT_BUFFER,
+  mu_stream_ioctl (iostream, MU_IOCTL_TRANSPORT_BUFFER, MU_IOCTL_OP_GET,
 		   &oldbuf);
   newbuf.type = MU_TRANSPORT_OUTPUT;
   newbuf.buftype = mu_buffer_full;
   newbuf.bufsize = pop3d_output_bufsize;
-  mu_stream_ioctl (iostream, MU_IOCTL_SET_TRANSPORT_BUFFER,
+  mu_stream_ioctl (iostream, MU_IOCTL_TRANSPORT_BUFFER, MU_IOCTL_OP_SET,
 		   &newbuf);
   /* FIXME: Return code */
   mu_filter_create (&flt, iostream, "DOT", MU_FILTER_ENCODE,
@@ -56,7 +56,7 @@ pop3d_send_payload (mu_stream_t stream, mu_stream_t linestr, size_t maxlines)
   mu_stream_close (flt);
   mu_stream_destroy (&flt);
   
-  mu_stream_ioctl (iostream, MU_IOCTL_SET_TRANSPORT_BUFFER,
+  mu_stream_ioctl (iostream, MU_IOCTL_TRANSPORT_BUFFER, MU_IOCTL_OP_SET,
 		   &oldbuf);
   set_xscript_level (xscript_level);
 }

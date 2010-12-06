@@ -49,7 +49,8 @@ _pop3_event_cb (mu_stream_t str, int ev, unsigned long flags,
     {
       mu_transport_t trans[2];
 
-      if (mu_stream_ioctl (str, MU_IOCTL_GET_TRANSPORT, trans) == 0)
+      if (mu_stream_ioctl (str, MU_IOCTL_TRANSPORT, MU_IOCTL_OP_GET, 
+                           trans) == 0)
 	{
 	  struct mu_pop3_stream *sp = (struct mu_pop3_stream *) trans[0];
 	  _mu_pop3_xscript_level (sp->pop3, MU_XSCRIPT_NORMAL);
@@ -58,7 +59,7 @@ _pop3_event_cb (mu_stream_t str, int ev, unsigned long flags,
 	  if (sp->flags & _POP3F_CHBUF)
 	    {
 	      mu_stream_ioctl (sp->pop3->carrier,
-			       MU_IOCTL_SET_TRANSPORT_BUFFER,
+			       MU_IOCTL_TRANSPORT_BUFFER, MU_IOCTL_OP_SET,
 			       &sp->oldbuf);
 	      sp->flags = _POP3F_DONE;
 	    }
@@ -82,7 +83,8 @@ mu_pop3_filter_create (mu_stream_t *pstream, mu_stream_t stream)
       str->event_mask = _MU_STR_EVMASK(_MU_STR_EVENT_SETFLAG);
 
       sp->oldbuf.type = MU_TRANSPORT_OUTPUT;
-      if (mu_stream_ioctl (sp->pop3->carrier, MU_IOCTL_GET_TRANSPORT_BUFFER,
+      if (mu_stream_ioctl (sp->pop3->carrier, MU_IOCTL_TRANSPORT_BUFFER,
+                           MU_IOCTL_OP_GET,
 			   &sp->oldbuf) == 0)
 	{
 	  struct mu_buffer_query newbuf;
@@ -91,7 +93,8 @@ mu_pop3_filter_create (mu_stream_t *pstream, mu_stream_t stream)
 	  newbuf.type = MU_TRANSPORT_OUTPUT;
 	  newbuf.buftype = mu_buffer_full;
 	  newbuf.bufsize = 64*1024;
-	  mu_stream_ioctl (sp->pop3->carrier, MU_IOCTL_SET_TRANSPORT_BUFFER,
+	  mu_stream_ioctl (sp->pop3->carrier, MU_IOCTL_TRANSPORT_BUFFER,
+                           MU_IOCTL_OP_SET, 
 			   &newbuf);
 	}
     }

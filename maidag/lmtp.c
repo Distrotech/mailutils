@@ -385,25 +385,30 @@ cfun_data (mu_stream_t iostr, char *arg)
 
   lmtp_reply (iostr, "354", NULL, "Go ahead");
 
-  if (mu_stream_ioctl (iostr, MU_IOCTL_GET_TRANSPORT_BUFFER, &oldbuf) == 0)
+  if (mu_stream_ioctl (iostr, MU_IOCTL_TRANSPORT_BUFFER, 
+                       MU_IOCTL_OP_GET, &oldbuf) == 0)
     {
       struct mu_buffer_query newbuf;
 
       newbuf.type = MU_TRANSPORT_OUTPUT;
       newbuf.buftype = mu_buffer_full;
       newbuf.bufsize = 64*1024;
-      if (mu_stream_ioctl (iostr, MU_IOCTL_SET_TRANSPORT_BUFFER, &newbuf))
+      if (mu_stream_ioctl (iostr, MU_IOCTL_TRANSPORT_BUFFER, MU_IOCTL_OP_SET, 
+                           &newbuf))
 	buf_switch = 1;
     }
 
-  if (mu_stream_ioctl (iostr, MU_IOCTL_LEVEL, &xlev) == 0)
+  if (mu_stream_ioctl (iostr, MU_IOCTL_XSCRIPTSTREAM,
+                       MU_IOCTL_XSCRIPTSTREAM_LEVEL, &xlev) == 0)
     xlev_switch = 1;
   rc = mu_stream_copy (tempstr, flt, 0, NULL);
   mu_stream_destroy (&flt);
   if (xlev_switch)
-    mu_stream_ioctl (iostr, MU_IOCTL_LEVEL, &xlev);
+    mu_stream_ioctl (iostr, MU_IOCTL_XSCRIPTSTREAM,
+                     MU_IOCTL_XSCRIPTSTREAM_LEVEL, &xlev);
   if (buf_switch)
-    mu_stream_ioctl (iostr, MU_IOCTL_SET_TRANSPORT_BUFFER, &oldbuf);
+    mu_stream_ioctl (iostr, MU_IOCTL_TRANSPORT_BUFFER, MU_IOCTL_OP_SET, 
+                     &oldbuf);
   if (rc)
     {
       maidag_error (_("copy error: %s"), mu_strerror (rc));

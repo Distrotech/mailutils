@@ -192,7 +192,8 @@ mu_sv_compile_error (struct mu_locus *ploc, const char *fmt, ...)
 
   va_start (ap, fmt);
   mu_sieve_error_count++;
-  mu_stream_ioctl (mu_sieve_machine->errstream, MU_IOCTL_LOGSTREAM_SET_LOCUS,
+  mu_stream_ioctl (mu_sieve_machine->errstream,
+                   MU_IOCTL_LOGSTREAM, MU_IOCTL_LOGSTREAM_SET_LOCUS,
 		   ploc);
   mu_stream_printf (mu_sieve_machine->errstream,
 		    "\033s<%d>\033O<%d>",

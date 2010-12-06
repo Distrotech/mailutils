@@ -51,9 +51,22 @@ with @file{/dev/null}, or @file{/dev/zero}.  We refer to these devices
 only to illustrate the behavior of @dfn{null streams}.}.
 
 This is the default behavior when reading.  It can be altered using
-the following @dfn{ioctls}.
+the @samp{MU_IOCTL_NULLSTREAM} ioctl.
 
-@defvr {ioctl} MU_IOCTL_NULLSTREAM_SET_PATTERN
+@defvr {ioctl} MU_IOCTL_NULLSTREAM
+This ioctl controls various parameters of a null stream.  Synopsis:
+
+@example
+mu_stream_ioctl (@var{stream}, MU_IOCTL_NULLSTREAM, @var{opcode}, @var{arg});
+@end example
+
+@noindent
+where @var{opcode} is the operation code specific to null streams and
+@var{arg} is the operation argument.  Supported operation codes and
+their arguments are discussed below in this document.
+@end defvr
+
+@defvr {ioctl opcode} MU_IOCTL_NULLSTREAM_SET_PATTERN
 Set the @dfn{pattern} for reads.  The argument is a pointer to
 @dfn{struct mu_nullstream_pattern}, defined as:
 
@@ -78,7 +91,10 @@ are returned cyclically at each read.  For example, suppose that
   
   pat.pattern = "01234567";
   pat.size = 8;
-  mu_stream_ioctl (str, MU_IOCTL_NULLSTREAM_SET_PATTERN, &pat);
+  mu_stream_ioctl (str,
+                   MU_IOCTL_NULLSTREAM,
+                   MU_IOCTL_NULLSTREAM_SET_PATTERN,
+                   &pat);
 
   mu_stream_read (str, buf, sizeof (buf), &n);
 @end smallexample
@@ -115,7 +131,10 @@ The default behavior corresponds to the following initialization:
 @group
   pat.pattern = "";
   pat.size = 1;
-  mu_stream_ioctl (str, MU_IOCTL_NULLSTREAM_SET_PATTERN, &pat);
+  mu_stream_ioctl (str,
+                   MU_IOCTL_NULLSTREAM,
+                   MU_IOCTL_NULLSTREAM_SET_PATTERN,
+                   &pat);
 @end group  
 @end smallexample
 
@@ -124,7 +143,10 @@ argument causes all subsequent reads from that stream to return @samp{EOF}:
 
 @smallexample
 @group
-  mu_stream_ioctl (str, MU_IOCTL_NULLSTREAM_SET_PATTERN, NULL);
+  mu_stream_ioctl (str,
+                   MU_IOCTL_NULLSTREAM,
+                   MU_IOCTL_NULLSTREAM_SET_PATTERN,
+                   NULL);
   @dots{}
   rc = mu_stream_read (str, buf, sizeof (buf), &n);
 
@@ -134,7 +156,7 @@ argument causes all subsequent reads from that stream to return @samp{EOF}:
 @end smallexample
 @end defvr
 
-@defvr {ioctl} MU_IOCTL_NULLSTREAM_SET_PATCLASS
+@defvr {ioctl opcode} MU_IOCTL_NULLSTREAM_SET_PATCLASS
 Set read pattern in terms of @dfn{C character classes}
 (@FIXME-pxref{C character classes}).  Argument is a pointer
 to an integer containing a bitwise @samp{OR} of the desired
@@ -143,7 +165,10 @@ the following code:
 
 @smallexample
   int class = MU_CTYPE_DIGIT|MU_CTYPE_XLETR;
-  mu_stream_ioctl (str, MU_IOCTL_NULLSTREAM_SET_PATCLASS, &class);
+  mu_stream_ioctl (str,
+                   MU_IOCTL_NULLSTREAM,
+                   MU_IOCTL_NULLSTREAM_SET_PATCLASS,
+                   &class);
 @end smallexample
 
 @noindent
@@ -157,7 +182,7 @@ initializes the read pattern to the following string:
 Two ioctls are provided to control the @dfn{size} of a null stream
 available to seek and read operations.
 
-@defvr {ioctl} MU_IOCTL_NULLSTREAM_SETSIZE
+@defvr {ioctl opcode} MU_IOCTL_NULLSTREAM_SETSIZE
 Limit the addressable size of a null stream.  Argument is a pointer
 to @samp{mu_off_t} object specifying the new size.  The example below
 limits the stream size to 32 bytes:
@@ -165,7 +190,10 @@ limits the stream size to 32 bytes:
 @smallexample
 @group
   mu_off_t limit = 32;
-  mu_stream_ioctl (str, MU_IOCTL_NULLSTREAM_SETSIZE, &limit);
+  mu_stream_ioctl (str,
+                   MU_IOCTL_NULLSTREAM,
+                   MU_IOCTL_NULLSTREAM_SETSIZE,
+                   &limit);
 @end group  
 @end smallexample
 @end defvr
@@ -181,7 +209,7 @@ Setting the stream size to @samp{0} causes all subsequent reads from
 that stream to return @samp{EOF}.  The similar effect has the
 @samp{MU_IOCTL_NULLSTREAM_SET_PATTERN} ioctl with the @samp{NULL} argument.
 
-@defvr {ioctl} MU_IOCTL_NULLSTREAM_CLRSIZE
+@defvr {ioctl opcode} MU_IOCTL_NULLSTREAM_CLRSIZE
 Cancel the size limitation imposed by a previous
 @samp{MU_IOCTL_NULLSTREAM_SETSIZE} ioctl or a call to
 @samp{mu_stream_truncate}.  Argument must be @samp{NULL}.

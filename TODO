@@ -14,6 +14,8 @@ Software Foundation, Inc.
 
 See also mu_rfc2822_in_reply_to.
 
+* Check id _mu_smtp_trace_disable correctly dereferences streams.
+
 * mail: rewrite I/O support using streams.
 
 * re-implement imap4 client (in progress)

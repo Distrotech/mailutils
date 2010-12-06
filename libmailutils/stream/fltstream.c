@@ -358,23 +358,29 @@ filter_seek (struct _mu_stream *stream, mu_off_t off, mu_off_t *ppos)
 }
 
 static int
-filter_ctl (struct _mu_stream *stream, int op, void *ptr)
+filter_ctl (struct _mu_stream *stream, int code, int opcode, void *ptr)
 {
   struct _mu_filter_stream *fs = (struct _mu_filter_stream *)stream;
-  mu_transport_t *ptrans;
 
-  switch (op)
+  switch (code)
     {
-    case MU_IOCTL_GET_TRANSPORT:
-      if (!ptr)
-	return EINVAL;
-      ptrans = ptr;
-      ptrans[0] = (mu_transport_t) fs->transport;
-      ptrans[1] = NULL;
-      break;
-
+    case MU_IOCTL_TRANSPORT:
+      switch (opcode)
+	{
+	case MU_IOCTL_OP_GET:
+	  if (!ptr)
+	    return EINVAL;
+	  else
+	    {
+	      mu_transport_t *ptrans = ptr;
+	      ptrans[0] = (mu_transport_t) fs->transport;
+	      ptrans[1] = NULL;
+	    }
+	  break;
+	}
+      /* fall through */
     default:
-      return mu_stream_ioctl (fs->transport, op, ptr);
+      return mu_stream_ioctl (fs->transport, code, opcode, ptr);
     }
   return 0;
 }

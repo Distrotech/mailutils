@@ -395,12 +395,15 @@ mu_cfg_parse (mu_cfg_tree_t **ptree)
   int save_mode = 0, mode;
   struct mu_locus save_locus = { NULL, };
 
-  mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM_GET_MODE, &save_mode);
+  mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM, MU_IOCTL_LOGSTREAM_GET_MODE, 
+                   &save_mode);
   mode = save_mode | MU_LOGMODE_LOCUS;
-  mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM_SET_MODE, &mode);
-  mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM_GET_LOCUS, &save_locus);
+  mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM, MU_IOCTL_LOGSTREAM_SET_MODE,
+                   &mode);
+  mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM, MU_IOCTL_LOGSTREAM_GET_LOCUS,
+                   &save_locus);
   
-  mu_cfg_set_debug ();//FIXME
+  mu_cfg_set_debug ();
   _mu_cfg_errcnt = 0;
 
   rc = yyparse ();
@@ -419,8 +422,10 @@ mu_cfg_parse (mu_cfg_tree_t **ptree)
       *ptree = tree;
     }
 
-  mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM_SET_MODE, &save_mode);
-  mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM_GET_LOCUS, &save_locus);
+  mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM, MU_IOCTL_LOGSTREAM_SET_MODE,
+                   &save_mode);
+  mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM, MU_IOCTL_LOGSTREAM_SET_LOCUS,
+                   &save_locus);
   free (save_locus.mu_file);
 
   return rc;
@@ -1246,7 +1251,8 @@ parse_param (struct scan_tree_data *sdata, const mu_cfg_node_t *node)
 			    node->tag);
 	  abort ();
 	}
-      mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM_SET_LOCUS,
+      mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM, 
+                       MU_IOCTL_LOGSTREAM_SET_LOCUS,
 		       (void*) &node->locus);
       if (param->callback (tgt, node->label))
 	return 1;
@@ -1289,7 +1295,8 @@ _scan_tree_helper (const mu_cfg_node_t *node, void *data)
 	sec->target = (char*)sdata->target + sec->offset;
       if (sec->parser)
 	{
-	  mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM_SET_LOCUS,
+	  mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM, 
+                           MU_IOCTL_LOGSTREAM_SET_LOCUS,
 			   (void*) &node->locus);
 	  if (sec->parser (mu_cfg_section_start, node,
 			   sec->label, &sec->target,
@@ -1355,10 +1362,13 @@ mu_cfg_scan_tree (mu_cfg_tree_t *tree, struct mu_cfg_section *sections,
   dat.call_data = data;
   dat.target = target;
 
-  mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM_GET_MODE, &save_mode);
+  mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM, 
+                   MU_IOCTL_LOGSTREAM_GET_MODE, &save_mode);
   mode = save_mode | MU_LOGMODE_LOCUS;
-  mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM_SET_MODE, &mode);
-  mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM_GET_LOCUS, &save_locus);
+  mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM, 
+                   MU_IOCTL_LOGSTREAM_SET_MODE, &mode);
+  mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM, 
+                   MU_IOCTL_LOGSTREAM_GET_LOCUS, &save_locus);
   
   if (push_section (&dat, sections))
     return 1;
@@ -1368,8 +1378,10 @@ mu_cfg_scan_tree (mu_cfg_tree_t *tree, struct mu_cfg_section *sections,
   mu_cfg_preorder (tree->nodes, &clos);
   pop_section (&dat);
 
-  mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM_SET_MODE, &save_mode);
-  mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM_GET_LOCUS, &save_locus);
+  mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM, 
+                   MU_IOCTL_LOGSTREAM_SET_MODE, &save_mode);
+  mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM, 
+                   MU_IOCTL_LOGSTREAM_SET_LOCUS, &save_locus);
   free (save_locus.mu_file);
   
   return dat.error;

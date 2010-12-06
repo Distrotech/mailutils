@@ -126,62 +126,70 @@ _iostream_done (struct _mu_stream *str)
 }
 
 static int
-_iostream_ctl (struct _mu_stream *str, int op, void *arg)
+_iostream_ctl (struct _mu_stream *str, int code, int opcode, void *arg)
 {
   struct _mu_iostream *sp = (struct _mu_iostream *)str;
-  mu_transport_t *ptrans;
 
-  switch (op)
+  switch (code)
     {
-    case MU_IOCTL_GET_TRANSPORT:
+    case MU_IOCTL_TRANSPORT:
       if (!arg)
 	return EINVAL;
-      ptrans = arg;
-      ptrans[0] = (mu_transport_t) sp->transport[_MU_STREAM_INPUT];
-      ptrans[1] = (mu_transport_t) sp->transport[_MU_STREAM_OUTPUT];
+      else
+	{
+	  mu_transport_t *ptrans = arg;
+
+	  switch (opcode)
+	    {
+	    case MU_IOCTL_OP_GET:
+	      ptrans[0] = (mu_transport_t) sp->transport[_MU_STREAM_INPUT];
+	      ptrans[1] = (mu_transport_t) sp->transport[_MU_STREAM_OUTPUT];
+	      break;
+
+	    case MU_IOCTL_OP_SET:
+	      ptrans = arg;
+	      sp->transport[_MU_STREAM_INPUT] = (mu_stream_t) ptrans[0];
+	      sp->transport[_MU_STREAM_OUTPUT] = (mu_stream_t) ptrans[1];
+	      break;
+
+	    default:
+	      return EINVAL;
+	    }
+	}
       break;
 
-    case MU_IOCTL_SET_TRANSPORT:
-      if (!arg)
-	return EINVAL;
-      ptrans = arg;
-      sp->transport[_MU_STREAM_INPUT] = (mu_stream_t) ptrans[0];
-      sp->transport[_MU_STREAM_OUTPUT] = (mu_stream_t) ptrans[1];
-      break;
-
-    case MU_IOCTL_GET_STREAM:
+    case MU_IOCTL_SUBSTREAM:
       if (!arg)
 	return EINVAL;
       else
 	{
 	  mu_stream_t *pstr = arg;
+	  switch (opcode)
+	    {
+	    case MU_IOCTL_OP_GET:
+	      pstr[0] = sp->transport[0];
+	      mu_stream_ref (pstr[0]);
+	      pstr[1] = sp->transport[1];
+	      mu_stream_ref (pstr[1]);
+	      break;
 
-	  pstr[0] = sp->transport[0];
-	  mu_stream_ref (pstr[0]);
-	  pstr[1] = sp->transport[1];
-	  mu_stream_ref (pstr[1]);
+	    case MU_IOCTL_OP_SET:
+	      mu_stream_unref (sp->transport[0]);
+	      sp->transport[0] = pstr[0];
+	      mu_stream_ref (sp->transport[0]);
+	      
+	      mu_stream_unref (sp->transport[1]);
+	      sp->transport[1] = pstr[1];
+	      mu_stream_ref (sp->transport[1]);
+	      break;
+
+	    default:
+	      return EINVAL;
+	    }
 	}
       break;
 
-    case MU_IOCTL_SET_STREAM:
-      if (!arg)
-	return EINVAL;
-      else
-	{
-	  mu_stream_t *pstr = arg;
-
-	  mu_stream_unref (sp->transport[0]);
-	  sp->transport[0] = pstr[0];
-	  mu_stream_ref (sp->transport[0]);
-	  
-	  mu_stream_unref (sp->transport[1]);
-	  sp->transport[1] = pstr[1];
-	  mu_stream_ref (sp->transport[1]);
-	}
-      break;
-
-    case MU_IOCTL_GET_TRANSPORT_BUFFER:
-    case MU_IOCTL_SET_TRANSPORT_BUFFER:
+    case MU_IOCTL_TRANSPORT_BUFFER:
       if (!arg)
 	return EINVAL;
       else
@@ -189,7 +197,7 @@ _iostream_ctl (struct _mu_stream *str, int op, void *arg)
 	  struct mu_buffer_query *qp = arg;
 	  if (!MU_TRANSPORT_VALID_TYPE (qp->type) || !sp->transport[qp->type])
 	    return EINVAL;
-	  return mu_stream_ioctl (sp->transport[qp->type], op, arg);
+	  return mu_stream_ioctl (sp->transport[qp->type], code, opcode, arg);
 	}
       
     default:

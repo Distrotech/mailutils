@@ -201,30 +201,38 @@ _streamref_size (struct _mu_stream *str, mu_off_t *psize)
 }
 
 static int
-_streamref_ctl (struct _mu_stream *str, int op, void *arg)
+_streamref_ctl (struct _mu_stream *str, int code, int opcode, void *arg)
 {
   struct _mu_streamref *sp = (struct _mu_streamref *)str;
-  mu_off_t *lim;
   
-  switch (op)
+  switch (code)
     {
-    case MU_IOCTL_ABRIDGE_SEEK:
+    case MU_IOCTL_SEEK_LIMITS:
       if (!arg)
 	return EINVAL;
-      lim = arg;
-      sp->start = lim[0];
-      sp->end = lim[1];
-      return 0;
+      else
+	{
+	  mu_off_t *lim;
 
-    case MU_IOCTL_GET_SEEK_LIMITS:
-      if (!arg)
-	return EINVAL;
-      lim = arg;
-      lim[0] = sp->start;
-      lim[1] = sp->end;
-      return 0;
+	  switch (opcode)
+	    {
+	    case MU_IOCTL_OP_GET:
+	      lim[0] = sp->start;
+	      lim[1] = sp->end;
+	      return 0;
+
+	    case MU_IOCTL_OP_SET:
+	      sp->start = lim[0];
+	      sp->end = lim[1];
+	      return 0;
+
+	    default:
+	      return EINVAL;
+	    }
+	}
     }
-  return streamref_return (sp, mu_stream_ioctl (sp->transport, op, arg));
+  return streamref_return (sp, mu_stream_ioctl (sp->transport, code,
+						opcode, arg));
 }
 
 static int

@@ -262,19 +262,32 @@ _tls_wr_wait (struct _mu_stream *stream, int *pflags, struct timeval *tvp)
 }
 
 static int
-_tls_io_ioctl (struct _mu_stream *stream, int op, void *arg)
+_tls_io_ioctl (struct _mu_stream *stream, int code, int opcode, void *arg)
 {
   struct _mu_tls_io_stream *sp = (struct _mu_tls_io_stream *) stream;
-  mu_transport_t *ptrans;
 
-  switch (op)
+  switch (code)
     {
-    case MU_IOCTL_GET_TRANSPORT:
+    case MU_IOCTL_TRANSPORT:
       if (!arg)
 	return EINVAL;
-      ptrans = arg;
-      ptrans[0] = (mu_transport_t) sp->transport;
-      ptrans[1] = NULL;
+      else
+	{
+	  mu_transport_t *ptrans = arg;
+	  switch (opcode)
+	    {
+	    case MU_IOCTL_OP_GET:
+	      ptrans[0] = (mu_transport_t) sp->transport;
+	      ptrans[1] = NULL;
+	      break;
+
+	    case MU_IOCTL_OP_SET:
+	      return ENOSYS;
+
+	    default:
+	      return EINVAL;
+	    }
+	}
       break;
 
     default:
@@ -387,7 +400,7 @@ _tls_server_open (mu_stream_t stream)
   gnutls_certificate_set_dh_params (x509_cred, dh_params);
 
   sp->session = initialize_tls_session ();
-  mu_stream_ioctl (stream, MU_IOCTL_GET_TRANSPORT, transport);
+  mu_stream_ioctl (stream, MU_IOCTL_TRANSPORT, MU_IOCTL_OP_GET, transport);
   gnutls_transport_set_ptr2 (sp->session,
 			     (gnutls_transport_ptr) transport[0],
 			     (gnutls_transport_ptr) transport[1]);
@@ -441,7 +454,7 @@ prepare_client_session (mu_stream_t stream)
 
   gnutls_credentials_set (sp->session, GNUTLS_CRD_CERTIFICATE, x509_cred);
 
-  mu_stream_ioctl (stream, MU_IOCTL_GET_TRANSPORT, transport);
+  mu_stream_ioctl (stream, MU_IOCTL_TRANSPORT, MU_IOCTL_OP_GET, transport);
   gnutls_transport_set_ptr2 (sp->session,
 			     (gnutls_transport_ptr) transport[0],
 			     (gnutls_transport_ptr) transport[1]);
@@ -503,54 +516,69 @@ _tls_write (struct _mu_stream *str, const char *buf, size_t bufsize,
 }
 
 static int
-_tls_ioctl (struct _mu_stream *stream, int op, void *arg)
+_tls_ioctl (struct _mu_stream *stream, int code, int opcode, void *arg)
 {
   struct _mu_tls_stream *sp = (struct _mu_tls_stream *) stream;
 
-  switch (op)
+  switch (opcode)
     {
-    case MU_IOCTL_GET_TRANSPORT:
-      if (!arg)
-	return EINVAL;
-      else
+    case MU_IOCTL_TRANSPORT:
+      switch (opcode)
 	{
-	  mu_transport_t *ptrans, trans[2];
+	case MU_IOCTL_OP_GET:
+	  if (!arg)
+	    return EINVAL;
+	  else
+	    {
+	      mu_transport_t *ptrans, trans[2];
 
-	  ptrans = arg;
-	  mu_stream_ioctl (sp->transport[0], MU_IOCTL_GET_TRANSPORT, trans);
-	  ptrans[0] = trans[0];
-	  mu_stream_ioctl (sp->transport[1], MU_IOCTL_GET_TRANSPORT, trans);
-	  ptrans[1] = trans[0];
+	      ptrans = arg;
+	      mu_stream_ioctl (sp->transport[0], MU_IOCTL_TRANSPORT,
+			       MU_IOCTL_OP_GET, trans);
+	      ptrans[0] = trans[0];
+	      mu_stream_ioctl (sp->transport[1], MU_IOCTL_TRANSPORT,
+			       MU_IOCTL_OP_GET, trans);
+	      ptrans[1] = trans[0];
+	    }
+	  break;
+
+	case MU_IOCTL_OP_SET:
+	  return ENOSYS;
+
+	default:
+	  return EINVAL;
 	}
       break;
 
-    case MU_IOCTL_GET_TRANSPORT_BUFFER:
+    case MU_IOCTL_TRANSPORT_BUFFER:
       if (!arg)
 	return EINVAL;
       else
 	{
 	  struct mu_buffer_query *qp = arg;
-	  if (!MU_TRANSPORT_VALID_TYPE (qp->type) ||
-	      !sp->transport[qp->type])
-	    return EINVAL;
-	  return mu_stream_get_buffer (sp->transport[qp->type], qp);
+	  switch (opcode)
+	    {
+	    case MU_IOCTL_OP_GET:
+	      if (!MU_TRANSPORT_VALID_TYPE (qp->type) ||
+		  !sp->transport[qp->type])
+		return EINVAL;
+	      return mu_stream_get_buffer (sp->transport[qp->type], qp);
+
+	    case MU_IOCTL_OP_SET:
+	      if (!MU_TRANSPORT_VALID_TYPE (qp->type) ||
+		  !sp->transport[qp->type])
+		return EINVAL;
+	      return mu_stream_set_buffer (sp->transport[qp->type],
+					   qp->buftype, qp->bufsize);
+
+	    default:
+	      return EINVAL;
+	    }
 	}
-      
-    case MU_IOCTL_SET_TRANSPORT_BUFFER:
-      if (!arg)
-	return EINVAL;
-      else
-	{
-	  struct mu_buffer_query *qp = arg;
-	  if (!MU_TRANSPORT_VALID_TYPE (qp->type) ||
-	      !sp->transport[qp->type])
-	    return EINVAL;
-	  return mu_stream_set_buffer (sp->transport[qp->type],
-				       qp->buftype, qp->bufsize);
-	}
+      break;
       
     default:
-      return EINVAL;
+      return ENOSYS;
     }
   return 0;
 }

@@ -213,7 +213,8 @@ _log_write (struct _mu_stream *str, const char *buf, size_t size,
       return 0;
     }
   
-  mu_stream_ioctl (sp->transport, MU_IOCTL_LOGSTREAM_SET_SEVERITY, &severity);
+  mu_stream_ioctl (sp->transport, MU_IOCTL_LOGSTREAM,
+		   MU_IOCTL_LOGSTREAM_SET_SEVERITY, &severity);
   
   if (logmode & MU_LOGMODE_LOCUS)
     {
@@ -278,123 +279,139 @@ _log_setbuf_hook (mu_stream_t str, enum mu_buffer_type type, size_t size)
 }
 
 static int
-_log_ctl (struct _mu_stream *str, int op, void *arg)
+_log_ctl (struct _mu_stream *str, int code, int opcode, void *arg)
 {
   struct _mu_log_stream *sp = (struct _mu_log_stream *)str;
-  mu_transport_t *ptrans;
   
-  switch (op)
+  switch (code)
     {
-    case MU_IOCTL_GET_TRANSPORT:
+    case MU_IOCTL_TRANSPORT:
       if (!arg)
 	return EINVAL;
-      ptrans = arg;
-      ptrans[0] = (mu_transport_t) sp->transport;
-      ptrans[1] = NULL;
+      else
+	{
+	  mu_transport_t *ptrans = arg;
+	  switch (opcode)
+	    {
+	    case MU_IOCTL_OP_GET:
+	      ptrans[0] = (mu_transport_t) sp->transport;
+	      ptrans[1] = NULL;
+	      break;
+
+	    case MU_IOCTL_OP_SET:
+	      ptrans = arg;
+	      if (ptrans[0])
+		sp->transport = (mu_stream_t) ptrans[0];
+	      break;
+
+	    default:
+	      return EINVAL;
+	    }
+	}
       break;
 
-    case MU_IOCTL_SET_TRANSPORT:
-      if (!arg)
-	return EINVAL;
-      ptrans = arg;
-      if (ptrans[0])
-	sp->transport = (mu_stream_t) ptrans[0];
-      break;
-
-    case MU_IOCTL_LOGSTREAM_GET_SEVERITY:
-      if (!arg)
-	return EINVAL;
-      *(unsigned*)arg = sp->severity;
-      break;
+    case MU_IOCTL_LOGSTREAM:
+      switch (opcode)
+	{
+	case MU_IOCTL_LOGSTREAM_GET_SEVERITY:
+	  if (!arg)
+	    return EINVAL;
+	  *(unsigned*)arg = sp->severity;
+	  break;
       
-    case MU_IOCTL_LOGSTREAM_SET_SEVERITY:
-      if (!arg)
-	return EINVAL;
-      if (*(unsigned*)arg >= _mu_severity_num)
-	return EINVAL;
-      sp->severity = *(unsigned*)arg;
-      break;
+	case MU_IOCTL_LOGSTREAM_SET_SEVERITY:
+	  if (!arg)
+	    return EINVAL;
+	  if (*(unsigned*)arg >= _mu_severity_num)
+	    return EINVAL;
+	  sp->severity = *(unsigned*)arg;
+	  break;
 
-    case MU_IOCTL_LOGSTREAM_GET_MODE:
-      if (!arg)
-	return EINVAL;
-      *(int*)arg = sp->logmode;
-      break;
+	case MU_IOCTL_LOGSTREAM_GET_MODE:
+	  if (!arg)
+	    return EINVAL;
+	  *(int*)arg = sp->logmode;
+	  break;
 
-    case MU_IOCTL_LOGSTREAM_SET_MODE:
-      if (!arg)
-	return EINVAL;
-      sp->logmode = *(int*)arg;
-      break;
+	case MU_IOCTL_LOGSTREAM_SET_MODE:
+	  if (!arg)
+	    return EINVAL;
+	  sp->logmode = *(int*)arg;
+	  break;
       
-    case MU_IOCTL_LOGSTREAM_GET_LOCUS:
-      {
-	struct mu_locus *ploc = arg;
-	if (!arg)
+	case MU_IOCTL_LOGSTREAM_GET_LOCUS:
+	  if (!arg)
+	    return EINVAL;
+	  else
+	    {
+	      struct mu_locus *ploc = arg;
+	      if (sp->locus.mu_file)
+		{
+		  ploc->mu_file = strdup (sp->locus.mu_file);
+		  if (!ploc->mu_file)
+		    return ENOMEM;
+		}
+	      else
+		ploc->mu_file = NULL;
+	      ploc->mu_line = sp->locus.mu_line;
+	      ploc->mu_col = sp->locus.mu_col;
+	    }
+	  break;
+	
+	case MU_IOCTL_LOGSTREAM_SET_LOCUS:
+	  {
+	    struct mu_locus *ploc = arg;
+	    if (!arg)
+	      {
+		free (sp->locus.mu_file);
+		sp->locus.mu_file = NULL;
+		sp->locus.mu_line = 0;
+		sp->locus.mu_col = 0;
+	      }
+	    else
+	      {
+		if (ploc->mu_file)
+		  _locus_set_file (&sp->locus, ploc->mu_file,
+				   strlen (ploc->mu_file));
+		if (ploc->mu_line)
+		  _locus_set_line (&sp->locus, ploc->mu_line);
+		if (ploc->mu_col)
+		  _locus_set_col (&sp->locus, ploc->mu_col);
+	      }
+	    break;
+	  }
+
+	case MU_IOCTL_LOGSTREAM_ADVANCE_LOCUS_LINE:
+	  if (!arg)
+	    sp->locus.mu_line++;
+	  else
+	    sp->locus.mu_line += *(int*)arg;
+	  break;
+
+	case MU_IOCTL_LOGSTREAM_ADVANCE_LOCUS_COL:
+	  if (!arg)
+	    sp->locus.mu_col++;
+	  else
+	    sp->locus.mu_col += *(int*)arg;
+	  break;
+
+	case MU_IOCTL_LOGSTREAM_SUPPRESS_SEVERITY:
+	  if (!arg)
+	    sp->threshold = MU_LOG_DEBUG;
+	  else if (*(unsigned*)arg >= _mu_severity_num)
+	    return MU_ERR_NOENT;
+	  sp->threshold = *(unsigned*)arg;
+	  break;
+	  
+	case MU_IOCTL_LOGSTREAM_SUPPRESS_SEVERITY_NAME:
+	  if (!arg)
+	    sp->threshold = MU_LOG_DEBUG;
+	  else
+	    return mu_severity_from_string ((const char *) arg, &sp->threshold);
+
+	default:
 	  return EINVAL;
-	if (sp->locus.mu_file)
-	  {
-	    ploc->mu_file = strdup (sp->locus.mu_file);
-	    if (!ploc->mu_file)
-	      return ENOMEM;
-	  }
-	else
-	  ploc->mu_file = NULL;
-	ploc->mu_line = sp->locus.mu_line;
-	ploc->mu_col = sp->locus.mu_col;
-	break;
-      }
-	
-    case MU_IOCTL_LOGSTREAM_SET_LOCUS:
-      {
-	struct mu_locus *ploc = arg;
-	if (!arg)
-	  {
-	    free (sp->locus.mu_file);
-	    sp->locus.mu_file = NULL;
-	    sp->locus.mu_line = 0;
-	    sp->locus.mu_col = 0;
-	  }
-	else
-	  {
-	    if (ploc->mu_file)
-	      _locus_set_file (&sp->locus, ploc->mu_file,
-			       strlen (ploc->mu_file));
-	    if (ploc->mu_line)
-	      _locus_set_line (&sp->locus, ploc->mu_line);
-	    if (ploc->mu_col)
-	      _locus_set_col (&sp->locus, ploc->mu_col);
-	  }
-	break;
-      }
-
-    case MU_IOCTL_LOGSTREAM_ADVANCE_LOCUS_LINE:
-      if (!arg)
-	sp->locus.mu_line++;
-      else
-	sp->locus.mu_line += *(int*)arg;
-      break;
-
-    case MU_IOCTL_LOGSTREAM_ADVANCE_LOCUS_COL:
-      if (!arg)
-	sp->locus.mu_col++;
-      else
-	sp->locus.mu_col += *(int*)arg;
-      break;
-
-    case MU_IOCTL_LOGSTREAM_SUPPRESS_SEVERITY:
-      if (!arg)
-	sp->threshold = MU_LOG_DEBUG;
-      else if (*(unsigned*)arg >= _mu_severity_num)
-	return MU_ERR_NOENT;
-      sp->threshold = *(unsigned*)arg;
-      break;
-	
-    case MU_IOCTL_LOGSTREAM_SUPPRESS_SEVERITY_NAME:
-      if (!arg)
-	sp->threshold = MU_LOG_DEBUG;
-      else
-	return mu_severity_from_string ((const char *) arg, &sp->threshold);
+	}
       break;
       
     default:

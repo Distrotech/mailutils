@@ -76,7 +76,7 @@ _mu_pop3_trace_disable (mu_pop3_t pop3)
   if (!xstr)
     return 0;
   
-  rc = mu_stream_ioctl (xstr, MU_IOCTL_GET_TRANSPORT, stream);
+  rc = mu_stream_ioctl (xstr, MU_IOCTL_TRANSPORT, MU_IOCTL_OP_GET, stream);
   if (rc)
     return rc;
 
@@ -138,7 +138,8 @@ mu_pop3_trace_mask (mu_pop3_t pop3, int op, int lev)
 int
 _mu_pop3_xscript_level (mu_pop3_t pop3, int xlev)
 {
-  if (mu_stream_ioctl (pop3->carrier, MU_IOCTL_LEVEL, &xlev) == 0)
+  if (mu_stream_ioctl (pop3->carrier, MU_IOCTL_XSCRIPTSTREAM,
+                       MU_IOCTL_XSCRIPTSTREAM_LEVEL, &xlev) == 0)
     return xlev;
   return MU_XSCRIPT_NORMAL;
 }

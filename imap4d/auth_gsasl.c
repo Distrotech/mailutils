@@ -111,7 +111,8 @@ auth_gsasl (struct imap4d_auth *ap)
     {
       mu_stream_t stream[2], newstream[2];
 
-      rc = mu_stream_ioctl (iostream, MU_IOCTL_GET_STREAM, stream);
+      rc = mu_stream_ioctl (iostream, MU_IOCTL_SUBSTREAM, MU_IOCTL_OP_GET, 
+                            stream);
       if (rc)
 	{
 	  mu_error (_("%s failed: %s"), "MU_IOCTL_GET_STREAM",
@@ -157,7 +158,8 @@ auth_gsasl (struct imap4d_auth *ap)
       mu_stream_unref (stream[0]);
       mu_stream_unref (stream[1]);
       
-      rc = mu_stream_ioctl (iostream, MU_IOCTL_SET_STREAM, newstream);
+      rc = mu_stream_ioctl (iostream, MU_IOCTL_SUBSTREAM, 
+                            MU_IOCTL_OP_SET, newstream);
       if (rc)
 	{
 	  mu_error (_("%s failed when it should not: %s"),

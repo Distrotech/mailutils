@@ -168,10 +168,13 @@ mutool_logger (int argc, char **argv)
     }
 
   mode = MU_LOGMODE_SEVERITY | MU_LOGMODE_LOCUS;
-  mu_stream_ioctl (logger, MU_IOCTL_LOGSTREAM_SET_MODE, &mode);
+  mu_stream_ioctl (logger, MU_IOCTL_LOGSTREAM,
+                   MU_IOCTL_LOGSTREAM_SET_MODE, &mode);
   if (locus.mu_file)
-    mu_stream_ioctl (logger, MU_IOCTL_LOGSTREAM_SET_LOCUS, &locus);
-  mu_stream_ioctl (logger, MU_IOCTL_LOGSTREAM_SET_SEVERITY, &log_severity);
+    mu_stream_ioctl (logger, MU_IOCTL_LOGSTREAM,
+                     MU_IOCTL_LOGSTREAM_SET_LOCUS, &locus);
+  mu_stream_ioctl (logger, MU_IOCTL_LOGSTREAM,
+                   MU_IOCTL_LOGSTREAM_SET_SEVERITY, &log_severity);
   
   if (argc)
     {

@@ -352,33 +352,54 @@ _prog_flush (mu_stream_t stream)
 }
 
 static int
-_prog_ioctl (struct _mu_stream *str, int code, void *ptr)
+_prog_ioctl (struct _mu_stream *str, int code, int opcode, void *ptr)
 {
   struct _mu_prog_stream *fstr = (struct _mu_prog_stream *) str;
-  mu_transport_t t[2];
-  mu_transport_t *ptrans;
   
   switch (code)
     {
-    case MU_IOCTL_GET_TRANSPORT:
+    case MU_IOCTL_TRANSPORT:
       if (!ptr)
       	return EINVAL;
-      mu_stream_ioctl (fstr->in, MU_IOCTL_GET_TRANSPORT, t);
-      ptrans[0] = t[0];
-      mu_stream_ioctl (fstr->out, MU_IOCTL_GET_TRANSPORT, t);
-      ptrans[1] = t[1];
+      else
+	{
+	  mu_transport_t *ptrans = ptr;
+	  mu_transport_t t[2];
+
+	  switch (opcode)
+	    {
+	    case MU_IOCTL_OP_GET:
+	      mu_stream_ioctl (fstr->in, MU_IOCTL_TRANSPORT,
+			       MU_IOCTL_OP_GET, t);
+	      ptrans[0] = t[0];
+	      mu_stream_ioctl (fstr->out, MU_IOCTL_TRANSPORT,
+			       MU_IOCTL_OP_GET, t);
+	      ptrans[1] = t[1];
+	      break;
+	    case MU_IOCTL_OP_SET:
+	      return ENOSYS;
+	    default:
+	      return EINVAL;
+	    }
+	}
       break;
 
-    case MU_IOCTL_GET_STATUS:
+    case MU_IOCTL_PROGSTREAM:
       if (!ptr)
       	return EINVAL;
-      *(int*)ptr = fstr->status;
-      break;
+      switch (opcode)
+	{
+	case MU_IOCTL_PROG_STATUS:
+	  *(int*)ptr = fstr->status;
+	  break;
 
-    case MU_IOCTL_GET_PID:
-      if (!ptr)
-      	return EINVAL;
-      *(int*)ptr = fstr->pid;
+	case MU_IOCTL_PROG_PID:
+	  *(pid_t*)ptr = fstr->pid;
+	  break;
+
+	default:
+	  return EINVAL;
+	}
       break;
       
     default:

@@ -38,6 +38,9 @@ extern "C" {
 int mu_log_stream_create (mu_stream_t *, mu_stream_t); 
 int mu_syslog_stream_create (mu_stream_t *, int);
 
+int mu_severity_from_string (const char *str, unsigned *pn);
+int mu_severity_to_string (unsigned n, const char **pstr);
+  
 extern char *_mu_severity_str[];
 extern int _mu_severity_num;
   

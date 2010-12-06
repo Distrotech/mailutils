@@ -35,7 +35,8 @@ pop3_get_streams (mu_pop3_t pop3, mu_stream_t *streams)
   int rc;
   
   if (MU_POP3_FISSET (pop3, MU_POP3_TRACE))
-    rc = mu_stream_ioctl (pop3->carrier, MU_IOCTL_GET_STREAM, streams);
+    rc = mu_stream_ioctl (pop3->carrier, MU_IOCTL_SUBSTREAM, 
+                          MU_IOCTL_OP_GET, streams);
   else
     {
       streams[0] = pop3->carrier;
@@ -53,7 +54,8 @@ pop3_set_streams (mu_pop3_t pop3, mu_stream_t *streams)
   int rc;
   
   if (MU_POP3_FISSET (pop3, MU_POP3_TRACE))
-    rc = mu_stream_ioctl (pop3->carrier, MU_IOCTL_SET_STREAM, streams);
+    rc = mu_stream_ioctl (pop3->carrier, MU_IOCTL_SUBSTREAM, 
+                          MU_IOCTL_OP_SET, streams);
   else
     {
       mu_stream_t tmp;

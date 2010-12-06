@@ -759,7 +759,7 @@ _mime_body_stream_read (mu_stream_t stream, char *buf, size_t buflen, size_t *nb
 }
 
 static int
-_mime_body_stream_ioctl (mu_stream_t stream, int code, void *arg)
+_mime_body_stream_ioctl (mu_stream_t stream, int code, int opcode, void *arg)
 {
   struct _mime_body_stream *mstr = (struct _mime_body_stream *)stream;
   mu_mime_t mime = mstr->mime;
@@ -768,18 +768,28 @@ _mime_body_stream_ioctl (mu_stream_t stream, int code, void *arg)
   
   switch (code)
     {
-    case MU_IOCTL_GET_TRANSPORT:
+    case MU_IOCTL_TRANSPORT:
       if (!arg)
 	return EINVAL;
-      
-      if (mime->nmtp_parts == 0 || mime->cur_offset == 0)
-	return EINVAL;
-      rc = mu_message_get_streamref (mime->mtp_parts[mime->cur_part]->msg,
-				     &msg_stream);
-      if (rc)
-	break;
-      rc = mu_stream_ioctl (msg_stream, code, arg);
-      mu_stream_destroy (&msg_stream);
+      switch (opcode)
+        {
+        case MU_IOCTL_OP_GET:
+          if (mime->nmtp_parts == 0 || mime->cur_offset == 0)
+	    return EINVAL;
+          rc = mu_message_get_streamref (mime->mtp_parts[mime->cur_part]->msg,
+				         &msg_stream);
+          if (rc)
+	    break;
+          rc = mu_stream_ioctl (msg_stream, code, opcode, arg);
+          mu_stream_destroy (&msg_stream);
+          break;
+	  
+	case MU_IOCTL_OP_SET:
+	  return ENOSYS;
+	  
+	default:
+	  return EINVAL;
+	}
       break;
 
     default:

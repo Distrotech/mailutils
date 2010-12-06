@@ -47,15 +47,15 @@ _mu_smtp_data_begin (mu_smtp_t smtp)
     _mu_smtp_xscript_level (smtp, MU_XSCRIPT_PAYLOAD);
 
   smtp->savebuf.type = MU_TRANSPORT_OUTPUT;
-  if (mu_stream_ioctl (smtp->carrier, MU_IOCTL_GET_TRANSPORT_BUFFER,
-		       &smtp->savebuf) == 0)
+  if (mu_stream_ioctl (smtp->carrier, MU_IOCTL_TRANSPORT_BUFFER,
+		       MU_IOCTL_OP_GET, &smtp->savebuf) == 0)
     {
       struct mu_buffer_query newbuf;
       newbuf.type = MU_TRANSPORT_OUTPUT;
       newbuf.buftype = mu_buffer_full;
       newbuf.bufsize = 64*1024;
-      if (mu_stream_ioctl (smtp->carrier, MU_IOCTL_SET_TRANSPORT_BUFFER,
-			   &newbuf) == 0)
+      if (mu_stream_ioctl (smtp->carrier, MU_IOCTL_TRANSPORT_BUFFER,
+			   MU_IOCTL_OP_SET, &newbuf) == 0)
 	MU_SMTP_FSET (smtp, _MU_SMTP_SAVEBUF);
     }
   return 0;
@@ -68,8 +68,8 @@ _mu_smtp_data_end (mu_smtp_t smtp)
   /* code is always _MU_STR_EVENT_CLOSE */
   if (MU_SMTP_FISSET (smtp, _MU_SMTP_SAVEBUF))
     {
-      status = mu_stream_ioctl (smtp->carrier, MU_IOCTL_SET_TRANSPORT_BUFFER,
-				&smtp->savebuf);
+      status = mu_stream_ioctl (smtp->carrier, MU_IOCTL_TRANSPORT_BUFFER,
+				MU_IOCTL_OP_SET, &smtp->savebuf);
       if (status)
 	mu_diag_output (MU_DIAG_NOTICE,
 			"failed to restore buffer state on SMTP carrier: %s",

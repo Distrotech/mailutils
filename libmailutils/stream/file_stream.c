@@ -204,109 +204,111 @@ fd_error_string (struct _mu_stream *str, int rc)
 #endif
 
 static int
-fd_ioctl (struct _mu_stream *str, int code, void *ptr)
+fd_ioctl (struct _mu_stream *str, int code, int opcode, void *ptr)
 {
   struct _mu_file_stream *fstr = (struct _mu_file_stream *) str;
   mu_transport_t *ptrans;
   
   switch (code)
     {
-    case MU_IOCTL_GET_TRANSPORT:
+    case MU_IOCTL_TRANSPORT:
       if (!ptr)
 	return EINVAL;
-      ptrans = ptr;
-      ptrans[0] = (mu_transport_t) fstr->fd;
-      ptrans[1] = NULL;
+      switch (opcode)
+	{
+	case MU_IOCTL_OP_GET:
+	  ptrans = ptr;
+	  ptrans[0] = (mu_transport_t) fstr->fd;
+	  ptrans[1] = NULL;
+	  break;
+
+	case MU_IOCTL_OP_SET:
+	  ptrans = ptr;
+	  fstr->fd = (int) ptrans[0];
+	  break;
+	}
       break;
 
-    case MU_IOCTL_SET_TRANSPORT:
-      if (!ptr)
-	return EINVAL;
-      ptrans = ptr;
-      fstr->fd = (int) ptrans[0];
-      break;
-      
-    case MU_IOCTL_GET_TRANSPORT_BUFFER:
+    case MU_IOCTL_TRANSPORT_BUFFER:
       if (!ptr)
 	return EINVAL;
       else
 	{
 	  struct mu_buffer_query *qp = ptr;
-	  return mu_stream_get_buffer (str, qp);
+	  switch (opcode)
+	    {
+	    case MU_IOCTL_OP_GET:
+	      return mu_stream_get_buffer (str, qp);
+	    case MU_IOCTL_OP_SET:
+	      return mu_stream_set_buffer (str, qp->buftype, qp->bufsize);
+	    }
 	}
-      
-    case MU_IOCTL_SET_TRANSPORT_BUFFER:
-      if (!ptr)
-	return EINVAL;
-      else
-	{
-	  struct mu_buffer_query *qp = ptr;
-	  return mu_stream_set_buffer (str, qp->buftype, qp->bufsize);
-	}
+      break;
 
-    case MU_IOCTL_SET_ECHO:
+    case MU_IOCTL_ECHO:
       if (!ptr)
 	return EINVAL;
-      else
+      switch (opcode)
 	{
-	  int status;
-	  struct termios t;
-	  int state = *(int*)ptr;
+	case MU_IOCTL_OP_GET:
+	  *(int*)ptr = fstr->flags & _MU_FILE_STREAM_ECHO_OFF;
+	  break;
+	case MU_IOCTL_OP_SET:
+	  {
+	    int status;
+	    struct termios t;
+	    int state = *(int*)ptr;
 #if HAVE_TCGETATTR
-	  if (state == 0)
-	    {
-	      if (fstr->flags & _MU_FILE_STREAM_ECHO_OFF)
-		return 0;
-	      status = tcgetattr (fstr->fd, &t);
-	      if (status == 0)
-		{
-		  fstr->echo_state = malloc (sizeof (t));
-		  if (!fstr->echo_state)
-		    return ENOMEM;
-		  memcpy (fstr->echo_state, &t, sizeof (t));
-
-		  t.c_lflag &= ~(ECHO | ISIG);
-		  status = tcsetattr (fstr->fd, TCSAFLUSH | TCSASOFT, &t);
-		  if (status == 0)
-		    fstr->flags |= _MU_FILE_STREAM_ECHO_OFF;
-		}
-	      if (status)
-		{
+	    if (state == 0)
+	      {
+		if (fstr->flags & _MU_FILE_STREAM_ECHO_OFF)
+		  return 0;
+		status = tcgetattr (fstr->fd, &t);
+		if (status == 0)
+		  {
+		    fstr->echo_state = malloc (sizeof (t));
+		    if (!fstr->echo_state)
+		      return ENOMEM;
+		    memcpy (fstr->echo_state, &t, sizeof (t));
+		    
+		    t.c_lflag &= ~(ECHO | ISIG);
+		    status = tcsetattr (fstr->fd, TCSAFLUSH | TCSASOFT, &t);
+		    if (status == 0)
+		      fstr->flags |= _MU_FILE_STREAM_ECHO_OFF;
+		  }
+		if (status)
+		  {
+		    status = errno;
+		    if (fstr->echo_state)
+		      {
+			free (fstr->echo_state);
+			fstr->echo_state = NULL;
+		      }
+		  }
+	      }
+	    else
+	      {
+		if (!(fstr->flags & _MU_FILE_STREAM_ECHO_OFF))
+		  return 0;
+		if (tcsetattr (fstr->fd, TCSAFLUSH | TCSASOFT,
+			       fstr->echo_state))
 		  status = errno;
-		  if (fstr->echo_state)
-		    {
-		      free (fstr->echo_state);
-		      fstr->echo_state = NULL;
-		    }
-		}
-	    }
-	  else
-	    {
-	      if (!(fstr->flags & _MU_FILE_STREAM_ECHO_OFF))
-		return 0;
-	      if (tcsetattr (fstr->fd, TCSAFLUSH | TCSASOFT, fstr->echo_state))
-		status = errno;
-	      else
-		{
-		  status = 0;
-		  free (fstr->echo_state);
-		  fstr->echo_state = NULL;
-		  fstr->flags &= ~_MU_FILE_STREAM_ECHO_OFF;
-		}
-	    }
-	  return status;
+		else
+		  {
+		    status = 0;
+		    free (fstr->echo_state);
+		    fstr->echo_state = NULL;
+		    fstr->flags &= ~_MU_FILE_STREAM_ECHO_OFF;
+		  }
+	      }
+	    return status;
 #else
-	  return ENOSYS;
+	    return ENOSYS;
 #endif
+	  }
 	}
-      
-    case MU_IOCTL_GET_ECHO:
-      if (!ptr)
-	return EINVAL;
-      else
-	*(int*)ptr = fstr->flags & _MU_FILE_STREAM_ECHO_OFF;
       break;
-	  
+      
     default:
       return ENOSYS;
     }

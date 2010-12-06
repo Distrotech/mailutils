@@ -1124,11 +1124,11 @@ mu_stream_size (mu_stream_t stream, mu_off_t *psize)
 }
 
 int
-mu_stream_ioctl (mu_stream_t stream, int code, void *ptr)
+mu_stream_ioctl (mu_stream_t stream, int family, int opcode, void *ptr)
 {
   if (stream->ctl == NULL)
     return ENOSYS;
-  return stream->ctl (stream, code, ptr);
+  return stream->ctl (stream, family, opcode, ptr);
 }
 
 int
@@ -1150,7 +1150,7 @@ mu_stream_wait (mu_stream_t stream, int *pflags, struct timeval *tvp)
       _stream_init (stream);
     }
 #endif
-  /* Take to acount if we have any buffering.  */
+  /* Take into account if we have any buffering.  */
   /* FIXME: How about MU_STREAM_READY_WR? */
   if ((*pflags) & MU_STREAM_READY_RD 
       && stream->buftype != mu_buffer_none
