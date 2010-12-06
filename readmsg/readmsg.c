@@ -175,7 +175,7 @@ print_unix_header (mu_message_t message)
       
   if (mu_envelope_sget_sender (envelope, &buf))
     buf = "UNKNOWN";
-  printf ("From %s ", buf);
+  mu_printf ("From %s ", buf);
   
   if (mu_envelope_sget_date (envelope, &buf))
     { 
@@ -189,10 +189,10 @@ print_unix_header (mu_message_t message)
       buf = datebuf;
     }
 
-  printf ("%s", buf);
+  mu_printf ("%s", buf);
   size = strlen (buf);
   if (size > 1 && buf[size-1] != '\n')
-    putchar ('\n');
+    mu_printf ("\n");
 }
     
 static void
@@ -205,17 +205,9 @@ print_header (mu_message_t message, int unix_header, int weedc, char **weedv)
   if (weedc == 0)
     {
       mu_stream_t stream = NULL;
-      size_t len = 0;
-      char buf[128];
 
-      /* FIXME: Use mu_stream_copy */
       mu_header_get_streamref (header, &stream);
-      while (mu_stream_read (stream, buf, sizeof (buf) - 1, &len) == 0
-	     && len != 0)
-	{
-	  buf[len] = '\0';
-	  printf ("%s", buf);
-	}
+      mu_stream_copy (mu_strout, stream, 0, NULL);
       mu_stream_destroy (&stream);
     }
   else
@@ -235,11 +227,11 @@ print_header (mu_message_t message, int unix_header, int weedc, char **weedv)
       for (i = 1; i <= count; i++)
 	{
 	  int j;
-	  char *name = NULL;
-	  char *value = NULL;
+	  const char *name = NULL;
+	  const char *value = NULL;
 
-	  mu_header_aget_field_name (header, i, &name);
-	  mu_header_aget_field_value (header, i, &value);
+	  mu_header_sget_field_name (header, i, &name);
+	  mu_header_sget_field_value (header, i, &value);
 	  for (j = 0; j < weedc; j++)
 	    {
 	      if (weedv[j][0] == '!')
@@ -249,15 +241,13 @@ print_header (mu_message_t message, int unix_header, int weedc, char **weedv)
 		}
 	      else if (string_starts_with (name, weedv[j]))
 		{
-		  /* Check if mu_header_aget_value return an empty string.  */
+		  /* Check if mu_header_sget_value returns an empty string.  */
 		  if (value && *value)
-		    printf ("%s: %s\n", name, value);
+		    mu_printf ("%s: %s\n", name, value);
 		}
 	    }
-	  free (value);
-	  free (name);
 	}
-      putchar ('\n');
+      mu_printf ("\n");
     }
 }
 
@@ -265,26 +255,17 @@ static void
 print_body (mu_message_t message)
 {
   int status;
-  char buf[128];
   mu_body_t body = NULL;
   mu_stream_t stream = NULL;
-  size_t len = 0;
   mu_message_get_body (message, &body);
 
-  /* FIXME: Use mu_stream_copy */
   status = mu_body_get_streamref (body, &stream);
   if (status)
     {
       mu_error (_("cannot get body stream: %s"), mu_strerror (status));
       return;
     }
-
-  while (mu_stream_read (stream, buf, sizeof (buf) - 1, &len) == 0
-	 && len != 0)
-    {
-      buf[len] = '\0';
-      printf ("%s", buf);
-    }
+  mu_stream_copy (mu_strout, stream, 0, NULL);
   mu_stream_destroy (&stream);
 }
 
@@ -410,13 +391,10 @@ main (int argc, char **argv)
 	print_header (msg, unix_header, weedc, weedv);
       
       print_body (msg);
-      if (form_feed)
-	putchar ('\f');
-      else
-	putchar ('\n');
+      mu_printf (form_feed ? "\f" : "\n");
     }
 
-  putchar ('\n');
+  mu_printf ("\n");
 
   mu_mailbox_close (mbox);
   mu_mailbox_destroy (&mbox);

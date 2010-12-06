@@ -266,16 +266,16 @@ frm (char *mailbox_name)
   if (show_summary)
     {
       if (total == 0)
-	printf (_("Folder contains no messages."));
+	mu_printf (_("Folder contains no messages."));
       else
 	{
 	  char *delim = "";
       	  
-	  printf (_("Folder contains "));
+	  mu_printf (_("Folder contains "));
 	
 	  if (counter.new)
 	    {
-	      printf (ngettext ("%lu new message",
+	      mu_printf (ngettext ("%lu new message",
  				"%lu new messages",
 				counter.new),
 		      (u_long) counter.new);
@@ -284,9 +284,9 @@ frm (char *mailbox_name)
 	  
 	  if (counter.unread)
 	    {
-	      printf ("%s", delim);
+	      mu_printf ("%s", delim);
 	      
-	      printf (ngettext ("%lu unread message",
+	      mu_printf (ngettext ("%lu unread message",
 				"%lu unread messages",
 				counter.unread),
 		      (u_long) counter.unread);
@@ -295,9 +295,9 @@ frm (char *mailbox_name)
 	  
 	  if (counter.read)
 	    {
-	      printf ("%s", delim);
+	      mu_printf ("%s", delim);
 	      
-	      printf (ngettext ("%lu read message",
+	      mu_printf (ngettext ("%lu read message",
 				"%lu read messages",
 				counter.read),
 		      (u_long) counter.read);
@@ -309,16 +309,16 @@ frm (char *mailbox_name)
 	      Leave it as it is unless your language requires to reorder
 	      the parts of speach in the message
 	  */
-	  printf (_("."));
+	  mu_printf (_("."));
 	}
-      printf ("\n");
+      mu_printf ("\n");
     }
   else if (show_query)
     {
       if (total > 0)
-	printf (_("There are messages in that folder.\n"));
+	mu_printf (_("There are messages in that folder.\n"));
       else
-	printf (_("No messages in that folder!\n"));
+	mu_printf (_("No messages in that folder!\n"));
     }
   
   /* EXIT STATUS
@@ -366,7 +366,7 @@ main (int argc, char **argv)
   else
     for (; c < argc; c++)
       {
-	printf ("%s:\n", argv[c]);
+	mu_printf ("%s:\n", argv[c]);
 	status = frm (argv[c]);
       }
 

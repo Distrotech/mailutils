@@ -43,6 +43,7 @@
 #include <mailutils/filter.h>
 #include <mailutils/registrar.h>
 #include <mailutils/stream.h>
+#include <mailutils/stdstream.h>
 #include <mailutils/url.h>
 #include <mailutils/nls.h>
 #include <mailutils/tls.h>

@@ -144,7 +144,7 @@ main (int argc, char **argv)
 
   if (count_only)
     {
-      printf (ngettext ("There is %lu message in your incoming mailbox.\n",
+      mu_printf (ngettext ("There is %lu message in your incoming mailbox.\n",
 			"There are %lu messages in your incoming mailbox.\n",
 			total),
 	      (unsigned long) total);

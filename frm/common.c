@@ -127,7 +127,7 @@ puts_bidi (char *string)
     }
   
   if (fb_charset_num == 0)
-    puts (string);
+    mu_printf ("%s\n", string);
   else
     {
       FriBidiStrIndex len;
@@ -186,20 +186,20 @@ puts_bidi (char *string)
 	      new_len = fribidi_unicode_to_charset (fb_charset_num,
 						    visual + st, inlen,
 						    outstring);
-	      printf ("%s", outstring);
+	      mu_printf ("%s", outstring);
 	    }
-	  putchar ('\n');
+	  mu_printf ("\n");
 	}
       else
 	{
 	  /* Print the string as is */
-	  puts (string);
+	  mu_printf ("%s\n", string);
 	}
     }
 }
 #else
 # define alloc_logical(s)
-# define puts_bidi puts
+# define puts_bidi(s) mu_stream_printf ("%s\n", s)
 #endif
 
 
@@ -236,7 +236,7 @@ print_line ()
       curcol = nextstart = 0;
     }
   else
-    putchar ('\n');
+    mu_printf ("\n");
   curfield = 0;
 }
 
@@ -245,9 +245,9 @@ format_field_simple (const char *fmt, ...)
 {
   va_list ap;
   if (curfield++)
-    putchar ('\t');
+    mu_printf ("\t");
   va_start (ap, fmt);
-  vprintf (fmt, ap);
+  mu_stream_vprintf (mu_strout, fmt, ap);
   va_end (ap);
 }
 
@@ -266,7 +266,7 @@ format_field_align (const char *fmt, ...)
 	    {
 	      puts_bidi (linebuf);
 	      linepos = 0;
-	      printf ("%*s", nextstart, "");
+	      mu_printf ("%*s", nextstart, "");
 	    }
 	  else
 	    {
@@ -526,7 +526,7 @@ frm_abort (mu_mailbox_t *mbox)
    (mu_message_t). It returns non-zero if that message is to be displayed
    and zero otherwise.
 
-   Upon finishing scanning, the function places the overall number of
+   Upon finishing scanning, the function places total number of
    the messages processed into the memory location pointed to by
    TOTAL */
 void
