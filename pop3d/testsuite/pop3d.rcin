@@ -27,3 +27,8 @@ auth {
 virtdomain {
   passwd-dir "$objdir/data/etc";
 }
+
+logging {
+  syslog no;
+  print-severity yes;
+};
