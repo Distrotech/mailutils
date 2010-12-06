@@ -143,11 +143,30 @@ cb_facility (void *data, mu_config_value_t *val)
    return 0;
 }
 
+static int
+cb_severity (void *data, mu_config_value_t *val)
+{
+  unsigned n;
+  
+  if (mu_cfg_assert_value_type (val, MU_CFG_STRING))
+    return 1;
+  if (mu_severity_from_string (val->v.string, &n))
+    {
+      mu_error (_("unknown severity `%s'"), val->v.string);
+      return 1;
+    }
+  mu_log_severity_threshold = n;
+  return 0;
+}      
+
 static struct mu_cfg_param mu_logging_param[] = {
   { "syslog", mu_cfg_bool, &mu_log_syslog, 0, NULL,
     N_("Send diagnostics to syslog.") },
   { "print-severity", mu_cfg_bool, &mu_log_print_severity, 0, NULL,
     N_("Print message severity levels.") },
+  { "severity", mu_cfg_callback, NULL, 0, cb_severity,
+    N_("Output only messages with a severity equal to or greater than "
+       "this one.") },
   { "facility", mu_cfg_callback, NULL, 0, cb_facility,
     N_("Set syslog facility. Arg is one of the following: user, daemon, "
        "auth, authpriv, mail, cron, local0 through local7 (case-insensitive), "

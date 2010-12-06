@@ -379,13 +379,6 @@ opt_sc  : /* empty */
 
 %%
 
-static int
-_cfg_default_printer (void *unused, mu_log_level_t level, const char *str)
-{
-  fprintf (stderr, "%s", str);
-  return 0;
-}
-
 void
 mu_cfg_set_debug ()
 {

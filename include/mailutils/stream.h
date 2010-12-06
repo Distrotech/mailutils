@@ -111,12 +111,22 @@ enum mu_buffer_type
      Arg: NULL (increment by 1)
           int *
   */
-#define MU_LOGSTREAM_ADVANCE_LOCUS_LINE 24
+#define MU_IOCTL_LOGSTREAM_ADVANCE_LOCUS_LINE 24
   /* Advance locus column.
      Arg: NULL (increment by 1)
           int *
   */
-#define MU_LOGSTREAM_ADVANCE_LOCUS_COL  25
+#define MU_IOCTL_LOGSTREAM_ADVANCE_LOCUS_COL  25
+
+  /* Suppress output of messages having severity lower than the
+     given threshold.
+     Arg: int *
+  */
+#define MU_IOCTL_LOGSTREAM_SUPPRESS_SEVERITY  26
+  /* Same as above, but:
+     Arg: const char *
+  */
+#define MU_IOCTL_LOGSTREAM_SUPPRESS_SEVERITY_NAME 27
   
 #define MU_TRANSPORT_INPUT  0
 #define MU_TRANSPORT_OUTPUT 1

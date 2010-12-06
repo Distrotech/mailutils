@@ -24,6 +24,7 @@
 #include <mailutils/types.h>
 #include <mailutils/errno.h>
 #include <mailutils/cctype.h>
+#include <mailutils/cstr.h>
 #include <mailutils/log.h>
 
 #include <mailutils/nls.h>
@@ -41,6 +42,31 @@ char *_mu_severity_str[] = {
   N_("emerg"),
 };
 int _mu_severity_num = MU_ARRAY_SIZE (_mu_severity_str);
+
+int
+mu_severity_from_string (const char *str, unsigned *pn)
+{
+  int i;
+
+  for (i = 0; i < _mu_severity_num; i++)
+    {
+      if (mu_c_strcasecmp (_mu_severity_str[i], str) == 0)
+	{
+	  *pn = i;
+	  return 0;
+	}
+    }
+  return MU_ERR_NOENT;
+}
+
+int
+mu_severity_to_string (unsigned n, const char **pstr)
+{
+  if (n >= _mu_severity_num)
+    return MU_ERR_NOENT;
+  *pstr = _mu_severity_str[n];
+  return 0;
+}
 
 static int
 _locus_set_file (struct mu_locus *loc, const char *file, size_t len)
@@ -167,13 +193,30 @@ _log_write (struct _mu_stream *str, const char *buf, size_t size,
   if (severity >= _mu_severity_num)
     severity = MU_LOG_EMERG;
 
+  if (fname)
+    {
+      loc.mu_file = NULL;
+      _locus_set_file (&loc, fname, flen);
+    }
+  
+  if (save_locus)
+    {
+      _locus_set_file (&sp->locus, loc.mu_file, strlen (loc.mu_file));
+      _locus_set_line (&sp->locus, loc.mu_line);
+      _locus_set_col (&sp->locus, loc.mu_col);
+    }
+  
+  if (severity < sp->threshold)
+    {
+      if (fname)
+	free (loc.mu_file);
+      return 0;
+    }
+  
   mu_stream_ioctl (sp->transport, MU_IOCTL_LOGSTREAM_SET_SEVERITY, &severity);
   
   if (logmode & MU_LOGMODE_LOCUS)
     {
-      if (fname)
-	_locus_set_file (&loc, fname, flen);
-
       if (loc.mu_file)
 	{
 	  mu_stream_write (sp->transport, loc.mu_file,
@@ -188,13 +231,6 @@ _log_write (struct _mu_stream *str, const char *buf, size_t size,
 	}
     }
 
-  if (save_locus)
-    {
-      _locus_set_file (&sp->locus, loc.mu_file, strlen (loc.mu_file));
-      _locus_set_line (&sp->locus, loc.mu_line);
-      _locus_set_col (&sp->locus, loc.mu_col);
-    }
-  
   if (fname)
     free (loc.mu_file);
   
@@ -332,20 +368,35 @@ _log_ctl (struct _mu_stream *str, int op, void *arg)
 	break;
       }
 
-    case MU_LOGSTREAM_ADVANCE_LOCUS_LINE:
+    case MU_IOCTL_LOGSTREAM_ADVANCE_LOCUS_LINE:
       if (!arg)
 	sp->locus.mu_line++;
       else
 	sp->locus.mu_line += *(int*)arg;
       break;
 
-    case MU_LOGSTREAM_ADVANCE_LOCUS_COL:
+    case MU_IOCTL_LOGSTREAM_ADVANCE_LOCUS_COL:
       if (!arg)
 	sp->locus.mu_col++;
       else
 	sp->locus.mu_col += *(int*)arg;
       break;
+
+    case MU_IOCTL_LOGSTREAM_SUPPRESS_SEVERITY:
+      if (!arg)
+	sp->threshold = MU_LOG_DEBUG;
+      else if (*(unsigned*)arg >= _mu_severity_num)
+	return MU_ERR_NOENT;
+      sp->threshold = *(unsigned*)arg;
+      break;
 	
+    case MU_IOCTL_LOGSTREAM_SUPPRESS_SEVERITY_NAME:
+      if (!arg)
+	sp->threshold = MU_LOG_DEBUG;
+      else
+	return mu_severity_from_string ((const char *) arg, &sp->threshold);
+      break;
+      
     default:
       return ENOSYS;
     }

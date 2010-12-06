@@ -27,7 +27,7 @@ source_readline (void *closure, int cont MU_ARG_UNUSED)
   if (getline (&buf, &s, fp) >= 0)
     {
       mu_rtrim_class (buf, MU_CTYPE_SPACE);
-      mu_stream_ioctl (mu_strerr, MU_LOGSTREAM_ADVANCE_LOCUS_LINE, NULL);
+      mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM_ADVANCE_LOCUS_LINE, NULL);
       return buf;
     }
   

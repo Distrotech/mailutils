@@ -22,11 +22,13 @@
 
 struct _mu_log_stream
 {
-  struct _mu_stream base;
-  mu_stream_t transport;
-  unsigned severity;
-  int logmode;
-  struct mu_locus locus;
+  struct _mu_stream base;  /* Base stream */
+  mu_stream_t transport;   /* Transport stream */
+  unsigned severity;       /* Default severity */
+  unsigned threshold;      /* Suppress the output of severities below 
+			      this threshold */
+  int logmode;             /* Mode flags */
+  struct mu_locus locus;   /* Location */
 };
 
 #endif
