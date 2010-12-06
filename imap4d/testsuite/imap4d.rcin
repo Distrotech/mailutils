@@ -29,3 +29,8 @@ virtdomain {
 }
 
 shared-namespace "$objdir/data";
+
+logging {
+  syslog no;
+  print-severity yes;
+};
