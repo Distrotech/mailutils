@@ -66,6 +66,8 @@ static struct argp_option options[] =
   { "inetd",  'i', 0, 0, N_("run in inetd mode"), 0 },
   { "daemon", 'd', N_("NUMBER"), OPTION_ARG_OPTIONAL,
     N_("runs in daemon mode with a maximum of NUMBER children"), 0 },
+  { "file", 'f', N_("FILE"), 0,
+    N_("read FILE instead of .biffrc"), 0 },
   { NULL, 0, NULL, 0, NULL, 0 }
 };
 
@@ -110,6 +112,7 @@ static int change_user (const char *user);
 
 static int reload = 0;
 int test_mode;
+char *biffrc = BIFF_RC;
 
 struct mu_cfg_param comsat_cfg_param[] = {
   { "allow-biffrc", mu_cfg_bool, &allow_biffrc, 0, NULL,
@@ -147,6 +150,10 @@ comsatd_parse_opt (int key, char *arg, struct argp_state *state)
 	mu_argp_node_list_new (lst, "max-children", arg);
       break;
 
+    case 'f':
+      biffrc = arg;
+      break;
+      
     case 'i':
       mu_argp_node_list_new (lst, "mode", "inetd");
       break;
@@ -236,7 +243,7 @@ comsat_process (char *buffer, size_t rdlen)
     {
       if (require_tty)
 	return;
-      strcpy (tty, "/dev/null");
+      tty[0] = 0;
     }
 
   /* Child: do actual I/O */
@@ -377,50 +384,112 @@ need_crlf (mu_stream_t str)
 #endif
 }
 
+static mu_stream_t
+_open_tty (const char *device, int argc, char **argv)
+{
+  mu_stream_t dev, base_dev, prev_stream;
+  int status;
+  
+  status = mu_file_stream_create (&dev, device, MU_STREAM_WRITE);
+  if (status)
+    {
+      mu_error (_("cannot open device %s: %s"),
+		device, mu_strerror (status));
+      return NULL;
+    }
+  mu_stream_set_buffer (dev, mu_buffer_line, 0);
+
+  prev_stream = base_dev = dev;
+  while (argc)
+    {
+      int i;
+      int mode;
+      int qmark;
+      char *fltname;
+      
+      fltname = argv[0];
+      if (fltname[0] == '?')
+	{
+	  qmark = 1;
+	  fltname++;
+	}
+      else
+	qmark = 0;
+      
+      if (fltname[0] == '~')
+	{
+	  mode = MU_FILTER_DECODE;
+	  fltname++;
+	}
+      else
+	{
+	  mode = MU_FILTER_ENCODE;
+	}
+      
+      for (i = 1; i < argc; i++)
+	if (strcmp (argv[i], "+") == 0)
+	  break;
+      
+      if (qmark == 0 || need_crlf (base_dev))
+	{
+	  status = mu_filter_create_args (&dev, prev_stream, fltname,
+					  i, (const char **)argv,
+					  mode, MU_STREAM_WRITE);
+	  mu_stream_unref (prev_stream);
+	  if (status)
+	    {
+	      mu_error (_("cannot open filter stream: %s"),
+			mu_strerror (status));
+	      return NULL;
+	    }
+	  prev_stream = dev;
+	}
+      argc -= i;
+      argv += i;
+      if (argc)
+	{
+	  argc--;
+	  argv++;
+	}
+    }
+  return dev;
+}
+
+mu_stream_t
+open_tty (const char *device, int argc, char **argv)
+{
+  mu_stream_t dev;
+
+  if (!device || !*device || strcmp (device, "null") == 0)
+    {
+      int rc = mu_nullstream_create (&dev, MU_STREAM_WRITE);
+      if (rc)
+	mu_error (_("cannot open null stream: %s"), mu_strerror (rc));
+    }
+  else
+    dev = _open_tty (device, argc, argv); 
+  return dev;
+}
+
 /* NOTE: Do not bother to free allocated memory, as the program exits
    immediately after executing this */
 static void
 notify_user (const char *user, const char *device, const char *path,
 	     mu_message_qid_t qid)
 {
-  mu_stream_t out, dev;
+  mu_stream_t dev;
   mu_mailbox_t mbox = NULL;
   mu_message_t msg;
+  static char *default_filters[] = { "7bit", "+", "?CRLF", NULL };
   int status;
 
   if (change_user (user))
     return;
-  status = mu_file_stream_create (&dev, device, MU_STREAM_WRITE);
-  if (status)
-    {
-      mu_error (_("cannot open device %s: %s"), device, mu_strerror (status));
-      return;
-    }
-  mu_stream_set_buffer (dev, mu_buffer_line, 0);
-  
-  status = mu_filter_create (&out, dev, "7bit", MU_FILTER_ENCODE,
-			     MU_STREAM_WRITE);
-  mu_stream_unref (dev);
-  if (status)
-    {
-      mu_error (_("cannot create 7bit filter: %s"), mu_strerror (status));
-      return;      
-    }
-  
-  if (need_crlf (out))
-    {
-      mu_stream_t str;
-      status = mu_filter_create (&str, out, "CRLF", MU_FILTER_ENCODE,
-				 MU_STREAM_WRITE);
-      mu_stream_unref (out);
-      if (status)
-	{
-	  mu_error (_("cannot create crlf filter: %s"), mu_strerror (status));
-	  return;
-	}
-      out = str;
-    }
 
+  dev = open_tty (device, MU_ARRAY_SIZE (default_filters) - 1,
+		  default_filters);
+  if (!dev)
+    return;
   if (!path)
     {
       path = mailbox_path (user);
@@ -445,8 +514,8 @@ notify_user (const char *user, const char *device, const char *path,
       return; /* FIXME: Notify the user, anyway */
     }
 
-  run_user_action (out, msg);
-  mu_stream_destroy (&out);
+  run_user_action (dev, msg);
+  mu_stream_destroy (&dev);
 }
 
 /* Search utmp for the local user */
@@ -613,7 +682,20 @@ main (int argc, char **argv)
 	      user = pw->pw_name;
 	    }
 	}
-		  
+
+      if (biffrc[0] == '.')
+	{
+	  char *cwd = mu_getcwd ();
+	  biffrc = mu_make_file_name (cwd, biffrc);
+	  if (!biffrc)
+	    {
+	      mu_error ("%s", mu_strerror (ENOMEM));
+	      exit (1);
+	    }
+	  mu_normalize_path (biffrc);
+	  free (cwd);
+	}
+      
       notify_user (user, "/dev/tty", argv[0], argv[1]);
       exit (0);
     }
@@ -655,4 +737,3 @@ main (int argc, char **argv)
   
   return c != 0;
 }
-

@@ -77,6 +77,8 @@ extern int maxlines;
 extern const char *username;
 extern char *hostname;
 extern struct daemon_param daemon_param;
+extern char *biffrc;
 
 void run_user_action (mu_stream_t str, mu_message_t msg);
+mu_stream_t open_tty (const char *device, int argc, char **argv);
 

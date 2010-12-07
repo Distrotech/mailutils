@@ -23,9 +23,9 @@
 #include "argp.h"
 #include "mu.h"
 
-static char filter_doc[] = N_("mu filter - apply a filter to the input");
-char filter_docstring[] = N_("apply a filter to the input");
-static char filter_args_doc[] = N_("NAME [ARGS]");
+static char filter_doc[] = N_("mu filter - apply a chain of filters to the input");
+char filter_docstring[] = N_("apply a chain of filters to the input");
+static char filter_args_doc[] = N_("[~]NAME [ARGS] [+ [~]NAME [ARGS]...]");
 
 static struct argp_option filter_options[] = {
   { "encode", 'e', NULL, 0, N_("encode the input (default)") },
@@ -126,12 +126,23 @@ list_filters ()
   return mu_list_do (list, filter_printer, NULL);
 }
 
+static int
+negate_filter_mode (int mode)
+{
+  if (mode == MU_FILTER_DECODE)
+    return MU_FILTER_ENCODE;
+  else if (mode == MU_FILTER_ENCODE)
+    return MU_FILTER_DECODE;
+  abort ();
+}
+
 int
 mutool_filter (int argc, char **argv)
 {
   int rc, index;
-  mu_stream_t flt;
+  mu_stream_t flt, prev_stream;
   const char *fltname;
+  int mode;
   
   if (argp_parse (&filter_argp, argc, argv, ARGP_IN_ORDER, &index, NULL))
     return 1;
@@ -155,20 +166,47 @@ mutool_filter (int argc, char **argv)
       return 1;
     }
 
-  fltname = argv[0];
-
-  if (line_length_option)
-    reset_line_length (fltname, line_length);
-
-  rc = mu_filter_create_args (&flt, mu_strin, fltname,
-			      argc, (const char **)argv,
-			      filter_mode, MU_STREAM_READ);
-  if (rc)
+  prev_stream = mu_strin;
+  do
     {
-      mu_error (_("cannot open filter stream: %s"), mu_strerror (rc));
-      return 1;
-    }
+      int i;
+      
+      fltname = argv[0];
+      if (fltname[0] == '~')
+	{
+	  mode = negate_filter_mode (filter_mode);
+	  fltname++;
+	}
+      else
+	mode = filter_mode;
 
+      for (i = 1; i < argc; i++)
+	if (strcmp (argv[i], "+") == 0)
+	  break;
+      
+      if (line_length_option)
+	reset_line_length (fltname, line_length);
+
+      rc = mu_filter_create_args (&flt, prev_stream, fltname,
+				  i, (const char **)argv,
+				  mode, MU_STREAM_READ);
+      mu_stream_unref (prev_stream);
+      if (rc)
+	{
+	  mu_error (_("cannot open filter stream: %s"), mu_strerror (rc));
+	  return 1;
+	}
+      prev_stream = flt;
+      argc -= i;
+      argv += i;
+      if (argc)
+	{
+	  argc--;
+	  argv++;
+	}
+    }
+  while (argc);
+  
   rc = mu_stream_copy (mu_strout, flt, 0, NULL);
 
   if (rc)

@@ -331,7 +331,7 @@ run_user_action (mu_stream_t tty, mu_message_t msg)
   mu_stream_t input;
   int nact = 0;
 
-  input = open_rc (BIFF_RC, tty);
+  input = open_rc (biffrc, tty);
   if (input)
     {
       char *stmt = NULL;
@@ -384,8 +384,23 @@ run_user_action (mu_stream_t tty, mu_message_t msg)
 		      if (!ws.ws_wordv[i])
 			break;
 		    }
-		  
-		  if (strcmp (ws.ws_wordv[0], "echo") == 0)
+
+		  if (strcmp (ws.ws_wordv[0], "tty") == 0)
+		    {
+		      mu_stream_t ntty = open_tty (ws.ws_wordv[1],
+						   ws.ws_wordc - 2,
+						   ws.ws_wordv + 2);
+		      if (!ntty)
+			{
+			  mu_stream_printf (tty,
+					    _(".biffrc:%d: cannot open tty\n"),
+					    locus.mu_line);
+			  break;
+			}
+		      mu_stream_destroy (&tty);
+		      tty = ntty;
+		    }
+		  else if (strcmp (ws.ws_wordv[0], "echo") == 0)
 		    {
 		      int argc = ws.ws_wordc - 1;
 		      char **argv = ws.ws_wordv + 1;
