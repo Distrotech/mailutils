@@ -278,7 +278,7 @@ mu_mailbox_open (mu_mailbox_t mbox, int flag)
   if (flag & MU_STREAM_QACCESS)
     {
       /* Quick access mailboxes are read-only */
-      if (flag & (MU_STREAM_WRITE | MU_STREAM_RDWR
+      if (flag & (MU_STREAM_WRITE 
 		  | MU_STREAM_APPEND | MU_STREAM_CREAT))
 	return EINVAL; /* FIXME: Better error code, please? */
     }

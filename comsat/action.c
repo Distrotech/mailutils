@@ -17,6 +17,7 @@
 
 #include "comsat.h"
 #include <mailutils/io.h>
+#include <mailutils/filter.h>
 #define obstack_chunk_alloc malloc
 #define obstack_chunk_free free
 #include <obstack.h>
@@ -38,52 +39,6 @@
    $B(C,L)   --  Expands to message body. C and L give maximum
                  number of characters and lines in the expansion.
 		 When omitted, they default to 400, 5. */
-
-static unsigned
-act_getline (FILE *fp, char **sptr, size_t *size)
-{
-  char buf[256];
-  int cont = 1;
-  size_t used = 0;
-  unsigned lines = 0;
-  
-  if (feof (fp))
-    return 0;
-  
-  while (cont && fgets (buf, sizeof buf, fp))
-    {
-      int len = strlen (buf);
-      if (buf[len-1] == '\n')
-	{
-	  lines++;
-	  buf[--len] = 0;
-	  if (buf[len-1] == '\\')
-	    {
-	      buf[--len] = 0;
-	      cont = 1;
-	    }
-	  else
-	    cont = 0;
-	}
-      else
-	cont = 1;
-
-      if (len + used + 1 > *size)
-	{
-	  *sptr = realloc (*sptr, len + used + 1);
-	  if (!*sptr)
-	    return 0;
-	  *size = len + used + 1;
-	}
-      memcpy (*sptr + used, buf, len);
-      used += len;
-    }
-
-  if (*sptr)
-    (*sptr)[used] = 0;
-
-  return lines;
-}
 
 static int
 expand_escape (char **pp, mu_message_t msg, struct obstack *stk)
@@ -331,12 +286,14 @@ action_exec (FILE *tty, int argc, char **argv)
     }
 }
 
-static FILE *
+static mu_stream_t
 open_rc (const char *filename, FILE *tty)
 {
   struct stat stb;
   struct passwd *pw = getpwnam (username);
-
+  mu_stream_t stream, input;
+  int rc;
+  
   /* To be on the safe side, we do not allow root to have his .biffrc */
   if (!allow_biffrc || pw->pw_uid == 0)
     return NULL;
@@ -357,21 +314,45 @@ open_rc (const char *filename, FILE *tty)
 	  return NULL;
 	}
     }
-  return fopen (filename, "r");
+  rc = mu_file_stream_create (&input, filename, MU_STREAM_READ);
+  if (rc)
+    {
+      if (rc != ENOENT)
+	{
+	  fprintf (tty, _("Cannot open .biffrc file: %s\r\n"),
+		   mu_strerror (rc));
+	  mu_diag_output (MU_DIAG_NOTICE, _("cannot open %s for %s: %s"),
+			  filename, username, mu_strerror (rc));
+	}
+      return NULL;
+    }
+  rc = mu_filter_create (&stream, input, "LINECON", MU_FILTER_DECODE,
+			 MU_STREAM_READ);
+  mu_stream_unref (input);
+  if (rc)
+    {
+      fprintf (tty, _("Cannot create filter for your .biffrc file: %s\r\n"),
+	       mu_strerror (rc));
+      mu_diag_output (MU_DIAG_NOTICE,
+		      _("cannot create filter for file %s of %s: %s"),
+		      filename, username, mu_strerror (rc));
+      return NULL;
+    }
+  return stream;
 }
 
 void
 run_user_action (FILE *tty, const char *cr, mu_message_t msg)
 {
-  FILE *fp;
+  mu_stream_t input;
   int nact = 0;
-  char *stmt = NULL;
-  size_t size = 0;
-  
-  fp = open_rc (BIFF_RC, tty);
-  if (fp)
+
+  input = open_rc (BIFF_RC, tty);
+  if (input)
     {
-      unsigned n;
+      char *stmt = NULL;
+      size_t size = 0;
+      size_t n;
       char *cwd = mu_getcwd ();
       char *rcname;
       struct mu_locus locus;
@@ -380,20 +361,20 @@ run_user_action (FILE *tty, const char *cr, mu_message_t msg)
       free (cwd);
       if (!rcname)
         {
-          mu_diag_funcall (MU_DIAG_ERROR, "mu_make_file_name", NULL, ENOMEM);
-          fclose (fp);
-          return;
+	  mu_diag_funcall (MU_DIAG_ERROR, "mu_make_file_name", NULL, ENOMEM);
+	  locus.mu_file = BIFF_RC;
         }
-        
-      locus.mu_file = rcname;
+      else
+	locus.mu_file = rcname;
       locus.mu_line = 1;
       locus.mu_col = 0;
-      while ((n = act_getline (fp, &stmt, &size)))
+      while (mu_stream_getline (input, &stmt, &size, &n) == 0 && n > 0)
 	{
 	  struct mu_wordsplit ws;
 
 	  ws.ws_comment = "#";
-	  if (mu_wordsplit (stmt, &ws, MU_WRDSF_DEFFLAGS | MU_WRDSF_COMMENT)
+	  if (mu_wordsplit (stmt, &ws,
+			    MU_WRDSF_DEFFLAGS | MU_WRDSF_COMMENT) == 0
 	      && ws.ws_wordc)
 	    {
 	      mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM,
@@ -443,9 +424,9 @@ run_user_action (FILE *tty, const char *cr, mu_message_t msg)
 		} 
 	    }
 	  mu_wordsplit_free (&ws);
-	  locus.mu_line += n;
+	  locus.mu_line++;
 	}
-      fclose (fp);
+      mu_stream_destroy (&input);
       mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM,
                        MU_IOCTL_LOGSTREAM_SET_LOCUS, NULL);
       free (rcname);
