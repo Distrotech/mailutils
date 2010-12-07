@@ -358,19 +358,22 @@ comsat_connection (int fd, struct sockaddr *sa, int salen,
   return 0;
 }
 
-static const char *
-get_newline_str (FILE *fp)
+static int
+need_crlf (mu_stream_t str)
 {
 #if defined(OPOST) && defined(ONLCR)
+  mu_transport_t trans[2];
   struct termios tbuf;
 
-  tcgetattr (fileno (fp), &tbuf);
-  if ((tbuf.c_oflag & OPOST) && (tbuf.c_oflag & ONLCR))
-    return "\n";
+  if (mu_stream_ioctl (str, MU_IOCTL_TRANSPORT, MU_IOCTL_OP_GET, trans))
+    return 1; /* suppose we do need it */
+  if (tcgetattr ((int)trans[0], &tbuf) == 0 &&
+      (tbuf.c_oflag & OPOST) && (tbuf.c_oflag & ONLCR))
+    return 0;
   else
-    return "\r\n";
+    return 1;
 #else
-  return "\r\n"; /* Just in case */
+  return 1; /* Just in case */
 #endif
 }
 
@@ -380,21 +383,43 @@ static void
 notify_user (const char *user, const char *device, const char *path,
 	     mu_message_qid_t qid)
 {
-  FILE *fp;
-  const char *cr;
+  mu_stream_t out, dev;
   mu_mailbox_t mbox = NULL;
   mu_message_t msg;
   int status;
 
   if (change_user (user))
     return;
-  if ((fp = fopen (device, "w")) == NULL)
+  status = mu_file_stream_create (&dev, device, MU_STREAM_WRITE);
+  if (status)
     {
-      mu_error (_("cannot open device %s: %s"), device, mu_strerror (errno));
+      mu_error (_("cannot open device %s: %s"), device, mu_strerror (status));
       return;
     }
-
-  cr = get_newline_str (fp);
+  mu_stream_set_buffer (dev, mu_buffer_line, 0);
+  
+  status = mu_filter_create (&out, dev, "7bit", MU_FILTER_ENCODE,
+			     MU_STREAM_WRITE);
+  mu_stream_unref (dev);
+  if (status)
+    {
+      mu_error (_("cannot create 7bit filter: %s"), mu_strerror (status));
+      return;      
+    }
+  
+  if (need_crlf (out))
+    {
+      mu_stream_t str;
+      status = mu_filter_create (&str, out, "CRLF", MU_FILTER_ENCODE,
+				 MU_STREAM_WRITE);
+      mu_stream_unref (out);
+      if (status)
+	{
+	  mu_error (_("cannot create crlf filter: %s"), mu_strerror (status));
+	  return;
+	}
+      out = str;
+    }
 
   if (!path)
     {
@@ -403,8 +428,9 @@ notify_user (const char *user, const char *device, const char *path,
 	return;
     }
 
-  if ((status = mu_mailbox_create (&mbox, path)) != 0
-      || (status = mu_mailbox_open (mbox, MU_STREAM_READ|MU_STREAM_QACCESS)) != 0)
+  if ((status = mu_mailbox_create (&mbox, path)) != 0 ||
+      (status = mu_mailbox_open (mbox,
+				 MU_STREAM_READ|MU_STREAM_QACCESS)) != 0)
     {
       mu_error (_("cannot open mailbox %s: %s"),
 	      path, mu_strerror (status));
@@ -419,8 +445,8 @@ notify_user (const char *user, const char *device, const char *path,
       return; /* FIXME: Notify the user, anyway */
     }
 
-  run_user_action (fp, cr, msg);
-  fclose (fp);
+  run_user_action (out, msg);
+  mu_stream_destroy (&out);
 }
 
 /* Search utmp for the local user */

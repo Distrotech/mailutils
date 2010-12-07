@@ -60,6 +60,7 @@
 #include <mailutils/acl.h>
 #include <mailutils/server.h>
 #include <mailutils/cctype.h>
+#include <mailutils/filter.h>
 
 #ifndef INADDR_NONE
 # define INADDR_NONE -1
@@ -77,5 +78,5 @@ extern const char *username;
 extern char *hostname;
 extern struct daemon_param daemon_param;
 
-void run_user_action (FILE *tty, const char *cr, mu_message_t msg);
+void run_user_action (mu_stream_t str, mu_message_t msg);
 

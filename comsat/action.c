@@ -17,7 +17,7 @@
 
 #include "comsat.h"
 #include <mailutils/io.h>
-#include <mailutils/filter.h>
+#include <mailutils/argcv.h>
 #define obstack_chunk_alloc malloc
 #define obstack_chunk_free free
 #include <obstack.h>
@@ -188,65 +188,46 @@ const char *default_action =
 "$B(,5)\n"
 "---\n";
 
-/* Take care to clear eighth bit, so we won't upset some stupid terminals */
-#define LB(c) ((c)&0x7f)
-
 static void
-action_beep (FILE *tty)
+action_beep (mu_stream_t tty)
 {
-  fprintf (tty, "\a\a");
+  mu_stream_write (tty, "\a\a", 2, NULL);
+  mu_stream_flush (tty);
 }
 
 static void
-echo_string (FILE *tty, const char *cr, char *str)
+echo_string (mu_stream_t tty, char *str)
 {
   if (!str)
     return;
-  for (; *str; str++)
-    {
-      if (*str == '\n')
-	fprintf (tty, "%s", cr);
-      else
-	{
-	  char c = LB (*str);
-	  putc (c, tty);
-	}
-    }
-  fflush (tty);
+  mu_stream_write (tty, str, strlen (str), NULL);
 }
 
 static void
-action_echo (FILE *tty, const char *cr, int omit_newline,
-	     int argc, char **argv)
+action_echo (mu_stream_t tty, int omit_newline, int argc, char **argv)
 {
   int i;
 
-  if (omit_newline)
-    {
-      argc--;
-      argv++;
-    }
-  
   for (i = 0;;)
     {
-      echo_string (tty, cr, argv[i]);
+      echo_string (tty, argv[i]);
       if (++i < argc)
-	echo_string (tty, cr, " ");
+	echo_string (tty, " ");
       else
-	{
-	  if (!omit_newline)
-	    echo_string (tty, cr, "\n");
-	  break;
-	}
+	break;
     }
+  if (!omit_newline)
+    echo_string (tty, "\n");
 }
 
 static void
-action_exec (FILE *tty, int argc, char **argv)
+action_exec (mu_stream_t tty, int argc, char **argv)
 {
-  pid_t pid;
+  mu_stream_t pstream;
   struct stat stb;
-
+  char *command;
+  int status;
+  
   if (argc == 0)
     {
       mu_diag_output (MU_DIAG_ERROR, _("no arguments for exec"));
@@ -272,22 +253,30 @@ action_exec (FILE *tty, int argc, char **argv)
       return;
     }
 
-  pid = fork ();
-  if (pid == 0)
+  /* FIXME: Redirect stderr to out */
+  /* FIXME: need this:
+     status = mu_prog_stream_create_argv (&pstream, argv[0], argv,
+                                          MU_STREAM_READ);
+  */
+  status = mu_argcv_join (argc, argv, " ", mu_argcv_escape_no, &command);
+  if (status)
     {
-      close (1);
-      close (2);
-      dup2 (fileno (tty), 1);
-      dup2 (fileno (tty), 2);
-      fclose (tty);
-      execv (argv[0], argv);
-      mu_diag_output (MU_DIAG_ERROR, _("cannot execute %s: %s"), argv[0], strerror (errno));
-      exit (0);
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_argcv_join", NULL, status);
+      return;
     }
+  status = mu_prog_stream_create (&pstream, command, MU_STREAM_READ);
+  if (status)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_prog_stream_create_argv", argv[0],
+		       status);
+      return;
+    }
+  mu_stream_copy (tty, pstream, 0, NULL);
+  mu_stream_destroy (&pstream);
 }
 
 static mu_stream_t
-open_rc (const char *filename, FILE *tty)
+open_rc (const char *filename, mu_stream_t tty)
 {
   struct stat stb;
   struct passwd *pw = getpwnam (username);
@@ -307,8 +296,8 @@ open_rc (const char *filename, FILE *tty)
 	}
       if ((stb.st_mode & 0777) != 0600)
 	{
-	  fprintf (tty, "%s\r\n",
-		   _("Warning: your .biffrc has wrong permissions"));
+	  mu_stream_printf (tty, "%s\n",
+			    _("Warning: your .biffrc has wrong permissions"));
 	  mu_diag_output (MU_DIAG_NOTICE, _("%s's %s has wrong permissions"),
 		  username, filename);
 	  return NULL;
@@ -319,8 +308,8 @@ open_rc (const char *filename, FILE *tty)
     {
       if (rc != ENOENT)
 	{
-	  fprintf (tty, _("Cannot open .biffrc file: %s\r\n"),
-		   mu_strerror (rc));
+	  mu_stream_printf (tty, _("Cannot open .biffrc file: %s\n"),
+			    mu_strerror (rc));
 	  mu_diag_output (MU_DIAG_NOTICE, _("cannot open %s for %s: %s"),
 			  filename, username, mu_strerror (rc));
 	}
@@ -331,8 +320,9 @@ open_rc (const char *filename, FILE *tty)
   mu_stream_unref (input);
   if (rc)
     {
-      fprintf (tty, _("Cannot create filter for your .biffrc file: %s\r\n"),
-	       mu_strerror (rc));
+      mu_stream_printf (tty,
+			_("Cannot create filter for your .biffrc file: %s\n"),
+			mu_strerror (rc));
       mu_diag_output (MU_DIAG_NOTICE,
 		      _("cannot create filter for file %s of %s: %s"),
 		      filename, username, mu_strerror (rc));
@@ -342,7 +332,7 @@ open_rc (const char *filename, FILE *tty)
 }
 
 void
-run_user_action (FILE *tty, const char *cr, mu_message_t msg)
+run_user_action (mu_stream_t tty, mu_message_t msg)
 {
   mu_stream_t input;
   int nact = 0;
@@ -403,8 +393,14 @@ run_user_action (FILE *tty, const char *cr, mu_message_t msg)
 		  
 		  if (strcmp (ws.ws_wordv[0], "echo") == 0)
 		    {
-		      action_echo (tty, cr, n_option,
-				   ws.ws_wordc - 1, ws.ws_wordv + 1);
+		      int argc = ws.ws_wordc - 1;
+		      char **argv = ws.ws_wordv + 1;
+		      if (n_option)
+			{
+			  argc--;
+			  argv++;
+			}
+		      action_echo (tty, n_option, argc, argv);
 		      nact++;
 		    }
 		  else if (strcmp (ws.ws_wordv[0], "exec") == 0)
@@ -414,9 +410,9 @@ run_user_action (FILE *tty, const char *cr, mu_message_t msg)
 		    }
 		  else
 		    {
-		      fprintf (tty, _(".biffrc:%d: unknown keyword"),
-			       locus.mu_line);
-		      fprintf (tty, "\r\n");
+		      mu_stream_printf (tty,
+					_(".biffrc:%d: unknown keyword\n"),
+					locus.mu_line);
 		      mu_diag_output (MU_DIAG_ERROR, _("unknown keyword %s"),
 				      ws.ws_wordv[0]);
 		      break;
@@ -424,6 +420,8 @@ run_user_action (FILE *tty, const char *cr, mu_message_t msg)
 		} 
 	    }
 	  mu_wordsplit_free (&ws);
+	  /* FIXME: line number is incorrect if .biffrc contains
+	     escaped newlines */
 	  locus.mu_line++;
 	}
       mu_stream_destroy (&input);
@@ -433,5 +431,5 @@ run_user_action (FILE *tty, const char *cr, mu_message_t msg)
     }
 
   if (nact == 0)
-    echo_string (tty, cr, expand_line (default_action, msg));
+    echo_string (tty, expand_line (default_action, msg));
 }
