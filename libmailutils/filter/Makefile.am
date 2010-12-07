@@ -29,6 +29,7 @@ libfilter_la_SOURCES =\
  fromflt.c\
  header.c\
  inline-comment.c\
+ linecon.c\
  linelenflt.c\
  qpflt.c
 

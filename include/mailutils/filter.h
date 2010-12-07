@@ -110,6 +110,7 @@ extern mu_filter_record_t mu_rfc_2047_B_filter;
 extern mu_filter_record_t mu_from_filter;
 extern mu_filter_record_t mu_inline_comment_filter;
 extern mu_filter_record_t mu_header_filter;
+extern mu_filter_record_t mu_linecon_filter;
 
 enum mu_iconv_fallback_mode
   {
