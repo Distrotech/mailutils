@@ -46,7 +46,7 @@ enum mu_buffer_type
 #define MU_STREAM_AUTOCLOSE   0x00000040
 /* Not used. Intended for mailboxes only. */
 #define MU_STREAM_NONLOCK     0x00000080
-#define MU_STREAM_ALLOW_LINKS 0x00000100
+/* Not used as well           0x00000100  */
 /* FIXME: This one affects only mailboxes */  
 #define MU_STREAM_QACCESS     0x00000200
 

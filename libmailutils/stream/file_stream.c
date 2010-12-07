@@ -37,8 +37,6 @@
 #include <mailutils/sys/file_stream.h>
 #include <mailutils/util.h>
 
-#define MU_FSTR_ERROR_NOREG (MU_ERR_LAST+1)
-
 static int
 fd_read (struct _mu_stream *str, char *buf, size_t size, size_t *pret)
 {
@@ -107,7 +105,6 @@ fd_open (struct _mu_stream *str)
 	  /* Oops bail out.  */
 	  if (errno != ENOENT)
 	    return errno;
-	  /* Race condition here when creating the file ??.  */
 	  fd = open (fstr->filename, oflg|O_CREAT|O_EXCL,
 		     0600 | mu_stream_flags_to_mode (fstr->stream.flags, 0));
 	}
@@ -117,41 +114,13 @@ fd_open (struct _mu_stream *str)
 
   if (fd == -1)
     return errno;
+
+  if (lseek (fd, 0, SEEK_SET) == -1)
+    str->flags &= ~MU_STREAM_SEEK;
   
-  if (!(fstr->stream.flags & MU_STREAM_ALLOW_LINKS)
-      && (fstr->stream.flags & (MU_STREAM_CREAT | MU_STREAM_RDWR |
-				MU_STREAM_APPEND)))
-    {
-      struct stat fdbuf, filebuf;
-
-      /* The following two stats should never fail.  */
-      if (fstat (fd, &fdbuf) == -1
-	  || lstat (fstr->filename, &filebuf) == -1)
-	{
-	  close (fd);
-	  return errno;
-	}
-
-      /* Now check that: file and fd reference the same file,
-	 file only has one link, file is plain file.  */
-      if ((fdbuf.st_dev != filebuf.st_dev
-	   || fdbuf.st_ino != filebuf.st_ino
-	   || fdbuf.st_nlink != 1
-	   || filebuf.st_nlink != 1
-	   || (fdbuf.st_mode & S_IFMT) != S_IFREG))
-	{
-	  /* FIXME: Be silent */
-	  close (fd);
-	  return MU_FSTR_ERROR_NOREG;
-	}
-    }
-  
-  if (fd < 0)
-    return errno;
-
   /* Make sure it will be closed */
-  fstr->flags |= MU_STREAM_AUTOCLOSE;
-
+  str->flags |= MU_STREAM_AUTOCLOSE;
+  
   fstr->fd = fd;
   return 0;
 }
@@ -188,15 +157,6 @@ fd_done (struct _mu_stream *str)
     free (fstr->filename);
   if (fstr->echo_state)
     free (fstr->echo_state);
-}
-
-const char *
-fd_error_string (struct _mu_stream *str, int rc)
-{
-  if (rc == MU_FSTR_ERROR_NOREG)
-    return _("must be a plain file with one link");
-  else
-    return mu_strerror (rc);
 }
 
 #ifndef TCSASOFT
@@ -353,7 +313,6 @@ _mu_file_stream_create (struct _mu_file_stream **pstream, size_t size,
   str->stream.ctl = fd_ioctl;
   str->stream.wait = fd_wait;
   str->stream.truncate = fd_truncate;
-  str->stream.error_string = fd_error_string;
 
   if (filename)
     str->filename = mu_strdup (filename);

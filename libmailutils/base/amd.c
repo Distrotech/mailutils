@@ -1589,7 +1589,7 @@ amd_message_stream_open (struct _amd_message *mhm)
   struct _amd_data *amd = mhm->amd;
   char *filename;
   int status;
-  int flags = MU_STREAM_ALLOW_LINKS;
+  int flags = 0;
 
   status = amd->cur_msg_file_name (mhm, &filename);
   if (status)
