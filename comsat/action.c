@@ -18,6 +18,7 @@
 #include "comsat.h"
 #include <mailutils/io.h>
 #include <mailutils/argcv.h>
+#include <mailutils/prog.h>
 #define obstack_chunk_alloc malloc
 #define obstack_chunk_free free
 #include <obstack.h>
@@ -225,7 +226,6 @@ action_exec (mu_stream_t tty, int argc, char **argv)
 {
   mu_stream_t pstream;
   struct stat stb;
-  char *command;
   int status;
   
   if (argc == 0)
@@ -249,25 +249,19 @@ action_exec (mu_stream_t tty, int argc, char **argv)
 
   if (stb.st_mode & (S_ISUID|S_ISGID))
     {
-      mu_diag_output (MU_DIAG_ERROR, _("will not execute set[ug]id programs"));
+      mu_diag_output (MU_DIAG_ERROR,
+		      _("will not execute set[ug]id programs"));
       return;
     }
 
-  /* FIXME: Redirect stderr to out */
-  /* FIXME: need this:
-     status = mu_prog_stream_create_argv (&pstream, argv[0], argv,
-                                          MU_STREAM_READ);
-  */
-  status = mu_argcv_join (argc, argv, " ", mu_argcv_escape_no, &command);
+  status = mu_prog_stream_create (&pstream,
+				  argv[0], argc, argv,
+				  MU_PROG_HINT_ERRTOOUT,
+				  NULL,
+				  MU_STREAM_READ);
   if (status)
     {
-      mu_diag_funcall (MU_DIAG_ERROR, "mu_argcv_join", NULL, status);
-      return;
-    }
-  status = mu_prog_stream_create (&pstream, command, MU_STREAM_READ);
-  if (status)
-    {
-      mu_diag_funcall (MU_DIAG_ERROR, "mu_prog_stream_create_argv", argv[0],
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_prog_stream_create", argv[0],
 		       status);
       return;
     }

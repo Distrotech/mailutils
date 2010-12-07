@@ -118,6 +118,7 @@ mail/unalias.c
 mail/util.c
 mail/z.c
 
+libmailutils/base/userprivs.c
 libmailutils/cfg/driver.c
 libmailutils/cfg/format.c
 libmailutils/cfg/lexer.l

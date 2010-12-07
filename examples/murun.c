@@ -24,20 +24,7 @@
 #include <ctype.h>
 #include <string.h>
 #include <mailutils/mailutils.h>
-#include <mailutils/argcv.h>
-
-static void
-read_and_print (mu_stream_t in, mu_stream_t out)
-{
-  size_t size;
-  char buffer[128];
-  
-  while (mu_stream_readline (in, buffer, sizeof (buffer), &size) == 0
-	 && size > 0)
-    {
-      mu_stream_write (out, buffer, size, NULL);
-    }
-}
+#include <mailutils/sys/prog_stream.h>
 
 int
 main (int argc, char *argv[])
@@ -45,34 +32,154 @@ main (int argc, char *argv[])
   int rc;
   mu_stream_t stream, out;
   int read_stdin = 0;
-  int i = 1;
-  char *cmdline;
+  int i;
   int flags = MU_STREAM_READ;
-
-  if (argc > 1 && strcmp (argv[i], "--stdin") == 0)
+  struct mu_prog_hints hints;
+  int hint_flags = 0;
+  char *progname = NULL;
+  gid_t gid[20];
+  size_t gn = 0;
+  
+  for (i = 1; i < argc; i++)
     {
-      read_stdin = 1;
-      flags |= MU_STREAM_WRITE;
-      i++;
+      if (strcmp (argv[i], "--stdin") == 0)
+	{
+	  read_stdin = 1;
+	  flags |= MU_STREAM_WRITE;
+	}
+      else if (strcmp (argv[i], "--chdir") == 0)
+	{
+	  hints.mu_prog_workdir = argv[i+1];
+	  hint_flags |= MU_PROG_HINT_WORKDIR;
+	  i++;
+	}
+      else if (strncmp (argv[i], "--limit", 7) == 0
+	       && mu_isdigit (argv[i][7]))
+	{
+	  int n;
+
+	  if (i + 1 == argc)
+	    {
+	      fprintf (stderr, "%s requires argument\n", argv[i]);
+	      exit (1);
+	    }
+	  n = argv[i][7] - '0';
+	  if (!(_mu_prog_limit_flags & MU_PROG_HINT_LIMIT(n)))
+	    {
+	      fprintf (stderr, "%s is not supported\n", argv[i]+2);
+	      continue;
+	    }
+	  hint_flags |= MU_PROG_HINT_LIMIT(n);
+	  hints.mu_prog_limit[n] = strtoul (argv[i+1], NULL, 10);
+	  i++;
+	}
+      else if (strcmp (argv[i], "--prio") == 0)
+	{
+	  if (i + 1 == argc)
+	    {
+	      fprintf (stderr, "%s requires argument\n", argv[i]);
+	      exit (1);
+	    }
+	  hint_flags |= MU_PROG_HINT_PRIO;
+	  hints.mu_prog_prio = strtoul (argv[i+1], NULL, 10);
+	  i++;
+	}
+      else if (strcmp (argv[i], "--exec") == 0)
+	{
+	  if (i + 1 == argc)
+	    {
+	      fprintf (stderr, "%s requires argument\n", argv[i]);
+	      exit (1);
+	    }
+	  progname = argv[++i];
+	}
+      else if (strcmp (argv[i], "--errignore") == 0)
+	hint_flags |= MU_PROG_HINT_IGNOREFAIL;
+      else if (strcmp (argv[i], "--uid") == 0)
+	{
+	  if (i + 1 == argc)
+	    {
+	      fprintf (stderr, "%s requires argument\n", argv[i]);
+	      exit (1);
+	    }
+	  hint_flags |= MU_PROG_HINT_UID;
+	  hints.mu_prog_uid = strtoul (argv[i+1], NULL, 10);
+	  i++;
+	}
+      else if (strcmp (argv[i], "--gid") == 0)
+	{
+	  mu_list_t list;
+	  mu_iterator_t itr;
+	  
+	  if (i + 1 == argc)
+	    {
+	      fprintf (stderr, "%s requires argument\n", argv[i]);
+	      exit (1);
+	    }
+	  mu_list_create (&list);
+	  mu_list_set_destroy_item (list, mu_list_free_item);
+	  rc = mu_string_split (argv[++i], ",", list);
+	  if (mu_list_get_iterator (list, &itr) == 0)
+	    {
+	      char *p;
+	      
+	      for (mu_iterator_first (itr);
+		   !mu_iterator_is_done (itr); mu_iterator_next (itr))
+		{
+		  if (gn >= MU_ARRAY_SIZE (gid))
+		    {
+		      fprintf (stderr, "too many gids\n");
+		      exit (1);
+		    }
+		  gid[gn++] = strtoul (p, NULL, 10);
+		}
+	      mu_iterator_destroy (&itr);
+	    }
+	  else
+	    {
+	      mu_diag_funcall (MU_DIAG_ERROR, "mu_list_get_iterator", NULL,
+			       rc);
+	      exit (1);
+	    }
+	  mu_list_destroy (&list);
+	  hint_flags |= MU_PROG_HINT_GID;
+	}
+      else if (strcmp (argv[i], "--") == 0)
+	{
+	  i++;
+	  break;
+	}
+      else
+	break;
     }
   
   if (i == argc)
     {
-      fprintf (stderr, "Usage: %s [--stdin] progname [args]\n", argv[0]);
+      fprintf (stderr,
+	       "Usage: %s [--stdin] [--chdir dir] [--limit{0-9} lim] [--prio N]\n"
+	       "          [--exec progname] progname [args]\n", argv[0]);
       exit (1);
     }
 
-  MU_ASSERT (mu_argcv_string (argc - i, &argv[i], &cmdline));
+  argc -= i;
+  argv += i;
+
+  if (!progname)
+    progname = argv[0];
+  
   if (read_stdin)
     {
-      mu_stream_t in;
-      MU_ASSERT (mu_stdio_stream_create (&in, MU_STDIN_FD, 0));
-      rc = mu_filter_prog_stream_create (&stream, cmdline, in);
-      /* Make sure closing/destroying stream will close/destroy in */
-      mu_stream_unref (in);
+      MU_ASSERT (mu_stdio_stream_create (&hints.mu_prog_input,
+					 MU_STDIN_FD, 0));
+      hint_flags |= MU_PROG_HINT_INPUT;
     }
-  else
-    rc = mu_prog_stream_create (&stream, cmdline, flags);
+
+  rc = mu_prog_stream_create (&stream, progname, argc, argv,
+			      hint_flags, &hints, flags);
+  if (hint_flags & MU_PROG_HINT_INPUT)
+    /* Make sure closing/destroying stream will close/destroy input */
+    mu_stream_unref (hints.mu_prog_input);
+
   if (rc)
     {
       fprintf (stderr, "%s: cannot create program filter stream: %s\n",
@@ -81,8 +188,8 @@ main (int argc, char *argv[])
     }
   
   MU_ASSERT (mu_stdio_stream_create (&out, MU_STDOUT_FD, 0));
-  
-  read_and_print (stream, out);
+
+  mu_stream_copy (out, stream, 0, NULL);
   mu_stream_close (stream);
   mu_stream_destroy (&stream);
   mu_stream_close (out);

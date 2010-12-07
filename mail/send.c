@@ -702,7 +702,7 @@ msg_to_pipe (const char *cmd, mu_message_t msg)
   mu_stream_t progstream, msgstream;
   int status, rc;
   
-  status = mu_prog_stream_create (&progstream, cmd, MU_STREAM_WRITE);
+  status = mu_command_stream_create (&progstream, cmd, MU_STREAM_WRITE);
   if (status)
     {
       util_error (_("Cannot pipe to %s: %s"), cmd, mu_strerror (status));

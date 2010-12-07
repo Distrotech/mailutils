@@ -39,6 +39,7 @@
 #include <signal.h>
 #include <regex.h>
 #include <mailutils/sieve.h>
+#include <mailutils/prog.h>
 
 int
 sieve_action_pipe (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
@@ -86,7 +87,7 @@ sieve_action_pipe (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
       rc = mu_message_get_streamref (msg, &mstr);
       ONERR (rc, _("cannot get message stream"), NULL);
 
-      rc = mu_prog_stream_create (&pstr, cmd, MU_STREAM_WRITE);
+      rc = mu_command_stream_create (&pstr, cmd, MU_STREAM_WRITE);
       ONERR (rc, _("cannot create command stream"), cmd);
 
       if (mu_sieve_tag_lookup (tags, "envelope", &val))

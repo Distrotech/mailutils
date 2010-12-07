@@ -250,9 +250,6 @@ int mu_fd_stream_create (mu_stream_t *pstream, char *filename, int fd,
 #define MU_STDERR_FD 2
 int mu_stdio_stream_create (mu_stream_t *pstream, int fd, int flags);
 
-int mu_prog_stream_create (mu_stream_t *pstream, const char *progname, int flags);
-int mu_filter_prog_stream_create (mu_stream_t *pstream, const char *progname,
-				  mu_stream_t input);
 int mu_memory_stream_create (mu_stream_t *pstream, int flags);
 int mu_static_memory_stream_create (mu_stream_t *pstream, const void *mem,
 				    size_t size);

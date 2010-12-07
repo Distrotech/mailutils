@@ -149,7 +149,7 @@ open_output ()
     moreproc = NULL;
 
   if (moreproc)
-    rc = mu_prog_stream_create (&output, moreproc, MU_STREAM_WRITE);
+    rc = mu_command_stream_create (&output, moreproc, MU_STREAM_WRITE);
   else
     rc = mu_stdio_stream_create (&output, MU_STDOUT_FD, MU_STREAM_WRITE);
 

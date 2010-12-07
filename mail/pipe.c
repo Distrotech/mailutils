@@ -38,7 +38,7 @@ mail_pipe (int argc, char **argv)
   if (msgset_parse (argc, argv, MSG_NODELETED|MSG_SILENT, &list))
     return 1;
 
-  rc = mu_prog_stream_create (&outstr, cmd, MU_STREAM_WRITE);
+  rc = mu_command_stream_create (&outstr, cmd, MU_STREAM_WRITE);
   if (rc)
     {
       mu_error (_("cannot open `%s': %s"), cmd, mu_strerror (rc));

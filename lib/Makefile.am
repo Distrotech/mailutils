@@ -27,7 +27,6 @@ libmuaux_a_SOURCES += \
  signal.c\
  strexit.c\
  tcpwrap.c\
- userprivs.c\
  mu_umaxtostr.c\
  mu_umaxtostr.h
 

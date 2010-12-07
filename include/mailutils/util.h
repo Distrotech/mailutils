@@ -175,8 +175,10 @@ int mu_getpass (mu_stream_t in, mu_stream_t out, const char *prompt,
   /* ----------------------- */
 /* Get the host name, doing a gethostbyname() if possible. */
 int mu_get_host_name (char **host);
-int mu_spawnvp(const char *prog, char *av[], int *stat);
+int mu_spawnvp (const char *prog, char *av[], int *stat);
 int mu_scheme_autodetect_p (mu_url_t);
+int mu_set_user_privileges (uid_t uid, gid_t *gidv, size_t gidc);
+int mu_switch_to_privs (uid_t uid, gid_t gid, mu_list_t retain_groups);
 
 struct timeval; 
 int mu_fd_wait (int fd, int *pflags, struct timeval *tvp);

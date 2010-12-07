@@ -77,6 +77,7 @@ pkginclude_HEADERS = \
  pam.h\
  parse822.h\
  pop3.h\
+ prog.h\
  progmailer.h\
  property.h\
  python.h\

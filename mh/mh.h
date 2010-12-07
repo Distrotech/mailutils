@@ -56,6 +56,7 @@
 #include <mailutils/mime.h>
 #include <mailutils/io.h>
 #include <mailutils/property.h>
+#include <mailutils/prog.h>
 #include <mailutils/mh.h>
 
 #include <mu_umaxtostr.h>

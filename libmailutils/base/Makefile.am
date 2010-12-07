@@ -63,6 +63,7 @@ libbase_la_SOURCES = \
  tempfile.c\
  ticket.c\
  tilde.c\
+ userprivs.c\
  usremail.c\
  version.c\
  wicket.c

@@ -448,7 +448,7 @@ do_preauth_program (struct sockaddr *pcs, struct sockaddr *sa)
       return NULL;
     }
 
-  rc = mu_prog_stream_create (&str, ws.ws_wordv[0], MU_STREAM_READ);
+  rc = mu_command_stream_create (&str, ws.ws_wordv[0], MU_STREAM_READ);
   mu_wordsplit_free (&ws);
   if (rc)
     {

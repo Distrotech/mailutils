@@ -18,18 +18,25 @@
 #define _MAILUTILS_SYS_PROG_STREAM_H
 
 #include <mailutils/sys/stream.h>
+#include <mailutils/prog.h>
 
 struct _mu_prog_stream
 {
-  struct _mu_stream stream;
+  struct _mu_stream stream;   /* Base stream */
+  char *progname;             /* Program name */
+  size_t argc;                /* Number of arguments */
+  char **argv;                /* Program arguments */
+  int hint_flags;             /* Hint flags */
+  struct mu_prog_hints hints; /* Invocation hints */
+  
   pid_t pid;
   int status;
   pid_t writer_pid;
-  int argc;
-  char **argv;
+  
   mu_stream_t in, out;
-
-  mu_stream_t input;
 };
+
+extern int _mu_prog_limit_flags;
+extern int _mu_prog_limit_codes[_MU_PROG_LIMIT_MAX];
 
 #endif

@@ -240,7 +240,7 @@ mutool_open_pager ()
   if (mutool_shell_interactive && (pager = getenv ("PAGER")) != NULL)
     {
       mu_stream_t stream;
-      int rc = mu_prog_stream_create (&stream, pager, MU_STREAM_WRITE);
+      int rc = mu_command_stream_create (&stream, pager, MU_STREAM_WRITE);
       if (rc == 0)
 	return stream;
       mu_error (_("cannot start pager: %s"), mu_strerror (rc));

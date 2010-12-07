@@ -66,5 +66,6 @@
 #include <mailutils/wordsplit.h>
 #include <mailutils/log.h>
 #include <mailutils/stdstream.h>
+#include <mailutils/prog.h>
 
 /* EOF */

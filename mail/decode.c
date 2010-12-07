@@ -409,10 +409,11 @@ run_metamail (const char *mailcap_cmd, mu_message_t mesg)
 	      break;
 	    }
 
-	  status = mu_prog_stream_create (&pstr, mailcap_cmd, MU_STREAM_WRITE);
+	  status = mu_command_stream_create (&pstr, mailcap_cmd,
+					     MU_STREAM_WRITE);
 	  if (status)
 	    {
-	      mu_error ("mu_prog_stream_create: %s", mu_strerror (status));
+	      mu_error ("mu_command_stream_create: %s", mu_strerror (status));
 	      break;
 	    }
 

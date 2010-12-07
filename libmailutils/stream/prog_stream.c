@@ -71,9 +71,105 @@ _prog_stream_unregister (struct _mu_prog_stream *stream)
 #define REDIRECT_STDIN_P(f) ((f) & MU_STREAM_WRITE)
 #define REDIRECT_STDOUT_P(f) ((f) & MU_STREAM_READ)
 
+#ifdef RLIMIT_AS
+# define _MU_RLIMIT_AS_FLAG MU_PROG_HINT_LIMIT(MU_PROG_LIMIT_AS)
+#else
+# define _MU_RLIMIT_AS_FLAG 0
+# define RLIMIT_AS 0
+#endif
+
+#ifdef RLIMIT_CPU
+# define _MU_RLIMIT_CPU_FLAG MU_PROG_HINT_LIMIT(MU_PROG_LIMIT_CPU)
+#else
+# define _MU_RLIMIT_CPU_FLAG 0
+# define RLIMIT_CPU 0
+#endif
+
+#ifdef RLIMIT_DATA
+# define _MU_RLIMIT_DATA_FLAG MU_PROG_HINT_LIMIT(MU_PROG_LIMIT_DATA)
+#else
+# define _MU_RLIMIT_DATA_FLAG 0
+# define RLIMIT_DATA 0
+#endif
+
+#ifdef RLIMIT_FSIZE
+# define _MU_RLIMIT_FSIZE_FLAG MU_PROG_HINT_LIMIT(MU_PROG_LIMIT_FSIZE)
+#else
+# define _MU_RLIMIT_FSIZE_FLAG 0
+# define RLIMIT_FSIZE 0
+#endif
+
+#ifdef RLIMIT_NPROC
+# define _MU_RLIMIT_NPROC_FLAG MU_PROG_HINT_LIMIT(MU_PROG_LIMIT_NPROC)
+#else
+# define _MU_RLIMIT_NPROC_FLAG 0
+# define RLIMIT_NPROC 0
+#endif
+
+#ifdef RLIMIT_CORE
+# define _MU_RLIMIT_CORE_FLAG MU_PROG_HINT_LIMIT(MU_PROG_LIMIT_CORE)
+#else
+# define _MU_RLIMIT_CORE_FLAG 0
+# define RLIMIT_CORE 0
+#endif
+
+#ifdef RLIMIT_MEMLOCK
+# define _MU_RLIMIT_MEMLOCK_FLAG MU_PROG_HINT_LIMIT(MU_PROG_LIMIT_MEMLOCK)
+#else
+# define _MU_RLIMIT_MEMLOCK_FLAG 0
+# define RLIMIT_MEMLOCK 0
+#endif
+
+#ifdef RLIMIT_NOFILE
+# define _MU_RLIMIT_NOFILE_FLAG MU_PROG_HINT_LIMIT(MU_PROG_LIMIT_NOFILE)
+#else
+# define _MU_RLIMIT_NOFILE_FLAG 0
+# define RLIMIT_NOFILE 0
+#endif
+
+#ifdef RLIMIT_RSS
+# define _MU_RLIMIT_RSS_FLAG MU_PROG_HINT_LIMIT(MU_PROG_LIMIT_RSS)
+#else
+# define _MU_RLIMIT_RSS_FLAG 0
+# define RLIMIT_RSS 0
+#endif
+
+#ifdef RLIMIT_STACK
+# define _MU_RLIMIT_STACK MU_PROG_HINT_LIMIT(MU_PROG_LIMIT_STACK)
+#else
+# define _MU_RLIMIT_STACK 0
+# define RLIMIT_STACK 0
+#endif
+
+#define _MU_PROG_AVAILABLE_LIMITS \
+  (_MU_RLIMIT_AS_FLAG |		  \
+   _MU_RLIMIT_CPU_FLAG |	  \
+   _MU_RLIMIT_DATA_FLAG |	  \
+   _MU_RLIMIT_FSIZE_FLAG |	  \
+   _MU_RLIMIT_NPROC_FLAG |	  \
+   _MU_RLIMIT_CORE_FLAG |	  \
+   _MU_RLIMIT_MEMLOCK_FLAG |	  \
+   _MU_RLIMIT_NOFILE_FLAG |	  \
+   _MU_RLIMIT_RSS_FLAG |	  \
+   _MU_RLIMIT_STACK)
+
+int _mu_prog_limit_flags = _MU_PROG_AVAILABLE_LIMITS;
+
+int _mu_prog_limit_codes[_MU_PROG_LIMIT_MAX] = {
+  RLIMIT_AS,
+  RLIMIT_CPU,
+  RLIMIT_DATA,
+  RLIMIT_FSIZE,
+  RLIMIT_NPROC,
+  RLIMIT_CORE,
+  RLIMIT_MEMLOCK,
+  RLIMIT_NOFILE,
+  RLIMIT_RSS,
+  RLIMIT_STACK
+};
+
 static int
-start_program_filter (pid_t *pid, int *p, int argc, char **argv,
-		      char *errfile, int flags)
+start_program_filter (int *p, struct _mu_prog_stream *fs, int flags)
 {
   int rightp[2], leftp[2];
   int i;
@@ -84,7 +180,7 @@ start_program_filter (pid_t *pid, int *p, int argc, char **argv,
   if (REDIRECT_STDOUT_P (flags))
     pipe (rightp);
   
-  switch (*pid = fork ())
+  switch (fs->pid = fork ())
     {
       /* The child branch.  */
     case 0:
@@ -111,28 +207,69 @@ start_program_filter (pid_t *pid, int *p, int argc, char **argv,
 	    }
 	  close (leftp[1]);
 	}
+
+      if (fs->hint_flags & MU_PROG_HINT_ERRTOOUT)
+	dup2 (1, 2);
       
-      /* Error output */
-      if (errfile)
+      if (fs->hint_flags & MU_PROG_HINT_WORKDIR)
 	{
-	  i = open (errfile, O_CREAT|O_WRONLY|O_APPEND, 0644);
-	  if (i > 0 && i != 2)
+	  if (chdir (fs->hints.mu_prog_workdir))
 	    {
-	      dup2 (i, 2);
-	      close (i);
+	      mu_error (_("cannot change to %s: %s"),
+			fs->hints.mu_prog_workdir, mu_strerror (errno));
+	      if (!(fs->hint_flags & MU_PROG_HINT_IGNOREFAIL))
+		_exit (127);
 	    }
 	}
+
+      if (fs->hint_flags & MU_PROG_HINT_UID)
+	{
+	  if (mu_set_user_privileges (fs->hints.mu_prog_uid,
+				      fs->hints.mu_prog_gidv,
+				      fs->hints.mu_prog_gidc)
+	      && !(fs->hint_flags & MU_PROG_HINT_IGNOREFAIL))
+	    _exit (127);
+	}
+      
+      for (i = 0; i < _MU_PROG_LIMIT_MAX; i++)
+	{
+	  if (MU_PROG_HINT_LIMIT(i) & fs->hint_flags)
+	    {
+	      struct rlimit rlim;
+	      
+	      rlim.rlim_cur = rlim.rlim_max = fs->hints.mu_prog_limit[i];
+	      if (setrlimit (_mu_prog_limit_codes[i], &rlim))
+		{
+		  mu_error (_("error setting limit %d to %lu: %s"),
+			    i, (unsigned long) rlim.rlim_cur,
+			    mu_strerror (errno));
+		  if (!(fs->hint_flags & MU_PROG_HINT_IGNOREFAIL))
+		    _exit (127);
+		}
+	    }
+	}
+      if (MU_PROG_HINT_PRIO & fs->hint_flags)
+	{
+	  if (setpriority (PRIO_PROCESS, 0, fs->hints.mu_prog_prio))
+	    {
+	      mu_error (_("error setting priority: %s"),
+			mu_strerror (errno));
+	      if (!(fs->hint_flags & MU_PROG_HINT_IGNOREFAIL))
+		_exit (127);
+	    }
+	}
+       
       /* Close unneded descripitors */
       for (i = getmaxfd (); i > 2; i--)
 	close (i);
 
       /*FIXME: Switch to other uid/gid if desired */
-      execvp (argv[0], argv);
+      execvp (fs->progname, fs->argv);
 		
       /* Report error via syslog */
       syslog (LOG_ERR|LOG_USER, "can't run %s (ruid=%d, euid=%d): %m",
-	      argv[0], getuid (), geteuid ());
-      exit (127);
+	      fs->progname, getuid (), geteuid ());
+      _exit (127);
       /********************/
 
       /* Parent branches: */
@@ -187,10 +324,16 @@ _prog_wait (pid_t pid, int *pstatus)
 static void
 _prog_done (mu_stream_t stream)
 {
-  struct _mu_prog_stream *fs = (struct _mu_prog_stream *) stream;
   int status;
+  struct _mu_prog_stream *fs = (struct _mu_prog_stream *) stream;
     
   mu_argcv_free (fs->argc, fs->argv);
+  free (fs->progname);
+  if (fs->hint_flags & MU_PROG_HINT_WORKDIR)
+    free (fs->hints.mu_prog_workdir);
+  if (fs->hint_flags & MU_PROG_HINT_INPUT)
+    mu_stream_unref (fs->hints.mu_prog_input);
+  
   if (fs->in)
     mu_stream_destroy (&fs->in);
   if (fs->out)
@@ -245,8 +388,6 @@ static int
 feed_input (struct _mu_prog_stream *fs)
 {
   pid_t pid;
-  size_t size;
-  char buffer[128];
   int rc = 0;
 
   pid = fork ();
@@ -261,10 +402,7 @@ feed_input (struct _mu_prog_stream *fs)
       
     case 0:
       /* Child */
-      while (mu_stream_read (fs->input, buffer, sizeof (buffer),
-			     &size) == 0
-	     && size > 0)
-	mu_stream_write (fs->out, buffer, size, NULL);
+      mu_stream_copy (fs->out, fs->hints.mu_prog_input, 0, NULL);
       mu_stream_close (fs->out);
       exit (0);
       
@@ -295,7 +433,7 @@ _prog_open (mu_stream_t stream)
   mu_stream_get_flags (stream, &flags);
   seekable_flag = (flags & MU_STREAM_SEEK);
   
-  rc = start_program_filter (&fs->pid, pfd, fs->argc, fs->argv, NULL, flags);
+  rc = start_program_filter (pfd, fs, flags);
   if (rc)
     return rc;
 
@@ -322,7 +460,7 @@ _prog_open (mu_stream_t stream)
     }
 
   _prog_stream_register (fs);
-  if (fs->input)
+  if (fs->hint_flags & MU_PROG_HINT_INPUT)
     return feed_input (fs);
   return 0;
 }
@@ -408,30 +546,25 @@ _prog_ioctl (struct _mu_stream *str, int code, int opcode, void *ptr)
   return 0;
 }
 
-struct _mu_prog_stream *
-_prog_stream_create (const char *progname, int flags)
+/* NOTE: Steals argv */
+static struct _mu_prog_stream *
+_prog_stream_create (const char *progname, size_t argc, char **argv,
+		     int hint_flags, struct mu_prog_hints *hints, int flags)
 {
   struct _mu_prog_stream *fs;
-  struct mu_wordsplit ws;
-  
+
   fs = (struct _mu_prog_stream *) _mu_stream_create (sizeof (*fs), flags);
   if (!fs)
     return NULL;
 
-  ws.ws_comment = "#";
-  if (mu_wordsplit (progname, &ws, MU_WRDSF_DEFFLAGS|MU_WRDSF_COMMENT))
+  fs->progname = strdup (progname);
+  if (!fs->progname)
     {
-      mu_error (_("cannot split line `%s': %s"), progname,
-		mu_wordsplit_strerror (&ws));
       free (fs);
       return NULL;
     }
-  fs->argc = ws.ws_wordc;
-  fs->argv = ws.ws_wordv;
-  ws.ws_wordc = 0;
-  ws.ws_wordv = NULL;
-  mu_wordsplit_free (&ws);
-
+  fs->argc = argc;
+  fs->argv = argv;
   fs->stream.read = _prog_read;
   fs->stream.write = _prog_write;
   fs->stream.open = _prog_open;
@@ -440,24 +573,95 @@ _prog_stream_create (const char *progname, int flags)
   fs->stream.flush = _prog_flush;
   fs->stream.done = _prog_done;
 
+  if (!hints)
+    fs->hint_flags = 0;
+  else
+    {
+      fs->hint_flags = (hint_flags & _MU_PROG_HINT_MASK) |
+	                (hint_flags & _MU_PROG_AVAILABLE_LIMITS);
+      if (fs->hint_flags & MU_PROG_HINT_WORKDIR)
+	{
+	  fs->hints.mu_prog_workdir = strdup (hints->mu_prog_workdir);
+	  if (!fs->hints.mu_prog_workdir)
+	    {
+	      free (fs);
+	      return NULL;
+	    }
+	}
+      memcpy (fs->hints.mu_prog_limit, hints->mu_prog_limit,
+	      sizeof (fs->hints.mu_prog_limit));
+      fs->hints.mu_prog_prio = hints->mu_prog_prio;
+      if (fs->hint_flags & MU_PROG_HINT_INPUT)
+	{
+	  fs->hints.mu_prog_input = hints->mu_prog_input;
+	  mu_stream_ref (fs->hints.mu_prog_input);
+	}
+      if (fs->hint_flags & MU_PROG_HINT_UID)
+	{
+	  fs->hints.mu_prog_uid = hints->mu_prog_uid;
+	  if (fs->hint_flags & MU_PROG_HINT_GID)
+	    {
+	      fs->hints.mu_prog_gidv = calloc (hints->mu_prog_gidc,
+					       sizeof (fs->hints.mu_prog_gidv[0]));
+	      if (!fs->hints.mu_prog_gidv)
+		{
+		  mu_stream_unref ((mu_stream_t) fs);
+		  return NULL;
+		}
+	      memcpy (fs->hints.mu_prog_gidv, hints->mu_prog_gidv,
+		      hints->mu_prog_gidc * fs->hints.mu_prog_gidv[0]);
+	      fs->hints.mu_prog_gidc = hints->mu_prog_gidc;
+	    }
+	  else
+	    {
+	      fs->hints.mu_prog_gidc = 0;
+	      fs->hints.mu_prog_gidv = NULL;
+	    }
+	}
+    }
+  
   return fs;
 }
 
 int
-mu_prog_stream_create (mu_stream_t *pstream, const char *progname, int flags)
+mu_prog_stream_create (mu_stream_t *pstream,
+		       const char *progname, size_t argc, char **argv,
+		       int hint_flags,
+		       struct mu_prog_hints *hints,
+		       int flags)
 {
   int rc;
   mu_stream_t stream;
-  
+  char **xargv;
+  size_t i;
+    
   if (pstream == NULL)
     return MU_ERR_OUT_PTR_NULL;
 
   if (progname == NULL)
     return EINVAL;
 
-  if ((stream = (mu_stream_t) _prog_stream_create (progname, flags)) == NULL)
+  xargv = calloc (argc + 1, sizeof (xargv[0]));
+  if (!xargv)
     return ENOMEM;
 
+  for (i = 0; i < argc; i++)
+    {
+      xargv[i] = strdup (argv[i]);
+      if (!xargv[i])
+	{
+	  mu_argcv_free (i, argv);
+	  return ENOMEM;
+	}
+    }
+  stream = (mu_stream_t) _prog_stream_create (progname, argc, xargv,
+					      hint_flags, hints, flags);
+  if (!stream)
+    {
+      mu_argcv_free (argc, xargv);
+      return ENOMEM;
+    }
+  
   rc = mu_stream_open (stream);
   if (rc)
     mu_stream_destroy (&stream);
@@ -467,30 +671,38 @@ mu_prog_stream_create (mu_stream_t *pstream, const char *progname, int flags)
 }
 
 int
-mu_filter_prog_stream_create (mu_stream_t *pstream, const char *progname,
-			      mu_stream_t input)
+mu_command_stream_create (mu_stream_t *pstream, const char *command,
+			  int flags)
 {
   int rc;
   mu_stream_t stream;
-  struct _mu_prog_stream *fs;
-
+  struct mu_wordsplit ws;
+  
   if (pstream == NULL)
     return MU_ERR_OUT_PTR_NULL;
 
-  if (progname == NULL)
+  if (command == NULL)
     return EINVAL;
 
-  fs = _prog_stream_create (progname, MU_STREAM_RDWR);
-  if (!fs)
-    return ENOMEM;
-  mu_stream_ref (input);
-  fs->input = input;
-  stream = (mu_stream_t) fs;
-  rc = mu_stream_open (stream);
-  if (rc)
-    mu_stream_destroy (&stream);
-  else
-    *pstream = stream;
+  ws.ws_comment = "#";
+  if (mu_wordsplit (command, &ws, MU_WRDSF_DEFFLAGS|MU_WRDSF_COMMENT))
+    {
+      mu_error (_("cannot split line `%s': %s"), command,
+		mu_wordsplit_strerror (&ws));
+      return errno;
+    }
+
+  rc = mu_prog_stream_create (&stream,
+			      ws.ws_wordv[0],
+			      ws.ws_wordc, ws.ws_wordv,
+			      0, NULL, flags);
+  if (rc == 0)
+    { 
+      ws.ws_wordc = 0;
+      ws.ws_wordv = NULL;
+      *pstream = stream;
+    }
+  mu_wordsplit_free (&ws);
+
   return rc;
 }
-

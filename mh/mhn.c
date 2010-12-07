@@ -1403,7 +1403,7 @@ show_internal (mu_message_t msg, msg_part_t part, char *encoding,
 int
 mhn_exec (mu_stream_t *str, const char *cmd, int flags)
 {
-  int rc = mu_prog_stream_create (str, cmd, MU_STREAM_WRITE);
+  int rc = mu_command_stream_create (str, cmd, MU_STREAM_WRITE);
   if (rc)
     {
       mu_error (_("cannot create proc stream (command %s): %s"),
@@ -1773,16 +1773,30 @@ store_handler (mu_message_t msg, msg_part_t part, char *type, char *encoding,
       break;
 
     case store_to_command:
-      /* FIXME: Change to homedir, reflect this in the message below.
-	 Chdir should better be implemented within mu_prog_stream_create
-	 Example message:
-	   storing msg 4 part 1 using command (cd /home/gray;  less)
-      */
-      printf (_("storing msg %s part %s using command %s\n"),
-	      prefix, partstr, name);
-      rc = mu_prog_stream_create (&out, name, MU_STREAM_WRITE);
-      if (rc)
-	mu_diag_funcall (MU_DIAG_ERROR, "mu_prog_stream_create", NULL, rc);
+      {
+	struct mu_prog_hints hints;
+	struct mu_wordsplit ws;
+      
+	hints.mu_prog_workdir = mu_get_homedir ();
+	ws.ws_comment = "#";
+	if (mu_wordsplit (name, &ws, MU_WRDSF_DEFFLAGS|MU_WRDSF_COMMENT))
+	  {
+	    mu_error (_("cannot split line `%s': %s"), name,
+		      mu_wordsplit_strerror (&ws));
+	    break;
+	  }
+	
+	printf (_("storing msg %s part %s using command (cd %s; %s)\n"),
+		prefix, partstr, hints.mu_prog_workdir, name);
+	rc = mu_prog_stream_create (&out,
+				    ws.ws_wordv[0],
+				    ws.ws_wordc, ws.ws_wordv,
+				    MU_PROG_HINT_WORKDIR,
+				    &hints, MU_STREAM_WRITE);
+	mu_wordsplit_free (&ws);
+	if (rc)
+	  mu_diag_funcall (MU_DIAG_ERROR, "mu_prog_stream_create", NULL, rc);
+      }
       break;
       
     case store_to_stdout:
