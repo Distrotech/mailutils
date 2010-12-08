@@ -257,17 +257,14 @@ static void
 _log_done (struct _mu_stream *str)
 {
   struct _mu_log_stream *sp = (struct _mu_log_stream *)str;
-  if (str->flags & MU_STREAM_AUTOCLOSE)
-    mu_stream_destroy (&sp->transport);
+  mu_stream_destroy (&sp->transport);
 }
 
 static int
 _log_close (struct _mu_stream *str)
 {
   struct _mu_log_stream *sp = (struct _mu_log_stream *)str;
-  if (str->flags & MU_STREAM_AUTOCLOSE)
-    return mu_stream_close (sp->transport);
-  return 0;
+  return mu_stream_close (sp->transport);
 }
 
 static int

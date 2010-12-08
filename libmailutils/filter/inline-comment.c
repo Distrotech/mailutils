@@ -23,14 +23,18 @@
 
    The following options modify this behavior:
 
-      -r   Remove empty lines, i.e. the ones that contain only whitespace
-           characters.
-      -s   Squeeze whitespace.  Each sequence of two or more whitespace
-           characters encountered on input is replaced by a single space
-	   character on output.
-      -S   A "following whitespace mode".  A comment sequence is recognized
-           only if followed by a whitespace character.  The character itself
-	   is retained on output.  
+      -i STR  Emit line number information after each contiguous sequence
+              of removed lines.  STR supplies "information starter" -- a
+	      sequence of characters which is output before the actual line
+	      number.
+      -r      Remove empty lines, i.e. the ones that contain only whitespace
+              characters.
+      -s      Squeeze whitespace.  Each sequence of two or more whitespace
+              characters encountered on input is replaced by a single space
+	      character on output.
+      -S      A "following whitespace mode".  A comment sequence is
+              recognized only if followed by a whitespace character.
+	      The character itself is retained on output.  
 
    In encode mode, this filter adds a comment sequence at the beginning
    of each line.
@@ -49,16 +53,19 @@
 #include <mailutils/errno.h>
 #include <mailutils/filter.h>
 #include <mailutils/cctype.h>
+#include <mailutils/io.h>
 
 enum ilcmt_state
   {
     ilcmt_initial,
     ilcmt_newline,
+    ilcmt_newline_ac,
     ilcmt_copy,
     ilcmt_comment,
     ilcmt_partial,
     ilcmt_comment_ws,
     ilcmt_ws,
+    ilcmt_rollback,
     ilcmt_rollback_ws,
     ilcmt_rollback_com
   };
@@ -71,13 +78,20 @@ enum ilcmt_state
 					 whitespace character.
 					 In encode mode: output a space after
 					 each comment prefix. */
+#define ILCMT_LINE_INFO          0x08 /* Emit line number information */ 
+
+#define ILCMT_COMMENT_STATIC     0x0100
+#define ILCMT_LINE_INFO_STATIC   0x0200
 
 struct ilcmt_data
 {
   enum ilcmt_state state;  /* Current state */
-  char *comment;           /* Comment sequence ... */ 
+  char *comment;           /* Comment sequence ... */
   size_t length;           /* and its length */
   int flags;               /* ILCMT_ flags */
+  char *line_info_starter;   /* Starter for line number info lines */
+  unsigned long line_number; /* Current line number */
+  char sbuf[3];            /* Static location for single-character strings */
   char *buf;               /* Rollback buffer ... */
   size_t size;             /* and its size */
   size_t level;            /* In ilcmt_partial and ilcmt_rollback_com
@@ -116,6 +130,17 @@ ilcmt_save (struct ilcmt_data *pd, int c)
   return 0;
 }
 
+static void
+_ilcmt_free (struct ilcmt_data *pd)
+{
+  if (!(pd->flags & ILCMT_COMMENT_STATIC))
+    free (pd->comment);
+  if ((pd->flags & ILCMT_LINE_INFO) &&
+      !(pd->flags & ILCMT_LINE_INFO_STATIC))
+    free (pd->line_info_starter);
+  free (pd->buf);
+}
+
 static enum mu_filter_result
 _ilcmt_decoder (void *xd, enum mu_filter_command cmd,
 		struct mu_filter_io *iobuf)
@@ -131,8 +156,7 @@ _ilcmt_decoder (void *xd, enum mu_filter_command cmd,
       return mu_filter_ok;
       
     case mu_filter_done:
-      free (pd->comment);
-      free (pd->buf);
+      _ilcmt_free (pd);
       return mu_filter_ok;
       
     default:
@@ -150,14 +174,25 @@ _ilcmt_decoder (void *xd, enum mu_filter_command cmd,
 	{
 	case ilcmt_initial:
 	case ilcmt_newline:
+	case ilcmt_newline_ac:
 	  if (*iptr == *pd->comment)
 	    {
 	      iptr++;
 	      pd->level = 1;
 	      pd->state = ilcmt_partial;
 	    }
+	  else if (pd->state == ilcmt_newline_ac)
+	    {
+	      mu_asnprintf (&pd->buf, &pd->size, "%s %lu\n",
+			    pd->line_info_starter,
+			    pd->line_number);
+	      pd->level = strlen (pd->buf);
+	      pd->replay = 0;
+	      pd->state = ilcmt_rollback;
+	    }
 	  else if (*iptr == '\n')
 	    {
+	      pd->line_number++;
 	      if (pd->flags & ILCMT_REMOVE_EMPTY_LINES)
 		{
 		  iptr++;
@@ -230,6 +265,7 @@ _ilcmt_decoder (void *xd, enum mu_filter_command cmd,
 	case ilcmt_ws:
 	  if (*iptr == '\n')
 	    {
+	      pd->line_number++;
 	      iptr++;
 	      pd->state = ilcmt_newline;
 	    }
@@ -251,12 +287,21 @@ _ilcmt_decoder (void *xd, enum mu_filter_command cmd,
       
 	case ilcmt_copy:
 	  if ((*optr++ = *iptr++) == '\n')
-	    pd->state = ilcmt_newline;
+	    {
+	      pd->line_number++;
+	      pd->state = ilcmt_newline;
+	    }
 	  break;
 
 	case ilcmt_comment:
 	  if (*iptr++ == '\n')
-	    pd->state = ilcmt_newline;
+	    {
+	      pd->line_number++;
+	      if (pd->flags & ILCMT_LINE_INFO)
+		pd->state = ilcmt_newline_ac;
+	      else
+		pd->state = ilcmt_newline;
+	    }
 	  break;
 
 	case ilcmt_rollback_com:
@@ -270,13 +315,13 @@ _ilcmt_decoder (void *xd, enum mu_filter_command cmd,
 	    {
 	      *optr++ = ' ';
 	      pd->state = ilcmt_copy;
+	      break;
 	    }
-	  else
-	    {
-	      *optr++ = pd->buf[pd->replay++];
-	      if (pd->replay == pd->level)
-		pd->state = ilcmt_copy;
-	    }
+	  /* fall through */
+	case ilcmt_rollback:
+	  *optr++ = pd->buf[pd->replay++];
+	  if (pd->replay == pd->level)
+	    pd->state = ilcmt_copy;
 	}
     }
   iobuf->isize = iptr - (const unsigned char *) iobuf->input;
@@ -300,8 +345,7 @@ _ilcmt_encoder (void *xd,
       return mu_filter_ok;
       
     case mu_filter_done:
-      free (pd->comment);
-      free (pd->buf);
+      _ilcmt_free (pd);
       return mu_filter_ok;
       
     default:
@@ -353,14 +397,15 @@ alloc_state (void **pret, int mode MU_ARG_UNUSED, int argc, const char **argv)
   struct ilcmt_data *pd = malloc (sizeof (*pd));
   int i;
   const char *comment = ";";
-
+  const char *line_info;
+  
   if (!pd)
     return ENOMEM;
-
 
   pd->flags = 0;
   pd->buf = NULL;
   pd->size = pd->level = pd->replay = 0;
+  pd->line_number = 1;
 
   for (i = 1; i < argc; i++)
     {
@@ -379,7 +424,14 @@ alloc_state (void **pret, int mode MU_ARG_UNUSED, int argc, const char **argv)
 	    case 'S':
 	      pd->flags |= ILCMT_FOLLOW_WS;
 	      break;
-	       
+
+	    case 'i':
+	      pd->flags |= ILCMT_LINE_INFO;
+	      if (i + 1 == argc)
+		return MU_ERR_PARSE;
+	      line_info = argv[++i];
+	      break;
+		
 	    default:
 	      free (pd);
 	      return MU_ERR_PARSE;
@@ -388,13 +440,45 @@ alloc_state (void **pret, int mode MU_ARG_UNUSED, int argc, const char **argv)
       else
 	comment = argv[i];
     }
-  pd->comment = strdup (comment);
-  if (!pd->comment)
+  if (comment[1] == 0)
     {
-      free (pd);
-      return ENOMEM;
+      pd->sbuf[0] = comment[0];
+      pd->comment = pd->sbuf;
+      pd->flags |= ILCMT_COMMENT_STATIC;
+      pd->length = 1;
     }
-  pd->length = strlen (comment);
+  else
+    {
+      pd->comment = strdup (comment);
+      if (!pd->comment)
+	{
+	  free (pd);
+	  return ENOMEM;
+	}
+      pd->length = strlen (comment);
+    }
+
+  if (pd->flags & ILCMT_LINE_INFO)
+    {
+      if (line_info[1] == 0)
+	{
+	  pd->sbuf[1] = line_info[0];
+	  pd->sbuf[2] = 0;
+	  pd->line_info_starter = pd->sbuf + 1;
+	  pd->flags |= ILCMT_LINE_INFO_STATIC;
+	}
+      else
+	{
+	  pd->line_info_starter = strdup (line_info);
+	  if (!pd->line_info_starter)
+	    {
+	      if (!(pd->flags & ILCMT_COMMENT_STATIC))
+		free (pd->comment);
+	      free (pd);
+	      return ENOMEM;
+	    }
+	}
+    }
   
   *pret = pd;
   

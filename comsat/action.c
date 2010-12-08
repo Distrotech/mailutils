@@ -184,142 +184,6 @@ const char *default_action =
 #include "biff.rc.h"
 ;
 
-static void
-action_beep (mu_stream_t tty)
-{
-  mu_stream_write (tty, "\a\a", 2, NULL);
-  mu_stream_flush (tty);
-}
-
-static void
-echo_string (mu_stream_t tty, char *str)
-{
-  if (!str)
-    return;
-  mu_stream_write (tty, str, strlen (str), NULL);
-}
-
-static void
-action_echo (mu_stream_t tty, int omit_newline, int argc, char **argv)
-{
-  int i;
-
-  for (i = 0;;)
-    {
-      echo_string (tty, argv[i]);
-      if (++i < argc)
-	echo_string (tty, " ");
-      else
-	break;
-    }
-  if (!omit_newline)
-    echo_string (tty, "\n");
-}
-
-static void
-action_exec (mu_stream_t tty, int argc, char **argv)
-{
-  mu_stream_t pstream;
-  struct stat stb;
-  int status;
-  
-  if (argc == 0)
-    {
-      mu_diag_output (MU_DIAG_ERROR, _("no arguments for exec"));
-      return;
-    }
-
-  if (argv[0][0] != '/')
-    {
-      mu_diag_output (MU_DIAG_ERROR, _("not an absolute pathname: %s"),
-		      argv[0]);
-      return;
-    }
-
-  if (stat (argv[0], &stb))
-    {
-      mu_diag_funcall (MU_DIAG_ERROR, "stat", argv[0], errno);
-      return;
-    }
-
-  if (stb.st_mode & (S_ISUID|S_ISGID))
-    {
-      mu_diag_output (MU_DIAG_ERROR,
-		      _("will not execute set[ug]id programs"));
-      return;
-    }
-
-  status = mu_prog_stream_create (&pstream,
-				  argv[0], argc, argv,
-				  MU_PROG_HINT_ERRTOOUT,
-				  NULL,
-				  MU_STREAM_READ);
-  if (status)
-    {
-      mu_diag_funcall (MU_DIAG_ERROR, "mu_prog_stream_create", argv[0],
-		       status);
-      return;
-    }
-  mu_stream_copy (tty, pstream, 0, NULL);
-  mu_stream_destroy (&pstream);
-}
-
-static mu_stream_t
-open_rc (const char *filename, mu_stream_t tty)
-{
-  struct stat stb;
-  struct passwd *pw = getpwnam (username);
-  mu_stream_t stream, input;
-  int rc;
-  
-  /* To be on the safe side, we do not allow root to have his .biffrc */
-  if (!allow_biffrc || pw->pw_uid == 0)
-    return NULL;
-  if (stat (filename, &stb) == 0)
-    {
-      if (stb.st_uid != pw->pw_uid)
-	{
-	  mu_diag_output (MU_DIAG_NOTICE, _("%s's %s is not owned by %s"),
-		  username, filename, username);
-	  return NULL;
-	}
-      if ((stb.st_mode & 0777) != 0600)
-	{
-	  mu_stream_printf (tty, "%s\n",
-			    _("Warning: your .biffrc has wrong permissions"));
-	  mu_diag_output (MU_DIAG_NOTICE, _("%s's %s has wrong permissions"),
-		  username, filename);
-	  return NULL;
-	}
-    }
-  rc = mu_file_stream_create (&input, filename, MU_STREAM_READ);
-  if (rc)
-    {
-      if (rc != ENOENT)
-	{
-	  mu_stream_printf (tty, _("Cannot open .biffrc file: %s\n"),
-			    mu_strerror (rc));
-	  mu_diag_output (MU_DIAG_NOTICE, _("cannot open %s for %s: %s"),
-			  filename, username, mu_strerror (rc));
-	}
-      return NULL;
-    }
-  rc = mu_filter_create (&stream, input, "LINECON", MU_FILTER_DECODE,
-			 MU_STREAM_READ);
-  mu_stream_unref (input);
-  if (rc)
-    {
-      mu_stream_printf (tty,
-			_("Cannot create filter for your .biffrc file: %s\n"),
-			mu_strerror (rc));
-      mu_diag_output (MU_DIAG_NOTICE,
-		      _("cannot create filter for file %s of %s: %s"),
-		      filename, username, mu_strerror (rc));
-      return NULL;
-    }
-  return stream;
-}
-
 static int
 need_crlf (mu_stream_t str)
 {
@@ -434,14 +298,218 @@ open_default_tty (const char *device)
 		   default_filters);
 }
 
+
 struct biffrc_environ
 {
   mu_stream_t tty;
+  mu_stream_t logstr;
   mu_message_t msg;
   mu_stream_t input;
   struct mu_locus locus;
   int use_default;
+  char *errbuf;
+  size_t errsize;
 };
+
+static void
+report_error (struct biffrc_environ *env, const char *fmt, ...)
+{
+  va_list ap;
+  va_start (ap, fmt);
+  mu_vasnprintf (&env->errbuf, &env->errsize, fmt, ap);
+  mu_stream_printf (env->logstr, "%s\n", env->errbuf);
+  mu_diag_output (MU_DIAG_ERROR, "%s", env->errbuf);
+  va_end (ap);
+}
+		  
+  
+static void
+action_beep (struct biffrc_environ *env, size_t argc, char **argv)
+{
+  mu_stream_write (env->tty, "\a\a", 2, NULL);
+  mu_stream_flush (env->tty);
+}
+
+static void
+echo_string (mu_stream_t tty, char *str)
+{
+  if (!str)
+    return;
+  mu_stream_write (tty, str, strlen (str), NULL);
+}
+
+static void
+action_echo (struct biffrc_environ *env, size_t argc, char **argv)
+{
+  int i = 1;
+  int omit_newline;
+
+  if (argc > 2 && strcmp (argv[i], "-n") == 0)
+    {
+      omit_newline = 1;
+      i++;
+    }
+  for (;;)
+    {
+      echo_string (env->tty, argv[i]);
+      if (++i < argc)
+	echo_string (env->tty, " ");
+      else
+	break;
+    }
+  if (!omit_newline)
+    echo_string (env->tty, "\n");
+}
+
+static void
+action_exec (struct biffrc_environ *env, size_t argc, char **argv)
+{
+  mu_stream_t pstream;
+  struct stat stb;
+  int status;
+
+  argc--;
+  argv++;
+  
+  if (argv[0][0] != '/')
+    {
+      report_error (env, _("not an absolute pathname: %s"), argv[0]);
+      return;
+    }
+
+  if (stat (argv[0], &stb))
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "stat", argv[0], errno);
+      return;
+    }
+
+  if (stb.st_mode & (S_ISUID|S_ISGID))
+    {
+      report_error (env, _("will not execute set[ug]id programs"));
+      return;
+    }
+
+  status = mu_prog_stream_create (&pstream,
+				  argv[0], argc, argv,
+				  MU_PROG_HINT_ERRTOOUT,
+				  NULL,
+				  MU_STREAM_READ);
+  if (status)
+    {
+      report_error (env, "mu_prog_stream_create(%s) failed: %s", argv[0],
+		    mu_strerror (status));
+      return;
+    }
+  mu_stream_copy (env->tty, pstream, 0, NULL);
+  mu_stream_destroy (&pstream);
+}
+
+static void
+action_default (struct biffrc_environ *env, size_t argc, char **argv)
+{
+  env->use_default = 1;
+}
+
+static void
+action_tty (struct biffrc_environ *env, size_t argc, char **argv)
+{
+  mu_stream_t ntty = open_tty (argv[1], argc - 2, argv + 2);
+  if (!ntty)
+    report_error (env, _("cannot open tty %s"), argv[1]);
+
+  mu_stream_destroy (&env->tty);
+  env->tty = ntty;
+}
+
+static mu_stream_t
+open_rc (const char *filename, mu_stream_t tty)
+{
+  struct stat stb;
+  struct passwd *pw = getpwnam (username);
+  mu_stream_t stream, input;
+  int rc;
+  static char *linecon_args[] = { "linecon", "-i", "#line", NULL };
+  
+  /* To be on the safe side, we do not allow root to have his .biffrc */
+  if (!allow_biffrc || pw->pw_uid == 0)
+    return NULL;
+  if (stat (filename, &stb) == 0)
+    {
+      if (stb.st_uid != pw->pw_uid)
+	{
+	  mu_diag_output (MU_DIAG_NOTICE, _("%s's %s is not owned by %s"),
+		  username, filename, username);
+	  return NULL;
+	}
+      if ((stb.st_mode & 0777) != 0600)
+	{
+	  mu_stream_printf (tty, "%s\n",
+			    _("Warning: your .biffrc has wrong permissions"));
+	  mu_diag_output (MU_DIAG_NOTICE, _("%s's %s has wrong permissions"),
+		  username, filename);
+	  return NULL;
+	}
+    }
+  rc = mu_file_stream_create (&input, filename, MU_STREAM_READ);
+  if (rc)
+    {
+      if (rc != ENOENT)
+	{
+	  mu_stream_printf (tty, _("Cannot open .biffrc file: %s\n"),
+			    mu_strerror (rc));
+	  mu_diag_output (MU_DIAG_NOTICE, _("cannot open %s for %s: %s"),
+			  filename, username, mu_strerror (rc));
+	}
+      return NULL;
+    }
+  rc = mu_filter_create_args (&stream, input,
+			      "LINECON",
+			      MU_ARRAY_SIZE (linecon_args) - 1,
+			      (const char **)linecon_args,
+			      MU_FILTER_DECODE,
+			      MU_STREAM_READ);
+  mu_stream_unref (input);
+  if (rc)
+    {
+      mu_stream_printf (tty,
+			_("Cannot create filter for your .biffrc file: %s\n"),
+			mu_strerror (rc));
+      mu_diag_output (MU_DIAG_NOTICE,
+		      _("cannot create filter for file %s of %s: %s"),
+		      filename, username, mu_strerror (rc));
+      return NULL;
+    }
+  return stream;
+}
+
+struct biffrc_stmt
+{
+  const char *id;
+  int argmin;
+  int argmax;
+  int expand;
+  void (*handler) (struct biffrc_environ *env, size_t argc, char **argv);
+};
+
+struct biffrc_stmt biffrc_tab[] = {
+  { "beep", 1, 1, 0, action_beep },
+  { "tty", 2, -1, 0, action_tty },
+  { "echo", 2, -1, 1, action_echo },
+  { "exec", 2, -1, 1, action_exec },
+  { "default", 1, 1, 0, action_default },
+  { NULL }
+};
+
+struct biffrc_stmt *
+find_stmt (const char *name)
+{
+  struct biffrc_stmt *p;
+
+  for (p = biffrc_tab; p->id; p++)
+    if (strcmp (name, p->id) == 0)
+      return p;
+  return NULL;
+}
 
 void
 eval_biffrc (struct biffrc_environ *env)
@@ -458,100 +526,85 @@ eval_biffrc (struct biffrc_environ *env)
     {
       mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM,
 		       MU_IOCTL_LOGSTREAM_SET_LOCUS, &env->locus);
-      if (mu_wordsplit (stmt, &ws, wsflags) == 0 && ws.ws_wordc)
+      mu_stream_ioctl (env->logstr, MU_IOCTL_LOGSTREAM,
+		       MU_IOCTL_LOGSTREAM_SET_LOCUS, &env->locus);
+      if (strncmp (stmt, "#line ", 6) == 0)
 	{
-	  if (strcmp (ws.ws_wordv[0], "beep") == 0)
+	  char *p;
+	  
+	  env->locus.mu_line = strtoul (stmt + 6, &p, 10);
+	  if (*p != '\n')
 	    {
-	      /* FIXME: excess arguments are ignored */
-	      action_beep (env->tty);
+	      report_error (env, _("malformed #line directive: %s"));
 	    }
 	  else
 	    {
-	      /* Rest of actions require keyword expansion */
-	      int i;
-	      int n_option = ws.ws_wordc > 1 &&
-		strcmp (ws.ws_wordv[1], "-n") == 0;
-	      
-	      for (i = 1; i < ws.ws_wordc; i++)
-		{
-		  char *oldarg = ws.ws_wordv[i];
-		  ws.ws_wordv[i] = expand_line (ws.ws_wordv[i], env->msg);
-		  free (oldarg);
-		  if (!ws.ws_wordv[i])
-		    break;
-		}
-	      
-	      if (strcmp (ws.ws_wordv[0], "tty") == 0)
-		{
-		  mu_stream_t ntty = open_tty (ws.ws_wordv[1],
-					       ws.ws_wordc - 2,
-					       ws.ws_wordv + 2);
-		  if (!ntty)
-		    {
-		      mu_stream_printf (env->tty,
-					_("%s:%d: cannot open tty\n"),
-					env->locus.mu_file,
-					env->locus.mu_line);
-		      break;
-		    }
-		  mu_stream_destroy (&env->tty);
-		  env->tty = ntty;
-		}
-	      else if (strcmp (ws.ws_wordv[0], "echo") == 0)
-		{
-		  int argc = ws.ws_wordc - 1;
-		  char **argv = ws.ws_wordv + 1;
-		  if (n_option)
-		    {
-		      argc--;
-		      argv++;
-		    }
-		  action_echo (env->tty, n_option, argc, argv);
-		}
-	      else if (strcmp (ws.ws_wordv[0], "exec") == 0)
-		{
-		  action_exec (env->tty, ws.ws_wordc - 1, ws.ws_wordv + 1);
-		}
-	      else if (strcmp (ws.ws_wordv[0], "default") == 0)
-		{
-		  env->use_default = 1;
-		}
-	      else
-		{
-		  mu_stream_printf (env->tty,
-				    _("%s:%d: unknown keyword\n"),
-				    env->locus.mu_file,
-				    env->locus.mu_line);
-		  mu_diag_output (MU_DIAG_ERROR, _("unknown keyword %s"),
-				  ws.ws_wordv[0]);
-		  break;
-		}
-	    } 
-	}
-      else
-	{
-	  const char *diag = mu_wordsplit_strerror (&ws);
-	  mu_stream_printf (env->tty,
-			    _("%s:%d: %s\n"),
-			    env->locus.mu_file,
-			    env->locus.mu_line,
-			    diag);
-	  mu_diag_output (MU_DIAG_ERROR, "%s", diag);
+	      mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM,
+			       MU_IOCTL_LOGSTREAM_SET_LOCUS, &env->locus);
+	      mu_stream_ioctl (env->logstr, MU_IOCTL_LOGSTREAM,
+			       MU_IOCTL_LOGSTREAM_SET_LOCUS, &env->locus);
+	    }
+	  continue;
 	}
       
+      if (mu_wordsplit (stmt, &ws, wsflags) == 0)
+	{
+	  struct biffrc_stmt *sp;
+	  
+	  if (ws.ws_wordc == 0)
+	    {
+	      env->locus.mu_line++;
+	      continue;
+	    }
+
+	  sp = find_stmt (ws.ws_wordv[0]);
+	  if (!sp)
+	    report_error (env, _("unknown keyword"));
+	  else if (ws.ws_wordc < sp->argmin)
+	    {
+	      report_error (env, _("too few arguments"));
+	    }
+	  else if (sp->argmax != -1 && ws.ws_wordc > sp->argmax)
+	    {
+	      report_error (env, _("too many arguments"));
+	    }
+	  else
+	    {
+	      if (sp->expand)
+		{
+		  size_t i;
+		  
+		  for (i = 1; i < ws.ws_wordc; i++)
+		    {
+		      char *oldarg = ws.ws_wordv[i];
+		      ws.ws_wordv[i] = expand_line (ws.ws_wordv[i], env->msg);
+		      free (oldarg);
+		      if (!ws.ws_wordv[i])
+			break;
+		    }
+		}
+
+	      sp->handler (env, ws.ws_wordc, ws.ws_wordv);
+	    }
+	}
+      else
+	report_error (env, "%s", mu_wordsplit_strerror (&ws));
+      
       wsflags |= MU_WRDSF_REUSE;
-      /* FIXME: line number is incorrect if .biffrc contains
-	 escaped newlines */
       env->locus.mu_line++;
     }
   free (stmt);
   mu_wordsplit_free (&ws);
+  mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM,
+		   MU_IOCTL_LOGSTREAM_SET_LOCUS, NULL);
+  mu_stream_ioctl (env->logstr, MU_IOCTL_LOGSTREAM,
+		   MU_IOCTL_LOGSTREAM_SET_LOCUS, NULL);
 }
-
 
 void
 run_user_action (const char *device, mu_message_t msg)
 {
+  int rc, mode;
   mu_stream_t stream;
   struct biffrc_environ env;
 
@@ -559,7 +612,25 @@ run_user_action (const char *device, mu_message_t msg)
   if (!env.tty)
     return;
   env.msg = msg;
+
+  env.errbuf = NULL;
+  env.errsize = 0;
   
+  rc = mu_log_stream_create (&env.logstr, env.tty); 
+  if (rc)
+    {
+      mu_diag_output (MU_DIAG_ERROR,
+		      _("cannot create log stream: %s"),
+		      mu_strerror (rc));
+      mu_stream_destroy (&env.tty);
+      return;
+    }
+  mode = MU_LOGMODE_LOCUS;
+  mu_stream_ioctl (env.logstr, MU_IOCTL_LOGSTREAM,
+		   MU_IOCTL_LOGSTREAM_SET_MODE, &mode);
+  mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM,
+		   MU_IOCTL_LOGSTREAM_SET_MODE, &mode);
+
   env.input = open_rc (biffrc, env.tty);
   if (env.input)
     {
@@ -612,8 +683,7 @@ run_user_action (const char *device, mu_message_t msg)
 	}
     }
   
-  mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM,
-		   MU_IOCTL_LOGSTREAM_SET_LOCUS, NULL);
-
+  mu_stream_destroy (&env.logstr);
   mu_stream_destroy (&env.tty);
+  free (env.errbuf);
 }
