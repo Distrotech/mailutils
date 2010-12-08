@@ -1212,6 +1212,7 @@ AC_CONFIG_TESTDIR(messages/tests)
 AC_CONFIG_TESTDIR(readmsg/tests)
 AC_CONFIG_TESTDIR(sieve/tests)
 AC_CONFIG_TESTDIR(mh/tests)
+AC_CONFIG_TESTDIR(comsat/tests)
 
 AC_CONFIG_FILES([libmailutils/tests/Makefile
                  libmailutils/tests/atlocal
@@ -1219,6 +1220,8 @@ AC_CONFIG_FILES([libmailutils/tests/Makefile
 		 libmu_compat/tests/atlocal
 	         testsuite/Makefile
                  testsuite/atlocal
+                 comsat/tests/Makefile
+                 comsat/tests/atlocal
                  frm/tests/Makefile
                  frm/tests/atlocal
 		 maidag/tests/Makefile

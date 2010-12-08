@@ -325,12 +325,129 @@ open_rc (const char *filename, mu_stream_t tty)
   return stream;
 }
 
+static int
+need_crlf (mu_stream_t str)
+{
+#if defined(OPOST) && defined(ONLCR)
+  mu_transport_t trans[2];
+  struct termios tbuf;
+
+  if (mu_stream_ioctl (str, MU_IOCTL_TRANSPORT, MU_IOCTL_OP_GET, trans))
+    return 1; /* suppose we do need it */
+  if (tcgetattr ((int)trans[0], &tbuf) == 0 &&
+      (tbuf.c_oflag & OPOST) && (tbuf.c_oflag & ONLCR))
+    return 0;
+  else
+    return 1;
+#else
+  return 1; /* Just in case */
+#endif
+}
+
+static mu_stream_t
+_open_tty (const char *device, int argc, char **argv)
+{
+  mu_stream_t dev, base_dev, prev_stream;
+  int status;
+  
+  status = mu_file_stream_create (&dev, device, MU_STREAM_WRITE);
+  if (status)
+    {
+      mu_error (_("cannot open device %s: %s"),
+		device, mu_strerror (status));
+      return NULL;
+    }
+  mu_stream_set_buffer (dev, mu_buffer_line, 0);
+
+  prev_stream = base_dev = dev;
+  while (argc)
+    {
+      int i;
+      int mode;
+      int qmark;
+      char *fltname;
+      
+      fltname = argv[0];
+      if (fltname[0] == '?')
+	{
+	  qmark = 1;
+	  fltname++;
+	}
+      else
+	qmark = 0;
+      
+      if (fltname[0] == '~')
+	{
+	  mode = MU_FILTER_DECODE;
+	  fltname++;
+	}
+      else
+	{
+	  mode = MU_FILTER_ENCODE;
+	}
+      
+      for (i = 1; i < argc; i++)
+	if (strcmp (argv[i], "+") == 0)
+	  break;
+      
+      if (qmark == 0 || need_crlf (base_dev))
+	{
+	  status = mu_filter_create_args (&dev, prev_stream, fltname,
+					  i, (const char **)argv,
+					  mode, MU_STREAM_WRITE);
+	  mu_stream_unref (prev_stream);
+	  if (status)
+	    {
+	      mu_error (_("cannot open filter stream: %s"),
+			mu_strerror (status));
+	      return NULL;
+	    }
+	  prev_stream = dev;
+	}
+      argc -= i;
+      argv += i;
+      if (argc)
+	{
+	  argc--;
+	  argv++;
+	}
+    }
+  return dev;
+}
+
+mu_stream_t
+open_tty (const char *device, int argc, char **argv)
+{
+  mu_stream_t dev;
+
+  if (!device || !*device || strcmp (device, "null") == 0)
+    {
+      int rc = mu_nullstream_create (&dev, MU_STREAM_WRITE);
+      if (rc)
+	mu_error (_("cannot open null stream: %s"), mu_strerror (rc));
+    }
+  else
+    dev = _open_tty (device, argc, argv); 
+  return dev;
+}
+
+static mu_stream_t
+open_default_tty (const char *device)
+{
+  static char *default_filters[] = { "7bit", "+", "?CRLF", NULL };
+  return open_tty (device, MU_ARRAY_SIZE (default_filters) - 1,
+		   default_filters);
+}
+
 void
-run_user_action (mu_stream_t tty, mu_message_t msg)
+run_user_action (const char *device, mu_message_t msg)
 {
   mu_stream_t input;
   int nact = 0;
+  mu_stream_t tty = open_default_tty (device);
 
+  if (!tty)
+    return;
   input = open_rc (biffrc, tty);
   if (input)
     {
@@ -340,6 +457,8 @@ run_user_action (mu_stream_t tty, mu_message_t msg)
       char *cwd = mu_getcwd ();
       char *rcname;
       struct mu_locus locus;
+      struct mu_wordsplit ws;
+      int wsflags;
       
       rcname = mu_make_file_name (cwd, BIFF_RC);
       free (cwd);
@@ -350,16 +469,15 @@ run_user_action (mu_stream_t tty, mu_message_t msg)
         }
       else
 	locus.mu_file = rcname;
+
       locus.mu_line = 1;
       locus.mu_col = 0;
+
+      ws.ws_comment = "#";
+      wsflags = MU_WRDSF_DEFFLAGS | MU_WRDSF_COMMENT;
       while (mu_stream_getline (input, &stmt, &size, &n) == 0 && n > 0)
 	{
-	  struct mu_wordsplit ws;
-
-	  ws.ws_comment = "#";
-	  if (mu_wordsplit (stmt, &ws,
-			    MU_WRDSF_DEFFLAGS | MU_WRDSF_COMMENT) == 0
-	      && ws.ws_wordc)
+	  if (mu_wordsplit (stmt, &ws, wsflags) == 0 && ws.ws_wordc)
 	    {
 	      mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM,
                                MU_IOCTL_LOGSTREAM_SET_LOCUS, &locus);
@@ -428,11 +546,12 @@ run_user_action (mu_stream_t tty, mu_message_t msg)
 		    }
 		} 
 	    }
-	  mu_wordsplit_free (&ws);
+	  wsflags |= MU_WRDSF_REUSE;
 	  /* FIXME: line number is incorrect if .biffrc contains
 	     escaped newlines */
 	  locus.mu_line++;
 	}
+      mu_wordsplit_free (&ws);
       mu_stream_destroy (&input);
       mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM,
                        MU_IOCTL_LOGSTREAM_SET_LOCUS, NULL);
@@ -441,4 +560,5 @@ run_user_action (mu_stream_t tty, mu_message_t msg)
 
   if (nact == 0)
     echo_string (tty, expand_line (default_action, msg));
+  mu_stream_destroy (&tty);
 }

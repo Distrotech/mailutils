@@ -1,0 +1,6 @@
+# @configure_input@                                     -*- shell-script -*-
+# Configurable variable values for Mailutils test suite.
+# Copyright (C) 2004, 2010 Free Software Foundation, Inc.
+
+PATH=@abs_builddir@:@abs_top_builddir@/comsat:$top_srcdir:$srcdir:$PATH
+  

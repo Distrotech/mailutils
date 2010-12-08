@@ -365,131 +365,19 @@ comsat_connection (int fd, struct sockaddr *sa, int salen,
   return 0;
 }
 
-static int
-need_crlf (mu_stream_t str)
-{
-#if defined(OPOST) && defined(ONLCR)
-  mu_transport_t trans[2];
-  struct termios tbuf;
-
-  if (mu_stream_ioctl (str, MU_IOCTL_TRANSPORT, MU_IOCTL_OP_GET, trans))
-    return 1; /* suppose we do need it */
-  if (tcgetattr ((int)trans[0], &tbuf) == 0 &&
-      (tbuf.c_oflag & OPOST) && (tbuf.c_oflag & ONLCR))
-    return 0;
-  else
-    return 1;
-#else
-  return 1; /* Just in case */
-#endif
-}
-
-static mu_stream_t
-_open_tty (const char *device, int argc, char **argv)
-{
-  mu_stream_t dev, base_dev, prev_stream;
-  int status;
-  
-  status = mu_file_stream_create (&dev, device, MU_STREAM_WRITE);
-  if (status)
-    {
-      mu_error (_("cannot open device %s: %s"),
-		device, mu_strerror (status));
-      return NULL;
-    }
-  mu_stream_set_buffer (dev, mu_buffer_line, 0);
-
-  prev_stream = base_dev = dev;
-  while (argc)
-    {
-      int i;
-      int mode;
-      int qmark;
-      char *fltname;
-      
-      fltname = argv[0];
-      if (fltname[0] == '?')
-	{
-	  qmark = 1;
-	  fltname++;
-	}
-      else
-	qmark = 0;
-      
-      if (fltname[0] == '~')
-	{
-	  mode = MU_FILTER_DECODE;
-	  fltname++;
-	}
-      else
-	{
-	  mode = MU_FILTER_ENCODE;
-	}
-      
-      for (i = 1; i < argc; i++)
-	if (strcmp (argv[i], "+") == 0)
-	  break;
-      
-      if (qmark == 0 || need_crlf (base_dev))
-	{
-	  status = mu_filter_create_args (&dev, prev_stream, fltname,
-					  i, (const char **)argv,
-					  mode, MU_STREAM_WRITE);
-	  mu_stream_unref (prev_stream);
-	  if (status)
-	    {
-	      mu_error (_("cannot open filter stream: %s"),
-			mu_strerror (status));
-	      return NULL;
-	    }
-	  prev_stream = dev;
-	}
-      argc -= i;
-      argv += i;
-      if (argc)
-	{
-	  argc--;
-	  argv++;
-	}
-    }
-  return dev;
-}
-
-mu_stream_t
-open_tty (const char *device, int argc, char **argv)
-{
-  mu_stream_t dev;
-
-  if (!device || !*device || strcmp (device, "null") == 0)
-    {
-      int rc = mu_nullstream_create (&dev, MU_STREAM_WRITE);
-      if (rc)
-	mu_error (_("cannot open null stream: %s"), mu_strerror (rc));
-    }
-  else
-    dev = _open_tty (device, argc, argv); 
-  return dev;
-}
-
 /* NOTE: Do not bother to free allocated memory, as the program exits
    immediately after executing this */
 static void
 notify_user (const char *user, const char *device, const char *path,
 	     mu_message_qid_t qid)
 {
-  mu_stream_t dev;
   mu_mailbox_t mbox = NULL;
   mu_message_t msg;
-  static char *default_filters[] = { "7bit", "+", "?CRLF", NULL };
   int status;
 
   if (change_user (user))
     return;
 
-  dev = open_tty (device, MU_ARRAY_SIZE (default_filters) - 1,
-		  default_filters);
-  if (!dev)
-    return;
   if (!path)
     {
       path = mailbox_path (user);
@@ -514,8 +402,7 @@ notify_user (const char *user, const char *device, const char *path,
       return; /* FIXME: Notify the user, anyway */
     }
 
-  run_user_action (dev, msg);
-  mu_stream_destroy (&dev);
+  run_user_action (device, msg);
 }
 
 /* Search utmp for the local user */
@@ -683,7 +570,7 @@ main (int argc, char **argv)
 	    }
 	}
 
-      if (biffrc[0] == '.')
+      if (biffrc[0] == '.' && biffrc[1] == '/')
 	{
 	  char *cwd = mu_getcwd ();
 	  biffrc = mu_make_file_name (cwd, biffrc);
