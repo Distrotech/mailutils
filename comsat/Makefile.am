@@ -19,8 +19,15 @@ INCLUDES = @MU_APP_COMMON_INCLUDES@
 SUBDIRS = . tests
 sbin_PROGRAMS = comsatd
 
-comsatd_SOURCES = action.c comsat.c comsat.h 
+comsatd_SOURCES = action.c comsat.c comsat.h biff.rc.h
 AM_CPPFLAGS = -DSYSCONFDIR=\"$(sysconfdir)\"
+
+BUILT_SOURCES=biff.rc.h
+EXTRA_DIST=biffrc.sed biff.rc
+
+biff.rc.h: $(top_srcdir)/comsat/biff.rc
+	$(AM_V_GEN)sed -f $(top_srcdir)/comsat/biffrc.sed \
+	  $(top_srcdir)/comsat/biff.rc > biff.rc.h
 
 comsatd_LDADD = \
  ${MU_APP_LIBRARIES}\

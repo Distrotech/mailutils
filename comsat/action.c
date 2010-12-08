@@ -181,13 +181,8 @@ expand_line (const char *str, mu_message_t msg)
 }
 
 const char *default_action =
-"Mail to \a$u@$h\a\n"
-"---\n"
-"From: $H{from}\n"
-"Subject: $H{Subject}\n"
-"---\n"
-"$B(,5)\n"
-"---\n";
+#include "biff.rc.h"
+;
 
 static void
 action_beep (mu_stream_t tty)
@@ -439,126 +434,186 @@ open_default_tty (const char *device)
 		   default_filters);
 }
 
-void
-run_user_action (const char *device, mu_message_t msg)
+struct biffrc_environ
 {
+  mu_stream_t tty;
+  mu_message_t msg;
   mu_stream_t input;
-  int nact = 0;
-  mu_stream_t tty = open_default_tty (device);
+  struct mu_locus locus;
+  int use_default;
+};
 
-  if (!tty)
-    return;
-  input = open_rc (biffrc, tty);
-  if (input)
+void
+eval_biffrc (struct biffrc_environ *env)
+{
+  char *stmt = NULL;
+  size_t size = 0;
+  size_t n;
+  struct mu_wordsplit ws;
+  int wsflags;
+  
+  ws.ws_comment = "#";
+  wsflags = MU_WRDSF_DEFFLAGS | MU_WRDSF_COMMENT;
+  while (mu_stream_getline (env->input, &stmt, &size, &n) == 0 && n > 0)
     {
-      char *stmt = NULL;
-      size_t size = 0;
-      size_t n;
-      char *cwd = mu_getcwd ();
-      char *rcname;
-      struct mu_locus locus;
-      struct mu_wordsplit ws;
-      int wsflags;
-      
-      rcname = mu_make_file_name (cwd, BIFF_RC);
-      free (cwd);
-      if (!rcname)
-        {
-	  mu_diag_funcall (MU_DIAG_ERROR, "mu_make_file_name", NULL, ENOMEM);
-	  locus.mu_file = BIFF_RC;
-        }
-      else
-	locus.mu_file = rcname;
-
-      locus.mu_line = 1;
-      locus.mu_col = 0;
-
-      ws.ws_comment = "#";
-      wsflags = MU_WRDSF_DEFFLAGS | MU_WRDSF_COMMENT;
-      while (mu_stream_getline (input, &stmt, &size, &n) == 0 && n > 0)
+      mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM,
+		       MU_IOCTL_LOGSTREAM_SET_LOCUS, &env->locus);
+      if (mu_wordsplit (stmt, &ws, wsflags) == 0 && ws.ws_wordc)
 	{
-	  if (mu_wordsplit (stmt, &ws, wsflags) == 0 && ws.ws_wordc)
+	  if (strcmp (ws.ws_wordv[0], "beep") == 0)
 	    {
-	      mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM,
-                               MU_IOCTL_LOGSTREAM_SET_LOCUS, &locus);
-	      if (strcmp (ws.ws_wordv[0], "beep") == 0)
+	      /* FIXME: excess arguments are ignored */
+	      action_beep (env->tty);
+	    }
+	  else
+	    {
+	      /* Rest of actions require keyword expansion */
+	      int i;
+	      int n_option = ws.ws_wordc > 1 &&
+		strcmp (ws.ws_wordv[1], "-n") == 0;
+	      
+	      for (i = 1; i < ws.ws_wordc; i++)
 		{
-		  /* FIXME: excess arguments are ignored */
-		  action_beep (tty);
-		  nact++;
+		  char *oldarg = ws.ws_wordv[i];
+		  ws.ws_wordv[i] = expand_line (ws.ws_wordv[i], env->msg);
+		  free (oldarg);
+		  if (!ws.ws_wordv[i])
+		    break;
+		}
+	      
+	      if (strcmp (ws.ws_wordv[0], "tty") == 0)
+		{
+		  mu_stream_t ntty = open_tty (ws.ws_wordv[1],
+					       ws.ws_wordc - 2,
+					       ws.ws_wordv + 2);
+		  if (!ntty)
+		    {
+		      mu_stream_printf (env->tty,
+					_("%s:%d: cannot open tty\n"),
+					env->locus.mu_file,
+					env->locus.mu_line);
+		      break;
+		    }
+		  mu_stream_destroy (&env->tty);
+		  env->tty = ntty;
+		}
+	      else if (strcmp (ws.ws_wordv[0], "echo") == 0)
+		{
+		  int argc = ws.ws_wordc - 1;
+		  char **argv = ws.ws_wordv + 1;
+		  if (n_option)
+		    {
+		      argc--;
+		      argv++;
+		    }
+		  action_echo (env->tty, n_option, argc, argv);
+		}
+	      else if (strcmp (ws.ws_wordv[0], "exec") == 0)
+		{
+		  action_exec (env->tty, ws.ws_wordc - 1, ws.ws_wordv + 1);
+		}
+	      else if (strcmp (ws.ws_wordv[0], "default") == 0)
+		{
+		  env->use_default = 1;
 		}
 	      else
 		{
-		  /* Rest of actions require keyword expansion */
-		  int i;
-		  int n_option = ws.ws_wordc > 1 &&
-		                 strcmp (ws.ws_wordv[1], "-n") == 0;
-		  
-		  for (i = 1; i < ws.ws_wordc; i++)
-		    {
-		      char *oldarg = ws.ws_wordv[i];
-		      ws.ws_wordv[i] = expand_line (ws.ws_wordv[i], msg);
-		      free (oldarg);
-		      if (!ws.ws_wordv[i])
-			break;
-		    }
-
-		  if (strcmp (ws.ws_wordv[0], "tty") == 0)
-		    {
-		      mu_stream_t ntty = open_tty (ws.ws_wordv[1],
-						   ws.ws_wordc - 2,
-						   ws.ws_wordv + 2);
-		      if (!ntty)
-			{
-			  mu_stream_printf (tty,
-					    _(".biffrc:%d: cannot open tty\n"),
-					    locus.mu_line);
-			  break;
-			}
-		      mu_stream_destroy (&tty);
-		      tty = ntty;
-		    }
-		  else if (strcmp (ws.ws_wordv[0], "echo") == 0)
-		    {
-		      int argc = ws.ws_wordc - 1;
-		      char **argv = ws.ws_wordv + 1;
-		      if (n_option)
-			{
-			  argc--;
-			  argv++;
-			}
-		      action_echo (tty, n_option, argc, argv);
-		      nact++;
-		    }
-		  else if (strcmp (ws.ws_wordv[0], "exec") == 0)
-		    {
-		      action_exec (tty, ws.ws_wordc - 1, ws.ws_wordv + 1);
-		      nact++;
-		    }
-		  else
-		    {
-		      mu_stream_printf (tty,
-					_(".biffrc:%d: unknown keyword\n"),
-					locus.mu_line);
-		      mu_diag_output (MU_DIAG_ERROR, _("unknown keyword %s"),
-				      ws.ws_wordv[0]);
-		      break;
-		    }
-		} 
-	    }
-	  wsflags |= MU_WRDSF_REUSE;
-	  /* FIXME: line number is incorrect if .biffrc contains
-	     escaped newlines */
-	  locus.mu_line++;
+		  mu_stream_printf (env->tty,
+				    _("%s:%d: unknown keyword\n"),
+				    env->locus.mu_file,
+				    env->locus.mu_line);
+		  mu_diag_output (MU_DIAG_ERROR, _("unknown keyword %s"),
+				  ws.ws_wordv[0]);
+		  break;
+		}
+	    } 
 	}
-      mu_wordsplit_free (&ws);
-      mu_stream_destroy (&input);
-      mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM,
-                       MU_IOCTL_LOGSTREAM_SET_LOCUS, NULL);
+      else
+	{
+	  const char *diag = mu_wordsplit_strerror (&ws);
+	  mu_stream_printf (env->tty,
+			    _("%s:%d: %s\n"),
+			    env->locus.mu_file,
+			    env->locus.mu_line,
+			    diag);
+	  mu_diag_output (MU_DIAG_ERROR, "%s", diag);
+	}
+      
+      wsflags |= MU_WRDSF_REUSE;
+      /* FIXME: line number is incorrect if .biffrc contains
+	 escaped newlines */
+      env->locus.mu_line++;
+    }
+  free (stmt);
+  mu_wordsplit_free (&ws);
+}
+
+
+void
+run_user_action (const char *device, mu_message_t msg)
+{
+  mu_stream_t stream;
+  struct biffrc_environ env;
+
+  env.tty = open_default_tty (device);
+  if (!env.tty)
+    return;
+  env.msg = msg;
+  
+  env.input = open_rc (biffrc, env.tty);
+  if (env.input)
+    {
+      char *cwd = mu_getcwd ();
+      char *rcname;
+      rcname = mu_make_file_name (cwd, BIFF_RC);
+      free (cwd);
+      if (!rcname)
+	{
+	  mu_diag_funcall (MU_DIAG_ERROR, "mu_make_file_name", NULL, ENOMEM);
+	  env.locus.mu_file = BIFF_RC;
+	}
+      else
+	env.locus.mu_file = rcname;
+      
+      env.locus.mu_line = 1;
+      env.locus.mu_col = 0;
+      env.use_default = 0;
+      eval_biffrc (&env);
+      mu_stream_destroy (&env.input);
       free (rcname);
     }
+  else
+    env.use_default = 1;
 
-  if (nact == 0)
-    echo_string (tty, expand_line (default_action, msg));
-  mu_stream_destroy (&tty);
+  if (env.use_default &&
+      mu_static_memory_stream_create (&stream, default_action,
+				      strlen (default_action)) == 0)
+    {
+      int rc = mu_filter_create (&env.input, stream, "LINECON",
+				 MU_FILTER_DECODE,
+				 MU_STREAM_READ);
+      mu_stream_unref (stream);
+      if (rc)
+	{
+	  mu_stream_printf (env.tty,
+			    _("Cannot create filter for the default action: %s\n"),
+			    mu_strerror (rc));
+	  mu_diag_output (MU_DIAG_NOTICE,
+			  _("cannot create default filter for %s: %s"),
+			  username, mu_strerror (rc));
+	}
+      else
+	{
+	  env.locus.mu_file = "<default>";
+	  env.locus.mu_line = 1;
+	  env.locus.mu_col = 0;
+	  eval_biffrc (&env);
+	  mu_stream_destroy (&env.input);
+	}
+    }
+  
+  mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM,
+		   MU_IOCTL_LOGSTREAM_SET_LOCUS, NULL);
+
+  mu_stream_destroy (&env.tty);
 }

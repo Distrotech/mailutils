@@ -4,3 +4,4 @@ comsatd
 .deps
 .libs
 .gdbinit
+biff.rc.h

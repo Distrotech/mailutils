@@ -46,6 +46,7 @@ BIFFTEST([default commands],[comsatd00],
 MUT_MBCOPY($abs_top_srcdir/testsuite/spool/teaparty.mbox, mailbox)
 cat > biff.rc <<EOT
 tty $cwd/output
+default
 EOT
 chmod 600 biff.rc
 > $cwd/output
@@ -69,6 +70,7 @@ BIFFTEST([non-zero qid],[comsatd01],
 MUT_MBCOPY($abs_top_srcdir/testsuite/spool/teaparty.mbox, mailbox)
 cat > biff.rc <<EOT
 tty $cwd/output
+default
 EOT
 chmod 600 biff.rc
 > $cwd/output
@@ -93,6 +95,7 @@ BIFFTEST([maildir qid],[comsatd02],
 MUT_MBCOPY($abs_top_srcdir/testsuite/maildir/teaparty, mailbox)
 cat > biff.rc <<EOT
 tty $cwd/output
+default
 EOT
 chmod 600 biff.rc
 > $cwd/output
@@ -116,6 +119,7 @@ BIFFTEST([MH qid],[comsatd03],
 MUT_MBCOPY($abs_top_srcdir/testsuite/mh/teaparty, mailbox)
 cat > biff.rc <<EOT
 tty $cwd/output
+default
 EOT
 chmod 600 biff.rc
 > $cwd/output
