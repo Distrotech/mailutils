@@ -68,6 +68,10 @@
 
 #define BIFF_RC ".biffrc"
 
+/* Where to report biffrc errors to: */
+#define BIFFRC_ERRORS_TO_TTY 0x01  /* Send them to the user's tty */
+#define BIFFRC_ERRORS_TO_ERR 0x02  /* Send them to strerr */
+
 extern int allow_biffrc;
 extern unsigned maxrequests;
 extern time_t request_control_interval;
@@ -78,6 +82,7 @@ extern const char *username;
 extern char *hostname;
 extern struct daemon_param daemon_param;
 extern char *biffrc;
+extern int biffrc_errors;
 
 void run_user_action (const char *device, mu_message_t msg);
 

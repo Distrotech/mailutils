@@ -54,7 +54,7 @@ typedef struct utmp UTMP;
 #define MAX_TTY_SIZE (sizeof (PATH_TTY_PFX) + sizeof (((UTMP*)0)->ut_line))
 
 const char *program_version = "comsatd (" PACKAGE_STRING ")";
-static char doc[] = N_("GNU comsatd -- the Comsat daemon.");
+static char doc[] = N_("GNU comsatd -- notify users about incoming mail");
 static char args_doc[] = N_("\n--test MBOX-URL MSG-QID");
 
 #define OPT_FOREGROUND 256
@@ -100,6 +100,7 @@ int maxlines = 5;
 char *hostname;
 const char *username;
 int require_tty;
+int biffrc_errors = BIFFRC_ERRORS_TO_TTY | BIFFRC_ERRORS_TO_ERR;
 mu_m_server_t server;
 
 static void comsat_init (void);
@@ -114,11 +115,45 @@ static int reload = 0;
 int test_mode;
 char *biffrc = BIFF_RC;
 
+static int
+biffrc_error_ctl (mu_config_value_t *val, int flag)
+{
+  int res;
+  
+  if (mu_cfg_assert_value_type (val, MU_CFG_STRING))
+    return 1;
+  if (mu_cfg_parse_boolean (val->v.string, &res))
+    mu_diag_output (MU_LOG_ERROR, _("not a boolean"));
+  else if (res)
+    biffrc_errors |= flag;
+  else
+    biffrc_errors &= ~flag;
+  return 0;
+}
+    
+static int
+cb_biffrc_errors_to_tty (void *data, mu_config_value_t *val)
+{
+  return biffrc_error_ctl (val, BIFFRC_ERRORS_TO_TTY);
+}
+
+static int
+cb_biffrc_errors_to_err (void *data, mu_config_value_t *val)
+{
+  return biffrc_error_ctl (val, BIFFRC_ERRORS_TO_ERR);
+}
+
 struct mu_cfg_param comsat_cfg_param[] = {
   { "allow-biffrc", mu_cfg_bool, &allow_biffrc, 0, NULL,
     N_("Read .biffrc file from the user home directory.") },
   { "require-tty", mu_cfg_bool, &require_tty, 0, NULL,
     N_("Notify only if the user is logged on one of the ttys.") },
+  { "biffrc-errors-to-tty", mu_cfg_callback, NULL, 0, cb_biffrc_errors_to_tty,
+    N_("Send biffrc errors to user's tty."),
+    N_("arg: bool") },
+  { "biffrc-errors-to-err", mu_cfg_callback, NULL, 0, cb_biffrc_errors_to_err,
+    N_("Send biffrc errors to Mailutils error output."),
+    N_("arg: bool") },
   { "max-lines", mu_cfg_int, &maxlines, 0, NULL,
     N_("Maximum number of message body lines to be output.") },
   { "max-requests", mu_cfg_uint, &maxrequests, 0, NULL,
@@ -548,6 +583,7 @@ main (int argc, char **argv)
       argv += ind;
   
       mu_stdstream_strerr_setup (MU_STRERR_STDERR);
+      biffrc_errors = BIFFRC_ERRORS_TO_ERR;
       if (argc < 2 || argc > 2)
 	{
 	  mu_error (_("mailbox URL and message QID are required in test mode"));

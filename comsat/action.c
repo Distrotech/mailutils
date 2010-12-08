@@ -314,15 +314,19 @@ struct biffrc_environ
 static void
 report_error (struct biffrc_environ *env, const char *fmt, ...)
 {
-  va_list ap;
-  va_start (ap, fmt);
-  mu_vasnprintf (&env->errbuf, &env->errsize, fmt, ap);
-  mu_stream_printf (env->logstr, "%s\n", env->errbuf);
-  mu_diag_output (MU_DIAG_ERROR, "%s", env->errbuf);
-  va_end (ap);
+  if (biffrc_errors)
+    {
+      va_list ap;
+      va_start (ap, fmt);
+      mu_vasnprintf (&env->errbuf, &env->errsize, fmt, ap);
+      if (biffrc_errors & BIFFRC_ERRORS_TO_TTY)
+	mu_stream_printf (env->logstr, "%s\n", env->errbuf);
+      if (biffrc_errors & BIFFRC_ERRORS_TO_ERR)
+	mu_diag_output (MU_DIAG_ERROR, "%s", env->errbuf);
+      va_end (ap);
+    }
 }
-		  
-  
+
 static void
 action_beep (struct biffrc_environ *env, size_t argc, char **argv)
 {
