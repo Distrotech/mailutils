@@ -3,11 +3,28 @@
 # the user and have permissions 0600
 # Each line specifies an action to be taken upon arrival of
 # a message. A backslash can be used to escape the newlines.
-# Actions could be:
-#  beep              --  Produce audible signal
-#  echo STRING       --  Output STRING to the user's tty
-#  exec PROG ARGS... --  Execute given program 
 #
+# Valid actions are:
+# * beep
+#     Produces audible signal.
+# * echo [-n] ARGS
+#     Outputs ARGS to the tty.  The -n option suppresses trailing newline.
+# * exec PROG ARGS...
+#     Executes the program PROG with the given arguments.
+# * default
+#     Executes the default (built-in) actions.
+# * tty NAME [[~]FLT [ARGS] [+ [~]FLT [ARGS]...]
+#     Opens the file NAME and assigns it as a tty for subsequent commands.
+#     NAME can be any type of file, the only requirement being that it
+#     must exist.  Optional arguments insert a chain of filters before
+#     writing to that file or device.  For the list of available filters
+#     run `mu filter --list'.  Filters are applied from right to left.
+#     The ~ in front of a filter name means open this filter in decode more
+#     (by default, filters are opened in encode mode).
+#     Default settings correspond to:
+#          tty /dev/tty 7bit + ?crlf
+#     The ? means apply next filter only if the device needs CR to be output
+#     before each LF.
 
 # This is the default action
 echo "Mail to \a$u@$h\a\n---\n\
@@ -15,7 +32,7 @@ From: $H{from}\n\
 Subject: $H{Subject}\n\
 ---\n\
 $B(,5)\n\
----\n"
+---"
 
 # For users of X windows system: produce a bell and open an xmessage window
 beep

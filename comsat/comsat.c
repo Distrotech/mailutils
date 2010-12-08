@@ -606,7 +606,8 @@ main (int argc, char **argv)
 	    }
 	}
 
-      if (biffrc[0] == '.' && biffrc[1] == '/')
+      if (biffrc[0] == '.' && (biffrc[1] == '/' ||
+			       (biffrc[1] == '.' && biffrc[2] == '/')))
 	{
 	  char *cwd = mu_getcwd ();
 	  biffrc = mu_make_file_name (cwd, biffrc);
