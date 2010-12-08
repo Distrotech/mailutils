@@ -16,7 +16,7 @@
 
 AT_SETUP([linecon filter])
 AT_KEYWORDS([filter decode linecon])
-sed 's/\$//' > input <<EOT
+sed 's/\$//' > input <<\EOT
 input line 1
 input line 2
 a very\
@@ -27,7 +27,7 @@ it over several physical\
 a li\ne with \escapes
 backslash followed by a space \ $
 EOT
-sed 's/\$//' > expout <<EOT
+sed 's/\$//' > expout <<\EOT
 input line 1
 input line 2
 a very long logical line split over several physical ones
@@ -40,6 +40,46 @@ AT_CHECK([fltst linecon decode read < input],
 [expout])
 
 AT_CHECK([fltst linecon decode write < input],
+[0],
+[expout])
+
+AT_CLEANUP
+
+dnl ---------------------------------------------------------------
+
+AT_SETUP([linecon filter: line info facility])
+AT_KEYWORDS([filter decode linecon line-info])
+sed 's/\$//' > input <<\EOT
+input line 1
+input line 2
+a very\$
+ long logical\
+ line spl\
+it over several physical\
+ ones
+a li\ne with \escapes
+backslash followed by a space \ $
+another\
+ split line\\\n
+end of test 
+EOT
+sed 's/\$//' > expout <<\EOT
+input line 1
+input line 2
+a very long logical line split over several physical ones
+;line 8
+a li\ne with \escapes
+backslash followed by a space \ $
+another split line\\\n
+;line 12
+end of test
+EOT
+
+AT_CHECK([fltst linecon decode read -- -i ';line' < input],
+[0],
+[expout])
+
+AT_CHECK([fltst linecon decode write -- -i ';line' < input],
 [0],
 [expout])
 

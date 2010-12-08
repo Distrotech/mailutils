@@ -156,8 +156,29 @@ text 4
      text 5[]dnl
 ])	
 
+INLINECOM([line info facility],[icmt07 line-info],[-- -i ';line' ';'],
+[; initial comment
+this is line 2
+this is line 3
+; A long contiguous
+; sequence
+; of comments
+; occupying several
+; lines
+this is line 9
+],
+[;line 2
+this is line 2
+this is line 3
+;line 9
+this is line 9
+])
+
+dnl -------------------------------------------------------------------
+
 m4_define([FILTER_MODE],[encode])
-INLINECOM([encode],[icmt07],[],
+
+INLINECOM([encode],[icmt08],[],
 [C'est dans dix ans je m'en irai
 J'entends le loup et le renard chanter
 J'entends le loup, le renard et la belette
@@ -167,7 +188,7 @@ J'entends le loup et le renard chanter],
 ;J'entends le loup, le renard et la belette
 ;J'entends le loup et le renard chanter])
 
-INLINECOM([encode multichar; add ws],[icmt07],[-- NB: -S],
+INLINECOM([encode multichar; add ws],[icmt09],[-- NB: -S],
 [Tri martolod yaouank
 O voned da voyagi
 Gant'el oant bet kaset

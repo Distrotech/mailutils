@@ -40,14 +40,15 @@
 #include <mailutils/io.h>
 
 #define LINECON_LINE_INFO          0x01 /* Emit line number information */ 
-#define LINECON_LINE_INFO_STATIC   0x02
+#define LINECON_LINE_INFO_STATIC   0x02 /* Line info starter is in static
+					   storage */
+#define LINECON_CONTINUATION       0x04 /* Line continuation in progress */
 
 enum linecon_state
   {
-    linecon_init,
-    linecon_escape,
-    linecon_newline,
-    linecon_rollback
+    linecon_init,                  /* Initial state */ 
+    linecon_escape,                /* An escape was seen */
+    linecon_rollback               /* Rollback in progress */
   };
 
 struct linecon_data
@@ -98,7 +99,6 @@ _linecon_decoder (void *xd, enum mu_filter_command cmd,
       switch (pd->state)
 	{
 	case linecon_init:
-	case linecon_newline:
 	  switch (*iptr)
 	    {
 	    case '\\':
@@ -107,8 +107,9 @@ _linecon_decoder (void *xd, enum mu_filter_command cmd,
 	      continue;
 	    case '\n':
 	      pd->line_number++;
-	      if (pd->state == linecon_newline)
+	      if (pd->flags & LINECON_CONTINUATION)
 		{
+		  pd->flags &= ~LINECON_CONTINUATION;
 		  mu_asnprintf (&pd->buf, &pd->size, "%s %lu\n",
 				pd->line_info_starter,
 				pd->line_number);
@@ -128,8 +129,9 @@ _linecon_decoder (void *xd, enum mu_filter_command cmd,
 	    {
 	      pd->line_number++;
 	      iptr++;
-	      pd->state = (pd->flags & LINECON_LINE_INFO) ?
-		             linecon_newline : linecon_init;
+	      pd->state = linecon_init;
+	      if (pd->flags & LINECON_LINE_INFO)
+		pd->flags |= LINECON_CONTINUATION;
 	      continue;
 	    }
 	  else
