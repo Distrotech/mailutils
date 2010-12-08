@@ -378,6 +378,18 @@ _log_ctl (struct _mu_stream *str, int code, int opcode, void *arg)
 	    break;
 	  }
 
+	case MU_IOCTL_LOGSTREAM_SET_LOCUS_LINE:
+	  if (!arg)
+	    return EINVAL;
+	  sp->locus.mu_line = *(unsigned*)arg;
+	  break;
+	  
+	case MU_IOCTL_LOGSTREAM_SET_LOCUS_COL:
+	  if (!arg)
+	    return EINVAL;
+	  sp->locus.mu_col = *(unsigned*)arg;
+	  break;
+	  
 	case MU_IOCTL_LOGSTREAM_ADVANCE_LOCUS_LINE:
 	  if (!arg)
 	    sp->locus.mu_line++;

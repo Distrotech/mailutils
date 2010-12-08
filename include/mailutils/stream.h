@@ -108,26 +108,36 @@ enum mu_buffer_type
 #define MU_IOCTL_LOGSTREAM_GET_MODE     4
 #define MU_IOCTL_LOGSTREAM_SET_MODE     5
 
+  /* Set locus line.
+     Arg: unsigned *
+  */
+#define MU_IOCTL_LOGSTREAM_SET_LOCUS_LINE  6
+  /* Set locus column.
+     Arg: unsigned *
+  */
+#define MU_IOCTL_LOGSTREAM_SET_LOCUS_COL   7
+  
   /* Advance locus line.
      Arg: NULL (increment by 1)
           int *
   */
-#define MU_IOCTL_LOGSTREAM_ADVANCE_LOCUS_LINE 6
+#define MU_IOCTL_LOGSTREAM_ADVANCE_LOCUS_LINE 8
   /* Advance locus column.
      Arg: NULL (increment by 1)
           int *
   */
-#define MU_IOCTL_LOGSTREAM_ADVANCE_LOCUS_COL  7
+
+#define MU_IOCTL_LOGSTREAM_ADVANCE_LOCUS_COL  9
 
   /* Suppress output of messages having severity lower than the
      given threshold.
      Arg: int *
   */
-#define MU_IOCTL_LOGSTREAM_SUPPRESS_SEVERITY  8
+#define MU_IOCTL_LOGSTREAM_SUPPRESS_SEVERITY  10
   /* Same as above, but:
      Arg: const char *
   */
-#define MU_IOCTL_LOGSTREAM_SUPPRESS_SEVERITY_NAME 9
+#define MU_IOCTL_LOGSTREAM_SUPPRESS_SEVERITY_NAME 11
 
   /* Opcodes for MU_IOCTL_XSCRIPTSTREAM */
   /* Swap transcript levels.

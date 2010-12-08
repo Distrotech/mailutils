@@ -522,12 +522,12 @@ eval_biffrc (struct biffrc_environ *env)
   
   ws.ws_comment = "#";
   wsflags = MU_WRDSF_DEFFLAGS | MU_WRDSF_COMMENT;
+  mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM,
+		   MU_IOCTL_LOGSTREAM_SET_LOCUS, &env->locus);
+  mu_stream_ioctl (env->logstr, MU_IOCTL_LOGSTREAM,
+		   MU_IOCTL_LOGSTREAM_SET_LOCUS, &env->locus);
   while (mu_stream_getline (env->input, &stmt, &size, &n) == 0 && n > 0)
     {
-      mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM,
-		       MU_IOCTL_LOGSTREAM_SET_LOCUS, &env->locus);
-      mu_stream_ioctl (env->logstr, MU_IOCTL_LOGSTREAM,
-		       MU_IOCTL_LOGSTREAM_SET_LOCUS, &env->locus);
       if (strncmp (stmt, "#line ", 6) == 0)
 	{
 	  char *p;
@@ -540,9 +540,11 @@ eval_biffrc (struct biffrc_environ *env)
 	  else
 	    {
 	      mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM,
-			       MU_IOCTL_LOGSTREAM_SET_LOCUS, &env->locus);
+			       MU_IOCTL_LOGSTREAM_SET_LOCUS_LINE,
+			       &env->locus.mu_line);
 	      mu_stream_ioctl (env->logstr, MU_IOCTL_LOGSTREAM,
-			       MU_IOCTL_LOGSTREAM_SET_LOCUS, &env->locus);
+			       MU_IOCTL_LOGSTREAM_SET_LOCUS_LINE,
+			       &env->locus.mu_line);
 	    }
 	  continue;
 	}
@@ -553,7 +555,10 @@ eval_biffrc (struct biffrc_environ *env)
 	  
 	  if (ws.ws_wordc == 0)
 	    {
-	      env->locus.mu_line++;
+	      mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM,
+			       MU_IOCTL_LOGSTREAM_ADVANCE_LOCUS_LINE, NULL);
+	      mu_stream_ioctl (env->logstr, MU_IOCTL_LOGSTREAM,
+			       MU_IOCTL_LOGSTREAM_ADVANCE_LOCUS_LINE, NULL);
 	      continue;
 	    }
 
@@ -591,7 +596,10 @@ eval_biffrc (struct biffrc_environ *env)
 	report_error (env, "%s", mu_wordsplit_strerror (&ws));
       
       wsflags |= MU_WRDSF_REUSE;
-      env->locus.mu_line++;
+      mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM,
+		       MU_IOCTL_LOGSTREAM_ADVANCE_LOCUS_LINE, NULL);
+      mu_stream_ioctl (env->logstr, MU_IOCTL_LOGSTREAM,
+		       MU_IOCTL_LOGSTREAM_ADVANCE_LOCUS_LINE, NULL);
     }
   free (stmt);
   mu_wordsplit_free (&ws);
