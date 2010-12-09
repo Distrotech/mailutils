@@ -107,4 +107,35 @@ mu_linelen_filter_create (mu_stream_t *pstream, mu_stream_t stream,
   return mu_filter_stream_create (pstream, stream,
 				  MU_FILTER_ENCODE, _ll_encoder, flt, flags);
 }
+
+static int
+alloc_state (void **pret, int mode MU_ARG_UNUSED, int argc, const char **argv)
+{
+  struct _mu_linelen_filter *flt = malloc (sizeof (flt[0]));
   
+  if (!flt)
+    return ENOMEM;
+  flt->cur_len = 0;
+  flt->max_len = 76;
+  if (argc > 1)
+    {
+      char *p;
+      flt->max_len = strtoul (argv[1], &p, 10);
+      if (*p)
+	{
+	  free (flt);
+	  return MU_ERR_PARSE;
+	}
+    }
+  *pret = flt;
+  return 0;
+}
+
+static struct _mu_filter_record _linelen_filter = {
+  "LINELEN",
+  alloc_state,
+  _ll_encoder,
+  NULL,
+};
+
+mu_filter_record_t mu_linelen_filter = &_linelen_filter;

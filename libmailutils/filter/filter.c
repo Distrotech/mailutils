@@ -81,82 +81,12 @@ mu_filter_get_list (mu_list_t *plist)
       mu_list_append (filter_list, mu_inline_comment_filter);
       mu_list_append (filter_list, mu_header_filter);
       mu_list_append (filter_list, mu_linecon_filter);
+      mu_list_append (filter_list, mu_linelen_filter);
       /* FIXME: add the default encodings?  */
     }
   *plist = filter_list;
   mu_monitor_unlock (&filter_monitor);
   return 0;
-}
-
-static int
-filter_create_rd (mu_stream_t *pstream, mu_stream_t stream,
-		  size_t max_line_length,
-		  int mode,
-		  mu_filter_xcode_t xcode, void *xdata,
-		  int flags)
-{
-  int status;
-  mu_stream_t fltstream;
-
-  flags &= ~MU_STREAM_AUTOCLOSE;
-  
-  status = mu_filter_stream_create (&fltstream, stream,
-				    mode, xcode, xdata,
-				    flags);
-  if (status == 0)
-    {
-      if (max_line_length)
-	{
-	  status = mu_linelen_filter_create (pstream, fltstream,
-					     max_line_length,
-					     flags);
-	  mu_stream_unref (fltstream);
-	  if (status)
-	    return status;
-	}
-      else
-	*pstream = fltstream;
-
-      if (flags & MU_STREAM_AUTOCLOSE)
-	mu_stream_unref (stream);
-    }
-  return status;
-}
-
-static int
-filter_create_wr (mu_stream_t *pstream, mu_stream_t stream,
-		  size_t max_line_length,
-		  int mode,
-		  mu_filter_xcode_t xcode, void *xdata,
-		  int flags)
-{
-  int status;
-  mu_stream_t fltstream, instream = NULL, tmpstr;
-  
-  flags &= ~MU_STREAM_AUTOCLOSE;
-
-  if (max_line_length)
-    {
-      status = mu_linelen_filter_create (&instream, stream,
-					 max_line_length,
-					 flags);
-      if (status)
-	return status;
-      tmpstr = instream;
-    }
-  else
-    tmpstr = stream;
-  
-  status = mu_filter_stream_create (&fltstream, tmpstr,
-				    mode, xcode, xdata,
-				    flags);
-  mu_stream_unref (instream);
-  if (status)
-    return status;
-  *pstream = fltstream;
-  if (flags & MU_STREAM_AUTOCLOSE)
-    mu_stream_unref (stream);
-  return status;
 }
 
 int
@@ -189,15 +119,12 @@ mu_filter_create_args (mu_stream_t *pstream, mu_stream_t stream,
 	return status;
     }
 
-  status = ((flags & MU_STREAM_WRITE) ? filter_create_wr : filter_create_rd)
-                   (pstream, stream,
-		    mode == MU_FILTER_ENCODE ? frec->max_line_length : 0,
-		    mode,
-		    xcode,
-		    xdata,
-		    flags);
+  status = mu_filter_stream_create (pstream, stream,
+				    mode, xcode, xdata,
+				    flags);
   if (status)
-    free (xdata);
+    free (xdata);  
+
   return status;
 }
 

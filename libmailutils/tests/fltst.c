@@ -68,23 +68,6 @@ c_copy (mu_stream_t out, mu_stream_t in)
 
 }
 
-/* Set the maximum line length for the filter NAME to LENGTH.
-   FIXME: This is a kludge. Perhaps API should provide a function
-   for that. */
-static void
-reset_line_length (const char *name, size_t length)
-{
-  mu_list_t list;
-  int status;
-  mu_filter_record_t frec;
-  
-  mu_filter_get_list (&list);
-  status = mu_list_locate (list, (void*)name, (void**)&frec);
-  if (status == 0)
-    frec->max_line_length = length;
-  /* don't bail out, leave that to mu_filter_create */
-}
-
 void
 usage (const char *diag)
 {
@@ -99,7 +82,7 @@ usage (const char *diag)
     fp = stdout;
 
   fprintf (fp, "%s",
-	   "usage: fltst FILTER {encode|decode} {read|write} [shift=N] [linelen=N] [verbose] [printable] [nl] [-- args]\n");
+	   "usage: fltst FILTER {encode|decode} {read|write} [shift=N] [verbose] [printable] [nl] [-- args]\n");
   exit (diag ? 1 : 0);
 }
 
@@ -112,8 +95,6 @@ main (int argc, char * argv [])
   int flags = MU_STREAM_READ;
   char *fltname;
   mu_off_t shift = 0;
-  size_t line_length;
-  int line_length_option = 0;
   int newline_option = 0;
   
   if (argc == 1)
@@ -141,11 +122,6 @@ main (int argc, char * argv [])
     {
       if (strncmp (argv[i], "shift=", 6) == 0)
 	shift = strtoul (argv[i] + 6, NULL, 0); 
-      else if (strncmp (argv[i], "linelen=", 8) == 0)
-	{
-	  line_length = strtoul (argv[i] + 8, NULL, 10);
-	  line_length_option = 1;
-	}
       else if (strcmp (argv[i], "verbose") == 0)
 	verbose++;
       else if (strcmp (argv[i], "printable") == 0)
@@ -167,9 +143,6 @@ main (int argc, char * argv [])
   MU_ASSERT (mu_stdio_stream_create (&in, MU_STDIN_FD, 0));
   MU_ASSERT (mu_stdio_stream_create (&out, MU_STDOUT_FD, 0));
 
-  if (line_length_option)
-    reset_line_length (fltname, line_length);
-  
   if (flags == MU_STREAM_READ)
     {
       MU_ASSERT (mu_filter_create_args (&flt, in, fltname,

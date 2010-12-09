@@ -273,7 +273,6 @@ _from_alloc_state (void **pret, int mode,
 
 static struct _mu_filter_record _from_filter = {
   "FROM",
-  0,
   _from_alloc_state,
   _from_encoder,
   _from_decoder

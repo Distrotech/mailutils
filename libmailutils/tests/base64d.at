@@ -19,7 +19,7 @@ AT_KEYWORDS([base64 base64d base64dr decode filter])
 
 AT_CHECK([
 cp $abs_top_srcdir/libmailutils/tests/Encode expout
-fltst base64 decode read linelen=0 < $abs_top_srcdir/libmailutils/tests/Decode],
+fltst base64 decode read < $abs_top_srcdir/libmailutils/tests/Decode],
 [0],
 [expout])
 
@@ -31,7 +31,7 @@ AT_KEYWORDS([base64 base64d base64dw decode filter])
 
 AT_CHECK([
 cp $abs_top_srcdir/libmailutils/tests/Encode expout
-fltst base64 decode write linelen=0 < $abs_top_srcdir/libmailutils/tests/Decode],
+fltst base64 decode write < $abs_top_srcdir/libmailutils/tests/Decode],
 [0],
 [expout])
 

@@ -112,7 +112,6 @@ alloc_state (void **pret, int mode MU_ARG_UNUSED,
 
 static struct _mu_filter_record _header_filter = {
   "HEADER",
-  0,
   alloc_state,
   NULL,
   _hflt_decoder

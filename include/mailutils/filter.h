@@ -81,11 +81,19 @@ int mu_filter_stream_create (mu_stream_t *pflt,
 			     void *xdata, 
 			     int flags);
 
+int mu_filter_chain_create_pred (mu_stream_t *pret, mu_stream_t transport,
+				 int defmode, int flags,
+				 size_t argc, char **argv,
+				 int (*pred) (void *, mu_stream_t,
+					      const char *),
+				 void *closure);
+int mu_filter_chain_create (mu_stream_t *pret, mu_stream_t transport,
+			    int defmode, int flags,
+			    size_t argc, char **argv);
 
 struct _mu_filter_record
 {
   const char *name;
-  size_t max_line_length;
   mu_filter_new_data_t newdata;
   mu_filter_xcode_t encoder;
   mu_filter_xcode_t decoder;
@@ -111,6 +119,7 @@ extern mu_filter_record_t mu_from_filter;
 extern mu_filter_record_t mu_inline_comment_filter;
 extern mu_filter_record_t mu_header_filter;
 extern mu_filter_record_t mu_linecon_filter;
+extern mu_filter_record_t mu_linelen_filter;
 
 enum mu_iconv_fallback_mode
   {

@@ -213,7 +213,6 @@ alloc_state (void **pret, int mode MU_ARG_UNUSED, int argc, const char **argv)
 
 static struct _mu_filter_record _linecon_filter = {
   "LINECON",
-  0,
   alloc_state,
   NULL,
   _linecon_decoder,

@@ -259,7 +259,6 @@ alloc_state (void **pret, int mode MU_ARG_UNUSED,
 
 static struct _mu_filter_record _dot_filter = {
   "DOT",
-  0,
   alloc_state,
   _dot_encoder,
   _dot_decoder

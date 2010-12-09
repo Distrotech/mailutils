@@ -327,7 +327,6 @@ alloc_state (void **pret, int mode MU_ARG_UNUSED,
 
 static struct _mu_filter_record _crlfdot_filter = {
   "CRLFDOT",
-  0,
   alloc_state,
   _crlfdot_encoder,
   _crlfdot_decoder

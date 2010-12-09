@@ -93,23 +93,6 @@ c_copy (mu_stream_t out, mu_stream_t in)
     }
 }
 
-/* Set the maximum line length for the filter NAME to LENGTH.
-   FIXME: This is a kludge. Perhaps API should provide a function
-   for that. */
-static void
-reset_line_length (const char *name, size_t length)
-{
-  mu_list_t list;
-  int status;
-  mu_filter_record_t frec;
-  
-  mu_filter_get_list (&list);
-  status = mu_list_locate (list, (void*)name, (void**)&frec);
-  if (status == 0)
-    frec->max_line_length = length;
-  /* don't bail out, leave that to mu_filter_create */
-}
-
 int
 main (int argc, char * argv [])
 {
@@ -120,8 +103,9 @@ main (int argc, char * argv [])
   char *input = NULL, *output = NULL;
   char *encoding = "base64";
   mu_off_t shift = 0;
-  size_t line_length;
-  int line_length_option = 0;
+  char *line_length_option = NULL;
+  char *fargv[5];
+  size_t fargc = 0;
   
   while ((c = getopt (argc, argv, "deE:hi:l:o:ps:vw")) != EOF)
     switch (c)
@@ -147,8 +131,7 @@ main (int argc, char * argv [])
 	break;
 
       case 'l':
-	line_length = strtoul (optarg, NULL, 10);
-	line_length_option = 1;
+	line_length_option = optarg;
 	break;
 	
       case 'p':
@@ -186,22 +169,33 @@ main (int argc, char * argv [])
   else
     MU_ASSERT (mu_stdio_stream_create (&out, MU_STDOUT_FD, 0));
 
-  if (line_length_option)
-    reset_line_length (encoding, line_length);
+  fargv[fargc++] = encoding;
+  if (line_length_option && strcmp (line_length_option, "0"))
+    {
+      if (mu_c_strcasecmp (encoding, "base64") == 0)
+	fargv[0] = "B"; /* B encoding has no length limit */
+      fargv[fargc++] = "+";
+      fargv[fargc++] = (mode == MU_FILTER_DECODE) ? "~linelen" : "linelen";
+      fargv[fargc++] = line_length_option;
+    }
+  fargv[fargc] = NULL;
   
   if (flags == MU_STREAM_READ)
     {
-      MU_ASSERT (mu_filter_create (&flt, in, encoding, mode,
-				   MU_STREAM_READ|MU_STREAM_SEEK|
-				   MU_STREAM_AUTOCLOSE));
+      MU_ASSERT (mu_filter_chain_create (&flt, in, mode,
+					 MU_STREAM_READ|MU_STREAM_SEEK,
+					 fargc, fargv));
+      mu_stream_unref (in);
       if (shift)
 	MU_ASSERT (mu_stream_seek (flt, shift, MU_SEEK_SET, NULL));
       c_copy (out, flt);
     }
   else
     {
-      MU_ASSERT (mu_filter_create (&flt, out, encoding, mode,
-				   MU_STREAM_WRITE|MU_STREAM_AUTOCLOSE));
+      MU_ASSERT (mu_filter_chain_create (&flt, out, mode,
+					 MU_STREAM_WRITE,
+					 fargc, fargv));
+      mu_stream_unref (out);
       if (shift)
 	MU_ASSERT (mu_stream_seek (in, shift, MU_SEEK_SET, NULL));
       c_copy (flt, in);

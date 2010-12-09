@@ -175,25 +175,54 @@ _base64_decoder (void *xd MU_ARG_UNUSED,
   return mu_filter_ok;
 }
 
+enum base64_state
+{
+  base64_init,
+  base64_newline,
+  base64_rollback
+};
+
+struct base64_line
+{
+  enum base64_state state;
+  size_t max_len;
+  size_t cur_len;
+  char save[3];
+  int idx;
+};
+
 static enum mu_filter_result
-_base64_encoder (void *xd MU_ARG_UNUSED,
+_base64_encoder (void *xd,
 		 enum mu_filter_command cmd,
 		 struct mu_filter_io *iobuf)
 {
+  struct base64_line bline, *lp = xd;
   size_t consumed = 0;
   int pad = 0;
-  const unsigned char *ptr = (const unsigned char*) iobuf->input;
+  const unsigned char *ptr;
   size_t nbytes = 0;
   size_t isize;
   char *optr;
   size_t osize;
   enum mu_filter_result res;
-  
+
+  if (!lp)
+    {
+      lp = &bline;
+      lp->max_len = 0;
+      lp->state = base64_init;
+    }
   switch (cmd)
     {
     case mu_filter_init:
+      lp->state = base64_init;
+      lp->cur_len = 0;
+      lp->idx = 3;
+      return mu_filter_ok;
+      
     case mu_filter_done:
       return mu_filter_ok;
+      
     default:
       break;
     }
@@ -214,15 +243,48 @@ _base64_encoder (void *xd MU_ARG_UNUSED,
       return mu_filter_moreoutput;
     }
       
+  ptr = (const unsigned char*) iobuf->input;
   isize = iobuf->isize;
   optr = iobuf->output;
   osize = iobuf->osize;
 
-  while ((consumed + 3 <= isize && nbytes + 4 <= osize) || pad)
+  while (nbytes < osize)
     {
       unsigned char c1 = 0, c2 = 0, x = '=', y = '=';
+
+      if (lp->max_len && lp->cur_len == lp->max_len)
+	{
+	  if (lp->state == base64_init)
+	    lp->idx = 3;
+	  lp->state = base64_newline;
+	}
+      switch (lp->state)
+	{
+	case base64_init:
+	  break;
+	case base64_newline:
+	  *optr++ = '\n';
+	  nbytes++;
+	  lp->cur_len = 0;
+	  lp->state = base64_rollback;
+	  /* Fall through */
+	case base64_rollback:
+	  if (lp->idx < 3)
+	    {
+	      *optr++ = lp->save[lp->idx++];
+	      nbytes++;
+	      lp->cur_len++;
+	      continue;
+	    }
+	  lp->state = base64_init;
+	}
+
+      if (!(consumed + 3 <= isize || pad))
+	break;
 	
       *optr++ = b64tab[ptr[0] >> 2];
+      nbytes++;
+      lp->cur_len++;
       consumed++;
       switch (isize - consumed)
 	{
@@ -235,20 +297,22 @@ _base64_encoder (void *xd MU_ARG_UNUSED,
 	  x = b64tab[((ptr[1] << 2) + c2) & 0x3f];
 	  c1 = (ptr[1] >> 4);
 	case 0:
-	  *optr++ = b64tab[((ptr[0] << 4) + c1) & 0x3f];
-	  *optr++ = x;
-	  *optr++ = y;
+	  lp->save[0] = b64tab[((ptr[0] << 4) + c1) & 0x3f];
+	  lp->save[1] = x;
+	  lp->save[2] = y;
+	  lp->idx = 0;
+	  lp->state = base64_rollback;
 	}
       
       ptr += 3;
-      nbytes += 4;
       pad = 0;
     }
 
   /* Consumed may grow bigger than isize if cmd is mu_filter_lastbuf */
   if (consumed > iobuf->isize)
     consumed = iobuf->isize;
-  if (cmd == mu_filter_lastbuf && consumed < iobuf->isize)
+  if (cmd == mu_filter_lastbuf &&
+      (consumed < iobuf->isize || lp->state == base64_rollback))
     res = mu_filter_again;
   else
     res = mu_filter_ok;
@@ -257,10 +321,25 @@ _base64_encoder (void *xd MU_ARG_UNUSED,
   return res;
 }
 
+static int
+alloc_state (void **pret, int mode, int argc, const char **argv)
+{
+  if (mode == MU_FILTER_ENCODE)
+    {
+      struct base64_line *lp = malloc (sizeof (*lp));
+      if (!lp)
+	return ENOMEM;
+      lp->max_len = 76;
+      *pret = lp;
+    }
+  else
+    *pret = NULL;
+  return 0;
+}
+
 static struct _mu_filter_record _base64_filter = {
   "base64",
-  76,
-  NULL,
+  alloc_state,
   _base64_encoder,
   _base64_decoder
 };
@@ -269,7 +348,6 @@ mu_filter_record_t mu_base64_filter = &_base64_filter;
 
 static struct _mu_filter_record _B_filter = {
   "B",
-  0,
   NULL,
   _base64_encoder,
   _base64_decoder

@@ -26,6 +26,7 @@ libfilter_la_SOURCES =\
  dot.c\
  filter.c\
  filter_iconv.c\
+ fltchain.c\
  fromflt.c\
  header.c\
  inline-comment.c\

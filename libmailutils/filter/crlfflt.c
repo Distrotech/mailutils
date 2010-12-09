@@ -160,7 +160,6 @@ alloc_state (void **pret, int mode,
 
 static struct _mu_filter_record _crlf_filter = {
   "CRLF",
-  0,
   alloc_state,
   _crlf_encoder,
   _crlf_decoder
@@ -172,7 +171,6 @@ mu_filter_record_t mu_crlf_filter = &_crlf_filter;
 /* For compatibility with previous versions */
 static struct _mu_filter_record _rfc822_filter = {
   "RFC822",
-  0,
   alloc_state,
   _crlf_encoder,
   _crlf_decoder

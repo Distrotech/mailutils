@@ -30,7 +30,6 @@ static char filter_args_doc[] = N_("[~]NAME [ARGS] [+ [~]NAME [ARGS]...]");
 static struct argp_option filter_options[] = {
   { "encode", 'e', NULL, 0, N_("encode the input (default)") },
   { "decode", 'd', NULL, 0, N_("decode the input") },
-  { "line-length", 'l', N_("NUMBER"), 0, N_("limit output line length") },
   { "newline", 'n', NULL, 0, N_("print additional newline") },
   { "list", 'L', NULL, 0, N_("list supported filters") },
   { NULL }
@@ -38,15 +37,11 @@ static struct argp_option filter_options[] = {
 
 static int filter_mode = MU_FILTER_ENCODE;
 static int newline_option = 0;
-static size_t line_length;
-static int line_length_option = 0;
 static int list_option;
 
 static error_t
 filter_parse_opt (int key, char *arg, struct argp_state *state)
 {
-  char *p;
-  
   switch (key)
     {
     case 'e':
@@ -59,13 +54,6 @@ filter_parse_opt (int key, char *arg, struct argp_state *state)
 
     case 'n':
       newline_option = 1;
-      break;
-
-    case 'l':
-      line_length = strtoul (arg, &p, 10);
-      if (*p)
-	argp_error (state, N_("not a number"));
-      line_length_option = 1;
       break;
 
     case 'L':
@@ -87,22 +75,6 @@ static struct argp filter_argp = {
   NULL,
   NULL
 };
-
-/* FIXME: This is definitely a kludge. The API should provide a function
-   for that. */
-static void
-reset_line_length (const char *name, size_t length)
-{
-  mu_list_t list;
-  int status;
-  mu_filter_record_t frec;
-  
-  mu_filter_get_list (&list);
-  status = mu_list_locate (list, (void*)name, (void**)&frec);
-  if (status == 0)
-    frec->max_line_length = length;
-  /* don't bail out, leave that to mu_filter_create */
-}
 
 static int
 filter_printer (void *item, void *data)
@@ -184,9 +156,6 @@ mutool_filter (int argc, char **argv)
 	if (strcmp (argv[i], "+") == 0)
 	  break;
       
-      if (line_length_option)
-	reset_line_length (fltname, line_length);
-
       rc = mu_filter_create_args (&flt, prev_stream, fltname,
 				  i, (const char **)argv,
 				  mode, MU_STREAM_READ);

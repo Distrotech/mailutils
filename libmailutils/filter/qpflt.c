@@ -243,7 +243,6 @@ _qp_encoder (void *xd MU_ARG_UNUSED,
 
 static struct _mu_filter_record _qp_filter = {
   "quoted-printable",
-  0,
   NULL,
   _qp_encoder,
   _qp_decoder
@@ -253,7 +252,6 @@ mu_filter_record_t mu_qp_filter = &_qp_filter;
 
 static struct _mu_filter_record _Q_filter = {
   "Q",
-  0,
   NULL,
   _qp_encoder,
   _qp_decoder
