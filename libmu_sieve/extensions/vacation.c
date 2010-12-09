@@ -75,7 +75,8 @@ build_mime (mu_sieve_machine_t mach, mu_list_t tags, mu_mime_t *pmime,
       mu_stream_t fstr;
       rc = mu_filter_create (&fstr, input, "base64",
 			     MU_FILTER_ENCODE, 
-			     MU_STREAM_READ | MU_STREAM_AUTOCLOSE);
+			     MU_STREAM_READ);
+      mu_stream_unref (input); 
       if (rc == 0) 
 	{
 	  header = "Content-Type: text/plain;charset=" MU_SIEVE_CHARSET "\n"

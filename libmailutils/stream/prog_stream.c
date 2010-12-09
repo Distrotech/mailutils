@@ -440,7 +440,7 @@ _prog_open (mu_stream_t stream)
   if (REDIRECT_STDOUT_P (flags))
     {
       rc = mu_stdio_stream_create (&fs->in, pfd[0],
-				   MU_STREAM_READ|MU_STREAM_AUTOCLOSE|seekable_flag);
+				   MU_STREAM_READ|MU_STREAM_FD_AUTOCLOSE|seekable_flag);
       if (rc)
 	{
 	  _prog_close (stream);
@@ -451,7 +451,7 @@ _prog_open (mu_stream_t stream)
   if (REDIRECT_STDIN_P (flags))
     {
       rc = mu_stdio_stream_create (&fs->out, pfd[1],
-				   MU_STREAM_WRITE|MU_STREAM_AUTOCLOSE|seekable_flag);
+				   MU_STREAM_WRITE|MU_STREAM_FD_AUTOCLOSE|seekable_flag);
       if (rc)
 	{
 	  _prog_close (stream);

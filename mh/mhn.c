@@ -2498,13 +2498,13 @@ edit_mime (char *cmd, struct compose_env *env, mu_message_t *msg, int level)
       free (subtype);
     }
 
-  rc = mu_filter_create (&fstr, in, encoding, MU_FILTER_ENCODE,
-                         MU_STREAM_READ | MU_STREAM_AUTOCLOSE);
+  rc = mu_filter_create (&fstr, in, encoding, MU_FILTER_ENCODE, MU_STREAM_READ);
   if (rc)
     {
       fstr = in;
-      in = NULL;
+      mu_stream_ref (in);
     }
+  mu_stream_unref (in);
   free (encoding);
 
   mu_message_get_body (*msg, &body);

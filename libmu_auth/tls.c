@@ -327,8 +327,7 @@ _mu_tls_io_stream_create (mu_stream_t *pstream,
   /* FIXME:
      sp->stream.error_string = _tls_error_string;*/
 
-  if (!(flags & MU_STREAM_AUTOCLOSE))
-    mu_stream_ref (transport);
+  mu_stream_ref (transport);
   sp->transport = transport;
   sp->up = master;
   *pstream = (mu_stream_t) sp;
@@ -642,7 +641,6 @@ _mu_tls_stream_create (mu_stream_t *pstream,
 		       mu_stream_t strin, mu_stream_t strout, int flags)
 {
   struct _mu_tls_stream *sp;
-  int autoclose = flags & MU_STREAM_AUTOCLOSE;
   int rc;
   mu_stream_t stream;
   
@@ -664,16 +662,15 @@ _mu_tls_stream_create (mu_stream_t *pstream,
 
   mu_stream_set_buffer (strin, mu_buffer_none, 0);
   mu_stream_set_buffer (strout, mu_buffer_none, 0);
-  rc = _mu_tls_io_stream_create (&sp->transport[0], strin,
-				 MU_STREAM_READ | autoclose, sp);
+  rc = _mu_tls_io_stream_create (&sp->transport[0], strin, MU_STREAM_READ, sp);
   if (rc)
     {
       free (sp);
       return rc;
     }
      
-  rc = _mu_tls_io_stream_create (&sp->transport[1], strout,
-				 MU_STREAM_WRITE | autoclose, sp);
+  rc = _mu_tls_io_stream_create (&sp->transport[1], strout, MU_STREAM_WRITE,
+                                 sp);
   if (rc)
     {
       free (sp);

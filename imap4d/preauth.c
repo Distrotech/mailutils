@@ -193,8 +193,8 @@ decode64_buf (const char *name, unsigned char **pbuf, size_t *psize)
   name++;
   namelen = strlen (name) - 1;
   mu_static_memory_stream_create (&str, name, namelen);
-  mu_filter_create (&flt, str, "base64", MU_FILTER_DECODE,
-		    MU_STREAM_READ | MU_STREAM_AUTOCLOSE);
+  mu_filter_create (&flt, str, "base64", MU_FILTER_DECODE, MU_STREAM_READ);
+  mu_stream_unref (str);
   mu_stream_read (flt, buf, sizeof buf, &size);
   mu_stream_destroy (&flt);
   *pbuf = malloc (size);

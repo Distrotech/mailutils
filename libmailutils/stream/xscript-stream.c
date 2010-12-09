@@ -438,11 +438,9 @@ mu_xscript_stream_create(mu_stream_t *pref, mu_stream_t transport,
   sp->stream.event_cb = _xscript_event_cb;
   sp->stream.event_mask = _MU_STR_EVMASK(_MU_STR_EVENT_FILLBUF) |
                           _MU_STR_EVMASK(_MU_STR_EVENT_FLUSHBUF);
-  if (!(flags & MU_STREAM_AUTOCLOSE))
-    {
-      mu_stream_ref (transport);
-      mu_stream_ref (logstr);
-    }
+  mu_stream_ref (transport);
+  mu_stream_ref (logstr);
+
   sp->transport = transport;
   sp->logstr = logstr;
   

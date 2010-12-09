@@ -280,8 +280,7 @@ mu_streamref_create_abridged (mu_stream_t *pref, mu_stream_t str,
     return rc;
   mu_stream_get_flags (str, &flags);
   sp = (struct _mu_streamref *)
-         _mu_stream_create (sizeof (*sp), 
-                            (flags & ~MU_STREAM_AUTOCLOSE) | _MU_STR_OPEN);
+         _mu_stream_create (sizeof (*sp), flags | _MU_STR_OPEN);
   if (!sp)
     return ENOMEM;
 

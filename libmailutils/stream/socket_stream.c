@@ -99,7 +99,8 @@ mu_socket_stream_create (mu_stream_t *pstream, const char *filename, int flags)
   /* Create transport stream. */
   rc = _mu_file_stream_create (&fstr, sizeof (*fstr),
 			       filename, -1,
-			       (flags | MU_STREAM_AUTOCLOSE) & ~MU_STREAM_SEEK);
+			       (flags | MU_STREAM_FD_AUTOCLOSE) &
+                                 ~MU_STREAM_SEEK);
   if (rc)
     return rc;
   fstr->stream.open = _socket_open;

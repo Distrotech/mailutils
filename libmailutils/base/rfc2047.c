@@ -269,8 +269,8 @@ mu_rfc2047_encode (const char *charset, const char *encoding,
   if (rc)
     return rc;
   rc = mu_filter_create (&output_stream, input_stream,
-			 encoding, MU_FILTER_ENCODE,
-			 MU_STREAM_READ | MU_STREAM_AUTOCLOSE);
+			 encoding, MU_FILTER_ENCODE, MU_STREAM_READ);
+  mu_stream_unref (input_stream);
   if (rc == 0)
     {
       /* Assume strlen(qp_encoded_text) <= strlen(text) * 3 */

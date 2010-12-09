@@ -453,8 +453,7 @@ mu_filter_iconv_create (mu_stream_t *s, mu_stream_t transport,
       return ENOMEM;
     }
   
-  if (!(flags & MU_STREAM_AUTOCLOSE))
-    mu_stream_ref (transport);
+  mu_stream_ref (transport);
   iptr->transport = transport;
   iptr->fallback_mode = fallback_mode;
   iptr->cd = cd;

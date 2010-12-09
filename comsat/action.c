@@ -570,13 +570,9 @@ eval_biffrc (struct biffrc_environ *env)
 	  if (!sp)
 	    report_error (env, _("unknown keyword"));
 	  else if (ws.ws_wordc < sp->argmin)
-	    {
-	      report_error (env, _("too few arguments"));
-	    }
+	    report_error (env, _("too few arguments"));
 	  else if (sp->argmax != -1 && ws.ws_wordc > sp->argmax)
-	    {
-	      report_error (env, _("too many arguments"));
-	    }
+	    report_error (env, _("too many arguments"));
 	  else
 	    {
 	      if (sp->expand)

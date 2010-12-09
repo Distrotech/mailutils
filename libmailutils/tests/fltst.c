@@ -148,8 +148,8 @@ main (int argc, char * argv [])
       MU_ASSERT (mu_filter_create_args (&flt, in, fltname,
 					argc, (const char **)argv,
 					mode,
-					MU_STREAM_READ|MU_STREAM_SEEK|
-					MU_STREAM_AUTOCLOSE));
+					MU_STREAM_READ|MU_STREAM_SEEK));
+      mu_stream_unref (in);
       if (shift)
 	MU_ASSERT (mu_stream_seek (flt, shift, MU_SEEK_SET, NULL));
       c_copy (out, flt);

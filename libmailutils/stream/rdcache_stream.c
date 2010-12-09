@@ -188,7 +188,7 @@ mu_rdcache_stream_create (mu_stream_t *pstream, mu_stream_t transport,
 {
   struct _mu_rdcache_stream *sp;
   int rc;
-  int sflags = MU_STREAM_READ | MU_STREAM_SEEK | (flags & MU_STREAM_AUTOCLOSE);
+  int sflags = MU_STREAM_READ | MU_STREAM_SEEK;
 
   if (flags & ~sflags)
     return EINVAL;
@@ -207,8 +207,7 @@ mu_rdcache_stream_create (mu_stream_t *pstream, mu_stream_t transport,
   sp->stream.ctl = rdcache_ioctl;
   sp->stream.wait = rdcache_wait;
 
-  if (!(flags & MU_STREAM_AUTOCLOSE))
-    mu_stream_ref (transport);
+  mu_stream_ref (transport);
   sp->transport = transport;
 
   if ((rc = mu_memory_stream_create (&sp->cache, MU_STREAM_RDWR)))

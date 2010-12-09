@@ -43,7 +43,8 @@ enum mu_buffer_type
 #define MU_STREAM_CREAT	      0x00000010
 /* So far used only by TCP streams. */
 #define MU_STREAM_NONBLOCK    0x00000020
-#define MU_STREAM_AUTOCLOSE   0x00000040
+/* For fd streams only */
+#define MU_STREAM_FD_AUTOCLOSE   0x00000040
 /* Not used. Intended for mailboxes only. */
 #define MU_STREAM_NONLOCK     0x00000080
 /* Not used as well           0x00000100  */
