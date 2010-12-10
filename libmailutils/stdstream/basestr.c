@@ -27,10 +27,19 @@
 #include <mailutils/log.h>
 #include <mailutils/stream.h>
 #include <mailutils/stdstream.h>
+#include <mailutils/util.h>
 
 mu_stream_t mu_strin;
 mu_stream_t mu_strout;
 mu_stream_t mu_strerr;
+
+static void
+stdstream_flushall (void *data MU_ARG_UNUSED)
+{
+  mu_stream_flush (mu_strin);
+  mu_stream_flush (mu_strout);
+  mu_stream_flush (mu_strerr);
+}
 
 void
 mu_stdstream_setup ()
@@ -44,20 +53,30 @@ mu_stdstream_setup ()
   mu_stream_destroy (&mu_strerr);
   
   /* Ensure that first 3 descriptors are open in proper mode */
-  fd = open ("/dev/null", O_WRONLY);
+  fd = open ("/dev/null", O_RDWR);
   switch (fd)
     {
+    case 0:
+      /* Keep it and try to open 1 */
+      fd = open ("/dev/null", O_WRONLY);
+      if (fd != 1)
+	{
+	  if (fd > 2)
+	    close (fd);
+	  break;
+	}
+
+    case 1:
+      /* keep it open and try 2 */
+      fd = open ("/dev/null", O_WRONLY);
+      if (fd != 2)
+	close (fd);
+      break;
+
     case 2:
       /* keep it open */;
       break;
 
-    case 1:
-      /* keep it open and try 0 */
-      fd = open ("/dev/null", O_RDONLY);
-      if (fd != 0)
-	close (fd);
-      break;
-      
     default:
       close (fd);
       break;
@@ -82,7 +101,7 @@ mu_stdstream_setup ()
   if (mu_stdstream_strerr_create (&mu_strerr, MU_STRERR_STDERR, 0, 0,
 				  mu_program_name, NULL))
     abort ();
-  /* FIXME: atexit (flushall) */
+  mu_onexit (stdstream_flushall, NULL);
 }
 
 int

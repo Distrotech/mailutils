@@ -277,26 +277,26 @@ check_user_perm (int action, struct action_data *ap)
 }
 
 static void
-print_entry (FILE *fp, DBM_DATUM key, DBM_DATUM contents)
+print_entry (mu_stream_t str, DBM_DATUM key, DBM_DATUM contents)
 {
   if (compatibility_option)
-    fprintf (fp, "%.*s: %.*s\n",
-	     (int) MU_DATUM_SIZE (key),
-	     (char*) MU_DATUM_PTR (key),
-	     (int) MU_DATUM_SIZE (contents),
-	     (char*) MU_DATUM_PTR (contents));
+    mu_stream_printf (str, "%.*s: %.*s\n",
+		      (int) MU_DATUM_SIZE (key),
+		      (char*) MU_DATUM_PTR (key),
+		      (int) MU_DATUM_SIZE (contents),
+		      (char*) MU_DATUM_PTR (contents));
   else
-    fprintf (fp, "%.*s %.*s\n",
-	     (int) MU_DATUM_SIZE (key),
-	     (char*) MU_DATUM_PTR (key),
-	     (int) MU_DATUM_SIZE (contents),
-	     (char*) MU_DATUM_PTR (contents));
+    mu_stream_printf (str, "%.*s %.*s\n",
+		      (int) MU_DATUM_SIZE (key),
+		      (char*) MU_DATUM_PTR (key),
+		      (int) MU_DATUM_SIZE (contents),
+		      (char*) MU_DATUM_PTR (contents));
 }
 
 int
 action_list (struct action_data *ap)
 {
-  FILE *fp;
+  mu_stream_t str;
   DBM_FILE db;
   DBM_DATUM key;
   DBM_DATUM contents;
@@ -311,15 +311,21 @@ action_list (struct action_data *ap)
   
   if (ap->output_name)
     {
-      fp = fopen (ap->output_name, "w");
-      if (!fp)
+      int rc = mu_file_stream_create (&str, ap->output_name,
+				      MU_STREAM_WRITE|MU_STREAM_CREAT);
+      if (rc)
 	{
-	  mu_error (_("cannot create file %s: %s"), ap->output_name, mu_strerror (errno));
+	  mu_error (_("cannot create file %s: %s"),
+		    ap->output_name, mu_strerror (rc));
 	  return 1;
 	}
+      mu_stream_truncate (str, 0);
     }
   else
-    fp = stdout;
+    {
+      str = mu_strout;
+      mu_stream_ref (str);
+    }
 
   if (ap->username)
     {
@@ -333,7 +339,7 @@ action_list (struct action_data *ap)
 	}
       else
 	{
-	  print_entry (fp, key, contents);
+	  print_entry (str, key, contents);
 	  mu_dbm_datum_free (&contents);
 	}
     }
@@ -344,13 +350,13 @@ action_list (struct action_data *ap)
 	{
 	  memset (&contents, 0, sizeof contents);
 	  mu_dbm_fetch (db, key, &contents);
-	  print_entry (fp, key, contents);
+	  print_entry (str, key, contents);
 	  mu_dbm_datum_free (&contents);
 	}
     }
   
   mu_dbm_close (db);
-  fclose (fp);
+  mu_stream_destroy (&str);
   return 0;
 }
 
@@ -653,7 +659,7 @@ popauth_version (FILE *stream, struct argp_state *state)
 # define FORMAT "Tokyo Cabinet"
 #endif
   mu_program_version_hook (stream, state);
-  printf (_("Database format: %s\n"), FORMAT);
-  printf (_("Database location: %s\n"), APOP_PASSFILE);
+  fprintf (stream, _("Database format: %s\n"), FORMAT);
+  fprintf (stream, _("Database location: %s\n"), APOP_PASSFILE);
   exit (EX_OK);
 }

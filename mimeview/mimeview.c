@@ -66,7 +66,7 @@ static char *no_ask_types;  /* List of MIME types for which no questions
 			       should be asked */
 static int interactive = -1; 
 char *mimeview_file;       /* Name of the file to view */
-FILE *mimeview_fp;     /* Its descriptor */
+mu_stream_t mimeview_stream;    /* The corresponding stream */
 
 static void
 set_debug_flags (const char *arg)
@@ -184,7 +184,9 @@ static const char *capa[] = {
 static int
 open_file (char *name)
 {
+  int rc;
   struct stat st;
+  
   if (stat (name, &st))
     {
       mu_error (_("cannot stat `%s': %s"), name, mu_strerror (errno));
@@ -197,10 +199,10 @@ open_file (char *name)
     }
 
   mimeview_file = name;
-  mimeview_fp = fopen (name, "r");
-  if (mimeview_fp == NULL)
+  rc = mu_file_stream_create (&mimeview_stream, mimeview_file, MU_STREAM_READ);
+  if (rc)
     {
-      mu_error (_("Cannot open `%s': %s"), name, mu_strerror (errno));
+      mu_error (_("Cannot open `%s': %s"), name, mu_strerror (rc));
       return -1;
     }
   return 0;
@@ -209,7 +211,7 @@ open_file (char *name)
 void
 close_file ()
 {
-  fclose (mimeview_fp);
+  mu_stream_close (mimeview_stream);
 }
 
 void
@@ -244,7 +246,6 @@ display_file (const char *type)
     }
   else
     {
-      mu_stream_t stream;
       mu_header_t hdr;
       char *text;
 
@@ -254,20 +255,9 @@ display_file (const char *type)
 	mu_error (_("cannot create header: %s"), mu_strerror (status));
       else
 	{
-          int yes = 1;
-
-	  mu_stdio_stream_create (&stream, fileno (mimeview_fp),
-				  MU_STREAM_READ|
-				  MU_STREAM_SEEK);
-	  mu_stream_ioctl (stream, MU_IOCTL_FD, MU_IOCTL_FD_SET_BORROW, &yes);
-
-	  display_stream_mailcap (mimeview_file, stream, hdr,
+	  display_stream_mailcap (mimeview_file, mimeview_stream, hdr,
 				  no_ask_types, interactive, dry_run,
 				  debug_level);
-	  
-	  mu_stream_close (stream);
-	  mu_stream_destroy (&stream);
-
 	  mu_header_destroy (&hdr);
 	}
     }

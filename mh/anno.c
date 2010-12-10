@@ -120,25 +120,15 @@ main (int argc, char **argv)
 
   if (!component)
     {
-      mu_stream_t in;
       size_t size = 0;
       char *p;
-      int yes = 1;
 
-      rc = mu_stdio_stream_create (&in, MU_STDIN_FD, 0);
-      if (rc)
-	{
-	  mu_error (_("cannot create input stream: %s"), mu_strerror (rc));
-	  exit (1);
-	}
-      mu_stream_ioctl (in, MU_IOCTL_FD, MU_IOCTL_FD_SET_BORROW, &yes);
       if (isatty (0))
 	{
-	  printf (_("Component name: "));
-	  fflush (stdout);
+	  mu_printf (_("Component name: "));
+	  mu_stream_flush (mu_strout);
 	}
-      rc = mu_stream_getline (in, &component, &size, NULL);
-      mu_stream_destroy (&in);
+      rc = mu_stream_getline (mu_strin, &component, &size, NULL);
       if (rc)
 	{
 	  mu_error (_("error reading input stream: %s"), mu_strerror (rc));

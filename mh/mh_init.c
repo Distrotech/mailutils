@@ -53,6 +53,8 @@ void
 mh_init ()
 {
   mh_ensure_stdin ();
+  mu_stdstream_setup ();
+  
   /* Register all mailbox and mailer formats */
   mu_register_all_formats ();
 #ifdef WITH_TLS
@@ -756,18 +758,8 @@ mh_real_install (char *name, int automode)
   char *home = mu_get_homedir ();
   char *mhdir;
   char *ctx;
-  mu_stream_t in;
   int rc;
-  FILE *fp;
-  int yes;
-
-  rc = mu_stdio_stream_create (&in, MU_STDIN_FD, 0);
-  if (rc)
-    {
-      mu_error (_("cannot create input stream: %s"), mu_strerror (rc));
-      exit (1);
-    }
-  mu_stream_ioctl (in, MU_IOCTL_FD, MU_IOCTL_FD_SET_BORROW, &yes);
+  mu_stream_t profile;
 
   mhdir = mh_safe_make_file_name (home, "Mail");
   
@@ -790,10 +782,11 @@ mh_real_install (char *name, int automode)
 	     by question mark on output. */
 	  local = mh_getyn_interactive (_("Do you want a path below your login directory"));
 	  if (local)
-	    printf (_("What is the path? "));
+	    mu_printf (_("What is the path? "));
 	  else
-	    printf (_("What is the full path? "));
-	  if (mu_stream_getline (in, &buf, &size, NULL))
+	    mu_printf (_("What is the full path? "));
+	  mu_stream_flush (mu_strin);
+	  if (mu_stream_getline (mu_strin, &buf, &size, NULL))
 	    exit (1);
 	  p = mu_str_stripws (buf);
 	  if (p > buf)
@@ -813,21 +806,23 @@ mh_real_install (char *name, int automode)
   if (mh_check_folder (mhdir, !automode))
     exit (1);
 
-  fp = fopen (name, "w");
-  if (!fp)
+  rc = mu_file_stream_create (&profile, name,
+			      MU_STREAM_WRITE | MU_STREAM_CREAT);
+  if (rc)
     {
-      mu_error (_("cannot open file %s: %s"), name, mu_strerror (errno));
+      mu_error (_("cannot open file %s: %s"), name, mu_strerror (rc));
       exit (1);
     }
-  fprintf (fp, "Path: %s\n", mhdir);
-  fclose (fp);
+  mu_stream_printf (profile, "Path: %s\n", mhdir);
+  mu_stream_destroy (&profile);
 
   ctx = mh_safe_make_file_name (mhdir, MH_CONTEXT_FILE);
-  fp = fopen (ctx, "w");
-  if (fp)
+  rc = mu_file_stream_create (&profile, ctx,
+			      MU_STREAM_WRITE | MU_STREAM_CREAT);
+  if (rc)
     {
-      fprintf (fp, "Current-Folder: inbox\n");
-      fclose (fp);
+      mu_stream_printf (profile, "Current-Folder: inbox\n");
+      mu_stream_destroy (&profile);
     }
   free (ctx);
   ctx = mh_safe_make_file_name (mhdir, "inbox");
@@ -842,7 +837,7 @@ mh_install (char *name, int automode)
 {
   struct stat st;
   
-  if (stat(name, &st))
+  if (stat (name, &st))
     {
       if (errno == ENOENT)
 	{

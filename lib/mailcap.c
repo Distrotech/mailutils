@@ -620,8 +620,9 @@ find_entry (const char *file, struct mime_context *ctx)
   status = mu_file_stream_create (&stream, file, MU_STREAM_READ);
   if (status)
     {
-      mu_error ("cannot create file stream %s: %s",
-		file, mu_strerror (status));
+      if (status != ENOENT)
+	mu_error ("cannot open input stream %s: %s",
+		  file, mu_strerror (status));
       return -1;
     }
 

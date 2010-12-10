@@ -299,16 +299,22 @@ static int
 b_ascii (union argument *args)
 {
   int i;
-  if (fseek (mimeview_fp, args[0].number, SEEK_SET) == -1)
+  int rc;
+
+  rc = mu_stream_seek (mimeview_stream, args[0].number, MU_SEEK_SET, NULL);
+  if (rc)
     {
-      mu_error ("fseek: %s", mu_strerror (errno));
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_stream_seek", NULL, rc);
       return 0;
     }
 
   for (i = 0; i < args[1].number; i++)
     {
-      int c = getc (mimeview_fp);
-      if (c == EOF)
+      char c;
+      size_t n;
+
+      rc = mu_stream_read (mimeview_stream, &c, 1, &n);
+      if (rc || n == 0)
 	break;
       if (!mu_isascii (c))
 	return 0;
@@ -329,17 +335,22 @@ static int
 b_printable (union argument *args)
 {
   int i;
+  int rc;
 
-  if (fseek (mimeview_fp, args[0].number, SEEK_SET) == -1)
+  rc = mu_stream_seek (mimeview_stream, args[0].number, MU_SEEK_SET, NULL);
+  if (rc)
     {
-      mu_error ("fseek: %s", mu_strerror (errno));
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_stream_seek", NULL, rc);
       return 0;
     }
 
   for (i = 0; i < args[1].number; i++)
     {
-      int c = getc (mimeview_fp);
-      if (c == EOF)
+      char c;
+      size_t n;
+
+      rc = mu_stream_read (mimeview_stream, &c, 1, &n);
+      if (rc || n == 0)
 	break;
       if (!ISPRINT ((unsigned)c))
 	return 0;
@@ -355,17 +366,22 @@ b_string (union argument *args)
 {
   struct mimetypes_string *str = args[1].string;
   int i;
+  int rc;
   
-  if (fseek (mimeview_fp, args[0].number, SEEK_SET) == -1)
+  rc = mu_stream_seek (mimeview_stream, args[0].number, MU_SEEK_SET, NULL);
+  if (rc)
     {
-      mu_error ("fseek: %s", mu_strerror (errno));
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_stream_seek", NULL, rc);
       return 0;
     }
 
   for (i = 0; i < str->len; i++)
     {
-      int c = getc (mimeview_fp);
-      if (c == EOF || (char)c != str->ptr[i])
+      char c;
+      size_t n;
+
+      rc = mu_stream_read (mimeview_stream, &c, 1, &n);
+      if (rc || n == 0 || c != str->ptr[i])
 	return 0;
     }
   return 1;
@@ -381,19 +397,49 @@ b_istring (union argument *args)
   int i;
   struct mimetypes_string *str = args[1].string;
   
-  if (fseek (mimeview_fp, args[0].number, SEEK_SET) == -1)
+  int rc;
+
+  rc = mu_stream_seek (mimeview_stream, args[0].number, MU_SEEK_SET, NULL);
+  if (rc)
     {
-      mu_error ("fseek: %s", mu_strerror (errno));
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_stream_seek", NULL, rc);
       return 0;
     }
 
   for (i = 0; i < str->len; i++)
     {
-      int c = getc (mimeview_fp);
-      if (c == EOF || mu_tolower (c) != mu_tolower (str->ptr[i]))
+      char c;
+      size_t n;
+
+      rc = mu_stream_read (mimeview_stream, &c, 1, &n);
+      if (rc || n == 0 || mu_tolower (c) != mu_tolower (str->ptr[i]))
 	return 0;
     }
   return 1;
+}
+
+int
+compare_bytes (union argument *args, void *sample, void *buf, size_t size)
+{
+  int rc;
+  size_t n;
+  
+  rc = mu_stream_seek (mimeview_stream, args[0].number, MU_SEEK_SET, NULL);
+  if (rc)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_stream_seek", NULL, rc);
+      return 0;
+    }
+  
+  rc = mu_stream_read (mimeview_stream, buf, sizeof (buf), &n);
+  if (rc)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_stream_read", NULL, rc);
+      return 0;
+    }
+  else if (n != size)
+    return 0;
+  return memcmp (sample, buf, size) == 0;
 }
 
 /*       char(offset,value)
@@ -402,12 +448,9 @@ b_istring (union argument *args)
 static int
 b_char (union argument *args)
 {
-  if (fseek (mimeview_fp, args[0].number, SEEK_SET) == -1)
-    {
-      mu_error ("fseek: %s", mu_strerror (errno));
-      return 0;
-    }
-  return getc (mimeview_fp) == args[1].number;
+  char val = args[1].number;
+  char buf;
+  return compare_bytes (args, &val, &buf, sizeof (buf));
 }
 
 /*        short(offset,value)
@@ -417,24 +460,9 @@ b_char (union argument *args)
 static int
 b_short (union argument *args)
 {
-  unsigned short val;
-  int rc;
-  
-  if (fseek (mimeview_fp, args[0].number, SEEK_SET) == -1)
-    {
-      mu_error ("fseek: %s", mu_strerror (errno));
-      return 0;
-    }
-  rc = fread (&val, sizeof val, 1, mimeview_fp);
-
-  if (rc == -1)
-    {
-      mu_error ("fread: %s", mu_strerror (errno));
-      return 0;
-    }
-  else if (rc == 0)
-    return 0;
-  return val == args[1].number;
+  unsigned short val = args[1].number;
+  unsigned short buf;
+  return compare_bytes (args, &val, &buf, sizeof (buf));
 }
 
 /*        int(offset,value)
@@ -444,23 +472,9 @@ b_short (union argument *args)
 static int
 b_int (union argument *args)
 {
-  unsigned int val;
-  int rc;
-  
-  if (fseek (mimeview_fp, args[0].number, SEEK_SET) == -1)
-    {
-      mu_error ("fseek: %s", mu_strerror (errno));
-      return 0;
-    }
-  rc = fread (&val, sizeof val, 1, mimeview_fp);
-  if (rc == -1)
-    {
-      mu_error ("fread: %s", mu_strerror (errno));
-      return 0;
-    }
-  else if (rc == 0)
-    return 0;
-  return val == args[1].number;
+  unsigned int val = args[1].number;
+  unsigned int buf;
+  return compare_bytes (args, &val, &buf, sizeof (buf));
 }
 
 /*        locale("string")
@@ -479,20 +493,23 @@ b_locale (union argument *args)
 static int
 b_contains (union argument *args)
 {
-  int i, count;
+  size_t i, count;
   char *buf;
   struct mimetypes_string *str = args[2].string;
+  int rc;
 
-  if (fseek (mimeview_fp, args[0].number, SEEK_SET) == -1)
+  rc = mu_stream_seek (mimeview_stream, args[0].number, MU_SEEK_SET, NULL);
+  if (rc)
     {
-      mu_error ("fseek: %s", mu_strerror (errno));
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_stream_seek", NULL, rc);
       return 0;
     }
+
   buf = xmalloc (args[1].number);
-  count = fread (buf, 1, args[1].number, mimeview_fp);
-  if (count == -1)
+  rc = mu_stream_read (mimeview_stream, buf, args[1].number, &count);
+  if (count != args[1].number)
     {
-      mu_error ("fread: %s", mu_strerror (errno));
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_stream_read", NULL, rc);
     }
   else if (count > str->len)
     for (i = 0; i < count - str->len; i++)

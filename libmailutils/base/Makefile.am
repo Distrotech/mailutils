@@ -49,6 +49,7 @@ libbase_la_SOURCES = \
  nls.c\
  nullrec.c\
  observer.c\
+ onexit.c\
  opool.c\
  parsedate.c\
  permstr.c\

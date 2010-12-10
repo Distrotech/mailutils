@@ -152,12 +152,9 @@ open_output ()
     rc = mu_command_stream_create (&output, moreproc, MU_STREAM_WRITE);
   else
     {
-      rc = mu_stdio_stream_create (&output, MU_STDOUT_FD, MU_STREAM_WRITE);
-      if (rc == 0)
-        {
-          int yes = 1;
-          mu_stream_ioctl (output, MU_IOCTL_FD, MU_IOCTL_FD_SET_BORROW, &yes);
-        }
+      rc = 0;
+      output = mu_strout;
+      mu_stream_ref (output);
     }
 
   if (rc)
@@ -178,12 +175,9 @@ list_message (char *name, mu_stream_t output)
 
   if (!name)
     {
-      rc = mu_stdio_stream_create (&input, MU_STDIN_FD, MU_STREAM_SEEK);
-      if (rc == 0)
-        {
-          int yes = 1;
-          mu_stream_ioctl (input, MU_IOCTL_FD, MU_IOCTL_FD_SET_BORROW, &yes);
-        }
+      rc = 0;
+      input = mu_strin;
+      mu_stream_ref (input);
     }
   else
     rc = mu_file_stream_create (&input, name, MU_STREAM_READ);

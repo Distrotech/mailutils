@@ -1591,24 +1591,15 @@ show_iterator (mu_mailbox_t mbox, mu_message_t msg, size_t num, void *data)
 int
 mhn_show ()
 {
+  
   int rc;
-  mu_stream_t ostr;
-  int yes = 1;
-
-  rc = mu_stdio_stream_create (&ostr, MU_STDOUT_FD, 0);
-  if (rc)
-    {
-      mu_error (_("cannot create output stream: %s"), mu_strerror (rc));
-      exit (1);
-    }
-  mu_stream_ioctl (ostr, MU_IOCTL_FD, MU_IOCTL_FD_SET_BORROW, &yes);
- 
   mhl_format = mhl_format_compile (formfile);
 
   if (message)
-    rc = show_message (message, 0, ostr);
+    rc = show_message (message, 0, mu_strout);
   else
-    rc = mh_iterate (mbox, &msgset, show_iterator, ostr);
+    rc = mh_iterate (mbox, &msgset, show_iterator, mu_strout);
+  mu_stream_flush (mu_strout);
   return rc;
 }
 
@@ -1804,20 +1795,16 @@ store_handler (mu_message_t msg, msg_part_t part, char *type, char *encoding,
     case store_to_stdout:
       printf (_("storing msg %s part %s to stdout\n"),
 	      prefix, partstr);
-      rc = mu_stdio_stream_create (&out, MU_STDOUT_FD, 0);
-      if (rc)
-	mu_diag_funcall (MU_DIAG_ERROR, "mu_stdio_stream_create", NULL, rc);
-      else
-        {
-          int yes = 1;
-          mu_stream_ioctl (out, MU_IOCTL_FD, MU_IOCTL_FD_SET_BORROW, &yes);
-        }
+      rc = 0;
+      out = mu_strout;
+      mu_stream_ref (out);
       break;
     }
 			   
   if (out)
     {
       show_internal (msg, part, encoding, out);
+      mu_stream_flush (out);
       mu_stream_destroy (&out);
     }
       

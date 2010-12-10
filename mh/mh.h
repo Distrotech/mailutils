@@ -58,6 +58,7 @@
 #include <mailutils/property.h>
 #include <mailutils/prog.h>
 #include <mailutils/mh.h>
+#include <mailutils/stdstream.h>
 
 #include <mu_umaxtostr.h>
 

@@ -331,29 +331,19 @@ static int
 _whatnow (struct mh_whatnow_env *wh, struct action_tab *tab)
 {
   int rc, status = 0;
-  mu_stream_t in;
   char *line = NULL;
   size_t size = 0;
   struct mu_wordsplit ws;
   int wsflags = MU_WRDSF_DEFFLAGS|MU_WRDSF_COMMENT;
-  int yes = 1;
   
-  rc = mu_stdio_stream_create (&in, MU_STDIN_FD, 0);
-  if (rc)
-    {
-      mu_error (_("cannot create input stream: %s"), mu_strerror (rc));
-      exit (1);
-    }
-  mu_stream_ioctl (in, MU_IOCTL_FD, MU_IOCTL_FD_SET_BORROW, &yes);
- 
   do
     {
       size_t n;
       handler_fp fun;
       
-      printf ("%s ", wh->prompt);
-      fflush (stdout);
-      rc = mu_stream_getline (in, &line, &size, &n);
+      mu_printf ("%s ", wh->prompt);
+      mu_stream_flush (mu_strout);
+      rc = mu_stream_getline (mu_strin, &line, &size, &n);
       if (rc)
 	{
 	  mu_error (_("cannot read input stream: %s"), mu_strerror (rc));
@@ -445,7 +435,7 @@ quit (struct mh_whatnow_env *wh, int argc, char **argv, int *status)
 	unlink (wh->draftfile);
       else
 	{
-	  printf (_("draft left on \"%s\".\n"), wh->draftfile);
+	  mu_printf (_("draft left on \"%s\".\n"), wh->draftfile);
 	  if (strcmp (wh->file, wh->draftfile))
 	    rename (wh->file, wh->draftfile);
 	}

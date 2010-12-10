@@ -53,7 +53,7 @@ struct mimetypes_string *mimetypes_string_dup (struct mimetypes_string *s);
 const char *get_file_type (void);
 
 extern char *mimeview_file;
-extern FILE *mimeview_fp;    
+extern mu_stream_t mimeview_stream;    
 extern int debug_level;
 
 #define DEBUG(l,f) if (debug_level > (l)) printf f
