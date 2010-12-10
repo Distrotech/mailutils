@@ -65,7 +65,7 @@ fd_close (struct _mu_stream *str)
   struct _mu_file_stream *fstr = (struct _mu_file_stream *) str;
   if (fstr->fd != -1)
     {
-      if ((str->flags & MU_STREAM_FD_AUTOCLOSE) && close (fstr->fd))
+      if (!(fstr->flags & _MU_FILE_STREAM_FD_BORROWED) && close (fstr->fd))
 	return errno;
       fstr->fd = -1;
     }
@@ -119,7 +119,7 @@ fd_open (struct _mu_stream *str)
     str->flags &= ~MU_STREAM_SEEK;
   
   /* Make sure it will be closed */
-  str->flags |= MU_STREAM_FD_AUTOCLOSE;
+  fstr->flags &= ~_MU_FILE_STREAM_FD_BORROWED;
   
   fstr->fd = fd;
   return 0;
@@ -268,7 +268,25 @@ fd_ioctl (struct _mu_stream *str, int code, int opcode, void *ptr)
 	  }
 	}
       break;
-      
+
+    case MU_IOCTL_FD:
+      if (!ptr)
+	return EINVAL;
+      switch (opcode)
+	{
+	case MU_IOCTL_FD_GET_BORROW:
+	  *(int*) ptr = !!(fstr->flags & _MU_FILE_STREAM_FD_BORROWED);
+	  break;
+
+	case MU_IOCTL_FD_SET_BORROW:
+	  if (*(int*)ptr)
+	    fstr->flags |= _MU_FILE_STREAM_FD_BORROWED;
+	  else
+	    fstr->flags &= ~_MU_FILE_STREAM_FD_BORROWED;
+	  break;
+	}
+      break;
+	    
     default:
       return ENOSYS;
     }
@@ -331,8 +349,7 @@ mu_file_stream_create (mu_stream_t *pstream, const char *filename, int flags)
   int rc = _mu_file_stream_create (&fstr,
 				   sizeof (struct _mu_file_stream),
 				   filename, -1,
-				   flags | MU_STREAM_SEEK | 
-                                    MU_STREAM_FD_AUTOCLOSE);
+				   flags | MU_STREAM_SEEK);
   if (rc == 0)
     {
       mu_stream_t stream = (mu_stream_t) fstr;

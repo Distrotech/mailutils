@@ -21,8 +21,9 @@
 #include <mailutils/stream.h>
 #include <mailutils/sys/stream.h>
 
-#define _MU_FILE_STREAM_TEMP     0x01
-#define _MU_FILE_STREAM_ECHO_OFF 0x02
+#define _MU_FILE_STREAM_TEMP        0x01
+#define _MU_FILE_STREAM_ECHO_OFF    0x02
+#define _MU_FILE_STREAM_FD_BORROWED 0x04
 
 struct _mu_file_stream
 {

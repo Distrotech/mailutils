@@ -49,6 +49,7 @@ main (int argc, char **argv)
   char *infile = NULL;
   int verify = 0;
   int verbose = 0;
+  int yes = 1;
 
   progname = argv[0];
   
@@ -139,6 +140,7 @@ main (int argc, char **argv)
 	MU_ASSERT (mu_file_stream_create (&in, infile, MU_STREAM_READ));
 
       MU_ASSERT (mu_fd_stream_create (&out, filename, fd, MU_STREAM_WRITE));
+      mu_stream_ioctl (out, MU_IOCTL_FD, MU_IOCTL_FD_SET_BORROW, &yes);
       MU_ASSERT (mu_stream_copy (out, in, 0, &size));
       if (verbose)
 	printf ("copied %lu bytes to the temporary\n", (unsigned long) size);
@@ -154,6 +156,7 @@ main (int argc, char **argv)
       MU_ASSERT (mu_stdio_stream_create (&out, MU_STDOUT_FD, 0));
       MU_ASSERT (mu_fd_stream_create (&in, filename, fd,
 				      MU_STREAM_READ|MU_STREAM_SEEK));
+      mu_stream_ioctl (in, MU_IOCTL_FD, MU_IOCTL_FD_SET_BORROW, &yes);
       MU_ASSERT (mu_stream_copy (out, in, 0, &size));
       if (verbose)
 	printf ("dumped %lu bytes\n", (unsigned long) size);

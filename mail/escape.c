@@ -444,7 +444,8 @@ quote0 (msgset_t *mspec, mu_message_t mesg, void *data)
   char *prefix = "\t";
   mu_stream_t outstr, flt;
   char *argv[3];
-  
+  int yes = 1;
+
   fprintf (stdout, _("Interpolating: %lu\n"),
 	   (unsigned long) mspec->msg_part[0]);
 
@@ -457,6 +458,9 @@ quote0 (msgset_t *mspec, mu_message_t mesg, void *data)
       mu_diag_funcall (MU_DIAG_ERROR, "mu_stdio_stream_create", NULL, rc);
       return rc;
     }
+  /* Set borrow flag to prevent fileno (ofile) from being closed on
+     destroying outstr. */
+  mu_stream_ioctl (outstr, MU_IOCTL_FD, MU_IOCTL_FD_SET_BORROW, &yes);
   argv[0] = "INLINE-COMMENT";
   argv[1] = prefix;
   argv[2] = NULL;

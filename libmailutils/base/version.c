@@ -150,6 +150,7 @@ mu_print_options ()
     mu_stream_ref (mu_strout);
   else
     {
+      int yes = 1;
       int rc = mu_stdio_stream_create (&mu_strout, MU_STDOUT_FD, 0);
       if (rc)
 	{
@@ -157,6 +158,7 @@ mu_print_options ()
 		   MU_STDOUT_FD, mu_strerror (rc));
 	  abort ();
 	}
+      mu_stream_ioctl (mu_strout, MU_IOCTL_FD, MU_IOCTL_FD_SET_BORROW, &yes);  
     }
   mu_format_options (mu_strout, 1);
   mu_stream_unref (mu_strout);

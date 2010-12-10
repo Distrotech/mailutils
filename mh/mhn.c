@@ -1593,6 +1593,7 @@ mhn_show ()
 {
   int rc;
   mu_stream_t ostr;
+  int yes = 1;
 
   rc = mu_stdio_stream_create (&ostr, MU_STDOUT_FD, 0);
   if (rc)
@@ -1600,7 +1601,8 @@ mhn_show ()
       mu_error (_("cannot create output stream: %s"), mu_strerror (rc));
       exit (1);
     }
-  
+  mu_stream_ioctl (ostr, MU_IOCTL_FD, MU_IOCTL_FD_SET_BORROW, &yes);
+ 
   mhl_format = mhl_format_compile (formfile);
 
   if (message)
@@ -1805,6 +1807,11 @@ store_handler (mu_message_t msg, msg_part_t part, char *type, char *encoding,
       rc = mu_stdio_stream_create (&out, MU_STDOUT_FD, 0);
       if (rc)
 	mu_diag_funcall (MU_DIAG_ERROR, "mu_stdio_stream_create", NULL, rc);
+      else
+        {
+          int yes = 1;
+          mu_stream_ioctl (out, MU_IOCTL_FD, MU_IOCTL_FD_SET_BORROW, &yes);
+        }
       break;
     }
 			   

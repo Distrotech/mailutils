@@ -759,6 +759,7 @@ mh_real_install (char *name, int automode)
   mu_stream_t in;
   int rc;
   FILE *fp;
+  int yes;
 
   rc = mu_stdio_stream_create (&in, MU_STDIN_FD, 0);
   if (rc)
@@ -766,6 +767,7 @@ mh_real_install (char *name, int automode)
       mu_error (_("cannot create input stream: %s"), mu_strerror (rc));
       exit (1);
     }
+  mu_stream_ioctl (in, MU_IOCTL_FD, MU_IOCTL_FD_SET_BORROW, &yes);
 
   mhdir = mh_safe_make_file_name (home, "Mail");
   

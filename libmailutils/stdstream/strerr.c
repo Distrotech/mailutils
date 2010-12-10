@@ -43,6 +43,7 @@ mu_stdstream_strerr_create (mu_stream_t *plogger, int type, int facility,
     {
     case MU_STRERR_STDERR:
       {
+        int yes = 1;
 	mu_stream_t str;
       
 	rc = mu_stdio_stream_create (&str, MU_STDERR_FD, 0);
@@ -52,6 +53,10 @@ mu_stdstream_strerr_create (mu_stream_t *plogger, int type, int facility,
 		     tag, mu_strerror (rc));
 	    return MU_ERR_FAILURE;
 	  }
+        /* Make sure 2 is not closed when str is destroyed.
+           FIXME: Actually I don't know if it is needed, but just
+                  in case... */
+        mu_stream_ioctl (str, MU_IOCTL_FD, MU_IOCTL_FD_SET_BORROW, &yes);
 	if (!tag)
 	  transport = str;
 	else

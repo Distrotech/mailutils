@@ -254,10 +254,13 @@ display_file (const char *type)
 	mu_error (_("cannot create header: %s"), mu_strerror (status));
       else
 	{
+          int yes = 1;
+
 	  mu_stdio_stream_create (&stream, fileno (mimeview_fp),
 				  MU_STREAM_READ|
 				  MU_STREAM_SEEK);
-	  
+	  mu_stream_ioctl (stream, MU_IOCTL_FD, MU_IOCTL_FD_SET_BORROW, &yes);
+
 	  display_stream_mailcap (mimeview_file, stream, hdr,
 				  no_ask_types, interactive, dry_run,
 				  debug_level);

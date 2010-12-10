@@ -67,8 +67,7 @@ mu_temp_file_stream_create (mu_stream_t *pstream,
 			       NULL,
 			       -1,
 			       MU_STREAM_RDWR | MU_STREAM_SEEK |
-			       MU_STREAM_CREAT | 
-			       MU_STREAM_FD_AUTOCLOSE);
+			       MU_STREAM_CREAT);
   if (rc == 0)
     {
       struct _mu_temp_file_stream *tstr = (struct _mu_temp_file_stream *)str;

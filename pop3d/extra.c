@@ -134,13 +134,11 @@ pop3d_setio (int ifd, int ofd)
   if (ofd == -1)
     pop3d_abquit (ERR_NO_OFILE);
 
-  if (mu_stdio_stream_create (&istream, ifd, 
-                              MU_STREAM_READ | MU_STREAM_FD_AUTOCLOSE))
+  if (mu_stdio_stream_create (&istream, ifd, MU_STREAM_READ))
     pop3d_abquit (ERR_NO_IFILE);
   mu_stream_set_buffer (istream, mu_buffer_line, 0);
   
-  if (mu_stdio_stream_create (&ostream, ofd, 
-                              MU_STREAM_WRITE | MU_STREAM_FD_AUTOCLOSE))
+  if (mu_stdio_stream_create (&ostream, ofd, MU_STREAM_WRITE))
     pop3d_abquit (ERR_NO_OFILE);
 
   /* Combine the two streams into an I/O one. */

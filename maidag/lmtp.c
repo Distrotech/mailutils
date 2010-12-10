@@ -579,8 +579,7 @@ lmtp_connection (int fd, struct sockaddr *sa, int salen, void *data,
   mu_stream_t str;
   int rc;
   
-  rc = mu_fd_stream_create (&str, NULL, fd,
-                            MU_STREAM_RDWR | MU_STREAM_FD_AUTOCLOSE);
+  rc = mu_fd_stream_create (&str, NULL, fd, MU_STREAM_RDWR);
   if (rc)
     {
       mu_diag_funcall (MU_DIAG_ERROR, "mu_fd_stream_create", NULL, rc);

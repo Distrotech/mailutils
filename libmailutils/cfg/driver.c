@@ -586,8 +586,11 @@ mu_cfg_tree_reduce (mu_cfg_tree_t *parse_tree, const char *progname,
     return 0;
   if (flags & MU_PARSE_CONFIG_DUMP)
     {
+      int yes = 1;
       mu_stream_t stream;
+      
       mu_stdio_stream_create (&stream, MU_STDERR_FD, 0);
+      mu_stream_ioctl (stream, MU_IOCTL_FD, MU_IOCTL_FD_SET_BORROW, &yes);
       mu_cfg_format_parse_tree (stream, parse_tree, MU_CFG_FMT_LOCUS);
       mu_stream_destroy (&stream);
     }

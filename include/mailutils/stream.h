@@ -43,8 +43,7 @@ enum mu_buffer_type
 #define MU_STREAM_CREAT	      0x00000010
 /* So far used only by TCP streams. */
 #define MU_STREAM_NONBLOCK    0x00000020
-/* For fd streams only */
-#define MU_STREAM_FD_AUTOCLOSE   0x00000040
+/* Not used                   0x00000040 */
 /* Not used. Intended for mailboxes only. */
 #define MU_STREAM_NONLOCK     0x00000080
 /* Not used as well           0x00000100  */
@@ -71,7 +70,8 @@ enum mu_buffer_type
 #define MU_IOCTL_NULLSTREAM       6 /* Null stream (see below) */
 #define MU_IOCTL_LOGSTREAM        7 /* Log stream (see below) */
 #define MU_IOCTL_XSCRIPTSTREAM    8 /* Transcript stream (see below) */
-
+#define MU_IOCTL_FD               9 /* File descriptor manipulation */
+  
   /* Opcodes common for various families */
 #define MU_IOCTL_OP_GET 0
 #define MU_IOCTL_OP_SET 1  
@@ -147,6 +147,17 @@ enum mu_buffer_type
      New transcript level is set to *X.  Previous level is stored in X.
   */
 #define MU_IOCTL_XSCRIPTSTREAM_LEVEL 0  
+
+  /* Opcodes for MU_IOCTL_FD */
+  /* Get "borrow state".  Borrowed descriptors remain in open state
+     after the stream is closed.
+     Arg: int *
+  */
+#define MU_IOCTL_FD_GET_BORROW 0
+  /* Set borrow state.
+     Arg: int *
+  */
+#define MU_IOCTL_FD_SET_BORROW 1
   
 #define MU_TRANSPORT_INPUT  0
 #define MU_TRANSPORT_OUTPUT 1

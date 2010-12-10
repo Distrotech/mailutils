@@ -29,13 +29,11 @@ io_setio (int ifd, int ofd)
   if (ofd == -1)
     imap4d_bye (ERR_NO_OFILE);
 
-  if (mu_stdio_stream_create (&istream, ifd,
-			      MU_STREAM_READ | MU_STREAM_FD_AUTOCLOSE))
+  if (mu_stdio_stream_create (&istream, ifd, MU_STREAM_READ))
     imap4d_bye (ERR_STREAM_CREATE);
   mu_stream_set_buffer (istream, mu_buffer_line, 0);
   
-  if (mu_stdio_stream_create (&ostream, ofd, 
-                              MU_STREAM_WRITE | MU_STREAM_FD_AUTOCLOSE))
+  if (mu_stdio_stream_create (&ostream, ofd, MU_STREAM_WRITE))
     imap4d_bye (ERR_STREAM_CREATE);
   mu_stream_set_buffer (ostream, mu_buffer_line, 0);
   

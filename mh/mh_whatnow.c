@@ -336,6 +336,7 @@ _whatnow (struct mh_whatnow_env *wh, struct action_tab *tab)
   size_t size = 0;
   struct mu_wordsplit ws;
   int wsflags = MU_WRDSF_DEFFLAGS|MU_WRDSF_COMMENT;
+  int yes = 1;
   
   rc = mu_stdio_stream_create (&in, MU_STDIN_FD, 0);
   if (rc)
@@ -343,7 +344,8 @@ _whatnow (struct mh_whatnow_env *wh, struct action_tab *tab)
       mu_error (_("cannot create input stream: %s"), mu_strerror (rc));
       exit (1);
     }
-  
+  mu_stream_ioctl (in, MU_IOCTL_FD, MU_IOCTL_FD_SET_BORROW, &yes);
+ 
   do
     {
       size_t n;
