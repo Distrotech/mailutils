@@ -27,10 +27,10 @@ mail_inc (int argc MU_ARG_UNUSED, char **argv MU_ARG_UNUSED)
   if (!mu_mailbox_is_updated (mbox))
     {
       mu_mailbox_messages_count (mbox, &total);
-      fprintf (ofile, _("New mail has arrived.\n"));
+      mu_stream_printf (ostream, _("New mail has arrived.\n"));
     }
   else
-    fprintf (ofile, _("No new mail for %s\n"), mail_whoami());
+    mu_stream_printf (ostream, _("No new mail for %s\n"), mail_whoami ());
 
   return 0;
 }

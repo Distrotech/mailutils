@@ -102,9 +102,7 @@ typedef int function_t (int, char **);
 typedef struct compose_env
 {
   mu_header_t header;   /* The message headers */
-  char *filename;    /* Name of the temporary compose file */
-  FILE *file;        /* Temporary compose file */
-  FILE *ofile;       /* Diagnostics output channel */
+  mu_stream_t compstr;    /* Temporary compose stream */
   char **outfiles;   /* Names of the output files. The message is to be
 		        saved in each of these. */
   int nfiles;        /* Number of output files */
@@ -174,7 +172,7 @@ typedef int (*msg_handler_t) (msgset_t *mp, mu_message_t mesg, void *data);
 /* Global variables and constants*/
 extern mu_mailbox_t mbox;
 extern size_t total;
-extern FILE *ofile;
+extern mu_stream_t ostream;
 extern int interactive;
 extern const char *program_version;
 
@@ -358,7 +356,7 @@ extern int mailvar_get (void *ptr, const char *variable,
 			enum mailvar_type type, int warn);
 
 extern void mailvar_print (int set);
-extern void mailvar_variable_format (FILE *fp,
+extern void mailvar_variable_format (mu_stream_t,
 				     const struct mailvar_variable *,
 				     const char *defval);
 
@@ -403,7 +401,9 @@ void util_mark_read (mu_message_t msg);
 
 const char *util_url_to_string (mu_url_t url);
 
-size_t fprint_msgset (FILE *fp, const msgset_t *msgset);
+mu_stream_t open_pager (size_t lines);
+
+void format_msgset (mu_stream_t str, const msgset_t *msgset, size_t *count);
 
 int is_address_field (const char *name);
 

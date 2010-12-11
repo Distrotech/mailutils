@@ -285,21 +285,27 @@ find_mailvar_symbol (const char *var)
 }
 
 static void
-print_descr (FILE *out, const char *s, int n,
+print_descr (mu_stream_t out, const char *s, int n,
 	     int doc_col, int rmargin, char *pfx)
 {
+  mu_stream_stat_buffer stat;
+  
   if (!s)
     return;
+  
+  mu_stream_set_stat (out, MU_STREAM_STAT_MASK (MU_STREAM_STAT_OUT),
+		      stat);
+  stat[MU_STREAM_STAT_OUT] = n;
   do
     {
       const char *p;
       const char *space = NULL;
 
-      if (n == 1 && pfx)
-	n += fprintf (out, "%s", pfx);
+      if (stat[MU_STREAM_STAT_OUT] && pfx)
+	mu_stream_printf (out, "%s", pfx);
       
-      for (; n < doc_col; n++)
-	fputc (' ', out);
+      while (stat[MU_STREAM_STAT_OUT] < doc_col)
+	mu_stream_write (out, " ", 1, NULL);
 
       for (p = s; *p && p < s + (rmargin - doc_col); p++)
 	if (mu_isspace (*p))
@@ -307,20 +313,21 @@ print_descr (FILE *out, const char *s, int n,
       
       if (!space || p < s + (rmargin - doc_col))
 	{
-	  fprintf (out, "%s", s);
+	  mu_stream_printf (out, "%s", s);
 	  s += strlen (s);
 	}
       else
 	{
 	  for (; s < space; s++)
-	    fputc (*s, out);
+	    mu_stream_write (out, s, 1, NULL);
 	  for (; *s && mu_isspace (*s); s++)
 	    ;
 	}
-      fputc ('\n', out);
-      n = 1;
+      mu_stream_printf (out, "\n");
+      stat[MU_STREAM_STAT_OUT] = 1;
     }
   while (*s);
+  mu_stream_set_stat (out, 0, NULL);
 }
 
 /* Functions for dealing with internal mailvar_list variables */
@@ -680,17 +687,15 @@ void
 mailvar_print (int set)
 {
   struct mailvar_variable **vartab;
-  FILE *out = ofile;
+  mu_stream_t out;
   size_t i, count;
-  int pagelines = util_get_crt ();
   int width = util_getcols ();
   int prettyprint = mailvar_get (NULL, "variable-pretty-print",
 				 mailvar_type_boolean, 0) == 0;
   
   vartab = mailvar_make_array (set, &count);
 
-  if (pagelines && count > pagelines)
-    out = popen (getenv ("PAGER"), "w");
+  out = open_pager (count);
 
   for (i = 0; i < count; i++)
     {
@@ -704,40 +709,41 @@ mailvar_print (int set)
 	      if (sym->flags & MAILVAR_HIDDEN)
 		continue;
 	      if (sym->flags & MAILVAR_RDONLY)
-		fprintf (out, "# %s:\n", _("Read-only variable"));
+		mu_stream_printf (out, "# %s:\n", _("Read-only variable"));
 	      print_descr (out, gettext (sym->descr), 1, 3, width - 1, "# ");
 	    }
 	}
       switch (vartab[i]->type)
 	{
 	case mailvar_type_number:
-	  fprintf (out, "%s=%d", vartab[i]->name, vartab[i]->value.number);
+	  mu_stream_printf (out, "%s=%d",
+			    vartab[i]->name, vartab[i]->value.number);
 	  break;
 	  
 	case mailvar_type_string:
-	  fprintf (out, "%s=\"%s\"", vartab[i]->name, vartab[i]->value.string);
+	  mu_stream_printf (out, "%s=\"%s\"",
+			    vartab[i]->name, vartab[i]->value.string);
 	  break;
 	  
 	case mailvar_type_boolean:
 	  if (!vartab[i]->value.bool)
-	    fprintf (out, "no");
-	  fprintf (out, "%s", vartab[i]->name);
+	    mu_stream_printf (out, "no");
+	  mu_stream_printf (out, "%s", vartab[i]->name);
 	  break;
 	  
 	case mailvar_type_whatever:
-	  fprintf (out, "%s %s", vartab[i]->name, _("oops?"));
+	  mu_stream_printf (out, "%s %s", vartab[i]->name, _("oops?"));
 	}
-      fprintf (out, "\n");
+      mu_stream_printf (out, "\n");
     }
   free (vartab);
 
-  if (out != ofile)
-    pclose (out);
+  mu_stream_unref (out);
 }
 
 
 void
-mailvar_variable_format (FILE *fp,
+mailvar_variable_format (mu_stream_t stream,
 			 const struct mailvar_variable *var,
 			 const char *defval)
 {
@@ -745,20 +751,20 @@ mailvar_variable_format (FILE *fp,
     switch (var->type)
       {
       case mailvar_type_string:
-	fprintf (fp, "%s", var->value.string);
+	mu_stream_printf (stream, "%s", var->value.string);
 	break;
 
       case mailvar_type_number:
-	fprintf (fp, "%d", var->value.number);
+	mu_stream_printf (stream, "%d", var->value.number);
 	break;
 
       case mailvar_type_boolean:
-	fprintf (fp, "%s", var->set ? "yes" : "no");
+	mu_stream_printf (stream, "%s", var->set ? "yes" : "no");
 	break;
 
       default:
 	if (defval)
-	  fprintf (fp, "%s", defval);
+	  mu_stream_printf (stream, "%s", defval);
 	break;
       }
 }
@@ -773,45 +779,51 @@ static char *typestr[] =
   };
 
 static void
-describe_symbol (FILE *out, int width, const struct mailvar_symbol *sym)
+describe_symbol (mu_stream_t out, int width, const struct mailvar_symbol *sym)
 {
-  int n;
   int i, t;
   const struct mailvar_symbol *ali;
+  mu_stream_stat_buffer stat;
 
-  n = fprintf (out, "%s", sym->var.name);
+  mu_stream_set_stat (out, MU_STREAM_STAT_MASK (MU_STREAM_STAT_OUT),
+		      stat);
+  mu_stream_printf (out, "%s", sym->var.name);
   for (ali = sym + 1; ali->var.name && ali->flags & MAILVAR_ALIAS; ali++)
     {
       size_t len = strlen (ali->var.name) + 2;
-      if (n + len > width)
-	n = fprintf (out, "\n%s", ali->var.name);
+      if (stat[MU_STREAM_STAT_OUT] + len > width)
+	{
+	  stat[MU_STREAM_STAT_OUT] = 0;
+	  mu_stream_printf (out, "\n%s", ali->var.name);
+	}
       else
-	n = fprintf (out, ", %s", ali->var.name);
+	mu_stream_printf (out, ", %s", ali->var.name);
     }
-  fputc ('\n', out);
+  mu_stream_printf (out, "\n");
+  mu_stream_set_stat (out, 0, NULL);
   
-  fprintf (out, _("Type: "));
+  mu_stream_printf (out, _("Type: "));
   for (i = 0, t = 0; i < sizeof (typestr) / sizeof (typestr[0]); i++)
     if (sym->flags & MAILVAR_TYPEMASK (i))
       {
 	if (t++)
-	  fprintf (out, " %s ", _("or"));
-	fprintf (out, "%s", gettext (typestr[i]));
+	  mu_stream_printf (out, " %s ", _("or"));
+	mu_stream_printf (out, "%s", gettext (typestr[i]));
       }
   if (!t)
-    fprintf (out, "%s", gettext (typestr[0]));
-  fputc ('\n', out);
+    mu_stream_printf (out, "%s", gettext (typestr[0]));
+  mu_stream_printf (out, "\n");
   
-  fprintf (out, "%s", _("Current value: "));
+  mu_stream_printf (out, "%s", _("Current value: "));
   mailvar_variable_format (out, &sym->var, _("[not set]"));
 
   if (sym->flags & MAILVAR_RDONLY)
-    fprintf (out, " [%s]", _("read-only"));
-  fputc ('\n', out);
+    mu_stream_printf (out, " [%s]", _("read-only"));
+  mu_stream_printf (out, "\n");
   
   print_descr (out, gettext (sym->descr ? sym->descr : N_("Not documented")),
 	       1, 1, width - 1, NULL);
-  fputc ('\n', out);
+  mu_stream_printf (out, "\n");
 }
 
 int
@@ -819,10 +831,7 @@ mail_variable (int argc, char **argv)
 {
   int pagelines = util_get_crt ();
   int width = util_getcols ();
-  FILE *out = ofile;
-
-  if (pagelines)
-    out = popen (getenv ("PAGER"), "w");
+  mu_stream_t out = open_pager (pagelines + 1);
   
   if (argc == 1)
     {
@@ -840,13 +849,12 @@ mail_variable (int argc, char **argv)
 	{
 	  struct mailvar_symbol *sym = find_mailvar_symbol (argv[i]);
 	  if (!sym)
-	    fprintf (out, "%s: unknown\n", argv[i]);
+	    mu_stream_printf (out, "%s: unknown\n", argv[i]);
 	  else
 	    describe_symbol (out, width, sym);
 	}
     }
-  if (out != ofile)
-    pclose (out);
+  mu_stream_unref (out);
   return 0;
 }
 

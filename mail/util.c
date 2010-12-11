@@ -278,22 +278,20 @@ util_help (void *table, size_t nmemb, size_t size, const char *word)
   if (!word)
     {
       int i = 0;
-      FILE *out = stdout;
+      mu_stream_t out;
       char *p;
 
-      if (mailvar_get (NULL, "crt", mailvar_type_boolean, 0) == 0)
-	out = popen (getenv ("PAGER"), "w");
+      out = open_pager (util_screen_lines () + 1);
 
       for (p = table, i = 0; i < nmemb; i++, p += size)
 	{
 	  struct mail_command *cp = (struct mail_command *)p;
 	  if (cp->synopsis == NULL)
 	    continue;
-	  fprintf (out, "%s\n", cp->synopsis);
+	  mu_stream_printf (out, "%s\n", cp->synopsis);
 	}
       
-      if (out != stdout)
-	pclose (out);
+      mu_stream_unref (out);
 
       return 0;
     }
@@ -302,11 +300,11 @@ util_help (void *table, size_t nmemb, size_t size, const char *word)
       int status = 0;
       struct mail_command *cp = util_find_entry (table, nmemb, size, word);
       if (cp && cp->synopsis)
-	fprintf (stdout, "%s\n", cp->synopsis);
+	mu_stream_printf (ostream, "%s\n", cp->synopsis);
       else
 	{
 	  status = 1;
-	  fprintf (stdout, _("Unknown command: %s\n"), word);
+	  mu_stream_printf (ostream, _("Unknown command: %s\n"), word);
 	}
       return status;
     }
@@ -339,12 +337,12 @@ util_command_list (void *table, size_t nmemb, size_t size)
       if (pos >= cols)
 	{
 	  pos = len + 1;
-	  fprintf (ofile, "\n%s ", cmd);
+	  mu_stream_printf (ostream, "\n%s ", cmd);
 	}
       else
-        fprintf (ofile, "%s ", cmd);
+        mu_stream_printf (ostream, "%s ", cmd);
     }
-  fprintf (ofile, "\n");
+  mu_stream_printf (ostream, "\n");
   return 0;
 }
 
@@ -572,8 +570,7 @@ util_slist_print (mu_list_t list, int nl)
   for (mu_iterator_first (itr); !mu_iterator_is_done (itr); mu_iterator_next (itr))
     {
       mu_iterator_current (itr, (void **)&name);
-      fprintf (ofile, "%s%c", name, nl ? '\n' : ' ');
-
+      mu_stream_printf (ostream, "%s%c", name, nl ? '\n' : ' ');
     }
   mu_iterator_destroy (&itr);
 }
@@ -760,8 +757,8 @@ util_error (const char *format, ...)
 
   va_start (ap, format);
   
-  vfprintf (stderr, format, ap);
-  fprintf (stderr, "\n");
+  mu_stream_vprintf (mu_strerr, format, ap);
+  mu_stream_printf (mu_strerr, "\n");
 
   va_end(ap);
 }
@@ -1149,4 +1146,30 @@ util_url_to_string (mu_url_t url)
 	}
     }
   return mu_url_to_string (url);
+}
+
+mu_stream_t
+open_pager (size_t lines)
+{
+  const char *pager;
+  unsigned pagelines = util_get_crt ();
+  mu_stream_t str;
+  
+  if (pagelines && lines > pagelines && (pager = getenv ("PAGER")))
+    {
+      int rc = mu_command_stream_create (&str, pager, MU_STREAM_WRITE);
+      if (rc)
+	{
+	  mu_diag_funcall (MU_DIAG_ERROR, "mu_prog_stream_create",
+			   pager, rc);
+	  str = ostream;
+	  mu_stream_ref (str);
+	}
+    }
+  else
+    {
+      str = ostream;
+      mu_stream_ref (str);
+    }
+  return str;
 }

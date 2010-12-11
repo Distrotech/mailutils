@@ -60,16 +60,20 @@ mail_summary (int argc MU_ARG_UNUSED, char **argv MU_ARG_UNUSED)
   {
     mu_url_t url = NULL;
     mu_mailbox_get_url (mbox, &url);
-    printf("\"%s\": ", util_url_to_string (url));
+    mu_stream_printf (ostream, "\"%s\": ", util_url_to_string (url));
   }
-  printf (ngettext ("%d message", "%d messages", count), count);
+  mu_stream_printf (ostream,
+		    ngettext ("%d message", "%d messages", count), count);
   if (mnew > 0)
-    printf (ngettext (" %d new", " %d new", mnew), mnew);
+    mu_stream_printf (ostream, ngettext (" %d new", " %d new", mnew), mnew);
   if (mseen > 0)
-    printf (ngettext (" %d unread", " %d unread", mseen), mseen);
+    mu_stream_printf (ostream, ngettext (" %d unread", " %d unread", mseen),
+		      mseen);
   if (mdelete > 0)
-    printf (ngettext (" %d deleted", " %d deleted", mdelete), mdelete);
-  printf("\n");
+    mu_stream_printf (ostream,
+		      ngettext (" %d deleted", " %d deleted", mdelete),
+		      mdelete);
+  mu_stream_printf (ostream, "\n");
 
   /* Set the cursor.  */
   set_cursor ((first_new == 0) ? ((first_unread == 0) ?

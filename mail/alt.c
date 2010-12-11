@@ -34,7 +34,7 @@ mail_alt (int argc, char **argv)
       if (alternate_names)
 	{
 	  util_slist_print (alternate_names, 0);
-	  fprintf (ofile, "\n");
+	  mu_stream_printf (ostream, "\n");
 	}
     }
   else

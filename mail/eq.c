@@ -34,7 +34,7 @@ mail_eq (int argc, char **argv)
       if (n == 0)
         util_error (_("No applicable message"));
       else
-        fprintf (ofile, "%lu\n", (unsigned long) n);
+        mu_stream_printf (ostream, "%lu\n", (unsigned long) n);
       break;
 
     case 2:
@@ -43,7 +43,8 @@ mail_eq (int argc, char **argv)
 	  if (list->msg_part[0] <= total)
 	    {
 	      set_cursor (list->msg_part[0]);
-	      fprintf (ofile, "%lu\n", (unsigned long) list->msg_part[0]);
+	      mu_stream_printf (ostream, "%lu\n",
+				(unsigned long) list->msg_part[0]);
 	    }
 	  else
 	    util_error_range (list->msg_part[0]);

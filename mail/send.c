@@ -52,7 +52,7 @@ list_headers (void *item, void *data)
 
   if (!name || strcmp (name, hp->name) == 0)
     {
-      printf ("%s: %s\n", hp->name, hp->value);
+      mu_stream_printf (ostream, "%s: %s\n", hp->name, hp->value);
     }
   return 0;
 }
@@ -347,27 +347,27 @@ save_dead_message (compose_env_t *env)
 {
   if (mailvar_get (NULL, "save", mailvar_type_boolean, 0) == 0)
     {
-      FILE *fp = fopen (getenv ("DEAD"),
-			mailvar_get (NULL, "appenddeadletter",
-				     mailvar_type_boolean, 0) == 0 ?
-			"a" : "w");
-      
-      if (!fp)
+      mu_stream_t dead_letter;
+      int rc;
+      const char *name = getenv ("DEAD");
+
+      /* FIXME: Use MU_STREAM_APPEND if appenddeadletter, instead of the
+	 stream manipulations below */
+      rc = mu_file_stream_create (&dead_letter, name, MU_STREAM_WRITE);
+      if (rc)
 	{
-	  util_error (_("Cannot open file %s: %s"), getenv ("DEAD"),
-		      strerror (errno));
+	  util_error (_("Cannot open file %s: %s"), name, strerror (rc));
 	  return 1;
 	}
+      if (mailvar_get (NULL, "appenddeadletter",
+		       mailvar_type_boolean, 0) == 0)
+	mu_stream_seek (dead_letter, 0, MU_SEEK_END, NULL);
       else
-	{
-	  char *buf = NULL;
-	  size_t n;
-	  rewind (env->file);
-	  while (getline (&buf, &n, env->file) > 0)
-	    fputs (buf, fp);
-	  fclose (fp);
-	  free (buf);
-	}
+	mu_stream_truncate (dead_letter, 0);
+
+      mu_stream_seek (env->compstr, 0, MU_SEEK_SET, NULL);
+      mu_stream_copy (dead_letter, env->compstr, 0, NULL);
+      mu_stream_destroy (&dead_letter);
     }
   return 0;
 }
@@ -433,27 +433,21 @@ send_message (mu_message_t msg)
    addresses on the command line and message contents on standard input. */
 
 int
-mail_send0 (compose_env_t * env, int save_to)
+mail_send0 (compose_env_t *env, int save_to)
 {
   int done = 0;
-  int fd, rc;
-  char *filename;
+  int rc;
   char *savefile = NULL;
   int int_cnt;
   char *escape;
 
-  rc = mu_tempfile (NULL, 0, &fd, &filename);
+  /* Prepare environment */
+  rc = mu_temp_file_stream_create (&env->compstr, NULL, 0);
   if (rc)
     {
       util_error (_("Cannot open temporary file: %s"), mu_strerror (rc));
       return 1;
     }
-
-  /* Prepare environment */
-  env = env;
-  env->filename = filename;
-  env->file = fdopen (fd, "w+");
-  env->ofile = ofile;
 
   ml_clear_interrupt ();
   int_cnt = 0;
@@ -466,7 +460,7 @@ mail_send0 (compose_env_t * env, int save_to)
 	{
 	  if (mailvar_get (NULL, "ignore", mailvar_type_boolean, 0) == 0)
 	    {
-	      fprintf (stdout, "@\n");
+	      mu_stream_printf (ostream, "@\n");
 	    }
 	  else
 	    {
@@ -502,7 +496,7 @@ mail_send0 (compose_env_t * env, int save_to)
 	       && buf[0] == escape[0])
 	{
 	  if (buf[1] == buf[0])
-	    fprintf (env->file, "%s\n", buf + 1);
+	    mu_stream_printf (env->compstr, "%s\n", buf + 1);
 	  else if (buf[1] == '.')
 	    done = 1;
 	  else if (buf[1] == 'x')
@@ -514,8 +508,6 @@ mail_send0 (compose_env_t * env, int save_to)
 	    {
 	      struct mu_wordsplit ws;
 	      int status;
-
-	      ofile = env->file;
 
 	      if (mu_wordsplit (buf + 1, &ws, MU_WRDSF_DEFFLAGS) == 0)
 		{
@@ -539,13 +531,11 @@ mail_send0 (compose_env_t * env, int save_to)
 		  util_error (_("Cannot parse escape sequence: %s"),
 			      mu_wordsplit_strerror (&ws));
 		}
-
-	      ofile = env->ofile;
 	    }
 	}
       else
-	fprintf (env->file, "%s\n", buf);
-      fflush (env->file);
+	mu_stream_printf (env->compstr, "%s\n", buf);
+      mu_stream_flush (env->compstr);
       free (buf);
     }
 
@@ -553,9 +543,7 @@ mail_send0 (compose_env_t * env, int save_to)
   if (int_cnt)
     {
       save_dead_message (env);
-      fclose (env->file);
-      remove (filename);
-      free (filename);
+      mu_stream_destroy (&env->compstr);
       return 1;
     }
 
@@ -571,115 +559,100 @@ mail_send0 (compose_env_t * env, int save_to)
 
   if (util_header_expand (&env->header) == 0)
     {
+      mu_message_t msg = NULL;
       int rc;
-      mu_stream_t instr;
+      int status = 0;
+      
+      mu_message_create (&msg, NULL);
+      
+      /* Fill the body.  */
+      mu_stream_seek (env->compstr, 0, MU_SEEK_SET, NULL);
+      rc = fill_body (msg, env->compstr);
 
-      rc = mu_file_stream_create (&instr, filename, MU_STREAM_READ);
-      if (rc)
-	mu_error (_("cannot open temporary stream `%s' for reading: %s"),
-		  filename, mu_strerror (rc));
-      else
+      if (rc == 0)
 	{
-	  mu_message_t msg = NULL;
-	  int rc;
-	  int status = 0;
-	  
-	  mu_message_create (&msg, NULL);
-	  
-	  /* Fill the body.  */
-	  rc = fill_body (msg, instr);
-	  mu_stream_destroy (&instr);
-
-	  if (rc == 0)
+	  /* Save outgoing message */
+	  if (save_to)
 	    {
-	      /* Save outgoing message */
-	      if (save_to)
-		{
-		  char *tmp = compose_header_get (env, MU_HEADER_TO, NULL);
-		  mu_address_t addr = NULL;
+	      char *tmp = compose_header_get (env, MU_HEADER_TO, NULL);
+	      mu_address_t addr = NULL;
 	      
-		  mu_address_create (&addr, tmp);
-		  mu_address_aget_email (addr, 1, &savefile);
-		  mu_address_destroy (&addr);
-		  if (savefile)
-		    {
-		      char *p = strchr (savefile, '@');
-		      if (p)
-			*p = 0;
-		    }
-		}
-	      util_save_outgoing (msg, savefile);
+	      mu_address_create (&addr, tmp);
+	      mu_address_aget_email (addr, 1, &savefile);
+	      mu_address_destroy (&addr);
 	      if (savefile)
-		free (savefile);
-
-	      /* Check if we need to save the message to files or pipes.  */
-	      if (env->outfiles)
 		{
-		  int i;
-		  for (i = 0; i < env->nfiles; i++)
+		  char *p = strchr (savefile, '@');
+		  if (p)
+		    *p = 0;
+		}
+	    }
+	  util_save_outgoing (msg, savefile);
+	  if (savefile)
+	    free (savefile);
+
+	  /* Check if we need to save the message to files or pipes.  */
+	  if (env->outfiles)
+	    {
+	      int i;
+	      for (i = 0; i < env->nfiles; i++)
+		{
+		  /* Pipe to a cmd.  */
+		  if (env->outfiles[i][0] == '|')
+		    status = msg_to_pipe (env->outfiles[i] + 1, msg);
+		  /* Save to a file.  */
+		  else
 		    {
-		      /* Pipe to a cmd.  */
-		      if (env->outfiles[i][0] == '|')
-			status = msg_to_pipe (env->outfiles[i] + 1, msg);
-		      /* Save to a file.  */
-		      else
+		      mu_mailbox_t mbx = NULL;
+		      status = mu_mailbox_create_default (&mbx, 
+							  env->outfiles[i]);
+		      if (status == 0)
 			{
-			  mu_mailbox_t mbx = NULL;
-			  status = mu_mailbox_create_default (&mbx, 
-                                                              env->outfiles[i]);
+			  status = mu_mailbox_open (mbx, MU_STREAM_WRITE
+						    | MU_STREAM_CREAT);
 			  if (status == 0)
 			    {
-			      status = mu_mailbox_open (mbx, MU_STREAM_WRITE
-							| MU_STREAM_CREAT);
-			      if (status == 0)
-				{
-				  status = mu_mailbox_append_message (mbx, msg);
-				  if (status)
-				    util_error (_("Cannot append message: %s"),
-						mu_strerror (status));
-				  mu_mailbox_close (mbx);
-				}
-			      mu_mailbox_destroy (&mbx);
+			      status = mu_mailbox_append_message (mbx, msg);
+			      if (status)
+				util_error (_("Cannot append message: %s"),
+					    mu_strerror (status));
+			      mu_mailbox_close (mbx);
 			    }
-			  if (status)
-			    util_error (_("Cannot create mailbox %s: %s"), 
-					env->outfiles[i],
-					mu_strerror (status));
+			  mu_mailbox_destroy (&mbx);
 			}
-		    }
-		}
-
-	      /* Do we need to Send the message on the wire?  */
- 	      if (status == 0 &&
- 		  (compose_header_get (env, MU_HEADER_TO, NULL) ||
- 		   compose_header_get (env, MU_HEADER_CC, NULL) ||
- 		   compose_header_get (env, MU_HEADER_BCC, NULL)))
-		{
-		  mu_message_set_header (msg, env->header, NULL);
-		  env->header = NULL;
-		  status = send_message (msg);
- 		  if (status)
-		    {
-		      mu_error (_("cannot send message: %s"),
-				mu_strerror (status));
-		      save_dead_message (env);
+		      if (status)
+			util_error (_("Cannot create mailbox %s: %s"), 
+				    env->outfiles[i],
+				    mu_strerror (status));
 		    }
 		}
 	    }
-	  fclose (env->file);
-	  mu_message_destroy (&msg, NULL);
-	  remove (filename);
-	  free (filename);
-	  return status;
-	}
+	  
+	  /* Do we need to Send the message on the wire?  */
+	  if (status == 0 &&
+	      (compose_header_get (env, MU_HEADER_TO, NULL) ||
+	       compose_header_get (env, MU_HEADER_CC, NULL) ||
+	       compose_header_get (env, MU_HEADER_BCC, NULL)))
+	    {
+	      mu_message_set_header (msg, env->header, NULL);
+	      env->header = NULL;
+	      status = send_message (msg);
+	      if (status)
+		{
+		  mu_error (_("cannot send message: %s"),
+			    mu_strerror (status));
+		  save_dead_message (env);
+		}
+	    }
+	}  
+      mu_stream_destroy (&env->compstr);
+      mu_message_destroy (&msg, NULL);
+      return status;
     }
   else
     save_dead_message (env);
   
-  fclose (env->file);
-
-  remove (filename);
-  free (filename);
+  mu_stream_destroy (&env->compstr);
   return 1;
 }
 

@@ -60,81 +60,65 @@ expand_bang (char **pbuf)
 int
 mail_execute (int shell, int argc, char **argv)
 {
-  pid_t pid;
-  char *buf = NULL;
-  char *argv0 = NULL;
+  int xargc, i, status, rc;
+  char **xargv;
+  char *buf;
 
-  if (argc)
+  if (argc == 0)
     {
-      argv0 = argv[0]; 
-  
-      /* Skip leading whitespace from argv[0] */
-      while (mu_isspace (**argv))
-	(*argv)++;
+      /* No arguments mean execute a copy of the user shell */
+      shell = 1;
     }
+  
+  xargc = argc;
+  if (shell && argc < 3)
+    xargc = 3;
+  xargv = xcalloc (xargc + 1, sizeof (xargv[0]));
+  
+  for (i = 0; i < argc; i++)
+    xargv[i] = argv[i];
 
   /* Expand arguments if required */
   if (mailvar_get (NULL, "bang", mailvar_type_boolean, 0) == 0)
     {
       int i;
 
-      for (i = 0; i < argc; i++)
-	expand_bang (argv + i);
+      for (i = 0; i < xargc; i++)
+	expand_bang (xargv + i);
     }
 
-  /* Construct command line and save it to gnu-last-command variable */
-  mu_argcv_string (argc, argv, &buf);
+  /* Reconstruct the command line and save it to gnu-last-command variable.
+     Important: use argc (not xargc)!
+  */
+  mu_argcv_string (argc, xargv, &buf);
   mailvar_set ("gnu-last-command", buf, mailvar_type_string, 
-             MOPTF_QUIET|MOPTF_OVERWRITE);
+	       MOPTF_QUIET | MOPTF_OVERWRITE);
 
-  /* Do actual work */
+  if (shell)
+    {
+      xargv[0] = getenv ("SHELL");
+      if (argc == 0)
+	xargv[1] = NULL;
+      else
+	{
+	  xargv[1] = "-c";
+	  xargv[2] = buf;
+	  xargv[3] = NULL;
+	}
+    }  
   
-  pid = fork ();  
-  if (pid == 0)
+  rc = mu_spawnvp (xargv[0], xargv, &status);
+  if (rc)
     {
-      if (shell)
-	{
-	  if (argc == 0)
-	    {
-	      argv = xmalloc (sizeof (argv[0]) * 2);
-	      argv[0] = getenv ("SHELL");
-	      argv[1] = NULL;
-	      argc = 1;
-	    }
-	  else
-	    {
-	      /* 1(shell) + 1 (-c) + 1(arg) + 1 (null) = 4  */
-	      argv = xmalloc (4 * (sizeof (argv[0])));
-	  
-	      argv[0] = getenv ("SHELL");
-	      argv[1] = "-c";
-	      argv[2] = buf;
-	      argv[3] = NULL;
-
-	      argc = 3;
-	    }
-	}
-      
-      execvp (argv[0], argv);
-      exit (1);
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_spawnvp", xargv[0], rc);
     }
-  else
-    {
-      if (argv0) /* Restore argv[0], else mu_argcv_free will coredump */
-	argv[0] = argv0;
-      free (buf);
-      if (pid > 0)
-	{
-	  while (waitpid (pid, NULL, 0) == -1)
-	    /* do nothing */;
-	  return 0;
-	}
-      else /* if (pid < 0) */
-	{
-	  mu_error ("fork failed: %s", mu_strerror (errno));
-	  return 1;
-	}
-    }
+  /* FIXME:
+  else if (status)
+    mu_diag_output (MU_DIAG_NOTICE, ....
+  */
+  free (buf);
+  free (xargv);
+  return rc;
 }
 
 /*

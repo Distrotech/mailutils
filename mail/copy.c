@@ -106,7 +106,7 @@ mail_copy0 (int argc, char **argv, int mark)
     }
 
   if (status == 0)
-    fprintf (ofile, "\"%s\" %3lu/%-5lu\n", filename,
+    mu_stream_printf (ostream, "\"%s\" %3lu/%-5lu\n", filename,
 	     (unsigned long) total_lines, (unsigned long) total_size);
 
   mu_mailbox_close (mbx);

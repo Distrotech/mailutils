@@ -72,7 +72,7 @@ static void
 format_pad (size_t n)
 {
   for (; n; n--)
-    fputc (' ', ofile);
+    mu_stream_write (ostream, " ", 1, NULL);
 }
 
 static void
@@ -113,17 +113,17 @@ format_headline (struct header_segm *seg, msgset_t *mspec, mu_message_t msg)
       if (seg->align == ALIGN_RIGHT)
 	{
 	  format_pad (width - len);
-	  fprintf (ofile, "%*.*s", (int) len, (int) len, p);
+	  mu_stream_printf (ostream, "%*.*s", (int) len, (int) len, p);
 	}
       else
 	{
-	  fprintf (ofile, "%*.*s", (int) len, (int) len, p);
+	  mu_stream_printf (ostream, "%*.*s", (int) len, (int) len, p);
 	  format_pad (width - len);
 	}
       out_cols += width;
     }
 
-  fprintf (ofile, "\n");
+  mu_stream_printf (ostream, "\n");
   free (args.buf);
 }    
 

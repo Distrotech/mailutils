@@ -25,23 +25,23 @@ static int
 top0 (msgset_t *mspec, mu_message_t msg, void *data)
 {
   mu_stream_t stream;
-  char buf[512];
-  size_t n;
+  char *buf = NULL;
+  size_t size = 0, n;
   int lines;
   
   if (mailvar_get (&lines, "toplines", mailvar_type_number, 1)
       || lines < 0)
     return 1;
 
-  /* FIXME: Use mu_stream_copy */
   mu_message_get_streamref (msg, &stream);
   for (; lines > 0; lines--)
     {
-      int status = mu_stream_readline (stream, buf, sizeof (buf), &n);
+      int status = mu_stream_getline (stream, &buf, &size, &n);
       if (status != 0 || n == 0)
 	break;
-      fprintf (ofile, "%s", buf);
+      mu_stream_printf (ostream, "%s", buf);
     }
+  free (buf);
   mu_stream_destroy (&stream);
   set_cursor (mspec->msg_part[0]);
 

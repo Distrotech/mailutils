@@ -241,21 +241,21 @@ static char *cur_p;
 int
 yyerror (const char *s)
 {
-  fprintf (stderr, "%s: ", xargv[0]);
-  fprintf (stderr, "%s", s);
+  mu_stream_printf (mu_strerr, "%s: ", xargv[0]);
+  mu_stream_printf (mu_strerr, "%s", s);
   if (!cur_p)
-    fprintf (stderr, _(" near end"));
+    mu_stream_printf (mu_strerr, _(" near end"));
   else if (*cur_p == 0)
     {
       int i =  (*cur_p == 0) ? cur_ind + 1 : cur_ind;
       if (i == xargc)
-	fprintf (stderr, _(" near end"));
+	mu_stream_printf (mu_strerr, _(" near end"));
       else
-	fprintf (stderr, _(" near %s"), xargv[i]);
+	mu_stream_printf (mu_strerr, _(" near %s"), xargv[i]);
     }
   else
-    fprintf (stderr, _(" near %s"), cur_p);
-  fprintf (stderr, "\n");
+    mu_stream_printf (mu_strerr, _(" near %s"), cur_p);
+  mu_stream_printf (mu_strerr, "\n");
   return 0;
 }
 
@@ -756,13 +756,13 @@ void
 msgset_print (msgset_t *mset)
 {
   int i;
-  printf ("(");
-  printf ("%d .", mset->msg_part[0]);
+  mu_printf ("(");
+  mu_printf ("%d .", mset->msg_part[0]);
   for (i = 1; i < mset->npart; i++)
     {
-      printf (" %d", mset->msg_part[i]);
+      mu_printf (" %d", mset->msg_part[i]);
     }
-  printf (")\n");
+  mu_printf (")\n");
 }
 
 int

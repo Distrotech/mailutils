@@ -29,7 +29,7 @@ struct decode_closure
   int select_hdr;
 };
 
-static int print_stream (mu_stream_t, FILE *);
+static int print_stream (mu_stream_t, mu_stream_t);
 static int display_message (mu_message_t, msgset_t *msgset, void *closure);
 static int display_submessage (struct mime_descend_closure *closure,
 			       void *data);
@@ -81,7 +81,7 @@ display_message (mu_message_t mesg, msgset_t *msgset, void *arg)
 }
 
 static void
-display_headers (FILE *out, mu_message_t mesg, 
+display_headers (mu_stream_t out, mu_message_t mesg, 
                  const msgset_t *msgset MU_ARG_UNUSED,
 		 int select_hdr)
 {
@@ -102,13 +102,13 @@ display_headers (FILE *out, mu_message_t mesg,
 	    continue;
 	  if (mail_header_is_visible (sptr))
 	    {
-	      fprintf (out, "%s: ", sptr);
+	      mu_stream_printf (out, "%s: ", sptr);
 	      if (mu_header_sget_field_value (hdr, i, &sptr))
 		sptr = "";
-	      fprintf (out, "%s\n", sptr);
+	      mu_stream_printf (out, "%s\n", sptr);
 	    }
 	}
-      fprintf (out, "\n");
+      mu_stream_printf (out, "\n");
     }
   else /* Print displays all headers.  */
     {
@@ -122,43 +122,50 @@ display_headers (FILE *out, mu_message_t mesg,
     }
 }
 
-size_t
-fprint_msgset (FILE *fp, const msgset_t *msgset)
+void
+format_msgset (mu_stream_t str, const msgset_t *msgset, size_t *count)
 {
   int i;
-  size_t n = 0;
-  
-  n = fprintf (fp, "%lu", (unsigned long) msgset->msg_part[0]);
+  mu_stream_stat_buffer stat;
+
+  if (count)
+    mu_stream_set_stat (str, MU_STREAM_STAT_MASK (MU_STREAM_STAT_OUT),
+			stat);
+  mu_stream_printf (str, "%lu", (unsigned long) msgset->msg_part[0]);
   for (i = 1; i < msgset->npart; i++)
-    n += fprintf (fp, "[%lu", (unsigned long) msgset->msg_part[i]);
+    mu_stream_printf (str, "[%lu", (unsigned long) msgset->msg_part[i]);
   for (i = 1; i < msgset->npart; i++)
-    n += fprintf (fp, "]");
-  return n;
+    mu_stream_printf (str, "]");
+  if (count)
+    {
+      *count = stat[MU_STREAM_STAT_OUT];
+      mu_stream_set_stat (str, 0, NULL);
+    }
 }
 
 static void
-display_part_header (FILE *out, const msgset_t *msgset,
+display_part_header (mu_stream_t str, const msgset_t *msgset,
 		     const char *type, const char *encoding)
 {
   int size = util_screen_columns () - 3;
   unsigned int i;
 
-  fputc ('+', out);
+  mu_stream_printf (str, "+");
   for (i = 0; (int)i <= size; i++)
-    fputc ('-', out);
-  fputc ('+', out);
-  fputc ('\n', out);
-  fprintf (out, "%s", _("| Message="));
-  fprint_msgset (out, msgset);
-  fprintf (out, "\n");
+    mu_stream_printf (str, "-");
+  mu_stream_printf (str, "+");
+  mu_stream_printf (str, "\n");
+  mu_stream_printf (str, "%s", _("| Message="));
+  format_msgset (str, msgset, NULL);
+  mu_stream_printf (str, "\n");
 
-  fprintf (out, _("| Type=%s\n"), type);
-  fprintf (out, _("| Encoding=%s\n"), encoding);
-  fputc ('+', out);
-  for (i = 0; (int)i <= size; i++)
-    fputc ('-', out);
-  fputc ('+', out);
-  fputc ('\n', out);
+  mu_stream_printf (str, _("| Type=%s\n"), type);
+  mu_stream_printf (str, _("| Encoding=%s\n"), encoding);
+  mu_stream_printf (str, "+");
+  for (i = 0; i <= size; i++)
+    mu_stream_printf (str, "-");
+  mu_stream_printf (str, "+");
+  mu_stream_printf (str, "\n");
 }
 
 int
@@ -268,7 +275,8 @@ display_submessage (struct mime_descend_closure *closure, void *data)
       else
 	stream = b_stream;
       
-      display_part_header (ofile, closure->msgset,
+      display_part_header (ostream,
+			   closure->msgset,
 			   closure->type, closure->encoding);
       
       /* If `metamail' is set to true, enable internal mailcap
@@ -290,22 +298,17 @@ display_submessage (struct mime_descend_closure *closure, void *data)
       if (builtin_display)
 	{
 	  size_t lines = 0;
-	  int pagelines = util_get_crt ();
-	  FILE *out;
+	  mu_stream_t str;
 	  
 	  mu_message_lines (closure->message, &lines);
-	  if (pagelines && lines > pagelines)
-	    out = popen (getenv ("PAGER"), "w");
-	  else
-	    out = ofile;
+	  str = open_pager (lines);
 	  
-	  display_headers (out, closure->message, closure->msgset,
+	  display_headers (str, closure->message, closure->msgset,
 			   closure->hints & MDHINT_SELECTED_HEADERS);
 	  
-	  print_stream (stream, out);
-	  
-	  if (out != ofile)
-	    pclose (out);
+	  print_stream (stream, str);
+
+	  mu_stream_unref (str);
 	}
       mu_stream_destroy (&stream);
     }
@@ -315,7 +318,7 @@ display_submessage (struct mime_descend_closure *closure, void *data)
 
 /* FIXME: Try to use mu_stream_copy instead */
 static int
-print_stream (mu_stream_t stream, FILE *out)
+print_stream (mu_stream_t stream, mu_stream_t out)
 {
   char buffer[512];
   size_t n = 0;
@@ -329,7 +332,7 @@ print_stream (mu_stream_t stream, FILE *out)
 	  break;
 	}
       buffer[n] = '\0';
-      fprintf (out, "%s", buffer);
+      mu_stream_printf (out, "%s", buffer);
     }
   return 0;
 }

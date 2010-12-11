@@ -21,7 +21,7 @@
 /* Global variables and constants*/
 mu_mailbox_t mbox;            /* Mailbox being operated upon */
 size_t total;                 /* Total number of messages in the mailbox */
-FILE *ofile;                  /* Output file */
+mu_stream_t ostream;          /* Output stream */
 int interactive;              /* Is the session interactive */  
 
 static mu_list_t command_list;   /* List of commands to be executed after parsing
@@ -221,7 +221,7 @@ mail_cmdline (void *closure, int cont MU_ARG_UNUSED)
 	{
 	  mu_mailbox_messages_count (mbox, &total);
 	  page_invalidate (0);
-	  fprintf (ofile, _("New mail has arrived.\n"));
+	  mu_stream_printf (ostream, _("New mail has arrived.\n"));
 	}
 
       rc = ml_readline (prompt);
@@ -324,7 +324,9 @@ main (int argc, char **argv)
   struct arguments args;
   int i, rc;
   
-  ofile = stdout;
+  mu_stdstream_setup ();
+  ostream = mu_strout;
+  mu_stream_ref (mu_strout);
   set_cursor (1);
 
   /* Native Language Support */
@@ -399,7 +401,18 @@ main (int argc, char **argv)
   util_run_cached_commands (&command_list);
 
   if (interactive)
-    /* nothing? */;
+    {
+      /* Reset standard error stream so that it does not print program
+	 name before the actual diagnostic message. */
+      mu_stream_t errstr;
+      int rc = mu_stdstream_strerr_create (&errstr, MU_STRERR_STDERR, 0, 0,
+					   NULL, NULL);
+      if (rc == 0)
+	{
+	  mu_stream_destroy (&mu_strerr);
+	  mu_strerr = errstr;
+	}
+    }
   else
     {
       util_do_command ("set nocrt");
@@ -485,10 +498,10 @@ main (int argc, char **argv)
 	      || mailvar_get (NULL, "emptystart", mailvar_type_boolean, 0)))
         {
 	  if (args.file)
-	    fprintf (ofile, _("%s: 0 messages\n"), args.file);
+	    mu_stream_printf (ostream, _("%s: 0 messages\n"), args.file);
 	  else
-	    fprintf (ofile, _("No mail for %s\n"),
-		     args.user ? args.user : mail_whoami ());
+	    mu_stream_printf (ostream, _("No mail for %s\n"),
+			      args.user ? args.user : mail_whoami ());
           return 1;
         }
 
@@ -501,7 +514,7 @@ main (int argc, char **argv)
 
       mailvar_get (&prompt, "prompt", mailvar_type_string, 0);
       mail_mainloop (mail_cmdline, (void*) prompt, 1);
-      fprintf (ofile, "\n");
+      mu_stream_printf (ostream, "\n");
       util_do_command ("quit");
       return 0;
     }
@@ -551,11 +564,11 @@ mail_mainloop (char *(*input) (void *, int),
 int
 mail_warranty (int argc MU_ARG_UNUSED, char **argv MU_ARG_UNUSED)
 {
-  fputs (_("GNU Mailutils -- a suite of utilities for electronic mail\n"
+  mu_stream_printf (ostream,
+	 _("GNU Mailutils -- a suite of utilities for electronic mail\n"
            "Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,\n"
-           "2007, 2009 Free Software Foundation, Inc.\n\n"),
-           ofile);
-  fputs (
+           "2007, 2009 Free Software Foundation, Inc.\n\n"));
+  mu_stream_printf (ostream,
   _("   GNU Mailutils is free software; you can redistribute it and/or modify\n"
     "   it under the terms of the GNU General Public License as published by\n"
     "   the Free Software Foundation; either version 3 of the License, or\n"
@@ -570,8 +583,7 @@ mail_warranty (int argc MU_ARG_UNUSED, char **argv MU_ARG_UNUSED)
     "   with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.\n" 
     "\n"
     "\n"
-),
-    ofile);
+));
 
   return 0;
 }

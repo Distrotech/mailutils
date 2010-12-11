@@ -70,11 +70,7 @@ mu_spawnvp (const char *prog, char *av[], int *stat)
       return errno;
     }
 
-#ifdef HAVE_VFORK
-  pid = vfork ();
-#else
   pid = fork ();
-#endif
 
   if (pid < 0)
     {
@@ -88,11 +84,7 @@ mu_spawnvp (const char *prog, char *av[], int *stat)
       sigprocmask (SIG_SETMASK, &savemask, NULL);
 
       execvp (prog, av);
-#ifdef HAVE__EXIT      
       _exit (127);		/* exec error */
-#else
-      exit (127);
-#endif
     }
   else
     {				/* parent */

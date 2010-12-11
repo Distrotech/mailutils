@@ -31,7 +31,7 @@ mail_unset (int argc, char **argv)
   else
     {
       int status = 0, i = 1;
-      for (i=1; i < argc; i++)
+      for (i = 1; i < argc; i++)
 	{
 	  char *buf = xmalloc ((7+strlen (argv[i])) * sizeof (char));
 	  strcpy (buf, "set no");

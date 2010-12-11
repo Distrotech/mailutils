@@ -20,19 +20,24 @@
 static char *
 source_readline (void *closure, int cont MU_ARG_UNUSED)
 {
-  FILE *fp = closure;
-  size_t s = 0;
+  mu_stream_t input = closure;
+  size_t size = 0, n;
   char *buf = NULL;
-  
-  if (getline (&buf, &s, fp) >= 0)
+  int rc;
+
+  rc = mu_stream_getline (input, &buf, &size, &n);
+  if (rc)
     {
-      mu_rtrim_class (buf, MU_CTYPE_SPACE);
-      mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM,
-                       MU_IOCTL_LOGSTREAM_ADVANCE_LOCUS_LINE, NULL);
-      return buf;
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_stream_getline", NULL, rc);
+      return NULL;
     }
-  
-  return NULL;
+  if (n == 0)
+    return NULL;
+
+  mu_rtrim_class (buf, MU_CTYPE_SPACE);
+  mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM,
+		   MU_IOCTL_LOGSTREAM_ADVANCE_LOCUS_LINE, NULL);
+  return buf;
 }
   
 /*
@@ -42,9 +47,10 @@ source_readline (void *closure, int cont MU_ARG_UNUSED)
 int
 mail_source (int argc, char **argv)
 {
-  FILE *fp;
+  mu_stream_t input;
   int save_term;
   struct mu_locus locus;
+  int rc;
   
   if (argc != 2)
     {
@@ -52,12 +58,12 @@ mail_source (int argc, char **argv)
       util_error (_("source requires a single argument"));
       return 1;
     }
-  
-  fp = fopen (argv[1], "r");
-  if (!fp)
+
+  rc = mu_file_stream_create (&input, argv[1], MU_STREAM_READ);
+  if (rc)
     {
-      if (errno != ENOENT)
-	util_error(_("Cannot open `%s': %s"), argv[1], strerror(errno));
+      if (rc != ENOENT)
+	util_error(_("Cannot open `%s': %s"), argv[1], strerror (rc));
       return 1;
     }
 
@@ -68,10 +74,10 @@ mail_source (int argc, char **argv)
   locus.mu_col = 0;
   mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM,
                    MU_IOCTL_LOGSTREAM_SET_LOCUS, &locus);
-  mail_mainloop (source_readline, fp, 0);
+  mail_mainloop (source_readline, input, 0);
   interactive = save_term;
   mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM,
                    MU_IOCTL_LOGSTREAM_SET_LOCUS, NULL);
-  fclose (fp);
+  mu_stream_unref (input);
   return 0;
 }

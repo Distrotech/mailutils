@@ -46,7 +46,8 @@ mu_stdstream_setup ()
 {
   int rc;
   int fd;
-
+  int yes = 1;
+  
   /* If the streams are already open, close them */
   mu_stream_destroy (&mu_strin);
   mu_stream_destroy (&mu_strout);
@@ -90,6 +91,8 @@ mu_stdstream_setup ()
 	       MU_STDIN_FD, mu_strerror (rc));
       abort ();
     }
+  mu_stream_ioctl (mu_strin, MU_IOCTL_FD, MU_IOCTL_FD_SET_BORROW, &yes);
+  
   rc = mu_stdio_stream_create (&mu_strout, MU_STDOUT_FD, 0);
   if (rc)
     {
@@ -97,6 +100,7 @@ mu_stdstream_setup ()
 	       MU_STDOUT_FD, mu_strerror (rc));
       abort ();
     }
+  mu_stream_ioctl (mu_strout, MU_IOCTL_FD, MU_IOCTL_FD_SET_BORROW, &yes);
 
   if (mu_stdstream_strerr_create (&mu_strerr, MU_STRERR_STDERR, 0, 0,
 				  mu_program_name, NULL))

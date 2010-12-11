@@ -114,8 +114,8 @@ mail_write (int argc, char **argv)
   mu_stream_close (output);
   mu_stream_destroy (&output);
   
-  fprintf (ofile, "\"%s\" %3lu/%-5lu\n", filename,
-	   (unsigned long) total_lines, (unsigned long) total_size);
+  mu_stream_printf (ostream, "\"%s\" %3lu/%-5lu\n", filename,
+		    (unsigned long) total_lines, (unsigned long) total_size);
 
   free (filename);
   msgset_free (msglist);

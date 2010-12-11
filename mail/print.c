@@ -30,9 +30,8 @@ mail_print_msg (msgset_t *mspec, mu_message_t mesg, void *data)
   mu_header_t hdr;
   mu_body_t body;
   mu_stream_t stream;
-  char buffer[512];
-  size_t n = 0, lines = 0;
-  FILE *out = ofile;
+  size_t lines = 0;
+  mu_stream_t out;
   int pagelines = util_get_crt ();
   int status;
   
@@ -56,8 +55,7 @@ mail_print_msg (msgset_t *mspec, mu_message_t mesg, void *data)
 	}
     }
 
-  if (pagelines && lines > pagelines)
-    out = popen (getenv ("PAGER"), "w");
+  out = open_pager (lines);
 
   if (mailvar_get (NULL, "showenvelope", mailvar_type_boolean, 0) == 0)
     print_envelope (mspec, mesg, "From");
@@ -77,16 +75,16 @@ mail_print_msg (msgset_t *mspec, mu_message_t mesg, void *data)
 	    continue;
 	  if (mail_header_is_visible (sptr))
 	    {
-	      fprintf (out, "%s: ", sptr);
+	      mu_stream_printf (out, "%s: ", sptr);
 	      mu_header_aget_field_value (hdr, i, &tmp);
 	      if (mail_header_is_unfoldable (sptr))
 		mu_string_unfold (tmp, NULL);
 	      util_rfc2047_decode (&tmp);
-	      fprintf (out, "%s\n", tmp);
+	      mu_stream_printf (out, "%s\n", tmp);
 	      free (tmp);
 	    }
 	}
-      fprintf (out, "\n");
+      mu_stream_printf (out, "\n");
       mu_message_get_body (mesg, &body);
       status = mu_body_get_streamref (body, &stream);
     }
@@ -96,26 +94,20 @@ mail_print_msg (msgset_t *mspec, mu_message_t mesg, void *data)
   if (status)
     {
       mu_error (_("get_stream error: %s"), mu_strerror (status));
-      if (out != ofile)
-	pclose (out);
+      mu_stream_unref (out);
       return 0;
     }
 
-  /* FIXME: Use mu_stream_copy instead? */
-  while (mu_stream_read (stream, buffer, sizeof buffer - 1, &n) == 0
-	 && n != 0)
-    {
+  mu_stream_copy (out, stream, 0, NULL);
+  /* FIXME:
       if (ml_got_interrupt())
 	{
 	  util_error (_("\nInterrupt"));
 	  break;
 	}
-      buffer[n] = '\0';
-      fprintf (out, "%s", buffer);
-    }
+  */
   mu_stream_destroy (&stream);
-  if (out != ofile)
-    pclose (out);
+  mu_stream_destroy (&out);
   
   util_mark_read (mesg);
 

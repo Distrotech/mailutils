@@ -21,11 +21,9 @@
 #include <sys/stat.h>
 
 static void
-dump_headers (FILE *fp, compose_env_t *env)
+dump_headers (mu_stream_t out, compose_env_t *env)
 {
-  char buffer[512];
   mu_stream_t stream = NULL;
-  size_t n;
   int rc;
   
   rc = mu_header_get_streamref (env->header, &stream);
@@ -35,13 +33,7 @@ dump_headers (FILE *fp, compose_env_t *env)
 		  mu_stream_strerror (stream, rc));
       return;
     }
-  /* FIXME: Use mu_stream_copy */
-  while (mu_stream_read (stream, buffer, sizeof buffer - 1, &n) == 0
-	 && n != 0)
-    {
-      buffer[n] = 0;
-      fprintf (fp, "%s", buffer);
-    }
+  mu_stream_copy (out, stream, 0, NULL);
   mu_stream_destroy (&stream);
 }
 
@@ -50,15 +42,15 @@ dump_headers (FILE *fp, compose_env_t *env)
 #define STATE_BODY 2
 
 static int
-parse_headers (FILE *fp, compose_env_t *env)
+parse_headers (mu_stream_t input, compose_env_t *env)
 {
   int status;
   mu_header_t header;
   char *name = NULL;
   char *value = NULL;
-  char *buf = NULL;
   int state = STATE_INIT;
-  size_t n = 0;
+  char *buf = NULL;
+  size_t size = 0, n;
   int errcnt = 0, line = 0;
   
   if ((status = mu_header_create (&header, NULL, 0)) != 0)
@@ -67,12 +59,12 @@ parse_headers (FILE *fp, compose_env_t *env)
       return 1;
     }
 
-  while (state != STATE_BODY
-	 && errcnt == 0 && getline (&buf, &n, fp) > 0 && n > 0)
+  mu_stream_seek (input, 0, MU_SEEK_SET, NULL);
+  while (state != STATE_BODY &&
+	 errcnt == 0 &&
+	 mu_stream_getline (input, &buf, &size, &n) == 0 && n > 0)
     {
-      int len = strlen (buf);
-      if (len > 0 && buf[len-1] == '\n')
-	buf[len-1] = 0;
+      mu_rtrim_class (buf, MU_CTYPE_SPACE);
 
       line++;
       switch (state)
@@ -161,7 +153,7 @@ parse_headers (FILE *fp, compose_env_t *env)
 static void
 escape_continue (void)
 {
-  fprintf (stdout, _("(continue)\n"));
+  mu_stream_printf (ostream, _("(continue)\n"));
 }
 
 static int 
@@ -181,12 +173,7 @@ escape_check_args (int argc, char **argv)
 int
 escape_shell (int argc, char **argv, compose_env_t *env)
 {
-  int status;
-  ofile = env->ofile;
-  ++*argv;
-  status = mail_execute (1, argc, argv);
-  ofile = env->file;
-  return status;
+  return mail_execute (1, argc - 1, argv + 1);
 }
 
 /* ~:[mail-command] */
@@ -196,7 +183,8 @@ escape_command (int argc, char **argv, compose_env_t *env)
 {
   const struct mail_command_entry *entry;
   int status;
-
+  mu_stream_t s;
+  
   if (escape_check_args (argc, argv))
     return 1;
   if (argv[1][0] == '#')
@@ -213,9 +201,11 @@ escape_command (int argc, char **argv, compose_env_t *env)
       return 1;
     }
 
-  ofile = env->ofile;
+  /* FIXME: Do we need this? */
+  s = ostream;
+  ostream = env->compstr;
   status = (*entry->func) (argc - 1, argv + 1);
-  ofile = env->file;
+  ostream = s;
   return status;
 }
 
@@ -236,37 +226,32 @@ escape_help (int argc, char **argv, compose_env_t *env MU_ARG_UNUSED)
 /* ~A */
 /* ~a */
 int
-escape_sign (int argc MU_ARG_UNUSED, char **argv, compose_env_t *env MU_ARG_UNUSED)
+escape_sign (int argc MU_ARG_UNUSED, char **argv, compose_env_t *env)
 {
   char *p;
 
   if (mailvar_get (&p, mu_isupper (argv[0][0]) ? "Sign" : "sign",
 		   mailvar_type_string, 1) == 0)
     {
-      fputs ("-- \n", ofile);
+      mu_stream_printf (env->compstr, "-- \n");
       if (mu_isupper (argv[0][0]))
 	{
 	  char *name = util_fullpath (p);
-	  FILE *fp = fopen (name, "r");
-	  char *buf = NULL;
-	  size_t n = 0;
+	  int rc;
+	  mu_stream_t signstr;
 
-	  if (!fp)
+	  rc = mu_file_stream_create (&signstr, name, MU_STREAM_READ);
+	  if (rc)
+	    util_error (_("Cannot open %s: %s"), name, mu_strerror (rc));
+	  else
 	    {
-	      util_error (_("Cannot open %s: %s"), name, mu_strerror (errno));
-	      free (name);
+	      mu_stream_printf (ostream, _("Reading %s\n"), name);
+	      mu_stream_copy (env->compstr, signstr, 0, NULL);
+	      mu_stream_destroy (&signstr);
 	    }
-
-	  fprintf (stdout, _("Reading %s\n"), name);
-	  while (getline (&buf, &n, fp) > 0)
-	    fprintf (ofile, "%s", buf);
-
-	  fclose (fp);
-	  free (buf);
-	  free (name);
 	}
       else
-	fprintf (ofile, "%s", p);
+	mu_stream_printf (env->compstr, "%s\n", p);
       escape_continue ();
     }
   return 0;
@@ -290,20 +275,50 @@ escape_cc (int argc, char **argv, compose_env_t *env)
   return 0;
 }
 
+static int
+verbose_copy (mu_stream_t dest, mu_stream_t src, const char *filename,
+	      mu_off_t *psize)
+{
+  int rc;
+  char *buf = NULL;
+  size_t size = 0, n;
+  size_t lines;
+  mu_off_t total;
+  
+  total = lines = 0;
+
+  while ((rc = mu_stream_getline (src, &buf, &size, &n)) == 0 && n > 0)
+    {
+      lines++;
+      rc = mu_stream_write (dest, buf, n, NULL);
+      if (rc)
+	break;
+      total += n;
+    }
+  if (rc)
+    mu_error (_("error copying data: %s"), mu_strerror (rc));
+  mu_stream_printf (ostream, "\"%s\" %lu/%lu\n", filename,
+		    (unsigned long) lines, (unsigned long) total);
+  if (psize)
+    *psize = total;
+  return rc;
+}
+
 /* ~d */
 int
 escape_deadletter (int argc MU_ARG_UNUSED, char **argv MU_ARG_UNUSED,
-		   compose_env_t *env MU_ARG_UNUSED)
+		   compose_env_t *env)
 {
-  FILE *dead = fopen (getenv ("DEAD"), "r");
-  int c;
-
-  if (dead)
+  const char *name = getenv ("DEAD");
+  mu_stream_t str;
+  int rc = mu_file_stream_create (&str, name, MU_STREAM_READ);
+  if (rc)
     {
-      while ((c = fgetc (dead)) != EOF)
-	fputc (c, ofile);
-      fclose (dead);
+      util_error (_("Cannot open file %s: %s"), name, strerror (rc));
+      return 1;
     }
+  verbose_copy (env->compstr, str, name, NULL);
+  mu_stream_destroy (&str);
   return 0;
 }
 
@@ -321,60 +336,80 @@ run_editor (char *ed, char *arg)
 static int
 escape_run_editor (char *ed, int argc, char **argv, compose_env_t *env)
 {
+  char *filename;
+  int fd;
+  mu_stream_t tempstream;
+  int rc;
+  
+  rc = mu_tempfile (NULL, 0, &fd, &filename);
+  if (rc)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_tempfile", NULL, rc);
+      return rc;
+    }
+  rc = mu_fd_stream_create (&tempstream, filename, fd, MU_STREAM_RDWR);
+  if (rc)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_fd_stream_create", filename, rc);
+      unlink (filename);
+      free (filename);
+      close (fd);
+      return rc;
+    }
+
+  mu_stream_seek (env->compstr, 0, MU_SEEK_SET, NULL);
   if (!mailvar_get (NULL, "editheaders", mailvar_type_boolean, 0))
     {
-      char *filename;
-      int fd;
-      FILE *fp;
-      char buffer[512];
-      int rc;
-      
-      rc = mu_tempfile (NULL, 0, &fd, &filename);
-      if (rc)
-        {
-           mu_diag_funcall (MU_DIAG_ERROR, "mu_tempfile", NULL, rc);
-           return rc;
-        }
+      dump_headers (tempstream, env);
 
-      fp = fdopen (fd, "w+");
-      dump_headers (fp, env);
-
-      rewind (env->file);
-      while (fgets (buffer, sizeof (buffer), env->file))
-	fputs (buffer, fp);
-
-      fclose (env->file);
+      mu_stream_copy (tempstream, env->compstr, 0, NULL);
       
       do
 	{
-	  fclose (fp);
+	  mu_stream_destroy (&tempstream);
 	  run_editor (ed, filename);
-	  fp = fopen (filename, "r");
+	  rc = mu_file_stream_create (&tempstream, filename, MU_STREAM_RDWR);
+	  if (rc)
+	    {
+	      mu_diag_funcall (MU_DIAG_ERROR, "mu_file_stream_create",
+			       filename, rc);
+	      unlink (filename);
+	      free (filename);
+	      return rc;
+	    }
 	}
-      while ((rc = parse_headers (fp, env)) < 0);
-
-      if (rc == 0)
-	{
-	  env->file = fopen (env->filename, "w");
-	  while (fgets (buffer, sizeof (buffer), fp))
-	    fputs (buffer, env->file);
-
-	  fclose (env->file);
-	}
-      fclose (fp);
-      unlink (filename);
-      free (filename);
+      while ((rc = parse_headers (tempstream, env)) < 0);
     }
   else
     {
-      fclose (env->file);
-      ofile = env->ofile;
-      run_editor (ed, env->filename);
+      mu_stream_copy (tempstream, env->compstr, 0, NULL);
+      mu_stream_destroy (&tempstream);
+      run_editor (ed, filename);
+      rc = mu_file_stream_create (&tempstream, filename, MU_STREAM_RDWR);
+      if (rc)
+	{
+	  mu_diag_funcall (MU_DIAG_ERROR, "mu_file_stream_create",
+			   filename, rc);
+	  unlink (filename);
+	  free (filename);
+	  return rc;
+	}
     }
 
-  env->file = fopen (env->filename, "a+");
-  ofile = env->file;
+  if (rc == 0)
+    {
+      mu_off_t size;
       
+      mu_stream_seek (env->compstr, 0, MU_SEEK_SET, NULL);
+      mu_stream_copy (env->compstr, tempstream, 0, &size);
+      mu_stream_truncate (env->compstr, size);
+    }
+  mu_stream_destroy (&tempstream);
+  unlink (filename);
+  free (filename);
+
+  mu_stream_seek (env->compstr, 0, MU_SEEK_END, NULL);
+  
   escape_continue ();
   return 0;
 }
@@ -425,57 +460,53 @@ escape_headers (int argc, char **argv, compose_env_t *env)
 
 /* ~i[var-name] */
 int
-escape_insert (int argc, char **argv, compose_env_t *send_env MU_ARG_UNUSED)
+escape_insert (int argc, char **argv, compose_env_t *env)
 {
   if (escape_check_args (argc, argv))
     return 1;
-  mailvar_variable_format (ofile, mailvar_find_variable (argv[1], 0), NULL);
+  mailvar_variable_format (env->compstr, mailvar_find_variable (argv[1], 0),
+			   NULL);
   return 0;
 }
 
 /* ~m[mesg-list] */
 /* ~M[mesg-list] */
 
+struct quote_closure
+{
+  mu_stream_t str;
+  int islower;
+};
+
 int
 quote0 (msgset_t *mspec, mu_message_t mesg, void *data)
 {
+  struct quote_closure *clos = data;
   int rc;
   mu_stream_t stream;
   char *prefix = "\t";
-  mu_stream_t outstr, flt;
+  mu_stream_t flt;
   char *argv[3];
-  int yes = 1;
 
-  fprintf (stdout, _("Interpolating: %lu\n"),
-	   (unsigned long) mspec->msg_part[0]);
+  mu_stream_printf (ostream, _("Interpolating: %lu\n"),
+		    (unsigned long) mspec->msg_part[0]);
 
   mailvar_get (&prefix, "indentprefix", mailvar_type_string, 0);
 
-  fflush (ofile);
-  rc = mu_stdio_stream_create (&outstr, fileno (ofile), MU_STREAM_WRITE);
-  if (rc)
-    {
-      mu_diag_funcall (MU_DIAG_ERROR, "mu_stdio_stream_create", NULL, rc);
-      return rc;
-    }
-  /* Set borrow flag to prevent fileno (ofile) from being closed on
-     destroying outstr. */
-  mu_stream_ioctl (outstr, MU_IOCTL_FD, MU_IOCTL_FD_SET_BORROW, &yes);
   argv[0] = "INLINE-COMMENT";
   argv[1] = prefix;
   argv[2] = NULL;
-  rc = mu_filter_create_args (&flt, outstr, "INLINE-COMMENT",
+  rc = mu_filter_create_args (&flt, clos->str, "INLINE-COMMENT",
 			      2, (const char**) argv,
 			      MU_FILTER_ENCODE,
 			      MU_STREAM_WRITE);
-  mu_stream_unref (outstr);
   if (rc)
     {
       mu_diag_funcall (MU_DIAG_ERROR, "mu_filter_create_args", NULL, rc);
       return rc;
     }
   
-  if (*(int*)data)
+  if (clos->islower)
     {
       mu_header_t hdr;
       mu_body_t body;
@@ -518,8 +549,11 @@ quote0 (msgset_t *mspec, mu_message_t mesg, void *data)
 int
 escape_quote (int argc, char **argv, compose_env_t *env)
 {
-  int lower = mu_islower (argv[0][0]);
-  util_foreach_msg (argc, argv, MSG_NODELETED|MSG_SILENT, quote0, &lower);
+  struct quote_closure clos;
+  
+  clos.str = env->compstr;
+  clos.islower = mu_islower (argv[0][0]);
+  util_foreach_msg (argc, argv, MSG_NODELETED|MSG_SILENT, quote0, &clos);
   escape_continue ();
   return 0;
 }
@@ -528,18 +562,12 @@ escape_quote (int argc, char **argv, compose_env_t *env)
 int
 escape_type_input (int argc, char **argv, compose_env_t *env)
 {
-  char buffer[512];
-
-  fprintf (env->ofile, _("Message contains:\n"));
-
-  dump_headers (env->ofile, env);
-
-  rewind (env->file);
-  while (fgets (buffer, sizeof (buffer), env->file))
-    fputs (buffer, env->ofile);
-
+  /* FIXME: Enable paging */
+  mu_stream_printf (ostream, _("Message contains:\n"));
+  dump_headers (ostream, env);
+  mu_stream_seek (env->compstr, 0, MU_SEEK_SET, NULL);
+  mu_stream_copy (ostream, env->compstr, 0, NULL);
   escape_continue ();
-
   return 0;
 }
 
@@ -548,31 +576,23 @@ int
 escape_read (int argc, char **argv, compose_env_t *env MU_ARG_UNUSED)
 {
   char *filename;
-  FILE *inf;
-  size_t size, lines;
-  char buf[512];
-
+  mu_stream_t instr;
+  int rc;
+  
   if (escape_check_args (argc, argv))
     return 1;
   filename = util_fullpath (argv[1]);
-  inf = fopen (filename, "r");
-  if (!inf)
+
+  rc = mu_file_stream_create (&instr, filename, MU_STREAM_READ);
+  if (rc)
     {
-      util_error (_("Cannot open %s: %s"), filename, mu_strerror (errno));
+      util_error (_("Cannot open %s: %s"), filename, mu_strerror (rc));
       free (filename);
       return 1;
     }
 
-  size = lines = 0;
-  while (fgets (buf, sizeof (buf), inf))
-    {
-      lines++;
-      size += strlen (buf);
-      fputs (buf, ofile);
-    }
-  fclose (inf);
-  fprintf (stdout, "\"%s\" %lu/%lu\n", filename,
-	   (unsigned long) lines, (unsigned long) size);
+  verbose_copy (env->compstr, instr, filename, NULL);
+  mu_stream_destroy (&instr);
   free (filename);
   return 0;
 }
@@ -581,9 +601,12 @@ escape_read (int argc, char **argv, compose_env_t *env MU_ARG_UNUSED)
 int
 escape_subj (int argc, char **argv, compose_env_t *env)
 {
+  char *buf;
   if (escape_check_args (argc, argv))
     return 1;
-  compose_header_set (env, MU_HEADER_SUBJECT, argv[1], COMPOSE_REPLACE);
+  mu_argcv_string (argc - 1, argv + 1, &buf);
+  compose_header_set (env, MU_HEADER_SUBJECT, buf, COMPOSE_REPLACE);
+  free (buf);
   return 0;
 }
 
@@ -601,34 +624,28 @@ int
 escape_write (int argc, char **argv, compose_env_t *env)
 {
   char *filename;
-  FILE *fp;
-  size_t size, lines;
-  char buf[512];
-
+  mu_stream_t wstr;
+  int rc;
+  mu_off_t size;
+  
   if (escape_check_args (argc, argv))
     return 1;
-
   filename = util_fullpath (argv[1]);
-  fp = fopen (filename, "w");	/*FIXME: check for the existence first */
-
-  if (!fp)
+  /* FIXME: check for existence first */
+  rc = mu_file_stream_create (&wstr, filename,
+			      MU_STREAM_WRITE|MU_STREAM_CREAT);
+  if (rc)
     {
-      util_error (_("Cannot open %s: %s"), filename, mu_strerror (errno));
+      util_error (_("Cannot open %s for writing: %s"),
+		  filename, mu_strerror (rc));
       free (filename);
       return 1;
     }
 
-  rewind (env->file);
-  size = lines = 0;
-  while (fgets (buf, sizeof (buf), env->file))
-    {
-      lines++;
-      size += strlen (buf);
-      fputs (buf, fp);
-    }
-  fclose (fp);
-  fprintf (stdout, "\"%s\" %lu/%lu\n", filename,
-	   (unsigned long) lines, (unsigned long) size);
+  mu_stream_seek (env->compstr, 0, MU_SEEK_SET, NULL);
+  verbose_copy (wstr, env->compstr, filename, &size);
+  mu_stream_truncate (wstr, size);
+  mu_stream_destroy (&wstr);
   free (filename);
   return 0;
 }
@@ -637,17 +654,13 @@ escape_write (int argc, char **argv, compose_env_t *env)
 int
 escape_pipe (int argc, char **argv, compose_env_t *env)
 {
+  int rc, status;
   int p[2];
   pid_t pid;
   int fd;
-
-  if (argc == 1)
-    {
-      /* TRANSLATORS: 'pipe' is a command name. Do not translate it! */
-      util_error (_("pipe: no command specified"));
-      return 1;
-    }
-
+  mu_off_t isize, osize = 0;
+  mu_stream_t tstr;
+  
   if (pipe (p))
     {
       util_error ("pipe: %s", mu_strerror (errno));
@@ -668,10 +681,8 @@ escape_pipe (int argc, char **argv, compose_env_t *env)
   else if (pid == 0)
     {
       /* Child */
-      int i;
-      char **xargv;
 
-      /* Attache the pipes */
+      /* Attach the pipes */
       close (0);
       dup (p[0]);
       close (p[0]);
@@ -681,94 +692,61 @@ escape_pipe (int argc, char **argv, compose_env_t *env)
       dup (fd);
       close (fd);
 
-      /* Execute the process */
-      xargv = xcalloc (argc, sizeof (xargv[0]));
-      for (i = 0; i < argc - 1; i++)
-	xargv[i] = argv[i + 1];
-      xargv[i] = NULL;
-      execvp (xargv[0], xargv);
-      util_error (_("Cannot exec process `%s': %s"), xargv[0], mu_strerror (errno));
-      exit (1);
+      execvp (argv[1], argv + 1);
+      util_error (_("Cannot execute `%s': %s"), argv[1], mu_strerror (errno));
+      _exit (127);
     }
+
+  close (p[0]);
+
+  rc = mu_stdio_stream_create (&tstr, p[1], MU_STREAM_WRITE);
+  if (rc)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_stdio_stream_create", NULL, rc);
+      kill (pid, SIGKILL);
+      close (fd);
+      return rc;
+    }
+
+  mu_stream_seek (env->compstr, 0, MU_SEEK_SET, NULL);
+  mu_stream_copy (tstr, env->compstr, 0, &isize);
+  mu_stream_destroy (&tstr);
+
+  waitpid (pid, &status, 0);
+  if (!WIFEXITED (status))
+    util_error (_("Child terminated abnormally: %d"),
+		WEXITSTATUS (status));
   else
     {
-      FILE *fp;
-      char *buf = NULL;
-      size_t n;
-      size_t lines, size;
-      int rc = 1;
-      int status;
-
-      close (p[0]);
-
-      /* Parent */
-      fp = fdopen (p[1], "w");
-
-      fclose (env->file);
-      env->file = fopen (env->filename, "r");
-
-      lines = size = 0;
-      while (getline (&buf, &n, env->file) > 0)
-	{
-	  lines++;
-	  size += n;
-	  fputs (buf, fp);
-	}
-      fclose (env->file);
-      fclose (fp);		/* Closes p[1] */
-
-      waitpid (pid, &status, 0);
-      if (!WIFEXITED (status))
-	{
-	  util_error (_("Child terminated abnormally: %d"), WEXITSTATUS (status));
-	}
+      struct stat st;
+      if (fstat (fd, &st))
+	util_error (_("Cannot stat output file: %s"), mu_strerror (errno));
       else
-	{
-	  struct stat st;
-	  if (fstat (fd, &st))
-	    {
-	      util_error (_("Cannot stat output file: %s"), mu_strerror (errno));
-	    }
-	  else if (st.st_size > 0)
-	    rc = 0;
-	}
-
-      fprintf (stdout, "\"|%s\" in: %lu/%lu ", argv[1],
-	       (unsigned long) lines, (unsigned long) size);
-      if (rc)
-	{
-	  fprintf (stdout, _("no lines out\n"));
-	}
-      else
-	{
-	  /* Ok, replace the old tempfile */
-	  fp = fdopen (fd, "r");
-	  rewind (fp);
-
-	  env->file = fopen (env->filename, "w+");
-
-	  lines = size = 0;
-	  while (getline (&buf, &n, fp) > 0)
-	    {
-	      lines++;
-	      size += n;
-	      fputs (buf, env->file);
-	    }
-	  fclose (env->file);
-
-	  fprintf (stdout, "out: %lu/%lu\n",
-		   (unsigned long) lines, (unsigned long) size);
-	}
-
-      /* Clean up the things */
-      if (buf)
-	free (buf);
-
-      env->file = fopen (env->filename, "a+");
-      ofile = env->file;
+	osize = st.st_size;
     }
 
-  close (fd);
-
+  mu_stream_printf (mu_strout, "\"|%s\" in: %lu ", argv[1],
+		    (unsigned long) isize);
+  if (osize == 0)
+    mu_stream_printf (mu_strout, _("no lines out\n"));
+  else
+    {
+      mu_stream_t str;
+      
+      mu_stream_printf (mu_strout, "out: %lu\n", (unsigned long) osize);
+      rc = mu_fd_stream_create (&str, NULL, fd,
+				MU_STREAM_RDWR | MU_STREAM_SEEK);
+      if (rc)
+	{
+	  util_error (_("Cannot open composition stream: %s"),
+		      mu_strerror (rc));
+	  close (fd);
+	}
+      else
+	{
+	  mu_stream_destroy (&env->compstr);
+	  env->compstr = str;
+	}
+    }
   return 0;
 }

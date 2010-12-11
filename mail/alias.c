@@ -36,9 +36,9 @@ alias_free (void *data)
 static void
 alias_print_group (const char *name, alias_t al)
 {
-  fprintf (ofile, "%s    ", name);
+  mu_stream_printf (ostream, "%s    ", name);
   util_slist_print (al->list, 0);
-  fprintf (ofile, "\n");
+  mu_stream_printf (ostream, "\n");
 }
 
 static alias_t

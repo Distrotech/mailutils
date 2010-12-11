@@ -49,7 +49,7 @@ mail_mbox_close ()
   
   mu_mailbox_get_url (mbox, &url);
   mu_mailbox_messages_count (mbox, &held_count);
-  fprintf (ofile, 
+  mu_stream_printf (ostream, 
            ngettext ("Held %d message in %s\n",
                      "Held %d messages in %s\n",
                      held_count),
@@ -153,7 +153,7 @@ mail_mbox_commit ()
       mu_url_t u = NULL;
 
       mu_mailbox_get_url (dest_mbox, &u);
-      fprintf(ofile, 
+      mu_stream_printf (ostream, 
               ngettext ("Saved %d message in %s\n",
                         "Saved %d messages in %s\n",
 			saved_count),

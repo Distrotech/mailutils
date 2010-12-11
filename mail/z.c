@@ -120,7 +120,7 @@ mail_z (int argc, char **argv)
     case D_BWD:
       if (page_move (-count) == 0)
 	{
-	  fprintf (stdout, _("On first screenful of messages\n"));
+	  mu_stream_printf (ostream, _("On first screenful of messages\n"));
 	  return 0;
 	}
       break;
@@ -128,7 +128,7 @@ mail_z (int argc, char **argv)
     case D_FWD:
       if (page_move (count) == 0)
 	{
-	  fprintf (stdout, _("On last screenful of messages\n"));
+	  mu_stream_printf (ostream, _("On last screenful of messages\n"));
 	  return 0;
 	}
       break;

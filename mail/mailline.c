@@ -118,58 +118,24 @@ ml_readline_init ()
 char *
 ml_readline_internal ()
 {
-  char *line;
-  char *p;
-  size_t alloclen, linelen;
-
-  p = line = xcalloc (1, 255);
-  alloclen = 255;
-  linelen = 0;
-  for (;;)
+  char *buf = NULL;
+  size_t size = 0, n;
+  int rc;
+  
+  rc = mu_stream_getline (mu_strin, &buf, &size, &n);
+  if (rc)
     {
-      size_t n;
-
-      p = fgets (p, alloclen - linelen, stdin);
-
-      if (p)
-	n = strlen(p);
-      else if (_interrupted)
-	{
-	  free (line);
-	  return NULL;
-	}
-      else
-	n = 0;
-
-      linelen += n;
-
-      /* Error.  */
-      if (linelen == 0)
-	{
-	  free (line);
-	  return NULL;
-	}
-
-      /* Ok.  */
-      if (line[linelen - 1] == '\n')
-	{
-	  line[linelen - 1] = '\0';
-	  return line;
-	}
-      else
-        {
-	  char *tmp;
-	  alloclen *= 2;
-	  tmp = realloc (line, alloclen);
-	  if (tmp == NULL)
-	    {
-	      free (line);
-	      return NULL;
-	    }
-	  line = tmp;
-	  p = line + linelen;
-	}
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_stream_getline", NULL, rc);
+      return NULL;
     }
+  if (_interrupted)
+    {
+      free (buf);
+      return NULL;
+    }
+  if (n == 0)
+    return NULL;
+  return buf;
 }
 
 char *
@@ -185,7 +151,7 @@ ml_readline_with_intr (const char *prompt)
 {
   char *str = ml_readline (prompt);
   if (_interrupted)
-    printf ("\n");
+    mu_stream_printf (ostream, "\n");
   return str;
 }
 
@@ -959,8 +925,8 @@ readline (char *prompt)
 {
   if (prompt)
     {
-      fprintf (ofile, "%s", prompt);
-      fflush (ofile);
+      mu_stream_printf (ostream, "%s", prompt);
+      mu_stream_flush (ostream);
     }
 
   return ml_readline_internal ();
