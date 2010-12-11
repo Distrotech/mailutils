@@ -151,7 +151,7 @@ ml_readline_with_intr (const char *prompt)
 {
   char *str = ml_readline (prompt);
   if (_interrupted)
-    mu_stream_printf (ostream, "\n");
+    mu_printf ("\n");
   return str;
 }
 
@@ -782,7 +782,7 @@ ml_reread (const char *prompt, char **text)
 
   if (!line)
     {
-      util_error (_("Not enough memory to edit the line"));
+      mu_error (_("Not enough memory to edit the line"));
       return -1;
     }
 
@@ -810,7 +810,7 @@ ml_reread (const char *prompt, char **text)
 	  if ((p = realloc (line, line_size + LINE_INC)) == NULL)
 	    {
 	      fputs ("\n", stdout);
-	      util_error (_("Not enough memory to edit the line"));
+	      mu_error (_("Not enough memory to edit the line"));
 	      break;
 	    }
 	  else
@@ -857,7 +857,7 @@ ml_reread (const char *prompt, char **text)
 	      if ((p = realloc (line, line_size + LINE_INC)) == NULL)
 		{
 		  fputs ("\n", stdout);
-		  util_error (_("Not enough memory to edit the line"));
+		  mu_error (_("Not enough memory to edit the line"));
 		  break;
 		}
 	      else
@@ -893,7 +893,7 @@ ml_reread (const char *prompt, char **text)
 	  if ((p = realloc (line, line_size + LINE_INC)) == NULL)
 	    {
 	      fputs ("\n", stdout);
-	      util_error (_("Not enough memory to edit the line"));
+	      mu_error (_("Not enough memory to edit the line"));
 	      break;
 	    }
 	  else
@@ -925,8 +925,8 @@ readline (char *prompt)
 {
   if (prompt)
     {
-      mu_stream_printf (ostream, "%s", prompt);
-      mu_stream_flush (ostream);
+      mu_printf ("%s", prompt);
+      mu_stream_flush (mu_strout);
     }
 
   return ml_readline_internal ();

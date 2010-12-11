@@ -50,7 +50,7 @@ echo (char *s)
     }
   else
     {
-      mu_stream_printf (ostream, "%s", ws.ws_wordv[0]);
+      mu_printf ("%s", ws.ws_wordv[0]);
       mu_wordsplit_free (&ws);
     }
   return rc;
@@ -66,9 +66,9 @@ mail_echo (int argc, char **argv)
       for (i = 1; i < argc; i++)
 	{
 	  if (echo (argv[i]))
-	    mu_stream_printf (ostream, " ");
+	    mu_printf (" ");
 	}
-      mu_stream_printf (ostream, "\n");
+      mu_printf ("\n");
     }
   return 0;
 }

@@ -102,7 +102,7 @@ mail_print_msg (msgset_t *mspec, mu_message_t mesg, void *data)
   /* FIXME:
       if (ml_got_interrupt())
 	{
-	  util_error (_("\nInterrupt"));
+	  mu_error (_("\nInterrupt"));
 	  break;
 	}
   */

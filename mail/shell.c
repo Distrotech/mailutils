@@ -35,7 +35,7 @@ expand_bang (char **pbuf)
 
   if (!last)
     {
-      util_error (_("No previous command"));
+      mu_error (_("No previous command"));
       return;
     }
 

@@ -275,7 +275,7 @@ display_submessage (struct mime_descend_closure *closure, void *data)
       else
 	stream = b_stream;
       
-      display_part_header (ostream,
+      display_part_header (mu_strout,
 			   closure->msgset,
 			   closure->type, closure->encoding);
       
@@ -328,7 +328,7 @@ print_stream (mu_stream_t stream, mu_stream_t out)
     {
       if (ml_got_interrupt())
 	{
-	  util_error(_("\nInterrupt"));
+	  mu_error(_("\nInterrupt"));
 	  break;
 	}
       buffer[n] = '\0';
@@ -368,12 +368,12 @@ run_metamail (const char *mailcap_cmd, mu_message_t mesg)
   sigemptyset (&ignore.sa_mask);
   if (sigaction (SIGINT, &ignore, &saveintr) < 0)
     {
-      util_error ("sigaction: %s", strerror (errno));
+      mu_error ("sigaction: %s", strerror (errno));
       return;
     }      
   if (sigaction (SIGQUIT, &ignore, &savequit) < 0)
     {
-      util_error ("sigaction: %s", strerror (errno));
+      mu_error ("sigaction: %s", strerror (errno));
       sigaction (SIGINT, &saveintr, NULL);
       return;
     }      
@@ -391,7 +391,7 @@ run_metamail (const char *mailcap_cmd, mu_message_t mesg)
   pid = fork ();
   if (pid < 0)
     {
-      util_error ("fork: %s", strerror (errno));
+      mu_error ("fork: %s", strerror (errno));
     }
   else if (pid == 0)
     {

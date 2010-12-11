@@ -24,20 +24,20 @@ show_part (struct mime_descend_closure *closure, void *data)
   size_t width;
   size_t size = 0;
   
-  format_msgset (ostream, closure->msgset, &width);
+  format_msgset (mu_strout, closure->msgset, &width);
   for (; width < 5; width++)
-    mu_stream_write (ostream, " ", 1, NULL);
+    mu_stream_write (mu_strout, " ", 1, NULL);
     
-  mu_stream_printf (ostream, " %-25s", closure->type);
+  mu_printf (" %-25s", closure->type);
 
   mu_message_size (closure->message, &size);
   if (size < 1024)
-    mu_stream_printf (ostream, " %4lu", (unsigned long) size);
+    mu_printf (" %4lu", (unsigned long) size);
   else if (size < 1024*1024)
-    mu_stream_printf (ostream, "%4luK", (unsigned long) size / 1024);
+    mu_printf ("%4luK", (unsigned long) size / 1024);
   else
-    mu_stream_printf (ostream, "%4luM", (unsigned long) size / 1024 / 1024);
-  mu_stream_printf (ostream, "\n");
+    mu_printf ("%4luM", (unsigned long) size / 1024 / 1024);
+  mu_printf ("\n");
   return 0;
 }
 

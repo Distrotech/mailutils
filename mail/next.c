@@ -36,7 +36,7 @@ mail_next (int argc, char **argv)
       n = get_cursor ();
       if (n == 0 || util_get_message (mbox, n, &msg))
 	{
-	  util_error (_("No applicable message"));
+	  mu_error (_("No applicable message"));
 	  return 1;
 	}
 
@@ -59,7 +59,7 @@ mail_next (int argc, char **argv)
 
       if (rc)
 	{
-	  util_error (_("No applicable message"));
+	  mu_error (_("No applicable message"));
 	  return 1;
 	}
     }
@@ -76,7 +76,7 @@ mail_next (int argc, char **argv)
 	}
       else
 	{
-	  util_error (_("No applicable message"));
+	  mu_error (_("No applicable message"));
 	  return 1;
 	}
     }

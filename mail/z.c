@@ -61,7 +61,7 @@ z_parse_args(int argc, char **argv,
 	 dir = D_NONE;
 	 break;
        default:
-	 util_error (_("Bad arguments for the scrolling command"));
+	 mu_error (_("Bad arguments for the scrolling command"));
 	 return 1;
        }
 
@@ -76,7 +76,7 @@ z_parse_args(int argc, char **argv,
 
       if (argc > 1)
 	{
-	  util_error (_("Too many arguments for the scrolling command"));
+	  mu_error (_("Too many arguments for the scrolling command"));
 	  return 1;
 	}
 
@@ -84,13 +84,13 @@ z_parse_args(int argc, char **argv,
 	{
 	  if (dir == D_NONE)
 	    {
-	      util_error (_("Argument not applicable for z"));
+	      mu_error (_("Argument not applicable for z"));
 	      return 1;
 	    }
 
 	  if ((mul = strtoul (argp, NULL, 10)) == 0)
 	    {
-	      util_error (_("Bad number of pages"));
+	      mu_error (_("Bad number of pages"));
 	      return 1;
 	    }
 	}
@@ -120,7 +120,7 @@ mail_z (int argc, char **argv)
     case D_BWD:
       if (page_move (-count) == 0)
 	{
-	  mu_stream_printf (ostream, _("On first screenful of messages\n"));
+	  mu_printf (_("On first screenful of messages\n"));
 	  return 0;
 	}
       break;
@@ -128,7 +128,7 @@ mail_z (int argc, char **argv)
     case D_FWD:
       if (page_move (count) == 0)
 	{
-	  mu_stream_printf (ostream, _("On last screenful of messages\n"));
+	  mu_printf (_("On last screenful of messages\n"));
 	  return 0;
 	}
       break;

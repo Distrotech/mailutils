@@ -31,7 +31,7 @@ process_list (int argc, char **argv,
   if (argc == 1)
     {
       if (mu_list_is_empty (*list))
-	mu_stream_printf (ostream, "%s", _(msg));
+	mu_printf ("%s", _(msg));
       else
 	util_slist_print (*list, 1);
       return 0;
@@ -125,7 +125,7 @@ mail_nosender (int argc, char **argv)
   if (argc == 1)
     {
       util_slist_destroy (&sender_headers);
-      mu_stream_printf (ostream,
+      mu_printf (
 			_("Sender address is obtained from the envelope\n"));
     }
   else 

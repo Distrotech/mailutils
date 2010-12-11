@@ -27,7 +27,7 @@ mail_unalias (int argc, char **argv)
   if (argc == 1)
     {
       /* TRANSLATORS: 'unalias' is a command name. Do not translate it! */
-      util_error (_("unalias requires at least one argument"));
+      mu_error (_("unalias requires at least one argument"));
       return 1;
     }
   while (--argc)

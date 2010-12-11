@@ -39,16 +39,16 @@ static const char *with_defs[] =
 int
 mail_version (int argc MU_ARG_UNUSED, char **argv MU_ARG_UNUSED)
 { 
-  mu_stream_printf (ostream, "%s", program_version);
+  mu_printf ("%s", program_version);
   if (with_defs[0] != NULL)
     {
       int i;
-      mu_stream_printf (ostream, " (");
+      mu_printf (" (");
       for (i = 0; with_defs[i]; i++)
-	mu_stream_printf (ostream, " %s", with_defs[i]);
-      mu_stream_printf (ostream, " )");
+	mu_printf (" %s", with_defs[i]);
+      mu_printf (" )");
     }
-  mu_stream_printf (ostream, "\n");
+  mu_printf ("\n");
 
   return 0;
 }

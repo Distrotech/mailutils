@@ -55,7 +55,7 @@ mail_source (int argc, char **argv)
   if (argc != 2)
     {
       /* TRANSLATORS: 'source' is a command name. Do not translate it! */
-      util_error (_("source requires a single argument"));
+      mu_error (_("source requires a single argument"));
       return 1;
     }
 
@@ -63,7 +63,7 @@ mail_source (int argc, char **argv)
   if (rc)
     {
       if (rc != ENOENT)
-	util_error(_("Cannot open `%s': %s"), argv[1], strerror (rc));
+	mu_error(_("Cannot open `%s': %s"), argv[1], strerror (rc));
       return 1;
     }
 

@@ -111,12 +111,12 @@ reply0 (msgset_t *mspec, mu_message_t msg, void *data)
   else
     compose_header_set (&env, MU_HEADER_SUBJECT, "", COMPOSE_REPLACE);
 
-  mu_stream_printf (ostream, "To: %s\n",
+  mu_printf ("To: %s\n",
 	   compose_header_get (&env, MU_HEADER_TO, ""));
   str = compose_header_get (&env, MU_HEADER_CC, NULL);
   if (str)
-    mu_stream_printf (ostream, "Cc: %s\n", str);
-  mu_stream_printf (ostream, "Subject: %s\n\n",
+    mu_printf ("Cc: %s\n", str);
+  mu_printf ("Subject: %s\n\n",
 		    compose_header_get (&env, MU_HEADER_SUBJECT, ""));
   
   make_in_reply_to (&env, msg);

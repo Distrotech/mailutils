@@ -38,8 +38,8 @@ print_envelope (msgset_t *mspec, mu_message_t msg, void *data)
       mu_envelope_sget_sender (env, &sender);
       mu_envelope_sget_date (env, &date);
       if (data)
-	mu_stream_printf (ostream, "%s ", (char*) data);
-      mu_stream_printf (ostream, "%s %s", sender, date);
+	mu_printf ("%s ", (char*) data);
+      mu_printf ("%s %s", sender, date);
     }
   return 0;
 }

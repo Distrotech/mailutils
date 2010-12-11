@@ -727,7 +727,7 @@ check_set (msgset_t **pset)
 		}
 	      else
 		{
-		  util_error (_("%lu: Inappropriate message (has been deleted)"),
+		  mu_error (_("%lu: Inappropriate message (has been deleted)"),
 			      (unsigned long) p->msg_part[0]);
 		  /* Delete entire set */
 		  delset = *pset;

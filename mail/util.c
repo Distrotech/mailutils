@@ -149,9 +149,9 @@ util_do_command (const char *fmt, ...)
   else
     {
       if (argc)
-	util_error (_("Unknown command: %s"), argv[0]);
+	mu_error (_("Unknown command: %s"), argv[0]);
       else
-	util_error (_("Invalid command"));
+	mu_error (_("Invalid command"));
       status = 1;
     }
 
@@ -218,7 +218,7 @@ util_range_msg (size_t low, size_t high, int flags,
      if ((flags & MSG_NODELETED) && util_isdeleted (low))
        {
 	 if (!(flags & MSG_SILENT))
-	   util_error (_("%lu: Inappropriate message (has been deleted)"),
+	   mu_error (_("%lu: Inappropriate message (has been deleted)"),
 		       (unsigned long) low);
 	 continue;
        }
@@ -300,11 +300,11 @@ util_help (void *table, size_t nmemb, size_t size, const char *word)
       int status = 0;
       struct mail_command *cp = util_find_entry (table, nmemb, size, word);
       if (cp && cp->synopsis)
-	mu_stream_printf (ostream, "%s\n", cp->synopsis);
+	mu_printf ("%s\n", cp->synopsis);
       else
 	{
 	  status = 1;
-	  mu_stream_printf (ostream, _("Unknown command: %s\n"), word);
+	  mu_printf (_("Unknown command: %s\n"), word);
 	}
       return status;
     }
@@ -337,12 +337,12 @@ util_command_list (void *table, size_t nmemb, size_t size)
       if (pos >= cols)
 	{
 	  pos = len + 1;
-	  mu_stream_printf (ostream, "\n%s ", cmd);
+	  mu_printf ("\n%s ", cmd);
 	}
       else
-        mu_stream_printf (ostream, "%s ", cmd);
+        mu_printf ("%s ", cmd);
     }
-  mu_stream_printf (ostream, "\n");
+  mu_printf ("\n");
   return 0;
 }
 
@@ -471,7 +471,7 @@ util_get_homedir ()
   if (!homedir)
     {
       /* Shouldn't happen, but one never knows */
-      util_error (_("Cannot get homedir"));
+      mu_error (_("Cannot get homedir"));
       exit (EXIT_FAILURE);
     }
   return homedir;
@@ -535,14 +535,14 @@ util_get_sender (int msgno, int strip)
       if (mu_envelope_sget_sender (env, &buffer)
 	  || mu_address_create (&addr, buffer))
 	{
-	  util_error (_("Cannot determine sender name (msg %d)"), msgno);
+	  mu_error (_("Cannot determine sender name (msg %d)"), msgno);
 	  return NULL;
 	}
     }
 
   if (mu_address_aget_email (addr, 1, &buf))
     {
-      util_error (_("Cannot determine sender name (msg %d)"), msgno);
+      mu_error (_("Cannot determine sender name (msg %d)"), msgno);
       mu_address_destroy (&addr);
       return NULL;
     }
@@ -570,7 +570,7 @@ util_slist_print (mu_list_t list, int nl)
   for (mu_iterator_first (itr); !mu_iterator_is_done (itr); mu_iterator_next (itr))
     {
       mu_iterator_current (itr, (void **)&name);
-      mu_stream_printf (ostream, "%s%c", name, nl ? '\n' : ' ');
+      mu_printf ("%s%c", name, nl ? '\n' : ' ');
     }
   mu_iterator_destroy (&itr);
 }
@@ -725,7 +725,7 @@ util_save_outgoing (mu_message_t msg, char *savefile)
       rc = mu_mailbox_create_default (&outbox, filename);
       if (rc)
 	{
-	  util_error (_("Cannot create output mailbox `%s': %s"),
+	  mu_error (_("Cannot create output mailbox `%s': %s"),
 		      filename, strerror (rc));
 	  free (filename);
 	  return;
@@ -733,13 +733,13 @@ util_save_outgoing (mu_message_t msg, char *savefile)
 
       rc = mu_mailbox_open (outbox, MU_STREAM_WRITE | MU_STREAM_CREAT);
       if (rc)
-	util_error (_("Cannot open output mailbox `%s': %s"),
+	mu_error (_("Cannot open output mailbox `%s': %s"),
 		    filename, strerror (rc));
       else
 	{
 	  rc = mu_mailbox_append_message (outbox, msg);
 	  if (rc)
-	    util_error (_("Cannot append message to `%s': %s"),
+	    mu_error (_("Cannot append message to `%s': %s"),
 			filename, strerror (rc));
 	}
 
@@ -748,19 +748,6 @@ util_save_outgoing (mu_message_t msg, char *savefile)
       
       free (filename);
     }
-}
-
-void
-util_error (const char *format, ...)
-{
-  va_list ap;
-
-  va_start (ap, format);
-  
-  mu_stream_vprintf (mu_strerr, format, ap);
-  mu_stream_printf (mu_strerr, "\n");
-
-  va_end(ap);
 }
 
 static int
@@ -781,7 +768,7 @@ util_descend_subparts (mu_message_t mesg, msgset_t *msgset, mu_message_t *part)
 	{
 	  if (mu_message_unencapsulate (mesg, &submsg, NULL))
 	    {
-	      util_error (_("Cannot unencapsulate message/part"));
+	      mu_error (_("Cannot unencapsulate message/part"));
 	      return 1;
 	    }
 	  mesg = submsg;
@@ -790,14 +777,14 @@ util_descend_subparts (mu_message_t mesg, msgset_t *msgset, mu_message_t *part)
       mu_message_get_num_parts (mesg, &nparts);
       if (nparts < msgset->msg_part[i])
 	{
-	  util_error (_("No such (sub)part in the message: %lu"),
+	  mu_error (_("No such (sub)part in the message: %lu"),
 		      (unsigned long) msgset->msg_part[i]);
 	  return 1;
 	}
 
       if (mu_message_get_part (mesg, msgset->msg_part[i], &submsg))
 	{
-	  util_error (_("Cannot get (sub)part from the message: %lu"),
+	  mu_error (_("Cannot get (sub)part from the message: %lu"),
 		      (unsigned long) msgset->msg_part[i]);
 	  return 1;
 	}
@@ -925,7 +912,7 @@ util_header_expand (mu_header_t *phdr)
   rc = mu_header_create (&hdr, "", 0);
   if (rc)
     {
-      util_error (_("Cannot create temporary header: %s"), mu_strerror (rc));
+      mu_error (_("Cannot create temporary header: %s"), mu_strerror (rc));
       return 1;
     }
       
@@ -977,10 +964,10 @@ util_header_expand (mu_header_t *phdr)
 		{
 		  errcnt++;
 		  if (exp)
-		    util_error (_("Cannot parse address `%s' (while expanding `%s'): %s"),
+		    mu_error (_("Cannot parse address `%s' (while expanding `%s'): %s"),
 				exp, p, mu_strerror (rc));
 		  else
-		    util_error (_("Cannot parse address `%s': %s"),
+		    mu_error (_("Cannot parse address `%s': %s"),
 				p, mu_strerror (rc));
 		}
 	      
@@ -1030,7 +1017,7 @@ util_get_message (mu_mailbox_t mbox, size_t msgno, mu_message_t *msg)
   status = mu_mailbox_get_message (mbox, msgno, msg);
   if (status)
     {
-      util_error (_("Cannot get message %lu: %s"),
+      mu_error (_("Cannot get message %lu: %s"),
 		  (unsigned long) msgno, mu_strerror (status));
       return status;
     }
@@ -1041,14 +1028,14 @@ util_get_message (mu_mailbox_t mbox, size_t msgno, mu_message_t *msg)
 int
 util_error_range (size_t msgno)
 {
-  util_error (_("%lu: invalid message number"), (unsigned long) msgno);
+  mu_error (_("%lu: invalid message number"), (unsigned long) msgno);
   return 1;
 }
 
 void
 util_noapp ()
 {
-  util_error (_("No applicable messages"));
+  mu_error (_("No applicable messages"));
 }
 
 void
@@ -1162,13 +1149,13 @@ open_pager (size_t lines)
 	{
 	  mu_diag_funcall (MU_DIAG_ERROR, "mu_prog_stream_create",
 			   pager, rc);
-	  str = ostream;
+	  str = mu_strout;
 	  mu_stream_ref (str);
 	}
     }
   else
     {
-      str = ostream;
+      str = mu_strout;
       mu_stream_ref (str);
     }
   return str;

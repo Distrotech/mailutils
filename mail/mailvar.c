@@ -416,7 +416,7 @@ mailvar_get (void *ptr, const char *variable, enum mailvar_type type, int warn)
   if (!var->set || var->type != type)
     {
       if (warn)
-	util_error (_("No value set for \"%s\""), variable);
+	mu_error (_("No value set for \"%s\""), variable);
       return 1;
     }
   if (ptr)

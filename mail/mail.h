@@ -172,7 +172,6 @@ typedef int (*msg_handler_t) (msgset_t *mp, mu_message_t mesg, void *data);
 /* Global variables and constants*/
 extern mu_mailbox_t mbox;
 extern size_t total;
-extern mu_stream_t ostream;
 extern int interactive;
 extern const char *program_version;
 
@@ -380,7 +379,6 @@ extern char *util_slist_to_string (mu_list_t list, const char *delim);
 extern void util_strcat (char **dest, const char *str);
 extern char *util_outfolder_name (char *str);
 extern void util_save_outgoing (mu_message_t msg, char *savefile);
-extern void util_error (const char *format, ...) MU_PRINTFLIKE(1,2);
 extern int util_error_range (size_t msgno);
 extern void util_noapp (void);
 extern int util_tempfile (char **namep);

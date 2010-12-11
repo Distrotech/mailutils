@@ -43,7 +43,7 @@ mail_write (int argc, char **argv)
       char *p = NULL;
       if (n == 0)
         {
-          util_error (_("No applicable message"));
+          mu_error (_("No applicable message"));
           return 1;
         }
       mu_asprintf (&p, "%lu", (unsigned long) n);
@@ -72,7 +72,7 @@ mail_write (int argc, char **argv)
 			      MU_STREAM_APPEND|MU_STREAM_CREAT);
   if (rc)
     {
-      util_error (_("can't open %s: %s"), filename, mu_strerror (rc));
+      mu_error (_("can't open %s: %s"), filename, mu_strerror (rc));
       free (filename);
       msgset_free (msglist);
       return 1;
@@ -114,7 +114,7 @@ mail_write (int argc, char **argv)
   mu_stream_close (output);
   mu_stream_destroy (&output);
   
-  mu_stream_printf (ostream, "\"%s\" %3lu/%-5lu\n", filename,
+  mu_printf ("\"%s\" %3lu/%-5lu\n", filename,
 		    (unsigned long) total_lines, (unsigned long) total_size);
 
   free (filename);

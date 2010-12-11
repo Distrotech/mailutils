@@ -36,9 +36,9 @@ alias_free (void *data)
 static void
 alias_print_group (const char *name, alias_t al)
 {
-  mu_stream_printf (ostream, "%s    ", name);
+  mu_printf ("%s    ", name);
   util_slist_print (al->list, 0);
-  mu_stream_printf (ostream, "\n");
+  mu_printf ("\n");
 }
 
 static alias_t
@@ -75,7 +75,7 @@ alias_print (char *name)
       al = alias_lookup (name);
       if (!al)
 	{
-	  util_error (_("\"%s\": not a group"), name);
+	  mu_error (_("\"%s\": not a group"), name);
 	  return;
 	}
       alias_print_group (name, al);

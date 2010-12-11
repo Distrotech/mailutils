@@ -29,7 +29,7 @@ mail_setenv (int argc, char **argv)
       char **p;
       
       for (p = environ; *p; p++)
-	mu_stream_printf (ostream, "%s\n", *p);
+	mu_printf ("%s\n", *p);
     }
   else
     {

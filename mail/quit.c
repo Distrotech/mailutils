@@ -49,7 +49,7 @@ mail_mbox_close ()
   
   mu_mailbox_get_url (mbox, &url);
   mu_mailbox_messages_count (mbox, &held_count);
-  mu_stream_printf (ostream, 
+  mu_printf (
            ngettext ("Held %d message in %s\n",
                      "Held %d messages in %s\n",
                      held_count),
@@ -116,14 +116,14 @@ mail_mbox_commit ()
 	       
 	      if ((status = mu_mailbox_create_default (&dest_mbox, name)) != 0)
 		{
-		  util_error (_("Cannot create mailbox %s: %s"), name,
+		  mu_error (_("Cannot create mailbox %s: %s"), name,
                               mu_strerror (status));
 		  return 1;
 		}
               if ((status = mu_mailbox_open (dest_mbox,
 			   	          MU_STREAM_WRITE | MU_STREAM_CREAT))!=0)
 		{
-		  util_error (_("Cannot open mailbox %s: %s"), name,
+		  mu_error (_("Cannot open mailbox %s: %s"), name,
                               mu_strerror (status));
 		  return 1;
 		}
@@ -131,7 +131,7 @@ mail_mbox_commit ()
 
 	  status = mu_mailbox_append_message (dest_mbox, msg);
 	  if (status)
-	    util_error (_("Cannot append message: %s"), mu_strerror (status));
+	    mu_error (_("Cannot append message: %s"), mu_strerror (status));
 	  else
 	    {
 	      mu_attribute_set_deleted (attr);
@@ -153,7 +153,7 @@ mail_mbox_commit ()
       mu_url_t u = NULL;
 
       mu_mailbox_get_url (dest_mbox, &u);
-      mu_stream_printf (ostream, 
+      mu_printf (
               ngettext ("Saved %d message in %s\n",
                         "Saved %d messages in %s\n",
 			saved_count),

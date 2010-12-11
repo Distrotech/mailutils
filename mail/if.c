@@ -52,7 +52,7 @@ _cond_push(int val)
 
   if (!_cond_stack)
     {
-      util_error(_("Not enough memory"));
+      mu_error(_("Not enough memory"));
       exit (EXIT_FAILURE);
     }
   _cond_stack[_cond_level++] = val;
@@ -63,7 +63,7 @@ _cond_pop()
 {
   if (_cond_level == 0)
     {
-      util_error(_("Internal error: condition stack underflow"));
+      mu_error(_("Internal error: condition stack underflow"));
       abort();
     }
   return _cond_stack[--_cond_level];
@@ -86,13 +86,13 @@ mail_if (int argc, char **argv)
   if (argc != 2)
     {
       /* TRANSLATORS: 'if' is the function name. Do not translate it */
-      util_error(_("if requires an argument: s | r | t"));
+      mu_error(_("if requires an argument: s | r | t"));
       return 1;
     }
 
   if (argv[1][1] != 0)
     {
-      util_error(_("Valid if arguments are: s | r | t"));
+      mu_error(_("Valid if arguments are: s | r | t"));
       return 1;
     }
 
@@ -116,7 +116,7 @@ mail_if (int argc, char **argv)
 	  cond = isatty (fileno (stdout));
 	  break;
 	default:
-	  util_error(_("Valid if arguments are: s | r | t"));
+	  mu_error(_("Valid if arguments are: s | r | t"));
 	  return 1;
 	}
     }
@@ -133,7 +133,7 @@ mail_else (int argc MU_ARG_UNUSED, char **argv MU_ARG_UNUSED)
   if (_cond_level == 0)
     {
       /* TRANSLATORS: 'else' and 'if' are function names. Do not translate them */
-      util_error(_("else without matching if"));
+      mu_error(_("else without matching if"));
       return 1;
     }
   cond = _cond_pop();
@@ -149,7 +149,7 @@ mail_endif (int argc MU_ARG_UNUSED, char **argv MU_ARG_UNUSED)
   if (_cond_level == 0)
     {
       /* TRANSLATORS: 'endif' and 'if' are function names. Do not translate them */
-      util_error(_("endif without matching if"));
+      mu_error (_("endif without matching if"));
       return 1;
     }
   _cond_pop();

@@ -29,7 +29,7 @@ dump_headers (mu_stream_t out, compose_env_t *env)
   rc = mu_header_get_streamref (env->header, &stream);
   if (rc)
     {
-      util_error ("mu_header_get_streamref: %s",
+      mu_error ("mu_header_get_streamref: %s",
 		  mu_stream_strerror (stream, rc));
       return;
     }
@@ -55,7 +55,7 @@ parse_headers (mu_stream_t input, compose_env_t *env)
   
   if ((status = mu_header_create (&header, NULL, 0)) != 0)
     {
-      util_error (_("Cannot create header: %s"), mu_strerror (status));
+      mu_error (_("Cannot create header: %s"), mu_strerror (status));
       return 1;
     }
 
@@ -91,7 +91,7 @@ parse_headers (mu_stream_t input, compose_env_t *env)
 		}
 	      else
 		{
-		  util_error (_("%d: not a header line"), line);
+		  mu_error (_("%d: not a header line"), line);
 		  errcnt++;
 		}
 	    }
@@ -117,7 +117,7 @@ parse_headers (mu_stream_t input, compose_env_t *env)
 		}
 	      else
 		{
-		  util_error (_("%d: not a header line"), line);
+		  mu_error (_("%d: not a header line"), line);
 		  errcnt++;
 		}
 	    }
@@ -153,7 +153,7 @@ parse_headers (mu_stream_t input, compose_env_t *env)
 static void
 escape_continue (void)
 {
-  mu_stream_printf (ostream, _("(continue)\n"));
+  mu_printf (_("(continue)\n"));
 }
 
 static int 
@@ -163,7 +163,7 @@ escape_check_args (int argc, char **argv)
     {
       char *escape = "~";
       mailvar_get (&escape, "escape", mailvar_type_string, 0);
-      util_error (_("%c%s requires an argument"), escape[0], argv[0]);
+      mu_error (_("%c%s requires an argument"), escape[0], argv[0]);
       return 1;
     }
   return 0;
@@ -183,7 +183,6 @@ escape_command (int argc, char **argv, compose_env_t *env)
 {
   const struct mail_command_entry *entry;
   int status;
-  mu_stream_t s;
   
   if (escape_check_args (argc, argv))
     return 1;
@@ -192,20 +191,16 @@ escape_command (int argc, char **argv, compose_env_t *env)
   entry = mail_find_command (argv[1]);
   if (!entry)
     {
-      util_error (_("Unknown command: %s"), argv[1]);
+      mu_error (_("Unknown command: %s"), argv[1]);
       return 1;
     }
   if (entry->flags & (EF_FLOW | EF_SEND))
     {
-      util_error (_("Command not allowed in an escape sequence\n"));
+      mu_error (_("Command not allowed in an escape sequence\n"));
       return 1;
     }
 
-  /* FIXME: Do we need this? */
-  s = ostream;
-  ostream = env->compstr;
   status = (*entry->func) (argc - 1, argv + 1);
-  ostream = s;
   return status;
 }
 
@@ -242,10 +237,10 @@ escape_sign (int argc MU_ARG_UNUSED, char **argv, compose_env_t *env)
 
 	  rc = mu_file_stream_create (&signstr, name, MU_STREAM_READ);
 	  if (rc)
-	    util_error (_("Cannot open %s: %s"), name, mu_strerror (rc));
+	    mu_error (_("Cannot open %s: %s"), name, mu_strerror (rc));
 	  else
 	    {
-	      mu_stream_printf (ostream, _("Reading %s\n"), name);
+	      mu_printf (_("Reading %s\n"), name);
 	      mu_stream_copy (env->compstr, signstr, 0, NULL);
 	      mu_stream_destroy (&signstr);
 	    }
@@ -297,7 +292,7 @@ verbose_copy (mu_stream_t dest, mu_stream_t src, const char *filename,
     }
   if (rc)
     mu_error (_("error copying data: %s"), mu_strerror (rc));
-  mu_stream_printf (ostream, "\"%s\" %lu/%lu\n", filename,
+  mu_printf ("\"%s\" %lu/%lu\n", filename,
 		    (unsigned long) lines, (unsigned long) total);
   if (psize)
     *psize = total;
@@ -314,7 +309,7 @@ escape_deadletter (int argc MU_ARG_UNUSED, char **argv MU_ARG_UNUSED,
   int rc = mu_file_stream_create (&str, name, MU_STREAM_READ);
   if (rc)
     {
-      util_error (_("Cannot open file %s: %s"), name, strerror (rc));
+      mu_error (_("Cannot open file %s: %s"), name, strerror (rc));
       return 1;
     }
   verbose_copy (env->compstr, str, name, NULL);
@@ -488,7 +483,7 @@ quote0 (msgset_t *mspec, mu_message_t mesg, void *data)
   mu_stream_t flt;
   char *argv[3];
 
-  mu_stream_printf (ostream, _("Interpolating: %lu\n"),
+  mu_printf (_("Interpolating: %lu\n"),
 		    (unsigned long) mspec->msg_part[0]);
 
   mailvar_get (&prefix, "indentprefix", mailvar_type_string, 0);
@@ -534,7 +529,7 @@ quote0 (msgset_t *mspec, mu_message_t mesg, void *data)
 
   if (rc)
     {
-      util_error (_("get_streamref error: %s"), mu_strerror (rc));
+      mu_error (_("get_streamref error: %s"), mu_strerror (rc));
       return rc;
     }
 
@@ -563,10 +558,10 @@ int
 escape_type_input (int argc, char **argv, compose_env_t *env)
 {
   /* FIXME: Enable paging */
-  mu_stream_printf (ostream, _("Message contains:\n"));
-  dump_headers (ostream, env);
+  mu_printf (_("Message contains:\n"));
+  dump_headers (mu_strout, env);
   mu_stream_seek (env->compstr, 0, MU_SEEK_SET, NULL);
-  mu_stream_copy (ostream, env->compstr, 0, NULL);
+  mu_stream_copy (mu_strout, env->compstr, 0, NULL);
   escape_continue ();
   return 0;
 }
@@ -586,7 +581,7 @@ escape_read (int argc, char **argv, compose_env_t *env MU_ARG_UNUSED)
   rc = mu_file_stream_create (&instr, filename, MU_STREAM_READ);
   if (rc)
     {
-      util_error (_("Cannot open %s: %s"), filename, mu_strerror (rc));
+      mu_error (_("Cannot open %s: %s"), filename, mu_strerror (rc));
       free (filename);
       return 1;
     }
@@ -636,7 +631,7 @@ escape_write (int argc, char **argv, compose_env_t *env)
 			      MU_STREAM_WRITE|MU_STREAM_CREAT);
   if (rc)
     {
-      util_error (_("Cannot open %s for writing: %s"),
+      mu_error (_("Cannot open %s for writing: %s"),
 		  filename, mu_strerror (rc));
       free (filename);
       return 1;
@@ -663,7 +658,7 @@ escape_pipe (int argc, char **argv, compose_env_t *env)
   
   if (pipe (p))
     {
-      util_error ("pipe: %s", mu_strerror (errno));
+      mu_error ("pipe: %s", mu_strerror (errno));
       return 1;
     }
 
@@ -675,7 +670,7 @@ escape_pipe (int argc, char **argv, compose_env_t *env)
       close (p[0]);
       close (p[1]);
       close (fd);
-      util_error ("fork: %s", mu_strerror (errno));
+      mu_error ("fork: %s", mu_strerror (errno));
       return 1;
     }
   else if (pid == 0)
@@ -693,7 +688,7 @@ escape_pipe (int argc, char **argv, compose_env_t *env)
       close (fd);
 
       execvp (argv[1], argv + 1);
-      util_error (_("Cannot execute `%s': %s"), argv[1], mu_strerror (errno));
+      mu_error (_("Cannot execute `%s': %s"), argv[1], mu_strerror (errno));
       _exit (127);
     }
 
@@ -714,13 +709,13 @@ escape_pipe (int argc, char **argv, compose_env_t *env)
 
   waitpid (pid, &status, 0);
   if (!WIFEXITED (status))
-    util_error (_("Child terminated abnormally: %d"),
+    mu_error (_("Child terminated abnormally: %d"),
 		WEXITSTATUS (status));
   else
     {
       struct stat st;
       if (fstat (fd, &st))
-	util_error (_("Cannot stat output file: %s"), mu_strerror (errno));
+	mu_error (_("Cannot stat output file: %s"), mu_strerror (errno));
       else
 	osize = st.st_size;
     }
@@ -738,7 +733,7 @@ escape_pipe (int argc, char **argv, compose_env_t *env)
 				MU_STREAM_RDWR | MU_STREAM_SEEK);
       if (rc)
 	{
-	  util_error (_("Cannot open composition stream: %s"),
+	  mu_error (_("Cannot open composition stream: %s"),
 		      mu_strerror (rc));
 	  close (fd);
 	}

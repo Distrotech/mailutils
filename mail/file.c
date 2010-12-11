@@ -37,7 +37,7 @@ mail_expand_name (const char *name)
     case '#':
       if (!prev_name)
 	{
-	  util_error (_("No previous file"));
+	  mu_error (_("No previous file"));
 	  return NULL;
 	}
       else
@@ -47,7 +47,7 @@ mail_expand_name (const char *name)
     case '&':
       name = getenv ("MBOX");
       if (!name)
-	util_error (_("MBOX environment variable not set"));
+	mu_error (_("MBOX environment variable not set"));
       else
 	name = xstrdup (name);
       break;
@@ -91,7 +91,7 @@ mail_file (int argc, char **argv)
 	  || (status = mu_mailbox_open (newbox, MU_STREAM_RDWR)) != 0)
 	{
 	  mu_mailbox_destroy (&newbox);
-	  util_error(_("Cannot open mailbox %s: %s"), name, mu_strerror (status));
+	  mu_error(_("Cannot open mailbox %s: %s"), name, mu_strerror (status));
 	  free (name);
 	  return 1;
 	}
@@ -126,7 +126,7 @@ mail_file (int argc, char **argv)
     }
   else
     {
-      util_error(_("%s takes only one argument"), argv[0]);
+      mu_error (_("%s takes only one argument"), argv[0]);
     }
   return 1;
 }

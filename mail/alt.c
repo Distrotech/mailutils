@@ -34,7 +34,7 @@ mail_alt (int argc, char **argv)
       if (alternate_names)
 	{
 	  util_slist_print (alternate_names, 0);
-	  mu_stream_printf (ostream, "\n");
+	  mu_printf ("\n");
 	}
     }
   else
@@ -60,7 +60,7 @@ mail_set_my_name (char *name)
       struct passwd *pw = getpwuid (getuid ());
       if (!pw)
 	{
-	  util_error (_("Cannot determine my username"));
+	  mu_error (_("Cannot determine my username"));
 	  exit (1);
 	}
       name = pw->pw_name;
@@ -69,7 +69,7 @@ mail_set_my_name (char *name)
   my_email = mu_get_user_email (name);
   if (!my_email)
     {
-      util_error(_("Cannot determine my email address: %s"),
+      mu_error(_("Cannot determine my email address: %s"),
 		 mu_strerror (errno));
       exit (1);
     }

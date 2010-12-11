@@ -40,7 +40,7 @@ mail_followup (int argc, char **argv)
   n = get_cursor ();
   if (n == 0)
     {
-      util_error (_("No applicable message"));
+      mu_error (_("No applicable message"));
       return 1;
     }
 
@@ -77,9 +77,9 @@ mail_followup (int argc, char **argv)
 
   msgset_free (msglist);
 
-  mu_stream_printf (ostream, "To: %s\n",
+  mu_printf ("To: %s\n",
 		    compose_header_get (&env, MU_HEADER_TO, ""));
-  mu_stream_printf (ostream, "Subject: %s\n\n",
+  mu_printf ("Subject: %s\n\n",
 		    compose_header_get (&env, MU_HEADER_SUBJECT, ""));
 
   status = mail_send0 (&env, mu_isupper (argv[0][0]));

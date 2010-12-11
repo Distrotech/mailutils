@@ -34,7 +34,7 @@ mail_folders (int argc MU_ARG_UNUSED, char **argv MU_ARG_UNUSED)
       char *tmp = alloca (strlen (path) + 3);
       if (!tmp)
 	{
-	  util_error (_("Not enough memory"));
+	  mu_error (_("Not enough memory"));
 	  return 1;
 	} 
 

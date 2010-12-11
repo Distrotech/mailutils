@@ -52,7 +52,7 @@ list_headers (void *item, void *data)
 
   if (!name || strcmp (name, hp->name) == 0)
     {
-      mu_stream_printf (ostream, "%s: %s\n", hp->name, hp->value);
+      mu_printf ("%s: %s\n", hp->name, hp->value);
     }
   return 0;
 }
@@ -67,7 +67,7 @@ add_header (char *name, char *value, int mode)
       int rc = mu_list_create (&add_header_list);
       if (rc)
 	{
-	  util_error (_("Cannot create header list: %s"), mu_strerror (rc));
+	  mu_error (_("Cannot create header list: %s"), mu_strerror (rc));
 	  exit (1);
 	}
     }
@@ -89,7 +89,7 @@ send_append_header (char *text)
   p = strchr (text, ':');
   if (!p)
     {
-      util_error (_("Invalid header: %s"), text);
+      mu_error (_("Invalid header: %s"), text);
       return;
     }
   len = p - text;
@@ -223,7 +223,7 @@ compose_header_set (compose_env_t * env, const char *name,
   if (!env->header
       && (status = mu_header_create (&env->header, NULL, 0)) != 0)
     {
-      util_error (_("Cannot create header: %s"), mu_strerror (status));
+      mu_error (_("Cannot create header: %s"), mu_strerror (status));
       return status;
     }
 
@@ -333,7 +333,7 @@ fill_body (mu_message_t msg, mu_stream_t instr)
 	{
 	  char *str;
 	  if (mailvar_get (&str, "nullbodymsg", mailvar_type_string, 0) == 0)
-	    util_error ("%s\n", _(str));
+	    mu_error ("%s\n", _(str));
 	}
       else
 	return 1;
@@ -356,7 +356,7 @@ save_dead_message (compose_env_t *env)
       rc = mu_file_stream_create (&dead_letter, name, MU_STREAM_WRITE);
       if (rc)
 	{
-	  util_error (_("Cannot open file %s: %s"), name, strerror (rc));
+	  mu_error (_("Cannot open file %s: %s"), name, strerror (rc));
 	  return 1;
 	}
       if (mailvar_get (NULL, "appenddeadletter",
@@ -401,17 +401,17 @@ send_message (mu_message_t msg)
 		  mu_mailer_close (mailer);
 		}
 	      else
-		util_error (_("Cannot open mailer: %s"), mu_strerror (status));
+		mu_error (_("Cannot open mailer: %s"), mu_strerror (status));
 	      mu_mailer_destroy (&mailer);
 	    }
 	  else
-	    util_error (_("Cannot create mailer: %s"),
+	    mu_error (_("Cannot create mailer: %s"),
 			mu_strerror (status));
 	}
     }
   else
     {
-      util_error (_("Variable sendmail not set: no mailer"));
+      mu_error (_("Variable sendmail not set: no mailer"));
       status = ENOSYS;
     }
   return status;
@@ -445,7 +445,7 @@ mail_send0 (compose_env_t *env, int save_to)
   rc = mu_temp_file_stream_create (&env->compstr, NULL, 0);
   if (rc)
     {
-      util_error (_("Cannot open temporary file: %s"), mu_strerror (rc));
+      mu_error (_("Cannot open temporary file: %s"), mu_strerror (rc));
       return 1;
     }
 
@@ -460,7 +460,7 @@ mail_send0 (compose_env_t *env, int save_to)
 	{
 	  if (mailvar_get (NULL, "ignore", mailvar_type_boolean, 0) == 0)
 	    {
-	      mu_stream_printf (ostream, "@\n");
+	      mu_printf ("@\n");
 	    }
 	  else
 	    {
@@ -468,7 +468,7 @@ mail_send0 (compose_env_t *env, int save_to)
 		free (buf);
 	      if (++int_cnt == 2)
 		break;
-	      util_error (_("\n(Interrupt -- one more to kill letter)"));
+	      mu_error (_("\n(Interrupt -- one more to kill letter)"));
 	    }
 	  continue;
 	}
@@ -478,7 +478,7 @@ mail_send0 (compose_env_t *env, int save_to)
 	  if (interactive 
 	      && mailvar_get (NULL, "ignoreeof", mailvar_type_boolean, 0) == 0)
 	    {
-	      util_error (mailvar_get (NULL, "dot", mailvar_type_boolean, 0) == 0 ?
+	      mu_error (mailvar_get (NULL, "dot", mailvar_type_boolean, 0) == 0 ?
 			  _("Use \".\" to terminate letter.") :
 			  _("Use \"~.\" to terminate letter."));
 	      continue;
@@ -520,15 +520,15 @@ mail_send0 (compose_env_t *env, int save_to)
 			status = (*entry->escfunc) (ws.ws_wordc, ws.ws_wordv,
 						    env);
 		      else
-			util_error (_("Unknown escape %s"), ws.ws_wordv[0]);
+			mu_error (_("Unknown escape %s"), ws.ws_wordv[0]);
 		    }
 		  else
-		    util_error (_("Unfinished escape"));
+		    mu_error (_("Unfinished escape"));
 		  mu_wordsplit_free (&ws);
 		}
 	      else
 		{
-		  util_error (_("Cannot parse escape sequence: %s"),
+		  mu_error (_("Cannot parse escape sequence: %s"),
 			      mu_wordsplit_strerror (&ws));
 		}
 	    }
@@ -614,14 +614,14 @@ mail_send0 (compose_env_t *env, int save_to)
 			    {
 			      status = mu_mailbox_append_message (mbx, msg);
 			      if (status)
-				util_error (_("Cannot append message: %s"),
+				mu_error (_("Cannot append message: %s"),
 					    mu_strerror (status));
 			      mu_mailbox_close (mbx);
 			    }
 			  mu_mailbox_destroy (&mbx);
 			}
 		      if (status)
-			util_error (_("Cannot create mailbox %s: %s"), 
+			mu_error (_("Cannot create mailbox %s: %s"), 
 				    env->outfiles[i],
 				    mu_strerror (status));
 		    }
@@ -678,7 +678,7 @@ msg_to_pipe (const char *cmd, mu_message_t msg)
   status = mu_command_stream_create (&progstream, cmd, MU_STREAM_WRITE);
   if (status)
     {
-      util_error (_("Cannot pipe to %s: %s"), cmd, mu_strerror (status));
+      mu_error (_("Cannot pipe to %s: %s"), cmd, mu_strerror (status));
       return status;
     }
 
@@ -694,7 +694,7 @@ msg_to_pipe (const char *cmd, mu_message_t msg)
   
   if (status)
     {
-      util_error (_("Sending data to %s failed: %s"), cmd,
+      mu_error (_("Sending data to %s failed: %s"), cmd,
 		  mu_strerror (status));
     }
   return status;

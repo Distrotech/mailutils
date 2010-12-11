@@ -39,7 +39,7 @@ top0 (msgset_t *mspec, mu_message_t msg, void *data)
       int status = mu_stream_getline (stream, &buf, &size, &n);
       if (status != 0 || n == 0)
 	break;
-      mu_stream_printf (ostream, "%s", buf);
+      mu_printf ("%s", buf);
     }
   free (buf);
   mu_stream_destroy (&stream);

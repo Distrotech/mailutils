@@ -64,7 +64,7 @@ mail_copy0 (int argc, char **argv, int mark)
 
   if ((status = mu_mailbox_create_default (&mbx, filename)) != 0)
     {
-      util_error (_("Cannot create mailbox %s: %s"), filename, 
+      mu_error (_("Cannot create mailbox %s: %s"), filename, 
                    mu_strerror (status));
       free (filename);
       msgset_free (msglist);
@@ -72,7 +72,7 @@ mail_copy0 (int argc, char **argv, int mark)
     }
   if ((status = mu_mailbox_open (mbx, MU_STREAM_WRITE | MU_STREAM_CREAT)) != 0)
     {
-      util_error (_("Cannot open mailbox %s: %s"), filename, 
+      mu_error (_("Cannot open mailbox %s: %s"), filename, 
                    mu_strerror (status));
       free (filename);
       msgset_free (msglist);
@@ -88,7 +88,7 @@ mail_copy0 (int argc, char **argv, int mark)
       status = mu_mailbox_append_message (mbx, msg);
       if (status)
 	{
-	  util_error (_("Cannot append message: %s"), mu_strerror (status));
+	  mu_error (_("Cannot append message: %s"), mu_strerror (status));
 	  break;
 	}
       
@@ -106,7 +106,7 @@ mail_copy0 (int argc, char **argv, int mark)
     }
 
   if (status == 0)
-    mu_stream_printf (ostream, "\"%s\" %3lu/%-5lu\n", filename,
+    mu_printf ("\"%s\" %3lu/%-5lu\n", filename,
 	     (unsigned long) total_lines, (unsigned long) total_size);
 
   mu_mailbox_close (mbx);

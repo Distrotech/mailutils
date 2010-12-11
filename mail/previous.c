@@ -45,7 +45,7 @@ mail_previous (int argc, char **argv)
 
       if (rc)
 	{
-	  util_error (_("No applicable message"));
+	  mu_error (_("No applicable message"));
 	  return 1;
 	}
     }
@@ -62,7 +62,7 @@ mail_previous (int argc, char **argv)
 	}
       else
 	{
-	  util_error (_("No applicable message"));
+	  mu_error (_("No applicable message"));
 	  return 1;
 	}
     }
