@@ -32,11 +32,6 @@
 #endif
 #include <mailutils/io.h>
 
-/*
- * expands command into its command and arguments, then runs command
- * cmd is the command to parse and run
- * returns exit status of the command
- */
 int
 util_do_command (const char *fmt, ...)
 {

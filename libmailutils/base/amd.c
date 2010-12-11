@@ -1885,7 +1885,9 @@ amd_envelope_date (mu_envelope_t envelope, char *buf, size_t len,
   mu_message_t msg = mu_envelope_get_owner (envelope);
   struct _amd_message *mhm = mu_message_get_owner (msg);
   mu_header_t hdr = NULL;
-  char *date;
+  const char *date;
+  char datebuf[25]; /* Buffer for the output of ctime (terminating nl being
+		       replaced by 0) */
   int status;
   
   if (mhm == NULL)
@@ -1893,8 +1895,8 @@ amd_envelope_date (mu_envelope_t envelope, char *buf, size_t len,
 
   if ((status = mu_message_get_header (msg, &hdr)) != 0)
     return status;
-  if (mu_header_aget_value (hdr, MU_HEADER_ENV_DATE, &date)
-      && mu_header_aget_value (hdr, MU_HEADER_DELIVERY_DATE, &date))
+  if (mu_header_sget_value (hdr, MU_HEADER_ENV_DATE, &date)
+      && mu_header_sget_value (hdr, MU_HEADER_DELIVERY_DATE, &date))
     return MU_ERR_NOENT;
   else
     {
@@ -1903,10 +1905,11 @@ amd_envelope_date (mu_envelope_t envelope, char *buf, size_t len,
       
       /* Convert to ctime format */
       rc = mu_parse_date (date, &t, NULL); /* FIXME: TZ info is lost */
-      free (date);
       if (rc)
 	return MU_ERR_NOENT;
-      date = strdup (ctime (&t)); 
+      memcpy (datebuf, ctime (&t), sizeof (datebuf) - 1);
+      datebuf[sizeof (datebuf) - 1] = 0; /* Kill the terminating newline */
+      date = datebuf;
     }
 
   /* Format:  "sender date" */
@@ -1924,8 +1927,6 @@ amd_envelope_date (mu_envelope_t envelope, char *buf, size_t len,
     }
   else
     len = strlen (date);
-  
-  free (date);
   
   if (psize)
     *psize = len;
