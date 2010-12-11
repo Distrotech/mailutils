@@ -1238,10 +1238,13 @@ mu_stream_set_stat (mu_stream_t stream, int statmask,
 {
   if (stream == NULL)
     return EINVAL;
+  if (!statbuf)
+    statmask = 0;
   stream->statmask = statmask;
   stream->statbuf = statbuf;
-  memset (stream->statbuf, 0,
-	  _MU_STREAM_STAT_MAX * sizeof (stream->statbuf[0]));
+  if (stream->statbuf)
+    memset (stream->statbuf, 0,
+	    _MU_STREAM_STAT_MAX * sizeof (stream->statbuf[0]));
   return 0;
 }
 
