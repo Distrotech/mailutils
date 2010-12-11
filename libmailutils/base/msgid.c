@@ -32,6 +32,7 @@
 #include <mailutils/io.h>
 #include <mailutils/envelope.h>
 #include <mailutils/errno.h>
+#include <mailutils/argcv.h>
 
 #define ST_INIT  0
 #define ST_MSGID 1
@@ -82,27 +83,6 @@ get_msgid_header (mu_header_t hdr, const char *name, char **val)
   return strip_message_id (p, val);
 }
 
-static char *
-concat (const char *s1, const char *s2)
-{
-  int len = (s1 ? strlen (s1) : 0) + (s2 ? strlen (s2) : 0) + 2;
-  char *s = malloc (len);
-  if (s)
-    {
-      char *p = s;
-      
-      if (s1)
-	{
-	  strcpy (p, s1);
-	  p += strlen (s1);
-	  *p++ = ' ';
-	}
-      if (s2)
-	strcpy (p, s2);
-    }
-  return s;
-}
-
 /* rfc2822:
    
    The "References:" field will contain the contents of the parent's
@@ -119,25 +99,30 @@ concat (const char *s1, const char *s2)
 int
 mu_rfc2822_references (mu_message_t msg, char **pstr)
 {
-  char *ref = NULL, *msgid = NULL;
+  char *argv[3] = { NULL, NULL, NULL };
   mu_header_t hdr;
   int rc;
   
   rc = mu_message_get_header (msg, &hdr);
   if (rc)
     return rc;
-  get_msgid_header (hdr, MU_HEADER_MESSAGE_ID, &msgid);
-  if (get_msgid_header (hdr, MU_HEADER_REFERENCES, &ref))
-    get_msgid_header (hdr, MU_HEADER_IN_REPLY_TO, &ref);
+  get_msgid_header (hdr, MU_HEADER_MESSAGE_ID, &argv[1]);
+  if (get_msgid_header (hdr, MU_HEADER_REFERENCES, &argv[0]))
+    get_msgid_header (hdr, MU_HEADER_IN_REPLY_TO, &argv[0]);
 
-  if (ref || msgid)
+  if (argv[0] && argv[1])
     {
-      *pstr = concat (ref, msgid);
-      free (ref);
-      free (msgid);
-      return 0;
+      rc = mu_argcv_join (2, argv, " ", mu_argcv_escape_no, pstr);
+      free (argv[0]);
+      free (argv[1]);
     }
-  return MU_ERR_FAILURE;
+  else if (argv[0])
+    *pstr = argv[0];
+  else if (argv[1])
+    *pstr = argv[1];
+  else
+    rc = MU_ERR_FAILURE;
+  return rc;
 }
 
 int
@@ -169,7 +154,6 @@ mu_rfc2822_msg_id (int subpart, char **pval)
   return 0;
 }
 
-#define DATEBUFSIZE 128
 #define COMMENT "Your message of "
 
 /*
@@ -184,47 +168,42 @@ mu_rfc2822_msg_id (int subpart, char **pval)
 int
 mu_rfc2822_in_reply_to (mu_message_t msg, char **pstr)
 {
-  const char *value = NULL;
-  char *s1 = NULL, *s2 = NULL;
+  const char *argv[] = { NULL, NULL, NULL, NULL, NULL };
   mu_header_t hdr;
   int rc;
+  int idx = 0;
   
   rc = mu_message_get_header (msg, &hdr);
   if (rc)
     return rc;
   
-  if (mu_header_sget_value (hdr, MU_HEADER_DATE, &value))
+  if (mu_header_sget_value (hdr, MU_HEADER_DATE, &argv[idx + 1]))
     {
       mu_envelope_t envelope = NULL;
       mu_message_get_envelope (msg, &envelope);
-      mu_envelope_sget_date (envelope, &value);
+      mu_envelope_sget_date (envelope, &argv[idx + 1]);
     }
 
-  if (value)
+  if (argv[idx + 1])
     {
-      s1 = malloc (sizeof (COMMENT) + strlen (value));
-      if (!s1)
-	return ENOMEM;
-      strcat (strcpy (s1, COMMENT), value);
+      argv[idx] = COMMENT;
+      idx = 2;
     }
-  
-  if (mu_header_sget_value (hdr, MU_HEADER_MESSAGE_ID, &value) == 0)
+    
+  if (mu_header_sget_value (hdr, MU_HEADER_MESSAGE_ID, &argv[idx]) == 0)
     {
-      s2 = malloc (strlen (value) + 3);
-      if (!s2)
+      if (idx > 1)
 	{
-	  free (s1);
-	  return ENOMEM;
+	  argv[idx + 1] = argv[idx];
+	  argv[idx] = "\n\t";
+	  idx++;
 	}
-      strcat (strcpy (s2, "\n\t"), value);
+      idx++;
     }
 
-  if (s1 || s2)
-    {
-      *pstr = concat (s1, s2);
-      free (s1);
-      free (s2);
-      return 0;
-    }
-  return MU_ERR_FAILURE;
+  if (idx > 1)
+    rc = mu_argcv_join (idx, argv, "", mu_argcv_escape_no, pstr);
+  else
+    rc = MU_ERR_FAILURE;
+  return rc;
 }

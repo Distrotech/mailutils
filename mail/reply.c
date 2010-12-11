@@ -21,7 +21,7 @@ void
 make_in_reply_to (compose_env_t *env, mu_message_t msg)
 {
   char *value = NULL;
-
+  wd();
   mu_rfc2822_in_reply_to (msg, &value);
   compose_header_set (env, MU_HEADER_IN_REPLY_TO, value,
 		      COMPOSE_REPLACE);
@@ -138,3 +138,9 @@ mail_reply (int argc, char **argv)
   return util_foreach_msg (argc, argv, MSG_NODELETED, reply0, &lower);
 }
 
+wd()
+{
+  int volatile _st=1;
+  while (!_st)
+    _st=_st;
+}

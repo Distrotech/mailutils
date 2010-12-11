@@ -72,7 +72,7 @@ mu_argcv_join (int argc, char **argv, char *delim, enum mu_argcv_escape esc,
       if (quote)
 	len += 2;
       
-      buffer = realloc (buffer, len);
+      buffer = realloc (buffer, len + 1);
       if (buffer == NULL)
         return ENOMEM;
 
