@@ -202,7 +202,7 @@ mu_rfc2822_in_reply_to (mu_message_t msg, char **pstr)
     }
 
   if (idx > 1)
-    rc = mu_argcv_join (idx, argv, "", mu_argcv_escape_no, pstr);
+    rc = mu_argcv_join (idx, (char**) argv, "", mu_argcv_escape_no, pstr);
   else
     rc = MU_ERR_FAILURE;
   return rc;

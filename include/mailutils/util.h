@@ -152,6 +152,10 @@ int mu_rfc2822_in_reply_to (mu_message_t msg, char **pstr);
 int mu_decode_filter (mu_stream_t *pfilter, mu_stream_t input,
 		      const char *filter_type,
 		      const char *fromcode, const char *tocode);
+int mu_decode_filter_args (mu_stream_t *pfilter, mu_stream_t input,
+			   const char *filter_name,
+			   int argc, const char **argv,
+			   const char *fromcode, const char *tocode);
 
 extern enum mu_iconv_fallback_mode mu_default_fallback_mode;
 int mu_set_default_fallback (const char *str);

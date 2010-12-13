@@ -28,35 +28,32 @@
 int
 main (int argc, char **argv)
 {
-  int rc;
+  int i;
   mu_stream_t in, out;
   mu_stream_t cvt;
-  size_t  size;
-  char buffer[80];
+  const char *args[5] = { "iconv" };
   
-  if (argc != 3)
+  if (argc < 3 || argc > 4)
     {
-      fprintf (stderr, "usage: %s from-code to-code\n", argv[0]);
+      fprintf (stderr, "usage: %s from-code to-code [err]\n", argv[0]);
       return 1;
     }
 
   MU_ASSERT (mu_stdio_stream_create (&in, MU_STDIN_FD, 0));
-  MU_ASSERT (mu_filter_iconv_create (&cvt, in, argv[1], argv[2], 
-                                     0, mu_fallback_none));
+  args[1] = argv[1];
+  args[2] = argv[2];
+  i = 3;
+  if (argc == 4)
+    args[i++] = argv[3];
+  args[i] = NULL;
   
+  MU_ASSERT (mu_filter_create_args (&cvt, in, args[0], i, args,
+				    MU_FILTER_DECODE,
+				    MU_FILTER_READ));
+  mu_stream_unref (in);
   MU_ASSERT (mu_stdio_stream_create (&out, MU_STDOUT_FD, 0));
-
-  while ((rc = mu_stream_read (cvt, buffer, sizeof (buffer), &size)) == 0
-	 && size > 0)
-    {
-      mu_stream_write (out, buffer, size, NULL);
-    }
+  MU_ASSERT (mu_stream_copy (out, cvt, 0, NULL));
+  mu_stream_unref (cvt);
   mu_stream_flush (out);
-  if (rc)
-    {
-      fprintf (stderr, "error: %s / %s\n",
-	       mu_stream_strerror (cvt, rc),
-	       mu_strerror (rc));
-    }
   return 0;
 }

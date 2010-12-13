@@ -135,8 +135,6 @@ libmailutils/stream/file_stream.c
 libmailutils/stream/prog_stream.c
 libmailutils/stream/logstream.c
 
-libmailutils/filter/filter_iconv.c
-
 libmailutils/server/ipsrv.c
 libmailutils/server/msrv.c
 

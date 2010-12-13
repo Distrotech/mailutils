@@ -25,7 +25,6 @@ libfilter_la_SOURCES =\
  decode.c\
  dot.c\
  filter.c\
- filter_iconv.c\
  fltchain.c\
  fromflt.c\
  header.c\

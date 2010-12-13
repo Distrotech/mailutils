@@ -514,10 +514,9 @@ mu_mimehdr_decode_param (const char *value, int flags,
 		  rc = mu_memory_stream_create (&outstr, 0);
 		  if (rc)
 		    break;
-		  
-		  rc = mu_filter_iconv_create (&cvt, instr, source_cs, charset,
-					       0,
-					       mu_default_fallback_mode);
+
+		  rc = mu_decode_filter (&cvt, instr, NULL,
+					 source_cs, charset);
 		  if (rc)
 		    break;
 		  

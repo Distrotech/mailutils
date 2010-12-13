@@ -21,6 +21,7 @@
 #endif
 
 #include <unistd.h>
+#include <stdlib.h>
 #include <string.h>
 #include <errno.h>
 #include <mailutils/stream.h>
@@ -44,30 +45,46 @@ mu_set_default_fallback (const char *str)
 }
 
 int
+mu_decode_filter_args (mu_stream_t *pfilter, mu_stream_t input,
+		       const char *filter_name, int argc, const char **argv,
+		       const char *fromcode, const char *tocode)
+{
+  int xargc, i;
+  char **xargv;
+  int rc;
+  
+  xargc = argc + 5;
+  xargv = calloc (xargc + 1, sizeof (xargv[0]));
+  if (!xargv)
+    return ENOMEM;
+
+  i = 0;
+  if (filter_name)
+    xargv[i++] = (char*) filter_name;
+  for (; i < argc; i++)
+    xargv[i] = (char*) argv[i];
+
+  if (i)
+    xargv[i++] = "+";
+  xargv[i++] = "ICONV";
+  xargv[i++] = (char*) fromcode;
+  xargv[i++] = (char*) tocode;
+  xargv[i] = NULL;
+
+  rc = mu_filter_chain_create (pfilter, input,
+			       MU_FILTER_DECODE, MU_STREAM_READ,
+			       xargc, xargv);
+  free (xargv);
+  return rc;
+}
+
+
+int
 mu_decode_filter (mu_stream_t *pfilter, mu_stream_t input,
-		  const char *filter_type,
+		  const char *filter_name,
 		  const char *fromcode, const char *tocode)
 {
-  mu_stream_t filter;
-  
-  int status = mu_filter_create (&filter, input, filter_type,
-				 MU_FILTER_DECODE, MU_STREAM_READ);
-  if (status)
-    return status;
-
-  if (fromcode && tocode && mu_c_strcasecmp (fromcode, tocode))
-    {
-      mu_stream_t cvt;
-
-      status = mu_filter_iconv_create (&cvt, filter, fromcode, tocode,
-				       0, mu_default_fallback_mode);
-      if (status == 0)
-	{
-          mu_stream_unref (filter);
-          filter = cvt;
-	}
-    }
-  *pfilter = filter;
-  return 0;
+  return mu_decode_filter_args (pfilter, input, filter_name, 0, NULL,
+				fromcode, tocode);
 }
 

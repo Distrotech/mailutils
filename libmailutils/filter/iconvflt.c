@@ -147,6 +147,7 @@ _icvt_decoder (void *xd,
 	  switch (_icvt->fallback_mode)
 	    {
 	    case mu_fallback_none:
+	      iobuf->errcode = EILSEQ;
 	      return mu_filter_failure;
 	      
 	    case mu_fallback_copy_pass:
@@ -181,6 +182,7 @@ _icvt_decoder (void *xd,
 	  break;
 	      
 	default:
+	  iobuf->errcode = errno;
 	  return mu_filter_failure;
 	}
     }

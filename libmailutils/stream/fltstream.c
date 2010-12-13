@@ -49,7 +49,7 @@ init_iobuf (struct mu_filter_io *io, struct _mu_filter_stream *fs)
   io->isize = MFB_RDBYTES (fs->inbuf);
   io->output = MFB_ENDPTR (fs->outbuf);
   io->osize = MFB_FREESIZE (fs->outbuf);
-  io->errcode = 0;
+  io->errcode = MU_ERR_FAILURE;
   io->eof = 0;
 }
 
@@ -60,6 +60,7 @@ filter_stream_init (struct _mu_filter_stream *fs)
     {
       struct mu_filter_io iobuf;
       memset (&iobuf, 0, sizeof (iobuf));
+      iobuf.errcode = MU_ERR_FAILURE;
       if (fs->xcode (fs->xdata, mu_filter_init, &iobuf) == mu_filter_failure)
 	return iobuf.errcode;
     }

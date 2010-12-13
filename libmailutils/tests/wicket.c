@@ -39,7 +39,7 @@ match_string (const char *str)
       return;
     }
   MU_ASSERT (mu_stream_seek (stream, 0, MU_SEEK_SET, NULL));
-  loc.mu_file = name;
+  loc.mu_file = (char*)name;
   loc.mu_line = 0;
   loc.mu_col = 0;
   rc = mu_wicket_stream_match_url (stream, &loc, u, MU_URL_PARSE_ALL, &url);

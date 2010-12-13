@@ -104,6 +104,7 @@
 #include <mailutils/cctype.h>
 #include <mailutils/cstr.h>
 #include <mailutils/io.h>
+#include <mailutils/prog.h>
 
 #include <mu_umaxtostr.h>
 #include <muaux.h>

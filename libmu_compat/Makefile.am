@@ -19,6 +19,7 @@ lib_LTLIBRARIES = libmu_compat.la
 
 libmu_compat_la_SOURCES = \
  argcv.c\
+ filter_iconv.c\
  vartab.c
 
 INCLUDES = @MU_LIB_COMMON_INCLUDES@ -I/libmailutils
