@@ -29,6 +29,7 @@ libfilter_la_SOURCES =\
  fltchain.c\
  fromflt.c\
  header.c\
+ iconvflt.c\
  inline-comment.c\
  linecon.c\
  linelenflt.c\

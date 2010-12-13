@@ -82,6 +82,7 @@ mu_filter_get_list (mu_list_t *plist)
       mu_list_append (filter_list, mu_header_filter);
       mu_list_append (filter_list, mu_linecon_filter);
       mu_list_append (filter_list, mu_linelen_filter);
+      mu_list_append (filter_list, mu_iconv_filter);
       /* FIXME: add the default encodings?  */
     }
   *plist = filter_list;
