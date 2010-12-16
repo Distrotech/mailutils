@@ -171,6 +171,7 @@ Allow me to sell you a couple?'
 MH_CHECK([mhn-storage],[mhn06 mhn-store-auto],[
 mkdir Mail/inbox
 cp $abs_top_srcdir/testsuite/mh/mbox1/4 Mail/inbox
+chmod +w Mail/inbox/4
 
 mkdir out
 echo "mhn-storage: $curdir/out" >> $MH
@@ -187,6 +188,8 @@ storing message 4 part 2.2.2 as file out/4.2.2.2.octet-stream
 MH_CHECK([mhn-store-: all escapes],[mhn07 mhn-store_escapes],[
 mkdir Mail/inbox
 cp $abs_top_srcdir/testsuite/mh/mbox1/4 Mail/inbox
+chmod +w Mail/inbox/4
+
 echo "mhn-store-application: %%-%m%P.%s-%p" >> $MH
 mhn +inbox -store 4 | remove_curdir || exit $?
 find . -name '%*'
@@ -205,6 +208,8 @@ MH_CHECK([mhn-store-: absolute path],[mhn08 mhn-store_abspath],[
 mkdir Mail/inbox
 mkdir out
 cp $abs_top_srcdir/testsuite/mh/mbox1/4 Mail/inbox
+chmod +w Mail/inbox/4
+
 echo "mhn-store-application: $curdir/out/%m%P.%s" >> $MH
 mhn +inbox -store 4 | remove_curdir || exit $?
 ],
@@ -219,6 +224,8 @@ MH_CHECK([mhn-store-: +folder],[mhn09 mhn-store+folder],[
 mkdir Mail/inbox
 mkdir Mail/app
 cp $abs_top_srcdir/testsuite/mh/mbox1/4 Mail/inbox
+chmod +w Mail/inbox/4
+
 echo "mhn-store-application: +app" >> $MH
 mhn +inbox -store 4 | remove_curdir || exit $?
 ],
@@ -232,6 +239,8 @@ storing message 4 part 2.2.2 to folder +app as message 3
 MH_CHECK([mhn-store-: +],[mhn10 mhn-store+],[
 mkdir Mail/inbox
 cp $abs_top_srcdir/testsuite/mh/mbox1/4 Mail/inbox
+chmod +w Mail/inbox/4
+
 echo "Current-Folder: inbox" > Mail/context
 cat >> $MH <<EOT
 mhn-store-application/octet-stream: +
@@ -245,6 +254,8 @@ mhn +inbox -store -part 2.2.1 4 | remove_curdir || exit $?
 MH_CHECK([mhn-store-: pipe],[mhn11 mhn-store-pipe],[
 mkdir Mail/inbox
 cp $abs_top_srcdir/testsuite/mh/mbox1/4 Mail/inbox
+chmod +w Mail/inbox/4
+
 echo "Current-Folder: inbox" > Mail/context
 echo "mhn-store-text: | $abs_top_srcdir/mh/tests/mhed -" >> $MH
 mhn +inbox -store -part 1 4 | sed "s|$abs_top_srcdir/mh/tests/||;s|(cd \(.*\)\;|(cd home\;|;s|  *$||" || exit $?

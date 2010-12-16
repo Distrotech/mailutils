@@ -162,6 +162,13 @@ fi
 
 MU_DEBUG_MODE
 
+# For adventurous characters: enable experimental/unfinished/buggy stuff
+AC_ARG_ENABLE([experimental],
+              AC_HELP_STRING([--enable-experimental],
+                             [build experimental and/or unfinished utilities]),
+              [mu_build_experimental="${enableval}"],
+              [mu_build_experimental=no])
+
 # Initialize authlibs
 
 AC_SUBST(MU_AUTHLIBS)
@@ -802,7 +809,8 @@ MU_ENABLE_SUPPORT([imap],
 MU_ENABLE_SUPPORT([pop],
          [MU_LIB_POP='${top_builddir}/libproto/pop/libmu_pop.la'])
 MU_ENABLE_SUPPORT([nntp],
-         [MU_LIB_NNTP='${top_builddir}/libproto/nntp/libmu_nntp.la'])
+         [MU_LIB_NNTP='${top_builddir}/libproto/nntp/libmu_nntp.la'],[],
+	 [$mu_build_experimental])
 MU_ENABLE_SUPPORT([mh],
          [MU_LIB_MH='${top_builddir}/libproto/mh/libmu_mh.la'])
 MU_ENABLE_SUPPORT([maildir],
@@ -825,12 +833,6 @@ MU_ENABLE_SUPPORT(radius,
 		                 [MU_AUTHLIBS="$MU_AUTHLIBS -lgnuradius"
 				  mu_cv_enable_radius=yes],
 				 [mu_cv_enable_radius=no])]) 
-
-AC_ARG_ENABLE([experimental],
-              AC_HELP_STRING([--enable-experimental],
-                             [build experimental and/or unfinished utilities]),
-              [mu_build_experimental="${enableval}"],
-              [mu_build_experimental=no])
 
 if test x"$testpam" = x"yes"; then
 	AC_CHECK_HEADERS(security/pam_appl.h)
@@ -1097,7 +1099,7 @@ case "${enableval}" in
   yes) status_python=yes ;;
   no)  status_python=no ;;
   *)   AC_MSG_ERROR(bad value ${enableval} for --enable-python) ;;
-esac],[status_python=yes])
+esac],[status_python=$mu_build_experimental])
 
 AC_SUBST(PYTHON_LIBS)
 AC_SUBST(PYTHON_INCLUDES)
@@ -1137,7 +1139,9 @@ AM_CONDITIONAL([MU_COND_PYTHON], [test "$status_python" = yes])
 AC_SUBST(MU_CXX_EXAMPLES_BUILD)
 MU_ENABLE_SUPPORT(cxx,
   	          [MU_CXX_EXAMPLES_BUILD='$(MU_CXX_EXAMPLES_LIST)'
-                   MU_LIB_CPP='${top_builddir}/libmu_cpp/libmu_cpp.la'])
+                   MU_LIB_CPP='${top_builddir}/libmu_cpp/libmu_cpp.la'],
+		  [],
+		  [$mu_build_experimental])
 
 # Default mailbox record
 # Note: 1. Support for mbox type is always enabled.
@@ -1181,14 +1185,18 @@ MU_ENABLE_BUILD(comsat)
 MU_ENABLE_BUILD(maidag)
 MU_ENABLE_BUILD(mail)
 MU_ENABLE_BUILD(sieve)
-MU_ENABLE_BUILD(guimb,,,[test "$useguile" = yes])
+if test "$useguile" = "yes"; then
+  MU_ENABLE_BUILD(guimb,,,[$useguile])
+fi
 MU_ENABLE_BUILD(messages)
 MU_ENABLE_BUILD(readmsg)
 MU_ENABLE_BUILD(dotlock)
 MU_ENABLE_BUILD(movemail)
 MU_ENABLE_BUILD(mimeview)
 
-MU_ENABLE_BUILD(mh,,,[test "$mu_cv_enable_mh" = yes])
+if test "$mu_cv_enable_mh" = yes; then
+  MU_ENABLE_BUILD(mh)
+fi
 
 AC_SUBST(MH_BIN_DIR)
 

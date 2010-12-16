@@ -80,7 +80,7 @@ libmu_sieve/extensions/spamd.c
 libmu_sieve/extensions/timestamp.c
 libmu_sieve/extensions/vacation.c
 
-libproto/imap/folder.c
+# libproto/imap/folder.c
 libproto/mbox/mbox.c
 
 maidag/maidag.c

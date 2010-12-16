@@ -35,7 +35,7 @@ cat > $MTSTAILOR <<EOT
 localname: darkstar
 localdomain: example.net
 username: mhtester
-url: sendmail://$abs_top_srcdir/examples/mta
+url: sendmail://$abs_top_builddir/examples/mta
 EOT
 
 MTA_DIAG=$curdir/mta.diag

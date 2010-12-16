@@ -34,16 +34,15 @@ AC_DEFUN([MU_ENABLE_SUPPORT], [
         esac],
                       [mu_cache_var=ifelse([$4],,yes,[$4])])
 
-	if test x"[$]mu_cache_var" = x"yes"; then
+	if test "[$]mu_cache_var" = "yes"; then
 		ifelse([$2],,:,[$2])
 	ifelse([$3],,,else
                [$3])
 	fi
-	if test x"[$]mu_cache_var" = x"yes"; then
+	if test "[$]mu_cache_var" = "yes"; then
 		AC_DEFINE([ENABLE_]mu_upcase,1,[Define this if you enable $1 support])
         fi
-	AM_CONDITIONAL(mu_cond,
-	               [test x"[$]mu_cache_var" = x"yes" ifelse($4,,,[&& $4])])
+	AM_CONDITIONAL(mu_cond, [test "[$]mu_cache_var" = "yes"])
 	popdef([mu_cond])
 	popdef([mu_cache_var])
 	popdef([mu_upcase])
@@ -67,16 +66,16 @@ AC_DEFUN([MU_ENABLE_BUILD], [
         esac],
                       [mu_cache_var=ifelse([$5],,yes,[$5])])
 
-	if test x"[$]mu_cache_var" = x"yes"; then
+	if test "[$]mu_cache_var" = "yes"; then
 		ifelse([$2],,:,[$2])
 	ifelse([$3],,,else
                [$3])
 	fi
-	if test x"[$]mu_cache_var" = x"yes" ifelse($4,,,[&& $4]); then
+	if test "[$]mu_cache_var" = "yes"; then
 		AC_DEFINE([MU_BUILD_]mu_upcase,1,[Define this if you build $1])
         fi
 	AM_CONDITIONAL(mu_cond,
-	               [test x"[$]mu_cache_var" = x"yes" ifelse($4,,,[&& $4])])
+	               [test "[$]mu_cache_var" = "yes"])
 	
 	popdef([mu_upcase])
 	popdef([mu_cache_var])
