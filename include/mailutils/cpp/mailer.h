@@ -22,7 +22,6 @@
 #include <string>
 #include <errno.h>
 #include <mailutils/mailer.h>
-#include <mailutils/cpp/debug.h>
 #include <mailutils/cpp/message.h>
 #include <mailutils/cpp/address.h>
 
@@ -45,7 +44,6 @@ class Mailer
   void send_message (const Message& msg, const Address& from,
 		     const Address& to);
 
-  Debug& get_debug ();
 };
 
 }

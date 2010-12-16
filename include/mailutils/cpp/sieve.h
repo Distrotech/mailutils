@@ -44,9 +44,6 @@ class SieveMachine
   void disass ();
   void mailbox (const Mailbox& mbox);
   void message (const Message& msg);
-  void set_debug (mu_sieve_printf_t printer);
-  void set_error (mu_sieve_printf_t printer);
-  void set_parse_error (mu_sieve_parse_error_t printer);
   void set_logger (mu_sieve_action_log_t printer);
 };
 

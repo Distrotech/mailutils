@@ -23,7 +23,6 @@ libmu_cpp_la_SOURCES = \
  address.cc\
  attribute.cc\
  body.cc\
- debug.cc\
  envelope.cc\
  filter.cc\
  folder.cc\

@@ -106,7 +106,6 @@ api_url_destroy (PyObject *self, PyObject *args)
 static PyObject *
 api_url_parse (PyObject *self, PyObject *args)
 {
-  int status;
   PyUrl *py_url;
 
   if (!PyArg_ParseTuple (args, "O!", &PyUrlType, &py_url))

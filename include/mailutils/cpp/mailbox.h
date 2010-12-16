@@ -22,7 +22,6 @@
 #include <errno.h>
 #include <mailutils/mailbox.h>
 #include <mailutils/cpp/error.h>
-#include <mailutils/cpp/debug.h>
 #include <mailutils/cpp/folder.h>
 #include <mailutils/cpp/message.h>
 #include <mailutils/cpp/url.h>
@@ -54,7 +53,6 @@ class MailboxBase
   void unlock ();
   mu_off_t get_size ();
 
-  Debug& get_debug ();
   Folder& get_folder ();
   Url& get_url ();
 

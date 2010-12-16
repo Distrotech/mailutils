@@ -136,7 +136,7 @@ api_prog_stream_create (PyObject *self, PyObject *args)
 			 &progname, &flags))
     return NULL;
 
-  status = mu_prog_stream_create (&py_stm->stm, progname, flags);
+  status = mu_command_stream_create (&py_stm->stm, progname, flags);
   return _ro (PyInt_FromLong (status));
 }
 
@@ -146,6 +146,8 @@ api_filter_prog_stream_create (PyObject *self, PyObject *args)
   int status;
   char *progname;
   PyStream *py_stm, *py_input;
+  struct mu_prog_hints hints;
+  struct mu_wordsplit ws;
 
   if (!PyArg_ParseTuple (args, "O!sO!",
 			 &PyStreamType, &py_stm,
@@ -153,8 +155,16 @@ api_filter_prog_stream_create (PyObject *self, PyObject *args)
 			 &PyStreamType, &py_input))
     return NULL;
 
-  status = mu_filter_prog_stream_create (&py_stm->stm, progname,
-					 py_input->stm);
+  if (mu_wordsplit (progname, &ws, MU_WRDSF_DEFFLAGS))
+    return _ro (PyInt_FromLong (errno));
+
+  hints.mu_prog_input = py_input->stm;
+  status = mu_prog_stream_create (&py_stm->stm, ws.ws_wordv[0],
+				  ws.ws_wordc, ws.ws_wordv,
+				  MU_PROG_HINT_INPUT,
+				  &hints,
+				  MU_STREAM_READ);
+  mu_wordsplit_free (&ws);
   return _ro (PyInt_FromLong (status));
 }
 

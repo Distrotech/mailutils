@@ -168,22 +168,6 @@ api_mailer_send_message (PyObject *self, PyObject *args)
   return _ro (PyInt_FromLong (status));
 }
 
-static PyObject *
-api_mailer_get_debug (PyObject *self, PyObject *args)
-{
-  int status;
-  PyMailer *py_mlr;
-  PyDebug *py_dbg = PyDebug_NEW ();
-
-  if (!PyArg_ParseTuple (args, "O!", &PyMailerType, &py_mlr))
-    return NULL;
-
-  status = mu_mailer_get_debug (py_mlr->mlr, &py_dbg->dbg);
-
-  Py_INCREF (py_dbg);
-  return status_object (status, (PyObject *)py_dbg);
-}
-
 static PyMethodDef methods[] = {
   { "create", (PyCFunction) api_mailer_create, METH_VARARGS,
     "Create mailer." },
@@ -198,9 +182,6 @@ static PyMethodDef methods[] = {
     "" },
 
   { "send_message", (PyCFunction) api_mailer_send_message, METH_VARARGS,
-    "" },
-
-  { "get_debug", (PyCFunction) api_mailer_get_debug, METH_VARARGS,
     "" },
 
   { NULL, NULL, 0, NULL }

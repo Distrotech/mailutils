@@ -23,7 +23,6 @@ libmu_py_la_SOURCES = \
  attribute.c \
  auth.c \
  body.c \
- debug.c \
  envelope.c \
  filter.c \
  folder.c \

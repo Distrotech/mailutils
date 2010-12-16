@@ -211,11 +211,13 @@ StdioStream :: StdioStream (int fd, int flags)
 
 //
 // ProgStream
-//
+/* FIXME: This must be revised using the real prog_stream interface, instead
+   of the command_stream
+*/
 
 ProgStream :: ProgStream (const std::string& progname, int flags)
 {
-  int status = mu_prog_stream_create (&stm, progname.c_str (), flags);
+  int status = mu_command_stream_create (&stm, progname.c_str (), flags);
   if (status)
     throw Exception ("ProgStream::ProgStream", status);
 }
@@ -227,20 +229,28 @@ ProgStream :: ProgStream (const std::string& progname, int flags)
 FilterProgStream :: FilterProgStream (const std::string& progname,
 				      Stream& input)
 {
-  int status = mu_filter_prog_stream_create (&stm, progname.c_str (),
-					     input.stm);
-  this->input = new Stream (input);
+  struct mu_prog_hints hints;
+  struct mu_wordsplit ws;
+  int status;
+
+  if (mu_wordsplit (progname.c_str (), &ws, MU_WRDSF_DEFFLAGS))
+    throw Exception ("FilterProgStream::FilterProgStream", errno); 
+  
+  hints.mu_prog_input = input.stm;
+  status = mu_prog_stream_create (&stm, ws.ws_wordv[0],
+				  ws.ws_wordc, ws.ws_wordv,
+				  MU_PROG_HINT_INPUT,
+				  &hints,
+				  MU_STREAM_READ);
+  mu_wordsplit_free (&ws);
   if (status)
     throw Exception ("FilterProgStream::FilterProgStream", status);
+  this->input = new Stream (input);
 }
 
 FilterProgStream :: FilterProgStream (const std::string& progname,
 				      Stream* input)
 {
-  int status = mu_filter_prog_stream_create (&stm, progname.c_str (),
-					     input->stm);
-  this->input = new Stream (*input);
-  if (status)
-    throw Exception ("FilterProgStream::FilterProgStream", status);
+  FilterProgStream (progname, input);
 }
 

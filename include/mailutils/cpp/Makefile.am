@@ -19,7 +19,6 @@ cppinclude_HEADERS = \
  address.h\
  attribute.h\
  body.h\
- debug.h\
  envelope.h\
  error.h\
  filter.h\

@@ -69,12 +69,6 @@ typedef struct
 typedef struct
 {
   PyObject_HEAD;
-  mu_debug_t dbg;
-} PyDebug;
-
-typedef struct
-{
-  PyObject_HEAD;
   mu_envelope_t env;
 } PyEnvelope;
 
@@ -158,7 +152,6 @@ extern int mu_py_init_address (void);
 extern int mu_py_init_attribute (void);
 extern int mu_py_init_auth (void);
 extern int mu_py_init_body (void);
-extern int mu_py_init_debug (void);
 extern int mu_py_init_envelope (void);
 extern int mu_py_init_header (void);
 extern int mu_py_init_folder (void);
@@ -182,7 +175,6 @@ extern PyTicket * PyTicket_NEW ();
 extern PyWicket * PyWicket_NEW ();
 extern PyAuthData * PyAuthData_NEW ();
 extern PyBody * PyBody_NEW ();
-extern PyDebug * PyDebug_NEW ();
 extern PyEnvelope * PyEnvelope_NEW ();
 extern PyFolder * PyFolder_NEW ();
 extern PyHeader * PyHeader_NEW ();
@@ -222,9 +214,6 @@ extern void mu_py_script_init (int argc, char *argv[]);
 extern void mu_py_script_finish (void);
 extern int  mu_py_script_run (const char *filename,
 			      mu_py_script_data *data);
-
-extern void mu_py_capture_stdout (mu_debug_t debug);
-extern void mu_py_capture_stderr (mu_debug_t debug);
 
 extern int  mu_py_script_process_mailbox (int argc, char *argv[],
 					  const char *python_filename,

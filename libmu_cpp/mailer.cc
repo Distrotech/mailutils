@@ -78,15 +78,3 @@ Mailer :: send_message (const Message& msg, const Address& from,
     throw Exception ("Mailer::send_message", status);
 }
 
-Debug&
-Mailer :: get_debug ()
-{
-  mu_debug_t c_dbg;
-
-  int status = mu_mailer_get_debug (mailer, &c_dbg);
-  if (status)
-    throw Exception ("Mailer::get_debug", status);
-
-  return *new Debug (c_dbg);
-}
-

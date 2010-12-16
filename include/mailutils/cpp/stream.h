@@ -22,6 +22,8 @@
 #include <string>
 #include <errno.h>
 #include <mailutils/stream.h>
+#include <mailutils/prog.h>
+#include <mailutils/wordsplit.h>
 #include <mailutils/cpp/error.h>
 
 namespace mailutils

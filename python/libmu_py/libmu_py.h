@@ -45,6 +45,8 @@
 #include <mailutils/stream.h>
 #include <mailutils/url.h>
 #include <mailutils/python.h>
+#include <mailutils/wordsplit.h>
+#include <mailutils/prog.h>
 
 #define PY_PACKAGE_NAME "mailutils"
 #define PY_ROOT_NAME "c_api"

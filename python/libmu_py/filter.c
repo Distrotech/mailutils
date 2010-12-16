@@ -50,7 +50,8 @@ api_filter_iconv_create (PyObject *self, PyObject *args)
   char *fromcode = NULL;
   char *tocode = NULL;
   PyStream *py_stm, *py_transport;
-
+  const char *argv[4] = { "iconv", NULL, NULL, NULL };
+  
   if (!PyArg_ParseTuple (args, "OOssi",
 			 &py_stm, &py_transport,
 			 &fromcode, &tocode, &flags))
@@ -63,9 +64,10 @@ api_filter_iconv_create (PyObject *self, PyObject *args)
       return NULL;
     }
 
-  status = mu_filter_iconv_create (&py_stm->stm, py_transport->stm,
-				   fromcode, tocode, flags,
-				   mu_fallback_none);
+  argv[1] = fromcode;
+  argv[2] = tocode;
+  mu_filter_create_args (&py_stm->stm, py_transport->stm, argv[0], 3, argv,
+			 MU_FILTER_DECODE, flags);
   return _ro (PyInt_FromLong (status));
 }
 

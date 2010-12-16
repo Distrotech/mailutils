@@ -94,15 +94,11 @@ api_sieve_machine_init (PyObject *self, PyObject *args)
 {
   int status;
   PySieveMachine *py_mach;
-  struct _mu_py_sieve_logger *s;
 
   if (!PyArg_ParseTuple (args, "O!", &PySieveMachineType, &py_mach))
     return NULL;
 
-  if (!(s = calloc (1, sizeof (*s))))
-    return NULL;
-
-  status = mu_sieve_machine_init (&py_mach->mach, s);
+  status = mu_sieve_machine_init (&py_mach->mach);
   return _ro (PyInt_FromLong (status));
 }
 
@@ -190,221 +186,68 @@ api_sieve_message (PyObject *self, PyObject *args)
   return _ro (PyInt_FromLong (status));
 }
 
-static int
-_sieve_error_printer (void *data, const char *fmt, va_list ap)
-{
-  char *buf = NULL;
-  size_t buflen = 0;
-  PyObject *py_args = PyTuple_New (1);
-
-  if (py_args)
-    {
-      struct _mu_py_sieve_logger *s = data;
-      PyObject *py_fnc = s->py_error_printer;
-
-      if (mu_vasnprintf (&buf, &buflen, fmt, ap))
-	return 0;
-      PyTuple_SetItem (py_args, 0, PyString_FromString (buf ? buf : ""));
-      if (buf)
-	free (buf);
-
-      if (py_fnc && PyCallable_Check (py_fnc))
-	PyObject_CallObject (py_fnc, py_args);
-
-      Py_DECREF (py_args);
-    }
-  return 0;
-}
-
-static int
-_sieve_parse_error_printer (void *data, const char *filename, int lineno,
-			    const char *fmt, va_list ap)
-{
-  PyObject *py_args;
-  PyObject *py_dict;
-
-  py_dict = PyDict_New ();
-  if (py_dict)
-    {
-      char *buf = NULL;
-      size_t buflen = 0;
-
-      PyDict_SetItemString (py_dict, "filename",
-			    PyString_FromString (filename));
-      PyDict_SetItemString (py_dict, "lineno", PyInt_FromLong (lineno));
-
-      if (mu_vasnprintf (&buf, &buflen, fmt, ap))
-	return 0;
-      PyDict_SetItemString (py_dict, "text",
-			    PyString_FromString (buf ? buf : ""));
-      if (buf)
-	free (buf);
-
-      py_args = PyTuple_New (1);
-      if (py_args)
-	{
-	  struct _mu_py_sieve_logger *s = data;
-	  PyObject *py_fnc = s->py_parse_error_printer;
-
-	  Py_INCREF (py_dict);
-	  PyTuple_SetItem (py_args, 0, py_dict);
-
-	  if (py_fnc && PyCallable_Check (py_fnc))
-	    PyObject_CallObject (py_fnc, py_args);
-
-	  Py_DECREF (py_dict);
-	  Py_DECREF (py_args);
-	}
-    }
-  return 0;
-}
-
-static int
-_sieve_debug_printer (void *data, const char *fmt, va_list ap)
-{
-  char *buf = NULL;
-  size_t buflen = 0;
-  PyObject *py_args = PyTuple_New (1);
-
-  if (py_args)
-    {
-      struct _mu_py_sieve_logger *s = data;
-      PyObject *py_fnc = s->py_debug_printer;
-
-      if (mu_vasnprintf (&buf, &buflen, fmt, ap))
-	return 0;
-      PyTuple_SetItem (py_args, 0, PyString_FromString (buf ? buf : ""));
-      if (buf)
-	free (buf);
-
-      if (py_fnc && PyCallable_Check (py_fnc))
-	PyObject_CallObject (py_fnc, py_args);
-
-      Py_DECREF (py_args);
-    }
-  return 0;
-}
-
 static void
-_sieve_action_printer (void *data, const struct mu_locus *locus,
+_sieve_action_printer (void *data, mu_stream_t stream,
 		       size_t msgno, mu_message_t msg,
 		       const char *action, const char *fmt, va_list ap)
 {
   PyObject *py_args;
-  PyObject *py_dict;
+  PyObject *py_dict = PyDict_New ();
+  PyStream *py_stm;
 
-  py_dict = PyDict_New ();
-  if (py_dict)
+  if (!py_dict)
+    return;
+  py_stm = PyStream_NEW ();
+  if (py_stm)
     {
+      PyMessage *py_msg = PyMessage_NEW ();
       char *buf = NULL;
       size_t buflen = 0;
-      PyMessage *py_msg = PyMessage_NEW ();
 
-      py_msg->msg = msg;
-      Py_INCREF (py_msg);
-
-      PyDict_SetItemString (py_dict, "source_file",
-			    PyString_FromString (locus->source_file));
-      PyDict_SetItemString (py_dict, "source_line",
-			    PyInt_FromLong (locus->source_line));
-      PyDict_SetItemString (py_dict, "msgno",
-			    PyInt_FromLong (msgno));
-      PyDict_SetItemString (py_dict, "msg", (PyObject *)py_msg);
-      PyDict_SetItemString (py_dict, "action",
-			    PyString_FromString (action ? action : ""));
-
-      if (mu_vasnprintf (&buf, &buflen, fmt, ap))
-	return;
-      PyDict_SetItemString (py_dict, "text",
-			    PyString_FromString (buf ? buf : ""));
-      if (buf)
-	free (buf);
-
-      py_args = PyTuple_New (1);
-      if (py_args)
+      if (py_msg)
 	{
-	  struct _mu_py_sieve_logger *s = data;
-	  PyObject *py_fnc = s->py_action_printer;
+	  PyStream *py_stm = PyStream_NEW ();
+	  if (py_stm)
+	    {
+	      py_stm->stm = stream;
+	      mu_stream_ref (stream);
+	  
+	      py_msg->msg = msg;
+	      Py_INCREF (py_msg);
 
-	  Py_INCREF (py_dict);
-	  PyTuple_SetItem (py_args, 0, py_dict);
+	      PyDict_SetItemString (py_dict, "msgno",
+				    PyInt_FromLong (msgno));
+	      PyDict_SetItemString (py_dict, "msg", (PyObject *)py_msg);
+	      PyDict_SetItemString (py_dict, "action",
+				    PyString_FromString (action ? action : ""));
 
-	  if (py_fnc && PyCallable_Check (py_fnc))
-	    PyObject_CallObject (py_fnc, py_args);
+	      if (mu_vasnprintf (&buf, &buflen, fmt, ap))
+		{
+		  mu_stream_unref (stream);
+		  return;
+		}
+	      PyDict_SetItemString (py_dict, "text",
+				    PyString_FromString (buf ? buf : ""));
+	      free (buf);
 
-	  Py_DECREF (py_dict);
-	  Py_DECREF (py_args);
+	      py_args = PyTuple_New (1);
+	      if (py_args)
+		{
+		  struct _mu_py_sieve_logger *s = data;
+		  PyObject *py_fnc = s->py_action_printer;
+
+		  Py_INCREF (py_dict);
+		  PyTuple_SetItem (py_args, 0, py_dict);
+		  
+		  if (py_fnc && PyCallable_Check (py_fnc))
+		    PyObject_CallObject (py_fnc, py_args);
+
+		  Py_DECREF (py_dict);
+		  Py_DECREF (py_args);
+		}
+	    }
 	}
     }
-}
-
-static PyObject *
-api_sieve_set_error (PyObject *self, PyObject *args)
-{
-  PySieveMachine *py_mach;
-  PyObject *py_fnc;
-
-  if (!PyArg_ParseTuple (args, "O!O", &PySieveMachineType, &py_mach, &py_fnc))
-    return NULL;
-
-  if (py_fnc && PyCallable_Check (py_fnc)) {
-    mu_sieve_machine_t mach = py_mach->mach;
-    struct _mu_py_sieve_logger *s = mu_sieve_get_data (mach);
-    s->py_error_printer = py_fnc;
-    Py_INCREF (py_fnc);
-    mu_sieve_set_error (py_mach->mach, _sieve_error_printer);
-  }
-  else {
-      PyErr_SetString (PyExc_TypeError, "");
-      return NULL;
-  }
-  return _ro (Py_None);
-}
-
-static PyObject *
-api_sieve_set_parse_error (PyObject *self, PyObject *args)
-{
-  PySieveMachine *py_mach;
-  PyObject *py_fnc;
-
-  if (!PyArg_ParseTuple (args, "O!O", &PySieveMachineType, &py_mach, &py_fnc))
-    return NULL;
-
-  if (py_fnc && PyCallable_Check (py_fnc)) {
-    mu_sieve_machine_t mach = py_mach->mach;
-    struct _mu_py_sieve_logger *s = mu_sieve_get_data (mach);
-    s->py_parse_error_printer = py_fnc;
-    Py_INCREF (py_fnc);
-    mu_sieve_set_parse_error (py_mach->mach, _sieve_parse_error_printer);
-  }
-  else {
-      PyErr_SetString (PyExc_TypeError, "");
-      return NULL;
-  }
-  return _ro (Py_None);
-}
-
-static PyObject *
-api_sieve_set_debug (PyObject *self, PyObject *args)
-{
-  PySieveMachine *py_mach;
-  PyObject *py_fnc;
-
-  if (!PyArg_ParseTuple (args, "O!O", &PySieveMachineType, &py_mach, &py_fnc))
-    return NULL;
-
-  if (py_fnc && PyCallable_Check (py_fnc)) {
-    mu_sieve_machine_t mach = py_mach->mach;
-    struct _mu_py_sieve_logger *s = mu_sieve_get_data (mach);
-    s->py_debug_printer = py_fnc;
-    Py_INCREF (py_fnc);
-    mu_sieve_set_debug (py_mach->mach, _sieve_debug_printer);
-  }
-  else {
-      PyErr_SetString (PyExc_TypeError, "");
-      return NULL;
-  }
-  return _ro (Py_None);
 }
 
 static PyObject *
@@ -450,15 +293,6 @@ static PyMethodDef methods[] = {
   { "message", (PyCFunction) api_sieve_message, METH_VARARGS,
     "Execute the code from the given instance of sieve machine "
     "'mach' over the 'message'. " },
-
-  { "set_debug", (PyCFunction) api_sieve_set_debug, METH_VARARGS,
-    "" },
-
-  { "set_error", (PyCFunction) api_sieve_set_error, METH_VARARGS,
-    "" },
-
-  { "set_parse_error", (PyCFunction) api_sieve_set_parse_error, METH_VARARGS,
-    "" },
 
   { "set_logger", (PyCFunction) api_sieve_set_logger, METH_VARARGS,
     "" },

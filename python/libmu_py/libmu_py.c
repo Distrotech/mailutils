@@ -72,7 +72,6 @@ mu_py_init (void)
   mu_py_init_attribute ();
   mu_py_init_auth ();
   mu_py_init_body ();
-  mu_py_init_debug ();
   mu_py_init_envelope ();
   mu_py_init_header ();
   mu_py_init_folder ();

@@ -340,22 +340,6 @@ api_mailbox_get_size (PyObject *self, PyObject *args)
 }
 
 static PyObject *
-api_mailbox_get_debug (PyObject *self, PyObject *args)
-{
-  int status;
-  PyMailbox *py_mbox;
-  PyDebug *py_dbg = PyDebug_NEW ();
-
-  if (!PyArg_ParseTuple (args, "O!", &PyMailboxType, &py_mbox))
-    return NULL;
-
-  status = mu_mailbox_get_debug (py_mbox->mbox, &py_dbg->dbg);
-
-  Py_INCREF (py_dbg);
-  return status_object (status, (PyObject *)py_dbg);
-}
-
-static PyObject *
 api_mailbox_get_folder (PyObject *self, PyObject *args)
 {
   int status;
@@ -442,9 +426,6 @@ static PyMethodDef methods[] = {
     "" },
 
   { "get_size", (PyCFunction) api_mailbox_get_size, METH_VARARGS,
-    "" },
-
-  { "get_debug", (PyCFunction) api_mailbox_get_debug, METH_VARARGS,
     "" },
 
   { "get_folder", (PyCFunction) api_mailbox_get_folder, METH_VARARGS,

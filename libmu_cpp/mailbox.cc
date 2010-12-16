@@ -160,18 +160,6 @@ MailboxBase :: get_size ()
   return size;
 }
 
-Debug&
-MailboxBase :: get_debug ()
-{
-  mu_debug_t c_dbg;
-
-  int status = mu_mailbox_get_debug (mbox, &c_dbg);
-  if (status)
-    throw Exception ("MailboxBase::get_debug", status);
-
-  return *new Debug (c_dbg);
-}
-
 Folder&
 MailboxBase :: get_folder ()
 {

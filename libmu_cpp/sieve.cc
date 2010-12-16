@@ -25,7 +25,7 @@ using namespace mailutils;
 
 SieveMachine :: SieveMachine ()
 {
-  int status = mu_sieve_machine_init (&mach, NULL);
+  int status = mu_sieve_machine_init (&mach);
   if (status)
     throw Exception ("SieveMachine::SieveMachine", status);
 }
@@ -88,27 +88,4 @@ SieveMachine :: message (const Message& msg)
     throw Exception ("SieveMachine::message", status);
 }
 
-void
-SieveMachine :: set_debug (mu_sieve_printf_t printer)
-{
-  mu_sieve_set_debug (mach, printer);
-}
-
-void
-SieveMachine :: set_error (mu_sieve_printf_t printer)
-{
-  mu_sieve_set_error (mach, printer);
-}
-
-void
-SieveMachine :: set_parse_error (mu_sieve_parse_error_t printer)
-{
-  mu_sieve_set_parse_error (mach, printer);
-}
-
-void
-SieveMachine :: set_logger (mu_sieve_action_log_t printer)
-{
-  mu_sieve_set_logger (mach, printer);
-}
 
