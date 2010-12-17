@@ -213,7 +213,7 @@ mu_sieve_error (mu_sieve_machine_t mach, const char *fmt, ...)
 		    MU_LOG_ERROR, MU_LOGMODE_LOCUS);
   if (mach->identifier)
     mu_stream_printf (mach->errstream, "%s: ", mach->identifier);
-  mu_stream_printf (mach->errstream, fmt, ap);
+  mu_stream_vprintf (mach->errstream, fmt, ap);
   mu_stream_write (mach->errstream, "\n", 1, NULL);
   va_end (ap);
 }
