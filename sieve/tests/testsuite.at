@@ -78,6 +78,27 @@ m4_define([MUT_PREREQ_CAPA],[
 sieve --show-config-options | grep '^$1' > /dev/null 2>&1 || AT_SKIP_TEST
 ])
 
+dnl ------------------------------------------------------------
+m4_define([MUT_SIEVE_EXT_NAME])
+
+dnl ------------------------------------------------------------
+dnl MUT_SIEVE_EXT_TEST([NAME],[KW = `'], [PROG], [TEST],
+dnl                    [STDOUT = `'],[STDERR = `'])
+m4_define([MUT_SIEVE_EXT_TEST],[
+AT_SETUP(MUT_SIEVE_EXT_NAME[: $1])
+AT_KEYWORDS([MUT_SIEVE_EXT_NAME $2])
+
+AT_CHECK([
+MUT_PREREQ_CAPA([HAVE_LIBLTDL])
+
+AT_DATA([prog],[$3])
+$4
+],
+[0],
+[$5],[$6])
+AT_CLEANUP])
+
+
 AT_INIT
 
 AT_TESTED([sieve])
@@ -103,5 +124,7 @@ m4_include([size.at])
 m4_include([redirect.at])
 m4_include([reject.at])
 m4_include([ext.at])
+m4_include([moderator.at])
+
 
 

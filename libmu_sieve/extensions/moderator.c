@@ -31,6 +31,7 @@
 
      moderator [:keep]
                [:address <address: string>]
+	       [:program <sieve-program: string>]
 	       [:source <sieve-file: string>]
 
    The moderator action spawns an inferior Sieve machine and filters the
@@ -40,9 +41,15 @@
    reply can be modified using :address tag. After discarding the message,
    moderator marks it as deleted, unless it is given :keep tag.
 
-   If :source tag is given, its argument sieve-file specifies the Sieve
-   source file to be used on the message. Otherwise, moderator will create
-   a copy of the existing Sieve machine.
+   If :source tag is given, its argument sieve-file specifies a Sieve
+   source file to be used on the message. If :program tag is given, its
+   argument supplies a Sieve program to be used on this message. Only
+   one of :program or :source may be specified. Supplying them both, or
+   supplying several instances of the same keyword, is an error. The
+   behavior of the action in this case is undefined.
+   
+   If neither :program nor :source is supplied, moderator will create
+   a copy of the existing Sieve machine and use it on the message.
 
    The action checks the message structure: it will bail out if the message
    does not have exactly 3 MIME parts, or if parts 2 and 3 are not of
@@ -93,6 +100,24 @@ moderator_filter_message (mu_sieve_machine_t mach, mu_list_t tags,
       if (rc)
 	mu_sieve_error (mach, _("cannot compile source `%s'"), arg->v.string);
     }
+  else if (mu_sieve_tag_lookup (tags, "program", &arg))
+    {
+      struct mu_locus locus;
+      
+      rc = mu_sieve_machine_inherit (mach, &newmach);
+      if (rc)
+	{
+	  mu_sieve_error (mach, _("cannot initialize sieve machine: %s"),
+			  mu_strerror (rc));
+	  return 1;
+	}
+      mu_sieve_get_locus (mach, &locus);
+      rc = mu_sieve_compile_buffer (newmach,
+				    arg->v.string, strlen (arg->v.string),
+				    locus.mu_file, locus.mu_line);
+      if (rc)
+	mu_sieve_error (mach, _("cannot compile subprogram"));
+    }
   else
     rc = mu_sieve_machine_dup (mach, &newmach);
 
@@ -119,15 +144,15 @@ copy_header (mu_sieve_machine_t mach,
 	     mu_header_t to_hdr, char *to, mu_header_t from_hdr, char *from)
 {
   int rc;
-  char *value = NULL;
-  if ((rc = mu_header_aget_value (from_hdr, from, &value)))
+  const char *value = NULL;
+  
+  if ((rc = mu_header_sget_value (from_hdr, from, &value)))
     {
       mu_sieve_error (mach, _("cannot get `%s:' header: %s"),
 		      from, mu_strerror (rc));
       return rc;
     }
   rc = mu_header_set_value (to_hdr, to, value, 0);
-  free (value);
   return rc;
 }
 
@@ -194,7 +219,7 @@ moderator_message_get_part (mu_sieve_machine_t mach,
   int rc;
   mu_message_t tmp;
   mu_header_t hdr = NULL;
-  char *value;
+  const char *value;
 
   if ((rc = mu_message_get_part (msg, index, &tmp)))
     {
@@ -204,13 +229,12 @@ moderator_message_get_part (mu_sieve_machine_t mach,
     }
   
   mu_message_get_header (tmp, &hdr);
-  if (mu_header_aget_value (hdr, MU_HEADER_CONTENT_TYPE, &value) == 0
+  if (mu_header_sget_value (hdr, MU_HEADER_CONTENT_TYPE, &value) == 0
       && memcmp (value, "message/rfc822", 14) == 0)
     {
       mu_stream_t str;
       mu_body_t body;
 
-      free (value);
       mu_message_get_body (tmp, &body);
       mu_body_get_streamref (body, &str);
 
@@ -229,7 +253,6 @@ moderator_message_get_part (mu_sieve_machine_t mach,
       mu_sieve_error (mach,
 		      _("expected message type message/rfc822, but found %s"),
 		      value);
-      free (value);
       return 1;
     }
   else
@@ -333,6 +356,7 @@ static mu_sieve_tag_def_t moderator_tags[] = {
   { "keep", SVT_VOID },
   { "address", SVT_STRING },
   { "source", SVT_STRING },
+  { "program", SVT_STRING },
   { NULL }
 };
 

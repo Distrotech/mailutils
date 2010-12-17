@@ -95,7 +95,7 @@ spamd_send_message (mu_stream_t stream, mu_message_t msg)
   rc = mu_message_get_streamref (msg, &mstr);
   if (rc)
     return rc;
-  rc = mu_filter_create (&flt, mstr, "rfc822", MU_FILTER_ENCODE,
+  rc = mu_filter_create (&flt, mstr, "CRLF", MU_FILTER_ENCODE,
 			 MU_STREAM_READ|MU_STREAM_SEEK);
   if (rc)
     {
@@ -264,7 +264,7 @@ spamd_test (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   if (mu_sieve_get_debug_level (mach) & MU_SIEVE_DEBUG_TRACE)
     {
       mu_sieve_debug (mach, "spamd_test %lu",
-		   (unsigned long) mu_sieve_get_message_num (mach));
+		      (unsigned long) mu_sieve_get_message_num (mach));
     }
   
   if (mu_sieve_is_dry_run (mach))

@@ -1,0 +1,90 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# GNU Mailutils is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+
+m4_pushdef([MUT_SIEVE_EXT_NAME],[moderator])
+
+MUT_SIEVE_EXT_TEST([program discard],[mod00],
+[require "moderator";
+
+moderator :program "discard;";
+],
+[cp ${abs_top_srcdir}/sieve/tests/moderator.mbox mailbox
+chmod +w mailbox
+
+MTA_DIAG=`pwd`/mta.diag
+export MTA_DIAG
+sieve MUT_SIEVE_CMDLINE dnl
+ --clearpath -L "${abs_top_builddir}/libmu_sieve/extensions" -f ./mailbox prog || exit 1
+sed 's/ENVELOPE FROM:.*/ENVELOPE FROM/' ./mta.diag
+],
+[ENVELOPE FROM
+ENVELOPE TO: <bug-foobar-request@example.org>
+   0: Subject: confirm 7e02c99a82a21a2349291a4f142ee2347bb5fd0b
+   1: To: bug-foobar-request@example.org
+   2:
+END OF MESSAGE
+],
+[DISCARD on msg uid 0: marking as deleted
+MODERATOR on msg uid 1: discarding message
+])
+
+MUT_SIEVE_EXT_TEST([program address discard],[mod01],
+[require "moderator";
+
+moderator :program "discard;" :address "<sergiusz@example.org>";
+],
+[cp ${abs_top_srcdir}/sieve/tests/moderator.mbox mailbox
+chmod +w mailbox
+
+MTA_DIAG=`pwd`/mta.diag
+export MTA_DIAG
+sieve MUT_SIEVE_CMDLINE dnl
+ --clearpath -L "${abs_top_builddir}/libmu_sieve/extensions" -f ./mailbox prog || exit 1
+cat ./mta.diag
+],
+[ENVELOPE FROM: sergiusz@example.org
+ENVELOPE TO: <bug-foobar-request@example.org>
+   0: From: <sergiusz@example.org>
+   1: Subject: confirm 7e02c99a82a21a2349291a4f142ee2347bb5fd0b
+   2: To: bug-foobar-request@example.org
+   3:
+END OF MESSAGE
+],
+[DISCARD on msg uid 0: marking as deleted
+MODERATOR on msg uid 1: discarding message
+])
+
+MUT_SIEVE_EXT_TEST([program keep],[mod02],
+[require "moderator";
+
+moderator :program "keep;";
+],
+[cp ${abs_top_srcdir}/sieve/tests/moderator.mbox mailbox
+chmod +w mailbox
+
+MTA_DIAG=`pwd`/mta.diag
+export MTA_DIAG
+sieve MUT_SIEVE_CMDLINE dnl
+ --clearpath -L "${abs_top_builddir}/libmu_sieve/extensions" -f ./mailbox prog || exit $?
+test -f ./mta.diag && echo ./mta.diag
+exit 0
+],
+[],
+[KEEP on msg uid 0
+MODERATOR on msg uid 1: keeping message
+])
+
+m4_popdef([MUT_SIEVE_EXT_NAME])

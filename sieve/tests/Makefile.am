@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
 
-EXTRA_DIST = $(TESTSUITE_AT) testsuite package.m4 
+EXTRA_DIST = $(TESTSUITE_AT) testsuite package.m4 moderator.mbox
 DISTCLEANFILES       = atconfig $(check_SCRIPTS)
 MAINTAINERCLEANFILES = Makefile.in $(TESTSUITE)
 #SUBDIRS = etc
@@ -53,6 +53,7 @@ TESTSUITE_AT = \
   i-casemap.at\
   i-numeric.at\
   i-octet.at\
+  moderator.at\
   mul-addr.at\
   not.at\
   redirect.at\

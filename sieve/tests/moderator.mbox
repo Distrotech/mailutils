@@ -1,0 +1,78 @@
+From mailman-bounces@example.org Sat Jul  2 01:36:47 2005
+Subject: Bug-foobar post from somebody@example.com requires approval
+From: bug-foobar-owner@example.org
+To: bug-foobar-owner@example.org
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="===============1223730756=="
+Message-ID: <mailman.16340.1120257323.2856.bug-foobar@example.org>
+Date: Fri, 01 Jul 2005 18:35:23 -0400
+Precedence: bulk
+X-BeenThere: bug-foobar@example.org
+X-Mailman-Version: 2.1.5
+List-Id: Bug reports for GNU foobar <bug-foobar.example.org>
+X-List-Administrivia: yes
+Sender: mailman-bounces@example.org
+Errors-To: mailman-bounces@example.org
+X-IMAPbase: 1292609256 2
+Status: 
+X-UID: 1
+
+--===============1223730756==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+
+As list administrator, your authorization is requested for the
+following mailing list posting:
+
+    List:    Bug-foobar@example.org
+    From:    somebody@example.com
+    Subject: Problems building foobar
+    Reason:  Post by non-member to a members-only list
+
+At your convenience, visit:
+
+    http://lists.example.org/mailman/admindb/bug-foobar
+        
+to approve or deny the request.
+
+--===============1223730756==
+Content-Type: message/rfc822
+MIME-Version: 1.0
+
+Envelope-to: bug-foobar@example.org
+Subject: Problems building foobar
+Date: Fri, 1 Jul 2005 15:26:59 -0700
+Message-ID: <7A2E278D550047489A84AC706B36D595250E75@example.com>
+Thread-Topic: Problems building foobar
+Thread-Index: AcV+i/85qSfLCmCAToipt+481y99vw==
+From: somebody@example.com
+To: <bug-foobar@example.org>
+
+Hi,
+
+I'm trying to build foobar under Linux and am getting the following
+error.  Please help.
+
+blah blah blah
+
+--===============1223730756==
+Content-Type: message/rfc822
+MIME-Version: 1.0
+
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Subject: confirm 7e02c99a82a21a2349291a4f142ee2347bb5fd0b
+Sender: bug-foobar-request@example.org
+From: bug-foobar-request@example.org
+
+If you reply to this message, keeping the Subject: header intact,
+Mailman will discard the held message.  Do this if the message is
+spam.  If you reply to this message and include an Approved: header
+with the list password in it, the message will be approved for posting
+to the list.  The Approved: header can also appear in the first line
+of the body of the reply.
+--===============1223730756==--
+
+
