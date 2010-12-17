@@ -25,7 +25,6 @@ AM_CPPFLAGS = \
 lib_LIBRARIES = libmu_argp.a
 
 libmu_argp_a_SOURCES =\
- auth.c\
  cmdline.c\
  cmdline.h\
  common.c\

@@ -60,7 +60,6 @@ extern struct mu_cmdline_capa mu_tls_cmdline;
 extern struct mu_cmdline_capa mu_radius_cmdline;
 extern struct mu_cmdline_capa mu_sql_cmdline;
 extern struct mu_cmdline_capa mu_virtdomain_cmdline;
-extern struct mu_cmdline_capa mu_auth_cmdline;
 
 extern void mu_libargp_init (void);
   

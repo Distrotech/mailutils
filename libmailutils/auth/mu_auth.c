@@ -55,7 +55,7 @@
      mu_debug (MU_DEBCAT_AUTH, MU_DEBUG_TRACE,                                \
                       ("source=%s, name=%s, passwd=%s, uid=%lu, gid=%lu, "    \
                        "gecos=%s, dir=%s, shell=%s, mailbox=%s, quota=%lu, "  \
-                       "change_uid=%d\n",                                     \
+                       "change_uid=%d",                                       \
                        S ((a)->source),                                       \
                        S ((a)->name),                                         \
                        S ((a)->passwd),                                       \
@@ -191,11 +191,11 @@ mu_auth_runlist (mu_list_t flist, struct mu_auth_data **return_data,
            mu_iterator_next (itr))
         {
           mu_iterator_current (itr, (void **)&ep);
-          mu_debug (MU_DEBCAT_AUTH, MU_DEBUG_TRACE,
+          mu_debug (MU_DEBCAT_AUTH, MU_DEBUG_TRACE2,
 		    ("Trying %s...", ep->name));
           rc = ep->fun (return_data, key, ep->func_data, data);
-          mu_debug (MU_DEBCAT_AUTH, MU_DEBUG_TRACE, 
-                    ("result: %d=%s\n", rc, mu_strerror (rc)));
+	  mu_debug (MU_DEBCAT_AUTH, MU_DEBUG_TRACE2, 
+		    ("%s yields %d=%s", ep->name, rc, mu_strerror (rc)));
           if (rc == 0)
             {
               if (return_data)
@@ -244,13 +244,13 @@ mu_get_auth (struct mu_auth_data **auth, enum mu_auth_key_type type,
   switch (type)
     {
     case mu_auth_key_name:
-      mu_debug (MU_DEBCAT_AUTH, MU_DEBUG_TRACE,
+      mu_debug (MU_DEBCAT_AUTH, MU_DEBUG_TRACE1,
                 ("Getting auth info for user %s", (char*) key));
       list = mu_auth_by_name_list;
       break;
 
     case mu_auth_key_uid:
-      mu_debug (MU_DEBCAT_AUTH, MU_DEBUG_TRACE, 
+      mu_debug (MU_DEBCAT_AUTH, MU_DEBUG_TRACE1, 
                 ("Getting auth info for UID %lu",
 		 (unsigned long) *(uid_t*) key));
       list = mu_auth_by_uid_list;
@@ -289,8 +289,8 @@ mu_authenticate (struct mu_auth_data *auth_data, const char *pass)
 {
   if (!auth_data)
     return EINVAL;
-  mu_debug (MU_DEBCAT_AUTH, MU_DEBUG_TRACE, 
-            ("mu_authenticate, user %s, source %s\n", 
+  mu_debug (MU_DEBCAT_AUTH, MU_DEBUG_TRACE1, 
+            ("mu_authenticate, user %s, source %s", 
              auth_data->name, auth_data->source));
   if (!mu_authenticate_list)
     mu_auth_begin_setup ();
