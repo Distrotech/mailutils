@@ -678,7 +678,7 @@ set_xscript_level (int xlev)
       if (xlev != MU_XSCRIPT_NORMAL)
 	{
 	  if (mu_debug_level_p (MU_DEBCAT_REMOTE, 
-	                        MU_XSCRIPT_SECURE ?
+	                        xlev == MU_XSCRIPT_SECURE ?
 				  MU_DEBUG_TRACE6 : MU_DEBUG_TRACE7))
 	    return MU_XSCRIPT_NORMAL;
 	}
