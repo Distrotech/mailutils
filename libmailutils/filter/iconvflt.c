@@ -246,7 +246,7 @@ alloc_state (void **pret, int mode MU_ARG_UNUSED, int argc, const char **argv)
 static struct _mu_filter_record _iconv_filter = {
   "ICONV",
   alloc_state,
-  NULL,
+  _icvt_decoder,
   _icvt_decoder  
 };
 

@@ -357,3 +357,9 @@ mu_debug_log_end (const char *fmt, ...)
   mu_stream_write (mu_strerr, "\n", 1, NULL);
   va_end (ap);
 }
+
+void
+mu_debug_log_nl ()
+{
+  mu_stream_write (mu_strerr, "\n", 1, NULL);
+}

@@ -71,6 +71,8 @@ void mu_debug_log (const char *fmt, ...) MU_PRINTFLIKE(1,2);
 void mu_debug_log_begin (const char *fmt, ...) MU_PRINTFLIKE(1,2);
 void mu_debug_log_cont (const char *fmt, ...) MU_PRINTFLIKE(1,2);
 void mu_debug_log_end (const char *fmt, ...) MU_PRINTFLIKE(1,2);
+void mu_debug_log_nl (void);
+
   
   
 #define MU_ASSERT(expr)						\

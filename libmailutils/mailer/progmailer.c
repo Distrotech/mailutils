@@ -154,7 +154,7 @@ mu_progmailer_open (struct _mu_progmailer *pm, char **argv)
       mu_debug_log_begin ("exec %s argv:", pm->command);
       for (i = 0; argv[i]; i++)
         mu_debug_log_cont (" %s", argv[i]);
-      mu_debug_log_end ("");
+      mu_debug_log_nl ();
     }
   close (tunnel[0]);
 

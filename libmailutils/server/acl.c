@@ -397,10 +397,10 @@ int
 _acl_match (struct _mu_acl_entry *ent, struct sockaddr *sa, int salen)
 {
 #define RESMATCH(word)                                   \
-  if (mu_debug_level_p (MU_DEBCAT_ACL, 10))     \
+  if (mu_debug_level_p (MU_DEBCAT_ACL, MU_DEBUG_TRACE9))     \
     mu_debug_log_end ("%s; ", word);
 							      
-  if (mu_debug_level_p (MU_DEBCAT_ACL, 10))
+  if (mu_debug_level_p (MU_DEBCAT_ACL, MU_DEBUG_TRACE9))
     {
       struct in_addr a;
       
@@ -653,7 +653,7 @@ _run_entry (void *item, void *data)
 
   rp->idx++;
 
-  if (mu_debug_level_p (MU_DEBCAT_ACL, 10))
+  if (mu_debug_level_p (MU_DEBCAT_ACL, MU_DEBUG_TRACE9))
     {
       const char *s = "undefined";
       mu_acl_action_to_string (ent->action, &s);
@@ -679,13 +679,13 @@ _run_entry (void *item, void *data)
 	    char *s;
 	    if (ent->arg && expand_arg (ent->arg, rp, &s) == 0)
 	      {
-		if (mu_debug_level_p (MU_DEBCAT_ACL, 10))
+		if (mu_debug_level_p (MU_DEBCAT_ACL, MU_DEBUG_TRACE9))
 		  mu_debug_log_end ("%s", s);
 		free (s);
 	      }
 	    else
 	      {
-		if (mu_debug_level_p (MU_DEBCAT_ACL, 10))
+		if (mu_debug_level_p (MU_DEBCAT_ACL, MU_DEBUG_TRACE9))
 		  {
 		    debug_sockaddr (rp->sa, rp->salen);
 		    mu_debug_log_end ("");
@@ -721,8 +721,8 @@ _run_entry (void *item, void *data)
 	}
     }
   
-  if (mu_debug_level_p (MU_DEBCAT_ACL, 10))
-     mu_debug_log_end ("");
+  if (mu_debug_level_p (MU_DEBCAT_ACL, MU_DEBUG_TRACE9))
+     mu_debug_log_nl ();
   
   return status;
 }
@@ -747,11 +747,11 @@ mu_acl_check_sockaddr (mu_acl_t acl, const struct sockaddr *sa, int salen,
     }
   r.salen = salen;
   
-  if (mu_debug_level_p (MU_DEBCAT_ACL, 10))
+  if (mu_debug_level_p (MU_DEBCAT_ACL, MU_DEBUG_TRACE9))
     {
       mu_debug_log_begin ("Checking sockaddr ");
       debug_sockaddr (r.sa, r.salen);
-      mu_debug_log_end ("");
+      mu_debug_log_nl ();
     }
 
   r.idx = 0;
