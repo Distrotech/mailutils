@@ -1,10 +1,10 @@
-GNU mailutils TODO list. 2010-12-06
+GNU mailutils TODO list. 2010-12-19
 Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2010 Free
 Software Foundation, Inc.
 
 * Provide a generic way to store UID, UIDNEXT and UIDVALIDITY in mailboxes.
 
-* prog_stream: find a way to initialize start directory value and environment
+* prog_stream: provide a way to startup environment
 
 * redo the support of the default user email and mail domain.
 
@@ -14,9 +14,7 @@ Software Foundation, Inc.
 
 See also mu_rfc2822_in_reply_to.
 
-* Check id _mu_smtp_trace_disable correctly dereferences streams.
-
-* mail: rewrite I/O support using streams.
+* Check if _mu_smtp_trace_disable correctly dereferences streams.
 
 * re-implement imap4 client (in progress)
 
@@ -32,11 +30,6 @@ See also mu_rfc2822_in_reply_to.
 
 * remove libmu_auth, rewrite mu_auth support via mu_property_t
 
-* filter interface: need API to send line wrap length
-
-See reset_line_length in examples/base64.c, libmailutils/tests/fltst.c
-and mu/filter.c.
-
 * locale-dependent variant of mu_rfc2047_decode
 
 See rfc2047_decode_wrapper in frm/common.c for a prototype.
@@ -48,8 +41,6 @@ See frm/common.c (near line 425).
 * sieve.scm is exempted from installcheck.
 
 See guimb/scm/Makefile.am for a discussion.
-
-* lib/mailcap.c: rewrite using streams
 
 * sieve: needs an option to add directory at the head of the search path
 
@@ -63,11 +54,6 @@ See guimb/scm/Makefile.am for a discussion.
 
 * redo libraries as loadable modules (where possible)
 
-* move obsolete interfaces to libmu-compat:
-
-argcv
-vartab
-
 * Configuration callback functions should not modify node->tag and node->label.
 
 * mailbox 
@@ -80,7 +66,7 @@ vartab
 is set in the locker flags, only write locks actually lock the file,
 read locks don't do anything.
 
-*** reportedly mimetest fail on a symlink, but succeed on a dotlocked file?
+*** reportedly mimetest fails on a symlink, but succeeds on a dotlocked file?
 
 * mu_cpystr - revise the use of. 
 
