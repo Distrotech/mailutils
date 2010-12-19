@@ -26,8 +26,7 @@ chmod +w mailbox
 
 MTA_DIAG=`pwd`/mta.diag
 export MTA_DIAG
-sieve MUT_SIEVE_CMDLINE dnl
- --clearpath -L "${abs_top_builddir}/libmu_sieve/extensions" -f ./mailbox prog || exit 1
+sieve MUT_SIEVE_CMDLINE MUT_SIEVE_OPTIONS -f ./mailbox prog || exit 1
 sed 's/ENVELOPE FROM:.*/ENVELOPE FROM/' ./mta.diag
 ],
 [ENVELOPE FROM

@@ -1,0 +1,40 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2010 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# GNU Mailutils is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+
+m4_pushdef([MUT_SIEVE_EXT_NAME],[pipe test])
+
+MUT_SIEVE_EXT_TEST([],[pipetest00],
+[require "test-pipe";
+if pipe :header "$cwd/ckmsg"
+  {
+    discard;
+  }
+],
+[MUT_MBCOPY($abs_top_srcdir/testsuite/spool/sieve.mbox,mailbox)
+AT_DATA([ckmsg],[#! /bin/sh
+grep "^From:.*example\.org" >/dev/null
+])
+chmod +x ckmsg
+
+sieve MUT_SIEVE_CMDLINE MUT_SIEVE_OPTIONS -f ./mailbox prog
+],
+[],
+[DISCARD on msg uid 1: marking as deleted
+IMPLICIT KEEP on msg uid 2
+IMPLICIT KEEP on msg uid 3
+])
+
+m4_popdef([MUT_SIEVE_EXT_NAME])

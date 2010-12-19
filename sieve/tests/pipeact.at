@@ -1,0 +1,153 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2010 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# GNU Mailutils is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+
+m4_pushdef([MUT_SIEVE_EXT_NAME],[pipe action])
+
+m4_pushdef([make_savemsg],[
+AT_DATA([savemsg],[#! /bin/sh
+echo "Message begin" >> $[]1
+cat - >> $[]1
+echo "Message end" >> $[]1
+])
+chmod +x savemsg
+])
+
+MUT_SIEVE_EXT_TEST([pipe entire message],[pipe00],
+[require "pipe";
+if header :is "Subject" "Coffee"
+  {
+    pipe "$cwd/savemsg $cwd/sieve.out";
+  }
+],
+[MUT_MBCOPY($abs_top_srcdir/testsuite/spool/sieve.mbox,mailbox)
+make_savemsg
+sieve MUT_SIEVE_CMDLINE MUT_SIEVE_OPTIONS -f ./mailbox prog
+cat sieve.out
+],
+[Message begin
+From bar@dontmailme.org  Fri Dec 28 23:28:09 2001
+Received: (from bar@dontmailme.org)
+	by dontmailme.org id fERKR9N16790
+	for foobar@nonexistent.net; Fri, 28 Dec 2001 22:18:08 +0200
+Date: Fri, 28 Dec 2001 23:28:08 +0200
+From: Bar <bar@dontmailme.org>
+To: Foo Bar <foobar@nonexistent.net>
+Message-Id: <200112232808.fERKR9N16790@dontmailme.org>
+Subject: Coffee
+
+How about some coffee?
+Message end
+],
+[IMPLICIT KEEP on msg uid 1
+IMPLICIT KEEP on msg uid 2
+PIPE on msg uid 3
+])
+
+MUT_SIEVE_EXT_TEST([pipe envelope],[pipe01],
+[require "pipe";
+if header :is "Subject" "Coffee"
+  {
+    pipe :envelope "$cwd/savemsg $cwd/sieve.out";
+  }
+],
+[MUT_MBCOPY($abs_top_srcdir/testsuite/spool/sieve.mbox,mailbox)
+make_savemsg
+sieve MUT_SIEVE_CMDLINE MUT_SIEVE_OPTIONS -f ./mailbox prog
+cat sieve.out
+],
+[Message begin
+From bar@dontmailme.org  Fri Dec 28 23:28:09 2001
+Message end
+],
+[IMPLICIT KEEP on msg uid 1
+IMPLICIT KEEP on msg uid 2
+PIPE on msg uid 3
+])
+
+MUT_SIEVE_EXT_TEST([pipe header],[pipe02],
+[require "pipe";
+if header :is "Subject" "Coffee"
+  {
+    pipe :header "$cwd/savemsg $cwd/sieve.out";
+  }
+],
+[MUT_MBCOPY($abs_top_srcdir/testsuite/spool/sieve.mbox,mailbox)
+make_savemsg
+sieve MUT_SIEVE_CMDLINE MUT_SIEVE_OPTIONS -f ./mailbox prog
+cat sieve.out
+],
+[Message begin
+Received: (from bar@dontmailme.org)
+	by dontmailme.org id fERKR9N16790
+	for foobar@nonexistent.net; Fri, 28 Dec 2001 22:18:08 +0200
+Date: Fri, 28 Dec 2001 23:28:08 +0200
+From: Bar <bar@dontmailme.org>
+To: Foo Bar <foobar@nonexistent.net>
+Message-Id: <200112232808.fERKR9N16790@dontmailme.org>
+Subject: Coffee
+
+Message end
+],
+[IMPLICIT KEEP on msg uid 1
+IMPLICIT KEEP on msg uid 2
+PIPE on msg uid 3
+])
+
+MUT_SIEVE_EXT_TEST([pipe body],[pipe03],
+[require "pipe";
+if header :is "Subject" "Coffee"
+  {
+    pipe :body "$cwd/savemsg $cwd/sieve.out";
+  }
+],
+[MUT_MBCOPY($abs_top_srcdir/testsuite/spool/sieve.mbox,mailbox)
+make_savemsg
+sieve MUT_SIEVE_CMDLINE MUT_SIEVE_OPTIONS -f ./mailbox prog
+cat sieve.out
+],
+[Message begin
+How about some coffee?
+Message end
+],
+[IMPLICIT KEEP on msg uid 1
+IMPLICIT KEEP on msg uid 2
+PIPE on msg uid 3
+])
+
+MUT_SIEVE_EXT_TEST([pipe combined],[pipe04],
+[require "pipe";
+if header :is "Subject" "Coffee"
+  {
+    pipe :envelope :body "$cwd/savemsg $cwd/sieve.out";
+  }
+],
+[MUT_MBCOPY($abs_top_srcdir/testsuite/spool/sieve.mbox,mailbox)
+make_savemsg
+sieve MUT_SIEVE_CMDLINE MUT_SIEVE_OPTIONS -f ./mailbox prog
+cat sieve.out
+],
+[Message begin
+From bar@dontmailme.org  Fri Dec 28 23:28:09 2001
+How about some coffee?
+Message end
+],
+[IMPLICIT KEEP on msg uid 1
+IMPLICIT KEEP on msg uid 2
+PIPE on msg uid 3
+])
+
+m4_popdef([make_savemsg])
+m4_popdef([MUT_SIEVE_EXT_NAME])

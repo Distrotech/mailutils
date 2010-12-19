@@ -87,15 +87,19 @@ dnl                    [STDOUT = `'],[STDERR = `'])
 m4_define([MUT_SIEVE_EXT_TEST],[
 AT_SETUP(MUT_SIEVE_EXT_NAME[: $1])
 AT_KEYWORDS([MUT_SIEVE_EXT_NAME $2])
-
+m4_pushdef([MUT_SIEVE_OPTIONS],
+           [--clearpath -L "${abs_top_builddir}/libmu_sieve/extensions"])
 AT_CHECK([
 MUT_PREREQ_CAPA([HAVE_LIBLTDL])
-
-AT_DATA([prog],[$3])
+cwd=`pwd`
+cat >>prog<<EOT
+$3
+EOT
 $4
 ],
 [0],
 [$5],[$6])
+m4_popdef([MUT_SIEVE_OPTIONS])
 AT_CLEANUP])
 
 
@@ -125,6 +129,8 @@ m4_include([redirect.at])
 m4_include([reject.at])
 m4_include([ext.at])
 m4_include([moderator.at])
+m4_include([pipeact.at])
+m4_include([pipetest.at])
 
 
 

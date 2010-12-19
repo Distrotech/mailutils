@@ -56,6 +56,8 @@ TESTSUITE_AT = \
   moderator.at\
   mul-addr.at\
   not.at\
+  pipeact.at\
+  pipetest.at\
   redirect.at\
   reject.at\
   relational.at\
