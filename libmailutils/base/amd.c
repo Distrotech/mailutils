@@ -1336,27 +1336,48 @@ amd_cleanup (void *arg)
   mu_locker_unlock (mailbox->locker);
 }
 
+int
+_amd_message_lookup_or_insert (struct _amd_data *amd,
+			       struct _amd_message *key,
+			       size_t *pindex)
+{
+  int result = 0;
+  size_t index;
+  if (amd_msg_lookup (amd, key, &index))
+    {
+      /* Not found. Index points to the array cell where msg would
+	 be placed */
+      result = amd_array_expand (amd, index);
+      if (result)
+	return result;
+      else
+	result = MU_ERR_NOENT;
+    }
+  else
+    result = 0;
+  *pindex = index;
+  return result;
+}
+
 /* Insert message msg into the message list on the appropriate position */
 int
 _amd_message_insert (struct _amd_data *amd, struct _amd_message *msg)
 {
   size_t index;
+  int rc = _amd_message_lookup_or_insert (amd, msg, &index);
 
-  if (amd_msg_lookup (amd, msg, &index))
+  if (rc == MU_ERR_NOENT)
     {
-      /* Not found. Index is the index of the array cell where msg
-	 must be placed */
-      int rc = amd_array_expand (amd, index);
-      if (rc)
-	return rc;
       amd->msg_array[index] = msg;
       msg->amd = amd;
     }
-  else
+  else if (rc == 0)
     {
       /*FIXME: Found? Shouldn't happen */
       return EEXIST;
     }
+  else
+    return rc;
   return 0;
 }
 

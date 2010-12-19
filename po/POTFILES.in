@@ -37,7 +37,6 @@ lib/tcpwrap.c
 lib/xmalloc.c
 lib/strexit.c
 
-libmu_argp/auth.c
 libmu_argp/cmdline.c
 libmu_argp/common.c
 libmu_argp/mu_argp.c

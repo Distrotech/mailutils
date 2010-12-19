@@ -164,11 +164,8 @@ maildir_message_cmp (struct _amd_message *a, struct _amd_message *b)
     if ((rc = (*name_a - *name_b)))
       return rc;
 
-  if (*name_a == ':' && *name_b == ':')
-    {
-      name_a++;
-      name_b++;
-    }
+  if ((*name_a == ':' || *name_a == 0) && (*name_b == ':' || *name_b == 0))
+    return 0;
 
   return *name_a - *name_b;
 }
@@ -579,33 +576,14 @@ maildir_deliver_new (struct _amd_data *amd, DIR *dir)
   return 0;
 }
 
-static struct _maildir_message *
-maildir_message_lookup (struct _amd_data *amd, char *file_name)
-{
-  struct _maildir_message *msg;
-  char *p = strchr (file_name, ':');
-  size_t length = p ? p - file_name : strlen (file_name);
-  size_t i;
-  
-  /*FIXME: Replace linear search with binary one! */
-  for (i = 0; i < amd->msg_count; i++)
-    {
-      msg = (struct _maildir_message *) amd->msg_array[i];
-
-      if (strlen (msg->file_name) <= length
-	  && memcmp (msg->file_name, file_name, length) == 0)
-	return msg;
-    }
-  return NULL;
-}
-
 static int
 maildir_scan_dir (struct _amd_data *amd, DIR *dir, char *dirname)
 {
   struct dirent *entry;
-  struct _maildir_message *msg;
+  struct _maildir_message *msg, key;
   char *p;
-  int insert;
+  size_t index;
+  int rc = 0;
 
   while ((entry = readdir (dir)))
     {
@@ -615,18 +593,32 @@ maildir_scan_dir (struct _amd_data *amd, DIR *dir, char *dirname)
 	  break;
 
 	default:
-	  msg = maildir_message_lookup (amd, entry->d_name);
-	  if (msg)
+	  key.file_name = entry->d_name;
+	  rc = _amd_message_lookup_or_insert (amd,
+					      (struct _amd_message *)&key,
+					      &index);
+	  if (rc == MU_ERR_NOENT)
 	    {
+	      /* Message not found. Index pointd to the array cell where it
+		 would be placed */
+	      msg = calloc (1, sizeof (*msg));
+	      if (!msg)
+		{
+		  rc = ENOMEM;
+		  break;
+		}
+	      amd->msg_array[index] = (struct _amd_message *)msg;
+	      msg->amd_message.amd = amd;
+	      rc = 0;
+	    }
+	  else if (rc == 0)
+	    {
+	      msg = (struct _maildir_message *)amd->msg_array[index];
 	      free (msg->file_name);
-	      insert = 0;
 	    }
 	  else
-	    {
-	      msg = calloc (1, sizeof(*msg));
-	      insert = 1;
-	    }
-	  
+	    break;
+	      
 	  msg->dir = dirname;
 	  msg->file_name = strdup (entry->d_name);
 
@@ -636,11 +628,10 @@ maildir_scan_dir (struct _amd_data *amd, DIR *dir, char *dirname)
 	  else
 	    msg->amd_message.attr_flags = 0;
 	  msg->amd_message.orig_flags = msg->amd_message.attr_flags;
-	  if (insert)
-	    _amd_message_insert (amd, (struct _amd_message*) msg);
 	}
     }
-  return 0;
+
+  return rc;
 }
 
 static int

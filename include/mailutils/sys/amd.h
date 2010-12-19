@@ -106,6 +106,9 @@ struct _amd_data
 
 int amd_init_mailbox (mu_mailbox_t mailbox, size_t mhd_size,
 		      struct _amd_data **pmhd);
+int _amd_message_lookup_or_insert (struct _amd_data *amd,
+				   struct _amd_message *key,
+				   size_t *pindex);
 int _amd_message_insert (struct _amd_data *mhd, struct _amd_message *msg);
 int amd_message_stream_open (struct _amd_message *mhm);
 void amd_message_stream_close (struct _amd_message *mhm);
