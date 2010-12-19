@@ -22,7 +22,6 @@ pythonsite_PYTHON=\
  attribute.py \
  auth.py \
  body.py \
- debug.py \
  envelope.py \
  filter.py \
  folder.py \

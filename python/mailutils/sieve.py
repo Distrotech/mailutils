@@ -29,21 +29,6 @@ class Machine:
         sieve.machine_destroy (self.mach)
         del self.mach
 
-    def set_debug (self, fnc):
-        status = sieve.set_debug (self.mach, fnc)
-        if status:
-            raise SieveMachineError (status)
-
-    def set_error (self, fnc):
-        status = sieve.set_error (self.mach, fnc)
-        if status:
-            raise SieveMachineError (status)
-
-    def set_parse_error (self, fnc):
-        status = sieve.set_parse_error (self.mach, fnc)
-        if status:
-            raise SieveMachineError (status)
-
     def set_logger (self, fnc):
         status = sieve.set_logger (self.mach, fnc)
         if status:

@@ -110,7 +110,6 @@ mu_py_attach_modules (void)
   _mu_py_attach_attribute ();
   _mu_py_attach_auth ();
   _mu_py_attach_body ();
-  _mu_py_attach_debug ();
   _mu_py_attach_envelope ();
   _mu_py_attach_header ();
   _mu_py_attach_filter ();

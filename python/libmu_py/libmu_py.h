@@ -64,7 +64,6 @@ extern void _mu_py_attach_address (void);
 extern void _mu_py_attach_attribute (void);
 extern void _mu_py_attach_auth (void);
 extern void _mu_py_attach_body (void);
-extern void _mu_py_attach_debug (void);
 extern void _mu_py_attach_envelope (void);
 extern void _mu_py_attach_header  (void);
 extern void _mu_py_attach_filter (void);

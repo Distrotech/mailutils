@@ -41,7 +41,6 @@ __all__ = (
     "attribute",
     "auth",
     "body",
-    "debug",
     "envelope",
     "filter",
     "folder",

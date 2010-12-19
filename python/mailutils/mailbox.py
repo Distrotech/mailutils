@@ -20,7 +20,6 @@ from mailutils.c_api import mailbox
 from mailutils import message
 from mailutils import folder
 from mailutils import url
-from mailutils import debug
 from mailutils.error import MailboxError
 
 class MailboxBase:
@@ -150,13 +149,6 @@ class MailboxBase:
             raise MailboxError (status)
         return folder.Folder (fld)
 
-    def get_debug (self):
-        """Get the Debug object."""
-        status, dbg = mailbox.get_debug (self.mbox)
-        if status:
-            raise MailboxError (status)
-        return debug.Debug (dbg)
-
     def get_url (self):
         """Get the Url object."""
         status, u = mailbox.get_url (self.mbox)
@@ -187,8 +179,6 @@ class MailboxBase:
             return self.get_folder ()
         elif name == 'url':
             return self.get_url ()
-        elif name == 'debug':
-            return self.get_debug ()
         else:
             raise AttributeError, name
 

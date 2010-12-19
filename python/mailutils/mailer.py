@@ -17,7 +17,6 @@
 
 from mailutils.c_api import mailer
 from mailutils import address
-from mailutils import debug
 from mailutils.error import MailerError
 
 class Mailer:
@@ -30,12 +29,6 @@ class Mailer:
     def __del__ (self):
         mailer.destroy (self.mlr)
         del self.mlr
-
-    def __getattr__ (self, name):
-        if name == 'debug':
-            return self.get_debug ()
-        else:
-            raise AttributeError, name
 
     def open (self, flags=0):
         status = mailer.open (self.mlr, flags)
@@ -55,9 +48,3 @@ class Mailer:
         status = mailer.send_message (self.mlr, msg.msg, frm, to)
         if status:
             raise MailerError (status)
-
-    def get_debug (self):
-        status, dbg = mailer.get_debug (self.mlr)
-        if status:
-            raise MailerError (status)
-        return debug.Debug (dbg)
