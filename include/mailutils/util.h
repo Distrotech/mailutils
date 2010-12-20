@@ -191,6 +191,8 @@ int mu_fd_wait (int fd, int *pflags, struct timeval *tvp);
 int mutil_parse_field_map (const char *map, mu_assoc_t *passoc_tab,
 			   int *perr);
 
+/* Run the onexit list */
+void mu_onexit_run (void);
 /* Reset the onexit list. */
 void mu_onexit_reset (void);
 /* Register the onexit function and associated data */

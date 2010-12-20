@@ -29,6 +29,7 @@
 
 #include <mailutils/nls.h>
 #include <mailutils/stream.h>
+#include <mailutils/debug.h>
 #include <mailutils/sys/logstream.h>
 
 char *_mu_severity_str[] = {
@@ -235,7 +236,8 @@ _log_write (struct _mu_stream *str, const char *buf, size_t size,
   if (fname)
     free (loc.mu_file);
   
-  if (logmode & MU_LOGMODE_SEVERITY)
+  if ((logmode & MU_LOGMODE_SEVERITY) &&
+      !(sp->sevmask & MU_DEBUG_LEVEL_MASK(severity)))
     {
       char *s = gettext (_mu_severity_str[severity]);
       rc = mu_stream_write (sp->transport, s, strlen (s), NULL);
@@ -418,11 +420,49 @@ _log_ctl (struct _mu_stream *str, int code, int opcode, void *arg)
 	  else
 	    return mu_severity_from_string ((const char *) arg, &sp->threshold);
 
+	case MU_IOCTL_LOGSTREAM_GET_SEVERITY_MASK:
+	  if (!arg)
+	    return EINVAL;
+	  *(int*)arg = sp->sevmask;
+	  break;
+
+	case MU_IOCTL_LOGSTREAM_SET_SEVERITY_MASK:
+	  if (!arg)
+	    return EINVAL;
+	  sp->sevmask = *(int*)arg;
+	  break;
+
+	case MU_IOCTL_LOGSTREAM_CLONE:
+	  if (!arg)
+	    return EINVAL;
+	  else
+	    {
+	      mu_stream_t str;
+	      struct _mu_log_stream *newp;
+	      int rc = mu_log_stream_create (&str, sp->transport);
+	      if (rc)
+		return rc;
+	      newp = (struct _mu_log_stream *) str;
+	      newp->severity = sp->severity;
+	      newp->threshold = sp->threshold;
+	      newp->logmode = sp->logmode;
+	      newp->sevmask = sp->sevmask;
+	      if (sp->locus.mu_file)
+		newp->locus.mu_file = strdup (sp->locus.mu_file);
+	      newp->locus.mu_line = sp->locus.mu_line;
+	      newp->locus.mu_col = sp->locus.mu_col;
+	      *(mu_stream_t*) arg = str;
+	    }
+	  break;
+	  
 	default:
 	  return EINVAL;
 	}
       break;
-      
+
+    case MU_IOCTL_FILTER:
+      return mu_stream_ioctl (sp->transport, code, opcode, arg);
+            
     default:
       return ENOSYS;
     }

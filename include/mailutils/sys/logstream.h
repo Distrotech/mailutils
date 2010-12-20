@@ -28,6 +28,8 @@ struct _mu_log_stream
   unsigned threshold;      /* Suppress the output of severities below 
 			      this threshold */
   int logmode;             /* Mode flags */
+  int sevmask;             /* Mask out the output of severity level for
+			      these severities. */
   struct mu_locus locus;   /* Location */
 };
 

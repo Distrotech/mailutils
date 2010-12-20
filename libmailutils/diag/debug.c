@@ -313,6 +313,97 @@ mu_debug_clear_all ()
     cattab[i].isset = 0;
 }
 
+#define _LEVEL_ALL MU_DEBUG_LEVEL_UPTO(MU_DEBUG_PROT)
+
+static char *mu_debug_level_str[] = {
+  "error",
+  "trace0",
+  "trace1",
+  "trace2",
+  "trace3",
+  "trace4",
+  "trace5",
+  "trace6",
+  "trace7",
+  "trace8",
+  "trace9",
+  "prot"   
+};
+
+static int
+name_matches (char **names, char *str)
+{
+  int i;
+
+  for (i = 0; names[i]; i++)
+    if (strcmp (names[i], str) == 0)
+      return 1;
+  return 0;
+}
+
+int
+mu_debug_format_spec(mu_stream_t str, const char *names, int showunset)
+{
+  int i;
+  size_t cnt = 0;
+  int rc = 0;
+  struct mu_wordsplit ws;
+
+  if (names)
+    {
+      ws.ws_delim = ";";
+      if (mu_wordsplit (names, &ws,
+			MU_WRDSF_DELIM|MU_WRDSF_WS|
+			MU_WRDSF_NOVAR|MU_WRDSF_NOCMD))
+	return errno;
+    }
+  
+  for (i = 0; i < catcnt; i++)
+    {
+      if (names && !name_matches (ws.ws_wordv, cattab[i].name))
+	continue;
+      if (cattab[i].isset && cattab[i].level)
+	{
+	  if (cnt)
+	    {
+	      rc = mu_stream_printf(str, ";");
+	      if (rc)
+		break;
+	    }
+	  rc = mu_stream_printf(str, "%s", cattab[i].name);
+	  if (rc)
+	    break;
+	  if (cattab[i].level != _LEVEL_ALL)
+	    {
+	      int j;
+	      int delim = '.';
+	      
+	      for (j = MU_DEBUG_ERROR; j <= MU_DEBUG_PROT; j++)
+		if (cattab[i].level & MU_DEBUG_LEVEL_MASK(j))
+		  {
+		    rc = mu_stream_printf(str, "%c%s", delim,
+					  mu_debug_level_str[j]);
+		    if (rc)
+		      break;
+		    delim = ',';
+		  }
+	    }
+	  cnt++;
+	}
+      else if (showunset)
+	{
+	  rc = mu_stream_printf(str, "!%s", cattab[i].name);
+	  if (rc)
+	    break;
+	  cnt++;
+	}
+    }
+  if (names)
+    mu_wordsplit_free (&ws);
+  return rc;
+}
+
+
 
 void
 mu_debug_log (const char *fmt, ...)

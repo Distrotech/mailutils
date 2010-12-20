@@ -42,7 +42,9 @@ _mu_onexit_run (void)
 {
   mu_iterator_t itr;
   int rc, status = 0;
-  
+
+  if (!onexit_list)
+    return;
   rc = mu_list_get_iterator (onexit_list, &itr);
   if (rc)
     {
@@ -96,4 +98,10 @@ void
 mu_onexit_reset (void)
 {
   mu_list_clear (onexit_list);
+}
+
+void
+mu_onexit_run (void)
+{
+  _mu_onexit_run ();
 }

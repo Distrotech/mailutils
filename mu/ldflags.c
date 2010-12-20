@@ -50,11 +50,21 @@ struct lib_descr {
   int flags;
 } lib_descr[] = {
   { "mbox",   "mu_mbox", 0 },
+#ifdef ENABLE_MH
   { "mh",     "mu_mh",   0 },
+#endif
+#ifdef ENABLE_MAILDIR
   { "maildir","mu_maildir", 0 },
+#endif
+#ifdef ENABLE_IMAP  
   { "imap",   "mu_imap", NEEDAUTH },
+#endif
+#ifdef ENABLE_POP  
   { "pop",    "mu_pop",  NEEDAUTH },
+#endif
+#ifdef ENABLE_NNTP  
   { "nntp",   "mu_nntp", 0 },
+#endif
   { "mailer", "mu_mailer", 0 },
   { "sieve",  "mu_sieve", NOTALL },
   { "compat", "mu_compat" },

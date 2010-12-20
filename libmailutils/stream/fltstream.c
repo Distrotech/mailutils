@@ -119,6 +119,9 @@ filter_read (mu_stream_t stream, char *buf, size_t size, size_t *pret)
   size_t total = 0;
   int stop = 0;
   int again = 0;
+
+  if (fs->fltflag & _MU_FILTER_DISABLED)
+    return mu_stream_read (fs->transport, buf, size, pret);
   
   do
     {
@@ -129,7 +132,7 @@ filter_read (mu_stream_t stream, char *buf, size_t size, size_t *pret)
 	  enum mu_filter_result res;
 	  int rc;
 
-	  if (fs->eof)
+	  if (fs->fltflag & _MU_FILTER_EOF)
 	    break;
 	  
 	  if (MFB_RDBYTES (fs->inbuf) < min_input_level && !again)
@@ -178,7 +181,7 @@ filter_read (mu_stream_t stream, char *buf, size_t size, size_t *pret)
 	      again = 0;
 	      if (cmd == mu_filter_lastbuf || iobuf.eof)
 		{
-		  fs->eof = 1;
+		  fs->fltflag |= _MU_FILTER_EOF;
 		  stop = 1;
 		}
 	      break;
@@ -331,6 +334,11 @@ filter_write_internal (mu_stream_t stream, enum mu_filter_command cmd,
 static int
 filter_write (mu_stream_t stream, const char *buf, size_t size, size_t *pret)
 {
+  struct _mu_filter_stream *fs = (struct _mu_filter_stream *)stream;
+
+  if (fs->fltflag & _MU_FILTER_DISABLED)
+    return mu_stream_write (fs->transport, buf, size, pret);
+
   return filter_write_internal (stream, mu_filter_xcode, buf, size, pret);
 }
 
@@ -365,6 +373,27 @@ filter_ctl (struct _mu_stream *stream, int code, int opcode, void *ptr)
 
   switch (code)
     {
+    case MU_IOCTL_FILTER:
+      switch (opcode)
+	{
+	case MU_IOCTL_FILTER_SET_DISABLED:
+	  if (ptr && *(int*)ptr)
+	    fs->fltflag |= _MU_FILTER_DISABLED;
+	  else
+	    fs->fltflag &= ~_MU_FILTER_DISABLED;
+	  break;
+
+	case MU_IOCTL_FILTER_GET_DISABLED:
+	  if (!ptr)
+	    return EINVAL;
+	  *(int*)ptr = fs->fltflag & _MU_FILTER_DISABLED;
+	  break;
+
+	default:
+	  return ENOSYS;
+	}
+      break;
+      
     case MU_IOCTL_TRANSPORT:
       switch (opcode)
 	{
@@ -414,7 +443,7 @@ static int
 filter_wr_close (mu_stream_t stream)
 {
   struct _mu_filter_stream *fs = (struct _mu_filter_stream *)stream;
-  if (!mu_stream_eof (stream) && !fs->eof)
+  if (!mu_stream_eof (stream) && !(fs->fltflag & _MU_FILTER_EOF))
     {
       size_t dummy;
       int rc = filter_write_internal (stream, mu_filter_lastbuf, NULL, 0,
@@ -526,7 +555,7 @@ mu_filter_stream_create (mu_stream_t *pflt,
   fs->xcode = xcode;
   fs->xdata = xdata;
   fs->mode = mode;
-  fs->eof = 0;
+  fs->fltflag = 0;
   
   mu_stream_set_buffer ((mu_stream_t) fs, mu_buffer_full,
 			MU_FILTER_BUF_SIZE);

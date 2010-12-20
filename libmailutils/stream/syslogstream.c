@@ -36,7 +36,10 @@ _syslog_stream_write (struct _mu_stream *stream, const char *buf,
     size--;
   if (size == 0)
     return 0;
-  syslog (lsp->prio, "%*.*s", (int) size, (int) size, buf);
+  if (lsp->logger)
+    lsp->logger (lsp->prio, "%*.*s", (int) size, (int) size, buf);
+  else
+    syslog (lsp->prio, "%*.*s", (int) size, (int) size, buf);
   return 0;
 }
 
@@ -57,35 +60,53 @@ _syslog_ctl (struct _mu_stream *str, int code, int opcode, void *arg)
   struct _mu_syslog_stream *sp = (struct _mu_syslog_stream *)str;
   unsigned n;
 
-  if (code != MU_IOCTL_LOGSTREAM)
-    return ENOSYS;
-  
-  switch (opcode)
-    {
-    case MU_IOCTL_LOGSTREAM_GET_SEVERITY:
-      if (!arg)
-	return EINVAL;
-      for (n = 0; n < MU_ARRAY_SIZE (sev2prio); n++)
-	if (sev2prio[n] == sp->prio)
-	  {
-	    *(int*)arg = n;
-	    break;
-	  }
-      return MU_ERR_FAILURE;
-      
-    case MU_IOCTL_LOGSTREAM_SET_SEVERITY:
-      if (!arg)
-	return EINVAL;
-      n = *(unsigned*)arg;
-      if (n < MU_ARRAY_SIZE (sev2prio))
-	sp->prio = sev2prio[n];
-      else
-	return EINVAL;
-      break;
+  if (code == MU_IOCTL_LOGSTREAM)
+    switch (opcode)
+      {
+      case MU_IOCTL_LOGSTREAM_GET_SEVERITY:
+	if (!arg)
+	  return EINVAL;
+	for (n = 0; n < MU_ARRAY_SIZE (sev2prio); n++)
+	  if (sev2prio[n] == sp->prio)
+	    {
+	      *(int*)arg = n;
+	      break;
+	    }
+	return MU_ERR_FAILURE;
+	
+      case MU_IOCTL_LOGSTREAM_SET_SEVERITY:
+	if (!arg)
+	  return EINVAL;
+	n = *(unsigned*)arg;
+	if (n < MU_ARRAY_SIZE (sev2prio))
+	  sp->prio = sev2prio[n];
+	else
+	  return EINVAL;
+	break;
 
-    default:
-      return ENOSYS;
+      default:
+	return ENOSYS;
+      }
+  else if (code == MU_IOCTL_SYSLOGSTREAM)
+    {
+      if (!arg)
+	return EINVAL;
+      switch (opcode)
+	{
+	case MU_IOCTL_SYSLOGSTREAM_SET_LOGGER:
+	  sp->logger = arg;
+	  break;
+
+	case MU_IOCTL_SYSLOGSTREAM_GET_LOGGER:
+	  *(void (**) (int, const char *, ...))arg = sp->logger;
+	  break;
+
+	default:
+	  return ENOSYS;
+	}
     }
+  else
+    return ENOSYS;
   return 0;
 }
 
@@ -106,6 +127,7 @@ mu_syslog_stream_create (mu_stream_t *pstream, int prio)
   if (!str)
     return ENOMEM;
   str->prio = prio;
+  str->logger = NULL;
   str->base.write = _syslog_stream_write;
   str->base.ctl = _syslog_ctl;
   str->base.setbuf_hook = _syslog_setbuf_hook;

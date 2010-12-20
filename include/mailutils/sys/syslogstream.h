@@ -24,6 +24,7 @@ struct _mu_syslog_stream
 {
   struct _mu_stream base;
   int prio;
+  void (*logger) (int, const char *, ...);
 };
 
 #endif

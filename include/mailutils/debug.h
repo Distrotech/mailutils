@@ -63,6 +63,7 @@ void mu_debug_enable_category (const char *catname, size_t catlen, int level);
 void mu_debug_disable_category (const char *catname, size_t catlen);
 int mu_debug_category_level (const char *catname, size_t catlen, int *plev);
 void mu_debug_parse_spec (const char *spec);  
+int mu_debug_format_spec(mu_stream_t str, const char *names, int showunset);
 
 void mu_debug_set_category_level (int catn, int level);
 void mu_debug_clear_all (void);

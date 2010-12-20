@@ -71,6 +71,8 @@ enum mu_buffer_type
 #define MU_IOCTL_LOGSTREAM        7 /* Log stream (see below) */
 #define MU_IOCTL_XSCRIPTSTREAM    8 /* Transcript stream (see below) */
 #define MU_IOCTL_FD               9 /* File descriptor manipulation */
+#define MU_IOCTL_SYSLOGSTREAM    10 /* Syslog stream (see below) */
+#define MU_IOCTL_FILTER          11 /* Filter streams (see below) */
   
   /* Opcodes common for various families */
 #define MU_IOCTL_OP_GET 0
@@ -94,8 +96,8 @@ enum mu_buffer_type
 #define MU_IOCTL_NULLSTREAM_CLRSIZE 3
   
     /* Get or set logging severity.
-     Arg: unsigned *
-  */
+       Arg: unsigned *
+    */
 #define MU_IOCTL_LOGSTREAM_GET_SEVERITY 0
 #define MU_IOCTL_LOGSTREAM_SET_SEVERITY 1
   /* Get or set locus.
@@ -140,6 +142,17 @@ enum mu_buffer_type
   */
 #define MU_IOCTL_LOGSTREAM_SUPPRESS_SEVERITY_NAME 11
 
+  /* Get or set severity output mask.
+     Arg: int *
+  */
+#define MU_IOCTL_LOGSTREAM_GET_SEVERITY_MASK 12
+#define MU_IOCTL_LOGSTREAM_SET_SEVERITY_MASK 13 
+
+  /* Clone the stream.
+     Arg: mu_stream_t*
+  */
+#define MU_IOCTL_LOGSTREAM_CLONE 14
+  
   /* Opcodes for MU_IOCTL_XSCRIPTSTREAM */
   /* Swap transcript levels.
      Arg: int *X
@@ -158,6 +171,23 @@ enum mu_buffer_type
      Arg: int *
   */
 #define MU_IOCTL_FD_SET_BORROW 1
+
+  /* Opcodes for MU_IOCTL_SYSLOGSTREAM */
+  /* Set logger function.
+     Arg: void (*) (int, const char *, ...)
+  */
+#define MU_IOCTL_SYSLOGSTREAM_SET_LOGGER 0
+  /* Get logger function.
+     Arg: void (**) (int, const char *, ...)
+  */
+#define MU_IOCTL_SYSLOGSTREAM_GET_LOGGER 1
+
+  /* Filter streams */
+  /* Get or set disabled state:
+     Arg: int*
+  */
+#define MU_IOCTL_FILTER_GET_DISABLED 0
+#define MU_IOCTL_FILTER_SET_DISABLED 1  
   
 #define MU_TRANSPORT_INPUT  0
 #define MU_TRANSPORT_OUTPUT 1
