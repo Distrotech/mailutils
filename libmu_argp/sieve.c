@@ -24,7 +24,8 @@
 
 enum {
   OPT_CLEAR_INCLUDE_PATH = 256,
-  OPT_CLEAR_LIBRARY_PATH
+  OPT_CLEAR_LIBRARY_PATH,
+  OPT_PREFIX_LIBRARY_PATH
 };  
 
 static struct argp_option sieve_argp_option[] = {
@@ -32,6 +33,9 @@ static struct argp_option sieve_argp_option[] = {
     N_("append DIR to the list of directories searched for include files"), 0 },
   { "libdir", 'L', N_("DIR"), 0,
     N_("append DIR to the list of directories searched for library files"), 0 },
+  { "libdir-prefix", OPT_PREFIX_LIBRARY_PATH, N_("DIR"), 0,
+    N_("add DIR to the beginning of the list of directories searched for "
+       "library files"), 0 },
   { "clear-include-path", OPT_CLEAR_INCLUDE_PATH, NULL, 0,
     N_("clear Sieve include path"), 0 },
   { "clear-library-path", OPT_CLEAR_LIBRARY_PATH, NULL, 0,
@@ -55,6 +59,10 @@ sieve_argp_parser (int key, char *arg, struct argp_state *state)
       mu_argp_node_list_new (lst, "library-path", arg);
       break;
 
+    case OPT_PREFIX_LIBRARY_PATH:
+      mu_argp_node_list_new (lst, "library-path-prefix", arg);
+      break;
+      
     case OPT_CLEAR_INCLUDE_PATH:
       mu_argp_node_list_new (lst, "clear-include-path", "yes");
       break;

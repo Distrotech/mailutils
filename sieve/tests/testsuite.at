@@ -88,7 +88,7 @@ m4_define([MUT_SIEVE_EXT_TEST],[
 AT_SETUP(MUT_SIEVE_EXT_NAME[: $1])
 AT_KEYWORDS([MUT_SIEVE_EXT_NAME $2])
 m4_pushdef([MUT_SIEVE_OPTIONS],
-           [--clearpath -L "${abs_top_builddir}/libmu_sieve/extensions"])
+           [--libdir-prefix "${abs_top_builddir}/libmu_sieve/extensions"])
 AT_CHECK([
 MUT_PREREQ_CAPA([HAVE_LIBLTDL])
 cwd=`pwd`

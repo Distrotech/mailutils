@@ -52,10 +52,12 @@ sieve_init_load_path ()
     {
       if (lt_dlinit ())
 	return 1;
+      mu_list_do (mu_sieve_library_path_prefix, _add_load_dir, NULL);
 #ifdef MU_SIEVE_MODDIR
       _add_load_dir (MU_SIEVE_MODDIR, NULL);
-      inited = 1;
 #endif
+      mu_list_do (mu_sieve_library_path, _add_load_dir, NULL);
+      inited = 1;
     }
   return 0;
 }
@@ -134,14 +136,6 @@ _add_load_dir (void *item, void *unused)
 }
 
 int
-mu_sv_load_add_path (mu_list_t path)
-{
-  if (sieve_init_load_path ())
-    return 1;
-  return mu_list_do (path, _add_load_dir, NULL);
-}
-
-int
 mu_sv_load_add_dir (mu_sieve_machine_t mach, const char *name)
 {
   if (sieve_init_load_path ())
@@ -156,12 +150,6 @@ mu_sv_load_add_dir (mu_sieve_machine_t mach, const char *name)
 
 int
 mu_sieve_load_ext (mu_sieve_machine_t mach, const char *name)
-{
-  return 1;
-}
-
-int
-mu_sv_load_add_path (mu_list_t path)
 {
   return 1;
 }

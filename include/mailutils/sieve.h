@@ -122,6 +122,7 @@ typedef struct
 extern int mu_sieve_yydebug;
 extern mu_list_t mu_sieve_include_path;
 extern mu_list_t mu_sieve_library_path;
+extern mu_list_t mu_sieve_library_path_prefix;
 
 /* Memory allocation functions */
 void *mu_sieve_alloc (size_t size);
@@ -258,7 +259,9 @@ int mu_sieve_disass (mu_sieve_machine_t mach);
 struct mu_gocs_sieve
 {
   int clearflags;
+  /*  mu_list_t include_path_prefix;*/
   mu_list_t include_path;
+  mu_list_t library_path_prefix;
   mu_list_t library_path;
 };
 

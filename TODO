@@ -1,4 +1,4 @@
-GNU mailutils TODO list. 2010-12-19
+GNU mailutils TODO list. 2010-12-21
 Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2010 Free
 Software Foundation, Inc.
 
@@ -42,9 +42,7 @@ See frm/common.c (near line 425).
 
 See guimb/scm/Makefile.am for a discussion.
 
-* sieve: needs an option to add directory at the head of the search path
-
-* sieve: extension tests
+* sieve: extension tests [in progress]
 
 * mu_address_createv: pass hints as in mu_address_create_hint?
 

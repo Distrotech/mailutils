@@ -397,18 +397,11 @@ sieve_include ()
 static void
 sieve_searchpath ()
 {
-  int append = 0;
   char *p, *endp = yytext + yyleng, *name;
   
   p = strstr (yytext, "searchpath");
   for (p += 10; p < endp && mu_isspace (*p); p++)
     ;
-  if (strcmp (p, "add") == 0)
-    {
-      append = 1;
-      for (p += 3; p < endp && mu_isspace (*p); p++)
-	;
-    }
   name = get_file_name (p, endp, NULL);
   if (name)
     {
