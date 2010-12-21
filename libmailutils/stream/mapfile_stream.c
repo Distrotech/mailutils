@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <sys/stat.h>
 
 #include <mailutils/types.h>
 #include <mailutils/alloc.h>

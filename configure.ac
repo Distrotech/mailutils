@@ -810,7 +810,7 @@ MU_ENABLE_SUPPORT([pop],
          [MU_LIB_POP='${top_builddir}/libproto/pop/libmu_pop.la'])
 MU_ENABLE_SUPPORT([nntp],
          [MU_LIB_NNTP='${top_builddir}/libproto/nntp/libmu_nntp.la'],[],
-	 [$mu_build_experimental])
+	 ["$mu_build_experimental" = "yes"])
 MU_ENABLE_SUPPORT([mh],
          [MU_LIB_MH='${top_builddir}/libproto/mh/libmu_mh.la'])
 MU_ENABLE_SUPPORT([maildir],
@@ -1141,7 +1141,7 @@ MU_ENABLE_SUPPORT(cxx,
   	          [MU_CXX_EXAMPLES_BUILD='$(MU_CXX_EXAMPLES_LIST)'
                    MU_LIB_CPP='${top_builddir}/libmu_cpp/libmu_cpp.la'],
 		  [],
-		  [$mu_build_experimental])
+		  ["$mu_build_experimental" = "yes"])
 
 # Default mailbox record
 # Note: 1. Support for mbox type is always enabled.
@@ -1185,18 +1185,14 @@ MU_ENABLE_BUILD(comsat)
 MU_ENABLE_BUILD(maidag)
 MU_ENABLE_BUILD(mail)
 MU_ENABLE_BUILD(sieve)
-if test "$useguile" = "yes"; then
-  MU_ENABLE_BUILD(guimb,,,[$useguile])
-fi
+MU_ENABLE_BUILD(guimb,,,["$useguile" = "yes"])
 MU_ENABLE_BUILD(messages)
 MU_ENABLE_BUILD(readmsg)
 MU_ENABLE_BUILD(dotlock)
 MU_ENABLE_BUILD(movemail)
 MU_ENABLE_BUILD(mimeview)
 
-if test "$mu_cv_enable_mh" = yes; then
-  MU_ENABLE_BUILD(mh)
-fi
+MU_ENABLE_BUILD(mh,,,["$mu_cv_enable_mh" = yes])
 
 AC_SUBST(MH_BIN_DIR)
 

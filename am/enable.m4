@@ -16,29 +16,33 @@ dnl You should have received a copy of the GNU General Public License
 dnl along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
 
 dnl MU_ENABLE_SUPPORT(feature, [action-if-true], [action-if-false],
-dnl                   [default-value])
+dnl                   [additional-cond], [default-value])
 
 AC_DEFUN([MU_ENABLE_SUPPORT], [
 	pushdef([mu_upcase],translit($1,[a-z+-],[A-ZX_]))
 	pushdef([mu_cache_var],[mu_cv_enable_]translit($1,[+-],[x_]))
 	pushdef([mu_cond],[MU_COND_SUPPORT_]mu_upcase)
 
-	AC_ARG_ENABLE($1, 
-	              AC_HELP_STRING([--disable-]$1,
-		                     [disable ]$1[ support]),
-	              [
-	case "${enableval}" in
+       	ifelse([$4],,,[if test $4; then])
+	  AC_ARG_ENABLE($1, 
+	                AC_HELP_STRING([--disable-]$1,
+		                       [disable ]$1[ support]),
+	                [
+	  case "${enableval}" in
 		yes) mu_cache_var=yes;;
                 no)  mu_cache_var=no;;
 	        *)   AC_MSG_ERROR([bad value ${enableval} for --disable-$1]) ;;
-        esac],
-                      [mu_cache_var=ifelse([$4],,yes,[$4])])
+          esac],
+                      [mu_cache_var=ifelse([$5],,yes,[$5])])
 
-	if test "[$]mu_cache_var" = "yes"; then
-		ifelse([$2],,:,[$2])
-	ifelse([$3],,,else
-               [$3])
-	fi
+	  if test "[$]mu_cache_var" = "yes"; then
+		  ifelse([$2],,:,[$2])
+ 	  ifelse([$3],,,else
+                 [$3])
+	  fi
+	ifelse([$4],,,[else
+		mu_cache_var=no
+        fi])
 	if test "[$]mu_cache_var" = "yes"; then
 		AC_DEFINE([ENABLE_]mu_upcase,1,[Define this if you enable $1 support])
         fi
@@ -55,25 +59,30 @@ AC_DEFUN([MU_ENABLE_BUILD], [
 	pushdef([mu_cache_var],[mu_cv_enable_build_]translit($1,[+-],[x_]))
 	pushdef([mu_cond],[MU_COND_]mu_upcase)
 
-	AC_ARG_ENABLE(build-$1, 
-	              AC_HELP_STRING([--disable-build-]$1,
-		                     [do not build ]$1),
-	              [
-	case "${enableval}" in
+       	ifelse([$4],,,[if test $4; then])
+	  AC_ARG_ENABLE(build-$1, 
+	                AC_HELP_STRING([--disable-build-]$1,
+		                       [do not build ]$1),
+	                [
+  	  case "${enableval}" in
 		yes) mu_cache_var=yes;;
                 no)  mu_cache_var=no;;
 	        *)   AC_MSG_ERROR([bad value ${enableval} for --disable-$1]) ;;
-        esac],
+          esac],
                       [mu_cache_var=ifelse([$5],,yes,[$5])])
 
-	if test "[$]mu_cache_var" = "yes"; then
-		ifelse([$2],,:,[$2])
-	ifelse([$3],,,else
-               [$3])
-	fi
-	if test "[$]mu_cache_var" = "yes"; then
+	  if test "[$]mu_cache_var" = "yes"; then
+		  ifelse([$2],,:,[$2])
+	  ifelse([$3],,,else
+                 [$3])
+	  fi
+	  if test "[$]mu_cache_var" = "yes"; then
 		AC_DEFINE([MU_BUILD_]mu_upcase,1,[Define this if you build $1])
-        fi
+          fi
+	ifelse([$4],,,[else
+		mu_cache_var=no
+        fi])
+	  
 	AM_CONDITIONAL(mu_cond,
 	               [test "[$]mu_cache_var" = "yes"])
 	
