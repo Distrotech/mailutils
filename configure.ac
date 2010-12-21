@@ -31,9 +31,9 @@ dnl Autobuild stuff
 AB_INIT
 
 dnl Library versioning
-AC_SUBST(VI_CURRENT,  3)
-AC_SUBST(VI_REVISION, 2)
-AC_SUBST(VI_AGE,      1)
+AC_SUBST(VI_CURRENT,  4)
+AC_SUBST(VI_REVISION, 0)
+AC_SUBST(VI_AGE,      0)
 
 dnl Library paths
 AC_SUBST(MU_LIB_AUTH,'${top_builddir}/libmu_auth/libmu_auth.la')
