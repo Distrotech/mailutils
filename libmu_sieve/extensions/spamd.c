@@ -45,7 +45,7 @@ static int
 spamd_connect_tcp (mu_sieve_machine_t mach, mu_stream_t *stream,
 		   char *host, int port)
 {
-  int rc = mu_tcp_stream_create (stream, host, port, 0);
+  int rc = mu_tcp_stream_create (stream, host, port, MU_STREAM_RDWR);
   if (rc)
     {
       mu_sieve_error (mach, "mu_tcp_stream_create: %s", mu_strerror (rc));
@@ -57,7 +57,7 @@ spamd_connect_tcp (mu_sieve_machine_t mach, mu_stream_t *stream,
 static int
 spamd_connect_socket (mu_sieve_machine_t mach, mu_stream_t *stream, char *path)
 {
-  int rc = mu_socket_stream_create (stream, path, 0);
+  int rc = mu_socket_stream_create (stream, path, MU_STREAM_RDWR);
   if (rc)
     {
       mu_sieve_error (mach, "mu_socket_stream_create: %s", mu_strerror (rc));
@@ -91,7 +91,12 @@ spamd_send_message (mu_stream_t stream, mu_message_t msg)
 {
   int rc;
   mu_stream_t mstr, flt;
-
+  struct mu_buffer_query newbuf, oldbuf;
+  int bufchg = 0;
+  mu_debug_handle_t dlev;
+  int xlev;
+  int xlevchg = 0;
+  
   rc = mu_message_get_streamref (msg, &mstr);
   if (rc)
     return rc;
@@ -103,47 +108,60 @@ spamd_send_message (mu_stream_t stream, mu_message_t msg)
       return rc;
     }
 
+  /* Ensure effective transport buffering */
+  if (mu_stream_ioctl (stream, MU_IOCTL_TRANSPORT_BUFFER,
+		       MU_IOCTL_OP_GET, &oldbuf) == 0)
+    {
+      newbuf.type = MU_TRANSPORT_OUTPUT;
+      newbuf.buftype = mu_buffer_full;
+      newbuf.bufsize = 64*1024;
+      mu_stream_ioctl (stream, MU_IOCTL_TRANSPORT_BUFFER, MU_IOCTL_OP_SET, 
+		       &newbuf);
+      bufchg = 1;
+    }
+
+  if (mu_debug_category_level ("sieve", 5, &dlev) == 0 &&
+      !(dlev & MU_DEBUG_LEVEL_MASK (MU_DEBUG_TRACE9)))
+    {
+      /* Mark out the following data as payload */
+      xlev = MU_XSCRIPT_PAYLOAD;
+      if (mu_stream_ioctl (stream, MU_IOCTL_XSCRIPTSTREAM,
+			   MU_IOCTL_XSCRIPTSTREAM_LEVEL, &xlev) == 0)
+	xlevchg = 1;
+    }
+  
   rc = mu_stream_copy (stream, flt, 0, NULL);
 
+  /* Restore prior transport buffering and xscript level */
+  if (bufchg)
+    mu_stream_ioctl (stream, MU_IOCTL_TRANSPORT_BUFFER, MU_IOCTL_OP_SET, 
+		     &oldbuf);
+  if (xlevchg)
+    mu_stream_ioctl (stream, MU_IOCTL_XSCRIPTSTREAM,
+		     MU_IOCTL_XSCRIPTSTREAM_LEVEL, &xlev);
+  
   mu_stream_destroy (&mstr);
   mu_stream_destroy (&flt);
-  return rc;
-}
-
-static size_t
-spamd_read_line (mu_sieve_machine_t mach, mu_stream_t stream,
-		 char *buffer, size_t size, size_t *pn)
-{
-  size_t n = 0;
-  int rc = mu_stream_readline (stream, buffer, size, &n);
-  if (rc == 0)
-    {
-      if (pn)
-	*pn = n;
-      while (n > 0 && (buffer[n-1] == '\r' || buffer[n-1] == '\n'))
-	n--;
-      buffer[n] = 0;
-      if (mu_sieve_get_debug_level (mach) & MU_SIEVE_DEBUG_TRACE)
-	mu_sieve_debug (mach, ">> %s\n", buffer);
-    }
   return rc;
 }
 
 #define char_to_num(c) (c-'0')
 
 static void
-decode_float (long *vn, char *str, int digits)
+decode_float (long *vn, const char *str, int digits, char **endp)
 {
   long v;
   size_t frac = 0;
   size_t base = 1;
   int i;
   int negative = 0;
+  char *end;
   
   for (i = 0; i < digits; i++)
     base *= 10;
   
-  v = strtol (str, &str, 10);
+  v = strtol (str, &end, 10);
+  str = end;
   if (v < 0)
     {
       negative = 1;
@@ -153,12 +171,16 @@ decode_float (long *vn, char *str, int digits)
   v *= base;
   if (*str == '.')
     {
-      for (str++, i = 0; *str && i < digits; i++, str++)
+      for (str++, i = 0; *str && mu_isdigit (*str) && i < digits;
+	   i++, str++)
 	frac = frac * 10 + char_to_num (*str);
-      if (*str)
+      if (*str && mu_isdigit (*str))
 	{
 	  if (char_to_num (*str) >= 5)
 	    frac++;
+	  if (endp)
+	    while (*str && mu_isdigit (*str))
+	      str++;
 	}
       else
 	for (; i < digits; i++)
@@ -167,6 +189,8 @@ decode_float (long *vn, char *str, int digits)
   *vn = v + frac;
   if (negative)
     *vn = - *vn;
+  if (endp)
+    *endp = (char*) str;
 }
 
 static int
@@ -209,6 +233,7 @@ spamd_abort (mu_sieve_machine_t mach, mu_stream_t *stream, signal_handler handle
 }
 
 static int got_sigpipe;
+static signal_handler handler;
 
 static RETSIGTYPE
 sigpipe_handler (int sig MU_ARG_UNUSED)
@@ -216,6 +241,60 @@ sigpipe_handler (int sig MU_ARG_UNUSED)
   got_sigpipe = 1;
 }
 
+static void
+spamd_read_line (mu_sieve_machine_t mach, mu_stream_t stream,
+		 char **pbuffer, size_t *psize)
+{
+  size_t n;
+  int rc = mu_stream_getline (stream, pbuffer, psize, &n);
+  if (rc == 0)
+    mu_rtrim_cset (*pbuffer, "\r\n");
+  else
+    {
+      /* FIXME: Need an 'onabort' mechanism in Sieve machine, which
+	 would restore the things to their prior state.  This will
+	 also allow to make handler local again. */
+      free (pbuffer);
+      mu_sieve_error (mach, "read error: %s", mu_strerror (rc));
+      spamd_abort (mach, &stream, handler);
+    }
+}
+
+static int
+parse_response_line (mu_sieve_machine_t mach, const char *buffer)
+{
+  const char *str;
+  char *end;
+  long version;
+  unsigned long resp;
+  
+  str = buffer;
+  if (strncmp (str, "SPAMD/", 6))
+    return MU_ERR_BADREPLY;
+  str += 6;
+
+  decode_float (&version, str, 1, &end);
+  if (version < 10)
+    {
+      mu_sieve_error (mach, _("unsupported SPAMD version: %s"), str);
+      return MU_ERR_BADREPLY;
+    }
+
+  str = mu_str_skip_class (end, MU_CTYPE_SPACE);
+  if (!*str || !mu_isdigit (*str))
+    {
+      mu_sieve_error (mach, _("malformed spamd response: %s"), buffer);
+      return MU_ERR_BADREPLY;
+    }
+
+  resp = strtoul (str, &end, 10);
+  if (resp != 0)
+    {
+      mu_sieve_error (mach, _("spamd failure: %lu %s"), resp, end);
+      return MU_ERR_REPLY;
+    }
+  return 0;
+}
 
 /* The test proper */
 
@@ -246,20 +325,19 @@ sigpipe_handler (int sig MU_ARG_UNUSED)
 static int
 spamd_test (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
 {
-  char buffer[512];
-  char version_str[19];
+  char *buffer = NULL;
+  size_t size = 0;
   char spam_str[6], score_str[21], threshold_str[21];
-  int response, rc;
-  long version;
+  int rc;
   int result;
   long score, threshold, limit;
-  mu_stream_t stream = NULL;
+  mu_stream_t stream = NULL, null;
   mu_sieve_value_t *arg;
   mu_message_t msg;
-  size_t m_size, m_lines, size;
-  signal_handler handler;
+  size_t m_size, m_lines;
   char *host;
   mu_header_t hdr;
+  mu_debug_handle_t lev = 0;
   
   if (mu_sieve_get_debug_level (mach) & MU_SIEVE_DEBUG_TRACE)
     {
@@ -284,11 +362,37 @@ spamd_test (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   if (result) /* spamd_connect_ already reported error */
     mu_sieve_abort (mach);
 
+  mu_stream_set_buffer (stream, mu_buffer_line, 0);
+  if (mu_debug_category_level ("sieve", 5, &lev) == 0 &&
+      (lev & MU_DEBUG_LEVEL_MASK (MU_DEBUG_PROT)))
+    {
+      int rc;
+      mu_stream_t dstr, xstr;
+      
+      rc = mu_dbgstream_create (&dstr, MU_DIAG_DEBUG);
+      if (rc)
+	mu_error (_("cannot create debug stream; transcript disabled: %s"),
+		  mu_strerror (rc));
+      else
+	{
+	  rc = mu_xscript_stream_create (&xstr, stream, dstr, NULL);
+	  if (rc)
+	    mu_error (_("cannot create transcript stream: %s"),
+		      mu_strerror (rc));
+	  else
+	    {
+	      mu_stream_unref (stream);
+	      stream = xstr;
+	    }
+	}
+    }
+
   msg = mu_sieve_get_message (mach);
   mu_message_size (msg, &m_size);
   mu_message_lines (msg, &m_lines);
 
   spamd_send_command (stream, "SYMBOLS SPAMC/1.2");
+  
   spamd_send_command (stream, "Content-length: %lu",
 		      (u_long) (m_size + m_lines));
   if (mu_sieve_tag_lookup (tags, "user", &arg))
@@ -307,7 +411,7 @@ spamd_test (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   spamd_send_message (stream, msg);
   mu_stream_shutdown (stream, MU_STREAM_WRITE);
 
-  spamd_read_line (mach, stream, buffer, sizeof buffer, NULL);
+  spamd_read_line (mach, stream, &buffer, &size);
 
   if (got_sigpipe)
     {
@@ -315,25 +419,10 @@ spamd_test (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
       spamd_abort (mach, &stream, handler);
     }
 
-  if (sscanf (buffer, "SPAMD/%18s %d %*s", version_str, &response) != 2)
-    {
-      mu_sieve_error (mach, _("spamd responded with bad string '%s'"), buffer);
-      spamd_abort (mach, &stream, handler);
-    }
+  if (parse_response_line (mach, buffer))
+    spamd_abort (mach, &stream, handler);
   
-  decode_float (&version, version_str, 1);
-  if (version < 10)
-    {
-      mu_sieve_error (mach, _("unsupported SPAMD version: %s"), version_str);
-      spamd_abort (mach, &stream, handler);
-    }
-
-  /*
-  if (response)
-    ...
-  */
-  
-  spamd_read_line (mach, stream, buffer, sizeof buffer, NULL);
+  spamd_read_line (mach, stream, &buffer, &size);
   if (sscanf (buffer, "Spam: %5s ; %20s / %20s",
 	      spam_str, score_str, threshold_str) != 3)
     {
@@ -344,27 +433,27 @@ spamd_test (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
 
   result = decode_boolean (spam_str);
   score = strtoul (score_str, NULL, 10);
-  decode_float (&score, score_str, 3);
-  decode_float (&threshold, threshold_str, 3);
+  decode_float (&score, score_str, 3, NULL);
+  decode_float (&threshold, threshold_str, 3, NULL);
 
   if (!result)
     {
       if (mu_sieve_tag_lookup (tags, "over", &arg))
 	{
-	  decode_float (&limit, arg->v.string, 3);
+	  decode_float (&limit, arg->v.string, 3, NULL);
 	  result = score >= limit;
 	}
       else if (mu_sieve_tag_lookup (tags, "under", &arg))
 	{
-	  decode_float (&limit, arg->v.string, 3);
+	  decode_float (&limit, arg->v.string, 3, NULL);
 	  result = score <= limit;	  
 	}
     }
   
   /* Skip newline */
-  spamd_read_line (mach, stream, buffer, sizeof buffer, NULL);
+  spamd_read_line (mach, stream, &buffer, &size);
   /* Read symbol list */
-  spamd_read_line (mach, stream, buffer, sizeof buffer, &size);
+  spamd_read_line (mach, stream, &buffer, &size);
 
   rc = mu_message_get_header (msg, &hdr);
   if (rc)
@@ -379,11 +468,22 @@ spamd_test (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   mu_header_append (hdr, "X-Spamd-Threshold", threshold_str);
   mu_header_append (hdr, "X-Spamd-Keywords", buffer);
 
-  while (spamd_read_line (mach, stream, buffer, sizeof buffer, &size) == 0
-	 && size > 0)
-    /* Drain input */;
-  
-  spamd_destroy (&stream);
+  free (buffer);
+
+  /* Create a data sink */
+  mu_nullstream_create (&null, MU_STREAM_WRITE);
+
+  /* Mark out the following data as payload */
+  if (!(lev & MU_DEBUG_LEVEL_MASK (MU_DEBUG_TRACE9)))
+    {
+      int xlev = MU_XSCRIPT_PAYLOAD;
+      mu_stream_ioctl (stream, MU_IOCTL_XSCRIPTSTREAM,
+		       MU_IOCTL_XSCRIPTSTREAM_LEVEL, &xlev);
+    }
+  mu_stream_copy (null, stream, 0, NULL);
+  mu_stream_destroy (&null);
+  mu_stream_destroy (&stream);
+
   set_signal_handler (SIGPIPE, handler);
 
   return result;

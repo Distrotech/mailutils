@@ -1202,16 +1202,21 @@ mu_stream_truncate (mu_stream_t stream, mu_off_t size)
 int
 mu_stream_shutdown (mu_stream_t stream, int how)
 {
+  int rc;
+  
   if (!(stream->flags & _MU_STR_OPEN))
     {
       if (stream->open)
 	return MU_ERR_NOT_OPEN;
       _stream_init (stream);
     }
-  
+
+  rc = mu_stream_flush (stream);
+  if (rc)
+    return rc;
   if (stream->shutdown)
     return stream->shutdown (stream, how);
-  return ENOSYS;
+  return 0;
 }
 
 int

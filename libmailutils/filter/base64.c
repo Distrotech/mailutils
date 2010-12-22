@@ -110,6 +110,7 @@ _base64_decoder (void *xd MU_ARG_UNUSED,
 		 enum mu_filter_command cmd,
 		 struct mu_filter_io *iobuf)
 {
+  enum mu_filter_result result = mu_filter_ok;
   int i = 0, tmp = 0, pad = 0;
   size_t consumed = 0;
   unsigned char data[4];
@@ -165,14 +166,18 @@ _base64_decoder (void *xd MU_ARG_UNUSED,
       else
 	{
 	  /* I did not get all the data.  */
-	  consumed -= i;
+	  if (cmd != mu_filter_lastbuf)
+	    {
+	      consumed -= i;
+	      result = mu_filter_again;
+	    }
 	  break;
 	}
       i = 0;
     }
   iobuf->isize = consumed;
   iobuf->osize = nbytes;
-  return mu_filter_ok;
+  return result;
 }
 
 enum base64_state

@@ -58,14 +58,17 @@ char *mu_sockaddr_to_astr (const struct sockaddr *sa, int salen);
 
 size_t mu_debug_register_category (char *name);
 size_t mu_debug_next_handle (void);
-int mu_debug_level_p (int catn, int level);
-void mu_debug_enable_category (const char *catname, size_t catlen, int level);
+int mu_debug_level_p (mu_debug_handle_t catn, mu_debug_level_t level);
+void mu_debug_enable_category (const char *catname, size_t catlen,
+			       mu_debug_level_t level);
 void mu_debug_disable_category (const char *catname, size_t catlen);
-int mu_debug_category_level (const char *catname, size_t catlen, int *plev);
+int mu_debug_category_level (const char *catname, size_t catlen,
+			     mu_debug_level_t *plev);
 void mu_debug_parse_spec (const char *spec);  
 int mu_debug_format_spec(mu_stream_t str, const char *names, int showunset);
 
-void mu_debug_set_category_level (int catn, int level);
+void mu_debug_set_category_level (mu_debug_handle_t catn,
+				  mu_debug_level_t level);
 void mu_debug_clear_all (void);
   
 void mu_debug_log (const char *fmt, ...) MU_PRINTFLIKE(1,2);

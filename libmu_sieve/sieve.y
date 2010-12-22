@@ -349,7 +349,8 @@ mu_sieve_machine_init_ex (mu_sieve_machine_t *pmach,
 {
   int rc;
   mu_sieve_machine_t mach;
-  
+
+  mu_sieve_debug_init ();
   mach = malloc (sizeof (*mach));
   if (!mach)
     return ENOMEM;

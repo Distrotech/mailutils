@@ -688,7 +688,7 @@ _run_entry (void *item, void *data)
 		if (mu_debug_level_p (MU_DEBCAT_ACL, MU_DEBUG_TRACE9))
 		  {
 		    debug_sockaddr (rp->sa, rp->salen);
-		    mu_debug_log_end ("");
+		    mu_debug_log_nl ();
 		  }
 	      }
 	  }

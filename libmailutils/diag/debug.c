@@ -38,7 +38,7 @@ int mu_debug_line_info;          /* Debug messages include source locations */
 struct debug_category
 {
   char *name;
-  size_t level;
+  mu_debug_level_t level;
   int isset;
 };
 
@@ -103,7 +103,7 @@ mu_debug_next_handle ()
 }
 
 int
-mu_debug_level_p (int catn, int level)
+mu_debug_level_p (mu_debug_handle_t catn, mu_debug_level_t level)
 {
   return catn < catcnt
     && ((cattab[catn].isset ? cattab[catn].level : cattab[0].level) &
@@ -111,16 +111,16 @@ mu_debug_level_p (int catn, int level)
 }
 
 int
-mu_debug_category_match (int catn, int mask)
+mu_debug_category_match (mu_debug_handle_t catn, mu_debug_level_t mask)
 {
   return catn < catcnt
     && ((cattab[catn].isset ? cattab[catn].level : cattab[0].level) & mask);
 }
 
-static size_t
+static mu_debug_handle_t
 find_category (const char *name, size_t len)
 {
-  size_t i;
+  mu_debug_handle_t i;
 
   for (i = 0; i < catcnt; i++)
     {
@@ -128,14 +128,15 @@ find_category (const char *name, size_t len)
 	  memcmp (cattab[i].name, name, len) == 0)
 	return i;
     }
-  return -1;
+  return (mu_debug_handle_t)-1;
 }
 
 void
-mu_debug_enable_category (const char *catname, size_t catlen, int level)
+mu_debug_enable_category (const char *catname, size_t catlen,
+			  mu_debug_level_t level)
 {
-  size_t catn = find_category (catname, catlen);
-  if (catn == (size_t)-1)
+  mu_debug_handle_t catn = find_category (catname, catlen);
+  if (catn == (mu_debug_handle_t)-1)
     {
       mu_error (_("unknown category: %.*s"), (int) catlen, catname);
       return;
@@ -148,7 +149,7 @@ void
 mu_debug_disable_category (const char *catname, size_t catlen)
 {
   size_t catn = find_category (catname, catlen);
-  if (catn == (size_t)-1)
+  if (catn == (mu_debug_handle_t)-1)
     {
       mu_error (_("unknown category: %.*s"), (int) catlen, catname);
       return;
@@ -157,14 +158,15 @@ mu_debug_disable_category (const char *catname, size_t catlen)
 }
 
 int
-mu_debug_category_level (const char *catname, size_t catlen, int *plev)
+mu_debug_category_level (const char *catname, size_t catlen,
+			 mu_debug_level_t *plev)
 {
-  size_t catn;
+  mu_debug_handle_t catn;
 
   if (catname)
     {
       catn = find_category (catname, catlen);
-      if (catn == (size_t)-1) 
+      if (catn == (mu_debug_handle_t)-1) 
 	return MU_ERR_NOENT;
     }
   else
@@ -174,7 +176,7 @@ mu_debug_category_level (const char *catname, size_t catlen, int *plev)
 }
 
 void
-mu_debug_set_category_level (int catn, int level)
+mu_debug_set_category_level (mu_debug_handle_t catn, mu_debug_level_t level)
 {
   if (catn < catcnt)
     {
@@ -189,7 +191,7 @@ static void
 parse_spec (const char *spec)
 {
   char *q;
-  int level;
+  mu_debug_level_t level;
 
   if (mu_isdigit (*spec))
     {

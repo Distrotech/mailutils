@@ -181,6 +181,7 @@ parser (int key, char *arg, struct argp_state *state)
       
     case 'n':
       sieve_debug |= MU_SIEVE_DRY_RUN;
+      mu_argp_node_list_new (lst, "verbose", "yes");
       break;
 
     case 'k':
@@ -451,7 +452,8 @@ main (int argc, char *argv[])
   mu_gocs_register ("tls", mu_tls_module_init);
 #endif
   mu_gocs_register ("sieve", mu_sieve_module_init);
-
+  mu_sieve_debug_init ();
+  
   mu_register_all_formats ();
 
   debug_level = MU_DEBUG_LEVEL_MASK (MU_DEBUG_ERROR);

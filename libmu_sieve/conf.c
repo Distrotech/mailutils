@@ -26,6 +26,15 @@ mu_list_t mu_sieve_include_path = NULL;
 mu_list_t mu_sieve_library_path = NULL;
 mu_list_t mu_sieve_library_path_prefix = NULL;
 
+mu_debug_handle_t mu_sieve_debug_handle;
+
+void
+mu_sieve_debug_init ()
+{
+  if (!mu_sieve_debug_handle)
+    mu_sieve_debug_handle = mu_debug_register_category ("sieve");
+}
+
 static int
 _path_append (void *item, void *data)
 {
@@ -65,5 +74,6 @@ mu_sieve_module_init (enum mu_gocs_op op, void *data)
   mu_list_destroy (&p->library_path);
   mu_list_destroy (&p->library_path_prefix);
   mu_list_destroy (&p->include_path);
+  mu_sieve_debug_init ();
   return 0;
 }

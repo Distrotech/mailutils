@@ -120,10 +120,13 @@ typedef struct
 #define MU_SIEVE_DRY_RUN      0x0008
 
 extern int mu_sieve_yydebug;
+extern mu_debug_handle_t mu_sieve_debug_handle;
 extern mu_list_t mu_sieve_include_path;
 extern mu_list_t mu_sieve_library_path;
 extern mu_list_t mu_sieve_library_path_prefix;
 
+void mu_sieve_debug_init (void);
+  
 /* Memory allocation functions */
 void *mu_sieve_alloc (size_t size);
 void *mu_sieve_palloc (mu_list_t * pool, size_t size);
