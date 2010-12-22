@@ -223,7 +223,6 @@ filter_read (mu_stream_t stream, char *buf, size_t size, size_t *pret)
 			  stop = 1;
 			}
 		    }
-
 		  else
 		    {
 		      fs->fltflag |= _MU_FILTER_EOF;

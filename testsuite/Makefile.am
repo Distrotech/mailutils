@@ -14,9 +14,19 @@
 # You should have received a copy of the GNU General Public License
 # along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
 
-EXTRA_DIST = $(TESTSUITE_AT) testsuite package.m4 lib etc spool folder maildir mh 
 DISTCLEANFILES       = atconfig $(check_SCRIPTS)
 MAINTAINERCLEANFILES = Makefile.in $(TESTSUITE)
+EXTRA_DIST = \
+ $(TESTSUITE_AT)\
+ testsuite\
+ testsuite.inc\
+ package.m4\
+ lib\
+ etc\
+ spool\
+ folder\
+ maildir\
+ mh 
 
 ## ------------ ##
 ## package.m4.  ##

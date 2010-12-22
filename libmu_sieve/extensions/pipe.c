@@ -35,6 +35,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <string.h>
 #include <signal.h>
 #include <regex.h>
