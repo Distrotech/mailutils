@@ -82,7 +82,7 @@ usage (const char *diag)
     fp = stdout;
 
   fprintf (fp, "%s",
-	   "usage: fltst FILTER {encode|decode} {read|write} [shift=N] [verbose] [printable] [nl] [-- args]\n");
+	   "usage: fltst FILTER {encode|decode} {read|write} [shift=N] [verbose] [printable] [nl] [bufsize=N] [-- args]\n");
   exit (diag ? 1 : 0);
 }
 
@@ -96,6 +96,7 @@ main (int argc, char * argv [])
   char *fltname;
   mu_off_t shift = 0;
   int newline_option = 0;
+  size_t bufsize = 0;
   
   if (argc == 1)
     usage (NULL);
@@ -121,7 +122,9 @@ main (int argc, char * argv [])
   for (i = 4; i < argc; i++)
     {
       if (strncmp (argv[i], "shift=", 6) == 0)
-	shift = strtoul (argv[i] + 6, NULL, 0); 
+	shift = strtoul (argv[i] + 6, NULL, 0);
+      else if (strncmp (argv[i], "bufsize=", 8) == 0)
+	bufsize = strtoul (argv[i] + 8, NULL, 0);
       else if (strcmp (argv[i], "verbose") == 0)
 	verbose++;
       else if (strcmp (argv[i], "printable") == 0)
@@ -141,6 +144,8 @@ main (int argc, char * argv [])
   argv += i;
   
   MU_ASSERT (mu_stdio_stream_create (&in, MU_STDIN_FD, 0));
+  if (bufsize)
+    mu_stream_set_buffer (in, mu_buffer_full, bufsize);
   MU_ASSERT (mu_stdio_stream_create (&out, MU_STDOUT_FD, 0));
 
   if (flags == MU_STREAM_READ)
@@ -150,6 +155,8 @@ main (int argc, char * argv [])
 					mode,
 					MU_STREAM_READ|MU_STREAM_SEEK));
       mu_stream_unref (in);
+      if (bufsize)
+	mu_stream_set_buffer (flt, mu_buffer_full, bufsize);
       if (shift)
 	MU_ASSERT (mu_stream_seek (flt, shift, MU_SEEK_SET, NULL));
       c_copy (out, flt);
@@ -160,6 +167,8 @@ main (int argc, char * argv [])
 					argc, (const char **)argv,
 					mode,
 					MU_STREAM_WRITE));
+      if (bufsize)
+	mu_stream_set_buffer (flt, mu_buffer_full, bufsize);
       if (shift)
 	MU_ASSERT (mu_stream_seek (in, shift, MU_SEEK_SET, NULL));
       c_copy (flt, in);
