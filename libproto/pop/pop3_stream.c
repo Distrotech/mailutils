@@ -74,7 +74,6 @@ mu_pop3_filter_create (mu_stream_t *pstream, mu_stream_t stream)
 
   rc = mu_filter_create (pstream, stream, "CRLFDOT", MU_FILTER_DECODE,
 			 MU_STREAM_READ);
-  mu_stream_unref (stream);
   if (rc == 0)
     {
       struct mu_pop3_stream *sp = (struct mu_pop3_stream *) stream;

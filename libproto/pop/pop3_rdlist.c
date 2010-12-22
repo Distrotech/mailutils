@@ -33,7 +33,8 @@ mu_pop3_stream_to_list (mu_pop3_t pop3, mu_stream_t stream, mu_list_t list)
   int status;
   size_t n;
   
-  while (mu_stream_getline (stream, &pop3->rdbuf, &pop3->rdsize, &n) == 0
+  while ((status = mu_stream_getline (stream, &pop3->rdbuf, &pop3->rdsize, &n))
+	 == 0
 	 && n > 0)
     {
       char *np = strdup (pop3->rdbuf);

@@ -407,8 +407,11 @@ filter_ctl (struct _mu_stream *stream, int code, int opcode, void *ptr)
 	      ptrans[1] = NULL;
 	    }
 	  break;
+	default:
+	  return ENOSYS;
 	}
-      /* fall through */
+      break;
+      
     default:
       return mu_stream_ioctl (fs->transport, code, opcode, ptr);
     }
