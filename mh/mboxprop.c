@@ -41,6 +41,8 @@ mh_mailbox_get_cur (mu_mailbox_t mbox, size_t *pcur)
       char *p;
       *pcur = strtoul (s, &p, 10);
       if (*p)
+        p = mu_str_skip_class (p, MU_CTYPE_SPACE);
+      if (*p)
 	{
 	  mu_error (_("invalid \"cur\" value (%s)"), s);
 	  *pcur = 1;

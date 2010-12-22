@@ -100,7 +100,8 @@ _icvt_decoder (void *xd,
       return mu_filter_ok;
 
     case mu_filter_done:
-      iconv_close (_icvt->cd);
+      if (_icvt->cd != (iconv_t) -1)
+	iconv_close (_icvt->cd);
       free (_icvt->fromcode);
       free (_icvt->tocode);
       return mu_filter_ok;
