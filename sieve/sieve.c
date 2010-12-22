@@ -51,8 +51,8 @@ N_("GNU sieve -- a mail filtering tool.")
 "\v"
 N_("Debug flags:\n\
   g - main parser traces\n\
-  T - mailutils traces (MU_DEBUG_TRACE0-MU_DEBUG_TRACE1)\n\
-  P - network protocols (MU_DEBUG_PROT)\n\
+  T - mailutils traces (same as --debug-level=sieve.trace0-trace1)\n\
+  P - network protocols (same as --debug-level=sieve.=prot)\n\
   t - sieve trace (MU_SIEVE_DEBUG_TRACE)\n\
   i - sieve instructions trace (MU_SIEVE_DEBUG_INSTR)\n");
 
@@ -104,7 +104,6 @@ static struct argp_option options[] =
 int keep_going;
 int compile_only;
 char *mbox_url;
-int debug_level;
 int sieve_debug;
 int verbose;
 char *script;
@@ -127,16 +126,24 @@ is_true_p (char *p)
 static void
 set_debug_level (const char *arg)
 {
+  mu_debug_level_t lev;
+  
   for (; *arg; arg++)
     {
       switch (*arg)
 	{
 	case 'T':
-	  debug_level |= MU_DEBUG_LEVEL_UPTO (MU_DEBUG_TRACE7);
+	  mu_debug_get_category_level (mu_sieve_debug_handle, &lev);
+	  mu_debug_set_category_level (mu_sieve_debug_handle, 
+				       lev |
+				    (MU_DEBUG_LEVEL_UPTO(MU_DEBUG_TRACE9) &
+				     ~MU_DEBUG_LEVEL_MASK(MU_DEBUG_ERROR)));
 	  break;
 
 	case 'P':
-	  debug_level |= MU_DEBUG_LEVEL_MASK (MU_DEBUG_PROT);
+	  mu_debug_get_category_level (mu_sieve_debug_handle, &lev);
+	  mu_debug_set_category_level (mu_sieve_debug_handle,
+				    lev | MU_DEBUG_LEVEL_MASK(MU_DEBUG_PROT));
 	  break;
 
 	case 'g':
@@ -455,9 +462,6 @@ main (int argc, char *argv[])
   mu_sieve_debug_init ();
   
   mu_register_all_formats ();
-
-  debug_level = MU_DEBUG_LEVEL_MASK (MU_DEBUG_ERROR);
-  mu_log_facility = 0;
 
   if (mu_app_init (&argp, sieve_argp_capa, sieve_cfg_param, 
 		   argc, argv, ARGP_IN_ORDER, NULL, NULL))

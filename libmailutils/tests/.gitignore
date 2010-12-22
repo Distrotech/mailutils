@@ -6,6 +6,7 @@ testsuite.dir
 testsuite.log
 addr
 argcv
+debugspec
 decode2047
 encode2047
 fltst

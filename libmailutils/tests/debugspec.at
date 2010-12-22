@@ -1,0 +1,85 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2010 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# GNU Mailutils is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+
+dnl ------------------------------------------------------------
+dnl TESTDBG([KW = `'], [ARGS], [STDOUT = `'],
+dnl         [STDERR = `'])
+dnl
+m4_pushdef([TESTDBG],[
+AT_SETUP([debugspec: $2])
+AT_KEYWORDS([debugspec debug dbgspec $1])
+AT_CHECK([debugspec $2],
+[0],
+[$3],
+[$4])
+AT_CLEANUP])
+
+dnl ------------------------------------------------------------
+TESTDBG([debugspec00],[mailbox],
+[mailbox
+])
+
+TESTDBG([debugspec01],[mailbox.=trace2],
+[mailbox.=trace2
+])
+
+TESTDBG([debugspec02],[mailbox.trace3],
+[mailbox.trace3
+])
+
+TESTDBG([debugspec03],[mailbox.!trace3],
+[mailbox.trace4-prot
+])
+
+TESTDBG([debugspec04],[mailbox.!=trace3],
+[mailbox.trace2,trace4-prot
+])
+
+TESTDBG([debugspec05],[mailbox.!=prot],
+[mailbox.trace9
+])
+
+TESTDBG([debugspec06],[mailbox.prot,!=trace4],
+[mailbox.trace3,trace5-prot
+])
+
+TESTDBG([debugspec07],[mailbox.prot,!trace4],
+[mailbox.trace5-prot
+])
+
+TESTDBG([debugspec08],[mailbox.trace2-trace5],
+[mailbox.trace2-trace5
+])
+
+TESTDBG([debugspec09],[mailbox.trace2-trace5,trace7-prot],
+[mailbox.trace2-trace5,trace7-prot
+])
+
+TESTDBG([debugspec10],
+['mailbox.error,=trace3,=trace7,=trace9;mailer.trace7,!trace2'],
+[mailbox.=error,=trace3,=trace7,=trace9;mailer.trace3-trace7
+])
+
+TESTDBG([debugspec11],
+[-showunset -names='mailbox;mailer;filter' dnl
+ 'mailbox.error,=trace3,=trace7,=trace9;mailer.trace7,!trace2'],
+[!filter;mailbox.=error,=trace3,=trace7,=trace9;mailer.trace3-trace7
+])
+
+dnl ------------------------------------------------------------
+
+m4_popdef([TESTDBG])
+

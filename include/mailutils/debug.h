@@ -48,6 +48,10 @@ extern int mu_debug_line_info;
 
 #define MU_DEBUG_LEVEL_MASK(lev) (1 << (lev))
 #define MU_DEBUG_LEVEL_UPTO(lev) ((1 << ((lev)+1)) - 1)
+#define MU_DEBUG_LEVEL_RANGE(a, b)					\
+  ((a) == 0 ? MU_DEBUG_LEVEL_UPTO (b) :					\
+              MU_DEBUG_LEVEL_UPTO (b) & ~MU_DEBUG_LEVEL_UPTO ((a) - 1))
+
 
 struct sockaddr;
 void mu_sockaddr_to_str (const struct sockaddr *sa, int salen,
@@ -67,8 +71,11 @@ int mu_debug_category_level (const char *catname, size_t catlen,
 void mu_debug_parse_spec (const char *spec);  
 int mu_debug_format_spec(mu_stream_t str, const char *names, int showunset);
 
-void mu_debug_set_category_level (mu_debug_handle_t catn,
-				  mu_debug_level_t level);
+int mu_debug_get_category_level (mu_debug_handle_t catn,
+				 mu_debug_level_t *plev);
+int mu_debug_set_category_level (mu_debug_handle_t catn,
+				 mu_debug_level_t level);
+  
 void mu_debug_clear_all (void);
   
 void mu_debug_log (const char *fmt, ...) MU_PRINTFLIKE(1,2);

@@ -175,18 +175,73 @@ mu_debug_category_level (const char *catname, size_t catlen,
   return 0;
 }
 
-void
+int
 mu_debug_set_category_level (mu_debug_handle_t catn, mu_debug_level_t level)
 {
   if (catn < catcnt)
     {
       cattab[catn].isset = 1;
       cattab[catn].level = level;
+      return 0;
     }
-  else
-    abort ();
+  return MU_ERR_NOENT;
 }
   
+int
+mu_debug_get_category_level (mu_debug_handle_t catn, mu_debug_level_t *plev)
+{
+  if (catn < catcnt)
+    {
+      if (!cattab[catn].isset)
+	*plev = 0;
+      else
+	*plev = cattab[catn].level;
+      return 0;
+    }
+  return MU_ERR_NOENT;
+}
+
+static char *mu_debug_level_str[] = {
+  "error",
+  "trace0",
+  "trace1",
+  "trace2",
+  "trace3",
+  "trace4",
+  "trace5",
+  "trace6",
+  "trace7",
+  "trace8",
+  "trace9",
+  "prot"   
+};
+
+static int
+mu_debug_level_from_string (const char *str, mu_debug_level_t *lev,
+			    char **endp)
+{
+  int i;
+  const char *p;
+  char *q;
+    
+  for (i = 0; i < MU_ARRAY_SIZE (mu_debug_level_str); i++)
+    {
+      for (p = str, q = mu_debug_level_str[i]; ; p++, q++)
+	{
+	  if (!*q)
+	    {
+	      if (endp)
+		*endp = (char*) p;
+	      *lev = i;
+	      return 0;
+	    }
+	  if (*q != *p)
+	    break;
+	}
+    }
+  return MU_ERR_NOENT;
+}
+
 static void
 parse_spec (const char *spec)
 {
@@ -231,18 +286,21 @@ parse_spec (const char *spec)
 	  else
 	    {
 	      size_t i;
-	      unsigned lev = 0;
-	      unsigned xlev = 0;
+	      mu_debug_level_t lev = 0;
+	      mu_debug_level_t xlev = 0;
+	      char *end;
 	      
 	      for (i = 0; i < ws.ws_wordc; i++)
 		{
 		  char *s = ws.ws_wordv[i];
 		  int exact = 0;
-		  unsigned n;
-		  unsigned *tgt = &lev;
+		  mu_debug_level_t n;
+		  mu_debug_level_t *tgt = &lev;
 		  
 		  if (*s == '!')
 		    {
+		      if (i == 0)
+			lev = MU_DEBUG_LEVEL_UPTO (MU_DEBUG_PROT);
 		      tgt = &xlev;
 		      s++;
 		    }
@@ -252,20 +310,37 @@ parse_spec (const char *spec)
 		      s++;
 		    }
 
-		  if (strcmp (s, "error") == 0)
-		    n = MU_DEBUG_ERROR;
-		  else if (strcmp (s, "prot") == 0)
-		    n = MU_DEBUG_PROT;
-		  else if (strlen (s) == 6 && memcmp (s, "trace", 5) == 0 &&
-			   mu_isdigit (s[5]))
-		    n = MU_DEBUG_TRACE0 + s[5] - '0';
-		  else
+		  if (mu_debug_level_from_string (s, &n, &end))
 		    {
 		      mu_error (_("unknown level `%s'"), s);
 		      continue;
 		    }
-
-		  if (exact)
+		  else if (*end == '-')
+		    {
+		      mu_debug_level_t l;
+		      
+		      s = end + 1;
+		      if (mu_debug_level_from_string (s, &l, &end))
+			{
+			  mu_error (_("unknown level `%s'"), s);
+			  continue;
+			}
+		      else if (*end)
+			{
+			  mu_error (_("invalid level: %s"), s);
+			  continue;
+			}
+		      if (n < l)
+			*tgt |= MU_DEBUG_LEVEL_RANGE (n, l);
+		      else
+			*tgt |= MU_DEBUG_LEVEL_RANGE (l, n);
+		    }
+		  else if (*end)
+		    {
+		      mu_error (_("invalid level: %s"), s);
+		      continue;
+		    }
+		  else if (exact)
 		    *tgt |= MU_DEBUG_LEVEL_MASK (n);
 		  else
 		    *tgt |= MU_DEBUG_LEVEL_UPTO (n);
@@ -317,21 +392,6 @@ mu_debug_clear_all ()
 
 #define _LEVEL_ALL MU_DEBUG_LEVEL_UPTO(MU_DEBUG_PROT)
 
-static char *mu_debug_level_str[] = {
-  "error",
-  "trace0",
-  "trace1",
-  "trace2",
-  "trace3",
-  "trace4",
-  "trace5",
-  "trace6",
-  "trace7",
-  "trace8",
-  "trace9",
-  "prot"   
-};
-
 static int
 name_matches (char **names, char *str)
 {
@@ -344,7 +404,7 @@ name_matches (char **names, char *str)
 }
 
 int
-mu_debug_format_spec(mu_stream_t str, const char *names, int showunset)
+mu_debug_format_spec (mu_stream_t str, const char *names, int showunset)
 {
   int i;
   size_t cnt = 0;
@@ -364,6 +424,7 @@ mu_debug_format_spec(mu_stream_t str, const char *names, int showunset)
     {
       if (names && !name_matches (ws.ws_wordv, cattab[i].name))
 	continue;
+      
       if (cattab[i].isset && cattab[i].level)
 	{
 	  if (cnt)
@@ -372,28 +433,58 @@ mu_debug_format_spec(mu_stream_t str, const char *names, int showunset)
 	      if (rc)
 		break;
 	    }
-	  rc = mu_stream_printf(str, "%s", cattab[i].name);
+	  rc = mu_stream_printf (str, "%s", cattab[i].name);
 	  if (rc)
 	    break;
 	  if (cattab[i].level != _LEVEL_ALL)
 	    {
-	      int j;
+	      mu_debug_level_t j = MU_DEBUG_ERROR, minl, maxl;
 	      int delim = '.';
-	      
-	      for (j = MU_DEBUG_ERROR; j <= MU_DEBUG_PROT; j++)
-		if (cattab[i].level & MU_DEBUG_LEVEL_MASK(j))
-		  {
-		    rc = mu_stream_printf(str, "%c%s", delim,
-					  mu_debug_level_str[j]);
-		    if (rc)
+
+	      while (1)
+		{
+		  /* Find the least bit set */
+		  for (; j <= MU_DEBUG_PROT; j++)
+		    if (cattab[i].level & MU_DEBUG_LEVEL_MASK (j))
 		      break;
-		    delim = ',';
-		  }
+
+		  if (j > MU_DEBUG_PROT)
+		    break;
+		  
+		  minl = j;
+
+		  for (; j + 1 <= MU_DEBUG_PROT &&
+			 cattab[i].level & MU_DEBUG_LEVEL_MASK (j + 1);
+		       j++)
+		    ;
+		  
+		  maxl = j++;
+
+		  if (minl == maxl)
+		    rc = mu_stream_printf (str, "%c=%s", delim,
+					   mu_debug_level_str[minl]);
+		  else if (minl == 0)
+		    rc = mu_stream_printf (str, "%c%s", delim,
+					   mu_debug_level_str[maxl]);
+		  else
+		    rc = mu_stream_printf (str, "%c%s-%s", delim,
+					   mu_debug_level_str[minl],
+					   mu_debug_level_str[maxl]);
+		  if (rc)
+		    break;
+		  delim = ',';
+		}
 	    }
 	  cnt++;
 	}
       else if (showunset)
 	{
+	  if (cnt)
+	    {
+	      rc = mu_stream_printf(str, ";");
+	      if (rc)
+		break;
+	    }
 	  rc = mu_stream_printf(str, "!%s", cattab[i].name);
 	  if (rc)
 	    break;

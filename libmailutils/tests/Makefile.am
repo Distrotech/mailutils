@@ -41,6 +41,7 @@ $(srcdir)/package.m4: $(top_srcdir)/configure.ac
 INCLUDES = @MU_LIB_COMMON_INCLUDES@ 
 noinst_PROGRAMS = \
  addr\
+ debugspec\
  decode2047\
  encode2047\
  fltst\
@@ -64,6 +65,7 @@ TESTSUITE_AT = \
  address.at\
  base64d.at\
  base64e.at\
+ debugspec.at\
  decode2047.at\
  encode2047.at\
  fromflt.at\
