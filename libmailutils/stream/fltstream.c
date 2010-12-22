@@ -172,18 +172,13 @@ filter_read (mu_stream_t stream, char *buf, size_t size, size_t *pret)
 	      if (++again > MU_FILTER_MAX_AGAIN)
 		{
 		  /* FIXME: What filter? Need some id. */
-		  mu_error (_("filter returned `again' too many times"));
+		  mu_debug (MU_DEBCAT_FILTER, MU_DEBUG_ERROR,
+			    (_("filter returned `again' too many times")));
 		  again = 0;
 		}
 	      break;
 	      
 	    case mu_filter_ok:
-	      again = 0;
-	      if (cmd == mu_filter_lastbuf || iobuf.eof)
-		{
-		  fs->fltflag |= _MU_FILTER_EOF;
-		  stop = 1;
-		}
 	      break;
 	  
 	    case mu_filter_failure:
@@ -207,6 +202,37 @@ filter_read (mu_stream_t stream, char *buf, size_t size, size_t *pret)
 	  
 	  /* iobuf.isize contains number of bytes read from input */
 	  MFB_advance_pos (&fs->inbuf, iobuf.isize);
+
+	  if (res == mu_filter_ok)
+	    {
+	      if (iobuf.eof)
+		{
+		  fs->fltflag |= _MU_FILTER_EOF;
+		  stop = 1;
+		}
+	      else if (cmd == mu_filter_lastbuf)
+		{
+		  if (MFB_RDBYTES (fs->inbuf))
+		    {
+		      /* If xcoder has not consumed all input, try again */
+		      if (++again > MU_FILTER_MAX_AGAIN)
+			{
+			  /* FIXME: What filter? Need some id. */
+			  mu_debug (MU_DEBCAT_FILTER, MU_DEBUG_ERROR,
+				    (_("filter returned `again' too many times")));
+			  stop = 1;
+			}
+		    }
+
+		  else
+		    {
+		      fs->fltflag |= _MU_FILTER_EOF;
+		      stop = 1;
+		    }
+		}
+	      else
+		again = 0;
+	    }
 	}
 
       rdsize = size - total;
@@ -217,7 +243,7 @@ filter_read (mu_stream_t stream, char *buf, size_t size, size_t *pret)
       total += rdsize;
 
     }
-  while (!stop && (total < size || again));
+  while (!stop && total < size);
   
   *pret = total;
   return 0;
@@ -278,7 +304,8 @@ filter_write_internal (mu_stream_t stream, enum mu_filter_command cmd,
 	  if (++again > MU_FILTER_MAX_AGAIN)
 	    {
 	      /* FIXME: What filter? Need some id. */
-	      mu_error (_("filter returned `again' too many times"));
+	      mu_debug (MU_DEBCAT_FILTER, MU_DEBUG_ERROR,
+			(_("filter returned `again' too many times")));
 	      again = 0;
 	    }
 	  break;

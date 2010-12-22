@@ -62,6 +62,8 @@ enum mu_filter_result
     mu_filter_again
   };
 
+/* An xcode function is not allowed to return mu_filter_again more
+   than MU_FILTER_MAX_AGAIN times in a sequence. */
 #define MU_FILTER_MAX_AGAIN 5
 
 typedef int (*mu_filter_new_data_t) (void **, int, int argc,
