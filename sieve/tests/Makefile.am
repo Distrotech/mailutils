@@ -53,6 +53,7 @@ TESTSUITE_AT = \
   i-casemap.at\
   i-numeric.at\
   i-octet.at\
+  list.at\
   moderator.at\
   mul-addr.at\
   not.at\

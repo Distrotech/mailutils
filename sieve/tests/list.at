@@ -1,0 +1,75 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2010 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# GNU Mailutils is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+
+m4_pushdef([MUT_SIEVE_EXT_NAME],[list])
+
+MUT_SIEVE_EXT_TEST([],[list test-list],
+[require "test-list";
+if list :matches :delim " ," [[ "X-Spam-Keywords", "X-Spamd-Keywords" ]]
+         [[ "HTML_*", "FORGED_*" ]]
+  {
+    discard;
+  }
+],
+[AT_DATA([mailbox],[From foobar@example.net  Thu Dec 23 00:38:09 2010
+Date: Thu, 23 Dec 2010 00:38:09 +0200
+From: Foo Bar <foobar@example.net>
+To: <gray@gnu.org>
+Subject: Test 1
+X-Spam-Keywords: x, y, z
+X-Spamd-Keywords: i, j, k
+
+text 1
+
+From foobar@example.net  Thu Dec 23 00:40:00 2010
+Date: Thu, 23 Dec 2010 00:40:00 +0200
+From: Foo Bar <foobar@example.net>
+To: <gray@gnu.org>
+Subject: Test 2
+X-Spam-Keywords: x, y, z
+X-Spamd-Keywords: HTML_50
+
+text 2
+
+From foobar@example.net  Thu Dec 23 00:42:00 2010
+Date: Thu, 23 Dec 2010 00:42:00 +0200
+From: Foo Bar <foobar@example.net>
+To: <gray@gnu.org>
+Subject: Test 3
+X-Spam-Keywords: x, y, z
+X-Spamd-Keywords: QUUX, FORGED_SENDER
+
+test 3
+
+From foobar@example.net  Thu Dec 23 00:44:00 2010
+Date: Thu, 23 Dec 2010 00:44:00 +0200
+From: Foo Bar <foobar@example.net>
+To: <gray@gnu.org>
+Subject: Test 4
+
+test 3
+
+])
+sieve MUT_SIEVE_CMDLINE MUT_SIEVE_OPTIONS -f ./mailbox prog
+],
+[],
+[IMPLICIT KEEP on msg uid 1
+DISCARD on msg uid 2: marking as deleted
+DISCARD on msg uid 3: marking as deleted
+IMPLICIT KEEP on msg uid 4
+])
+
+m4_popdef([MUT_SIEVE_EXT_NAME])
