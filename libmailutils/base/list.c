@@ -562,49 +562,56 @@ list_itrctl (void *owner, enum mu_itrctl_req req, void *arg)
   mu_list_t list = itr->list;
   struct list_data *ptr;
   
-  if (itr->cur == NULL)
-    return MU_ERR_NOENT;
   switch (req)
     {
     case mu_itrctl_tell:
       /* Return current position in the object */
-      {
-	size_t count;
-
-	for (count = 0, ptr = list->head.next; ptr != &list->head;
-	     ptr = ptr->next, count++)
-	  {
-	    if (ptr == itr->cur)
-	      {
-		*(size_t*)arg = count;
-		return 0;
-	      }
-	  }
+      if (itr->cur == NULL)
 	return MU_ERR_NOENT;
-      }
-	
+      else
+	{
+	  size_t count;
+
+	  for (count = 0, ptr = list->head.next; ptr != &list->head;
+	       ptr = ptr->next, count++)
+	    {
+	      if (ptr == itr->cur)
+		{
+		  *(size_t*)arg = count;
+		  return 0;
+		}
+	    }
+	  return MU_ERR_NOENT;
+	}
+      break;
+      
     case mu_itrctl_delete:
     case mu_itrctl_delete_nd:
       /* Delete current element */
-      {
-	struct list_data *prev;
+      if (itr->cur == NULL)
+	return MU_ERR_NOENT;
+      else
+	{
+	  struct list_data *prev;
 	
-	ptr = itr->cur;
-	prev = ptr->prev;
+	  ptr = itr->cur;
+	  prev = ptr->prev;
 	
-	mu_iterator_advance (list->itr, ptr);
-	prev->next = ptr->next;
-	ptr->next->prev = prev;
-	if (req == mu_itrctl_delete)
-	  DESTROY_ITEM (list, ptr);
-	free (ptr);
-	list->count--;
-      }
+	  mu_iterator_advance (list->itr, ptr);
+	  prev->next = ptr->next;
+	  ptr->next->prev = prev;
+	  if (req == mu_itrctl_delete)
+	    DESTROY_ITEM (list, ptr);
+	  free (ptr);
+	  list->count--;
+	}
       break;
       
     case mu_itrctl_replace:
     case mu_itrctl_replace_nd:
       /* Replace current element */
+      if (itr->cur == NULL)
+	return MU_ERR_NOENT;
       if (!arg)
 	return EINVAL;
       ptr = itr->cur;
@@ -616,12 +623,16 @@ list_itrctl (void *owner, enum mu_itrctl_req req, void *arg)
       
     case mu_itrctl_insert:
       /* Insert new element in the current position */
+      if (itr->cur == NULL)
+	return MU_ERR_NOENT;
       if (!arg)
 	return EINVAL;
       return _insert_item (list, itr->cur, arg, 0);
 
     case mu_itrctl_insert_list:
       /* Insert a list of elements */
+      if (itr->cur == NULL)
+	return MU_ERR_NOENT;
       if (!arg)
 	return EINVAL;
       else

@@ -80,6 +80,10 @@ static size_t max_messages_option;
 
 static int onerror_flags;  
 
+size_t msg_count = 0;         /* Number of processed messages */
+size_t get_err_count = 0;     /* Number of message retrieval errors */ 
+size_t app_err_count = 0;     /* Number of message appending errors */
+
 enum set_ownership_mode
   {
     copy_owner_id,
@@ -324,6 +328,11 @@ cb_onerror (void *data, mu_config_value_t *val)
   
   if (mu_cfg_assert_value_type (val, MU_CFG_STRING))
     return 1;
+  if (strcmp (val->v.string, "abort") == 0)
+    {
+      onerror_flags = 0;
+      return 0;
+    }
   ws.ws_delim = ",";
   if (mu_wordsplit (val->v.string, &ws,
 		    MU_WRDSF_NOVAR | MU_WRDSF_NOCMD |
@@ -384,7 +393,9 @@ struct mu_cfg_param movemail_cfg_param[] = {
     N_("What to do after an error. Argument is a comma-separated list of:\n"
        " skip   -  skip to the next message\n"
        " delete -  delete this one and to the next message\n"
-       " count  -  count this message as processed") },
+       " count  -  count this message as processed\n"
+       "Each keyword can be prefixed with \"no\" to reverse its meaning\n"
+       "Setting onerror=abort reverts to the default behavior.") },
   { NULL }
 };
 
@@ -495,17 +506,10 @@ open_mailbox (mu_mailbox_t *mbx, char *name, int flags, char *passwd)
 }
 
 int
-move_message (mu_mailbox_t src, mu_mailbox_t dst, size_t msgno)
+move_message (mu_mailbox_t dst, mu_message_t msg, size_t msgno)
 {
   int rc;
-  mu_message_t msg;
 
-  if ((rc = mu_mailbox_get_message (src, msgno, &msg)) != 0)
-    {
-      mu_error (_("cannot read message %lu: %s"),
-		(unsigned long) msgno, mu_strerror (rc));
-      return rc;
-    }
   if ((rc = mu_mailbox_append_message (dst, msg)) != 0)
     {
       mu_error (_("cannot append message %lu: %s"),
@@ -520,6 +524,26 @@ move_message (mu_mailbox_t src, mu_mailbox_t dst, size_t msgno)
       mu_attribute_set_deleted (attr);
     }
   return rc;
+}
+
+int
+movemail (mu_mailbox_t dst, mu_message_t msg, size_t msgno)
+{
+  int rc = move_message (dst, msg, msgno);
+  if (rc == 0)
+    ++msg_count;
+  else
+    {
+      app_err_count++;
+      if (onerror_flags)
+	{
+	  if (onerror_flags & ONERROR_COUNT)
+	    ++msg_count;
+	}
+      else
+	return 1;
+    }
+  return max_messages_option && msg_count >= max_messages_option;
 }
 
 /* Open source mailbox using compatibility syntax. Source_name is
@@ -806,17 +830,17 @@ set_program_id (const char *source_name, const char *dest_name)
   mu_wordsplit_free (&ws);
 }
 
+
 int
 main (int argc, char **argv)
 {
   int index;
-  size_t i, total;
+  size_t total;
   int rc = 0;
-  int errs = 0;
   char *source_name, *dest_name;
   int flags;
   mu_list_t src_uidl_list = NULL;
-  size_t msg_count = 0;
+  mu_iterator_t itr;
   
   /* Native Language Support */
   MU_APP_INIT_NLS ();
@@ -845,7 +869,7 @@ main (int argc, char **argv)
     }
 
   if (ignore_errors)
-    onerror_flags |= ONERROR_SKIP;
+    onerror_flags |= ONERROR_SKIP|ONERROR_COUNT;
   
   if (emacs_mode)
     {      
@@ -900,7 +924,6 @@ main (int argc, char **argv)
   
   if (uidl_option)
     {
-      mu_iterator_t itr;
       mu_list_t dst_uidl_list = NULL;
 
       rc = mu_mailbox_get_uidls (source, &src_uidl_list);
@@ -922,102 +945,93 @@ main (int argc, char **argv)
 	  if (mu_list_locate (dst_uidl_list, uidl, NULL) == 0)
 	    mu_iterator_ctl (itr, mu_itrctl_delete, NULL);
 	}
-      mu_iterator_destroy (&itr);
       mu_list_destroy (&dst_uidl_list);
       mu_list_set_comparator (src_uidl_list, NULL);
-    }
 
-  /* FIXME: Implementing a mailbox iterator would allow to merge the three
-     branches of this conditional. */
-  if (src_uidl_list)
-    {
-      mu_iterator_t itr;
-
-      rc = mu_list_get_iterator (src_uidl_list, &itr);
-      if (rc)
-	{
-	  mu_error(_("cannot get iterator: %s"), mu_strerror (rc));
-	  exit (1);
-	}
       rc = mu_iterator_ctl (itr, mu_itrctl_set_direction, &reverse_order);
       if (rc)
 	{
-	  mu_error(_("cannot set iteration direction: %s"), mu_strerror (rc));
+	  mu_error (_("cannot set iteration direction: %s"), mu_strerror (rc));
 	  exit (1);
 	}
+      
       for (mu_iterator_first (itr); !mu_iterator_is_done (itr);
 	   mu_iterator_next (itr))
 	{
 	  struct mu_uidl *uidl;
-	      
+	  mu_message_t msg;
+	  
 	  mu_iterator_current (itr, (void **)&uidl);
-	  rc = move_message (source, dest, uidl->msgno);
-	  if (rc == 0)
+
+	  if ((rc = mu_mailbox_get_message (source, uidl->msgno, &msg)) != 0)
 	    {
-	      ++msg_count;
+	      mu_error (_("cannot read message %lu: %s"),
+			(unsigned long) uidl->msgno, mu_strerror (rc));
+	      get_err_count++;
+	      continue;
 	    }
-	  else if (onerror_flags)
-	    {
-	      if (onerror_flags & ONERROR_COUNT)
-		++msg_count;
-	      errs = 1;
-	    }
-	  else
-	    break;
-	  if (max_messages_option && msg_count >= max_messages_option)
-	    break;
-	}
-      mu_iterator_destroy (&itr);
-    }
-  else if (reverse_order)
-    {
-      for (i = total; i > 0; i--)
-	{
-	  rc = move_message (source, dest, i);
-	  if (rc == 0)
-	    {
-	      ++msg_count;
-	    }
-	  else if (onerror_flags)
-	    {
-	      if (onerror_flags & ONERROR_COUNT)
-		++msg_count;
-	      errs = 1;
-	    }
-	  else
-	    break;
-	  if (max_messages_option && msg_count >= max_messages_option)
+	  if (movemail (dest, msg, uidl->msgno))
 	    break;
 	}
     }
   else
     {
-      for (i = 1; i <= total; i++)
+      rc = mu_mailbox_get_iterator (source, &itr);
+      if (rc)
 	{
-	  rc = move_message (source, dest, i);
-	  if (rc == 0)
+	  mu_error (_("cannot obtain mailbox iterator: %s"), mu_strerror (rc));
+	  return 1;
+	}
+  
+      rc = mu_iterator_ctl (itr, mu_itrctl_set_direction, &reverse_order);
+      if (rc)
+	{
+	  mu_error (_("cannot set iteration direction: %s"),
+		    mu_strerror (rc));
+	  return 1;
+	}
+      
+      for (mu_iterator_first (itr); !mu_iterator_is_done (itr);
+	   mu_iterator_next (itr))
+	{
+	  mu_message_t msg;
+	  size_t msgno;
+	  
+	  rc = mu_iterator_ctl (itr, mu_itrctl_tell, &msgno);
+	  if (rc)
 	    {
-	      ++msg_count;
+	      mu_error (_("cannot get iterator position: %s"),
+			mu_strerror (rc));
+	      return 1;
 	    }
-	  else if (onerror_flags)
+
+	  rc = mu_iterator_current (itr, (void **)&msg);
+	  if (rc)
 	    {
-	      if (onerror_flags & ONERROR_COUNT)
-		++msg_count;
-	      errs = 1;
+	      mu_error (_("cannot read message %lu: %s"),
+			(unsigned long) msgno, mu_strerror (rc));
+	      get_err_count++;
+	      continue;
 	    }
-	  else
-	    break;
-	  if (max_messages_option && msg_count >= max_messages_option)
+	  
+	  if (movemail (dest, msg, msgno))
 	    break;
 	}
     }
+  mu_iterator_destroy (&itr);
   
   if (verbose_option)
-    mu_diag_output (MU_DIAG_INFO,
-		    _("number of processed messages: %lu"),
-		    (unsigned long) msg_count);
-
-  if (errs && !(onerror_flags & (ONERROR_DELETE|ONERROR_COUNT)))
+    {
+      mu_diag_output (MU_DIAG_INFO,
+		      _("number of processed messages: %lu"),
+		      (unsigned long) msg_count);
+      mu_diag_output (MU_DIAG_INFO,
+		      _("number of errors: %lu / %lu"),
+		      (unsigned long) get_err_count,
+		      (unsigned long) app_err_count);
+    }
+  
+  if (app_err_count && !(onerror_flags & (ONERROR_DELETE|ONERROR_COUNT)))
     /* FIXME: mailboxes are not properly closed */
     return 1;
       
@@ -1032,5 +1046,8 @@ main (int argc, char **argv)
   mu_mailbox_close (source);
   mu_mailbox_destroy (&source);
 
-  return !(rc == 0 && errs == 0);
+  if (onerror_flags & ONERROR_COUNT)
+    app_err_count = 0;
+  
+  return !(rc == 0 && (app_err_count + get_err_count) == 0);
 }

@@ -380,9 +380,13 @@ safe_address_create (mu_address_t *paddr, const char *addr_str,
       mu_debug (MU_DEBCAT_MAILER, MU_DEBUG_ERROR,
 		("bad %s address: %s", who, addr_str));
       rc = recover_email (addr_str, &p);
-      if (rc && rc != MU_ERR_NOENT)
-	mu_debug (MU_DEBCAT_MAILER, MU_DEBUG_ERROR,
-		  ("%s address recovery failed: %s", who, mu_strerror (rc)));
+      if (rc)
+	{
+	  if (rc != MU_ERR_NOENT)
+	    mu_debug (MU_DEBCAT_MAILER, MU_DEBUG_ERROR,
+		      ("%s address recovery failed: %s",
+		       who, mu_strerror (rc)));
+	}
       else
 	{
 	  mu_debug (MU_DEBCAT_MAILER, MU_DEBUG_TRACE1,
