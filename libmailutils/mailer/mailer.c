@@ -51,6 +51,8 @@
 #include <mailutils/util.h>
 #include <mailutils/mime.h>
 #include <mailutils/io.h>
+#include <mailutils/cctype.h>
+#include <mailutils/parse822.h>
 
 #include <mailutils/sys/mailer.h>
 
@@ -325,6 +327,83 @@ save_fcc (mu_message_t msg)
 }
 
 static int
+copy_fragment (char **pretender, const char *p, const char *q)
+{
+  size_t len = q - p + 1;
+  *pretender = malloc (len + 1);
+  if (!*pretender)
+    return ENOMEM;
+  memcpy (*pretender, p, len);
+  (*pretender)[len] = 0;
+  return 0;
+}
+
+/* Try to extract from STRING a portion that looks like an email address */
+static int
+recover_email (const char *string, char **pretender)
+{
+  char *p, *q;
+
+  p = strchr (string, '<');
+  if (p)
+    {
+      q = strchr (p, '>');
+      if (q)
+	return copy_fragment (pretender, p, q);
+    }
+  p = mu_str_skip_class (string, MU_CTYPE_SPACE);
+  if (*p && mu_parse822_is_atom_char (*p))
+    {
+      q = p;
+      while (*++q && (mu_parse822_is_atom_char (*q) || *q == '.'))
+	;
+      if (*q == '@')
+	while (*++q && (mu_parse822_is_atom_char (*q) || *q == '.'))
+	  ;
+      q--;
+      if (q > p)
+	return copy_fragment (pretender, p, q);
+    }
+  return MU_ERR_NOENT;
+}
+
+static int
+safe_address_create (mu_address_t *paddr, const char *addr_str,
+		     const char *who)
+{
+  int status = mu_address_create (paddr, addr_str);
+  if (status == MU_ERR_BAD_822_FORMAT)
+    {
+      int rc;
+      char *p;
+      
+      mu_debug (MU_DEBCAT_MAILER, MU_DEBUG_ERROR,
+		("bad %s address: %s", who, addr_str));
+      rc = recover_email (addr_str, &p);
+      if (rc && rc != MU_ERR_NOENT)
+	mu_debug (MU_DEBCAT_MAILER, MU_DEBUG_ERROR,
+		  ("%s address recovery failed: %s", who, mu_strerror (rc)));
+      else
+	{
+	  mu_debug (MU_DEBCAT_MAILER, MU_DEBUG_TRACE1,
+		    ("recovered possible %s address: %s", who, p));
+	  rc = mu_address_create (paddr, p);
+	  if (rc == 0)
+	    status = 0;
+	  else if (rc == MU_ERR_BAD_822_FORMAT)
+	    mu_debug (MU_DEBCAT_MAILER, MU_DEBUG_TRACE1,
+		      ("%s address guess failed", who));
+	  else
+	    mu_debug (MU_DEBCAT_MAILER, MU_DEBUG_ERROR,
+		      ("cannot convert %s address '%s': %s",
+		       who, p, mu_strerror (rc)));
+	  free (p);
+	}
+    }
+  return status;
+}
+
+static int
 _set_from (mu_address_t *pfrom, mu_message_t msg, mu_address_t from,
 	   mu_mailer_t mailer)
 {
@@ -393,7 +472,7 @@ _set_from (mu_address_t *pfrom, mu_message_t msg, mu_address_t from,
 	  /* FIXME: should we add the From: header? */
 	  break;
 	}
-      status = mu_address_create (pfrom, mail_from);
+      status = safe_address_create (pfrom, mail_from, "sender");
     }
   
   return status;
@@ -427,7 +506,7 @@ _set_to (mu_address_t *paddr, mu_message_t msg, mu_address_t to,
       mu_debug (MU_DEBCAT_MAILER, MU_DEBUG_TRACE,
 		("mu_mailer_send_message(): using RCPT TO: %s",
 		 rcpt_to));
-      status = mu_address_create (paddr, rcpt_to);
+      status = safe_address_create (paddr, rcpt_to, "recipient");
     }
   
   return status;
