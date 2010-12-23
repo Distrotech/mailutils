@@ -461,6 +461,7 @@ _log_ctl (struct _mu_stream *str, int code, int opcode, void *arg)
       break;
 
     case MU_IOCTL_FILTER:
+    case MU_IOCTL_SYSLOGSTREAM:
       return mu_stream_ioctl (sp->transport, code, opcode, arg);
             
     default:

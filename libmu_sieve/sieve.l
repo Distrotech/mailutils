@@ -199,6 +199,7 @@ pop_source ()
       return 1;
     }
   /* Restore previous context */
+  input_stream = context_stack->input;
   mu_sieve_locus = context_stack->locus;
   mu_sieve_locus.mu_line++; /* #include rule did not increment it */
   sieve_source_inode = context_stack->i_node;
