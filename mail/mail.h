@@ -217,7 +217,7 @@ extern int mail_save (int argc, char **argv);
 extern int mail_sendheader (int argc, char **argv);
 extern int mail_set (int argc, char **argv);
 extern int mail_shell (int argc, char **argv);
-extern int mail_execute (int shell, int argc, char **argv);
+extern int mail_execute (int shell, char *progname, int argc, char **argv);
 extern int mail_size (int argc, char **argv);
 extern int mail_source (int argc, char **argv);
 extern int mail_summary (int argc, char **argv);

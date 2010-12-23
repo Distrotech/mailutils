@@ -18,20 +18,21 @@
 #include "mail.h"
 
 static void
-expand_bang (char **pbuf)
+expand_bang (char **pbuf, const char *arg, const char *last)
 {
-  char *last = NULL;
-  char *tmp, *p, *q;
+  char *tmp, *q;
+  const char *p;
   size_t count = 0;
   
-  mailvar_get (&last, "gnu-last-command", mailvar_type_string, 0);
-
-  for (p = *pbuf; *p; p++)
+  for (p = arg; *p; p++)
     if (*p == '!')
       count++;
 
   if (count == 0)
-    return;
+    {
+      *pbuf = xstrdup (arg);
+      return;
+    }
 
   if (!last)
     {
@@ -39,8 +40,8 @@ expand_bang (char **pbuf)
       return;
     }
 
-  tmp = xmalloc (strlen (*pbuf) + count * (strlen (last) - 1) + 1);
-  for (p = *pbuf, q = tmp; *p; )
+  tmp = xmalloc (strlen (arg) + count * (strlen (last) - 1) + 1);
+  for (p = arg, q = tmp; *p; )
     {
       if (*p == '!')
 	{
@@ -49,7 +50,7 @@ expand_bang (char **pbuf)
 	  p++;
 	}
       else
-	*p++ = *q++;
+	*q++ = *p++;
     }
   *q = 0;
   
@@ -58,12 +59,13 @@ expand_bang (char **pbuf)
 }
 
 int
-mail_execute (int shell, int argc, char **argv)
+mail_execute (int shell, char *progname, int argc, char **argv)
 {
   int xargc, i, status, rc;
   char **xargv;
   char *buf;
-
+  int expanded; /* Indicates whether argv has been bang-expanded */
+  
   if (argc == 0)
     {
       /* No arguments mean execute a copy of the user shell */
@@ -75,18 +77,27 @@ mail_execute (int shell, int argc, char **argv)
     xargc = 3;
   xargv = xcalloc (xargc + 1, sizeof (xargv[0]));
   
-  for (i = 0; i < argc; i++)
-    xargv[i] = argv[i];
-
   /* Expand arguments if required */
   if (mailvar_get (NULL, "bang", mailvar_type_boolean, 0) == 0)
     {
       int i;
-
-      for (i = 0; i < xargc; i++)
-	expand_bang (xargv + i);
+      char *last = NULL;
+      
+      mailvar_get (&last, "gnu-last-command", mailvar_type_string, 0);
+      expand_bang (xargv, progname, last);
+      for (i = 1; i < argc; i++)
+	expand_bang (xargv + i, argv[i], last);
+      expanded = 1;
     }
-
+  else
+    {
+      if (argc)
+	xargv[0] = progname;
+      for (i = 1; i < argc; i++)
+	xargv[i] = argv[i];
+      expanded = 0;
+    }
+  
   /* Reconstruct the command line and save it to gnu-last-command variable.
      Important: use argc (not xargc)!
   */
@@ -96,14 +107,25 @@ mail_execute (int shell, int argc, char **argv)
 
   if (shell)
     {
+      if (expanded)
+	{
+	  for (i = 0; i < argc; i++)
+	    free (xargv[i]);
+	  expanded = 0;
+	}
+      
       xargv[0] = getenv ("SHELL");
       if (argc == 0)
-	xargv[1] = NULL;
+	{
+	  xargv[1] = NULL;
+	  xargc = 1;
+	}
       else
 	{
 	  xargv[1] = "-c";
 	  xargv[2] = buf;
 	  xargv[3] = NULL;
+	  xargc = 3;
 	}
     }  
   
@@ -117,6 +139,9 @@ mail_execute (int shell, int argc, char **argv)
     mu_diag_output (MU_DIAG_NOTICE, ....
   */
   free (buf);
+  if (expanded)
+    for (i = 0; i < argc; i++)
+      free (xargv[i]);
   free (xargv);
   return rc;
 }
@@ -130,18 +155,11 @@ int
 mail_shell (int argc, char **argv)
 {
   if (argv[0][0] == '!' && strlen (argv[0]) > 1)
-    {
-      argv[0][0] = ' ';
-      return mail_execute (1, argc, argv);
-    }
+    return mail_execute (1, argv[0] + 1, argc, argv);
   else if (argc > 1)
-    {
-      return mail_execute (0, argc-1, argv+1);
-    }
+    return mail_execute (0, argv[1], argc-1, argv+1);
   else
-    {
-      return mail_execute (1, 0, NULL);
-    }
+    return mail_execute (1, NULL, 0, NULL);
   return 1;
 }
 

@@ -173,7 +173,7 @@ escape_check_args (int argc, char **argv)
 int
 escape_shell (int argc, char **argv, compose_env_t *env)
 {
-  return mail_execute (1, argc - 1, argv + 1);
+  return mail_execute (1, argv[1], argc - 1, argv + 1);
 }
 
 /* ~:[mail-command] */
@@ -325,7 +325,7 @@ run_editor (char *ed, char *arg)
   argv[0] = ed;
   argv[1] = arg;
   argv[2] = NULL;
-  return mail_execute (1, 2, argv);
+  return mail_execute (1, arg, 2, argv);
 }
 
 static int
