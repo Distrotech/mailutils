@@ -296,18 +296,24 @@ struct eval_env
 static int
 match_header (mu_message_t msg, char *comp, regex_t *regex)
 {
+  int rc;
   size_t i, count;
   mu_header_t hdr = NULL;
-  char buf[128];
+  const char *buf;
   
-  mu_message_get_header (msg, &hdr);
+  rc = mu_message_get_header (msg, &hdr);
+  if (rc)
+    {
+      mu_error (_("cannot get header: %s"), mu_strerror (rc));
+      return 0;
+    }
   mu_header_get_field_count (hdr, &count);
   for (i = 1; i <= count; i++)
     {
-      mu_header_get_field_name (hdr, i, buf, sizeof buf, NULL);
+      mu_header_sget_field_name (hdr, i, &buf);
       if (mu_c_strcasecmp (buf, comp) == 0)
 	{
-	  mu_header_get_field_value (hdr, i, buf, sizeof buf, NULL);
+	  mu_header_sget_field_value (hdr, i, &buf);
 	  if (regexec (regex, buf, 0, NULL, 0) == 0)
 	    return 1;
 	}

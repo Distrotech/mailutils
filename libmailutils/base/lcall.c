@@ -112,8 +112,19 @@ int
 mu_parse_lc_all (const char *arg, struct mu_lc_all *str, int flags)
 {
   int rc;
-  
+
   memset (str, 0, sizeof (str[0]));
+  if (!arg)
+    {
+      if (flags & MU_LC_LANG)
+	{
+	  str->language = strdup ("C");
+	  if (!str->language)
+	    return ENOMEM;
+	}
+      return 0;
+    }
+  
   rc = _parse_lc_all (arg, str, flags);
   if (rc == 0 && !str->charset)
     {

@@ -221,8 +221,9 @@ opt_handler (int key, char *arg, struct argp_state *state)
       break;
       
     case ARG_QUERY:
-      mh_opt_notimpl_warning ("-inplace");
       query_mode = is_true (arg);
+      if (query_mode)
+	mh_opt_notimpl_warning ("-query");
       break;
       
     case ARG_FILTER:
