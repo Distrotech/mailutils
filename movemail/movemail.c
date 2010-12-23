@@ -36,7 +36,9 @@ static char args_doc[] = N_("inbox-url destfile [POP-password]");
 enum {
   EMACS_OPTION=256,
   IGNORE_ERRORS_OPTION,
-  PROGRAM_ID_OPTION
+  PROGRAM_ID_OPTION,
+  MAX_MESSAGES_OPTION,
+  ONERROR_OPTION
 };
 
 static struct argp_option options[] = {
@@ -53,8 +55,12 @@ static struct argp_option options[] = {
     N_("control mailbox ownership") },
   { "ignore-errors", IGNORE_ERRORS_OPTION, NULL, 0,
     N_("try to continue after errors") },
+  { "onerror", ONERROR_OPTION, N_("KW[,KW...]"), 0,
+    N_("what to do on errors") },
   { "program-id", PROGRAM_ID_OPTION, N_("FMT"), 0,
     N_("set program identifier for diagnostics (default: program name)") },
+  { "max-messages", MAX_MESSAGES_OPTION, N_("NUMBER"), 0,
+    N_("process at most NUMBER messages") },
   { NULL,      0, NULL, 0, NULL, 0 }
 };
 
@@ -65,6 +71,14 @@ static int uidl_option;
 static int verbose_option;
 static int ignore_errors;
 static char *program_id_option;
+static size_t max_messages_option;
+
+  /* These bits tell what to do when an error occurs: */
+#define ONERROR_SKIP     0x01  /* Skip to the next message */
+#define ONERROR_DELETE   0x02  /* Delete the source message */
+#define ONERROR_COUNT    0x04  /* Count it as processed */ 
+
+static int onerror_flags;  
 
 enum set_ownership_mode
   {
@@ -149,6 +163,14 @@ parse_opt (int key, char *arg, struct argp_state *state)
       mu_argp_node_list_new (lst, "ignore-errors", "yes");
       break;
 
+    case ONERROR_OPTION:
+      mu_argp_node_list_new (lst, "onerror", arg);
+      break;
+      
+    case MAX_MESSAGES_OPTION:
+      mu_argp_node_list_new (lst, "max-messages", arg);
+      break;
+      
     case PROGRAM_ID_OPTION:
       mu_argp_node_list_new (lst, "program-id", arg);
       break;
@@ -288,6 +310,49 @@ cb_mailbox_ownership (void *data, mu_config_value_t *val)
   return 0;
 }
 
+static int
+cb_onerror (void *data, mu_config_value_t *val)
+{
+  struct mu_wordsplit ws;
+  static struct mu_kwd onerror_kw[] = {
+    { "skip", ONERROR_SKIP },
+    { "delete", ONERROR_DELETE },
+    { "count", ONERROR_COUNT },
+    { NULL }
+  };
+  int i, flag;
+  
+  if (mu_cfg_assert_value_type (val, MU_CFG_STRING))
+    return 1;
+  ws.ws_delim = ",";
+  if (mu_wordsplit (val->v.string, &ws,
+		    MU_WRDSF_NOVAR | MU_WRDSF_NOCMD |
+		    MU_WRDSF_DELIM | MU_WRDSF_WS))
+    {
+      mu_error (_("cannot split argument: %s"), mu_wordsplit_strerror (&ws));
+      return 1;
+    }
+  for (i = 0; i < ws.ws_wordc; i++)
+    {
+      int clr = 0;
+      char *name = ws.ws_wordv[i];
+      
+      if (strncmp (name, "no", 2) == 0)
+	{
+	  clr = 1;
+	  name += 2;
+	}
+      if (mu_kwd_xlat_name (onerror_kw, name, &flag))
+	mu_error (_("unknown keyword: %s"), ws.ws_wordv[i]);
+      if (clr)
+	onerror_flags &= ~flag;
+      else
+	onerror_flags |= flag;
+    }
+  mu_wordsplit_free (&ws);
+  return 0;
+}
+  
 struct mu_cfg_param movemail_cfg_param[] = {
   { "preserve", mu_cfg_bool, &preserve_mail, 0, NULL,
     N_("Do not remove messages from the source mailbox.") },
@@ -299,8 +364,6 @@ struct mu_cfg_param movemail_cfg_param[] = {
     N_("Use UIDLs to avoid downloading the same message twice.") },
   { "verbose", mu_cfg_int, &verbose_option, 0, NULL,
     N_("Set verbosity level.") },
-  { "ignore-errors", mu_cfg_bool, &ignore_errors, 0, NULL,
-    N_("Continue after an error.") },
   { "program-id", mu_cfg_string, &program_id_option, 0, NULL,
     N_("Set program identifier string (default: program name)") },
   { "mailbox-ownership", mu_cfg_callback, NULL, 0,
@@ -312,6 +375,16 @@ struct mu_cfg_param movemail_cfg_param[] = {
        " set-id=UID[:GID] set supplied UID and GID\n"
        " set-name=USER    make destination mailbox owned by USER"),
     N_("methods: list") },
+  { "max-messages", mu_cfg_size, &max_messages_option, 0, NULL,
+    N_("Copy at most <count> messages."),
+    N_("count") },
+  { "ignore-errors", mu_cfg_bool, &ignore_errors, 0, NULL,
+    N_("Continue after an error.") },
+  { "onerror", mu_cfg_callback, NULL, 0, cb_onerror,
+    N_("What to do after an error. Argument is a comma-separated list of:\n"
+       " skip   -  skip to the next message\n"
+       " delete -  delete this one and to the next message\n"
+       " count  -  count this message as processed") },
   { NULL }
 };
 
@@ -437,7 +510,8 @@ move_message (mu_mailbox_t src, mu_mailbox_t dst, size_t msgno)
     {
       mu_error (_("cannot append message %lu: %s"),
 		(unsigned long) msgno, mu_strerror (rc));
-      return rc;
+      if (!(onerror_flags & ONERROR_DELETE))
+	return rc;
     }
   if (!preserve_mail)
     {
@@ -770,6 +844,9 @@ main (int argc, char **argv)
       return 1;
     }
 
+  if (ignore_errors)
+    onerror_flags |= ONERROR_SKIP;
+  
   if (emacs_mode)
     {      
       /* Undo the effect of configuration options that may affect
@@ -805,10 +882,22 @@ main (int argc, char **argv)
     }
   
   if (verbose_option)
-    mu_diag_output (MU_DIAG_INFO,
-		    _("number of messages in source mailbox: %lu"),
-		    (unsigned long) total);
-
+    {
+      mu_diag_output (MU_DIAG_INFO,
+		      _("number of messages in source mailbox: %lu"),
+		      (unsigned long) total);
+      if (max_messages_option)
+	mu_diag_output (MU_DIAG_INFO,
+			reverse_order ?
+			ngettext ("will process last %lu message",
+				  "will process last %lu messages",
+				  max_messages_option) :
+			ngettext ("will process first %lu message",
+				  "will process first %lu messages",
+				  max_messages_option),
+			(unsigned long) max_messages_option);
+    }
+  
   if (uidl_option)
     {
       mu_iterator_t itr;
@@ -864,11 +953,19 @@ main (int argc, char **argv)
 	  mu_iterator_current (itr, (void **)&uidl);
 	  rc = move_message (source, dest, uidl->msgno);
 	  if (rc == 0)
-	    msg_count++;
-	  else if (!ignore_errors)
-	    break;
+	    {
+	      ++msg_count;
+	    }
+	  else if (onerror_flags)
+	    {
+	      if (onerror_flags & ONERROR_COUNT)
+		++msg_count;
+	      errs = 1;
+	    }
 	  else
-	    errs = 1;
+	    break;
+	  if (max_messages_option && msg_count >= max_messages_option)
+	    break;
 	}
       mu_iterator_destroy (&itr);
     }
@@ -878,11 +975,19 @@ main (int argc, char **argv)
 	{
 	  rc = move_message (source, dest, i);
 	  if (rc == 0)
-	    msg_count++;
-	  else if (!ignore_errors)
-	    break;
+	    {
+	      ++msg_count;
+	    }
+	  else if (onerror_flags)
+	    {
+	      if (onerror_flags & ONERROR_COUNT)
+		++msg_count;
+	      errs = 1;
+	    }
 	  else
-	    errs = 1;
+	    break;
+	  if (max_messages_option && msg_count >= max_messages_option)
+	    break;
 	}
     }
   else
@@ -891,11 +996,19 @@ main (int argc, char **argv)
 	{
 	  rc = move_message (source, dest, i);
 	  if (rc == 0)
-	    msg_count++;
-	  else if (!ignore_errors)
-	    break;
+	    {
+	      ++msg_count;
+	    }
+	  else if (onerror_flags)
+	    {
+	      if (onerror_flags & ONERROR_COUNT)
+		++msg_count;
+	      errs = 1;
+	    }
 	  else
-	    errs = 1;
+	    break;
+	  if (max_messages_option && msg_count >= max_messages_option)
+	    break;
 	}
     }
   
@@ -903,17 +1016,18 @@ main (int argc, char **argv)
     mu_diag_output (MU_DIAG_INFO,
 		    _("number of processed messages: %lu"),
 		    (unsigned long) msg_count);
-  
-  if (rc)
-    return !!rc;
-  
+
+  if (errs && !(onerror_flags & (ONERROR_DELETE|ONERROR_COUNT)))
+    /* FIXME: mailboxes are not properly closed */
+    return 1;
+      
   mu_mailbox_sync (dest);
   rc = mu_mailbox_close (dest);
   mu_mailbox_destroy (&dest);
   if (rc)
     mu_error (_("cannot close destination mailbox: %s"), mu_strerror (rc));
   else if (!preserve_mail)
-    mu_mailbox_flush (source, 1);
+    mu_mailbox_expunge (source);
 
   mu_mailbox_close (source);
   mu_mailbox_destroy (&source);
