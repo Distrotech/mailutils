@@ -211,15 +211,18 @@ pop_destroy (mu_mailbox_t mbox)
     {
        size_t i;
       mu_monitor_wrlock (mbox->monitor);
-      /* Destroy the pop messages and resources associated to them.  */
-      for (i = 0; i < mpd->msg_count; i++)
+      if (mpd->msg)
 	{
-	  if (mpd->msg[i])
+	  /* Destroy the pop messages and resources associated to them.  */
+	  for (i = 0; i < mpd->msg_count; i++)
 	    {
-	      mu_message_destroy (&mpd->msg[i]->message, mpd->msg[i]);
-	      if (mpd->msg[i]->uidl)
-		free (mpd->msg[i]->uidl);
-	      free (mpd->msg[i]);
+	      if (mpd->msg[i])
+		{
+		  mu_message_destroy (&mpd->msg[i]->message, mpd->msg[i]);
+		  if (mpd->msg[i]->uidl)
+		    free (mpd->msg[i]->uidl);
+		  free (mpd->msg[i]);
+		}
 	    }
 	}
       mu_pop3_destroy (&mpd->pop3);

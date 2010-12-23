@@ -199,7 +199,7 @@ puts_bidi (char *string)
 }
 #else
 # define alloc_logical(s)
-# define puts_bidi(s) mu_stream_printf ("%s\n", s)
+# define puts_bidi(s) mu_printf ("%s\n", s)
 #endif
 
 
