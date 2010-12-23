@@ -27,6 +27,8 @@
 #include <mailutils/errno.h>
 #include <mailutils/error.h>
 #include <mailutils/iterator.h>
+#include <mailutils/message.h>
+#include <mailutils/attribute.h>
 
 #include <mailutils/sys/mailbox.h>
 
@@ -34,13 +36,17 @@ struct mailbox_iterator
 {
   mu_mailbox_t mbx;
   size_t idx;
+  int backwards;
 };
 
 static int
 mbx_first (void *owner)
 {
   struct mailbox_iterator *itr = owner;
-  itr->idx = 1;
+  if (itr->backwards)
+    return mu_mailbox_messages_count (itr->mbx, &itr->idx);
+  else
+    itr->idx = 1;
   return 0;
 }
 
@@ -48,7 +54,14 @@ static int
 mbx_next (void *owner)
 {
   struct mailbox_iterator *itr = owner;
-  itr->idx++;
+
+  if (itr->backwards)
+    {
+      if (itr->idx)
+	--itr->idx;
+    }
+  else
+    itr->idx++;
   return 0;
 }
 
@@ -74,11 +87,17 @@ static int
 mbx_finished_p (void *owner)
 {
   struct mailbox_iterator *itr = owner;
-  size_t count;
-
-  if (mu_mailbox_messages_count (itr->mbx, &count))
-    return 1;
-  return itr->idx > count;
+  
+  if (itr->backwards)
+    return itr->idx == 0;
+  else
+    {
+      size_t count;
+      
+      if (mu_mailbox_messages_count (itr->mbx, &count))
+	return 1;
+      return itr->idx > count;
+    }
 }
 
 static int
@@ -114,6 +133,55 @@ mbx_data_dup (void **ptr, void *owner)
   return 0;
 }
 
+static int
+mbx_itrctl (void *owner, enum mu_itrctl_req req, void *arg)
+{
+  int rc;
+  struct mailbox_iterator *itr = owner;
+  mu_message_t msg;
+  mu_attribute_t attr;
+  
+  if (itr->idx == 0)
+    return MU_ERR_NOENT;
+  switch (req)
+    {
+    case mu_itrctl_tell:
+      *(size_t*)arg = itr->idx;
+      break;
+
+    case mu_itrctl_delete:
+      rc = mu_mailbox_get_message (itr->mbx, itr->idx, &msg);
+      if (rc)
+	return rc;
+      rc = mu_message_get_attribute (msg, &attr);
+      if (rc)
+	return rc;
+      rc = mu_attribute_set_deleted (attr);
+      if (rc)
+	return rc;
+      break;
+
+    case mu_itrctl_qry_direction:
+      if (!arg)
+	return EINVAL;
+      else
+	*(int*)arg = itr->backwards;
+      break;
+
+    case mu_itrctl_set_direction:
+      if (!arg)
+	return EINVAL;
+      else	
+	itr->backwards = !!*(int*)arg;
+      break;
+      
+    default:
+      return ENOSYS;
+    }
+  return 0;
+}
+
+
 int
 mu_mailbox_get_iterator (mu_mailbox_t mbx, mu_iterator_t *piterator)
 {
@@ -129,7 +197,8 @@ mu_mailbox_get_iterator (mu_mailbox_t mbx, mu_iterator_t *piterator)
     return ENOMEM;
   itr->mbx = mbx;
   itr->idx = 1;
-
+  itr->backwards = 0;
+  
   status = mu_iterator_create (&iterator, itr);
   if (status)
     {
@@ -144,6 +213,7 @@ mu_mailbox_get_iterator (mu_mailbox_t mbx, mu_iterator_t *piterator)
   mu_iterator_set_curitem_p (iterator, mbx_curitem_p);
   mu_iterator_set_destroy (iterator, mbx_destroy);
   mu_iterator_set_dup (iterator, mbx_data_dup);
+  mu_iterator_set_itrctl (iterator, mbx_itrctl);
 
   mu_iterator_attach (&mbx->iterator, iterator);
 

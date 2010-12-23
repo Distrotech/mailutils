@@ -175,9 +175,7 @@ _create_mailbox (mu_mailbox_t *pmbox, const char *name)
 }
 
 /* The Mailbox Factory.
-   Create an iterator for registrar and see if any url scheme match,
-   Then we call the mailbox's mu_url_create() to parse the URL. Last
-   initialize the concrete mailbox and folder.  */
+ */
 int
 mu_mailbox_create (mu_mailbox_t *pmbox, const char *name)
 {
