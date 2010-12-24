@@ -325,7 +325,7 @@ run_editor (char *ed, char *arg)
   argv[0] = ed;
   argv[1] = arg;
   argv[2] = NULL;
-  return mail_execute (1, arg, 2, argv);
+  return mail_execute (1, ed, 2, argv);
 }
 
 static int
