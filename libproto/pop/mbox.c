@@ -198,7 +198,24 @@ pop_close (mu_mailbox_t mbox)
   status = mu_pop3_disconnect (mpd->pop3);
   if (status)
     mu_error ("mu_pop3_disconnect failed: %s", mu_strerror (status));
-  mu_pop3_destroy (&mpd->pop3);
+  if (mpd->msg)
+    {
+      size_t i;
+      
+      mu_monitor_wrlock (mbox->monitor);
+      /* Destroy the pop messages and resources associated to them.  */
+      for (i = 0; i < mpd->msg_count; i++)
+	{
+	  if (mpd->msg[i])
+	    {
+	      mu_message_destroy (&mpd->msg[i]->message, mpd->msg[i]);
+	      if (mpd->msg[i]->uidl)
+		free (mpd->msg[i]->uidl);
+	      free (mpd->msg[i]);
+	    }
+	}
+      mu_monitor_unlock (mbox->monitor);
+    }
   mu_stream_destroy (&mpd->cache);
   return 0;
 }
@@ -209,28 +226,11 @@ pop_destroy (mu_mailbox_t mbox)
   struct _pop3_mailbox *mpd = mbox->data;
   if (mpd)
     {
-       size_t i;
-      mu_monitor_wrlock (mbox->monitor);
-      if (mpd->msg)
-	{
-	  /* Destroy the pop messages and resources associated to them.  */
-	  for (i = 0; i < mpd->msg_count; i++)
-	    {
-	      if (mpd->msg[i])
-		{
-		  mu_message_destroy (&mpd->msg[i]->message, mpd->msg[i]);
-		  if (mpd->msg[i]->uidl)
-		    free (mpd->msg[i]->uidl);
-		  free (mpd->msg[i]);
-		}
-	    }
-	}
       mu_pop3_destroy (&mpd->pop3);
       if (mpd->user)
 	free (mpd->user);
       if (mpd->secret)
 	mu_secret_unref (mpd->secret);
-      mu_stream_destroy (&mpd->cache);
    }
 }
 
@@ -682,7 +682,8 @@ pop_create_attribute (struct _pop3_message *mpm)
 int
 pop_body_get_stream (mu_body_t body, mu_stream_t *pstr)
 {
-  struct _pop3_message *mpm = mu_body_get_owner (body);
+  mu_message_t msg = mu_body_get_owner (body);
+  struct _pop3_message *mpm = mu_message_get_owner (msg);
   struct _pop3_mailbox *mpd = mpm->mpd;
   int status = pop_scan_message (mpm);
   if (status)
@@ -695,7 +696,8 @@ pop_body_get_stream (mu_body_t body, mu_stream_t *pstr)
 static int
 pop_body_size (mu_body_t body, size_t *psize)
 {
-  struct _pop3_message *mpm = mu_body_get_owner (body);
+  mu_message_t msg = mu_body_get_owner (body);
+  struct _pop3_message *mpm = mu_message_get_owner (msg);
   int status = pop_scan_message (mpm);
   if (status)
     return status;
@@ -706,7 +708,8 @@ pop_body_size (mu_body_t body, size_t *psize)
 static int
 pop_body_lines (mu_body_t body, size_t *plines)
 {
-  struct _pop3_message *mpm = mu_body_get_owner (body);
+  mu_message_t msg = mu_body_get_owner (body);
+  struct _pop3_message *mpm = mu_message_get_owner (msg);
   int status = pop_scan_message (mpm);
   if (status)
     return status;
@@ -719,14 +722,16 @@ pop_create_body (struct _pop3_message *mpm)
 {
   int status;
   mu_body_t body = NULL;
+  mu_message_t msg = mpm->message;
 
-  status = mu_body_create (&body, mpm);
+  /* FIXME: The owner of the body *must* be the message it belongs to. */
+  status = mu_body_create (&body, msg);
   if (status)
     return status;
 
-  mu_body_set_get_stream (body, pop_body_get_stream, mpm);
-  mu_body_set_size (body, pop_body_size, mpm);
-  mu_body_set_lines (body, pop_body_lines, mpm);
+  mu_body_set_get_stream (body, pop_body_get_stream, msg);
+  mu_body_set_size (body, pop_body_size, msg);
+  mu_body_set_lines (body, pop_body_lines, msg);
 
   mu_message_set_body (mpm->message, body, mpm);
 

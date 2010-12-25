@@ -1032,8 +1032,9 @@ main (int argc, char **argv)
     }
   
   if (app_err_count && !(onerror_flags & (ONERROR_DELETE|ONERROR_COUNT)))
-    /* FIXME: mailboxes are not properly closed */
-    return 1;
+    preserve_mail = 1;
+  if (onerror_flags & ONERROR_COUNT)
+    app_err_count = 0;
       
   mu_mailbox_sync (dest);
   rc = mu_mailbox_close (dest);
@@ -1045,9 +1046,6 @@ main (int argc, char **argv)
 
   mu_mailbox_close (source);
   mu_mailbox_destroy (&source);
-
-  if (onerror_flags & ONERROR_COUNT)
-    app_err_count = 0;
   
   return !(rc == 0 && (app_err_count + get_err_count) == 0);
 }
