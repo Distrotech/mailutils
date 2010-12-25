@@ -139,6 +139,7 @@ mutool_filter (int argc, char **argv)
     }
 
   prev_stream = mu_strin;
+  mu_stream_ref (mu_strin);
   do
     {
       int i;

@@ -519,7 +519,7 @@ _tls_ioctl (struct _mu_stream *stream, int code, int opcode, void *arg)
 {
   struct _mu_tls_stream *sp = (struct _mu_tls_stream *) stream;
 
-  switch (opcode)
+  switch (code)
     {
     case MU_IOCTL_TRANSPORT:
       switch (opcode)
