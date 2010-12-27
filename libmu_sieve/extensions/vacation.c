@@ -140,7 +140,8 @@ diag (mu_sieve_machine_t mach)
 }
 
 
-struct addr_data {
+struct addr_data
+{
   mu_address_t addr;
   char *my_address;
 };
@@ -159,38 +160,38 @@ _compare (void *item, void *data)
    of the originating mail. Return non-zero if so and store a pointer
    to the matching address to *MY_ADDRESS. */
 static int
-match_addresses (mu_header_t hdr, mu_sieve_value_t *addresses, char **my_address)
+match_addresses (mu_header_t hdr, mu_sieve_value_t *addresses,
+		 char **my_address)
 {
   int match = 0;
-  char *str;
+  const char *str;
   struct addr_data ad;
 
   ad.my_address = NULL;
-  if (mu_header_aget_value (hdr, MU_HEADER_TO, &str) == 0)
+  if (mu_header_sget_value (hdr, MU_HEADER_TO, &str) == 0)
     {
       if (!mu_address_create (&ad.addr, str))
 	{
 	  match += mu_sieve_vlist_do (addresses, _compare, &ad);
 	  mu_address_destroy (&ad.addr);
 	}
-      free (str);
     }
 
-  if (!match && mu_header_aget_value (hdr, MU_HEADER_CC, &str) == 0)
+  if (!match && mu_header_sget_value (hdr, MU_HEADER_CC, &str) == 0)
     {
       if (!mu_address_create (&ad.addr, str))
 	{
 	  match += mu_sieve_vlist_do (addresses, _compare, &ad);
 	  mu_address_destroy (&ad.addr);
 	}
-      free (str);
     }
   *my_address = ad.my_address;
   return match;
 }
 
 
-struct regex_data {
+struct regex_data
+{
   mu_sieve_machine_t mach;
   char *email;
 };
@@ -253,12 +254,11 @@ static int
 bulk_precedence_p (mu_header_t hdr)
 {
   int rc = 0;
-  char *str;
-  if (mu_header_aget_value (hdr, MU_HEADER_PRECEDENCE, &str) == 0)
+  const char *str;
+  if (mu_header_sget_value (hdr, MU_HEADER_PRECEDENCE, &str) == 0)
     {
       rc = mu_c_strcasecmp (str, "bulk") == 0
 	   || mu_c_strcasecmp (str, "junk") == 0;
-      free (str);
     }
   return rc;
 }
@@ -267,20 +267,78 @@ bulk_precedence_p (mu_header_t hdr)
 #define	DAYS_DEFAULT	7
 #define	DAYS_MAX	60
 
-/* Check and updated vacation database. Return 0 if the mail should
-   be answered. */
+static int
+test_and_update_prop (mu_property_t prop, const char *from,
+		      time_t now, unsigned int days,
+		      mu_sieve_machine_t mach)
+{
+  const char *result;
+  char *timebuf;
+  time_t last;
+  
+  int rc = mu_property_sget_value (prop, from, &result);
+  switch (rc)
+    {
+    case MU_ERR_NOENT:
+      break;
+      
+    case 0:
+      last = (time_t) strtoul (result, NULL, 0);
+      if (last + (24 * 60 * 60 * days) > now)
+	return 1;
+      break;
+      
+    default:
+      mu_sieve_error (mach, "%lu: mu_property_sget_value: %s",
+		      (unsigned long) mu_sieve_get_message_num (mach),
+		      mu_strerror (rc));
+      return -1;
+    }
+
+  rc = mu_asprintf (&timebuf, "%lu", (unsigned long) now);
+  if (rc)
+    {
+      mu_sieve_error (mach, "%lu: mu_asprintf: %s",
+		      (unsigned long) mu_sieve_get_message_num (mach),
+		      mu_strerror (rc));
+      return -1;
+    } 
+     
+  rc = mu_property_set_value (prop, from, timebuf, 1);
+  free (timebuf);
+  if (rc)
+    {
+      mu_sieve_error (mach, "%lu: mu_property_set_value: %s",
+		      (unsigned long) mu_sieve_get_message_num (mach),
+		      mu_strerror (rc));
+      return -1;
+    }
+  
+  rc = mu_property_save (prop);
+  if (rc)
+    {
+      mu_sieve_error (mach, "%lu: mu_property_save: %s",
+		      (unsigned long) mu_sieve_get_message_num (mach),
+		      mu_strerror (rc));
+      return -1;
+    }
+  return 0;
+}
+
+/* Check and update the vacation database. Return 0 if the mail should
+   be answered, 0 if it should not, and throw exception if an error
+   occurs. */
 static int
 check_db (mu_sieve_machine_t mach, mu_list_t tags, char *from)
 {
-#ifdef USE_DBM
-  DBM_FILE db;
-  DBM_DATUM key, value;
-  time_t now;
-  char buffer[64];
-  char *file, *home;
+  mu_property_t prop;
+  char *file;
   mu_sieve_value_t *arg;
   unsigned int days;
+  time_t now;
   int rc;
+  mu_stream_t str;
+  mu_locker_t locker;
   
   if (mu_sieve_tag_lookup (tags, "days", &arg))
     {
@@ -293,69 +351,67 @@ check_db (mu_sieve_machine_t mach, mu_list_t tags, char *from)
   else
     days = DAYS_DEFAULT;
 
-  home = mu_get_homedir ();
-
-  file = mu_make_file_name (home ? home : ".", ".vacation");
+  file = mu_tilde_expansion ("~/.vacation", "/", NULL);
   if (!file)
     {
       mu_sieve_error (mach, _("%lu: cannot build db file name"),
 		      (unsigned long) mu_sieve_get_message_num (mach));
-      free (home);
       mu_sieve_abort (mach);
     }
-  free (home);
-  
-  rc = mu_dbm_open (file, &db, MU_STREAM_RDWR, 0600);
+
+  rc = mu_locker_create (&locker, file, 0);
   if (rc)
     {
-      mu_sieve_error (mach,
-		      _("%lu: cannot open `%s': %s"),
-		      (unsigned long) mu_sieve_get_message_num (mach), file,
+      mu_sieve_error (mach, _("%lu: cannot lock %s: %s"),
+		      (unsigned long) mu_sieve_get_message_num (mach),
+		      file,
 		      mu_strerror (rc));
       free (file);
       mu_sieve_abort (mach);
     }
+
+  rc = mu_file_stream_create (&str, file, MU_STREAM_RDWR|MU_STREAM_CREAT);
+  if (rc)
+    {
+      mu_sieve_error (mach, "%lu: mu_file_stream_create(%s): %s",
+		      (unsigned long) mu_sieve_get_message_num (mach),
+		      file,
+		      mu_strerror (rc));
+      mu_locker_destroy (&locker);
+      free (file);
+      mu_sieve_abort (mach);
+    }
+  
   free (file);
 
-  time (&now);
-
-  MU_DATUM_SIZE (key) = strlen (from);
-  MU_DATUM_PTR (key) = from;
-
-  rc = mu_dbm_fetch (db, key, &value);
-  if (!rc)
+  rc = mu_property_create_init (&prop, mu_assoc_property_init, str);
+  if (rc)
     {
-      time_t last;
-      
-      strncpy(buffer, MU_DATUM_PTR (value), MU_DATUM_SIZE (value));
-      buffer[MU_DATUM_SIZE (value)] = 0;
-
-      last = (time_t) strtoul (buffer, NULL, 0);
-
-
-      if (last + (24 * 60 * 60 * days) > now)
-	{
-	  mu_dbm_close (db);
-	  return 1;
-	}
+      mu_sieve_error (mach, "%lu: mu_property_create_init: %s",
+		      (unsigned long) mu_sieve_get_message_num (mach),
+		      mu_strerror (rc));
+      mu_locker_destroy (&locker);
+      mu_sieve_abort (mach);
     }
 
-  MU_DATUM_SIZE (value) = snprintf (buffer, sizeof buffer, "%ld", now);
-  MU_DATUM_PTR (value) = buffer;
-  MU_DATUM_SIZE (key) = strlen (from);
-  MU_DATUM_PTR (key) = from;
+  rc = mu_locker_lock (locker);
+  if (rc)
+    {
+      mu_sieve_error (mach, "%lu: cannot lock vacation database: %s",
+		      (unsigned long) mu_sieve_get_message_num (mach),
+		      mu_strerror (rc));
+      mu_property_destroy (&prop);
+      mu_sieve_abort (mach);
+    }
 
-  mu_dbm_insert (db, key, value, 1);
-  mu_dbm_close (db);
-  return 0;
-#else
-  mu_sieve_error (mach,
-	       /* TRANSLATORS: 'vacation' and ':days' are Sieve keywords.
-		  Do not translate them! */
-	       _("%d: vacation compiled without DBM support. Ignoring :days tag"),
-	       mu_sieve_get_message_num (mach));
-  return 0;
-#endif
+  rc = test_and_update_prop (prop, from, now, days, mach);
+  mu_property_destroy (&prop);
+  mu_locker_unlock (locker);
+  mu_locker_destroy (&locker);
+  if (rc == -1)
+    mu_sieve_abort (mach);
+
+  return rc;
 }
 
 /* Add a reply prefix to the subject. *PSUBJECT points to the
@@ -411,7 +467,8 @@ vacation_subject (mu_sieve_machine_t mach, mu_list_t tags,
   if (mu_sieve_tag_lookup (tags, "subject", &arg))
     subject =  arg->v.string;
   else if (mu_message_get_header (msg, &hdr) == 0
-	   && mu_header_aget_value_unfold (hdr, MU_HEADER_SUBJECT, &value) == 0)
+	   && mu_header_aget_value_unfold (hdr, MU_HEADER_SUBJECT,
+					   &value) == 0)
     {
       char *p;
       
@@ -436,9 +493,7 @@ vacation_subject (mu_sieve_machine_t mach, mu_list_t tags,
 	  if (rc)
 	    {
 	      mu_sieve_error (mach,
-			      /* TRANSLATORS: 'vacation' is the name of the
-				 Sieve action. Do not translate it! */
-			      _("%lu: vacation - cannot compile reply prefix regexp: %s: %s"),
+			      _("%lu: cannot compile reply prefix regexp: %s: %s"),
 			      (unsigned long) mu_sieve_get_message_num (mach),
 			      mu_strerror (rc),
 			      err ? err : "");
@@ -521,23 +576,12 @@ vacation_reply (mu_sieve_machine_t mach, mu_list_t tags, mu_message_t msg,
         }
       
       mailer = mu_sieve_get_mailer (mach);
-      rc = mu_mailer_open (mailer, 0);
-      if (rc)
-	{
-	  mu_url_t url = NULL;
-	  mu_mailer_get_url (mailer, &url);
-      
-	  mu_sieve_error (mach,
-			  _("%lu: cannot open mailer %s: %s"),
-			  (unsigned long) mu_sieve_get_message_num (mach),
-			  mu_url_to_string (url), mu_strerror (rc));
-	}
-      else
+      if (mailer)
 	{
 	  rc = mu_mailer_send_message (mailer, newmsg, from_addr, to_addr);
-	  mu_mailer_close (mailer);
 	}
-      mu_mailer_destroy (&mailer);
+      else
+	rc = MU_ERR_FAILURE;
     }
   mu_address_destroy (&to_addr);
   mu_address_destroy (&from_addr);

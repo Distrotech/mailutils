@@ -465,7 +465,31 @@ mu_mailer_t
 mu_sieve_get_mailer (mu_sieve_machine_t mach)
 {
   if (!mach->mailer)
-    mu_mailer_create (&mach->mailer, NULL);
+    {
+      int rc;
+
+      rc = mu_mailer_create (&mach->mailer, NULL);
+      if (rc)
+	{
+	  mu_sieve_error (mach,
+			  _("%lu: cannot create mailer: %s"),
+			  (unsigned long) mu_sieve_get_message_num (mach),
+			  mu_strerror (rc));
+	  return NULL;
+	}
+      rc = mu_mailer_open (mach->mailer, 0);
+      if (rc)
+	{
+	  mu_url_t url = NULL;
+	  mu_mailer_get_url (mach->mailer, &url);
+	  mu_sieve_error (mach,
+			  _("%lu: cannot open mailer %s: %s"),
+			  (unsigned long) mu_sieve_get_message_num (mach),
+			  mu_url_to_string (url), mu_strerror (rc));
+	  mu_mailer_destroy (&mach->mailer);
+	  return NULL;
+	}
+    }
   return mach->mailer;
 }
 

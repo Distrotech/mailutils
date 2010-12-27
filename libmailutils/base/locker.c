@@ -447,7 +447,37 @@ mu_locker_create (mu_locker_t *plocker, const char *fname, int flags)
     return EINVAL;
 
   if ((err = mu_unroll_symlink (fname, &filename)))
-    return err;
+    {
+      if (err == ENOENT)
+	{
+	  /* Try the directory part.  If it unrolls successfully (i.e.
+	     all its components exist), tuck the filename part back in
+	     the resulting path and use it as the lock filename. */
+	  char *p, *tmp = strdup (fname);
+	  if (!tmp)
+	    return ENOMEM;
+	  p = strchr (tmp, '/');
+	  if (!p)
+	    filename = tmp;
+	  else
+	    {
+	      err = mu_unroll_symlink (tmp, &filename);
+	      free (tmp);
+	      if (err)
+		return err;
+	      tmp = realloc (filename, strlen (filename) + strlen (p) + 1);
+	      if (!tmp)
+		{
+		  free (filename);
+		  return ENOMEM;
+		}
+	      strcat (tmp, p);
+	      filename = tmp;
+	    }
+	}
+      else
+	return err;
+    }
 
   l = calloc (1, sizeof (*l));
 
