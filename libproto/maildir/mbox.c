@@ -584,7 +584,8 @@ maildir_scan_dir (struct _amd_data *amd, DIR *dir, char *dirname)
   char *p;
   size_t index;
   int rc = 0;
-
+  int need_sort = 0;
+  
   while ((entry = readdir (dir)))
     {
       switch (entry->d_name[0])
@@ -593,31 +594,23 @@ maildir_scan_dir (struct _amd_data *amd, DIR *dir, char *dirname)
 	  break;
 
 	default:
-	  key.file_name = entry->d_name;
-	  rc = _amd_message_lookup_or_insert (amd,
-					      (struct _amd_message *)&key,
-					      &index);
-	  if (rc == MU_ERR_NOENT)
-	    {
 	      /* Message not found. Index pointd to the array cell where it
 		 would be placed */
-	      msg = calloc (1, sizeof (*msg));
-	      if (!msg)
-		{
-		  rc = ENOMEM;
-		  break;
-		}
-	      amd->msg_array[index] = (struct _amd_message *)msg;
-	      msg->amd_message.amd = amd;
-	      rc = 0;
-	    }
-	  else if (rc == 0)
+	  msg = calloc (1, sizeof (*msg));
+	  if (!msg)
 	    {
-	      msg = (struct _maildir_message *)amd->msg_array[index];
-	      free (msg->file_name);
+	      rc = ENOMEM;
+	      break;
 	    }
-	  else
-	    break;
+	  key.file_name = entry->d_name;
+	  if (!amd_msg_lookup (amd, (struct _amd_message *) &key, &index))
+	    continue;
+	  rc = _amd_message_append (amd, (struct _amd_message *) msg);
+	  if (rc)
+	    {
+	      free (msg);
+	      break;
+	    }
 	      
 	  msg->dir = dirname;
 	  msg->file_name = strdup (entry->d_name);
@@ -628,9 +621,12 @@ maildir_scan_dir (struct _amd_data *amd, DIR *dir, char *dirname)
 	  else
 	    msg->amd_message.attr_flags = 0;
 	  msg->amd_message.orig_flags = msg->amd_message.attr_flags;
+	  need_sort = 1;
 	}
     }
 
+  if (rc == 0 && need_sort)
+    amd_sort (amd);
   return rc;
 }
 

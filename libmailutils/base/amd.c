@@ -241,8 +241,9 @@ amd_array_expand (struct _amd_data *amd, size_t index)
 	}
       amd->msg_array = p;
     }
-  memmove (&amd->msg_array[index+1], &amd->msg_array[index],
-	   (amd->msg_count-index) * amd->msg_size);
+  if (amd->msg_count > index)
+    memmove (&amd->msg_array[index+1], &amd->msg_array[index],
+	     (amd->msg_count-index) * amd->msg_size);
   amd->msg_count++;
   return 0;
 }
@@ -1379,6 +1380,35 @@ _amd_message_insert (struct _amd_data *amd, struct _amd_message *msg)
   else
     return rc;
   return 0;
+}
+
+/* Append message to the end of the array, expanding it if necessary */
+int
+_amd_message_append (struct _amd_data *amd, struct _amd_message *msg)
+{
+  size_t index = amd->msg_count;
+  int rc = amd_array_expand (amd, index);
+  if (rc)
+    return rc;
+  amd->msg_array[index] = msg;
+  msg->amd = amd;
+  return 0;
+}
+
+static int
+msg_array_comp (const void *a, const void *b)
+{
+  struct _amd_message **ma = (struct _amd_message **) a;
+  struct _amd_message **mb = (struct _amd_message **) b;
+  struct _amd_data *amd = (*ma)->amd;
+  return amd->msg_cmp (*ma, *mb);
+}
+
+void
+amd_sort (struct _amd_data *amd)
+{
+  qsort (amd->msg_array, amd->msg_count, sizeof (amd->msg_array[0]),
+	 msg_array_comp);
 }
 
 static void

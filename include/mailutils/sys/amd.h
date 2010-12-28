@@ -110,6 +110,8 @@ int _amd_message_lookup_or_insert (struct _amd_data *amd,
 				   struct _amd_message *key,
 				   size_t *pindex);
 int _amd_message_insert (struct _amd_data *mhd, struct _amd_message *msg);
+int _amd_message_append (struct _amd_data *amd, struct _amd_message *msg);
+void amd_sort (struct _amd_data *amd);
 int amd_message_stream_open (struct _amd_message *mhm);
 void amd_message_stream_close (struct _amd_message *mhm);
 void amd_cleanup (void *arg);

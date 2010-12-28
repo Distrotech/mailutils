@@ -181,6 +181,7 @@ mh_scan0 (mu_mailbox_t mailbox, size_t msgno MU_ARG_UNUSED, size_t *pcount,
   struct dirent *entry;
   int status = 0;
   struct stat st;
+  int need_sort = 0;
 
   if (amd == NULL)
     return EINVAL;
@@ -235,12 +236,18 @@ mh_scan0 (mu_mailbox_t mailbox, size_t msgno MU_ARG_UNUSED, size_t *pcount,
       if (!msg)
 	{
 	  msg = calloc (1, sizeof(*msg));
+	  status = _amd_message_append (amd, (struct _amd_message *) msg);
+	  if (status)
+	    {
+	      free (msg);
+	      break;
+	    }
 
 	  msg->seq_number = num;
 	  msg->amd_message.attr_flags = attr_flags;
 	  msg->amd_message.orig_flags = msg->amd_message.attr_flags;
 
-	  _amd_message_insert (amd, (struct _amd_message*) msg);
+	  need_sort = 1;
 	}
       else
 	{
@@ -251,38 +258,43 @@ mh_scan0 (mu_mailbox_t mailbox, size_t msgno MU_ARG_UNUSED, size_t *pcount,
 
   closedir (dir);
 
-  if (do_notify)
+  if (need_sort)
+    amd_sort (amd);
+
+  if (status == 0)
     {
-      size_t i;
-
-      for (i = 0; i < amd->msg_count; i++)
+      if (do_notify)
 	{
-	  DISPATCH_ADD_MSG (mailbox, amd, i);
-	}
-    }
-  
-  if (stat (amd->name, &st) == 0)
-    amd->mtime = st.st_mtime;
+	  size_t i;
 
-  if (pcount)
-    *pcount = amd->msg_count;
-
-  /* Reset the uidvalidity.  */
-  if (amd->msg_count > 0)
-    {
-      if (amd->uidvalidity == 0)
-	{
-	  amd->uidvalidity = (unsigned long)time (NULL);
-	  /* Tell that we have been modified for expunging.  */
-	  if (amd->msg_count)
+	  for (i = 0; i < amd->msg_count; i++)
 	    {
-	      amd_message_stream_open (amd->msg_array[0]);
-	      amd_message_stream_close (amd->msg_array[0]);
-	      amd->msg_array[0]->attr_flags |= MU_ATTRIBUTE_MODIFIED;
+	      DISPATCH_ADD_MSG (mailbox, amd, i);
+	    }
+	}
+  
+      if (stat (amd->name, &st) == 0)
+	amd->mtime = st.st_mtime;
+
+      if (pcount)
+	*pcount = amd->msg_count;
+
+      /* Reset the uidvalidity.  */
+      if (amd->msg_count > 0)
+	{
+	  if (amd->uidvalidity == 0)
+	    {
+	      amd->uidvalidity = (unsigned long)time (NULL);
+	      /* Tell that we have been modified for expunging.  */
+	      if (amd->msg_count)
+		{
+		  amd_message_stream_open (amd->msg_array[0]);
+		  amd_message_stream_close (amd->msg_array[0]);
+		  amd->msg_array[0]->attr_flags |= MU_ATTRIBUTE_MODIFIED;
+		}
 	    }
 	}
     }
-
   /* Clean up the things */
 
   amd_cleanup (mailbox);
