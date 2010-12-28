@@ -405,16 +405,15 @@ get_personal (mu_header_t hdr, const char *field, char **personal)
   return status;
 }
 
-/* Observer action used to perform mailbox scanning. See the comment
-   to frm_scan below.
+/* Observer action is used to perform mailbox scanning. See the comment
+   to frm_scan below. */
 
-   FIXME: The observer action paradygm does not allow for making
-   procedure-data closure, as it should. So, for the time being
-   the following static variables are used instead: */
-
-static frm_select_t select_message;  /* Message selection function */
-static size_t msg_index;             /* Index (1-based) of the current
-					message */
+struct frm_action_closure
+{
+  frm_select_t select_message;  /* Message selection function */
+  size_t msg_index;             /* Index (1-based) of the current
+				   message */
+};
 
 /* Observable action is being called on discovery of each message. */
 /* FIXME: The format of the display is poorly done, please correct.  */
@@ -422,7 +421,8 @@ static int
 action (mu_observer_t o, size_t type, void *data, void *action_data)
 {
   int status;
-
+  struct frm_action_closure *clos = action_data;
+  
   switch (type)
     {
     case MU_EVT_MESSAGE_ADD:
@@ -432,17 +432,17 @@ action (mu_observer_t o, size_t type, void *data, void *action_data)
 	mu_header_t hdr = NULL;
 	mu_attribute_t attr = NULL;
 
-	msg_index++;
+	clos->msg_index++;
 	
-	mu_mailbox_get_message (mbox, msg_index, &msg);
+	mu_mailbox_get_message (mbox, clos->msg_index, &msg);
 	mu_message_get_attribute (msg, &attr);
 	mu_message_get_header (msg, &hdr);
 
-	if (!select_message (msg_index, msg))
+	if (!clos->select_message (clos->msg_index, msg))
 	  break;
 
 	if (show_number)
-	  format_field ("%4lu:", (u_long) msg_index);
+	  format_field ("%4lu:", (u_long) clos->msg_index);
 
 	if (show_to)
 	  {
@@ -570,12 +570,11 @@ frm_scan (char *mailbox_name, frm_select_t fun, size_t *total)
     {
       mu_observer_t observer;
       mu_observable_t observable;
-
-      select_message = fun;
-      msg_index = 0;
+      struct frm_action_closure closure = { fun, 0 };
       
       mu_observer_create (&observer, mbox);
       mu_observer_set_action (observer, action, mbox);
+      mu_observer_set_action_data (observer, &closure, mbox);
       mu_mailbox_get_observable (mbox, &observable);
       mu_observable_attach (observable, MU_EVT_MESSAGE_ADD, observer);
       
