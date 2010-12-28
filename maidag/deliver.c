@@ -132,7 +132,7 @@ static const char *biff_user_name;
 static int
 notify_action (mu_observer_t obs, size_t type, void *data, void *action_data)
 {
-  if (type == MU_EVT_MESSAGE_APPEND && biff_user_name)
+  if (type == MU_EVT_MAILBOX_MESSAGE_APPEND && biff_user_name)
     {
       mu_message_qid_t qid = data;
       mu_mailbox_t mbox = mu_observer_get_owner (obs);
@@ -183,7 +183,8 @@ attach_notify (mu_mailbox_t mbox)
       mu_observer_create (&observer, mbox);
       mu_observer_set_action (observer, notify_action, mbox);
       mu_mailbox_get_observable (mbox, &observable);
-      mu_observable_attach (observable, MU_EVT_MESSAGE_APPEND, observer);
+      mu_observable_attach (observable, MU_EVT_MAILBOX_MESSAGE_APPEND, 
+                            observer);
     }
 }  
 

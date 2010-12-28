@@ -900,7 +900,8 @@ amd_append_message (mu_mailbox_t mailbox, mu_message_t msg)
       char *qid;
       if (amd->cur_msg_file_name (mhm, &qid) == 0)
 	{
-	  mu_observable_notify (mailbox->observable, MU_EVT_MESSAGE_APPEND,
+	  mu_observable_notify (mailbox->observable, 
+	                        MU_EVT_MAILBOX_MESSAGE_APPEND,
 				qid);
 	  free (qid);
 	}
@@ -1148,6 +1149,7 @@ amd_expunge (mu_mailbox_t mailbox)
   struct _amd_message *mhm;
   size_t i;
   int updated = amd->has_new_msg;
+  size_t expcount = 0;
   
   if (amd == NULL)
     return EINVAL;
@@ -1175,9 +1177,15 @@ amd_expunge (mu_mailbox_t mailbox)
 
 	  if (amd->delete_msg)
 	    {
+	      size_t expevt[2] = { i + 1, expcount };
 	      rc = amd->delete_msg (amd, mhm);
 	      if (rc)
 		return rc;
+
+	      mu_observable_notify (mailbox->observable,
+				    MU_EVT_MAILBOX_MESSAGE_EXPUNGE,
+				    expevt);
+	      ++expcount;
 	    }
 	  else
 	    {

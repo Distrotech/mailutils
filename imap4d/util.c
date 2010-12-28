@@ -402,8 +402,7 @@ _imap4d_attrlist[] =
   { "\\Flagged", MU_ATTRIBUTE_FLAGGED },
   { "\\Deleted", MU_ATTRIBUTE_DELETED },
   { "\\Draft", MU_ATTRIBUTE_DRAFT },
-  { "\\Seen", MU_ATTRIBUTE_READ },
-  { "\\Recent", MU_ATTRIBUTE_RECENT },
+  { "\\Seen", MU_ATTRIBUTE_SEEN|MU_ATTRIBUTE_READ },
 };
 
 #define NATTR sizeof(_imap4d_attrlist)/sizeof(_imap4d_attrlist[0])
@@ -414,6 +413,13 @@ int
 util_attribute_to_type (const char *item, int *type)
 {
   int i;
+
+  if (mu_c_strcasecmp (item, "\\Recent") == 0)
+    {
+      *type = MU_ATTRIBUTE_RECENT;
+      return 0;
+    }
+  
   for (i = 0; i < _imap4d_nattr; i++)
     if (mu_c_strcasecmp (item, _imap4d_attrlist[i].name) == 0)
       {
@@ -423,68 +429,38 @@ util_attribute_to_type (const char *item, int *type)
   return 1;
 }
 
-/* Note: currently unused. Not needed, possibly? */
 int
-util_type_to_attribute (int type, char **attr_str)
+util_format_attribute_flags (mu_stream_t str, int flags)
 {
-  char *attr_list[NATTR];
-  int nattr = 0;
   int i;
-  size_t len = 0;
-
-  if (MU_ATTRIBUTE_IS_UNSEEN (type))
-    *attr_str = strdup ("\\Recent");
-  else
-    *attr_str = NULL;
-
+  int delim = 0;
+  
   for (i = 0; i < _imap4d_nattr; i++)
-    if (type & _imap4d_attrlist[i].flag)
+    if (flags & _imap4d_attrlist[i].flag)
       {
-	attr_list[nattr++] = _imap4d_attrlist[i].name;
-	len += 1 + strlen (_imap4d_attrlist[i].name);
+	if (delim)
+	  mu_stream_printf (str, " ");
+	mu_stream_printf (str, "%s", _imap4d_attrlist[i].name);
+	delim = 1;
       }
 
-  *attr_str = malloc (len + 1);
-  (*attr_str)[0] = 0;
-  if (*attr_str)
+  if (MU_ATTRIBUTE_IS_UNSEEN (flags))
     {
-      for (i = 0; i < nattr; i++)
-	{
-	  strcat (*attr_str, attr_list[i]);
-	  if (i != nattr - 1)
-	    strcat (*attr_str, " ");
-	}
+      if (delim)
+	mu_stream_printf (str, " ");
+      mu_stream_printf (str, "\\Recent");
     }
-
-  if (!*attr_str)
-    imap4d_bye (ERR_NO_MEM);
+  
   return 0;
 }
 
 void
 util_print_flags (mu_attribute_t attr)
 {
-  int i;
   int flags = 0;
-  int space = 0;
 
   mu_attribute_get_flags (attr, &flags);
-  for (i = 0; i < _imap4d_nattr; i++)
-    if (flags & _imap4d_attrlist[i].flag)
-      {
-	if (space)
-	  io_sendf (" ");
-	else
-	  space = 1;
-	io_sendf (_imap4d_attrlist[i].name);
-      }
-
-  if (MU_ATTRIBUTE_IS_UNSEEN (flags))
-    {
-      if (space)
-	io_sendf (" ");
-      io_sendf ("\\Recent");
-    }
+  util_format_attribute_flags (iostream, flags);
 }
 
 int

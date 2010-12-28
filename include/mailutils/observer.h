@@ -24,17 +24,26 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-                                          /* Call data type: */
-#define MU_EVT_MAILBOX_DESTROY     0x001  /*  mu_mailbox_t */
-#define MU_EVT_FOLDER_DESTROY      0x002  /*  mu_folder_t */ 
-#define MU_EVT_MAILER_DESTROY      0x004  /*  mu_mailer_t */
-#define MU_EVT_MESSAGE_DESTROY     0x008  /*  mu_message_t */
-#define MU_EVT_MESSAGE_ADD         0x010  /*  size_t *: FIXME */
-#define MU_EVT_MAILBOX_PROGRESS    0x020  /*  NULL: FIXME? */
-#define MU_EVT_AUTHORITY_FAILED    0x030  /*  NULL */
-#define MU_EVT_MAILBOX_CORRUPT     0x040  /*  mu_mailbox_t */
-#define MU_EVT_MAILER_MESSAGE_SENT 0x080  /*  mu_message_t */
-#define MU_EVT_MESSAGE_APPEND      0x100  /*  mu_message_qid_t: FIXME */ 
+  /* Mailbox events */
+                                               /* Call data type: */
+#define MU_EVT_MAILBOX_DESTROY          0x001  /*  mu_mailbox_t */
+#define MU_EVT_MAILBOX_PROGRESS         0x002  /*  NULL: FIXME? */
+#define MU_EVT_MAILBOX_CORRUPT          0x004  /*  mu_mailbox_t */
+#define MU_EVT_MAILBOX_MESSAGE_APPEND   0x008  /*  mu_message_qid_t: FIXME */ 
+#define MU_EVT_MAILBOX_MESSAGE_EXPUNGE  0x010  /*  size_t [2]
+					           (message number/number of 
+					            messages removed so far) */
+  /* Folder events */
+#define MU_EVT_FOLDER_DESTROY           0x020  /*  mu_folder_t */
+#define MU_EVT_FOLDER_AUTHORITY_FAILED  0x040  /*  NULL */
+
+  /* Message events */
+#define MU_EVT_MESSAGE_DESTROY          0x080  /*  mu_message_t */
+#define MU_EVT_MESSAGE_ADD              0x100  /*  size_t *: FIXME */
+
+  /* Mailer events */
+#define MU_EVT_MAILER_DESTROY           0x200  /*  mu_mailer_t */
+#define MU_EVT_MAILER_MESSAGE_SENT      0x400  /*  mu_message_t */
   
 #define MU_OBSERVER_NO_CHECK 1
 

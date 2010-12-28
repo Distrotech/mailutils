@@ -370,6 +370,7 @@ extern char *util_localname (void);
 
 extern int util_wcard_match (const char *string, const char *pattern,
 			     const char *delim);
+int util_format_attribute_flags (mu_stream_t str, int flags);
 void util_print_flags (mu_attribute_t attr);
 int util_attribute_to_type (const char *item, int *type);
 int util_type_to_attribute (int type, char **attr_str);

@@ -1143,7 +1143,8 @@ mbox_append_message (mu_mailbox_t mailbox, mu_message_t msg)
     {
       char *buf = NULL;
       mu_asprintf (&buf, "%lu", (unsigned long) size);
-      mu_observable_notify (mailbox->observable, MU_EVT_MESSAGE_APPEND, buf);
+      mu_observable_notify (mailbox->observable, 
+                            MU_EVT_MAILBOX_MESSAGE_APPEND, buf);
       free (buf);
     }
   
@@ -1184,7 +1185,8 @@ mbox_expunge_unlocked (mu_mailbox_t mailbox, size_t dirty, int remove_deleted,
   size_t save_imapbase = 0;  /* uidvalidity is save in the first message.  */
   mu_off_t start_off;
   mu_off_t size;
-
+  size_t expcount = 0;
+  
   /* Set the marker position.  */
   start_off = mud->umessages[dirty]->envel_from;
 
@@ -1194,6 +1196,11 @@ mbox_expunge_unlocked (mu_mailbox_t mailbox, size_t dirty, int remove_deleted,
       
       if (remove_deleted && ATTRIBUTE_IS_DELETED (mum->attr_flags))
 	{
+	  size_t expevt[2] = { i + 1, expcount };
+	  mu_observable_notify (mailbox->observable,
+				MU_EVT_MAILBOX_MESSAGE_EXPUNGE,
+				expevt);
+	  expcount++;
 	  mu_message_destroy (&mum->message, mum);
 	  /* We save the uidvalidity in the first message, if it is being
 	     deleted we need to move the uidvalidity to the first available

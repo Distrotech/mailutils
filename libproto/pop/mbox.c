@@ -864,6 +864,7 @@ pop_expunge (mu_mailbox_t mbox)
   struct _pop3_mailbox *mpd = mbox->data;
   int status = 0;
   size_t i;
+  size_t expcount = 0;
   
   if (mpd == NULL)
     return EINVAL;
@@ -879,9 +880,14 @@ pop_expunge (mu_mailbox_t mbox)
 	  (mpm->flags & _POP3_MSG_ATTRSET) &&
 	  (mpm->attr_flags & MU_ATTRIBUTE_DELETED))
 	{
+	  size_t expevt[2] = { i + 1, expcount };
 	  status = mu_pop3_dele (mpd->pop3, mpm->num);
 	  if (status)
 	    break;
+	  mu_observable_notify (mbox->observable,
+				MU_EVT_MAILBOX_MESSAGE_EXPUNGE,
+				&expevt);
+	  ++expcount;
 	}
     }
   return 0;

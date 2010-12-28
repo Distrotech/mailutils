@@ -21,163 +21,24 @@
 /*
 
  */
-struct _uid_table
-{
-  size_t uid;
-  size_t msgno;
-  int notify;
-  mu_attribute_t attr;
-};
-
-static struct _uid_table *uid_table;
-static size_t uid_table_count;
-static int uid_table_loaded;
-
-static void
-add_flag (char **pbuf, const char *f)
-{
-  char *abuf = *pbuf;
-  abuf = realloc (abuf, strlen (abuf) + strlen (f) + 2);
-  if (abuf == NULL)
-    imap4d_bye (ERR_NO_MEM);
-  if (*abuf)
-    strcat (abuf, " ");
-  strcat (abuf, "\\Seen");
-  *pbuf = abuf;
-}
-
-static void
-notify_flag (size_t msgno, mu_attribute_t oattr)
-{
-  mu_message_t msg = NULL;
-  mu_attribute_t nattr = NULL;
-  int status ;
-  mu_mailbox_get_message (mbox, msgno, &msg);
-  mu_message_get_attribute (msg, &nattr);
-  status = mu_attribute_is_equal (oattr, nattr);
-
-  if (status == 0)
-    {
-      char *abuf = malloc (1);;
-      if (!abuf)
-	imap4d_bye (ERR_NO_MEM);
-      *abuf = '\0';
-      if (mu_attribute_is_seen (nattr) && mu_attribute_is_read (nattr))
-	if (!mu_attribute_is_seen (oattr) && !mu_attribute_is_read (oattr))
-	  {
-	    mu_attribute_set_seen (oattr);
-	    mu_attribute_set_read (oattr);
-	    add_flag (&abuf, "\\Seen");
-	  }
-      if (mu_attribute_is_answered (nattr))
-	if (!mu_attribute_is_answered (oattr))
-	  {
-	    mu_attribute_set_answered (oattr);
-	    add_flag (&abuf, "\\Answered");
-	  }
-      if (mu_attribute_is_flagged (nattr))
-	if (!mu_attribute_is_flagged (oattr))
-	  {
-	    mu_attribute_set_flagged (oattr);
-	    add_flag (&abuf, "\\Flagged");
-	  }
-      if (mu_attribute_is_deleted (nattr))
-	if (!mu_attribute_is_deleted (oattr))
-	  {
-	    mu_attribute_set_deleted (oattr);
-	    add_flag (&abuf, "\\Deleted");
-	  }
-      if (mu_attribute_is_draft (nattr))
-	if (!mu_attribute_is_draft (oattr))
-	  {
-	    mu_attribute_set_draft (oattr);
-	    add_flag (&abuf, "\\Draft");
-	  }
-      if (mu_attribute_is_recent (nattr))
-	if (!mu_attribute_is_recent (oattr))
-	  {
-	    mu_attribute_set_recent (oattr);
-	    add_flag (&abuf, "\\Recent");
-	  }
-      if (*abuf)
-	io_untagged_response (RESP_NONE, "%lu FETCH FLAGS (%s)",
-		                 (unsigned long) msgno, abuf);
-      free (abuf);
-    }
-}
-
-/* The EXPUNGE response reports that the specified message sequence
-   number has been permanently removed from the mailbox.  The message
-   sequence number for each successive message in the mailbox is
-   immediately decremented by 1, and this decrement is reflected in
-   message sequence numbers in subsequent responses (including other
-   untagged EXPUNGE responses). */
-static void
-notify_deleted (void)
-{
-  if (uid_table)
-    {
-      size_t i;
-      size_t decr = 0;
-      for (i = 0; i < uid_table_count; i++)
-	{
-	  if (!(uid_table[i].notify))
-	    {
-	      io_untagged_response (RESP_NONE, "%lu EXPUNGED",
-			               (unsigned long) uid_table[i].msgno-decr);
-	      uid_table[i].notify = 1;
-	      decr++;
-	    }
-	}
-    }
-}
-
-
-static int
-notify_uid (size_t uid)
-{
-  if (uid_table)
-    {
-      size_t i;
-      for (i = 0; i < uid_table_count; i++)
-	{
-	  if (uid_table[i].uid == uid)
-	    {
-	      notify_flag (uid_table[i].msgno, uid_table[i].attr);
-	      uid_table[i].notify = 1;
-	      return 1;
-	    }
-	}
-    }
-  return 0;
-}
+static int *attr_table;
+static size_t attr_table_count;
+static int attr_table_loaded;
 
 static void
 free_uids (void)
 {
-  if (uid_table)
+  if (attr_table)
     {
-      size_t i;
-      for (i = 0; i < uid_table_count; i++)
-	mu_attribute_destroy (&(uid_table[i].attr), NULL);
-      free (uid_table);
-      uid_table = NULL;
+      free (attr_table);
+      attr_table = NULL;
     }
-  uid_table_count = 0;
-  uid_table_loaded = 0;
+  attr_table_count = 0;
+  attr_table_loaded = 0;
 }
 
 static void
-reset_notify (void)
-{
-  size_t i;
-
-  for (i = 0; i < uid_table_count; i++)
-    uid_table[i].notify = 0;
-}
-
-static void
-reset_uids (void)
+reread_attributes (void)
 {
   size_t total = 0;
   size_t i;
@@ -185,26 +46,24 @@ reset_uids (void)
   free_uids ();
 
   mu_mailbox_messages_count (mbox, &total);
+  if (total > attr_table_count)
+    {
+      attr_table = realloc (attr_table, sizeof (*attr_table) * total);
+      if (!attr_table)
+	imap4d_bye (ERR_NO_MEM);
+      attr_table_count = total;
+    }
+  
   for (i = 1; i <= total; i++)
     {
       mu_message_t msg = NULL;
       mu_attribute_t attr = NULL;
-      size_t uid = 0;
-      uid_table = realloc (uid_table, sizeof (*uid_table) *
-			   (uid_table_count + 1));
-      if (!uid_table)
-	imap4d_bye (ERR_NO_MEM);
+
       mu_mailbox_get_message (mbox, i, &msg);
       mu_message_get_attribute (msg, &attr);
-      mu_message_get_uid (msg, &uid);
-      uid_table[uid_table_count].uid = uid;
-      uid_table[uid_table_count].msgno = i;
-      uid_table[uid_table_count].notify = 0;
-      mu_attribute_create (&(uid_table[uid_table_count].attr), NULL);
-      mu_attribute_copy (uid_table[uid_table_count].attr, attr);
-      uid_table_count++;
+      mu_attribute_get_flags (attr, &attr_table[i-1]);
     }
-  uid_table_loaded = 1;
+  attr_table_loaded = 1;
 }
 
 static void
@@ -216,25 +75,34 @@ notify (void)
   
   mu_mailbox_messages_count (mbox, &total);
 
-  if (!uid_table)
+  if (!attr_table)
     {
       reset = 1;
-      reset_uids ();
+      reread_attributes ();
+      mu_mailbox_messages_recent (mbox, &recent);
     }
-  
-  if (uid_table)
+  else if (attr_table)
     {
       size_t i;
 
       for (i = 1; i <= total; i++)
 	{
 	  mu_message_t msg = NULL;
-	  size_t uid = 0;
+	  mu_attribute_t nattr = NULL;
+	  int nflags;
+	  
 	  mu_mailbox_get_message (mbox, i, &msg);
-	  mu_message_get_uid (msg, &uid);
-	  notify_uid (uid);
+	  mu_message_get_attribute (msg, &nattr);
+	  mu_attribute_get_flags (nattr, &nflags);
+
+	  if (nflags != attr_table[i-1])
+	    {
+	      io_sendf ("* %lu FETCH FLAGS (",  (unsigned long) i);
+	      util_format_attribute_flags (iostream, nflags);
+	      io_sendf (")\n");
+	      attr_table[i-1] = nflags;
+	    }
 	}
-      notify_deleted ();
       mu_mailbox_messages_recent (mbox, &recent);
     }
 
@@ -242,35 +110,28 @@ notify (void)
   io_untagged_response (RESP_NONE, "%lu RECENT", (unsigned long) recent);
 
   if (!reset)
-    reset_uids ();
-  else
-    reset_notify ();
+    reread_attributes ();
 }
 
 size_t
 uid_to_msgno (size_t uid)
 {
-  size_t i;
-  for (i = 0; i < uid_table_count; i++)
-    if (uid_table[i].uid == uid)
-      return uid_table[i].msgno;
-  return 0;
+  size_t msgno;
+  mu_mailbox_translate (mbox, MU_MAILBOX_UID_TO_MSGNO, uid, &msgno);
+  return msgno;
 }
 
 int
 imap4d_sync_flags (size_t msgno)
 {
-  size_t i;
-  for (i = 0; i < uid_table_count; i++)
-    if (uid_table[i].msgno == msgno)
-      {
-	mu_message_t msg = NULL;
-	mu_attribute_t attr = NULL;
-	mu_mailbox_get_message (mbox, msgno, &msg);
-	mu_message_get_attribute (msg, &attr);
-	mu_attribute_copy (uid_table[i].attr, attr);
-	break;
-      }
+  if (attr_table)
+    {
+      mu_message_t msg = NULL;
+      mu_attribute_t attr = NULL;
+      mu_mailbox_get_message (mbox, msgno, &msg);
+      mu_message_get_attribute (msg, &attr);
+      mu_attribute_get_flags (attr, &attr_table[msgno-1]);
+    }
   return 0;
 }
 
@@ -288,6 +149,19 @@ action (mu_observer_t observer, size_t type, void *data, void *action_data)
     case MU_EVT_MAILBOX_DESTROY:
       mailbox_corrupt = 0;
       break;
+
+    case MU_EVT_MAILBOX_MESSAGE_EXPUNGE:
+      /* The EXPUNGE response reports that the specified message sequence
+	 number has been permanently removed from the mailbox.  The message
+	 sequence number for each successive message in the mailbox is
+	 immediately decremented by 1, and this decrement is reflected in
+	 message sequence numbers in subsequent responses (including other
+	 untagged EXPUNGE responses). */
+      {
+	size_t *exp = data;
+	io_untagged_response (RESP_NONE, "%lu EXPUNGED",
+			      (unsigned long) (exp[0] - exp[1]));
+      }
     }
   return 0;
 }
@@ -301,8 +175,11 @@ imap4d_set_observer (mu_mailbox_t mbox)
   mu_observer_create (&observer, mbox);
   mu_observer_set_action (observer, action, mbox);
   mu_mailbox_get_observable (mbox, &observable);
-  mu_observable_attach (observable, MU_EVT_MAILBOX_CORRUPT|MU_EVT_MAILBOX_DESTROY,
-		     observer);
+  mu_observable_attach (observable,
+			MU_EVT_MAILBOX_CORRUPT|
+			MU_EVT_MAILBOX_DESTROY|
+			MU_EVT_MAILBOX_MESSAGE_EXPUNGE,
+			observer);
   mailbox_corrupt = 0;
 }
 
@@ -314,7 +191,7 @@ imap4d_sync (void)
      If it was a close we do not send any notification.  */
   if (mbox == NULL)
     free_uids ();
-  else if (!uid_table_loaded || !mu_mailbox_is_updated (mbox))
+  else if (!attr_table_loaded || !mu_mailbox_is_updated (mbox))
     {
       if (mailbox_corrupt)
 	{
@@ -338,7 +215,7 @@ imap4d_sync (void)
     {
       size_t count = 0;
       mu_mailbox_messages_count (mbox, &count);
-      if (count != uid_table_count)
+      if (count != attr_table_count)
 	notify ();
     }
   return 0;

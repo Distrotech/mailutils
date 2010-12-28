@@ -534,9 +534,7 @@ mu_message_destroy (mu_message_t *pmsg, void *owner)
 	 is very unfortunate.
 
 	 The `owner' stuff is a leftover from older mailutils versions.
-	 There is an ongoing attempt to remove it in the stream-cleanup
-	 branch. When it is ready, it will be merged to the HEAD and this
-	 will finally resolve this issue. */
+	 We are heading to removing it altogether. */
       if (msg->ref > 0)
 	msg->ref--;
       if ((msg->owner && msg->owner == owner)
