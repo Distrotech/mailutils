@@ -804,9 +804,21 @@ auth <>
 host <>
 port 0
 path </bin/mailman>
-query[0] </bin/mailman>
-query[1] <request>
-query[2] <list%40dom>
+query[0] <request>
+query[1] <list%40dom>
+]])
+
+TESTURL([],[],
+[prog:///bin/mailman?request&list%40dom],
+[[scheme <prog>
+user <>
+passwd <>
+auth <>
+host <>
+port 0
+path </bin/mailman>
+query[0] <request>
+query[1] <list@dom>
 ]])
 
 m4_popdef([TESTURL])

@@ -378,6 +378,7 @@ _mu_url_create_internal (struct mu_url_ctx *ctx, mu_url_t hint)
   if ((ctx->flags & MU_URL_PARSE_PIPE) && ctx->input[0] == '|')
     {
       struct mu_wordsplit ws;
+      size_t i;
       
       rc = str_assign (&url->scheme, "prog");
       if (rc)
@@ -386,15 +387,21 @@ _mu_url_create_internal (struct mu_url_ctx *ctx, mu_url_t hint)
       ctx->flags &= ~MU_URL_PARSE_HEXCODE;
       if (mu_wordsplit (ctx->input + 1, &ws, MU_WRDSF_DEFFLAGS))
 	return errno;
-      url->qargc = ws.ws_wordc;
-      url->qargv = ws.ws_wordv;
+      url->path = ws.ws_wordv[0];
+      url->flags |= MU_URL_PATH;
+      
+      url->qargc = ws.ws_wordc - 1;
+      url->qargv = calloc (url->qargc + 1, sizeof (url->qargv[0]));
+      if (!url->qargv)
+	{
+	  mu_wordsplit_free (&ws);
+	  return ENOMEM;
+	}
+      for (i = 0; i < url->qargc; i++)
+	url->qargv[i] = ws.ws_wordv[i+1];
       ws.ws_wordc = 0;
-      ws.ws_wordv = NULL;
       mu_wordsplit_free (&ws);
       url->flags |= MU_URL_QUERY;
-      rc = str_assign (&url->path, url->qargv[0]);
-      if (rc == 0)
-	url->flags |= MU_URL_PATH;
     }
   else if ((ctx->flags & MU_URL_PARSE_SLASH) && ctx->input[0] == '/')
     {

@@ -388,19 +388,15 @@ get_personal (mu_header_t hdr, const char *field, char **personal)
   if (status == 0)
     {
       mu_address_t address = NULL;
-      char *s = NULL;
+      const char *s = NULL;
       
       mu_address_create (&address, hfield);
       
-      mu_address_aget_personal (address, 1, &s);
-      mu_address_destroy (&address);
+      mu_address_sget_personal (address, 1, &s);
       if (s == NULL)
 	s = hfield;
-      else
-	free (hfield);
-
       *personal = rfc2047_decode_wrapper (s, strlen (s));
-      free (s);
+      mu_address_destroy (&address);
     }
   return status;
 }
@@ -483,7 +479,7 @@ action (mu_observer_t o, size_t type, void *data, void *action_data)
 	      format_field ("");
 
 	    status = mu_header_aget_value_unfold (hdr, MU_HEADER_SUBJECT,
-					       &tmp);
+						  &tmp);
 	    if (status == 0)
 	      {
 		char *s = rfc2047_decode_wrapper (tmp, strlen (tmp));
@@ -581,7 +577,7 @@ frm_scan (char *mailbox_name, frm_select_t fun, size_t *total)
       status = mu_mailbox_scan (mbox, 1, total);
       if (status != 0)
 	{
-	  mu_error (_("could not scan mailbox `%s': %s."),
+	  mu_error (_("could not scan mailbox `%s': %s"),
 		    mu_url_to_string (url), mu_strerror (status));
 	  frm_abort (&mbox);
 	}

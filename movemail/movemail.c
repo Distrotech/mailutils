@@ -828,6 +828,7 @@ set_program_id (const char *source_name, const char *dest_name)
   ws.ws_wordv[0] = NULL;
   ws.ws_wordc = 0;
   mu_wordsplit_free (&ws);
+  mu_stdstream_strerr_setup (MU_STRERR_STDERR);
 }
 
 
