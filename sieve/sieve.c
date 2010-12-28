@@ -355,6 +355,7 @@ sieve_message (mu_sieve_machine_t mach)
       return EX_SOFTWARE;
     }
   rc = mu_stream_to_message (instr, &msg);
+  mu_stream_unref (instr);
   if (rc)
     {
       mu_error (_("cannot create message from stream: %s"),

@@ -268,6 +268,7 @@ main (int argc, char **argv)
 	mu_list_set_comparator (skiphdr_list, headercmp);
       
       MU_ASSERT (mu_stream_to_message (instr, &msg));
+      mu_stream_unref (instr);
       MU_ASSERT (mu_smtp_data (smtp, &ostr));
       MU_ASSERT (mu_message_get_header (msg, &hdr));
       MU_ASSERT (mu_header_get_iterator (hdr, &itr));

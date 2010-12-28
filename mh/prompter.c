@@ -186,6 +186,7 @@ main (int argc, char **argv)
       return 1;
     }
   rc = mu_stream_to_message (in, &msg);
+  mu_stream_unref (in);
   if (rc)
     {
       mu_error (_("input stream %s is not a message (%s)"),

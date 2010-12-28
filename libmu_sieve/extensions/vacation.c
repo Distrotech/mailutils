@@ -97,7 +97,6 @@ build_mime (mu_sieve_machine_t mach, mu_list_t tags, mu_mime_t *pmime,
       return 1;
     }
 
-  mu_stream_seek (input, 0, MU_SEEK_SET, NULL);
   rc = mu_stream_copy (stream, input, 0, NULL);
   if (rc)
     {
@@ -263,7 +262,6 @@ bulk_precedence_p (mu_header_t hdr)
   return rc;
 }
 
-#define	DAYS_MIN	1
 #define	DAYS_DEFAULT	7
 #define	DAYS_MAX	60
 
@@ -283,6 +281,8 @@ test_and_update_prop (mu_property_t prop, const char *from,
       break;
       
     case 0:
+      if (days == 0)
+	return 1;
       last = (time_t) strtoul (result, NULL, 0);
       if (last + (24 * 60 * 60 * days) > now)
 	return 1;
@@ -342,10 +342,7 @@ check_db (mu_sieve_machine_t mach, mu_list_t tags, char *from)
   
   if (mu_sieve_tag_lookup (tags, "days", &arg))
     {
-      days = arg->v.number;
-      if (days < DAYS_MIN)
-	days = DAYS_MIN;
-      else if (days > DAYS_MAX)
+      if (days > DAYS_MAX)
 	days = DAYS_MAX;
     }
   else
@@ -533,11 +530,40 @@ vacation_reply (mu_sieve_machine_t mach, mu_list_t tags, mu_message_t msg,
   char *value;
   mu_mailer_t mailer;
   int rc;
-  
-  if (build_mime (mach, tags, &mime, msg, text))
-    return -1;
-  mu_mime_get_message (mime, &newmsg);
-  mu_message_get_header (newmsg, &newhdr);
+
+  if (mu_sieve_tag_lookup (tags, "file", NULL))
+    {
+      mu_stream_t instr;
+      
+      rc = mu_mapfile_stream_create (&instr, text, MU_STREAM_READ);
+      if (rc)
+	{
+	  mu_sieve_error (mach,
+			  _("%lu: cannot open message file %s: %s"),
+			  (unsigned long) mu_sieve_get_message_num (mach),
+			  text,
+			  mu_strerror (rc));
+	  return -1;
+	}
+      rc = mu_stream_to_message (instr, &newmsg);
+      mu_stream_unref (instr);
+      if (rc)
+	{
+	  mu_sieve_error (mach,
+			  _("%lu: cannot read message from file %s: %s"),
+			  (unsigned long) mu_sieve_get_message_num (mach),
+			  text,
+			  mu_strerror (rc));
+	  return -1;
+	} 
+    }
+  else
+    {
+      if (build_mime (mach, tags, &mime, msg, text))
+	return -1;
+      mu_mime_get_message (mime, &newmsg);
+      mu_message_get_header (newmsg, &newhdr);
+    }
   
   rc = mu_address_create (&to_addr, to);
   if (rc)
@@ -654,7 +680,9 @@ static mu_sieve_tag_def_t vacation_tags[] = {
   {"addresses", SVT_STRING_LIST},
   {"reply_regex", SVT_STRING},
   {"reply_prefix", SVT_STRING},
+  {"sender", SVT_STRING},
   {"mime", SVT_VOID},
+  {"file", SVT_VOID},
   {NULL}
 };
 

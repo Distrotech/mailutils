@@ -416,6 +416,7 @@ cfun_data (mu_stream_t iostr, char *arg)
     }
 
   rc = mu_stream_to_message (tempstr, &mesg);
+  mu_stream_unref (tempstr);
   if (rc)
     {
       maidag_error (_("error creating temporary message: %s"),
@@ -425,7 +426,6 @@ cfun_data (mu_stream_t iostr, char *arg)
   
   rc = mu_list_do (rcpt_list, dot_deliver, iostr);
 
-  mu_stream_destroy (&tempstr);
   mu_message_destroy (&mesg, mu_message_get_owner (mesg));
   if (rc)
     mu_list_do (rcpt_list, dot_temp_fail, iostr);

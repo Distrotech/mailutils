@@ -379,7 +379,6 @@ finish_stream (struct burst_stream *bs)
 	mu_mailbox_uidnext (tmpbox, &map.first);
       burst_or_copy (msg, recursive, 1);
       mu_message_destroy (&msg, mu_message_get_owner (msg));
-      mu_stream_unref (bs->stream);
       bs->stream = 0;
       
       bs->partno++;

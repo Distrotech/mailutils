@@ -30,6 +30,7 @@ mh_stream_to_message (mu_stream_t instream)
   mu_message_t msg;
 
   rc = mu_stream_to_message (instream, &msg);
+  mu_stream_unref (instream);
   if (rc)
     {
       mu_error (_("cannot open draft message stream: %s"),
