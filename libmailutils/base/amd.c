@@ -100,8 +100,6 @@ static int amd_get_attr_flags (mu_attribute_t attr, int *pflags);
 static int amd_set_attr_flags (mu_attribute_t attr, int flags);
 static int amd_unset_attr_flags (mu_attribute_t attr, int flags);
 
-static void _amd_message_delete (struct _amd_data *amd,
-				 struct _amd_message *msg);
 static int amd_pool_open (struct _amd_message *mhm);
 static int amd_pool_open_count (struct _amd_data *amd);
 static void amd_pool_flush (struct _amd_data *amd);
@@ -233,7 +231,7 @@ amd_array_expand (struct _amd_data *amd, size_t index)
       struct _amd_message **p;
       
       amd->msg_max += AMD_MSG_INC; /* FIXME: configurable? */
-      p = realloc (amd->msg_array, amd->msg_max * amd->msg_size);
+      p = realloc (amd->msg_array, amd->msg_max * sizeof (amd->msg_array[0]));
       if (!p)
 	{
 	  amd->msg_max -= AMD_MSG_INC;
@@ -243,20 +241,21 @@ amd_array_expand (struct _amd_data *amd, size_t index)
     }
   if (amd->msg_count > index)
     memmove (&amd->msg_array[index+1], &amd->msg_array[index],
-	     (amd->msg_count-index) * amd->msg_size);
+	     (amd->msg_count-index) * sizeof (amd->msg_array[0]));
   amd->msg_count++;
   return 0;
 }
 
-/* Shrink the message array by removing element at INDEX-1 and
-   shifting left by one position all the elements on the right of
+/* Shrink the message array by removing element at INDEX-COUNT and
+   shifting left by COUNT positions all the elements on the right of
    it. */
 int
-amd_array_shrink (struct _amd_data *amd, size_t index)
+amd_array_shrink (struct _amd_data *amd, size_t index, size_t count)
 {
-  memmove (&amd->msg_array[index-1], &amd->msg_array[index],
-	   (amd->msg_count-index) * amd->msg_size);
-  amd->msg_count--;
+  if (amd->msg_count-index-1 && index < amd->msg_count)
+    memmove (&amd->msg_array[index-count+1], &amd->msg_array[index + 1],
+	     (amd->msg_count-index-1) * sizeof (amd->msg_array[0]));
+  amd->msg_count -= count;
   return 0;
 }
 
@@ -1150,6 +1149,7 @@ amd_expunge (mu_mailbox_t mailbox)
   size_t i;
   int updated = amd->has_new_msg;
   size_t expcount = 0;
+  size_t last_expunged = 0;
   
   if (amd == NULL)
     return EINVAL;
@@ -1157,35 +1157,20 @@ amd_expunge (mu_mailbox_t mailbox)
   if (amd->msg_count == 0)
     return 0;
 
-  /* Find the first dirty(modified) message.  */
   for (i = 0; i < amd->msg_count; i++)
-    {
-      mhm = amd->msg_array[i];
-      if ((mhm->attr_flags & MU_ATTRIBUTE_MODIFIED) ||
-	  (mhm->attr_flags & MU_ATTRIBUTE_DELETED) ||
-	  (mhm->message && mu_message_is_modified (mhm->message)))
-	break;
-    }
-
-  while (i < amd->msg_count)
     {
       mhm = amd->msg_array[i];
       
       if (mhm->attr_flags & MU_ATTRIBUTE_DELETED)
 	{
 	  int rc;
+	  struct _amd_message **pp;
 
 	  if (amd->delete_msg)
 	    {
-	      size_t expevt[2] = { i + 1, expcount };
 	      rc = amd->delete_msg (amd, mhm);
 	      if (rc)
 		return rc;
-
-	      mu_observable_notify (mailbox->observable,
-				    MU_EVT_MAILBOX_MESSAGE_EXPUNGE,
-				    expevt);
-	      ++expcount;
 	    }
 	  else
 	    {
@@ -1220,9 +1205,25 @@ amd_expunge (mu_mailbox_t mailbox)
 	      free (old_name);
 	      free (new_name);
 	    }
-	  _amd_message_delete (amd, mhm);
+
+	  pp = amd_pool_lookup (mhm);
+	  if (pp)
+	    *pp = NULL;
+	  mu_message_destroy (&mhm->message, mhm);
+	  if (amd->msg_free)
+	    amd->msg_free (mhm);
+	  free (mhm);
+	  amd->msg_array[i] = NULL;
+	  last_expunged = i;
 	  updated = 1;
-	  /* Do not increase i! */
+
+	  {
+	    size_t expevt[2] = { i + 1, expcount };
+	    mu_observable_notify (mailbox->observable,
+				  MU_EVT_MAILBOX_MESSAGE_EXPUNGE,
+				  expevt);
+	    ++expcount;
+	  }
 	}
       else
 	{
@@ -1233,10 +1234,28 @@ amd_expunge (mu_mailbox_t mailbox)
 	      _amd_message_save (amd, mhm, 1);
 	      updated = 1;
 	    }
-	  i++; /* Move to the next message */
 	}
     }
 
+  if (expcount)
+    {
+      last_expunged++;
+      do
+	{
+	  size_t j;
+	  
+	  for (j = 1; j < last_expunged && !amd->msg_array[last_expunged-j-1];
+	       j++)
+	    ;
+	  amd_array_shrink (amd, last_expunged - 1, j);
+	  for (last_expunged -= j;
+	       last_expunged > 0 && amd->msg_array[last_expunged - 1];
+	       last_expunged--)
+	    ;
+	}
+      while (last_expunged);
+    }
+  
   if (updated && !amd->mailbox_size)
     {
       mu_off_t size = 0;
@@ -1417,31 +1436,6 @@ amd_sort (struct _amd_data *amd)
 {
   qsort (amd->msg_array, amd->msg_count, sizeof (amd->msg_array[0]),
 	 msg_array_comp);
-}
-
-static void
-_amd_message_delete (struct _amd_data *amd, struct _amd_message *msg)
-{
-  size_t index;
-  struct _amd_message **pp;
-
-  if (amd_msg_lookup (amd, msg, &index))
-    {
-      /* FIXME: Not found? */
-      return;
-    }
-
-  msg = _amd_get_message (amd, index);
-
-  pp = amd_pool_lookup (msg);
-  if (pp)
-    *pp = NULL;
-  
-  mu_message_destroy (&msg->message, msg);
-  if (amd->msg_free)
-    amd->msg_free (msg);
-  free (msg);
-  amd_array_shrink (amd, index);
 }
 
 /* Scan given message and fill amd_message_t fields.
