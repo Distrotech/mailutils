@@ -38,7 +38,9 @@ pop3d_capa (char *arg)
   pop3d_outf ("UIDL\n");
   pop3d_outf ("RESP-CODES\n");
   pop3d_outf ("PIPELINING\n");
-
+  if (pop3d_xlines)
+    pop3d_outf ("XLINES\n");
+    
 #ifdef WITH_TLS
   if (tls_available && tls_done == 0)
     pop3d_outf ("STLS\n");

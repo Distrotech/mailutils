@@ -882,7 +882,7 @@ mu_message_set_get_stream (mu_message_t msg,
 
 int
 mu_message_set_lines (mu_message_t msg, int (*_lines)
-		   (mu_message_t, size_t *), void *owner)
+		      (mu_message_t, size_t *, int), void *owner)
 {
   if (msg == NULL)
     return EINVAL;
@@ -902,7 +902,7 @@ mu_message_lines (mu_message_t msg, size_t *plines)
     return EINVAL;
   /* Overload.  */
   if (msg->_lines)
-    return msg->_lines (msg, plines);
+    return msg->_lines (msg, plines, 0);
   if (plines)
     {
       hlines = blines = 0;
@@ -911,6 +911,36 @@ mu_message_lines (mu_message_t msg, size_t *plines)
       *plines = hlines + blines;
     }
   return ret;
+}
+
+/* Return the number of lines in the message, without going into
+   excess trouble for calculating it.  If obtaining the result
+   means downloading the entire message (as is the case for POP3,
+   for example), return MU_ERR_INFO_UNAVAILABLE. */
+int
+mu_message_quick_lines (mu_message_t msg, size_t *plines)
+{
+  size_t hlines, blines;
+  int rc;
+  
+  if (msg == NULL)
+    return EINVAL;
+  /* Overload.  */
+  if (msg->_lines)
+    {
+      int rc = msg->_lines (msg, plines, 1);
+      if (rc != ENOSYS)
+	return rc;
+    }
+  if (plines)
+    {
+      hlines = blines = 0;
+      if ((rc = mu_header_lines (msg->header, &hlines)) == 0)
+	rc = mu_body_lines (msg->body, &blines);
+      if (rc == 0)
+	*plines = hlines + blines;
+    }
+  return rc;
 }
 
 int

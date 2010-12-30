@@ -58,7 +58,7 @@ struct _mu_message
   int (*_get_num_parts)  (mu_message_t, size_t *);
   int (*_get_part)       (mu_message_t, size_t, mu_message_t *);
   int (*_is_multipart)   (mu_message_t, int *);
-  int (*_lines)          (mu_message_t, size_t *);
+  int (*_lines)          (mu_message_t, size_t *, int);
   int (*_size)           (mu_message_t, size_t *);
 };
 

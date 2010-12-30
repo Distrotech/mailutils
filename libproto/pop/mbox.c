@@ -60,6 +60,7 @@
 #define _POP3_MSG_SIZE    0x02      /* Message size obtained */
 #define _POP3_MSG_SCANNED 0x04      /* Message has been scanned */
 #define _POP3_MSG_ATTRSET 0x08      /* Attributes has been set */
+#define _POP3_MSG_LINES   0x10      /* Number of lines was obtained */
 
 struct _pop3_message
 {
@@ -70,7 +71,8 @@ struct _pop3_message
   size_t header_lines;      /* Number of lines in the header */
   size_t body_lines;        /* Number of lines in the body */
   int attr_flags;           /* Message attributes */
-  size_t message_size;      /* Message size */ 
+  size_t message_size;      /* Message size */
+  size_t message_lines;     /* Number of lines in the message */
   size_t num;               /* Message number */
   char *uidl;               /* Cached uidl string.  */
   mu_message_t message;     /* Pointer to the message structure */ 
@@ -94,6 +96,9 @@ struct _pop3_mailbox
   char *user;    
   mu_secret_t secret;
 };
+
+static int pop_create_pop3_message (struct _pop3_mailbox *mpd, size_t msgno,
+				    struct _pop3_message **mptr);
 
 
 /* ------------------------------------------------------------------------- */
@@ -270,34 +275,89 @@ pop_messages_count (mu_mailbox_t mbox, size_t *pcount)
     }
   return status;
 }
-  
+
 static int
 pop_scan (mu_mailbox_t mbox, size_t msgno, size_t *pcount)
 {
   int status;
   size_t i;
   size_t count = 0;
-
+  struct _pop3_mailbox *mpd = mbox->data;
+  int flags;
+  mu_iterator_t itr;
+  
   status = pop_messages_count (mbox, &count);
   if (status != 0)
     return status;
   if (pcount)
     *pcount = count;
-  if (mbox->observable == NULL)
-    return 0;
-  for (i = msgno; i <= count; i++)
+
+  flags = _POP3_MSG_SIZE;
+  if (!mu_pop3_capa_test (mpd->pop3, "XLINES", NULL))
+    flags |= _POP3_MSG_LINES;
+
+  status = mu_pop3_list_all (mpd->pop3, &itr);
+  if (status)
+    return status;
+  
+  for (i = 0, mu_iterator_first (itr);
+       i <= count && !mu_iterator_is_done (itr);
+       i++, mu_iterator_next (itr))
     {
-      size_t tmp = i;
-      if (mu_observable_notify (mbox->observable, MU_EVT_MESSAGE_ADD,
-				&tmp) != 0)
-	break;
-      if (((i + 1) % 10) == 0)
+      const char *str;
+      char *p;
+      size_t num;
+      
+      mu_iterator_current (itr, (void**) &str);
+      num = strtoul (str, &p, 10);
+
+      if (*p != ' ')
 	{
-	  mu_observable_notify (mbox->observable, MU_EVT_MAILBOX_PROGRESS,
-				NULL);
+	  mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR,
+		    ("invalid reply to LIST command: %s", str));
+	  status = MU_ERR_BADREPLY;
+	  break;
+	}
+      if (num >= msgno)
+	{
+	  size_t size, lines;
+	  struct _pop3_message *mpm;
+
+	  size = strtoul (p + 1, &p, 10);
+	  if (flags & _POP3_MSG_LINES)
+	    {
+	      if (*p != ' ')
+		{
+		  mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR,
+			    ("invalid reply to LIST command: %s", str));
+		  status = MU_ERR_BADREPLY;
+		  break;
+		}
+	      lines = strtoul (p + 1, &p, 10);
+	    }
+
+	  status = pop_create_pop3_message (mpd, num, &mpm);
+	  if (status)
+	    break;
+	  mpm->message_size = size;
+	  if (flags & _POP3_MSG_LINES)
+	    mpm->message_lines = lines;
+	  mpm->flags |= flags;
+
+	  if (mbox->observable)
+	    {
+	      if (mu_observable_notify (mbox->observable, MU_EVT_MESSAGE_ADD,
+					&num) != 0)
+		break;
+	      if (((i + 1) % 10) == 0)
+		mu_observable_notify (mbox->observable,
+				      MU_EVT_MAILBOX_PROGRESS,
+				      NULL);
+	    }
 	}
     }
-  return 0;
+  mu_iterator_destroy (&itr);
+  return status;
 }
 
 /* There's no way to retrieve this info via POP3 */
@@ -475,6 +535,29 @@ pop_message_size (mu_message_t msg, size_t *psize)
 }
 
 static int
+pop_message_lines (mu_message_t msg, size_t *plines, int quick)
+{
+  int rc;
+  struct _pop3_message *mpm = mu_message_get_owner (msg);
+
+  if (!(mpm->flags & _POP3_MSG_LINES))
+    {
+      if (quick && !(mpm->flags & _POP3_MSG_CACHED))
+	return MU_ERR_INFO_UNAVAILABLE;
+      if (!pop_is_updated (mpm->mpd->mbox))
+	pop_scan (mpm->mpd->mbox, 1, NULL);
+      rc = pop_scan_message (mpm);
+      if (rc)
+	return rc;
+      mpm->message_lines = mpm->header_lines + mpm->body_lines + 1;
+      mpm->flags |= _POP3_MSG_LINES;
+    }
+
+  *plines = mpm->message_lines;
+  return 0;
+}
+
+static int
 pop_create_message (struct _pop3_message *mpm, struct _pop3_mailbox *mpd)
 {
   int status;
@@ -486,9 +569,46 @@ pop_create_message (struct _pop3_message *mpm, struct _pop3_mailbox *mpd)
 
   mu_message_set_get_stream (msg, pop_message_get_stream, mpm);
   mu_message_set_size (msg, pop_message_size, mpm);
+  mu_message_set_lines (msg, pop_message_lines, mpm);
   mpm->message = msg;
   return 0;
 }
+
+static int
+pop_create_pop3_message (struct _pop3_mailbox *mpd, size_t msgno,
+			 struct _pop3_message **mptr)
+{
+  int status;
+  struct _pop3_message *mpm;
+  
+  if (msgno > mpd->msg_count)
+    return EINVAL;
+
+  if (!mpd->msg)
+    {
+      mpd->msg = calloc (mpd->msg_count, sizeof (mpd->msg[0]));
+      if (!mpd->msg)
+	return ENOMEM;
+    }
+  if (mpd->msg[msgno - 1])
+    {
+      *mptr = mpd->msg[msgno - 1];
+      return 0;
+    }
+
+  mpm = calloc (1, sizeof (*mpm));
+  if (mpm == NULL)
+    return ENOMEM;
+
+  /* Back pointer.  */
+  mpm->mpd = mpd;
+  mpm->num = msgno;
+  
+  mpd->msg[msgno - 1] = mpm;
+  *mptr = mpm;
+  return status;
+}
+
 
 
 /* ------------------------------------------------------------------------- */
@@ -798,36 +918,19 @@ pop_get_message (mu_mailbox_t mbox, size_t msgno, mu_message_t *pmsg)
   if (!pop_is_updated (mbox))
     pop_scan (mbox, 1, NULL);
 
-  if (msgno > mpd->msg_count)
-    return EINVAL;
-
-  if (!mpd->msg)
+  status = pop_create_pop3_message (mpd, msgno, &mpm);
+  if (status)
+    return status;
+  if (mpm->message)
     {
-      mpd->msg = calloc (mpd->msg_count, sizeof (mpd->msg[0]));
-      if (!mpd->msg)
-	return ENOMEM;
-    }
-  if (mpd->msg[msgno - 1])
-    {
-      *pmsg = mpd->msg[msgno - 1]->message;
+      *pmsg = mpm->message;
       return 0;
     }
 
-  mpm = calloc (1, sizeof (*mpm));
-  if (mpm == NULL)
-    return ENOMEM;
-
-  /* Back pointer.  */
-  mpm->mpd = mpd;
-  mpm->num = msgno;
-  
   status = pop_create_message (mpm, mpd);
   if (status)
-    {
-      free (mpm);
-      return status;
-    }
-
+    return status;
+  
   do
     {
       status = pop_create_header (mpm);
@@ -852,7 +955,6 @@ pop_get_message (mu_mailbox_t mbox, size_t msgno, mu_message_t *pmsg)
 
   mu_message_set_uid (mpm->message, pop_uid, mpm);
 
-  mpd->msg[msgno - 1] = mpm;
   mu_message_set_mailbox (mpm->message, mbox, mpm);
   *pmsg = mpm->message;
   return 0;

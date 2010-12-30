@@ -97,8 +97,9 @@ extern int mu_message_set_size (mu_message_t,
 				void *owner);
 
 extern int mu_message_lines (mu_message_t, size_t *);
+extern int mu_message_quick_lines (mu_message_t, size_t *);
 extern int mu_message_set_lines (mu_message_t, 
-				 int (*_lines) (mu_message_t, size_t *),
+				 int (*_lines) (mu_message_t, size_t *, int),
 				 void *owner);
 
 extern int mu_message_get_num_parts (mu_message_t, size_t *nparts);

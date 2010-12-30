@@ -294,9 +294,27 @@ hdr_lines (struct header_call_args *args, void *data)
 {
   size_t m_lines;
   char buf[UINTMAX_STRSIZE_BOUND];
+
   mu_message_lines (args->msg, &m_lines);
   
   return header_buf_string (args, umaxtostr (m_lines, buf));
+}
+
+/* %L */
+static char *
+hdr_quick_lines (struct header_call_args *args, void *data)
+{
+  size_t m_lines;
+  char buf[UINTMAX_STRSIZE_BOUND];
+  int rc;
+  const char *p;
+  
+  rc = mu_message_quick_lines (args->msg, &m_lines);
+  if (rc == 0)
+    p = umaxtostr (m_lines, buf);
+  else
+    p = "NA";
+  return header_buf_string (args, p);
 }
 
 /* %m */
@@ -465,6 +483,11 @@ compile_headline (const char *str)
 	  
 	case 'l': /* The number of lines of the message */
 	  seg = new_header_segment (ALIGN_NUMBER, width, NULL, hdr_lines);
+	  break;
+
+	case 'L': /* Same, but in quick mode */
+	  seg = new_header_segment (ALIGN_NUMBER, width, NULL,
+				    hdr_quick_lines);
 	  break;
 	  
 	case 'm': /* Message number */

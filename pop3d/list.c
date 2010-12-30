@@ -17,8 +17,27 @@
 
 #include "pop3d.h"
 
-/* Displays the size of message number arg or all messages (if no arg) */
-
+/* From RFC 1939:
+   
+   In order to simplify parsing, all POP3 servers are
+   required to use a certain format for scan listings.  A
+   scan listing consists of the message-number of the
+   message, followed by a single space and the exact size of
+   the message in octets.  Methods for calculating the exact
+   size of the message are described in the "Message Format"
+   section below.  This memo makes no requirement on what
+   follows the message size in the scan listing.  Minimal
+   implementations should just end that line of the response
+   with a CRLF pair.  More advanced implementations may
+   include other information, as parsed from the message.
+   <end of quote>
+   
+  GNU pop3d uses this allowance and includes in the scan
+  listing the number of lines in message.  This optional
+  feature is enabled by setting "scan-lines yes" in the
+  configuration file.  When on, it is indicated by the
+  XLINES capability.
+*/
 int
 pop3d_list (char *arg)
 {
@@ -47,9 +66,12 @@ pop3d_list (char *arg)
 	    {
 	      mu_message_size (msg, &size);
 	      mu_message_lines (msg, &lines);
-	      pop3d_outf ("%s %s\n", 
+	      pop3d_outf ("%s %s", 
                           mu_umaxtostr (0, mesgno), 
                           mu_umaxtostr (1, size + lines));
+	      if (pop3d_xlines)
+		pop3d_outf (" %s", mu_umaxtostr (2, lines));
+	      pop3d_outf ("\n");
 	    }
 	}
       pop3d_outf (".\n");
@@ -64,10 +86,14 @@ pop3d_list (char *arg)
 	return ERR_MESG_DELE;
       mu_message_size (msg, &size);
       mu_message_lines (msg, &lines);
-      pop3d_outf ("+OK %s %s\n", 
+      pop3d_outf ("+OK %s %s", 
                   mu_umaxtostr (0, mesgno),
                   mu_umaxtostr (1, size + lines));
+      if (pop3d_xlines)
+	pop3d_outf (" %s", mu_umaxtostr (2, lines));
+      pop3d_outf ("\n");
     }
 
   return OK;
 }
+

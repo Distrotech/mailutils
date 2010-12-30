@@ -30,6 +30,7 @@ unsigned int idle_timeout;
 int pop3d_transcript;
 int debug_mode;
 int tls_required;
+int pop3d_xlines;
 
 #ifdef WITH_TLS
 int tls_available;
@@ -95,6 +96,8 @@ static struct mu_cfg_param pop3d_cfg_param[] = {
     N_("days") },
   { "delete-expired", mu_cfg_bool, &expire_on_exit, 0, NULL,
     N_("Delete expired messages upon closing the mailbox.") },
+  { "scan-lines", mu_cfg_bool, &pop3d_xlines, 0, NULL,
+    N_("Output the number of lines in the message in its scan listing.") },
 #ifdef WITH_TLS
   { "tls-required", mu_cfg_bool, &tls_required, 0, NULL,
      N_("Always require STLS before entering authentication phase.") },
