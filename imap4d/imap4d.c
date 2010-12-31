@@ -23,7 +23,7 @@
 #include "tcpwrap.h"
 
 mu_m_server_t server;
-unsigned int idle_timeout;
+unsigned int idle_timeout = 1800;
 int imap4d_transcript;
 
 mu_mailbox_t mbox;              /* Current mailbox */

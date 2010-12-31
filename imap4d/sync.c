@@ -23,18 +23,27 @@
  */
 static int *attr_table;
 static size_t attr_table_count;
-static int attr_table_loaded;
+static size_t attr_table_max;
+static int attr_table_valid;
 
 static void
-free_uids (void)
+realloc_attributes (size_t total)
 {
-  if (attr_table)
+  if (total > attr_table_max)
     {
-      free (attr_table);
-      attr_table = NULL;
+      attr_table = realloc (attr_table, sizeof (*attr_table) * total);
+      if (!attr_table)
+	imap4d_bye (ERR_NO_MEM);
+      attr_table_max = total;
     }
+  attr_table_count = total;
+}
+
+static void
+invalidate_attr_table ()
+{
+  attr_table_valid = 0;
   attr_table_count = 0;
-  attr_table_loaded = 0;
 }
 
 static void
@@ -43,17 +52,8 @@ reread_attributes (void)
   size_t total = 0;
   size_t i;
 
-  free_uids ();
-
   mu_mailbox_messages_count (mbox, &total);
-  if (total > attr_table_count)
-    {
-      attr_table = realloc (attr_table, sizeof (*attr_table) * total);
-      if (!attr_table)
-	imap4d_bye (ERR_NO_MEM);
-      attr_table_count = total;
-    }
-  
+  realloc_attributes (total);
   for (i = 1; i <= total; i++)
     {
       mu_message_t msg = NULL;
@@ -63,28 +63,27 @@ reread_attributes (void)
       mu_message_get_attribute (msg, &attr);
       mu_attribute_get_flags (attr, &attr_table[i-1]);
     }
-  attr_table_loaded = 1;
+  attr_table_valid = 1;
 }
 
 static void
 notify (void)
 {
   size_t total = 0;
-  int reset = 0;
   size_t recent = 0;
   
   mu_mailbox_messages_count (mbox, &total);
+  mu_mailbox_messages_recent (mbox, &recent);
 
-  if (!attr_table)
+  if (!attr_table_valid)
     {
-      reset = 1;
       reread_attributes ();
-      mu_mailbox_messages_recent (mbox, &recent);
     }
-  else if (attr_table)
+  else 
     {
       size_t i;
 
+      realloc_attributes (total);
       for (i = 1; i <= total; i++)
 	{
 	  mu_message_t msg = NULL;
@@ -103,14 +102,10 @@ notify (void)
 	      attr_table[i-1] = nflags;
 	    }
 	}
-      mu_mailbox_messages_recent (mbox, &recent);
     }
-
+  
   io_untagged_response (RESP_NONE, "%lu EXISTS", (unsigned long) total);
   io_untagged_response (RESP_NONE, "%lu RECENT", (unsigned long) recent);
-
-  if (!reset)
-    reread_attributes ();
 }
 
 size_t
@@ -190,8 +185,8 @@ imap4d_sync (void)
      It may be because of close or before select/examine a new mailbox.
      If it was a close we do not send any notification.  */
   if (mbox == NULL)
-    free_uids ();
-  else if (!attr_table_loaded || !mu_mailbox_is_updated (mbox))
+    invalidate_attr_table ();
+  else if (!attr_table_valid || !mu_mailbox_is_updated (mbox))
     {
       if (mailbox_corrupt)
 	{
@@ -204,7 +199,7 @@ imap4d_sync (void)
 	  if (status)
 	    imap4d_bye (ERR_MAILBOX_CORRUPTED);
 	  imap4d_set_observer (mbox);
-	  free_uids ();
+	  invalidate_attr_table ();
 	  mailbox_corrupt = 0;
 	  io_untagged_response (RESP_NONE,
 		             "OK [ALERT] Mailbox modified by another program");
