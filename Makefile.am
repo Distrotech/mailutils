@@ -49,10 +49,6 @@ if MU_COND_SIEVE
   SIEVE_DIR = sieve
 endif
 
-if MU_COND_GUIMB
-  GUIMB_DIR = guimb
-endif
-
 if MU_COND_MESSAGES
   MESSAGES_DIR = messages
 endif
@@ -80,6 +76,7 @@ endif
 if MU_COND_LIBMU_SCM
   GINT_DIR = gint
   LIBMU_SCM_DIR = libmu_scm
+  SCHEME_DIR = scheme
 endif
 
 if MU_COND_SUPPORT_CXX
@@ -107,13 +104,13 @@ SUBDIRS = . \
  doc\
  examples\
  mu\
+ $(SCHEME_DIR)\
  $(FRM_DIR)\
  $(POP3D_DIR)\
  $(IMAP4D_DIR)\
  $(MAIDAG_DIR)\
  $(MAIL_DIR)\
  $(SIEVE_DIR)\
- $(GUIMB_DIR)\
  $(MESSAGES_DIR)\
  $(COMSAT_DIR)\
  $(READMSG_DIR)\

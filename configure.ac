@@ -1067,7 +1067,6 @@ AC_SUBST([GUILE_BINDIR])
 AC_SUBST([LIBMU_SCM])
 AC_SUBST([LIBMU_SCM_DEPS])
 AC_SUBST([MU_GUILE_SIEVE_MOD_DIR])
-AC_SUBST([MU_GUILE_SIEVE_MOD_DATA])
 GINT_INIT([gint],[1.8 with-guile],
 	  [useguile=yes
  	   AC_DEFINE([WITH_GUILE],1,[Enable Guile support])
@@ -1075,7 +1074,6 @@ GINT_INIT([gint],[1.8 with-guile],
            LIBMU_SCM=../libmu_scm/libmu_scm.la
            LIBMU_SCM_DEPS='${MU_LIB_MBOX} ${MU_LIB_IMAP} ${MU_LIB_POP} ${MU_LIB_MH} ${MU_LIB_MAILDIR} ${MU_LIB_MAILER}'
            MU_GUILE_SIEVE_MOD_DIR='$(GUILE_SITE)/$(PACKAGE)/sieve-modules'
-           MU_GUILE_SIEVE_MOD_DATA='$(MU_GUILE_SIEVE_MOD_DATA_X)'
            GINT_INCLUDES='${MU_APP_COMMON_INCLUDES}'
            GINT_LDADD=../lib/libmuaux.a
           ],[useguile=no])
@@ -1185,7 +1183,6 @@ MU_ENABLE_BUILD(comsat)
 MU_ENABLE_BUILD(maidag)
 MU_ENABLE_BUILD(mail)
 MU_ENABLE_BUILD(sieve)
-MU_ENABLE_BUILD(guimb,,,["$useguile" = "yes"])
 MU_ENABLE_BUILD(messages)
 MU_ENABLE_BUILD(readmsg)
 MU_ENABLE_BUILD(dotlock)
@@ -1354,8 +1351,7 @@ AC_CONFIG_FILES([
  examples/scheme/Makefile
  gint/Makefile
  frm/Makefile
- guimb/Makefile
- guimb/scm/Makefile
+ scheme/Makefile
  imap4d/Makefile
  imap4d/testsuite/Makefile
  include/Makefile

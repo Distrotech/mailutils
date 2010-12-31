@@ -13,10 +13,6 @@ frm/common.c
 frm/frm.c
 frm/from.c
 
-guimb/collect.c
-guimb/main.c
-guimb/util.c
-
 imap4d/auth_gsasl.c
 imap4d/auth_gss.c
 imap4d/bye.c

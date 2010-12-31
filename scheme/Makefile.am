@@ -15,19 +15,19 @@
 ## You should have received a copy of the GNU General Public License
 ## along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>. 
 
-MU_GUILE_SIEVE_SCRIPTS_X=sieve.scm
-bin_SCRIPTS = sieve.scm
-EXTRA_SCRIPTS=sieve.scm
-# FIXME: Sieve.scm is temporarly exempted from installchecks because
+bin_SCRIPTS = sieve2scm
+EXTRA_SCRIPTS=sieve2scm
+# FIXME: Sieve2scm is temporarly exempted from installchecks because
 # it may fail starting during checks, if libguile-mailutils-v- library
 # has not been previously installed. The proper fix would be to alter
 # %load-path during tests.
-AM_INSTALLCHECK_STD_OPTIONS_EXEMPT=sieve.scm
+AM_INSTALLCHECK_STD_OPTIONS_EXEMPT=sieve2scm
 
 sievemoddir=@MU_GUILE_SIEVE_MOD_DIR@
 
-sieve.scm: sieve.scm.in sieve.sed
-	$(AM_V_GEN)sed -f sieve.sed $(srcdir)/sieve.scm.in > sieve.scm
+sieve2scm: sieve2scm.scmi sieve.sed
+	$(AM_V_GEN)sed -f sieve.sed $(srcdir)/sieve2scm.scmi > sieve2scm
+	$(AM_V_at)chmod +w sieve2scm
 
 sieve.sed: Makefile
 	$(AM_V_GEN)echo 's,%GUILE_BINDIR%,@GUILE_BINDIR@,g' > sieve.sed
@@ -37,26 +37,20 @@ sieve.sed: Makefile
 	$(AM_V_at)echo 's,%PACKAGE%,$(PACKAGE),g' >> sieve.sed
 	$(AM_V_at)echo 's,%VERSION%,$(VERSION),g' >> sieve.sed
 
-CLEANFILES = sieve.scm sieve.sed
+CLEANFILES = sieve2scm sieve.sed
 
 sitedir=@GUILE_SITE@/$(PACKAGE)
 site_DATA=sieve-core.scm
 
-MU_GUILE_SIEVE_MOD_DATA_X=\
+sievemod_DATA=\
  mimeheader.scm\
  numaddr.scm\
  redirect.scm\
  reject.scm\
  vacation.scm
-
-sievemod_DATA=@MU_GUILE_SIEVE_MOD_DATA@
 
 EXTRA_DIST=\
- mimeheader.scm\
- numaddr.scm\
- redirect.scm\
- reject.scm\
+ $(sievemod_DATA)\
  sieve-core.scm\
- sieve.scm.in\
- vacation.scm
+ sieve2scm.scmi
 

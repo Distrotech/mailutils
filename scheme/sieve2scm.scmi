@@ -23,14 +23,12 @@
 ;;;;
 ;;;; To convert a sieve script into equivalent Scheme program, run:
 ;;;;
-;;;;  guile -s sieve.scm --file <sieve-script-name> --output <output-file-name>
+;;;;  guile -s sieve2scm.scm --file <sieve-script-name> --output <output-file-name>
 ;;;;
 ;;;; To compile and execute a sieve script upon a mailbox, run:
 ;;;;
-;;;;  guile -s sieve.scm --file <sieve-script-name> [mailbox-name]
-;;;; or
-;;;;  guimb [--mailbox mailbox-name] -s sieve.scm --file <sieve-script-name> 
-
+;;;;  guile -s sieve2scm.scm --file <sieve-script-name> [mailbox-name]
+;;;;
 (if (not (member "%GUILE_SITE%" %load-path))
     (set! %load-path (cons "%GUILE_SITE%" %load-path)))
 (use-modules (ice-9 getopt-long)
@@ -926,18 +924,14 @@
 
 ;;; Save the program
 
-(define (sieve-save-program outfile guimb-header)
+(define (sieve-save-program outfile)
   (with-output-to-file
       outfile
     (lambda ()
       (display "#! ")
-      (cond
-       (guimb-header
-	(display "/home/gray/alpha/bin/guimb -s\n"))
-       (else
-	(display "/bin/sh\n\
+      (display "/bin/sh\n\
 # aside from this initial boilerplate, this is actually -*- scheme -*- code\n\
-exec ${GUILE-guile} -l $0 -c '(mailutils-main)'\n")))
+exec ${GUILE-guile} -l $0 -c '(mailutils-main)'\n")
       (display (string-append
 		"# This Guile mailbox parser was made from " filename))
       (newline) 
@@ -985,16 +979,14 @@ exec ${GUILE-guile} -l $0 -c '(mailutils-main)'\n")))
 
 (define filename #f)
 (define output #f)
-(define guimb-header #f)
 
 (define (sieve-usage)
-  (display "usage: sieve.scm [OPTIONS][mailbox]\n")
-  (display "GNU sieve.scm -- compile a Sieve program into Scheme code\n")
+  (display "usage: sieve2scm [OPTIONS][mailbox]\n")
+  (display "GNU sieve2scm -- compile a Sieve program into Scheme code\n")
   (display "Options are:\n")
   (display "   -f, --file FILENAME      Set input file name\n")
   (display "   -o, --output FILENAME    Set output file name\n")
   (display "   -L, --lib-dir DIRNAME    Set sieve library directory name\n")
-  (display "   -g, --guimb              Make output file executable for guimb\n")
   (display "   -d, --debug LEVEL        Set debugging level\n")
   (display "       --version            Show program version\n\n")
   (display "If -o option is not given, the compiled program is executed\n")
@@ -1018,7 +1010,6 @@ exec ${GUILE-guile} -l $0 -c '(mailutils-main)'\n")))
 	    (value #t))
     (lib-dir (single-char #\L)
 	     (value #t))
-    (guimb  (single-char #\g))
     (version)
     (verbose (single-char #\v))
     (help   (single-char #\h))))
@@ -1038,8 +1029,6 @@ exec ${GUILE-guile} -l $0 -c '(mailutils-main)'\n")))
 	(set! sieve-libdir (cdr x)))
        ((output)
 	(set! output (cdr x)))
-       ((guimb)
-	(set! guimb-header #t))
        ((version)
 	(sieve-version))
        ((verbose)
@@ -1083,11 +1072,11 @@ exec ${GUILE-guile} -l $0 -c '(mailutils-main)'\n")))
   (newline)
   (exit 1))
  (output
-  (sieve-save-program output guimb-header))
+  (sieve-save-program output))
  (else
   (let ((temp-file (tmpnam))
 	(saved-umask (umask #o077)))
-    (sieve-save-program temp-file guimb-header)
+    (sieve-save-program temp-file)
     (catch #t
 	   (lambda ()
 	     (set-cdr! (command-line) sieve-script-args)

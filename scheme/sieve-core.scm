@@ -449,13 +449,6 @@
     (if (isatty? (current-error-port))
 	(display (string-append level ": " msg "\n") (current-error-port)))))
 
-(define (guimb?)
-  (catch #t
-	 (lambda ()
-	   (let ((v current-mailbox))
-	     v))
-	 (lambda args #f)))
-
 ;;; Sieve-main
 (define-public sieve-mailbox #f)
 (define-public sieve-current-message #f)
@@ -490,20 +483,14 @@
 
 (define-public (sieve-main thunk) 
   (handle-exception
-   (cond
-    ((not (guimb?))
-     (let* ((cl (sieve-command-line))
-	    (name (if (and (not (null? (cdr cl)))
-			   (string? (cadr cl)))
-		      (cadr cl)
-		      (mu-user-mailbox-url
-		       (passwd:name (mu-getpwuid (getuid)))))))
+   (let* ((cl (sieve-command-line))
+	  (name (if (and (not (null? (cdr cl)))
+			 (string? (cadr cl)))
+		    (cadr cl)
+		    (mu-user-mailbox-url
+		     (passwd:name (mu-getpwuid (getuid)))))))
 
-       (set! sieve-mailbox (mu-mailbox-open name "rw"))
-       (sieve-run thunk)
-       (mu-mailbox-expunge sieve-mailbox)
-       (mu-mailbox-close sieve-mailbox)))
-    (else
-     (set! sieve-mailbox current-mailbox)
-     (sieve-run thunk)))))
-	 
+     (set! sieve-mailbox (mu-mailbox-open name "rw"))
+     (sieve-run thunk)
+     (mu-mailbox-expunge sieve-mailbox)
+     (mu-mailbox-close sieve-mailbox))))
