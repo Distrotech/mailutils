@@ -81,6 +81,7 @@ notify (void)
     }
   else 
     {
+      size_t old_total = attr_table_count;
       size_t i;
 
       realloc_attributes (total);
@@ -94,13 +95,18 @@ notify (void)
 	  mu_message_get_attribute (msg, &nattr);
 	  mu_attribute_get_flags (nattr, &nflags);
 
-	  if (nflags != attr_table[i-1])
+	  if (i <= old_total)
 	    {
-	      io_sendf ("* %lu FETCH FLAGS (",  (unsigned long) i);
-	      util_format_attribute_flags (iostream, nflags);
-	      io_sendf (")\n");
-	      attr_table[i-1] = nflags;
+	      if (nflags != attr_table[i-1])
+		{
+		  io_sendf ("* %lu FETCH FLAGS (",  (unsigned long) i);
+		  util_format_attribute_flags (iostream, nflags);
+		  io_sendf (")\n");
+		  attr_table[i-1] = nflags;
+		}
 	    }
+	  else
+	    attr_table[i-1] = nflags;
 	}
     }
   
