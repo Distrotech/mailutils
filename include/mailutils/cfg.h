@@ -1,5 +1,6 @@
 /* cfg.h -- general-purpose configuration file parser 
-   Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008, 2009, 2010, 2011 Free Software Foundation,
+   Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or
    modify it under the terms of the GNU General Public License as

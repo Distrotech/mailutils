@@ -1,5 +1,5 @@
 # This file is part of GNU Mailutils testsuite.
-# Copyright (C) 2002, 2010 Free Software Foundation, Inc.
+# Copyright (C) 2002, 2010, 2011 Free Software Foundation, Inc.
 # See file COPYING for distribution conditions.
 
 mailbox {

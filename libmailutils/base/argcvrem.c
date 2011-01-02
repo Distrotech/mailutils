@@ -1,6 +1,6 @@
 /* Selectively remove elements from an array of string pointers.
-   Copyright (C) 1999, 2000, 2001, 2003, 2004, 2005, 2006, 2010 Free
-   Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2003, 2004, 2005, 2006, 2010, 2011
+   Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public

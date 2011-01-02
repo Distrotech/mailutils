@@ -1,5 +1,5 @@
 ## This file is part of GNU Mailutils.
-## Copyright (C) 1999, 2000, 2001, 2002, 2006, 2007, 2010 Free
+## Copyright (C) 1999, 2000, 2001, 2002, 2006, 2007, 2010, 2011 Free
 ## Software Foundation, Inc.
 ##
 ## GNU Mailutils is free software; you can redistribute it and/or
