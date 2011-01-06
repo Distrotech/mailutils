@@ -50,7 +50,7 @@
 	    (port (mu-message-get-port mesg "w")))
        (mu-message-set-header mesg "Content-Type" "message/delivery-status")
        
-       (display (string-append "Reporting-UA: sieve; GNU "
+       (display (string-append "Reporting-UA: sieve; "
 			       mu-package-string "\n") port)
        (display (string-append "Arrival-Date: " datestr "\n") port)
        (newline port)

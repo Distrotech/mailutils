@@ -36,10 +36,12 @@ mu_scm_error (const char *func_name, int status,
 SCM _mu_scm_package_string; /* STRING: PACKAGE_STRING */
 SCM _mu_scm_package;        /* STRING: PACKAGE */
 SCM _mu_scm_version;        /* STRING: VERSION */
+SCM _mu_scm_bugreport;      /* STRING: PACKAGE_BUGREPORT */
 SCM _mu_scm_mailer;         /* STRING: Default mailer path. */
 SCM _mu_scm_debug;          /* NUM: Default debug level. */
 
-struct format_record {
+struct format_record
+{
   char *name;
   mu_record_t *record;
 };
@@ -49,7 +51,9 @@ static struct format_record format_table[] = {
   { "mh",   &mu_mh_record },
   { "maildir", &mu_maildir_record },
   { "pop",  &mu_pop_record },
+  { "pops",  &mu_pops_record },
   { "imap", &mu_imap_record },
+  { "imaps", &mu_imap_record },
   { "sendmail", &mu_sendmail_record },
   { "smtp", &mu_smtp_record },
   { NULL, NULL },
@@ -185,6 +189,10 @@ mu_scm_init ()
   _mu_scm_package_string = scm_from_locale_string (PACKAGE_STRING);
   scm_c_define ("mu-package-string", _mu_scm_package_string);
   scm_c_export ("mu-package-string", NULL);
+
+  _mu_scm_bugreport = scm_from_locale_string (PACKAGE_BUGREPORT);
+  scm_c_define ("mu-bugreport", _mu_scm_bugreport);
+  scm_c_export ("mu-bugreport", NULL);
   
   /* Create MU- attribute names */
   for (i = 0; attr_kw[i].name; i++)

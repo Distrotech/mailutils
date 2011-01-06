@@ -995,7 +995,7 @@ exec ${GUILE-guile} -l $0 -c '(mailutils-main)'\n")
   (exit 0))
 
 (define (sieve-version)
-  (display "sieve.scm (GNU %PACKAGE% %VERSION%)")
+  (display "sieve2scm (GNU %PACKAGE% %VERSION%)")
   (newline)
   (exit 0))
 
