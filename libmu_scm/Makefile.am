@@ -15,6 +15,8 @@
 ## You should have received a copy of the GNU General Public License
 ## along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
 
+SUBDIRS = . mailutils
+
 INCLUDES = -I. @MU_LIB_COMMON_INCLUDES@ @GUILE_INCLUDES@
 
 lib_LTLIBRARIES=libmu_scm.la
@@ -48,8 +50,6 @@ libmu_scm_la_LIBADD = \
  ${MU_LIB_MAILUTILS}\
  @GUILE_LIBS@
 
-EXTRA_DIST=mailutils.scm mailutils.scm.in
-
 DOT_X_FILES=\
  mu_address.x\
  mu_body.x\
@@ -72,15 +72,9 @@ DOT_DOC_FILES=\
  mu_scm.doc\
  mu_util.doc 
 
+EXTRA_DIST=
 CLEANFILES=
-DISTCLEANFILES=\
- mailutils.scm
-
-mailutils.scm: mailutils.scm.in
-	$(AM_V_GEN)m4 -DVERSION=$(VERSION) -DLIBDIR=$(libdir) \
-	   -DSITEDIR=$(sitedir) \
-           -DBUILDDIR=$(top_builddir)/libmu_scm \
-            $(srcdir)/mailutils.scm.in > $@
+DISTCLEANFILES=
 
 install-data-hook:
 	 @here=`pwd`; \
@@ -93,7 +87,7 @@ install-data-hook:
 	 cd $$here
 
 sitedir   = @GUILE_SITE@/$(PACKAGE)
-site_DATA = mailutils.scm
+site_DATA =
 SUFFIXES=
 BUILT_SOURCES=
 include ../gint/gint.mk

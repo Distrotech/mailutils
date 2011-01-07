@@ -1,0 +1,285 @@
+#! /bin/sh
+# aside from this initial boilerplate, this is actually -*- scheme -*- code
+main='(module-ref (resolve-module '\''(scheme guimb)) '\'main')'
+exec ${GUILE-guile} -l $0 -c "(apply $main (list (command-line)))" "$@"
+!#
+;;;; GNU Mailutils -- a suite of utilities for electronic mail
+;;;; Copyright (C) 1999, 2000, 2001, 2006, 2007, 2009, 2010, 2011 Free
+;;;; Software Foundation, Inc.
+;;;;
+;;;; GNU Mailutils is free software; you can redistribute it and/or modify
+;;;; it under the terms of the GNU General Public License as published by
+;;;; the Free Software Foundation; either version 3, or (at your option)
+;;;; any later version.
+;;;; 
+;;;; GNU Mailutils is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;;;; GNU General Public License for more details.
+;;;; 
+;;;; You should have received a copy of the GNU General Public License along
+;;;; with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+;;;;
+(if (not (member "%GUILE_SITE%" %load-path))
+    (set! %load-path (cons "%GUILE_SITE%" %load-path)))
+(define-module (scheme guimb)
+  :export (guimb))
+
+(use-modules (ice-9 getopt-long)
+	     (ice-9 rdelim)
+	     (srfi srfi-1)
+	     (mailutils mailutils))
+
+(define program-name "guimb")
+(define output-mailbox-name #f)
+(define output-mailbox-mode #f)
+(define source-file-name #f)
+(define source-expression #f)
+(define user-name #f)
+(define input-mailbox-names '())
+(define script-arguments '())
+
+(define output-mailbox #f)
+
+(define (guimb-version)
+  (format #t "guimb (~A) ~A~%" mu-package mu-version)
+  (exit 0))
+
+(define (guimb-help)
+  (format #t "usage: guimb [OPTIONS] [MAILBOX [MAILBOX...]]
+guimb applies a scheme function to each message from a set of input mailboxes
+
+The following options stop argument processing, and pass all remaining
+arguments as the value of (command-line):
+
+  -c, --code=EXPR            execute given scheme expression
+  -s, --source=FILE          load Scheme module from FILE.scm
+
+The following options do not affect further options parsing:
+
+  -e, --expression=EXPR      execute given scheme expression
+  -f, --file=FILE            load Scheme module from FILE.scm
+
+Other options:
+
+  -M, --mailbox=NAME         set output mailbox name
+  -u, --user[=NAME]          act as local MDA for user NAME (default - current
+                             user)
+  -r, --read-only            open mailbox in read-only mode
+
+Script arguments:
+
+  -g, --guile-arg=ARG        append ARG to the command line passed to script
+  -{ args... -}              append args to the command line passed to script
+  --lparen args... --rparen  likewise
+
+  -L, --load-path=PATH       append PATH to the beginning of the %load-path
+
+  -?, --help                 give this help list
+      --usage                give a short usage message
+  -V, --version              print program version
+
+Mandatory or optional arguments to long options are also mandatory or optional
+for any corresponding short options.
+
+")
+  (format #t "Report bugs to <~A>.~%" mu-bugreport)
+  (exit 0))
+
+(define (guimb-usage)
+  ; FIXME
+  (guimb-help))
+
+(define (error fmt . rest)
+  (with-output-to-port
+      (current-error-port)
+    (lambda ()
+      (format #t "~A: " program-name)
+      (apply format #t fmt rest)
+      (newline))))
+
+(define (extract-args arglist)
+  (let ((level 0))
+    (let ((result (filter
+		   (lambda (x)
+		     (cond
+		      ((or (string=? x "--lparen")
+			   (string=? x "-{"))
+		       (set! level (+ level 1))
+		       #f)
+		      ((or (string=? x "--rparen")
+			   (string=? x "-}"))
+		       (if (> level 0)
+			   (set! level (- level 1))
+			   (set! script-arguments (append script-arguments
+							  (list x))))
+		       #f)
+		      ((> level 0)
+		       (set! script-arguments (append script-arguments
+						      (list x)))
+		       #f)
+		      (else
+		       #t)))
+		   arglist)))
+      (if (> level 0)
+	  (error "missing closing -}"))
+      result)))
+		
+(define (parse-cmdline cmdline)
+  (let ((grammar `((source      (single-char #\s)
+				(value #t))
+		   (code        (single-char #\c)
+				(value #t))
+		   (file        (single-char #\f)
+				(value #t))
+		   (expression  (single-char #\e)
+				(value #t))
+		   (mailbox     (single-char #\M)
+				(value #t))
+		   (user        (single-char #\u)
+				(value optional))
+		   (read-only   (single-char #\r))
+		   (guile-arg   (single-char #\g)
+				(value #t))
+		   (load-path   (single-char #\L)
+				(value #t))
+		   (help        (single-char #\?))
+		   (usage)
+		   (version     (single-char #\V)))))
+    (do ((arglist (getopt-long (extract-args (command-line)) grammar)
+		  (cdr arglist)))
+	((null? arglist))
+      (let ((x (car arglist)))
+	(case (car x)
+	  ((mailbox)
+	   (set! output-mailbox-name (cdr x)))
+	  ((source file)
+	   (set! source-file-name (cdr x)))
+	  ((code expression)
+	   (set! source-expression (cdr x)))
+	  ((load-path)
+	   (set! %load-path (append
+			     (string-split (cdr x) #\:)
+			     %load-path)))
+	  ((user)
+	   (set! user-name (cdr x)))
+	  ((guile-arg)
+	   (set! script-arguments (append script-arguments (list (cdr x)))))
+	  ((version)
+	   (guimb-version))
+	  ((help)
+	   (guimb-help))
+	  ((usage)
+	   (guimb-usage))
+	  ((read-only)
+	   (set! output-mailbox-mode "r"))
+	  ('()
+	   (if (not (null? (cdr x)))
+	       (set! input-mailbox-names (append input-mailbox-names
+						 (cdr x))))))))))
+
+(define guimb-module #f)
+
+(define (get-module)
+    (if (not guimb-module)
+	(set! guimb-module (resolve-module '(scheme guimb))))
+    guimb-module)
+
+(define-macro (bound? name)
+  `(and (module-defined? guimb-module ',name)
+	(procedure? ,name)))
+
+(define (guimb-parse-command-line cmdline)
+  (let ((script-args '())
+	(argtail (find-tail
+		  (lambda (x)
+		    (or (string=? x "-c")
+			(string=? x "--code")
+			(string=? x "-s")
+			(string=? x "--source")
+			(string-prefix? "--code=" x)
+			(string-prefix? "--source=" x)))
+		  cmdline)))
+    (cond
+     (argtail
+      (if (let ((x (car argtail)))
+	    (not (or (string-prefix? "--code=" x)
+		     (string-prefix? "--source=" x))))
+	  (set! argtail (cdr argtail)))
+      (cond ((not (null? argtail))
+	     (set! script-args (cdr argtail))
+	     (set-cdr! argtail '())))))
+    (parse-cmdline cmdline)
+    (set! script-arguments (append script-arguments script-args))
+
+    (if (not output-mailbox-mode)
+	(set! output-mailbox-mode (if (null? input-mailbox-names) "wr" "a")))
+    
+    (cond
+     (user-name
+      (set! output-mailbox
+	    (mu-mailbox-open
+	     (if (string? user-name)
+		 (string-append "%" user-name)
+		 "")
+	     output-mailbox-mode)))
+     (output-mailbox-name
+      (set! output-mailbox (mu-mailbox-open output-mailbox-name
+					    output-mailbox-mode))))
+;    (write output-mailbox)(newline)
+
+    (if source-file-name
+	(module-use!
+	 (get-module)
+	 (resolve-interface (list (string->symbol source-file-name)))))
+    (if source-expression
+	(eval-string source-expression))
+
+    (if (bound? guimb-getopt)
+	(guimb-getopt script-arguments)) ))
+
+(define (guimb-single-mailbox mbox)
+  (let msg-loop ((msg (mu-mailbox-first-message mbox)))
+    (if (not (eof-object? msg))
+	(begin
+	  (guimb-message msg)
+	  (msg-loop (mu-mailbox-next-message mbox))))))
+  
+(define (guimb-process-mailbox mbox)
+  (if (not output-mailbox)
+      (guimb-single-mailbox mbox)
+      (let msg-loop ((msg (mu-mailbox-first-message mbox)))
+	(if (not (eof-object? msg))
+	    (begin
+	      (if (guimb-message msg)
+		  (mu-mailbox-append-message output-mailbox msg))
+	      (msg-loop (mu-mailbox-next-message mbox)))))))
+
+(define (guimb cmdline)
+  (mu-register-format)
+  (guimb-parse-command-line cmdline)
+  (if (null? input-mailbox-names)
+    (guimb-single-mailbox output-mailbox)
+    (for-each
+     (lambda (mbox-name)
+       (let ((current-mailbox (mu-mailbox-open mbox-name "r")))
+	 (guimb-process-mailbox current-mailbox)))
+     input-mailbox-names))
+  (if (bound? guimb-end)
+      (guimb-end)))
+
+(debug-enable 'debug)
+(debug-options '(show-file-name #t
+		 stack 20000
+		 debug
+		 backtrace
+		 depth 20
+		 maxdepth 1000
+		 frames 3
+		 indent 10
+		 width 79
+		 procnames))
+
+(define main guimb)
+
+;;;; End of guimb

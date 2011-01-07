@@ -24,20 +24,31 @@ changequote([,])dnl
 (set! documentation-files (append documentation-files 
                                   (list "SITEDIR/guile-procedures.txt")))
 
-(define mu-libs (list "libmailutils"
-		      "libmu_auth"
-		      "libmu_mbox"
-		      "libmu_mh"
-		      "libmu_maildir"
-		      "libmu_pop"
-		      "libmu_imap"))
+(define mu-libs (list (cons "libmailutils"     "libmailutils")
+		      (cons "libmu_auth"       "libmu_auth")
+		      (cons "libproto/mbox"    "libmu_mbox")
+		      (cons "libproto/mh"      "libmu_mh")
+		      (cons "libproto/maildir" "libmu_maildir")
+		      (cons "libproto/pop"     "libmu_pop")
+		      (cons "libproto/imap"    "libmu_imap")))
 
-(let ((lib-path "LIBDIR/"))
-  (for-each
-   (lambda (lib)
-	   (dynamic-link (string-append lib-path lib)))
-   mu-libs)
-  (load-extension (string-append
-		   lib-path "libguile-mailutils-v-VERSION") "mu_scm_init"))
+(cond
+ ((getenv "MAILUTILS_SCM_LIBRARY_ROOT") =>
+  (lambda (root)
+    (for-each
+     (lambda (lib)
+       (dynamic-link (string-append root "/" (car lib) "/" (cdr lib))))
+     mu-libs)
+    (load-extension (string-append root "/libmu_scm/libmu_scm")
+		    "mu_scm_init")))
+ (else
+  (let ((lib-path "LIBDIR/"))
+    (for-each
+     (lambda (lib)
+       (dynamic-link (string-append lib-path (cdr lib))))
+     mu-libs)
+    (load-extension (string-append
+		     lib-path "libguile-mailutils-v-VERSION")
+		    "mu_scm_init"))))
 
 ;;;; End of mailutils.scm

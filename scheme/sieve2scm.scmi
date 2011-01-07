@@ -995,8 +995,7 @@ exec ${GUILE-guile} -l $0 -c '(mailutils-main)'\n")
   (exit 0))
 
 (define (sieve-version)
-  (display "sieve2scm (GNU %PACKAGE% %VERSION%)")
-  (newline)
+  (format #t "sieve2scm (~A) ~A~%" mu-package mu-version)
   (exit 0))
 
 ;;; Parse command line 

@@ -1364,6 +1364,7 @@ AC_CONFIG_FILES([
  libmu_cfg/Makefile
  libmu_cpp/Makefile
  libmu_scm/Makefile
+ libmu_scm/mailutils/Makefile
  libmu_sieve/Makefile
  libmu_sieve/extensions/Makefile
  libproto/Makefile
