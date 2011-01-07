@@ -49,22 +49,26 @@ exec ${GUILE-guile} -l $0 -c "(apply $main (list (command-line)))" "$@"
   (format #t "usage: guimb [OPTIONS] [MAILBOX [MAILBOX...]]
 guimb applies a scheme function to each message from a set of input mailboxes
 
-The following options stop argument processing, and pass all remaining
-arguments as the value of (command-line):
+The following options stop argument processing, and pass the remaining
+arguments to the guimb-getopt function, if it is defined in the module:
 
-  -c, --code=EXPR            execute given scheme expression
-  -s, --source=FILE          load Scheme module from FILE.scm
+  -c, --code=EXPR            execute given Scheme expression
+  -s, --source=MODNAME       load Scheme module MODNAME
 
-The following options do not affect further options parsing:
+The following options have the same effect, but do not affect further
+options parsing:
 
-  -e, --expression=EXPR      execute given scheme expression
-  -f, --file=FILE            load Scheme module from FILE.scm
+  -e, --expression=EXPR      execute given Scheme expression
+  -f, --file=MODNAME         load Scheme module MODNAME
+
+The module to be loaded is normally defined in a file named MODNAME.scm
+somewhere in your %load-path.
 
 Other options:
 
   -M, --mailbox=NAME         set output mailbox name
-  -u, --user[=NAME]          act as local MDA for user NAME (default - current
-                             user)
+  -u, --user[=NAME]          direct output to the system mailbox of the
+                             user NAME (default - current user)
   -r, --read-only            open mailbox in read-only mode
 
 Script arguments:
@@ -250,9 +254,9 @@ for any corresponding short options.
       (guimb-single-mailbox mbox)
       (let msg-loop ((msg (mu-mailbox-first-message mbox)))
 	(if (not (eof-object? msg))
-	    (begin
-	      (if (guimb-message msg)
-		  (mu-mailbox-append-message output-mailbox msg))
+	    (let ((x (guimb-message msg)))
+	      (if (mu-message? x)
+		  (mu-mailbox-append-message output-mailbox x))
 	      (msg-loop (mu-mailbox-next-message mbox)))))))
 
 (define (guimb cmdline)

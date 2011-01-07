@@ -88,6 +88,15 @@ mu_scm_is_mime (SCM scm)
 /* ************************************************************************* */
 /* Guile primitives */
 
+SCM_DEFINE_PUBLIC (scm_mu_mime_p, "mu-mime?", 1, 0, 0,
+		   (SCM scm),
+"Return @code{true} if @var{scm} is a Mailutils MIME object.\n")
+#define FUNC_NAME s_scm_mu_mime_p
+{
+  return scm_from_bool (mu_scm_is_mime (scm));
+}
+#undef FUNC_NAME
+
 SCM_DEFINE_PUBLIC (scm_mu_mime_create, "mu-mime-create", 0, 2, 0,
 		   (SCM flags, SCM mesg),
 "Creates a new @acronym{MIME} object.  Both arguments are optional.\n"

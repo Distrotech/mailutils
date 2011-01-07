@@ -136,6 +136,15 @@ mu_scm_is_mailbox (SCM scm)
 /* ************************************************************************* */
 /* Guile primitives */
 
+SCM_DEFINE_PUBLIC (scm_mu_mailbox_p, "mu-mailbox?", 1, 0, 0,
+		   (SCM scm),
+"Return @code{true} if @var{scm} is a Mailutils mailbox.\n")
+#define FUNC_NAME s_scm_mu_mailbox_p
+{
+  return scm_from_bool (mu_scm_is_mailbox (scm));
+}
+#undef FUNC_NAME
+
 SCM_DEFINE_PUBLIC (scm_mu_mail_directory, "mu-mail-directory", 0, 1, 0,
 		   (SCM url), 
 "Do not use this function. Use mu-user-mailbox-url instead.")

@@ -175,6 +175,15 @@ mu_scm_is_message (SCM scm)
 /* ************************************************************************* */
 /* Guile primitives */
 
+SCM_DEFINE_PUBLIC (scm_mu_message_p, "mu-message?", 1, 0, 0,
+		   (SCM scm),
+"Return @code{true} if @var{scm} is a Mailutils message.\n")
+#define FUNC_NAME s_scm_mu_message_p
+{
+  return scm_from_bool (mu_scm_is_message (scm));
+}
+#undef FUNC_NAME
+
 SCM_DEFINE_PUBLIC (scm_mu_message_create, "mu-message-create", 0, 0, 0,
 		   (),
 		   "Creates an empty message.\n")

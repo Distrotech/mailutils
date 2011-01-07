@@ -95,6 +95,15 @@ mu_scm_body_create (SCM msg, mu_body_t body)
 /* ************************************************************************* */
 /* Guile primitives */
 
+SCM_DEFINE_PUBLIC (scm_mu_body_p, "mu-body?", 1, 0, 0,
+		   (SCM scm),
+"Return @code{true} if @var{scm} is a Mailutils message body object.\n")
+#define FUNC_NAME s_scm_mu_body_p
+{
+  return mu_scm_is_body (scm);
+}
+#undef FUNC_NAME
+
 SCM_DEFINE_PUBLIC (scm_mu_body_read_line, "mu-body-read-line", 1, 0, 0,
 	    (SCM body), 
 	    "Read next line from the @var{body}.")
