@@ -112,6 +112,14 @@ imap4d_bye0 (int reason, struct imap4d_command *command)
       mu_set_signals (sigpipe, sigtab, MU_ARRAY_SIZE (sigtab));
       if (setjmp (pipejmp) == 0)
 	io_completion_response (command, RESP_OK, "Completed");
+      else
+	/* Invalidate iostream. This creates a mild memory leak, as the
+	   stream is not destroyed by util_bye, but at least this avoids
+	   endless loop which would happen when mu_stream_flush would
+	   try to flush buffers on an already broken pipe.
+	   FIXME: There must be a special function for that, I guess.
+	   Something like mu_stream_invalidate. */
+	iostream = NULL;
     }
   
   util_bye ();
