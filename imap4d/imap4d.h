@@ -324,6 +324,7 @@ int make_interdir (const char *name, int delim, int perms);
 
 /* Synchronisation on simultaneous access.  */
 extern int imap4d_sync (void);
+extern void imap4d_sync_invalidate (void);
 extern int imap4d_sync_flags (size_t);
 extern size_t uid_to_msgno (size_t);
 extern void imap4d_set_observer (mu_mailbox_t mbox);

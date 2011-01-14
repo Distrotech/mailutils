@@ -39,8 +39,8 @@ realloc_attributes (size_t total)
   attr_table_count = total;
 }
 
-static void
-invalidate_attr_table ()
+void
+imap4d_sync_invalidate ()
 {
   attr_table_valid = 0;
   attr_table_count = 0;
@@ -191,7 +191,7 @@ imap4d_sync (void)
      It may be because of close or before select/examine a new mailbox.
      If it was a close we do not send any notification.  */
   if (mbox == NULL)
-    invalidate_attr_table ();
+    imap4d_sync_invalidate ();
   else if (!attr_table_valid || !mu_mailbox_is_updated (mbox))
     {
       if (mailbox_corrupt)
@@ -205,7 +205,7 @@ imap4d_sync (void)
 	  if (status)
 	    imap4d_bye (ERR_MAILBOX_CORRUPTED);
 	  imap4d_set_observer (mbox);
-	  invalidate_attr_table ();
+	  imap4d_sync_invalidate ();
 	  mailbox_corrupt = 0;
 	  io_untagged_response (RESP_NONE,
 		             "OK [ALERT] Mailbox modified by another program");
