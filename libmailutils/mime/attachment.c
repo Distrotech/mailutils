@@ -208,9 +208,6 @@ _attachment_setup (mu_mime_io_buffer_t *pinfo, mu_message_t msg,
   if ((ret = mu_message_get_body (msg, &body)) != 0 ||
       (ret = mu_body_get_streamref (body, &stream)) != 0)
     return ret;
-  ret = mu_stream_seek (stream, 0, SEEK_SET, NULL);
-  if (ret)
-    return ret;
   *pstream = stream;
   if (*pinfo)
     {
@@ -224,7 +221,6 @@ _attachment_setup (mu_mime_io_buffer_t *pinfo, mu_message_t msg,
 	return ret;
     }
   
-  info->msg = msg;
   *pinfo = info;
   return 0;
 }
@@ -328,7 +324,7 @@ mu_message_encapsulate (mu_message_t msg, mu_message_t *newmsg,
       mu_message_destroy (&tmsg, NULL);
       return ret;
     }
-
+  info->msg = msg;
   if (ret == 0 && (ret = mu_message_get_streamref (msg, &istream)) == 0)
     {
       mu_stream_seek (istream, 0, MU_SEEK_SET, NULL);
