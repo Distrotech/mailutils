@@ -182,12 +182,17 @@ imap4d_rename (struct imap4d_command *command, imap4d_tokbuf_t tok)
 	      if (mu_mailbox_get_message (inbox, no, &message) == 0)
 		{
 		  mu_attribute_t attr = NULL;
+
+		  imap4d_enter_critical ();
 		  mu_mailbox_append_message (newmbox, message);
+		  imap4d_leave_critical ();
 		  mu_message_get_attribute (message, &attr);
 		  mu_attribute_set_deleted (attr);
 		}
 	    }
+	  imap4d_enter_critical ();
 	  mu_mailbox_expunge (inbox);
+	  imap4d_leave_critical ();
 	  mu_mailbox_close (inbox);
 	  mu_mailbox_destroy (&inbox);
 	}

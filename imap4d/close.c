@@ -30,7 +30,9 @@ imap4d_close0 (struct imap4d_command *command, imap4d_tokbuf_t tok,
   mu_mailbox_get_flags (mbox, &flags);
   if (flags & MU_STREAM_WRITE)
     {
+      imap4d_enter_critical ();
       status = mu_mailbox_flush (mbox, expunge);
+      imap4d_leave_critical ();
       if (status)
 	{
 	  mu_diag_funcall (MU_DIAG_ERROR, "mu_mailbox_flush", NULL, status);
@@ -40,7 +42,9 @@ imap4d_close0 (struct imap4d_command *command, imap4d_tokbuf_t tok,
   
   /* No messages are removed, and no error is given, if the mailbox is
      selected by an EXAMINE command or is otherwise selected read-only.  */
+  imap4d_enter_critical ();
   status = mu_mailbox_close (mbox);
+  imap4d_leave_critical ();
   if (status)
     {
       mu_diag_funcall (MU_DIAG_ERROR, "mu_mailbox_close", NULL, status);

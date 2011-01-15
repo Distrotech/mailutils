@@ -36,90 +36,102 @@ imap4d_bye0 (int reason, struct imap4d_command *command)
 {
   int status = EX_SOFTWARE;
 
-  if (mbox)
+  /* Some clients may close the connection immediately after sending
+     LOGOUT.  Do not treat this as error (RFC 2683).
+     To be on the safe side, ignore broken pipes for any command: at
+     this stage it is of no significance. */
+  static int sigtab[] = { SIGPIPE };
+  mu_set_signals (sigpipe, sigtab, MU_ARRAY_SIZE (sigtab));
+  if (setjmp (pipejmp))
     {
-      mu_mailbox_flush (mbox, 0);
-      mu_mailbox_close (mbox);
-      mu_mailbox_destroy (&mbox);
+      mu_set_signals (SIG_IGN, sigtab, MU_ARRAY_SIZE (sigtab));
+      /* Invalidate iostream. This creates a mild memory leak, as the
+	 stream is not destroyed by util_bye, but at least this avoids
+	 endless loop which would happen when mu_stream_flush would
+	 try to flush buffers on an already broken pipe.
+	 FIXME: There must be a special function for that, I guess.
+	 Something like mu_stream_invalidate. */
+      iostream = NULL;
     }
-
-  switch (reason)
+  else
     {
-    case ERR_NO_MEM:
-      io_untagged_response (RESP_BYE, "Server terminating: no more resources.");
-      mu_diag_output (MU_DIAG_ERROR, _("not enough memory"));
-      break;
+      if (mbox)
+	{
+	  imap4d_enter_critical ();
+	  mu_mailbox_flush (mbox, 0);
+	  mu_mailbox_close (mbox);
+	  mu_mailbox_destroy (&mbox);
+	  imap4d_leave_critical ();
+	}
 
-    case ERR_TERMINATE:
-      status = EX_OK;
-      io_untagged_response (RESP_BYE, "Server terminating on request.");
-      mu_diag_output (MU_DIAG_NOTICE, _("terminating on request"));
-      break;
+      switch (reason)
+	{
+	case ERR_NO_MEM:
+	  io_untagged_response (RESP_BYE,
+				"Server terminating: no more resources.");
+	  mu_diag_output (MU_DIAG_ERROR, _("not enough memory"));
+	  break;
+	  
+	case ERR_TERMINATE:
+	  status = EX_OK;
+	  io_untagged_response (RESP_BYE, "Server terminating on request.");
+	  mu_diag_output (MU_DIAG_NOTICE, _("terminating on request"));
+	  break;
 
-    case ERR_SIGNAL:
-      mu_diag_output (MU_DIAG_ERROR, _("quitting on signal"));
-      exit (status);
+	case ERR_SIGNAL:
+	  mu_diag_output (MU_DIAG_ERROR, _("quitting on signal"));
+	  exit (status);
+	  
+	case ERR_TIMEOUT:
+	  status = EX_TEMPFAIL;
+	  io_untagged_response (RESP_BYE, "Session timed out");
+	  if (state == STATE_NONAUTH)
+	    mu_diag_output (MU_DIAG_INFO, _("session timed out for no user"));
+	  else
+	    mu_diag_output (MU_DIAG_INFO, _("session timed out for user: %s"),
+			    auth_data->name);
+	  break;
 
-    case ERR_TIMEOUT:
-      status = EX_TEMPFAIL;
-      io_untagged_response (RESP_BYE, "Session timed out");
-      if (state == STATE_NONAUTH)
-        mu_diag_output (MU_DIAG_INFO, _("session timed out for no user"));
-      else
-	mu_diag_output (MU_DIAG_INFO, _("session timed out for user: %s"), auth_data->name);
-      break;
+	case ERR_NO_OFILE:
+	  status = EX_IOERR;
+	  mu_diag_output (MU_DIAG_INFO, _("write error on control stream"));
+	  break;
 
-    case ERR_NO_OFILE:
-      status = EX_IOERR;
-      mu_diag_output (MU_DIAG_INFO, _("write error on control stream"));
-      break;
+	case ERR_NO_IFILE:
+	  status = EX_IOERR;
+	  mu_diag_output (MU_DIAG_INFO, _("read error on control stream"));
+	  break;
 
-    case ERR_NO_IFILE:
-      status = EX_IOERR;
-      mu_diag_output (MU_DIAG_INFO, _("read error on control stream"));
-      break;
-
-    case ERR_MAILBOX_CORRUPTED:
-      status = EX_OSERR;
-      mu_diag_output (MU_DIAG_ERROR, _("mailbox modified by third party"));
-      break;
-
-    case ERR_STREAM_CREATE:
-      status = EX_UNAVAILABLE;
-      mu_diag_output (MU_DIAG_ERROR, _("cannot create transport stream"));
-      break;
+	case ERR_MAILBOX_CORRUPTED:
+	  status = EX_OSERR;
+	  mu_diag_output (MU_DIAG_ERROR, _("mailbox modified by third party"));
+	  break;
+	  
+	case ERR_STREAM_CREATE:
+	  status = EX_UNAVAILABLE;
+	  mu_diag_output (MU_DIAG_ERROR, _("cannot create transport stream"));
+	  break;
       
-    case OK:
-      status = EX_OK;
-      io_untagged_response (RESP_BYE, "Session terminating.");
-      if (state == STATE_NONAUTH)
-	mu_diag_output (MU_DIAG_INFO, _("session terminating"));
-      else
-	mu_diag_output (MU_DIAG_INFO, _("session terminating for user: %s"), auth_data->name);
-      break;
+	case OK:
+	  status = EX_OK;
+	  io_untagged_response (RESP_BYE, "Session terminating.");
+	  if (state == STATE_NONAUTH)
+	    mu_diag_output (MU_DIAG_INFO, _("session terminating"));
+	  else
+	    mu_diag_output (MU_DIAG_INFO,
+			    _("session terminating for user: %s"),
+			    auth_data->name);
+	  break;
 
-    default:
-      io_untagged_response (RESP_BYE, "Quitting (reason unknown)");
-      mu_diag_output (MU_DIAG_ERROR, _("quitting (numeric reason %d)"), reason);
-      break;
-    }
-
-  if (status == EX_OK && command)
-    {
-      /* Some clients may close the connection immediately after sending
-	 LOGOUT.  Do not treat this as error (RFC 2683). */
-      static int sigtab[] = { SIGPIPE };
-      mu_set_signals (sigpipe, sigtab, MU_ARRAY_SIZE (sigtab));
-      if (setjmp (pipejmp) == 0)
+	default:
+	  io_untagged_response (RESP_BYE, "Quitting (reason unknown)");
+	  mu_diag_output (MU_DIAG_ERROR, _("quitting (numeric reason %d)"),
+			  reason);
+	  break;
+	}
+      
+      if (status == EX_OK && command)
 	io_completion_response (command, RESP_OK, "Completed");
-      else
-	/* Invalidate iostream. This creates a mild memory leak, as the
-	   stream is not destroyed by util_bye, but at least this avoids
-	   endless loop which would happen when mu_stream_flush would
-	   try to flush buffers on an already broken pipe.
-	   FIXME: There must be a special function for that, I guess.
-	   Something like mu_stream_invalidate. */
-	iostream = NULL;
     }
   
   util_bye ();

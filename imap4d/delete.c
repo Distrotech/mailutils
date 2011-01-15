@@ -56,7 +56,9 @@ imap4d_delete (struct imap4d_command *command, imap4d_tokbuf_t tok)
   rc = mu_mailbox_create (&tmpbox, name);
   if (rc == 0)
     {
+      imap4d_enter_critical ();
       rc = mu_mailbox_remove (tmpbox);
+      imap4d_leave_critical ();
       mu_mailbox_destroy (&tmpbox);
       if (rc)
 	mu_diag_funcall (MU_DIAG_ERROR, "mu_mailbox_remove", name, rc);

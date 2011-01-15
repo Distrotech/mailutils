@@ -124,7 +124,8 @@ imap4d_append0 (mu_mailbox_t mbox, int flags, char *date_time, char *text,
       mu_message_destroy (&msg, &tm);
       return 1;
     }
-  
+
+  imap4d_enter_critical ();
   rc = mu_mailbox_append_message (mbox, msg);
   if (rc == 0)
     {
@@ -140,7 +141,8 @@ imap4d_append0 (mu_mailbox_t mbox, int flags, char *date_time, char *text,
       /* FIXME: If not INBOX */
       quota_update (size);
     }
-
+  imap4d_leave_critical ();
+  
   mu_message_destroy (&msg, &tm);
   return rc;
 }

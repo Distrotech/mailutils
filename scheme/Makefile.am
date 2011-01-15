@@ -56,5 +56,6 @@ sievemod_DATA=\
 EXTRA_DIST=\
  $(sievemod_DATA)\
  sieve-core.scm\
- sieve2scm.scmi
+ sieve2scm.scmi\
+ guimb.scmi
 

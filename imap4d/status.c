@@ -88,7 +88,9 @@ imap4d_status (struct imap4d_command *command, imap4d_tokbuf_t tok)
 
   /* We may be opening the current mailbox, so make sure the attributes are
      preserved */
+  imap4d_enter_critical ();
   mu_mailbox_sync (mbox);
+  imap4d_leave_critical ();
   
   status = mu_mailbox_create_default (&smbox, mailbox_name);
   if (status == 0)

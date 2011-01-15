@@ -385,11 +385,12 @@ get_client_address (int fd, struct sockaddr_in *pcs)
   return 0;
 }
 
+
 void
 imap4d_child_signal_setup (RETSIGTYPE (*handler) (int signo))
 {
-  static int sigtab[] = { SIGILL, SIGBUS, SIGFPE, SIGSEGV, SIGSTOP, SIGPIPE,
-			  SIGABRT, SIGINT, SIGQUIT, SIGTERM, SIGHUP, SIGALRM };
+  static int sigtab[] = { SIGPIPE, SIGABRT, SIGINT, SIGQUIT,
+			  SIGTERM, SIGHUP, SIGALRM };
   mu_set_signals (handler, sigtab, MU_ARRAY_SIZE (sigtab));
 }
 
@@ -399,8 +400,40 @@ imap4d_mainloop (int ifd, int ofd)
   imap4d_tokbuf_t tokp;
   char *text;
   int debug_mode = isatty (ifd);
+  int signo;
 
-  imap4d_child_signal_setup (imap4d_child_signal);
+  if ((signo = setjmp (child_jmp)))
+    {
+      mu_diag_output (MU_DIAG_CRIT, _("got signal `%s'"), strsignal (signo));
+      switch (signo)
+	{
+	case SIGTERM:
+	case SIGHUP:
+	  signo = ERR_TERMINATE;
+	  break;
+      
+	case SIGALRM:
+	  signo = ERR_TIMEOUT;
+	  break;
+      
+	case SIGPIPE:
+	  signo = ERR_NO_OFILE;
+	  break;
+      
+	default:
+	  signo = ERR_SIGNAL;
+	}
+      imap4d_bye (signo);
+    }
+  else
+    {
+      /* Restore default handling for these signals: */
+      static int defsigtab[] = { SIGILL, SIGBUS, SIGFPE, SIGSEGV, SIGSTOP };
+      mu_set_signals (SIG_DFL, defsigtab, MU_ARRAY_SIZE (defsigtab));
+      /* Set child-specific signal handlers */
+      imap4d_child_signal_setup (imap4d_child_signal);
+    }
+  
   io_setio (ifd, ofd);
 
   if (imap4d_preauth_setup (ifd) == 0)
@@ -483,6 +516,17 @@ imap4d_check_home_dir (const char *dir, uid_t uid, gid_t gid)
   
   return 0;
 }
+
+
+jmp_buf master_jmp;
+
+RETSIGTYPE
+imap4d_master_signal (int signo)
+{
+  longjmp (master_jmp, signo);
+}
+
+
 
 int
 main (int argc, char **argv)
@@ -578,6 +622,27 @@ main (int argc, char **argv)
     }
 
   /* Set the signal handlers.  */
+  if ((status = setjmp (master_jmp)))
+    {
+      int code;
+      mu_diag_output (MU_DIAG_CRIT, _("MASTER: exiting on signal (%s)"),
+		      strsignal (status));
+      switch (status)
+	{
+	case SIGTERM:
+	case SIGHUP:
+	case SIGQUIT:
+	case SIGINT:
+	  code = EX_OK;
+	  break;
+	  
+	default:
+	  code = EX_SOFTWARE;
+	  break;
+	}
+      
+      exit (code); 
+    }
   mu_set_signals (imap4d_master_signal, sigtab, MU_ARRAY_SIZE (sigtab));
 
   mu_stdstream_strerr_setup (mu_log_syslog ?

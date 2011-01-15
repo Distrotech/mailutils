@@ -36,9 +36,11 @@ imap4d_expunge (struct imap4d_command *command, imap4d_tokbuf_t tok)
   if (imap4d_tokbuf_argc (tok) != 2)
     return io_completion_response (command, RESP_BAD, "Invalid arguments");
 
+  imap4d_enter_critical ();
   /* FIXME: check for errors.  */
   mu_mailbox_expunge (mbox);
-
+  imap4d_leave_critical ();
+  
   imap4d_sync_invalidate ();
   imap4d_sync ();
   return io_completion_response (command, RESP_OK, "Completed");

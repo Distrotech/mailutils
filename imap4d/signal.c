@@ -15,57 +15,34 @@
    You should have received a copy of the GNU General Public License
    along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>. */
 
-#define __USE_MISC
 #include "imap4d.h"
 
-/* Default signal handler to call the imap4d_bye() function */
+jmp_buf child_jmp;
+static int __critical_section;
+static int __got_signal;
 
-RETSIGTYPE
-imap4d_master_signal (int signo)
+void
+imap4d_enter_critical ()
 {
-  int code;
+  __critical_section = 1;
+  if (__got_signal)
+    __critical_section++;
+}
 
-  mu_diag_output (MU_DIAG_CRIT, _("MASTER: exiting on signal (%s)"),
-		  strsignal (signo));
-  switch (signo)
-    {
-    case SIGTERM:
-    case SIGHUP:
-    case SIGQUIT:
-    case SIGINT:
-      code = EX_OK;
-      break;
-
-    default:
-      code = EX_SOFTWARE;
-      break;
-    }
-
-  exit (code); 
+void
+imap4d_leave_critical ()
+{
+  if (__got_signal && __critical_section != 2)
+    longjmp (child_jmp, __got_signal);
+  __critical_section = 0;
 }
 
 RETSIGTYPE
 imap4d_child_signal (int signo)
 {
   imap4d_child_signal_setup (SIG_IGN);
-  mu_diag_output (MU_DIAG_CRIT, _("got signal `%s'"), strsignal (signo));
-  switch (signo)
-    {
-    case SIGTERM:
-    case SIGHUP:
-      signo = ERR_TERMINATE;
-      break;
-      
-    case SIGALRM:
-      signo = ERR_TIMEOUT;
-      break;
-      
-    case SIGPIPE:
-      signo = ERR_NO_OFILE;
-      break;
-      
-    default:
-      signo = ERR_SIGNAL;
-    }
-  imap4d_bye (signo);
+  if (__critical_section)
+    __got_signal = signo;
+  else
+    longjmp (child_jmp, signo);
 }

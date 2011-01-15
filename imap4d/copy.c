@@ -119,7 +119,9 @@ try_copy (mu_mailbox_t dst, mu_mailbox_t src, size_t n, size_t *set)
 	      return RESP_BAD;
 	    }
 
+	  imap4d_enter_critical ();
 	  status = mu_mailbox_append_message (dst, msg);
+	  imap4d_leave_critical ();
 	  if (status)
 	    {
 	      mu_diag_funcall (MU_DIAG_ERROR, "mu_mailbox_append_message",
@@ -185,8 +187,10 @@ safe_copy (mu_mailbox_t dst, mu_mailbox_t src, size_t n, size_t *set,
 	      mu_attribute_set_userflag (attr, MU_ATTRIBUTE_DELETED);
 	    }
 	}
-      
+
+      imap4d_enter_critical ();
       status = mu_mailbox_flush (dst, 1);
+      imap4d_leave_critical ();
       if (status)
 	{
 	  mu_url_t url = NULL;

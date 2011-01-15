@@ -202,6 +202,7 @@ extern int imap4d_transcript;
 extern mu_list_t imap4d_id_list;
 extern int imap4d_argc;                 
 extern char **imap4d_argv;
+extern jmp_buf child_jmp;
 
 /* Input functions */
 extern mu_stream_t iostream;
@@ -334,6 +335,9 @@ extern RETSIGTYPE imap4d_master_signal (int);
 extern RETSIGTYPE imap4d_child_signal (int);
 extern int imap4d_bye (int);
 extern int imap4d_bye0 (int reason, struct imap4d_command *command);
+void imap4d_enter_critical (void);
+void imap4d_leave_critical (void);
+
 
 /* Namespace functions */
 extern mu_list_t namespace[NS_MAX];

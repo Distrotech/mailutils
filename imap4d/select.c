@@ -46,8 +46,10 @@ imap4d_select0 (struct imap4d_command *command, const char *mboxname,
      currently selected mailbox without doing an expunge.  */
   if (mbox)
     {
+      imap4d_enter_critical ();
       mu_mailbox_sync (mbox);
       mu_mailbox_close (mbox);
+      imap4d_leave_critical ();
       mu_mailbox_destroy (&mbox);
       /* Destroy the old uid table.  */
       imap4d_sync ();
