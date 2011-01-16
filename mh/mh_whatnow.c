@@ -17,14 +17,6 @@
 
 #include <mh.h>
 
-#if defined (HAVE_SYSCONF) && defined (_SC_OPEN_MAX)
-# define getmaxfd() sysconf (_SC_OPEN_MAX)
-#elif defined (HAVE_GETDTABLESIZE)
-# define getmaxfd() getdtablesize ()
-#else
-# define getmaxfd() 64
-#endif
-
 typedef int (*handler_fp) (struct mh_whatnow_env *wh,
 			   int argc, char **argv,
 			   int *status);
@@ -620,7 +612,7 @@ mh_whatnowproc (struct mh_whatnow_env *wh, int initial_edit, const char *prog)
       
       set_default_editor (wh);
       mh_whatnow_env_to_environ (wh);
-      for (i = getmaxfd (); i > 2; i--)
+      for (i = mu_getmaxfd (); i > 2; i--)
 	close (i);
       execvp (ws.ws_wordv[0], ws.ws_wordv);
       mu_diag_funcall (MU_DIAG_ERROR, "execvp", prog, errno);

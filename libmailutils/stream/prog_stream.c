@@ -60,14 +60,6 @@ _prog_stream_unregister (struct _mu_prog_stream *stream)
 
 
 
-#if defined (HAVE_SYSCONF) && defined (_SC_OPEN_MAX)
-# define getmaxfd() sysconf (_SC_OPEN_MAX)
-#elif defined (HAVE_GETDTABLESIZE)
-# define getmaxfd() getdtablesize ()
-#else
-# define getmaxfd() 64
-#endif
-
 #define REDIRECT_STDIN_P(f) ((f) & MU_STREAM_WRITE)
 #define REDIRECT_STDOUT_P(f) ((f) & MU_STREAM_READ)
 
@@ -260,7 +252,7 @@ start_program_filter (int *p, struct _mu_prog_stream *fs, int flags)
 	}
        
       /* Close unneded descripitors */
-      for (i = getmaxfd (); i > 2; i--)
+      for (i = mu_getmaxfd (); i > 2; i--)
 	close (i);
 
       /*FIXME: Switch to other uid/gid if desired */

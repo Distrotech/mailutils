@@ -83,7 +83,6 @@ void mu_debug_log_begin (const char *fmt, ...) MU_PRINTFLIKE(1,2);
 void mu_debug_log_cont (const char *fmt, ...) MU_PRINTFLIKE(1,2);
 void mu_debug_log_end (const char *fmt, ...) MU_PRINTFLIKE(1,2);
 void mu_debug_log_nl (void);
-
   
   
 #define MU_ASSERT(expr)						\
@@ -115,7 +114,13 @@ void mu_debug_log_nl (void);
 	  mu_debug_log s;						 \
       }                                                                  \
   while (0)
- 
+
+  /* Debugging hooks. */
+  /* Dump a stack trace and terminate the program. */
+void mu_gdb_bt (void);
+  /* Sleep till attached to by gdb. */
+void mu_wd (unsigned to);
+  
 #ifdef __cplusplus
 }
 #endif

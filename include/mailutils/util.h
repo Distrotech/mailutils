@@ -177,6 +177,7 @@ int mu_getpass (mu_stream_t in, mu_stream_t out, const char *prompt,
   /* ----------------------- */
   /* Assorted functions.     */
   /* ----------------------- */
+int mu_getmaxfd (void);
 /* Get the host name, doing a gethostbyname() if possible. */
 int mu_get_host_name (char **host);
 int mu_spawnvp (const char *prog, char *av[], int *stat);

@@ -18,11 +18,13 @@
 noinst_LTLIBRARIES = libdiag.la
 
 libdiag_la_SOURCES = \
+ bt.c\
  debug.c\
  diag.c\
  muerror.c\
  muerrno.c\
- syslog.c
+ syslog.c\
+ wd.c
 
 INCLUDES = @MU_LIB_COMMON_INCLUDES@ -I/libmailutils
 

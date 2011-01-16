@@ -100,7 +100,7 @@ SCM_DEFINE_PUBLIC (scm_mu_body_p, "mu-body?", 1, 0, 0,
 "Return @code{true} if @var{scm} is a Mailutils message body object.\n")
 #define FUNC_NAME s_scm_mu_body_p
 {
-  return mu_scm_is_body (scm);
+  return scm_from_bool (mu_scm_is_body (scm));
 }
 #undef FUNC_NAME
 

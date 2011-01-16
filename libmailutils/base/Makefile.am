@@ -31,6 +31,7 @@ libbase_la_SOURCES = \
  filename.c\
  freeitem.c\
  getcwd.c\
+ getmaxfd.c\
  getpass.c\
  hostname.c\
  iterator.c\

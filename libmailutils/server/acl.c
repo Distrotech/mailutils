@@ -39,6 +39,7 @@
 #include <mailutils/errno.h>
 #include <mailutils/kwd.h>
 #include <mailutils/io.h>
+#include <mailutils/util.h>
 
 struct _mu_acl_entry
 {
@@ -473,14 +474,6 @@ struct run_closure
   mu_acl_result_t *result;
 };
 
-#if defined (HAVE_SYSCONF) && defined (_SC_OPEN_MAX)
-# define getmaxfd() sysconf (_SC_OPEN_MAX)
-#elif defined (HAVE_GETDTABLESIZE)
-# define getmaxfd() getdtablesize ()
-#else
-# define getmaxfd() 64
-#endif
-
 #define SEQ(s, n, l) \
   (((l) == (sizeof(s) - 1)) && memcmp (s, n, l) == 0)
 
@@ -604,7 +597,7 @@ spawn_prog (const char *cmdline, int *pstatus, struct run_closure *rp)
 	  _exit (127);
 	}
       
-      for (i = getmaxfd (); i > 2; i--)
+      for (i = mu_getmaxfd (); i > 2; i--)
 	close (i);
       execvp (ws.ws_wordv[0], ws.ws_wordv);
       _exit (127);
