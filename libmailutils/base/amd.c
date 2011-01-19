@@ -1458,53 +1458,69 @@ amd_scan_message (struct _amd_message *mhm)
   /* Check if the message was modified after the last scan */
   status = mhm->amd->cur_msg_file_name (mhm, &msg_name);
   if (status)
-    return status;
-
+    {
+      mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR,
+		("amd_scan_message: cur_msg_file_name=%s",
+		 mu_strerror (status)));      
+      return status;
+    }
+  
   if (stat (msg_name, &st) == 0 && st.st_mtime == mhm->mtime)
     {
       /* Nothing to do */
       free (msg_name);
       return 0;
     }
-  free (msg_name);
 
   off = 0;
   status = mu_stream_seek (stream, 0, MU_SEEK_SET, NULL);
-  if (status == 0)
-    while ((status = mu_stream_readline (stream, buf, sizeof (buf), &n)) == 0
-	   && n != 0)
-      {
-	if (in_header)
-	  {
-	    if (buf[0] == '\n')
-	      {
-		in_header = 0;
-		body_start = off + 1;
-	      }
-	    if (buf[n - 1] == '\n')
-	      hlines++;
-	    
-	    /* Process particular attributes */
-	    if (mu_c_strncasecmp (buf, "status:", 7) == 0)
-	      {
-		int deleted = mhm->attr_flags & MU_ATTRIBUTE_DELETED;
-		mu_string_to_flags (buf, &mhm->attr_flags);
-		mhm->attr_flags |= deleted;
-	      }
-	    else if (mu_c_strncasecmp (buf, "x-imapbase:", 11) == 0)
-	      {
-		char *p;
-		mhm->amd->uidvalidity = strtoul (buf + 11, &p, 10);
-		/* second number is next uid. Ignored */
-	      }
-	  }
-	else
-	  {
-	    if (buf[n - 1] == '\n')
-	      blines++;
-	  }
-	off += n;
-      }
+  if (status)
+    mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR,
+	      ("amd_scan_message(%s): mu_stream_seek=%s",
+	       msg_name, mu_strerror (status)));      
+  else
+    {
+      while ((status = mu_stream_readline (stream, buf, sizeof (buf), &n)) == 0
+	     && n != 0)
+	{
+	  if (in_header)
+	    {
+	      if (buf[0] == '\n')
+		{
+		  in_header = 0;
+		  body_start = off + 1;
+		}
+	      if (buf[n - 1] == '\n')
+		hlines++;
+	      
+	      /* Process particular attributes */
+	      if (mu_c_strncasecmp (buf, "status:", 7) == 0)
+		{
+		  int deleted = mhm->attr_flags & MU_ATTRIBUTE_DELETED;
+		  mu_string_to_flags (buf, &mhm->attr_flags);
+		  mhm->attr_flags |= deleted;
+		}
+	      else if (mu_c_strncasecmp (buf, "x-imapbase:", 11) == 0)
+		{
+		  char *p;
+		  mhm->amd->uidvalidity = strtoul (buf + 11, &p, 10);
+		  /* second number is next uid. Ignored */
+		}
+	    }
+	  else
+	    {
+	      if (buf[n - 1] == '\n')
+		blines++;
+	    }
+	  off += n;
+	}
+      if (status)
+	mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR,
+		  ("amd_scan_message(%s): %s",
+		   msg_name, mu_strerror (status)));     
+    }
+
+  free (msg_name);
 
   if (status == 0)
     {
@@ -1606,14 +1622,19 @@ amd_pool_open (struct _amd_message *mhm)
   struct _amd_data *amd = mhm->amd;
   if (amd_pool_lookup (mhm))
     return 0;
-  if (amd_pool_open_count(amd) == MAX_OPEN_STREAMS-1)
+  if (amd_pool_open_count (amd) == MAX_OPEN_STREAMS-1)
     {
       amd_message_stream_close (amd->msg_pool[amd->pool_first++]);
       amd->pool_first %= MAX_OPEN_STREAMS;
     }
   status = amd_message_stream_open (mhm);
   if (status)
-    return status;
+    {
+      mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR,
+		("amd_pool_open: amd_message_stream_open=%s",
+		 mu_strerror (status)));
+      return status;
+    }
   amd->msg_pool[amd->pool_last++] = mhm;
   amd->pool_last %= MAX_OPEN_STREAMS;
   return 0;
@@ -1646,14 +1667,23 @@ amd_message_stream_open (struct _amd_message *mhm)
 
   status = amd->cur_msg_file_name (mhm, &filename);
   if (status)
-    return status;
-
+    {
+      mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR,
+		("amd_message_stream_open: cur_msg_file_name=%s",
+		 mu_strerror (status)));
+      return status;
+    }
+  
   /* The message should be at least readable */
   if (amd->mailbox->flags & (MU_STREAM_RDWR|MU_STREAM_WRITE|MU_STREAM_APPEND))
     flags |= MU_STREAM_RDWR;
   else 
     flags |= MU_STREAM_READ;
   status = mu_file_stream_create (&mhm->stream, filename, flags);
+  if (status)
+    mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR,
+	      ("amd_message_stream_open: mu_file_stream_create(%s)=%s",
+	       filename, mu_strerror (status)));      
 
   free (filename);
 
@@ -1664,7 +1694,11 @@ amd_message_stream_open (struct _amd_message *mhm)
   mu_stream_set_buffer (mhm->stream, mu_buffer_full, 16384);
   
   status = amd_scan_message (mhm);
-
+  if (status)
+    mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR,
+	      ("amd_message_stream_open: amd_scan_message=%s",
+	       mu_strerror (status)));
+  
   return status;
 }
 
@@ -1679,11 +1713,12 @@ amd_message_stream_close (struct _amd_message *mhm)
     }
 }
 
-void
+int
 amd_check_message (struct _amd_message *mhm)
 {
   if (mhm->body_end == 0)
-    amd_pool_open (mhm);
+    return amd_pool_open (mhm);
+  return 0;
 }
 
 /* Reading functions */
@@ -1699,7 +1734,9 @@ amd_body_stream_read (mu_stream_t is, char *buffer, size_t buflen,
   int status = 0;
   mu_off_t ln;
 
-  amd_pool_open (mhm);
+  status = amd_pool_open (mhm);
+  if (status)
+    return status;
 
   if (buffer == NULL || buflen == 0)
     {
@@ -1748,7 +1785,9 @@ amd_body_stream_readdelim (mu_stream_t is, char *buffer, size_t buflen,
   struct _amd_message *mhm = mu_message_get_owner (msg);
   int status = 0;
 
-  amd_pool_open (mhm);
+  status = amd_pool_open (mhm);
+  if (status)
+    return status;
 
   if (buffer == NULL || buflen == 0)
     {
@@ -1825,11 +1864,14 @@ amd_body_stream_size (mu_stream_t stream, mu_off_t *psize)
 static int
 amd_body_size (mu_body_t body, size_t *psize)
 {
+  int status;
   mu_message_t msg = mu_body_get_owner (body);
   struct _amd_message *mhm = mu_message_get_owner (msg);
   if (mhm == NULL)
     return EINVAL;
-  amd_check_message (mhm);
+  status = amd_check_message (mhm);
+  if (status)
+    return status;
   if (psize)
     *psize = mhm->body_end - mhm->body_start;
   return 0;
@@ -1838,11 +1880,14 @@ amd_body_size (mu_body_t body, size_t *psize)
 static int
 amd_body_lines (mu_body_t body, size_t *plines)
 {
+  int status;
   mu_message_t msg = mu_body_get_owner (body);
   struct _amd_message *mhm = mu_message_get_owner (msg);
   if (mhm == NULL)
     return EINVAL;
-  amd_check_message (mhm);
+  status = amd_check_message (mhm);
+  if (status)
+    return status;
   if (plines)
     *plines = mhm->body_lines;
   return 0;
