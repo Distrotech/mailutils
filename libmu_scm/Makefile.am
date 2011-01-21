@@ -24,6 +24,7 @@ lib_LTLIBRARIES=libmu_scm.la
 C_SRCS=\
  mu_address.c\
  mu_body.c\
+ mu_debug.c\
  mu_dbgport.c\
  mu_guile.c\
  mu_mailbox.c\

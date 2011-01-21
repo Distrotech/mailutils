@@ -32,6 +32,8 @@
 #include <mailutils/wordsplit.h>
 #include <mailutils/stream.h>
 #include <mailutils/stdstream.h>
+#include <mailutils/iterator.h>
+#include <mailutils/cstr.h>
 
 int mu_debug_line_info;          /* Debug messages include source locations */
 
@@ -496,6 +498,176 @@ mu_debug_format_spec (mu_stream_t str, const char *names, int showunset)
   return rc;
 }
 
+
+/* Iterator */
+
+static mu_iterator_t iterator_head;
+
+#define ITR_BACKWARDS 0x01
+#define ITR_SKIPUNSET 0x02
+#define ITR_FINISHED  0x04
+
+struct debug_iterator
+{
+  size_t pos;
+  int flags;
+};
+
+static int
+first (void *owner)
+{
+  struct debug_iterator *itr = owner;
+  itr->flags &= ~ITR_FINISHED;
+  if (itr->flags & ITR_BACKWARDS)
+    itr->pos = catcnt - 1;
+  else
+    itr->pos = 0;
+  return 0;
+}
+
+static int
+next (void *owner)
+{
+  struct debug_iterator *itr = owner;
+  itr->flags &= ~ITR_FINISHED;
+  do
+    {
+      if (itr->flags & ITR_BACKWARDS)
+	{
+	  if (itr->pos)
+	    itr->pos--;
+	  else
+	    itr->flags |= ITR_FINISHED;
+	}
+      else
+	{
+	  if (itr->pos < catcnt - 1)
+	    itr->pos++;
+	  else
+	    itr->flags |= ITR_FINISHED;
+	}
+    }
+  while ((itr->flags & ITR_SKIPUNSET) &&
+	 !(itr->flags & ITR_FINISHED) &&
+	 !cattab[itr->pos].isset);
+
+  return 0;
+}
+
+static int
+getitem (void *owner, void **pret, const void **pkey)
+{
+  struct debug_iterator *itr = owner;
+  *(mu_debug_level_t*) pret = cattab[itr->pos].level;
+  if (pkey)
+    *pkey = cattab[itr->pos].name;
+  return 0;
+}
+
+static int
+finished_p (void *owner)
+{
+  struct debug_iterator *itr = owner;
+  return itr->flags & ITR_FINISHED;
+}
+
+static int
+curitem_p (void *owner, void *item)
+{
+  struct debug_iterator *itr = owner;
+  return mu_c_strcasecmp (cattab[itr->pos].name, (char *) item) == 0;
+}
+
+static int
+list_data_dup (void **ptr, void *owner)
+{
+  *ptr = malloc (sizeof (struct debug_iterator));
+  if (*ptr == NULL)
+    return ENOMEM;
+  memcpy (*ptr, owner, sizeof (struct debug_iterator));
+  return 0;
+}
+
+static int
+list_itrctl (void *owner, enum mu_itrctl_req req, void *arg)
+{
+  struct debug_iterator *itr = owner;
+  
+  switch (req)
+    {
+    case mu_itrctl_tell:
+      /* Return current position in the object */
+      if (!arg)
+	return EINVAL;
+      *(size_t*)arg = itr->pos;
+      break;
+
+    case mu_itrctl_delete:
+    case mu_itrctl_delete_nd:
+      /* Delete current element */
+      cattab[itr->pos].level = 0;
+      cattab[itr->pos].isset = 0;
+      break;
+
+    case mu_itrctl_replace:
+    case mu_itrctl_replace_nd:
+      if (!arg)
+	return EINVAL;
+      cattab[itr->pos].level = *(mu_debug_level_t*)arg;
+      break;
+
+    case mu_itrctl_qry_direction:
+      if (!arg)
+	return EINVAL;
+      else
+	*(int*)arg = itr->flags & ITR_BACKWARDS;
+      break;
+
+    case mu_itrctl_set_direction:
+      if (!arg)
+	return EINVAL;
+      else
+	itr->flags |= ITR_BACKWARDS;
+      break;
+
+    default:
+      return ENOSYS;
+    }
+  return 0;
+}
+
+int
+mu_debug_get_iterator (mu_iterator_t *piterator, int skipunset)
+{
+  int status;
+  mu_iterator_t iterator;
+  struct debug_iterator *itr;
+  
+  itr = malloc (sizeof *itr);
+  if (!itr)
+    return ENOMEM;
+  itr->pos = 0;
+  itr->flags = skipunset ? ITR_SKIPUNSET : 0;
+  status = mu_iterator_create (&iterator, itr);
+  if (status)
+    {
+      free (itr);
+      return status;
+    }
+
+  mu_iterator_set_first (iterator, first);
+  mu_iterator_set_next (iterator, next);
+  mu_iterator_set_getitem (iterator, getitem);
+  mu_iterator_set_finished_p (iterator, finished_p);
+  mu_iterator_set_curitem_p (iterator, curitem_p);
+  mu_iterator_set_dup (iterator, list_data_dup);
+  mu_iterator_set_itrctl (iterator, list_itrctl);
+  
+  mu_iterator_attach (&iterator_head, iterator);
+
+  *piterator = iterator;
+  return 0;
+}
 
 
 void

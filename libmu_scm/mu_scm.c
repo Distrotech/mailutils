@@ -128,7 +128,7 @@ SCM_DEFINE_PUBLIC (scm_mu_register_format, "mu-register-format", 0, 0, 1,
 	  SCM_ASSERT (scm_is_string (scm), scm, SCM_ARGn, FUNC_NAME);
 	  s = scm_to_locale_string (scm);
 	  status = register_format (s);
-	  free (scm);
+	  free (s);
 	  if (status)
 	    mu_scm_error (FUNC_NAME, status,
 			  "Cannot register format ~A",
@@ -210,9 +210,10 @@ mu_scm_init ()
   mu_scm_port_init ();
   mu_scm_mime_init ();
   mu_scm_debug_port_init ();
+  mu_scm_debug_init ();
   
 #include "mu_scm.x"
-
+  
   mu_registrar_record (MU_DEFAULT_RECORD);
   mu_registrar_set_default_record (MU_DEFAULT_RECORD);
 }

@@ -72,6 +72,7 @@ extern void mu_scm_mutil_init (void);
 SCM mu_scm_make_debug_port (int level);
 void mu_scm_debug_port_init (void);
 
+extern void mu_scm_debug_init (void);
 
 extern void mu_guile_init (int debug);
 extern int mu_guile_load (const char *filename, int argc, char **argv);

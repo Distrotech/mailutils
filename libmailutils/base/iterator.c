@@ -146,7 +146,7 @@ mu_iterator_dup (mu_iterator_t *piterator, mu_iterator_t orig)
   if (status)
     return status;
 
-  status = orig->dup(&iterator->owner, orig->owner);
+  status = orig->dup (&iterator->owner, orig->owner);
   if (status)
     {
       free (iterator);

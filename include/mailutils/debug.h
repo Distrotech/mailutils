@@ -83,7 +83,9 @@ void mu_debug_log_begin (const char *fmt, ...) MU_PRINTFLIKE(1,2);
 void mu_debug_log_cont (const char *fmt, ...) MU_PRINTFLIKE(1,2);
 void mu_debug_log_end (const char *fmt, ...) MU_PRINTFLIKE(1,2);
 void mu_debug_log_nl (void);
-  
+
+  int mu_debug_get_iterator (mu_iterator_t *piterator, int skipunset);
+
   
 #define MU_ASSERT(expr)						\
  do								\
