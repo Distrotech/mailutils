@@ -333,7 +333,7 @@ fill_body (mu_message_t msg, mu_stream_t instr)
 	{
 	  char *str;
 	  if (mailvar_get (&str, "nullbodymsg", mailvar_type_string, 0) == 0)
-	    mu_error ("%s\n", _(str));
+	    mu_error ("%s", _(str));
 	}
       else
 	return 1;

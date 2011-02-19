@@ -54,6 +54,7 @@ libmu_scm_la_LIBADD = \
 DOT_X_FILES=\
  mu_address.x\
  mu_body.x\
+ mu_debug.x\
  mu_mailbox.x\
  mu_message.x\
  mu_mime.x\
@@ -65,6 +66,7 @@ DOT_X_FILES=\
 DOT_DOC_FILES=\
  mu_address.doc\
  mu_body.doc\
+ mu_debug.doc\
  mu_mailbox.doc\
  mu_message.doc\
  mu_mime.doc\
