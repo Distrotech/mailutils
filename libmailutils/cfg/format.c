@@ -129,6 +129,25 @@ format_value (struct tree_print *tp, mu_config_value_t *val)
     }
 }
 
+static void
+format_path (struct tree_print *tp, const mu_cfg_node_t *node, int delim)
+{
+  char c;
+  
+  if (node->parent)
+    format_path (tp, node->parent, MU_CFG_PATH_DELIM);
+
+  mu_stream_write (tp->stream, node->tag, strlen (node->tag), NULL);
+  if (node->type == mu_cfg_node_statement && node->label)
+    {
+      mu_stream_write (tp->stream, "=\"", 2, NULL);
+      format_value (tp, node->label);
+      mu_stream_write (tp->stream, "\"", 1, NULL);
+    }
+  c = delim;
+  mu_stream_write (tp->stream, &c, 1, NULL);
+}
+
 static int
 format_node (const mu_cfg_node_t *node, void *data)
 {
@@ -147,25 +166,39 @@ format_node (const mu_cfg_node_t *node, void *data)
       break;
 
     case mu_cfg_node_statement:
-      {
-	mu_stream_write (tp->stream, node->tag, strlen (node->tag), NULL);
-	if (node->label)
-	  {
-	    mu_stream_write (tp->stream, " ", 1, NULL);
-	    format_value (tp, node->label);
-	  }
-	mu_stream_write (tp->stream, " {", 2, NULL);
-	tp->level++;
-      }
+      if (tp->flags & MU_CFG_FMT_PARAM_PATH)
+	return MU_CFG_ITER_OK;
+      else
+	{
+	  mu_stream_write (tp->stream, node->tag, strlen (node->tag), NULL);
+	  if (node->label)
+	    {
+	      mu_stream_write (tp->stream, " ", 1, NULL);
+	      format_value (tp, node->label);
+	    }
+	  mu_stream_write (tp->stream, " {", 2, NULL);
+	  tp->level++;
+	}
       break;
 
     case mu_cfg_node_param:
-      mu_stream_write (tp->stream, node->tag, strlen (node->tag), NULL);
-      if (node->label)
+      if (tp->flags & MU_CFG_FMT_VALUE_ONLY)
+	format_value (tp, node->label);
+      else if (tp->flags & MU_CFG_FMT_PARAM_PATH)
 	{
+	  format_path (tp, node, ':');
 	  mu_stream_write (tp->stream, " ", 1, NULL);
 	  format_value (tp, node->label);
-	  mu_stream_write (tp->stream, ";", 1, NULL);
+	}
+      else
+	{
+	  mu_stream_write (tp->stream, node->tag, strlen (node->tag), NULL);
+	  if (node->label)
+	    {
+	      mu_stream_write (tp->stream, " ", 1, NULL);
+	      format_value (tp, node->label);
+	      mu_stream_write (tp->stream, ";", 1, NULL);
+	    }
 	}
       break;
     }
@@ -177,9 +210,12 @@ static int
 format_node_end (const mu_cfg_node_t *node, void *data)
 {
   struct tree_print *tp = data;
-  tp->level--;
-  format_level (tp->stream, tp->level);
-  mu_stream_write (tp->stream, "};\n", 3, NULL);
+  if (!(tp->flags & MU_CFG_FMT_PARAM_PATH))
+    {
+      tp->level--;
+      format_level (tp->stream, tp->level);
+      mu_stream_write (tp->stream, "};\n", 3, NULL);
+    }
   return MU_CFG_ITER_OK;
 }
 
@@ -205,7 +241,9 @@ void
 mu_cfg_format_node (mu_stream_t stream, const mu_cfg_node_t *node, int flags)
 {
   struct tree_print t;
-  
+
+  if (node->type == mu_cfg_node_statement)
+    flags &= ~MU_CFG_FMT_VALUE_ONLY;
   t.flags = flags;
   t.level = 0;
   t.stream = stream;

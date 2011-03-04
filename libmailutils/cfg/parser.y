@@ -77,6 +77,14 @@ config_value_dup (mu_config_value_t *src)
     }
 }
 
+static int
+_node_set_parent (void *item, void *data)
+{
+  struct mu_cfg_node *node = item;
+  node->parent = data;
+  return 0;
+}
+
 static mu_cfg_node_t *
 mu_cfg_alloc_node (enum mu_cfg_node_type type, struct mu_locus *loc,
 		   const char *tag, mu_config_value_t *label,
@@ -93,6 +101,7 @@ mu_cfg_alloc_node (enum mu_cfg_node_type type, struct mu_locus *loc,
   strcpy (p, tag);
   np->label = label;
   np->nodes = nodelist;
+  np->parent = NULL;
   return np;
 }
 
@@ -220,13 +229,12 @@ block   : ident tag '{' '}' opt_sc
 	    $$ = mu_cfg_alloc_node (mu_cfg_node_statement, &$1.locus,
 				    $1.name, $2,
 				    NULL);
-
 	  }
 	| ident tag '{' stmtlist '}' opt_sc
 	  {
 	    $$ = mu_cfg_alloc_node (mu_cfg_node_statement, &$1.locus,
 				    $1.name, $2, $4);
-
+	    mu_list_do ($4, _node_set_parent, $$);
 	  }
 	;
 
@@ -1752,23 +1760,27 @@ mu_cfg_find_node (mu_cfg_tree_t *tree, const char *path, mu_cfg_node_t **pval)
 {
   int rc;
   struct find_data data;
-  struct mu_cfg_iter_closure clos;
 
   rc = split_cfg_path (path, &data.argc, &data.argv);
   if (rc)
     return rc;
   data.tag = 0;
-  parse_tag (&data);
-
-  clos.beg = node_finder;
-  clos.end = NULL;
-  clos.data = &data;
-  rc = mu_cfg_preorder (tree->nodes, &clos);
-  destroy_value (data.label);
-  if (rc)
+  if (data.argc)
     {
-      *pval = (mu_cfg_node_t *) data.node;
-      return 0;
+      struct mu_cfg_iter_closure clos;
+
+      parse_tag (&data);
+
+      clos.beg = node_finder;
+      clos.end = NULL;
+      clos.data = &data;
+      rc = mu_cfg_preorder (tree->nodes, &clos);
+      destroy_value (data.label);
+      if (rc)
+	{
+	  *pval = (mu_cfg_node_t *) data.node;
+	  return 0;
+	}
     }
   return MU_ERR_NOENT;
 }
@@ -1798,6 +1810,7 @@ mu_cfg_create_subtree (const char *path, mu_cfg_node_t **pnode)
       mu_list_t nodelist = NULL;
       mu_config_value_t *label = NULL;
       char *q = argv[i], *p;
+      mu_cfg_node_t *parent;
       
       type = mu_cfg_node_statement;
       do
@@ -1823,7 +1836,10 @@ mu_cfg_create_subtree (const char *path, mu_cfg_node_t **pnode)
 	  mu_cfg_create_node_list (&nodelist);
 	  mu_list_append (nodelist, node);
 	}
-      node = mu_cfg_alloc_node (type, &locus, argv[i], label, nodelist);
+      parent = mu_cfg_alloc_node (type, &locus, argv[i], label, nodelist);
+      if (node)
+	node->parent = parent;
+      node = parent;
     }
 
   mu_argcv_free (argc, argv);

@@ -69,6 +69,7 @@ struct mu_cfg_node
   char *tag;
   mu_config_value_t *label;
   mu_list_t nodes;   /* a list of mu_cfg_node_t */
+  struct mu_cfg_node *parent; /* parent node */
 };
 
 struct mu_cfg_tree
@@ -250,8 +251,10 @@ int mu_cfg_parse_boolean (const char *str, int *res);
 extern int mu_cfg_parser_verbose;
 extern size_t mu_cfg_error_count;
 
-#define MU_CFG_FMT_LOCUS 0x01
-  
+#define MU_CFG_FMT_LOCUS      0x01
+#define MU_CFG_FMT_VALUE_ONLY 0x02
+#define MU_CFG_FMT_PARAM_PATH 0x04
+
 void mu_cfg_format_docstring (mu_stream_t stream, const char *docstring,
 			      int level);
 void mu_cfg_format_parse_tree (mu_stream_t stream, struct mu_cfg_tree *tree,

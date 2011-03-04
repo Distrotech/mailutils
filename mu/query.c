@@ -29,12 +29,22 @@ char query_docstring[] = N_("query configuration values");
 static char query_args_doc[] = N_("path [path...]");
 
 char *file_name;
-int verbose_option;
+int fmtflags = 0;
+
+enum {
+  VALUE_OPTION = 256,
+  PATH_OPTION
+};
 
 static struct argp_option query_options[] = {
   { "file", 'f', N_("FILE"), 0,
     N_("query configuration values from FILE (default mailutils.rc)"),
     0 },
+  { "value", VALUE_OPTION, NULL, 0,
+    N_("display parameter values only"),
+    0 },
+  { "path", PATH_OPTION, NULL, 0,
+    N_("display parameters as paths") },
   { "verbose", 'v', NULL, 0,
     N_("increase output verbosity"), 0},
   { NULL }
@@ -50,7 +60,15 @@ query_parse_opt (int key, char *arg, struct argp_state *state)
       break;
 
     case 'v':
-      verbose_option++;
+      fmtflags |= MU_CFG_FMT_LOCUS;
+      break;
+
+    case VALUE_OPTION:
+      fmtflags |= MU_CFG_FMT_VALUE_ONLY;
+      break;
+      
+    case PATH_OPTION:
+      fmtflags |= MU_CFG_FMT_PARAM_PATH;
       break;
       
     default:
@@ -74,7 +92,6 @@ mutool_query (int argc, char **argv)
 {
   int index;
   mu_cfg_tree_t *tree = NULL;
-  int fmtflags = 0;
   
   if (argp_parse (&query_argp, argc, argv, ARGP_IN_ORDER, &index, NULL))
     return 1;
@@ -99,8 +116,6 @@ mutool_query (int argc, char **argv)
     return 1;
   if (!tree)
     return 0;
-  if (verbose_option)
-    fmtflags = MU_CFG_FMT_LOCUS;
   for ( ; argc > 0; argc--, argv++)
     {
       char *path = *argv;
