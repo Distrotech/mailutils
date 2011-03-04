@@ -673,17 +673,13 @@ _run_entry (void *item, void *data)
 	    char *s;
 	    if (ent->arg && expand_arg (ent->arg, rp, &s) == 0)
 	      {
-		if (mu_debug_level_p (MU_DEBCAT_ACL, MU_DEBUG_TRACE9))
-		  mu_debug_log_end ("%s", s);
+		mu_diag_output (MU_DIAG_INFO, "%s", s);
 		free (s);
 	      }
 	    else
 	      {
-		if (mu_debug_level_p (MU_DEBCAT_ACL, MU_DEBUG_TRACE9))
-		  {
-		    debug_sockaddr (rp->sa, rp->salen);
-		    mu_debug_log_nl ();
-		  }
+	        debug_sockaddr (rp->sa, rp->salen);
+	        mu_debug_log_nl ();
 	      }
 	  }
 	  break;

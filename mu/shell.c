@@ -412,13 +412,14 @@ shell_history (int argc, char **argv)
 
 #else
 # define finish_readline()
-# define mutool_initialize_readline (const char *name)
+# define mutool_initialize_readline(name)
 
 char *
 readline (char *prompt)
 {
   static size_t size = 0;
   static char *buf = NULL;
+  size_t n;
 
   if (prompt)
     {
