@@ -113,7 +113,6 @@ mutool_acl (int argc, char **argv)
   mu_acl_result_t result;
   mu_cfg_tree_t *tree = NULL, *temp_tree = NULL;
   mu_cfg_node_t *node;
-  int flags = 0;
   
   if (argp_parse (&acl_argp, argc, argv, ARGP_IN_ORDER, &index, NULL))
     return 1;
@@ -148,8 +147,7 @@ mutool_acl (int argc, char **argv)
 
   mu_cfg_tree_create (&temp_tree);
   mu_cfg_tree_add_node (temp_tree, node);
-  rc = mu_cfg_tree_reduce (temp_tree, mu_program_name, acl_cfg_param,
-			   flags, NULL);
+  rc = mu_cfg_tree_reduce (temp_tree, NULL, acl_cfg_param, NULL);
   if (rc)
     return 1;
   if (!acl)

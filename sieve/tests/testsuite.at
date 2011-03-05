@@ -28,6 +28,12 @@ AT_CLEANUP
 ])
 
 dnl ------------------------------------------------------------
+m4_define([MUT_SIEVE_DEFAULT_OPTIONS],[dnl
+ --no-site-config dnl
+ --no-user-config dnl
+])
+
+dnl ------------------------------------------------------------
 dnl MUT_SIEVE_OPTIONS  -- additional command line options for Sieve
 m4_define([MUT_SIEVE_OPTIONS])
 
@@ -38,10 +44,9 @@ m4_define([MUT_SIEVE_MAILBOX],[sieve.mbox])
 dnl ------------------------------------------------------------
 m4_define([MUT_SIEVE_CMDLINE],[dnl
  --verbose dnl
+ MUT_SIEVE_DEFAULT_OPTIONS dnl
  --line-info=no dnl
  --no-program-name dnl
- --no-site-config dnl
- --no-user-config dnl
  -M sendmail:$abs_top_builddir/examples/mta dnl
  --email foobar@nonexistent.net])
  
@@ -53,7 +58,7 @@ dnl
 m4_define([MUT_SIEVE_COMPILE],[
 AT_DATA([prog],[$1
 ])
-AT_CHECK([sieve MUT_SIEVE_OPTIONS -c prog],m4_shift($@))])
+AT_CHECK([sieve MUT_SIEVE_DEFAULT_OPTIONS MUT_SIEVE_OPTIONS -c prog],m4_shift($@))])
 
 dnl ------------------------------------------------------------
 dnl MUT_SIEVE_RUN(SCRIPT, MBOX, [ADD-TEST = `'],

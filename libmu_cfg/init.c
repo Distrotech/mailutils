@@ -79,8 +79,8 @@ mu_libcfg_init (char **cnames)
 	    mu_error (_("unknown configuration group requested `%s'"),
 		      cnames[i]);
 	  else
-	    mu_config_register_section (NULL, cp->name, NULL,
-					cp->parser, cp->cfgparam);
+	    mu_config_root_register_section (NULL, cp->name, NULL,
+					     cp->parser, cp->cfgparam);
 	}
     }
 }

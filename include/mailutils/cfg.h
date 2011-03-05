@@ -211,6 +211,8 @@ struct mu_cfg_cidr
 int mu_config_create_container (struct mu_cfg_cont **pcont,
 				enum mu_cfg_cont_type type);
 int mu_config_clone_container (struct mu_cfg_cont *cont);
+struct mu_cfg_cont *mu_config_clone_root_container (void);
+
 void mu_config_destroy_container (struct mu_cfg_cont **pcont);
 
 int mu_cfg_section_add_container (struct mu_cfg_section *sect,
@@ -231,11 +233,19 @@ int mu_cfg_scan_tree (mu_cfg_tree_t *tree, struct mu_cfg_section *sections,
 int mu_cfg_find_section (struct mu_cfg_section *root_sec,
 			 const char *path, struct mu_cfg_section **retval);
 
-int mu_config_register_section (const char *parent_path,
-				const char *ident,
-				const char *label,
-				mu_cfg_section_fp parser,
-				struct mu_cfg_param *param);
+int mu_config_container_register_section (struct mu_cfg_cont **proot,
+					  const char *parent_path,
+					  const char *ident,
+					  const char *label,
+					  mu_cfg_section_fp parser,
+					  struct mu_cfg_param *param,
+					  struct mu_cfg_section **psection);
+int mu_config_root_register_section (const char *parent_path,
+				     const char *ident,
+				     const char *label,
+				     mu_cfg_section_fp parser,
+				     struct mu_cfg_param *param);
+
 int mu_config_register_plain_section (const char *parent_path,
 				      const char *ident,
 				      struct mu_cfg_param *params);
@@ -274,11 +284,12 @@ void mu_cfg_format_node (mu_stream_t stream, const mu_cfg_node_t *node,
 			 int flags);
   
 void mu_cfg_format_container (mu_stream_t stream, struct mu_cfg_cont *cont);
-void mu_format_config_tree (mu_stream_t stream, const char *progname,
-			    struct mu_cfg_param *progparam, int flags);
-int mu_cfg_tree_reduce (mu_cfg_tree_t *parse_tree, const char *progname,
+void mu_format_config_tree (mu_stream_t stream,
+			    struct mu_cfg_param *progparam);
+int mu_cfg_tree_reduce (mu_cfg_tree_t *parse_tree,
+                        struct mu_cfg_parse_hints *hints,
 		        struct mu_cfg_param *progparam,
-		        int flags, void *target_ptr);
+		        void *target_ptr);
 int mu_cfg_assert_value_type (mu_config_value_t *val, int type);
 int mu_cfg_string_value_cb (mu_config_value_t *val,
 			    int (*fun) (const char *, void *),

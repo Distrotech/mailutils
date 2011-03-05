@@ -390,12 +390,11 @@ mu_get_config (const char *file, const char *progname,
       struct mu_cfg_parse_hints hints;
 
       hints.flags = flags | MU_CFG_PARSE_PROGRAM;
-      hints.program = progname;
+      hints.program = (char*)progname;
       
       rc = mu_cfg_tree_postprocess (parse_tree, &hints);
       if (rc == 0)
-	rc = mu_cfg_tree_reduce (parse_tree, progname, progparam, flags,
-				 target_ptr);
+	rc = mu_cfg_tree_reduce (parse_tree, &hints, progparam, target_ptr);
       mu_cfg_destroy_tree (&parse_tree);
     }
 

@@ -137,6 +137,16 @@ mu_app_init (struct argp *myargp, const char **capa,
       char *comment;
       char *canonical_name = get_canonical_name ();
       mu_stream_t stream;
+      struct mu_cfg_cont *cont;
+      static struct mu_cfg_param dummy_include_param[] = {
+	{ "include", mu_cfg_string, NULL, 0, NULL,
+	  N_("Include contents of the given file.  If a directory is given, "
+	     "include contents of the file <file>/<program>, where "
+	     "<program> is the name of the program.  This latter form is "
+	     "allowed only in the site-wide configuration file."),
+	  N_("file-or-directory") },
+	{ NULL }
+      };
 
       mu_stdio_stream_create (&stream, MU_STDOUT_FD, 0);
 
@@ -156,8 +166,15 @@ mu_app_init (struct argp *myargp, const char **capa,
 		   canonical_name);
       mu_cfg_format_docstring (stream, comment, 0);
       free (comment);
+
+      cont = mu_config_clone_root_container ();
+      mu_config_container_register_section (&cont, NULL, NULL, NULL, NULL,
+					    dummy_include_param, NULL);
+      mu_config_container_register_section (&cont, NULL, NULL, NULL, NULL,
+					    cfg_param, NULL);
+      mu_cfg_format_container (stream, cont);
+      mu_config_destroy_container (&cont);
       
-      mu_format_config_tree (stream, mu_program_name, cfg_param, 0);
       mu_stream_destroy (&stream);
       exit (0);
     }
@@ -167,14 +184,16 @@ mu_app_init (struct argp *myargp, const char **capa,
     {
       struct mu_cfg_parse_hints hints = { MU_PARSE_CONFIG_PLAIN };
 
+      hints.flags |= MU_CFG_PARSE_PROGRAM;
+      hints.program = (char*)mu_program_name;
+
       if (mu_cfg_parser_verbose)
 	hints.flags |= MU_PARSE_CONFIG_VERBOSE;
       if (mu_cfg_parser_verbose > 1)
 	hints.flags |= MU_PARSE_CONFIG_DUMP;
       mu_cfg_tree_postprocess (mu_argp_tree, &hints);
       mu_cfg_tree_union (&parse_tree, &mu_argp_tree);
-      rc = mu_cfg_tree_reduce (parse_tree, mu_program_name, cfg_param,
-			       hints.flags, data);
+      rc = mu_cfg_tree_reduce (parse_tree, &hints, cfg_param, data);
     }
   
   if (mu_rcfile_lint)

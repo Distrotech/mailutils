@@ -293,8 +293,8 @@ static struct mu_cfg_param sieve_cfg_param[] = {
     N_("Debug flags.  Argument consists of one or more of the following "
        "flags:\n"
        "   g - main parser traces\n"
-       "   T - mailutils traces (MU_DEBUG_TRACE0-MU_DEBUG_TRACE1)\n"
-       "   P - network protocols (MU_DEBUG_PROT)\n"
+       "   T - mailutils traces (sieve.trace9)\n"
+       "   P - network protocols (sieve.prot)\n"
        "   t - sieve trace (MU_SIEVE_DEBUG_TRACE)\n"
        "   i - sieve instructions trace (MU_SIEVE_DEBUG_INSTR).") },
   { "verbose", mu_cfg_bool, &verbose, 0, NULL,
@@ -467,7 +467,7 @@ main (int argc, char *argv[])
   if (mu_app_init (&argp, sieve_argp_capa, sieve_cfg_param, 
 		   argc, argv, ARGP_IN_ORDER, NULL, NULL))
     exit (EX_USAGE);
-
+  
   if (!script)
     {
       mu_error (_("script must be specified"));

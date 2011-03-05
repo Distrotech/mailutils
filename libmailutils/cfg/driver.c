@@ -340,13 +340,13 @@ mu_config_clone_container (struct mu_cfg_cont *cont)
 
 
 int
-_mu_config_register_section (struct mu_cfg_cont **proot,
-			     const char *parent_path,
-			     const char *ident,
-			     const char *label,
-			     mu_cfg_section_fp parser,
-			     struct mu_cfg_param *param,
-			     struct mu_cfg_section **psection)
+mu_config_container_register_section (struct mu_cfg_cont **proot,
+				      const char *parent_path,
+				      const char *ident,
+				      const char *label,
+				      mu_cfg_section_fp parser,
+				      struct mu_cfg_param *param,
+				      struct mu_cfg_section **psection)
 {
   int rc;
   struct mu_cfg_section *root_section;
@@ -420,172 +420,54 @@ _mu_config_register_section (struct mu_cfg_cont **proot,
 }
   
 int
-mu_config_register_section (const char *parent_path,
-			    const char *ident,
-			    const char *label,
-			    mu_cfg_section_fp parser,
-			    struct mu_cfg_param *param)
+mu_config_root_register_section (const char *parent_path,
+				 const char *ident,
+				 const char *label,
+				 mu_cfg_section_fp parser,
+				 struct mu_cfg_param *param)
 {
-  return _mu_config_register_section (&root_container,
-				      parent_path,
-				      ident, label,
-				      parser, param, NULL);
+  return mu_config_container_register_section (&root_container,
+					       parent_path,
+					       ident, label,
+					       parser, param, NULL);
 }
 
 int
 mu_config_register_plain_section (const char *parent_path, const char *ident,
 				  struct mu_cfg_param *params)
 {
-  return mu_config_register_section (parent_path, ident, NULL, NULL, params);
-}
-
-static int
-prog_parser (enum mu_cfg_section_stage stage,
-	     const mu_cfg_node_t *node,
-	     const char *label, void **section_data,
-	     void *call_data,
-	     mu_cfg_tree_t *tree)
-{
-  if (stage == mu_cfg_section_start)
-    {
-      return node->label->type == MU_CFG_STRING
-	     && strcmp (node->label->v.string, label);
-    }
-  
-  return 0;
-}
-
-struct include_data
-{
-  const char *progname;
-  struct mu_cfg_param *progparam;
-  int flags;
-  void *target;
-};
-
-static int
-_cb_include (void *data, mu_config_value_t *val)
-{
-  int ret = 0;
-  struct stat sb;
-  const char *dirname;
-  struct include_data *idp = data;
-  char *tmp = NULL;
-
-  if (mu_cfg_assert_value_type (val, MU_CFG_STRING))
-    return 1;
-
-  dirname = val->v.string;
-  if (dirname[0] != '/')
-    {
-      dirname = tmp = mu_make_file_name (SYSCONFDIR, dirname);
-      if (!dirname)
-        {
-          mu_error ("%s", mu_strerror (errno));
-          return 1;
-        }
-    }
-    
-  if (stat (dirname, &sb) == 0)
-    {
-      if (S_ISDIR (sb.st_mode))
-	{
-	  char *file = mu_make_file_name (dirname, idp->progname);
-	  ret = mu_get_config (file, idp->progname, idp->progparam,
-			       idp->flags & ~MU_PARSE_CONFIG_GLOBAL,
-			       idp->target);
-	}
-      else
-	ret = mu_get_config (dirname, idp->progname, idp->progparam,
-			     idp->flags, idp->target);
-    }
-  else if (errno == ENOENT)
-    {
-      mu_error (_("include file or directory does not exist"));
-      ret = 1;
-    }
-  else
-    {
-      mu_error (_("cannot stat include file or directory: %s"),
-		mu_strerror (errno));
-      ret = 1;
-    }
-  free (tmp);
-  return ret;
+  return mu_config_root_register_section (parent_path, ident, NULL, NULL,
+					  params);
 }
 
 struct mu_cfg_cont *
-mu_build_container (const char *progname, struct include_data *idp)
+mu_config_clone_root_container (void)
 {
   struct mu_cfg_cont *cont = root_container;
-
   mu_config_clone_container (cont);
-  
-  if (idp->flags & MU_PARSE_CONFIG_PLAIN)
-    {
-      struct mu_cfg_param mu_include_param[] = {
-	{ "include", mu_cfg_callback, NULL, 0, _cb_include,
-	  N_("Include contents of the given file.  If a directory is given, "
-	     "include contents of the file <file>/<program>, where "
-	     "<program> is the name of the program.  This latter form is "
-	     "allowed only in the site-wide configuration file."),
-	  N_("file-or-directory") },
-	{ NULL }
-      };
+  return cont;
+}
 
-      mu_include_param[0].data = idp;
-      _mu_config_register_section (&cont, NULL, NULL, NULL,
-				   (void*) progname, mu_include_param, NULL);
-      
-      if (idp->flags & MU_PARSE_CONFIG_GLOBAL)
-	{
-	  mu_iterator_t iter;
-	  struct mu_cfg_section *prog_sect;
-	  struct mu_cfg_cont *old_root = root_container;
-	  static struct mu_cfg_param empty_param = { NULL };
-	  
-	  _mu_config_register_section (&cont, NULL, "program", progname,
-				       prog_parser,
-				       idp->progparam ?
-				       idp->progparam : &empty_param,
-				       &prog_sect);
-      
-	  if (old_root->v.section.children)
-	    {
-	      if (!prog_sect->children)
-		mu_list_create (&prog_sect->children);
-	      mu_list_get_iterator (old_root->v.section.children, &iter);
-	      for (mu_iterator_first (iter); !mu_iterator_is_done (iter);
-		   mu_iterator_next (iter))
-		{
-		  struct mu_cfg_cont *c;
-		  mu_iterator_current (iter, (void**)&c);
-		  mu_list_append (prog_sect->children, c);
-		}
-	      mu_iterator_destroy (&iter);
-	    }
-	}
-      else if (idp->progparam)
-	_mu_config_register_section (&cont, NULL, NULL, NULL, NULL,
-				     idp->progparam, NULL);
-    }
-  else if (idp->progparam)
-    _mu_config_register_section (&cont, NULL, NULL, NULL, NULL,
-				 idp->progparam, NULL);
-  
+static struct mu_cfg_cont *
+mu_build_container (struct mu_cfg_param *param)
+{
+  struct mu_cfg_cont *cont = mu_config_clone_root_container ();
+  mu_config_container_register_section (&cont, NULL, NULL, NULL, NULL,
+					param, NULL);
   return cont;
 }
 
 int
-mu_cfg_tree_reduce (mu_cfg_tree_t *parse_tree, const char *progname,
-		    struct mu_cfg_param *progparam, int flags,
+mu_cfg_tree_reduce (mu_cfg_tree_t *parse_tree,
+		    struct mu_cfg_parse_hints *hints,
+		    struct mu_cfg_param *progparam,
 		    void *target_ptr)
 {
   int rc = 0;
 
   if (!parse_tree)
     return 0;
-  if (flags & MU_PARSE_CONFIG_DUMP)
+  if (hints && (hints->flags & MU_PARSE_CONFIG_DUMP))
     {
       int yes = 1;
       mu_stream_t stream;
@@ -598,18 +480,9 @@ mu_cfg_tree_reduce (mu_cfg_tree_t *parse_tree, const char *progname,
 
   if (root_container)
     {
-      struct include_data idata;
-      struct mu_cfg_cont *cont;
-      
-      idata.progname = progname;
-      idata.progparam = progparam;
-      idata.flags = flags;
-      idata.target = target_ptr;
-      
-      cont = mu_build_container (progname, &idata);
-      
+      struct mu_cfg_cont *cont = mu_build_container (progparam);
       rc = mu_cfg_scan_tree (parse_tree, &cont->v.section, target_ptr,
-			     (void*) progname);
+			     NULL);
       mu_config_destroy_container (&cont);
     }
 
@@ -617,17 +490,9 @@ mu_cfg_tree_reduce (mu_cfg_tree_t *parse_tree, const char *progname,
 }
 
 void
-mu_format_config_tree (mu_stream_t stream, const char *progname,
-		       struct mu_cfg_param *progparam, int flags)
+mu_format_config_tree (mu_stream_t stream, struct mu_cfg_param *progparam)
 {
-  struct include_data idata;
-  struct mu_cfg_cont *cont;
-  
-  idata.progname = progname;
-  idata.progparam = progparam;
-  idata.flags = flags;
-  idata.target = NULL;
-  cont = mu_build_container (progname, &idata);
+  struct mu_cfg_cont *cont = mu_build_container (progparam);
   mu_cfg_format_container (stream, cont);
   mu_config_destroy_container (&cont);
 }
