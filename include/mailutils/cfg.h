@@ -72,6 +72,14 @@ struct mu_cfg_node
   struct mu_cfg_node *parent; /* parent node */
 };
 
+struct mu_cfg_parse_hints
+{
+  int flags;
+  char *site_rcfile;
+  char *custom_rcfile;
+  char *program;
+};
+
 struct mu_cfg_tree
 {
   mu_list_t nodes;   /* a list of mu_cfg_node_t */
@@ -80,7 +88,8 @@ struct mu_cfg_tree
 
 int mu_cfg_parse (mu_cfg_tree_t **ptree);
 int mu_cfg_tree_union (mu_cfg_tree_t **pa, mu_cfg_tree_t **pb);
-int mu_cfg_tree_postprocess (mu_cfg_tree_t *tree, int flags);
+int mu_cfg_tree_postprocess (mu_cfg_tree_t *tree,
+			     struct mu_cfg_parse_hints *hints);
 
 extern struct mu_locus mu_cfg_locus;
 
@@ -231,10 +240,16 @@ int mu_config_register_plain_section (const char *parent_path,
 				      const char *ident,
 				      struct mu_cfg_param *params);
 
-#define MU_PARSE_CONFIG_GLOBAL  0x1
-#define MU_PARSE_CONFIG_VERBOSE 0x2
-#define MU_PARSE_CONFIG_DUMP    0x4
-#define MU_PARSE_CONFIG_PLAIN   0x8
+#define MU_PARSE_CONFIG_GLOBAL     0x001
+#define MU_PARSE_CONFIG_VERBOSE    0x002
+#define MU_PARSE_CONFIG_DUMP       0x004
+#define MU_PARSE_CONFIG_PLAIN      0x008
+#define MU_CFG_PARSE_SITE_RCFILE   0x010
+#define MU_CFG_PARSE_CUSTOM_RCFILE 0x020
+#define MU_CFG_PARSE_PROGRAM       0x040
+#define MU_CFG_FMT_LOCUS           0x080
+#define MU_CFG_FMT_VALUE_ONLY      0x100
+#define MU_CFG_FMT_PARAM_PATH      0x200
 
 #ifdef MU_CFG_COMPATIBILITY
 # define MU_CFG_DEPRECATED
@@ -250,10 +265,6 @@ int mu_cfg_parse_boolean (const char *str, int *res);
 
 extern int mu_cfg_parser_verbose;
 extern size_t mu_cfg_error_count;
-
-#define MU_CFG_FMT_LOCUS      0x01
-#define MU_CFG_FMT_VALUE_ONLY 0x02
-#define MU_CFG_FMT_PARAM_PATH 0x04
 
 void mu_cfg_format_docstring (mu_stream_t stream, const char *docstring,
 			      int level);
@@ -294,6 +305,9 @@ void mu_cfg_tree_add_nodelist (mu_cfg_tree_t *tree, mu_list_t nodelist);
 int mu_cfg_find_node (mu_cfg_tree_t *tree, const char *path,
 		      mu_cfg_node_t **pnode);
 int mu_cfg_create_subtree (const char *path, mu_cfg_node_t **pnode);
+
+int mu_cfg_parse_config (mu_cfg_tree_t **ptree,
+			 struct mu_cfg_parse_hints *hints);
 
 #ifdef __cplusplus
 }

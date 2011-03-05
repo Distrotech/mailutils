@@ -387,7 +387,12 @@ mu_get_config (const char *file, const char *progname,
   int rc = mu_cfg_parse_file (&parse_tree, file, flags);
   if (rc == 0)
     {
-      rc = mu_cfg_tree_postprocess (parse_tree, flags);
+      struct mu_cfg_parse_hints hints;
+
+      hints.flags = flags | MU_CFG_PARSE_PROGRAM;
+      hints.program = progname;
+      
+      rc = mu_cfg_tree_postprocess (parse_tree, &hints);
       if (rc == 0)
 	rc = mu_cfg_tree_reduce (parse_tree, progname, progparam, flags,
 				 target_ptr);

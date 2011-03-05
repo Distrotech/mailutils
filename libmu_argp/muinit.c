@@ -165,16 +165,16 @@ mu_app_init (struct argp *myargp, const char **capa,
   rc = mu_libcfg_parse_config (&parse_tree);
   if (rc == 0)
     {
-      int cfgflags = MU_PARSE_CONFIG_PLAIN;
+      struct mu_cfg_parse_hints hints = { MU_PARSE_CONFIG_PLAIN };
 
       if (mu_cfg_parser_verbose)
-	cfgflags |= MU_PARSE_CONFIG_VERBOSE;
+	hints.flags |= MU_PARSE_CONFIG_VERBOSE;
       if (mu_cfg_parser_verbose > 1)
-	cfgflags |= MU_PARSE_CONFIG_DUMP;
-      mu_cfg_tree_postprocess (mu_argp_tree, cfgflags);
+	hints.flags |= MU_PARSE_CONFIG_DUMP;
+      mu_cfg_tree_postprocess (mu_argp_tree, &hints);
       mu_cfg_tree_union (&parse_tree, &mu_argp_tree);
       rc = mu_cfg_tree_reduce (parse_tree, mu_program_name, cfg_param,
-			       cfgflags, data);
+			       hints.flags, data);
     }
   
   if (mu_rcfile_lint)

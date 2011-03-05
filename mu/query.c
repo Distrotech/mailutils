@@ -28,8 +28,8 @@ static char query_doc[] = N_("mu query - query configuration values.");
 char query_docstring[] = N_("query configuration values");
 static char query_args_doc[] = N_("path [path...]");
 
-char *file_name;
-int fmtflags = 0;
+static char *file_name;
+static struct mu_cfg_parse_hints hints;
 
 enum {
   VALUE_OPTION = 256,
@@ -42,6 +42,9 @@ static struct argp_option query_options[] = {
     0 },
   { "value", VALUE_OPTION, NULL, 0,
     N_("display parameter values only"),
+    0 },
+  { "program", 'p', N_("NAME"), 0,
+    N_("set program name for configuration lookup"),
     0 },
   { "path", PATH_OPTION, NULL, 0,
     N_("display parameters as paths") },
@@ -59,16 +62,21 @@ query_parse_opt (int key, char *arg, struct argp_state *state)
       file_name = arg;
       break;
 
+    case 'p':
+      hints.flags |= MU_CFG_PARSE_PROGRAM;
+      hints.program = arg;
+      break;
+      
     case 'v':
-      fmtflags |= MU_CFG_FMT_LOCUS;
+      hints.flags |= MU_CFG_FMT_LOCUS;
       break;
 
     case VALUE_OPTION:
-      fmtflags |= MU_CFG_FMT_VALUE_ONLY;
+      hints.flags |= MU_CFG_FMT_VALUE_ONLY;
       break;
       
     case PATH_OPTION:
-      fmtflags |= MU_CFG_FMT_PARAM_PATH;
+      hints.flags |= MU_CFG_FMT_PARAM_PATH;
       break;
       
     default:
@@ -105,14 +113,10 @@ mutool_query (int argc, char **argv)
       return 1;
     }
 
-  if (file_name)
-    {
-      mu_load_site_rcfile = 0;
-      mu_load_user_rcfile = 0;
-      mu_load_rcfile = file_name;
-    }
+  hints.flags |= MU_CFG_PARSE_SITE_RCFILE | MU_PARSE_CONFIG_GLOBAL;
+  hints.site_rcfile = file_name ? file_name : MU_CONFIG_FILE;
   
-  if (mu_libcfg_parse_config (&tree))
+  if (mu_cfg_parse_config (&tree, &hints))
     return 1;
   if (!tree)
     return 0;
@@ -122,7 +126,7 @@ mutool_query (int argc, char **argv)
       mu_cfg_node_t *node;
 
       if (mu_cfg_find_node (tree, path, &node) == 0)
-	mu_cfg_format_node (mu_strout, node, fmtflags);
+	mu_cfg_format_node (mu_strout, node, hints.flags);
     }
   return 0;
 }

@@ -88,77 +88,34 @@ mu_libcfg_init (char **cnames)
 int
 mu_libcfg_parse_config (mu_cfg_tree_t **ptree)
 {
-  int flags = 0;
-  int rc = 0;
-  mu_cfg_tree_t *tree = NULL, *tmp;
+  struct mu_cfg_parse_hints hints;
+
+  memset (&hints, 0, sizeof (hints));
   
   if (mu_cfg_parser_verbose)
-    flags |= MU_PARSE_CONFIG_VERBOSE;
+    hints.flags |= MU_PARSE_CONFIG_VERBOSE;
   if (mu_cfg_parser_verbose > 1)
-    flags |= MU_PARSE_CONFIG_DUMP;
+    hints.flags |= MU_PARSE_CONFIG_DUMP;
   
   if (mu_load_site_rcfile)
     {
-      rc = mu_cfg_parse_file (&tmp, MU_CONFIG_FILE, flags);
-
-      if (rc == ENOMEM)
-	{
-	  mu_error ("%s", mu_strerror (rc));
-	  return rc;
-	}
-      else if (rc == 0)
-	{
-	  mu_cfg_tree_postprocess (tmp, flags | MU_PARSE_CONFIG_GLOBAL);
-	  mu_cfg_tree_union (&tree, &tmp);
-	}
+      hints.flags |= MU_CFG_PARSE_SITE_RCFILE;
+      hints.site_rcfile = MU_CONFIG_FILE;
     }
-
+  
   if (mu_load_user_rcfile && mu_program_name)
     {
-      size_t size = 3 + strlen (mu_program_name) + 1;
-      char *file_name = malloc (size);
-      if (file_name)
-	{
-	  strcpy (file_name, "~/.");
-	  strcat (file_name, mu_program_name);
-
-	  rc = mu_cfg_parse_file (&tmp, file_name, flags);
-	  if (rc == ENOMEM)
-	    {
-	      mu_error ("%s", mu_strerror (rc));
-	      mu_cfg_destroy_tree (&tree);
-	      return rc;
-	    }
-	  else if (rc == 0)
-	    {
-	      mu_cfg_tree_postprocess (tmp, flags);
-	      mu_cfg_tree_union (&tree, &tmp);
-	    }
-	  else if (rc == ENOENT)
-	    rc = 0;
-	  free (file_name);
-	}
+      hints.flags |= MU_CFG_PARSE_PROGRAM;
+      hints.program = (char*) mu_program_name;
     }
-
+  
   if (mu_load_rcfile)
     {
-      rc = mu_cfg_parse_file (&tmp, mu_load_rcfile, flags);
-      if (rc)
-	{
-	  mu_error (_("errors parsing file %s: %s"), mu_load_rcfile,
-		    mu_strerror (rc));
-	  mu_cfg_destroy_tree (&tree);
-	  return rc;
-	}
-      else
-	{
-	  mu_cfg_tree_postprocess (tmp, flags);
-	  mu_cfg_tree_union (&tree, &tmp);
-	}
+      hints.flags |= MU_CFG_PARSE_CUSTOM_RCFILE;
+      hints.custom_rcfile = mu_load_rcfile;
     }
 
-  *ptree = tree;
-  return rc;
+  return mu_cfg_parse_config (ptree, &hints);
 }
 
 
