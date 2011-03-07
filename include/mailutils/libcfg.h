@@ -25,10 +25,6 @@
 #include <mailutils/error.h>
 #include <mailutils/errno.h>
 
-#ifndef MU_CONFIG_FILE
-# define MU_CONFIG_FILE SYSCONFDIR "/mailutils.rc"
-#endif
-
 #ifndef MU_USER_CONFIG_FILE
 # define MU_USER_CONFIG_FILE "~/.mailutils"
 #endif
@@ -44,10 +40,7 @@ struct mu_cfg_capa
   mu_cfg_section_fp parser;
 };
 
-extern int mu_register_cfg_capa (const char *name,
-				 struct mu_cfg_param *cfgparam,
-				 mu_cfg_section_fp *parser);
-
+extern int mu_libcfg_register_capa (struct mu_cfg_capa *capa);
 extern void mu_libcfg_init (char **cnames);
 extern int mu_parse_config_files (struct mu_cfg_param *param,
 				  void *target_ptr) MU_CFG_DEPRECATED;

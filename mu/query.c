@@ -114,7 +114,7 @@ mutool_query (int argc, char **argv)
     }
 
   hints.flags |= MU_CFG_PARSE_SITE_RCFILE | MU_PARSE_CONFIG_GLOBAL;
-  hints.site_rcfile = file_name ? file_name : MU_CONFIG_FILE;
+  hints.site_rcfile = file_name ? file_name : mu_site_rcfile;
   
   if (mu_cfg_parse_config (&tree, &hints))
     return 1;

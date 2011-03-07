@@ -158,7 +158,7 @@ mu_app_init (struct argp *myargp, const char **capa,
       mu_asprintf (&comment,
 		   "For use in global configuration file (%s), enclose it "
 		   "in `program %s { ... };",
-		   MU_CONFIG_FILE,
+		   mu_site_rcfile,
 		   mu_program_name);		   
       mu_cfg_format_docstring (stream, comment, 0);
       free (comment);
@@ -207,6 +207,7 @@ mu_app_init (struct argp *myargp, const char **capa,
   
   mu_gocs_flush ();
   mu_cfg_destroy_tree (&mu_argp_tree);
+  mu_cfg_destroy_tree (&parse_tree);
 
   return !!(rc || mu_cfg_error_count);
 }

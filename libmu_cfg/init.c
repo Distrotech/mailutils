@@ -24,7 +24,8 @@
 #include <string.h>
 #include <stdlib.h>
 
-struct mu_cfg_capa *cfg_capa_table[] = {
+#define CFG_CAPA_MAX 512
+static struct mu_cfg_capa *cfg_capa_table[CFG_CAPA_MAX] = {
 #define S(c) &__mu_common_cat3__(mu_,c,_cfg_capa)
   S (auth),
   S (mailbox),
@@ -44,7 +45,9 @@ struct mu_cfg_capa *cfg_capa_table[] = {
   NULL
 };
 
-struct mu_cfg_capa *
+static int cfg_capa_index = MU_ARRAY_SIZE(cfg_capa_table) - 1;
+
+static struct mu_cfg_capa *
 find_cfg_capa (const char *name)
 {
   int i;
@@ -60,9 +63,22 @@ reserved_name (const char *name)
 {
   static char *reserved[] = { "common", NULL };
   char **p;
+
+  if (name[0] == '.')
+    return 1;
+  
   for (p = reserved; *p; p++)
     if (strcmp (name, *p) == 0)
       return 1;
+  return 0;
+}
+
+int
+mu_libcfg_register_capa (struct mu_cfg_capa *capa)
+{
+  if (cfg_capa_index == CFG_CAPA_MAX)
+    return MU_ERR_NOENT;
+  cfg_capa_table[cfg_capa_index++] = capa;
   return 0;
 }
 
@@ -100,7 +116,7 @@ mu_libcfg_parse_config (mu_cfg_tree_t **ptree)
   if (mu_load_site_rcfile)
     {
       hints.flags |= MU_CFG_PARSE_SITE_RCFILE;
-      hints.site_rcfile = MU_CONFIG_FILE;
+      hints.site_rcfile = mu_site_rcfile;
     }
   
   if (mu_load_user_rcfile && mu_program_name)
@@ -134,7 +150,7 @@ mu_parse_config_files (struct mu_cfg_param *param, void *target)
   
   if (mu_load_site_rcfile)
     {
-      rc = mu_parse_config (MU_CONFIG_FILE, mu_program_name, param,
+      rc = mu_parse_config (mu_site_rcfile, mu_program_name, param,
 			    flags | MU_PARSE_CONFIG_GLOBAL, target);
       if (rc == ENOMEM)
 	{

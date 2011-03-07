@@ -70,6 +70,7 @@ struct mu_gocs_virtual
 };
 
 /* Auxiliary variables for use by libargp/libcfg */
+extern char *mu_site_rcfile;
 extern int mu_load_user_rcfile;
 extern int mu_load_site_rcfile;
 extern char *mu_load_rcfile;

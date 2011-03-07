@@ -38,6 +38,11 @@
 #include <mailutils/log.h>
 #include <syslog.h>
 
+#ifndef MU_CONFIG_FILE
+# define MU_CONFIG_FILE SYSCONFDIR "/mailutils.rc"
+#endif
+
+char *mu_site_rcfile = MU_CONFIG_FILE;
 int mu_load_user_rcfile = 1;
 int mu_load_site_rcfile = 1;
 char *mu_load_rcfile = NULL;
