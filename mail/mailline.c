@@ -135,6 +135,7 @@ ml_readline_internal ()
     }
   if (n == 0)
     return NULL;
+  mu_rtrim_cset (buf, "\n");
   return buf;
 }
 
