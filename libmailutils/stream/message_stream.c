@@ -236,13 +236,15 @@ _message_open (mu_stream_t stream)
 	  mu_address_t addr;
 	  
 	  mu_address_create (&addr, from);
-	  if (!addr
-	      || mu_address_aget_email (addr, 1, &env_from))
-	    env_from = mu_strdup ("GNU-Mailutils");
-	  mu_address_destroy (&addr);
+	  if (addr)
+	    {
+	      mu_address_aget_email (addr, 1, &env_from);
+	      mu_address_destroy (&addr);
+	    }
 	}
-      else
-	env_from = mu_strdup ("GNU-MH");
+
+      if (!env_from)
+	env_from = mu_get_user_email (NULL);
     }
   free (from);
   

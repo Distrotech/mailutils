@@ -40,16 +40,15 @@ Sergey
 ])
 
 burst +inbox 1 || exit $?
-grep -v ^X-Envelope-Date Mail/inbox/2
-grep -v ^X-Envelope-Date Mail/inbox/3
-grep -v ^X-Envelope-Date Mail/inbox/4
+grep -v ^X-Envelope- Mail/inbox/2
+grep -v ^X-Envelope- Mail/inbox/3
+grep -v ^X-Envelope- Mail/inbox/4
 ],
 [0],
 [X-Burst-Part: 1 1 01
 From: Sergey Poznyakoff <gray@example.net>
 To: root@example.com
 Subject: digest
-X-Envelope-Sender: gray@example.net
 
 Initial text.
 
@@ -57,13 +56,11 @@ X-Burst-Part: 1 2 02
 From: Puszcza hackers
 To: Sergey Poznyakoff <gray@gnu.org>
 Subject: Hello
-X-Envelope-Sender: GNU-Mailutils
 
 Greetings
 ---------
 How are you?
 X-Burst-Part: 1 3 00
-X-Envelope-Sender: GNU-MH
 
 Regards,
 Sergey
@@ -93,16 +90,15 @@ Sergey
 ])
 
 burst +inbox --length=7 1 || exit $?
-grep -v ^X-Envelope-Date Mail/inbox/2
-grep -v ^X-Envelope-Date Mail/inbox/3
-grep -v ^X-Envelope-Date Mail/inbox/4
+grep -v ^X-Envelope- Mail/inbox/2
+grep -v ^X-Envelope- Mail/inbox/3
+grep -v ^X-Envelope- Mail/inbox/4
 ],
 [0],
 [X-Burst-Part: 1 1 01
 From: Sergey Poznyakoff <gray@example.net>
 To: root@example.com
 Subject: digest
-X-Envelope-Sender: gray@example.net
 
 Initial text.
 
@@ -110,13 +106,11 @@ X-Burst-Part: 1 2 02
 From: Puszcza hackers
 To: Sergey Poznyakoff <gray@gnu.org>
 Subject: Hello
-X-Envelope-Sender: GNU-Mailutils
 
 Greetings
 -----
 How are you?
 X-Burst-Part: 1 3 00
-X-Envelope-Sender: GNU-MH
 
 Regards,
 Sergey
