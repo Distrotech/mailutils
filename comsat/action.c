@@ -353,6 +353,9 @@ action_echo (struct biffrc_environ *env, size_t argc, char **argv)
       omit_newline = 1;
       i++;
     }
+  else
+    omit_newline = 0;
+
   for (;;)
     {
       echo_string (env->tty, argv[i]);

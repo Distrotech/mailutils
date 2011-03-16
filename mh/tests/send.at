@@ -66,7 +66,7 @@ export MTA_APPEND
 
 send ./input.1 ./input.2 || exit $?
 sed 's/: Date: .*/: Date: now/' $MTA_DIAG
-find . -name ',input.[[12]]'
+find . -name ',input.[[12]]' | sort
 ],
 [0],
 [ENVELOPE FROM: mhtester@example.net

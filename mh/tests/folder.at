@@ -87,7 +87,7 @@ do
   mv Mail/inbox/$i Mail/inbox/${i}0
 done
 folder -pack || exit $?
-find Mail/inbox
+find Mail/inbox | sort
 ],
 [0],
 [Mail/inbox
@@ -105,7 +105,7 @@ do
   mv Mail/inbox/$i Mail/inbox/${i}0
 done
 folder --pack=1 || exit $?
-find Mail/inbox
+find Mail/inbox | sort
 ],
 [0],
 [Mail/inbox

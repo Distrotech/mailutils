@@ -21,7 +21,7 @@ AT_CHECK([
 mkdir home
 dir=`cd home; pwd`
 HOME=$dir MH=$dir/mh_profile install-mh -auto || exit $?
-find home
+find home | sort
 HOME=$dir MH=$dir/mh_profile install-mh -auto 2>errout
 echo $?
 cat errout

@@ -27,6 +27,7 @@ mhparam -all | tr '\t' ' ' | sed 's/^Path:.*/Path: Mail/;s/^mhetcdir:.*/mhetcdir
 [0],
 [Path: Mail
 mhetcdir: dir
+moreproc: /bin/cat
 Sequence-Negation: not
 Draft-Folder: Mail/drafts
 Aliasfile: .mh_aliases

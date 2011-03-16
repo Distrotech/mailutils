@@ -180,13 +180,12 @@ com_connect (int argc, char **argv)
     {
       if (strcmp (argv[i], "-tls") == 0)
 	{
-	  if (WITH_TLS)
+#ifdef WITH_TLS
 	    tls = 1;
-	  else
-	    {
-	      mu_error ("TLS not supported");
-	      return 0;
-	    }
+#else
+            mu_error ("TLS not supported");
+	    return 0;
+#endif
 	}
       else
 	break;

@@ -24,6 +24,7 @@ export MH
 cat > $MH <<EOT
 Path: $curdir/Mail
 mhetcdir: $abs_top_srcdir/mh/etc
+moreproc: /bin/cat
 EOT
 MTSTAILOR=$curdir/mtstailor
 export MTSTAILOR

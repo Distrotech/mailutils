@@ -182,6 +182,7 @@ smtp_open (mu_mailer_t mailer, int flags)
   if (rc)
     return rc;
 
+#ifdef WITH_TLS
   if (!notls && mu_tls_enable &&
       mu_smtp_capa_test (smtp_mailer->smtp, "STARTTLS", NULL) == 0)
     {
@@ -193,7 +194,7 @@ smtp_open (mu_mailer_t mailer, int flags)
 	    return rc;
 	}
     }
-
+#endif
   if (!noauth && mu_smtp_capa_test (smtp_mailer->smtp, "AUTH", NULL) == 0)
     {
       rc = mu_smtp_auth (smtp_mailer->smtp);

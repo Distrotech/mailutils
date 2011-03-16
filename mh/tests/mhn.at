@@ -192,7 +192,7 @@ chmod +w Mail/inbox/4
 
 echo "mhn-store-application: %%-%m%P.%s-%p" >> $MH
 mhn +inbox -store 4 | remove_curdir || exit $?
-find . -name '%*'
+find . -name '%*' | sort
 ],
 [0],
 [storing message 4 part 1 as file 4.1.plain
@@ -333,7 +333,12 @@ And the mome raths outgrabe.
 
 MH_CHECK([mhn-show type=tar],[mhn13 mhn-show-type=tar],[
 MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mime,[Mail/inbox])
-mhn -show 2 | sed /^X-IMAPbase/d
+AT_DATA([filter.awk],[
+/^X-IMAPbase/ { next }
+/^-rw-r--r--/ { print $1, $2, $3, $6; next }
+{ print }
+])
+mhn -show 2 | awk -f filter.awk
 ],
 [0],
 [Date:    Mon, 29 Nov 2010 14:04:19 +0200
@@ -348,8 +353,8 @@ X-Envelope-Sender: gray@example.net
 part     1 text/plain               15
 Initial text.
 
--rw-r--r-- gray/staff     1418 2010-11-29 13:58 Father_William
--rw-r--r-- gray/staff      937 2010-11-29 13:58 Jabberwocky
+-rw-r--r-- gray/staff 1418 Father_William
+-rw-r--r-- gray/staff 937 Jabberwocky
 ])
 
 # FIXME: What about exit code?
@@ -379,7 +384,12 @@ MH_CHECK([mhn-show- variable (with subtype)],
 [mhn15 mhn-show-with-subtype],[
 MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mime,[Mail/inbox])
 echo "mhn-show-application/x-tar: %ltar tvf '%F'" >> $MH
-mhn -show 1 | sed '/^X-IMAPbase/d;s/  *$//'
+AT_DATA([filter.awk],[
+/^X-IMAPbase/ { next }
+/^-rw-r--r--/ { print $1, $2, $3, $6; next }
+{ sub(/  *$/,"");  print }
+])
+mhn -show 1 | awk -f filter.awk
 ],
 [0],
 [Date:    Mon, 29 Nov 2010 14:00:03 +0200
@@ -395,15 +405,20 @@ part     1 text/plain               15
 Initial text.
 
 part     2 application/x-tar        13835
--rw-r--r-- gray/staff     1418 2010-11-29 13:58 Father_William
--rw-r--r-- gray/staff      937 2010-11-29 13:58 Jabberwocky
+-rw-r--r-- gray/staff 1418 Father_William
+-rw-r--r-- gray/staff 937 Jabberwocky
 ])
 
 MH_CHECK([mhn-show- variable (without subtype)],
 [mhn16 mhn-show-without-subtype],[
 MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mime,[Mail/inbox])
 echo "mhn-show-application: %ltar tvf '%F'" >> $MH
-mhn -show 1 | sed '/^X-IMAPbase/d;s/  *$//'
+AT_DATA([filter.awk],[
+/^X-IMAPbase/ { next }
+/^-rw-r--r--/ { print $1, $2, $3, $6; next }
+{ sub(/  *$/,"");  print }
+])
+mhn -show 1 | awk -f filter.awk
 ],
 [0],
 [Date:    Mon, 29 Nov 2010 14:00:03 +0200
@@ -419,8 +434,8 @@ part     1 text/plain               15
 Initial text.
 
 part     2 application/x-tar        13835
--rw-r--r-- gray/staff     1418 2010-11-29 13:58 Father_William
--rw-r--r-- gray/staff      937 2010-11-29 13:58 Jabberwocky
+-rw-r--r-- gray/staff 1418 Father_William
+-rw-r--r-- gray/staff 937 Jabberwocky
 ])
 
 dnl -------------------------------------------------------------------

@@ -208,7 +208,8 @@ split_args (const char *argstr, size_t len, int *pargc, char ***pargv)
 
   ws.ws_delim = ";";
   if (mu_wordsplit_len (argstr, len, &ws,
-			MU_WRDSF_DEFFLAGS | MU_WRDSF_DELIM | MU_WRDSF_WS))
+			(MU_WRDSF_DEFFLAGS & ~MU_WRDSF_QUOTE) |
+			MU_WRDSF_DELIM | MU_WRDSF_WS))
     {
       mu_error (_("cannot split line `%s': %s"), argstr,
 		mu_wordsplit_strerror (&ws));
@@ -629,10 +630,11 @@ _mhn_profile_get (const char *prefix, const char *type, const char *subtype,
 }
 
 char *
-mhn_compose_command (char *typestr, int *flags, char *file)
+mhn_compose_command (char *typestr, char *typeargs, int *flags, char *file)
 {
   const char *p, *str;
-  char *type, *subtype, *typeargs;
+  char *type, *subtype, **typeargv = NULL;
+  int typeargc = 0;
   struct obstack stk;
 
   split_content (typestr, &type, &subtype);
@@ -660,7 +662,20 @@ mhn_compose_command (char *typestr, int *flags, char *file)
 	    {
 	    case 'a':
 	      /* additional arguments */
-	      obstack_grow (&stk, typeargs, strlen (typeargs));
+	      if (typeargs)
+		{
+		  int i;
+		  
+		  if (!typeargv)
+		    split_args (typeargs, strlen (typeargs),
+				&typeargc, &typeargv);
+		  for (i = 0; i < typeargc; i++)
+		    {
+		      if (i > 0)
+			obstack_1grow (&stk, ' ');
+		      obstack_grow (&stk, typeargv[i], strlen (typeargv[i]));
+		    }
+		}
 	      break;
 	      
 	    case 'F':
@@ -688,7 +703,8 @@ mhn_compose_command (char *typestr, int *flags, char *file)
 
   free (type);
   free (subtype);
-
+  mu_argcv_free (typeargc, typeargv);
+    
   str = obstack_finish (&stk);
   p = mu_str_skip_class (str, MU_CTYPE_SPACE);
   if (!*p)
@@ -755,6 +771,8 @@ mhn_show_command (mu_message_t msg, msg_part_t part, int *flags,
   struct obstack stk;
   mu_header_t hdr;
   char *temp_cmd = NULL;
+  int typeargc = 0;
+  char **typeargv = NULL;
   
   mu_message_get_header (msg, &hdr);
   _get_content_type (hdr, &typestr, &typeargs);
@@ -824,7 +842,20 @@ mhn_show_command (mu_message_t msg, msg_part_t part, int *flags,
 	    {
 	    case 'a':
 	      /* additional arguments */
-	      obstack_grow (&stk, typeargs, strlen (typeargs));
+	      if (typeargs)
+		{
+		  int i;
+		  
+		  if (!typeargv)
+		    split_args (typeargs, strlen (typeargs),
+				&typeargc, &typeargv);
+		  for (i = 0; i < typeargc; i++)
+		    {
+		      if (i > 0)
+			obstack_1grow (&stk, ' ');
+		      obstack_grow (&stk, typeargv[i], strlen (typeargv[i]));
+		    }
+		}
 	      break;
 	      
 	    case 'e':
@@ -883,6 +914,7 @@ mhn_show_command (mu_message_t msg, msg_part_t part, int *flags,
   free (type);
   free (subtype);
   free (temp_cmd);
+  mu_argcv_free (typeargc, typeargv);
   
   str = obstack_finish (&stk);
   p = mu_str_skip_class (str, MU_CTYPE_SPACE);
@@ -1745,12 +1777,9 @@ store_handler (mu_message_t msg, msg_part_t part, char *type, char *encoding,
 
       if (!(mode_options & OPT_QUIET) && access (name, R_OK) == 0)
 	{
-	  char *p;
 	  int ok;
 	  
-	  mu_asprintf (&p, _("File %s already exists. Rewrite"), name);
-	  ok = mh_getyn (p);
-	  free (p);
+	  ok = mh_getyn (_("File %s already exists. Rewrite"), name);
 	  if (!ok)
 	    {
 	      free (name);
@@ -2429,7 +2458,7 @@ edit_mime (char *cmd, struct compose_env *env, mu_message_t *msg, int level)
   mu_body_t body;
   mu_stream_t in, out = NULL, fstr;
   char *encoding;
-  char *p, *typestr;
+  char *typestr, *typeargs;
   char *shell_cmd;
   int flags;
   
@@ -2442,8 +2471,8 @@ edit_mime (char *cmd, struct compose_env *env, mu_message_t *msg, int level)
 
   mu_rtrim_class (cmd, MU_CTYPE_SPACE);
 
-  _get_content_type (hdr, &typestr, NULL);
-  shell_cmd = mhn_compose_command (typestr, &flags, cmd);
+  _get_content_type (hdr, &typestr, &typeargs);
+  shell_cmd = mhn_compose_command (typestr, typeargs, &flags, cmd);
   free (typestr);
 
   /* Open the input stream, whatever it is */
@@ -2452,7 +2481,7 @@ edit_mime (char *cmd, struct compose_env *env, mu_message_t *msg, int level)
       if (mhn_exec (&in, cmd, flags))
 	return 1;
     }
-  else if (p == cmd)
+  else if (cmd[0] == 0)
     {
       mu_error (_("%s:%lu: missing filename"),
 		input_file,

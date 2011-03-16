@@ -173,7 +173,8 @@ pop_open (mu_mailbox_t mbox, int flags)
       if (status)
 	break;
 
-      if (WITH_TLS && !mpd->pops &&
+#ifdef WITH_TLS      
+      if (!mpd->pops &&
 	  mu_url_sget_param (mbox->url, "notls", NULL) == MU_ERR_NOENT &&
 	  mu_pop3_capa_test (mpd->pop3, "STLS", NULL) == 0)
 	{
@@ -181,7 +182,7 @@ pop_open (mu_mailbox_t mbox, int flags)
 	  if (status)
 	    break;
 	}
-
+#endif
       status = mu_authority_authenticate (mbox->folder->authority);
     }
   while (0);

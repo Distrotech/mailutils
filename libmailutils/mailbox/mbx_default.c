@@ -136,14 +136,13 @@ mu_folder_directory ()
 int
 mu_construct_user_mailbox_url (char **pout, const char *name)
 {
-  int rc;
   const char *pat = mu_mailbox_url ();
   const char *env[3];
   struct mu_wordsplit ws;
 
   env[0] = "user";
   env[1] = (char*) name;
-  env[3] = NULL;
+  env[2] = NULL;
   ws.ws_env = env;
   if (mu_wordsplit (pat, &ws,
 		    MU_WRDSF_NOSPLIT | MU_WRDSF_NOCMD |
@@ -162,7 +161,7 @@ mu_construct_user_mailbox_url (char **pout, const char *name)
   mu_wordsplit_free (&ws);
   if (!*pout)
     return ENOMEM;
-  return rc;
+  return 0;
 }
 
 /* Is this a security risk?  */

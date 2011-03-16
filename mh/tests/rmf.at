@@ -21,7 +21,7 @@ MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
 MUT_MBCOPY($abs_top_srcdir/testsuite/mh/teaparty,[Mail])
 echo 'Current-Folder: inbox' > Mail/context
 rmf +teaparty || exit $?
-find Mail -type d
+find Mail -type d | sort
 ],
 [0],
 [Mail
@@ -33,7 +33,7 @@ MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
 MUT_MBCOPY($abs_top_srcdir/testsuite/mh/teaparty,[Mail])
 echo 'Current-Folder: teaparty' > Mail/context
 rmf || exit $?
-find Mail -type d
+find Mail -type d | sort
 ],
 [0],
 [[[+inbox now current]]

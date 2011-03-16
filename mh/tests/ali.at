@@ -74,11 +74,10 @@ ali: mh_aliases2:2: `mh_aliases' already included at top level
 ])
 
 MH_CHECK([ali: group name],[ali04 ali-group-name],[
-grep ^root: /etc/group >/dev/null || AT_SKIP_TEST
-AT_DATA([mh_aliases],[
-korzen: =root
-])
-awk -F : '$1=="root" { print $4 }' /etc/group | tr -d ' ' > expout
+awk -F : '$4!="" { print $1; print $4; exit 0 }' /etc/group > tmpout
+test -s tmpout || AT_SKIP_TEST
+sed -n '1s/.*/korzen: =&/p' tmpout > mh_aliases
+sed '1d' tmpout | tr -d ' ' > expout
 ali -a ./mh_aliases korzen | tr -d ' '
 ],
 [0],
