@@ -34,4 +34,5 @@ main ()
       else
 	putchar (c);
     }
+  return 0;
 }

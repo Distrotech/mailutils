@@ -226,5 +226,5 @@ imap4d_rename (struct imap4d_command *command, imap4d_tokbuf_t tok)
       free (oldname);
     }
   free (newname);
-  return io_completion_response (command, rc, msg);
+  return io_completion_response (command, rc, "%s", msg);
 }

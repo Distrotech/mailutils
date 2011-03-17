@@ -205,7 +205,7 @@ function  : FUNCTION
 	      else
 		{
 		  yyerror (_("undefined function"));
-		  mu_error ($1);
+		  mu_error ("%s", $1);
 		  YYERROR;
 		}
 	    }

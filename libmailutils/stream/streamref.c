@@ -212,7 +212,7 @@ _streamref_ctl (struct _mu_stream *str, int code, int opcode, void *arg)
 	return EINVAL;
       else
 	{
-	  mu_off_t *lim;
+	  mu_off_t *lim = arg;
 
 	  switch (opcode)
 	    {

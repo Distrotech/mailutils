@@ -228,7 +228,7 @@ imap4d_append (struct imap4d_command *command, imap4d_tokbuf_t tok)
   if (status == 0)
     return io_completion_response (command, RESP_OK, "Completed");
 
-  return io_completion_response (command, RESP_NO, err_text);
+  return io_completion_response (command, RESP_NO, "%s", err_text);
 }
 
 

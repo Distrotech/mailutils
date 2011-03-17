@@ -122,11 +122,12 @@ main (int argc, char *argv[])
 	  rc = mu_string_split (argv[++i], ",", list);
 	  if (mu_list_get_iterator (list, &itr) == 0)
 	    {
-	      char *p;
-	      
 	      for (mu_iterator_first (itr);
 		   !mu_iterator_is_done (itr); mu_iterator_next (itr))
 		{
+	          char *p;
+
+		  mu_iterator_current (itr, (void**)&p);
 		  if (gn >= MU_ARRAY_SIZE (gid))
 		    {
 		      fprintf (stderr, "too many gids\n");

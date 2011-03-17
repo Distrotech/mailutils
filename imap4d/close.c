@@ -53,7 +53,7 @@ imap4d_close0 (struct imap4d_command *command, imap4d_tokbuf_t tok,
   mu_mailbox_destroy (&mbox);
 
   if (msg)
-    return io_completion_response (command, RESP_NO, msg);
+    return io_completion_response (command, RESP_NO, "%s", msg);
   return io_completion_response (command, RESP_OK, "Completed");
 }
 

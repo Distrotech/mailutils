@@ -412,7 +412,7 @@ mu_wordsplit_dump_nodes (struct mu_wordsplit *wsp)
       else
 	wsp->ws_debug ("%4d: %p: %#04x (%s):%.*s;",
 		       n, p, p->flags, wsnode_flagstr (p->flags),
-		       p->v.segm.end - p->v.segm.beg,
+		       (int)(p->v.segm.end - p->v.segm.beg),
 		       wsp->ws_input + p->v.segm.beg);
     }
 }
@@ -773,7 +773,7 @@ expvar (struct mu_wordsplit *wsp, const char *str, size_t len,
   else
     {
       if (wsp->ws_flags & MU_WRDSF_WARNUNDEF)
-	wsp->ws_error (_("warning: undefined variable `%.*s'"), i, str);
+	wsp->ws_error (_("warning: undefined variable `%.*s'"), (int) i, str);
       if (wsp->ws_flags & MU_WRDSF_KEEPUNDEF)
 	value = NULL;
       else
@@ -1346,7 +1346,7 @@ mu_wordsplit_len (const char *command, size_t len, struct mu_wordsplit *wsp,
     return rc;
 
   if (wsp->ws_flags & MU_WRDSF_SHOWDBG)
-    wsp->ws_debug ("Input:%.*s;", len, command);
+    wsp->ws_debug ("Input:%.*s;", (int)len, command);
 
   if (wsp->ws_flags & MU_WRDSF_NOSPLIT)
     {

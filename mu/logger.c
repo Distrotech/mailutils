@@ -158,9 +158,10 @@ mutool_logger (int argc, char **argv)
 
   if (!syslog_tag)
     syslog_tag = "mu-logger";
-  if (mu_stdstream_strerr_create (&logger, logger_type,
-				  syslog_facility, syslog_priority,
-				  syslog_tag, NULL))
+  rc = mu_stdstream_strerr_create (&logger, logger_type,
+				   syslog_facility, syslog_priority,
+				   syslog_tag, NULL);
+  if (rc)
     {
       mu_error (_("cannot create log stream: %s"),
 		mu_strerror (rc));

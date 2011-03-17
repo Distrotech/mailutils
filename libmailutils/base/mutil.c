@@ -87,7 +87,7 @@ mutil_parse_field_map (const char *map, mu_assoc_t *passoc_tab, int *perr)
     {
       mu_error (_("cannot split line `%s': %s"), map,
 		mu_wordsplit_strerror (&ws));
-      return rc;
+      return errno;
     }
 
   for (i = 0; i < ws.ws_wordc; i++)

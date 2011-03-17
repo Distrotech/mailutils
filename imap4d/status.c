@@ -150,7 +150,7 @@ imap4d_status (struct imap4d_command *command, imap4d_tokbuf_t tok)
 	return io_completion_response (command, RESP_BAD, 
 	                               "Too few args (empty list)");
       else if (err_msg)
-	return io_completion_response (command, RESP_BAD, err_msg);
+	return io_completion_response (command, RESP_BAD, "%s", err_msg);
       return io_completion_response (command, RESP_OK, "Completed");
     }
   

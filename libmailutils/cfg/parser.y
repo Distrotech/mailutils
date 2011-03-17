@@ -855,12 +855,12 @@ pop_section (struct scan_tree_data *dat)
   {									\
     unsigned type tmpres;						\
     const char *s = str;						\
-    int sign;								\
+    int sign;							        \
     unsigned type limit;						\
     									\
     if (*s == '-')							\
       {									\
-	sign++;								\
+	sign = 1;							\
 	s++;								\
 	limit = TYPE_MINIMUM (type);					\
 	limit = - limit;						\

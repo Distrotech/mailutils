@@ -311,7 +311,7 @@ static char *default_setup[] = {
 static void
 do_and_quit (const char *command)
 {
-  int rc = util_do_command (command);
+  int rc = util_do_command ("%s", command);
   mu_mailbox_close (mbox);
   exit (rc != 0);
 }

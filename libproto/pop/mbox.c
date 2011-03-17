@@ -579,7 +579,6 @@ static int
 pop_create_pop3_message (struct _pop3_mailbox *mpd, size_t msgno,
 			 struct _pop3_message **mptr)
 {
-  int status;
   struct _pop3_message *mpm;
   
   if (msgno > mpd->msg_count)
@@ -607,7 +606,7 @@ pop_create_pop3_message (struct _pop3_mailbox *mpd, size_t msgno,
   
   mpd->msg[msgno - 1] = mpm;
   *mptr = mpm;
-  return status;
+  return 0;
 }
 
 

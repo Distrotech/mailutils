@@ -336,13 +336,13 @@ check_db (mu_sieve_machine_t mach, mu_list_t tags, char *from)
   char *file;
   mu_sieve_value_t *arg;
   unsigned int days;
-  time_t now;
   int rc;
   mu_stream_t str;
   mu_locker_t locker;
   
   if (mu_sieve_tag_lookup (tags, "days", &arg))
     {
+      days = arg->v.number;
       if (days > DAYS_MAX)
 	days = DAYS_MAX;
     }
@@ -402,7 +402,7 @@ check_db (mu_sieve_machine_t mach, mu_list_t tags, char *from)
       mu_sieve_abort (mach);
     }
 
-  rc = test_and_update_prop (prop, from, now, days, mach);
+  rc = test_and_update_prop (prop, from, time (NULL), days, mach);
   mu_property_destroy (&prop);
   mu_locker_unlock (locker);
   mu_locker_destroy (&locker);

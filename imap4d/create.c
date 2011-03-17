@@ -118,5 +118,5 @@ imap4d_create (struct imap4d_command *command, imap4d_tokbuf_t tok)
       msg = "already exists";
     }
 
-  return io_completion_response (command, rc, msg);
+  return io_completion_response (command, rc, "%s", msg);
 }

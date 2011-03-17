@@ -75,5 +75,5 @@ imap4d_delete (struct imap4d_command *command, imap4d_tokbuf_t tok)
       rc = RESP_NO;
       msg = "Cannot remove";
     }
-  return io_completion_response (command, rc, msg);
+  return io_completion_response (command, rc, "%s", msg);
 }
