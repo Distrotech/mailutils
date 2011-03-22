@@ -20,6 +20,7 @@ noinst_LTLIBRARIES = libfilter.la
 libfilter_la_SOURCES =\
  base64.c\
  binflt.c\
+ c-escape.c\
  crlfdot.c\
  crlfflt.c\
  decode.c\
