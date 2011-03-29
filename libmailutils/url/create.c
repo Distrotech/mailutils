@@ -59,9 +59,9 @@ getkn (struct mu_url_ctx *ctx, char *delim)
   size_t n;
 
   if (*ctx->cur == 0)
-    return -1;
+    return MU_ERR_PARSE;
   n = strcspn (ctx->cur, delim);
-  if (n > ctx->toksize)
+  if (n + 1 > ctx->toksize)
     {
       char *p = realloc (ctx->tokbuf, n + 1);
       if (!p)
@@ -220,11 +220,28 @@ _mu_url_ctx_parse_host (struct mu_url_ctx *ctx, int has_host)
   int rc;
   mu_url_t url = ctx->url;
   
-  rc = getkn (ctx, ":/;?");
+  rc = getkn (ctx, "[:/;?");
   if (rc)
     return rc;
 
-  if (ctx->toklen)
+  if (*ctx->cur == '[')
+    {
+      /* Possibly IPv6 address */
+      rc = getkn (ctx, "]/;?");
+      if (rc)
+	return rc;
+      if (*ctx->cur == ']')
+	{
+	  ctx->cur++;
+	  rc = str_assign (&url->host, ctx->tokbuf + 1);
+	  if (rc)
+	    return rc;
+	  url->flags |= MU_URL_HOST | MU_URL_IPV6;
+	  has_host = 1;
+	}
+    }
+
+  if (!(url->flags & MU_URL_HOST) && ctx->toklen)
     {
       rc = str_assign (&url->host, ctx->tokbuf);
       if (rc)
@@ -232,22 +249,20 @@ _mu_url_ctx_parse_host (struct mu_url_ctx *ctx, int has_host)
       url->flags |= MU_URL_HOST;
       has_host = 1;
     }
-
+  
   if (*ctx->cur == ':')
     {
-      ctx->cur++;
       has_host = 1;
-
-      rc = getkn (ctx, "/;?");
+      ctx->cur++;
+      rc = getkn (ctx, ":/;?");
       if (rc)
 	return rc;
-      
       rc = str_assign (&url->portstr, ctx->tokbuf);
       if (rc)
 	return rc;
       url->flags |= MU_URL_PORT;
     }
-
+    
   if (*ctx->cur == '/')
     {
       if (has_host)
@@ -269,7 +284,9 @@ _mu_url_ctx_parse_cred (struct mu_url_ctx *ctx)
   int rc, has_cred;
   mu_url_t url = ctx->url;
   const char *save = ctx->cur;
-  
+
+  if (*ctx->cur == 0)
+    return 0;
   rc = getkn (ctx, "@");
   if (rc)
     return rc;
@@ -343,12 +360,18 @@ _mu_url_ctx_parse (struct mu_url_ctx *ctx)
 {
   int rc;
   mu_url_t url = ctx->url;
+  const char *save = ctx->cur;
   
   /* Parse the scheme part */
+  if (*ctx->cur == ':')
+    return _mu_url_ctx_parse_cred (ctx);
+  
   rc = getkn (ctx, ":/");
   if (rc)
     return rc;
-  if (*ctx->cur == ':')
+  if (*ctx->cur == ':'
+      && ((ctx->flags & MU_URL_PARSE_DSLASH_OPTIONAL)
+	  || (ctx->cur[1] == '/' && ctx->cur[2] == '/')))
     {
       rc = str_assign (&url->scheme, ctx->tokbuf);
       if (rc)
@@ -356,7 +379,12 @@ _mu_url_ctx_parse (struct mu_url_ctx *ctx)
       url->flags |= MU_URL_SCHEME;
       ctx->cur++;
     }
-
+  else
+    {
+      ctx->cur = save;
+      return _mu_url_ctx_parse_cred (ctx);
+    }
+  
   if (*ctx->cur == 0)
     return 0;
 
@@ -535,5 +563,6 @@ mu_url_create (mu_url_t *purl, const char *str)
 			     MU_URL_PARSE_HIDEPASS |
 			     MU_URL_PARSE_PORTSRV |
 			     MU_URL_PARSE_PIPE |
-			     MU_URL_PARSE_SLASH, NULL);
+			     MU_URL_PARSE_SLASH |
+			     MU_URL_PARSE_DSLASH_OPTIONAL, NULL);
 }

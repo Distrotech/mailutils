@@ -43,6 +43,7 @@ noinst_PROGRAMS = \
  murun\
  musocio\
  $(NNTPCLIENT)\
+ sa\
  sfrom
 
 EXTRA_PROGRAMS = nntpclient

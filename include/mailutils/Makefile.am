@@ -36,6 +36,7 @@ pkginclude_HEADERS = \
  body.h\
  cctype.h\
  cfg.h\
+ cidr.h\
  cstr.h\
  daemon.h\
  debug.h\
@@ -89,6 +90,7 @@ pkginclude_HEADERS = \
  server.h\
  sieve.h\
  smtp.h\
+ sockaddr.h\
  stdstream.h\
  stream.h\
  syslog.h\

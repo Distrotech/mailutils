@@ -48,6 +48,7 @@
 #include <mailutils/smtp.h>
 #include <mailutils/tls.h>
 #include <mailutils/cstr.h>
+#include <mailutils/sockaddr.h>
 #include <mailutils/sys/mailer.h>
 #include <mailutils/sys/url.h>
 #include <mailutils/sys/registrar.h>
@@ -114,8 +115,7 @@ smtp_mailer_add_auth_mech (struct _smtp_mailer *smtp_mailer, const char *str)
 static int
 smtp_open (mu_mailer_t mailer, int flags)
 {
-  const char *host, *auth;
-  unsigned port;
+  const char *auth;
   struct _smtp_mailer *smtp_mailer = mailer->data;
   int rc;
   size_t parmc = 0;
@@ -137,12 +137,6 @@ smtp_open (mu_mailer_t mailer, int flags)
   
   mu_smtp_set_param (smtp_mailer->smtp, MU_SMTP_PARAM_URL,
 		     mu_url_to_string (mailer->url));
-
-  rc = mu_url_sget_host (mailer->url, &host);
-  if (rc)
-    return rc;
-  if (mu_url_get_port (mailer->url, &port))
-    port = 25;
 
   if (mu_url_sget_auth (mailer->url, &auth) == 0)
     smtp_mailer_add_auth_mech (smtp_mailer, auth);
@@ -166,7 +160,20 @@ smtp_open (mu_mailer_t mailer, int flags)
   
   if (mailer->stream == NULL)
     {
-      rc = mu_tcp_stream_create (&mailer->stream, host, port, mailer->flags);
+      struct mu_sockaddr *sa;
+      struct mu_sockaddr_hints hints;
+
+      memset (&hints, 0, sizeof (hints));
+      hints.flags = MU_AH_DETECT_FAMILY;
+      hints.port = 25;
+      hints.protocol = IPPROTO_TCP;
+      hints.socktype = SOCK_STREAM;
+      rc = mu_sockaddr_from_url (&sa, mailer->url, &hints);
+      if (rc)
+	return rc;
+      
+      rc = mu_tcp_stream_create_from_sa (&mailer->stream, sa, NULL,
+					 mailer->flags);
       if (rc)
 	return rc;
       mu_stream_set_buffer (mailer->stream, mu_buffer_line, 0);

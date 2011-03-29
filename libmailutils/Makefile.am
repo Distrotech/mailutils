@@ -16,7 +16,7 @@
 # Public License along with this library.  If not, see
 # <http://www.gnu.org/licenses/>.
 
-SUBDIRS = auth base address cfg diag filter mailbox mailer mime\
+SUBDIRS = auth base address sockaddr cidr cfg diag filter mailbox mailer mime\
  server string stream stdstream property url . tests 
 
 lib_LTLIBRARIES = libmailutils.la
@@ -28,6 +28,8 @@ libmailutils_la_LIBADD = \
  auth/libauth.la\
  base/libbase.la\
  address/libaddress.la\
+ sockaddr/libsockaddr.la\
+ cidr/libcidr.la\
  cfg/libcfg.la\
  diag/libdiag.la\
  filter/libfilter.la\

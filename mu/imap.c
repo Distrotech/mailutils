@@ -113,7 +113,6 @@ com_verbose (int argc, char **argv)
 static int connect_argc;
 static char **connect_argv;
 #define host connect_argv[0]
-static int port = MU_IMAP_DEFAULT_PORT;
 
 static char *username;
 
@@ -171,7 +170,6 @@ static int
 com_connect (int argc, char **argv)
 {
   int status;
-  int n = 0;
   int tls = 0;
   int i = 1;
   enum mu_imap_state state;
@@ -194,16 +192,6 @@ com_connect (int argc, char **argv)
   argc -= i;
   argv += i;
   
-  if (argc >= 2)
-    {
-      if (get_port (argv[1], &n))
-	return 0;
-    }
-  else if (tls)
-    n = MU_IMAP_DEFAULT_SSL_PORT;
-  else
-    n = MU_IMAP_DEFAULT_PORT;
-
   state = current_imap_state ();
   
   if (state != MU_IMAP_STATE_INIT)
@@ -213,13 +201,23 @@ com_connect (int argc, char **argv)
   if (status == 0)
     {
       mu_stream_t tcp;
+      struct mu_sockaddr *sa;
+      struct mu_sockaddr_hints hints;
 
       if (QRY_VERBOSE ())
 	{
 	  imap_set_verbose ();
 	  imap_set_verbose_mask ();
 	}
-      status = mu_tcp_stream_create (&tcp, argv[0], n, MU_STREAM_READ);
+
+      memset (&hints, 0, sizeof (hints));
+      hints.flags = MU_AH_DETECT_FAMILY;
+      hints.port = tls ? MU_IMAP_DEFAULT_SSL_PORT : MU_IMAP_DEFAULT_PORT;
+      hints.protocol = IPPROTO_TCP;
+      hints.socktype = SOCK_STREAM;
+      status = mu_sockaddr_from_node (&sa, argv[0], argv[1], &hints);
+      if (status == 0)
+	status = mu_tcp_stream_create_from_sa (&tcp, sa, NULL, 0);
       if (status == 0)
 	{
 #ifdef WITH_TLS
@@ -263,7 +261,6 @@ com_connect (int argc, char **argv)
       for (i = 0; i < argc; i++)
 	connect_argv[i] = xstrdup (argv[i]);
       connect_argv[i] = NULL;
-      port = n;
     
       imap_prompt_env ();
     }

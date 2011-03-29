@@ -54,9 +54,6 @@ extern int mu_debug_line_info;
 
 
 struct sockaddr;
-void mu_sockaddr_to_str (const struct sockaddr *sa, int salen,
-			 char *bufptr, size_t buflen,
-			 size_t *plen);
 char *mu_sockaddr_to_astr (const struct sockaddr *sa, int salen);
 
 

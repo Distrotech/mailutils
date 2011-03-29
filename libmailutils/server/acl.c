@@ -40,14 +40,20 @@
 #include <mailutils/kwd.h>
 #include <mailutils/io.h>
 #include <mailutils/util.h>
+#include <mailutils/sockaddr.h>
+#include <mailutils/cidr.h>
+#include <mailutils/stream.h>
+#include <mailutils/stdstream.h>
+
+#ifndef MU_INADDR_BYTES
+#define MU_INADDR_BYTES 16
+#endif
 
 struct _mu_acl_entry
 {
   mu_acl_action_t action;
   void *arg;
-  unsigned netmask;
-  int salen;
-  struct sockaddr sa[1];
+  struct mu_cidr cidr;
 };
 
 struct _mu_acl
@@ -64,52 +70,19 @@ _destroy_acl_entry (void *item)
   /* FIXME: free arg? */
 }
 
-static size_t
-mu_acl_entry_size (int salen)
-{
-  return sizeof (struct _mu_acl_entry) + salen - sizeof (struct sockaddr);
-}
-
-static int
-prepare_sa (struct sockaddr *sa)
-{
-  switch (sa->sa_family)
-    {
-    case AF_INET:
-      {
-	struct sockaddr_in *s_in = (struct sockaddr_in *)sa;
-	s_in->sin_addr.s_addr = ntohl (s_in->sin_addr.s_addr);
-	break;
-      }
-      
-    case AF_UNIX:
-      break;
-
-    default:
-      return 1;
-    }
-  return 0;
-}
-
 int
 mu_acl_entry_create (struct _mu_acl_entry **pent,
 		     mu_acl_action_t action, void *data,
-		     struct sockaddr *sa, int salen, unsigned long netmask)
+		     struct mu_cidr *cidr)
 {
-  struct _mu_acl_entry *p = malloc (mu_acl_entry_size (salen));
+  struct _mu_acl_entry *p = malloc (sizeof (*p));
   if (!p)
     return EINVAL;
 
   p->action = action;
   p->arg = data;
-  p->netmask = ntohl (netmask);
-  p->salen = salen;
-  memcpy (p->sa, sa, salen);
-  if (prepare_sa (p->sa))
-    {
-      free (p);
-      return EINVAL;
-    }
+  memcpy (&p->cidr, cidr, sizeof (p->cidr));
+
   *pent = p;
   return 0;
 }
@@ -165,15 +138,14 @@ mu_acl_get_iterator (mu_acl_t acl, mu_iterator_t *pitr)
 
 int
 mu_acl_append (mu_acl_t acl, mu_acl_action_t act,
-	       void *data, struct sockaddr *sa, int salen,
-	       unsigned long netmask)
+	       void *data, struct mu_cidr *cidr)
 {
   int rc;
   struct _mu_acl_entry *ent;
   
   if (!acl)
     return EINVAL;
-  rc = mu_acl_entry_create (&ent, act, data, sa, salen, netmask);
+  rc = mu_acl_entry_create (&ent, act, data, cidr);
   if (rc)
     {
       mu_debug (MU_DEBCAT_ACL, MU_DEBUG_ERROR, 
@@ -193,14 +165,14 @@ mu_acl_append (mu_acl_t acl, mu_acl_action_t act,
 
 int
 mu_acl_prepend (mu_acl_t acl, mu_acl_action_t act, void *data,
-		struct sockaddr *sa, int salen, unsigned long netmask)
+		struct mu_cidr *cidr)
 {
   int rc;
   struct _mu_acl_entry *ent;
   
   if (!acl)
     return EINVAL;
-  rc = mu_acl_entry_create (&ent, act, data, sa, salen, netmask);
+  rc = mu_acl_entry_create (&ent, act, data, cidr);
   if (rc)
     {
       mu_debug (MU_DEBCAT_ACL, MU_DEBUG_ERROR,
@@ -219,8 +191,7 @@ mu_acl_prepend (mu_acl_t acl, mu_acl_action_t act, void *data,
 
 int
 mu_acl_insert (mu_acl_t acl, size_t pos, int before,
-	       mu_acl_action_t act, void *data,
-	       struct sockaddr *sa, int salen, unsigned long netmask)
+	       mu_acl_action_t act, void *data, struct mu_cidr *cidr)
 {
   int rc;
   void *ptr;
@@ -236,7 +207,7 @@ mu_acl_insert (mu_acl_t acl, size_t pos, int before,
                 ("No such entry %lu", (unsigned long) pos));
       return rc;
     }
-  rc = mu_acl_entry_create (&ent, act, data, sa, salen, netmask);
+  rc = mu_acl_entry_create (&ent, act, data, cidr);
   if (!ent)
     {
       mu_debug (MU_DEBCAT_ACL, MU_DEBUG_ERROR, 
@@ -279,124 +250,19 @@ mu_acl_string_to_action (const char *str, mu_acl_action_t *pres)
   return rc;
 }
 
-#define MU_S_UN_NAME(sa, salen) \
-  ((salen < mu_offsetof (struct sockaddr_un,sun_path)) ? "" : (sa)->sun_path)
-
-static void
-debug_sockaddr (struct sockaddr *sa, int salen)
+struct run_closure
 {
-  switch (sa->sa_family)
-    {
-    case AF_INET:
-      {
-	struct sockaddr_in s_in = *(struct sockaddr_in *)sa;
-	s_in.sin_addr.s_addr = htonl (s_in.sin_addr.s_addr);
-	mu_debug_log_cont ("{AF_INET %s:%d}",
-			   inet_ntoa (s_in.sin_addr), ntohs (s_in.sin_port));
-	break;
-      }
+  unsigned idx;
+  struct mu_cidr addr;
 
-    case AF_UNIX:
-      {
-	struct sockaddr_un *s_un = (struct sockaddr_un *)sa;
-	if (MU_S_UN_NAME(s_un, salen)[0] == 0)
-	  mu_debug_log_cont ("{AF_UNIX}");
-	else
-	  mu_debug_log_cont ("{AF_UNIX %s}", s_un->sun_path);
-	break;
-      }
-
-    default:
-      mu_debug_log_cont ("{Unsupported family: %d}", sa->sa_family);
-    }
-}
-
-size_t
-mu_stpcpy (char **pbuf, size_t *psize, const char *src)
-{
-  size_t slen = strlen (src);
-  if (pbuf == NULL || *pbuf == NULL)
-    return slen;
-  else
-    {
-      char *buf = *pbuf;
-      size_t size = *psize;
-      if (size > slen)
-	size = slen;
-      memcpy (buf, src, size);
-      *psize -= size;
-      *pbuf += size;
-      if (*psize)
-	**pbuf = 0;
-      else
-	(*pbuf)[-1] = 0;
-      return size;
-    }
-}
-
-void
-mu_sockaddr_to_str (const struct sockaddr *sa, int salen,
-		    char *bufptr, size_t buflen,
-		    size_t *plen)
-{
-  char *nbuf;
-  size_t len = 0;
-  switch (sa->sa_family)
-    {
-    case AF_INET:
-      {
-	struct sockaddr_in s_in = *(struct sockaddr_in *)sa;
-	len += mu_stpcpy (&bufptr, &buflen, inet_ntoa (s_in.sin_addr));
-	len += mu_stpcpy (&bufptr, &buflen, ":");
-	if (mu_asprintf (&nbuf, "%hu", ntohs (s_in.sin_port)) == 0)
-	  {
-	    len += mu_stpcpy (&bufptr, &buflen, nbuf);
-	    free (nbuf);
-	  }
-	break;
-      }
-
-    case AF_UNIX:
-      {
-	struct sockaddr_un *s_un = (struct sockaddr_un *)sa;
-	if (MU_S_UN_NAME(s_un, salen)[0] == 0)
-	  len += mu_stpcpy (&bufptr, &buflen, "anonymous socket");
-	else
-	  {
-	    len += mu_stpcpy (&bufptr, &buflen, "socket ");
-	    len += mu_stpcpy (&bufptr, &buflen, s_un->sun_path);
-	  }
-	break;
-      }
-
-    default:
-      len += mu_stpcpy (&bufptr, &buflen, "{Unsupported family");
-      if (mu_asprintf (&nbuf, ": %d", sa->sa_family) == 0)
-	{
-	  len += mu_stpcpy (&bufptr, &buflen, nbuf);
-	  free (nbuf);
-	}
-      len += mu_stpcpy (&bufptr, &buflen, "}");
-    }
-  if (plen)
-    *plen = len + 1;
-}
-
-char *
-mu_sockaddr_to_astr (const struct sockaddr *sa, int salen)
-{
-  size_t size;
-  char *p;
-  
-  mu_sockaddr_to_str (sa, salen, NULL, 0, &size);
-  p = malloc (size);
-  if (p)
-    mu_sockaddr_to_str (sa, salen, p, size, NULL);
-  return p;
-}
+  char ipstr[40];
+  char *addrstr;
+  char *numbuf;
+  mu_acl_result_t *result;
+};
 
 int
-_acl_match (struct _mu_acl_entry *ent, struct sockaddr *sa, int salen)
+_acl_match (struct _mu_acl_entry *ent, struct run_closure *rp)
 {
 #define RESMATCH(word)                                   \
   if (mu_debug_level_p (MU_DEBCAT_ACL, MU_DEBUG_TRACE9))     \
@@ -404,75 +270,25 @@ _acl_match (struct _mu_acl_entry *ent, struct sockaddr *sa, int salen)
 							      
   if (mu_debug_level_p (MU_DEBCAT_ACL, MU_DEBUG_TRACE9))
     {
-      struct in_addr a;
-      
-      mu_debug_log_begin ("Does ");
-      debug_sockaddr (sa, salen);
-      mu_debug_log_cont (" match ");
-      debug_sockaddr (ent->sa, salen);
-      a.s_addr = ent->netmask;
-      a.s_addr = htonl (a.s_addr);
-      mu_debug_log_cont (" netmask %s? ", inet_ntoa (a));
+      char *s;
+
+      if (ent->cidr.len == 0)
+	s = strdup ("any");
+      mu_cidr_format (&ent->cidr, 0, &s);
+      if (!rp->addrstr)
+	mu_cidr_format (&rp->addr, MU_CIDR_FMT_ADDRONLY, &rp->addrstr);
+      mu_debug_log_begin ("Does %s match %s? ", s, rp->addrstr);
+      free (s);
     }
 
-  if (ent->sa->sa_family != sa->sa_family)
+  if (ent->cidr.len > 0 && mu_cidr_match (&ent->cidr, &rp->addr))
     {
       RESMATCH ("no");
       return 1;
     }
-
-  switch (ent->sa->sa_family)
-    {
-    case AF_INET:
-      {
-	struct sockaddr_in *sin_ent = (struct sockaddr_in *)ent->sa;
-	struct sockaddr_in *sin_item = (struct sockaddr_in *)sa;
-	
-	if (sin_ent->sin_addr.s_addr !=
-	    (sin_item->sin_addr.s_addr & ent->netmask))
-	  {
-	    RESMATCH ("no (address differs)");
-	    return 1;
-	  }
-
-	if (sin_ent->sin_port && sin_item->sin_port
-	    && sin_ent->sin_port != sin_item->sin_port)
-	  {
-	    RESMATCH ("no (port differs)");
-	    return 1;
-	  }
-	break;
-      }
-	  
-    case AF_UNIX:
-      {
-	struct sockaddr_un *sun_ent = (struct sockaddr_un *)ent->sa;
-	struct sockaddr_un *sun_item = (struct sockaddr_un *)sa;
-
-	if (MU_S_UN_NAME (sun_ent, ent->salen)[0]
-	    && MU_S_UN_NAME (sun_item, salen)[0]
-	    && strcmp (sun_ent->sun_path, sun_item->sun_path))
-	  {
-	    RESMATCH ("no");
-	    return 1;
-	  }
-	break;
-      }
-    }
-  
   RESMATCH ("yes");
   return 0;
 }
-
-struct run_closure
-{
-  unsigned idx;
-  struct sockaddr *sa;
-  char *numbuf;
-  char *portbuf;
-  int salen;
-  mu_acl_result_t *result;
-};
 
 #define SEQ(s, n, l) \
   (((l) == (sizeof(s) - 1)) && memcmp (s, n, l) == 0)
@@ -489,40 +305,24 @@ acl_getvar (const char *name, size_t nlen, void *data)
       return rp->numbuf;
     }
   
-  switch (rp->sa->sa_family)
+  if (SEQ ("address", name, nlen))
     {
-    case AF_INET:
-      {
-	struct sockaddr_in *s_in = (struct sockaddr_in *)rp->sa;
-
-	if (SEQ ("address", name, nlen))
-	  {
-	    struct in_addr addr = s_in->sin_addr;
-	    addr.s_addr = htonl (addr.s_addr);
-	    return inet_ntoa (addr);
-	  }
-
-	if (SEQ ("port", name, nlen))
-	  {
-	    if (!rp->portbuf &&
-		mu_asprintf (&rp->portbuf, "%hu", ntohs (s_in->sin_port)))
-	      return NULL;
-	    return rp->portbuf;
-	  }
-	break;
-	
-      case AF_UNIX:
-	if (SEQ ("address", name, nlen))
-	  {
-	    struct sockaddr_un *s_un = (struct sockaddr_un *)rp->sa;
-	    if (rp->salen == sizeof (s_un->sun_family))
-	      return NULL;
-	    else
-	      return s_un->sun_path;
-	  }
-      }
-      break;
+      if (!rp->addrstr)
+	mu_cidr_format (&rp->addr, MU_CIDR_FMT_ADDRONLY, &rp->addrstr);
+      return rp->addrstr;
     }
+
+#if 0
+  /* FIXME?: */
+  if (SEQ ("port", name, nlen))
+    {
+      if (!rp->portbuf &&
+	  mu_asprintf (&rp->portbuf, "%hu", ntohs (s_in->sin_port)))
+	return NULL;
+      return rp->portbuf;
+    }
+#endif
+
   return NULL;
 }
 
@@ -535,12 +335,18 @@ expand_arg (const char *cmdline, struct run_closure *rp, char **s)
   
   mu_debug (MU_DEBCAT_ACL, MU_DEBUG_TRACE, ("Expanding \"%s\"", cmdline));
   env[0] = "family";
-  switch (rp->sa->sa_family)
+  switch (rp->addr.family)
     {
     case AF_INET:
       env[1] = "AF_INET";
       break;
 
+#ifdef MAILUTILS_IPV6
+    case AF_INET6:
+      env[1] = "AF_INET6";
+      break;
+#endif
+      
     case AF_UNIX:
       env[1] = "AF_UNIX";
       break;
@@ -654,7 +460,7 @@ _run_entry (void *item, void *data)
       mu_debug_log_begin ("%d:%s: ", rp->idx, s);
     }
   
-  if (_acl_match (ent, rp->sa, rp->salen) == 0)
+  if (_acl_match (ent, rp) == 0)
     {
       switch (ent->action)
 	{
@@ -678,8 +484,10 @@ _run_entry (void *item, void *data)
 	      }
 	    else
 	      {
-	        debug_sockaddr (rp->sa, rp->salen);
-	        mu_debug_log_nl ();
+		if (!rp->addrstr)
+		  mu_cidr_format (&rp->addr, MU_CIDR_FMT_ADDRONLY,
+				  &rp->addrstr);
+		mu_diag_output (MU_DIAG_INFO, "%s", rp->addrstr);
 	      }
 	  }
 	  break;
@@ -712,7 +520,7 @@ _run_entry (void *item, void *data)
     }
   
   if (mu_debug_level_p (MU_DEBCAT_ACL, MU_DEBUG_TRACE9))
-     mu_debug_log_nl ();
+    mu_stream_flush (mu_strerr);
   
   return status;
 }
@@ -721,40 +529,39 @@ int
 mu_acl_check_sockaddr (mu_acl_t acl, const struct sockaddr *sa, int salen,
 		       mu_acl_result_t *pres)
 {
+  int rc;
   struct run_closure r;
   
   if (!acl)
     return EINVAL;
 
-  r.sa = malloc (salen);
-  if (!r.sa)
-    return ENOMEM;
-  memcpy (r.sa, sa, salen);
-  if (prepare_sa (r.sa))
+  memset (&r, 0, sizeof (r));
+  if (sa->sa_family == AF_UNIX)
     {
-      free (r.sa);
-      return EINVAL;
+      *pres = mu_acl_result_accept;
+      return 0;
     }
-  r.salen = salen;
+  rc = mu_cidr_from_sockaddr (&r.addr, sa);
+  if (rc)
+    return rc;
   
   if (mu_debug_level_p (MU_DEBCAT_ACL, MU_DEBUG_TRACE9))
     {
-      mu_debug_log_begin ("Checking sockaddr ");
-      debug_sockaddr (r.sa, r.salen);
+      mu_cidr_format (&r.addr, MU_CIDR_FMT_ADDRONLY, &r.addrstr);
+      mu_debug_log_begin ("Checking sockaddr %s", r.addrstr);
       mu_debug_log_nl ();
     }
 
   r.idx = 0;
   r.result = pres;
   *r.result = mu_acl_result_undefined;
-  r.numbuf = r.portbuf = NULL;
+  r.numbuf = NULL;
   mu_list_do (acl->aclist, _run_entry, &r);
   free (r.numbuf);
-  free (r.portbuf);
-  free (r.sa);
+  free (r.addrstr);
   return 0;
 }
-	       
+
 int
 mu_acl_check_inaddr (mu_acl_t acl, const struct in_addr *inp,
 		     mu_acl_result_t *pres)
@@ -780,10 +587,17 @@ mu_acl_check_ipv4 (mu_acl_t acl, unsigned int addr, mu_acl_result_t *pres)
 int
 mu_acl_check_fd (mu_acl_t acl, int fd, mu_acl_result_t *pres)
 {
-  struct sockaddr_in cs;
-  socklen_t len = sizeof cs;
+  union
+  {
+    struct sockaddr sa;
+    struct sockaddr_in in;
+#ifdef MAILUTILS_IPV6
+    struct sockaddr_in6 in6;
+#endif
+  } addr;
+  socklen_t len = sizeof addr;
 
-  if (getpeername (fd, (struct sockaddr *) &cs, &len) < 0)
+  if (getpeername (fd, &addr.sa, &len) < 0)
     {
       mu_debug (MU_DEBCAT_ACL, MU_DEBUG_ERROR, 
 		("Cannot obtain IP address of client: %s",
@@ -791,6 +605,6 @@ mu_acl_check_fd (mu_acl_t acl, int fd, mu_acl_result_t *pres)
       return MU_ERR_FAILURE;
     }
 
-  return mu_acl_check_sockaddr (acl, (struct sockaddr *) &cs, len, pres);
+  return mu_acl_check_sockaddr (acl, &addr.sa, len, pres);
 }
 

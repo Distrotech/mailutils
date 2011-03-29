@@ -689,6 +689,7 @@ mu_debug_log_begin (const char *fmt, ...)
   va_list ap;
 
   mu_diag_init ();
+  mu_stream_flush (mu_strerr);
   va_start (ap, fmt);
   mu_stream_printf (mu_strerr, "\033s<%d>", MU_LOG_DEBUG);
   mu_stream_vprintf (mu_strerr, fmt, ap);

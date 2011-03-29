@@ -541,6 +541,10 @@ AH_BOTTOM([
 ])
 
 
+# IPv6 support
+MU_ENABLE_IPV6
+
+
 ## FriBidi support
 
 AC_CHECK_FUNCS(wcwidth)
@@ -1285,6 +1289,8 @@ LDAP support .................. $status_ldap
 Radius support ................ $status_radius
 Support for virtual domains ... $status_virtual_domains
 
+IPv6 support .................. $status_ipv6
+
 Interfaces:
 
 Guile ......................... $status_guile
@@ -1332,6 +1338,7 @@ status_mh=$mu_cv_enable_mh
 status_maildir=$mu_cv_enable_maildir
 status_smtp=$mu_cv_enable_smtp
 status_sendmail=$mu_cv_enable_sendmail
+status_ipv6=$status_ipv6
 ])
 
 dnl Output Makefiles
@@ -1382,6 +1389,8 @@ AC_CONFIG_FILES([
  libmailutils/auth/Makefile
  libmailutils/base/Makefile
  libmailutils/address/Makefile
+ libmailutils/sockaddr/Makefile
+ libmailutils/cidr/Makefile
  libmailutils/cfg/Makefile
  libmailutils/diag/Makefile
  libmailutils/filter/Makefile

@@ -20,6 +20,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/time.h>
+#include <netinet/in.h>
+#include <netdb.h>
 #include <mailutils/mailutils.h>
 #include "mu.h"
 #include "argp.h"
@@ -470,12 +474,28 @@ com_disconnect (int argc MU_ARG_UNUSED, char **argv MU_ARG_UNUSED)
 }
 
 static int
+port_from_sa (struct mu_sockaddr *sa)
+{
+  switch (sa->addr->sa_family)
+    {
+    case AF_INET:
+      return ntohs (((struct sockaddr_in *)sa->addr)->sin_port);
+
+#ifdef MAILUTILS_IPV6
+    case AF_INET6:
+      return ntohs (((struct sockaddr_in6 *)sa->addr)->sin6_port);
+#endif
+    }
+  return 0;
+}
+
+static int
 com_connect (int argc, char **argv)
 {
   int status;
-  int n = 0;
   int tls = 0;
   int i = 1;
+  int n;
   
   for (i = 1; i < argc; i++)
     {
@@ -496,16 +516,6 @@ com_connect (int argc, char **argv)
   argc -= i;
   argv += i;
   
-  if (argc >= 2)
-    {
-      if (get_port (argv[1], &n))
-	return 0;
-    }
-  else if (tls)
-    n = MU_POP3_DEFAULT_SSL_PORT;
-  else
-    n = MU_POP3_DEFAULT_PORT;
-  
   if (pop_session_status != pop_session_disconnected)
     com_disconnect (0, NULL);
   
@@ -513,13 +523,26 @@ com_connect (int argc, char **argv)
   if (status == 0)
     {
       mu_stream_t tcp;
+      struct mu_sockaddr *sa;
+      struct mu_sockaddr_hints hints;
 
       if (QRY_VERBOSE ())
 	{
 	  pop_set_verbose ();
 	  pop_set_verbose_mask ();
 	}
-      status = mu_tcp_stream_create (&tcp, argv[0], n, MU_STREAM_READ);
+
+      memset (&hints, 0, sizeof (hints));
+      hints.flags = MU_AH_DETECT_FAMILY;
+      hints.port = tls ? MU_POP3_DEFAULT_SSL_PORT : MU_POP3_DEFAULT_PORT;
+      hints.protocol = IPPROTO_TCP;
+      hints.socktype = SOCK_STREAM;
+      status = mu_sockaddr_from_node (&sa, argv[0], argv[1], &hints);
+      if (status == 0)
+	{
+	  n = port_from_sa (sa);
+	  status = mu_tcp_stream_create_from_sa (&tcp, sa, NULL, 0);
+	}
       if (status == 0)
 	{
 #ifdef WITH_TLS

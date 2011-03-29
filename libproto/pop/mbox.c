@@ -27,6 +27,7 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <netdb.h>
 
 #include <mailutils/pop3.h>
 #include <mailutils/attribute.h>
@@ -50,6 +51,7 @@
 #include <mailutils/cstr.h>
 #include <mailutils/cctype.h>
 #include <mailutils/opool.h>
+#include <mailutils/sockaddr.h>
 
 #include <mailutils/sys/folder.h>
 #include <mailutils/sys/mailbox.h>
@@ -109,23 +111,26 @@ pop_open (mu_mailbox_t mbox, int flags)
 {
   struct _pop3_mailbox *mpd = mbox->data;
   int status;
-  const char *host;
-  unsigned port = mpd->pops ? MU_POPS_PORT : MU_POP_PORT;
   mu_stream_t stream;
-  
+  struct mu_sockaddr *sa;
+  struct mu_sockaddr_hints hints;
+
   /* Sanity checks. */
   if (mpd == NULL)
     return EINVAL;
   
-  /* Fetch the pop server name and the port in the mu_url_t.  */
-  status = mu_url_sget_host (mbox->url, &host);
-  if (status != 0)
-    return status;
-  mu_url_get_port (mbox->url, &port);
-
   mbox->flags = flags;
-
-  status = mu_tcp_stream_create (&stream, host, port, mbox->flags);
+  
+  memset (&hints, 0, sizeof (hints));
+  hints.flags = MU_AH_DETECT_FAMILY;
+  hints.port = mpd->pops ? MU_POPS_PORT : MU_POP_PORT;
+  hints.protocol = IPPROTO_TCP;
+  hints.socktype = SOCK_STREAM;
+  status = mu_sockaddr_from_url (&sa, mbox->url, &hints);
+  if (status)
+    return status;
+      
+  status = mu_tcp_stream_create_from_sa (&stream, sa, NULL, mbox->flags);
   if (status)
     return status;
 #ifdef WITH_TLS

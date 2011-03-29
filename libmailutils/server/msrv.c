@@ -41,6 +41,8 @@
 #include <mailutils/nls.h>
 #include <mailutils/daemon.h>
 #include <mailutils/acl.h>
+#include <mailutils/sockaddr.h>
+#include <mailutils/url.h>
 
 typedef RETSIGTYPE (*mu_sig_handler_t) (int);
 
@@ -65,19 +67,6 @@ set_signal (int sig, mu_sig_handler_t handler)
 # define NSIG 64
 #endif
 
-union m_sockaddr
-{
-  struct sockaddr s_sa;
-  struct sockaddr_in s_in;
-  struct sockaddr_un s_un;
-};
-
-struct m_default_address
-{
-  union m_sockaddr s;
-  int len;
-};
-
 struct _mu_m_server
 {
   char *ident;                   /* Server identifier, for logging purposes.*/
@@ -98,7 +87,7 @@ struct _mu_m_server
   size_t num_children;           /* Current number of running sub-processes. */
   pid_t *child_pid;
   char *pidfile;                 /* Name of a PID-file. */
-  struct m_default_address defaddr;  /* Default address. */
+  struct mu_sockaddr_hints hints; /* Default address hints. */
   time_t timeout;                /* Default idle timeout. */
   mu_acl_t acl;                  /* Global access control list. */
 
@@ -112,7 +101,7 @@ struct _mu_m_server
 struct m_srv_config        /* Configuration data for a single TCP server. */
 {
   mu_m_server_t msrv;      /* Parent m-server. */  
-  mu_ip_server_t tcpsrv;  /* TCP server these data are for. */
+  mu_ip_server_t tcpsrv;   /* TCP server these data are for. */
   mu_acl_t acl;            /* Access control list for this server. */ 
   int single_process;      /* Should it run as a single process? */
   int transcript;          /* Enable session transcript. */
@@ -395,33 +384,20 @@ mu_m_server_pidfile (mu_m_server_t srv)
 }
 
 void
-mu_m_server_set_default_address (mu_m_server_t srv, struct sockaddr *sa,
-				 int salen)
+mu_m_server_set_hints (mu_m_server_t srv, struct mu_sockaddr_hints *hints)
 {
-  if (salen > sizeof srv->defaddr.s)
-    {
-      mu_error (_("unhandled sockaddr size"));
-      abort ();
-    }
-  memcpy (&srv->defaddr.s.s_sa, sa, salen);
-  srv->defaddr.len = salen;
+  if (!hints)
+    memset (&srv->hints, 0, sizeof (srv->hints));
+  else
+    memcpy (&srv->hints, hints, sizeof (srv->hints));
 }
 
 int
-mu_m_server_get_default_address (mu_m_server_t srv, struct sockaddr *sa,
-				 int *salen)
+mu_m_server_get_hints (mu_m_server_t srv, struct mu_sockaddr_hints *hints)
 {
-  int len;
-  
-  if (!sa)
+  if (!hints)
     return EINVAL;
-  len = srv->defaddr.len;
-  if (sa)
-    {
-      if (*salen < len)
-	return MU_ERR_BUFSPACE;
-      memcpy (sa, &srv->defaddr.s.s_sa, len);
-    }
+  memcpy (hints, &srv->hints, sizeof (hints));
   return 0;
 }
 
@@ -429,11 +405,7 @@ mu_m_server_get_default_address (mu_m_server_t srv, struct sockaddr *sa,
 void
 mu_m_server_set_default_port (mu_m_server_t srv, int num)
 {
-  struct sockaddr_in s_in;
-  s_in.sin_family = AF_INET;
-  s_in.sin_addr.s_addr = htonl (INADDR_ANY);
-  s_in.sin_port = htons (num);
-  mu_m_server_set_default_address (srv, (struct sockaddr*) &s_in, sizeof s_in);
+  srv->hints.port = num;
 }
 
 void
@@ -473,12 +445,12 @@ static int m_srv_conn (int fd, struct sockaddr *sa, int salen,
 		       mu_ip_server_t srv);
 
 static struct m_srv_config *
-add_server (mu_m_server_t msrv, struct sockaddr *s, int slen, int type)
+add_server (mu_m_server_t msrv, struct mu_sockaddr *s, int type)
 {
   mu_ip_server_t tcpsrv;
   struct m_srv_config *pconf;
 
-  MU_ASSERT (mu_ip_server_create (&tcpsrv, s, slen, type)); /* FIXME: type */
+  MU_ASSERT (mu_ip_server_create (&tcpsrv, s, type)); /* FIXME: type */
   MU_ASSERT (mu_ip_server_set_conn (tcpsrv, m_srv_conn));
   pconf = calloc (1, sizeof (*pconf));
   if (!pconf)
@@ -513,8 +485,21 @@ mu_m_server_begin (mu_m_server_t msrv)
     alloc_children (msrv);
 
   mu_list_count (msrv->srvlist, &count);
-  if (count == 0 && msrv->defaddr.len)
-    add_server (msrv, &msrv->defaddr.s.s_sa, msrv->defaddr.len, msrv->deftype);
+  if (count == 0)
+    {
+      struct mu_sockaddr *ta;
+
+      msrv->hints.flags = MU_AH_PASSIVE;
+      rc = mu_sockaddr_from_node (&ta, NULL, NULL, &msrv->hints);
+      if (rc == 0)
+	while (ta)
+	  {
+	    struct mu_sockaddr *next = ta->next;
+	    ta->next = ta->prev = NULL;
+	    add_server (msrv, ta, msrv->deftype);
+	    ta = next;
+	  }
+    }
   
   if (!msrv->foreground)
     {
@@ -599,23 +584,13 @@ tcp_conn_free (void *conn_data, void *server_data)
 static int
 _open_conn (void *item, void *data)
 {
-  union
-  {
-    struct sockaddr sa;
-    char pad[512];
-  }
-  addr;
-  int addrlen = sizeof addr;
-  char *p;
   mu_ip_server_t tcpsrv = item;
   mu_m_server_t msrv = data;
   int rc = mu_ip_server_open (tcpsrv);
   if (rc)
     {
-      mu_ip_server_get_sockaddr (tcpsrv, &addr.sa, &addrlen);
-      p = mu_sockaddr_to_astr (&addr.sa, addrlen);
-      mu_error (_("cannot open connection on %s: %s"), p, mu_strerror (rc));
-      free (p);
+      mu_error (_("cannot open connection on %s: %s"),
+		mu_ip_server_addrstr (tcpsrv), mu_strerror (rc));
       return 0;
     }
   rc = mu_server_add_connection (msrv->server,
@@ -624,10 +599,8 @@ _open_conn (void *item, void *data)
 				 tcp_conn_handler, tcp_conn_free);
   if (rc)
     {
-      mu_ip_server_get_sockaddr (tcpsrv, &addr.sa, &addrlen);
-      p = mu_sockaddr_to_astr (&addr.sa, addrlen);
-      mu_error (_("cannot add connection %s: %s"), p, mu_strerror (rc));
-      free (p);
+      mu_error (_("cannot add connection %s: %s"),
+		mu_ip_server_addrstr (tcpsrv), mu_strerror (rc));
       mu_ip_server_shutdown (tcpsrv);
       mu_ip_server_destroy (&tcpsrv);
     }
@@ -756,199 +729,55 @@ m_srv_conn (int fd, struct sockaddr *sa, int salen,
 }
 
 
-
-unsigned short
-get_port (const char *p)
-{
-  if (p)
-    {
-      char *q;
-      unsigned long n = strtoul (p, &q, 0);
-      if (*q == 0)
-	{
-	  if (n > USHRT_MAX)
-	    {
-	      mu_error (_("invalid port number: %s"), p);
-	      return 1;
-	    }
-	  
-	  return htons (n);
-	}
-      else
-	{
-	  struct servent *sp = getservbyname (p, "tcp");
-	  if (!sp)
-	    return 0;
-	  return sp->s_port;
-	}
-    }
-  return 0;
-}
-
-static int
-get_family (const char **pstr, sa_family_t *pfamily)
-{
-  static struct family_tab
-  {
-    int len;
-    char *pfx;
-    int family;
-  } ftab[] = {
-#define S(s,f) { sizeof (#s":") - 1, #s":", f }
-    S (file, AF_UNIX),
-    S (unix, AF_UNIX),
-    S (local, AF_UNIX),
-    S (socket, AF_UNIX),
-    S (inet, AF_INET),
-    S (tcp, AF_INET),
-#undef S
-    { 0 }
-  };
-  struct family_tab *fp;
-  
-  const char *str = *pstr;
-  int len = strlen (str);
-  for (fp = ftab; fp->len; fp++)
-    {
-      if (len > fp->len && memcmp (str, fp->pfx, fp->len) == 0)
-	{
-	  str += fp->len;
-	  if (str[0] == '/' && str[1] == '/')
-	    str += 2;
-	  *pstr = str;
-	  *pfamily = fp->family;
-	  return 0;
-	}
-    }
-  return 1;
-}
-
-static int
-is_ip_addr (const char *arg)
-{
-  int     dot_count;
-  int     digit_count;
-
-  dot_count = 0;
-  digit_count = 0;
-  for (; *arg != 0 && *arg != ':'; arg++)
-    {
-      if (*arg == '.')
-	{
-	  if (++dot_count > 3)
-	    break;
-	  digit_count = 0;
-	}
-      else if (!(mu_isdigit (*arg) && ++digit_count <= 3))
-	return 0;
-    }
-  return dot_count == 3;
-}  
-
 int
-_mu_m_server_parse_url (const char *arg, union m_sockaddr *s,
-			int *psalen, struct sockaddr *defsa)
-{
-  char *p;
-  unsigned short n;
-  int len;
-      
-  if (is_ip_addr (arg))
-    s->s_sa.sa_family = AF_INET;
-  else if (get_family (&arg, &s->s_sa.sa_family))
-    {
-      mu_error (_("invalid family"));
-      return EINVAL;
-    }
-      
-  switch (s->s_sa.sa_family)
-    {
-    case AF_INET:
-      *psalen = sizeof (s->s_in);
-      if ((n = get_port (arg)))
-	{
-	  s->s_in.sin_addr.s_addr = htonl (INADDR_ANY);
-	  s->s_in.sin_port = htons (n);	  
-	}
-      else
-	{
-	  p = strchr (arg, ':');
-	  if (p)
-	    *p++ = 0;
-	  if (inet_aton (arg, &s->s_in.sin_addr) == 0)
-	    {
-	      struct hostent *hp = gethostbyname (arg);
-	      if (hp)
-		s->s_in.sin_addr.s_addr = *(unsigned long *)hp->h_addr;
-	      else
-		{
-		  mu_error (_("invalid IP address: %s"), arg);
-		  return EINVAL;
-		}
-	    }
-	  if (p)
-	    {
-	      n = get_port (p);
-	      if (!n)
-		{
-		  mu_error (_("invalid port number: %s"), p);
-		  return EINVAL;
-		}
-	      s->s_in.sin_port = n;
-	    }
-	  else if (defsa && defsa->sa_family == AF_INET)
-	    s->s_in.sin_port = ((struct sockaddr_in*)defsa)->sin_port;
-	  else
-	    {
-	      mu_error (_("missing port number"));
-	      return EINVAL;
-	    }
-	}
-      break;
-
-    case AF_UNIX:
-      *psalen = sizeof (s->s_un);
-      len = strlen (arg);
-      if (len > sizeof s->s_un.sun_path - 1)
-	{
-	  mu_error (_("%s: file name too long"), arg);
-	  return EINVAL;
-	}
-      strcpy (s->s_un.sun_path, arg);
-      break;
-    }
-  return 0;
-}
-
-int
-mu_m_server_parse_url (mu_m_server_t msrv, char *arg,
-		       struct sockaddr *sa, int *psalen)
+mu_m_server_parse_url (mu_m_server_t msrv, const char *arg,
+		       struct mu_sockaddr **psa)
 {
   int rc;
-  union m_sockaddr s;
-  int salen;
+  mu_url_t url, url_hint;
 
-  rc = _mu_m_server_parse_url (arg, &s, &salen, &msrv->defaddr.s.s_sa);
-  if (rc)
-    return rc;
-  if (sa)
+  if (arg[0] == '/')
+    url_hint = NULL;
+  else
     {
-      if (*psalen < salen)
-	return MU_ERR_BUFSPACE;
-      memcpy (sa, &s.s_sa, salen);
+      rc = mu_url_create (&url_hint, "inet://");
+      if (rc)
+	return rc;
     }
-  *psalen = salen;
-  return 0;
+  rc = mu_url_create_hint (&url, arg, MU_URL_PARSE_DEFAULT, url_hint);
+  mu_url_destroy (&url_hint);
+  if (rc)
+    {
+      mu_error (_("cannot parse URL `%s': %s"), arg, mu_strerror (rc));
+      return rc;
+    }
+
+  msrv->hints.flags = MU_AH_PASSIVE;
+  rc = mu_sockaddr_from_url (psa, url, &msrv->hints);
+  if (rc)
+    mu_error (_("cannot create sockaddr for URL `%s': %s"), arg,
+	      mu_strerror (rc));
+  mu_url_destroy (&url);
+  return rc;
 }
 
 static int
 server_block_begin (const char *arg, mu_m_server_t msrv, void **pdata)
 {
-  union m_sockaddr s;
-  int salen;
-  if (_mu_m_server_parse_url (arg, &s, &salen, &msrv->defaddr.s.s_sa))
+  struct mu_sockaddr *s;
+  if (mu_m_server_parse_url (msrv, arg, &s))
     return 1;
-  *pdata = add_server (msrv, &s.s_sa, salen, msrv->deftype);
+  if (s->next)
+    {
+      /* FIXME: (1) Find a way to handle all addresses.
+	        (2) Print which address is being used.
+      */
+      mu_diag_output (MU_DIAG_WARNING,
+		      _("%s resolves to several addresses, "
+			"only the first is used"), arg);
+      mu_sockaddr_free (s->next);
+    }
+  *pdata = add_server (msrv, s, msrv->deftype);
   return 0;
 }
 
@@ -1002,21 +831,46 @@ _cb_daemon_mode (void *data, mu_config_value_t *val)
   return 0;
 }
 
+unsigned short
+get_port (const char *p)
+{
+  if (p)
+    {
+      char *q;
+      unsigned long n = strtoul (p, &q, 0);
+      if (*q == 0)
+	{
+	  if (n > USHRT_MAX)
+	    {
+	      mu_error (_("invalid port number: %s"), p);
+	      return 1;
+	    }
+	  
+	  return htons (n);
+	}
+      else
+	{
+	  struct servent *sp = getservbyname (p, "tcp");
+	  if (!sp)
+	    return 0;
+	  return sp->s_port;
+	}
+    }
+  return 0;
+}
+
 static int
 _cb_port (void *data, mu_config_value_t *val)
 {
-  struct m_default_address *ap = data;
+  struct mu_sockaddr_hints *hp = data;
   unsigned short num;
-
+  
   if (mu_cfg_assert_value_type (val, MU_CFG_STRING))
     return 1;
   num = get_port (val->v.string);
   if (!num)
     return 1;
-  ap->s.s_in.sin_family = AF_INET;
-  ap->s.s_in.sin_addr.s_addr = htonl (INADDR_ANY);
-  ap->s.s_in.sin_port = num;
-  ap->len = sizeof ap->s.s_in;
+  hp->port = num;
   return 0;
 }
 
@@ -1036,7 +890,7 @@ static struct mu_cfg_param dot_server_cfg_param[] = {
     N_("Store PID of the master process in this file."),
     N_("file") },
   { "port", mu_cfg_callback,
-    NULL, mu_offsetof (struct _mu_m_server,defaddr), _cb_port,
+    NULL, mu_offsetof (struct _mu_m_server, hints), _cb_port,
     N_("Default port number.") },
   { "timeout", mu_cfg_time,
     NULL, mu_offsetof (struct _mu_m_server,timeout), NULL,

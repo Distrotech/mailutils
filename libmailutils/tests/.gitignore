@@ -1,5 +1,6 @@
 atconfig
 atlocal
+cidr
 package.m4
 testsuite
 testsuite.dir

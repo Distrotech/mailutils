@@ -39,7 +39,7 @@
 #include <mailutils/errno.h>
 #include <mailutils/stream.h>
 #include <mailutils/util.h>
-
+#include <mailutils/sockaddr.h>
 #include <mailutils/sys/stream.h>
 
 #define TCP_STATE_INIT 		1
@@ -52,17 +52,10 @@ struct _tcp_instance
 {
   struct _mu_stream stream;
   int 		fd;
-  char 		*host;
-  unsigned short port;
   int		state;
-  unsigned long	address;
-  unsigned long source_addr;
+  struct mu_sockaddr *remote_addr;
+  struct mu_sockaddr *source_addr;
 };
-
-/* On solaris inet_addr() return -1.  */
-#ifndef INADDR_NONE
-# define INADDR_NONE (unsigned long)-1
-#endif
 
 static int
 _tcp_close (mu_stream_t stream)
@@ -83,28 +76,12 @@ _tcp_close (mu_stream_t stream)
 }
 
 static int
-resolve_hostname (const char *host, unsigned long *ip)
-{
-  unsigned long address = inet_addr (host);
-  if (address == INADDR_NONE)
-    {
-      struct hostent *phe = gethostbyname (host);
-      if (!phe)
-	return MU_ERR_GETHOSTBYNAME;
-      address = *(((unsigned long **) phe->h_addr_list)[0]);
-    }
-  *ip = address;
-  return 0;
-}
-
-static int
 _tcp_open (mu_stream_t stream)
 {
   struct _tcp_instance *tcp = (struct _tcp_instance *)stream;
   int flgs, ret;
   socklen_t namelen;
   struct sockaddr_in peer_addr;
-  struct sockaddr_in soc_addr;
   int flags;
 
   mu_stream_get_flags (stream, &flags);
@@ -114,7 +91,8 @@ _tcp_open (mu_stream_t stream)
     case TCP_STATE_INIT:
       if (tcp->fd == -1)
 	{
-	  if ((tcp->fd = socket (PF_INET, SOCK_STREAM, 0)) == -1)
+	  tcp->fd = socket (tcp->remote_addr->addr->sa_family, SOCK_STREAM, 0);
+	  if (tcp->fd == -1)
 	    return errno;
 	}
       if (flags & MU_STREAM_NONBLOCK)
@@ -124,13 +102,10 @@ _tcp_open (mu_stream_t stream)
 	  fcntl (tcp->fd, F_SETFL, flgs);
 	  mu_stream_set_flags (stream, MU_STREAM_NONBLOCK);
 	}
-      if (tcp->source_addr != INADDR_ANY)
+      if (tcp->source_addr)
 	{
-	  struct sockaddr_in s;
-	  s.sin_family = AF_INET;
-	  s.sin_addr.s_addr = tcp->source_addr;
-	  s.sin_port = 0;
-	  if (bind (tcp->fd, (struct sockaddr*) &s, sizeof(s)) < 0)
+	  if (bind (tcp->fd, tcp->source_addr->addr,
+		    tcp->source_addr->addrlen) < 0)
 	    {
 	      int e = errno;
 	      close (tcp->fd);
@@ -142,27 +117,11 @@ _tcp_open (mu_stream_t stream)
       tcp->state = TCP_STATE_RESOLVING;
       
     case TCP_STATE_RESOLVING:
-      if (!(tcp->host != NULL && tcp->port > 0))
-	{
-	  _tcp_close (stream);
-	  return EINVAL;
-	}
-      
-      if ((ret = resolve_hostname (tcp->host, &tcp->address)))
-	{
-	  _tcp_close (stream);
-	  return ret;
-	}
       tcp->state = TCP_STATE_RESOLVE;
       
     case TCP_STATE_RESOLVE:
-      memset (&soc_addr, 0, sizeof (soc_addr));
-      soc_addr.sin_family = AF_INET;
-      soc_addr.sin_port = htons (tcp->port);
-      soc_addr.sin_addr.s_addr = tcp->address;
-
-      if ((connect (tcp->fd,
-		    (struct sockaddr *) &soc_addr, sizeof (soc_addr))) == -1)
+      if (connect (tcp->fd, tcp->remote_addr->addr,
+		   tcp->remote_addr->addrlen) == -1)
 	{
 	  ret = errno;
 	  if (ret == EINPROGRESS || ret == EAGAIN)
@@ -254,10 +213,8 @@ _tcp_done (mu_stream_t stream)
 {
   struct _tcp_instance *tcp = (struct _tcp_instance *)stream;
 
-  if (tcp->host)
-    free (tcp->host);
-  if (tcp->fd != -1)
-    close (tcp->fd);
+  mu_sockaddr_free (tcp->remote_addr);
+  mu_sockaddr_free (tcp->source_addr);
 }
 
 int
@@ -315,33 +272,21 @@ _create_tcp_stream (int flags)
 }
 
 int
-mu_tcp_stream_create_with_source_ip (mu_stream_t *pstream,
-				     const char *host, unsigned port,
-				     unsigned long source_ip,
-				     int flags)
+mu_tcp_stream_create_from_sa (mu_stream_t *pstream,
+			      struct mu_sockaddr *remote_addr,
+			      struct mu_sockaddr *source_addr, int flags)
 {
   int rc;
   mu_stream_t stream;
   struct _tcp_instance *tcp;
 
-  if (host == NULL)
-    return MU_ERR_TCP_NO_HOST;
-
-  if (port > USHRT_MAX)
-    return MU_ERR_TCP_NO_PORT;
-
   tcp = _create_tcp_stream (flags | MU_STREAM_RDWR);
   if (!tcp)
     return ENOMEM;
-  tcp->host = strdup (host);
-  if (!tcp->host)
-    {
-      free (tcp);
-      return ENOMEM;
-    }
-  tcp->port = port;
-  tcp->state = TCP_STATE_INIT;
-  tcp->source_addr = source_ip;
+
+  tcp->remote_addr = remote_addr;
+  tcp->source_addr = source_addr;
+  
   stream = (mu_stream_t) tcp;
   rc = mu_stream_open (stream);
   if (rc == 0 || rc == EAGAIN || rc == EINPROGRESS)
@@ -351,24 +296,93 @@ mu_tcp_stream_create_with_source_ip (mu_stream_t *pstream,
   return rc;
 }
 
+
+int
+mu_tcp_stream_create_with_source_ip (mu_stream_t *pstream,
+				     const char *host, unsigned port,
+				     unsigned long source_ip,
+				     int flags)
+{
+  int rc;
+  struct mu_sockaddr *remote_addr, *source_addr = NULL;
+  struct mu_sockaddr_hints hints;
+  
+  memset (&hints, 0, sizeof hints);
+  hints.family = AF_INET;
+  hints.socktype = SOCK_STREAM;
+  hints.protocol = IPPROTO_TCP;
+  hints.port = port;
+  rc = mu_sockaddr_from_node (&remote_addr, host, NULL, &hints);
+  if (rc)
+    return rc;
+
+  if (source_ip)
+    {
+      struct sockaddr_in s;
+      s.sin_family = AF_INET;
+      s.sin_addr.s_addr = source_ip;
+      s.sin_port = 0;
+      rc = mu_sockaddr_create (&source_addr, (struct sockaddr*)&s,
+			       sizeof (s));
+      if (rc)
+	{
+	  mu_sockaddr_free (remote_addr);
+	  return 0;
+	}
+    }
+
+  rc = mu_tcp_stream_create_from_sa (pstream, remote_addr, source_addr, flags);
+  if (rc)
+    {
+      mu_sockaddr_free (remote_addr);
+      mu_sockaddr_free (source_addr);
+    }
+  return rc;
+}
+
 int
 mu_tcp_stream_create_with_source_host (mu_stream_t *stream,
 				       const char *host, unsigned port,
 				       const char *source_host,
 				       int flags)
 {
-  unsigned long source_addr;
-  int ret = resolve_hostname (source_host, &source_addr);
-  if (ret == 0)
-    ret = mu_tcp_stream_create_with_source_ip (stream, host, port,
-					       source_addr, flags);
-  return ret;
+  int rc;
+  struct mu_sockaddr *remote_addr, *source_addr = NULL;
+  struct mu_sockaddr_hints hints;
+  
+  memset (&hints, 0, sizeof hints);
+  hints.family = AF_INET;
+  hints.socktype = SOCK_STREAM;
+  hints.port = port;
+  rc = mu_sockaddr_from_node (&remote_addr, host, NULL, &hints);
+  if (rc)
+    return rc;
+
+  if (source_host)
+    {
+      hints.flags = MU_AH_PASSIVE;
+      hints.port = 0;
+      rc = mu_sockaddr_from_node (&source_addr, source_host, NULL, &hints);
+      if (rc)
+	{
+	  mu_sockaddr_free (remote_addr);
+	  return 0;
+	}
+    }
+
+  rc = mu_tcp_stream_create_from_sa (stream, remote_addr, source_addr, flags);
+  if (rc)
+    {
+      mu_sockaddr_free (remote_addr);
+      mu_sockaddr_free (source_addr);
+    }
+  return rc;
 }
        
 int
 mu_tcp_stream_create (mu_stream_t *stream, const char *host, unsigned port,
 		      int flags)
 {
-  return mu_tcp_stream_create_with_source_ip (stream, host, port,
-					      INADDR_ANY, flags);
+  return mu_tcp_stream_create_with_source_host (stream, host, port,
+						NULL, flags);
 }

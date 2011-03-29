@@ -39,13 +39,9 @@ echo_conn (int fd, struct sockaddr *s, int len,
 	   void *server_data, void *call_data,
 	   mu_ip_server_t srv)
 {
-  struct sockaddr_in srv_addr, *s_in = (struct sockaddr_in *)s;
-  int addrlen = sizeof srv_addr;
   pid_t pid;
   char buf[512];
   FILE *in, *out;
-  
-  mu_ip_server_get_sockaddr (srv, (struct sockaddr *)&srv_addr, &addrlen);
 
   pid = fork ();
   if (pid == -1)
@@ -56,10 +52,20 @@ echo_conn (int fd, struct sockaddr *s, int len,
 
   if (pid)
     {
-      mu_diag_output (MU_DIAG_INFO, "%lu: opened connection %s:%d => %s:%d",
+      struct mu_sockaddr *clt_addr;
+      int rc = mu_sockaddr_create (&clt_addr, s, len);
+      if (rc)
+	{
+	  mu_error ("mu_sockaddr_create failed: %s", mu_strerror (rc));
+	  return 0;
+	}
+  
+      mu_diag_output (MU_DIAG_INFO, "%lu: opened connection %s => %s",
 		      (unsigned long) pid,
-		      inet_ntoa (srv_addr.sin_addr), ntohs (srv_addr.sin_port),
-		      inet_ntoa (s_in->sin_addr), ntohs (s_in->sin_port));
+		      mu_ip_server_addrstr (srv),
+		      mu_sockaddr_str (clt_addr));
+
+      mu_sockaddr_free (clt_addr);
       return 0;
     }
 
@@ -108,34 +114,45 @@ tcp_conn_free (void *conn_data, void *server_data)
 void
 create_server (char *arg)
 {
-  char *p, *q;
-  struct sockaddr_in s;
+  struct mu_sockaddr *s;
   mu_ip_server_t tcpsrv;
-  unsigned n;
-  
-  p = strchr (arg, ':');
-  if (!*p)
-    {
-      mu_error ("invalid specification: %s\n", arg);
-      exit (1);
-    }
-  *p++ = 0;
-  s.sin_family = AF_INET;
-  if (inet_aton (arg, &s.sin_addr) == 0)
-    {
-      mu_error ("invalid IP address: %s\n", arg);
-      exit (1);
-    }
-  n = strtoul (p, &q, 0);
-  if (*q)
-    {
-      mu_error ("invalid port number: %s\n", p);
-      exit (1);
-    }      
-  s.sin_port = htons (n);
+  int rc;
+  mu_url_t url, url_hint;
+  struct mu_sockaddr_hints hints;
 
-  MU_ASSERT (mu_ip_server_create (&tcpsrv, (struct sockaddr*) &s, sizeof s,
-				  MU_IP_TCP));
+  if (arg[0] == '/')
+    url_hint = NULL;
+  else
+    {
+      rc = mu_url_create (&url_hint, "inet://");
+      if (rc)
+	{
+	  mu_error ("cannot create URL hints: %s", mu_strerror (rc));
+	  exit (1);
+	}
+    }
+  rc = mu_url_create_hint (&url, arg, MU_URL_PARSE_DEFAULT, url_hint);
+  mu_url_destroy (&url_hint);
+  if (rc)
+    {
+      mu_error ("cannot parse URL `%s': %s", arg, mu_strerror (rc));
+      exit (1);
+    }
+
+  memset (&hints, sizeof(hints), 0);
+  hints.flags = MU_AH_PASSIVE;
+  hints.socktype = SOCK_STREAM;
+  hints.protocol = IPPROTO_TCP;
+  rc = mu_sockaddr_from_url (&s, url, &hints); 
+  mu_url_destroy (&url);
+
+  if (rc)
+    {
+      mu_error ("cannot create sockaddr: %s", mu_strerror (rc));
+      exit (1);
+    }
+
+  MU_ASSERT (mu_ip_server_create (&tcpsrv, s, MU_IP_TCP));
   MU_ASSERT (mu_ip_server_open (tcpsrv));
   MU_ASSERT (mu_ip_server_set_conn (tcpsrv, echo_conn));
   MU_ASSERT (mu_server_add_connection (server,

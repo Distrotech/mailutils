@@ -47,13 +47,11 @@ int mu_acl_destroy (mu_acl_t *acl);
 int mu_acl_count (mu_acl_t acl, size_t *pcount);
 int mu_acl_get_iterator (mu_acl_t acl, mu_iterator_t *pitr);
 int mu_acl_append (mu_acl_t acl, mu_acl_action_t act, void *data,
-		   struct sockaddr *sa, int salen,
-		   unsigned long netmask);
+		   struct mu_cidr *);
 int mu_acl_prepend (mu_acl_t acl, mu_acl_action_t act, void *data,
-		    struct sockaddr *sa, int salen, unsigned long netmask);
+		    struct mu_cidr *);
 int mu_acl_insert (mu_acl_t acl, size_t pos, int before, 
-		   mu_acl_action_t act, void *data,
-		   struct sockaddr *sa, int salen, unsigned long netmask);
+		   mu_acl_action_t act, void *data, struct mu_cidr *);
 
 int mu_acl_check_ipv4 (mu_acl_t acl, unsigned int addr, mu_acl_result_t *pres);
 int mu_acl_check_inaddr (mu_acl_t acl, const struct in_addr *inp,

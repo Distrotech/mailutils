@@ -22,6 +22,7 @@
 #include "mailutils/libcfg.h"
 #include "mailutils/acl.h"
 #include "mailutils/argcv.h"
+#include "mailutils/cidr.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -53,53 +54,13 @@ getword (mu_config_value_t *val, int *pn)
   return v->v.string;
 }
 
-struct netdef
-{
-  struct sockaddr *sa;
-  int len;
-  unsigned long netmask;
-};
-
-#ifndef INADDR_ANY
-# define INADDR_ANY 0
-#endif
-
-int
-parse_address (const char *str, struct netdef *nd)
-{
-  struct sockaddr_in in;
-  
-  in.sin_family = AF_INET;
-  if (strcmp (str, "any") == 0)
-    {
-      in.sin_addr.s_addr = INADDR_ANY;
-      nd->netmask = 0;
-    }
-  else if (inet_aton (str, &in.sin_addr) == 0)
-    {
-      mu_error (_("invalid IPv4: %s"), str);
-      return 1;
-    }
-  in.sin_port = 0;
-  nd->len = sizeof (in);
-  nd->sa = malloc (nd->len);
-  if (!nd->sa)
-    {
-      mu_error ("%s", mu_strerror (errno));
-      return 1;
-    }
-  memcpy (nd->sa, &in, sizeof (in));
-  return 0;
-}
-
 static int
-parsearg (mu_config_value_t *val, struct netdef *pnd, char **prest) 
+parsearg (mu_config_value_t *val, struct mu_cidr *cidr, char **prest) 
 {
   const char *w;
-  char *p;  
-  unsigned long netmask;
   int n = 0;
-
+  int rc;
+  
   if (mu_cfg_assert_value_type (val, MU_CFG_ARRAY))
     return 1;
   
@@ -111,51 +72,19 @@ parsearg (mu_config_value_t *val, struct netdef *pnd, char **prest)
     if (!w)
       return 1;
   }
-  
-  p = strchr (w, '/');
-  if (p)
-    {
-      char *q;
-      unsigned netlen;
 
-      /* FIXME: This modifies a const char! */
-      *p++ = 0;
-      netlen = strtoul (p, &q, 10);
-      if (*q == 0)
+  if (strcmp (w, "any") == 0)
+    cidr->len = 0;
+  else
+    {
+      rc = mu_cidr_from_string (cidr, w);
+      if (rc)
 	{
-	  if (netlen == 0)
-	    netmask = 0;
-	  else
-	    {
-	      netmask = 0xfffffffful >> (32 - netlen);
-	      netmask <<= (32 - netlen);
-	      netmask = htonl (netmask);
-	    }
-	}
-      else if (*q == '.')
-	{
-	  struct in_addr addr;
-	      
-	  if (inet_aton (p, &addr) == 0)
-	    {
-	      mu_error (_("invalid netmask"));
-	      return 1;
-	    }
-	  netmask = addr.s_addr;
-	}
-      else
-	{
-	  mu_error (_("invalid netmask"));
+	  mu_error (_("invalid source CIDR: %s"), mu_strerror (rc));
 	  return 1;
 	}
     }
-  else
-    netmask = 0xfffffffful;
-
-  pnd->netmask = netmask;
-  if (parse_address (w, pnd))
-    return 1;
-
+  
   if (prest)
     {
       if (n == val->v.arg.c)
@@ -204,15 +133,13 @@ cb_allow (void *data, mu_config_value_t *val)
 {
   int rc;
   mu_acl_t acl = *(mu_acl_t*)data;
-  struct netdef ndef;
+  struct mu_cidr cidr;
   
-  if (parsearg (val, &ndef, NULL))
+  if (parsearg (val, &cidr, NULL))
     return 1;
-  rc = mu_acl_append (acl, mu_acl_accept, NULL, ndef.sa, ndef.len,
-		      ndef.netmask);
+  rc = mu_acl_append (acl, mu_acl_accept, NULL, &cidr);
   if (rc)
     mu_error (_("cannot append acl entry: %s"), mu_strerror (rc));
-  free (ndef.sa);
   return rc;
 }
 
@@ -221,15 +148,13 @@ cb_deny (void *data, mu_config_value_t *val)
 {
   int rc;
   mu_acl_t acl = *(mu_acl_t*)data;
-  struct netdef ndef;
+  struct mu_cidr cidr;
   
-  if (parsearg (val, &ndef, NULL))
+  if (parsearg (val, &cidr, NULL))
     return 1;
-  rc = mu_acl_append (acl, mu_acl_deny, NULL, ndef.sa, ndef.len,
-		      ndef.netmask);
+  rc = mu_acl_append (acl, mu_acl_deny, NULL, &cidr);
   if (rc)
     mu_error (_("cannot append acl entry: %s"), mu_strerror (rc));
-  free (ndef.sa);
   return rc;
 }
 
@@ -238,16 +163,14 @@ cb_log (void *data, mu_config_value_t *val)
 {
   int rc;
   mu_acl_t acl = *(mu_acl_t*)data;
-  struct netdef ndef;
+  struct mu_cidr cidr;
   char *rest;
   
-  if (parsearg (val, &ndef, &rest))
+  if (parsearg (val, &cidr, &rest))
     return 1;
-  rc = mu_acl_append (acl, mu_acl_log, rest, ndef.sa, ndef.len,
-		      ndef.netmask);
+  rc = mu_acl_append (acl, mu_acl_log, rest, &cidr);
   if (rc)
     mu_error (_("cannot append acl entry: %s"), mu_strerror (rc));
-  free (ndef.sa);
   return rc;
 }
 
@@ -256,16 +179,14 @@ cb_exec (void *data, mu_config_value_t *val)
 {
   int rc;
   mu_acl_t acl = *(mu_acl_t*)data;
-  struct netdef ndef;
+  struct mu_cidr cidr;
   char *rest;
   
-  if (parsearg (val, &ndef, &rest))
+  if (parsearg (val, &cidr, &rest))
     return 1;
-  rc = mu_acl_append (acl, mu_acl_exec, rest, ndef.sa, ndef.len,
-		      ndef.netmask);
+  rc = mu_acl_append (acl, mu_acl_exec, rest, &cidr);
   if (rc)
     mu_error (_("cannot append acl entry: %s"), mu_strerror (rc));
-  free (ndef.sa);
   return rc;
 }
 
@@ -274,16 +195,14 @@ cb_ifexec (void *data, mu_config_value_t *val)
 {
   int rc;
   mu_acl_t acl = *(mu_acl_t*)data;
-  struct netdef ndef;
+  struct mu_cidr cidr;
   char *rest;
   
-  if (parsearg (val, &ndef, &rest))
+  if (parsearg (val, &cidr, &rest))
     return 1;
-  rc = mu_acl_append (acl, mu_acl_ifexec, rest, ndef.sa, ndef.len,
-		      ndef.netmask);
+  rc = mu_acl_append (acl, mu_acl_ifexec, rest, &cidr);
   if (rc)
     mu_error (_("cannot append acl entry: %s"), mu_strerror (rc));
-  free (ndef.sa);
   return rc;
 }
 

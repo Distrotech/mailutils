@@ -34,6 +34,7 @@ extern "C" {
 #define MU_URL_PATH   0x0040 /* Has path */
 #define MU_URL_PARAM  0x0080 /* Has parameters */
 #define MU_URL_QUERY  0x0100 /* Has query */
+#define MU_URL_IPV6   0x0200 /* Host part is bracketed (IPv6) */
   
 #define MU_URL_CRED (MU_URL_USER | MU_URL_SECRET | MU_URL_AUTH)  
   /* Has some of authentication credentials */
@@ -53,12 +54,14 @@ extern "C" {
 #define MU_URL_PARSE_PORTSRV      0x0004  /* Use getservbyname to determine
 					     port number */
 #define MU_URL_PARSE_PORTWC       0x0008  /* Allow wildcard (*) as a port
-					    number (for tickets) */
+					     number (for tickets) */
 #define MU_URL_PARSE_PIPE         0x0010  /* Translate "| ..." to
-					    "prog://..." */
+					     "prog://..." */
 #define MU_URL_PARSE_SLASH        0x0020  /* Translate "/..." to
 					     "file:///..." */
-
+#define MU_URL_PARSE_DSLASH_OPTIONAL 0x0040 /* Double-slash after scheme:
+					       part is optional */
+  
 #define MU_URL_PARSE_DEFAULT \
   (MU_URL_PARSE_HEXCODE|MU_URL_PARSE_HIDEPASS|MU_URL_PARSE_PORTSRV|\
    MU_URL_PARSE_PIPE|MU_URL_PARSE_SLASH)

@@ -11,6 +11,7 @@ iconv
 listop
 lsf
 mailcap
+mblconv
 mimetest
 msg-send
 mta
@@ -20,5 +21,6 @@ muemail
 murun
 musocio
 nntpclient
+sa
 sfrom
 url-parse

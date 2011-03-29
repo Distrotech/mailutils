@@ -28,34 +28,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-struct sockaddr *target_sa;
-int target_salen;
+struct mu_sockaddr *target_sa;
 mu_acl_t acl;
-
-struct sockaddr *
-parse_address (int *psalen, char *str)
-{
-  struct sockaddr_in in;
-  struct sockaddr *sa;
-  
-  in.sin_family = AF_INET;
-  if (inet_aton (str, &in.sin_addr) == 0)
-    {
-      mu_error ("Invalid IPv4: %s", str);
-      exit (1);
-    }
-  in.sin_port = 0;
-  *psalen = sizeof (in);
-  sa = malloc (*psalen);
-  if (!sa)
-    {
-      mu_error ("%s", mu_strerror (errno));
-      exit (1);
-    }
-  
-  memcpy (sa, &in, sizeof (in));
-  return sa;
-}
 
 void
 read_rules (FILE *fp)
@@ -76,12 +50,9 @@ read_rules (FILE *fp)
   ws.ws_comment = "#";
   while (fgets (buf, sizeof buf, fp))
     {
-      unsigned long netmask;
-      int salen;
-      struct sockaddr *sa;
+      struct mu_cidr cidr;
       mu_acl_action_t action;
       void *data = NULL;
-      char *p;
       
       int len = strlen (buf);
       if (len == 0)
@@ -109,47 +80,19 @@ read_rules (FILE *fp)
 	  continue;
 	}
 
-      p = strchr (ws.ws_wordv[1], '/');
-      if (p)
+      if (strcmp (ws.ws_wordv[1], "any") == 0)
+	memset (&cidr, 0, sizeof (cidr));
+      else
 	{
-	  char *q;
-	  unsigned netlen;
-	  
-	  *p++ = 0;
-	  netlen = strtoul (p, &q, 10);
-	  if (*q == 0)
+	  rc = mu_cidr_from_string (&cidr, ws.ws_wordv[1]);
+	  if (rc)
 	    {
-	      if (netlen == 0)
-		netmask = 0;
-	      else
-		{
-		  netmask = 0xfffffffful >> (32 - netlen);
-		  netmask <<= (32 - netlen);
-		  netmask = htonl (netmask);
-		}
-	    }
-	  else if (*q == '.')
-	    {
-	      struct in_addr addr;
-	      
-	      if (inet_aton (p, &addr) == 0)
-		{
-		  mu_error ("%d: invalid netmask", line);
-		  continue;
-		}
-	      netmask = addr.s_addr;
-	    }
-	  else
-	    {
-	      mu_error ("%d: invalid netmask", line);
+	      mu_error ("%d: invalid source CIDR: %s",
+			line, mu_strerror (rc));
 	      continue;
 	    }
 	}
-      else
-	netmask = 0xfffffffful;
-      
-      sa = parse_address (&salen, ws.ws_wordv[1]);
-      
+
       /* accept addr
 	 deny addr
 	 log addr [rest ...]
@@ -174,7 +117,7 @@ read_rules (FILE *fp)
 	  data = strdup (ws.ws_wordv[2]);
 	}
 
-      rc = mu_acl_append (acl, action, data, sa, salen, netmask);
+      rc = mu_acl_append (acl, action, data, &cidr);
       if (rc)
 	mu_error ("%d: cannot append acl entry: %s", line,
 		  mu_strerror (rc));
@@ -203,7 +146,12 @@ main (int argc, char **argv)
 	  break;
 
 	case 'a':
-	  target_sa = parse_address (&target_salen, optarg);
+	  rc = mu_sockaddr_from_node (&target_sa, optarg, NULL, NULL);
+	  if (rc)
+	    {
+	      mu_error ("mu_sockaddr_from_node: %s", mu_strerror (rc));
+	      exit (1);
+	    }
 	  break;
 
 	case 'f':
@@ -225,7 +173,8 @@ main (int argc, char **argv)
   argc -= optind;
 
   read_rules (file ? file : stdin);
-  rc = mu_acl_check_sockaddr (acl, target_sa, target_salen, &result);
+  rc = mu_acl_check_sockaddr (acl, target_sa->addr, target_sa->addrlen,
+			      &result);
   if (rc)
     {
       mu_error ("mu_acl_check_sockaddr failed: %s", mu_strerror (rc));

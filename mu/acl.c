@@ -41,35 +41,9 @@ static struct argp_option acl_options[] = {
 };
 
 static char *input_file_name;
-static struct sockaddr *target_sa;
-static socklen_t target_salen;
+static struct mu_sockaddr *target_sa;
 static mu_acl_t acl;
 static const char *path = "acl";
-
-static struct sockaddr *
-parse_address (socklen_t *psalen, const char *str)
-{
-  struct sockaddr_in in;
-  struct sockaddr *sa;
-  
-  in.sin_family = AF_INET;
-  if (inet_aton (str, &in.sin_addr) == 0)
-    {
-      mu_error ("Invalid IPv4: %s", str);
-      exit (1);
-    }
-  in.sin_port = 0;
-  *psalen = sizeof (in);
-  sa = malloc (*psalen);
-  if (!sa)
-    {
-      mu_error ("%s", mu_strerror (errno));
-      exit (1);
-    }
-  
-  memcpy (sa, &in, sizeof (in));
-  return sa;
-}
 
 static error_t
 acl_parse_opt (int key, char *arg, struct argp_state *state)
@@ -160,9 +134,17 @@ mutool_acl (int argc, char **argv)
     {
       const char *ap = *argv++;
 
-      target_sa = parse_address (&target_salen, ap);
+      rc = mu_sockaddr_from_node (&target_sa, ap, NULL, NULL);
+      if (rc)
+	{
+	  mu_error ("mu_sockaddr_from_node: %s", mu_strerror (rc));
+	  exit (1);
+	}
+
       mu_printf ("Testing %s:\n", ap);
-      rc = mu_acl_check_sockaddr (acl, target_sa, target_salen, &result);
+      rc = mu_acl_check_sockaddr (acl, target_sa->addr, target_sa->addrlen,
+				  &result);
+      mu_sockaddr_free_list (target_sa);
       if (rc)
 	{
 	  mu_error ("mu_acl_check_sockaddr failed: %s", mu_strerror (rc));

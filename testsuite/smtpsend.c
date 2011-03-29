@@ -20,6 +20,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <netdb.h>
 #include <mailutils/cctype.h>
 #include <mailutils/mailutils.h>
 #include <mailutils/smtp.h>
@@ -85,7 +86,7 @@ main (int argc, char **argv)
   int i;
   char *host = NULL;
   char *infile = NULL;
-  int port = 25;
+  char *port = NULL;
   int tls = 0;
   int raw = 1;
   int flags = 0;
@@ -96,6 +97,8 @@ main (int argc, char **argv)
   mu_list_t rcpt_list = NULL;
   mu_list_t meth_list = NULL;
   mu_list_t skiphdr_list = NULL;
+  struct mu_sockaddr *sa;
+  struct mu_sockaddr_hints hints;
   
   mu_set_program_name (argv[0]);
   mu_stdstream_setup ();
@@ -111,14 +114,7 @@ main (int argc, char **argv)
   for (i = 1; i < argc; i++)
     {
       if (strncmp (argv[i], "port=", 5) == 0)
-	{
-	  port = atoi (argv[i] + 5);
-	  if (port == 0)
-	    {
-	      mu_error ("invalid port");
-	      return 1;
-	    }
-	}
+	port = argv[i] + 5;
       else if (strncmp (argv[i], "trace=", 6) == 0)
 	{
 	  char *arg = argv[i] + 6;
@@ -194,7 +190,16 @@ main (int argc, char **argv)
     MU_ASSERT (mu_stdio_stream_create (&instr, MU_STDIN_FD, flags));
   
   host = argv[1];
-  MU_ASSERT (mu_tcp_stream_create (&stream, host, port, MU_STREAM_RDWR));
+
+  memset (&hints, 0, sizeof (hints)); 
+  hints.flags = MU_AH_DETECT_FAMILY;
+  hints.port = 25;
+  hints.protocol = IPPROTO_TCP;
+  hints.socktype = SOCK_STREAM;
+  MU_ASSERT (mu_sockaddr_from_node (&sa, host, port, &hints));
+
+  MU_ASSERT (mu_tcp_stream_create_from_sa (&stream, sa, NULL, MU_STREAM_RDWR));
+  
   mu_smtp_set_carrier (smtp, stream);
   mu_stream_unref (stream);
   

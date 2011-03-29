@@ -34,13 +34,13 @@
 #include <mailutils/diag.h>
 #include <mailutils/errno.h>
 #include <mailutils/nls.h>
+#include <mailutils/sockaddr.h>
 
 
 struct _mu_ip_server
 {
   char *ident;
-  struct sockaddr *addr;
-  int addrlen;
+  struct mu_sockaddr *addr;
   int fd;
   int type;
   mu_acl_t acl;
@@ -66,8 +66,7 @@ struct _mu_ip_server
 #define IDENTSTR(s) ((s)->ident ? (s)->ident : "default")
 
 int
-mu_ip_server_create (mu_ip_server_t *psrv, struct sockaddr *addr,
-		     int addrlen, int type)
+mu_ip_server_create (mu_ip_server_t *psrv, struct mu_sockaddr *addr, int type)
 {
   struct _mu_ip_server *srv;
 
@@ -84,14 +83,7 @@ mu_ip_server_create (mu_ip_server_t *psrv, struct sockaddr *addr,
   srv = calloc (1, sizeof *srv);
   if (!srv)
     return ENOMEM;
-  srv->addr = calloc (1, addrlen);
-  if (!srv->addr)
-    {
-      free (srv);
-      return ENOMEM;
-    }
-  memcpy (srv->addr, addr, addrlen);
-  srv->addrlen = addrlen;
+  srv->addr = addr;
   srv->type = type;
   srv->fd = -1;
   switch (type)
@@ -120,7 +112,7 @@ mu_ip_server_destroy (mu_ip_server_t *psrv)
   if (srv->f_free)
     srv->f_free (srv->data);
   close (srv->fd);
-  free (srv->addr);
+  mu_sockaddr_free (srv->addr);
   free (srv->ident);
   if (srv->type == MU_IP_UDP && srv->v.udp_data.buf)
     free (srv->v.udp_data.buf);
@@ -234,6 +226,11 @@ mu_address_family_to_domain (int family)
     case AF_INET:
       return PF_INET;
 
+#ifdef MAILUTILS_IPV6
+    case AF_INET6:
+      return PF_INET6;
+#endif
+      
     default:
       abort ();
     }
@@ -247,14 +244,11 @@ mu_ip_server_open (mu_ip_server_t srv)
   if (!srv || srv->fd != -1)
     return EINVAL;
 
-  if (mu_debug_level_p (MU_DEBCAT_SERVER, MU_DEBUG_TRACE0))
-    {
-      char *p = mu_sockaddr_to_astr (srv->addr, srv->addrlen);
-      mu_debug_log ("opening server \"%s\" %s", IDENTSTR (srv), p);
-      free (p);
-    }
+  mu_debug (MU_DEBCAT_SERVER, MU_DEBUG_TRACE0,
+	    ("opening server \"%s\" %s", IDENTSTR (srv),
+	     mu_sockaddr_str (srv->addr)));
 
-  fd = socket (mu_address_family_to_domain (srv->addr->sa_family),
+  fd = socket (mu_address_family_to_domain (srv->addr->addr->sa_family),
 	       ((srv->type == MU_IP_UDP) ? SOCK_DGRAM : SOCK_STREAM), 0);
   if (fd == -1)
     {
@@ -263,7 +257,7 @@ mu_ip_server_open (mu_ip_server_t srv)
       return errno;
     }
   
-  switch (srv->addr->sa_family)
+  switch (srv->addr->addr->sa_family)
     {
     case AF_UNIX:
       {
@@ -299,7 +293,7 @@ mu_ip_server_open (mu_ip_server_t srv)
       }
       break;
 
-    case AF_INET:
+    default:
       {
 	int t;
 	
@@ -308,7 +302,7 @@ mu_ip_server_open (mu_ip_server_t srv)
       }
     }
   
-  if (bind (fd, srv->addr, srv->addrlen) == -1)
+  if (bind (fd, srv->addr->addr, srv->addr->addrlen) == -1)
     {
       mu_debug (MU_DEBCAT_SERVER, MU_DEBUG_ERROR,
 		("%s: bind: %s", IDENTSTR (srv), mu_strerror (errno)));
@@ -336,12 +330,9 @@ mu_ip_server_shutdown (mu_ip_server_t srv)
 {
   if (!srv || srv->fd != -1)
     return EINVAL;
-  if (mu_debug_level_p (MU_DEBCAT_SERVER, MU_DEBUG_TRACE0))
-    {
-      char *p = mu_sockaddr_to_astr (srv->addr, srv->addrlen);
-      mu_debug_log ("closing server \"%s\" %s", IDENTSTR (srv), p);
-      free (p);
-    }
+  mu_debug (MU_DEBCAT_SERVER, MU_DEBUG_TRACE0,
+	    ("closing server \"%s\" %s", IDENTSTR (srv),
+	     mu_sockaddr_str (srv->addr)));
   close (srv->fd);
   return 0;
 }
@@ -356,6 +347,9 @@ mu_ip_tcp_accept (mu_ip_server_t srv, void *call_data)
     struct sockaddr sa;
     struct sockaddr_in s_in;
     struct sockaddr_un s_un;
+#ifdef MAILUTILS_IPV6
+    struct sockaddr_in6 s_in6;
+#endif
   } client;
   
   socklen_t size = sizeof (client);
@@ -407,6 +401,9 @@ mu_ip_udp_accept (mu_ip_server_t srv, void *call_data)
     struct sockaddr sa;
     struct sockaddr_in s_in;
     struct sockaddr_un s_un;
+#ifdef MAILUTILS_IPV6
+    struct sockaddr_in6 s_in6;
+#endif
   } client;
   fd_set rdset;
   
@@ -463,7 +460,7 @@ mu_ip_udp_accept (mu_ip_server_t srv, void *call_data)
 		   IDENTSTR (srv), strerror (rc)));
       if (res == mu_acl_result_deny)
 	{
-	  char *p = mu_sockaddr_to_astr (srv->addr, srv->addrlen);
+	  char *p = mu_sockaddr_to_astr (&client.sa, salen);
 	  mu_diag_output (MU_DIAG_INFO, "Denying connection from %s", p);
 	  free (p);
 	  return 0;
@@ -528,22 +525,16 @@ mu_udp_server_get_rdata (mu_ip_server_t srv, char **pbuf, size_t *pbufsize)
 }
 
 int
-mu_ip_server_get_sockaddr (mu_ip_server_t srv, struct sockaddr *s, int *size)
+mu_ip_server_get_sockaddr (mu_ip_server_t srv, struct mu_sockaddr **psa)
 {
-  int len;
-  
-  if (!srv || !s)
+  if (!srv || !psa)
     return EINVAL;
-  if (s == 0)
-    len = srv->addrlen;
-  else
-    {
-      len = srv->addrlen;
-      if (*size < len)
-	return MU_ERR_BUFSPACE;
-      memcpy (s, srv->addr, len);
-    }
-  *size = len;
-  return 0;
+  return mu_sockaddr_copy (psa, srv->addr);
 }
-  
+
+const char *
+mu_ip_server_addrstr (mu_ip_server_t srv)
+{
+  return mu_sockaddr_str (srv->addr);
+}
+

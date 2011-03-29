@@ -25,6 +25,7 @@
 #include <mailutils/errno.h>
 #include <mailutils/url.h>
 #include <mailutils/secret.h>
+#include <mailutils/kwd.h>
 
 #define CAT2(a,b) a ## b
 
@@ -73,12 +74,52 @@ print_query (mu_url_t url)
     printf ("query[%lu] <%s>\n", (unsigned long) i, qargv[i]);
 }
 
+struct mu_kwd parse_kwtab[] = {
+  { "hexcode", MU_URL_PARSE_HEXCODE },
+  { "hidepass", MU_URL_PARSE_HIDEPASS },
+  { "portsrv", MU_URL_PARSE_PORTSRV },
+  { "portwc", MU_URL_PARSE_PORTWC },
+  { "pipe",  MU_URL_PARSE_PIPE },
+  { "slash", MU_URL_PARSE_SLASH },
+  { "dslash_optional", MU_URL_PARSE_DSLASH_OPTIONAL },
+  { "default", MU_URL_PARSE_DEFAULT },
+  { "all", MU_URL_PARSE_ALL },
+  { NULL }
+};
+
+
 int
-main ()
+main (int argc, char **argv)
 {
   char str[1024];
   unsigned port = 0;
-  mu_url_t u = NULL;
+  mu_url_t u = NULL, uhint = NULL;
+  int i;
+  int parse_flags = 0;
+  int rc;
+  
+  mu_set_program_name (argv[0]);
+  for (i = 1; i < argc; i++)
+    {
+      int flag;
+
+      if (strncmp (argv[i], "hint=", 5) == 0)
+	{
+	  rc = mu_url_create (&uhint, argv[i] + 5);
+	  if (rc)
+	    {
+	      mu_error ("cannot create hints: %s", mu_strerror (rc));
+	      exit (1);
+	    }
+	}
+      else if (mu_kwd_xlat_name_ci (parse_kwtab, argv[i], &flag) == 0)
+	parse_flags |= flag;
+      else
+	{
+	  mu_error ("%s: unknown flag %s", argv[0], argv[i]);
+	  exit (1);
+	}
+    }
 
   while (fgets (str, sizeof (str), stdin) != NULL)
     {
@@ -89,9 +130,9 @@ main ()
       str[strlen (str) - 1] = '\0';     /* chop newline */
       if (strspn (str, " \t") == strlen (str))
         continue;               /* skip empty lines */
-      if ((rc = mu_url_create (&u, str)) != 0)
+      if ((rc = mu_url_create_hint (&u, str, parse_flags, uhint)) != 0)
         {
-          fprintf (stderr, "mu_url_create %s ERROR: [%d] %s",
+          fprintf (stderr, "mu_url_create %s ERROR: [%d] %s\n",
                    str, rc, mu_strerror (rc));
           exit (1);
         }

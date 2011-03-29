@@ -1,3 +1,4 @@
+
 # Error messages for GNU Mailutils
 # Copyright (C) 2005, 2006, 2007, 2010, 2011 Free Software Foundation,
 # Inc.
@@ -98,3 +99,10 @@ MU_ERR_URL_MISS_PARTS       _("URL missing required parts")
 MU_ERR_URL_EXTRA_PARTS      _("URL has parts not allowed by its scheme")
 
 MU_ERR_INFO_UNAVAILABLE	    _("Information is not yet available")
+
+# The following are mapped to the corresponding EAI_ errors
+MU_ERR_NONAME	            _("Name or service not known")
+MU_ERR_BADFLAGS	            _("Bad value for flags")
+MU_ERR_SOCKTYPE             _("Socket type not supported")
+MU_ERR_FAMILY               _("Address family not supported")
+MU_ERR_SERVICE              _("Requested service not supported")

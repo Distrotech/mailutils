@@ -315,6 +315,10 @@ int mu_streamref_create_abridged (mu_stream_t *pref, mu_stream_t str,
 				  mu_off_t start, mu_off_t end);
 int mu_streamref_create (mu_stream_t *pref, mu_stream_t str);
 
+int mu_tcp_stream_create_from_sa (mu_stream_t *pstream,
+				  struct mu_sockaddr *remote_addr,
+				  struct mu_sockaddr *source_addr, int flags);
+
 int mu_tcp_stream_create_with_source_ip (mu_stream_t *stream,
 					 const char *host, unsigned port,
 					 unsigned long source_ip,

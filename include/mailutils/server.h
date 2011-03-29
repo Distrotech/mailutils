@@ -54,8 +54,8 @@ typedef void (*mu_ip_server_free_fp) (void *data);
 #define MU_IP_TCP 0
 #define MU_IP_UDP 1
 
-int mu_ip_server_create (mu_ip_server_t *psrv, struct sockaddr *addr,
-			 int len, int type);
+int mu_ip_server_create (mu_ip_server_t *psrv, struct mu_sockaddr *addr,
+			 int type);
 int mu_ip_server_destroy (mu_ip_server_t *psrv);
 int mu_ip_server_get_type (mu_ip_server_t srv, int *ptype);
 int mu_ip_server_set_ident (mu_ip_server_t srv, const char *ident);
@@ -69,8 +69,8 @@ int mu_ip_server_shutdown (mu_ip_server_t srv);
 int mu_ip_server_accept (mu_ip_server_t srv, void *call_data);
 int mu_ip_server_loop (mu_ip_server_t srv, void *call_data);
 int mu_ip_server_get_fd (mu_ip_server_t srv);
-int mu_ip_server_get_sockaddr (mu_ip_server_t srv, struct sockaddr *s,
-			       int *size);
+int mu_ip_server_get_sockaddr (mu_ip_server_t srv, struct mu_sockaddr **psa);
+const char *mu_ip_server_addrstr (mu_ip_server_t srv);
 
 int mu_tcp_server_set_backlog (mu_ip_server_t srv, int backlog);
 int mu_udp_server_set_bufsize (mu_ip_server_t srv, size_t size);
@@ -99,8 +99,6 @@ void mu_m_server_set_max_children (mu_m_server_t srv, size_t num);
 int mu_m_server_set_pidfile (mu_m_server_t srv, const char *pidfile);
 int mu_m_server_set_foreground (mu_m_server_t srv, int enable);
 void mu_m_server_set_default_port (mu_m_server_t srv, int port);
-void mu_m_server_set_default_address (mu_m_server_t srv, struct sockaddr *sa,
-				      int salen);
 void mu_m_server_set_timeout (mu_m_server_t srv, time_t t);
 void mu_m_server_set_mode (mu_m_server_t srv, int mode);
 void mu_m_server_set_sigset (mu_m_server_t srv, sigset_t *sigset);
@@ -112,8 +110,6 @@ time_t mu_m_server_timeout (mu_m_server_t srv);
 const char * mu_m_server_pidfile (mu_m_server_t srv);
 void mu_m_server_get_sigset (mu_m_server_t srv, sigset_t *sigset);
 int mu_m_server_get_srvlist (mu_m_server_t srv, mu_list_t *plist);
-int mu_m_server_get_default_address (mu_m_server_t srv, struct sockaddr *sa,
-				     int *salen);
 
 void mu_m_server_configured_count (mu_m_server_t msrv, size_t count);
 

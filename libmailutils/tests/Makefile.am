@@ -41,6 +41,7 @@ $(srcdir)/package.m4: $(top_srcdir)/configure.ac
 INCLUDES = @MU_LIB_COMMON_INCLUDES@ 
 noinst_PROGRAMS = \
  addr\
+ cidr\
  debugspec\
  decode2047\
  encode2047\

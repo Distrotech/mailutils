@@ -75,6 +75,9 @@ struct _mu_assoc;
 struct _mu_acl;  
 struct _mu_server;
 struct _mu_tcp_server;
+
+struct mu_sockaddr; /* defined in mailutils/sockaddr.h */  
+struct mu_cidr;     /* defined in mailutils/cidr.h */  
   
 typedef _MU_OFF_TYPE_ mu_off_t;
 
