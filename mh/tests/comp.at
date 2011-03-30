@@ -18,8 +18,8 @@ m4_pushdef([MH_KEYWORDS],[comp])
 m4_pushdef([compcmd],[comp -editor $abs_top_srcdir/mh/tests/mhed])
 
 MH_CHECK([comp -file],[comp00 comp-file],[
-echo quit | compcmd -file ./infile | remove_curdir
-cat infile
+echo quit | compcmd -file ./infile | remove_curdir | sed 's/ *$//'
+sed 's/ *$//' infile
 ],
 [0],
 [-- Editor invocation: ./infile
@@ -51,8 +51,8 @@ Subject:
 What now?])
 
 MH_CHECK([comp file],[comp02 comp_file],[
-echo 'quit' | compcmd file | remove_curdir
-cat Mail/file 
+echo 'quit' | compcmd file | remove_curdir | sed 's/ *$//'
+sed 's/ *$//' Mail/file 
 ],
 [0], 
 [-- Editor invocation: Mail/file
@@ -78,8 +78,8 @@ Subject: test input
 message body
 ])
 
-echo 'quit' | compcmd -use file | remove_curdir
-cat Mail/file 
+echo 'quit' | compcmd -use file | remove_curdir | sed 's/ *$//'
+sed 's/ *$//' Mail/file 
 ],
 [0], 
 [-- Editor invocation: Mail/file
@@ -108,11 +108,11 @@ Subject: test input
 message body
 ])
 
-echo 'quit' | compcmd +inbox 1 | remove_curdir
+echo 'quit' | compcmd +inbox 1 | remove_curdir | sed 's/ *$//'
 echo Mail/draft
-cat Mail/draft
+sed 's/ *$//' Mail/draft
 echo Message
-cat Mail/inbox/1
+sed 's/ *$//' Mail/inbox/1
 ],
 [0], 
 [-- Editor invocation: Mail/draft
@@ -141,8 +141,8 @@ message body
 
 MH_CHECK([comp -draftfolder],[comp05 comp-draftfolder draftfolder],[
 mkdir Mail/drafts
-echo 'quit' | compcmd -draftfolder drafts | remove_curdir
-cat Mail/drafts/1
+echo 'quit' | compcmd -draftfolder drafts | remove_curdir | sed 's/ *$//'
+sed 's/ *$//' Mail/drafts/1
 ],
 [0],
 [-- Editor invocation: Mail/drafts/1
@@ -170,8 +170,8 @@ message body
 ])
 echo "cur: 1" > Mail/drafts/.mh_sequences
 
-echo 'quit' | compcmd -draftfolder drafts -use| remove_curdir
-cat Mail/drafts/1
+echo 'quit' | compcmd -draftfolder drafts -use| remove_curdir | sed 's/ *$//'
+sed 's/ *$//' Mail/drafts/1
 ],
 [0],
 [-- Editor invocation: Mail/drafts/1
