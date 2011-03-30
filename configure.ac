@@ -1180,20 +1180,36 @@ dnl ***********************************************************************
 dnl Configure particular utilities
 dnl ***********************************************************************
 
-MU_ENABLE_BUILD(frm)
-MU_ENABLE_BUILD(pop3d)
-MU_ENABLE_BUILD(imap4d)
-MU_ENABLE_BUILD(comsat)
-MU_ENABLE_BUILD(maidag)
-MU_ENABLE_BUILD(mail)
-MU_ENABLE_BUILD(sieve)
-MU_ENABLE_BUILD(messages)
-MU_ENABLE_BUILD(readmsg)
-MU_ENABLE_BUILD(dotlock)
-MU_ENABLE_BUILD(movemail)
-MU_ENABLE_BUILD(mimeview)
+AC_ARG_ENABLE([build-servers],
+              AC_HELP_STRING([--enable-build-servers],
+                             [build servers]),
+              [mu_build_servers="${enableval}"],
+              [mu_build_servers=yes])
 
-MU_ENABLE_BUILD(mh,,,["$mu_cv_enable_mh" = yes])
+AC_ARG_ENABLE([build-clients],
+              AC_HELP_STRING([--enable-build-clients],
+                             [build client utilities]),
+              [mu_build_clients="${enableval}"],
+              [mu_build_clients=yes])
+
+server_list=
+client_list=
+
+MU_ENABLE_BUILD(pop3d,,,["$mu_build_servers" = yes],,[server_list])
+MU_ENABLE_BUILD(imap4d,,,["$mu_build_servers" = yes],,[server_list])
+MU_ENABLE_BUILD(comsat,,,["$mu_build_servers" = yes],,[server_list])
+
+MU_ENABLE_BUILD(frm,,,["$mu_build_clients" = yes],,[client_list])
+MU_ENABLE_BUILD(maidag,,,["$mu_build_clients" = yes],,[client_list])
+MU_ENABLE_BUILD(mail,,,["$mu_build_clients" = yes],,[client_list])
+MU_ENABLE_BUILD(sieve,,,["$mu_build_clients" = yes],,[client_list])
+MU_ENABLE_BUILD(messages,,,["$mu_build_clients" = yes],,[client_list])
+MU_ENABLE_BUILD(readmsg,,,["$mu_build_clients" = yes],,[client_list])
+MU_ENABLE_BUILD(dotlock,,,["$mu_build_clients" = yes],,[client_list])
+MU_ENABLE_BUILD(movemail,,,["$mu_build_clients" = yes],,[client_list])
+MU_ENABLE_BUILD(mimeview,,,["$mu_build_clients" = yes],,[client_list])
+
+MU_ENABLE_BUILD(mh,,,["$mu_build_clients$mu_cv_enable_mh" = yesyes],,[client_list])
 
 AC_SUBST(MH_BIN_DIR)
 
@@ -1206,7 +1222,9 @@ AC_ARG_WITH([mh-bindir],
                      esac],
                     [MH_BIN_DIR='${exec_prefix}/bin/mu-mh'])
 
-
+test -z "$server_list" && server_list=" [NONE]"
+test -z "$client_list" && client_list=" [NONE]"
+		    
 # Initialize the (autotest) test suite.
 AC_CONFIG_TESTDIR(libmailutils/tests)
 AC_CONFIG_TESTDIR(testsuite)
@@ -1309,6 +1327,11 @@ Mailers:
 SMTP .......................... $status_smtp
 Sendmail ...................... $status_sendmail
 
+Utilities to build:
+
+Servers .......................$server_list
+Clients .......................$client_list
+
 *******************************************************************
 
 Before proceeding, verify if these satisfy your requirements. 
@@ -1339,6 +1362,8 @@ status_maildir=$mu_cv_enable_maildir
 status_smtp=$mu_cv_enable_smtp
 status_sendmail=$mu_cv_enable_sendmail
 status_ipv6=$status_ipv6
+server_list="$server_list"
+client_list="$client_list"
 ])
 
 dnl Output Makefiles

@@ -53,7 +53,7 @@ AC_DEFUN([MU_ENABLE_SUPPORT], [
 ])
 
 dnl MU_ENABLE_BUILD(feature, [action-if-true], [action-if-false],
-dnl                 [additional-cond], [default-value])
+dnl                 [additional-cond], [default-value], [listvar])
 AC_DEFUN([MU_ENABLE_BUILD], [
 	pushdef([mu_upcase],translit($1,[a-z+-],[A-ZX_]))
 	pushdef([mu_cache_var],[mu_cv_enable_build_]translit($1,[+-],[x_]))
@@ -73,6 +73,7 @@ AC_DEFUN([MU_ENABLE_BUILD], [
 
 	  if test "[$]mu_cache_var" = "yes"; then
 		  ifelse([$2],,:,[$2])
+		  ifelse([$6],,,[$6="$[]$6 $1"])
 	  ifelse([$3],,,else
                  [$3])
 	  fi

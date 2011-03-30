@@ -303,8 +303,20 @@ features:
                           Disables support for authentication using
                           virtual mail domains.
 
-Special options are provided that control whether each particular
-Mailutils program is built. These are:
+Mailutils is shipped with a set of various utilities, which are built
+by default.  These utilities fall into two groups:
+
+a) Server utilities: pop3d, imap4d and comsat.
+b) Client utilities: frm, maidag, mail, sieve, messages, readmsg,
+   dotlock, movemail mimeview, and MH utilities.
+
+The following options disable each group:
+   
+    --disable-build-servers    do not build server utilities
+    --disable-build-clients    do not build client utilities
+    	       
+Each particular program can be disabled using its individual
+`--disable-build' option:
 
     --disable-build-frm        do not build frm
     --disable-build-pop3d      do not build pop3d
@@ -319,7 +331,7 @@ Mailutils program is built. These are:
     --disable-build-dotlock    do not build dotlock
     --disable-build-movemail   do not build movemail
     --disable-build-mimeview   do not build mimeview
-    --disable-build-mh         do not build mh utilities
+    --disable-build-mh         do not build MH utilities
 
 Several environment variables affect the configuration. Currently,
 the only mailutils-specific variable is DEFAULT_CUPS_CONFDIR. It
