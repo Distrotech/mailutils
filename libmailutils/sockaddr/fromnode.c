@@ -162,7 +162,7 @@ mu_sockaddr_from_node (struct mu_sockaddr **retval, const char *node,
       freeaddrinfo (res);
     }
 #else
-  if (mh->family == AF_INET)
+  if (mh->family == AF_INET || mh->family == AF_UNSPEC)
     {
       short port;
       struct hostent *hp;
@@ -200,8 +200,8 @@ mu_sockaddr_from_node (struct mu_sockaddr **retval, const char *node,
       else if (mh->port)
 	port = htons (mh->port);
       else
-	return MU_ERR_NONAME;
-
+	port = 0;
+      
       if (!node)
 	{
 	  struct sockaddr_in s_in;
