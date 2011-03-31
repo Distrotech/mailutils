@@ -42,6 +42,7 @@ int mu_cidr_from_sockaddr (struct mu_cidr *cp, const struct sockaddr *sa);
 int mu_cidr_from_string (struct mu_cidr *cp, const char *str);
 
 #define MU_CIDR_FMT_ADDRONLY 0x01
+#define MU_CIDR_FMT_SIMPLIFY 0x02
   
 int mu_cidr_to_string (struct mu_cidr *cidr, int flags, char *buf, size_t size,
 		       size_t *pret);

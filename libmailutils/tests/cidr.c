@@ -33,10 +33,12 @@ print_bytes (unsigned char *b, size_t l)
 int
 main (int argc, char **argv)
 {
+  int flags = 0;
+  
   mu_set_program_name (argv[0]);
   if (argc < 2)
     {
-      mu_error ("usage: %s CIDR [CIDR...]", argv[0]);
+      mu_error ("usage: %s [-sS] CIDR [CIDR...]", argv[0]);
       return 1;
     }
 
@@ -46,7 +48,18 @@ main (int argc, char **argv)
       struct mu_cidr cidr;
       int rc;
       char *str;
-      
+
+      if (strcmp (arg, "-s") == 0)
+	{
+	  flags |= MU_CIDR_FMT_SIMPLIFY;
+	  continue;
+	}
+      else if (strcmp (arg, "-S") == 0)
+	{
+	  flags &= ~MU_CIDR_FMT_SIMPLIFY;
+	  continue;
+	}
+	       
       rc = mu_cidr_from_string (&cidr, arg);
       if (rc)
 	{
@@ -61,7 +74,7 @@ main (int argc, char **argv)
       print_bytes (cidr.address, cidr.len);
       printf ("netmask =");
       print_bytes (cidr.netmask, cidr.len);
-      rc = mu_cidr_format (&cidr, 0, &str);
+      rc = mu_cidr_format (&cidr, flags, &str);
       if (rc)
 	{
 	  mu_error ("cannot covert to string: %s", mu_strerror (rc));

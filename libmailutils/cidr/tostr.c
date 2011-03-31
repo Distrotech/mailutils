@@ -34,31 +34,100 @@ to_xdig (unsigned char b)
 
 static size_t
 format_ipv6_bytes (const unsigned char *bytes, int len, 
-		   char *buf, size_t size)
+		   char *buf, size_t size, int simplify)
 {
   size_t total = 0;
   int i;
+  int run_count = 0;
+  char *p;
   
   for (i = 0; i < len; i += 2)
     {
-      if (i)
+      if (bytes[0] == 0 && bytes[1] == 0)
+	{
+	  if (simplify)
+	    run_count++;
+	  else
+	    {
+	      if (i && total++ < size)
+		*buf++ = ':';
+	      if (total++ < size)
+		*buf++ = '0';
+	    }
+	  bytes += 2;
+	}
+      else
+	{
+	  if (run_count)
+	    {
+	      if (run_count == 1)
+		{
+		  if (i && total++ < size)
+		    *buf++ = ':';
+		  if (total++ < size)
+		    *buf++ = '0';
+		}
+	      else
+		{
+		  if (total++ < size)
+		    *buf++ = ':';
+		  simplify = 0;
+		}
+	      run_count = 0;
+	    }
+	  
+	  if (i && total++ < size)
+	    *buf++ = ':';
+
+	  p = buf;
+	  if ((*bytes & 0xf0) && total++ < size)
+	    *buf++ = to_xdig (*bytes >> 4);
+	  if ((buf > p || (*bytes & 0xf)) && total++ < size)
+	    *buf++ = to_xdig (*bytes & 0xf);
+	  bytes++;
+	  if ((buf > p || (*bytes & 0xf0)) && total++ < size)
+	    *buf++ = to_xdig (*bytes >> 4);
+	  if ((buf > p || (*bytes & 0xf)) && total++ < size)
+	    *buf++ = to_xdig (*bytes & 0xf);
+	  bytes++;
+	}
+    }
+
+  if (run_count)
+    {
+      if (run_count == 1)
+	{
+	  if (i && total++ < size)
+	    *buf++ = ':';
+	  if (total++ < size)
+	    *buf++ = '0';
+	}
+      else
 	{
 	  if (total++ < size)
 	    *buf++ = ':';
+	  if (total++ < size)
+	    *buf++ = ':';
 	}
-      if (total++ < size)
-	*buf++ = to_xdig (*bytes >> 4);
-      if (total++ < size)
-	*buf++ = to_xdig (*bytes & 0xf);
-      bytes++;
-      if (total++ < size)
-	*buf++ = to_xdig (*bytes >> 4);
-      if (total++ < size)
-	*buf++ = to_xdig (*bytes & 0xf);
-      bytes++;
     }
+  
   return total;
 }
+
+static size_t
+format_ipv6_bytes_normal (const unsigned char *bytes, int len, 
+			  char *buf, size_t size)
+{
+  return format_ipv6_bytes (bytes, len, buf, size, 0);
+}
+
+static size_t
+format_ipv6_bytes_simplified (const unsigned char *bytes, int len, 
+			      char *buf, size_t size)
+{
+  return format_ipv6_bytes (bytes, len, buf, size, 1);
+}
+
 
 static size_t
 format_ipv4_bytes (const unsigned char *bytes, int len, 
@@ -114,7 +183,8 @@ mu_cidr_to_string (struct mu_cidr *cidr, int flags,
       
 #ifdef MAILUTILS_IPV6
     case AF_INET6:
-      fmt = format_ipv6_bytes;
+      fmt = (flags & MU_CIDR_FMT_SIMPLIFY) ?
+	         format_ipv6_bytes_simplified : format_ipv6_bytes_normal;
       break;
 #endif
 
