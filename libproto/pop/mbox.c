@@ -132,7 +132,10 @@ pop_open (mu_mailbox_t mbox, int flags)
       
   status = mu_tcp_stream_create_from_sa (&stream, sa, NULL, mbox->flags);
   if (status)
-    return status;
+    {
+      mu_sockaddr_free (sa);
+      return status;
+    }
 #ifdef WITH_TLS
   if (mpd->pops)
     {

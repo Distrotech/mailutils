@@ -175,7 +175,10 @@ smtp_open (mu_mailer_t mailer, int flags)
       rc = mu_tcp_stream_create_from_sa (&mailer->stream, sa, NULL,
 					 mailer->flags);
       if (rc)
-	return rc;
+        {
+          mu_sockaddr_free (sa);
+	  return rc;
+	}
       mu_stream_set_buffer (mailer->stream, mu_buffer_line, 0);
     }
   mu_smtp_set_carrier (smtp_mailer->smtp, mailer->stream);

@@ -217,7 +217,11 @@ com_connect (int argc, char **argv)
       hints.socktype = SOCK_STREAM;
       status = mu_sockaddr_from_node (&sa, argv[0], argv[1], &hints);
       if (status == 0)
-	status = mu_tcp_stream_create_from_sa (&tcp, sa, NULL, 0);
+        {
+	  status = mu_tcp_stream_create_from_sa (&tcp, sa, NULL, 0);
+          if (status)
+            mu_sockaddr_free (sa);
+        }
       if (status == 0)
 	{
 #ifdef WITH_TLS

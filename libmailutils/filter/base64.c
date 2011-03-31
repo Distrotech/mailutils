@@ -286,30 +286,40 @@ _base64_encoder (void *xd,
 
       if (!(consumed + 3 <= isize || pad))
 	break;
-	
-      *optr++ = b64tab[ptr[0] >> 2];
-      nbytes++;
-      lp->cur_len++;
-      consumed++;
-      switch (isize - consumed)
+
+      if (consumed == isize)
 	{
-	default:
-	  consumed++;
-	  y = b64tab[ptr[2] & 0x3f];
-	  c2 = ptr[2] >> 6;
-	case 1:
-	  consumed++;
-	  x = b64tab[((ptr[1] << 2) + c2) & 0x3f];
-	  c1 = (ptr[1] >> 4);
-	case 0:
-	  lp->save[0] = b64tab[((ptr[0] << 4) + c1) & 0x3f];
 	  lp->save[1] = x;
 	  lp->save[2] = y;
-	  lp->idx = 0;
+	  lp->idx = 1;
 	  lp->state = base64_rollback;
 	}
-      
-      ptr += 3;
+      else
+	{
+	  *optr++ = b64tab[ptr[0] >> 2];
+	  nbytes++;
+	  lp->cur_len++;
+	  consumed++;
+	  switch (isize - consumed)
+	    {
+	    default:
+	      consumed++;
+	      y = b64tab[ptr[2] & 0x3f];
+	      c2 = ptr[2] >> 6;
+	    case 1:
+	      consumed++;
+	      x = b64tab[((ptr[1] << 2) + c2) & 0x3f];
+	      c1 = (ptr[1] >> 4);
+	    case 0:
+	      lp->save[0] = b64tab[((ptr[0] << 4) + c1) & 0x3f];
+	      lp->save[1] = x;
+	      lp->save[2] = y;
+	      lp->idx = 0;
+	      lp->state = base64_rollback;
+	    }
+	  
+	  ptr += 3;
+	}
       pad = 0;
     }
 

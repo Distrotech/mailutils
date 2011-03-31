@@ -542,6 +542,8 @@ com_connect (int argc, char **argv)
 	{
 	  n = port_from_sa (sa);
 	  status = mu_tcp_stream_create_from_sa (&tcp, sa, NULL, 0);
+	  if (status)
+	    mu_sockaddr_free (sa);
 	}
       if (status == 0)
 	{

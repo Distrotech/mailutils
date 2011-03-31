@@ -332,7 +332,7 @@ mu_tcp_stream_create_with_source_ip (mu_stream_t *pstream,
     }
 
   rc = mu_tcp_stream_create_from_sa (pstream, remote_addr, source_addr, flags);
-  if (rc)
+  if (rc && !(rc == EAGAIN || rc == EINPROGRESS))
     {
       mu_sockaddr_free (remote_addr);
       mu_sockaddr_free (source_addr);
@@ -371,7 +371,7 @@ mu_tcp_stream_create_with_source_host (mu_stream_t *stream,
     }
 
   rc = mu_tcp_stream_create_from_sa (stream, remote_addr, source_addr, flags);
-  if (rc)
+  if (rc && !(rc == EAGAIN || rc == EINPROGRESS))
     {
       mu_sockaddr_free (remote_addr);
       mu_sockaddr_free (source_addr);
