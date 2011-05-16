@@ -780,7 +780,7 @@ pop_section (struct scan_tree_data *dat)
   return sec;
 }
 
-#define STRTONUM(s, type, base, res, limit, d, loc)			\
+#define STRTONUM(s, type, base, res, limit, loc)			\
   {									\
     type sum = 0;							\
     									\
@@ -815,7 +815,7 @@ pop_section (struct scan_tree_data *dat)
     res = sum;								\
   }
 
-#define STRxTONUM(s, type, res, limit, d, loc)				\
+#define STRxTONUM(s, type, res, limit, loc)				\
   {									\
     int base;								\
     if (*s == '0')							\
@@ -832,14 +832,14 @@ pop_section (struct scan_tree_data *dat)
 	  base = 8;							\
       } else								\
       base = 10;							\
-    STRTONUM (s, type, base, res, limit, d, loc);			\
+    STRTONUM (s, type, base, res, limit, loc);				\
   }
 
-#define GETUNUM(str, type, res, d, loc)					\
+#define GETUNUM(str, type, res, loc)					\
   {									\
     type tmpres;							\
     const char *s = str;						\
-    STRxTONUM (s, type, tmpres, 0, d, loc);				\
+    STRxTONUM (s, type, tmpres, 0, loc);				\
     if (*s)								\
       {									\
 	mu_diag_at_locus (MU_LOG_ERROR, loc,			        \
@@ -851,7 +851,7 @@ pop_section (struct scan_tree_data *dat)
     res = tmpres;							\
   }
 
-#define GETSNUM(str, type, res, d, loc)					\
+#define GETSNUM(str, type, res, loc)					\
   {									\
     unsigned type tmpres;						\
     const char *s = str;						\
@@ -871,7 +871,7 @@ pop_section (struct scan_tree_data *dat)
 	limit = TYPE_MAXIMUM (type);					\
       }									\
     									\
-    STRxTONUM (s, unsigned type, tmpres, limit, d, loc);		\
+    STRxTONUM (s, unsigned type, tmpres, limit, loc);			\
     if (*s)								\
       {									\
 	mu_diag_at_locus (MU_LOG_ERROR, loc,			        \
@@ -955,7 +955,7 @@ parse_cidr (struct scan_tree_data *sdata, const struct mu_locus *locus,
       
       p++;
       s = p;
-      STRxTONUM (s, unsigned long, mask, 0, sdata->tree->debug, locus);
+      STRxTONUM (s, unsigned long, mask, 0, locus);
       if (*s == '.')
 	{
 	  struct in_addr a;
@@ -991,7 +991,7 @@ parse_cidr (struct scan_tree_data *sdata, const struct mu_locus *locus,
       p = str;
       for (i = 0; i < 3; i++)
 	{
-	  STRxTONUM (p, unsigned short, x, 255, sdata->tree->debug, locus);
+	  STRxTONUM (p, unsigned short, x, 255, locus);
 	  if (*p != '.')
 	    break;
 	  addr.s_addr = (addr.s_addr << 8) + x;
@@ -1071,36 +1071,31 @@ valcvt (struct scan_tree_data *sdata, const struct mu_locus *locus,
       }
       
     case mu_cfg_short:
-      GETSNUM (val->v.string, short, *(short*)tgt, sdata->tree->debug, locus);
+      GETUNUM (val->v.string, short, *(short*)tgt, locus);
       break;
       
     case mu_cfg_ushort:
-      GETUNUM (val->v.string, unsigned short, *(unsigned short*)tgt,
-	       sdata->tree->debug, locus);
+      GETUNUM (val->v.string, unsigned short, *(unsigned short*)tgt, locus);
       break;
       
     case mu_cfg_int:
-      GETSNUM (val->v.string, int, *(int*)tgt, sdata->tree->debug, locus);
+      GETSNUM (val->v.string, int, *(int*)tgt, locus);
       break;
       
     case mu_cfg_uint:
-      GETUNUM (val->v.string, unsigned int, *(unsigned int*)tgt,
-	       sdata->tree->debug, locus);
+      GETUNUM (val->v.string, unsigned int, *(unsigned int*)tgt, locus);
       break;
       
     case mu_cfg_long:
-      GETSNUM (val->v.string, long, *(long*)tgt,
-	       sdata->tree->debug, locus);
+      GETSNUM (val->v.string, long, *(long*)tgt, locus);
       break;
       
     case mu_cfg_ulong:
-      GETUNUM (val->v.string, unsigned long, *(unsigned long*)tgt,
-	       sdata->tree->debug, locus);
+      GETUNUM (val->v.string, unsigned long, *(unsigned long*)tgt, locus);
       break;
       
     case mu_cfg_size:
-      GETUNUM (val->v.string, size_t, *(size_t*)tgt,
-	       sdata->tree->debug, locus);
+      GETUNUM (val->v.string, size_t, *(size_t*)tgt, locus);
       break;
       
     case mu_cfg_off:
@@ -1110,8 +1105,7 @@ valcvt (struct scan_tree_data *sdata, const struct mu_locus *locus,
       return 1;
       
     case mu_cfg_time:
-      GETUNUM (val->v.string, time_t, *(time_t*)tgt,
-	       sdata->tree->debug, locus);
+      GETUNUM (val->v.string, time_t, *(time_t*)tgt, locus);
       break;
       
     case mu_cfg_bool:

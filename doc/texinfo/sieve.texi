@@ -381,7 +381,7 @@ Currently implemented directives are @code{include} and @code{searchpath}.
 @end menu
 
 @node #include
-@subheading Sieve #include directive
+@subsection Sieve #include directive
 @kwindex #include, sieve
 
 The @code{#include} directive reads in the contents of the given file.
@@ -401,7 +401,7 @@ If @var{filename} starts with a directory separator character
 (@samp{/}) both forms have the same effect.
 
 @node #searchpath
-@subheading Sieve #searchpath directive
+@subsection Sieve #searchpath directive
 @kwindex #searchpath, sieve
 
 The @code{#searchpath} directive adds its argument to the list of
@@ -939,7 +939,7 @@ header :contains ["X-Caffeine"] [""] @result{} true
                            @var{header-names}(string-list) @
                            @var{count}(number)
 @noindent
-@subsubheading Synopsis
+@*Synopsis:
 @smallexample
 require "test-numaddr";
 @dots{}
@@ -948,7 +948,7 @@ if numaddr @var{args}
     @dots{}
   @}
 @end smallexample
-@subsubheading Description  
+@*Description: 
 This test is provided as an example of loadable extension tests. You
 must use @samp{require "test-numaddr"} statement before actually using
 it.
@@ -973,7 +973,7 @@ If the tagged argument is not given, @samp{:over} is assumed.
                          [:socket @var{unix-socket}(string)] @
                          [:user @var{name}(string)] @
                          [:over | :under @var{limit}(string)]
-@subsubheading Synopsis
+@*Synopsis:
 @smallexample
 require "test-spamd";
 @dots{}
@@ -984,7 +984,7 @@ if spamd @var{args}
   @}
 @end smallexample
   
-@subsubheading Description  
+@*Description:  
 This test is an interface to SpamAssassin filter. It connects to the
 @command{spamd} daemon using connection parameters specified by tagged
 arguments @code{:host} and @code{:port} (if the daemon is listening on
@@ -1021,7 +1021,7 @@ Comma-separated list of keywords, describing the spam checks that
 succeeded for this message.
 @end table
 
-@subsubheading Example
+@*Example:
 @smallexample
 request "test-spamd";
 
@@ -1036,7 +1036,7 @@ if spamd :host 127.0.0.1 :port 3333
 @deftypefn Test {} list [@var{comparator}] [@var{match-type}] @
                         [ :delim @var{delimiters}(string) ] @
                 @var{headers}(string-list) @var{keys}(string-list)
-@subsubheading Synopsis
+@*Synopsis:
 @smallexample
 require "test-list";
 if list @var{args}
@@ -1044,14 +1044,14 @@ if list @var{args}
      @dots{} 
   @}
 @end smallexample  
-@subsubheading Description  
+@*Description:  
 The @code{list} test evaluates to true if any of @var{headers} match any
 key from @var{keys}. Each header is regarded as containing a list of
 keywords. By default, comma is assumed as list separator. This can be
 overridden by specifying the @code{:delim} tag, whose value is a
 string consisting of valid list delimiter characters.
 
-@subsubheading Example
+@*Example:
 This test can be used in conjunction with the @code{spamd} test
 described above:
 
@@ -1075,7 +1075,7 @@ if spamd :host 127.0.0.1 :port 3333
 
 @deftypefn Test {} timestamp  [:before | :after] @
                    @var{header}(string) @var{date}(string)
-@subsubheading Synopsis
+@*Synopsis:
 @smallexample
 require "test-timestamp";
 
@@ -1084,7 +1084,7 @@ if timestamp @var{arg}
      @dots{}
   @}
 @end smallexample
-@subsubheading Description
+@*Description:
 The @code{timestamp} test compares the value of a structured date header
 field (@var{header}) with the given date (@var{date}).
 
@@ -1101,7 +1101,7 @@ If no tagged argument is supplied, @code{:after} is assumed.
 Almost any date format is understood. @xref{Date Input Formats}, for
 a detailed information on date formats.
 
-@subsubheading Example
+@*Example:
 The test below succeeds if the date in @samp{X-Expire-Timestamp}
 header is more than 5 days older than the current date:
 
@@ -1366,12 +1366,12 @@ required prior to use (@pxref{Require Statement}).
 
 @deftypefn Action {}  moderator [:keep] [:address @var{address}(string)] @
                                 [:source @var{sieve-file}(string)]
-@subsubheading Synopsis
+@*Synopsis:
 @smallexample
 require "moderator"
 moderator @var{args};
 @end smallexample
-@subsubheading Description
+@*Description:
 @cindex mailman
 This action is a moderator robot for Mailman-driven mail archives.
 A Mailman moderation request is a MIME message consisting of the
@@ -1408,7 +1408,7 @@ does not have exactly 3 MIME parts, or if parts 2 and 3 are not of
 make sure the message is actually a valid Mailman moderation request
 (see the example below).
 
-@subsubheading Example
+@*Example:
 @smallexample
 if allof(header :is "Sender" "mailman-bounces@@gnu.org",
          header :is "X-List-Administrivia" "yes")
@@ -1419,7 +1419,7 @@ if allof(header :is "Sender" "mailman-bounces@@gnu.org",
 @end deftypefn
 
 @deftypefn Action {} pipe [:envelope] @var{command}(string)
-@subsubheading Synopsis
+@*Synopsis:
 @smallexample
 require "pipe";
 if pipe @var{args}
@@ -1427,7 +1427,7 @@ if pipe @var{args}
      @dots{}
   @}
 @end smallexample
-@subsubheading Description
+@*Description:
 The @code{pipe} action sends executes a command specified by its
 argument and sends the entire message to its standard input. The
 @var{command} argument supplies the command line.
@@ -1435,7 +1435,7 @@ argument and sends the entire message to its standard input. The
 The envelope of the message is included, if the @code{:envelope} tag
 is given. 
 
-@subsubheading Example
+@*Example:
 The example below uses the @command{maidag} utility
 (@pxref{maidag}) to forward the message to user @samp{gray} on
 the machine @samp{mail.gnu.org}.
@@ -1454,12 +1454,12 @@ pipe "/usr/sbin/maidag --url smtp://gray@@mail.gnu.org"
                           [:reply_regex @var{expr}(string)] @
                           [:reply_prefix @var{prefix}(string)] @
                           @var{reply-text}(string)
-@subsubheading Syntax
+@*Syntax:
 @smallexample
 require "vacation";
 vacation @var{args};
 @end smallexample
-@subsubheading Description
+@*Description:
 The @code{vacation} action returns a message with @var{reply-text} to
 the sender. It is intended to inform the sender that the recipient is
 not currently reading his mail.

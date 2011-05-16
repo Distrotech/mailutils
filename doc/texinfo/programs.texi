@@ -1387,7 +1387,7 @@ subsection.
 @node General Server Configuration
 @subsubsection General Server Configuration
 @cindex server configuration, general
-@subsubheading Syntax
+@* Syntax:
 @smallexample
 # @r{Set daemon mode.}
 mode @samp{inetd|daemon};
@@ -1403,7 +1403,7 @@ port @var{portspec};
 timeout @var{time};
 @end smallexample
 
-@subsubheading Description
+@* Description:
 These statements configure general server-related issues.
 
 @deffn {Configuration} mode @var{string};
@@ -1476,7 +1476,7 @@ requests during @var{time} seconds, the child process terminates.
 @subsubsection Server Statement
 @cindex server statement
 @kwindex server
-@subsubheading Syntax
+@* Syntax:
 @smallexample
 server @var{ipaddr}[:@var{port}] @{
   # @r{Run this server as a single process.}
@@ -1490,7 +1490,7 @@ server @var{ipaddr}[:@var{port}] @{
 @}
 @end smallexample
 
-@subsubheading Description
+@* Description:
 The @code{server} block statement configures a single TCP or UDP
 server. It takes effect only in daemon mode (@pxref{server mode}).
 The argument to this statement specifies the IP address, and,
@@ -2427,7 +2427,7 @@ The actual escape character may be changed by setting the value of
 @end menu
 
 @node Quitting Compose Mode
-@subsubheading Quitting Compose Mode
+@subsubsection Quitting Compose Mode
 @kyindex ~., mail escape
 @kyindex ~x, mail escape
 
@@ -2450,7 +2450,7 @@ when mail variable @code{ignore} is set. In this case, you can use
 @samp{~x} escape to achieve the same effect.
 
 @node Getting Help on Compose Escapes
-@subsubheading Getting Help on Compose Escapes: ~?
+@subsubsection Getting Help on Compose Escapes: ~?
 @kyindex ~?, mail escape
 
 The @samp{~?} escape prints on screen a brief summary of the available
@@ -2458,7 +2458,7 @@ compose escapes. @emph{Please note}, that @samp{~h} escape prompts
 for changing the header values, and does @emph{not} give help.
 
 @node Editing the Message
-@subsubheading Editing the Message: ~e and ~v
+@subsubsection Editing the Message: ~e and ~v
 @kyindex ~e, mail escape
 @kyindex ~v, mail escape
 
@@ -2474,7 +2474,7 @@ the message with headers included, thus allowing you to change
 the headers as well.
 
 @node Modifying the Headers
-@subsubheading Modifying the Headers: ~h, ~t, ~c, ~b, ~s
+@subsubsection Modifying the Headers: ~h, ~t, ~c, ~b, ~s
 
 To add new addresses to the list of message recipients, use @samp{~t}
 command, e.g.:
@@ -2498,7 +2498,7 @@ you with the values of @code{To}, @code{Cc}, @code{Bcc}, and
 commands.
 
 @node Enclosing Another Message
-@subsubheading Enclosing Another Message: ~m and ~M
+@subsubsection Enclosing Another Message: ~m and ~M
 @kyindex ~m, mail escape
 @kyindex ~M, mail escape
 
@@ -2515,7 +2515,7 @@ In both cases, the contents of @code{indentprefix} mail variable is
 prepended to each line enclosed.
 
 @node Adding a File to the Message
-@subsubheading Adding a File to the Message: ~r and ~d
+@subsubsection Adding a File to the Message: ~r and ~d
 
 To append the contents of file @var{filename} to the message, type
 
@@ -2537,7 +2537,7 @@ The @samp{~d} escape is a shorthand for
 @end smallexample
 
 @node Printing And Saving the Message
-@subsubheading Printing And Saving the Message
+@subsubsection Printing And Saving the Message
 @kyindex ~p, mail escape
 @kyindex ~w, mail escape
 
@@ -2547,7 +2547,7 @@ an arbitrary file using @samp{~w} escape. It takes the filename as its
 argument.
 
 @node Signing the Message
-@subsubheading Signing the Message: ~a and ~A
+@subsubsection Signing the Message: ~a and ~A
 @kyindex ~a, mail escape
 @kyindex ~A, mail escape
 
@@ -2560,7 +2560,7 @@ variable @code{Sign}, and use @samp{~A} escape to insert it into
 the message.
 
 @node Printing Another Message
-@subsubheading Printing Another Message: ~f and ~F
+@subsubsection Printing Another Message: ~f and ~F
 @kyindex ~f, mail escape
 @kyindex ~F, mail escape
 
@@ -2573,14 +2573,14 @@ lists to select headers to be displayed, whereas the latter prints
 all headers.
 
 @node Inserting Value of a Mail Variable
-@subsubheading Inserting Value of a Mail Variable: ~i
+@subsubsection Inserting Value of a Mail Variable: ~i
 @kyindex ~i, mail escape
 
 The @samp{~i} escape enters the value of the named mail variable into
 the body of the message being composed.
 
 @node Executing Other Mail Commands
-@subsubheading Executing Other Mail Commands: ~: and ~-
+@subsubsection Executing Other Mail Commands: ~: and ~-
 @kyindex ~:, mail escape
 @kyindex ~-, mail escape
 
@@ -2603,7 +2603,7 @@ the only commands that can reasonably be used are: @code{alias},
 @code{unalias}, @code{alternate}, @code{set}, and @code{unset}.
 
 @node Executing Shell Commands
-@subsubheading Executing Shell Commands: ~! and ~|
+@subsubsection Executing Shell Commands: ~! and ~|
 @kyindex ~!, mail escape
 @kyindex ~|, mail escape
 
@@ -2693,7 +2693,7 @@ commands the user enters.
 
 @c **********************************
 @node Quitting the Program
-@subsubheading Quitting the Program
+@subsubsection Quitting the Program
 
 Following commands quit the program:
 
@@ -2716,7 +2716,7 @@ upon.
 Typing EOF (@samp{C-D}) alone is equivalent to @samp{quit}.
 
 @node Obtaining Online Help
-@subsubheading Obtaining Online Help
+@subsubsection Obtaining Online Help
 @kyindex help, mail command
 @kyindex ?, mail command
 @kyindex list, mail command
@@ -2744,7 +2744,7 @@ Display program warranty statement.
 @end table
 
 @node Moving Within a Mailbox
-@subsubheading Moving Within a Mailbox
+@subsubsection Moving Within a Mailbox
 @kyindex next, mail command
 @kyindex prev, mail command
 
@@ -2762,7 +2762,7 @@ Move to the previous message.
 @end table
 
 @node Changing mailbox/directory
-@subsubheading Changing Mailbox/Directory
+@subsubsection Changing Mailbox/Directory
 @kyindex chdir, mail command
 @kyindex file, mail command
 @kyindex folder, mail command
@@ -2791,7 +2791,7 @@ name followed by the summary information regarding it, e.g.:
 @end table
 
 @node Controlling Header Display
-@subsubheading Controlling Header Display
+@subsubsection Controlling Header Display
 @kyindex discard, mail command
 @kyindex ignore, mail command
 @kyindex retain, mail command
@@ -2820,7 +2820,7 @@ arguments, this command prints the contents of retained list.
 @end table
 
 @node Displaying Information
-@subsubheading Displaying Information
+@subsubsection Displaying Information
 @kyindex =, mail command
 @kyindex headers, mail command
 @kyindex from, mail command
@@ -2872,7 +2872,7 @@ Displays current mailbox summary. E.g.:
 @end table
 
 @node Displaying Messages
-@subsubheading Displaying Messages
+@subsubsection Displaying Messages
 @kyindex print, mail command
 @kyindex type, mail command
 @kyindex Print, mail command
@@ -2945,7 +2945,7 @@ Example:
 @end table
 
 @node Marking Messages
-@subsubheading Marking Messages
+@subsubsection Marking Messages
 @kyindex tag, mail command
 @kyindex hold, mail command
 @kyindex preserve, mail command
@@ -2971,7 +2971,7 @@ does not override the effect of @code{delete} command.
 @end table
 
 @node Disposing of Messages
-@subsubheading Disposing of Messages
+@subsubsection Disposing of Messages
 @kyindex delete, mail command
 @kyindex undelete, mail command
 @kyindex dt, mail command
@@ -2995,7 +2995,7 @@ prints the message, immediately following last deleted one.
 @end table
 
 @node Saving Messages
-@subsubheading Saving Messages
+@subsubsection Saving Messages
 @kyindex save, mail command
 @kyindex Save, mail command
 @kyindex write, mail command
@@ -3060,7 +3060,7 @@ deletion.
 @end table
 
 @node Editing Messages
-@subsubheading Editing Messages
+@subsubsection Editing Messages
 @kyindex edit, mail command
 @kyindex visual, mail command
 
@@ -3081,7 +3081,7 @@ Edits each message in @var{msglist} with the editor, specified in
 @end table
 
 @node Aliasing
-@subsubheading Aliasing
+@subsubsection Aliasing
 @kyindex alias, mail command
 @kyindex group, mail command
 @kyindex unalias, mail command
@@ -3111,7 +3111,7 @@ alternate names is displayed.
 @end table
 
 @node Replying
-@subsubheading Replying
+@subsubsection Replying
 @kyindex mail, mail command
 @kyindex reply, mail command
 @kyindex Reply, mail command
@@ -3226,7 +3226,7 @@ Subject: Re: News
 @end smallexample
 
 @node Controlling Sender Fields
-@subsubheading Controlling Sender Fields
+@subsubsection Controlling Sender Fields
 @kyindex sender, mail command
 @kyindex nosender, mail command
 
@@ -3279,7 +3279,7 @@ Sender address is obtained from the envelope
 @end smallexample
 
 @node Incorporating New Mail
-@subsubheading Incorporating New Mail
+@subsubsection Incorporating New Mail
 @kyindex incorporate, mail command
 
 The @code{incorporate} (@code{inc}) command incorporates newly arrived
@@ -3288,7 +3288,7 @@ before returning to @command{mail} command prompt if the variable
 @code{autoinc} is set.
 
 @node Shell Escapes
-@subsubheading Shell Escapes
+@subsubsection Shell Escapes
 @kyindex shell, mail command
 @kyindex !, mail command
 
@@ -4730,7 +4730,7 @@ its standard.
 @end menu
 
 @node Invoking Sieve
-@subsubheading Invoking @command{sieve}
+@subsubsection Invoking @command{sieve}
 
 The @command{sieve} invocation syntax is:
 
@@ -4816,7 +4816,7 @@ Log all actions executed. See also @ref{Sieve Configuration, verbose}.
 @end table
 
 @node Sieve Configuration
-@subsubheading Sieve Configuration
+@subsubsection Sieve Configuration
 
 The behavior of @command{sieve} is affected by the following
 configuration statements:
@@ -4905,7 +4905,7 @@ executed.
 @end deffn
 
 @node Logging and Debugging
-@subsubheading Logging and debugging
+@subsubsection Logging and debugging
 
 The default behavior of @command{sieve} is to remain silent about
 anything except errors. However, it is sometimes necessary to see
@@ -4958,7 +4958,7 @@ This option causes @command{sieve} to output its diagnostics to
 the given syslog facility.
 
 @node Extending Sieve
-@subsubheading Extending @command{sieve}
+@subsubsection Extending @command{sieve}
 
 The basic set of sieve actions, tests and comparators may be extended
 using loadable extensions. Usual @code{require} mechanism is used for

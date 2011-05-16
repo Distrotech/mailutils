@@ -292,7 +292,11 @@ mu_tcp_stream_create_from_sa (mu_stream_t *pstream,
   if (rc == 0 || rc == EAGAIN || rc == EINPROGRESS)
     *pstream = stream;
   else
-    mu_stream_destroy (&stream);
+    {
+      /* Make sure sockaddrs are not freed on error */
+      tcp->remote_addr = tcp->source_addr = NULL;
+      mu_stream_destroy (&stream);
+    }
   return rc;
 }
 
