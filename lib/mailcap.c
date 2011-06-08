@@ -387,7 +387,7 @@ dump_mailcap_entry (mu_mailcap_entry_t entry)
 		    mu_strerror (status));
 	  break;
 	}
-      printf ("fields[%d]: %s\n", i, buffer);
+      printf ("fields[%u]: %s\n", (unsigned) i, buffer);
     }
   printf ("\n");
 }

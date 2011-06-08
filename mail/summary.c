@@ -28,8 +28,8 @@ mail_summary (int argc MU_ARG_UNUSED, char **argv MU_ARG_UNUSED)
   mu_attribute_t attr;
   size_t msgno;
   size_t count = 0;
-  int mseen = 0, mnew = 0, mdelete = 0;
-  int first_new = 0, first_unread = 0;
+  unsigned long mseen = 0, mnew = 0, mdelete = 0;
+  size_t first_new = 0, first_unread = 0;
 
   mu_mailbox_messages_count (mbox, &count);
   for (msgno = 1; msgno <= count; msgno++)
@@ -62,17 +62,15 @@ mail_summary (int argc MU_ARG_UNUSED, char **argv MU_ARG_UNUSED)
     mu_mailbox_get_url (mbox, &url);
     mu_printf ("\"%s\": ", util_url_to_string (url));
   }
-  mu_printf (
-		    ngettext ("%d message", "%d messages", count), count);
+  mu_printf (ngettext ("%lu message", "%lu messages",
+		       (unsigned long) count), (unsigned long) count);
   if (mnew > 0)
-    mu_printf (ngettext (" %d new", " %d new", mnew), mnew);
+    mu_printf (ngettext (" %lu new", " %lu new", mnew), mnew);
   if (mseen > 0)
-    mu_printf (ngettext (" %d unread", " %d unread", mseen),
-		      mseen);
+    mu_printf (ngettext (" %lu unread", " %lu unread", mseen), mseen);
   if (mdelete > 0)
-    mu_printf (
-		      ngettext (" %d deleted", " %d deleted", mdelete),
-		      mdelete);
+    mu_printf (ngettext (" %lu deleted", " %lu deleted", mdelete),
+	       mdelete);
   mu_printf ("\n");
 
   /* Set the cursor.  */

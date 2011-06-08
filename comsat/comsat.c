@@ -379,9 +379,10 @@ comsat_connection (int fd, struct sockaddr *sa, int salen,
     {
       char *p = mu_sockaddr_to_astr (sa, salen);
       mu_diag_output (MU_DIAG_INFO,
-		      ngettext ("received %d byte from %s",
-				"received %d bytes from %s", rdlen),
-		      rdlen, p);
+		      ngettext ("received %lu byte from %s",
+				"received %lu bytes from %s",
+				(unsigned long) rdlen),
+		      (unsigned long) rdlen, p);
       mu_diag_output (MU_DIAG_INFO, "string: %s", buffer);
       free (p);
     }

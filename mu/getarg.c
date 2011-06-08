@@ -21,6 +21,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <netdb.h>
+#include <netinet/in.h>
 #include <mailutils/mailutils.h>
 #include "mu.h"
 

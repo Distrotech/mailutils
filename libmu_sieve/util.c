@@ -213,7 +213,8 @@ mu_sieve_error (mu_sieve_machine_t mach, const char *fmt, ...)
   if (mach->locus.mu_file)
     mu_stream_printf (mach->errstream, "\033O<%d>\033f<%u>%s\033l<%u>",
 		      MU_LOGMODE_LOCUS,
-		      strlen (mach->locus.mu_file), mach->locus.mu_file,
+		      (unsigned) strlen (mach->locus.mu_file),
+		      mach->locus.mu_file,
 		      mach->locus.mu_line);
   if (mach->identifier)
     mu_stream_printf (mach->errstream, "%s: ", mach->identifier);
@@ -238,7 +239,8 @@ mu_sieve_debug (mu_sieve_machine_t mach, const char *fmt, ...)
   if (mach->locus.mu_file)
     mu_stream_printf (mach->errstream, "\033O<%d>\033f<%u>%s\033l<%u>",
 		      MU_LOGMODE_LOCUS,
-		      strlen (mach->locus.mu_file), mach->locus.mu_file,
+		      (unsigned) strlen (mach->locus.mu_file),
+		      mach->locus.mu_file,
 		      mach->locus.mu_line);
   mu_stream_vprintf (mach->errstream, fmt, ap);
   mu_stream_write (mach->errstream, "\n", 1, NULL);
@@ -258,7 +260,8 @@ mu_sieve_log_action (mu_sieve_machine_t mach, const char *action,
   if (mach->locus.mu_file)
     mu_stream_printf (mach->errstream, "\033O<%d>\033f<%u>%s\033l<%u>",
 		      MU_LOGMODE_LOCUS,
-		      strlen (mach->locus.mu_file), mach->locus.mu_file,
+		      (unsigned) strlen (mach->locus.mu_file),
+		      mach->locus.mu_file,
 		      mach->locus.mu_line);
   mach->logger (mach->data, mach->errstream, mach->msgno, mach->msg,
 		action, fmt, ap);

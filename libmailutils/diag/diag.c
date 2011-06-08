@@ -31,12 +31,14 @@
 #include <mailutils/stream.h>
 
 const char *mu_program_name;
+const char *mu_full_program_name;
 
 void
 mu_set_program_name (const char *name)
 {
   const char *progname;
 
+  mu_full_program_name = name;
   if (!name)
     progname = name;
   else
@@ -86,7 +88,8 @@ mu_diag_at_locus (int level, struct mu_locus const *loc, const char *fmt, ...)
 
   va_start (ap, fmt);
   mu_stream_printf (mu_strerr, "\033f<%d>%s\033l<%u>\033c<%u>",
-		    strlen (loc->mu_file), loc->mu_file, loc->mu_line,
+		    (unsigned) strlen (loc->mu_file), loc->mu_file,
+		    loc->mu_line,
 		    loc->mu_col);
   mu_diag_voutput (level, fmt, ap);
   va_end (ap);

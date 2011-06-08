@@ -23,8 +23,9 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
-#include <argp.h>
+#include <mailutils/diag.h>
 #include <mailutils/util.h>
 
 /* Dump a stack trace and terminate current program.
@@ -40,16 +41,13 @@ mu_gdb_bt ()
   pid_t pid;
   static char buf[1024];
   static char fname[1024];
-  char *p;
   int fd;
   char *argv[8];
   
-  p = strrchr (program_invocation_name, '/');
-  if (p)
-    p++;
-  else
-    p = program_invocation_name;
-  sprintf (fname, "/tmp/mailutils.%s.%lu", p, (unsigned long) master_pid);
+  if (!mu_program_name)
+    abort ();
+  sprintf (fname, "/tmp/mailutils.%s.%lu",
+	   mu_program_name, (unsigned long) master_pid);
   
   pid = fork ();
   if (pid == (pid_t)-1)
@@ -72,7 +70,7 @@ mu_gdb_bt ()
   close (fd);
   
   argv[0] = "/usr/bin/gdb";
-  argv[1] = program_invocation_name;
+  argv[1] = (char*) mu_full_program_name;
   sprintf (buf, "%lu", (unsigned long) master_pid);
   argv[2] = buf;
   argv[3] = "-ex";

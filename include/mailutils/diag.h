@@ -30,6 +30,7 @@ extern "C" {
 #endif
 
 extern const char *mu_program_name;
+extern const char *mu_full_program_name;
 
 #define MU_DIAG_EMERG    MU_LOG_EMERG
 #define MU_DIAG_ALERT    MU_LOG_ALERT

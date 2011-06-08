@@ -135,7 +135,7 @@ mh_help (struct mh_option *mh_opt, const char *doc)
 	printf ("[no]");
       if (len > p->match_len)
 	printf ("(%*.*s)%s",
-		p->match_len, p->match_len, p->opt,
+		(int) p->match_len, (int) p->match_len, p->opt,
 		p->opt + p->match_len);
       else
 	printf ("%s", p->opt);

@@ -18,9 +18,13 @@
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
 #include <string.h>
 #include <stdlib.h>
-#include <arpa/inet.h>
 #include <mailutils/cidr.h>
 #include <mailutils/errno.h>
 #include <mailutils/sockaddr.h>

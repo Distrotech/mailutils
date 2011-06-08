@@ -20,7 +20,6 @@
 #endif
 
 #include <unistd.h>
-#include <argp.h>
 #include <mailutils/diag.h>
 
 /* A debugging hook.
@@ -46,7 +45,7 @@ mu_wd (unsigned to)
 		    (unsigned long) pid);
   mu_diag_output (MU_DIAG_CRIT,
 		  "to attach: gdb -ex 'set variable mu_wd::_count_down=0' %s %lu",
-		  program_invocation_name, (unsigned long) pid);
+		  mu_full_program_name, (unsigned long) pid);
   if (to)
     {
       _count_down = to;

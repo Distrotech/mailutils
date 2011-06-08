@@ -22,6 +22,7 @@
 #include <termios.h>
 #include <unistd.h>
 #include <netdb.h>
+#include <netinet/in.h>
 #include <mailutils/mailutils.h>
 #include <mailutils/imap.h>
 #include "mu.h"
