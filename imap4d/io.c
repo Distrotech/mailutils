@@ -305,7 +305,7 @@ util_is_master ()
   return iostream == NULL;
 }
 
-int
+void
 io_getline (char **pbuf, size_t *psize, size_t *pnbytes)
 {
   size_t len;
@@ -323,7 +323,11 @@ io_getline (char **pbuf, size_t *psize, size_t *pnbytes)
       if (pnbytes)
 	*pnbytes = len;
     }
-  return rc;
+  else
+    {
+      mu_error (_("read error: %s"), mu_strerror (rc));
+      imap4d_bye (ERR_NO_IFILE);
+    }
 }
 
 
