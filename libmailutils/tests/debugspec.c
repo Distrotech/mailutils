@@ -33,7 +33,7 @@ main (int argc, char **argv)
   char *arg;
   
   mu_set_program_name (argv[0]);
-  mu_stdstream_setup ();
+  mu_stdstream_setup (MU_STDSTREAM_RESET_NONE);
 
   if (argc == 1)
     {

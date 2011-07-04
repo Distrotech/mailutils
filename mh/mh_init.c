@@ -40,20 +40,10 @@ char mh_list_format[] =
   "%<(zero)%17(decode(friendly{from}))%>"
   "  %(decode{subject})%<{body}<<%{body}>>%>";
 
-/* Make sure stdin is open.  If not, connect it to /dev/null. */
-static void
-mh_ensure_stdin ()
-{
-  int fd = open ("/dev/null", O_RDONLY);
-  if (fd != 0)
-    close (fd);
-}
-
 void
 mh_init ()
 {
-  mh_ensure_stdin ();
-  mu_stdstream_setup ();
+  mu_stdstream_setup (MU_STDSTREAM_RESET_NONE);
   
   /* Register all mailbox and mailer formats */
   mu_register_all_formats ();

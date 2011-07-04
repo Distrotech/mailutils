@@ -164,7 +164,7 @@ struct mailvar_symbol mailvar_tab[] =
     { { "metamail", },
       MAILVAR_TYPEMASK (mailvar_type_boolean),
       N_("interpret the content of message parts; if set to a string "
-	 "specifies the name of the externam metamail command") },
+	 "specifies the name of the external metamail command") },
     { { "metoo", },
       MAILVAR_TYPEMASK (mailvar_type_boolean),
       N_("do not remove sender addresses from the recipient list") },

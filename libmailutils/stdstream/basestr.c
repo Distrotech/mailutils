@@ -41,17 +41,22 @@ stdstream_flushall (void *data MU_ARG_UNUSED)
   mu_stream_flush (mu_strerr);
 }
 
+static int stdstream_flushall_setup = 0;
+
 void
-mu_stdstream_setup ()
+mu_stdstream_setup (int flags)
 {
   int rc;
   int fd;
   int yes = 1;
   
   /* If the streams are already open, close them */
-  mu_stream_destroy (&mu_strin);
-  mu_stream_destroy (&mu_strout);
-  mu_stream_destroy (&mu_strerr);
+  if (flags & MU_STDSTREAM_RESET_STRIN)
+    mu_stream_destroy (&mu_strin);
+  if (flags & MU_STDSTREAM_RESET_STROUT)
+    mu_stream_destroy (&mu_strout);
+  if (flags & MU_STDSTREAM_RESET_STRERR)
+    mu_stream_destroy (&mu_strerr);
   
   /* Ensure that first 3 descriptors are open in proper mode */
   fd = open ("/dev/null", O_RDWR);
@@ -84,28 +89,42 @@ mu_stdstream_setup ()
     }
 
   /* Create the corresponding streams */
-  rc = mu_stdio_stream_create (&mu_strin, MU_STDIN_FD, 0);
-  if (rc)
+  if (!mu_strin)
     {
-      fprintf (stderr, "mu_stdio_stream_create(%d): %s\n",
-	       MU_STDIN_FD, mu_strerror (rc));
-      abort ();
+      rc = mu_stdio_stream_create (&mu_strin, MU_STDIN_FD, 0);
+      if (rc)
+	{
+	  fprintf (stderr, "mu_stdio_stream_create(%d): %s\n",
+		   MU_STDIN_FD, mu_strerror (rc));
+	  abort ();
+	}
+      mu_stream_ioctl (mu_strin, MU_IOCTL_FD, MU_IOCTL_FD_SET_BORROW, &yes);
     }
-  mu_stream_ioctl (mu_strin, MU_IOCTL_FD, MU_IOCTL_FD_SET_BORROW, &yes);
-  
-  rc = mu_stdio_stream_create (&mu_strout, MU_STDOUT_FD, 0);
-  if (rc)
-    {
-      fprintf (stderr, "mu_stdio_stream_create(%d): %s\n",
-	       MU_STDOUT_FD, mu_strerror (rc));
-      abort ();
-    }
-  mu_stream_ioctl (mu_strout, MU_IOCTL_FD, MU_IOCTL_FD_SET_BORROW, &yes);
 
-  if (mu_stdstream_strerr_create (&mu_strerr, MU_STRERR_STDERR, 0, 0,
-				  mu_program_name, NULL))
-    abort ();
-  mu_onexit (stdstream_flushall, NULL);
+  if (!mu_strout)
+    {
+      rc = mu_stdio_stream_create (&mu_strout, MU_STDOUT_FD, 0);
+      if (rc)
+	{
+	  fprintf (stderr, "mu_stdio_stream_create(%d): %s\n",
+		   MU_STDOUT_FD, mu_strerror (rc));
+	  abort ();
+	}
+      mu_stream_ioctl (mu_strout, MU_IOCTL_FD, MU_IOCTL_FD_SET_BORROW, &yes);
+    }
+
+  if (!mu_strerr)
+    {
+      if (mu_stdstream_strerr_create (&mu_strerr, MU_STRERR_STDERR, 0, 0,
+				      mu_program_name, NULL))
+	abort ();
+    }
+
+  if (!stdstream_flushall_setup)
+    {
+      mu_onexit (stdstream_flushall, NULL);
+      stdstream_flushall_setup = 1;
+    }
 }
 
 int

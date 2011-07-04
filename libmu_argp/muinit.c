@@ -107,9 +107,11 @@ mu_app_init (struct argp *myargp, const char **capa,
   char **excapa;
   struct mu_cfg_tree *parse_tree = NULL;
   
-  mu_set_program_name (argv[0]);
-  mu_log_tag = (char*)mu_program_name;
-  mu_stdstream_setup ();
+  if (!mu_program_name)
+    mu_set_program_name (argv[0]);
+  if (!mu_log_tag)
+    mu_log_tag = (char*)mu_program_name;
+  mu_stdstream_setup (MU_STDSTREAM_RESET_NONE);
   
   mu_libargp_init ();
   if (capa)

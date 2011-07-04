@@ -60,7 +60,7 @@ void
 mu_diag_init ()
 {
   if (!mu_strerr)
-    mu_stdstream_setup ();
+    mu_stdstream_setup (MU_STDSTREAM_RESET_NONE);
 }
 
 void

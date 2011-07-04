@@ -33,7 +33,17 @@ extern const char *mu_program_name;
 #define MU_STRERR_SYSLOG  1
 /* #define MU_STRERR_FILE    2 */
 
-void mu_stdstream_setup (void);
+#define MU_STDSTREAM_RESET_STRIN  0x01
+#define MU_STDSTREAM_RESET_STROUT 0x02
+#define MU_STDSTREAM_RESET_STRERR 0x04
+
+#define MU_STDSTREAM_RESET_NONE 0  
+#define MU_STDSTREAM_RESET_ALL \
+  (MU_STDSTREAM_RESET_STRIN | \
+   MU_STDSTREAM_RESET_STROUT | \
+   MU_STDSTREAM_RESET_STRERR)
+  
+void mu_stdstream_setup (int reset_flags);
 int mu_stdstream_strerr_create (mu_stream_t *str, int type, int facility,
 				int priority, const char *tag,
 				const char *fname);

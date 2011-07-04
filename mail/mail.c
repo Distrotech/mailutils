@@ -323,7 +323,7 @@ main (int argc, char **argv)
   struct arguments args;
   int i, rc;
   
-  mu_stdstream_setup ();
+  mu_stdstream_setup (MU_STDSTREAM_RESET_NONE);
   set_cursor (1);
 
   /* Native Language Support */

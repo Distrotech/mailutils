@@ -102,7 +102,7 @@ main (int argc, char **argv)
   struct mu_sockaddr_hints hints;
   
   mu_set_program_name (argv[0]);
-  mu_stdstream_setup ();
+  mu_stdstream_setup (MU_STDSTREAM_RESET_NONE);
 #ifdef WITH_TLS
   mu_init_tls_libs ();
 #endif  
