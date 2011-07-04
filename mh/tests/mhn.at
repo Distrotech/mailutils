@@ -251,7 +251,7 @@ mhn +inbox -store -part 2.2.1 4 | remove_curdir || exit $?
 [storing message 4 part 2.2.1 to folder inbox as message 5
 ])
 
-MH_CHECK([mhn-store-: pipe],[mhn11 mhn-store-pipe],[
+MH_CHECK([mhn-store-: pipe],[mhn11 mhn-store-pipe],[[
 mkdir Mail/inbox
 cp $abs_top_srcdir/testsuite/mh/mbox1/4 Mail/inbox
 chmod +w Mail/inbox/4
@@ -259,7 +259,7 @@ chmod +w Mail/inbox/4
 echo "Current-Folder: inbox" > Mail/context
 echo "mhn-store-text: | $abs_top_srcdir/mh/tests/mhed -" >> $MH
 mhn +inbox -store -part 1 4 | sed "s|$abs_top_srcdir/mh/tests/||;s|(cd \(.*\)\;|(cd home\;|;s|  *$||" || exit $?
-],
+]],
 [0],
 [-- Editor invocation: -
 -- Input file:

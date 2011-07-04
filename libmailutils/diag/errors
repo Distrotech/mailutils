@@ -53,7 +53,7 @@ MU_ERR_MAILER_NO_RCPT_TO    _("No receipt addresses found")
 MU_ERR_MAILER_BAD_URL       _("Malformed or unsupported mailer URL")
 MU_ERR_SMTP_RCPT_FAILED     _("SMTP rcpt to command failed")
 MU_ERR_TCP_NO_HOST          _("Tcp connections need a host")
-MU_ERR_TCP_NO_PORT          _("Tcp connections need a postive port")
+MU_ERR_TCP_NO_PORT          _("Tcp connections need a positive port")
 
 MU_ERR_BAD_2047_INPUT       _("Input string is not RFC 2047 encoded")
 MU_ERR_BAD_2047_ENCODING    _("Not a valid RFC 2047 encoding")
