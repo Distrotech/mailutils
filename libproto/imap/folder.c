@@ -2150,7 +2150,10 @@ imap_writeline (f_imap_t f_imap, const char *format, ...)
   va_start(ap, format);
   do
     {
-      len = vsnprintf (f_imap->buffer, f_imap->buflen, format, ap);
+      va_list aq;
+      va_copy(aq, ap);
+      len = vsnprintf (f_imap->buffer, f_imap->buflen, format, aq);
+      va_end(aq);
       if (len < 0 || len >= (int)f_imap->buflen
           || !memchr (f_imap->buffer, '\0', len + 1))
         {

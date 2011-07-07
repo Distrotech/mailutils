@@ -88,7 +88,10 @@ mu_nntp_writeline (mu_nntp_t nntp, const char *format, ...)
      let's try to cope.  */
   do
     {
-      len = vsnprintf (nntp->io.buf, nntp->io.len - 1, format, ap);
+      va_list aq;
+      va_copy(aq, ap);
+      len = vsnprintf (nntp->io.buf, nntp->io.len - 1, format, aq);
+      va_end(aq);
       if (len < 0 || len >= (int)nntp->io.len
 	  || !memchr (nntp->io.buf, '\0', len + 1))
 	{

@@ -46,7 +46,13 @@ mu_vasnprintf (char **pbuf, size_t *psize, const char *fmt, va_list ap)
   
   for (;;)
     {
-      ssize_t n = vsnprintf (buf, buflen, fmt, ap);
+      ssize_t n;
+      va_list aq;
+
+      va_copy(aq, ap);
+      n = vsnprintf (buf, buflen, fmt, aq);
+      va_end(aq);
+
       if (n < 0 || n >= buflen || !memchr (buf, '\0', n + 1))
 	{
 	  char *newbuf;
