@@ -284,6 +284,7 @@ static struct mu_cfg_param imap4d_cfg_param[] = {
     N_("Use only encrypted ident responses.") },
   { "id-fields", MU_CFG_LIST_OF(mu_cfg_string), &imap4d_id_list, 0, NULL,
     N_("List of fields to return in response to ID command.") },
+  { "mandatory-locking", mu_cfg_section },
   { ".server", mu_cfg_section, NULL, 0, NULL,
     N_("Server configuration.") },
   { "transcript", mu_cfg_bool, &imap4d_transcript, 0, NULL,
@@ -556,6 +557,7 @@ main (int argc, char **argv)
   mu_gocs_register ("gsasl", mu_gsasl_module_init);
 #endif
   mu_tcpwrapper_cfg_init ();
+  manlock_cfg_init ();
   mu_acl_cfg_init ();
   mu_m_server_cfg_init ();
   

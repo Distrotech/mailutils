@@ -60,6 +60,7 @@ imap4d_bye0 (int reason, struct imap4d_command *command)
 	  imap4d_enter_critical ();
 	  mu_mailbox_flush (mbox, 0);
 	  mu_mailbox_close (mbox);
+	  manlock_unlock (mbox);
 	  mu_mailbox_destroy (&mbox);
 	  imap4d_leave_critical ();
 	}

@@ -34,13 +34,13 @@ pop3d_quit (char *arg)
 
   if (state == TRANSACTION)
     {
-      pop3d_unlock ();
       pop3d_fix_mark ();
 
       if (mu_mailbox_flush (mbox, 1) != 0)
 	err = ERR_FILE;
       if (mu_mailbox_close (mbox) != 0) 
 	err = ERR_FILE;
+      manlock_unlock (mbox);
       mu_mailbox_destroy (&mbox);
       mu_diag_output (MU_DIAG_INFO, _("session ended for user: %s"), username);
     }

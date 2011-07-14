@@ -49,9 +49,9 @@ pop3d_abquit (int reason)
   /* Unlock spool */
   if (state != AUTHORIZATION)
     {
-      pop3d_unlock ();
       mu_mailbox_flush (mbox, 0);
       mu_mailbox_close (mbox);
+      manlock_unlock (mbox);
       mu_mailbox_destroy (&mbox);
     }
 

@@ -32,7 +32,6 @@ pop3d_SOURCES =\
  expire.c\
  extra.c\
  list.c\
- lock.c\
  logindelay.c\
  noop.c\
  pop3d.c\

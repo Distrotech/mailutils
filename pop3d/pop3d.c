@@ -118,6 +118,7 @@ static struct mu_cfg_param pop3d_cfg_param[] = {
 #endif
   { "output-buffer-size", mu_cfg_size, &pop3d_output_bufsize, 0, NULL,
     N_("Size of the output buffer.") },
+  { "mandatory-locking", mu_cfg_section },
   { ".server", mu_cfg_section, NULL, 0, NULL,
     N_("Server configuration.") },
   { "transcript", mu_cfg_bool, &pop3d_transcript, 0, NULL,
@@ -269,7 +270,7 @@ pop3d_mainloop (int ifd, int ofd)
 	}
 
       /* Refresh the Lock.  */
-      pop3d_touchlock ();
+      manlock_touchlock (mbox);
 
       if ((handler = pop3d_find_command (cmd)) != NULL)
 	status = handler (arg);
@@ -320,6 +321,7 @@ main (int argc, char **argv)
   mu_gocs_register ("tls", mu_tls_module_init);
 #endif /* WITH_TLS */
   mu_tcpwrapper_cfg_init ();
+  manlock_cfg_init ();
   mu_acl_cfg_init ();
   mu_m_server_cfg_init ();
   

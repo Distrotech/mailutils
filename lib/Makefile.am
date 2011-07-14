@@ -23,6 +23,7 @@ libmuaux_a_SOURCES += \
  argp_base.c\
  daemon.c\
  mailcap.c\
+ manlock.c\
  mu_dbm.c\
  signal.c\
  strexit.c\

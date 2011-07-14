@@ -50,6 +50,7 @@ imap4d_close0 (struct imap4d_command *command, imap4d_tokbuf_t tok,
       mu_diag_funcall (MU_DIAG_ERROR, "mu_mailbox_close", NULL, status);
       msg = "closing mailbox failed";
     }
+  manlock_unlock (mbox);
   mu_mailbox_destroy (&mbox);
 
   if (msg)

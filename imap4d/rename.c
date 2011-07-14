@@ -131,7 +131,8 @@ imap4d_rename (struct imap4d_command *command, imap4d_tokbuf_t tok)
      exist.  */
   if (stat (newname, &newst) == 0)
     {
-      if (!S_ISDIR(newst.st_mode))
+      /* FIXME: What if it's a maildir?!? */
+      if (!S_ISDIR (newst.st_mode))
 	{
 	  free (newname);
 	  return io_completion_response (command, RESP_NO,

@@ -18,3 +18,14 @@ int mu_switch_to_privs (uid_t uid, gid_t gid, mu_list_t retain_groups);
 void mu_set_signals (RETSIGTYPE (*handler) (int signo), int *sigv, int sigc);
 const char *mu_strexit (int code);
 
+extern int manlock_mandatory_locking;
+extern char *manlock_lock_dir;
+
+int manlock_open_mailbox (mu_mailbox_t *pmbox, const char *mailbox_name,
+			  int def, int flags);
+int manlock_lock (mu_mailbox_t mbox);
+int manlock_touchlock (mu_mailbox_t mbox);
+int manlock_unlock (mu_mailbox_t mbox);
+
+void manlock_cfg_init (void);
+

@@ -1361,7 +1361,6 @@ amd_cleanup (void *arg)
 {
   mu_mailbox_t mailbox = arg;
   mu_monitor_unlock (mailbox->monitor);
-  mu_locker_unlock (mailbox->locker);
 }
 
 int

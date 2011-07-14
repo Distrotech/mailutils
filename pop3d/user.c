@@ -22,7 +22,8 @@ struct mu_auth_data *auth_data;
 int
 pop3d_begin_session ()
 {
-  int status;
+  mu_url_t url = NULL;
+  size_t total = 0;
 
   mu_diag_output (MU_DIAG_INFO, _("POP3 login: user `%s', source %s"),
 		  auth_data->name, auth_data->source);
@@ -40,19 +41,9 @@ pop3d_begin_session ()
   if (auth_data->change_uid)
     setuid (auth_data->uid);
   
-  if ((status = mu_mailbox_create (&mbox, auth_data->mailbox)) != 0
-      || (status = mu_mailbox_open (mbox, MU_STREAM_CREAT | MU_STREAM_RDWR)) != 0)
+  if (manlock_open_mailbox (&mbox, auth_data->mailbox, 0,
+			    MU_STREAM_CREAT | MU_STREAM_RDWR))
     {
-      mu_mailbox_destroy (&mbox);
-      state = AUTHORIZATION;
-      mu_auth_data_destroy (&auth_data);
-      return ERR_MBOX_LOCK;
-    }
-  
-  if (pop3d_lock ())
-    {
-      mu_mailbox_close (mbox);
-      mu_mailbox_destroy (&mbox); 
       mu_auth_data_destroy (&auth_data);
       state = AUTHORIZATION;
       return ERR_MBOX_LOCK;
@@ -70,18 +61,14 @@ pop3d_begin_session ()
 
   deliver_pending_bulletins ();
   
-  /* mailbox name */
-  {
-    mu_url_t url = NULL;
-    size_t total = 0;
-    mu_mailbox_get_url (mbox, &url);
-    mu_mailbox_messages_count (mbox, &total);
-    mu_diag_output (MU_DIAG_INFO,
+  /* log mailbox stats */
+  mu_mailbox_get_url (mbox, &url);
+  mu_mailbox_messages_count (mbox, &total);
+  mu_diag_output (MU_DIAG_INFO,
 	    ngettext ("user `%s' logged in with mailbox `%s' (%s message)",
 		      "user `%s' logged in with mailbox `%s' (%s messages)",
 		      (unsigned long) total),
 	    username, mu_url_to_string (url), mu_umaxtostr (0, total));
-  }
 
   return OK;
 }

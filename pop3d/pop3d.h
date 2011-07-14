@@ -220,7 +220,6 @@ void pop3d_send_payload (mu_stream_t stream, mu_stream_t linestr,
 extern void pop3d_bye           (void);
 extern int pop3d_abquit         (int);
 extern char *pop3d_apopuser     (const char *);
-extern int pop3d_lock           (void);
 extern void process_cleanup     (void);
 
 extern void pop3d_parse_command (char *cmd, char **pcmd, char **parg);
@@ -232,8 +231,6 @@ extern RETSIGTYPE pop3d_child_signal  (int);
 extern int pop3d_stls           (char *);
 extern void enable_stls (void);
 #endif /* WITH_TLS */
-extern int pop3d_touchlock      (void);
-extern int pop3d_unlock         (void);
 extern void pop3d_outf          (const char *fmt, ...) MU_PRINTFLIKE(1,2);
 
 extern void pop3d_setio         (int, int);

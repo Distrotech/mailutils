@@ -187,6 +187,7 @@ imap4d_set_observer (mu_mailbox_t mbox)
 int
 imap4d_sync (void)
 {
+  manlock_touchlock (mbox);
   /* If mbox --> NULL, it means to free all the resources.
      It may be because of close or before select/examine a new mailbox.
      If it was a close we do not send any notification.  */

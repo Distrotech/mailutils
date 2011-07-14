@@ -30,7 +30,7 @@ imap4d_select (struct imap4d_command *command, imap4d_tokbuf_t tok)
 			 MU_STREAM_RDWR);
 }
 
-/* This code is share with EXAMINE.  */
+/* This code is shared with EXAMINE.  */
 int
 imap4d_select0 (struct imap4d_command *command, const char *mboxname,
 		int flags)
@@ -49,6 +49,7 @@ imap4d_select0 (struct imap4d_command *command, const char *mboxname,
       imap4d_enter_critical ();
       mu_mailbox_sync (mbox);
       mu_mailbox_close (mbox);
+      manlock_unlock (mbox);
       imap4d_leave_critical ();
       mu_mailbox_destroy (&mbox);
       /* Destroy the old uid table.  */
@@ -62,8 +63,31 @@ imap4d_select0 (struct imap4d_command *command, const char *mboxname,
   if (!mailbox_name)
     return io_completion_response (command, RESP_NO, "Couldn't open mailbox");
 
-  if ((status = mu_mailbox_create_default (&mbox, mailbox_name)) == 0
-      && (status = mu_mailbox_open (mbox, flags)) == 0)
+  if (flags & MU_STREAM_RDWR)
+    {
+      status = manlock_open_mailbox (&mbox, mailbox_name, 1, flags);
+    }
+  else
+    {
+      status = mu_mailbox_create_default (&mbox, mailbox_name);
+      if (status)
+	mu_diag_funcall (MU_DIAG_ERROR, "mu_mailbox_create_default",
+			 mailbox_name,
+			 status);
+      else
+	{
+	  status = mu_mailbox_open (mbox, flags);
+	  if (status)
+	    {
+	      mu_diag_funcall (MU_DIAG_ERROR, "mu_mailbox_open",
+			       mailbox_name,
+			       status);
+	      mu_mailbox_destroy (&mbox);
+	    }
+	}
+    }
+  
+  if (status == 0)
     {
       select_flags = flags;
       state = STATE_SEL;
