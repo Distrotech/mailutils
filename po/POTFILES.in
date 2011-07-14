@@ -32,6 +32,7 @@ lib/mailcap.c
 lib/tcpwrap.c
 lib/xmalloc.c
 lib/strexit.c
+lib/manlock.c
 
 libmu_argp/cmdline.c
 libmu_argp/common.c
@@ -197,7 +198,6 @@ movemail/movemail.c
 pop3d/apop.c
 pop3d/bulletin.c
 pop3d/extra.c
-pop3d/lock.c
 pop3d/logindelay.c
 pop3d/pop3d.c
 pop3d/popauth.c
