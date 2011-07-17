@@ -185,6 +185,8 @@ filter_read (mu_stream_t stream, char *buf, size_t size, size_t *pret)
 	      return iobuf.errcode;
 	      
 	    case mu_filter_moreinput:
+	      if (cmd == mu_filter_lastbuf)
+		return MU_ERR_FAILURE;
 	      min_input_level = iobuf.isize;
 	      continue;
 	      

@@ -168,7 +168,8 @@ mu_rfc2047_decode (const char *tocode, const char *input, char **ptostr)
 	  if (status != 0)
 	    break;
 
-	  while (mu_stream_read (filter, tmp, sizeof (tmp), &nbytes) == 0
+	  while ((status =
+		  mu_stream_read (filter, tmp, sizeof (tmp), &nbytes)) == 0
 		 && nbytes)
 	    {
 	      CHKBUF (nbytes);
@@ -178,6 +179,9 @@ mu_rfc2047_decode (const char *tocode, const char *input, char **ptostr)
 
 	  mu_stream_close (filter);
 	  mu_stream_destroy (&filter);
+
+	  if (status)
+	    break;
 	  
 	  fromstr = sp + 1;
 	  run_count = 1;
