@@ -32,7 +32,9 @@ chop (char *str)
 {
   int len;
   
-  for (len = strlen(str); len > 0 && mu_isspace(str[len-1]); len--)
+  if (!str)
+    return NULL;
+  for (len = strlen (str); len > 0 && mu_isspace (str[len-1]); len--)
     ;
   str[len] = 0;
   return str;

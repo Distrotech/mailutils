@@ -392,7 +392,17 @@ mu_auth_sql_by_name (struct mu_auth_data **return_data,
       return MU_ERR_FAILURE;
     }
 
-  mu_sql_num_tuples (conn, &n);
+  status = mu_sql_num_tuples (conn, &n);
+  if (status)
+    {
+      mu_error (_("cannot get number of tuples: %s"),
+                (status == MU_ERR_SQL) ?  mu_sql_strerror (conn) :
+                                          mu_strerror (status));
+      mu_sql_release_result (conn);
+      mu_sql_connection_destroy (&conn);
+      return MU_ERR_FAILURE;
+    }
+  
   if (n == 0)
     rc = MU_ERR_AUTH_FAILURE;
   else
@@ -476,7 +486,16 @@ mu_auth_sql_by_uid (struct mu_auth_data **return_data,
       return MU_ERR_FAILURE;
     }
 
-  mu_sql_num_tuples (conn, &n);
+  status = mu_sql_num_tuples (conn, &n);
+  if (status)
+    {
+      mu_error (_("cannot get number of tuples: %s"),
+                (status == MU_ERR_SQL) ?  mu_sql_strerror (conn) :
+                                          mu_strerror (status));
+      mu_sql_release_result (conn);
+      mu_sql_connection_destroy (&conn);
+      return MU_ERR_FAILURE;
+    }
 
   if (n == 0)
     rc = MU_ERR_AUTH_FAILURE;
@@ -497,7 +516,8 @@ mu_sql_getpass (const char *username, char **passwd)
   char *query_str;
   int status;
   char *sql_pass;
-  
+  size_t nt;
+
   query_str = mu_sql_expand_query (mu_sql_module_config.getpass_query, username);
 
   if (!query_str)
@@ -540,7 +560,7 @@ mu_sql_getpass (const char *username, char **passwd)
       mu_sql_connection_destroy (&conn);
       return MU_ERR_FAILURE;
     }
-
+  
   status = mu_sql_store_result (conn);
 
   if (status)
@@ -552,12 +572,37 @@ mu_sql_getpass (const char *username, char **passwd)
       return MU_ERR_FAILURE;
     }
 
+  status = mu_sql_num_tuples (conn, &nt);
+  if (status)
+    {
+      mu_error (_("cannot get number of tuples: %s"),
+                (status == MU_ERR_SQL) ?  mu_sql_strerror (conn) :
+                                          mu_strerror (status));
+      mu_sql_release_result (conn);
+      mu_sql_connection_destroy (&conn);
+      return MU_ERR_FAILURE;
+    }
+  if (nt == 0)
+    {
+      mu_sql_release_result (conn);
+      mu_sql_connection_destroy (&conn);
+      return MU_ERR_FAILURE;
+    }
+
   status = mu_sql_get_column (conn, 0, 0, &sql_pass);
   if (status)
     {
       mu_error (_("cannot get password from SQL: %s"),
 		(status == MU_ERR_SQL) ?  mu_sql_strerror (conn) :
 	 	                          mu_strerror (status));
+      mu_sql_release_result (conn);
+      mu_sql_connection_destroy (&conn);
+      return MU_ERR_FAILURE;
+    }
+
+  if (!sql_pass)
+    {
+      mu_error (_("SQL returned NULL password"));
       mu_sql_release_result (conn);
       mu_sql_connection_destroy (&conn);
       return MU_ERR_FAILURE;

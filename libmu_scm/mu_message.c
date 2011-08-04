@@ -495,20 +495,6 @@ SCM_DEFINE_PUBLIC (scm_mu_message_get_header, "mu-message-get-header", 2, 0, 0,
 }
 #undef FUNC_NAME
 
-static int
-string_sloppy_member (SCM lst, char *name)
-{
-  for(; SCM_CONSP (lst); lst = SCM_CDR(lst))
-    {
-      SCM car = SCM_CAR (lst);
-      if (scm_is_string (car)
-	  && mu_c_strncasecmp (scm_i_string_chars (car), name,
-			       scm_i_string_length (car)) == 0)
-	return 1;
-    }
-  return 0;
-}
-
 SCM_DEFINE_PUBLIC (scm_mu_message_get_header_fields, "mu-message-get-header-fields", 1, 1, 0,
 		   (SCM mesg, SCM headers),
 "Returns list of headers in the message @var{mesg}. optional argument\n" 
@@ -547,8 +533,9 @@ SCM_DEFINE_PUBLIC (scm_mu_message_get_header_fields, "mu-message-get-header-fiel
 	mu_scm_error (FUNC_NAME, status,
 		      "Cannot get header field ~A, message ~A",
 		      scm_list_2 (scm_from_size_t (i), mesg));
-      
-      if (!scm_is_null (headers) && string_sloppy_member (headers, name) == 0)
+
+      if (!scm_is_null (headers) &&
+	  scm_member (headers, scm_from_locale_string (name)) == SCM_BOOL_F)
 	continue;
       status = mu_header_aget_field_value (hdr, i, &value);
       if (status)

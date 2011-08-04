@@ -393,9 +393,13 @@ first (void *owner)
   unsigned i;
 
   if (assoc->tab)
-    for (i = 0; i < hash_max; i++)
-      if ((ASSOC_ELEM (assoc, i))->name)
-	break;
+    {
+      for (i = 0; i < hash_max; i++)
+        if ((ASSOC_ELEM (assoc, i))->name)
+	  break;
+    }
+  else
+    i = hash_max;
   itr->index = i;
   return 0;
 }
