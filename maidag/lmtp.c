@@ -27,7 +27,7 @@
 mu_list_t lmtp_groups;
 
 static mu_stream_t
-lmpt_transcript (mu_stream_t iostream)
+lmtp_transcript (mu_stream_t iostream)
 {
   int rc;
   mu_stream_t dstr, xstr;
@@ -589,7 +589,7 @@ lmtp_connection (int fd, struct sockaddr *sa, int salen, void *data,
   mu_stream_set_buffer (str, mu_buffer_line, 0);
 
   if (transcript || maidag_transcript)
-    str = lmpt_transcript (str);
+    str = lmtp_transcript (str);
   lmtp_loop (str, timeout);
   mu_stream_destroy (&str);
   return 0;
@@ -704,7 +704,7 @@ maidag_lmtp_server ()
 	} 
 
       if (maidag_transcript)
-	str = lmpt_transcript (str);
+	str = lmtp_transcript (str);
 
       rc = lmtp_loop (str, 0);
       mu_stream_destroy (&str);

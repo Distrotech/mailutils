@@ -439,7 +439,7 @@ burst_digest (mu_message_t msg)
   int state = S1;
   int eb_length = 0;
   struct burst_stream bs;
-  int result;
+  int result = 0;
   
   bs.stream = NULL;
   bs.flags = F_FIRST;
@@ -512,7 +512,6 @@ burst_digest (mu_message_t msg)
 	finish_stream (&bs);
       else
 	mu_stream_destroy (&bs.stream);
-      result = 0;
     }
   return result;
 }
