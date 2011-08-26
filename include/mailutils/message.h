@@ -58,8 +58,8 @@ extern int mu_message_clear_modified (mu_message_t);
 extern int mu_message_get_mailbox (mu_message_t, mu_mailbox_t *);
 extern int mu_message_set_mailbox (mu_message_t, mu_mailbox_t, void *);
 
-extern int mu_message_ref (mu_message_t);
-#define mu_message_unref(msg) mu_message_destroy (&msg, NULL)
+extern void mu_message_ref (mu_message_t);
+extern void mu_message_unref (mu_message_t);
 
 extern int mu_message_get_envelope (mu_message_t, mu_envelope_t *);
 extern int mu_message_set_envelope (mu_message_t, mu_envelope_t, void *);

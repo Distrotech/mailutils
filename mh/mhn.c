@@ -2408,6 +2408,7 @@ edit_forw (char *cmd, struct compose_env *env, mu_message_t *pmsg, int level)
     }
 
   mu_mime_get_message (mime, &msg);
+  mu_message_unref (msg);
   mu_message_get_header (msg, &hdr);
   
   if (npart > 2)
@@ -2669,7 +2670,6 @@ mhn_edit (struct compose_env *env, int level)
 		    {
 		      mu_mime_get_message (new_env.mime, &new_msg);
 		      mu_mime_add_part (env->mime, new_msg);
-		      mu_message_unref (new_msg);
 		    }
 		}
 	      else if (strcmp (tok, "#end") == 0)
@@ -2876,7 +2876,8 @@ mhn_compose ()
     return rc;
 
   mu_mime_get_message (mime, &msg);
-  
+  mu_message_unref (msg);
+
   p = strrchr (input_file, '/');
   /* Prepare file names */
   if (p)
@@ -2900,6 +2901,7 @@ mhn_compose ()
       mu_error (_("cannot create output stream (file %s): %s"),
 		name, mu_strerror (rc));
       free (name);
+      mu_mime_unref (mime); 
       return rc;
     }
 
@@ -2916,7 +2918,7 @@ mhn_compose ()
   rename (name, input_file);
 
   free (name);
-  
+  mu_mime_unref (mime); 
   return 0;
 }
 

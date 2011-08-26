@@ -306,7 +306,7 @@ sieve_action_reject (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   rc = build_mime (&mime, mach->msg, val->v.string);
 
   mu_mime_get_message (mime, &newmsg);
-
+  mu_message_unref (newmsg);
   mu_sieve_get_message_sender (mach->msg, &addrtext);
   mu_message_get_header (newmsg, &hdr);
   mu_header_prepend (hdr, MU_HEADER_TO, addrtext);

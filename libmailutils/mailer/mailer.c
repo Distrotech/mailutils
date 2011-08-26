@@ -629,11 +629,11 @@ send_fragments (mu_mailer_t mailer,
       if (status)
 	break;
 
-      mu_mime_get_message (mime, &newmsg);
+      mu_mime_to_message (mime, &newmsg);
       merge_headers (newmsg, hdr);
       
       status = mailer->_send_message (mailer, newmsg, from, to);
-      mu_mime_destroy (&mime);
+      mu_message_unref (newmsg);
       if (status)
 	break;
       if (delay)

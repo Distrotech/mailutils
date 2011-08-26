@@ -30,8 +30,15 @@
 extern "C" {
 #endif
 
+#define MESSAGE_MODIFIED        0x10000
+#define MESSAGE_INTERNAL_STREAM 0x20000
+#define MESSAGE_MIME_OWNER      0x40000
+
 struct _mu_message
 {
+  /* Reference count.  */
+  int ref_count;
+
   /* Who is the owner.  */
   void *owner;
 
@@ -48,9 +55,6 @@ struct _mu_message
   mu_mailbox_t mailbox;
   size_t orig_header_size;
   
-  /* Reference count.  */
-  int ref;
-
   int (*_get_stream)     (mu_message_t, mu_stream_t *);
   int (*_get_uidl)       (mu_message_t, char *, size_t, size_t *);
   int (*_get_uid)        (mu_message_t, size_t *);

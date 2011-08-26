@@ -40,6 +40,7 @@
 #include <mailutils/util.h>
 
 #include <mailutils/sys/mime.h>
+#include <mailutils/sys/message.h>
 #include <mailutils/sys/stream.h>
 
 #ifndef TRUE
@@ -71,7 +72,7 @@ _mime_append_part (mu_mime_t mime, mu_message_t msg,
   struct _mime_part *mime_part, **part_arr;
   int             ret;
   size_t          size;
-  mu_header_t        hdr;
+  mu_header_t     hdr;
 
   if ((mime_part = calloc (1, sizeof (*mime_part))) == NULL)
     return ENOMEM;
@@ -129,7 +130,7 @@ _mime_append_part (mu_mime_t mime, mu_message_t msg,
       mu_message_ref (msg);
       mu_message_size (msg, &mime_part->len);
       mu_message_lines (msg, &mime_part->lines);
-      if (mime->nmtp_parts > 1)
+      if (mime->stream && mime->nmtp_parts > 1)
 	mime_part->offset = mime->mtp_parts[mime->nmtp_parts - 2]->len;
       mime_part->msg = msg;
     }
@@ -613,7 +614,27 @@ _mime_body_stream_seek (mu_stream_t stream, mu_off_t off, mu_off_t *presult)
     mime_reset_state (mime);
 
   if (off != mime->cur_offset)
-    return ESPIPE;
+    {
+      int rc;
+      mu_stream_t nullstr;
+
+      if (mime->flags & MIME_SEEK_ACTIVE)
+	return ESPIPE;
+      mime->flags |= MIME_SEEK_ACTIVE;
+      
+      rc = mu_nullstream_create (&nullstr, MU_STREAM_WRITE);
+      if (rc == 0)
+	{
+	  mu_off_t total;
+	  rc = mu_stream_copy (nullstr, stream, off, &total);
+	  mu_stream_destroy (&nullstr);
+	  if (rc == 0 && total != off)
+	    rc = ESPIPE;
+	}
+      mime->flags &= ~MIME_SEEK_ACTIVE;
+      if (rc)
+	return rc;
+    }
   *presult = off;
   return 0;
 }
@@ -912,49 +933,64 @@ mu_mime_create (mu_mime_t *pmime, mu_message_t msg, int flags)
   else
     {
       mime->flags |= (flags & MIME_FLAG_MASK);
+      mime->ref_count = 1;
       *pmime = mime;
     }
   return ret;
 }
 
 void
+mu_mime_ref (mu_mime_t mime)
+{
+  mime->ref_count++;
+}
+
+static void
+_mu_mime_free (mu_mime_t mime)
+{
+  struct _mime_part *mime_part;
+  int i;
+
+  if (mime->mtp_parts)
+    {
+      for (i = 0; i < mime->nmtp_parts; i++)
+	{
+	  mime_part = mime->mtp_parts[i];
+	  mu_message_unref (mime_part->msg);
+	  free (mime_part);
+	}
+      free (mime->mtp_parts);
+    }
+  mu_stream_destroy (&mime->stream);
+  mu_stream_destroy (&mime->part_stream);
+  if (mime->msg && mime->flags & MIME_NEW_MESSAGE)
+    mu_message_destroy (&mime->msg, mime);
+  if (mime->content_type)
+    free (mime->content_type);
+  if (mime->cur_buf)
+    free (mime->cur_buf);
+  if (mime->cur_line)
+    free (mime->cur_line);
+  if (mime->boundary)
+    free (mime->boundary);
+  if (mime->header_buf)
+    free (mime->header_buf);
+  free (mime);
+}
+
+void
+mu_mime_unref (mu_mime_t mime)
+{
+  if (--mime->ref_count == 0)
+    _mu_mime_free (mime);
+}
+
+void
 mu_mime_destroy (mu_mime_t *pmime)
 {
-  mu_mime_t          mime;
-  struct _mime_part *mime_part;
-  int             i;
-
   if (pmime && *pmime)
     {
-      mime = *pmime;
-      if (mime->mtp_parts != NULL)
-	{
-	  for (i = 0; i < mime->nmtp_parts; i++)
-	    {
-	      mime_part = mime->mtp_parts[i];
-	      if (mime_part->msg && mime->flags & MIME_NEW_MESSAGE)
-		mu_message_unref (mime_part->msg);
-	      else
-		mu_message_destroy (&mime_part->msg, mime_part);
-	      free (mime_part);
-	    }
-	  free (mime->mtp_parts);
-	}
-      mu_stream_destroy (&mime->stream);
-      mu_stream_destroy (&mime->part_stream);
-      if (mime->msg && mime->flags & MIME_NEW_MESSAGE)
-	mu_message_destroy (&mime->msg, mime);
-      if (mime->content_type)
-	free (mime->content_type);
-      if (mime->cur_buf)
-	free (mime->cur_buf);
-      if (mime->cur_line)
-	free (mime->cur_line);
-      if (mime->boundary)
-	free (mime->boundary);
-      if (mime->header_buf)
-	free (mime->header_buf);
-      free (mime);
+      mu_mime_unref (*pmime);
       *pmime = NULL;
     }
 }
@@ -1043,7 +1079,7 @@ mu_mime_get_message (mu_mime_t mime, mu_message_t *msg)
 {
   mu_stream_t        body_stream;
   mu_body_t          body;
-  int             ret = 0;
+  int                ret = 0;
 
   if (mime == NULL || msg == NULL)
     return EINVAL;
@@ -1069,6 +1105,8 @@ mu_mime_get_message (mu_mime_t mime, mu_message_t *msg)
 		      if (ret == 0)
 			{
 			  mu_body_set_stream (body, body_stream, mime->msg);
+			  mime->msg->mime = mime;
+			  mu_message_ref (mime->msg);
 			  *msg = mime->msg;
 			  return 0;
 			}
@@ -1080,8 +1118,28 @@ mu_mime_get_message (mu_mime_t mime, mu_message_t *msg)
 	}
     }
   if (ret == 0)
-    *msg = mime->msg;
+    {
+      mu_message_ref (mime->msg);
+      *msg = mime->msg;
+    }
   return ret;
+}
+
+
+int
+mu_mime_to_message (mu_mime_t mime, mu_message_t *pmsg)
+{
+  mu_message_t msg;
+  int rc = mu_mime_get_message (mime, &msg);
+  if (rc == 0)
+    {
+      mu_message_unref (msg);
+      msg->flags |= MESSAGE_MIME_OWNER;
+      mime->msg = NULL;
+      mu_mime_ref (mime);
+      *pmsg = msg;
+    }
+  return rc;
 }
 
 int

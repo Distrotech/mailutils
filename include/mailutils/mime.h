@@ -31,6 +31,9 @@ extern "C" {
 
 int mu_mime_create	(mu_mime_t *pmime, mu_message_t msg, int flags);
 void mu_mime_destroy	(mu_mime_t *pmime);
+void mu_mime_ref        (mu_mime_t mime);
+void mu_mime_unref      (mu_mime_t mime);
+	
 int mu_mime_is_multipart	(mu_mime_t mime);
 int mu_mime_get_num_parts	(mu_mime_t mime, size_t *nparts);
 
@@ -39,6 +42,7 @@ int mu_mime_get_part	(mu_mime_t mime, size_t part, mu_message_t *msg);
 int mu_mime_add_part	(mu_mime_t mime, mu_message_t msg);
 
 int mu_mime_get_message	(mu_mime_t mime, mu_message_t *msg);
+int mu_mime_to_message (mu_mime_t mime, mu_message_t *msg);
 
 int mu_rfc2047_decode   (const char *tocode, const char *fromstr, 
                          char **ptostr);

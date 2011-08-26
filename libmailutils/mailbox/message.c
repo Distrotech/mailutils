@@ -52,9 +52,6 @@
 #include <mailutils/sys/message.h>
 #include <mailutils/sys/stream.h>
 
-#define MESSAGE_MODIFIED        0x10000
-#define MESSAGE_INTERNAL_STREAM 0x20000
-
 
 /* Message stream */
 
@@ -512,9 +509,79 @@ mu_message_create (mu_message_t *pmsg, void *owner)
       return status;
     }
   msg->owner = owner;
-  msg->ref = 1;
+  msg->ref_count = 1;
   *pmsg = msg;
   return 0;
+}
+
+/* Free the message and all associated stuff */
+static void
+_mu_message_free (mu_message_t msg)
+{
+  /* Notify the listeners.  */
+  /* FIXME: to be removed since we do not support this event.  */
+  if (msg->observable)
+    {
+      mu_observable_notify (msg->observable, MU_EVT_MESSAGE_DESTROY, msg);
+      mu_observable_destroy (&msg->observable, msg);
+    }
+      
+  /* Envelope.  */
+  if (msg->envelope)
+    mu_envelope_destroy (&msg->envelope, msg);
+      
+  /* Header.  */
+  if (msg->header)
+    mu_header_destroy (&msg->header);
+      
+  /* Body.  */
+  if (msg->body)
+    mu_body_destroy (&msg->body, msg);
+      
+  /* Attribute.  */
+  if (msg->attribute)
+    mu_attribute_destroy (&msg->attribute, msg);
+      
+  /* Stream.  */
+  if (msg->stream)
+    mu_stream_destroy (&msg->stream);
+      
+  /*  Mime.  */
+  if (msg->flags & MESSAGE_MIME_OWNER)
+    mu_mime_destroy (&msg->mime);
+      
+  /* Loose the owner.  */
+  msg->owner = NULL;
+      
+  free (msg);
+}
+
+void
+mu_message_unref (mu_message_t msg)
+{
+  if (msg)
+    {
+      mu_monitor_t monitor = msg->monitor;
+      mu_monitor_wrlock (monitor);
+      /* Note: msg->ref may be incremented by mu_message_ref without
+	 additional checking for its owner, therefore decrementing
+	 it must also occur independently of the owner checking. Due
+	 to this inconsistency ref may reach negative values, which
+	 is very unfortunate.
+	 
+	 The `owner' stuff is a leftover from older mailutils versions.
+	 We are heading to removing it altogether. */
+      if (msg->ref_count > 0)
+	msg->ref_count--;
+      if (msg->ref_count == 0)
+	{
+	  _mu_message_free (msg);
+	  mu_monitor_unlock (monitor);
+	  mu_monitor_destroy (&monitor, msg);
+	}
+      else
+	mu_monitor_unlock (monitor);
+    }
 }
 
 void
@@ -523,67 +590,19 @@ mu_message_destroy (mu_message_t *pmsg, void *owner)
   if (pmsg && *pmsg)
     {
       mu_message_t msg = *pmsg;
+      
       mu_monitor_t monitor = msg->monitor;
-      int destroy_lock = 0;
-
       mu_monitor_wrlock (monitor);
-      /* Note: msg->ref may be incremented by mu_message_ref without
-	 additional checking for its owner, therefore decrementing
-	 it must also occur independently of the owner checking. Due
-	 to this inconsistency ref may reach negative values, which
-	 is very unfortunate.
 
-	 The `owner' stuff is a leftover from older mailutils versions.
-	 We are heading to removing it altogether. */
-      if (msg->ref > 0)
-	msg->ref--;
-      if ((msg->owner && msg->owner == owner)
-	  || (msg->owner == NULL && msg->ref <= 0))
+      if (msg->owner && msg->owner == owner)
 	{
-	  destroy_lock =  1;
-	  /* Notify the listeners.  */
-	  /* FIXME: to be removed since we do not support this event.  */
-	  if (msg->observable)
-	    {
-	      mu_observable_notify (msg->observable, MU_EVT_MESSAGE_DESTROY,
-				    msg);
-	      mu_observable_destroy (&msg->observable, msg);
-	    }
-
-	  /* Envelope.  */
-	  if (msg->envelope)
-	    mu_envelope_destroy (&msg->envelope, msg);
-
-	  /* Header.  */
-	  if (msg->header)
-	    mu_header_destroy (&msg->header);
-
-	  /* Body.  */
-	  if (msg->body)
-	    mu_body_destroy (&msg->body, msg);
-
-	  /* Attribute.  */
-	  if (msg->attribute)
-	    mu_attribute_destroy (&msg->attribute, msg);
-
-	  /* Stream.  */
-	  if (msg->stream)
-	    mu_stream_destroy (&msg->stream);
-
-	  /*  Mime.  */
-	  if (msg->mime)
-	    mu_mime_destroy (&msg->mime);
-
-	  /* Loose the owner.  */
-	  msg->owner = NULL;
-
-	  free (msg);
+	  _mu_message_free (msg);
+	  mu_monitor_unlock (monitor);
+	  mu_monitor_destroy (&monitor, msg);
+	  *pmsg = NULL;
+	  return;
 	}
       mu_monitor_unlock (monitor);
-      if (destroy_lock)
-	mu_monitor_destroy (&monitor, msg);
-      /* Loose the link */
-      *pmsg = NULL;
     }
 }
 
@@ -625,16 +644,15 @@ mu_message_create_copy (mu_message_t *to, mu_message_t from)
   return status;
 }
 
-int
+void
 mu_message_ref (mu_message_t msg)
 {
   if (msg)
     {
       mu_monitor_wrlock (msg->monitor);
-      msg->ref++;
+      msg->ref_count++;
       mu_monitor_unlock (msg->monitor);
     }
-  return 0;
 }
 
 void *
@@ -905,9 +923,14 @@ mu_message_lines (mu_message_t msg, size_t *plines)
     return msg->_lines (msg, plines, 0);
   if (plines)
     {
+      mu_header_t hdr = NULL;
+      mu_body_t body = NULL;
+
       hlines = blines = 0;
-      if ( ( ret = mu_header_lines (msg->header, &hlines) ) == 0 )
-	      ret = mu_body_lines (msg->body, &blines);
+      mu_message_get_header (msg, &hdr);
+      mu_message_get_body (msg, &body);
+      if ( ( ret = mu_header_lines (hdr, &hlines) ) == 0 )
+	      ret = mu_body_lines (body, &blines);
       *plines = hlines + blines;
     }
   return ret;
@@ -934,9 +957,14 @@ mu_message_quick_lines (mu_message_t msg, size_t *plines)
     }
   if (plines)
     {
+      mu_header_t hdr = NULL;
+      mu_body_t body = NULL;
+
       hlines = blines = 0;
-      if ((rc = mu_header_lines (msg->header, &hlines)) == 0)
-	rc = mu_body_lines (msg->body, &blines);
+      mu_message_get_header (msg, &hdr);
+      mu_message_get_body (msg, &body);
+      if ((rc = mu_header_lines (hdr, &hlines)) == 0)
+	rc = mu_body_lines (body, &blines);
       if (rc == 0)
 	*plines = hlines + blines;
     }
@@ -945,7 +973,7 @@ mu_message_quick_lines (mu_message_t msg, size_t *plines)
 
 int
 mu_message_set_size (mu_message_t msg, int (*_size)
-		  (mu_message_t, size_t *), void *owner)
+		     (mu_message_t, size_t *), void *owner)
 {
   if (msg == NULL)
     return EINVAL;
@@ -1194,6 +1222,7 @@ mu_message_is_multipart (mu_message_t msg, int *pmulti)
 	  int status = mu_mime_create (&msg->mime, msg, 0);
 	  if (status != 0)
 	    return 0;
+	  msg->flags |= MESSAGE_MIME_OWNER;
 	}
       *pmulti = mu_mime_is_multipart(msg->mime);
     }

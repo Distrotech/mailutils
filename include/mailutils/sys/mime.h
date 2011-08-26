@@ -44,9 +44,11 @@ extern "C" {
 #define MIME_ADDED_MULTIPART_CT    0x08000000
 #define MIME_INSERT_BOUNDARY       0x04000000
 #define MIME_ADDING_BOUNDARY       0x02000000
+#define MIME_SEEK_ACTIVE           0x01000000
 
 struct _mu_mime
 {
+  int ref_count;
   mu_message_t       msg;
   mu_header_t        hdrs;
   mu_stream_t        stream;

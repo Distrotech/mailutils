@@ -143,7 +143,26 @@ copy_trimmed_value (const char *str)
   p[len] = 0;
   return p;
 }
-  
+
+static int
+is_header_start (const char *buf)
+{
+  for (; *buf; buf++)
+    {
+      if (mu_isalnum (*buf) || *buf == '-' || *buf == '_')
+	continue;
+      if (*buf == ':')
+	return 1;
+    }
+  return 0;
+}
+
+static int
+is_header_cont (const char *buf)
+{
+  return mu_isblank (*buf);
+}
+
 static int
 _message_open (mu_stream_t stream)
 {
@@ -157,6 +176,7 @@ _message_open (mu_stream_t stream)
   size_t offset, len;
   mu_off_t body_start, body_end;
   mu_stream_t transport = str->transport;
+  int has_headers = 0;
   
   rc = mu_stream_seek (transport, 0, MU_SEEK_SET, NULL);
   if (rc)
@@ -197,25 +217,45 @@ _message_open (mu_stream_t stream)
       else if (mu_mh_delim (buffer))
 	{
 	  str->mark_offset = offset;
-	  str->mark_length = len - 1; /* do not count the terminating newline */
+	  str->mark_length = len - 1; /* do not count the terminating
+					 newline */
 	  break;
 	}
-      else if (!env_from || !env_date)
+      else
 	{
-      	  if (!from && mu_c_strncasecmp (buffer, MU_HEADER_FROM,
-				         sizeof (MU_HEADER_FROM) - 1) == 0)
+	  if (!is_header_start (buffer))
+	    {
+	      if (has_headers && is_header_cont (buffer))
+		{
+		  offset += len;
+		  continue;
+		}
+	      rc = mu_stream_seek (transport, - (mu_off_t) len,
+				   MU_SEEK_CUR, &offset);
+	      if (rc)
+		return rc;
+	      str->mark_offset = offset;
+	      str->mark_length = 0;
+	      break;
+	    }
+	  has_headers = 1;
+	  if (!env_from || !env_date)
+	    {
+	      if (!from && mu_c_strncasecmp (buffer, MU_HEADER_FROM,
+					     sizeof (MU_HEADER_FROM) - 1) == 0)
 	    
-	    from = copy_trimmed_value (buffer + sizeof (MU_HEADER_FROM));
-	  else if (!env_from
-		   && mu_c_strncasecmp (buffer, MU_HEADER_ENV_SENDER,
-				        sizeof (MU_HEADER_ENV_SENDER) - 1) == 0)
-	    env_from = copy_trimmed_value (buffer +
-					   sizeof (MU_HEADER_ENV_SENDER));
-	  else if (!env_date
-		   && mu_c_strncasecmp (buffer, MU_HEADER_ENV_DATE,
-				        sizeof (MU_HEADER_ENV_DATE) - 1) == 0)
-	    env_date = copy_trimmed_value (buffer +
-					   sizeof (MU_HEADER_ENV_DATE));
+		from = copy_trimmed_value (buffer + sizeof (MU_HEADER_FROM));
+	      else if (!env_from
+		       && mu_c_strncasecmp (buffer, MU_HEADER_ENV_SENDER,
+					    sizeof (MU_HEADER_ENV_SENDER) - 1) == 0)
+		env_from = copy_trimmed_value (buffer +
+					       sizeof (MU_HEADER_ENV_SENDER));
+	      else if (!env_date
+		       && mu_c_strncasecmp (buffer, MU_HEADER_ENV_DATE,
+					    sizeof (MU_HEADER_ENV_DATE) - 1) == 0)
+		env_date = copy_trimmed_value (buffer +
+					       sizeof (MU_HEADER_ENV_DATE));
+	    }
 	}
       offset += len;
     }

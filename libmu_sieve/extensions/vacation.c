@@ -563,6 +563,7 @@ vacation_reply (mu_sieve_machine_t mach, mu_list_t tags, mu_message_t msg,
       if (build_mime (mach, tags, &mime, msg, text))
 	return -1;
       mu_mime_get_message (mime, &newmsg);
+      mu_message_unref (newmsg);
       mu_message_get_header (newmsg, &newhdr);
     }
   

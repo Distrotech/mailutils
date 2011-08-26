@@ -423,7 +423,7 @@ mu_stream_seek (mu_stream_t stream, mu_off_t offset, int whence,
 	  *pres = stream->offset + stream->pos;
 	  return 0;
 	}
-      offset += stream->offset;
+      offset += stream->offset + stream->pos;
       break;
 
     case MU_SEEK_END:
