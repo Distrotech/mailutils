@@ -6,7 +6,7 @@ See the end of file for copying conditions.
 Please send mailutils bug reports to <bug-mailutils@gnu.org>.
 
 
-Version 2.99.92 (Git)
+Version 2.99.93 (Git)
 
 This version is highly experimental.  It features a rewrite from
 scratch of the stream subsystem and other vital parts of the
