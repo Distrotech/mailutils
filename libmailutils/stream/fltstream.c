@@ -446,6 +446,13 @@ filter_ctl (struct _mu_stream *stream, int code, int opcode, void *ptr)
   return 0;
 }
 
+static int
+filter_shutdown (struct _mu_stream *str, int how)
+{
+  struct _mu_filter_stream *fs = (struct _mu_filter_stream *)str;
+  return mu_stream_shutdown (fs->transport, how);
+}
+
 static const char *
 filter_error_string (struct _mu_stream *stream, int rc)
 {
@@ -576,6 +583,7 @@ mu_filter_stream_create (mu_stream_t *pflt,
   fs->stream.done = filter_done;
   if (flags & MU_STREAM_SEEK)
     fs->stream.seek = filter_seek;
+  fs->stream.shutdown = filter_shutdown;
   fs->stream.ctl = filter_ctl;
   fs->stream.wait = filter_wait;
   fs->stream.error_string = filter_error_string;
