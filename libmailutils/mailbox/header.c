@@ -993,6 +993,22 @@ header_read (mu_stream_t is, char *buffer, size_t buflen, size_t *pnread)
   status = mu_header_fill (header);
   if (status)
     return status;
+
+  if (header->spool_size == 0)
+    {
+      size_t len = 0;
+
+      if (hstr->off == 0 && buflen > 0)
+	{
+	  /* Provide the trailing \n */
+	  *buffer = '\n';
+	  hstr->off++;
+	  len = 1;
+	}
+      if (pnread)
+	*pnread = len;
+      return 0;
+    }
   
   if (mu_hdrent_find_stream_pos (header, hstr->off, &ent, &ent_off))
     {
