@@ -18,8 +18,8 @@ m4_pushdef([MH_KEYWORDS],[burst])
 
 MH_CHECK([burst digest],[burst00 burst-digest],[
 mkdir Mail/inbox
-AT_DATA([Mail/inbox/1],[
-From: Sergey Poznyakoff <gray@example.net>
+AT_DATA([Mail/inbox/1],
+[From: Sergey Poznyakoff <gray@example.net>
 To: root@example.com
 Subject: digest
 
@@ -68,8 +68,8 @@ Sergey
 
 MH_CHECK([burst digest /w EB length limit],[burst01 burst-digest-eb-length],[
 mkdir Mail/inbox
-AT_DATA([Mail/inbox/1],[
-From: Sergey Poznyakoff <gray@example.net>
+AT_DATA([Mail/inbox/1],
+[From: Sergey Poznyakoff <gray@example.net>
 To: root@example.com
 Subject: digest
 
