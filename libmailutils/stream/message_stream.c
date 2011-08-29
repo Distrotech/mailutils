@@ -230,13 +230,7 @@ _message_open (mu_stream_t stream)
 		  offset += len;
 		  continue;
 		}
-	      rc = mu_stream_seek (transport, - (mu_off_t) len,
-				   MU_SEEK_CUR, &offset);
-	      if (rc)
-		return rc;
-	      str->mark_offset = offset;
-	      str->mark_length = 0;
-	      break;
+	      return MU_ERR_BAD_822_FORMAT;
 	    }
 	  has_headers = 1;
 	  if (!env_from || !env_date)
