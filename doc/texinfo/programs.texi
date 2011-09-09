@@ -3019,15 +3019,15 @@ Like @code{save}, but the file to append messages to is named after the
 sender of the first message in @var{msglist}. For example:
 
 @smallexample
-@group
 @cartouche
+@group
 & from 14 15
  U  14 smith@@noldor.org Fri Jun 30 18:11  14/358   The Save c
  U  15 gray@@noldor.org  Fri Jun 30 18:30  8/245    Re: The Sa
 & Save 14 15
 "smith" 22/603
-@end cartouche
 @end group
+@end cartouche
 @end smallexample
 @noindent
 
