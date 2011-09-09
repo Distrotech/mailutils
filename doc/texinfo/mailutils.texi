@@ -37,6 +37,7 @@
 * mail: (mailutils)mail.                Send and Receive Mail.
 * maidag: (mailutils)maidag.            A General-Purpose Mail Delivery Agent.
 * messages: (mailutils)messages.        Count Messages in a Mailbox.
+* movemail: (mailutils)movemail.        Move Mail between Mailboxes.
 * pop3d: (mailutils)pop3d.              POP3 Daemon.
 * readmsg: (mailutils)readmsg.          Extract Messages from a Folder.
 * sieve: (mailutils)sieve.              Mail Filtering Utility.

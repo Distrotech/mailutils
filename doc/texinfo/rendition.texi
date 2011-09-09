@@ -1,7 +1,22 @@
-@c Let's use the concept of 'renditions' by Fra@,{c}ois Pinard
-@c I extended it by adding a FIXME_FOOTNOTE variable, which controls
-@c whether FIXME information should be placed in footnotes or
-@c inlined. 
+@c This file is part of GNU Mailutils.
+@c Copyright (C) 2001, 2002, 2003, 2004, 2006, 2007, 2009, 2010, 2011
+@c Free Software Foundation, Inc.
+@c
+@c GNU Mailutils is free software; you can redistribute it and/or
+@c modify it under the terms of the GNU General Public License as
+@c published by the Free Software Foundation; either version 3, or (at
+@c your option) any later version.
+@c
+@c GNU Mailutils is distributed in the hope that it will be useful, but
+@c WITHOUT ANY WARRANTY; without even the implied warranty of
+@c MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+@c General Public License for more details.
+@c
+@c You should have received a copy of the GNU General Public License
+@c along with GNU Mailutils.  If not, see
+@c <http://www.gnu.org/licenses/>.
+
+@c This file implements Fra@,{c}ois Pinard's concept of 'renditions'.
 
 @c ======================================================================
 @c This document has three levels of rendition: PUBLISH, DISTRIB or PROOF,
@@ -39,9 +54,9 @@
 
 @macro WRITEME
 @ifclear PUBLISH
-@quotation
-@emph{This node is to be written.}
-@end quotation
+@cartouche
+@center @emph{@strong{Editor's note:} This node is to be written.}
+@end cartouche
 @end ifclear
 @end macro
 
@@ -49,10 +64,10 @@
 
 @macro UNREVISED
 @ifclear PUBLISH
-@quotation
-(@emph{The information in this node may be obsolete or otherwise inaccurate.}
-This message will disappear, once this node revised.)
-@end quotation
+@cartouche
+@emph{Editor's note:} The information in this node may be obsolete or
+otherwise inaccurate.  This message will disappear, once this node revised.
+@end cartouche
 @end ifclear
 @end macro
 
@@ -60,35 +75,39 @@ This message will disappear, once this node revised.)
 
 @macro FIXME{string}
 @ifset PROOF
-@ifset PROOF_FOOTNOTED
-@footnote{@strong{FIXME:} \string\}
-@end ifset
-@ifclear PROOF_FOOTNOTED
+@sp 1
 @cartouche
-@strong{<FIXME>} \string\ @strong{</>}
+@strong{Editor's note:} \string\
 @end cartouche
-@end ifclear
 @end ifset
+@w{}
+@end macro
 
+@macro deadlink{}
+(@strong{Editor's note: dangling link})
+@end macro
+
+@macro FIXMEREF{text,string}
+@ifset PROOF
+@html
+\text\ <span class="deadlink">\string\</span> 
+@end html
+@ifnothtml
+\text\ @i{\string\}
+@end ifnothtml
+@deadlink{}
+@end ifset
+@w{}
 @end macro
 
 @macro FIXME-ref{string}
-@ifset PROOF
-@strong{<REF>} \string\ @strong{</>}
-@end ifset
-
+@FIXMEREF{,\string\}
 @end macro
 
 @macro FIXME-pxref{string}
-@ifset PROOF
-@strong{<PXREF>} \string\ @strong{</>}
-@end ifset
-
+@FIXMEREF{see,\string\}
 @end macro
 
 @macro FIXME-xref{string}
-@ifset PROOF
-@strong{<XREF>} \string\ @strong{</>}
-@end ifset
-
+@FIXMEREF{See,\string\}
 @end macro
