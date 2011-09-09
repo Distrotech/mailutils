@@ -16,16 +16,18 @@
 
 mu_aux_dir = ../../mu-aux
 
+VPATH = ../../libmailutils/tests/:../../examples/
 .SUFFIXES: .c .inc
 .c.inc:
 	sed -f $(mu_aux_dir)/texify.sed $< > $@
 
 all: addr.inc http.inc mailcap.inc numaddr.inc sfrom.inc url-parse.inc
 
-addr.inc:	../../libmailutils/tests/addr.c
-http.inc:	../../examples/http.inc
-mailcap.inc:	../../libmailutils/tests/mailcap.c
-numaddr.inc:	../../examples/numaddr.inc
-sfrom.inc:	../../examples/sfrom.inc
-url-parse.inc:	../../libmailutils/tests/url-parse.inc
+addr.inc:	addr.c
+http.inc:	http.c
+mailcap.inc:	mailcap.c
+numaddr.inc:	numaddr.c
+sfrom.inc:	sfrom.c
+url-parse.inc:	url-parse.c
 
+clean:;	rm -f *.inc

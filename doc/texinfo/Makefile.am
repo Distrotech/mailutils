@@ -91,10 +91,10 @@ TEXI2DVI=texi2dvi -t '@set $(RENDITION)' -E
 TEXINPUTS=$(srcdir):$(top_srcdir)/build-aux:$$TEXINPUTS
 
 manual:
-	 TEXINPUTS=$(srcdir):$(top_srcdir)/build-aux:$(TEXINPUTS) \
+	TEXINPUTS=$(srcdir):$(top_srcdir)/build-aux:$(TEXINPUTS) \
 	 MAKEINFO="$(MAKEINFO) $(MAKEINFOFLAGS)" \
 	 TEXI2DVI="$(TEXI2DVI) -t @finalout" \
-	$(GENDOCS) $(PACKAGE) '$(PACKAGE_NAME) manual'
+	$(GENDOCS) --texi2html $(PACKAGE) '$(PACKAGE_NAME) manual'
 
 
 EXTRA_DIST=gendocs_template mastermenu.el untabify.el
