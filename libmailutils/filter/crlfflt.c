@@ -88,7 +88,10 @@ _crlf_encoder (void *xd,
 	  optr[j++] = c;
 	}
       else
-	optr[j++] = c;
+	{
+	  *state = state_init;
+	  optr[j++] = c;
+	}
     }
   iobuf->isize = i;
   iobuf->osize = j;
