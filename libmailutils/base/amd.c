@@ -365,9 +365,14 @@ amd_open (mu_mailbox_t mailbox, int flags)
       else
 	return errno;
     }
-  
+    
   if (!S_ISDIR (st.st_mode))
     return EINVAL;
+
+  if (access (amd->name,
+	      (flags & (MU_STREAM_WRITE|MU_STREAM_APPEND)) ?
+	       W_OK : R_OK | X_OK))
+    return errno;
 
   if (mailbox->locker == NULL)
     mu_locker_create (&mailbox->locker, "/dev/null", 0);
@@ -1674,7 +1679,7 @@ amd_message_stream_open (struct _amd_message *mhm)
     }
   
   /* The message should be at least readable */
-  if (amd->mailbox->flags & (MU_STREAM_RDWR|MU_STREAM_WRITE|MU_STREAM_APPEND))
+  if (amd->mailbox->flags & (MU_STREAM_WRITE|MU_STREAM_APPEND))
     flags |= MU_STREAM_RDWR;
   else 
     flags |= MU_STREAM_READ;

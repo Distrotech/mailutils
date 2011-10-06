@@ -755,7 +755,8 @@ eval_extras (struct eval_env *env)
   mu_header_get_field_count (hdr, &num);
   for (i = 1; i <= num; i++)
     {
-      mu_header_aget_field_name (hdr, i, &str);
+      if (mu_header_aget_field_name (hdr, i, &str))
+	break;
       if (want_header (env, str)
 	  && !header_is_printed (env, str))
 	{
