@@ -367,9 +367,20 @@ extern char *util_getfullpath (const char *, const char *);
 extern int  util_msgset (char *, size_t **, int *, int);
 extern struct imap4d_command *util_getcommand (char *, 
                                                struct imap4d_command []);
-extern int util_parse_internal_date (char *date, time_t *timep);
-extern int util_parse_822_date (const char *date, time_t *timep);
-extern int util_parse_ctime_date (const char *date, time_t *timep);
+
+enum datetime_parse_mode     /* how to parse date/time strings */
+  {
+    datetime_default,        /* default mode */
+    datetime_date_only,      /* return only date part, ignore time and TZ */
+    datetime_time_only       /* return only time and TZ, ignore date */ 
+  };
+
+extern int util_parse_internal_date (char *date, time_t *timep,
+				     enum datetime_parse_mode flag);
+extern int util_parse_822_date (const char *date, time_t *timep,
+				enum datetime_parse_mode flag);
+extern int util_parse_ctime_date (const char *date, time_t *timep,
+				  enum datetime_parse_mode flag);
 extern char *util_strcasestr (const char *haystack, const char *needle);
 extern char *util_localname (void);
 

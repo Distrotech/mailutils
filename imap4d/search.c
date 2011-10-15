@@ -670,7 +670,8 @@ parse_simple_key (struct parsebuf *pb)
 	      break;
 	      
 	    case 'd': /* date */
-	      if (util_parse_internal_date (pb->token, &time))
+	      if (util_parse_internal_date (pb->token, &time,
+					    datetime_date_only))
 		{
 		  pb->err_mesg = "Bad date format";
 		  return NULL;
@@ -801,7 +802,7 @@ _header_date (struct parsebuf *pb, time_t *timep)
   
   mu_message_get_header (pb->msg, &header);
   if (mu_header_sget_value (header, "Date", &hval) == 0
-      && util_parse_822_date (hval, timep))
+      && util_parse_822_date (hval, timep, datetime_date_only))
     return 0;
   return 1;
 }
@@ -893,7 +894,7 @@ cond_before (struct parsebuf *pb, struct search_node *node, struct value *arg,
     retval->v.number = 0;
   else
     {
-      util_parse_ctime_date (date, &mesg_time);
+      util_parse_ctime_date (date, &mesg_time, datetime_date_only);
       retval->v.number = mesg_time < t;
     }
 }                   
@@ -980,7 +981,7 @@ cond_on (struct parsebuf *pb, struct search_node *node, struct value *arg,
     retval->v.number = 0;
   else
     {
-      util_parse_ctime_date (date, &mesg_time);
+      util_parse_ctime_date (date, &mesg_time, datetime_date_only);
       retval->v.number = t <= mesg_time && mesg_time <= t + 86400;
     }
 }                       
@@ -1038,7 +1039,7 @@ cond_since (struct parsebuf *pb, struct search_node *node, struct value *arg,
     retval->v.number = 0;
   else
     {
-      util_parse_ctime_date (date, &mesg_time);
+      util_parse_ctime_date (date, &mesg_time, datetime_date_only);
       retval->v.number = mesg_time >= t;
     }
 }                    

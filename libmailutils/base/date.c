@@ -182,7 +182,7 @@ mu_parse_imap_date_time (const char **p, struct tm *tm, mu_timezone *tz)
 
 /* "ctime" format is: Thu Jul 01 15:58:27 1999, with no trailing \n.  */
 int
-mu_parse_ctime_date_time (const char **p, struct tm *tm, mu_timezone * tz)
+mu_parse_ctime_date_time (const char **p, struct tm *tm, mu_timezone *tz)
 {
   int wday = 0;
   int year = 0;
@@ -236,9 +236,12 @@ mu_parse_ctime_date_time (const char **p, struct tm *tm, mu_timezone * tz)
 #endif
     }
 
-  /* ctime has no timezone information, set tz to UTC if they ask. */
+  /* ctime has no timezone information, set tz to local TZ if they ask. */
   if (tz)
-    memset (tz, 0, sizeof (struct mu_timezone));
-
+    {
+      tz->utc_offset = mu_utc_offset ();
+      tz->tz_name = NULL;
+    }
+  
   return 0;
 }

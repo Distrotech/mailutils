@@ -79,7 +79,7 @@ imap4d_append0 (mu_mailbox_t mbox, int flags, char *date_time, char *text,
      message is set to the current date and time by default. */
   if (date_time)
     {
-      if (util_parse_internal_date (date_time, &t))
+      if (util_parse_internal_date (date_time, &t, datetime_default))
 	{
 	  *err_text = "Invalid date/time format";
 	  return 1;

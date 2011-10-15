@@ -335,8 +335,40 @@ add2set (size_t ** set, int *n, unsigned long val)
   return 0;
 }
 
+static void
+adjust_tm (struct tm *tm, mu_timezone *tz, enum datetime_parse_mode flag)
+{
+  switch (flag)
+    {
+    case datetime_default:
+      break;
+    case datetime_date_only:
+      tm->tm_sec = 0;
+      tm->tm_min = 0;
+      tm->tm_hour = 0;
+#if HAVE_STRUCT_TM_TM_ISDST
+      tm->tm_isdst = 0;
+#endif
+#if HAVE_STRUCT_TM_TM_GMTOFF
+      tm->tm_gmtoff = 0;
+#endif
+      tz->utc_offset = 0;
+      tz->tz_name = NULL;
+      break;
+
+    case datetime_time_only:
+      tm->tm_mon = 0;
+      tm->tm_year = 0;
+      tm->tm_yday = 0;
+      tm->tm_wday = 0;
+      tm->tm_mday = 0;
+      break;
+    }
+}
+  
 int
-util_parse_internal_date (char *date, time_t * timep)
+util_parse_internal_date (char *date, time_t *timep,
+			  enum datetime_parse_mode flag)
 {
   struct tm tm;
   mu_timezone tz;
@@ -346,6 +378,8 @@ util_parse_internal_date (char *date, time_t * timep)
   if (mu_parse_imap_date_time ((const char **) datep, &tm, &tz))
     return 1;
 
+  adjust_tm (&tm, &tz, flag);
+  
   time = mu_tm2time (&tm, &tz);
   if (time == (time_t) - 1)
     return 2;
@@ -355,7 +389,8 @@ util_parse_internal_date (char *date, time_t * timep)
 }
 
 int
-util_parse_822_date (const char *date, time_t * timep)
+util_parse_822_date (const char *date, time_t *timep,
+		     enum datetime_parse_mode flag)
 {
   struct tm tm;
   mu_timezone tz;
@@ -363,6 +398,7 @@ util_parse_822_date (const char *date, time_t * timep)
 
   if (mu_parse822_date_time (&p, date + strlen (date), &tm, &tz) == 0)
     {
+      adjust_tm (&tm, &tz, flag);
       *timep = mu_tm2time (&tm, &tz);
       return 0;
     }
@@ -370,13 +406,15 @@ util_parse_822_date (const char *date, time_t * timep)
 }
 
 int
-util_parse_ctime_date (const char *date, time_t * timep)
+util_parse_ctime_date (const char *date, time_t *timep,
+		       enum datetime_parse_mode flag)
 {
   struct tm tm;
   mu_timezone tz;
 
   if (mu_parse_ctime_date_time (&date, &tm, &tz) == 0)
     {
+      adjust_tm (&tm, &tz, flag);
       *timep = mu_tm2time (&tm, &tz);
       return 0;
     }

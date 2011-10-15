@@ -63,7 +63,7 @@ imap4d_test "SELECT en/to/tre"\
 "OK \[READ-WRITE\] SELECT Completed"
 
 imap4d_test "FETCH 1 ALL"\
-"1 FETCH (FLAGS (\\Recent) INTERNALDATE \"25-Aug-2002 16:00:00 +0000\" RFC822.SIZE 285 ENVELOPE (\"Mon, 7 Feb 1994 21:52:25 -0800 (PST)\" \"afternoon meeting again\" ((\"Fred Foobar\" NIL \"foobar\" \"Blurdybloop.COM\")) ((\"Fred Foobar\" NIL \"foobar\" \"Blurdybloop.COM\")) ((\"Fred Foobar\" NIL \"foobar\" \"Blurdybloop.COM\")) ((NIL NIL \"mooch\" \"owatagu.siam.edu\")) NIL NIL NIL \"<B27397-0200000@Blurdybloop.COM>\"))"\
+-re {1 FETCH \(FLAGS \(\\Recent\) INTERNALDATE \"25-Aug-2002 16:00:00 [+-][0-9][0-9][0-9][0-9]\" RFC822.SIZE 285 ENVELOPE \(\"Mon, 7 Feb 1994 21:52:25 -0800 \(PST\)\" \"afternoon meeting again\" \(\(\"Fred Foobar\" NIL \"foobar\" \"Blurdybloop.COM\"\)\) \(\(\"Fred Foobar\" NIL \"foobar\" \"Blurdybloop.COM\"\)\) \(\(\"Fred Foobar\" NIL \"foobar\" \"Blurdybloop.COM\"\)\) \(\(NIL NIL \"mooch\" \"owatagu.siam.edu\"\)\) NIL NIL NIL \"<B27397-0200000@Blurdybloop.COM>\"\)\)}\
 "OK"
 
 	

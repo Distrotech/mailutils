@@ -22,6 +22,7 @@ imap4d_auth "user!passwd" "guessme"
 imap4d_test -sort "LIST \"~\" \"*\""\
 "LIST (\\NoInferiors) \"/\" ~/mbox1"\
 "LIST (\\NoInferiors) \"/\" ~/mbox"\
+"LIST (\\NoInferiors) \"/\" ~/search.mbox"\
 "LIST (\\NoInferiors) \"/\" ~/sieve.mbox"\
 "LIST (\\NoInferiors) \"/\" ~/teaparty.mbox"\
 "LIST (\\NoInferiors) \"/\" ~/bigto.mbox"\
@@ -31,6 +32,7 @@ imap4d_test -sort "LIST \"~\" \"*\""\
 imap4d_test -sort "LIST \"~\" \"%\""\
 "LIST (\\NoInferiors) \"/\" ~/mbox1"\
 "LIST (\\NoInferiors) \"/\" ~/mbox"\
+"LIST (\\NoInferiors) \"/\" ~/search.mbox"\
 "LIST (\\NoInferiors) \"/\" ~/sieve.mbox"\
 "LIST (\\NoInferiors) \"/\" ~/teaparty.mbox"\
 "LIST (\\NoInferiors) \"/\" ~/bigto.mbox"\
@@ -41,6 +43,7 @@ imap4d_test -sort "LIST \"\" \"*\""\
 "LIST (\\NoInferiors) NIL INBOX"\
 "LIST (\\NoInferiors) \"/\" mbox1"\
 "LIST (\\NoInferiors) \"/\" mbox"\
+"LIST (\\NoInferiors) \"/\" search.mbox"\
 "LIST (\\NoInferiors) \"/\" sieve.mbox"\
 "LIST (\\NoInferiors) \"/\" teaparty.mbox"\
 "LIST (\\NoInferiors) \"/\" bigto.mbox"\
@@ -60,6 +63,7 @@ imap4d_test -sort "LIST \"$MU_DATA_DIR\" \"*\""\
 "LIST (\\NoInferiors) \"/\" $MU_DATA_DIR/spool/relational.mbox" \
 "LIST (\\NoInferiors) \"/\" $MU_DATA_DIR/spool/mbox1"\
 "LIST (\\NoInferiors) \"/\" $MU_DATA_DIR/spool/mbox"\
+"LIST (\\NoInferiors) \"/\" $MU_DATA_DIR/spool/search.mbox"\
 "LIST (\\NoInferiors) \"/\" $MU_DATA_DIR/spool/sieve.mbox"\
 "LIST (\\NoInferiors) \"/\" $MU_DATA_DIR/spool/teaparty.mbox"\
 "LIST (\\NoSelect) \"/\" $MU_DATA_DIR/folder"\
