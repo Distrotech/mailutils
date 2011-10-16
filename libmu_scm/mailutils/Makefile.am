@@ -15,7 +15,7 @@
 ## You should have received a copy of the GNU General Public License
 ## along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
 
-EXTRA_DIST=mailutils.scm mailutils.scm.in
+EXTRA_DIST=mailutils.scm.in
 
 DISTCLEANFILES=\
  mailutils.scm
