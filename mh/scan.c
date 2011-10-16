@@ -179,7 +179,7 @@ main (int argc, char **argv)
       exit (1);
     }
 
-  mbox = mh_open_folder (mh_current_folder (), MU_STREAM_RDWR);
+  mbox = mh_open_folder (mh_current_folder (), MU_STREAM_READ);
 
   argc -= index;
   argv += index;

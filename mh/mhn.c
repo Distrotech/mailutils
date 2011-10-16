@@ -2322,12 +2322,12 @@ edit_forw (char *cmd, struct compose_env *env, mu_message_t *pmsg, int level)
 
   if (ws.ws_wordv[0][0] == '+')
     {
-      mbox = mh_open_folder (ws.ws_wordv[0], MU_STREAM_RDWR);
+      mbox = mh_open_folder (ws.ws_wordv[0], MU_STREAM_READ);
       i = 1;
     }
   else
     {
-      mbox = mh_open_folder (mh_current_folder (), MU_STREAM_RDWR);
+      mbox = mh_open_folder (mh_current_folder (), MU_STREAM_READ);
       i = 0;
     }
   
@@ -2970,7 +2970,7 @@ main (int argc, char **argv)
     }
   else
     {
-      mbox = mh_open_folder (mh_current_folder (), MU_STREAM_RDWR);
+      mbox = mh_open_folder (mh_current_folder (), MU_STREAM_READ);
       mh_msgset_parse (mbox, &msgset, argc, argv, "cur");
     }
   

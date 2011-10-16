@@ -80,7 +80,7 @@ main (int argc, char **argv)
 
   argc -= index;
   argv += index;
-  mbox = mh_open_folder (mh_current_folder (), MU_STREAM_RDWR);
+  mbox = mh_open_folder (mh_current_folder (), MU_STREAM_READ);
 
   mh_msgset_parse (mbox, &msgset, argc, argv, "cur");
   if (uid_option)

@@ -390,7 +390,8 @@ main (int argc, char **argv)
   if (pick_parse (lexlist))
     return 1;
 
-  mbox = mh_open_folder (mh_current_folder (), MU_STREAM_RDWR);
+  mbox = mh_open_folder (mh_current_folder (),
+			 seq_list ? MU_STREAM_RDWR : MU_STREAM_READ);
 
   argc -= index;
   argv += index;

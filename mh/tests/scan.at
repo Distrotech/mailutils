@@ -17,7 +17,7 @@
 m4_pushdef([MH_KEYWORDS],[scan])
 
 MH_CHECK([scan],[scan00],[
-MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox],[700])
 echo "Current-Folder: inbox" > Mail/context
 scan | sed 's/ *$//'
 ],
@@ -30,7 +30,7 @@ scan | sed 's/ *$//'
 ])
 
 MH_CHECK([scan -folder],[scan01 scan-folder],[
-MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox],[700])
 scan +inbox | sed 's/ *$//'
 ],
 [0],
@@ -42,7 +42,7 @@ scan +inbox | sed 's/ *$//'
 ])
 
 MH_CHECK([scan -format],[scan02 scan-format],[
-MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail])
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail],[700])
 scan +mbox1 -format '%4(msg) %{from} - %{to}'
 ],
 [0],
@@ -54,7 +54,7 @@ scan +mbox1 -format '%4(msg) %{from} - %{to}'
 ])
 
 MH_CHECK([scan -form],[scan03 scan-form],[
-MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail])
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail],[700])
 echo '%4(msg) %(decode(friendly{from})) - %(decode(friendly{to}))' > formfile
 scan +mbox1 -form formfile
 ],
@@ -67,7 +67,7 @@ scan +mbox1 -form formfile
 ])
 
 MH_CHECK([scan -reverse],[scan04 scan-reverse],[
-MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail])
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail],[700])
 scan +mbox1 -reverse | sed 's/ *$//'
 ],
 [0],
