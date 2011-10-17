@@ -28,9 +28,15 @@ extern "C" {
 struct mu_tls_module_config
 {
   int enable;
+  
   char *ssl_cert;
+  int ssl_cert_safety_checks;
+
   char *ssl_key;
+  int ssl_key_safety_checks;
+  
   char *ssl_cafile;
+  int ssl_cafile_safety_checks;
 };
 
 extern int mu_tls_module_init (enum mu_gocs_op, void *);

@@ -33,8 +33,9 @@
 #include <mailutils/nls.h>
 #include <mailutils/stream.h>
 #include <mailutils/errno.h>
+#include <mailutils/util.h>
 
-struct mu_tls_module_config mu_tls_module_config = { 1, NULL, NULL, NULL };
+struct mu_tls_module_config mu_tls_module_config;
   
 int
 mu_tls_module_init (enum mu_gocs_op op, void *data)
@@ -65,44 +66,38 @@ mu_tls_module_init (enum mu_gocs_op op, void *data)
 static gnutls_dh_params dh_params;
 static gnutls_certificate_server_credentials x509_cred;
 
+/* Return: zero means NOT READY, one means READY */
 int
 mu_check_tls_environment (void)
 {
-  /* Return: zero means NOT READY, one means READY */
-
   if (mu_tls_module_config.ssl_cert && mu_tls_module_config.ssl_key)
     {
-      struct stat st;
+      int rc = mu_file_safety_check (mu_tls_module_config.ssl_cert,
+				     mu_tls_module_config.ssl_cert_safety_checks,
+				     NULL, NULL);
+      if (rc)
+	{
+	  mu_error ("%s: %s", mu_tls_module_config.ssl_cert, 
+		    mu_strerror (rc));
+	  return 0;
+	}
+      rc = mu_file_safety_check (mu_tls_module_config.ssl_key,
+				 mu_tls_module_config.ssl_key_safety_checks,
+				 NULL, NULL);
+      if (rc)
+	{
+	  mu_error ("%s: %s", mu_tls_module_config.ssl_key, 
+		    mu_strerror (rc));
+	  return 0;
+	}
 
-      if (stat (mu_tls_module_config.ssl_cert, &st) == -1)
+      rc = mu_file_safety_check (mu_tls_module_config.ssl_cafile,
+				 mu_tls_module_config.ssl_cafile_safety_checks,
+				 NULL, NULL);
+      if (rc)
 	{
-	  mu_error ("%s: %s.", mu_tls_module_config.ssl_cert, 
-		    mu_strerror (errno));
-	  return 0;
-	}
-      if (!(st.st_mode & S_IFREG) || !(st.st_mode & S_IFLNK))
-	{
-	  mu_error (_("%s is not a regular file or a symbolic link."),
-		    mu_tls_module_config.ssl_cert);
-	  return 0;
-	}
-
-      if (stat (mu_tls_module_config.ssl_key, &st) == -1)
-	{
-	  mu_error ("%s: %s.", mu_tls_module_config.ssl_key,
-		    mu_strerror(errno));
-	  return 0;
-	}
-      if (!(st.st_mode & S_IFREG) || !(st.st_mode & S_IFLNK))
-	{
-	  mu_error (_("%s is not a regular file or a symbolic link."),
-		    mu_tls_module_config.ssl_key);
-	  return 0;
-	}
-      if ((st.st_mode & S_IRWXG) || (st.st_mode & S_IRWXO))
-	{
-	  mu_error (_("wrong permissions on %s (set 0600)"),
-		    mu_tls_module_config.ssl_key);
+	  mu_error ("%s: %s", mu_tls_module_config.ssl_cafile, 
+		    mu_strerror (rc));
 	  return 0;
 	}
     }

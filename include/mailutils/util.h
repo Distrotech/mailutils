@@ -199,6 +199,35 @@ void mu_onexit_reset (void);
 /* Register the onexit function and associated data */
 int mu_onexit (mu_onexit_t func, void *data);
 
+#define MU_FILE_SAFETY_NONE           0x00
+#define MU_FILE_SAFETY_OWNER_MISMATCH 0x01
+#define MU_FILE_SAFETY_GROUP_WRITABLE 0x02
+#define MU_FILE_SAFETY_WORLD_WRITABLE 0x04
+#define MU_FILE_SAFETY_GROUP_READABLE 0x08
+#define MU_FILE_SAFETY_WORLD_READABLE 0x10  
+#define MU_FILE_SAFETY_LINKED_WRDIR   0x20 
+#define MU_FILE_SAFETY_DIR_IWGRP      0x40
+#define MU_FILE_SAFETY_DIR_IWOTH      0x80
+
+#define MU_FILE_SAFETY_ALL      (		\
+  MU_FILE_SAFETY_OWNER_MISMATCH |		\
+  MU_FILE_SAFETY_GROUP_WRITABLE |		\
+  MU_FILE_SAFETY_WORLD_WRITABLE |		\
+  MU_FILE_SAFETY_GROUP_READABLE |		\
+  MU_FILE_SAFETY_WORLD_READABLE |		\
+  MU_FILE_SAFETY_LINKED_WRDIR   |		\
+  MU_FILE_SAFETY_DIR_IWGRP      |		\
+  MU_FILE_SAFETY_DIR_IWOTH      )
+  
+
+struct mu_auth_data;
+
+int mu_file_safety_check (const char *filename, int mode,
+			  struct mu_auth_data *auth,
+			  mu_list_t idlist);
+int mu_file_safety_name_to_code (const char *name, int *pcode);
+int mu_file_safety_name_to_error (const char *name, int *pcode);  
+  
 #ifdef __cplusplus
 }
 #endif

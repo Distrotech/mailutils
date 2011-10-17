@@ -36,7 +36,14 @@ maidag_script_fun script_handler;
 mu_list_t script_list;
 
 char *forward_file = NULL;
-int forward_file_checks = FWD_ALL;
+#define FORWARD_FILE_PERM_CHECK (					\
+			   MU_FILE_SAFETY_OWNER_MISMATCH |	\
+			   MU_FILE_SAFETY_GROUP_WRITABLE |	\
+			   MU_FILE_SAFETY_WORLD_WRITABLE |	\
+			   MU_FILE_SAFETY_LINKED_WRDIR |		\
+			   MU_FILE_SAFETY_DIR_IWGRP |		\
+			   MU_FILE_SAFETY_DIR_IWOTH )
+int forward_file_checks = FORWARD_FILE_PERM_CHECK;
 
 /* Debuggig options */
 int debug_level;           /* General debugging level */ 
@@ -326,44 +333,32 @@ cb_group (void *data, mu_config_value_t *arg)
   return mu_cfg_string_value_cb (arg, cb2_group, *plist);
 }
 
-static struct mu_kwd forward_checks[] = {
-  { "all", FWD_ALL },
-  { "owner", FWD_OWNER },
-  { "groupwritablefile", FWD_IWGRP },
-  { "file_iwgrp", FWD_IWGRP },
-  { "worldwritablefile", FWD_IWOTH },
-  { "file_iwoth", FWD_IWOTH },
-  { "linkedfileinwritabledir", FWD_LINK },
-  { "link", FWD_LINK },
-  { "fileingroupwritabledir", FWD_DIR_IWGRP },
-  { "dir_iwgrp", FWD_DIR_IWGRP },
-  { "fileinworldwritabledir", FWD_DIR_IWOTH },
-  { "dir_iwoth", FWD_DIR_IWOTH },
-  { NULL }
-};
-
 static int
 cb2_forward_file_checks (const char *name, void *data)
 {
-  int negate = 0;
-  const char *str;
   int val;
-
+  int negate = 0;
+  
+  if (strcmp (name, "all") == 0)
+    {
+      forward_file_checks = FORWARD_FILE_PERM_CHECK;
+      return 0;
+    }
   if (strcmp (name, "none") == 0)
     {
       forward_file_checks = 0;
       return 0;
     }
   
-  if (strlen (name) > 2 && mu_c_strncasecmp (name, "no", 2) == 0)
+  if (*name == '-')
     {
       negate = 1;
-      str = name + 2;
+      name++;
     }
-  else
-    str = name;
+  else if (*name == '+')
+    name++;
 
-  if (mu_kwd_xlat_name_ci (forward_checks, str, &val))
+  if (mu_file_safety_name_to_code (name, &val))
     mu_error (_("unknown keyword: %s"), name);
   else
     {

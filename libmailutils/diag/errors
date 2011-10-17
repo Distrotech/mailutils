@@ -65,7 +65,6 @@ MU_ERR_BADREPLY             _("Invalid reply from the remote host")
 MU_ERR_SEQ                  _("Bad command sequence")
 MU_ERR_REPLY                _("Erroneous reply received")
 
-MU_ERR_UNSAFE_PERMS         _("Unsafe file permissions. Set 0600")
 MU_ERR_BAD_AUTH_SCHEME      _("Unsupported authentication scheme")
 MU_ERR_AUTH_FAILURE         _("Authentication failed")
 
@@ -106,3 +105,16 @@ MU_ERR_BADFLAGS	            _("Bad value for flags")
 MU_ERR_SOCKTYPE             _("Socket type not supported")
 MU_ERR_FAMILY               _("Address family not supported")
 MU_ERR_SERVICE              _("Requested service not supported")
+
+# File safety check
+MU_ERR_PERM_OWNER_MISMATCH  _("File owner mismatch")
+MU_ERR_PERM_GROUP_WRITABLE  _("Group writable file")
+MU_ERR_PERM_WORLD_WRITABLE  _("World writable file")
+MU_ERR_PERM_GROUP_READABLE  _("Group readable file")
+MU_ERR_PERM_WORLD_READABLE  _("World readable file")
+MU_ERR_PERM_LINKED_WRDIR    _("Linked file in a writable directory")
+MU_ERR_PERM_DIR_IWGRP       _("File in group writable directory")
+MU_ERR_PERM_DIR_IWOTH       _("File in world writable directory")
+
+# A simpler version of the above.  Possibly will be removed in the future.
+MU_ERR_UNSAFE_PERMS         _("Unsafe file permissions")

@@ -19,154 +19,6 @@
 
 #include "maidag.h"
 
-/* Functions for checking file mode of .forward and its directory.
-   Each of these checks certain bits and returns 0 if they are OK
-   and non-0 otherwise. */
-
-static int
-check_iwgrp (struct stat *filest, struct stat *dirst)
-{
-  return filest->st_mode & S_IWGRP;
-}
-
-static int
-check_iwoth (struct stat *filest, struct stat *dirst)
-{
-  return filest->st_mode & S_IWOTH;
-}
-
-static int
-check_linked_wrdir (struct stat *filest, struct stat *dirst)
-{
-  return (filest->st_mode & S_IFLNK) && (dirst->st_mode & (S_IWGRP | S_IWOTH));
-}
-
-static int
-check_dir_iwgrp (struct stat *filest, struct stat *dirst)
-{
-  return dirst->st_mode & S_IWGRP;
-}
-
-static int
-check_dir_iwoth (struct stat *filest, struct stat *dirst)
-{
-  return dirst->st_mode & S_IWOTH;
-}
-
-/* The table of permission checkers below has this type: */
-struct perm_checker
-{
-  int flag;              /* FWD_ flag that enables this entry */
-  char *descr;           /* Textual description to use if FUN returns !0 */
-  int (*fun) (struct stat *filest, struct stat *dirst); /* Checker function */
-};
-
-static struct perm_checker perm_check_tab[] = {
-  { FWD_IWGRP, N_("group writable forward file"), check_iwgrp },
-  { FWD_IWOTH, N_("world writable forward file"), check_iwoth },
-  { FWD_LINK, N_("linked forward file in writable dir"), check_linked_wrdir },
-  { FWD_DIR_IWGRP, N_("forward file in group writable directory"),
-    check_dir_iwgrp },
-  { FWD_DIR_IWOTH, N_("forward file in world writable directory"),
-    check_dir_iwoth },
-  { 0 }
-};
-
-static mu_list_t idlist;
-
-struct file_id
-{
-  dev_t dev;
-  ino_t inode;
-};
-
-static int
-file_id_cmp (const void *item, const void *data)
-{
-  const struct file_id *a = item;
-  const struct file_id *b = data;
-
-  if (a->dev != b->dev)
-    return 1;
-  if (a->inode != b->inode)
-    return 1;
-  return 0;
-}
-
-static int
-file_id_lookup (dev_t dev, ino_t ino)
-{
-  struct file_id id;
-
-  id.dev = dev;
-  id.inode = ino;
-  return mu_list_locate (idlist, &id, NULL);
-}
-
-static int
-file_id_remember (dev_t dev, ino_t ino)
-{
-  struct file_id *id = malloc (sizeof (*id));
-  if (!id)
-    {
-      mu_error ("%s", mu_strerror (errno));
-      return 1;
-    }
-  id->dev = dev;
-  id->inode = ino;
-  return mu_list_append (idlist, id);
-}
-
-
-/* Check if the forwrd file FILENAME has right permissions and file mode.
-   DIRST describes the directory holding the file, AUTH gives current user
-   authority. */
-int
-check_forward_permissions (const char *filename, struct stat *dirst,
-			   struct mu_auth_data *auth)
-{
-  struct stat st;
-  
-  if (stat (filename, &st) == 0)
-    {
-      int i;
-
-      if (!idlist)
-	{
-	  mu_list_create (&idlist);
-	  mu_list_set_comparator (idlist, file_id_cmp);
-	}
-      else if (file_id_lookup (st.st_dev, st.st_ino) == 0)
-	{
-	  mu_diag_output (MU_DIAG_NOTICE,
-			  _("skipping forward file %s: already processed"),
-			  filename);
-	  return 1;
-	}
-      
-      if ((forward_file_checks & FWD_OWNER) &&
-	  auth->uid != st.st_uid)
-	{
-	  mu_error (_("%s not owned by %s"), filename, auth->name);
-	  return 1;
-	}
-      for (i = 0; perm_check_tab[i].flag; i++)
-	if ((forward_file_checks & perm_check_tab[i].flag)
-	    && perm_check_tab[i].fun (&st, dirst))
-	  {
-	    mu_error ("%s: %s", filename, gettext (perm_check_tab[i].descr));
-	    return 1;
-	  }
-      file_id_remember (st.st_dev, st.st_ino);
-      return 0;
-    }
-  else if (errno != ENOENT)
-    mu_error (_("%s: cannot stat file: %s"),
-	      filename, mu_strerror (errno));
-  return 1;
-}
-
-
 /* Auxiliary functions */
 
 /* Forward message MSG to given EMAIL, using MAILER and sender address FROM */
@@ -320,6 +172,9 @@ process_forward (mu_message_t msg, char *filename, const char *myname)
   return result;
 }
 
+
+static mu_list_t idlist;
+
 /* Check if the forward file FWFILE for user given by AUTH exists, and if
    so, use to to forward message MSG. */
 enum maidag_forward_result
@@ -328,7 +183,8 @@ maidag_forward (mu_message_t msg, struct mu_auth_data *auth, char *fwfile)
   struct stat st;
   char *filename;
   enum maidag_forward_result result = maidag_forward_none;
-
+  int rc;
+  
   if (fwfile[0] != '/')
     {
       if (stat (auth->dir, &st))
@@ -353,8 +209,20 @@ maidag_forward (mu_message_t msg, struct mu_auth_data *auth, char *fwfile)
       return maidag_forward_error;
     }
 
-  if (check_forward_permissions (filename, &st, auth) == 0)
+  if (!idlist)
+    mu_list_create (&idlist);
+
+  rc = mu_file_safety_check (filename, forward_file_checks,
+				  auth, idlist);
+  if (rc == 0)
     result = process_forward (msg, filename, auth->name);
+  else if (rc)
+    mu_diag_output (MU_DIAG_NOTICE,
+		    _("skipping forward file %s: already processed"),
+		    filename);
+  else
+    mu_error (_("ignoring forward file %s: %s"),
+	      filename, mu_strerror (rc));
   
   free (filename);
   return result;
