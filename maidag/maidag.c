@@ -339,17 +339,6 @@ cb2_forward_file_checks (const char *name, void *data)
   int val;
   int negate = 0;
   
-  if (strcmp (name, "all") == 0)
-    {
-      forward_file_checks = FORWARD_FILE_PERM_CHECK;
-      return 0;
-    }
-  if (strcmp (name, "none") == 0)
-    {
-      forward_file_checks = 0;
-      return 0;
-    }
-  
   if (*name == '-')
     {
       negate = 1;
@@ -358,15 +347,23 @@ cb2_forward_file_checks (const char *name, void *data)
   else if (*name == '+')
     name++;
 
-  if (mu_file_safety_name_to_code (name, &val))
-    mu_error (_("unknown keyword: %s"), name);
-  else
+  if (strcmp (name, "none") == 0)
+    forward_file_checks = MU_FILE_SAFETY_NONE;
+  else if (strcmp (name, "all") == 0)
+    forward_file_checks = MU_FILE_SAFETY_ALL;
+  else if (strcmp (name, "default") == 0)
+    forward_file_checks = FORWARD_FILE_PERM_CHECK;
+  else if (mu_file_safety_name_to_code (name, &val))
     {
-      if (negate)
-	forward_file_checks &= ~val;
-      else
-	forward_file_checks |= val;
+      mu_error (_("unknown keyword: %s"), name);
+      return 0;
     }
+
+  if (negate)
+    forward_file_checks &= ~val;
+  else
+    forward_file_checks |= val;
+
   return 0;
 }
 

@@ -24,21 +24,27 @@
 #include <mailutils/util.h>
 #include <mailutils/kwd.h>
 
+#define SSL_CERT_FILE_CHECKS  (MU_FILE_SAFETY_GROUP_WRITABLE |		\
+			       MU_FILE_SAFETY_GROUP_WRITABLE |		\
+			       MU_FILE_SAFETY_LINKED_WRDIR)
+
+#define SSL_KEY_FILE_CHECKS   MU_FILE_SAFETY_ALL
+
+#define SSL_CA_FILE_CHECKS    (MU_FILE_SAFETY_GROUP_WRITABLE |		\
+			       MU_FILE_SAFETY_GROUP_WRITABLE |		\
+			       MU_FILE_SAFETY_LINKED_WRDIR)
+
 static struct mu_tls_module_config tls_settings = {
     1,                   /* enabled by default */
 
     NULL,                /* Certificate file */
-    MU_FILE_SAFETY_GROUP_WRITABLE |
-     MU_FILE_SAFETY_GROUP_WRITABLE |
-     MU_FILE_SAFETY_LINKED_WRDIR,
+    SSL_CERT_FILE_CHECKS,
 
-    NULL,               /* Key file */ 
-    MU_FILE_SAFETY_ALL, /* Stringent safety checks for keys */
+    NULL,                /* Key file */ 
+    SSL_KEY_FILE_CHECKS, /* Stringent safety checks for keys */
 
-    NULL,               /* CA file */
-    MU_FILE_SAFETY_GROUP_WRITABLE |
-     MU_FILE_SAFETY_GROUP_WRITABLE |
-     MU_FILE_SAFETY_LINKED_WRDIR
+    NULL,                /* CA file */
+    SSL_CA_FILE_CHECKS
 };
 
 
@@ -49,12 +55,6 @@ cb2_safety_checks (const char *name, void *data)
   int val;
   int *res = data;
   
-  if (strcmp (name, "none") == 0)
-    {
-      *res = MU_FILE_SAFETY_NONE;
-      return 0;
-    }
-
   if (*name == '-')
     {
       negate = 1;
@@ -62,16 +62,37 @@ cb2_safety_checks (const char *name, void *data)
     }
   else if (*name == '+')
     name++;
-    
-  if (mu_file_safety_name_to_code (name, &val))
-    mu_error (_("unknown keyword: %s"), name);
-  else
+
+  if (strcmp (name, "none") == 0)
+    val = MU_FILE_SAFETY_NONE;
+  else if (strcmp (name, "all") == 0)
+    val = MU_FILE_SAFETY_ALL;
+  else if (strcmp (name, "default") == 0)
     {
-      if (negate)
-	*res &= ~val;
+      if (data == &tls_settings.ssl_key)
+	val = SSL_KEY_FILE_CHECKS;
+      else if (data == &tls_settings.ssl_cert)
+	val = SSL_CERT_FILE_CHECKS;
+      else if (data == &tls_settings.ssl_cafile)
+	val = SSL_CA_FILE_CHECKS;
       else
-	*res |= val;
+	{
+	  mu_error (_("INTERNAL ERROR at %s:%d: unknown default value?"),
+		    __FILE__, __LINE__);
+	  val = MU_FILE_SAFETY_ALL;
+	}
     }
+  else if (mu_file_safety_name_to_code (name, &val))
+    {
+      mu_error (_("unknown keyword: %s"), name);
+      return 0;
+    }
+
+  if (negate)
+    *res &= ~val;
+  else
+    *res |= val;
+  
   return 0;
 }
 
