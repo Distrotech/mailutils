@@ -43,7 +43,13 @@
       mu_monitor_wrlock (mbox->monitor);				\
 } while (0);
 
-# define MU_AMD_SIZE_FILE_NAME ".mu-size"
+#define _MU_AMD_PROP_UIDVALIDITY "uid-validity"
+#define _MU_AMD_PROP_NEXT_UID "next-uid"
+#define _MU_AMD_PROP_SIZE "size"
+
+#define _MU_AMD_PROP_FILE_NAME ".mu-prop"
+/* Legacy (2.x) size file name */
+#define _MU_AMD_SIZE_FILE_NAME ".mu-size"
 
 struct _amd_data;
 struct _amd_message
@@ -64,6 +70,10 @@ struct _amd_message
   struct _amd_data *amd;    /* Back pointer.  */
 };
 
+/* AMD capabilities */
+#define MU_AMD_STATUS    0x01  /* format keeps status flags */
+#define MU_AMD_IMAPBASE  0x02  /* format keeps IMAP base */
+
 struct _amd_data
 {
   size_t msg_size;               /* Size of struct _amd_message */
@@ -83,16 +93,19 @@ struct _amd_data
   size_t (*next_uid) (struct _amd_data *mhd);
   int (*remove) (struct _amd_data *);
   int (*delete_msg) (struct _amd_data *, struct _amd_message *);
-		     
+  int (*chattr_msg) (struct _amd_message *, int);
+  
   /* List of messages: */
   size_t msg_count; /* number of messages in the list */
   size_t msg_max;   /* maximum message buffer capacity */
   struct _amd_message **msg_array;
 
-  unsigned long uidvalidity;
+  int capabilities;
   int has_new_msg;  /* New messages have been appended */
   char *name;                    /* Directory name */
 
+  mu_property_t prop; /* Properties: uidvalidity, nextuid, etc. */
+  
   /* Pool of open message streams */
   struct _amd_message *msg_pool[MAX_OPEN_STREAMS];
   int pool_first;    /* Index to the first used entry in msg_pool */

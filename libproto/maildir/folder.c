@@ -92,7 +92,8 @@ _maildir_list_p (mu_record_t record, const char *name, int flags MU_ARG_UNUSED)
   return strcmp (name, TMPSUF)
     && strcmp (name, CURSUF) 
     && strcmp (name, NEWSUF)
-    && strcmp (name, MU_AMD_SIZE_FILE_NAME);
+    && !((strlen (name) > 3) &&
+	 (memcmp (name, ".mh", 3) == 0 || memcmp (name, ".mu", 3) == 0));
 }
 
 static struct _mu_record _maildir_record =

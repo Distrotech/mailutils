@@ -129,7 +129,148 @@ struct _amd_body_stream
   mu_body_t body;
   mu_off_t off;
 };
+
+/* AMD Properties */
+int
+_amd_prop_fetch_off (struct _amd_data *amd, const char *name, mu_off_t *pval)
+{
+  const char *p;
+  mu_off_t n = 0;
+  
+  if (!amd->prop || mu_property_sget_value (amd->prop, name, &p))
+    return MU_ERR_NOENT;
+  if (!pval)
+    return 0;
+  for (; *p; p++)
+    {
+      if (!mu_isdigit (*p))
+	return EINVAL;
+      n = n * 10 + *p - '0';
+    }
+  *pval = n;
+  return 0;
+}
 
+int
+_amd_prop_fetch_size (struct _amd_data *amd, const char *name, size_t *pval)
+{
+  mu_off_t n;
+  int rc = _amd_prop_fetch_off (amd, name, &n);
+  if (rc == 0)
+    {
+      size_t s = n;
+      if (s != n)
+	return ERANGE;
+      if (pval)
+	*pval = s;
+    }
+  return rc;
+}
+
+int
+_amd_prop_fetch_ulong (struct _amd_data *amd, const char *name,
+		       unsigned long *pval)
+{
+  mu_off_t n;
+  int rc = _amd_prop_fetch_off (amd, name, &n);
+  if (rc == 0)
+    {
+      unsigned long s = n;
+      if (s != n)
+	return ERANGE;
+      if (pval)
+	*pval = s;
+    }
+  return rc;
+}
+
+int
+_amd_prop_store_off (struct _amd_data *amd, const char *name, mu_off_t val)
+{
+  char nbuf[128];
+  char *p;
+  int sign = 0;
+  
+  p = nbuf + sizeof nbuf;
+  *--p = 0;
+  if (val < 0)
+    {
+      sign = 1;
+      val = - val;
+    }
+  do
+    {
+      unsigned d = val % 10;
+      if (p == nbuf)
+	return ERANGE;
+      *--p = d + '0';
+      val /= 10;
+    }
+  while (val);
+  if (sign)
+    {
+      if (p == nbuf)
+	return ERANGE;
+      *--p = '-';
+    }
+  return mu_property_set_value (amd->prop, name, p, 1);
+}
+
+/* Backward-compatible size file support */
+static int
+read_size_file (struct _amd_data *amd)
+{
+  FILE *fp;
+  int rc;
+  char *name = mu_make_file_name (amd->name, _MU_AMD_SIZE_FILE_NAME);
+  if (!name)
+    return 1;
+  fp = fopen (name, "r");
+  if (fp)
+    {
+      unsigned long size;
+      if (fscanf (fp, "%lu", &size) == 1)
+	{
+	  rc = _amd_prop_store_off (amd, _MU_AMD_PROP_SIZE, size);
+	}
+      else
+	rc = 1;
+      fclose (fp);
+      unlink (name);
+    }
+  else
+    rc = 1;
+  free (name);
+  return rc;
+}
+
+static int
+_amd_prop_create (struct _amd_data *amd)
+{
+  int rc;
+  struct mu_mh_prop *mhprop;
+  mhprop = calloc (1, sizeof (mhprop[0]));
+  if (!mhprop)
+    return ENOMEM;
+  mhprop->filename = mu_make_file_name (amd->name, _MU_AMD_PROP_FILE_NAME);
+  if (!mhprop->filename)
+    {
+      free (mhprop);
+      return errno;
+    }
+  rc = mu_property_create_init (&amd->prop, mu_mh_property_init, mhprop);
+  if (rc)
+    {
+      mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR,
+		("mu_property_create_init: %s",
+		 mu_strerror (rc)));
+      free (mhprop->filename);
+      free (mhprop);
+    }
+  else
+    read_size_file (amd);
+  return rc;
+}
 
 /* Operations on message array */
 
@@ -246,8 +387,8 @@ amd_array_expand (struct _amd_data *amd, size_t index)
   return 0;
 }
 
-/* Shrink the message array by removing element at INDEX-COUNT and
-   shifting left by COUNT positions all the elements on the right of
+/* Shrink the message array by removing the element at INDEX-COUNT and
+   shifting left by COUNT positions all the elements to the right of
    it. */
 int
 amd_array_shrink (struct _amd_data *amd, size_t index, size_t count)
@@ -273,7 +414,7 @@ amd_init_mailbox (mu_mailbox_t mailbox, size_t amd_size,
     return EINVAL;
 
   amd = mailbox->data = calloc (1, amd_size);
-  if (mailbox->data == NULL)
+  if (amd == NULL)
     return ENOMEM;
 
   /* Back pointer.  */
@@ -333,7 +474,9 @@ amd_destroy (mu_mailbox_t mailbox)
       free (amd->msg_array[i]);
     }
   free (amd->msg_array);
-	
+
+  mu_property_destroy (&amd->prop);
+  
   if (amd->name)
     free (amd->name);
 
@@ -374,6 +517,9 @@ amd_open (mu_mailbox_t mailbox, int flags)
 	       W_OK : R_OK | X_OK))
     return errno;
 
+  /* Create/read properties.  It is not an error if this fails. */
+  _amd_prop_create (amd);
+  
   if (mailbox->locker == NULL)
     mu_locker_create (&mailbox->locker, "/dev/null", 0);
   
@@ -405,7 +551,6 @@ amd_close (mu_mailbox_t mailbox)
   amd->msg_count = 0; /* number of messages in the list */
   amd->msg_max = 0;   /* maximum message buffer capacity */
 
-  amd->uidvalidity = 0;
   mu_monitor_unlock (mailbox->monitor);
   
   return 0;
@@ -547,6 +692,27 @@ _amd_attach_message (mu_mailbox_t mailbox, struct _amd_message *mhm,
 }
 
 static int
+_amd_scan0 (struct _amd_data *amd, size_t msgno, size_t *pcount,
+	    int do_notify)
+{
+  int status = amd->scan0 (amd->mailbox, msgno, pcount, do_notify);
+  if (status != 0)
+    return status;
+  /* Reset the uidvalidity.  */
+  if (amd->msg_count > 0)
+    {
+      unsigned long uidval;
+      if (_amd_prop_fetch_ulong (amd, _MU_AMD_PROP_UIDVALIDITY, &uidval) ||
+	  !uidval)
+	{
+	  uidval = (unsigned long)time (NULL);
+	  _amd_prop_store_off (amd, _MU_AMD_PROP_UIDVALIDITY, uidval);
+	}
+    }
+  return 0;
+}
+
+static int
 amd_get_message (mu_mailbox_t mailbox, size_t msgno, mu_message_t *pmsg)
 {
   int status;
@@ -562,7 +728,7 @@ amd_get_message (mu_mailbox_t mailbox, size_t msgno, mu_message_t *pmsg)
   /* If we did not start a scanning yet do it now.  */
   if (amd->msg_count == 0)
     {
-      status = amd->scan0 (mailbox, 1, NULL, 0);
+      status = _amd_scan0 (amd, 1, NULL, 0);
       if (status != 0)
 	return status;
     }
@@ -647,7 +813,6 @@ _amd_message_save (struct _amd_data *amd, struct _amd_message *mhm,
   mu_body_t body;
   const char *sbuf;
   mu_envelope_t env = NULL;
-  char statbuf[MU_STATUS_BUF_SIZE];
 
   status = mu_message_size (msg, &bsize);
   if (status)
@@ -724,17 +889,6 @@ _amd_message_save (struct _amd_data *amd, struct _amd_message *mhm,
     }
   mu_stream_destroy (&stream);
   
-  /* Add imapbase */
-  if (!(amd->mailbox->flags & MU_STREAM_APPEND)
-      && amd->next_uid
-      && (!amd->msg_array || (amd->msg_array[0] == mhm))) /*FIXME*/
-    {
-      nbytes += fprintf (fp, "X-IMAPbase: %lu %u\n",
-			 (unsigned long) amd->uidvalidity,
-			 (unsigned) amd->next_uid (amd));
-      nlines++;
-    }
-  
   mu_message_get_envelope (msg, &env);
   if (mu_envelope_sget_date (env, &sbuf) == 0)
     {
@@ -754,15 +908,21 @@ _amd_message_save (struct _amd_data *amd, struct _amd_message *mhm,
       fprintf (fp, "%s: %s\n", MU_HEADER_ENV_SENDER, sbuf);
       nlines++;
     }
-  
-  /* Add status */
-  mu_message_get_attribute (msg, &attr);
-  mu_attribute_to_string (attr, statbuf, sizeof (statbuf), &n);
-  if (n)
+
+  if (!(amd->capabilities & MU_AMD_STATUS))
     {
-      nbytes += fprintf (fp, "Status: %s\n", statbuf);
-      nlines++;
+      /* Add status */
+      char statbuf[MU_STATUS_BUF_SIZE];
+      
+      mu_message_get_attribute (msg, &attr);
+      mu_attribute_to_string (attr, statbuf, sizeof (statbuf), &n);
+      if (n)
+	{
+	  nbytes += fprintf (fp, "Status: %s\n", statbuf);
+	  nlines++;
+	}
     }
+
   nbytes += fprintf (fp, "\n");
   nlines++;
   
@@ -858,7 +1018,7 @@ amd_append_message (mu_mailbox_t mailbox, mu_message_t msg)
   /* If we did not start a scanning yet do it now.  */
   if (amd->msg_count == 0)
     {
-      status = amd->scan0 (mailbox, 1, NULL, 0);
+      status = _amd_scan0 (amd, 1, NULL, 0);
       if (status != 0)
 	{
 	  free (mhm);
@@ -923,7 +1083,7 @@ amd_messages_count (mu_mailbox_t mailbox, size_t *pcount)
     return EINVAL;
 
   if (!amd_is_updated (mailbox))
-    return amd->scan0 (mailbox,  amd->msg_count, pcount, 0);
+    return _amd_scan0 (amd,  amd->msg_count, pcount, 0);
 
   if (pcount)
     *pcount = amd->msg_count;
@@ -943,7 +1103,7 @@ amd_messages_recent (mu_mailbox_t mailbox, size_t *pcount)
   /* If we did not start a scanning yet do it now.  */
   if (amd->msg_count == 0)
     {
-      int status = amd->scan0 (mailbox, 1, NULL, 0);
+      int status = _amd_scan0 (amd, 1, NULL, 0);
       if (status != 0)
 	return status;
     }
@@ -967,7 +1127,7 @@ amd_message_unseen (mu_mailbox_t mailbox, size_t *pmsgno)
   /* If we did not start a scanning yet do it now.  */
   if (amd->msg_count == 0)
     {
-      int status = amd->scan0 (mailbox, 1, NULL, 0);
+      int status = _amd_scan0 (amd, 1, NULL, 0);
       if (status != 0)
 	return status;
     }
@@ -982,71 +1142,10 @@ amd_message_unseen (mu_mailbox_t mailbox, size_t *pmsgno)
     }
   return 0;
 }
-
-static char *
-make_size_file_name (struct _amd_data *amd)
-{
-  size_t size = strlen (amd->name) + 1 + sizeof (MU_AMD_SIZE_FILE_NAME);
-  char *name = malloc (size);
-  if (name)
-    {
-      strcpy (name, amd->name);
-      strcat (name, "/");
-      strcat (name, MU_AMD_SIZE_FILE_NAME);
-    }
-  return name;
-}
-
+
 static int
-read_size_file (struct _amd_data *amd, mu_off_t *psize)
-{
-  FILE *fp;
-  int rc;
-  char *name = make_size_file_name (amd);
-  if (!name)
-    return 1;
-  fp = fopen (name, "r");
-  if (fp)
-    {
-      unsigned long size;
-      if (fscanf (fp, "%lu", &size) == 1)
-	{
-	  *psize = size;
-	  rc = 0;
-	}
-      else
-	rc = 1;
-      fclose (fp);
-    }
-  else
-    rc = 1;
-  free (name);
-  return rc;
-}
-
-static int
-write_size_file (struct _amd_data *amd, mu_off_t size)
-{
-  FILE *fp;
-  int rc;
-  char *name = make_size_file_name (amd);
-  if (!name)
-    return 1;
-  fp = fopen (name, "w");
-  if (fp)
-    {
-      fprintf (fp, "%lu", (unsigned long) size);
-      fclose (fp);
-      rc = 0;
-    }
-  else
-    rc = 1;
-  free (name);
-  return rc;
-}
-      
-static int
-compute_mailbox_size (struct _amd_data *amd, const char *name, mu_off_t *psize)
+_compute_mailbox_size_recursive (struct _amd_data *amd, const char *name,
+				 mu_off_t *psize)
 {
   DIR *dir;
   struct dirent *entry;
@@ -1099,7 +1198,7 @@ compute_mailbox_size (struct _amd_data *amd, const char *name, mu_off_t *psize)
 	      if (S_ISREG (sb.st_mode))
 		*psize += sb.st_size;
 	      else if (S_ISDIR (sb.st_mode))
-		compute_mailbox_size (amd, buf, psize);
+		_compute_mailbox_size_recursive (amd, buf, psize);
 	    }
 	  /* FIXME: else? */
 	  break;
@@ -1113,6 +1212,20 @@ compute_mailbox_size (struct _amd_data *amd, const char *name, mu_off_t *psize)
 }
 
 static int
+compute_mailbox_size (struct _amd_data *amd, mu_off_t *psize)
+{
+  mu_off_t size = 0;
+  int rc = _compute_mailbox_size_recursive (amd, amd->name, &size);
+  if (rc == 0)
+    {
+      rc = _amd_prop_store_off (amd, _MU_AMD_PROP_SIZE, size);
+      if (rc == 0 && psize)
+	*psize = size;
+    }
+  return rc;
+}
+
+static int
 amd_remove_mbox (mu_mailbox_t mailbox)
 {
   int rc;
@@ -1123,11 +1236,22 @@ amd_remove_mbox (mu_mailbox_t mailbox)
   rc = amd->remove (amd);
   if (rc == 0)
     {
-      char *name = make_size_file_name (amd);
+      char *name;
+
+      name = mu_make_file_name (amd->name, _MU_AMD_SIZE_FILE_NAME);
       if (!name)
 	return ENOMEM;
       if (unlink (name) && errno != ENOENT)
 	rc = errno;
+      else
+	{
+	  free (name);
+	  name = mu_make_file_name (amd->name, _MU_AMD_PROP_FILE_NAME);
+	  if (!name)
+	    return ENOMEM;
+	  if (unlink (name) && errno != ENOENT)
+	    rc = errno;
+	}
       free (name);
     }
 
@@ -1143,6 +1267,55 @@ amd_remove_mbox (mu_mailbox_t mailbox)
 	}
     }
   
+  return rc;
+}
+
+static int
+_amd_update_message (struct _amd_data *amd, struct _amd_message *mhm,
+		     int expunge, int *upd)
+{
+  int flg, rc;
+      
+  if (mhm->message)
+    flg = mu_message_is_modified (mhm->message);
+  else if (mhm->attr_flags & MU_ATTRIBUTE_MODIFIED)
+    flg = MU_MSG_ATTRIBUTE_MODIFIED;
+
+  if (!flg)
+    return 0;
+
+  if (flg == MU_MSG_ATTRIBUTE_MODIFIED && amd->chattr_msg)
+    {
+      rc = amd->chattr_msg (mhm, expunge);
+      if (rc)
+	{
+	  mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR,
+		    ("_amd_update_message: chattr_msg failed: %s",
+		     mu_strerror (rc)));
+	  return rc;
+	}
+    }
+  else
+    {
+      rc = _amd_attach_message (amd->mailbox, mhm, NULL);
+      if (rc)
+	{
+	  mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR,
+		    ("_amd_update_message: _amd_attach_message failed: %s",
+		     mu_strerror (rc)));
+	  return rc;
+	}
+	  
+      rc = _amd_message_save (amd, mhm, expunge);
+      if (rc)
+	{
+	  mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR,
+		    ("_amd_update_message: _amd_message_save failed: %s",
+		     mu_strerror (rc)));
+	  return rc;
+	}
+    }
+  *upd = 1;
   return rc;
 }
 
@@ -1232,13 +1405,7 @@ amd_expunge (mu_mailbox_t mailbox)
 	}
       else
 	{
-	  if ((mhm->attr_flags & MU_ATTRIBUTE_MODIFIED)
-	      || (mhm->message && mu_message_is_modified (mhm->message)))
-	    {
-	      _amd_attach_message (mailbox, mhm, NULL);
-	      _amd_message_save (amd, mhm, 1);
-	      updated = 1;
-	    }
+	  _amd_update_message (amd, mhm, 1, &updated);/*FIXME: Error checking*/
 	}
     }
 
@@ -1263,10 +1430,7 @@ amd_expunge (mu_mailbox_t mailbox)
   
   if (updated && !amd->mailbox_size)
     {
-      mu_off_t size = 0;
-      int rc = compute_mailbox_size (amd, amd->name, &size);
-      if (rc == 0)
-	write_size_file (amd, size);
+      compute_mailbox_size (amd, NULL);
     }
   return 0;
 }
@@ -1297,22 +1461,12 @@ amd_sync (mu_mailbox_t mailbox)
   for ( ; i < amd->msg_count; i++)
     {
       mhm = amd->msg_array[i];
-
-      if ((mhm->attr_flags & MU_ATTRIBUTE_MODIFIED)
-	  || (mhm->message && mu_message_is_modified (mhm->message)))
-	{
-	  _amd_attach_message (mailbox, mhm, NULL);
-	  _amd_message_save (amd, mhm, 0);
-	  updated = 1;
-	}
+      _amd_update_message (amd, mhm, 0, &updated); 
     }
 
   if (updated && !amd->mailbox_size)
     {
-      mu_off_t size = 0;
-      int rc = compute_mailbox_size (amd, amd->name, &size);
-      if (rc == 0)
-	write_size_file (amd, size);
+      compute_mailbox_size (amd, NULL);
     }
 
   return 0;
@@ -1328,13 +1482,12 @@ amd_uidvalidity (mu_mailbox_t mailbox, unsigned long *puidvalidity)
   /* If we did not start a scanning yet do it now.  */
   if (amd->msg_count == 0)
     {
-      status = amd->scan0 (mailbox, 1, NULL, 0);
+      status = _amd_scan0 (amd, 1, NULL, 0);
       if (status != 0)
 	return status;
     }
-  if (puidvalidity)
-    *puidvalidity = amd->uidvalidity;
-  return 0;
+
+  return _amd_prop_fetch_ulong (amd, _MU_AMD_PROP_UIDVALIDITY, puidvalidity);
 }
 
 static int
@@ -1351,7 +1504,7 @@ amd_uidnext (mu_mailbox_t mailbox, size_t *puidnext)
   /* If we did not start a scanning yet do it now.  */
   if (amd->msg_count == 0)
     {
-      status = amd->scan0 (mailbox, 1, NULL, 0);
+      status = _amd_scan0 (amd, 1, NULL, 0);
       if (status != 0)
 	return status;
     }
@@ -1458,7 +1611,9 @@ amd_scan_message (struct _amd_message *mhm)
   size_t body_start = 0;
   struct stat st;
   char *msg_name;
-
+  struct _amd_data *amd = mhm->amd;
+  int amd_capa = amd->capabilities;
+  
   /* Check if the message was modified after the last scan */
   status = mhm->amd->cur_msg_file_name (mhm, &msg_name);
   if (status)
@@ -1498,17 +1653,25 @@ amd_scan_message (struct _amd_message *mhm)
 		hlines++;
 	      
 	      /* Process particular attributes */
-	      if (mu_c_strncasecmp (buf, "status:", 7) == 0)
+	      if (!(amd_capa & MU_AMD_STATUS) &&
+		  mu_c_strncasecmp (buf, "status:", 7) == 0)
 		{
 		  int deleted = mhm->attr_flags & MU_ATTRIBUTE_DELETED;
 		  mu_string_to_flags (buf, &mhm->attr_flags);
 		  mhm->attr_flags |= deleted;
 		}
-	      else if (mu_c_strncasecmp (buf, "x-imapbase:", 11) == 0)
+	      else if (!(amd_capa & MU_AMD_IMAPBASE) &&
+		       mu_c_strncasecmp (buf, "x-imapbase:", 11) == 0)
 		{
-		  char *p;
-		  mhm->amd->uidvalidity = strtoul (buf + 11, &p, 10);
-		  /* second number is next uid. Ignored */
+		  if (_amd_prop_fetch_ulong (amd, _MU_AMD_PROP_UIDVALIDITY,
+					     NULL))
+		    {
+		      char *p;
+		      unsigned long uidval = strtoul (buf + 11, &p, 10);
+		      /* The next number is next uid. Ignored */
+		      _amd_prop_store_off (amd, _MU_AMD_PROP_UIDVALIDITY,
+					   uidval);
+		    }
 		}
 	    }
 	  else
@@ -1545,7 +1708,7 @@ amd_scan (mu_mailbox_t mailbox, size_t msgno, size_t *pcount)
   struct _amd_data *amd = mailbox->data;
 
   if (! amd_is_updated (mailbox))
-    return amd->scan0 (mailbox, msgno, pcount, 1);
+    return _amd_scan0 (amd, msgno, pcount, 1);
 
   if (pcount)
     *pcount = amd->msg_count;
@@ -1573,14 +1736,8 @@ amd_get_size (mu_mailbox_t mailbox, mu_off_t *psize)
   struct _amd_data *amd = mailbox->data;
   if (amd->mailbox_size)
     return amd->mailbox_size (mailbox, psize);
-  *psize = 0;
-  if (read_size_file (amd, psize))
-    {
-      int rc = compute_mailbox_size (amd, amd->name, psize);
-      if (rc == 0)
-	write_size_file (amd, *psize);
-      return rc;
-    }
+  if (_amd_prop_fetch_off (amd, _MU_AMD_PROP_SIZE, psize))
+    return compute_mailbox_size (amd, psize);
   return 0;
 }
 

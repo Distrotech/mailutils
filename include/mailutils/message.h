@@ -53,6 +53,11 @@ extern void mu_message_destroy (mu_message_t *, void *owner);
 extern int mu_message_create_copy (mu_message_t *to, mu_message_t from);
 
 extern void *mu_message_get_owner (mu_message_t);
+
+#define MU_MSG_ATTRIBUTE_MODIFIED 0x01
+#define MU_MSG_HEADER_MODIFIED    0x02 
+#define MU_MSG_BODY_MODIFIED      0x04
+
 extern int mu_message_is_modified (mu_message_t);
 extern int mu_message_clear_modified (mu_message_t);
 extern int mu_message_get_mailbox (mu_message_t, mu_mailbox_t *);

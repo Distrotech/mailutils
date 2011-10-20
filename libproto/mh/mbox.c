@@ -278,22 +278,6 @@ mh_scan0 (mu_mailbox_t mailbox, size_t msgno MU_ARG_UNUSED, size_t *pcount,
 
       if (pcount)
 	*pcount = amd->msg_count;
-
-      /* Reset the uidvalidity.  */
-      if (amd->msg_count > 0)
-	{
-	  if (amd->uidvalidity == 0)
-	    {
-	      amd->uidvalidity = (unsigned long)time (NULL);
-	      /* Tell that we have been modified for expunging.  */
-	      if (amd->msg_count)
-		{
-		  amd_message_stream_open (amd->msg_array[0]);
-		  amd_message_stream_close (amd->msg_array[0]);
-		  amd->msg_array[0]->attr_flags |= MU_ATTRIBUTE_MODIFIED;
-		}
-	    }
-	}
     }
   /* Clean up the things */
 

@@ -45,7 +45,7 @@ mu_property_create_init (mu_property_t *pprop,
       mu_property_set_init (prop, initfun, initdata);
       *pprop = prop;
     }
-  return 0;
+  return rc;
 }
 
 int

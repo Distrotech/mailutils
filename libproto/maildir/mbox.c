@@ -84,19 +84,24 @@ struct _maildir_message
 
 
 /* Attribute handling.
-   FIXME: P (Passed), D (Draft) and F (Flagged) are not handled */
+   FIXME: P (Passed) is not handled */
 
 static struct info_map {
   char letter;
   int flag;
 } info_map[] = {
+  { 'D', MU_ATTRIBUTE_DRAFT },
+  { 'F', MU_ATTRIBUTE_FLAGGED },
+  { 'P', 0 }, /* (passed): the user has resent/forwarded/bounced this
+		 message to someone else. */
   { 'R', MU_ATTRIBUTE_READ },
   { 'S', MU_ATTRIBUTE_SEEN },
   { 'T', MU_ATTRIBUTE_DELETED },
+  { 'a', MU_ATTRIBUTE_ANSWERED },
 };
 #define info_map_size (sizeof (info_map) / sizeof (info_map[0]))
 
-/* NOTE: BUF must be at least 7 bytes long */
+/* NOTE: BUF must be at least info_map_size bytes long */
 static int
 flags_to_info (int flags, char *buf)
 {
@@ -254,7 +259,7 @@ maildir_mkfilename (const char *directory, const char *suffix, const char *name)
 static char *
 mk_info_filename (char *directory, char *suffix, char *name, int flags)
 {
-  char fbuf[9];
+  char fbuf[info_map_size + 1];
   char *tmp;
   int namelen;
   size_t size;
@@ -691,23 +696,6 @@ maildir_scan0 (mu_mailbox_t mailbox, size_t msgno MU_ARG_UNUSED,
   if (pcount)
     *pcount = amd->msg_count;
 
-  /* Reset the uidvalidity.  */
-  if (amd->msg_count > 0)
-    {
-      if (amd->uidvalidity == 0)
-	{
-	  amd->uidvalidity = (unsigned long) time (NULL);
-	  /* FIXME amd->uidnext = amd->msg_count + 1;*/
-	  /* Tell that we have been modified for expunging.  */
-	  if (amd->msg_count)
-	    {
-	      amd_message_stream_open (amd->msg_array[0]);
-	      amd_message_stream_close (amd->msg_array[0]);
-	      amd->msg_array[0]->attr_flags |= MU_ATTRIBUTE_MODIFIED;
-	    }
-	}
-    }
-
   /* Clean up the things */
   amd_cleanup (mailbox);
   return status;
@@ -773,6 +761,42 @@ maildir_remove (struct _amd_data *amd)
   return rc;
 }
 
+
+static int
+maildir_chattr_msg (struct _amd_message *amsg, int expunge)
+{
+  struct _maildir_message *mp = (struct _maildir_message *) amsg;
+  struct _amd_data *amd = amsg->amd;
+  int rc;
+  char *new_name;
+  
+  rc = amd->new_msg_file_name (amsg, amsg->attr_flags, expunge, &new_name);
+  if (rc)
+    return rc;
+  if (!new_name)
+    {
+      if (unlink (mp->file_name))
+	rc = errno;
+    }
+  else
+    {
+      char *cur_name;
+      
+      rc = maildir_cur_message_name (amsg, &cur_name);
+      if (rc)
+	{
+	  free (new_name);
+	  return rc;
+	}
+      if (rename (cur_name, new_name))
+	rc = errno;
+      free (cur_name);
+    }
+
+  free (new_name);
+  return rc;
+}
+
      
 int
 _mailbox_maildir_init (mu_mailbox_t mailbox)
@@ -797,6 +821,8 @@ _mailbox_maildir_init (mu_mailbox_t mailbox)
   amd->message_uid = maildir_message_uid;
   amd->next_uid = maildir_next_uid;
   amd->remove = maildir_remove;
+  amd->chattr_msg = maildir_chattr_msg;
+  amd->capabilities = MU_AMD_STATUS;
   
   /* Set our properties.  */
   {

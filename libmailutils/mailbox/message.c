@@ -667,10 +667,14 @@ mu_message_is_modified (mu_message_t msg)
   int mod = 0;
   if (msg)
     {
-      mod |= mu_header_is_modified (msg->header);
-      mod |= mu_attribute_is_modified (msg->attribute);
-      mod |= mu_body_is_modified (msg->body);
-      mod |= msg->flags;
+      if (mu_header_is_modified (msg->header))
+	mod |= MU_MSG_HEADER_MODIFIED;
+      if (mu_attribute_is_modified (msg->attribute))
+	mod |= MU_MSG_ATTRIBUTE_MODIFIED;
+      if (mu_body_is_modified (msg->body))
+	mod |= MU_MSG_BODY_MODIFIED;
+      if (msg->flags & MESSAGE_MODIFIED)
+	mod |= MU_MSG_BODY_MODIFIED | MU_MSG_HEADER_MODIFIED;
     }
   return mod;
 }
