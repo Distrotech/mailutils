@@ -64,9 +64,15 @@ cb2_safety_checks (const char *name, void *data)
     name++;
 
   if (strcmp (name, "none") == 0)
-    val = MU_FILE_SAFETY_NONE;
+    {
+      *res = negate ? MU_FILE_SAFETY_ALL : MU_FILE_SAFETY_NONE;
+      return 0;
+    }
   else if (strcmp (name, "all") == 0)
-    val = MU_FILE_SAFETY_ALL;
+    {
+      *res = negate ? MU_FILE_SAFETY_NONE : MU_FILE_SAFETY_ALL;
+      return 0;
+    }
   else if (strcmp (name, "default") == 0)
     {
       if (data == &tls_settings.ssl_key)

@@ -348,9 +348,15 @@ cb2_forward_file_checks (const char *name, void *data)
     name++;
 
   if (strcmp (name, "none") == 0)
-    forward_file_checks = MU_FILE_SAFETY_NONE;
+    {
+      forward_file_checks = negate ? MU_FILE_SAFETY_ALL : MU_FILE_SAFETY_NONE;
+      return 0;
+    }
   else if (strcmp (name, "all") == 0)
-    forward_file_checks = MU_FILE_SAFETY_ALL;
+    {
+      forward_file_checks = negate ? MU_FILE_SAFETY_NONE : MU_FILE_SAFETY_ALL;
+      return 0;
+    }
   else if (strcmp (name, "default") == 0)
     forward_file_checks = FORWARD_FILE_PERM_CHECK;
   else if (mu_file_safety_name_to_code (name, &val))
