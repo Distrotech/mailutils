@@ -340,6 +340,7 @@ main (int argc, char **argv)
   mu_alloc_die_hook = pop3d_alloc_die;
 
   mu_log_syslog = 1;
+  manlock_mandatory_locking = 1;
   
   if (mu_app_init (&argp, pop3d_argp_capa, pop3d_cfg_param, 
 		   argc, argv, 0, NULL, server))

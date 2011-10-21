@@ -110,6 +110,15 @@ mailbox_open_and_lock (mu_mailbox_t mbox, int flags)
   mu_mailbox_get_url (mbox, &url);
   urlstr = mu_url_to_string (url);
   
+  if ((status = mu_mailbox_open (mbox, flags)) != 0)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_mailbox_open", urlstr, status);
+      return MU_ERR_FAILURE;
+    }
+  /* This is a mild race condition: mailbox needs to be opened in order to
+     obtain its locker.  Other process can acquire the lock in the meantime,
+     but that's not critical, because manlock_lock below will fail if unable
+     to lock the mailbox anyway. */
   status = mu_mailbox_get_locker (mbox, &lock);
   if (status)
     {
@@ -145,11 +154,6 @@ mailbox_open_and_lock (mu_mailbox_t mbox, int flags)
       mu_mailbox_set_locker (mbox, lock);
     }
 
-  if ((status = mu_mailbox_open (mbox, flags)) != 0)
-    {
-      mu_diag_funcall (MU_DIAG_ERROR, "mu_mailbox_open", urlstr, status);
-      return MU_ERR_FAILURE;
-    }
   return manlock_lock (mbox);
 }
 
