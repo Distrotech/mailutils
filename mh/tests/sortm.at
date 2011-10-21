@@ -14,6 +14,8 @@
 # You should have received a copy of the GNU General Public License
 # along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
 
+AT_BANNER(sortm)
+
 m4_pushdef([MH_KEYWORDS],[sortm])
 m4_pushdef([scancmd],[scan -format '%4(msg)%<(cur)+%| %> %02(mon{date})/%02(mday{date}) %24(friendly{from}) %{subject}'])
 

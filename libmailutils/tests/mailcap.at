@@ -15,6 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
 
+AT_BANNER(Mailcap)
+
 dnl ------------------------------------------------------------
 dnl MAILCAP([NAME], [KW = `'], [INPUT], [STDOUT = `'],
 dnl         [STDERR = `'], [RUN-IF-FAIL], [RUN-IF-PASS])

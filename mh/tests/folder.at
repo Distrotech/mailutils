@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
 
+AT_BANNER(folder)
 m4_pushdef([MH_KEYWORDS],[folder])
 
 MH_CHECK([folder],[folder00 folder-print],[
