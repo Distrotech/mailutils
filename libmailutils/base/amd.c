@@ -967,7 +967,19 @@ _amd_message_save (struct _amd_data *amd, struct _amd_message *mhm,
   if (status == 0)
     {
       if (rename (name, msg_name))
-	status = errno;
+	{
+	  if (errno == ENOENT)
+	    mu_observable_notify (amd->mailbox->observable,
+				  MU_EVT_MAILBOX_CORRUPT,
+				  amd->mailbox);
+	  else
+	    {
+	      status = errno;
+	      mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR,
+			("renaming %s to %s failed: %s",
+			 name, msg_name, mu_strerror (status)));
+	    }
+	}
       else
 	{
 	  mode_t perms;
@@ -1372,9 +1384,22 @@ amd_expunge (mu_mailbox_t mailbox)
 		     in struct _amd_data indicating that no actual removal
 		     is needed (e.g. for traditional MH). It will allow to
 		     bypass lots of no-op code here. */
-		  if (strcmp (old_name, new_name))
-		    /* Rename original message */
-		    rename (old_name, new_name);
+		  if (strcmp (old_name, new_name) &&
+		      /* Rename original message */
+		      rename (old_name, new_name))
+		    {
+		      if (errno == ENOENT)
+			mu_observable_notify (mailbox->observable,
+					      MU_EVT_MAILBOX_CORRUPT,
+					      mailbox);
+		      else
+			{
+			  rc = errno;
+			  mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR,
+				    ("renaming %s to %s failed: %s",
+				     old_name, new_name, mu_strerror (rc)));
+			}
+		    }
 		}
 	      else
 		/* Unlink original file */

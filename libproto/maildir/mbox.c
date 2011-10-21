@@ -789,7 +789,19 @@ maildir_chattr_msg (struct _amd_message *amsg, int expunge)
 	  return rc;
 	}
       if (rename (cur_name, new_name))
-	rc = errno;
+	{
+	  if (errno == ENOENT)
+	    mu_observable_notify (amd->mailbox->observable,
+				  MU_EVT_MAILBOX_CORRUPT,
+				  amd->mailbox);
+	  else
+	    {
+	      rc = errno;
+	      mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR,
+			("renaming %s to %s failed: %s",
+			 cur_name, new_name, mu_strerror (rc)));
+	    }
+	}
       free (cur_name);
     }
 
