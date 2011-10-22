@@ -59,7 +59,7 @@ imap4d_test "SELECT en/to/tre"\
 "OK \[UIDNEXT 2\] Predicted next uid"\
 "OK \[UNSEEN 1\] first unseen messsage"\
 "FLAGS (\\Answered \\Flagged \\Deleted \\Seen \\Draft)"\
-"OK \[PERMANENTFLAGS (\\Answered \\Deleted \\Seen)\] Permanent flags"\
+"OK \[PERMANENTFLAGS (\\Answered \\Flagged \\Deleted \\Seen \\Draft)\] Permanent flags"\
 "OK \[READ-WRITE\] SELECT Completed"
 
 imap4d_test "FETCH 1 ALL"\

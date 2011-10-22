@@ -396,11 +396,12 @@ struct flagtrans
 #define mu_verify(R) extern int (* verify_function__ (void)) [mu_verify_true (R)]
 
 static struct flagtrans flagtrans[] = {
-  { MU_ATTRIBUTE_SEEN, 'O' },
   { MU_ATTRIBUTE_ANSWERED, 'A' },
   { MU_ATTRIBUTE_FLAGGED, 'F' },
+  { MU_ATTRIBUTE_DELETED, 'D' },
+  { MU_ATTRIBUTE_DRAFT, 'd' },
+  { MU_ATTRIBUTE_SEEN, 'O' },
   { MU_ATTRIBUTE_READ, 'R' },
-  { MU_ATTRIBUTE_DELETED, 'd' },
   { 0 }
 };
 

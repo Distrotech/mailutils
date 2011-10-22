@@ -38,7 +38,7 @@ imap4d_test "SELECT mbox1" \
 "OK \[UIDNEXT 6\] Predicted next uid"\
 "OK \[UNSEEN 1\] first unseen messsage"\
 "FLAGS (\\Answered \\Flagged \\Deleted \\Seen \\Draft)"\
-"OK \[PERMANENTFLAGS (\\Answered \\Deleted \\Seen)\] Permanent flags" \
+"OK \[PERMANENTFLAGS (\\Answered \\Flagged \\Deleted \\Seen \\Draft)\] Permanent flags" \
 "OK"
 
 imap4d_test "STORE 2:* +FLAGS (\\Deleted)"\
@@ -66,7 +66,7 @@ imap4d_test "SELECT mbox1" \
 "OK \[UIDNEXT 6\] Predicted next uid"\
 "OK \[UNSEEN 1\] first unseen messsage"\
 "FLAGS (\\Answered \\Flagged \\Deleted \\Seen \\Draft)"\
-"OK \[PERMANENTFLAGS (\\Answered \\Deleted \\Seen)\] Permanent flags" \
+"OK \[PERMANENTFLAGS (\\Answered \\Flagged \\Deleted \\Seen \\Draft)\] Permanent flags" \
 "OK"
 
 imap4d_stop

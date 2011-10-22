@@ -40,7 +40,7 @@ imap4d_test "SELECT INBOX"\
 "OK \[UIDNEXT 9\] Predicted next uid"\
 "OK \[UNSEEN 4\] first unseen messsage "\
 "FLAGS (\\Answered \\Flagged \\Deleted \\Seen \\Draft)"\
-"OK \[PERMANENTFLAGS (\\Answered \\Deleted \\Seen)\] Permanent flags"\
+"OK \[PERMANENTFLAGS (\\Answered \\Flagged \\Deleted \\Seen \\Draft)\] Permanent flags"\
 "OK \[READ-WRITE\] SELECT Completed"
 
 # <message set>  Messages with message sequence numbers

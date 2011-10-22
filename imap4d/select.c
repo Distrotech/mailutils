@@ -116,7 +116,6 @@ int
 imap4d_select_status ()
 {
   const char *mflags = "\\Answered \\Flagged \\Deleted \\Seen \\Draft";
-  const char *pflags = "\\Answered \\Deleted \\Seen";
   unsigned long uidvalidity = 0;
   size_t count = 0, recent = 0, unseen = 0, uidnext = 0;
   int status = 0;
@@ -148,7 +147,7 @@ imap4d_select_status ()
     io_untagged_response (RESP_OK, "[PERMANENTFLAGS ()] No Permanent flags");
   else
     io_untagged_response (RESP_OK, "[PERMANENTFLAGS (%s)] Permanent flags",
-                          pflags);
+                          mflags);
 
   return 0;
 }
