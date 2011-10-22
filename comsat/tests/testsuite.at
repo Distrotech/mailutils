@@ -29,11 +29,14 @@ m4_pushdef([comsatcmd],[comsatd --no-site --no-user --file ./biff.rc dnl
 dnl ------------------------------------------------------------
 dnl BIFFTEST(DESCR, KW, DATA, CMDLINE, [STDOUT = `'], [STDERR = `'])
 dnl
+dnl NOTE: The test is skipped if run as root, because .biffrc is
+dnl ignored for root (see open_rc() in action.c
+dnl
 m4_pushdef([BIFFTEST],[
 AT_SETUP([comsatd: $1])
 AT_KEYWORDS([comsatd $2])
 $3
-AT_CHECK([$4],[0],[$5],[$6])
+AT_CHECK([test -w / && AT_SKIP_TEST; $4],[0],[$5],[$6])
 AT_CLEANUP])
 
 AT_INIT

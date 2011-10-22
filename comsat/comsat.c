@@ -578,6 +578,7 @@ main (int argc, char **argv)
 
   if (test_mode)
     {
+      struct passwd *pw;
       char *user;
       
       argc -= ind;
@@ -591,21 +592,13 @@ main (int argc, char **argv)
 	  exit (EXIT_FAILURE);
 	}
 
-      user = getenv ("LOGNAME");
-      if (!user)
+      pw = getpwuid (getuid ());
+      if (!pw)
 	{
-	  user = getenv ("USER");
-	  if (!user)
-	    {
-	      struct passwd *pw = getpwuid (getuid ());
-	      if (!pw)
-		{
-		  mu_error (_("cannot determine user name"));
-		  exit (EXIT_FAILURE);
-		}
-	      user = pw->pw_name;
-	    }
+	  mu_error (_("cannot determine user name"));
+	  exit (EXIT_FAILURE);
 	}
+      user = pw->pw_name;
 
       if (biffrc[0] == '.' && (biffrc[1] == '/' ||
 			       (biffrc[1] == '.' && biffrc[2] == '/')))

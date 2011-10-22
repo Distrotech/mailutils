@@ -128,24 +128,23 @@ ali_print_name_list (mu_list_t list, int off)
     {
       int ncol = getcols ();
       int n = off;
+      int i = 0;
       
-      mu_iterator_first (itr);
-
-      for (;;)
+      for (mu_iterator_first (itr), i = 0;
+	   !mu_iterator_is_done (itr);
+	   mu_iterator_next (itr), i++)
 	{
 	  int len;
 
+	  if (i > 0)
+	    n += printf (", ");
+	  
 	  mu_iterator_current (itr, (void **)&item);
 	  len = strlen (item) + 2;
 	  if (n + len > ncol)
 	    n = printf ("\n ");
 
 	  len = printf ("%s", item);
-	  mu_iterator_next (itr);
-	  if (!mu_iterator_is_done (itr))
-	    len += printf (", ");
-	  else
-	    break;
 	  n += len;
 	}
       printf ("\n");

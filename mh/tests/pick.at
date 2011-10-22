@@ -46,7 +46,7 @@ MUT_MBCOPY($abs_top_srcdir/testsuite/mh/teaparty,[Mail/inbox])
 echo "Current-Folder: inbox" > Mail/context
 echo "cur: 1" > Mail/inbox/.mh_sequences
 pick -from dormouse -sequence dormouse || exit $?
-sed -n '/^dormouse:/{s/  */ /g;s/ $//;p}' Mail/inbox/.mh_sequences
+sed -n '/^dormouse:/{s/  */ /g;s/ $//;p;}' Mail/inbox/.mh_sequences
 ],
 [0],
 [dormouse: 17 31 49 61 65 67 69 77 79 81 83 88 89 91 92

@@ -427,12 +427,12 @@ quit (struct mh_whatnow_env *wh, int argc, char **argv, int *status)
 	unlink (wh->draftfile);
       else
 	{
-	  mu_printf (_("draft left on \"%s\".\n"), wh->draftfile);
+	  mu_printf (_("draft left on \"%s\"."), wh->draftfile);
 	  if (strcmp (wh->file, wh->draftfile))
 	    rename (wh->file, wh->draftfile);
 	}
     }
-
+  mu_printf ("\n");
   return 1;
 }
 

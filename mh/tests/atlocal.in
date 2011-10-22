@@ -35,5 +35,5 @@ awk '
   } else
     print
 }
-' $*
+' $* </dev/null
 }

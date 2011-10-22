@@ -75,7 +75,7 @@ ali: mh_aliases2:2: `mh_aliases' already included at top level
 ])
 
 MH_CHECK([ali: group name],[ali04 ali-group-name],[
-awk -F : '$4!="" { print $1; print $4; exit 0 }' /etc/group > tmpout
+cat /etc/group | awk -F : '/^#/ { next } $4!="" { print $1; print $4; exit 0 }' > tmpout
 test -s tmpout || AT_SKIP_TEST
 sed -n '1s/.*/korzen: =&/p' tmpout > mh_aliases
 sed '1d' tmpout | tr -d ' ' > expout
@@ -85,14 +85,12 @@ ali -a ./mh_aliases korzen | tr -d ' '
 [expout])
 
 MH_CHECK([ali: group id],[ali05 ali-group-id ali-gid],[
-awk -F : '$4==0 { print $1 }' /etc/passwd > expout
+cat /etc/passwd | awk -F : '/^#/ { next } $4==0 { print $1 }' > expout
 test -s expout || AT_SKIP_TEST
-name=`awk -F : '$3==0 { print $1 }' /etc/group`
+name=`awk -F : '/^#/ { next } $3==0 { print $1 }' /etc/group < /dev/null`
 test -z "$name" && AT_SKIP_TEST
 
-AT_DATA([mh_aliases],[
-korzen: +root
-])
+echo "korzen: +$name" > mh_aliases
 # FIXME: Do I need to sort the output?
 ali -list -a ./mh_aliases korzen
 ],
@@ -100,7 +98,7 @@ ali -list -a ./mh_aliases korzen
 [expout])
 
 MH_CHECK([ali: everybody],[ali06 ali-everybody],[
-awk -F : '$3>200 { print $1 }' /etc/passwd > expout
+cat /etc/passwd | awk -F : '/^#/ { next } $3>200 { print $1 }' > expout
 test -s expout || AT_SKIP_TEST
 AT_DATA([mh_aliases],[
 everybody: *

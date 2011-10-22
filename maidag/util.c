@@ -73,6 +73,8 @@ maidag_error (const char *fmt, ...)
       vfprintf (stderr, fmt, ap);
       fputc ('\n', stderr);
     }
+  va_end (ap);
+  va_start (ap, fmt);
   mu_verror (fmt, ap);
   va_end (ap);
 }

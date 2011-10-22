@@ -49,7 +49,8 @@ cc:
 Subject:
 --------
 -- Input file end
-What now?])
+What now?
+])
 
 MH_CHECK([comp file],[comp02 comp_file],[
 echo 'quit' | compcmd file | remove_curdir | sed 's/ *$//'

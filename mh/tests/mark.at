@@ -22,7 +22,7 @@ MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
 echo 'Current-Folder: inbox' > Mail/context
 mark -sequence andro -add 2
 mark -sequence andro -add 3-5
-sed -n '/^andro:/{s/  */ /g;s/ $//;p}' Mail/inbox/.mh_sequences
+sed -n '/^andro:/{s/  */ /g;s/ $//;p;}' Mail/inbox/.mh_sequences
 ],
 [0],
 [andro: 2 3 4 5
@@ -32,9 +32,9 @@ MH_CHECK([mark -add -zero],[mark01 mark-add-zero],[
 MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
 echo 'Current-Folder: inbox' > Mail/context
 mark -sequence andro -add 2
-sed -n '/^andro:/{s/  */ /g;s/ $//;p}' Mail/inbox/.mh_sequences
+sed -n '/^andro:/{s/  */ /g;s/ $//;p;}' Mail/inbox/.mh_sequences
 mark -zero -sequence andro -add 1 3
-sed -n '/^andro:/{s/  */ /g;s/ $//;p}' Mail/inbox/.mh_sequences
+sed -n '/^andro:/{s/  */ /g;s/ $//;p;}' Mail/inbox/.mh_sequences
 ],
 [0],
 [andro: 2
@@ -45,7 +45,7 @@ MH_CHECK([mark -add -nopublic],[mark02 mark-add-nopublic],[
 MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
 echo 'Current-Folder: inbox' > Mail/context
 mark -nopublic -sequence andro -add 1 2 3
-sed -n '/^atr-andro/{s/  */ /g;s/ $//;s/^[[^:]]*:/atr-andro:/;p}' Mail/context
+sed -n '/^atr-andro/{s/  */ /g;s/ $//;s/^[[^:]]*:/atr-andro:/;p;}' Mail/context
 ],
 [0],
 [atr-andro: 1 2 3
@@ -56,7 +56,7 @@ MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
 echo 'Current-Folder: inbox' > Mail/context
 echo 'andro: 2 3 4 5' > Mail/inbox/.mh_sequences
 mark -sequence andro -del 3
-sed -n '/^andro:/{s/  */ /g;s/ $//;p}' Mail/inbox/.mh_sequences
+sed -n '/^andro:/{s/  */ /g;s/ $//;p;}' Mail/inbox/.mh_sequences
 ],
 [0],
 [andro: 2 4 5
@@ -70,7 +70,7 @@ cat > Mail/context <<EOT
 atr-andro-$inbox: 2 3 4 5
 EOT
 mark -nopublic -sequence andro -del 3
-sed -n '/^atr-andro/{s/  */ /g;s/ $//;s/^[[^:]]*:/atr-andro:/;p}' Mail/context
+sed -n '/^atr-andro/{s/  */ /g;s/ $//;s/^[[^:]]*:/atr-andro:/;p;}' Mail/context
 ],
 [0],
 [atr-andro: 2 4 5

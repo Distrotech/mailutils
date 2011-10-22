@@ -23,8 +23,9 @@ m4_pushdef([FORWARD_OPTIONS],[dnl
  --set "^forward-file-checks=none"])
 
 AT_CHECK([
+test -w / && AT_SKIP_TEST
 forward=`pwd`/my.forward
-namelist=`sed 's/:.*//;3,$d' /etc/passwd 2>/dev/null`
+namelist=`sed '/^#/d;s/:.*//' /etc/passwd | sed '3,$d'`
 test -n "$namelist" || AT_SKIP_TEST
 
 cat > my.forward <<EOT

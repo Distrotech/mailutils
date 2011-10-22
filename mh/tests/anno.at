@@ -22,7 +22,7 @@ MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
 echo "Current-Folder: inbox" > Mail/context
 echo "cur: 1" > Mail/inbox/.mh_sequences
 echo Replied | anno || exit $?
-sed -n '1{s/Replied: .*/REPLIED/p}' Mail/inbox/1
+sed -n '1{s/Replied: .*/REPLIED/p;}' Mail/inbox/1
 ],
 [0],
 [REPLIED
@@ -32,7 +32,7 @@ MH_CHECK([anno -component],[anno01 anno-component],[
 MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
 echo "Current-Folder: inbox" > Mail/context
 anno -component Replied 1 || exit $?
-sed -n '1{s/Replied: .*/REPLIED/p}' Mail/inbox/1
+sed -n '1{s/Replied: .*/REPLIED/p;}' Mail/inbox/1
 ],
 [0],
 [REPLIED
@@ -42,7 +42,7 @@ MH_CHECK([anno -component -text],[anno02 anno-component-text],[
 MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
 echo "Current-Folder: inbox" > Mail/context
 anno -component Replied -text OK 1 || exit $?
-sed -n '3,$d;/Replied/{s/Replied: [[A-Z][a-z][a-z], [0-9][0-9] [A-Z][a-z][a-z] [0-9][0-9][0-9][0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9] .*]/Replied: DATE/;p}' Mail/inbox/1
+sed -n '3,$d;/Replied/{s/Replied: [[A-Z][a-z][a-z], [0-9][0-9] [A-Z][a-z][a-z] [0-9][0-9][0-9][0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9] .*]/Replied: DATE/;p;}' Mail/inbox/1
 ],
 [0],
 [Replied: OK
@@ -53,7 +53,7 @@ MH_CHECK([anno -component -text -nodate],[anno03 anno-component-text-nodate],[
 MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
 echo "Current-Folder: inbox" > Mail/context
 anno -component Replied -text OK -nodate 1 || exit $?
-sed -n '3,$d;/Replied/{s/Replied: [[A-Z][a-z][a-z], [0-9][0-9] [A-Z][a-z][a-z] [0-9][0-9][0-9][0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9] .*]/Replied: DATE/;p}' Mail/inbox/1
+sed -n '3,$d;/Replied/{s/Replied: [[A-Z][a-z][a-z], [0-9][0-9] [A-Z][a-z][a-z] [0-9][0-9][0-9][0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9] .*]/Replied: DATE/;p;}' Mail/inbox/1
 ],
 [0],
 [Replied: OK

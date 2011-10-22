@@ -337,7 +337,7 @@ MH_CHECK([mhn-show type=tar],[mhn13 mhn-show-type=tar],[
 MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mime,[Mail/inbox],[700])
 AT_DATA([filter.awk],[
 /^X-IMAPbase/ { next }
-/^-rw-r--r--/ { print $1, $2, $3, $6; next }
+/^-rw-r--r--/ { print $NF; next }
 { print }
 ])
 mhn -show 2 | awk -f filter.awk
@@ -355,8 +355,8 @@ X-Envelope-Sender: gray@example.net
 part     1 text/plain               15
 Initial text.
 
--rw-r--r-- gray/staff 1418 Father_William
--rw-r--r-- gray/staff 937 Jabberwocky
+Father_William
+Jabberwocky
 ])
 
 # FIXME: What about exit code?
@@ -388,7 +388,7 @@ MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mime,[Mail/inbox],[700])
 echo "mhn-show-application/x-tar: %ltar tvf '%F'" >> $MH
 AT_DATA([filter.awk],[
 /^X-IMAPbase/ { next }
-/^-rw-r--r--/ { print $1, $2, $3, $6; next }
+/^-rw-r--r--/ { print $NF; next }
 { sub(/  *$/,"");  print }
 ])
 mhn -show 1 | awk -f filter.awk
@@ -407,8 +407,8 @@ part     1 text/plain               15
 Initial text.
 
 part     2 application/x-tar        13835
--rw-r--r-- gray/staff 1418 Father_William
--rw-r--r-- gray/staff 937 Jabberwocky
+Father_William
+Jabberwocky
 ])
 
 MH_CHECK([mhn-show- variable (without subtype)],
@@ -417,7 +417,7 @@ MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mime,[Mail/inbox],[700])
 echo "mhn-show-application: %ltar tvf '%F'" >> $MH
 AT_DATA([filter.awk],[
 /^X-IMAPbase/ { next }
-/^-rw-r--r--/ { print $1, $2, $3, $6; next }
+/^-rw-r--r--/ { print $NF; next }
 { sub(/  *$/,"");  print }
 ])
 mhn -show 1 | awk -f filter.awk
@@ -436,8 +436,8 @@ part     1 text/plain               15
 Initial text.
 
 part     2 application/x-tar        13835
--rw-r--r-- gray/staff 1418 Father_William
--rw-r--r-- gray/staff 937 Jabberwocky
+Father_William
+Jabberwocky
 ])
 
 dnl -------------------------------------------------------------------
