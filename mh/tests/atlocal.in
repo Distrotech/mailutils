@@ -11,6 +11,11 @@ remove_curdir() {
 # If FILE is not given, filter stdin.
 # "Variable information" means part boundary and Content-ID header values.
 # These elements are likely to change between invocations of mhn -build.
+#
+# Stderr is redirected to /dev/null because "one true awk" (used, in
+# particular, on FreeBSD) complains when closing stdin fails, even if
+# it did not use it at all (it fails because stdin is closed earlier by
+# MH_SETUP).
 mimeflt() {
 awk '
 /^Content-Type:/ {
@@ -35,5 +40,5 @@ awk '
   } else
     print
 }
-' $* </dev/null
+' $* 2>/dev/null
 }
