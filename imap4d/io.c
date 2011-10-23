@@ -416,6 +416,25 @@ imap4d_tokbuf_unquote (struct imap4d_tokbuf *tok, size_t *poff, size_t *plen)
 }
 
 static void
+imap4d_tokbuf_decrlf (struct imap4d_tokbuf *tok, size_t off, size_t *plen)
+{
+  char *buf = tok->buffer + off;
+  size_t len = *plen;
+  char *p, *end = buf + len;
+
+  for (p = end - 1; p > buf; p--)
+    {
+      if (*p == '\n' && p > buf && p[-1] == '\r')
+	{
+	  memmove (p - 1, p, end - p);
+	  end--;
+	  p--;
+	}
+    }
+  *plen = end - buf;
+}	  
+
+static void
 imap4d_tokbuf_expand (struct imap4d_tokbuf *tok, size_t size)
 {
   if (tok->size - tok->level < size)	       
@@ -596,6 +615,7 @@ imap4d_readline (struct imap4d_tokbuf *tok)
             }
 	  check_input_err (rc, len);
 	  imap4d_tokbuf_unquote (tok, &off, &len);
+	  imap4d_tokbuf_decrlf (tok, off, &len);
 	  tok->level += len;
 	  tok->buffer[tok->level++] = 0;
 	  tok->argp[tok->argc - 1] = off;
