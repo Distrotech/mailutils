@@ -220,10 +220,8 @@ int mu_onexit (mu_onexit_t func, void *data);
   MU_FILE_SAFETY_DIR_IWOTH      )
   
 
-struct mu_auth_data;
-
 int mu_file_safety_check (const char *filename, int mode,
-			  struct mu_auth_data *auth,
+			  uid_t uid,
 			  mu_list_t idlist);
 int mu_file_safety_name_to_code (const char *name, int *pcode);
 int mu_file_safety_name_to_error (const char *name, int *pcode);  

@@ -74,7 +74,7 @@ mu_check_tls_environment (void)
     {
       int rc = mu_file_safety_check (mu_tls_module_config.ssl_cert,
 				     mu_tls_module_config.ssl_cert_safety_checks,
-				     NULL, NULL);
+				     -1, NULL);
       if (rc)
 	{
 	  mu_error ("%s: %s", mu_tls_module_config.ssl_cert, 
@@ -83,7 +83,7 @@ mu_check_tls_environment (void)
 	}
       rc = mu_file_safety_check (mu_tls_module_config.ssl_key,
 				 mu_tls_module_config.ssl_key_safety_checks,
-				 NULL, NULL);
+				 -1, NULL);
       if (rc)
 	{
 	  mu_error ("%s: %s", mu_tls_module_config.ssl_key, 
@@ -93,7 +93,7 @@ mu_check_tls_environment (void)
 
       rc = mu_file_safety_check (mu_tls_module_config.ssl_cafile,
 				 mu_tls_module_config.ssl_cafile_safety_checks,
-				 NULL, NULL);
+				 -1, NULL);
       if (rc)
 	{
 	  mu_error ("%s: %s", mu_tls_module_config.ssl_cafile, 

@@ -213,7 +213,7 @@ maidag_forward (mu_message_t msg, struct mu_auth_data *auth, char *fwfile)
     mu_list_create (&idlist);
 
   rc = mu_file_safety_check (filename, forward_file_checks,
-			     auth, idlist);
+			     auth->uid, idlist);
   if (rc == 0)
     result = process_forward (msg, filename, auth->name);
   else if (rc == MU_ERR_EXISTS)

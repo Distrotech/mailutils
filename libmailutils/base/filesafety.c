@@ -191,7 +191,7 @@ mu_file_safety_name_to_error (const char *name, int *pcode)
 
 int
 mu_file_safety_check (const char *filename, int mode,
-		      struct mu_auth_data *auth,
+		      uid_t uid,
 		      mu_list_t idlist)
 {
   struct file_check_buffer buf;
@@ -209,9 +209,7 @@ mu_file_safety_check (const char *filename, int mode,
 	    return MU_ERR_EXISTS;
 	}
 
-      if ((mode & MU_FILE_SAFETY_OWNER_MISMATCH) &&
-	  auth &&
-	  auth->uid != buf.filst.st_uid)
+      if ((mode & MU_FILE_SAFETY_OWNER_MISMATCH) && uid != buf.filst.st_uid)
 	return MU_ERR_PERM_OWNER_MISMATCH;
 
       for (pck = file_safety_check_tab; pck->flag; pck++)
