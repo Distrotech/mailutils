@@ -28,6 +28,7 @@
 #include <mailutils/cstr.h>
 #include <mailutils/io.h>
 #include <mailutils/filter.h>
+#include <mailutils/cctype.h>
 
 #define ATTRIBUTE_IS_DELETED(flag)        (flag & MU_ATTRIBUTE_DELETED)
 #define ATTRIBUTE_IS_EQUAL(flag1, flag2)  (flag1 == flag2)
@@ -381,7 +382,7 @@ mbox_envelope_date (mu_envelope_t envelope, char *buf, size_t len,
 			       &n);
   if (status)
     return status;
-  mu_rtrim_cset (buffer, "\r\n");
+  mu_rtrim_class (buffer, MU_CTYPE_ENDLN);
   
   /* Format:  "From [sender] [date]" */
   /* strlen ("From ") == 5 */
@@ -938,7 +939,7 @@ msg_envelope_to_stream (mu_stream_t out, mu_message_t msg)
       return status;
     }
 
-  mu_rtrim_cset (datestr, "\r\n");
+  mu_rtrim_class (datestr, MU_CTYPE_ENDLN);
 
   envarr[0] = "From ";
   envarr[1] = sender;

@@ -248,7 +248,7 @@ spamd_read_line (mu_sieve_machine_t mach, mu_stream_t stream,
   size_t n;
   int rc = mu_stream_getline (stream, pbuffer, psize, &n);
   if (rc == 0)
-    mu_rtrim_cset (*pbuffer, "\r\n");
+    mu_rtrim_class (*pbuffer, MU_CTYPE_ENDLN);
   else
     {
       /* FIXME: Need an 'onabort' mechanism in Sieve machine, which

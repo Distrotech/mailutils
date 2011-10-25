@@ -319,7 +319,7 @@ io_getline (char **pbuf, size_t *psize, size_t *pnbytes)
           imap4d_bye (ERR_NO_IFILE);
           /*FIXME rc = ECONNABORTED;*/
         }
-      len = mu_rtrim_cset (s, "\r\n");
+      len = mu_rtrim_class (s, MU_CTYPE_ENDLN);
       if (pnbytes)
 	*pnbytes = len;
     }

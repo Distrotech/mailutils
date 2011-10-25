@@ -463,7 +463,7 @@ do_preauth_program (struct sockaddr *pcs, struct sockaddr *sa)
     }
   else
     {
-      mu_rtrim_cset (buf, "\r\n");
+      mu_rtrim_class (buf, MU_CTYPE_ENDLN);
       return buf;
     }
   return NULL;

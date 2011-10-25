@@ -640,7 +640,7 @@ pop_header_blurb (mu_stream_t stream, size_t maxlines,
       
   while ((status = mu_stream_getline (stream, &buf, &size, &n)) == 0 && n > 0)
     {
-      size_t len = mu_rtrim_cset (buf, "\r\n");
+      size_t len = mu_rtrim_class (buf, MU_CTYPE_ENDLN);
       if (len == 0)
 	break;
       mu_opool_append (opool, buf, len);

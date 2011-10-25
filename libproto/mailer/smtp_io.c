@@ -68,7 +68,7 @@ mu_smtp_response (mu_smtp_t smtp)
   MU_SMTP_CHECK_ERROR (smtp, rc);
   if (n == 0)
     MU_SMTP_CHECK_ERROR (smtp, EIO);
-  n = mu_rtrim_cset (smtp->rdbuf, "\r\n");
+  n = mu_rtrim_class (smtp->rdbuf, MU_CTYPE_ENDLN);
   if (n < 3 || !mu_isdigit (smtp->rdbuf[0]))
     {
       mu_diag_output (MU_DIAG_NOTICE,
@@ -101,7 +101,7 @@ mu_smtp_response (mu_smtp_t smtp)
 	  MU_SMTP_CHECK_ERROR (smtp, rc);
 	  if (n == 0)
 	    MU_SMTP_CHECK_ERROR (smtp, EIO);
-	  n = mu_rtrim_cset (smtp->rdbuf, "\r\n");
+	  n = mu_rtrim_class (smtp->rdbuf, MU_CTYPE_ENDLN);
 	  if (n < 3 || memcmp (smtp->rdbuf, smtp->replcode, 3))
 	    {
 	      mu_diag_output (MU_DIAG_NOTICE,

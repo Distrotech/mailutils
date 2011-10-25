@@ -545,7 +545,7 @@ lmtp_loop (mu_stream_t iostr, unsigned int timeout)
       enum lmtp_command cmd = cp->cmd_code;
       enum lmtp_state next_state = transtab[cmd][state];
 
-      mu_rtrim_cset (sp, "\r\n");
+      mu_rtrim_class (sp, MU_CTYPE_ENDLN);
 
       if (next_state != state_none)
 	{
