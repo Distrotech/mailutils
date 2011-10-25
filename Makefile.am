@@ -83,6 +83,10 @@ if MU_COND_SUPPORT_CXX
   LIBMU_CPP_DIR = libmu_cpp
 endif
 
+if MU_COND_DBM
+  LIBMU_DBM_DIR = libmu_dbm
+endif
+
 SUBDIRS = . \
  mu-aux\
  include\
@@ -99,6 +103,7 @@ SUBDIRS = . \
  $(LIBMU_CPP_DIR)\
  $(GINT_DIR)\
  $(LIBMU_SCM_DIR)\
+ $(LIBMU_DBM_DIR)\
  libmu_sieve\
  $(PYTHON_DIR)\
  doc\

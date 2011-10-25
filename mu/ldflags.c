@@ -38,36 +38,52 @@ static struct argp ldflags_argp = {
 
 
 #ifdef WITH_TLS
-# define NEEDAUTH 1
+# define NEEDAUTH "-lmu_auth " AUTHLIBS
 #else
-# define NEEDAUTH 0
+# define NEEDAUTH NULL
 #endif
-#define NOTALL   2
+#define NOTALL   1
 
 struct lib_descr {
   char *name;
   char *libname;
+  int weight;
   int flags;
 } lib_descr[] = {
-  { "mbox",   "mu_mbox", 0 },
+  { "mbox",    "-lmu_mbox", 0 },
 #ifdef ENABLE_MH
-  { "mh",     "mu_mh",   0 },
+  { "mh",      "-lmu_mh",   0 },
 #endif
 #ifdef ENABLE_MAILDIR
-  { "maildir","mu_maildir", 0 },
+  { "maildir", "-lmu_maildir", 0 },
 #endif
 #ifdef ENABLE_IMAP  
-  { "imap",   "mu_imap", NEEDAUTH },
+  { "imap",    "-lmu_imap", 0 },
+  { "imap",    NEEDAUTH,    2 },
 #endif
 #ifdef ENABLE_POP  
-  { "pop",    "mu_pop",  NEEDAUTH },
+  { "pop",    "-lmu_pop",   0 },
+  { "pop",    NEEDAUTH,     2 },
 #endif
 #ifdef ENABLE_NNTP  
-  { "nntp",   "mu_nntp", 0 },
+  { "nntp",   "-lmu_nntp",  0 },
 #endif
-  { "mailer", "mu_mailer", 0 },
-  { "sieve",  "mu_sieve", NOTALL },
-  { "compat", "mu_compat" },
+#ifdef ENABLE_DBM
+  { "dbm",    "-lmu_dbm",   0 },
+  { "dbm",    DBMLIBS,      2 },
+#endif
+  { "mailer", "-lmu_mailer", 0 },
+  { "sieve",  "-lmu_sieve",  0, NOTALL },
+  { "compat", "-lmu_compat", 0 },
+  { "auth",   "-lmu_auth " AUTHLIBS, 2 },
+#ifdef WITH_GUILE	      
+  { "guile",  "-lmu_scm " GUILE_LIBS, -1, NOTALL },
+#endif
+#ifdef WITH_PYTHON
+  { "python", "-lmu_py " PYTHON_LIBS, -1, NOTALL },
+#endif
+  { "cfg",    "-lmu_cfg",  -1, NOTALL },
+  { "argp",   "-lmu_argp", -2, NOTALL },
   { NULL }
 };
 
@@ -82,6 +98,9 @@ void
 add_entry (int level, char *ptr)
 {
   int i;
+
+  if (!ptr || !*ptr)
+    return;
   if (nentry >= sizeof(lib_entry)/sizeof(lib_entry[0]))
     {
       mu_error (_("too many arguments"));
@@ -122,7 +141,6 @@ int
 mutool_ldflags (int argc, char **argv)
 {
   int i, j;
-  char *ptr;
   
   if (argp_parse (&ldflags_argp, argc, argv, ARGP_IN_ORDER, &i, NULL))
     return 1;
@@ -140,21 +158,7 @@ mutool_ldflags (int argc, char **argv)
 
   for ( ; argc > 0; argc--, argv++)
     {
-      if (strcmp (argv[0], "auth") == 0)
-	add_entry (2, "-lmu_auth " AUTHLIBS);
-#ifdef WITH_GUILE	      
-      else if (strcmp (argv[0], "guile") == 0)
-	add_entry (-1, "-lmu_scm " GUILE_LIBS);
-#endif
-#ifdef WITH_PYTHON
-      else if (strcmp (argv[0], "python") == 0)
-	add_entry (-1, "-lmu_py " PYTHON_LIBS);
-#endif
-      else if (strcmp (argv[0], "cfg") == 0)
-	add_entry (-1, "-lmu_cfg");
-      else if (strcmp (argv[0], "argp") == 0)
-	add_entry (-2, "-lmu_argp");
-      else if (strcmp (argv[0], "all") == 0)
+      if (strcmp (argv[0], "all") == 0)
 	{
 	  struct lib_descr *p;
 		  
@@ -162,28 +166,24 @@ mutool_ldflags (int argc, char **argv)
 	    {
 	      if (p->flags & NOTALL)
 		continue;
-	      mu_asprintf (&ptr, "-l%s", p->libname);
-	      add_entry (0, ptr);
-	      if (p->flags & NEEDAUTH)
-		add_entry (2, "-lmu_auth " AUTHLIBS);
+	      add_entry (p->weight, p->libname);
 	    }
 	}
       else
 	{
 	  struct lib_descr *p;
+	  int found = 0;
 	  
 	  for (p = lib_descr; p->name; p++)
-	    if (mu_c_strcasecmp (p->name, argv[0]) == 0)
-	      break;
-
-	  if (p->name)
 	    {
-	      mu_asprintf (&ptr, "-l%s", p->libname);
-	      add_entry (0, ptr);
-	      if (p->flags & NEEDAUTH)
-		add_entry (2, "-lmu_auth " AUTHLIBS);
+	      if (mu_c_strcasecmp (p->name, argv[0]) == 0)
+		{
+		  add_entry (p->weight, p->libname);
+		  found = 1;
+		}
 	    }
-	  else
+
+	  if (!found)
 	    {
 	      mu_error (_("unknown keyword: %s"), argv[0]);
 	      return 1;

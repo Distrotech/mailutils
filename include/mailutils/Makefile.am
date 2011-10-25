@@ -39,6 +39,7 @@ pkginclude_HEADERS = \
  cidr.h\
  cstr.h\
  daemon.h\
+ dbm.h\
  debug.h\
  diag.h\
  envelope.h\

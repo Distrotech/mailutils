@@ -35,6 +35,7 @@ extern "C" {
 #define MU_CTYPE_PUNCT   0x100
 #define MU_CTYPE_SPACE   0x200
 #define MU_CTYPE_XLETR   0x400
+#define MU_CTYPE_ENDLN   0x800
 
 #define MU_C_TAB_MAX     128
 
@@ -56,6 +57,7 @@ extern int mu_c_tab[MU_C_TAB_MAX];
 #define mu_isalnum(c) mu_c_is_class (c, MU_CTYPE_ALPHA|MU_CTYPE_DIGIT)
 #define mu_isascii(c) (((unsigned)c) < MU_C_TAB_MAX)
 #define mu_isblank(c) ((c) == ' ' || (c) == '\t')
+#define mu_isendln(c) mu_c_is_class (c, MU_CTYPE_ENDLN)
 
 #define mu_tolower(c)					\
   ({ int __c = (c);					\

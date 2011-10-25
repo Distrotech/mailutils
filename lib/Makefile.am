@@ -24,7 +24,6 @@ libmuaux_a_SOURCES += \
  daemon.c\
  mailcap.c\
  manlock.c\
- mu_dbm.c\
  signal.c\
  strexit.c\
  tcpwrap.c\
@@ -34,7 +33,6 @@ libmuaux_a_SOURCES += \
 noinst_HEADERS +=\
  mailcap.h\
  muaux.h\
- mu_dbm.h\
  tcpwrap.h
 
 EXTRA_DIST += utmp.c

@@ -21,6 +21,7 @@ sysinclude_HEADERS = \
  attribute.h\
  auth.h\
  body.h\
+ dbm.h\
  debcat.h\
  envelope.h\
  file_stream.h\

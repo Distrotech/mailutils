@@ -19,27 +19,45 @@
 
 #ifdef ENABLE_LOGIN_DELAY
 
-static int
-open_stat_db (DBM_FILE *db, int mode)
+static mu_dbm_file_t
+open_stat_db (int mode)
 {
-  int rc = mu_dbm_open (login_stat_file, db, mode, 0660);
+  mu_dbm_file_t db;
+  int rc;
+
+  rc = mu_dbm_create (login_stat_file, &db);
   if (rc)
     {
-      if (rc == -1)
-	mu_diag_output (MU_DIAG_INFO, _("bad permissions on statistics db"));
-      else
-	mu_diag_output (MU_DIAG_ERROR, _("unable to open statistics db: %s"),
-		mu_strerror (rc));
+      mu_diag_output (MU_DIAG_ERROR, _("unable to create statistics db"));
+      return NULL;
     }
-  return rc;
+
+  rc = mu_dbm_safety_check (db);
+  if (rc)
+    {
+      mu_diag_output (MU_DIAG_ERROR,
+		      _("statistics db fails safety check: %s"),
+		      mu_strerror (rc));
+      mu_dbm_destroy (&db);
+      return NULL;
+    }
+  
+  rc = mu_dbm_open (db, mode, 0660);
+  if (rc)
+    {
+      mu_diag_output (MU_DIAG_ERROR, _("unable to open statistics db: %s"),
+		      mu_dbm_strerror (db));
+      mu_dbm_destroy (&db);
+    }
+  return db;
 }
 
 int
 check_login_delay (char *username)
 {
   time_t now, prev_time;
-  DBM_FILE db;
-  DBM_DATUM key, data;
+  mu_dbm_file_t db;
+  struct mu_dbm_datum key, data;
   char text[64], *p;
   int rc;
 
@@ -47,42 +65,45 @@ check_login_delay (char *username)
     return 0;
   
   time (&now);
-  if (open_stat_db (&db, MU_STREAM_RDWR))
+  db = open_stat_db (MU_STREAM_READ);
+  if (!db)
     return 0;
   
   memset (&key, 0, sizeof key);
-  MU_DATUM_PTR(key) = username;
-  MU_DATUM_SIZE(key) = strlen (username);
+  key.mu_dptr = username;
+  key.mu_dsize = strlen (username);
   memset (&data, 0, sizeof data);
 
-  rc = mu_dbm_fetch (db, key, &data);
+  rc = mu_dbm_fetch (db, &key, &data);
   if (rc)
     {
-      mu_diag_output (MU_DIAG_ERROR, _("cannot fetch login delay data: %s"),
-	      mu_strerror (rc));
-      mu_dbm_close (db);
+      if (rc != MU_ERR_NOENT)
+	mu_diag_output (MU_DIAG_ERROR, _("cannot fetch login delay data: %s"),
+			mu_dbm_strerror (db));
+      mu_dbm_destroy (&db);
       return 0;
     }
 
-  if (MU_DATUM_SIZE(data) > sizeof (text) - 1)
+  if (data.mu_dsize > sizeof (text) - 1)
     {
       mu_diag_output (MU_DIAG_ERROR,
 		      _("invalid entry for '%s': wrong timestamp size"),
-	      username);
-      mu_dbm_close (db);
+		      username);
+      mu_dbm_destroy (&db);
       return 0;
     }
+  mu_dbm_destroy (&db);
 
-  memcpy (text, MU_DATUM_PTR(data), MU_DATUM_SIZE(data));
-  text[MU_DATUM_SIZE(data)] = 0;
-  mu_dbm_close (db);
-
+  memcpy (text, data.mu_dptr, data.mu_dsize);
+  text[data.mu_dsize] = 0;
+  mu_dbm_datum_free (&data);
+  
   prev_time = strtoul (text, &p, 0);
   if (*p)
     {
       mu_diag_output (MU_DIAG_ERROR,
 		      _("malformed timestamp for '%s': %s"),
-	      username, text);
+		      username, text);
       return 0;
     }
 
@@ -93,40 +114,42 @@ void
 update_login_delay (char *username)
 {
   time_t now;
-  DBM_FILE db;
-  DBM_DATUM key, data;
+  mu_dbm_file_t db;
+  struct mu_dbm_datum key, data;
   char text[64];
   
   if (login_delay == 0 || username == NULL)
     return;
 
   time (&now);
-  if (open_stat_db (&db, MU_STREAM_RDWR))
+  db = open_stat_db (MU_STREAM_RDWR);
+  if (!db)
     return;
   
   memset(&key, 0, sizeof(key));
   memset(&data, 0, sizeof(data));
-  MU_DATUM_PTR(key) = username;
-  MU_DATUM_SIZE(key) = strlen (username);
+  key.mu_dptr = username;
+  key.mu_dsize = strlen (username);
   snprintf (text, sizeof text, "%lu", (unsigned long) now);
-  MU_DATUM_PTR(data) = text;
-  MU_DATUM_SIZE(data) = strlen (text);
-  if (mu_dbm_insert (db, key, data, 1))
-    mu_error (_("%s: cannot store datum %s/%s"),
-	      login_stat_file, username, text);
+  data.mu_dptr = text;
+  data.mu_dsize = strlen (text);
+  if (mu_dbm_store (db, &key, &data, 1))
+    mu_error (_("%s: cannot store datum %s/%s: %s"),
+	      login_stat_file, username, text,
+	      mu_dbm_strerror (db));
   
-  mu_dbm_close (db);
+  mu_dbm_destroy (&db);
 }
 
 void
 login_delay_capa ()
 {
-  DBM_FILE db;
+  mu_dbm_file_t db;
   
-  if (login_delay && open_stat_db (&db, MU_STREAM_RDWR) == 0)
+  if (login_delay && (db = open_stat_db (MU_STREAM_RDWR)) != NULL)
     {
       pop3d_outf ("LOGIN-DELAY %s\n", mu_umaxtostr (0, login_delay));
-      mu_dbm_close (db);
+      mu_dbm_destroy (&db);
     }
 }
 #endif

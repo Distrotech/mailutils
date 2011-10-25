@@ -88,7 +88,7 @@ AM_PROG_LIBTOOL
 ## Predefine several variables used to display configuration status
 status_pam=no
 status_ltdl=no
-status_dbm=no
+status_dbm=
 status_gsasl=no
 status_mysql=no
 status_pgsql=no
@@ -354,22 +354,31 @@ AH_BOTTOM(
 # define MU_PATH_MAILDIR PATH_MAILDIR "/"
 #endif])
 
-use_dbm=no
+##################################
+# DBM Support
+##################################
+AC_SUBST(DBMLIBS)
+AC_SUBST(DBMLIB_DEPENDENCY)
+AC_SUBST(DBMINCLUDES)
+
+enable_dbm=no
+disable_dbm=no
+
 AC_ARG_WITH([gdbm],
             AC_HELP_STRING([--with-gdbm],
                            [use GNU DBM]),
             [
 case "${withval}" in
-  yes) use_dbm=GDBM ;;
-  no)  use_dbm=no ;;
+  yes) enable_dbm="$enable_dbm GDBM";;
+  no)  disable_dbm="$disable_dbm GDBM";;
   *)   AC_MSG_ERROR(bad value ${withval} for --with-gdbm) ;;
 esac])
 
 ## Support --with-db2 for backward compatibility
 if test "${with_db2+set}" = set; then
   case "${with_db2}" in
-  yes) use_dbm=BDB2 ;;
-  no)  use_dbm=no ;;
+  yes) enable_dbm="$enable_dbm BDB2";;
+  no)  disable_dbm="$disable_dbm BDB2";;
   *)   AC_MSG_ERROR(bad value ${with_db2} for --with-db2) ;;
   esac
 fi
@@ -379,9 +388,9 @@ AC_ARG_WITH([berkeley-db],
                            [use Berkeley DB]),
             [
 case "${withval}" in
-  yes) use_dbm=BDB ;;
-  no)  use_dbm=no ;;
-  *)   use_dbm=BDB="${withval}";;
+  yes) enable_dbm="$enable_dbm BDB";;
+  no)  disable_dbm="$disable_dbm BDB";;
+  *)   enable_dbm="$enable_dbm BDB=${withval}";;
 esac])
 
 AC_ARG_WITH([ndbm],
@@ -389,8 +398,8 @@ AC_ARG_WITH([ndbm],
                            [use NDBM]),
             [
 case "${withval}" in
-  yes) use_dbm=NDBM ;;
-  no)  use_dbm=no ;;
+  yes) enable_dbm="$enable_dbm NDBM";;
+  no)  disable_dbm="$disable_dbm NDBM";;
   *)   AC_MSG_ERROR(bad value ${withval} for --with-ndbm) ;;
 esac])
 
@@ -399,11 +408,174 @@ AC_ARG_WITH([tokyocabinet],
                            [use Tokyo Cabinet]),
             [
 case "${withval}" in
-  yes) use_dbm=TC ;;
-  no)  use_dbm=no ;;
+  yes) enable_dbm="$enable_dbm TC";;
+  no)  disable_dbm="$disable_dbm TC";;
   *)   AC_MSG_ERROR(bad value ${withval} for --with-tokyocabinet) ;;
 esac])
 
+dnl Check for DBM
+
+AH_TEMPLATE([WITH_BDB],
+            [Define to the major version of Berkeley DB library to use])
+
+status_bdb=no
+
+## Set the variable status_bdb to $1 if:
+##
+##  1. Function $3 is defined in the library $2
+##  2. Header file db.h is available
+##
+## Then check if the major version, minor version and patchlevel of the
+## library matches those from the header. If so, define WITH_BDB
+## to the version (i.e. $1 with all dots removed). Otherwise, report
+## an error and stop.
+##
+check_bdb() {
+        ver=`echo $1 | tr -d '.'`
+	major=`expr $ver : '\(.\).*'`
+	status_bdb=no
+	AC_CHECK_LIB($2, $3,
+                     [AC_CHECK_HEADERS(db.h)
+                      if test $ac_cv_header_db_h = yes; then
+                        DBMLIBS="$DBMLIBS -l$2"
+                        MU_DB2_CURSOR
+                        status_bdb="$1"
+                      fi])
+	if test "$status_bdb" = no; then
+		:
+	else
+	  save_LIBS=$LIBS
+	  LIBS="$LIBS $DBMLIBS"
+	  AC_RUN_IFELSE(
+           [AC_LANG_PROGRAM([#include "db.h"],
+            [int v_major, v_minor, v_patch;
+             db_version(&v_major, &v_minor, &v_patch);
+             return !(DB_VERSION_MAJOR == $major
+                       && v_major == DB_VERSION_MAJOR
+                       && v_minor == DB_VERSION_MINOR
+                       && v_patch == DB_VERSION_PATCH);
+            ])],
+           [],
+           [status_bdb=no])
+	   LIBS=$save_LIBS
+           if test "$status_bdb" != no; then
+	     AC_DEFINE_UNQUOTED(WITH_BDB,$ver)
+           fi
+	fi
+}
+
+## Check for the Berkeley DB library version $1, assuming Slackware-like
+## installation layout (header files in /usr/incude/db$vn and library named
+## libdb-$version.so, where $version is the library version and $vn is
+## $version with all dots removed.
+##
+check_slackware_bdb() {
+	dir=db`echo $1|tr -d '.'`
+	save_CPPFLAGS=$CPPFLAGS
+	CPPFLAGS="$CPPFLAGS -I/usr/include/$dir"
+	check_bdb "$1" db-$1 db_create
+	CPPFLAGS=$save_CPPFLAGS
+	if test "$status_bdb" = "$1"; then
+	    DBMINCLUDES="$DBMINCLUDES -I/usr/include/$dir"
+            status_dbm="$status_dbm,Berkeley DB v. $status_bdb"
+	fi
+}
+
+check_dbm_impl() {
+  case "$1" in
+  GDBM)
+	AC_CHECK_LIB(gdbm, gdbm_open,
+                     [AC_CHECK_HEADERS(gdbm.h,
+                                       AC_DEFINE(WITH_GDBM,1,
+                                                 [Enable use of GNU DBM library]))
+                     DBMLIBS="$DBMLIBS -lgdbm"
+                     status_dbm="$status_dbm,GDBM"]);;
+
+  BDB2)   check_bdb 2 db db_open
+          test -n "$status_bdb" && status_dbm="$status_dbm,Berkeley DB v. $status_bdb";;
+
+  BDB)    for version in 4 3 2
+	  do
+		case $version in
+		4|3) func=db_create;;
+		2)   func=db_open;;
+		esac
+		check_bdb $version db $func
+		if test "$status_bdb" != no; then
+	           status_dbm="$status_dbm,Berkeley DB v. $status_bdb"
+		   break;
+		fi
+	  done;;
+
+  BDB=*)
+	  name=`expr $use_dbm : 'BDB=\(.*\)'`
+  	  case $name in
+	  [[0-9]]*)  check_slackware_bdb $name;;
+	  *)	     for version in 4 3 2
+	             do
+			case $version in
+			4|3) func=db_create;;
+			2)   func=db_open;;
+			esac
+			check_bdb $version $name $func
+			if test "$status_bdb" != no; then
+		           status_dbm="$status_dbm,Berkeley DB v. $status_bdb"
+			   break;
+			fi
+		     done
+		     ;;
+ 	  esac
+          ;;
+
+  NDBM)
+          has_ndbm=no        
+	  AC_CHECK_HEADERS(ndbm.h,[has_ndbm=yes])
+	  if test $has_ndbm = yes; then
+	    AC_CHECK_FUNC(dbm_open,:,[has_ndbm=no])
+	    if test $has_ndbm = no; then
+	      AC_CHECK_LIB(ndbm, dbm_open,
+                           [DBMLIBS="$DBMLIBS -lndbm"])
+	    fi  		    
+          fi
+	  if test $has_ndbm = yes; then
+	    AC_DEFINE(WITH_NDBM,1,[Enable use of NDBM])
+            status_dbm="$status_dbm,NDBM"
+	  fi
+	  ;;
+
+  TC)
+	  AC_CHECK_LIB(tokyocabinet, tchdbnew,
+                       [AC_CHECK_HEADERS(tchdb.h,
+                                         AC_DEFINE(WITH_TOKYOCABINET,1,
+                                                 [Enable use of Tokyo Cabinet]))
+		       DBMLIB_DEPENDENCY="$DBMLIB_DEPENDENCY -lz -lbz2 -lrt"
+                       DBMLIBS="$DBMLIBS -ltokyocabinet"
+                       status_dbm="$status_dbm,Tokyo Cabinet"]);;
+  esac
+}
+
+if test "$enable_dbm" = no; then
+  enable_dbm="GDBM BDB TC NDBM"
+fi
+
+for impl in $enable_dbm
+do
+  if echo "$disable_dbm" | grep $impl >/dev/null; then
+    : # skip it
+  else
+    check_dbm_impl $impl
+  fi
+done
+
+if test -z "$status_dbm"; then
+  status_dbm=no
+else
+  status_dbm=`echo "$status_dbm" | sed 's/^,//'`
+  AC_DEFINE([ENABLE_DBM], 1, [Define if DBM interface is compiled])
+fi
+AM_CONDITIONAL([MU_COND_DBM], [test "$status_dbm" != no])
+
+####################
 AC_MSG_CHECKING(for log facility)
 log_facility="LOG_MAIL"
 AC_ARG_WITH([log-facility],
@@ -938,129 +1110,6 @@ AH_BOTTOM([
 # define rl_completion_matches completion_matches
 #endif])
 
-dnl Check for DBM
-
-AH_TEMPLATE([WITH_BDB],
-            [Define to the major version of Berkeley DB library to use])
-
-## Set the variable status_dbm to $1 if:
-##
-##  1. Function $3 is defined in the library $2
-##  2. Header file db.h is available
-##
-## Then check if the major version, minor version and patchlevel of the
-## library matches those from the header. If so, define WITH_BDB
-## to the version (i.e. $1 with all dots removed). Otherwise, report
-## an error and stop.
-##
-check_bdb() {
-        ver=`echo $1 | tr -d '.'`
-	major=`expr $ver : '\(.\).*'`
-	AC_CHECK_LIB($2, $3,
-                     [AC_CHECK_HEADERS(db.h)
-                      if test $ac_cv_header_db_h = yes; then
-                        LIBS="$LIBS -l$2"
-                        MU_DB2_CURSOR
-                        status_dbm=$1
-                      fi])
-	if test "$status_dbm" = no; then
-		:
-	else
-	  AC_RUN_IFELSE(
-           [AC_LANG_PROGRAM([#include "db.h"],
-            [int v_major, v_minor, v_patch;
-             db_version(&v_major, &v_minor, &v_patch);
-             return !(DB_VERSION_MAJOR == $major
-                       && v_major == DB_VERSION_MAJOR
-                       && v_minor == DB_VERSION_MINOR
-                       && v_patch == DB_VERSION_PATCH);
-            ])],
-           [],
-           [status_dbm=no])
-           if test "$status_dbm" != no; then
-	     AC_DEFINE_UNQUOTED(WITH_BDB,$ver)
-           fi
-	fi
-}
-
-## Check for the Berkeley DB library version $1, assuming Slackware-like
-## installation layout (header files in /usr/incude/db$vn and library named
-## libdb-$version.so, where $version is the library version and $vn is
-## $version with all dots removed.
-##
-check_slackware_bdb() {
-	dir=db`echo $1|tr -d '.'`
-	save_CPPFLAGS=$CPPFLAGS
-	CPPFLAGS="$CPPFLAGS -I/usr/include/$dir"
-	check_bdb "$1" db-$1 db_create
-	CPPFLAGS=$save_CPPFLAGS
-	if test "$status_dbm" = "$1"; then
-	    MU_COMMON_INCLUDES="$MU_COMMON_INCLUDES -I/usr/include/$dir"
-	fi
-}
-
-case "$use_dbm" in
-GDBM)
-	AC_CHECK_LIB(gdbm, gdbm_open,
-                     [AC_CHECK_HEADERS(gdbm.h,
-                                       AC_DEFINE(WITH_GDBM,1,
-                                                 [Enable use of GNU DBM library]))
-                     LIBS="$LIBS -lgdbm"
-                     status_dbm="GDBM"]);;
-
-BDB2)   check_bdb 2 db db_open
-        test -n "$status_dbm" && status_dbm="Berkeley DB v. $status_dbm";;
-
-BDB)    for version in 4 3 2
-	do
-		case $version in
-		4|3) func=db_create;;
-		2)   func=db_open;;
-		esac
-		check_bdb $version db $func
-		if test "$status_dbm" != no; then
-                   status_dbm="Berkeley DB v. $status_dbm"
-		   break;
-		fi
-	done;;
-
-BDB=*)
-	name=`expr $use_dbm : 'BDB=\(.*\)'`
-	case $name in
-	[[0-9]]*)  check_slackware_bdb $name;;
-	*)	   for version in 4 3 2
-	           do
-			case $version in
-			4|3) func=db_create;;
-			2)   func=db_open;;
-			esac
-			check_bdb $version $name $func
-			if test "$status_dbm" != no; then
-		           status_dbm="Berkeley DB v. $status_dbm"
-			   break;
-			fi
-		   done
-		   ;;
-	esac
-        ;;
-
-NDBM)
-	AC_CHECK_LIB(ndbm, dbm_open,
-                     [AC_CHECK_HEADERS(ndbm.h,
-                                       AC_DEFINE(WITH_NDBM,1,
-                                                 [Enable use of NDBM]))
-                     LIBS="$LIBS -lndbm"
-                     status_dbm="NDBM"]);;
-
-TC)
-	AC_CHECK_LIB(tokyocabinet, tchdbnew,
-                     [AC_CHECK_HEADERS(tchdb.h,
-                                       AC_DEFINE(WITH_TOKYOCABINET,1,
-                                                 [Enable use of Tokyo Cabinet]))
-                     LIBS="$LIBS -ltokyocabinet -lz -lbz2 -lrt"
-                     status_dbm="Tokyo Cabinet"]);;
-esac
-
 AC_SUBST(POPAUTH)
 if test "$status_dbm" != no; then
   POPAUTH='popauth$(EXEEXT)'
@@ -1397,6 +1446,7 @@ AC_CONFIG_FILES([
  libmu_cpp/Makefile
  libmu_scm/Makefile
  libmu_scm/mailutils/Makefile
+ libmu_dbm/Makefile
  libmu_sieve/Makefile
  libmu_sieve/extensions/Makefile
  libproto/Makefile

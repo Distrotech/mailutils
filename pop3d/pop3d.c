@@ -77,7 +77,7 @@ cb_bulletin_source (void *data, mu_config_value_t *val)
   return 0;
 }
 
-#ifdef USE_DBM
+#ifdef ENABLE_DBM
 static int
 cb_bulletin_db (void *data, mu_config_value_t *val)
 {
@@ -111,7 +111,7 @@ static struct mu_cfg_param pop3d_cfg_param[] = {
   { "bulletin-source", mu_cfg_callback, NULL, 0, cb_bulletin_source,
     N_("Get bulletins from the specified mailbox."),
     N_("url") },
-#ifdef USE_DBM
+#ifdef ENABLE_DBM
   { "bulletin-db", mu_cfg_callback, NULL, 0, cb_bulletin_db,
     N_("Set the bulletin database file name."),
     N_("file") },

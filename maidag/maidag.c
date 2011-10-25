@@ -457,7 +457,7 @@ struct mu_cfg_param maidag_cfg_param[] = {
   { "exit-quota-tempfail", mu_cfg_bool, &ex_quota_tempfail, 0, NULL,
     N_("Indicate temporary failure if the recipient is over his mail quota.")
   },
-#ifdef USE_DBM
+#ifdef ENABLE_DBM
   { "quota-db", mu_cfg_string, &quotadbname, 0, NULL,
     N_("Name of DBM quota database file."),
     N_("file") },

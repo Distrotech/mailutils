@@ -64,64 +64,85 @@ fail_retrieve_quota (char *name, mu_off_t *quota)
   return RETR_FAILURE;
 }
 
-#ifdef USE_DBM
+#ifdef ENABLE_DBM
 int
 dbm_retrieve_quota (char *name, mu_off_t *quota)
 {
-  DBM_FILE db;
-  DBM_DATUM named, contentd;
+  mu_dbm_file_t db;
+  struct mu_dbm_datum  named, contentd;
   char buffer[64];
   int unlimited = 0;
   int rc;
 
   if (!quotadbname)
     return RETR_FAILURE;
-  
-  if (mu_dbm_open (quotadbname, &db, MU_STREAM_READ, 0600))
+
+  rc = mu_dbm_create (quotadbname, &db);
+  if (rc)
     {
-      mu_error (_("cannot open file %s: %s"), quotadbname, mu_strerror (errno));
+      mu_error (_("unable to create quota db"));
+      return RETR_FAILURE;
+    }
+
+  rc = mu_dbm_safety_check (db);
+  if (rc && rc != ENOENT)
+    {
+      mu_error (_("quota db fails safety check: %s"),
+		mu_strerror (rc));
+      mu_dbm_destroy (&db);
+      return RETR_FAILURE;
+    }
+
+  rc = mu_dbm_open (db, MU_STREAM_READ, 0600);
+  if (rc)
+    {
+      mu_error (_("cannot open file %s: %s"),
+		quotadbname, mu_strerror (rc));
+      mu_dbm_destroy (&db);
       return RETR_FAILURE;
     }
   
   memset (&named, 0, sizeof named);
   memset (&contentd, 0, sizeof contentd);
-  MU_DATUM_PTR (named) = name;
-  MU_DATUM_SIZE (named) = strlen (name);
-  rc = mu_dbm_fetch (db, named, &contentd);
-  if (rc || !MU_DATUM_PTR (contentd))
+  named.mu_dptr = name;
+  named.mu_dsize = strlen (name);
+  rc = mu_dbm_fetch (db, &named, &contentd);
+  if (rc)
     {
       /* User not in database, try default quota */
-      memset (&named, 0, sizeof named);
-      MU_DATUM_PTR (named) = "DEFAULT";
-      MU_DATUM_SIZE (named) = strlen ("DEFAULT");
-      rc = mu_dbm_fetch (db, named, &contentd);
-      if (rc)
+      mu_dbm_datum_free (&named);
+      named.mu_dptr = "DEFAULT";
+      named.mu_dsize = strlen ("DEFAULT");
+      rc = mu_dbm_fetch (db, &named, &contentd);
+      if (rc == MU_ERR_NOENT)
 	{
-	  /*mu_error (_("can't fetch data: %s"), strerror (rc));*/
+	  mu_dbm_destroy (&db);
 	  return RETR_FAILURE;
 	}
-      if (!MU_DATUM_PTR (contentd))
-	return RETR_FAILURE;
+      else if (rc)
+	{
+	  mu_error (_("can't fetch data: %s"), mu_dbm_strerror (db));
+	  mu_dbm_destroy (&db);
+	  return RETR_FAILURE;
+	}
     }
 
-  if (mu_c_strncasecmp("none",
-		       MU_DATUM_PTR (contentd),
-		       MU_DATUM_SIZE (contentd)) == 0) 
+  if (mu_c_strncasecmp("none", contentd.mu_dptr, contentd.mu_dsize) == 0) 
       unlimited = 1;
-  else if (MU_DATUM_SIZE (contentd) > sizeof(buffer)-1)
+  else if (contentd.mu_dsize > sizeof (buffer) - 1)
     {
       mu_error (ngettext ("mailbox quota for `%s' is too big: %d digit",
 			  "mailbox quota for `%s' is too big: %d digits",
-			  MU_DATUM_SIZE (contentd)),
-		name, MU_DATUM_SIZE (contentd));
+			  contentd.mu_dsize),
+		name, contentd.mu_dsize);
       *quota = groupquota;
     }
   else
     {
       char *p;
 		
-      strncpy(buffer, MU_DATUM_PTR (contentd), MU_DATUM_SIZE (contentd));
-      buffer[MU_DATUM_SIZE (contentd)] = 0;
+      strncpy (buffer, contentd.mu_dptr, contentd.mu_dsize);
+      buffer[contentd.mu_dsize] = 0;
       *quota = strtoul (buffer, &p, 0);
       if (get_size (buffer, quota, &p))
 	{
@@ -129,8 +150,9 @@ dbm_retrieve_quota (char *name, mu_off_t *quota)
 	  *quota = groupquota;
 	}
     }
-
-  mu_dbm_close (db);
+  
+  mu_dbm_datum_free (&contentd);
+  mu_dbm_destroy (&db);
   
   return unlimited ? RETR_UNLIMITED : RETR_OK;
 }

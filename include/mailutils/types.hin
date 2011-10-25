@@ -75,7 +75,8 @@ struct _mu_assoc;
 struct _mu_acl;  
 struct _mu_server;
 struct _mu_tcp_server;
-
+struct _mu_dbm_file;
+  
 struct mu_sockaddr; /* defined in mailutils/sockaddr.h */  
 struct mu_cidr;     /* defined in mailutils/cidr.h */  
   
@@ -121,6 +122,7 @@ typedef struct _mu_opool *mu_opool_t;
 typedef struct _mu_progmailer *mu_progmailer_t;
 typedef struct _mu_secret *mu_secret_t;
 typedef struct _mu_mime_io_buffer *mu_mime_io_buffer_t;
+typedef struct _mu_dbm_file *mu_dbm_file_t;
 
 typedef void (*mu_onexit_t) (void*);
 typedef unsigned int mu_debug_handle_t;

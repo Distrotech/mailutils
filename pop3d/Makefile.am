@@ -46,6 +46,10 @@ pop3d_SOURCES =\
  uidl.c\
  user.c
 
+if MU_COND_DBM
+  LIBMU_DBM=../libmu_dbm/libmu_dbm.la
+endif
+
 pop3d_LDADD = \
  ${MU_APP_LIBRARIES}\
  ${MU_LIB_MBOX}\
@@ -54,15 +58,25 @@ pop3d_LDADD = \
  ${MU_LIB_AUTH}\
  @MU_AUTHLIBS@ \
  ${MU_LIB_MAILUTILS}\
- @MU_COMMON_LIBRARIES@ @TCPWRAP_LIBRARIES@
+ @MU_COMMON_LIBRARIES@\
+ ${LIBMU_DBM}\
+ @DBMLIBS@\
+ @TCPWRAP_LIBRARIES@
 
 popauth_SOURCES = popauth.c
-popauth_LDADD = ${MU_APP_LIBRARIES} ${MU_LIB_MAILUTILS} @MU_COMMON_LIBRARIES@
+popauth_LDADD = \
+ ${MU_APP_LIBRARIES}\
+ ${MU_LIB_MAILUTILS}\
+ @MU_COMMON_LIBRARIES@\
+ ${LIBMU_DBM}\
+ @DBMLIBS@
+
 pop3d_DEPENDENCIES = \
  @MU_AUTHLIBS_DEPENDENCY@ \
  ../lib/libmuaux.a \
  ${MU_LIB_MBOX}\
  ${MU_LIB_MH}\
  ${MU_LIB_MAILDIR}\
- ${MU_LIB_MAILUTILS}
+ ${MU_LIB_MAILUTILS}\
+ ${LIBMU_DBM}
 

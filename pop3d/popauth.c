@@ -73,7 +73,7 @@ static struct argp_option options[] =
 
   { NULL, 0, NULL, 0,
     N_("Default action is:\n"
-    "  For the file owner: --list\n"
+    "  For root: --list\n"
     "  For a user: --modify --user <username>\n"), 2 },
   
   { NULL, 0, NULL, 0, N_("Options are:"), 3 },
@@ -197,7 +197,7 @@ popauth_parse_opt (int key, char *arg, struct argp_state *astate)
 }
 
 int
-main(int argc, char **argv)
+main (int argc, char **argv)
 {
   struct action_data adata;
 
@@ -223,41 +223,121 @@ check_action (int action)
     }
 }
 
-int
-check_user_perm (int action, struct action_data *ap)
+mu_dbm_file_t
+open_db_file (int action, struct action_data *ap, int *my_file)
 {
-  struct stat sb;
+  mu_dbm_file_t db;
   struct passwd *pw;
   uid_t uid;
+  int rc;
+  int flags = 0;
+  char *db_name = NULL;
+  int fd;
+  struct stat sb;
+  int safety_flags = MU_FILE_SAFETY_ALL & ~MU_FILE_SAFETY_OWNER_MISMATCH;
   
-  if (!ap->input_name)
-    ap->input_name = APOP_PASSFILE;
-
-  if (mu_dbm_stat (ap->input_name, &sb))
+  switch (action)
     {
-      if (ap->action == ACT_ADD)
-	{
-	  DBM_FILE db;
-	  if (mu_dbm_open (ap->input_name, &db, MU_STREAM_CREAT, permissions))
-	    {
-	      mu_diag_funcall (MU_DIAG_ERROR, "mu_dbm_open",
-			       ap->input_name, errno);
-	      exit (EX_SOFTWARE);
-	    }
-	  mu_dbm_close (db);
-	  mu_dbm_stat (ap->input_name, &sb);
-	}
-      else
-	{
-	  mu_diag_funcall (MU_DIAG_ERROR, "stat", ap->input_name, errno);
-	  exit (EX_OSERR);
-	}
+    case ACT_CREATE:
+      flags = MU_STREAM_CREAT;
+      safety_flags = MU_FILE_SAFETY_NONE;
+      db_name = ap->output_name;
+      break;
+
+    case ACT_ADD:
+    case ACT_DELETE:
+      if (!ap->input_name)
+	ap->input_name = APOP_PASSFILE;
+      flags = MU_STREAM_RDWR;
+      db_name = ap->input_name;
+      break;
+      
+    case ACT_LIST:
+      if (!ap->input_name)
+	ap->input_name = APOP_PASSFILE;
+      flags = MU_STREAM_READ;
+      safety_flags = MU_FILE_SAFETY_NONE;
+      db_name = ap->input_name;
+      break;
+
+    case ACT_CHPASS:
+      if (!ap->input_name)
+	ap->input_name = APOP_PASSFILE;
+      flags = MU_STREAM_RDWR;
+      db_name = ap->input_name;
+      break;
+      
+    default:
+      abort ();
     }
 
   uid = getuid ();
-  if (uid == 0 || sb.st_uid == uid)
-    return 0;
 
+  rc = mu_dbm_create (db_name, &db);
+  if (rc)
+    {
+      mu_diag_output (MU_DIAG_ERROR, _("unable to create database %s: %s"),
+		      db_name, mu_strerror (rc));
+      exit (EX_SOFTWARE);
+    }
+
+  //  mu_dbm_safety_set_owner (db, uid);
+  /* Adjust safety flags */
+  if (permissions & 0002)
+    safety_flags &= ~MU_FILE_SAFETY_WORLD_WRITABLE;
+  if (permissions & 0004)
+    safety_flags &= ~MU_FILE_SAFETY_WORLD_READABLE;
+  if (permissions & 0020)
+    safety_flags &= ~MU_FILE_SAFETY_GROUP_WRITABLE;
+  if (permissions & 0040)
+    safety_flags &= ~MU_FILE_SAFETY_GROUP_READABLE;
+  
+  mu_dbm_safety_set_flags (db, safety_flags);
+  rc = mu_dbm_safety_check (db);
+  if (rc && rc != ENOENT)
+    {
+      mu_diag_output (MU_DIAG_ERROR,
+		      _("%s fails safety check: %s"),
+		      db_name, mu_strerror (rc));
+      mu_dbm_destroy (&db);
+      exit (EX_UNAVAILABLE);
+    }
+  
+  rc = mu_dbm_open (db, flags, permissions);
+  if (rc)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_dbm_open",
+		       db_name, rc);
+      exit (EX_SOFTWARE);
+    }
+
+  if (uid == 0)
+    return db;
+
+  rc = mu_dbm_get_fd (db, &fd, NULL);
+  if (rc)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_dbm_get_fd",
+		       db_name, rc);
+      exit (EX_SOFTWARE);
+    }
+
+  if (fstat (fd, &sb))
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "fstat",
+		       db_name, errno);
+      exit (EX_SOFTWARE);
+    }
+
+  if (sb.st_uid == uid)
+    {
+      if (my_file)
+	*my_file = 1;
+      return db;
+    }
+  if (my_file)
+    *my_file = 0;
+    
   if (ap->username)
     {
       mu_error (_("Only the file owner can use --username"));
@@ -273,41 +353,36 @@ check_user_perm (int action, struct action_data *ap)
   if (!pw)
     exit (EX_OSERR);
   ap->username = pw->pw_name;
-  return 1;
+  return db;
 }
 
 static void
-print_entry (mu_stream_t str, DBM_DATUM key, DBM_DATUM contents)
+print_entry (mu_stream_t str, struct mu_dbm_datum const *key,
+	     struct mu_dbm_datum const *contents)
 {
   if (compatibility_option)
     mu_stream_printf (str, "%.*s: %.*s\n",
-		      (int) MU_DATUM_SIZE (key),
-		      (char*) MU_DATUM_PTR (key),
-		      (int) MU_DATUM_SIZE (contents),
-		      (char*) MU_DATUM_PTR (contents));
+		      (int) key->mu_dsize,
+		      (char*) key->mu_dptr,
+		      (int) contents->mu_dsize,
+		      (char*) contents->mu_dptr);
   else
     mu_stream_printf (str, "%.*s %.*s\n",
-		      (int) MU_DATUM_SIZE (key),
-		      (char*) MU_DATUM_PTR (key),
-		      (int) MU_DATUM_SIZE (contents),
-		      (char*) MU_DATUM_PTR (contents));
+		      (int) key->mu_dsize,
+		      (char*) key->mu_dptr,
+		      (int) contents->mu_dsize,
+		      (char*) contents->mu_dptr);
 }
 
 int
 action_list (struct action_data *ap)
 {
   mu_stream_t str;
-  DBM_FILE db;
-  DBM_DATUM key;
-  DBM_DATUM contents;
+  mu_dbm_file_t db;
+  struct mu_dbm_datum key, contents;
+  int rc;
   
-  check_user_perm (ACT_LIST, ap);
-  if (mu_dbm_open (ap->input_name, &db, MU_STREAM_READ, 0))
-    {
-      mu_error (_("cannot open file %s: %s"),
-		ap->input_name, mu_strerror (errno));
-      return 1;
-    }
+  db = open_db_file (ACT_LIST, ap, NULL);
   
   if (ap->output_name)
     {
@@ -331,32 +406,47 @@ action_list (struct action_data *ap)
     {
       memset (&key, 0, sizeof key);
       memset (&contents, 0, sizeof contents);
-      MU_DATUM_PTR (key) = ap->username;
-      MU_DATUM_SIZE (key) = strlen (ap->username);
-      if (mu_dbm_fetch (db, key, &contents))
+      key.mu_dptr = ap->username;
+      key.mu_dsize = strlen (ap->username);
+      rc = mu_dbm_fetch (db, &key, &contents);
+      if (rc == MU_ERR_NOENT)
 	{
 	  mu_error (_("no such user: %s"), ap->username);
 	}
+      else if (rc)
+	{
+	  mu_error (_("database fetch error: %s"), mu_dbm_strerror (db));
+	  exit (EX_UNAVAILABLE);
+	}
       else
 	{
-	  print_entry (str, key, contents);
+	  print_entry (str, &key, &contents);
 	  mu_dbm_datum_free (&contents);
 	}
     }
   else
     {
-      for (key = mu_dbm_firstkey (db); MU_DATUM_PTR(key);
-	   key = mu_dbm_nextkey (db, key))
+      memset (&key, 0, sizeof key);
+      for (rc = mu_dbm_firstkey (db, &key); rc == 0;
+	   rc = mu_dbm_nextkey (db, &key))
 	{
 	  memset (&contents, 0, sizeof contents);
-	  mu_dbm_fetch (db, key, &contents);
-	  print_entry (str, key, contents);
-	  mu_dbm_datum_free (&contents);
+	  rc = mu_dbm_fetch (db, &key, &contents);
+	  if (rc == 0)
+	    {
+	      print_entry (str, &key, &contents);
+	      mu_dbm_datum_free (&contents);
+	    }
+	  else
+	    {
+	      mu_error (_("database fetch error: %s"), mu_dbm_strerror (db));
+	      exit (EX_UNAVAILABLE);
+	    }
+	  mu_dbm_datum_free (&key);
 	}
     }
   
-  mu_dbm_close (db);
-  mu_stream_destroy (&str);
+  mu_dbm_destroy (&db);
   return 0;
 }
 
@@ -365,9 +455,8 @@ action_create (struct action_data *ap)
 {
   int rc;
   mu_stream_t in;
-  DBM_FILE db;
-  DBM_DATUM key;
-  DBM_DATUM contents;
+  mu_dbm_file_t db;
+  struct mu_dbm_datum key, contents;
   char *buf = NULL;
   size_t size = 0, len;
   int line = 0;
@@ -399,12 +488,8 @@ action_create (struct action_data *ap)
   
   if (!ap->output_name)
     ap->output_name = APOP_PASSFILE;
-  if (mu_dbm_open (ap->output_name, &db, MU_STREAM_CREAT, permissions))
-    {
-      mu_error (_("cannot create database %s: %s"),
-		ap->output_name, mu_strerror (errno));
-      return 1;
-    }
+
+  db = open_db_file (ACT_CREATE, ap, NULL);
 
   line = 0;
   while ((rc = mu_stream_getline (in, &buf, &size, &len)) == 0
@@ -435,20 +520,25 @@ action_create (struct action_data *ap)
       
       memset (&key, 0, sizeof key);
       memset (&contents, 0, sizeof contents);
-      MU_DATUM_PTR (key) = str;
-      MU_DATUM_SIZE (key) = strlen (str);
-      MU_DATUM_PTR (contents) = pass;
-      MU_DATUM_SIZE (contents) = strlen (pass);
+      key.mu_dptr = str;
+      key.mu_dsize = strlen (str);
+      contents.mu_dptr = pass;
+      contents.mu_dsize = strlen (pass);
 
-      if (mu_dbm_insert (db, key, contents, 1))
-	mu_error (_("%s:%d: cannot store datum"), ap->input_name, line);
+      rc = mu_dbm_store (db, &key, &contents, 1);
+      if (rc)
+	mu_error (_("%s:%d: cannot store datum: %s"),
+		  ap->input_name, line,
+		  rc == MU_ERR_FAILURE ?
+		     mu_dbm_strerror (db) : mu_strerror (rc));
     }
   free (buf);
-  mu_dbm_close (db);
+  mu_dbm_destroy (&db);
   mu_stream_destroy (&in);
   return 0;
 }
 
+/*FIXME
 int
 open_io (int action, struct action_data *ap, DBM_FILE *db, int *not_owner)
 {
@@ -463,6 +553,7 @@ open_io (int action, struct action_data *ap, DBM_FILE *db, int *not_owner)
     }
   return 0;
 }
+*/
 
 void
 fill_pass (struct action_data *ap)
@@ -527,9 +618,8 @@ fill_pass (struct action_data *ap)
 int
 action_add (struct action_data *ap)
 {
-  DBM_FILE db;
-  DBM_DATUM key;
-  DBM_DATUM contents;
+  mu_dbm_file_t db;
+  struct mu_dbm_datum key, contents;
   int rc;
   
   if (!ap->username)
@@ -538,31 +628,32 @@ action_add (struct action_data *ap)
       return 1;
     }
 
-  if (open_io (ACT_ADD, ap, &db, NULL))
-    return 1;
+  db = open_db_file (ACT_ADD, ap, NULL);
 
   fill_pass (ap);
   
   memset (&key, 0, sizeof key);
   memset (&contents, 0, sizeof contents);
-  MU_DATUM_PTR (key) = ap->username;
-  MU_DATUM_SIZE (key) = strlen (ap->username);
-  MU_DATUM_PTR (contents) = ap->passwd;
-  MU_DATUM_SIZE (contents) = strlen (ap->passwd);
+  key.mu_dptr = ap->username;
+  key.mu_dsize = strlen (ap->username);
+  contents.mu_dptr = ap->passwd;
+  contents.mu_dsize = strlen (ap->passwd);
 
-  rc = mu_dbm_insert (db, key, contents, 1);
+  rc = mu_dbm_store (db, &key, &contents, 1);
   if (rc)
-    mu_error (_("cannot store datum"));
+    mu_error (_("cannot store datum: %s"),
+	      rc == MU_ERR_FAILURE ?
+		     mu_dbm_strerror (db) : mu_strerror (rc));
 
-  mu_dbm_close (db);
+  mu_dbm_destroy (&db);
   return rc;
 }
 
 int
 action_delete (struct action_data *ap)
 {
-  DBM_FILE db;
-  DBM_DATUM key;
+  mu_dbm_file_t db;
+  struct mu_dbm_datum key;
   int rc;
   
   if (!ap->username)
@@ -571,56 +662,64 @@ action_delete (struct action_data *ap)
       return 1;
     }
 
-  if (open_io (ACT_DELETE, ap, &db, NULL))
-    return 1;
-  
-  MU_DATUM_PTR (key) = ap->username;
-  MU_DATUM_SIZE (key) = strlen (ap->username);
+  db = open_db_file (ACT_DELETE, ap, NULL);
 
-  rc = mu_dbm_delete (db, key);
+  memset (&key, 0, sizeof key);
+  key.mu_dptr = ap->username;
+  key.mu_dsize = strlen (ap->username);
+
+  rc = mu_dbm_delete (db, &key);
   if (rc)
-    mu_error (_("cannot remove record for %s"), ap->username);
+    mu_error (_("cannot remove record for %s: %s"),
+	      ap->username,
+	      rc == MU_ERR_FAILURE ?
+		     mu_dbm_strerror (db) : mu_strerror (rc));
 
-  mu_dbm_close (db);
+  mu_dbm_destroy (&db);
   return rc;
 }
 
 int
 action_chpass (struct action_data *ap)
 {
-  DBM_FILE db;
-  DBM_DATUM key;
-  DBM_DATUM contents;
+  mu_dbm_file_t db;
+  struct mu_dbm_datum key, contents;
   int rc;
-  int not_owner;
+  int my_file;
   
-  if (open_io (ACT_CHPASS, ap, &db, &not_owner))
-    return 1;
+  db = open_db_file (ACT_CHPASS, ap, &my_file);
 
   if (!ap->username)
     {
-      mu_error (_("missing username"));
-      return 1;
+      struct passwd *pw = getpwuid (getuid ());
+      ap->username = pw->pw_name;
+      printf ("Changing password for %s\n", ap->username);
     }
 
   memset (&key, 0, sizeof key);
   memset (&contents, 0, sizeof contents);
 
-  MU_DATUM_PTR (key) = ap->username;
-  MU_DATUM_SIZE (key) = strlen (ap->username);
-  if (mu_dbm_fetch (db, key, &contents))
+  key.mu_dptr = ap->username;
+  key.mu_dsize = strlen (ap->username);
+  rc = mu_dbm_fetch (db, &key, &contents);
+  if (rc == MU_ERR_NOENT)
     {
       mu_error (_("no such user: %s"), ap->username);
       return 1;
     }
-
-  if (not_owner)
+  else if (rc)
+    {
+      mu_error (_("database fetch error: %s"), mu_dbm_strerror (db));
+      exit (EX_UNAVAILABLE);
+    }
+      
+  if (!my_file)
     {
       char *oldpass, *p;
       
-      oldpass = xmalloc (MU_DATUM_SIZE (contents) + 1);
-      memcpy (oldpass, MU_DATUM_PTR (contents), MU_DATUM_SIZE (contents));
-      oldpass[MU_DATUM_SIZE (contents)] = 0;
+      oldpass = xmalloc (contents.mu_dsize + 1);
+      memcpy (oldpass, contents.mu_dptr, contents.mu_dsize);
+      oldpass[contents.mu_dsize] = 0;
       p = getpass (_("Old Password:"));
       if (!p)
 	return 1;
@@ -634,32 +733,49 @@ action_chpass (struct action_data *ap)
   fill_pass (ap);
   
   mu_dbm_datum_free (&contents);
-  MU_DATUM_PTR (contents) = ap->passwd;
-  MU_DATUM_SIZE (contents) = strlen (ap->passwd);
-  rc = mu_dbm_insert (db, key, contents, 1);
+  contents.mu_dptr = ap->passwd;
+  contents.mu_dsize = strlen (ap->passwd);
+  rc = mu_dbm_store (db, &key, &contents, 1);
   if (rc)
-    mu_error (_("cannot replace datum"));
+    mu_error (_("cannot replace datum: %s"),
+	      rc == MU_ERR_FAILURE ?
+		     mu_dbm_strerror (db) : mu_strerror (rc));
 
-  mu_dbm_close (db);
+  mu_dbm_destroy (&db);
   return rc;
 }
 
 void
 popauth_version (FILE *stream, struct argp_state *state)
 {
-#if defined(WITH_GDBM)
-# define FORMAT "GDBM"
-#elif defined(WITH_BDB)
-# define FORMAT "Berkeley DB"
-#elif defined(WITH_NDBM)
-# define FORMAT "NDBM"
-#elif defined(WITH_OLD_DBM)
-# define FORMAT "Old DBM"
-#elif defined(WITH_TOKYOCABINET)
-# define FORMAT "Tokyo Cabinet"
-#endif
+  mu_iterator_t itr;
+  int rc;
+
   mu_program_version_hook (stream, state);
-  fprintf (stream, _("Database format: %s\n"), FORMAT);
-  fprintf (stream, _("Database location: %s\n"), APOP_PASSFILE);
+  fprintf (stream, _("Database formats: "));
+
+  rc = mu_dbm_impl_iterator (&itr);
+  if (rc)
+    {
+      fprintf (stream, "%s\n", _("unknown"));
+      mu_error ("%s", mu_strerror (rc));
+    }
+  else
+    {
+      int i;
+      for (mu_iterator_first (itr), i = 0; !mu_iterator_is_done (itr);
+	   mu_iterator_next (itr), i++)
+	{
+	  struct mu_dbm_impl *impl;
+
+	  mu_iterator_current (itr, (void**)&impl);
+	  if (i)
+	    fprintf (stream, ", ");
+	  fprintf (stream, "%s", impl->_dbm_name);
+	}
+      fputc ('\n', stream);
+      mu_iterator_destroy (&itr);
+    }
+  fprintf (stream, _("Default database location: %s\n"), APOP_PASSFILE);
   exit (EX_OK);
 }

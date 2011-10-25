@@ -46,6 +46,8 @@ maidag_LDADD = \
  @MU_AUTHLIBS@\
  ${MU_LIB_MAILUTILS} \
  @MU_COMMON_LIBRARIES@\
+ ../libmu_dbm/libmu_dbm.la\
+ @DBMLIBS@\
  @TCPWRAP_LIBRARIES@
 
 INCLUDES = -I${top_srcdir} @MU_APP_COMMON_INCLUDES@ @GUILE_INCLUDES@ \

@@ -43,59 +43,85 @@ pop3d_apopuser (const char *user)
 {
   char *password = NULL;
   
-#ifdef USE_DBM
+#ifdef ENABLE_DBM
   {
     size_t len;
-    DBM_FILE db;
-    DBM_DATUM key, data;
+    mu_dbm_file_t db;
+    struct mu_dbm_datum key, data;
+    int rc;
 
-    int rc = mu_dbm_open (APOP_PASSFILE, &db, MU_STREAM_READ, 0600);
+    rc = mu_dbm_create (APOP_PASSFILE, &db);
+    if (rc)
+      {
+	mu_diag_output (MU_DIAG_ERROR, _("unable to create APOP db"));
+	return NULL;
+      }
+
+    rc = mu_dbm_safety_check (db);
+    if (rc)
+      {
+	mu_diag_output (MU_DIAG_ERROR,
+			_("APOP file %s fails safety check: %s"),
+			APOP_PASSFILE, mu_strerror (rc));
+	mu_dbm_destroy (&db);
+	return NULL;
+      }
+    
+    rc = mu_dbm_open (db, MU_STREAM_READ, 0600);
     if (rc)
       {
 	mu_diag_output (MU_DIAG_ERROR, _("unable to open APOP db: %s"),
-		mu_strerror (errno));
+			mu_strerror (rc));
 	return NULL;
       }
 
     memset (&key, 0, sizeof key);
     memset (&data, 0, sizeof data);
 
-    MU_DATUM_PTR (key) = (void*) user;
-    MU_DATUM_SIZE (key) = strlen (user);
+    key.mu_dptr = (void *)user;
+    key.mu_dsize = strlen (user);
 
-    rc = mu_dbm_fetch (db, key, &data);
-    mu_dbm_close (db);
-    if (rc)
+    rc = mu_dbm_fetch (db, &key, &data);
+    if (rc == MU_ERR_NOENT)
       {
-	mu_diag_output (MU_DIAG_ERROR,
-			_("cannot fetch APOP data: %s"), mu_strerror (errno));
+	mu_dbm_destroy (&db);
 	return NULL;
       }
-    len = MU_DATUM_SIZE (data);
+    else if (rc)
+      {
+	mu_diag_output (MU_DIAG_ERROR,
+			_("cannot fetch APOP data: %s"),
+			mu_dbm_strerror (db));
+	mu_dbm_destroy (&db);
+	return NULL;
+      }
+    mu_dbm_destroy (&db);
+    len = data.mu_dsize;
     password = malloc (len + 1);
     if (password == NULL)
       {
 	mu_dbm_datum_free (&data);
 	return NULL;
       }
-    memcpy (password, MU_DATUM_PTR (data), len);
+    memcpy (password, data.mu_dptr, len);
     password[len] = 0;
     mu_dbm_datum_free (&data);
     return password;
   }
-#else /* !USE_DBM */
+#else /* !ENABLE_DBM */
   {
     char *buf = NULL;
     size_t size = 0;
     size_t ulen;
     FILE *apop_file;
 
-    if (mu_check_perm (APOP_PASSFILE, 0600))
-      {
-	mu_diag_output (MU_DIAG_INFO,
-			_("bad permissions on APOP password file"));
-	return NULL;
-    }
+    /* FIXME */    
+/*     if (mu_check_perm (APOP_PASSFILE, 0600)) */
+/*       { */
+/* 	mu_diag_output (MU_DIAG_INFO, */
+/* 			_("bad permissions on APOP password file")); */
+/* 	return NULL; */
+/*     } */
 
     apop_file = fopen (APOP_PASSFILE, "r");
     if (apop_file == NULL)

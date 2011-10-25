@@ -86,10 +86,9 @@
 #include <mailutils/server.h>
 #include <mailutils/cctype.h>
 #include <mailutils/io.h>
+#include <mailutils/dbm.h>
 
-#include <mu_dbm.h>
-
-#if defined (USE_DBM) || defined (USE_SQL)
+#if defined (ENABLE_DBM) || defined (USE_SQL)
 # define USE_MAILBOX_QUOTAS 1
 #endif
 

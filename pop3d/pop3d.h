@@ -24,7 +24,7 @@
 #include <mailutils/types.h>
 #include <mailutils/stream.h>
 #include <mailutils/io.h>
-#include <mu_dbm.h>
+#include <mailutils/dbm.h>
 #include <mu_umaxtostr.h>
 #include <muaux.h>
 
@@ -35,7 +35,7 @@
    type automatically */
 #define APOP_PASSFILE_NAME "apop"
 
-#ifdef USE_DBM
+#ifdef ENABLE_DBM
 # define APOP_PASSFILE SYSCONFDIR "/" APOP_PASSFILE_NAME
 # define ENABLE_LOGIN_DELAY
 #else

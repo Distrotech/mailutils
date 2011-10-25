@@ -113,58 +113,72 @@ write_popbull_file (size_t num)
   return rc;
 }
 
-#ifdef USE_DBM
+#ifdef ENABLE_DBM
 int
 read_bulletin_db (size_t *pnum)
 {
-  DBM_FILE db;
-  DBM_DATUM key, data;
+  mu_dbm_file_t db;
+  struct mu_dbm_datum key, data;
   int rc;
   char sbuf[128];
   char *bufptr;
   char *buf = NULL;
   size_t s;
   char *p;
-  
-  rc = mu_dbm_open (bulletin_db_name, &db, MU_STREAM_READ, 0660);
+
+  rc = mu_dbm_create (bulletin_db_name, &db);
   if (rc)
     {
-      if (errno == ENOENT)
+      mu_diag_output (MU_DIAG_ERROR, _("unable to create bulletin db"));
+      return rc;
+    }
+
+  rc = mu_dbm_safety_check (db);
+  if (rc)
+    {
+      if (rc == ENOENT)
 	{
 	  *pnum = 0;
 	  return 0;
 	}
-      else
-	{
-	  mu_error (_("unable to open bulletin db for reading: %s"),
-		    mu_strerror (errno));
-	  return rc;
-	}
+      mu_diag_output (MU_DIAG_ERROR,
+		      _("bulletin db %s fails safety check: %s"),
+		      bulletin_db_name, mu_strerror (rc));
+      mu_dbm_destroy (&db);
+      return 1;
+    }
+  
+  rc = mu_dbm_open (db, MU_STREAM_READ, 0660);
+  if (rc)
+    {
+      mu_error (_("unable to open bulletin db for reading: %s"),
+		mu_strerror (rc));
+      return rc;
     }
 
   memset (&key, 0, sizeof key);
   memset (&data, 0, sizeof data);
 
-  MU_DATUM_PTR(key) = username;
-  MU_DATUM_SIZE(key) = strlen (username);
+  key.mu_dptr = username;
+  key.mu_dsize = strlen (username);
 
-  rc = mu_dbm_fetch (db, key, &data);
+  rc = mu_dbm_fetch (db, &key, &data);
 
-  if (rc)
+  if (rc == MU_ERR_NOENT)
     {
-      int ec = errno;
-      if (ec == ENOENT)
-        {
-           *pnum = 0;
-           return 0;
-        }
+      *pnum = 0;
+      return 0;
+    }
+  else if (rc)
+    {
       mu_error (_("cannot fetch bulletin db data: %s"),
-		mu_strerror (ec));
-      mu_dbm_close (db);
+		mu_dbm_strerror (db));
+      mu_dbm_destroy (&db);
       return 1;
     }
+  mu_dbm_destroy (&db);
   
-  s = MU_DATUM_SIZE (data);
+  s = data.mu_dsize;
   if (s < sizeof sbuf)
     bufptr = sbuf;
   else
@@ -172,16 +186,15 @@ read_bulletin_db (size_t *pnum)
       buf = malloc (s + 1);
       if (!buf)
 	{
-	  mu_error("%s", mu_strerror (errno));
+	  mu_error ("%s", mu_strerror (errno));
 	  return 1;
 	}
       bufptr = buf;
     }
 
-  memcpy (bufptr, MU_DATUM_PTR (data), s);
+  memcpy (bufptr, data.mu_dptr, s);
   bufptr[s] = 0;
-  mu_dbm_datum_free(&data);
-  mu_dbm_close (db);
+  mu_dbm_datum_free (&data);
 
   rc = 1;
   *pnum = strtoul (bufptr, &p, 0);
@@ -189,26 +202,8 @@ read_bulletin_db (size_t *pnum)
     rc = 0;
   else
     {
-#ifdef QPOPPER_COMPAT
-      if (s == sizeof long)
-	{
-	  long n;
-
-	  n = *(long*)MU_DATUM_PTR (data);
-	  if (n >= 0)
-	    {
-	      mu_diag_output (MU_DIAG_INFO,
-		      _("assuming bulletin database is in qpopper format"));
-	      *pnum = n;
-	      rc = 0;
-	    }
-	}
-      else
-#endif /* QPOPPER_COMPAT */
-	{
-	  mu_error (_("wrong bulletin database format for `%s'"),
-		    username);
-	}
+      mu_error (_("wrong bulletin database format for `%s'"),
+		username);
     }
   
   free (buf);
@@ -218,41 +213,60 @@ read_bulletin_db (size_t *pnum)
 int
 write_bulletin_db (size_t num)
 {
-  DBM_FILE db;
-  DBM_DATUM key, data;
+  mu_dbm_file_t db;
+  struct mu_dbm_datum key, data;
   int rc;
   const char *p;
   
-  rc = mu_dbm_open (bulletin_db_name, &db, MU_STREAM_RDWR, 0660);
+  rc = mu_dbm_create (bulletin_db_name, &db);
+  if (rc)
+    {
+      mu_diag_output (MU_DIAG_ERROR, _("unable to create bulletin db"));
+      return rc;
+    }
+
+  rc = mu_dbm_safety_check (db);
+  if (rc && rc != ENOENT)
+    {
+      mu_diag_output (MU_DIAG_ERROR,
+		      _("bulletin db %s fails safety check: %s"),
+		      bulletin_db_name, mu_strerror (rc));
+      mu_dbm_destroy (&db);
+      return rc;
+    }
+
+  rc = mu_dbm_open (db, MU_STREAM_RDWR, 0660);
   if (rc)
     {
       mu_error (_("unable to open bulletin db for writing: %s"),
-		mu_strerror (errno));
+		mu_strerror (rc));
+      mu_dbm_destroy (&db);
       return rc;
     }
 
   memset (&key, 0, sizeof key);
   memset (&data, 0, sizeof data);
 
-  MU_DATUM_PTR (key) = username;
-  MU_DATUM_SIZE (key) = strlen (username);
+  key.mu_dptr = username;
+  key.mu_dsize = strlen (username);
   p = mu_umaxtostr (0, num);
-  MU_DATUM_PTR (data) = (char *) p;
-  MU_DATUM_SIZE (data) = strlen (p);
+  data.mu_dptr = (char *) p;
+  data.mu_dsize = strlen (p);
 
-  rc = mu_dbm_insert (db, key, data, 1);
+  rc = mu_dbm_store (db, &key, &data, 1);
   if (rc)
-    mu_error (_("cannot store datum in bulletin db"));
-
-  mu_dbm_close (db);
+    mu_error (_("cannot store datum in bulletin db: %s"),
+	      mu_dbm_strerror (db));
+  
+  mu_dbm_destroy (&db);
   return rc;
 }
-#endif /* USE_DBM */
+#endif /* ENABLE_DBM */
       
 int
 get_last_delivered_num (size_t *pret)
 {
-#ifdef USE_DBM  
+#ifdef ENABLE_DBM  
   if (bulletin_db_name && read_bulletin_db (pret) == 0)
     return 0;
 #endif
@@ -262,7 +276,7 @@ get_last_delivered_num (size_t *pret)
 void
 store_last_delivered_num (size_t num)
 {
-#ifdef USE_DBM  
+#ifdef ENABLE_DBM  
   if (bulletin_db_name && write_bulletin_db (num) == 0)
     return;
 #endif

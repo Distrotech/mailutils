@@ -36,7 +36,6 @@
 #include <string.h>
 #include <signal.h>
 #include <regex.h>
-#include <mu_dbm.h>
 #include <mailutils/sieve.h>
 #include <mailutils/mu_auth.h>
 

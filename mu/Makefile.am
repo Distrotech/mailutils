@@ -32,9 +32,17 @@ else
  IDLE_MODULES+=imap.c
 endif
 
+if MU_COND_DBM
+ DBM_C=dbm.c
+ LIBMU_DBM=../libmu_dbm/libmu_dbm.la
+else
+ IDLE_MODULES+=dbm.c
+endif
+
 MODULES = \
  acl.c\
  cflags.c\
+ $(DBM_C)\
  $(IMAP_C)\
  filter.c\
  flt2047.c\
@@ -67,6 +75,7 @@ mu_LDADD = \
  ${MU_LIB_AUTH}\
  @MU_AUTHLIBS@\
  ${MU_LIB_MAILUTILS}\
+ ${LIBMU_DBM} @DBMLIBS@\
  @READLINE_LIBS@ @MU_COMMON_LIBRARIES@
 
 INCLUDES = @MU_APP_COMMON_INCLUDES@ @MU_AUTHINCS@
@@ -77,7 +86,8 @@ AM_CPPFLAGS = \
   -DAUTHLIBS="\"$(MU_AUTHLIBS)\"" \
   -DGUILE_LIBS="\"$(GUILE_LIBS)\"" \
   -DPYTHON_LIBS="\"$(PYTHON_LIBS)\"" \
-  -DI18NLIBS="\"$(LIBINTL)\""
+  -DI18NLIBS="\"$(LIBINTL)\"" \
+  -DDBMLIBS="\"$(DBMLIBS)\""
 
 BUILT_SOURCES=mu-setup.c mu-setup.h
 EXTRA_DIST=mu-setup.awk mu-setup.c mu-setup.h template.c
