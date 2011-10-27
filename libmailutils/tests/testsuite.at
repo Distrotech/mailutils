@@ -77,3 +77,4 @@ m4_include([hdrflt.at])
 m4_include([linecon.at])
 m4_include([debugspec.at])
 
+m4_include([fsaf.at])

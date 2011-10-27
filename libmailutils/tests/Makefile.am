@@ -46,6 +46,7 @@ noinst_PROGRAMS = \
  decode2047\
  encode2047\
  fltst\
+ fsaf\
  listop\
  mailcap\
  prop\
@@ -70,6 +71,7 @@ TESTSUITE_AT = \
  decode2047.at\
  encode2047.at\
  fromflt.at\
+ fsaf.at\
  hdrflt.at\
  inline-comment.at\
  linecon.at\

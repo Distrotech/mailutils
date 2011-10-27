@@ -1,0 +1,82 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2011 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# GNU Mailutils is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+
+AT_BANNER(File Safety)
+
+dnl ------------------------------------------------------------
+dnl FSAF(CRITERIA, CODE, [STDOUT = `'], [RUN-IF-FAIL],
+dnl      [RUN-IF-PASS], [NAME])
+dnl
+
+m4_pushdef([FSAFCODE],[
+AT_SETUP([m4_if([$6],,$1,$6)])
+AT_KEYWORDS([fsaf])
+AT_CHECK([
+$2
+fsaf $1 file
+],
+[0],
+[file: $3
+],
+[],
+[$4],
+[$5])
+AT_CLEANUP
+])
+
+m4_pushdef([FSAF],[
+FSAFCODE([$1],
+[> file
+m4_if([$2],,,[chmod $2 file])],[$3],[$4],[$5],[$6])
+])
+
+dnl ------------------------------------------------------------
+
+FSAF([], [], [Success], [], [], [default])
+
+FSAF([+awrfil], [o+w], [World writable file])
+FSAF([+gwrfil], [g+w], [Group writable file])
+
+FSAFCODE([+linkwrdir],
+[mkdir dir
+chmod g+w dir
+> data
+cd dir
+ln ../data file
+],
+[Linked file in a writable directory])
+
+FSAFCODE([+awrdir],
+[mkdir dir
+chmod o+w dir
+cd dir
+> file
+],
+[File in world writable directory])
+
+FSAFCODE([+gwrdir],
+[mkdir dir
+chmod g+w dir
+cd dir
+> file
+],
+[File in group writable directory])
+
+FSAF([+ardfil], [o+r], [World readable file])
+FSAF([+grdfil], [g+r], [Group readable file])
+
+m4_popdef([FSAFCODE])
+m4_popdef([FSAF])
