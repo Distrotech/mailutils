@@ -24,6 +24,7 @@ libstring_la_SOURCES = \
  cstrlower.c\
  cstrupper.c\
  hexstr.c\
+ stpcpy.c\
  strltrim.c\
  strskip.c\
  stripws.c\

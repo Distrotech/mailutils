@@ -42,27 +42,30 @@ char *
 pop3d_apopuser (const char *user)
 {
   char *password = NULL;
+  int rc;
   
 #ifdef ENABLE_DBM
   {
     size_t len;
     mu_dbm_file_t db;
     struct mu_dbm_datum key, data;
-    int rc;
 
-    rc = mu_dbm_create (APOP_PASSFILE, &db);
+    rc = mu_dbm_create (apop_database_name, &db);
     if (rc)
       {
 	mu_diag_output (MU_DIAG_ERROR, _("unable to create APOP db"));
 	return NULL;
       }
 
+    if (apop_database_safety_set)
+      mu_dbm_safety_set_flags (db, apop_database_safety);
+    
     rc = mu_dbm_safety_check (db);
     if (rc)
       {
 	mu_diag_output (MU_DIAG_ERROR,
 			_("APOP file %s fails safety check: %s"),
-			APOP_PASSFILE, mu_strerror (rc));
+			apop_database_name, mu_strerror (rc));
 	mu_dbm_destroy (&db);
 	return NULL;
       }
@@ -115,20 +118,21 @@ pop3d_apopuser (const char *user)
     size_t ulen;
     FILE *apop_file;
 
-    /* FIXME */    
-/*     if (mu_check_perm (APOP_PASSFILE, 0600)) */
-/*       { */
-/* 	mu_diag_output (MU_DIAG_INFO, */
-/* 			_("bad permissions on APOP password file")); */
-/* 	return NULL; */
-/*     } */
-
-    apop_file = fopen (APOP_PASSFILE, "r");
+    rc = mu_file_safety_check (apop_database_name, apop_database_safety,
+			       apop_database_uid, NULL);
+    if (rc)
+      {
+	mu_diag_output (MU_DIAG_ERROR,
+			_("APOP file %s fails safety check: %s"),
+			apop_database_name, mu_strerror (rc));
+	return NULL;
+      }
+    apop_file = fopen (apop_database_name, "r");
     if (apop_file == NULL)
       {
 	mu_diag_output (MU_DIAG_INFO,
 			_("unable to open APOP password file %s: %s"),
-			APOP_PASSFILE, mu_strerror (errno));
+			apop_database_name, mu_strerror (errno));
 	return NULL;
       }
 

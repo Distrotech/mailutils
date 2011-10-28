@@ -36,7 +36,7 @@
 #define APOP_PASSFILE_NAME "apop"
 
 #ifdef ENABLE_DBM
-# define APOP_PASSFILE SYSCONFDIR "/" APOP_PASSFILE_NAME
+# define APOP_PASSFILE SYSCONFDIR "/" APOP_PASSFILE_NAME ".db"
 # define ENABLE_LOGIN_DELAY
 #else
 # define APOP_PASSFILE SYSCONFDIR "/" APOP_PASSFILE_NAME ".passwd"
@@ -197,6 +197,9 @@ extern unsigned int idle_timeout;
 extern int pop3d_transcript;
 extern size_t pop3d_output_bufsize;
 extern int pop3d_xlines;
+extern char *apop_database_name;
+extern int apop_database_safety;
+extern int apop_database_safety_set;
 
 extern pop3d_command_handler_t pop3d_find_command (const char *name);
 

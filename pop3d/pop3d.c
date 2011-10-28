@@ -31,6 +31,9 @@ int pop3d_transcript;
 int debug_mode;
 int tls_required;
 int pop3d_xlines;
+char *apop_database_name = APOP_PASSFILE;
+int apop_database_safety;
+int apop_database_safety_set;
 
 #ifdef WITH_TLS
 int tls_available;
@@ -77,6 +80,22 @@ cb_bulletin_source (void *data, mu_config_value_t *val)
   return 0;
 }
 
+static int
+cb2_file_safety_checks (const char *name, void *data)
+{
+  if (mu_file_safety_compose (data, name, MU_FILE_SAFETY_ALL))
+    mu_error (_("unknown keyword: %s"), name);
+  return 0;
+}
+
+static int
+cb_apop_safety_checks (void *data, mu_config_value_t *arg)
+{
+  apop_database_safety_set = 1;
+  return mu_cfg_string_value_cb (arg, cb2_file_safety_checks,
+				 &apop_database_safety);
+}
+
 #ifdef ENABLE_DBM
 static int
 cb_bulletin_db (void *data, mu_config_value_t *val)
@@ -98,6 +117,24 @@ static struct mu_cfg_param pop3d_cfg_param[] = {
     N_("Delete expired messages upon closing the mailbox.") },
   { "scan-lines", mu_cfg_bool, &pop3d_xlines, 0, NULL,
     N_("Output the number of lines in the message in its scan listing.") },
+  { "apop-database-file", mu_cfg_string, &apop_database_name, 0, NULL,
+    N_("set APOP database file name or URL") },
+  { "apop-database-safety", mu_cfg_callback, NULL, 0, cb_apop_safety_checks,
+    N_("Configure safety checks for APOP database files.  Argument is a list or "
+       "sequence of check names optionally prefixed with '+' to enable or "
+       "'-' to disable the corresponding check.  Valid check names are:\n"
+       "\n"
+       "  none          disable all checks\n"
+       "  all           enable all checks\n"
+       "  gwrfil        forbid group writable files\n"
+       "  awrfil        forbid world writable files\n"
+       "  grdfil        forbid group readable files\n"
+       "  ardfil        forbid world writable files\n"
+       "  linkwrdir     forbid symbolic links in group or world writable directories\n"
+       "  gwrdir        forbid files in group writable directories\n"
+       "  awrdir        forbid files in world writable directories\n"),
+    N_("arg: list") },  
+    
 #ifdef WITH_TLS
   { "tls-required", mu_cfg_bool, &tls_required, 0, NULL,
      N_("Always require STLS before entering authentication phase.") },
@@ -303,6 +340,16 @@ pop3d_alloc_die ()
   pop3d_abquit (ERR_NO_MEM);
 }
 
+#ifdef ENABLE_DBM
+static void
+set_dbm_safety ()
+{
+  mu_url_t hints = mu_dbm_get_hint ();
+  const char *param[] = { "+all" };
+  mu_url_add_param (hints, 1, param);
+}
+#endif
+
 int
 main (int argc, char **argv)
 {
@@ -341,6 +388,10 @@ main (int argc, char **argv)
 
   mu_log_syslog = 1;
   manlock_mandatory_locking = 1;
+
+#ifdef ENABLE_DBM
+  set_dbm_safety ();
+#endif
   
   if (mu_app_init (&argp, pop3d_argp_capa, pop3d_cfg_param, 
 		   argc, argv, 0, NULL, server))

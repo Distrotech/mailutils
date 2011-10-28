@@ -49,6 +49,9 @@ struct mu_dbm_impl
 
 extern mu_url_t mu_dbm_hint;
 
+void mu_dbm_init (void);
+mu_url_t mu_dbm_get_hint (void);
+
 int mu_dbm_register (struct mu_dbm_impl *impl);
 int mu_dbm_create_from_url (mu_url_t url, mu_dbm_file_t *db);
 int mu_dbm_create (char *name, mu_dbm_file_t *db);

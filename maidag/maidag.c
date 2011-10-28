@@ -336,47 +336,16 @@ cb_group (void *data, mu_config_value_t *arg)
 static int
 cb2_forward_file_checks (const char *name, void *data)
 {
-  int val;
-  int negate = 0;
-  
-  if (*name == '-')
-    {
-      negate = 1;
-      name++;
-    }
-  else if (*name == '+')
-    name++;
-
-  if (strcmp (name, "none") == 0)
-    {
-      forward_file_checks = negate ? MU_FILE_SAFETY_ALL : MU_FILE_SAFETY_NONE;
-      return 0;
-    }
-  else if (strcmp (name, "all") == 0)
-    {
-      forward_file_checks = negate ? MU_FILE_SAFETY_NONE : MU_FILE_SAFETY_ALL;
-      return 0;
-    }
-  else if (strcmp (name, "default") == 0)
-    forward_file_checks = FORWARD_FILE_PERM_CHECK;
-  else if (mu_file_safety_name_to_code (name, &val))
-    {
-      mu_error (_("unknown keyword: %s"), name);
-      return 0;
-    }
-
-  if (negate)
-    forward_file_checks &= ~val;
-  else
-    forward_file_checks |= val;
-
+  if (mu_file_safety_compose (data, name, FORWARD_FILE_PERM_CHECK))
+    mu_error (_("unknown keyword: %s"), name);
   return 0;
 }
 
 static int
 cb_forward_file_checks (void *data, mu_config_value_t *arg)
 {
-  return mu_cfg_string_value_cb (arg, cb2_forward_file_checks, data);
+  return mu_cfg_string_value_cb (arg, cb2_forward_file_checks,
+				 &forward_file_checks);
 }
 
 static int

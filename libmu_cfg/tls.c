@@ -47,58 +47,25 @@ static struct mu_tls_module_config tls_settings = {
     SSL_CA_FILE_CHECKS
 };
 
-
 static int
 cb2_safety_checks (const char *name, void *data)
 {
-  int negate = 0;
-  int val;
-  int *res = data;
+  int defval;
   
-  if (*name == '-')
-    {
-      negate = 1;
-      name++;
-    }
-  else if (*name == '+')
-    name++;
-
-  if (strcmp (name, "none") == 0)
-    {
-      *res = negate ? MU_FILE_SAFETY_ALL : MU_FILE_SAFETY_NONE;
-      return 0;
-    }
-  else if (strcmp (name, "all") == 0)
-    {
-      *res = negate ? MU_FILE_SAFETY_NONE : MU_FILE_SAFETY_ALL;
-      return 0;
-    }
-  else if (strcmp (name, "default") == 0)
-    {
-      if (data == &tls_settings.ssl_key)
-	val = SSL_KEY_FILE_CHECKS;
-      else if (data == &tls_settings.ssl_cert)
-	val = SSL_CERT_FILE_CHECKS;
-      else if (data == &tls_settings.ssl_cafile)
-	val = SSL_CA_FILE_CHECKS;
-      else
-	{
-	  mu_error (_("INTERNAL ERROR at %s:%d: unknown default value?"),
-		    __FILE__, __LINE__);
-	  val = MU_FILE_SAFETY_ALL;
-	}
-    }
-  else if (mu_file_safety_name_to_code (name, &val))
-    {
-      mu_error (_("unknown keyword: %s"), name);
-      return 0;
-    }
-
-  if (negate)
-    *res &= ~val;
+  if (data == &tls_settings.ssl_key)
+    defval = SSL_KEY_FILE_CHECKS;
+  else if (data == &tls_settings.ssl_cert)
+    defval = SSL_CERT_FILE_CHECKS;
+  else if (data == &tls_settings.ssl_cafile)
+    defval = SSL_CA_FILE_CHECKS;
   else
-    *res |= val;
-  
+    {
+      mu_error (_("INTERNAL ERROR at %s:%d: unknown default value?"),
+		__FILE__, __LINE__);
+      defval = MU_FILE_SAFETY_ALL;
+    }
+  if (mu_file_safety_compose (data, name, defval))
+    mu_error (_("unknown keyword: %s"), name);
   return 0;
 }
 

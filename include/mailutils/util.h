@@ -36,6 +36,7 @@ extern "C" {
 unsigned long mu_hex2ul (char hex);
 size_t mu_hexstr2ul (unsigned long* ul, const char* hex, size_t len);
 size_t mu_cpystr (char *dst, const char *src, size_t size);
+char *mu_stpcpy (char *p, char *q);
 int mu_string_unfold (char *text, size_t *plen);
 int mu_true_answer_p (const char *p);
 int mu_unre_set_regex (const char *str, int caseflag, char **errp);
@@ -225,6 +226,7 @@ int mu_file_safety_check (const char *filename, int mode,
 			  mu_list_t idlist);
 int mu_file_safety_name_to_code (const char *name, int *pcode);
 int mu_file_safety_name_to_error (const char *name, int *pcode);  
+int mu_file_safety_compose (int *res, const char *name, int defval);
   
 #ifdef __cplusplus
 }

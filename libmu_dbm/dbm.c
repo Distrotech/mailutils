@@ -54,7 +54,7 @@ _implist_cmp (const void *a, const void *b)
 }
 
 void
-_mu_dbm_init ()
+mu_dbm_init ()
 {
   int rc;
 
@@ -86,33 +86,23 @@ _mu_dbm_init ()
   if (!mu_dbm_hint)
     {
       struct mu_dbm_impl *impl;
-      char *urlbuf;
-      
-      rc = mu_list_get (implist, 0, (void**) &impl);
-      if (rc)
+
+      if ((rc = mu_list_get (implist, 0, (void**) &impl)) ||
+	  (rc = mu_url_create_null (&mu_dbm_hint)) ||
+	  (rc = mu_url_set_scheme (mu_dbm_hint, impl->_dbm_name)))
 	{
 	  mu_error (_("cannot initialize DBM hint: %s"),
 		    mu_strerror (rc));
 	  abort ();
 	}
-      urlbuf = malloc (strlen (impl->_dbm_name) + 4);
-      if (urlbuf)
-	{
-	  strcpy (urlbuf, impl->_dbm_name);
-	  strcat (urlbuf, "://");
-	  rc = mu_url_create (&mu_dbm_hint, urlbuf);
-	  free (urlbuf);
-	}
-      else
-	rc = ENOMEM;
-	  
-      if (rc)
-	{
-	  mu_error (_("cannot initialize DBM hint: %s"),
-		      mu_strerror (rc));
-	  abort ();
-	}
     }
+}
+
+mu_url_t
+mu_dbm_get_hint ()
+{
+  mu_dbm_init ();
+  return mu_dbm_hint;
 }
 
 int
@@ -121,7 +111,7 @@ mu_dbm_register (struct mu_dbm_impl *impl)
   int rc;
   struct mu_dbm_impl *ptr;
 
-  _mu_dbm_init ();
+  mu_dbm_init ();
   ptr = calloc (1, sizeof (*ptr));
   if (!ptr)
     return ENOMEM;
@@ -151,7 +141,7 @@ mu_dbm_create_from_url (mu_url_t url, mu_dbm_file_t *db)
   int safety_flags = 0;
   uid_t owner_uid = getuid ();
 
-  _mu_dbm_init ();
+  mu_dbm_init ();
   
   mu_url_get_flags (url, &flags);
   if ((flags & (MU_URL_HOST | MU_URL_PATH)) == (MU_URL_HOST | MU_URL_PATH))
@@ -260,6 +250,6 @@ mu_dbm_create_from_url (mu_url_t url, mu_dbm_file_t *db)
 int
 mu_dbm_impl_iterator (mu_iterator_t *itr)
 {
-  _mu_dbm_init ();
+  mu_dbm_init ();
   return mu_list_get_iterator (implist, itr);
 }

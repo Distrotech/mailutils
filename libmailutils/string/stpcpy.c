@@ -1,6 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2011
-   Free Software Foundation, Inc.
+   Copyright (C) 2011 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -13,33 +12,21 @@
    Lesser General Public License for more details.
 
    You should have received a copy of the GNU Lesser General
-   Public License along with this library.  If not, see
+   Public License along with this library.  If not, see 
    <http://www.gnu.org/licenses/>. */
 
-#ifdef HAVE_CONFIG_H
+#if HAVE_CONFIG_H
 # include <config.h>
 #endif
-#include <unistd.h>
-#include <stdlib.h>
-#include <mailutils/types.h>
-#include <mailutils/list.h>
-#include <mailutils/url.h>
-#include <mailutils/dbm.h>
-#include <mailutils/errno.h>
+
+#include <string.h>
 #include <mailutils/util.h>
-#include "mudbm.h"
 
-int
-mu_dbm_create (char *name, mu_dbm_file_t *db)
+char *
+mu_stpcpy (char *p, char *q)
 {
-  int rc;
-  mu_url_t url;
-
-  mu_dbm_init ();
-  rc = mu_url_create_hint (&url, name, 0, mu_dbm_hint);
-  if (rc)
-    return rc;
-  rc = mu_dbm_create_from_url (url, db);
-  mu_url_destroy (&url);
-  return rc;
+  if (q)
+    while ((*p = *q++))
+      p++;
+  return p;
 }
