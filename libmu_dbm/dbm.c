@@ -204,7 +204,7 @@ mu_dbm_create_from_url (mu_url_t url, mu_dbm_file_t *db)
 		    }
 		}
 	      else if (name[5])
-		return MU_ERR_URL_EXTRA_PARTS;//FIXME: better error code
+		return MU_ERR_URL_INVALID_PARAMETER;
 	    }
 	  else if (strcmp (name, "none") == 0)
 	    {
@@ -221,7 +221,7 @@ mu_dbm_create_from_url (mu_url_t url, mu_dbm_file_t *db)
 	      val = DEFAULT_DBM_SAFETY_FLAGS;
 	    }
 	  else if (mu_file_safety_name_to_code (name, &val))
-	    return MU_ERR_URL_EXTRA_PARTS;//FIXME: better error code
+	    return MU_ERR_URL_INVALID_PARAMETER;
 
 	  if (negate)
 	    safety_flags &= ~val;

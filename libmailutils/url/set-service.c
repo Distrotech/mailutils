@@ -53,7 +53,7 @@ mu_url_set_service (mu_url_t url, const char *str)
 	  /* FIXME: 2. Another proto? */
 	  struct servent *sp = getservbyname (str, "tcp");
 	  if (!sp)
-	    return MU_ERR_TCP_NO_PORT; /*FIXME: Error code?*/
+	    return MU_ERR_TCP_NO_PORT;
 	  port = ntohs (sp->s_port);
 	}
       else if (n > USHRT_MAX)

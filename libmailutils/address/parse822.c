@@ -97,7 +97,7 @@ actually help.
 #endif
 
 #define EOK	0
-#define EPARSE	MU_ERR_BAD_822_FORMAT
+#define EPARSE	MU_ERR_INVALID_EMAIL
 
 /*
  * Some convenience functions for dealing with dynamically re-sized

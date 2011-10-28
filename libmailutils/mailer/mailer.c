@@ -372,7 +372,7 @@ safe_address_create (mu_address_t *paddr, const char *addr_str,
 		     const char *who)
 {
   int status = mu_address_create (paddr, addr_str);
-  if (status == MU_ERR_BAD_822_FORMAT)
+  if (status == MU_ERR_INVALID_EMAIL)
     {
       int rc;
       char *p;
@@ -394,7 +394,7 @@ safe_address_create (mu_address_t *paddr, const char *addr_str,
 	  rc = mu_address_create (paddr, p);
 	  if (rc == 0)
 	    status = 0;
-	  else if (rc == MU_ERR_BAD_822_FORMAT)
+	  else if (rc == MU_ERR_INVALID_EMAIL)
 	    mu_debug (MU_DEBCAT_MAILER, MU_DEBUG_TRACE1,
 		      ("%s address guess failed", who));
 	  else

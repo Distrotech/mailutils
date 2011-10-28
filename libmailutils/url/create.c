@@ -476,7 +476,7 @@ _mu_url_create_internal (struct mu_url_ctx *ctx, mu_url_t hint)
 	      /* FIXME: Another proto? */
 	      struct servent *sp = getservbyname (url->portstr, "tcp");
 	      if (!sp)
-		return MU_ERR_TCP_NO_PORT; //FIXME: Error code?
+		return MU_ERR_TCP_NO_PORT; 
 	      url->port = ntohs (sp->s_port);
 	    }
 	  else

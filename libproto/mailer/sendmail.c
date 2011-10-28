@@ -166,7 +166,7 @@ sendmail_send_message (mu_mailer_t mailer, mu_message_t msg, mu_address_t from,
 	  mu_debug (MU_DEBCAT_MAILER, MU_DEBUG_TRACE,
 		    ("envelope from (%s) not fully qualifed\n",
 		     emailfrom));
-	  return MU_ERR_BAD_822_FORMAT;
+	  return MU_ERR_INVALID_EMAIL;
 	}
 
       argc += 2;		/* -f from */
@@ -239,7 +239,7 @@ sendmail_send_message (mu_mailer_t mailer, mu_message_t msg, mu_address_t from,
 			("envelope to (%s) not fully qualifed",
 			 email));
 	      free (argvec);
-	      return MU_ERR_BAD_822_FORMAT;
+	      return MU_ERR_INVALID_EMAIL;
 	    }
 	  argvec[argc++] = email;
 	}

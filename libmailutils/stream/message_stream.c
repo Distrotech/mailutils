@@ -230,7 +230,7 @@ _message_open (mu_stream_t stream)
 		  offset += len;
 		  continue;
 		}
-	      return MU_ERR_BAD_822_FORMAT;
+	      return MU_ERR_INVALID_EMAIL;
 	    }
 	  has_headers = 1;
 	  if (!env_from || !env_date)

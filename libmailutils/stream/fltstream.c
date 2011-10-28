@@ -197,7 +197,7 @@ filter_read (mu_stream_t stream, char *buf, size_t size, size_t *pret)
       
 	  if (iobuf.isize > MFB_RDBYTES (fs->inbuf)
 	      || iobuf.osize > MFB_FREESIZE (fs->outbuf))
-	    return MU_ERR_FAILURE; /* FIXME: special error code? */
+	    return MU_ERR_BUFSPACE;
 	  
 	  /* iobuf.osize contains number of bytes written to output */
 	  MFB_advance_level (&fs->outbuf, iobuf.osize);
@@ -334,7 +334,7 @@ filter_write_internal (mu_stream_t stream, enum mu_filter_command cmd,
       
       if (iobuf.isize > MFB_RDBYTES (fs->inbuf)
 	  || iobuf.osize > MFB_FREESIZE (fs->outbuf))
-	return MU_ERR_FAILURE; /* FIXME: special error code? */
+	return MU_ERR_BUFSPACE;
       
       /* iobuf.osize contains number of bytes written to output */
       MFB_advance_level (&fs->outbuf, iobuf.osize);

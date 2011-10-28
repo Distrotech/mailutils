@@ -34,7 +34,7 @@ AT_CLEANUP
 TESTADDR([Sam <@[matrix (smtp)], @[nexus: [node 12]]:sroberts@[10].[1]>],[],
 [1],
 [],
-[MU_ERR_BAD_822_FORMAT
+[MU_ERR_INVALID_EMAIL
 ])
 
 TESTADDR([a@b,z@y],[],
@@ -226,7 +226,7 @@ TESTADDR([a group: ,, ;],[group],
 TESTADDR([Sam <@[matrix (smtp)], @[nexus: [node 12]]:sroberts@[10].[1]> ;],[],
 [1],
 [],
-[MU_ERR_BAD_822_FORMAT
+[MU_ERR_INVALID_EMAIL
 ])
 
 TESTADDR([Aliens: Sam <@[matrix (smtp)]: sam@sam>, sroberts@[10].[1];],[],
@@ -296,7 +296,7 @@ route <@mail2.uniserve.com>
 TESTADDR([< (hey) @ (hey, )smtp1.sympatico.ca, mail2.uniserve.com (hoo!):sroberts@uniserve.com>],[],
 [1],
 [],
-[MU_ERR_BAD_822_FORMAT
+[MU_ERR_INVALID_EMAIL
 ])
 
 TESTADDR([hw@570.com (Hardware Support Account)],[],
@@ -374,7 +374,7 @@ local-part <paul> domain <pitbull-productions.com>
 TESTADDR(["'sam@cogent.ca'" <sam@cogent.ca>, "'sroberts@uniserve.com'"],[],
 [0],
 [],
-[MU_ERR_BAD_822_FORMAT
+[MU_ERR_INVALID_EMAIL
 ])
 
 TESTADDR(["'sroberts\@certicom\.ca'" <sroberts@certicom.ca>],[],
@@ -603,7 +603,7 @@ local-part <zwk%f36.n480.z2.fidonet.org> domain <f36.n480.z2.fidonet.org>
 TESTADDR(['Dan Dall'Acqua' <ddallacqua@noetic.ab.ca>, 'Dave Shyong'],[],
 [0],
 [],
-[MU_ERR_BAD_822_FORMAT
+[MU_ERR_INVALID_EMAIL
 ])
 
 TESTADDR([0xdeadbeef-request@petting-zoo.net],[],
@@ -657,7 +657,7 @@ local-part <Nick_Shelness> domain <motorcity2.lotus.com>
 TESTADDR([<all: >],[],
 [1],
 [],
-[MU_ERR_BAD_822_FORMAT
+[MU_ERR_INVALID_EMAIL
 ])
 
 TESTADDR([<fyi-admin@emyr.net>],[],
@@ -1008,7 +1008,7 @@ local-part <Kieran.O'Leary> domain <anpost.ie>
 TESTADDR([rfunk@wks.uts.ohio-state.eduofflinemailer-bounce@dikke.penguin.nl],[],
 [1],
 [],
-[MU_ERR_BAD_822_FORMAT
+[MU_ERR_INVALID_EMAIL
 ])
 
 TESTADDR([root],[],
@@ -1021,7 +1021,7 @@ local-part <root> domain <localhost>
 TESTADDR([whom it may concern: ;;whom.it.may.concern: ;],[],
 [1],
 [],
-[MU_ERR_BAD_822_FORMAT
+[MU_ERR_INVALID_EMAIL
 ])
 
 TESTADDR([whom it may concern: mutt-dev@mutt.org, mutt-users@mutt.org;],[],
@@ -1052,7 +1052,7 @@ local-part <bach> domain <somewhere.org>
 TESTADDR(["A bad quote\" <devnull@localhost>],[],
 [1],
 [],
-[MU_ERR_BAD_822_FORMAT
+[MU_ERR_INVALID_EMAIL
 ])
 
 

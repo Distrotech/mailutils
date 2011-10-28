@@ -145,7 +145,7 @@ _mailbox_create_from_record (mu_mailbox_t *pmbox,
 	*pmbox = mbox;
       return status;
     }
-  return MU_ERR_NO_HANDLER;
+  return ENOSYS;
 }
 
 static int
@@ -156,7 +156,7 @@ _create_mailbox0 (mu_mailbox_t *pmbox, mu_url_t url, const char *name)
   if (mu_registrar_lookup_url (url, MU_FOLDER_ATTRIBUTE_FILE, &record, NULL)
       == 0)
     return _mailbox_create_from_record (pmbox, record, url, name);
-  return MU_ERR_NO_HANDLER;
+  return ENOSYS;
 }
 
 static int
@@ -268,7 +268,7 @@ mu_mailbox_open (mu_mailbox_t mbox, int flag)
   int rc;
   
   if (!mbox)
-    return MU_ERR_MBX_NULL;
+    return EINVAL;
   if (mbox->_open == NULL)
     return MU_ERR_EMPTY_VFN;
   if (mbox->flags & _MU_MAILBOX_OPEN)
@@ -278,7 +278,7 @@ mu_mailbox_open (mu_mailbox_t mbox, int flag)
       /* Quick access mailboxes are read-only */
       if (flag & (MU_STREAM_WRITE 
 		  | MU_STREAM_APPEND | MU_STREAM_CREAT))
-	return EINVAL; /* FIXME: Better error code, please? */
+	return EACCES;
     }
   rc = mbox->_open (mbox, flag);
   if (rc == 0)
@@ -292,7 +292,7 @@ mu_mailbox_close (mu_mailbox_t mbox)
   int rc;
 
   if (!mbox)
-    return MU_ERR_MBX_NULL;
+    return EINVAL;
   if (!(mbox->flags & _MU_MAILBOX_OPEN))
     return MU_ERR_NOT_OPEN;
   if (mbox == NULL || mbox->_close == NULL)
@@ -308,7 +308,7 @@ int
 mu_mailbox_remove (mu_mailbox_t mbox)
 {
   if (!mbox)
-    return MU_ERR_MBX_NULL;
+    return EINVAL;
   if (mbox->flags & _MU_MAILBOX_OPEN)
     return MU_ERR_OPEN;
   if (mbox->flags & _MU_MAILBOX_REMOVED)
@@ -325,7 +325,7 @@ mu_mailbox_flush (mu_mailbox_t mbox, int expunge)
   int status = 0;
   
   if (!mbox)
-    return MU_ERR_MBX_NULL;
+    return EINVAL;
   if (mbox->flags & _MU_MAILBOX_REMOVED)
     return MU_ERR_MBX_REMOVED;
   if (!(mbox->flags & _MU_MAILBOX_OPEN))
@@ -354,7 +354,7 @@ mu_mailbox_flush (mu_mailbox_t mbox, int expunge)
 
 #define _MBOX_CHECK_FLAGS(mbox)			\
   if (mbox == NULL)				\
-    return MU_ERR_MBX_NULL;			\
+    return EINVAL;			        \
   if (mbox->flags & _MU_MAILBOX_REMOVED)	\
     return MU_ERR_MBX_REMOVED;			\
   if (!(mbox->flags & _MU_MAILBOX_OPEN))	\
@@ -517,7 +517,7 @@ int
 mu_mailbox_set_locker (mu_mailbox_t mbox, mu_locker_t locker)
 {
   if (mbox == NULL)
-    return MU_ERR_MBX_NULL;
+    return EINVAL;
   if (mbox->locker)
     mu_locker_destroy (&mbox->locker);
   mbox->locker = locker;
@@ -528,7 +528,7 @@ int
 mu_mailbox_get_locker (mu_mailbox_t mbox, mu_locker_t *plocker)
 {
   if (mbox == NULL)
-    return MU_ERR_MBX_NULL;
+    return EINVAL;
   if (plocker == NULL)
     return MU_ERR_OUT_PTR_NULL;
   *plocker = mbox->locker;
@@ -539,9 +539,9 @@ int
 mu_mailbox_get_flags (mu_mailbox_t mbox, int *flags)
 {
   if (mbox == NULL)
-    return MU_ERR_MBX_NULL;
-  if (!*flags)
-    return MU_ERR_OUT_NULL;
+    return EINVAL;
+  if (!flags)
+    return MU_ERR_OUT_PTR_NULL;
   *flags = mbox->flags & ~_MU_MAILBOX_MASK;
   return 0;
 }
@@ -550,7 +550,7 @@ int
 mu_mailbox_set_stream (mu_mailbox_t mbox, mu_stream_t stream)
 {
   if (mbox == NULL)
-    return MU_ERR_MBX_NULL;
+    return EINVAL;
   if (mbox->flags & MU_STREAM_QACCESS)
     return MU_ERR_BADOP;
   if (mbox->stream)
@@ -560,19 +560,20 @@ mu_mailbox_set_stream (mu_mailbox_t mbox, mu_stream_t stream)
 }
 
 /* FIXME: This is a problem.  We provide a mu_mailbox_get_stream ()
-   and this stream is special it should, in theory, represent
-   a "view" of a flow of messages.  But providing this perspective
-   may make sense for local mailboxes but downright impossible
-   for a remote mailbox, short on downloading the entire mailbox
+   and this stream is special: it should, in theory, represent
+   a "view" of a flow of messages.  However, providing this perspective
+   may make sense for local mailboxes, but downright impossible
+   for remote mailboxes, short on downloading entire mailbox
    locally.
-   The question is : should this function be removed?
-   So far it as been used on local mailboxes to get offsets.  */
+
+   This function will be removed in the short run.  It is no longer
+   used by MU.  */
 int
 mu_mailbox_get_stream (mu_mailbox_t mbox, mu_stream_t *pstream)
 {
   /* FIXME: Deprecation warning */
   if (mbox == NULL)
-    return MU_ERR_MBX_NULL;
+    return EINVAL;
   if (pstream == NULL)
     return MU_ERR_OUT_PTR_NULL;
 
@@ -592,7 +593,7 @@ int
 mu_mailbox_get_streamref (mu_mailbox_t mbox, mu_stream_t *pstream)
 {
   if (mbox == NULL)
-    return MU_ERR_MBX_NULL;
+    return EINVAL;
   if (pstream == NULL)
     return MU_ERR_OUT_PTR_NULL;
 
@@ -611,7 +612,7 @@ int
 mu_mailbox_get_observable (mu_mailbox_t mbox, mu_observable_t *pobservable)
 {
   if (mbox == NULL)
-    return MU_ERR_MBX_NULL;
+    return EINVAL;
   if (pobservable == NULL)
     return MU_ERR_OUT_PTR_NULL;
 
@@ -629,7 +630,7 @@ int
 mu_mailbox_set_property (mu_mailbox_t mbox, mu_property_t property)
 {
   if (mbox == NULL)
-    return MU_ERR_MBX_NULL;
+    return EINVAL;
   if (mbox->property)
     mu_property_unref (mbox->property);
   mbox->property = property;
@@ -641,7 +642,7 @@ int
 mu_mailbox_get_property (mu_mailbox_t mbox, mu_property_t *pproperty)
 {
   if (mbox == NULL)
-    return MU_ERR_MBX_NULL;
+    return EINVAL;
   if (pproperty == NULL)
     return MU_ERR_OUT_PTR_NULL;
   
@@ -665,7 +666,7 @@ int
 mu_mailbox_get_url (mu_mailbox_t mbox, mu_url_t *purl)
 {
   if (mbox == NULL)
-    return MU_ERR_MBX_NULL;
+    return EINVAL;
   if (purl == NULL)
     return MU_ERR_OUT_PTR_NULL;
   *purl = mbox->url;
@@ -676,7 +677,7 @@ int
 mu_mailbox_get_folder (mu_mailbox_t mbox, mu_folder_t *pfolder)
 {
   if (mbox == NULL)
-    return MU_ERR_MBX_NULL;
+    return EINVAL;
   if (pfolder == NULL)
     return MU_ERR_OUT_PTR_NULL;
   *pfolder = mbox->folder;
@@ -687,7 +688,7 @@ int
 mu_mailbox_set_folder (mu_mailbox_t mbox, mu_folder_t folder)
 {
   if (mbox == NULL)
-    return MU_ERR_MBX_NULL;
+    return EINVAL;
    mbox->folder = folder;
   return 0;
 }
@@ -715,9 +716,9 @@ mu_mailbox_get_uidls (mu_mailbox_t mbox, mu_list_t *plist)
   int status;
 
   if (mbox == NULL)
-    return MU_ERR_MBX_NULL;
-  if (plist == NULL)
     return EINVAL;
+  if (plist == NULL)
+    return MU_ERR_OUT_PTR_NULL;
   status = mu_list_create (&list);
   if (status)
     return status;
@@ -847,9 +848,9 @@ mu_mailbox_translate (mu_mailbox_t mbox, int cmd, size_t from, size_t *to)
   mu_message_t msg;
   
   if (mbox == NULL)
-    return MU_ERR_MBX_NULL;
-  if (to == NULL)
     return EINVAL;
+  if (to == NULL)
+    return MU_ERR_OUT_PTR_NULL;
   if (mbox->flags & MU_STREAM_QACCESS)
     return MU_ERR_BADOP;
 

@@ -128,7 +128,7 @@ _mailbox_imap_and_imaps_init (mu_mailbox_t mailbox, int imaps)
   m_imap_t m_imap;
 
   if (!mailbox)
-    return MU_ERR_MBX_NULL;
+    return EINVAL;
   if (mailbox->folder == NULL)
     return EINVAL;
   

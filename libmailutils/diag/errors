@@ -1,4 +1,3 @@
-
 # Error messages for GNU Mailutils
 # Copyright (C) 2005, 2006, 2007, 2010, 2011 Free Software Foundation,
 # Inc.
@@ -19,20 +18,20 @@
 MU_ERR_FAILURE              _("Operation failed")
 MU_ERR_CANCELED             _("Operation canceled")
 
-MU_ERR_NO_HANDLER           _("No registered handler")
 MU_ERR_EMPTY_VFN            _("Empty virtual function")
 
-MU_ERR_OUT_NULL             _("Pointer to output null")
-MU_ERR_OUT_PTR_NULL         _("Pointer to output pointer null")
+# A counterpart of EINVAL.  Functions receiving invalid input arguments
+# return EINVAL, those receiving invalid output arguments return this
+# code:
+MU_ERR_OUT_PTR_NULL         _("Null output pointer")
 
-MU_ERR_MBX_NULL             _("Mailbox null")
 MU_ERR_MBX_REMOVED          _("Mailbox removed")
 
 MU_ERR_NOT_OPEN             _("Resource not open")
 MU_ERR_OPEN                 _("Resource is already open")
 
-MU_ERR_BAD_822_FORMAT       _("Format of RFC822 object is bad")
-MU_ERR_EMPTY_ADDRESS        _("Address contains no addr specs")
+MU_ERR_INVALID_EMAIL        _("Malformed email address")
+MU_ERR_EMPTY_ADDRESS        _("Empty address list")
 
 MU_ERR_LOCKER_NULL          _("Locker null")
 MU_ERR_LOCK_CONFLICT        _("Conflict with previous locker")
@@ -47,13 +46,14 @@ MU_ERR_NO_SUCH_USER         _("No such user name")
 
 MU_ERR_GETHOSTBYNAME        _("DNS name resolution failed")
 MU_ERR_BAD_RESUMPTION       _("State busy must resume operation")
-MU_ERR_MAILER_BAD_FROM      _("Not a valid mailer from address")
-MU_ERR_MAILER_BAD_TO        _("Not a valid mailer to address")
-MU_ERR_MAILER_NO_RCPT_TO    _("No receipt addresses found")
+MU_ERR_MAILER_BAD_FROM      _("Not a valid sender address")
+MU_ERR_MAILER_BAD_TO        _("Not a valid recipient address")
+MU_ERR_MAILER_NO_RCPT_TO    _("No recipient addresses found")
 MU_ERR_MAILER_BAD_URL       _("Malformed or unsupported mailer URL")
-MU_ERR_SMTP_RCPT_FAILED     _("SMTP rcpt to command failed")
-MU_ERR_TCP_NO_HOST          _("Tcp connections need a host")
-MU_ERR_TCP_NO_PORT          _("Tcp connections need a positive port")
+MU_ERR_SMTP_RCPT_FAILED     _("SMTP RCPT command failed")
+
+MU_ERR_TCP_NO_HOST          _("Required host specification is missing")
+MU_ERR_TCP_NO_PORT          _("Invalid port or service specification")
 
 MU_ERR_BAD_2047_INPUT       _("Input string is not RFC 2047 encoded")
 MU_ERR_BAD_2047_ENCODING    _("Not a valid RFC 2047 encoding")
@@ -63,7 +63,7 @@ MU_ERR_NOPASSWORD           _("User password is not supplied")
 MU_ERR_BADREPLY             _("Invalid reply from the remote host")
 
 MU_ERR_SEQ                  _("Bad command sequence")
-MU_ERR_REPLY                _("Erroneous reply received")
+MU_ERR_REPLY                _("Operation rejected by remote party")
 
 MU_ERR_BAD_AUTH_SCHEME      _("Unsupported authentication scheme")
 MU_ERR_AUTH_FAILURE         _("Authentication failed")
@@ -78,6 +78,7 @@ MU_ERR_NOENT                _("Requested item not found")
 MU_ERR_EXISTS               _("Item already exists")
 MU_ERR_BUFSPACE             _("Not enough buffer space")
 
+# Database errors
 MU_ERR_SQL                  _("SQL error")
 MU_ERR_DB_ALREADY_CONNECTED _("Already connected to the database")
 MU_ERR_DB_NOT_CONNECTED     _("Not connected to the database")
@@ -94,9 +95,15 @@ MU_ERR_READ                 _("Read error")
 MU_ERR_NO_TRANSPORT         _("Transport stream not set")
 MU_ERR_AUTH_NO_CRED         _("No credentials supplied")
 
+# URL-related errors
 MU_ERR_URL_MISS_PARTS       _("URL missing required parts")
 MU_ERR_URL_EXTRA_PARTS      _("URL has parts not allowed by its scheme")
+MU_ERR_URL_INVALID_PARAMETER _("Invalid parameter in URL")
 
+# This error is returned when the requested data cannot be obtained right
+# now or by the given means, or obtaining them is too costly, e.g. as
+# obtaining number of lines in a message via POP3 (which would involve
+# downloading entire message) by mu_message_quick_lines.
 MU_ERR_INFO_UNAVAILABLE	    _("Information is not yet available")
 
 # The following are mapped to the corresponding EAI_ errors
@@ -106,7 +113,7 @@ MU_ERR_SOCKTYPE             _("Socket type not supported")
 MU_ERR_FAMILY               _("Address family not supported")
 MU_ERR_SERVICE              _("Requested service not supported")
 
-# File safety check
+# File safety checks
 MU_ERR_PERM_OWNER_MISMATCH  _("File owner mismatch")
 MU_ERR_PERM_GROUP_WRITABLE  _("Group writable file")
 MU_ERR_PERM_WORLD_WRITABLE  _("World writable file")
@@ -116,5 +123,3 @@ MU_ERR_PERM_LINKED_WRDIR    _("Linked file in a writable directory")
 MU_ERR_PERM_DIR_IWGRP       _("File in group writable directory")
 MU_ERR_PERM_DIR_IWOTH       _("File in world writable directory")
 
-# A simpler version of the above.  Possibly will be removed in the future.
-MU_ERR_UNSAFE_PERMS         _("Unsafe file permissions")

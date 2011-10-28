@@ -1307,6 +1307,8 @@ mbox_expunge_unlocked (mu_mailbox_t mailbox, size_t dirty, int remove_deleted,
       else if (size < mud->size)
 	{
 	  /* Corrupted mailbox. */
+	  mu_observable_notify (mailbox->observable, MU_EVT_MAILBOX_CORRUPT,
+				mailbox);
 	  mu_error (_("%s:%d: mailbox shrunk while expunging"),
 		    __FILE__, __LINE__);
 	  return MU_ERR_FAILURE; /* FIXME: need an error code for that */

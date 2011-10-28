@@ -346,7 +346,7 @@ mbox_scan_internal (mu_mailbox_t mailbox, mbox_message_t mum,
 	{
 	  /* In one-message mode, the positioning should be exact. */
 	  if (!isfrom)
-	    return EINVAL; /* FIXME: Better error code, please? */
+	    return MU_ERR_NOENT;
 	}
       
       /* Which part of the message are we in ?  */

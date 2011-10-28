@@ -409,7 +409,7 @@ amd_init_mailbox (mu_mailbox_t mailbox, size_t amd_size,
   struct _amd_data *amd;
 
   if (mailbox == NULL)
-    return MU_ERR_MBX_NULL;
+    return EINVAL;
   if (amd_size < sizeof (*amd))
     return EINVAL;
 
@@ -533,7 +533,7 @@ amd_close (mu_mailbox_t mailbox)
   int i;
     
   if (!mailbox)
-    return MU_ERR_MBX_NULL;
+    return EINVAL;
 
   amd = mailbox->data;
   
@@ -1018,9 +1018,7 @@ amd_append_message (mu_mailbox_t mailbox, mu_message_t msg)
   struct _amd_data *amd = mailbox->data;
   struct _amd_message *mhm;
 
-  if (!mailbox)
-    return MU_ERR_MBX_NULL;
-  if (!msg)
+  if (!mailbox || !msg)
     return EINVAL;
 
   mhm = calloc (1, amd->msg_size);
