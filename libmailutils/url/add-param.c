@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2010 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -27,16 +27,48 @@
 #endif
 
 #include <mailutils/types.h>
-#include <mailutils/cstr.h>
+#include <mailutils/errno.h>
 #include <mailutils/sys/url.h>
+#include <mailutils/url.h>
 
 int
-mu_url_is_scheme (mu_url_t url, const char *scheme)
+mu_url_add_param (mu_url_t url, size_t pc, const char **pv)
 {
-  if (url && scheme && url->scheme 
-      && mu_c_strcasecmp (url->scheme, scheme) == 0)
-    return 1;
+  char **fv;
+  int i, j;
+    
+  if (!url)
+    return EINVAL;
+  if (!pc || !pv)
+    return 0;
 
+  fv = realloc (url->fvpairs,
+		sizeof (url->fvpairs[0]) * (url->fvcount + pc + 1));
+  if (!fv)
+    return ENOMEM;
+  url->fvpairs = fv;
+  for (i = url->fvcount, j = 0; j < pc; i++, j++)
+    {
+      fv[i] = strdup (pv[j]);
+      if (!fv[i])
+	{
+	  /* Restore the status quo */
+	  for (; j; j--)
+	    free (fv[--i]);
+	  if (url->fvcount)
+	    fv[url->fvcount] = NULL;
+	  else
+	    {
+	      free (url->fvpairs);
+	      url->fvpairs = NULL;
+	      url->fvcount = 0;
+	    }
+	  return ENOMEM;
+	}
+    }
+  fv[i] = NULL;
+  url->fvcount = i;
+  url->flags |= MU_URL_PARAM;
+  mu_url_invalidate (url);
   return 0;
 }
-

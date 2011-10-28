@@ -80,6 +80,10 @@ int mu_url_has_flag (mu_url_t, int);
   
 void mu_url_destroy   (mu_url_t *);
 
+int mu_url_sget_name (const mu_url_t, const char **);
+int mu_url_aget_name (const mu_url_t, char **);
+int mu_url_get_name (const mu_url_t, char *, size_t, size_t *);
+  
 int mu_url_sget_scheme  (const mu_url_t, const char **);
 int mu_url_aget_scheme  (const mu_url_t, char **);  
 int mu_url_get_scheme  (const mu_url_t, char *, size_t, size_t *);
@@ -120,8 +124,6 @@ int mu_url_aget_param (const mu_url_t url, const char *param, char **val);
 int mu_url_expand_path (mu_url_t url);
 const char *mu_url_to_string   (const mu_url_t);
 
-int mu_url_set_scheme (mu_url_t url, const char *scheme);
-
 int mu_url_is_scheme   (mu_url_t, const char *scheme);
 
 int mu_url_is_same_scheme (mu_url_t, mu_url_t);
@@ -133,6 +135,22 @@ int mu_url_is_same_port   (mu_url_t, mu_url_t);
 int mu_url_matches_ticket   (mu_url_t ticket, mu_url_t url, int *wcn);  
 
 int mu_url_decode (mu_url_t url);
+
+int mu_url_invalidate (mu_url_t url);
+  
+int mu_url_create_null (mu_url_t *purl);
+int mu_url_set_user (mu_url_t url, const char *user);
+int mu_url_set_path (mu_url_t url, const char *path);
+int mu_url_set_scheme (mu_url_t url, const char *scheme);
+int mu_url_set_host (mu_url_t url, const char *host);
+int mu_url_set_port (mu_url_t url, unsigned port);
+int mu_url_set_service (mu_url_t url, const char *str);
+int mu_url_set_auth (mu_url_t url, const char *auth);
+int mu_url_set_secret (mu_url_t url, mu_secret_t secret);
+int mu_url_add_param (mu_url_t url, size_t pc, const char **pv);
+int mu_url_clear_param (mu_url_t url);
+int mu_url_add_query (mu_url_t url, size_t pc, const char **pv);
+int mu_url_clear_query (mu_url_t url);  
   
 #ifdef __cplusplus
 }

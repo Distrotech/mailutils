@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2010 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -20,21 +20,31 @@
 #endif
 
 #include <errno.h>
+#include <stdlib.h>
+#include <string.h>
+#ifdef HAVE_STRINGS_H
+# include <strings.h>
+#endif
+
+#include <mailutils/types.h>
+#include <mailutils/errno.h>
 #include <mailutils/sys/url.h>
+#include <mailutils/url.h>
 
 int
-mu_url_get_flags (mu_url_t url, int *pf)
+mu_url_clear_query (mu_url_t url)
 {
-  if (!url || !pf)
-    return EINVAL;
-  *pf = url->flags; 
-  return 0;
-}
-
-int
-mu_url_has_flag (mu_url_t url, int flags)
-{
+  int i;
+  
   if (!url)
-    return 0;
-  return url->flags & flags;
+    return EINVAL;
+
+  for (i = 0; i < url->qargc; i++)
+    free (url->qargv[i]);
+  free (url->qargv);
+  url->qargv = NULL;
+  url->qargc = 0;
+  url->flags &= ~MU_URL_QUERY;
+  mu_url_invalidate (url);
+  return 0;
 }

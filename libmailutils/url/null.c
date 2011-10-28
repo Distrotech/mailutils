@@ -18,23 +18,21 @@
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
-
+#include <stdlib.h>
 #include <errno.h>
 #include <mailutils/sys/url.h>
+#include <mailutils/url.h>
 
 int
-mu_url_get_flags (mu_url_t url, int *pf)
+mu_url_create_null (mu_url_t *purl)
 {
-  if (!url || !pf)
-    return EINVAL;
-  *pf = url->flags; 
+  mu_url_t url;
+
+  if (!purl)
+    return EINVAL;  
+  url = calloc (1, sizeof (*url));
+  if (url == NULL)
+    return ENOMEM;
+  *purl = url;
   return 0;
-}
-
-int
-mu_url_has_flag (mu_url_t url, int flags)
-{
-  if (!url)
-    return 0;
-  return url->flags & flags;
 }

@@ -51,6 +51,7 @@ noinst_PROGRAMS = \
  mailcap\
  prop\
  tempfile\
+ url-comp\
  url-parse\
  wicket\
  wsp
@@ -80,6 +81,7 @@ TESTSUITE_AT = \
  prop.at\
  testsuite.at\
  url.at\
+ url-comp.at\
  wicket.at\
  wordsplit.at
 

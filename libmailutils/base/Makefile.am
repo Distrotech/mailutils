@@ -31,6 +31,7 @@ libbase_la_SOURCES = \
  fgetpwent.c\
  filename.c\
  freeitem.c\
+ fscompose.c\
  getcwd.c\
  getmaxfd.c\
  getpass.c\

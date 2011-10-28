@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2010, 2011 Free Software Foundation, Inc.
+   Copyright (C) 2010 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -27,16 +27,47 @@
 #endif
 
 #include <mailutils/types.h>
-#include <mailutils/cstr.h>
+#include <mailutils/errno.h>
 #include <mailutils/sys/url.h>
+#include <mailutils/url.h>
 
 int
-mu_url_is_scheme (mu_url_t url, const char *scheme)
+mu_url_set_host (mu_url_t url, const char *host)
 {
-  if (url && scheme && url->scheme 
-      && mu_c_strcasecmp (url->scheme, scheme) == 0)
-    return 1;
-
+  char *copy;
+  
+  if (!url)
+    return EINVAL;
+  if (host)
+    {
+      size_t len;
+      int flag = MU_URL_HOST;
+      
+      len = strlen (host);
+      if (len == 0)
+	return EINVAL;
+      if (host[0] == '[' && host[len-1] == ']')
+	{
+	  flag |= MU_URL_IPV6;
+	  host++;
+	  len -= 2;
+	}
+      
+      copy = malloc (len + 1);
+      if (!copy)
+	return ENOMEM;
+      memcpy (copy, host, len);
+      copy[len] = 0;
+      url->flags |= flag;
+    }
+  else
+    {
+      url->flags &= ~(MU_URL_HOST|MU_URL_IPV6);
+      copy = NULL;
+    }
+  url->_get_host = NULL;
+  free (url->host);
+  url->host = copy;
+  mu_url_invalidate (url);
   return 0;
 }
-

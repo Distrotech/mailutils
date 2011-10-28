@@ -19,6 +19,10 @@ noinst_LTLIBRARIES = liburl.la
 
 liburl_la_SOURCES = \
  accessor.h\
+ add-param.c\
+ clr-param.c\
+ add-query.c\
+ clr-query.c\
  copy.c\
  create.c\
  decode.c\
@@ -36,9 +40,19 @@ liburl_la_SOURCES = \
  get-secret.c\
  get-user.c\
  match.c\
+ null.c\
  port.c\
  scheme.c\
+ set-auth.c\
+ set-host.c\
+ set-path.c\
+ set-port.c\
+ set-scheme.c\
+ set-secret.c\
+ set-service.c\
+ set-user.c\
  uplevel.c\
+ urlinv.c\
  urlstr.c
 
 INCLUDES = @MU_LIB_COMMON_INCLUDES@ -I/libmailutils

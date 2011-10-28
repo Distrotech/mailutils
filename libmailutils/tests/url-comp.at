@@ -1,0 +1,72 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2011 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# GNU Mailutils is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+
+AT_BANNER(URL Composition)
+
+dnl ------------------------------------------------------------
+             1   2        3                4
+dnl URLCOMP(KW, ARGS, [STDOUT = `'], [STDERR = `'])
+dnl
+
+m4_pushdef([URLCOMP],[
+AT_SETUP([$2 => $3])
+AT_KEYWORDS([url-comp url-comp-$1])
+AT_CHECK([url-comp $2],
+[m4_if([$4],,0,1)],
+[m4_if([$3],,,[$3
+])],
+m4_if([$4],,,[url-comp: $4
+]))
+AT_CLEANUP
+])
+
+URLCOMP(0, [], [], [URL missing required parts])
+URLCOMP(1, [path=foo], [foo])
+URLCOMP(2, [scheme=file], [file://])
+URLCOMP(3, [scheme=file path=foo], [file://foo])
+URLCOMP(4, [scheme=smtp host=localhost port=587], [smtp://localhost:587])
+URLCOMP(5,
+        [scheme=smtp host=localhost port=587 param=strip-domain param=domain=example.com],
+        [smtp://localhost:587;strip-domain;domain=example.com])
+URLCOMP(6, [scheme=imap user=gray host=localhost path=INBOX],
+        [imap://gray@localhost/INBOX])
+URLCOMP(7,
+        [scheme=imap user=gray pass=test host=localhost path=INBOX],
+	[imap://gray:***@localhost/INBOX])
+URLCOMP(8,	
+        [scheme=pop user=gray pass=test auth=+APOP host=localhost path=INBOX],
+	[pop://gray:***;AUTH=+APOP@localhost/INBOX])
+URLCOMP(9,
+        [scheme=prog path=/bin/mailman query=request query=list],
+        [prog:///bin/mailman?request&list])
+URLCOMP(10,
+        [scheme=prog path=/bin/mailman query=request query=list param=test],
+        [prog:///bin/mailman;test?request&list])
+URLCOMP(11,
+        [url=imap://gray@localhost/INBOX path=],
+	[imap://gray@localhost])
+URLCOMP(12,
+        [url=imap://gray@localhost/INBOX path= user=],
+	[imap://localhost])
+URLCOMP(13,
+        [url='prog:///bin/mailman;test?request&list' query= param=],
+	[prog:///bin/mailman])
+URLCOMP(14,
+        [url=smtp://gray@localhost/test host=],
+	[],
+	[URL missing required parts])
+	
+m4_popdef([URLCOMP])
