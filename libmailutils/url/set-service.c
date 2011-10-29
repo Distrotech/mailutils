@@ -27,7 +27,7 @@
 #ifdef HAVE_STRINGS_H
 # include <strings.h>
 #endif
-
+#include <limits.h>
 #include <mailutils/types.h>
 #include <mailutils/errno.h>
 #include <mailutils/sys/url.h>
