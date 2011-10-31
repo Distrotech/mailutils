@@ -59,29 +59,28 @@ enum ilcmt_state
   {
     ilcmt_initial,
     ilcmt_newline,
-    ilcmt_newline_ac,
     ilcmt_copy,
     ilcmt_comment,
     ilcmt_partial,
     ilcmt_comment_ws,
     ilcmt_ws,
     ilcmt_rollback,
-    ilcmt_rollback_ws,
-    ilcmt_rollback_com
+    ilcmt_rollback_ws
   };
 
-#define ILCMT_REMOVE_EMPTY_LINES 0x01 /* Just that :) */
-#define ILCMT_SQUEEZE_WS         0x02 /* Replace a series of whitespace
-					 characters with a single space */
-#define ILCMT_FOLLOW_WS          0x04 /* In decode mode: comment sequence is
-					 recognized only if followed by a
-					 whitespace character.
-					 In encode mode: output a space after
-					 each comment prefix. */
-#define ILCMT_LINE_INFO          0x08 /* Emit line number information */ 
+#define ILCMT_REMOVE_EMPTY_LINES 0x001 /* Just that :) */
+#define ILCMT_SQUEEZE_WS         0x002 /* Replace a series of whitespace
+					  characters with a single space */
+#define ILCMT_FOLLOW_WS          0x004 /* In decode mode: comment sequence is
+					  recognized only if followed by a
+					  whitespace character.
+					  In encode mode: output a space after
+					  each comment prefix. */
+#define ILCMT_LINE_INFO          0x008 /* Emit line number information */ 
 
 #define ILCMT_COMMENT_STATIC     0x0100
 #define ILCMT_LINE_INFO_STATIC   0x0200
+#define ILCMT_EMIT_LINE_INFO     0x0400
 
 struct ilcmt_data
 {
@@ -94,15 +93,15 @@ struct ilcmt_data
   char sbuf[3];            /* Static location for single-character strings */
   char *buf;               /* Rollback buffer ... */
   size_t size;             /* and its size */
-  size_t level;            /* In ilcmt_partial and ilcmt_rollback_com
-			      states: number of bytes matched in the comment
-			      sequence.
-			      In ilcmt_initial, ilcmt_newline, and
-			      ilcmt_rollback_ws states: number of characters
+  size_t level;            /* In ilcmt_partial state: number of bytes matched
+			      in the comment sequence.
+			      In other states: number of characters
 			      stored in buf. */
-  size_t replay;           /* Index of the next-to-be-replayed character
-			      in buf (if state==ilcmt_rollback_ws) or
-			      comment (if state==ilcmt_rollback_com) */
+  /* Rollback info: */
+  char *rollback_buffer;   /* Actual rollback data */
+  size_t rollback_size;    /* Size of rollback data */
+  size_t rollback_index;   /* Index of the next-to-be-replayed character
+			      in rollback_buffer */
 };
 
 #define ILCMT_BUF_INIT 80
@@ -141,6 +140,15 @@ _ilcmt_free (struct ilcmt_data *pd)
   free (pd->buf);
 }
 
+static void
+init_rollback (struct ilcmt_data *pd, char *buf, size_t size)
+{
+  pd->state = ilcmt_rollback;
+  pd->rollback_buffer = buf;
+  pd->rollback_size = size;
+  pd->rollback_index = 0;
+}
+
 static enum mu_filter_result
 _ilcmt_decoder (void *xd, enum mu_filter_command cmd,
 		struct mu_filter_io *iobuf)
@@ -174,21 +182,19 @@ _ilcmt_decoder (void *xd, enum mu_filter_command cmd,
 	{
 	case ilcmt_initial:
 	case ilcmt_newline:
-	case ilcmt_newline_ac:
 	  if (*iptr == *pd->comment)
 	    {
 	      iptr++;
 	      pd->level = 1;
 	      pd->state = ilcmt_partial;
 	    }
-	  else if (pd->state == ilcmt_newline_ac)
+	  else if (pd->flags & ILCMT_EMIT_LINE_INFO)
 	    {
 	      mu_asnprintf (&pd->buf, &pd->size, "%s %lu\n",
 			    pd->line_info_starter,
 			    pd->line_number);
-	      pd->level = strlen (pd->buf);
-	      pd->replay = 0;
-	      pd->state = ilcmt_rollback;
+	      init_rollback (pd, pd->buf, strlen (pd->buf));
+	      pd->flags &= ~ILCMT_EMIT_LINE_INFO;
 	    }
 	  else if (*iptr == '\n')
 	    {
@@ -243,22 +249,32 @@ _ilcmt_decoder (void *xd, enum mu_filter_command cmd,
 	  else
 	    {
 	      /* Begin restoring */
-	      pd->replay = 0;
-	      pd->state = ilcmt_rollback_com;
+	      init_rollback (pd, pd->comment, pd->level);
 	    }
 	  break;
 
 	case ilcmt_comment_ws:
 	  if (mu_isspace (*iptr))
 	    {
-	      iptr++;
+	      if (*iptr != '\n')
+		iptr++;
 	      pd->state = ilcmt_comment;
 	    }
 	  else
 	    {
 	      /* Begin restoring */
-	      pd->replay = 0;
-	      pd->state = ilcmt_rollback_com;
+	      if (pd->flags & ILCMT_EMIT_LINE_INFO)
+		{
+		  mu_asnprintf (&pd->buf, &pd->size, "%s %lu\n%.*s",
+				pd->line_info_starter,
+				pd->line_number,
+				pd->level,
+				pd->comment);
+		  init_rollback (pd, pd->buf, strlen (pd->buf));
+		  pd->flags &= ~ILCMT_EMIT_LINE_INFO;
+		}
+	      else
+		init_rollback (pd, pd->comment, pd->level);
 	    }
 	  break;
 	  
@@ -280,7 +296,7 @@ _ilcmt_decoder (void *xd, enum mu_filter_command cmd,
 	    }
 	  else
 	    {
-	      pd->replay = 0;
+	      init_rollback (pd, pd->buf, pd->level);
 	      pd->state = ilcmt_rollback_ws;
 	    }
 	  break;
@@ -298,16 +314,9 @@ _ilcmt_decoder (void *xd, enum mu_filter_command cmd,
 	    {
 	      pd->line_number++;
 	      if (pd->flags & ILCMT_LINE_INFO)
-		pd->state = ilcmt_newline_ac;
-	      else
-		pd->state = ilcmt_newline;
+		pd->flags |= ILCMT_EMIT_LINE_INFO;
+	      pd->state = ilcmt_newline;
 	    }
-	  break;
-
-	case ilcmt_rollback_com:
-	  *optr++ = pd->comment[pd->replay++];
-	  if (pd->replay == pd->level)
-	    pd->state = ilcmt_copy;
 	  break;
 
 	case ilcmt_rollback_ws:
@@ -319,8 +328,8 @@ _ilcmt_decoder (void *xd, enum mu_filter_command cmd,
 	    }
 	  /* fall through */
 	case ilcmt_rollback:
-	  *optr++ = pd->buf[pd->replay++];
-	  if (pd->replay == pd->level)
+	  *optr++ = pd->rollback_buffer[pd->rollback_index++];
+	  if (pd->rollback_index == pd->rollback_size)
 	    pd->state = ilcmt_copy;
 	}
     }
@@ -363,11 +372,10 @@ _ilcmt_encoder (void *xd,
 	{
 	case ilcmt_initial:
 	case ilcmt_newline:
-	  pd->replay = 0;
-	  pd->state = ilcmt_rollback_com;
-	case ilcmt_rollback_com:
-	  *optr++ = pd->comment[pd->replay++];
-	  if (pd->replay == pd->length)
+	  init_rollback (pd, pd->comment, pd->length);
+	case ilcmt_rollback:
+	  *optr++ = pd->rollback_buffer[pd->rollback_index++];
+	  if (pd->rollback_index == pd->rollback_size)
 	    pd->state = (pd->flags & ILCMT_FOLLOW_WS) ?
 	                   ilcmt_ws : ilcmt_copy;
 	  break;
@@ -404,7 +412,7 @@ alloc_state (void **pret, int mode MU_ARG_UNUSED, int argc, const char **argv)
 
   pd->flags = 0;
   pd->buf = NULL;
-  pd->size = pd->level = pd->replay = 0;
+  pd->size = pd->level = 0;
   pd->line_number = 1;
 
   for (i = 1; i < argc; i++)

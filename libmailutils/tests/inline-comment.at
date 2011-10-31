@@ -40,7 +40,7 @@ AT_CLEANUP
 
 dnl -------------------------------------------------------------------
 
-INLINECOM([default], [icmt00], [],
+INLINECOM([default], [icmt-dec-00], [],
 [; comment 1
 text 1
 ; comment 2
@@ -55,7 +55,7 @@ text 2
 text 3
 ])
 
-INLINECOM([change comment starter], [icmt02], [-- %],
+INLINECOM([change comment starter], [icmt-dec-01], [-- %],
 [% comment 1
 text 1
 % comment 2
@@ -70,7 +70,7 @@ text 2
 text 3
 ])
 
-INLINECOM([remove empty lines],[icmt03],[-- -r],
+INLINECOM([remove empty lines],[icmt-dec-02],[-- -r],
 [; comment 1
 text 1
 ; comment 2
@@ -90,7 +90,7 @@ text 4
      text 5[]dnl
 ])	
 
-INLINECOM([remove empty lines/squeeze whitespace],[icmt04],[-- -r -s],
+INLINECOM([remove empty lines/squeeze whitespace],[icmt-dec-03],[-- -r -s],
 [; comment 1
 text 1
 ; comment 2
@@ -110,7 +110,7 @@ text 4
  text 5[]dnl
 ])	
 
-INLINECOM([multichar comment starter],[icmt05],[-- rem],
+INLINECOM([multichar comment starter],[icmt-dec-04],[-- rem],
 [Text line 1
 rem remark text
 Text line 2
@@ -122,7 +122,7 @@ Text line 2
 Text line 3
 ])
 
-INLINECOM([multichar comment starter; follow ws; follow ws mode],[icmt06],
+INLINECOM([multichar comment starter; follow ws; follow ws mode],[icmt-dec-05],
 [-- rem -S],
 [Text line 1
 rem remark text
@@ -136,7 +136,7 @@ remark text (sic!)
 Text line 3
 ])
 
-INLINECOM([multichar; squeeze; remove empty],[icmt06],[-- rem -S -r],
+INLINECOM([multichar; squeeze; remove empty],[icmt-dec-06],[-- rem -S -r],
 [rem comment 1
 text 1
 rem comment 2
@@ -156,7 +156,7 @@ text 4
      text 5[]dnl
 ])	
 
-INLINECOM([line info facility],[icmt07 line-info],[-- -i ';line' ';'],
+INLINECOM([line info facility],[icmt-dec-07 line-info],[-- -i ';line' ';'],
 [; initial comment
 this is line 2
 this is line 3
@@ -174,11 +174,43 @@ this is line 3
 this is line 9
 ])
 
+INLINECOM([line info: newline after comment],[icmt-dec-08 line-info],
+[-- -i ';line' -S ';'],
+[;
+text
+],
+[;line 2
+text
+])
+
+INLINECOM([line info with follow ws],[icmt-dec-09 line-info follow-ws],
+[-- ';' -S -i ';'],
+[; Comment line
+;:directive=1
+first line
+; comment
+second line
+;:directive=2
+;
+;:directive=3
+last line
+],
+[; 2
+;:directive=1
+first line
+; 5
+second line
+;:directive=2
+; 8
+;:directive=3
+last line
+])
+
 dnl -------------------------------------------------------------------
 
 m4_define([FILTER_MODE],[encode])
 
-INLINECOM([encode],[icmt08],[],
+INLINECOM([encode],[icmt-enc-00],[],
 [C'est dans dix ans je m'en irai
 J'entends le loup et le renard chanter
 J'entends le loup, le renard et la belette
@@ -188,7 +220,7 @@ J'entends le loup et le renard chanter],
 ;J'entends le loup, le renard et la belette
 ;J'entends le loup et le renard chanter])
 
-INLINECOM([encode multichar; add ws],[icmt09],[-- NB: -S],
+INLINECOM([encode multichar; add ws],[icmt-enc-01],[-- NB: -S],
 [Tri martolod yaouank
 O voned da voyagi
 Gant'el oant bet kaset
