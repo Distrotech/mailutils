@@ -56,7 +56,7 @@ extern int mu_c_tab[MU_C_TAB_MAX];
 #define mu_isxdigit(c) mu_c_is_class (c, MU_CTYPE_DIGIT|MU_CTYPE_XLETR)
 #define mu_isalnum(c) mu_c_is_class (c, MU_CTYPE_ALPHA|MU_CTYPE_DIGIT)
 #define mu_isascii(c) (((unsigned)c) < MU_C_TAB_MAX)
-#define mu_isblank(c) ((c) == ' ' || (c) == '\t')
+#define mu_isblank(c) mu_c_is_class (c, MU_CTYPE_BLANK)
 #define mu_isendln(c) mu_c_is_class (c, MU_CTYPE_ENDLN)
 
 #define mu_tolower(c)					\
