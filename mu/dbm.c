@@ -51,19 +51,34 @@ enum key_type
     key_regex
   };
 
-enum mode mode;
-char *db_name;
-char *input_file;
-int permissions = 0600;
-struct mu_auth_data *auth;
-uid_t owner_uid = -1;
-gid_t owner_gid = -1;
-int copy_permissions;
-enum key_type key_type = key_literal;
-int case_sensitive = 1;
-int include_zero = -1;
+static enum mode mode;
+static char *db_name;
+static char *input_file;
+static int file_mode = 0600;
+static struct mu_auth_data *auth;
+static uid_t owner_uid;
+static gid_t owner_gid;
+static char *owner_user;
+static char *owner_group;
+static int copy_permissions;
+
+#define META_FILE_MODE 0x0001
+#define META_UID       0x0002
+#define META_GID       0x0004
+#define META_USER      0x0008
+#define META_GROUP     0x0010
+#define META_AUTH      0x0020
+
+static int known_meta_data;
+
+static enum key_type key_type = key_literal;
+static int case_sensitive = 1;
+static int include_zero = -1;
+
+static int suppress_header;
+
 
-void
+static void
 init_datum (struct mu_dbm_datum *key, char *str)
 {
   memset (key, 0, sizeof *key);
@@ -71,11 +86,17 @@ init_datum (struct mu_dbm_datum *key, char *str)
   key->mu_dsize = strlen (str) + !!include_zero;
 }
 
-mu_dbm_file_t
+static mu_dbm_file_t
 open_db_file (int mode)
 {
   int rc;
   mu_dbm_file_t db;
+
+  if (!db_name)
+    {
+      mu_error (_("database name not given"));
+      exit (EX_USAGE);
+    }
   
   rc = mu_dbm_create (db_name, &db);
   if (rc)
@@ -85,56 +106,477 @@ open_db_file (int mode)
       exit (EX_SOFTWARE);
     }
 
-  rc = mu_dbm_open (db, mode, permissions);
+  rc = mu_dbm_open (db, mode, file_mode);
   if (rc)
     {
       mu_diag_funcall (MU_DIAG_ERROR, "mu_dbm_open", db_name, rc);
       exit (EX_SOFTWARE);
     }
 
-  if (mode == MU_STREAM_CREAT && (owner_uid != -1 || owner_gid != -1))
+  return db;
+}
+
+static void
+set_db_ownership (mu_dbm_file_t db)
+{
+  int rc, dirfd, pagfd;
+  struct stat st;
+  
+  rc = mu_dbm_get_fd (db, &pagfd, &dirfd);
+  if (rc)
     {
-      int dirfd, pagfd;
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_dbm_get_fd", db_name, rc);
+      exit (EX_SOFTWARE);
+    }
+  
+  if (known_meta_data & META_USER)
+    {
+      struct mu_auth_data *ap;
       
-      rc = mu_dbm_get_fd (db, &pagfd, &dirfd);
-      if (rc)
+      ap = mu_get_auth_by_name (owner_user);
+      if (!ap)
 	{
-	  mu_diag_funcall (MU_DIAG_ERROR, "mu_dbm_get_fd", db_name, rc);
-	  exit (EX_SOFTWARE);
-	}
-      if (owner_uid == -1 || owner_gid == -1)
-	{
-	  struct stat st;
-	  
-	  if (fstat (dirfd, &st))
+	  if (!(known_meta_data & META_UID))
 	    {
-	      mu_diag_funcall (MU_DIAG_ERROR, "fstat", db_name, errno);
-	      exit (EX_SOFTWARE);
+	      mu_error (_("no such user: %s"), owner_user);
+	      exit (EX_DATAERR);
 	    }
-	  if (owner_uid == -1)
-	    owner_uid = st.st_uid;
-	  if (owner_gid == -1)
-	    owner_gid = st.st_gid;
 	}
-      if (fchown (pagfd, owner_uid, owner_gid))
+      else
 	{
-	  mu_diag_funcall (MU_DIAG_ERROR, "fchown", db_name, errno);
+	  owner_uid = ap->uid;
+	  known_meta_data |= META_UID;
+	  mu_auth_data_free (ap);
+	}
+    }
+  
+  if (known_meta_data & META_GROUP)
+    {
+      struct group *gr = getgrnam (owner_group);
+      if (!gr)
+	{
+	  if (!(known_meta_data & META_GID))
+	    {
+	      mu_error (_("no such group: %s"), owner_group);
+	      exit (EX_DATAERR);
+	    }
+	}
+      else
+	{
+	  owner_gid = gr->gr_gid;
+	  known_meta_data |= META_GID;
+	}
+    }
+  
+  if (fstat (dirfd, &st))
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "fstat", db_name, errno);
+      exit (EX_SOFTWARE);
+    }
+  
+  if (known_meta_data & META_FILE_MODE)
+    {
+      if (fchmod (pagfd, file_mode) ||
+	  (pagfd != dirfd && fchmod (dirfd, file_mode)))
+	{
+	  mu_diag_funcall (MU_DIAG_ERROR, "fchmod", db_name, errno);
 	  exit (EX_SOFTWARE);
 	}
-      if (pagfd != dirfd &&
-	  fchown (dirfd, owner_uid, owner_gid))
+    }	      
+  
+  if (known_meta_data & (META_UID|META_GID))
+    {
+      if (!(known_meta_data & META_UID))
+	owner_uid = st.st_uid;
+      else if (!(known_meta_data & META_GID))
+	owner_gid = st.st_gid;
+      
+      if (fchown (pagfd, owner_uid, owner_gid) ||
+	  (pagfd != dirfd && fchown (dirfd, owner_uid, owner_gid)))
 	{
 	  mu_diag_funcall (MU_DIAG_ERROR, "fchown", db_name, errno);
 	  exit (EX_SOFTWARE);
 	}
     }
-  return db;
 }
+
+
+struct iobuf
+{
+  mu_stream_t stream;
+  char *buffer;
+  size_t bufsize;
+  size_t length;
+  int read;
+};
+
+static int is_dbm_directive (struct iobuf *input);
+static int is_len_directive (struct iobuf *input);
+static int is_ignored_directive (const char *name);
+static int set_directive (char *val);
+static void print_header (const char *name, mu_stream_t str);
+
+static int
+input_getline (struct iobuf *inp)
+{
+  int rc;
+  size_t len;
+
+  if (inp->read)
+    {
+      inp->read = 0;
+      return 0;
+    }
+  
+  while (1)
+    {
+      rc = mu_stream_getline (inp->stream, &inp->buffer, &inp->bufsize, &len);
+      if (rc)
+	return rc;
+      if (len == 0)
+	{
+	  inp->length = 0;
+	  break;
+	}
+      mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM,
+		       MU_IOCTL_LOGSTREAM_ADVANCE_LOCUS_LINE, NULL);
+      inp->length = mu_rtrim_class (inp->buffer, MU_CTYPE_ENDLN);
+      if (inp->buffer[0] == '#' && !is_dbm_directive (inp))
+	{
+	  struct mu_locus loc;
+	  mu_stream_ioctl (mu_strerr,
+			   MU_IOCTL_LOGSTREAM, MU_IOCTL_LOGSTREAM_GET_LOCUS,
+			   &loc);
+	  loc.mu_line = strtoul (inp->buffer + 1, NULL, 10);
+	  mu_stream_ioctl (mu_strerr,
+			   MU_IOCTL_LOGSTREAM, MU_IOCTL_LOGSTREAM_SET_LOCUS,
+			   &loc);
+	  free (loc.mu_file);
+	  continue;
+	}
+      break;
+    }
+  return 0;
+}
+
+static void
+input_ungetline (struct iobuf *inp)
+{
+  inp->read = 1;
+}
+
+static size_t
+input_length (struct iobuf *inp)
+{
+  return inp->length;
+}
+
+struct xfer_format
+{
+  const char *name;
+  void (*init) (struct xfer_format *fmt, const char *version,
+		struct iobuf *iop, int wr);
+  int (*reader) (struct iobuf *, void *data, struct mu_dbm_datum *key,
+		 struct mu_dbm_datum *content);
+  int (*writer) (struct iobuf *, void *data, struct mu_dbm_datum const *key,
+		 struct mu_dbm_datum const *content);
+  void *data;
+};
+
+static int ascii_reader (struct iobuf *, void *data,
+			 struct mu_dbm_datum *key,
+			 struct mu_dbm_datum *content);
+static int ascii_writer (struct iobuf *, void *data,
+			 struct mu_dbm_datum const *key,
+			 struct mu_dbm_datum const *content);
+
+static void newfmt_init (struct xfer_format *fmt,
+			 const char *version, struct iobuf *iop, int wr);
+
+static int newfmt_reader (struct iobuf *, void *data,
+			  struct mu_dbm_datum *key,
+			  struct mu_dbm_datum *content);
+static int newfmt_writer (struct iobuf *, void *data,
+			  struct mu_dbm_datum const *key,
+			  struct mu_dbm_datum const *content);
+
+static struct xfer_format format_tab[] = {
+  { "0.0", NULL, ascii_reader, ascii_writer, NULL },
+  { "1.0", newfmt_init, newfmt_reader, newfmt_writer, NULL },
+  { NULL }
+};
+static int format_count = MU_ARRAY_SIZE (format_tab) - 1;
+
+static struct xfer_format *format = format_tab;
+static const char *dump_format_version;
+						     
+static int
+read_data (struct iobuf *inp, struct mu_dbm_datum *key,
+	   struct mu_dbm_datum *content)
+{
+  return format->reader (inp, format->data, key, content);
+}
+
+static int
+write_data (struct iobuf *iop, struct mu_dbm_datum const *key,
+	    struct mu_dbm_datum const *content)
+{
+  return format->writer (iop, format->data, key, content);
+}     
+						     
+static int
+select_format (const char *version)
+{
+  struct xfer_format *fmt;
+  char *p;
+  unsigned long n;
+
+  dump_format_version = version;
+  for (fmt = format_tab; fmt->name; fmt++)
+    if (strcmp (fmt->name, version) == 0)
+      {
+	format = fmt;
+	return 0;
+      }
+
+  /* Try version number */
+  errno = 0;
+  n = strtoul (version, &p, 10);
+  if ((*p == 0 || *p == '.') && errno == 0 && n < format_count)
+    {
+      format = format_tab + n;
+      return 0;
+    }
+  mu_error (_("unsupported format version: %s"), version);
+  return 1;
+}
+
+static void
+init_format (int wr, struct iobuf *iop)
+{
+  if (format->init)
+    format->init (format,
+		  dump_format_version ? dump_format_version : format->name,
+		  iop, wr);
+}
+
+
+static int
+ascii_writer (struct iobuf *iop, void *data,
+	      struct mu_dbm_datum const *key,
+	      struct mu_dbm_datum const *content)
+{
+  size_t len;
+
+  if (!data)
+    {
+      if (!suppress_header && include_zero == 1 &&
+	  !is_ignored_directive ("null"))
+	mu_stream_printf (iop->stream, "#:null\n");
+      data = ascii_writer;
+    }
+  
+  len = key->mu_dsize;
+  if (key->mu_dptr[len - 1] == 0)
+    len--;
+  mu_stream_write (iop->stream, key->mu_dptr, len, NULL);
+  mu_stream_write (iop->stream, "\t", 1, NULL);
+
+  len = content->mu_dsize;
+  if (content->mu_dptr[len - 1] == 0)
+    len--;
+  mu_stream_write (iop->stream, content->mu_dptr, len, NULL);
+  mu_stream_write (iop->stream, "\n", 1, NULL);
+  return 0;
+}
+
+static int
+ascii_reader (struct iobuf *inp, void *data MU_ARG_UNUSED,
+	      struct mu_dbm_datum *key,
+	      struct mu_dbm_datum *content)
+{
+  char *kstr, *val;
+  int rc;
+  
+  rc = input_getline (inp);
+  if (rc)
+    {
+      mu_error ("%s", mu_strerror (rc));
+      return -1;
+    }
+  if (input_length (inp) == 0)
+    return 1;
+  kstr = mu_str_stripws (inp->buffer);
+  val = mu_str_skip_class_comp (kstr, MU_CTYPE_SPACE);
+  *val++ = 0;
+  val = mu_str_skip_class (val, MU_CTYPE_SPACE);
+  if (*val == 0)
+    {
+      mu_error (_("malformed line"));
+      key->mu_dsize = 0;
+    }
+  else
+    {
+      init_datum (key, kstr);
+      init_datum (content, val);
+    }
+  return 0;
+}  
+
+static void
+newfmt_init (struct xfer_format *fmt, const char *version,
+	     struct iobuf *iop, int wr)
+{
+  int rc;
+
+  if (!wr)
+    {
+      mu_stream_t flt;
+	
+      rc = mu_linelen_filter_create (&flt, iop->stream, 76, MU_STREAM_WRITE);
+      if (rc)
+	{
+	  mu_diag_funcall (MU_DIAG_ERROR, "mu_linelen_filter_create",
+			   NULL, rc);
+	  exit (EX_SOFTWARE);
+	}
+      iop->stream = flt;
+    }
+  else
+    {
+      mu_opool_t pool;
+      rc = mu_opool_create (&pool, 0);
+      if (rc)
+	{
+	  mu_diag_funcall (MU_DIAG_ERROR, "mu_opool_create",
+			   NULL, rc);
+	  exit (EX_SOFTWARE);
+	}
+      fmt->data = pool;
+    }      
+}
+
+static int
+newfmt_read_datum (struct iobuf *iop, mu_opool_t pool,
+		   struct mu_dbm_datum *datum)
+{
+  int rc;
+  unsigned char *ptr, *out;
+  size_t len;
+
+  mu_dbm_datum_free (datum);
+  
+  rc = input_getline (iop);
+  if (rc)
+    {
+      mu_error ("%s", mu_strerror (rc));
+      exit (EX_UNAVAILABLE);
+    }
+  if (iop->length == 0)
+    return 1;
+  
+  if (!is_len_directive (iop))
+    {
+      mu_error (_("unrecognized input line"));
+      exit (EX_DATAERR);
+    }
+  else
+    {
+      char *p;
+      unsigned long n;
+  
+      errno = 0;
+      n = strtoul (iop->buffer + 6, &p, 10);
+      if (*p || errno)
+	{
+	  mu_error (_("invalid length"));
+	  exit (EX_DATAERR);
+	}
+      datum->mu_dsize = n;
+    }
+
+  mu_opool_clear (pool);
+  while (1)
+    {
+      rc = input_getline (iop);
+      if (rc)
+	{
+	  mu_error ("%s", mu_strerror (rc));
+	  exit (EX_UNAVAILABLE);
+	}
+      if (iop->length == 0)
+	break;
+      if (is_len_directive (iop))
+	{
+	  input_ungetline (iop);
+	  break;
+	}
+      mu_opool_append (pool, iop->buffer, iop->length);
+    }
+
+  ptr = mu_opool_finish (pool, &len);
+  
+  rc = mu_base64_decode (ptr, len, &out, &len);
+  if (rc)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_base64_decode", NULL, rc);
+      exit (EX_SOFTWARE);
+    }
+
+  mu_dbm_datum_free (datum);
+  
+  datum->mu_dptr = (void*) out;
+  return 0;
+}
+
+static int
+newfmt_reader (struct iobuf *input, void *data,
+	       struct mu_dbm_datum *key,
+	       struct mu_dbm_datum *content)
+{
+  mu_opool_t pool = data;
+  if (newfmt_read_datum (input, pool, key))
+    return 1;
+  if (newfmt_read_datum (input, pool, content))
+    return 1;
+  return 0;
+}
+
+static void
+newfmt_write_datum (struct iobuf *iop, struct mu_dbm_datum const *datum)
+{
+  int rc;
+  
+  mu_stream_printf (iop->stream, "#:len=%lu\n",
+		    (unsigned long) datum->mu_dsize);
+
+  rc = mu_base64_encode ((unsigned char*)datum->mu_dptr, datum->mu_dsize,
+			 (unsigned char **)&iop->buffer, &iop->bufsize);
+  if (rc)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_base64_encode", NULL, rc);
+      exit (EX_SOFTWARE);
+    }
+  mu_stream_write (iop->stream, iop->buffer, iop->bufsize, NULL);
+  free (iop->buffer); // FIXME
+  mu_stream_write (iop->stream, "\n", 1, NULL);
+}
+
+static int
+newfmt_writer (struct iobuf *iop, void *data,
+	       struct mu_dbm_datum const *key,
+	       struct mu_dbm_datum const *content)
+{
+  newfmt_write_datum (iop, key);
+  newfmt_write_datum (iop, content);
+  return 0;
+}
+
 
 struct print_data
 {
   mu_dbm_file_t db;
-  mu_stream_t stream;
+  struct iobuf iob;
 };
   
 static int
@@ -143,7 +585,69 @@ print_action (struct mu_dbm_datum const *key, void *data)
   int rc;
   struct mu_dbm_datum contents;
   struct print_data *pd = data;
-  size_t len;
+  
+  if (!suppress_header)
+    {
+      int fd;
+      struct stat st;
+      const char *name, *p;
+      rc = mu_dbm_get_fd (pd->db, &fd, NULL);
+      if (rc)
+	{
+	  mu_diag_funcall (MU_DIAG_ERROR, "mu_dbm_get_fd", db_name, rc);
+	  exit (EX_SOFTWARE);
+	}
+      if (fstat (fd, &st))
+	{
+	  mu_diag_funcall (MU_DIAG_ERROR, "fstat", db_name, errno);
+	  exit (EX_UNAVAILABLE);
+	}
+  
+      if (!(known_meta_data & META_UID))
+	{
+	  known_meta_data |= META_UID;
+	  owner_uid = st.st_uid;
+	}
+      if (!(known_meta_data & META_GID))
+	{
+	  known_meta_data |= META_GID;
+	  owner_gid = st.st_gid;
+	}
+      if (!(known_meta_data & META_FILE_MODE))
+	{
+	  known_meta_data |= META_FILE_MODE;
+	  file_mode = st.st_mode & 0777;
+	}
+      
+      if (!(known_meta_data & META_USER))
+	{
+	  struct mu_auth_data *ap = mu_get_auth_by_uid (owner_uid);
+	  if (ap)
+	    {
+	      owner_user = xstrdup (ap->name);
+	      known_meta_data |= META_USER;
+	      mu_auth_data_free (ap);
+	    }
+	}
+
+      if (!(known_meta_data & META_GROUP))
+	{
+	  struct group *gr = getgrgid (owner_gid);
+	  if (gr)
+	    {
+	      owner_group = xstrdup (gr->gr_name);
+	      known_meta_data |= META_GROUP;
+	    }
+	}
+      
+      mu_dbm_get_name (pd->db, &name);
+      p = strrchr (name, '/');
+      if (p)
+	p++;
+      else
+	p = name;
+      print_header (p, mu_strout);
+    }
   
   memset (&contents, 0, sizeof contents);
   rc = mu_dbm_fetch (pd->db, key, &contents);
@@ -152,20 +656,10 @@ print_action (struct mu_dbm_datum const *key, void *data)
       mu_error (_("database fetch error: %s"), mu_dbm_strerror (pd->db));
       exit (EX_UNAVAILABLE);
     }
-
-  len = key->mu_dsize;
-  if (key->mu_dptr[len - 1] == 0)
-    len--;
-  mu_stream_write (pd->stream, key->mu_dptr, len, NULL);
-  mu_stream_write (pd->stream, "\t", 1, NULL);
-
-  len = contents.mu_dsize;
-  if (contents.mu_dptr[len - 1] == 0)
-    len--;
-  mu_stream_write (pd->stream, contents.mu_dptr, len, NULL);
-  mu_stream_write (pd->stream, "\n", 1, NULL);
+  rc = write_data (&pd->iob, key, &contents);
   mu_dbm_datum_free (&contents);
-  return 0;
+  suppress_header = 1;
+  return rc;
 }
 
 static void
@@ -254,7 +748,7 @@ match_regex (const char *str, void *data)
   return 0;
 }
 
-void
+static void
 compile_regexes (int argc, char **argv, struct regmatch *match)
 {
   regex_t *regs = xcalloc (argc, sizeof (regs[0]));
@@ -293,10 +787,13 @@ list_database (int argc, char **argv)
 {
   mu_dbm_file_t db = open_db_file (MU_STREAM_READ);
   struct print_data pdata;
-
+  
+  memset (&pdata, 0, sizeof pdata);
   pdata.db = db;
-  pdata.stream = mu_strout;
+  pdata.iob.stream = mu_strout;
 
+  init_format (0, &pdata.iob);
+  
   if (argc == 0)
     iterate_database (db, NULL, NULL, print_action, &pdata);
   else
@@ -321,23 +818,359 @@ list_database (int argc, char **argv)
 	}
     }
   mu_dbm_destroy (&db);
+  mu_stream_close (pdata.iob.stream);
 }
 
-void
+static int
+is_dbm_directive (struct iobuf *input)
+{
+  return input->length > 2 &&
+         input->buffer[0] == '#' &&
+         input->buffer[1] == ':';
+}
+
+static int
+is_len_directive (struct iobuf *input)
+{
+  return input->length > 6 && memcmp (input->buffer, "#:len=", 6) == 0;
+}
+
+/*
+  #:version=1.0                       # Version number
+  #:filename=S                        # Original database name (basename)
+  #:uid=N,user=S,gid=N,group=S,mode=N # File meta info
+  #:null[=0|1]                        # Null termination (v.0.0 only)
+  #:len=N                             # record length (v.1.0)
+*/
+
+static int
+_set_version (const char *val)
+{
+  if (select_format (val))
+    exit (EX_DATAERR);
+  return 0;
+}
+
+static int
+_set_file (const char *val)
+{
+  if (!db_name)
+    db_name = xstrdup (val);
+  return 0;
+}
+
+static int
+_set_null (const char *val)
+{
+  if (!val)
+    include_zero = 1;
+  else if (val[0] == '0' && val[1] == 0)
+    include_zero = 0;
+  else if (val[0] == '1' && val[1] == 0)
+    include_zero = 1;
+  else
+    {
+      mu_error (_("bad value for `null' directive: %s"), val);
+      exit (EX_DATAERR);
+    }
+  return 0;
+}
+
+static int
+_set_uid (const char *val)
+{
+  char *p;
+  unsigned long n;
+
+  if (known_meta_data & META_UID)
+    return 0;
+  errno = 0;
+  n = strtoul (val, &p, 8);
+  if (*p || errno)
+    {
+      mu_error (_("invalid UID"));
+      exit (EX_DATAERR);
+    }
+  owner_uid = n;
+  known_meta_data |= META_UID;
+  return 0;
+}
+
+static int
+_set_gid (const char *val)
+{
+  char *p;
+  unsigned long n;
+  
+  if (known_meta_data & META_GID)
+    return 0;
+  errno = 0;
+  n = strtoul (val, &p, 8);
+  if (*p || errno)
+    {
+      mu_error (_("invalid GID"));
+      exit (EX_DATAERR);
+    }
+  owner_gid = n;
+  known_meta_data |= META_GID;
+  return 0;
+}
+
+static int
+_set_user (const char *val)
+{
+  if (known_meta_data & META_USER)
+    return 0;
+  free (owner_user);
+  owner_user = xstrdup (val);
+  known_meta_data |= META_USER;
+  return 0;
+}
+
+static int
+_set_group (const char *val)
+{
+  if (known_meta_data & META_GROUP)
+    return 0;
+  free (owner_group);
+  owner_group = xstrdup (val);
+  known_meta_data |= META_GROUP;
+  return 0;
+}
+
+static int
+_set_mode (const char *val)
+{
+  char *p;
+  unsigned long n;
+  
+  if (known_meta_data & META_FILE_MODE)
+    return 0;
+  errno = 0;
+  n = strtoul (val, &p, 8);
+  if (*p || errno || n > 0777)
+    {
+      mu_error (_("invalid file mode"));
+      exit (EX_DATAERR);
+    }
+  file_mode = n;
+  known_meta_data |= META_FILE_MODE;
+  return 0;
+}
+
+struct dbm_directive
+{
+  const char *name;
+  size_t len;
+  int (*set) (const char *val);
+  int flags;
+};
+
+#define DF_VALUE   0x01  /* directive requires a value */
+#define DF_HEADER  0x02  /* can appear only in file header */
+#define DF_PROTECT 0x04  /* directive cannot be ignored */
+#define DF_META    0x08  /* directive keeps file meta-information */
+#define DF_SEEN    0x10  /* directive was already seen */
+#define DF_IGNORE  0x20  /* ignore this directive */
+
+static struct dbm_directive dbm_directive_table[] = {
+#define S(s) #s, sizeof #s - 1
+  { S(version), _set_version, DF_HEADER|DF_VALUE|DF_PROTECT },
+  { S(file),    _set_file,    DF_HEADER|DF_VALUE },
+  { S(uid),     _set_uid,     DF_HEADER|DF_META|DF_VALUE },
+  { S(user),    _set_user,    DF_HEADER|DF_META|DF_VALUE },
+  { S(gid),     _set_gid,     DF_HEADER|DF_META|DF_VALUE },
+  { S(group),   _set_group,   DF_HEADER|DF_META|DF_VALUE },
+  { S(mode),    _set_mode,    DF_HEADER|DF_META|DF_VALUE },
+  { S(null),    _set_null,    DF_HEADER|DF_VALUE },
+  { S(null),    _set_null,    DF_HEADER },
+#undef S
+  { NULL }
+};
+
+static void
+ignore_directives (const char *arg)
+{
+  struct mu_wordsplit ws;
+  size_t i;
+  
+  ws.ws_delim = ",";
+  if (mu_wordsplit (arg, &ws,
+		    MU_WRDSF_NOVAR | MU_WRDSF_NOCMD | MU_WRDSF_DELIM))
+    {
+      mu_error (_("cannot split input line: %s"), mu_wordsplit_strerror (&ws));
+      exit (EX_SOFTWARE);
+    }
+
+  for (i = 0; i < ws.ws_wordc; i++)
+    {
+      char *arg = ws.ws_wordv[i];
+      size_t len = strlen (arg);
+      struct dbm_directive *p;
+      int found = 0;
+      
+      for (p = dbm_directive_table; p->name; p++)
+	{
+	  if (p->len == len && memcmp (p->name, arg, len) == 0)
+	    {
+	      if (p->flags & DF_PROTECT)
+		mu_error (_("directive %s cannot be ignored"), p->name);
+	      else
+		p->flags |= DF_IGNORE;
+	      found = 1;
+	    }
+	}
+      if (!found)
+	mu_error (_("unknown directive: %s"), arg);
+    }
+  mu_wordsplit_free (&ws);
+}
+
+static int
+is_ignored_directive (const char *arg)
+{
+  size_t len = strlen (arg);
+  struct dbm_directive *p;
+      
+  for (p = dbm_directive_table; p->name; p++)
+    {
+      if (p->len == len && memcmp (p->name, arg, len) == 0)
+	return p->flags & DF_IGNORE;
+    }
+  return 0;
+}
+
+static void
+ignore_flagged_directives (int flag)
+{
+  struct dbm_directive *p;
+  
+  for (p = dbm_directive_table; p->name; p++)
+    if (!(p->flags & DF_PROTECT) && (p->flags & flag))
+      p->flags |= DF_IGNORE;
+}
+
+static int
+set_directive (char *val)
+{
+  size_t len;
+  struct dbm_directive *p, *match = NULL;
+
+  mu_ltrim_class (val, MU_CTYPE_BLANK);
+  mu_rtrim_class (val, MU_CTYPE_BLANK);
+  len = strcspn (val, "=");
+  for (p = dbm_directive_table; p->name; p++)
+    {
+      if (p->len == len && memcmp (p->name, val, len) == 0)
+	{
+	  int rc;
+	  
+	  match = p;
+	  if (val[len] == '=')
+	    {
+	      if (!(p->flags & DF_VALUE))
+		continue;
+	    }
+	  else if (p->flags & DF_VALUE)
+	    continue;
+		  
+	  if (p->flags & DF_IGNORE)
+	    return 0;
+	  
+	  if (p->flags & DF_SEEN)
+	    {
+	      mu_error (_("directive %s appeared twice"), val);
+	      return 1;
+	    }
+	  rc = p->set ((p->flags & DF_VALUE) ? val + len + 1 : NULL);
+	  if (p->flags & DF_HEADER)
+	    p->flags |= DF_SEEN;
+	  return rc;
+	}
+    }
+  if (match)
+    {
+      if (match->flags & DF_VALUE)
+	mu_error (_("directive requires argument: %s"), val);
+      else
+	mu_error (_("directive does not take argument: %s"), val);
+    }
+  else
+    mu_error (_("unknown or unsupported directive %s"), val);
+  return 1;
+}
+
+static void
+print_header (const char *name, mu_stream_t str)
+{
+  char *delim;
+  time_t t;
+
+  time (&t);
+  mu_stream_printf (str, "# ");
+  mu_stream_printf (str, _("Database dump file created by %s on %s"),
+		    PACKAGE_STRING,
+		    ctime (&t));
+  mu_stream_printf (str, "#:version=%s\n", format->name);
+  if (!is_ignored_directive ("file"))
+    mu_stream_printf (str, "#:file=%s\n", name);
+
+  delim = "#:";
+  if ((known_meta_data & META_UID) && !is_ignored_directive ("uid"))
+    {
+      mu_stream_printf (str, "%suid=%lu", delim, (unsigned long) owner_uid);
+      delim = ",";
+    }
+  if ((known_meta_data & META_USER) && !is_ignored_directive ("user"))
+    {
+      mu_stream_printf (str, "%suser=%s", delim, owner_user);
+      delim = ",";
+    }
+  
+  if ((known_meta_data & META_GID) && !is_ignored_directive ("gid"))
+    {
+      mu_stream_printf (str, "%sgid=%lu", delim, (unsigned long) owner_gid);
+      delim = ",";
+    }
+
+  if ((known_meta_data & META_GROUP) && !is_ignored_directive ("group"))
+    {
+      mu_stream_printf (str, "%sgroup=%s", delim, owner_group);
+      delim = ",";
+    }
+  
+  if ((known_meta_data & META_FILE_MODE) && !is_ignored_directive ("mode"))
+    mu_stream_printf (str, "%smode=%03o", delim, file_mode);
+
+  if (delim[0] == ',')
+    mu_stream_printf (str, "\n");
+}
+
+
+static void
 add_records (int mode, int replace)
 {
   mu_dbm_file_t db;
-  mu_stream_t input, flt;
+  mu_stream_t instream, flt;
   const char *flt_argv[] = { "inline-comment", "#", "-S", "-i", "#", NULL };
-  char *buf = NULL;
-  size_t size = 0;
-  size_t len;
-  unsigned long line;
   int rc;
+  int save_log_mode = 0, log_mode;
+  struct mu_locus save_locus = { NULL, }, locus;
+  struct mu_dbm_datum key, contents;
+  struct iobuf input;
+  struct mu_wordsplit ws;
+  int wsflags = MU_WRDSF_NOVAR | MU_WRDSF_NOCMD | MU_WRDSF_DELIM;
   
+  if (mode != MU_STREAM_CREAT)
+    {
+      ignore_flagged_directives (DF_META);
+      known_meta_data = 0;
+    }
+  
+  /* Prepare input data */
   if (input_file)
     {
-      rc = mu_file_stream_create (&input, input_file, MU_STREAM_READ);
+      rc = mu_file_stream_create (&instream, input_file, MU_STREAM_READ);
       if (rc)
 	{
 	  mu_error (_("cannot open input file %s: %s"), input_file,
@@ -346,9 +1179,9 @@ add_records (int mode, int replace)
 	}
     }
   else
-    input = mu_strin;
+    instream = mu_strin;
   
-  rc = mu_filter_create_args (&flt, input, "inline-comment",
+  rc = mu_filter_create_args (&flt, instream, "inline-comment",
 			      MU_ARRAY_SIZE (flt_argv) - 1, flt_argv,
 			      MU_FILTER_DECODE, MU_STREAM_READ);
   if (rc)
@@ -356,56 +1189,103 @@ add_records (int mode, int replace)
       mu_diag_funcall (MU_DIAG_ERROR, "mu_filter_create_args", input_file, rc);
       exit (EX_UNAVAILABLE);
     }
-  mu_stream_unref (input);
-  input = flt;
+  mu_stream_unref (instream);
+  instream = flt;
 
-  db = open_db_file (mode);
+  /* Configure error stream to output input file location before each error
+     message */
+  locus.mu_file = input_file ? input_file : "<stdin>";
+  locus.mu_line = 0;
+  locus.mu_col = 0;
+  
+  mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM, MU_IOCTL_LOGSTREAM_GET_MODE,
+		   &save_log_mode);
+  mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM, MU_IOCTL_LOGSTREAM_GET_LOCUS,
+		   &save_locus);
+  log_mode = save_log_mode | MU_LOGMODE_LOCUS;
+  mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM, MU_IOCTL_LOGSTREAM_SET_MODE,
+		   &log_mode);
+  mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM, MU_IOCTL_LOGSTREAM_SET_LOCUS,
+		   &locus);
 
-  line = 1;
-  if (!input_file)
-    input_file = "<stdin>";
-  while ((rc = mu_stream_getline (input, &buf, &size, &len)) == 0
-	 && len > 0)
+  /* Initialize I/O data */
+  memset (&key, 0, sizeof key);
+  memset (&contents, 0, sizeof contents);
+
+  /* Initialize input buffer */
+  input.buffer = NULL;
+  input.bufsize = 0;
+  input.length = 0;
+  input.read = 0;
+  input.stream = instream;
+
+  /* Read directive header */
+  ws.ws_delim = ",";
+  while ((rc = input_getline (&input)) == 0 &&
+	 is_dbm_directive (&input) &&
+	 !is_len_directive (&input))
     {
-      struct mu_dbm_datum key, contents;
-      char *kstr, *val;
-      
-      mu_rtrim_class (buf, MU_CTYPE_ENDLN);
-      if (buf[0] == '#')
-	{
-	  line = strtoul (buf + 1, NULL, 10);
-	  continue;
-	}
-      kstr = mu_str_stripws (buf);
-      val = mu_str_skip_class_comp (kstr, MU_CTYPE_SPACE);
-      *val++ = 0;
-      val = mu_str_skip_class (val, MU_CTYPE_SPACE);
-      if (*val == 0)
-	{
-	  mu_error (_("%s:%lu: malformed line"), input_file, line);
-	  line++;
-	  continue;
-	}
+      size_t i;
 
-      init_datum (&key, kstr);
-      init_datum (&contents, val);
-
-      rc = mu_dbm_store (db, &key, &contents, replace);
-      if (rc)
-	mu_error (_("%s:%lu: cannot store datum: %s"),
-		  input_file, line,
-		  rc == MU_ERR_FAILURE ?
-		     mu_dbm_strerror (db) : mu_strerror (rc));
-      line++;
+      if (mu_wordsplit (input.buffer + 2, &ws, wsflags))
+	{
+	  mu_error (_("cannot split input line: %s"),
+		    mu_wordsplit_strerror (&ws));
+	  exit (EX_SOFTWARE);
+	}
+      for (i = 0; i < ws.ws_wordc; i++)
+	{
+	  set_directive (ws.ws_wordv[i]);
+	}
+      wsflags |= MU_WRDSF_REUSE;
     }
-  mu_dbm_destroy (&db);
+  if (wsflags & MU_WRDSF_REUSE)
+    mu_wordsplit_free (&ws);
 
-  mu_stream_unref (input);
+  init_format (1, &input);
+  
+  /* Open the database */
+  db = open_db_file (mode);
+  if (known_meta_data)
+    set_db_ownership (db);
+  
+  /* Read and store the actual data */
+  if (rc == 0 && input_length (&input) > 0)
+    {
+      ignore_flagged_directives (DF_HEADER);
+      input_ungetline (&input);
+
+      memset (&key, 0, sizeof key);
+      memset (&contents, 0, sizeof contents);
+      
+      while ((rc = read_data (&input, &key, &contents)) == 0)
+	{
+	  if (key.mu_dsize)
+	    {
+	      rc = mu_dbm_store (db, &key, &contents, replace);
+	      if (rc)
+		mu_error (_("cannot store datum: %s"),
+			  rc == MU_ERR_FAILURE ?
+			  mu_dbm_strerror (db) : mu_strerror (rc));
+	    }
+	}
+    }
+  
+  mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM, MU_IOCTL_LOGSTREAM_SET_MODE,
+		   &save_log_mode);
+  mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM, MU_IOCTL_LOGSTREAM_SET_LOCUS,
+		   &save_locus);
+  
+  mu_dbm_destroy (&db);
+  mu_stream_unref (instream);
 }
 
 static void
 create_database ()
 {
+  if (getuid() != 0)
+    ignore_flagged_directives (DF_META);
+  
   if (copy_permissions)
     {
       struct stat st;
@@ -422,14 +1302,21 @@ create_database ()
 	}
       owner_uid = st.st_uid;
       owner_gid = st.st_gid;
-      permissions = st.st_mode & 0777;
+      file_mode = st.st_mode & 0777;
+      known_meta_data |= META_UID | META_GID | META_FILE_MODE;
     }
   else if (auth)
     {
-      if (owner_uid == -1)
-	owner_uid = auth->uid;
-      if (owner_gid == -1)
-	owner_gid = auth->gid;
+      if (!(known_meta_data & META_UID))
+	{
+	  owner_uid = auth->uid;
+	  known_meta_data |= META_UID;
+	}
+      if (!(known_meta_data & META_GID))
+	{
+	  owner_gid = auth->gid;
+	  known_meta_data |= META_GID;
+	}
     }
   add_records (MU_STREAM_CREAT, 0);
 }
@@ -558,6 +1445,15 @@ static struct argp_option dbm_options[] = {
     N_("set database owner group") },
   { "copy-permissions", 'P', NULL, 0,
     N_("copy database permissions and ownership from the input file") },
+  { "ignore-meta",      'm', NULL, 0,
+    N_("ignore meta-information from input file headers") },
+  { "ignore-directives", 'I', N_("NAMES"), 0,
+    N_("ignore the listed directives") },
+  { NULL, 0, NULL, 0, N_("List modifiers"), 0},
+  { "format",           'H', N_("TYPE"), 0,
+    N_("select output format") },
+  { "no-header",        'q', NULL, 0,
+    N_("suppress format header") },
   { NULL, 0, NULL, 0, N_("List and Delete modifiers"), 0},
   { "glob",        'G', NULL, 0,
     N_("treat keys as globbing patterns") },
@@ -602,13 +1498,18 @@ dbm_parse_opt (int key, char *arg, struct argp_state *state)
       input_file = arg;
       break;
 
+    case 'H':
+      select_format (arg);
+      break;
+      
     case 'p':
       {
 	char *p;
 	unsigned long d = strtoul (arg, &p, 8);
 	if (*p || (d & ~0777))
 	  argp_error (state, _("invalid file mode: %s"), arg);
-	permissions = d;
+	file_mode = d;
+	known_meta_data |= META_FILE_MODE;
       }
       break;
 
@@ -616,17 +1517,27 @@ dbm_parse_opt (int key, char *arg, struct argp_state *state)
       copy_permissions = 1;
       break;
 
+    case 'q':
+      suppress_header = 1;
+      break;
+      
     case 'u':
       auth = mu_get_auth_by_name (arg);
-      if (!auth)
+      if (auth)
+	known_meta_data |= META_AUTH;
+      else
 	{
 	  char *p;
 	  unsigned long n = strtoul (arg, &p, 0);
 	  if (*p == 0)
-	    owner_uid = n;
+	    {
+	      owner_uid = n;
+	      known_meta_data |= META_UID;
+	    }
 	  else
 	    argp_error (state, _("no such user: %s"), arg);
 	}
+      ignore_directives ("user,uid");
       break;
 
     case 'g':
@@ -643,6 +1554,8 @@ dbm_parse_opt (int key, char *arg, struct argp_state *state)
 	  }
 	else
 	  owner_gid = gr->gr_gid;
+	known_meta_data |= META_GID;
+	ignore_directives ("group,gid");
       }
       break;
 
@@ -654,6 +1567,14 @@ dbm_parse_opt (int key, char *arg, struct argp_state *state)
       key_type = key_regex;
       break;
 
+    case 'm':/* FIXME: Why m? */
+      ignore_flagged_directives (DF_META);
+      break;
+
+    case 'I':
+      ignore_directives (arg);
+      break;
+      
     case 'i':
       case_sensitive = 0;
       break;
@@ -686,8 +1607,8 @@ int
 mutool_dbm (int argc, char **argv)
 {
   int index;
-  
-  if (argp_parse (&dbm_argp, argc, argv, ARGP_IN_ORDER, &index, NULL))
+
+  if (argp_parse (&dbm_argp, argc, argv, 0, &index, NULL))
     return 1;
 
   argc -= index;
@@ -695,12 +1616,18 @@ mutool_dbm (int argc, char **argv)
 
   if (argc == 0)
     {
-      mu_error (_("database name not given"));
-      exit (EX_USAGE);
+      if (mode != mode_create)
+	{
+	  mu_error (_("database name not given"));
+	  exit (EX_USAGE);
+	}
     }
-  db_name = *argv++;
-  --argc;
-
+  else
+    {
+      db_name = *argv++;
+      --argc;
+    }
+  
   switch (mode)
     {
     case mode_list:

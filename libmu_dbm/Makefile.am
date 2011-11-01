@@ -29,6 +29,7 @@ libmu_dbm_la_SOURCES = \
  fetch.c\
  firstkey.c\
  getfd.c\
+ name.c\
  nextkey.c\
  open.c\
  safety.c\

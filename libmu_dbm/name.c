@@ -29,16 +29,12 @@
 #include "mudbm.h"
 
 int
-mu_dbm_create (char *name, mu_dbm_file_t *db)
+mu_dbm_get_name (mu_dbm_file_t db, const char **pname)
 {
-  int rc;
-  mu_url_t url;
-
-  mu_dbm_init ();
-  rc = mu_url_create_hint (&url, name, 0, mu_dbm_hint);
-  if (rc)
-    return rc;
-  rc = mu_dbm_create_from_url (url, db);
-  mu_url_destroy (&url);
-  return rc;
+  if (!db)
+    return EINVAL;
+  if (!pname)
+    return MU_ERR_OUT_PTR_NULL;
+  *pname = db->db_name;
+  return 0;
 }

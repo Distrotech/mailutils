@@ -73,6 +73,7 @@ int mu_dbm_safety_set_flags (mu_dbm_file_t db, int flags);
 int mu_dbm_safety_check (mu_dbm_file_t db);
 char const *mu_dbm_strerror (mu_dbm_file_t db);
 int mu_dbm_get_fd (mu_dbm_file_t db, int *pag, int *dir);
+int mu_dbm_get_name (mu_dbm_file_t db, const char **pname);
 
 int mu_dbm_impl_iterator (mu_iterator_t *itr);
 
