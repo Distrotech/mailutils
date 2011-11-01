@@ -318,7 +318,8 @@ static int format_count = MU_ARRAY_SIZE (format_tab) - 1;
 						     
 #define DEFAULT_LIST_FORMAT (&format_tab[0])
 #define DEFAULT_DUMP_FORMAT (&format_tab[1])
-						     
+#define DEFAULT_LOAD_FORMAT (&format_tab[0])
+
 static struct xfer_format *format;
 static const char *dump_format_version;
 
@@ -1244,6 +1245,8 @@ add_records (int mode, int replace)
   if (wsflags & MU_WRDSF_REUSE)
     mu_wordsplit_free (&ws);
 
+  if (!format)
+    format = DEFAULT_LOAD_FORMAT;
   init_format (1, &input);
   
   /* Open the database */
