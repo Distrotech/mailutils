@@ -135,6 +135,10 @@ main (int argc, char **argv)
   /* Disable --version option in action. */
   argp_program_version = NULL;
   argp_program_version_hook = NULL;
+
+  /* Reset argv[0] for diagnostic purposes */
+  mu_asprintf (&argv[0], "%s %s", mu_program_name, argv[0]);
+  
   /* Run the action. */
   exit (action (argc, argv));
 }

@@ -21,6 +21,7 @@
 #endif
 #include <stdlib.h>
 #include <mailutils/nls.h>
+#include <mailutils/io.h>
 #include "mailutils/libargp.h"
 #include "mu.h"
 
@@ -54,7 +55,7 @@ mutool_help (int argc, char **argv)
 	  mu_error (_("don't know what %s is"), argv[index]);
 	  exit (1);
 	}
-      argv[0] = argv[index];
+      mu_asprintf (&argv[0], "%s %s", mu_program_name, argv[index]);
       argv[1] = "--help";
       return action (2, argv);
     }

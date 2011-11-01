@@ -31,13 +31,22 @@
 #include "mu.h"
 #include "xalloc.h"
 
-static char dbm_doc[] = N_("mu dbm - DBM management tool");
+static char dbm_doc[] = N_("mu dbm - DBM management tool\n"
+"Valid COMMANDs are:\n"
+"\n"
+"  create or load - create the database\n"
+"  list           - list contents of the database\n"
+"  delete         - delete specified keys from the database\n"
+"  add            - add records to the database\n"
+"  replace        - add records replacing ones with matching keys\n");
 char dbm_docstring[] = N_("DBM management tool");
-static char dbm_args_doc[] = N_("FILE [KEY...]");
+static char dbm_args_doc[] = N_("COMMAND FILE [KEY...]");
 
 enum mode
   {
+    mode_unspecified,
     mode_list,
+    mode_dump,
     mode_create,
     mode_delete,
     mode_add,
@@ -75,7 +84,7 @@ static enum key_type key_type = key_literal;
 static int case_sensitive = 1;
 static int include_zero = -1;
 
-static int suppress_header;
+static int suppress_header = -1;
 
 
 static void
@@ -306,9 +315,13 @@ static struct xfer_format format_tab[] = {
   { NULL }
 };
 static int format_count = MU_ARRAY_SIZE (format_tab) - 1;
-
-static struct xfer_format *format = format_tab;
+						     
+#define DEFAULT_LIST_FORMAT (&format_tab[0])
+#define DEFAULT_DUMP_FORMAT (&format_tab[1])
+						     
+static struct xfer_format *format;
 static const char *dump_format_version;
+
 						     
 static int
 read_data (struct iobuf *inp, struct mu_dbm_datum *key,
@@ -328,8 +341,6 @@ static int
 select_format (const char *version)
 {
   struct xfer_format *fmt;
-  char *p;
-  unsigned long n;
 
   dump_format_version = version;
   for (fmt = format_tab; fmt->name; fmt++)
@@ -338,15 +349,6 @@ select_format (const char *version)
 	format = fmt;
 	return 0;
       }
-
-  /* Try version number */
-  errno = 0;
-  n = strtoul (version, &p, 10);
-  if ((*p == 0 || *p == '.') && errno == 0 && n < format_count)
-    {
-      format = format_tab + n;
-      return 0;
-    }
   mu_error (_("unsupported format version: %s"), version);
   return 1;
 }
@@ -1427,16 +1429,9 @@ delete_database (int argc, char **argv)
  */
 
 static struct argp_option dbm_options[] = {
-  { NULL, 0, NULL, 0, N_("Operation mode"), 0},
-  { "create", 'c', NULL, 0, N_("create the database") },
-  { "list",   'l', NULL, 0, N_("list contents of the database") },
-  { "delete", 'd', NULL, 0, N_("delete specified keys from the database") },
-  { "add",    'a', NULL, 0, N_("add records to the database") },
-  { "replace",'r', NULL, 0, N_("add records replacing ones with matching keys") },
-  
-  { NULL, 0, NULL, 0, N_("Create modifiers"), 0},
+  { NULL, 0, NULL, 0, N_("Create Options"), 0},
   { "file",   'f', N_("FILE"), 0,
-    N_("read input from FILE (with --create, --delete, --add and --replace)") },
+    N_("read input from FILE (with create, delete, add and replace)") },
   { "permissions", 'p', N_("NUM"), 0,
     N_("set permissions on the created database") },
   { "user",        'u', N_("USER"), 0,
@@ -1449,19 +1444,19 @@ static struct argp_option dbm_options[] = {
     N_("ignore meta-information from input file headers") },
   { "ignore-directives", 'I', N_("NAMES"), 0,
     N_("ignore the listed directives") },
-  { NULL, 0, NULL, 0, N_("List modifiers"), 0},
+  { NULL, 0, NULL, 0, N_("List and Dump Options"), 0},
   { "format",           'H', N_("TYPE"), 0,
     N_("select output format") },
   { "no-header",        'q', NULL, 0,
     N_("suppress format header") },
-  { NULL, 0, NULL, 0, N_("List and Delete modifiers"), 0},
+  { NULL, 0, NULL, 0, N_("List, Dump and Delete Options"), 0},
   { "glob",        'G', NULL, 0,
     N_("treat keys as globbing patterns") },
   { "regex",       'R', NULL, 0,
     N_("treat keys as regular expressions") },
   { "ignore-case", 'i', NULL, 0,
     N_("case-insensitive matches") },
-  { NULL, 0, NULL, 0, N_("Data length modifiers"), 0 },
+  { NULL, 0, NULL, 0, N_("Options for Use with Format 0.0"), 0 },
   { "count-null",  'N', NULL, 0,
     N_("data length accounts for terminating zero") },
   { "no-count-null", 'n', NULL, 0,
@@ -1474,26 +1469,6 @@ dbm_parse_opt (int key, char *arg, struct argp_state *state)
 {
   switch (key)
     {
-    case 'c':
-      mode = mode_create;
-      break;
-
-    case 'l':
-      mode = mode_list;
-      break;
-
-    case 'd':
-      mode = mode_delete;
-      break;
-
-    case 'a':
-      mode = mode_add;
-      break;
-
-    case 'r':
-      mode = mode_replace;
-      break;
-
     case 'f':
       input_file = arg;
       break;
@@ -1603,6 +1578,18 @@ static struct argp dbm_argp = {
   NULL
 };
 
+struct mu_kwd mode_tab[] =
+{
+  { "add",     mode_add },
+  { "create",  mode_create },
+  { "load",    mode_create },
+  { "list",    mode_list },
+  { "replace", mode_replace },
+  { "delete",  mode_delete },
+  { "dump",    mode_dump },
+  { NULL }
+};
+
 int
 mutool_dbm (int argc, char **argv)
 {
@@ -1614,6 +1601,21 @@ mutool_dbm (int argc, char **argv)
   argc -= index;
   argv += index;
 
+  if (argc == 0)
+    {
+      mu_error (_("subcommand not given"));
+      exit (EX_USAGE);
+    }
+  
+  if (mu_kwd_xlat_name (mode_tab, argv[0], &index))
+    {
+      mu_error (_("unknown subcommand: %s"), argv[0]);
+      exit (EX_USAGE);
+    }
+  mode = index;
+  argc--;
+  argv++;
+  
   if (argc == 0)
     {
       if (mode != mode_create)
@@ -1631,6 +1633,18 @@ mutool_dbm (int argc, char **argv)
   switch (mode)
     {
     case mode_list:
+      if (!format)
+	format = DEFAULT_LIST_FORMAT;
+      if (suppress_header == -1)
+	suppress_header = 1;
+      list_database (argc, argv);
+      break;
+
+    case mode_dump:
+      if (!format)
+	format = DEFAULT_DUMP_FORMAT;
+      if (suppress_header == -1)
+	suppress_header = 0;
       list_database (argc, argv);
       break;
       
