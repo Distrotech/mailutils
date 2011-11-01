@@ -24,7 +24,7 @@
 
 static char wicket_doc[] = N_("mu wicket - find matching URL in wicket");
 char wicket_docstring[] = N_("scan wickets for matching URLs");
-static char wicket_args_doc[] = N_("NAME");
+static char wicket_args_doc[] = N_("URL");
 
 static struct argp_option wicket_options[] = {
   { "file",    'f', N_("FILE"), 0, N_("use FILE instead of ~/.mu-tickets") },

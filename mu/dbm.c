@@ -44,7 +44,6 @@ static char dbm_args_doc[] = N_("COMMAND FILE [KEY...]");
 
 enum mode
   {
-    mode_unspecified,
     mode_list,
     mode_dump,
     mode_create,
@@ -148,7 +147,7 @@ set_db_ownership (mu_dbm_file_t db)
 	  if (!(known_meta_data & META_UID))
 	    {
 	      mu_error (_("no such user: %s"), owner_user);
-	      exit (EX_DATAERR);
+	      exit (EX_NOUSER);
 	    }
 	}
       else
@@ -314,7 +313,6 @@ static struct xfer_format format_tab[] = {
   { "1.0", newfmt_init, newfmt_reader, newfmt_writer, NULL },
   { NULL }
 };
-static int format_count = MU_ARRAY_SIZE (format_tab) - 1;
 						     
 #define DEFAULT_LIST_FORMAT (&format_tab[0])
 #define DEFAULT_DUMP_FORMAT (&format_tab[1])
@@ -473,7 +471,7 @@ newfmt_read_datum (struct iobuf *iop, mu_opool_t pool,
   if (rc)
     {
       mu_error ("%s", mu_strerror (rc));
-      exit (EX_UNAVAILABLE);
+      exit (EX_IOERR);
     }
   if (iop->length == 0)
     return 1;
@@ -505,7 +503,7 @@ newfmt_read_datum (struct iobuf *iop, mu_opool_t pool,
       if (rc)
 	{
 	  mu_error ("%s", mu_strerror (rc));
-	  exit (EX_UNAVAILABLE);
+	  exit (EX_IOERR);
 	}
       if (iop->length == 0)
 	break;
@@ -892,7 +890,7 @@ _set_uid (const char *val)
   if (*p || errno)
     {
       mu_error (_("invalid UID"));
-      exit (EX_DATAERR);
+      exit (EX_NOUSER);
     }
   owner_uid = n;
   known_meta_data |= META_UID;
@@ -1178,7 +1176,7 @@ add_records (int mode, int replace)
 	{
 	  mu_error (_("cannot open input file %s: %s"), input_file,
 		    mu_strerror (rc));
-	  exit (EX_UNAVAILABLE);
+	  exit (EX_NOINPUT);
 	}
     }
   else
