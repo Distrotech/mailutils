@@ -103,9 +103,6 @@ main (int argc, char **argv)
   
   mu_set_program_name (argv[0]);
   mu_stdstream_setup (MU_STDSTREAM_RESET_NONE);
-#ifdef WITH_TLS
-  mu_init_tls_libs ();
-#endif  
   
   if (argc < 2)
     usage ();

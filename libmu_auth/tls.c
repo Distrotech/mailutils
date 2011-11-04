@@ -35,7 +35,13 @@
 #include <mailutils/errno.h>
 #include <mailutils/util.h>
 
-struct mu_tls_module_config mu_tls_module_config;
+struct mu_tls_module_config mu_tls_module_config = {
+#ifdef WITH_TLS
+  1 /* enable by default */
+#else
+  0
+#endif
+};
   
 int
 mu_tls_module_init (enum mu_gocs_op op, void *data)
@@ -70,6 +76,8 @@ static gnutls_certificate_server_credentials x509_cred;
 int
 mu_check_tls_environment (void)
 {
+  if (!mu_tls_module_config.enable)
+    return 0;
   if (mu_tls_module_config.ssl_cert && mu_tls_module_config.ssl_key)
     {
       int rc = mu_file_safety_check (mu_tls_module_config.ssl_cert,
@@ -120,7 +128,7 @@ _mu_gtls_logger(int level, const char *text)
 int
 mu_init_tls_libs (void)
 {
-  if (mu_tls_module_config.enable && !mu_tls_enable)
+  if (!mu_tls_enable)
     mu_tls_enable = !gnutls_global_init (); /* Returns 1 on success */
 #ifdef DEBUG_TLS
   gnutls_global_set_log_function (_mu_gtls_logger);
@@ -370,9 +378,13 @@ _tls_server_open (mu_stream_t stream)
   int rc = 0;
   mu_transport_t transport[2];
   
+  if (!mu_tls_module_config.enable)
+    return MU_ERR_FAILURE; /* FIXME: another error code */
   if (!stream || sp->state != state_init)
     return EINVAL;
 
+  mu_init_tls_libs ();
+  
   gnutls_certificate_allocate_credentials (&x509_cred);
 
   if (mu_tls_module_config.ssl_cafile)
@@ -473,6 +485,7 @@ _tls_client_open (mu_stream_t stream)
       /* FALLTHROUGH */
       
     case state_init:
+      mu_init_tls_libs ();
       prepare_client_session (stream);
       rc = gnutls_handshake (sp->session);
       if (rc < 0)

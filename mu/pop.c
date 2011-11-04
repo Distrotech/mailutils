@@ -677,7 +677,7 @@ mutool_pop (int argc, char **argv)
 
   if (argp_parse (&pop_argp, argc, argv, ARGP_IN_ORDER, &index, NULL))
     return 1;
-
+  
   argc -= index;
   argv += index;
 

@@ -77,7 +77,7 @@ cb_safety_checks (void *data, mu_config_value_t *arg)
 
 static struct mu_cfg_param mu_tls_param[] = {
   { "enable", mu_cfg_bool, &tls_settings.enable, 0, NULL,
-    N_("Enable client TLS encryption.") },
+    N_("Enable TLS encryption.") },
   { "ssl-cert", mu_cfg_string, &tls_settings.ssl_cert, 0, NULL,
     N_("Specify SSL certificate file."),
     N_("file") },

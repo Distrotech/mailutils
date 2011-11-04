@@ -56,7 +56,6 @@ extern struct mu_cmdline_capa mu_debug_cmdline;
   
 extern struct mu_cmdline_capa mu_pam_cmdline;
 extern struct mu_cmdline_capa mu_gsasl_cmdline;
-extern struct mu_cmdline_capa mu_tls_cmdline;
 extern struct mu_cmdline_capa mu_radius_cmdline;
 extern struct mu_cmdline_capa mu_sql_cmdline;
 extern struct mu_cmdline_capa mu_virtdomain_cmdline;

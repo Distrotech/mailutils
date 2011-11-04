@@ -30,6 +30,5 @@ libmu_argp_a_SOURCES =\
  common.c\
  mu_argp.c\
  muinit.c\
- sieve.c\
- tls.c
+ sieve.c
 

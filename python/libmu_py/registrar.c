@@ -131,9 +131,4 @@ _mu_py_attach_registrar ()
 
   mu_registrar_record (MU_DEFAULT_RECORD);
   mu_registrar_set_default_record (MU_DEFAULT_RECORD);
-
-#ifdef WITH_TLS
-  mu_init_tls_libs ();
-#endif /* WITH_TLS */
-
 }

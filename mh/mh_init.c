@@ -47,9 +47,6 @@ mh_init ()
   
   /* Register all mailbox and mailer formats */
   mu_register_all_formats ();
-#ifdef WITH_TLS
-  mu_init_tls_libs ();
-#endif
 
   /* Read user's profile */
   mh_read_profile ();
