@@ -150,8 +150,9 @@ int deliver_to_user (mu_message_t msg, char *dest_id, char **errp);
 
 int maidag_stdio_delivery (maidag_delivery_fn fun, int argc, char **argv);
 int maidag_lmtp_server (void);
-int lmtp_connection (int fd, struct sockaddr *sa, int salen, void *data,
-		     mu_ip_server_t srv, time_t timeout, int transcript);
+int lmtp_connection (int fd, struct sockaddr *sa, int salen,
+		     struct mu_srv_config *pconf,
+		     void *data);
 
 void maidag_error (const char *fmt, ...) MU_PRINTFLIKE(1, 2);
 void notify_biff (mu_mailbox_t mbox, char *name, size_t size);

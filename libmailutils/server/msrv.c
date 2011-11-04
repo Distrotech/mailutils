@@ -76,9 +76,10 @@ struct _mu_m_server
 				    objects. It is cleared after the objects
 				    are opened and attached to the server. */
   
-  mu_m_server_conn_fp conn;      /* Connection handler function. */
-  mu_m_server_prefork_fp prefork;/* Pre-fork function. */
+  mu_m_server_handler_fp conn;   /* Connection handler function. */
+  mu_m_server_handler_fp prefork;/* Pre-fork function. */
   void *data;                    /* User-supplied data for conn and prefork. */
+  size_t app_data_size;
   
   int mode;                      /* Server mode: should be removed. */
   
@@ -96,16 +97,6 @@ struct _mu_m_server
   mu_sig_handler_t sigtab[NSIG]; /* Keeps old signal handlers. */
   const char *(*strexit) (int);  /* Convert integer exit code to textual
 				    description. */
-};
-
-struct m_srv_config        /* Configuration data for a single TCP server. */
-{
-  mu_m_server_t msrv;      /* Parent m-server. */  
-  mu_ip_server_t tcpsrv;   /* TCP server these data are for. */
-  mu_acl_t acl;            /* Access control list for this server. */ 
-  int single_process;      /* Should it run as a single process? */
-  int transcript;          /* Enable session transcript. */
-  time_t timeout;          /* Idle timeout for this server. */
 };
 
 
@@ -326,13 +317,13 @@ mu_m_server_set_mode (mu_m_server_t srv, int mode)
 }
 
 void
-mu_m_server_set_conn (mu_m_server_t srv, mu_m_server_conn_fp conn)
+mu_m_server_set_conn (mu_m_server_t srv, mu_m_server_handler_fp conn)
 {
   srv->conn = conn;
 }
 
 void
-mu_m_server_set_prefork (mu_m_server_t srv, mu_m_server_prefork_fp fun)
+mu_m_server_set_prefork (mu_m_server_t srv, mu_m_server_handler_fp fun)
 {
   srv->prefork = fun;
 }
@@ -433,9 +424,24 @@ mu_m_server_foreground (mu_m_server_t srv)
 }
 
 void
-m_srv_config_free (void *data)
+mu_m_server_set_app_data_size (mu_m_server_t srv, size_t size)
 {
-  struct m_srv_config *pconf = data;
+  srv->app_data_size = size;
+}
+
+int
+mu_m_server_set_config_size (mu_m_server_t srv, size_t size)
+{
+  if (size < sizeof (struct mu_srv_config))
+    return EINVAL;
+  srv->app_data_size = size - sizeof (struct mu_srv_config);
+  return 0;
+}
+
+void
+mu_srv_config_free (void *data)
+{
+  struct mu_srv_config *pconf = data;
   /* FIXME */
   free (pconf);
 }
@@ -444,15 +450,15 @@ static int m_srv_conn (int fd, struct sockaddr *sa, int salen,
 		       void *server_data, void *call_data,
 		       mu_ip_server_t srv);
 
-static struct m_srv_config *
+static struct mu_srv_config *
 add_server (mu_m_server_t msrv, struct mu_sockaddr *s, int type)
 {
   mu_ip_server_t tcpsrv;
-  struct m_srv_config *pconf;
+  struct mu_srv_config *pconf;
 
   MU_ASSERT (mu_ip_server_create (&tcpsrv, s, type)); /* FIXME: type */
   MU_ASSERT (mu_ip_server_set_conn (tcpsrv, m_srv_conn));
-  pconf = calloc (1, sizeof (*pconf));
+  pconf = calloc (1, sizeof (*pconf) + msrv->app_data_size);
   if (!pconf)
     {
       mu_error ("%s", mu_strerror (ENOMEM));
@@ -462,7 +468,7 @@ add_server (mu_m_server_t msrv, struct mu_sockaddr *s, int type)
   pconf->tcpsrv = tcpsrv;
   pconf->single_process = 0;
   pconf->timeout = msrv->timeout;
-  MU_ASSERT (mu_ip_server_set_data (tcpsrv, pconf, m_srv_config_free));
+  MU_ASSERT (mu_ip_server_set_data (tcpsrv, pconf, mu_srv_config_free));
   if (!msrv->srvlist)
     MU_ASSERT (mu_list_create (&msrv->srvlist));
   MU_ASSERT (mu_list_append (msrv->srvlist, tcpsrv));
@@ -681,7 +687,7 @@ m_srv_conn (int fd, struct sockaddr *sa, int salen,
 	    mu_ip_server_t srv)
 {
   int status;
-  struct m_srv_config *pconf = server_data;
+  struct mu_srv_config *pconf = server_data;
   
   if (mu_m_server_check_acl (pconf->msrv, sa, salen))
     return 0;
@@ -701,7 +707,7 @@ m_srv_conn (int fd, struct sockaddr *sa, int salen,
           return 0;
         }
       if (pconf->msrv->prefork
-	  && pconf->msrv->prefork (fd, pconf->msrv->data, sa, salen))
+	  && pconf->msrv->prefork (fd, sa, salen, pconf, pconf->msrv->data))
 	return 0;
       
       pid = fork ();
@@ -711,8 +717,8 @@ m_srv_conn (int fd, struct sockaddr *sa, int salen,
 	{
 	  mu_ip_server_shutdown (srv); /* FIXME: does it harm for MU_IP_UDP? */
 	  mu_m_server_restore_signals (pconf->msrv);
-	  status = pconf->msrv->conn (fd, sa, salen, pconf->msrv->data, srv,
-				      pconf->timeout, pconf->transcript);
+	  status = pconf->msrv->conn (fd, sa, salen, pconf,
+				      pconf->msrv->data);
 	  closelog ();
 	  exit (status);
 	}
@@ -722,9 +728,9 @@ m_srv_conn (int fd, struct sockaddr *sa, int salen,
 	}
     }
   else if (!pconf->msrv->prefork
-	   || pconf->msrv->prefork (fd, pconf->msrv->data, sa, salen) == 0)
-    pconf->msrv->conn (fd, sa, salen, pconf->msrv->data, srv,
-		       pconf->timeout, pconf->transcript);
+	   || pconf->msrv->prefork (fd, sa, salen, pconf,
+				    pconf->msrv->data) == 0)
+    pconf->msrv->conn (fd, sa, salen, pconf, pconf->msrv->data);
   return 0;
 }
 
@@ -802,7 +808,7 @@ server_section_parser (enum mu_cfg_section_stage stage,
 
     case mu_cfg_section_end:
       {
-	struct m_srv_config *pconf = *section_data;
+	struct mu_srv_config *pconf = *section_data;
 	if (pconf->acl)
 	  mu_ip_server_set_acl (pconf->tcpsrv, pconf->acl);
       }
@@ -904,22 +910,22 @@ static struct mu_cfg_param dot_server_cfg_param[] = {
     
 static struct mu_cfg_param server_cfg_param[] = {
   { "single-process", mu_cfg_bool, 
-    NULL, mu_offsetof (struct m_srv_config, single_process), NULL,
+    NULL, mu_offsetof (struct mu_srv_config, single_process), NULL,
     N_("Run this server in foreground.") },
   { "transcript", mu_cfg_bool,
-    NULL, mu_offsetof (struct m_srv_config, transcript), NULL,
+    NULL, mu_offsetof (struct mu_srv_config, transcript), NULL,
     N_("Log the session transcript.") },
   { "timeout", mu_cfg_time,
-    NULL, mu_offsetof (struct m_srv_config, timeout), NULL,
+    NULL, mu_offsetof (struct mu_srv_config, timeout), NULL,
     N_("Set idle timeout.") },
   { "acl", mu_cfg_section,
-    NULL, mu_offsetof (struct m_srv_config, acl), NULL,
+    NULL, mu_offsetof (struct mu_srv_config, acl), NULL,
     N_("Global access control list.") },
   { NULL }
 };
 
 void
-mu_m_server_cfg_init ()
+mu_m_server_cfg_init (struct mu_cfg_param *app_param)
 {
   struct mu_cfg_section *section;
   if (mu_create_canned_section ("server", &section) == 0)
@@ -927,6 +933,8 @@ mu_m_server_cfg_init ()
       section->parser = server_section_parser;
       section->label = N_("ipaddr[:port]");
       mu_cfg_section_add_params (section, server_cfg_param);
+      if (app_param)
+	mu_cfg_section_add_params (section, app_param);
     }
   if (mu_create_canned_section (".server", &section) == 0)
     {

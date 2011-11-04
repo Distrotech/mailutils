@@ -574,8 +574,9 @@ typedef union
 } all_addr_t;
 
 int
-lmtp_connection (int fd, struct sockaddr *sa, int salen, void *data,
-		 mu_ip_server_t srv, time_t timeout, int transcript)
+lmtp_connection (int fd, struct sockaddr *sa, int salen,
+		 struct mu_srv_config *pconf,
+		 void *data)
 {
   mu_stream_t str;
   int rc;
@@ -588,9 +589,9 @@ lmtp_connection (int fd, struct sockaddr *sa, int salen, void *data,
     }
   mu_stream_set_buffer (str, mu_buffer_line, 0);
 
-  if (transcript || maidag_transcript)
+  if (pconf->transcript || maidag_transcript)
     str = lmtp_transcript (str);
-  lmtp_loop (str, timeout);
+  lmtp_loop (str, pconf->timeout);
   mu_stream_destroy (&str);
   return 0;
 }

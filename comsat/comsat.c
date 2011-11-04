@@ -320,7 +320,8 @@ static unsigned overflow_count = 0; /* Number of overflows detected during
 				       the current interval */
 
 int
-comsat_prefork (int fd, void *data, struct sockaddr *s, int size)
+comsat_prefork (int fd, struct sockaddr *s, int size,
+		struct mu_srv_config *pconf, void *data)
 {
   int retval = 0;
   time_t now;
@@ -367,15 +368,14 @@ comsat_prefork (int fd, void *data, struct sockaddr *s, int size)
 
 int
 comsat_connection (int fd, struct sockaddr *sa, int salen,
-		   void *data, mu_ip_server_t srv,
-		   time_t to, int transcript)
+		   struct mu_srv_config *pconf, void *data)
 {
   char *buffer;
   size_t rdlen, size;
 
-  if (mu_udp_server_get_rdata (srv, &buffer, &rdlen))
+  if (mu_udp_server_get_rdata (pconf->tcpsrv, &buffer, &rdlen))
     return 0;
-  if (transcript)
+  if (pconf->transcript)
     {
       char *p = mu_sockaddr_to_astr (sa, salen);
       mu_diag_output (MU_DIAG_INFO,
@@ -386,10 +386,10 @@ comsat_connection (int fd, struct sockaddr *sa, int salen,
       mu_diag_output (MU_DIAG_INFO, "string: %s", buffer);
       free (p);
     }
-  mu_udp_server_get_bufsize (srv, &size);
+  mu_udp_server_get_bufsize (pconf->tcpsrv, &size);
   if (size < rdlen + 1)
     {
-      int rc = mu_udp_server_set_bufsize (srv, rdlen + 1);
+      int rc = mu_udp_server_set_bufsize (pconf->tcpsrv, rdlen + 1);
       if (rc)
 	{
 	  mu_error (_("cannot resize buffer: %s"), mu_strerror (rc));
@@ -560,7 +560,7 @@ main (int argc, char **argv)
   mu_argp_init (NULL, NULL);
   comsat_init ();
   mu_acl_cfg_init ();
-  mu_m_server_cfg_init ();
+  mu_m_server_cfg_init (NULL);
   mu_m_server_create (&server, program_version);
   mu_m_server_set_type (server, MU_IP_UDP);
   mu_m_server_set_conn (server, comsat_connection);

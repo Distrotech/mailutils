@@ -18,6 +18,7 @@
 #include "pop3d.h"
 #include "mailutils/pam.h"
 #include "mailutils/libargp.h"
+#include "mailutils/pop3.h"
 #include "tcpwrap.h"
 
 mu_mailbox_t mbox;
@@ -107,6 +108,19 @@ cb_bulletin_db (void *data, mu_config_value_t *val)
 }
 #endif
 
+struct pop3d_srv_config
+{
+  struct mu_srv_config m_cfg;
+  int tls;
+};
+
+static struct mu_cfg_param pop3d_srv_param[] = {
+  { "tls", mu_cfg_bool, NULL, mu_offsetof (struct pop3d_srv_config, tls), NULL,
+    N_("Use TLS encryption for this server")
+  },
+  { NULL }
+};
+    
 static struct mu_cfg_param pop3d_cfg_param[] = {
   { "undelete", mu_cfg_bool, &undelete_on_startup, 0, NULL,
     N_("On startup, clear deletion marks from all the messages.") },
@@ -247,9 +261,10 @@ pop3d_get_client_address (int fd, struct sockaddr_in *pcs)
    executes the proper functions. Also handles the bulk of error reporting.
    Arguments:
       ifd       --  input descriptor
-      ofd       --  output descriptor  */
+      ofd       --  output descriptor
+      tls       --  initiate encrypted connection */
 int
-pop3d_mainloop (int ifd, int ofd)
+pop3d_mainloop (int ifd, int ofd, int tls)
 {
   int status = OK;
   char buffer[512];
@@ -258,7 +273,7 @@ pop3d_mainloop (int ifd, int ofd)
 
   mu_set_signals (pop3d_child_signal, sigtab, MU_ARRAY_SIZE (sigtab));
 
-  pop3d_setio (ifd, ofd);
+  pop3d_setio (ifd, ofd, tls);
 
   state = initial_state;
 
@@ -324,13 +339,16 @@ pop3d_mainloop (int ifd, int ofd)
 }
 
 int
-pop3d_connection (int fd, struct sockaddr *sa, int salen, void *data,
-		  mu_ip_server_t srv, time_t timeout, int transcript)
+pop3d_connection (int fd, struct sockaddr *sa, int salen,
+		  struct mu_srv_config *pconf,
+		  void *data)
 {
-  idle_timeout = timeout;
-  if (pop3d_transcript != transcript)
-    pop3d_transcript = transcript;
-  pop3d_mainloop (fd, fd);
+  struct pop3d_srv_config *cfg = (struct pop3d_srv_config *) pconf;
+  
+  idle_timeout = pconf->timeout;
+  pop3d_transcript = pconf->transcript;
+
+  pop3d_mainloop (fd, fd, cfg->tls);
   return 0;
 }
 
@@ -370,11 +388,12 @@ main (int argc, char **argv)
   mu_tcpwrapper_cfg_init ();
   manlock_cfg_init ();
   mu_acl_cfg_init ();
-  mu_m_server_cfg_init ();
+  mu_m_server_cfg_init (pop3d_srv_param);
   
   mu_argp_init (NULL, NULL);
   	
   mu_m_server_create (&server, program_version);
+  mu_m_server_set_config_size (server, sizeof (struct pop3d_srv_config));
   mu_m_server_set_conn (server, pop3d_connection);
   mu_m_server_set_prefork (server, mu_tcp_wrapper_prefork);
   mu_m_server_set_mode (server, MODE_INTERACTIVE);
@@ -451,7 +470,7 @@ main (int argc, char **argv)
   tls_available = mu_check_tls_environment ();
   if (tls_available)
     {
-      tls_available = mu_init_tls_libs ();
+      tls_available = mu_init_tls_libs (1);
       if (tls_available)
 	enable_stls ();
     }
@@ -469,7 +488,7 @@ main (int argc, char **argv)
     {
       /* Make sure we are in the root directory.  */
       chdir ("/");
-      status = pop3d_mainloop (MU_STDIN_FD, MU_STDOUT_FD);
+      status = pop3d_mainloop (MU_STDIN_FD, MU_STDOUT_FD, 0);
     }
   
   if (status)

@@ -93,6 +93,10 @@ pop3d_abquit (int reason)
       mu_diag_output (MU_DIAG_INFO, _("no socket to send to"));
       break;
 
+    case ERR_FILE:
+      code = EX_IOERR;
+      break;
+      
     case ERR_PROTO:
       code = EX_PROTOCOL;
       mu_diag_output (MU_DIAG_INFO, _("remote protocol error"));
@@ -125,7 +129,7 @@ pop3d_abquit (int reason)
 }
 
 void
-pop3d_setio (int ifd, int ofd)
+pop3d_setio (int ifd, int ofd, int tls)
 {
   mu_stream_t str, istream, ostream;
   
@@ -137,11 +141,26 @@ pop3d_setio (int ifd, int ofd)
   if (mu_stdio_stream_create (&istream, ifd, MU_STREAM_READ))
     pop3d_abquit (ERR_NO_IFILE);
   mu_stream_set_buffer (istream, mu_buffer_line, 0);
-  
+
   if (mu_stdio_stream_create (&ostream, ofd, MU_STREAM_WRITE))
     pop3d_abquit (ERR_NO_OFILE);
 
   /* Combine the two streams into an I/O one. */
+#ifdef WITH_TLS
+  if (tls)
+    {
+      int rc = mu_tls_server_stream_create (&str, istream, ostream, 0);
+      if (rc)
+	{
+	  mu_stream_unref (istream);
+	  mu_stream_unref (ostream);
+	  mu_error (_("failed to create TLS stream: %s"), mu_strerror (rc));
+	  pop3d_abquit (ERR_FILE);
+	}
+      tls_done = 1;
+    }
+  else
+#endif
   if (mu_iostream_create (&str, istream, ostream))
     pop3d_abquit (ERR_FILE);
 

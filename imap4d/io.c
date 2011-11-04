@@ -20,7 +20,7 @@
 mu_stream_t iostream;
 
 void
-io_setio (int ifd, int ofd)
+io_setio (int ifd, int ofd, int tls)
 {
   mu_stream_t str, istream, ostream;
   
@@ -38,6 +38,21 @@ io_setio (int ifd, int ofd)
   mu_stream_set_buffer (ostream, mu_buffer_line, 0);
   
   /* Combine the two streams into an I/O one. */
+#ifdef WITH_TLS
+  if (tls)
+    {
+      int rc = mu_tls_server_stream_create (&str, istream, ostream, 0);
+      if (rc)
+	{
+	  mu_stream_unref (istream);
+	  mu_stream_unref (ostream);
+	  mu_error (_("failed to create TLS stream: %s"), mu_strerror (rc));
+	  imap4d_bye (ERR_STREAM_CREATE);
+	}
+      tls_encryption_on ();
+    }
+  else
+#endif
   if (mu_iostream_create (&str, istream, ostream))
     imap4d_bye (ERR_STREAM_CREATE);
 

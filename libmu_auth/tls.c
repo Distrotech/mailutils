@@ -55,7 +55,7 @@ mu_tls_module_init (enum mu_gocs_op op, void *data)
       
     case mu_gocs_op_flush:
 #ifdef WITH_TLS
-      mu_init_tls_libs ();
+      mu_init_tls_libs (0);
 #endif    
       break;
     }
@@ -99,14 +99,17 @@ mu_check_tls_environment (void)
 	  return 0;
 	}
 
-      rc = mu_file_safety_check (mu_tls_module_config.ssl_cafile,
-				 mu_tls_module_config.ssl_cafile_safety_checks,
-				 -1, NULL);
-      if (rc)
+      if (mu_tls_module_config.ssl_cafile)
 	{
-	  mu_error ("%s: %s", mu_tls_module_config.ssl_cafile, 
-		    mu_strerror (rc));
-	  return 0;
+	  rc = mu_file_safety_check (mu_tls_module_config.ssl_cafile,
+			       mu_tls_module_config.ssl_cafile_safety_checks,
+				     -1, NULL);
+	  if (rc)
+	    {
+	      mu_error ("%s: %s", mu_tls_module_config.ssl_cafile, 
+			mu_strerror (rc));
+	      return 0;
+	    }
 	}
     }
   else
@@ -126,10 +129,40 @@ _mu_gtls_logger(int level, const char *text)
 #endif
 
 int
-mu_init_tls_libs (void)
+mu_init_tls_libs (int x509_setup)
 {
   if (!mu_tls_enable)
-    mu_tls_enable = !gnutls_global_init (); /* Returns 1 on success */
+    {
+      int rc;
+      if ((rc = gnutls_global_init ()) == GNUTLS_E_SUCCESS)
+	mu_tls_enable = 1;
+      else
+	{
+	  mu_error ("gnutls_global_init: %s", gnutls_strerror (rc));
+	  return 0;
+	}
+    }
+
+  if (x509_setup && !x509_cred)
+    {
+      mu_diag_output (MU_DIAG_INFO, _("initializing X509..."));
+      gnutls_certificate_allocate_credentials (&x509_cred);
+      if (mu_tls_module_config.ssl_cafile)
+	gnutls_certificate_set_x509_trust_file (x509_cred,
+						mu_tls_module_config.ssl_cafile,
+						GNUTLS_X509_FMT_PEM);
+  
+      gnutls_certificate_set_x509_key_file (x509_cred,
+					    mu_tls_module_config.ssl_cert, 
+					    mu_tls_module_config.ssl_key,
+					    GNUTLS_X509_FMT_PEM);
+      
+      gnutls_dh_params_init (&dh_params);
+      gnutls_dh_params_generate2 (dh_params, DH_BITS);
+      gnutls_certificate_set_dh_params (x509_cred, dh_params);
+      mu_diag_output (MU_DIAG_INFO, _("finished initializing X509"));
+    }
+  
 #ifdef DEBUG_TLS
   gnutls_global_set_log_function (_mu_gtls_logger);
   gnutls_global_set_log_level (110);
@@ -141,15 +174,12 @@ void
 mu_deinit_tls_libs (void)
 {
   if (mu_tls_enable)
-    gnutls_global_deinit ();
+    {
+      if (x509_cred)
+	gnutls_certificate_free_credentials (x509_cred);
+      gnutls_global_deinit ();
+    }
   mu_tls_enable = 0;
-}
-
-static void
-generate_dh_params (void)
-{
-  gnutls_dh_params_init (&dh_params);
-  gnutls_dh_params_generate2 (dh_params, DH_BITS);
 }
 
 static gnutls_session
@@ -382,28 +412,8 @@ _tls_server_open (mu_stream_t stream)
   if (!stream || sp->state != state_init)
     return EINVAL;
 
-  mu_init_tls_libs ();
+  mu_init_tls_libs (1);
   
-  gnutls_certificate_allocate_credentials (&x509_cred);
-
-  if (mu_tls_module_config.ssl_cafile)
-    gnutls_certificate_set_x509_trust_file (x509_cred,
-					    mu_tls_module_config.ssl_cafile,
-					    GNUTLS_X509_FMT_PEM);
-  
-  rc = gnutls_certificate_set_x509_key_file (x509_cred,
-					     mu_tls_module_config.ssl_cert, 
-					     mu_tls_module_config.ssl_key,
-					     GNUTLS_X509_FMT_PEM);
-  if (rc < 0)
-    {
-      sp->tls_err = rc;
-      return EIO;
-    }
-  
-  generate_dh_params ();
-  gnutls_certificate_set_dh_params (x509_cred, dh_params);
-
   sp->session = initialize_tls_session ();
   mu_stream_ioctl (stream, MU_IOCTL_TRANSPORT, MU_IOCTL_OP_GET, transport);
   gnutls_transport_set_ptr2 (sp->session,
@@ -478,13 +488,12 @@ _tls_client_open (mu_stream_t stream)
   switch (sp->state)
     {
     case state_closed:
-      gnutls_certificate_free_credentials (x509_cred);
       if (sp->session)
 	gnutls_deinit (sp->session);
       /* FALLTHROUGH */
       
     case state_init:
-      mu_init_tls_libs ();
+      mu_init_tls_libs (0);
       prepare_client_session (stream);
       rc = gnutls_handshake (sp->session);
       if (rc < 0)
@@ -630,8 +639,6 @@ _tls_done (struct _mu_stream *stream)
 {
   struct _mu_tls_stream *sp = (struct _mu_tls_stream *) stream;
   
-  if (x509_cred)
-    gnutls_certificate_free_credentials (x509_cred);
   if (sp->session && sp->state == state_closed)
     {
       gnutls_deinit (sp->session);

@@ -21,8 +21,10 @@ extern int mu_tcp_wrapper_enable;
 const char *mu_tcp_wrapper_daemon;
 extern int mu_tcpwrapper_access (int fd);
 extern void mu_tcpwrapper_cfg_init (void);
-extern int mu_tcp_wrapper_prefork (int fd, void *data,
-				   struct sockaddr *sa, int salen);
+extern int mu_tcp_wrapper_prefork (int fd, 
+				   struct sockaddr *sa, int salen,
+				   struct mu_srv_config *pconf,
+				   void *data);
 
 #ifdef WITH_LIBWRAP
 # define TCP_WRAPPERS_CONFIG { "tcp-wrappers", mu_cfg_section },

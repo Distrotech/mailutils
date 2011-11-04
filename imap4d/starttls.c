@@ -47,18 +47,9 @@ imap4d_starttls (struct imap4d_command *command, imap4d_tokbuf_t tok)
 
   status = io_completion_response (command, RESP_OK, "Begin TLS negotiation");
   io_flush ();
-  tls_done = imap4d_init_tls_server () == 0;
 
-  if (tls_done)
-    {
-      imap4d_capability_remove (IMAP_CAPA_STARTTLS);
-      
-      login_disabled = 0;
-      imap4d_capability_remove (IMAP_CAPA_LOGINDISABLED);
-
-      tls_required = 0;
-      imap4d_capability_remove (IMAP_CAPA_XTLSREQUIRED);
-    }
+  if (imap4d_init_tls_server () == 0)
+    tls_encryption_on ();
   else
     {
       mu_diag_output (MU_DIAG_ERROR, _("session terminated"));
@@ -70,11 +61,24 @@ imap4d_starttls (struct imap4d_command *command, imap4d_tokbuf_t tok)
 }
 
 void
+tls_encryption_on ()
+{
+  tls_done = 1;
+  imap4d_capability_remove (IMAP_CAPA_STARTTLS);
+      
+  login_disabled = 0;
+  imap4d_capability_remove (IMAP_CAPA_LOGINDISABLED);
+
+  tls_required = 0;
+  imap4d_capability_remove (IMAP_CAPA_XTLSREQUIRED);
+}
+
+void
 starttls_init ()
 {
   tls_available = mu_check_tls_environment ();
   if (tls_available)
-    tls_available = mu_init_tls_libs ();
+    tls_available = mu_init_tls_libs (1);
   if (tls_available)
     imap4d_capability_add (IMAP_CAPA_STARTTLS);
 }

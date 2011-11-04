@@ -195,7 +195,9 @@ mu_file_safety_check (const char *filename, int mode,
 		      mu_list_t idlist)
 {
   struct file_check_buffer buf;
-  
+
+  if (!filename)
+    return EFAULT;
   memset (&buf, 0, sizeof (buf));
   if (stat (filename, &buf.filst) == 0)
     {

@@ -525,7 +525,7 @@ main (int argc, char *argv[])
 
   mu_tcpwrapper_cfg_init ();
   mu_acl_cfg_init ();
-  mu_m_server_cfg_init ();
+  mu_m_server_cfg_init (NULL);
   maidag_cfg_init ();
   
   /* Parse command line */

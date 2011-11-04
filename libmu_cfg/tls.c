@@ -52,11 +52,11 @@ cb2_safety_checks (const char *name, void *data)
 {
   int defval;
   
-  if (data == &tls_settings.ssl_key)
+  if (data == &tls_settings.ssl_key_safety_checks)
     defval = SSL_KEY_FILE_CHECKS;
-  else if (data == &tls_settings.ssl_cert)
+  else if (data == &tls_settings.ssl_cert_safety_checks)
     defval = SSL_CERT_FILE_CHECKS;
-  else if (data == &tls_settings.ssl_cafile)
+  else if (data == &tls_settings.ssl_cafile_safety_checks)
     defval = SSL_CA_FILE_CHECKS;
   else
     {

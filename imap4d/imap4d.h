@@ -220,7 +220,7 @@ extern int io_stream_completion_response (mu_stream_t str,
 					  const char *format, ...)
                                     MU_PRINTFLIKE(4,5);
 void io_getline (char **pbuf, size_t *psize, size_t *pnbytes);
-void io_setio (int, int);
+void io_setio (int, int, int);
 void io_flush (void);
 int io_wait_input (int);
   
@@ -297,6 +297,7 @@ extern int  imap4d_select_status (void);
 #ifdef WITH_TLS
 extern int  imap4d_starttls (struct imap4d_command *, imap4d_tokbuf_t);
 extern void starttls_init (void);
+void tls_encryption_on (void);
 #endif /* WITH_TLS */
 extern int  imap4d_status (struct imap4d_command *, imap4d_tokbuf_t);
 extern int  imap4d_store (struct imap4d_command *, imap4d_tokbuf_t);

@@ -236,7 +236,7 @@ extern void enable_stls (void);
 #endif /* WITH_TLS */
 extern void pop3d_outf          (const char *fmt, ...) MU_PRINTFLIKE(1,2);
 
-extern void pop3d_setio         (int, int);
+extern void pop3d_setio         (int, int, int);
 extern char *pop3d_readline     (char *, size_t);
 extern void pop3d_flush_output  (void);
 

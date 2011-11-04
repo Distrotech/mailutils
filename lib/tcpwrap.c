@@ -27,9 +27,11 @@
 #include <mailutils/cfg.h>
 #include <mailutils/diag.h>
 #include <mailutils/error.h>
+#include <mailutils/server.h>
+#include "tcpwrap.h"
 
 int mu_tcp_wrapper_enable = 1;
-char *mu_tcp_wrapper_daemon;
+const char *mu_tcp_wrapper_daemon;
 
 #ifdef WITH_LIBWRAP
 # include <tcpd.h>
@@ -93,7 +95,9 @@ mu_tcpwrapper_access (int fd)
 #endif
 
 int
-mu_tcp_wrapper_prefork (int fd, void *data, struct sockaddr *sa, int salen)
+mu_tcp_wrapper_prefork (int fd, struct sockaddr *sa, int salen,
+			struct mu_srv_config *pconf,
+			void *data)
 {
   if (mu_tcp_wrapper_enable
       && sa->sa_family == AF_INET

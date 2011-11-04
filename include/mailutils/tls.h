@@ -49,7 +49,7 @@ extern int mu_tls_client_stream_create (mu_stream_t *stream,
 					int flags);
 
 extern int mu_check_tls_environment (void);
-extern int mu_init_tls_libs (void);
+extern int mu_init_tls_libs (int x509);
 extern void mu_deinit_tls_libs (void);
 
 extern int mu_tls_enable;

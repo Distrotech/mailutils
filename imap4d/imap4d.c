@@ -93,7 +93,7 @@ static const char *imap4d_capa[] = {
   NULL
 };
 
-static int imap4d_mainloop (int, int);
+static int imap4d_mainloop (int, int, int);
 
 static error_t
 imap4d_parse_opt (int key, char *arg, struct argp_state *state)
@@ -241,6 +241,20 @@ cb_mailbox_mode (void *data, mu_config_value_t *val)
     mu_error (_("invalid mode string near %s"), p);
   return 0;
 }
+
+struct imap4d_srv_config
+{
+  struct mu_srv_config m_cfg;
+  int tls;
+};
+
+static struct mu_cfg_param imap4d_srv_param[] = {
+  { "tls", mu_cfg_bool, NULL, mu_offsetof (struct imap4d_srv_config, tls),
+    NULL,
+    N_("Use TLS encryption for this server")
+  },
+  { NULL }
+};
 
 static struct mu_cfg_param imap4d_cfg_param[] = {
   { "homedir", mu_cfg_string, &modify_homedir, 0, NULL,
@@ -396,7 +410,7 @@ imap4d_child_signal_setup (RETSIGTYPE (*handler) (int signo))
 }
 
 static int
-imap4d_mainloop (int ifd, int ofd)
+imap4d_mainloop (int ifd, int ofd, int tls)
 {
   imap4d_tokbuf_t tokp;
   char *text;
@@ -435,7 +449,7 @@ imap4d_mainloop (int ifd, int ofd)
       imap4d_child_signal_setup (imap4d_child_signal);
     }
   
-  io_setio (ifd, ofd);
+  io_setio (ifd, ofd, tls);
 
   if (imap4d_preauth_setup (ifd) == 0)
     {
@@ -478,13 +492,14 @@ imap4d_mainloop (int ifd, int ofd)
 }
 
 int
-imap4d_connection (int fd, struct sockaddr *sa, int salen, void *data,
-		   mu_ip_server_t srv, time_t timeout, int transcript)
+imap4d_connection (int fd, struct sockaddr *sa, int salen,
+		   struct mu_srv_config *pconf, void *data)
 {
-  idle_timeout = timeout;
-  if (imap4d_transcript != transcript)
-    imap4d_transcript = transcript;
-  imap4d_mainloop (fd, fd);
+  struct imap4d_srv_config *cfg = (struct imap4d_srv_config *) pconf;
+
+  idle_timeout = pconf->timeout;
+  imap4d_transcript = pconf->transcript;
+  imap4d_mainloop (fd, fd, cfg->tls);
   return 0;
 }
 
@@ -559,11 +574,12 @@ main (int argc, char **argv)
   mu_tcpwrapper_cfg_init ();
   manlock_cfg_init ();
   mu_acl_cfg_init ();
-  mu_m_server_cfg_init ();
+  mu_m_server_cfg_init (imap4d_srv_param);
   
   mu_argp_init (NULL, NULL);
 
   mu_m_server_create (&server, program_version);
+  mu_m_server_set_config_size (server, sizeof (struct imap4d_srv_config));
   mu_m_server_set_conn (server, imap4d_connection);
   mu_m_server_set_prefork (server, mu_tcp_wrapper_prefork);
   mu_m_server_set_mode (server, MODE_INTERACTIVE);
@@ -669,7 +685,7 @@ main (int argc, char **argv)
     {
       /* Make sure we are in the root directory.  */
       chdir ("/");
-      status = imap4d_mainloop (MU_STDIN_FD, MU_STDOUT_FD);
+      status = imap4d_mainloop (MU_STDIN_FD, MU_STDOUT_FD, 0);
     }
 
   if (status)
