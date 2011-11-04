@@ -327,8 +327,6 @@ _mu_tls_io_stream_create (mu_stream_t *pstream,
   sp->stream.close = _tls_io_close;
   sp->stream.done = _tls_io_done; 
   sp->stream.ctl = _tls_io_ioctl;
-  /* FIXME:
-     sp->stream.error_string = _tls_error_string;*/
 
   mu_stream_ref (transport);
   sp->transport = transport;
@@ -362,7 +360,8 @@ _tls_stream_push (gnutls_transport_ptr fd, const void *buf, size_t size)
   rc = mu_stream_write (stream, buf, size, &size);
   if (rc)
     {
-      mu_error ("_tls_stream_push: %s", mu_strerror (rc)); /* FIXME */
+      mu_error ("_tls_stream_push: %s",
+		mu_stream_strerror (stream, rc)); /* FIXME */
       return -1;
     }
 
@@ -379,7 +378,7 @@ _tls_server_open (mu_stream_t stream)
   mu_transport_t transport[2];
   
   if (!mu_tls_module_config.enable)
-    return MU_ERR_FAILURE; /* FIXME: another error code */
+    return MU_ERR_DISABLED;
   if (!stream || sp->state != state_init)
     return EINVAL;
 
@@ -643,6 +642,17 @@ _tls_done (struct _mu_stream *stream)
   mu_stream_destroy (&sp->transport[1]);
 }
 
+static const char *
+_tls_error_string (struct _mu_stream *stream, int rc)
+{
+  if (rc == EIO)
+    {
+      struct _mu_tls_stream *sp = (struct _mu_tls_stream *) stream;
+      return gnutls_strerror (sp->tls_err);
+    }
+  return mu_strerror (rc);
+}
+
 static int
 _mu_tls_stream_create (mu_stream_t *pstream,
 		       int (*openfn) (mu_stream_t stream),
@@ -665,8 +675,7 @@ _mu_tls_stream_create (mu_stream_t *pstream,
   sp->stream.done = _tls_done; 
   sp->stream.ctl = _tls_ioctl;
   sp->stream.wait = _tls_wait;
-  /* FIXME:
-     sp->stream.error_string = _tls_error_string;*/
+  sp->stream.error_string = _tls_error_string;
 
   mu_stream_set_buffer (strin, mu_buffer_none, 0);
   mu_stream_set_buffer (strout, mu_buffer_none, 0);

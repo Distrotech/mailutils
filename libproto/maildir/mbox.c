@@ -478,7 +478,7 @@ maildir_msg_init (struct _amd_data *amd, struct _amd_message *amm)
     }
   free (fname);
   free (name);
-  return MU_ERR_BAD_RESUMPTION;
+  return EAGAIN;
 }
 
 static int

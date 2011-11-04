@@ -45,7 +45,6 @@ MU_ERR_LOCK_EXT_KILLED      _("External locker killed")
 MU_ERR_NO_SUCH_USER         _("No such user name")
 
 MU_ERR_GETHOSTBYNAME        _("DNS name resolution failed")
-MU_ERR_BAD_RESUMPTION       _("State busy must resume operation")
 MU_ERR_MAILER_BAD_FROM      _("Not a valid sender address")
 MU_ERR_MAILER_BAD_TO        _("Not a valid recipient address")
 MU_ERR_MAILER_NO_RCPT_TO    _("No recipient addresses found")
@@ -123,3 +122,4 @@ MU_ERR_PERM_LINKED_WRDIR    _("Linked file in a writable directory")
 MU_ERR_PERM_DIR_IWGRP       _("File in group writable directory")
 MU_ERR_PERM_DIR_IWOTH       _("File in world writable directory")
 
+MU_ERR_DISABLED             _("Requested feature disabled in configuration")

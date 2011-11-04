@@ -45,13 +45,4 @@ struct _mu_tls_stream
   mu_stream_t transport[2];
 };
 
-struct _mu_tls_stream_s
-{
-  struct _mu_stream stream;
-  enum _mu_tls_stream_state state;
-  gnutls_session session;
-  int tls_err;
-  mu_stream_t transport;
-};
-
 #endif
