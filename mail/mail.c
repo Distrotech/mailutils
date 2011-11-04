@@ -289,7 +289,7 @@ static char *default_setup[] = {
   "set recursivealiases",
   "set noinplacealiases",
   "set fromfield",
-  "set headline=\"%>%a%4m %18f %16d %3l/%-5o %s\"",
+  "set headline=\"%>%a%4m %18f %16d %3L/%-5o %s\"",
   
   /* Start in mail reading mode */
   "setq mode=read",

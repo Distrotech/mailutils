@@ -30,7 +30,7 @@ static char logger_args_doc[] = N_("[TEXT]");
 
 static struct argp_option logger_options[] = {
   { "file", 'f', N_("FILE"), 0, N_("read message from FILE") },
-  { "priority", 'p', N_("[FACILITY.LEVEL]"), 0,
+  { "priority", 'p', N_("FACILITY[.LEVEL]"), 0,
     N_("log at the specified syslog priority (implies --syslog)") },
   { "syslog", OPT_SYSLOG, NULL, 0, N_("log via syslog") },
   { "stderr", OPT_STDERR, NULL, 0, N_("log to the standard error") },

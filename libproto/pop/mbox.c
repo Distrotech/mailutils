@@ -356,9 +356,6 @@ pop_scan (mu_mailbox_t mbox, size_t msgno, size_t *pcount)
 
 	  if (mbox->observable)
 	    {
-	      if (mu_observable_notify (mbox->observable, MU_EVT_MESSAGE_ADD,
-					&num) != 0)
-		break;
 	      if (((i + 1) % 10) == 0)
 		mu_observable_notify (mbox->observable,
 				      MU_EVT_MAILBOX_PROGRESS,
@@ -366,7 +363,23 @@ pop_scan (mu_mailbox_t mbox, size_t msgno, size_t *pcount)
 	    }
 	}
     }
+  
   mu_iterator_destroy (&itr);
+
+  if (mbox->observable)
+    {
+      /* MU_EVT_MESSAGE_ADD must be delivered only when it is already possible
+         to retrieve the message in question.  It could not be done in the
+         main loop because no other pop3d function can be called while LIST
+         is being handled.  Hence the extra loop. */
+      for (i = 0; i <= count; i++)
+	{
+	  if (mu_observable_notify (mbox->observable, MU_EVT_MESSAGE_ADD,
+				    &i) != 0)
+	    break;
+	}
+    }
+  
   return status;
 }
 
