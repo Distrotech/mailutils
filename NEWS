@@ -1,4 +1,4 @@
-GNU mailutils NEWS -- history of user-visible changes. 2011-07-27
+GNU mailutils NEWS -- history of user-visible changes. 2011-11-05
 Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 Free Software Foundation, Inc.
 See the end of file for copying conditions.
@@ -8,10 +8,197 @@ Please send mailutils bug reports to <bug-mailutils@gnu.org>.
 
 Version 2.99.93 (Git)
 
-This version is highly experimental.  It features a rewrite from
-scratch of the stream subsystem and other vital parts of the
-framework.  No documentation is available so far, please use
-`git log' and the sources!
+This version is a major rewrite of GNU Mailutils.  Quite a few parts
+of the basic framework were rewritten from scratch, while some others
+undergone a considerable revamping.  The user documentation, at the
+moment, is insufficient, and in some aspects even scarce.  It is being
+worked upon.  However, most utilities self-document themselves.  To
+obtain a summary of available configuration statements for a given
+program, run `program --config-help'.  For additional documentation,
+please refer to http://mailutils.org/wiki.  If the piece of
+documentation you are looking for is not available there, don't
+hesitate to post your questions to <bug-mailutils@gnu.org>.
+
+Due to the global nature of these changes, the rewrite of some parts
+of the package is not yet finished, while some others are considered
+experimental.  Not currently implemented are:
+
+ - imap client
+ - nntp client
+ - Tokyocabinet support
+ 
+Experimental features are:
+
+ - C++ bindings
+ - Python bindings
+
+The discussion below lists the changes in this release.  It is divided
+in three major sections, each addressing a particular audience.  The
+section entitles "Important changes" is of particular interest to
+users.  This is perhaps the most visible part of this release.  The
+section "Configuration changes" addresses package installers.  It
+discusses the changes in configure script and related things.
+Finally, the section "Changes to the library" is of interest to
+programmers which use or wish to use Mailutils in their projects.
+ 
+* Important changes
+
+** IPv6 support.
+
+The core library as well as client and server utilities support
+AF_INET6 family of addresses.
+
+** Support for POP3S and IMAP4S in the respective servers.
+
+A single instance of pop3d is able to handle several subservers,
+supporting both plain POP3 and encrypted POP3S simultaneously.  The
+same holds true for imap4d.
+
+** DBM support reimplemented from scratch.
+
+The most important result of this change is that Mailutils is now able
+to handle databases of different formats (e.g. GDBM, Berkeley DB,
+NDBM) simultaneously, without need to reconfigure it.  The database
+flavor to use is selected at runtime, using `database URL'.  For
+example, "gdbm:///etc/mail/aliases.db" refers to a GDBM database.
+
+See http://mailutils.org/wiki/libmu_dbm
+
+** New utility `mu'
+
+`Mu' is a multi-purpose tool which can be of use to users, programmers
+and system administrators.  It allows you to retrieve information
+about Mailutils configuration, check ACLs and authentication tickets,
+list, create or modify DBM files, construct filters of arbitrary
+complexity and many more.
+
+See http://mailutils.org/wiki/mu
+
+** Configurable file safety checking
+
+Some files, such as SSL key files, need particular protection, while
+others (e.g. users' forward files) don't require it.  Mailutils
+configuration allows for configuring what safety checks are required
+for each group of files.  Files not meeting the configured criteria
+are not used to avoid compromising security.
+
+** Improved debugging and diagnostics
+
+See http://mailutils.org/wiki/debug_level.
+
+** Imap4d undergone a lot of changes to comply to existing RFCs
+
+** Pop3d and imap4d allow for mailbox-independent compulsory locking
+
+This feature is useful for those system administrators who don't wish
+to permit simultaneous access to mailboxes, even when the nature of the
+mailbox allows that (e.g. maildir).
+
+** Sieve: new extensions
+
+New extension action `pipe' invokes arbitrary external program and
+pipes the message (or any part thereof) to it.  
+
+See http://mailutils.org/wiki/Pipe
+
+A similar test uses the program exit code to decide what to do with
+the message
+
+See http://mailutils.org/wiki/Pipe_test
+
+New extension test `list' compares values of mail headers from a
+supplied list with a list of values.
+
+See http://mailutils.org/wiki/List_(Sieve_test)
+
+New extension test `timestamp' compares the value of a structured date
+header field with the given date.
+
+See http://mailutils.org/wiki/Timestamp_(Sieve_test)
+
+** MH: improved compatibility with other implementations
+
+** mailutils-config is deprecated.
+
+Use `mu cflags' and `mu ldflags' instead.  The mailutils-config is
+rewritten as a wrapper over these commands.
+
+See http://mailutils.org/wiki/mu for more information.
+
+** movemail functionality considerably improved
+
+See http://mailutils.org/wiki/Fetching_Mail_with_Movemail
+
+* Configuration changes
+
+These are of particular interest to installers.
+
+** New configuration options to disable particular groups of utilities.
+
+The `--enable-build-servers' options controls whether servers (such as
+imap4d, pop3d, comsat) will be built.  Its counterpart,
+`--enable-build-clients' controls whether client utilities will be
+built.
+
+** DBM options
+
+It is normally not needed to specify --with-gdbm, --with-berkeley-db
+or --with-ndbm explicitly.  Configuration will automatically pick up
+all available DBM libraries it can use.
+
+The Tokyocabinet support (--with-tokyocabinet) is temporarily not
+available.
+
+** Imap and nntp clients are not yet implemented
+
+** Experimental features
+
+The C++ and Python bindings are considered experimental and unstable.
+
+* Changes to the library
+
+** Stream support is rewritten from scratch
+
+Stream support is a cornerstone on which the rest of Mailutils is
+built.  The new implementation was developed with three main
+objectives in mind: reliability, speed and consistency.
+
+** URL support is rewritten from scratch
+
+New URL functions allow both for creating URLs from string
+representations and for building them from parts.
+
+** Filter support is rewritten from scratch
+
+Apart from the implementation itself, lots of new filters are
+provided.  See http://mailutils.org/wiki/Category:Filters for a
+list of those.
+
+A concept of `filter chains' was introduced, which allows for
+creating new filters using existing ones as their components.
+
+See http://mailutils.org/wiki/Mu#filter, for a description.
+
+** POP client library is rewritten from scratch
+
+The new library provides two APIs: a traditional mailbox API which
+hides the particularities of the POP protocol, and POP-specific API,
+which allows for writing applications directly accessing POP features.
+
+** SMTP client library is rewritten from scratch
+
+The new library provides a detailed control over the SMTP
+transaction.
+
+** Support for Maildir and MH formats considerably improved.
+
+** MIME support improved.
+
+** Debugging support considerably improved.
+
+See http://mailutils.org/wiki/debug_level.
+
+** Configuration file support (libmu_cfg) rewritten.
 
 
 Version 2.2 - 2010-09-08
