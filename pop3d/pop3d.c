@@ -275,7 +275,7 @@ pop3d_mainloop (int ifd, int ofd, int tls)
 
   pop3d_setio (ifd, ofd, tls);
 
-  state = initial_state;
+  state = tls ? AUTHORIZATION : initial_state;
 
   /* Prepare the shared secret for APOP.  */
   {
