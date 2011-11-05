@@ -15,7 +15,7 @@
 ## You should have received a copy of the GNU General Public License
 ## along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
 
-ACLOCAL_AMFLAGS = -I m4 -I am -I gint
+ACLOCAL_AMFLAGS = -I m4 -I am -I gint -I doc/imprimatur
 
 if MU_COND_PYTHON
   PYTHON_DIR = python

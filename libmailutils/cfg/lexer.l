@@ -100,7 +100,7 @@ P [1-9][0-9]*
 			yylval.string = _mu_line_finish ();
 			return MU_TOK_IDENT; }
          /* Strings */
-[a-zA-Z0-9_\./:\*=-]+ { _mu_line_begin ();
+[a-zA-Z0-9_\./:\*=@-]+ { _mu_line_begin ();
                         _mu_line_add (yytext, yyleng);
                         yylval.string = _mu_line_finish ();
                         return MU_TOK_STRING; }

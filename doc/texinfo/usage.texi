@@ -3,15 +3,13 @@
 @c 2008, 2010, 2011 Free Software Foundation, Inc.
 @c See file mailutils.texi for copying conditions.
 @comment *******************************************************************
-@node Usage Vars
-@appendix Configuring Help Summary
 
 Running @command{@var{prog} --help} displays the short usage summary
-for @var{prog} utility (@pxref{Common Options}). This summary is
-organized by @dfn{groups} of semantically close options. The options
+for @var{prog} utility (@pxref{Common Options}).  This summary is
+organized by @dfn{groups} of semantically close options.  The options
 within each group are printed in the following order: a short option,
 eventually followed by a list of corresponding long option names,
-followed by a short description of the option. For example, here is an
+followed by a short description of the option.  For example, here is an
 excerpt from the actual @kbd{sieve --help} output:
 
 @verbatim
@@ -22,12 +20,12 @@ excerpt from the actual @kbd{sieve --help} output:
 
 @vrindex ARGP_HELP_FMT, environment variable
 The exact visual representation of the help output is configurable via
-@env{ARGP_HELP_FMT} environment variable. The value of this variable
-is a comma-separated list of @dfn{format variable} assignments. There
-are two kinds of format variables. An @dfn{offset variable} keeps the
+@env{ARGP_HELP_FMT} environment variable.  The value of this variable
+is a comma-separated list of @dfn{format variable} assignments.  There
+are two kinds of format variables.  An @dfn{offset variable} keeps the
 offset of some part of help output text from the leftmost column on
-the screen. A @dfn{boolean} variable is a flag that toggles some
-output feature on or off. Depending on the type of the corresponding
+the screen.  A @dfn{boolean} variable is a flag that toggles some
+output feature on or off.  Depending on the type of the corresponding
 variable, there are two kinds of assignments:
 
 @table @asis
@@ -45,8 +43,8 @@ numeric value to be assigned to the variable.
 
 @item Boolean assignment
 
-To assign @code{true} value to a variable, simply put this variable name. To
-assign @code{false} value, prefix the variable name with @samp{no-}. For
+To assign @code{true} value to a variable, simply put this variable name.  To
+assign @code{false} value, prefix the variable name with @samp{no-}.  For
 example:
 
 @smallexample
@@ -78,7 +76,7 @@ argument is only shown with the long one, for example:
 
 @noindent
 and a message indicating that the argument is applicable to both
-forms is printed below the options. This message can be disabled
+forms is printed below the options.  This message can be disabled
 using @code{dup-args-note} (see below).
 
 The default is false.
@@ -93,12 +91,12 @@ Mandatory or optional arguments to long options are also mandatory or
 optional for any corresponding short options.
 @end quotation
 
-Setting @code{no-dup-args-note} inhibits this message. Normally, only
+Setting @code{no-dup-args-note} inhibits this message.  Normally, only
 one of variables @code{dup-args} or @code{dup-args-note} should be set.
 @end deftypevr
 
 @deftypevr {Help Output} offset short-opt-col
-Column in which short options start. Default is 2.
+Column in which short options start.  Default is 2.
 
 @smallexample
 @group
@@ -111,7 +109,7 @@ $ @kbd{ARGP_HELP_FMT=short-opt-col=6 sieve --help|grep ARCHIVE}
 @end deftypevr
 
 @deftypevr {Help Output} offset long-opt-col
-Column in which long options start. Default is 6. For example:
+Column in which long options start.  Default is 6.  For example:
 
 @smallexample
 @group
@@ -124,9 +122,9 @@ $ @kbd{ARGP_HELP_FMT=long-opt-col=16 sieve --help|grep ADDRESS}
 @end deftypevr
 
 @deftypevr {Help Output} offset doc-opt-col
-Column in which @dfn{doc options} start. A doc option isn't actually
+Column in which @dfn{doc options} start.  A doc option isn't actually
 an option, but rather an arbitrary piece of documentation that is
-displayed in much the same manner as the options. For example, in
+displayed in much the same manner as the options.  For example, in
 the output of @command{folder --help}:
 
 @verbatim
@@ -138,7 +136,7 @@ GNU MH folder
 @end verbatim
 
 @noindent
-the string @samp{Actions are:} is a doc option. Thus, if you set
+the string @samp{Actions are:} is a doc option.  Thus, if you set
 @kbd{ARGP_HELP_FMT=doc-opt-col=6} the above part of the help output
 will look as follows:
 
@@ -152,7 +150,7 @@ GNU MH folder
 @end deftypevr
 
 @deftypevr {Help Output} offset opt-doc-col
-Column in which option description starts. Default is 29.
+Column in which option description starts.  Default is 29.
 
 @smallexample
 @group
@@ -172,8 +170,8 @@ Notice, that the description starts on a separate line if
 @end deftypevr
 
 @deftypevr {Help Output} offset header-col
-Column in which @dfn{group headers} are printed. A group header is a
-descriptive text preceding an option group. For example, in the
+Column in which @dfn{group headers} are printed.  A group header is a
+descriptive text preceding an option group.  For example, in the
 following text:
 
 @verbatim
@@ -188,10 +186,10 @@ The default value is 1.
 @end deftypevr
 
 @deftypevr {Help Output} offset usage-indent
-Indentation of wrapped usage lines. Affects @option{--usage}
-output. Default is 12.
+Indentation of wrapped usage lines.  Affects @option{--usage}
+output.  Default is 12.
 @end deftypevr
 
 @deftypevr {Help Output} offset rmargin
-Right margin of the text output. Used for wrapping.
+Right margin of the text output.  Used for wrapping.
 @end deftypevr

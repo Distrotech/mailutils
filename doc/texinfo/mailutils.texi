@@ -3,12 +3,11 @@
 @setfilename mailutils.info
 @settitle GNU Mailutils Manual
 @setchapternewpage odd
-@finalout
 @c %**end of header
 
 @include version.texi
-@include macros.texi
 @include rendition.texi
+@include macros.texi
 
 @c Define indices
 @defcodeindex op
@@ -42,7 +41,7 @@
 * readmsg: (mailutils)readmsg.          Extract Messages from a Folder.
 * sieve: (mailutils)sieve.              Mail Filtering Utility.
 * mimeview: (mailutils)mimeview.        View MIME Messages.
-* mailutils-config: (mailutils)mailutils-config. List Information about Mailutils.
+* mu: (mailutils)mu.                    Mailutils Multi-Purpose Tool
 @end direntry
 @end ifinfo
 
@@ -57,13 +56,9 @@ Copyright @copyright{} 1999, 2000, 2001, 2002, 2003, 2004, 2008, 2009,
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.2 or
 any later version published by the Free Software Foundation; with no
-Invariant Sections, with the Front-Cover texts being ``A GNU Manual'',
-and with the Back-Cover Texts as in (a) below. A copy of the license
-is included in the section entitled ``GNU Free Documentation License''.
-
-(a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
-this GNU Manual, like GNU software. Copies published by the Free
-Software Foundation raise funds for GNU development.''
+Invariant Sections, no Front-Cover, and no Back-Cover texts.
+A copy of the license is included in the section entitled ``GNU Free
+Documentation License''.
 @end copying
 
 @titlepage
@@ -75,9 +70,11 @@ Software Foundation raise funds for GNU development.''
 @insertcopying
 @end titlepage
 
+@ifnothtml
 @page
 @summarycontents
 @page
+@end ifnothtml
 @contents
 
 @ifnottex
@@ -125,6 +122,7 @@ Mailutils Programs
 
 * command line::      Command Line Syntax.  
 * configuration::     Common Configuration File.
+* debugging::
 
 * frm and from::      List Headers from a Mailbox.
 * mail::              Send and Receive Mail.
@@ -145,7 +143,7 @@ Mailutils Programs
 
 * mh::                The MH Message Handling System.
 
-* mailutils-config::  Get the Information about the Mailutils Build.
+* mu::                Mailutils Multi-Purpose Tool.
 
 Command Line
 
@@ -177,12 +175,18 @@ Configuration File Syntax
 
 * Comments::
 * Statements::
-* Block Statements::
+* Paths::
 
 Server Settings
 
 * General Server Configuration::
 * Server Statement::
+
+Debugging
+
+* Level Syntax::
+* Level BNF::
+* Debugging Categories::
 
 @command{mail} --- Send and Receive Mail
 
@@ -232,6 +236,7 @@ Reading Mail
 
 * Movemail Configuration::
 * Movemail Options::     Description of the Available Options
+* Ownership::            Setting Destination Mailbox Ownership
 * Summary::              Short Movemail Invocation Summary
 
 @command{readmsg} --- Extract Messages from a Folder
@@ -260,7 +265,7 @@ A Sieve Interpreter
 
 maidag
 
-* Sendmail-maidag::          Using @command{maidag} with Sendmail.
+* Sendmail-maidag::         Using @command{maidag} with Sendmail.
 * Exim-maidag::             Using @command{maidag} with Exim.
 * MeTA1-maidag::            Using @command{maidag} with MeTA1.
 * Mailbox Quotas::
@@ -279,6 +284,7 @@ Maidag Scripting
 
 * Sieve Maidag Filters::
 * Scheme Maidag Filters::
+* Python Maidag Filters::
 
 mimeview
 
@@ -310,7 +316,7 @@ Configuring @command{comsatd}
 * General Settings::
 * Security Settings::
 
-@acronym{MH} --- The MH Message Handling System
+MH --- The MH Message Handling System
 
 * Diffs::      Major differences between Mailutils MH and other MH
                implementations.
@@ -321,70 +327,32 @@ Major differences between Mailutils MH and other MH implementations
 * Profile Variable Diffs::
 * Program Diffs::
 
-@command{mailutils-config} --- Get the Information about the Mailutils Build
+MU
 
-* Compiler Flags::      Getting Compiler Flags.
-* Loader Flags::        Getting Loader Flags.
-* General Information:: Obtaining General Build Information.
+* mu invocation syntax::
+* mu help::
+* mu info::
+* mu cflags::
+* mu ldflags::
+* mu query::
+* mu 2047::
+* mu filter::
+* mu acl::
+* mu wicket::
+* mu dbm::
+* mu logger::
+* mu pop::
+* mu imap::
 
-Mailutils Libraries
+mu dbm
 
-* libmailutils::    The Core Library.
-* libmu_auth::      Auxiliary Library for Authenticating Users.
-* libmu_scm::       Mailutils to Scheme Interface.
-* libmu_sieve::     GNU Implementation of Sieve Mail Filtering.
-
-Framework
-
-* Folder::             Folder.
-* Mailbox::            Mailbox.
-* Mailer::             Protocol Used to Send Mail.
-* Message::            Message.
-* Envelope::           Envelope.
-* Headers::            Headers.
-* Body::               Body.
-* Attribute::          Attribute.
-* Stream::             Stream.
-* Iterator::           Iterator.
-* Authenticator::      Authenticator.
-* Address::            Address.
-* Locker::             Locker.
-* URL::                Uniform Resource Locators.
-* Parse822::           Parsing RFC 822 headers.
-* Mailcap::            Parsing RFC 1524 file.
-
-Authentication Library
-
-* Data Types::
-* Initializing libmu_auth::
-* Module Creation and Destruction::
-* Obtaining Authorization Information::
-* Existing Modules::
-* Using libmu_auth in Your Programs::
-
-Mailutils to Scheme Interface
-
-* Address Functions::
-* Mailbox Functions::
-* Message Functions::
-* MIME Functions::
-* Logging Functions::
-* Other Functions::
-
-Using @file{libmu_scm}
-
-* Direct Linking::
-* Dynamic Linking::
-
-Sieve Library
-
-* Sieve Data Types::
-* Manipulating the Sieve Machine::
-* Logging and Diagnostic Functions::
-* Symbol Space Functions::
-* Memory Allocation::
-* Compiling and Executing the Script::
-* Writing Loadable Commands::
+* Create a Database::
+* Add Records to a Database::
+* Delete Records::
+* List the Database::
+* Dump the Database::
+* Dump Formats::
+* Dbm Exit Codes::
 
 Sieve Language
 
@@ -437,36 +405,58 @@ Date Input Formats
 
 @node Introduction
 @chapter Introduction
+GNU Mailutils is a set of libraries and utilities for handling
+electronic mail.  It addresses a wide audience and can be of interest
+to application developers, casual users and system administrators alike.
 
-GNU Mailutils is a rich and powerful protocol-independent mail
-framework.  It contains a series of useful mail libraries, clients,
-and servers.  These are the primary mail utilities for the GNU system.
-The central library is capable of handling electronic mail in various
-mailbox formats and protocols, both local and remote.  Specifically,
-this project contains a POP3 server, an IMAP4 server, and a Sieve mail
-filter. It also provides a POSIX `mailx' client, and a collection of
-other handy tools.
+It provides programmers with a consistent API allowing them to
+handle a variety of different mailbox formats transparently and
+without having to delve into complexities of their internal structure.
+While doing so, it also provides interfaces that simplify common
+programming tasks, such as handling lists, parsing configuration
+files, etc.  The philosophy of Mailutils is to have a single and
+consistent programming interface for various objects designed to
+handle the same task.  It tries to use their similarities to create an
+interface that hides their differences and complexities.  This covers
+a wide variety of programming tasks: apart from mailbox handling,
+Mailutils also contains a unified iterface for work with various DBM
+databases and much more.
 
-The GNU Mailutils libraries supply an ample set of primitives for
-handling electronic mail in programs written in C, C++, Python or
-Scheme.
+The utilities built upon these libraries share that same distinctive
+feature: no matter what is the internal structure of an object, it is
+always handled the same way as other objects that do the same task.
+Again, the most common example of this approach are, of course,
+mailboxes.  Whatever Mailutils program you use, you can be sure it is
+able to handle various mailbox formats.  You even don't have to inform
+it about what type a mailbox is: it will do its best to discover it
+automatically.
 
-At the core of Mailutils is libmailutils, a library which provides
-universal access to various mailboxes and protocols: UNIX mailbox,
-Maildir, MH, POP3, IMAP4, Sendmail, SMTP.  Mailutils offers functions
-for almost any mail-related task, such as parsing of messages, email
-addresses and URLs, handling MIME messages, listing mail folders,
-mailcap facilities, extensible Sieve filtering, access control lists.
-It supports various modern data security and authentication
-techniques: TLS encryption, SASL and GSSAPI, to name a few.
-The framework is able to work with a wide variety of authorization
-databases, ranging from traditional system password database up to
-RADIUS, SQL and LDAP.
+This approach sometimes covers entities which are seldom regarded as
+compatible.  For example, using Mailutils it is possible to treat an SMTP
+connection as a mailbox opened only for appending new messages.  This
+in turn, provides a way for extending the functionality of some
+utilities.  As an example, using this concept of mailboxes, the usual
+mail delivery agent becomes able to do things usually reserved for
+mail transport agents only!
 
-The utilities provided by Mailutils include imap4d and pop3d mail
-servers, mail reporting utility comsatd, general-purpose mail delivery
-agent maidag, mail filtering program sieve, and an implementation of
-MH message handling system.
+At the core of Mailutils is @file{libmailutils}, a library which
+provides an API for accessing a generalized mailbox.  A set of
+complementary libraries provide methods for handling particular
+mailbox implementations: UNIX mailbox, Maildir, MH, POP3, IMAP4,
+even SMTP.  Mailutils offers functions for almost any mail-related
+task, such as parsing of messages, email addresses and URLs, handling
+MIME messages, listing mail folders, mailcap facilities, extensible
+Sieve filtering, access control lists.  It supports various modern
+data security and authentication techniques: TLS encryption, SASL and
+GSSAPI, to name a few.  Mailutils is able to work with a wide
+variety of authorization databases, ranging from traditional system
+password database up to RADIUS, SQL and LDAP.
+
+The utilities provided by Mailutils include @command{imap4d} and
+@command{pop3d} mail servers, mail reporting utility
+@command{comsatd}, general-purpose mail delivery agent
+@command{maidag}, mail filtering program @command{sieve}, an implementation
+of MH message handling system and much more.
 
 All utilities share the same subset of command line options and use
 a unified configuration mechanism, which allows to easily configure
@@ -486,17 +476,17 @@ under the GNU FDL, and everything else is licensed under the GNU GPL.
 @section What this Book Contains
 
 @FIXME{This is more a plan on how the document should be structured,
-than a description of its actual structure. However it is:}
+than a description of its actual structure.  However it is:}
 
   This book addresses a wide audience of both system administrators
 and users that aim to use Mailutils programs, and programmers who wish
-to use Mailutils libraries in their programs. Given this audience,
+to use Mailutils libraries in their programs.  Given this audience,
 the book is divided in three major parts.
 
   The first part provides a detailed description of each Mailutils
-utility, and advices on how to use them in various situations. This
+utility, and advices on how to use them in various situations.  This
 part is intended for users and system administrators who are using
-Mailutils programs. If you are not interested in programming using
+Mailutils programs.  If you are not interested in programming using
 Mailutils, this is the only part you need to read.
 
   Subsequent parts address programmers.
@@ -508,67 +498,37 @@ Mailutils.
   Finally, the third part contains a complete Mailutils library
 reference. 
 
-  This version of the book is not finished. The places that may
+  This version of the book is not finished.  The places that may
 contain inaccurate information carry prominent notices stating so.
 For updated versions of the documentation, visit
-@uref{http://www.gnu.org/software/mailutils/manual}. If you have any
-questions, feel free to ask them at the mailing list
-@email{bug-mailutils@@gnu.org}. 
+@uref{http://mailutils.org/manual}.  All material that ends up in this
+document is first published in the Mailutils Wiki, available at
+@uref{http://mailutils.org/wiki}.  Be sure to visit it for latest
+updates.
+
+  If you have any questions that are not answered there, feel free to
+ask them at the mailing list @email{bug-mailutils@@gnu.org}. 
+
+@FIXME{Mailutils 3.0 introduced such amount of changes, most of which
+being a complete rewrite of the existing codebase, that the library
+tutorial and reference became hopelessly obsolete.  It is my deep
+conviction that using incorrect documentation is much worse than
+having no documentation at all, therefore I have withdrawn the
+obsolete parts from this edition of GNU Mailutils manual.  I am doing
+my best to document new Mailutils libraries and hope to be able to
+re-introduce these parts of the documentation soon.}
 
 @node History
 @section A bit of History, and why use this package?
 @UNREVISED
 
 This package started off to try and handle large mailbox files more
-gracefully then current POP3 servers did. While it handles this task,
-it also allows you to support a variety of different mailbox formats
-without any real effort on your part. Also, if a new format is added
-at a later date, your program will support that new format
-automatically as soon as it is compiled against the new library.
-
-@node Programs
-@chapter Mailutils Programs
-@cindex Programs
-@include programs.texi
-
-@node Libraries
-@chapter Mailutils Libraries
-@cindex Libraries
-
-@menu
-* libmailutils::    The Core Library.
-* libmu_auth::      Auxiliary Library for Authenticating Users.
-* libmu_scm::       Mailutils to Scheme Interface.
-* libmu_sieve::     GNU Implementation of Sieve Mail Filtering.
-@end menu
-
-@node libmailutils
-@section Framework
-@cindex Framework
-@include framework.texi
-
-@node libmu_auth
-@section Authentication Library
-@cindex Authentication Library
-@cindex libmu_auth
-@include libmu_auth.texi
-
-@node libmu_scm
-@section Mailutils to Scheme Interface
-@cindex Scheme
-@cindex libmu_scm
-@include libmu_scm.texi
-
-@node libmu_sieve
-@section Sieve Library
-@cindex Sieve Library
-@cindex libmu_sieve
-@include libmu_sieve.texi
-
-@node Sieve Language
-@chapter Sieve Language
-@cindex Sieve Language
-@include sieve.texi
+gracefully then available at that time POP3 servers did.  While it
+handles this task, it also allows you to support a variety of
+different mailbox formats without any real effort on your part. Also,
+if a new format is added at a later date, your program will support
+that new format automatically as soon as it is compiled against the
+new library. 
 
 @node Reporting Bugs
 @chapter Reporting Bugs
@@ -576,7 +536,7 @@ automatically as soon as it is compiled against the new library.
 Email bug reports to @email{bug-mailutils@@gnu.org}.
 
 As the purpose of bug reporting is to improve software, please be sure
-to include maximum information when reporting a bug. The information
+to include maximum information when reporting a bug.  The information
 needed is:
 
 @itemize
@@ -588,15 +548,33 @@ needed is:
 The archives of bug-mailutils mailing list are available from
 @url{http://mail.gnu.org/@/mailman/@/listinfo/@/bug-mailutils}.
 
+@node Programs
+@chapter Mailutils Programs
+@cindex Programs
+@include programs.texi
+
+@node Libraries
+@chapter Mailutils Libraries
+@cindex Libraries
+@WRITEME
+
+@node Sieve Language
+@chapter Sieve Language
+@cindex Sieve Language
+@include sieve.texi
+
 @node News
 @chapter Getting News About GNU Mailutils
 
 The two places to look for any news regarding GNU Mailutils are the
-Mailutils homepage at @url{http://www.gnu.org/@/software/@/mailutils}, and the
-project page at @url{http://savannah.gnu.org/@/projects/@/mailutils}.
+Mailutils homepage at @url{http://mailutils.org} or
+@url{http://www.gnu.org/@/software/@/mailutils}, and the project page
+at @url{http://savannah.gnu.org/@/projects/@/mailutils}. 
 
 The updated versions of this manual are available online from
-@url{http://www.gnu.org/@/software/@/mailutils/@/manual}.
+@uref{http://mailutils.org/manual}.  See also
+@uref{http://mailutils.org/wiki, Mailutils Wiki} for the latest
+updates.
 
 @node Acknowledgement
 @chapter Acknowledgement
@@ -630,128 +608,18 @@ Wojciech Polak @email{polak@@gnu.org}
 
 @node References
 @appendix References
-
-@itemize @bullet
-@item SMTP
-
-@itemize @minus
-@item
-@cite{RFC 2821: Simple Mail Transfer Protocol}
-
-@item
-@cite{RFC 2368: The mailto URL scheme}
-
-@item
-@cite{RFC 2487: SMTP Service Extension for Secure SMTP over TLS}
-@end itemize
-
-@item POP3
-
-@itemize @minus
-@item
-@cite{RFC 1939: Post Office Protocol - Version 3}
-
-@item
-@cite{RFC 1734: POP3 AUTHentication command}
-
-@item
-@cite{RFC 1957: Some Observations on Implementations of the Post Office
-Protocol (POP3)}
-
-@item
-@cite{RFC 2449: POP3 Extension Mechanism}
-
-@item
-@cite{RFC 2384: POP URL Scheme}
-
-@item
-@cite{RFC 2595: Using TLS with IMAP, POP3 and ACAP}
-@end itemize
-
-@item IMAP4
-
-@itemize @minus
-@item
-@cite{RFC 2060: INTERNET MESSAGE ACCESS PROTOCOL - VERSION 4rev1}
-
-@item
-@cite{RFC 2088: IMAP4 non-synchronizing literals}
-
-@item
-@cite{RFC 2193: IMAP4 Mailbox Referrals}
-
-@item
-@cite{RFC 2221: IMAP4 Login Referrals}
-
-@item
-@cite{RFC 2342: IMAP4 Namespace}
-
-@item
-@cite{RFC 2192: IMAP URL Scheme}
-
-@item
-@cite{RFC 1731: IMAP4 Authentication Mechanisms}
-
-@item
-@cite{RFC 2245: Anonymous SASL Mechanism}
-
-@item
-@cite{RFC 2595: Using TLS with IMAP, POP3 and ACAP}
-@end itemize
-
-@item message formats
-
-@itemize @minus
-@item
-@cite{RFC 2822: Internet Message Format}
-
-@item
-@cite{RFC 2045: Multipurpose Internet Mail Extensions (MIME) Part One:
-Format of Internet Message Bodies}
-
-@item
-@cite{RFC 2046: Multipurpose Internet Mail Extensions (MIME) Part Two:
-Media Types}
-
-@item
-@cite{RFC 2047: Multipurpose Internet Mail Extensions (MIME) Part Three:
-Message Header Extensions for Non-ASCII Text}
-
-@item
-@cite{RFC 2049: Multipurpose Internet Mail Extensions (MIME) Part Five:
-Conformance Criteria and Examples}
-
-@item
-@cite{RFC 2111: Content-ID and Message-ID Uniform Resource Locators}
-@end itemize
-
-@item miscellaneous related topics
-
-@itemize @minus
-@item
-@cite{RFC 1738: Uniform Resource Locators (URL)}
-
-@item
-@cite{RFC 2298: An Extensible Message Format for Message Disposition
-Notifications}
-
-@item
-@cite{RFC 3028: Sieve: A Mail Filtering Language}
-
-@item
-@cite{RFC 3431: Sieve Extension: Relational Tests}
-
-@item
-@cite{Internet Email Protocols: A Developer's Guide, by Kevin Johnson}
-@end itemize
-@end itemize
+@WRITEME
 
 @node Date Input Formats
 @appendix Date Input Formats
 @include getdate.texi
 
+@node Usage Vars
+@appendix Configuring Help Summary
 @include usage.texi
 
+@node GNU FDL
+@appendix GNU Free Documentation License
 @include fdl.texi
 
 @node Function Index

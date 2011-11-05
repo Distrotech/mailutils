@@ -201,6 +201,17 @@ extern char *apop_database_name;
 extern int apop_database_safety;
 extern int apop_database_safety_set;
 
+/* Safety checks for group-rw database files, such as stat and bulletin
+   databases */
+   
+#define DEFAULT_GROUP_DB_SAFETY					\
+  (MU_FILE_SAFETY_WORLD_WRITABLE|				\
+   MU_FILE_SAFETY_WORLD_READABLE|				\
+   MU_FILE_SAFETY_LINKED_WRDIR|					\
+   MU_FILE_SAFETY_DIR_IWGRP|					\
+   MU_FILE_SAFETY_DIR_IWOTH)
+
+
 extern pop3d_command_handler_t pop3d_find_command (const char *name);
 
 extern int pop3d_stat           (char *);

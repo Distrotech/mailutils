@@ -32,8 +32,10 @@ open_stat_db (int mode)
       return NULL;
     }
 
+  mu_dbm_safety_set_flags (db, DEFAULT_GROUP_DB_SAFETY);
+  
   rc = mu_dbm_safety_check (db);
-  if (rc)
+  if (rc && rc != ENOENT)
     {
       mu_diag_output (MU_DIAG_ERROR,
 		      _("statistics db fails safety check: %s"),

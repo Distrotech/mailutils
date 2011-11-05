@@ -133,6 +133,8 @@ read_bulletin_db (size_t *pnum)
       return rc;
     }
 
+  mu_dbm_safety_set_flags (db, DEFAULT_GROUP_DB_SAFETY);
+
   rc = mu_dbm_safety_check (db);
   if (rc)
     {
@@ -224,6 +226,8 @@ write_bulletin_db (size_t num)
       mu_diag_output (MU_DIAG_ERROR, _("unable to create bulletin db"));
       return rc;
     }
+
+  mu_dbm_safety_set_flags (db, DEFAULT_GROUP_DB_SAFETY);
 
   rc = mu_dbm_safety_check (db);
   if (rc && rc != ENOENT)
