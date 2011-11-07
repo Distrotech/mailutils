@@ -563,8 +563,7 @@ mail_warranty (int argc MU_ARG_UNUSED, char **argv MU_ARG_UNUSED)
 {
   mu_printf (
 	 _("GNU Mailutils -- a suite of utilities for electronic mail\n"
-           "Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,\n"
-           "2007, 2009, 2010 Free Software Foundation, Inc.\n\n"));
+           "Copyright (C) 1999-2011 Free Software Foundation, Inc.\n\n"));
   mu_printf (
   _("   GNU Mailutils is free software; you can redistribute it and/or modify\n"
     "   it under the terms of the GNU General Public License as published by\n"

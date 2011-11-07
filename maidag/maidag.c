@@ -412,7 +412,7 @@ cb_delivery_mode (void *data, mu_config_value_t *val)
 	mu_log_syslog = 0;
     }
   else
-    mu_error (_("%s is unknonw"), val->v.string);
+    mu_error (_("%s is unknown"), val->v.string);
   return 0;
 }
 
