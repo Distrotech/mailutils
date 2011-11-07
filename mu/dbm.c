@@ -1180,7 +1180,10 @@ add_records (int mode, int replace)
 	}
     }
   else
-    instream = mu_strin;
+    {
+      instream = mu_strin;
+      mu_stream_ref (instream);
+    }
   
   rc = mu_filter_create_args (&flt, instream, "inline-comment",
 			      MU_ARRAY_SIZE (flt_argv) - 1, flt_argv,
