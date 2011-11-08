@@ -36,7 +36,8 @@ libmu_dbm_la_SOURCES = \
  store.c\
  berkeley.c\
  gdbm.c\
- ndbm.c
+ ndbm.c\
+ tokyo.c
 
 noinst_HEADERS = mudbm.h
 

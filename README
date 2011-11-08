@@ -287,10 +287,6 @@ use DBM-based mail box quotas with maildag.
 
 	Use Tokyo Cabinet DBM
 
-        Only one dbm option may be specified. Which one depends on
-        the flavor of DBM you are using. GDBM is most common for GNU
-        system.
-
 Use following options to disable support for particular protocols or
 features:
 

@@ -5648,8 +5648,8 @@ The mailbox quota can be retrieved from the following sources:
 
 To use @acronym{DBM} quota database, GNU Mailutils must
 be compiled with one of the following command line options:
-@option{--with-gdbm}, @option{--with-berkeley-db}, or
-@option{--with-ndbm}.  Examine the output of @command{maidag
+@option{--with-gdbm}, @option{--with-berkeley-db}, @option{--with-ndbm},
+or @option{--with-tokyocabinet}.  Examine the output of @command{maidag
 --show-config-options}, if not sure. 
 
 The quota database should have the following structure:
