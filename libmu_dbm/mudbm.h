@@ -40,7 +40,7 @@ extern struct mu_dbm_impl _mu_dbm_bdb;
 extern struct mu_dbm_impl _mu_dbm_ndbm;
 #endif
 #ifdef WITH_TOKYOCABINET
-extern struct mu_dbm_impl _mu_dbm_tokyokabinet;
+extern struct mu_dbm_impl _mu_dbm_tokyocabinet;
 #endif
 
 void _mu_dbm_init (void);

@@ -214,7 +214,7 @@ _tc_strerror (mu_dbm_file_t db)
   return tchdberrmsg (db->db_errno.n);
 }
 
-struct mu_dbm_impl _mu_dbm_tokyokabinet = {
+struct mu_dbm_impl _mu_dbm_tokyocabinet = {
   "tc",
   _tc_file_safety,
   _tc_get_fd,

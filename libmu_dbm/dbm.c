@@ -81,7 +81,7 @@ mu_dbm_init ()
   mu_dbm_register (&_mu_dbm_ndbm);
 #endif
 #ifdef WITH_TOKYOCABINET
-  mu_dbm_register (&_mu_dbm_tokyokabinet);
+  mu_dbm_register (&_mu_dbm_tokyocabinet);
 #endif
   if (!mu_dbm_hint)
     {
