@@ -19,6 +19,7 @@
 # include <config.h>
 #endif
 #include <fcntl.h>
+#include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -38,6 +39,7 @@ struct kc_descr
 {
   KCDB *db;    /* db */
   KCCUR *cur;  /* cursor */
+  int fd;
 };
 
 static int
@@ -49,7 +51,17 @@ _kc_file_safety (mu_dbm_file_t db, int mode, uid_t owner)
 int
 _kc_get_fd (mu_dbm_file_t db, int *pag, int *dir)
 {
-  return ENOSYS;
+  struct kc_descr *kcd = db->db_descr;
+  if (kcd->fd == -1)
+    {
+      kcd->fd = open (db->db_name, O_RDONLY);
+      if (kcd->fd == -1)
+	return errno;
+    }
+  *pag = kcd->fd;
+  if (dir)
+    *dir = kcd->fd;
+  return 0;
 }
 
 static int
@@ -93,6 +105,7 @@ _kc_open (mu_dbm_file_t db, int flags, int mode)
   kcd->db = kdb;
   kcd->cur = NULL;
   db->db_descr = kcd;
+  kcd->fd = -1;
   return 0;
 }
 
@@ -102,6 +115,8 @@ _kc_close (mu_dbm_file_t db)
   if (db->db_descr)
     {
       struct kc_descr *kcd = db->db_descr;
+      if (kcd->fd != -1)
+	close (kcd->fd);
       kcdbclose (kcd->db);
       kcdbdel (kcd->db);
       free (kcd);
