@@ -66,8 +66,8 @@ api_filter_iconv_create (PyObject *self, PyObject *args)
 
   argv[1] = fromcode;
   argv[2] = tocode;
-  mu_filter_create_args (&py_stm->stm, py_transport->stm, argv[0], 3, argv,
-			 MU_FILTER_DECODE, flags);
+  status = mu_filter_create_args (&py_stm->stm, py_transport->stm, argv[0], 3,
+				  argv, MU_FILTER_DECODE, flags);
   return _ro (PyInt_FromLong (status));
 }
 

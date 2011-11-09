@@ -40,14 +40,6 @@ class Url:
     def __str__ (self):
         return url.to_string (self.url)
 
-    def parse (self):
-        """Parses the url, after calling this the get functions
-        can be called."""
-        if self.__owner:
-            status = url.parse (self.url)
-            if status:
-                raise UrlError (status)
-
     def get_port (self):
         status, port = url.get_port (self.url)
         if status:

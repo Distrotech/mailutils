@@ -23,22 +23,13 @@ if len (sys.argv) != 3:
     sys.exit (0)
 
 sti = stream.StdioStream (stream.MU_STDIN_FD)
-sti.open ()
-
 cvt = filter.FilterIconvStream (sti, sys.argv[1], sys.argv[2])
-cvt.open ()
-
 out = stream.StdioStream (stream.MU_STDOUT_FD, 0)
-out.open ()
 
 total = 0
 while True:
-    buf = cvt.read (total)
+    buf = cvt.read ()
     out.write (buf)
     total += cvt.read_count
     if not cvt.read_count:
         break
-
-out.flush ()
-out.close ()
-sti.close ()
