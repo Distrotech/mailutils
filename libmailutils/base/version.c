@@ -49,11 +49,11 @@ static struct mu_conf_option mu_conf_option[] = {
 #ifdef WITH_BDB2
   { "WITH_BDB2", N_("Berkeley DB v. 2") },
 #endif
+#ifdef WITH_BDB
+  { "WITH_BDB", N_("Berkeley DB") },
+#endif
 #ifdef WITH_NDBM
   { "WITH_NDBM", },
-#endif
-#ifdef WITH_OLD_DBM
-  { "WITH_OLD_DBM", N_("Old DBM support") },
 #endif
 #ifdef WITH_GDBM
   { "WITH_GDBM", N_("GNU DBM") },
