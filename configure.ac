@@ -413,6 +413,16 @@ case "${withval}" in
   *)   AC_MSG_ERROR(bad value ${withval} for --with-tokyocabinet) ;;
 esac])
 
+AC_ARG_WITH([kyotocabinet],
+            AC_HELP_STRING([--with-kyotocabinet],
+                           [use Kyoto Cabinet]),
+            [
+case "${withval}" in
+  yes) enable_dbm="$enable_dbm KC";;
+  no)  disable_dbm="$disable_dbm KC";;
+  *)   AC_MSG_ERROR(bad value ${withval} for --with-kyotocabinet) ;;
+esac])
+
 dnl Check for DBM
 
 AH_TEMPLATE([WITH_BDB],
@@ -551,6 +561,15 @@ check_dbm_impl() {
 		       DBMLIB_DEPENDENCY="$DBMLIB_DEPENDENCY -lz -lbz2 -lrt"
                        DBMLIBS="$DBMLIBS -ltokyocabinet"
                        status_dbm="$status_dbm,Tokyo Cabinet"]);;
+
+  KC)
+	  AC_CHECK_LIB(kyotocabinet, kcdbnew,
+                       [AC_CHECK_HEADERS(kclangc.h,
+                                         AC_DEFINE(WITH_KYOTOCABINET,1,
+                                                 [Enable use of Kyoto Cabinet]))
+		       DBMLIB_DEPENDENCY="$DBMLIB_DEPENDENCY -lz -lbz2 -lrt"
+                       DBMLIBS="$DBMLIBS -lkyotocabinet"
+                       status_dbm="$status_dbm,Kyoto Cabinet"]);;
   esac
 }
 

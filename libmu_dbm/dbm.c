@@ -83,6 +83,9 @@ mu_dbm_init ()
 #ifdef WITH_TOKYOCABINET
   mu_dbm_register (&_mu_dbm_tokyocabinet);
 #endif
+#ifdef WITH_KYOTOCABINET
+  mu_dbm_register (&_mu_dbm_kyotocabinet);
+#endif
   if (!mu_dbm_hint)
     {
       struct mu_dbm_impl *impl;

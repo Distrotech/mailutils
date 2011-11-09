@@ -61,6 +61,9 @@ static struct mu_conf_option mu_conf_option[] = {
 #ifdef WITH_TOKYOCABINET
   { "WITH_TOKYOCABINET", N_("Tokyo Cabinet DBM") },
 #endif
+#ifdef WITH_KYOTOCABINET
+  { "WITH_KYOTOCABINET", N_("Kyoto Cabinet DBM") },
+#endif
 #ifdef WITH_GNUTLS
   { "WITH_GNUTLS", N_("TLS support using GNU TLS") },
 #endif

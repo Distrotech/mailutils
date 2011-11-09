@@ -287,6 +287,11 @@ use DBM-based mail box quotas with maildag.
 
 	Use Tokyo Cabinet DBM
 
+    --with-kyotocabinet
+
+	Use Kyoto Cabinet DBM
+
+
 Use following options to disable support for particular protocols or
 features:
 

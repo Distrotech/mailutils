@@ -36,6 +36,7 @@ libmu_dbm_la_SOURCES = \
  store.c\
  berkeley.c\
  gdbm.c\
+ kyoto.c\
  ndbm.c\
  tokyo.c
 

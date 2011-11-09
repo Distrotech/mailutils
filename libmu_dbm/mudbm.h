@@ -42,6 +42,9 @@ extern struct mu_dbm_impl _mu_dbm_ndbm;
 #ifdef WITH_TOKYOCABINET
 extern struct mu_dbm_impl _mu_dbm_tokyocabinet;
 #endif
+#ifdef WITH_KYOTOCABINET
+extern struct mu_dbm_impl _mu_dbm_kyotocabinet;
+#endif
 
 void _mu_dbm_init (void);
 
