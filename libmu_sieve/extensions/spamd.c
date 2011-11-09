@@ -87,7 +87,7 @@ spamd_send_command (mu_stream_t stream, const char *fmt, ...)
 }
 
 static int
-spamd_send_message (mu_stream_t stream, mu_message_t msg)
+spamd_send_message (mu_stream_t stream, mu_message_t msg, int dbg)
 {
   int rc;
   mu_stream_t mstr, flt;
@@ -120,7 +120,8 @@ spamd_send_message (mu_stream_t stream, mu_message_t msg)
       bufchg = 1;
     }
 
-  if (mu_debug_category_level ("sieve", 5, &dlev) == 0 &&
+  if (dbg &&
+      mu_debug_category_level ("sieve", 5, &dlev) == 0 &&
       !(dlev & MU_DEBUG_LEVEL_MASK (MU_DEBUG_TRACE9)))
     {
       /* Mark out the following data as payload */
@@ -296,6 +297,35 @@ parse_response_line (mu_sieve_machine_t mach, const char *buffer)
   return 0;
 }
 
+/* Compute the "real" size of the message.  This takes into account filtering
+   applied by spamd_send_message (LF->CRLF transcription).
+
+   FIXME: Previous versions used mu_message_size, but it turned out to be
+   unreliable, because it sometimes returns a "normalized" size, which differs
+   from the real one.  This happens when the underlying implementation does
+   not provide a _get_size method, so that the size is computed as a sum of
+   message body and header sizes.  This latter is returned by mu_header_size,
+   which ignores extra whitespace around each semicolon (see header_parse in
+   libmailutils/mailbox/header.c).
+ */
+static int
+get_real_message_size (mu_message_t msg, size_t *psize)
+{
+  mu_stream_t null;
+  mu_stream_stat_buffer stat;
+  int rc;
+  
+  rc = mu_nullstream_create (&null, MU_STREAM_WRITE);
+  if (rc)
+    return rc;
+  mu_stream_set_stat (null, MU_STREAM_STAT_MASK (MU_STREAM_STAT_OUT), stat);
+  rc = spamd_send_message (null, msg, 0);
+  mu_stream_destroy (&null);
+  if (rc == 0)
+    *psize = stat[MU_STREAM_STAT_OUT];
+  return rc;
+}
+
 /* The test proper */
 
 /* Syntax: spamd [":host" <tcp-host: string>]
@@ -326,7 +356,7 @@ static int
 spamd_test (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
 {
   char *buffer = NULL;
-  size_t size = 0;
+  size_t size;
   char spam_str[6], score_str[21], threshold_str[21];
   int rc;
   int result;
@@ -334,7 +364,6 @@ spamd_test (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   mu_stream_t stream = NULL, null;
   mu_sieve_value_t *arg;
   mu_message_t msg;
-  size_t m_size, m_lines;
   char *host;
   mu_header_t hdr;
   mu_debug_handle_t lev = 0;
@@ -347,6 +376,15 @@ spamd_test (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   
   if (mu_sieve_is_dry_run (mach))
     return 0;
+  
+  msg = mu_sieve_get_message (mach);
+  rc = get_real_message_size (msg, &size);
+  if (rc)
+    {
+      mu_sieve_error (mach, _("cannot get real message size: %s"),
+		      mu_strerror (rc));
+      mu_sieve_abort (mach);
+    }
   
   if (mu_sieve_tag_lookup (tags, "host", &arg))
     host = arg->v.string;
@@ -387,14 +425,9 @@ spamd_test (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
 	}
     }
 
-  msg = mu_sieve_get_message (mach);
-  mu_message_size (msg, &m_size);
-  mu_message_lines (msg, &m_lines);
-
   spamd_send_command (stream, "SYMBOLS SPAMC/1.2");
   
-  spamd_send_command (stream, "Content-length: %lu",
-		      (u_long) (m_size + m_lines));
+  spamd_send_command (stream, "Content-length: %lu", (u_long) size);
   if (mu_sieve_tag_lookup (tags, "user", &arg))
     spamd_send_command (stream, "User: %s", arg);
   else
@@ -408,7 +441,7 @@ spamd_test (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   handler = set_signal_handler (SIGPIPE, sigpipe_handler);
   
   spamd_send_command (stream, "");
-  spamd_send_message (stream, msg);
+  spamd_send_message (stream, msg, 1);
   mu_stream_shutdown (stream, MU_STREAM_WRITE);
 
   spamd_read_line (mach, stream, &buffer, &size);
