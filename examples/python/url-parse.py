@@ -21,7 +21,6 @@ from mailutils.error import *
 def parse (str):
     try:
 	u = url.Url (str)
-	u.parse ()
         print "URL: %s" % u
 
 	print "\tscheme <%s>" % u.get_scheme ()

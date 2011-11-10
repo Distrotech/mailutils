@@ -17,8 +17,6 @@
 from mailutils import stream, mailcap
 
 stm = stream.FileStream ("/etc/mailcap")
-stm.open ()
-
 mc = mailcap.Mailcap (stm)
 
 for i, entry in enumerate (mc):

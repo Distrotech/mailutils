@@ -102,18 +102,6 @@ api_url_destroy (PyObject *self, PyObject *args)
   return _ro (Py_None);
 }
 
-/* FIXME: Remove */
-static PyObject *
-api_url_parse (PyObject *self, PyObject *args)
-{
-  PyUrl *py_url;
-
-  if (!PyArg_ParseTuple (args, "O!", &PyUrlType, &py_url))
-    return NULL;
-
-  return _ro (0);
-}
-
 static PyObject *
 api_url_get_port (PyObject *self, PyObject *args)
 {
@@ -254,9 +242,6 @@ static PyMethodDef methods[] = {
 
   { "destroy", (PyCFunction) api_url_destroy, METH_VARARGS,
     "Destroy the url and free its resources." },
-
-  { "parse", (PyCFunction) api_url_parse, METH_VARARGS,
-    "Parse the url, after calling this the get functions can be called." },
 
   { "to_string", (PyCFunction) api_url_to_string, METH_VARARGS,
     "" },
