@@ -190,7 +190,12 @@ mu_dbm_create_from_url (mu_url_t url, mu_dbm_file_t *db)
 	      if (name[5] == '=')
 		{
 		  auth = mu_get_auth_by_name (name + 6);
-		  if (!auth)
+		  if (auth)
+		    {
+		      owner_uid = auth->uid;
+		      mu_auth_data_free (auth);
+		    }
+		  else
 		    {
 		      char *end;
 		      unsigned long uid;
@@ -199,11 +204,7 @@ mu_dbm_create_from_url (mu_url_t url, mu_dbm_file_t *db)
 		      uid = strtoul (name + 6, &end, 0);
 		      if (*end || errno)
 			return MU_ERR_NO_SUCH_USER;
-		      auth = mu_get_auth_by_uid (uid);
-		      if (!auth)
-			return MU_ERR_NO_SUCH_USER;
-		      owner_uid = auth->uid;
-		      mu_auth_data_free (auth);
+		      owner_uid = uid;
 		    }
 		}
 	      else if (name[5])
