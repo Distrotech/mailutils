@@ -1252,8 +1252,6 @@ add_records (int mode, int replace)
   
   /* Open the database */
   db = open_db_file (mode);
-  if (known_meta_data)
-    set_db_ownership (db);
   
   /* Read and store the actual data */
   if (rc == 0 && input_length (&input) > 0)
@@ -1282,6 +1280,8 @@ add_records (int mode, int replace)
   mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM, MU_IOCTL_LOGSTREAM_SET_LOCUS,
 		   &save_locus);
   
+  if (known_meta_data)
+    set_db_ownership (db);
   mu_dbm_destroy (&db);
   mu_stream_unref (instream);
 }
