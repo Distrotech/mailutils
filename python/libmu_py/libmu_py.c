@@ -42,14 +42,23 @@ status_object (int status, PyObject *py_obj)
 static PyObject *package;
 static PyObject *all;
 
+#define MU_MODULE_ROOT PY_PACKAGE_NAME "." PY_ROOT_NAME "."
+
+static char *
+_mu_py_module_name (const char *nm)
+{
+  char *buf = malloc (sizeof (MU_MODULE_ROOT) + strlen (nm));
+  if (!buf)
+    abort ();
+  return strcat (strcpy (buf, MU_MODULE_ROOT), nm);
+}
+  
 PyObject *
 _mu_py_attach_module (const char *name, PyMethodDef *methods)
 {
-  PyObject *module, *m;
-
-  char ns[64] = PY_PACKAGE_NAME "." PY_ROOT_NAME ".";
-  strcat (ns, name);
-
+  PyObject *module;
+  char *ns = _mu_py_module_name (name);
+  
   if (!(module = PyImport_AddModule (ns)))
     return NULL;
 
@@ -58,11 +67,12 @@ _mu_py_attach_module (const char *name, PyMethodDef *methods)
 
   Py_INCREF (module);
 
-  if (!(m = Py_InitModule (ns, methods)))
+  if (methods && !Py_InitModule (ns, methods))
     return NULL;
 
   PyList_Append (all, PyString_FromString (name));
-  return m;
+  free (ns);
+  return module;
 }
 
 void
@@ -111,6 +121,7 @@ mu_py_attach_modules (void)
   _mu_py_attach_auth ();
   _mu_py_attach_body ();
   _mu_py_attach_envelope ();
+  _mu_py_attach_errno ();
   _mu_py_attach_header ();
   _mu_py_attach_filter ();
   _mu_py_attach_folder ();

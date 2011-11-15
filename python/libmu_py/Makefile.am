@@ -19,6 +19,7 @@ INCLUDES = @MU_LIB_COMMON_INCLUDES@ $(PYTHON_INCLUDES)
 lib_LTLIBRARIES=libmu_py.la
 libmu_py_la_SOURCES = \
  error.c \
+ errno.c \
  address.c \
  attribute.c \
  auth.c \
