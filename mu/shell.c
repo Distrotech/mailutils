@@ -19,6 +19,7 @@
 #endif
 #include <stdlib.h>
 #include <string.h>
+#include <signal.h>
 #include <mailutils/mailutils.h>
 #include <mailutils/tls.h>
 #include "mailutils/libargp.h"
@@ -34,6 +35,33 @@ char *mutool_shell_prompt;
 char **mutool_prompt_env;
 int mutool_shell_interactive;
 
+
+static int got_signal = 0;
+
+static void
+_shell_sig (int sig)
+{
+  got_signal = sig;
+}
+
+#define shell_interrupted() (got_signal == SIGINT)
+
+static void
+report_signals ()
+{
+  switch (got_signal)
+    {
+    case 0:
+      break;
+
+    case SIGINT:
+      mu_stream_printf (mu_strerr, _("Interrupt\n"));
+      mu_stream_flush (mu_strerr);
+
+    default:
+      got_signal = 0;
+    }
+}
 
 static int shell_exit (int, char **);
 static int shell_help (int, char **);
@@ -274,6 +302,27 @@ get_history_file_name ()
   return filename;
 }
 
+static int
+_shell_getc (FILE *stream)
+{
+  unsigned char c;
+
+  while (1)
+    {
+      if (read (fileno (stream), &c, 1) == 1)
+	return c;
+      if (errno == EINTR)
+	{
+	  if (shell_interrupted ())
+	    break;
+	  /* keep going if we handled the signal */
+	}
+      else
+	break;
+    }
+  return EOF;
+}
+
 /* Interface to Readline Completion */
 
 static char *shell_command_generator (const char *, int);
@@ -288,6 +337,7 @@ mutool_initialize_readline (const char *name)
   /* Allow conditional parsing of the ~/.inputrc file. */
   rl_readline_name = (char *) name;
   rl_attempted_completion_function = (CPPFunction *) shell_completion;
+  rl_getc_function = _shell_getc;
   read_history (get_history_file_name ());
 }
 
@@ -507,6 +557,7 @@ input_line_interactive ()
   int wsflags = MU_WRDSF_NOSPLIT | MU_WRDSF_NOCMD;
   struct mu_wordsplit ws;
   
+  report_signals ();
   if (mutool_prompt_env)
     {
       ws.ws_env = (const char **)mutool_prompt_env;
@@ -528,6 +579,7 @@ input_line_script ()
   size_t size = 0, n;
   char *buf = NULL;
 
+  report_signals ();
   if (mu_stream_getline (mu_strin, &buf, &size, &n) || n == 0)
     return NULL;
   return buf;
@@ -541,13 +593,14 @@ shell_exit (int argc MU_ARG_UNUSED, char **argv MU_ARG_UNUSED)
   done = 1;
   return 0;
 }
-  
+
 int
 mutool_shell (const char *name, struct mutool_command *cmd)
 {
   size_t n;
   char *(*input_line) ();
-
+  static int sigv[] = { SIGPIPE, SIGINT };
+				   
   mutool_shell_interactive = isatty (0);
   input_line = mutool_shell_interactive ?
                              input_line_interactive : input_line_script;
@@ -562,12 +615,21 @@ mutool_shell (const char *name, struct mutool_command *cmd)
   memcpy (shell_comtab + n, default_comtab, sizeof (default_comtab));
 
   mutool_initialize_readline (name);
+  mu_set_signals (_shell_sig, sigv, MU_ARRAY_SIZE (sigv));
   while (!done)
     {
       char *s, *line = input_line ();
       if (!line)
-	break;
-
+	{
+	  if (shell_interrupted ())
+	    {
+	      report_signals ();
+	      continue;
+	    }
+	  else
+	    break;
+	}
+      
       /* Remove leading and trailing whitespace from the line.
          Then, if there is anything left, add it to the history list
          and execute it. */
