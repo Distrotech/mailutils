@@ -52,6 +52,7 @@ pkginclude_HEADERS = \
  guile.h\
  header.h\
  imap.h\
+ imapio.h\
  io.h\
  iterator.h\
  kwd.h\

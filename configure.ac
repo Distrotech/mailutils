@@ -1472,6 +1472,7 @@ AC_CONFIG_FILES([
  libmailutils/cfg/Makefile
  libmailutils/diag/Makefile
  libmailutils/filter/Makefile
+ libmailutils/imapio/Makefile
  libmailutils/mailbox/Makefile
  libmailutils/mailer/Makefile
  libmailutils/mime/Makefile

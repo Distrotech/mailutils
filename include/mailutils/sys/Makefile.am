@@ -31,6 +31,7 @@ sysinclude_HEADERS = \
  header_stream.h\
  header.h\
  imap.h\
+ imapio.h\
  iterator.h\
  iostream.h\
  list.h\

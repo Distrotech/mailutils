@@ -53,6 +53,7 @@ struct mu_kwd bool_keytab[] = {
 struct mu_kwd string_keytab[] = {
   { "delim",   MU_WRDSF_DELIM },
   { "comment", MU_WRDSF_COMMENT },
+  { "escape",  MU_WRDSF_ESCAPE },
   { NULL, 0 }
 };
 
@@ -238,6 +239,10 @@ main (int argc, char **argv)
 
 		case MU_WRDSF_COMMENT:
 		  ws.ws_comment = argv[i];
+		  break;
+
+		case MU_WRDSF_ESCAPE:
+		  ws.ws_escape = argv[i];
 		  break;
 		}
 	      

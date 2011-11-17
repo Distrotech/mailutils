@@ -47,6 +47,7 @@ noinst_PROGRAMS = \
  encode2047\
  fltst\
  fsaf\
+ imapio\
  listop\
  mailcap\
  prop\
