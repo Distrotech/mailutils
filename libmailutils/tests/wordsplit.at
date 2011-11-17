@@ -313,6 +313,15 @@ TESTWSP([C escapes off],[],[-cescapes],
 3: newnline
 ])
 
+TESTWSP([ws elimination],[],[delim ' ()' ws return_delims],
+[( list  items  )],
+[NF: 4
+0: (
+1: list
+2: items
+3: )
+])
+
 TESTWSP([empty quotes],[],[delim : ws return_delims],
 [t=""],
 [NF: 1
@@ -336,6 +345,14 @@ TESTWSP([suppress ws trimming within quotes],[],
 2: nonewline
 3: ,
 4: "formatfield=In message %{text}, "
+])
+
+TESTWSP([unescape],[],[-default novar nocmd quote escape '\"'],
+[\Seen "quote \"" "bs \\"],
+[NF: 3
+0: \\Seen
+1: "quote \""
+2: "bs \\"
 ])
 
 m4_popdef([TESTWSP])

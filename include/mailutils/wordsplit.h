@@ -28,6 +28,7 @@ struct mu_wordsplit
   int ws_flags;
   const char *ws_delim;
   const char *ws_comment;
+  const char *ws_escape;
   void (*ws_alloc_die) (struct mu_wordsplit *wsp);
   void (*ws_error) (const char *, ...)
 		    __attribute__ ((__format__ (__printf__, 1, 2)));
@@ -110,6 +111,9 @@ struct mu_wordsplit
    stored in the element that follows its name. */
 #define MU_WRDSF_ENV_KV            0x4000000
 
+/* ws_escape is set */
+#define MU_WRDSF_ESCAPE            0x8000000
+
 #define MU_WRDSF_DEFFLAGS	       \
   (MU_WRDSF_NOVAR | MU_WRDSF_NOCMD | \
    MU_WRDSF_QUOTE | MU_WRDSF_SQUEEZE_DELIMS | MU_WRDSF_CESCAPES)
@@ -132,6 +136,8 @@ int mu_wordsplit_c_unquote_char (int c);
 int mu_wordsplit_c_quote_char (int c);
 size_t mu_wordsplit_c_quoted_length (const char *str, int quote_hex,
 				     int *quote);
+void mu_wordsplit_general_unquote_copy (char *dst, const char *src, size_t n,
+					const char *escapable);
 void mu_wordsplit_sh_unquote_copy (char *dst, const char *src, size_t n);
 void mu_wordsplit_c_unquote_copy (char *dst, const char *src, size_t n);
 void mu_wordsplit_c_quote_copy (char *dst, const char *src, int quote_hex);

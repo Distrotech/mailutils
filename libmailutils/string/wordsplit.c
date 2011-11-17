@@ -500,7 +500,12 @@ wsnode_quoteremoval (struct mu_wordsplit *wsp)
 	      p->v.word = newstr;
 	      p->flags |= _WSNF_WORD;
 	    }
-	  uqfn (p->v.word, str, slen);
+
+	  if (wsp->ws_flags & MU_WRDSF_ESCAPE)
+	    mu_wordsplit_general_unquote_copy (p->v.word, str, slen,
+					       wsp->ws_escape);
+	  else
+	    uqfn (p->v.word, str, slen);
 	}
     }
   return 0;
@@ -906,6 +911,24 @@ node_expand_vars (struct mu_wordsplit *wsp, struct mu_wordsplit_node *node)
   return 0;
 }
 
+/* Remove NULL lists */
+static void
+wsnode_nullelim (struct mu_wordsplit *wsp)
+{
+  struct mu_wordsplit_node *p;
+
+  for (p = wsp->ws_head; p;)
+    {
+      struct mu_wordsplit_node *next = p->next;
+      if (p->flags & _WSNF_NULL)
+	{
+	  wsnode_remove (wsp, p);
+	  wsnode_free (p);
+	}
+      p = next;
+    }
+}
+
 static int
 mu_wordsplit_varexp (struct mu_wordsplit *wsp)
 {
@@ -920,18 +943,7 @@ mu_wordsplit_varexp (struct mu_wordsplit *wsp)
       p = next;
     }
 
-  /* Remove NULL lists */
-  for (p = wsp->ws_head; p;)
-    {
-      struct mu_wordsplit_node *next = p->next;
-      if (p->flags & _WSNF_NULL)
-	{
-	  wsnode_remove (wsp, p);
-	  wsnode_free (p);
-	}
-      p = next;
-    }
-
+  wsnode_nullelim (wsp);
   return 0;
 }
 
@@ -959,7 +971,11 @@ mu_wordsplit_trimws (struct mu_wordsplit *wsp)
       for (n = p->v.segm.end; n > p->v.segm.beg && ISWS (wsp->ws_input[n-1]);
 	   n--);
       p->v.segm.end = n;
+      if (p->v.segm.beg == p->v.segm.end)
+	p->flags |= _WSNF_NULL;
     }
+
+  wsnode_nullelim (wsp);
 }
 
 static int
@@ -1214,6 +1230,21 @@ mu_wordsplit_c_quoted_length (const char *str, int quote_hex, int *quote)
 	}
     }
   return len;
+}
+
+void
+mu_wordsplit_general_unquote_copy (char *dst, const char *src, size_t n,
+				   const char *escapable)
+{
+  int i;
+
+  for (i = 0; i < n;)
+    {
+      if (src[i] == '\\' && i < n && strchr (escapable, src[i+1]))
+	i++;
+      *dst++ = src[i++];
+    }
+  *dst = 0;
 }
 
 void
