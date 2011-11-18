@@ -1,0 +1,224 @@
+/* GNU Mailutils -- a suite of utilities for electronic mail
+   Copyright (C) 2011 Free Software Foundation, Inc.
+
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Lesser General Public
+   License as published by the Free Software Foundation; either
+   version 3 of the License, or (at your option) any later version.
+
+   This library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General
+   Public License along with this library.  If not, see
+   <http://www.gnu.org/licenses/>. */
+
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
+
+#include <stdlib.h>
+#include <string.h>
+#include <mailutils/errno.h>
+#include <mailutils/assoc.h>
+#include <mailutils/stream.h>
+#include <mailutils/imap.h>
+#include <mailutils/sys/imap.h>
+
+#define STATUS_FLAG_MASK \
+  (MU_IMAP_STAT_MESSAGE_COUNT|			\
+   MU_IMAP_STAT_RECENT_COUNT|			\
+   MU_IMAP_STAT_UIDNEXT|			\
+   MU_IMAP_STAT_UIDVALIDITY|			\
+   MU_IMAP_STAT_FIRST_UNSEEN)
+
+struct mu_kwd _mu_imap_status_name_table[] = {
+  { "MESSAGES",    MU_IMAP_STAT_MESSAGE_COUNT },
+  { "RECENT",      MU_IMAP_STAT_RECENT_COUNT  },
+  { "UIDNEXT",     MU_IMAP_STAT_UIDNEXT       },
+  { "UIDVALIDITY", MU_IMAP_STAT_UIDVALIDITY   },
+  { "UNSEEN",      MU_IMAP_STAT_FIRST_UNSEEN  },
+  { NULL }
+};
+
+static int
+_status_mapper (void **itmv, size_t itmc, void *call_data)
+{
+  struct mu_imap_stat *ps = call_data;
+  struct imap_list_element *kw = itmv[0], *val = itmv[1];
+  size_t value;
+  char *p;
+  int flag;
+  
+  if (kw->type != imap_eltype_string || val->type != imap_eltype_string)
+    return MU_ERR_PARSE;
+  if (mu_kwd_xlat_name_ci (_mu_imap_status_name_table, kw->v.string, &flag))
+    return MU_ERR_PARSE;
+
+  value = strtoul (val->v.string, &p, 10);
+  if (*p)
+    return MU_ERR_PARSE;
+
+  ps->flags |= flag;
+
+  switch (flag)
+    {
+    case MU_IMAP_STAT_MESSAGE_COUNT:
+      ps->message_count = value;
+      break;
+      
+    case MU_IMAP_STAT_RECENT_COUNT:
+      ps->recent_count = value;
+      break;
+      
+    case MU_IMAP_STAT_UIDNEXT:
+      ps->uidnext = value;
+      break;
+      
+    case MU_IMAP_STAT_UIDVALIDITY:
+      ps->uidvalidity = value;
+      break;
+      
+    case MU_IMAP_STAT_FIRST_UNSEEN:
+      ps->first_unseen = value;
+    }
+  return 0;
+}
+
+static int
+_parse_status_response (mu_imap_t imap, const char *mboxname,
+			struct mu_imap_stat *ps)
+{
+  struct imap_list_element *response, *elt;
+  size_t count;
+  int rc;
+  
+  rc = mu_list_get (imap->untagged_resp, 0, (void*) &response);
+  if (rc)
+    return rc;
+
+  mu_list_count (response->v.list, &count);
+  if (count != 3)
+    return MU_ERR_PARSE;
+  rc = mu_list_get (response->v.list, 0, (void*) &elt);
+  if (rc)
+    return rc;
+  if (!_mu_imap_list_element_is_string (elt, "STATUS"))
+    return MU_ERR_NOENT;
+  
+  rc = mu_list_get (response->v.list, 1, (void*) &elt);
+  if (rc)
+    return rc;
+  if (!_mu_imap_list_element_is_string (elt, mboxname))
+    return MU_ERR_NOENT;
+
+  rc = mu_list_get (response->v.list, 2, (void*) &elt);
+  if (rc)
+    return rc;
+  if (elt->type != imap_eltype_list)
+    return MU_ERR_PARSE;
+
+  ps->flags = 0;
+  return mu_list_gmap (elt->v.list, _status_mapper, 2, ps);
+}
+
+int
+mu_imap_status (mu_imap_t imap, const char *mboxname, struct mu_imap_stat *ps)
+{
+  int status;
+  char *p;
+  int delim = 0;
+  int i;
+  
+  if (imap == NULL)
+    return EINVAL;
+  if (!imap->io)
+    return MU_ERR_NO_TRANSPORT;
+  if (imap->state != MU_IMAP_CONNECTED)
+    return MU_ERR_SEQ;
+  if (imap->imap_state != MU_IMAP_STATE_AUTH &&
+      imap->imap_state != MU_IMAP_STATE_SELECTED)
+    return MU_ERR_SEQ;
+  if (!ps)
+    return MU_ERR_OUT_PTR_NULL;
+  if ((ps->flags & STATUS_FLAG_MASK) == 0)
+    return EINVAL;
+      
+  if (!mboxname)
+    {
+      if (imap->imap_state == MU_IMAP_STATE_SELECTED)
+	{
+	  if (ps)
+	    *ps = imap->mbox_stat;
+	  return 0;
+	}
+      return EINVAL;
+    }
+  
+  if (imap->mbox_name && strcmp (imap->mbox_name, mboxname) == 0)
+    {
+      if (ps)
+	*ps = imap->mbox_stat;
+      return 0;
+    }
+  
+  switch (imap->state)
+    {
+    case MU_IMAP_CONNECTED:
+      status = _mu_imap_tag_next (imap);
+      MU_IMAP_CHECK_EAGAIN (imap, status);
+      status = mu_imapio_printf (imap->io, "%s STATUS %s (",
+				 imap->tag_str, mboxname);
+      MU_IMAP_CHECK_ERROR (imap, status);
+      delim = 0;
+      for (i = 0; status == 0 && _mu_imap_status_name_table[i].name; i++)
+	{
+	  if (ps->flags & _mu_imap_status_name_table[i].tok)
+	    {
+	      if (delim)
+		status = mu_imapio_send (imap->io, " ", 1);
+	      if (status == 0)
+		status = mu_imapio_printf (imap->io, "%s",
+					   _mu_imap_status_name_table[i].name);
+	    }
+	  delim = 1;
+	}
+      if (status == 0)
+	status = mu_imapio_send (imap->io, ")\r\n", 3);
+      MU_IMAP_CHECK_ERROR (imap, status);
+      MU_IMAP_FCLR (imap, MU_IMAP_RESP);
+      imap->state = MU_IMAP_STATUS_RX;
+
+    case MU_IMAP_STATUS_RX:
+      status = _mu_imap_response (imap);
+      MU_IMAP_CHECK_EAGAIN (imap, status);
+      switch (imap->resp_code)
+	{
+	case MU_IMAP_OK:
+	  memset (&imap->mbox_stat, 0, sizeof (imap->mbox_stat));
+	  status = _parse_status_response (imap, mboxname, ps);
+	  break;
+
+	case MU_IMAP_NO:
+	  status = EACCES;
+	  break;
+
+	case MU_IMAP_BAD:
+	  status = MU_ERR_BADREPLY;
+	  if (mu_imapio_reply_string (imap->io, 2, &p) == 0)
+	    {
+	      _mu_imap_seterrstr (imap, p, strlen (p));
+	      free (p);
+	    }
+	  break;
+	}
+      imap->state = MU_IMAP_CONNECTED;
+      break;
+
+    default:
+      status = EINPROGRESS;
+    }
+  return status;
+}

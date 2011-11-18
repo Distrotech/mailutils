@@ -520,6 +520,40 @@ com_examine (int argc, char **argv)
 {
   return select_mbox (argc, argv, 0);
 }
+
+static int
+com_status (int argc, char **argv)
+{
+  struct mu_imap_stat st;
+  int i, flag;
+  int status;
+    
+  st.flags = 0;
+  for (i = 2; i < argc; i++)
+    {
+      if (mu_kwd_xlat_name_ci (_mu_imap_status_name_table, argv[i], &flag))
+	{
+	  mu_error (_("unknown data item: %s"), argv[i]);
+	  return 0;
+	}
+      st.flags |= flag;
+    }
+
+  status = mu_imap_status (imap, argv[1], &st);
+  if (status == 0)
+    {
+      print_imap_stats (&st);
+    }
+  else
+    {
+      const char *str;
+      
+      mu_error ("status failed: %s", mu_strerror (status));
+      if (mu_imap_strerror (imap, &str) == 0)
+	mu_error ("server reply: %s", str);
+    }
+  return 0;
+}
 
 
 struct mutool_command imap_comtab[] = {
@@ -548,11 +582,14 @@ struct mutool_command imap_comtab[] = {
     N_("[-test KW] [ARG [ARG...]]"),
     N_("send ID command") },
   { "select",       1, 2, com_select,
-    N_("MBOX"),
+    N_("[MBOX]"),
     N_("select a mailbox") },
-  { "examine",       1, 2, com_examine,
-    N_("MBOX"),
-    N_("examine a mailbox") },  
+  { "examine",      1, 2, com_examine,
+    N_("[MBOX]"),
+    N_("examine a mailbox") },
+  { "status",       3, -1, com_status,
+    N_("MBOX KW [KW...]"),
+    N_("get mailbox status") },
   { "quit",         1, 1, com_logout,
     NULL,
     N_("same as `logout'") },

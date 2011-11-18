@@ -21,6 +21,7 @@
 #include <mailutils/iterator.h>
 #include <mailutils/debug.h>
 #include <mailutils/stream.h>
+#include <mailutils/kwd.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -95,6 +96,10 @@ struct mu_imap_stat
 int mu_imap_select (mu_imap_t imap, const char *mbox, int writable,
 		    struct mu_imap_stat *ps);
 
+int mu_imap_status (mu_imap_t imap, const char *mbox, struct mu_imap_stat *ps);
+
+extern struct mu_kwd _mu_imap_status_name_table[];
+  
 #ifdef __cplusplus
 }
 #endif

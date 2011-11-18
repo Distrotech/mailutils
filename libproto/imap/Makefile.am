@@ -43,6 +43,7 @@ libmu_imap_la_SOURCES = \
  response.c\
  select.c\
  state.c\
+ status.c\
  tag.c\
  trace.c
 
