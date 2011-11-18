@@ -34,6 +34,20 @@ _id_free (void *data)
   free (s);
 }
 
+static int
+_id_mapper (void **itmv, size_t itmc, void *call_data)
+{
+  int rc;
+  mu_assoc_t assoc = call_data;
+  struct imap_list_element *key = itmv[0], *val = itmv[1];
+  if (key->type != imap_eltype_string || val->type != imap_eltype_string)
+    return MU_ERR_FAILURE;
+  rc = mu_assoc_install (assoc, key->v.string, &val->v.string);
+  if (rc == 0)
+    val->v.string = NULL;
+  return rc;
+}
+
 struct id_convert_state
 {
   int item;
@@ -61,32 +75,7 @@ _id_convert (void *item, void *data)
 
     case 1:
       if (elt->type == imap_eltype_list)
-	{
-	  mu_iterator_t itr;
-
-	  mu_list_get_iterator (elt->v.list, &itr);
-	  for (mu_iterator_first (itr); !mu_iterator_is_done (itr);
-	       mu_iterator_next (itr))
-	    {
-	      char *key, *val;
-	      mu_iterator_current (itr, (void **) &elt);
-
-	      if (elt->type != imap_eltype_string)
-		break;
-	      key = elt->v.string;
-	      elt->v.string = NULL;
-
-	      mu_iterator_next (itr);
-	      if (mu_iterator_is_done (itr))
-		break;
-	      mu_iterator_current (itr, (void **) &elt);
-	      if (elt->type != imap_eltype_string)
-		break;
-	      val = elt->v.string;
-	      elt->v.string = NULL;
-	      mu_assoc_install (stp->assoc, key, &val);
-	    }
-	}
+	mu_list_gmap (elt->v.list, _id_mapper, 2, stp->assoc);
     }
   return 1;
 }	

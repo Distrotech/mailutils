@@ -44,6 +44,27 @@ capa_comp (const void *item, const void *value)
   return !(*capa == 0 || *capa == '=');
 }
 
+static int
+_map_capa (void **itmv, size_t itmc, void *call_data)
+{
+  int *n = call_data;
+  struct imap_list_element *elt = itmv[0];
+
+  if (elt->type != imap_eltype_string)
+    return MU_LIST_MAP_STOP;
+  if (*n == 0)
+    {
+      ++*n;
+      if (strcmp (elt->v.string, "CAPABILITY") == 0)
+	return MU_LIST_MAP_SKIP;
+      else
+	return MU_LIST_MAP_STOP;
+    }
+  itmv[0] = elt->v.string;
+  elt->v.string = NULL;
+  return MU_LIST_MAP_OK;
+}
+
 int
 mu_imap_capability (mu_imap_t imap, int reread, mu_iterator_t *piter)
 {
@@ -100,28 +121,9 @@ mu_imap_capability (mu_imap_t imap, int reread, mu_iterator_t *piter)
 	  if (mu_list_get (imap->untagged_resp, 0, (void*)&elt) == 0)
 	    {
 	      /* Top-level elements are always of imap_eltype_list type. */
-	      mu_iterator_t itr;
-	      
-	      mu_list_get_iterator (elt->v.list, &itr);
-	      mu_iterator_first (itr);
-	      if (mu_iterator_is_done (itr))
-		return MU_ERR_PARSE;
-	      mu_iterator_current (itr, (void **) &elt);
-	      if (elt->type == imap_eltype_string &&
-		  strcmp (elt->v.string, "CAPABILITY") == 0)
-		{
-		  for (mu_iterator_next (itr); !mu_iterator_is_done (itr);
-		       mu_iterator_next (itr))
-		    {
-		      mu_iterator_current (itr, (void **) &elt);
-		      if (elt->type == imap_eltype_string)
-			{
-			  mu_list_append (imap->capa, elt->v.string);
-			  elt->v.string = NULL;
-			}
-		    }
-		}
-	      mu_iterator_destroy (&itr);
+	      int n = 0;
+	      status = mu_list_map (elt->v.list, _map_capa, &n, 1,
+				    &imap->capa);
 	    }
 	  if (piter)
 	    status = mu_list_get_iterator (imap->capa, piter);
