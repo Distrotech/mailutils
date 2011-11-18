@@ -26,6 +26,8 @@
 int
 _mu_imap_seterrstr (mu_imap_t imap, const char *str, size_t len)
 {
+  if (!imap)
+    return EINVAL;
   if (len + 1 > imap->errsize)
     {
       char *p = realloc (imap->errstr, len + 1);
@@ -42,13 +44,18 @@ _mu_imap_seterrstr (mu_imap_t imap, const char *str, size_t len)
 void
 _mu_imap_clrerrstr (mu_imap_t imap)
 {
-  if (imap->errstr)
+  if (imap && imap->errstr)
     imap->errstr[0] = 0;
 }
     
 int
 mu_imap_strerror (mu_imap_t imap, const char **pstr)
 {
+  if (!imap)
+    {
+      *pstr = "(imap not initialized)";
+      return EINVAL;
+    }
   if (imap->errstr)
     {
       *pstr = imap->errstr;

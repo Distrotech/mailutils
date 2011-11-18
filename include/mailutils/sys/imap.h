@@ -44,6 +44,7 @@ enum mu_imap_client_state
     MU_IMAP_LOGIN_RX,
     MU_IMAP_LOGOUT_RX,
     MU_IMAP_ID_RX,
+    MU_IMAP_SELECT_RX
   };
 
 enum mu_imap_response
@@ -77,6 +78,10 @@ struct _mu_imap
     
     mu_list_t capa;
     mu_imapio_t io;
+
+    char *mbox_name;  /* Name of the currently opened mailbox */
+    int mbox_writable:1; /* Is it open read/write? */
+    struct mu_imap_stat mbox_stat;  /* Stats obtained from it */
 };
 
 enum imap_eltype
@@ -151,6 +156,9 @@ int _mu_imap_response (mu_imap_t imap);
 
 int _mu_imap_untagged_response_clear (mu_imap_t imap);
 int _mu_imap_untagged_response_add (mu_imap_t imap);
+
+int _mu_imap_list_element_is_string (struct imap_list_element *elt,
+				     const char *str);
   
 # ifdef __cplusplus
 }

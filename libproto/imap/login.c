@@ -18,7 +18,8 @@
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
-
+#include <stdlib.h>
+#include <string.h>
 #include <mailutils/errno.h>
 #include <mailutils/stream.h>
 #include <mailutils/sys/imap.h>
@@ -27,6 +28,7 @@ int
 mu_imap_login (mu_imap_t imap, const char *user, const char *pass)
 {
   int status;
+  char *p;
   
   if (imap == NULL)
     return EINVAL;
@@ -67,6 +69,11 @@ mu_imap_login (mu_imap_t imap, const char *user, const char *pass)
 
 	case MU_IMAP_BAD:
 	  status = MU_ERR_BADREPLY;
+	  if (mu_imapio_reply_string (imap->io, 2, &p) == 0)
+	    {
+	      _mu_imap_seterrstr (imap, p, strlen (p));
+	      free (p);
+	    }
 	  break;
 	}
       imap->state = MU_IMAP_CONNECTED;

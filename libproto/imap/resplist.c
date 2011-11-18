@@ -254,3 +254,13 @@ _mu_imap_untagged_response_add (mu_imap_t imap)
   mu_list_append (imap->untagged_resp, elt);
   return 0;
 }
+
+int
+_mu_imap_list_element_is_string (struct imap_list_element *elt,
+				 const char *str)
+{
+  if (elt->type != imap_eltype_string)
+    return 0;
+  return strcmp (elt->v.string, str) == 0;
+}
+

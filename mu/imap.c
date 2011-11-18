@@ -25,6 +25,7 @@
 #include <netinet/in.h>
 #include <mailutils/mailutils.h>
 #include <mailutils/imap.h>
+#include <mailutils/imapio.h>
 #include "mu.h"
 #include "argp.h"
 #include "xalloc.h"
@@ -454,6 +455,71 @@ com_id (int argc, char **argv)
     }
   return status;
 }
+
+static void
+print_imap_stats (struct mu_imap_stat *st)
+{
+  if (st->flags & MU_IMAP_STAT_DEFINED_FLAGS)
+    {
+      mu_printf (_("Flags defined: "));
+      mu_imap_format_flags (mu_strout, st->defined_flags);
+      mu_printf ("\n");
+    }
+  if (st->flags & MU_IMAP_STAT_PERMANENT_FLAGS)
+    {
+      mu_printf (_("Flags permanent: "));
+      mu_imap_format_flags (mu_strout, st->permanent_flags);
+      mu_printf ("\n");
+    }
+
+  if (st->flags & MU_IMAP_STAT_MESSAGE_COUNT)
+    mu_printf (_("Total messages: %lu\n"), (unsigned long) st->message_count);
+  if (st->flags & MU_IMAP_STAT_RECENT_COUNT)
+    mu_printf (_("Recent messages: %lu\n"), (unsigned long) st->recent_count);
+  if (st->flags & MU_IMAP_STAT_FIRST_UNSEEN)
+    mu_printf (_("First unseen message: %lu\n"),
+	       (unsigned long) st->first_unseen);
+  if (st->flags & MU_IMAP_STAT_UIDNEXT)
+    mu_printf (_("Next UID: %lu\n"), (unsigned long) st->uidnext);
+  if (st->flags & MU_IMAP_STAT_UIDVALIDITY)
+    mu_printf (_("UID validity: %lu\n"), st->uidvalidity);
+}
+
+
+static int
+select_mbox (int argc, char **argv, int writable)
+{
+  int status;
+  struct mu_imap_stat st;
+
+  status = mu_imap_select (imap, argv[1], writable, &st);
+  if (status == 0)
+    {
+      print_imap_stats (&st);
+      imap_prompt_env ();
+    }
+  else
+    {
+      const char *str;
+      
+      mu_error ("select failed: %s", mu_strerror (status));
+      if (mu_imap_strerror (imap, &str) == 0)
+	mu_error ("server reply: %s", str);
+    }
+  return 0;
+}
+
+static int
+com_select (int argc, char **argv)
+{
+  return select_mbox (argc, argv, 1);
+}
+
+static int
+com_examine (int argc, char **argv)
+{
+  return select_mbox (argc, argv, 0);
+}
 
 
 struct mutool_command imap_comtab[] = {
@@ -481,6 +547,12 @@ struct mutool_command imap_comtab[] = {
   { "id",           1, -1, com_id,
     N_("[-test KW] [ARG [ARG...]]"),
     N_("send ID command") },
+  { "select",       1, 2, com_select,
+    N_("MBOX"),
+    N_("select a mailbox") },
+  { "examine",       1, 2, com_examine,
+    N_("MBOX"),
+    N_("examine a mailbox") },  
   { "quit",         1, 1, com_logout,
     NULL,
     N_("same as `logout'") },

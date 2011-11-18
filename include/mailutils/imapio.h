@@ -45,6 +45,9 @@ int mu_imapio_get_trace (mu_imapio_t io);
 int mu_imapio_getbuf (mu_imapio_t io, char **pptr, size_t *psize);
 
 int mu_imapio_reply_string (struct _mu_imapio *io, size_t start, char **pbuf);
+
+int mu_imap_flag_to_attribute (const char *item, int *attr);
+int mu_imap_format_flags (mu_stream_t str, int flags);
   
 #ifdef __cplusplus
 }

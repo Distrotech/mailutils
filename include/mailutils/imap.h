@@ -37,7 +37,7 @@ enum mu_imap_state
     MU_IMAP_STATE_NONAUTH,  /* Non-Authenticated State */
     MU_IMAP_STATE_AUTH,     /* Authenticated State */
     MU_IMAP_STATE_SELECTED, /* Selected State */
-    MU_IMAP_STATE_LOGOUT    /* Logout State */
+    MU_IMAP_STATE_LOGOUT,   /* Logout State */
   };
   
 int mu_imap_create (mu_imap_t *pimap);
@@ -70,7 +70,31 @@ int mu_imap_state (mu_imap_t imap, int *pstate);
 int mu_imap_state_str (int state, const char **pstr);
 
 int mu_imap_tag (mu_imap_t imap, const char **pseq);
-  
+
+
+#define MU_IMAP_STAT_DEFINED_FLAGS   0x01
+#define MU_IMAP_STAT_PERMANENT_FLAGS 0x02
+#define MU_IMAP_STAT_MESSAGE_COUNT   0x04
+#define MU_IMAP_STAT_RECENT_COUNT    0x08
+#define MU_IMAP_STAT_FIRST_UNSEEN    0x10
+#define MU_IMAP_STAT_UIDNEXT         0x20
+#define MU_IMAP_STAT_UIDVALIDITY     0x40
+
+struct mu_imap_stat
+{
+  int flags;                 /* Bitmap of what fields are filled */
+  int defined_flags;         /* Flags defined for this mailbox */
+  int permanent_flags;       /* Flags that can be changed permanently */
+  size_t message_count;      /* Number of messages */
+  size_t recent_count;       /* Number of recent messages */
+  size_t first_unseen;       /* Sequence number of the first unseen message */
+  size_t uidnext;            /* The next unique identifier value. */
+  unsigned long uidvalidity; /* The unique identifier validity value. */
+};
+
+int mu_imap_select (mu_imap_t imap, const char *mbox, int writable,
+		    struct mu_imap_stat *ps);
+
 #ifdef __cplusplus
 }
 #endif

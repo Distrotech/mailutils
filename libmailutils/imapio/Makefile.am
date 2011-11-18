@@ -19,6 +19,7 @@ noinst_LTLIBRARIES = libimapio.la
 
 libimapio_la_SOURCES = \
  create.c\
+ flags.c\
  getline.c\
  literal.c\
  printf.c\

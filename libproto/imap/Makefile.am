@@ -41,6 +41,7 @@ libmu_imap_la_SOURCES = \
  logout.c\
  resplist.c\
  response.c\
+ select.c\
  state.c\
  tag.c\
  trace.c
