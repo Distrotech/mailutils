@@ -72,7 +72,51 @@ extern int mu_list_insert_list (mu_list_t list, void *item, mu_list_t new_list,
 				int insert_before);
 extern void mu_list_append_list (mu_list_t list, mu_list_t new_list);
 extern void mu_list_prepend_list (mu_list_t list, mu_list_t new_list);
+
+/* List mapper functions */
+typedef int (*mu_list_mapper_t) (void **itmv, size_t itmc, void *call_data);
+
+/* A generalized list mapping function.
+
+   Mu_list_gmap iterates over the LIST, gathering its elements in an
+   array of type void **.  When NELEM elements has been collected, it
+   calls the MAP function, passing it as arguments the constructed array,
+   number of elements in it (can be less than NELEM on the last call),
+   and call-specific DATA.  Iteration continues while MAP returns 0 and
+   until all elements from the array have been visited.
+
+   Mu_list_gmap returns 0 on success and a non-zero error code on failure.
+   If MAP returns !0, its return value is propagated to the caller.
+*/
+   
+int mu_list_gmap (mu_list_t list, mu_list_mapper_t map, size_t nelem,
+		  void *data);
   
+  
+#define MU_LIST_MAP_OK     0x00
+#define MU_LIST_MAP_SKIP   0x01
+#define MU_LIST_MAP_STOP   0x02
+
+/* List-to-list mapping.
+   
+   Apply the list mapping function MAP to each NELEM elements from the source
+   LIST and use its return values to form a new list, which will be returned
+   in RES.
+
+   MAP gets pointers to the collected elements in its first argument (ITMV).
+   Its second argument (ITMC) gives the number of elements filled in ARR.
+   It can be less than NELEM on the last call to MAP.  The DATA pointer is
+   passed as the 3rd argument.
+
+   Return value from MAP governs the mapping process.  Unless it has the
+   MU_LIST_MAP_SKIP bit set, the itmv[0] element is appended to the new
+   list.  If it has MU_LIST_MAP_STOP bit set, iteration is stopped
+   immediately and any remaining elements in LIST are ignored.
+*/
+
+int mu_list_map (mu_list_t list, mu_list_mapper_t map,
+		 void *data, size_t nelem,
+		 mu_list_t *res);
 #ifdef __cplusplus
 }
 #endif

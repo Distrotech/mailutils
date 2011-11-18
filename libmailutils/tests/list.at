@@ -109,7 +109,7 @@ TESTLIST([get],[],
 # ------------------------------------------------------------
 
 m4_define([MU_TEST_GROUP],[Iterator])
-m4_define([MU_TEST_KEYWORDS],MU_TEST_KEYWORDS[ iterator itr])
+m4_pushdef([MU_TEST_KEYWORDS],MU_TEST_KEYWORDS[ iterator itr])
 
 TESTLIST([forward],[],
 [add en to tre fire fem
@@ -245,6 +245,84 @@ cur
 [1:2:fire
 0:2:fire
 ])
+
+m4_popdef([MU_TEST_KEYWORDS])
+
+
+# ------------------------------------------------------------
+# Maps
+# ------------------------------------------------------------
+
+m4_define([MU_TEST_GROUP],[Map])
+m4_pushdef([MU_TEST_KEYWORDS],MU_TEST_KEYWORDS[ map])
+
+TESTLIST([even],[],
+[add null en to tre fire fem
+map even
+],
+[# items: 3
+null
+to
+fire
+])
+
+TESTLIST([odd],[],
+[add null en to tre fire fem
+map odd
+],
+[# items: 3
+en
+tre
+fem
+])
+
+TESTLIST([odd0],[],
+[add null
+map odd
+],
+[# items: 0
+])
+
+TESTLIST([concat],[],
+[add en to tre fire fem
+map concat 2 -
+],
+[# items: 3
+en-to
+tre-fire
+fem
+])
+
+TESTLIST([concat3],[],
+[add en to tre fire fem
+map concat 3 -
+],
+[# items: 2
+en-to-tre
+fire-fem
+])
+
+TESTLIST([skip],[],
+[add null en to tre fire fem
+map skip 3
+],
+[# items: 3
+tre
+fire
+fem
+])
+
+TESTLIST([trim],[],
+[add null en to tre fire fem
+map trim 3
+],
+[# items: 3
+null
+en
+to
+])
+
+m4_popdef([MU_TEST_KEYWORDS])
 
 dnl ------------------------------------------------------------
 dnl Cleanup

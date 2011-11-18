@@ -28,11 +28,13 @@ liblist_la_SOURCES = \
  empty.c\
  get.c\
  getcomp.c\
+ gmap.c\
  insert.c\
  intersect.c\
  iterator.c\
  listlist.c\
  locate.c\
+ map.c\
  prepend.c\
  remove.c\
  replace.c\

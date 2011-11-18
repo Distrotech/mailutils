@@ -428,6 +428,197 @@ cur (int num, mu_iterator_t itr)
   printf ("%s\n", text);
 }
 
+static int
+map_even (void **itmv, size_t itmc, void *call_data)
+{
+  int *num = call_data, n = *num;
+  *num = !*num;
+  if ((n % 2) == 0)
+    {
+      itmv[0] = strdup (itmv[0]);
+      return MU_LIST_MAP_OK;
+    }
+  return MU_LIST_MAP_SKIP;
+}
+
+static int
+map_odd (void **itmv, size_t itmc, void *call_data)
+{
+  int *num = call_data, n = *num;
+  *num = !*num;
+  if (n % 2)
+    {
+      itmv[0] = strdup (itmv[0]);
+      return MU_LIST_MAP_OK;
+    }
+  return MU_LIST_MAP_SKIP;
+}
+
+static int
+map_concat (void **itmv, size_t itmc, void *call_data)
+{
+  char *delim = call_data;
+  size_t dlen = strlen (delim);
+  size_t i;
+  size_t len = 0;
+  char *res, *p;
+  
+  for (i = 0; i < itmc; i++)
+    len += strlen (itmv[i]);
+  len += (itmc - 1) * dlen + 1;
+
+  res = malloc (len);
+  if (!res)
+    abort ();
+  p = res;
+  for (i = 0; ; )
+    {
+      p = mu_stpcpy (p, itmv[i++]);
+      if (i == itmc)
+	break;
+      p = mu_stpcpy (p, delim);
+    }
+  itmv[0] = res;
+  return MU_LIST_MAP_OK;
+}
+
+struct trim_data
+{
+  size_t n;
+  size_t lim;
+};
+
+static int
+map_skip (void **itmv, size_t itmc, void *call_data)
+{
+  struct trim_data *td = call_data;
+
+  if (td->n++ < td->lim)
+    return MU_LIST_MAP_SKIP;
+  itmv[0] = strdup (itmv[0]);
+  return MU_LIST_MAP_OK;
+}
+
+static int
+map_trim (void **itmv, size_t itmc, void *call_data)
+{
+  struct trim_data *td = call_data;
+
+  if (td->n++ < td->lim)
+    {
+      itmv[0] = strdup (itmv[0]);
+      return MU_LIST_MAP_OK;
+    }
+  return MU_LIST_MAP_STOP|MU_LIST_MAP_SKIP;
+}
+
+int
+map (mu_list_t *plist, int argc, char **argv)
+{
+  mu_list_t list = *plist;
+  mu_list_t result;
+  int rc;
+  int replace = 0;
+
+  if (argc > 1 && strcmp (argv[1], "-replace") == 0)
+    {
+      replace = 1;
+      argc--;
+      argv++;
+    }
+  
+  if (argc < 2)
+    {
+      fprintf (stderr, "map [-replace] even|odd|concat|keep|trim\n");
+      return 0;
+    }
+
+  if (strcmp (argv[1], "even") == 0)
+    {
+      int n = 0;
+      rc = mu_list_map (list, map_even, &n, 1, &result);
+    }
+  else if (strcmp (argv[1], "odd") == 0)
+    {
+      int n = 0;
+      rc = mu_list_map (list, map_odd, &n, 1, &result);
+    }
+  else if (strcmp (argv[1], "concat") == 0)
+    {
+      size_t num;
+      char *delim = "";
+      
+      if (argc < 3 || argc > 4)
+	{
+	  fprintf (stderr, "map concat NUM [DELIM]?\n");
+	  return 0;
+	}
+      num = atoi (argv[2]);
+      if (argc == 4)
+	delim = argv[3];
+      
+      rc = mu_list_map (list, map_concat, delim, num, &result);
+    }
+  else if (strcmp (argv[1], "skip") == 0)
+    {
+      struct trim_data td;
+
+      if (argc < 3 || argc > 4)
+	{
+	  fprintf (stderr, "map skip NUM?\n");
+	  return 0;
+	}
+      td.n = 0;
+      td.lim = atoi (argv[2]);
+      rc = mu_list_map (list, map_skip, &td, 1, &result);
+    }
+  else if (strcmp (argv[1], "trim") == 0)
+    {
+      struct trim_data td;
+
+      if (argc < 3 || argc > 4)
+	{
+	  fprintf (stderr, "map trim NUM?\n");
+	  return 0;
+	}
+      td.n = 0;
+      td.lim = atoi (argv[2]);
+      rc = mu_list_map (list, map_trim, &td, 1, &result);
+    }
+  else
+    {
+      mu_error ("unknown map name\n");
+      return 0;
+    }
+  
+  if (rc)
+    {
+      mu_error ("map failed: %s", mu_strerror (rc));
+      return 0;
+    }
+
+  mu_list_set_destroy_item (result, mu_list_free_item);
+
+  if (replace)
+    {
+      size_t count[2];
+      mu_list_count (list, &count[0]);
+      mu_list_count (result, &count[1]);
+      
+      printf ("%lu in, %lu out\n", (unsigned long) count[0],
+	      (unsigned long) count[1]);
+      mu_list_destroy (&list);
+      *plist = result;
+      return 1;
+    }
+  else
+    {
+      print (result);
+      mu_list_destroy (&result);
+    }
+  return 0;
+}
+
 void
 help ()
 {
@@ -446,6 +637,7 @@ help ()
   printf ("ictl repl item\n");
   printf ("ictl ins item [item*]\n");
   printf ("ictl dir [backwards|forwards]\n");
+  printf ("map NAME [ARGS]\n");
   printf ("print\n");
   printf ("quit\n");
   printf ("iter num\n");
@@ -517,6 +709,14 @@ shell (mu_list_t list)
 	    print (list);
 	  else if (strcmp (ws.ws_wordv[0], "cur") == 0)
 	    cur (num, itr[num]);
+	  else if (strcmp (ws.ws_wordv[0], "map") == 0)
+	    {
+	      int i;
+	      
+	      if (map (&list, ws.ws_wordc, ws.ws_wordv))
+		for (i = 0; i < NITR; i++)
+		  mu_iterator_destroy (&itr[i]);
+	    }
 	  else if (strcmp (ws.ws_wordv[0], "quit") == 0)
 	    return;
 	  else if (strcmp (ws.ws_wordv[0], "iter") == 0)
@@ -591,7 +791,7 @@ main (int argc, char **argv)
   
   while (argc--)
     {
-      rc = mu_list_append (list, *argv++);
+      rc = mu_list_append (list, strdup (*argv++));
       if (rc)
 	lperror ("mu_list_append", rc);
     }
