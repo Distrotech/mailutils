@@ -30,7 +30,7 @@ mu_imapio_getline (struct _mu_imapio *io)
 {
   int rc;
   char *last_arg;
-
+  
   io->_imap_ws_flags &= ~MU_WRDSF_APPEND;
 
   if (io->_imap_reply_ready)

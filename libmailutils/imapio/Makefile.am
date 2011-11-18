@@ -23,6 +23,7 @@ libimapio_la_SOURCES = \
  literal.c\
  printf.c\
  qstring.c\
+ replstr.c\
  send.c\
  trace.c\
  words.c\

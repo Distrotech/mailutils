@@ -43,6 +43,8 @@ int mu_imapio_trace_disable (mu_imapio_t io);
 int mu_imapio_get_trace (mu_imapio_t io);
 
 int mu_imapio_getbuf (mu_imapio_t io, char **pptr, size_t *psize);
+
+int mu_imapio_reply_string (struct _mu_imapio *io, size_t start, char **pbuf);
   
 #ifdef __cplusplus
 }
