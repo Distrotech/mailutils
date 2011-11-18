@@ -46,6 +46,14 @@ struct _mu_list
   struct _mu_iterator *itr;
 };
 
+#define DESTROY_ITEM(list, elt)			\
+  do						\
+    {						\
+       if ((list)->destroy_item)		\
+	 (list)->destroy_item ((elt)->item);	\
+    }						\
+  while (0)
+
 extern void _mu_list_clear (mu_list_t list);
 extern void _mu_list_insert_sublist (mu_list_t list,
 				     struct list_data *current,
@@ -53,6 +61,9 @@ extern void _mu_list_insert_sublist (mu_list_t list,
 				     struct list_data *tail,
 				     size_t count,
 				     int insert_before);
+extern int _mu_list_insert_item (mu_list_t list, struct list_data *current,
+				 void *new_item,
+				 int insert_before);
 
 # ifdef __cplusplus
 }

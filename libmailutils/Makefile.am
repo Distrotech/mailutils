@@ -16,8 +16,10 @@
 # Public License along with this library.  If not, see
 # <http://www.gnu.org/licenses/>.
 
-SUBDIRS = auth base address sockaddr cidr cfg diag filter mailbox mailer mime\
- server string stream stdstream property url imapio . tests 
+SUBDIRS = \
+ auth base address list sockaddr cidr cfg diag\
+ filter mailbox mailer mime server string stream stdstream\
+ property url imapio . tests 
 
 lib_LTLIBRARIES = libmailutils.la
 
@@ -34,6 +36,7 @@ libmailutils_la_LIBADD = \
  diag/libdiag.la\
  filter/libfilter.la\
  imapio/libimapio.la\
+ list/liblist.la\
  mailbox/libmailbox.la\
  mailer/libmailer.la\
  mime/libmime.la\

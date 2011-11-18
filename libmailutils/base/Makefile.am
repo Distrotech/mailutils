@@ -39,8 +39,6 @@ libbase_la_SOURCES = \
  iterator.c\
  kwd.c\
  lcall.c\
- list.c\
- listlist.c\
  locale.c\
  locker.c\
  mailcap.c\

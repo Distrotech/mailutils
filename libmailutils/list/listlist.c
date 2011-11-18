@@ -19,11 +19,7 @@
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
-
-#include <errno.h>
 #include <stdlib.h>
-#include <string.h>
-
 #include <mailutils/sys/list.h>
 #include <mailutils/sys/iterator.h>
 #include <mailutils/errno.h>
