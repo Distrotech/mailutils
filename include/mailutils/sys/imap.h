@@ -22,6 +22,7 @@
 # include <mailutils/sys/mailbox.h>
 # include <mailutils/sys/registrar.h>
 # include <mailutils/sys/auth.h>
+# include <mailutils/imapio.h>
 # include <mailutils/imap.h>
 
 # ifdef __cplusplus
@@ -29,7 +30,7 @@ extern "C" {
 # endif
 
 #define MU_IMAP_RESP  0x01
-#define MU_IMAP_TRACE 0x02  
+#define MU_IMAP_TRACE 0x02
 #define MU_IMAP_XSCRIPT_MASK(n) (1<<((n)+1))
 
 enum mu_imap_client_state
@@ -56,9 +57,7 @@ struct _mu_imap
   {
     int flags;
 
-    /* Holds the tagged response to the last command */
-    char *tagbuf;
-    size_t tagsize;
+    /* Holds the recect response code */
     enum mu_imap_response resp_code;
     
     /* Untagged responses */
@@ -68,10 +67,6 @@ struct _mu_imap
     char *errstr;
     size_t errsize;
     
-    /* Input line buffer */
-    char *rdbuf;
-    size_t rdsize;
-
     enum mu_imap_state state;
     enum mu_imap_state imap_state;
 
@@ -81,7 +76,23 @@ struct _mu_imap
     char *tag_str;   /* String representation (tag_len + 1 bytes, asciiz) */
     
     mu_list_t capa;
-    mu_stream_t carrier;
+    mu_imapio_t io;
+};
+
+enum imap_eltype
+  {
+    imap_eltype_string,
+    imap_eltype_list
+  };
+
+struct imap_list_element
+{
+  enum imap_eltype type;
+  union
+  {
+    mu_list_t list;
+    char *string;
+  } v;
 };
 
 #define MU_IMAP_FSET(p,f) ((p)->flags |= (f))
@@ -137,6 +148,9 @@ int _mu_imap_tag_next (mu_imap_t imap);
 int _mu_imap_tag_clr (mu_imap_t imap);
 
 int _mu_imap_response (mu_imap_t imap);
+
+int _mu_imap_untagged_response_clear (mu_imap_t imap);
+int _mu_imap_untagged_response_add (mu_imap_t imap);
   
 # ifdef __cplusplus
 }

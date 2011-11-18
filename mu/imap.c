@@ -364,6 +364,12 @@ com_login (int argc, char **argv)
   int status;
   char *pwd, *passbuf = NULL;
 
+  if (!imap)
+    {
+      mu_error (_("you need to connect first"));
+      return 0;
+    }
+  
   if (argc == 2)
     {
       if (!mutool_shell_interactive)
@@ -395,22 +401,13 @@ com_login (int argc, char **argv)
   return 0;
 }
 
-
-static int
-_print_id (void *item, void *data)
-{
-  const char *id = item;
-  mu_printf ("ID: %s %s\n", id, id + strlen (id) + 1);
-  return 0;
-}
-
 static int
 com_id (int argc, char **argv)
 {
-  mu_list_t list;
+  mu_assoc_t assoc;
   char *test = NULL;
   int status;
-  
+
   argv++;
   if (argv[0] && strcmp (argv[0], "-test") == 0)
     {
@@ -424,31 +421,36 @@ com_id (int argc, char **argv)
       argv++;
     }
   
-  status = mu_imap_id (imap, argv + 1, &list);
+  status = mu_imap_id (imap, argv + 1, &assoc);
   if (status == 0)
     {
       if (test)
 	{
-	  const char *res;
-	  int rc = mu_list_locate (list, test, (void*)&res);
-
-	  switch (rc)
+	  void *res = mu_assoc_ref (assoc, test);
+	  if (res)
 	    {
-	    case 0:
-	      mu_printf ("%s: %s\n", test, res + strlen (res) + 1);
-	      break;
-	      
-	    case MU_ERR_NOENT:
-	      mu_printf ("%s is not set\n", test);
-	      break;
-
-	    default:
-	      return rc;
+	      mu_printf ("%s: %s\n", test, *(char **)res);
 	    }
+	  else
+	    mu_printf ("%s is not set\n", test);
 	}
       else
-	mu_list_do (list, _print_id, NULL);
-      mu_list_destroy (&list);
+	{
+	  mu_iterator_t itr;
+	  
+	  mu_assoc_get_iterator (assoc, &itr);
+	  for (mu_iterator_first (itr);
+	       !mu_iterator_is_done (itr); mu_iterator_next (itr))
+	    {
+	      char *key;
+	      void *val;
+
+	      mu_iterator_current_kv (itr, (const void**)&key, &val);
+	      mu_printf ("ID: %s %s\n", key, *(char**)val);
+	    }
+	  mu_iterator_destroy (&itr);
+	}
+      mu_assoc_destroy (&assoc);
     }
   return status;
 }

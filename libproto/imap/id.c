@@ -22,93 +22,109 @@
 #include <stdlib.h>
 #include <string.h>
 #include <mailutils/errno.h>
-#include <mailutils/cstr.h>
-#include <mailutils/wordsplit.h>
+#include <mailutils/assoc.h>
 #include <mailutils/stream.h>
+#include <mailutils/imap.h>
 #include <mailutils/sys/imap.h>
 
-static int
-id_comp (const void *item, const void *value)
+void
+_id_free (void *data)
 {
-  const char *id = item;
-  const char *needle = value;
-  return mu_c_strcasecmp (id, needle);
+  char *s = *(char**)data;
+  free (s);
 }
 
-static int
-parse_id_reply (mu_imap_t imap, mu_list_t *plist)
+struct id_convert_state
 {
-  mu_list_t list;
+  int item;
+  mu_assoc_t assoc;
+  int ret;
+};
+
+static int
+_id_convert (void *item, void *data)
+{
+  struct imap_list_element *elt = item;
+  struct id_convert_state *stp = data;
+
+  switch (stp->item)
+    {
+    case 0:
+      if (!(elt->type == imap_eltype_string &&
+	    strcmp (elt->v.string, "ID") == 0))
+	{
+	  stp->ret = MU_ERR_PARSE;
+	  return 1;
+	}
+      stp->item++;
+      return 0;
+
+    case 1:
+      if (elt->type == imap_eltype_list)
+	{
+	  mu_iterator_t itr;
+
+	  mu_list_get_iterator (elt->v.list, &itr);
+	  for (mu_iterator_first (itr); !mu_iterator_is_done (itr);
+	       mu_iterator_next (itr))
+	    {
+	      char *key, *val;
+	      mu_iterator_current (itr, (void **) &elt);
+
+	      if (elt->type != imap_eltype_string)
+		break;
+	      key = elt->v.string;
+	      elt->v.string = NULL;
+
+	      mu_iterator_next (itr);
+	      if (mu_iterator_is_done (itr))
+		break;
+	      mu_iterator_current (itr, (void **) &elt);
+	      if (elt->type != imap_eltype_string)
+		break;
+	      val = elt->v.string;
+	      elt->v.string = NULL;
+	      mu_assoc_install (stp->assoc, key, &val);
+	    }
+	}
+    }
+  return 1;
+}	
+
+static int
+parse_id_reply (mu_imap_t imap, mu_assoc_t *passoc)
+{
   int rc;
-  const char *response;
-  struct mu_wordsplit ws;
-  size_t i;
-    
-  rc = mu_list_create (&list);
+  struct imap_list_element const *response;
+  struct id_convert_state st;
+  mu_assoc_t assoc;
+  
+  rc = mu_assoc_create (&assoc, sizeof (char**), MU_ASSOC_ICASE);
   if (rc)
     return rc;
-  mu_list_set_comparator (list, id_comp);
-  mu_list_set_destroy_item (list, mu_list_free_item);
+  mu_assoc_set_free (assoc, _id_free);
   
   rc = mu_list_get (imap->untagged_resp, 0, (void*) &response);
+  *passoc = assoc;
   if (rc == MU_ERR_NOENT)
-    {
-      *plist = list;
-      return 0;
-    }
-  else if (rc)
-    {
-      mu_list_destroy (&list);
-      return rc;
-    }
+    return 0;
 
-  ws.ws_delim = "() \t";
-  if (mu_wordsplit (response, &ws,
-		    MU_WRDSF_NOVAR | MU_WRDSF_NOCMD |
-		    MU_WRDSF_QUOTE | MU_WRDSF_DELIM |
-		    MU_WRDSF_SQUEEZE_DELIMS |
-		    MU_WRDSF_WS))
-    {
-      int ec = errno;
-      mu_error ("mu_imap_id: cannot split line: %s",
-		mu_wordsplit_strerror (&ws));
-      mu_list_destroy (&list);
-      return ec;
-    }
-
-  for (i = 1; i < ws.ws_wordc; i += 2)
-    {
-      size_t len, l1, l2;
-      char *elt;
-      
-      if (i + 1 == ws.ws_wordc)
-	break;
-      l1 = strlen (ws.ws_wordv[i]);
-      l2 = strlen (ws.ws_wordv[i+1]);
-      len = l1 + l2 + 1;
-      elt = malloc (len + 1);
-      if (!elt)
-	break;
-
-      memcpy (elt, ws.ws_wordv[i], l1);
-      elt[l1] = 0;
-      memcpy (elt + l1 + 1, ws.ws_wordv[i+1], l2);
-      elt[len] = 0;
-      mu_list_append (list, elt);
-    }
-  mu_wordsplit_free (&ws);
-  *plist = list;
-  return 0;
+  st.item = 0;
+  st.assoc = assoc;
+  st.ret = 0;
+  mu_list_do (response->v.list, _id_convert, &st);
+  return st.ret;
 }
-
+  
+  
 int
-mu_imap_id (mu_imap_t imap, char **idenv, mu_list_t *plist)
+mu_imap_id (mu_imap_t imap, char **idenv, mu_assoc_t *passoc)
 {
   int status;
   
   if (imap == NULL)
     return EINVAL;
-  if (!imap->carrier)
+  if (!imap->io)
     return MU_ERR_NO_TRANSPORT;
   if (imap->state != MU_IMAP_CONNECTED)
     return MU_ERR_SEQ;
@@ -118,11 +134,10 @@ mu_imap_id (mu_imap_t imap, char **idenv, mu_list_t *plist)
     case MU_IMAP_CONNECTED:
       status = _mu_imap_tag_next (imap);
       MU_IMAP_CHECK_EAGAIN (imap, status);
-      status = mu_stream_printf (imap->carrier, "%s ID ",
-				 imap->tag_str);
+      status = mu_imapio_printf (imap->io, "%s ID ", imap->tag_str);
       MU_IMAP_CHECK_ERROR (imap, status);
       if (!idenv)
-	status = mu_stream_printf (imap->carrier, "NIL");
+	status = mu_imapio_printf (imap->io, "NIL");
       else
 	{
 	  if (idenv[0])
@@ -131,7 +146,7 @@ mu_imap_id (mu_imap_t imap, char **idenv, mu_list_t *plist)
 	      char *delim = "(";
 	      for (i = 0; idenv[i]; i++)
 		{
-		  status = mu_stream_printf (imap->carrier, "%s\"%s\"",
+		  status = mu_imapio_printf (imap->io, "%s\"%s\"",
 					     delim, idenv[i]);
 		  MU_IMAP_CHECK_ERROR (imap, status);
 		  
@@ -139,13 +154,13 @@ mu_imap_id (mu_imap_t imap, char **idenv, mu_list_t *plist)
 		  if (status)
 		    break;
 		}
-	      status = mu_stream_printf (imap->carrier, ")");
+	      status = mu_imapio_printf (imap->io, ")");
 	    }
 	  else
-	    status = mu_stream_printf (imap->carrier, "()");
+	    status = mu_imapio_printf (imap->io, "()");
 	}
       MU_IMAP_CHECK_ERROR (imap, status);
-      status = mu_stream_printf (imap->carrier, "\r\n");
+      status = mu_imapio_printf (imap->io, "\r\n");
       MU_IMAP_CHECK_ERROR (imap, status);
       MU_IMAP_FCLR (imap, MU_IMAP_RESP);
       imap->state = MU_IMAP_ID_RX;
@@ -157,8 +172,8 @@ mu_imap_id (mu_imap_t imap, char **idenv, mu_list_t *plist)
 	{
 	case MU_IMAP_OK:
 	  imap->imap_state = MU_IMAP_STATE_AUTH;
-	  if (plist)
-	    status = parse_id_reply (imap, plist);
+	  if (passoc)
+	    status = parse_id_reply (imap, passoc);
 	  break;
 
 	case MU_IMAP_NO:

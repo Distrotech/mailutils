@@ -31,13 +31,6 @@ mu_imap_destroy (mu_imap_t *pimap)
     {
       mu_imap_t imap = *pimap;
       
-      /* Free the response buffer.  */
-      if (imap->tagbuf)
-	free (imap->tagbuf);
-      /* Free the read buffer.  */
-      if (imap->rdbuf)
-	free (imap->rdbuf);
-
       if (imap->errstr)
 	free (imap->errstr);
 
@@ -49,7 +42,7 @@ mu_imap_destroy (mu_imap_t *pimap)
       mu_list_destroy (&imap->untagged_resp);
       mu_list_destroy (&imap->capa);
       
-      mu_stream_destroy (&imap->carrier);
+      mu_imapio_destroy (&imap->io);
 
       free (imap);
 

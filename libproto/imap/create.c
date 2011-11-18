@@ -49,7 +49,7 @@ _mu_imap_init (mu_imap_t imap)
 {
   if (imap == NULL)
     return EINVAL;
-  if (imap->carrier == 0)
+  if (!imap->io)
     {
       int rc;
       

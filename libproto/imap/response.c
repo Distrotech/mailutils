@@ -27,15 +27,9 @@
 #include <mailutils/errno.h>
 #include <mailutils/sys/imap.h>
 
-#define IS_PREFIX(s, len, pfx)				\
-  ((len) >= sizeof (pfx) - 1 &&				\
-   memcmp ((s), (pfx), sizeof (pfx) - 1) == 0 &&	\
-   s[sizeof (pfx) - 1] == ' ')
-
 int
 _mu_imap_response (mu_imap_t imap)
 {
-  size_t n = 0;
   int status = 0;
 
   if (imap == NULL)
@@ -45,81 +39,74 @@ _mu_imap_response (mu_imap_t imap)
     return 0;
 
   _mu_imap_clrerrstr (imap);
-  if (imap->untagged_resp)
-    mu_list_clear (imap->untagged_resp);
-  else
-    {
-      status = mu_list_create (&imap->untagged_resp);
-      MU_IMAP_CHECK_ERROR (imap, status);
-      mu_list_set_destroy_item (imap->untagged_resp, mu_list_free_item);
-    }
-
+  status = _mu_imap_untagged_response_clear (imap);
+  if (status)
+    return status;
+  
   while (1)
     {
-      status = mu_stream_getline (imap->carrier, &imap->rdbuf,
-				  &imap->rdsize, NULL);
+      status = mu_imapio_getline (imap->io);
       if (status == 0)
 	{
-	  n = mu_rtrim_class (imap->rdbuf, MU_CTYPE_SPACE);
-	  if (imap->rdbuf[0] == '*' && imap->rdbuf[1] == ' ')
+	  char **wv;
+	  size_t wc;
+	  char *p;
+	  
+	  mu_imapio_get_words (imap->io, &wc, &wv);
+	  if (strcmp (wv[0], "*") == 0)
 	    {
-	      char *p = mu_str_skip_cset (imap->rdbuf + 2, " ");
-	      mu_list_append (imap->untagged_resp, strdup (p));
+	      _mu_imap_untagged_response_add (imap);/* FIXME: error checking */
+	      continue;
 	    }
-	  else if (n > imap->tag_len + 3 &&
-		   memcmp (imap->rdbuf, imap->tag_str, imap->tag_len) == 0
-		   && imap->rdbuf[imap->tag_len] == ' ')
+	  else if (strlen (wv[0]) == imap->tag_len &&
+		   memcmp (wv[0], imap->tag_str, imap->tag_len) == 0)
 	    {
-	      char *p = mu_str_skip_cset (imap->rdbuf + imap->tag_len, " ");
-	      size_t len = strlen (p);
-
-	      if (len >= imap->tagsize)
+	      /* Handle the tagged response */
+	      if (wc < 2)
 		{
-		  char *np = realloc (imap->tagbuf, len + 1);
-		  if (!np)
-		    {
-		      imap->state = MU_IMAP_ERROR;
-		      return ENOMEM;
-		    }
-		  imap->tagsize = len + 1;
-		  imap->tagbuf = np;
+		  /*imap->state = MU_IMAP_ERROR;*/
+		  status = MU_ERR_BADREPLY;
 		}
-	      strcpy (imap->tagbuf, p);
-	      if (IS_PREFIX (p, len, "OK"))
+	      else if (strcmp (wv[1], "OK") == 0)
 		{
 		  imap->resp_code = MU_IMAP_OK;
-		  p = mu_str_skip_cset (p + 2, " ");
-		  _mu_imap_seterrstr (imap, p, strlen (p));
+		  if (mu_imapio_reply_string (imap->io, 2, &p) == 0)
+		    {
+		      _mu_imap_seterrstr (imap, p, strlen (p));
+		      free (p);
+		    }
 		}
-	      else if (IS_PREFIX (p, len, "NO"))
+	      else if (strcmp (wv[1], "NO") == 0)
 		{
 		  imap->resp_code = MU_IMAP_NO;
-		  p = mu_str_skip_cset (p + 2, " ");
-		  _mu_imap_seterrstr (imap, p, strlen (p));
+		  if (mu_imapio_reply_string (imap->io, 2, &p) == 0)
+		    {
+		      _mu_imap_seterrstr (imap, p, strlen (p));
+		      free (p);
+		    }
 		}
-	      else if (IS_PREFIX (p, len, "BAD"))
+	      else if (strcmp (wv[1], "BAD") == 0)
 		{
 		  imap->resp_code = MU_IMAP_BAD;
-		  p = mu_str_skip_cset (p + 2, " ");
-		  _mu_imap_seterrstr (imap, p, strlen (p));
+		  if (mu_imapio_reply_string (imap->io, 2, &p) == 0)
+		    {
+		      _mu_imap_seterrstr (imap, p, strlen (p));
+		      free (p);
+		    }
 		}
 	      else
 		status = MU_ERR_BADREPLY;
 	      MU_IMAP_FSET (imap, MU_IMAP_RESP);
-	      break;
 	    }
 	  else
 	    {
 	      imap->state = MU_IMAP_ERROR;
-	      return MU_ERR_BADREPLY;
+	      status = MU_ERR_BADREPLY;
 	    }
 	}
       else
-	{
-	  imap->state = MU_IMAP_ERROR;
-	  return status;
-	}
+	imap->state = MU_IMAP_ERROR;
+      break;
     }
   return status;
 }
-	  

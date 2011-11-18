@@ -19,13 +19,14 @@
 # include <config.h>
 #endif
 
+#include <string.h>
 #include <mailutils/types.h>
 #include <mailutils/cctype.h>
 #include <mailutils/cstr.h>
 #include <mailutils/errno.h>
 #include <mailutils/stream.h>
 #include <mailutils/list.h>
-#include <mailutils/wordsplit.h>
+#include <mailutils/iterator.h>
 #include <mailutils/sys/imap.h>
 
 static int
@@ -50,7 +51,7 @@ mu_imap_capability (mu_imap_t imap, int reread, mu_iterator_t *piter)
   
   if (imap == NULL)
     return EINVAL;
-  if (!imap->carrier)
+  if (!imap->io)
     return MU_ERR_NO_TRANSPORT;
   if (imap->state != MU_IMAP_CONNECTED)
     return MU_ERR_SEQ;
@@ -78,7 +79,7 @@ mu_imap_capability (mu_imap_t imap, int reread, mu_iterator_t *piter)
     case MU_IMAP_CONNECTED:
       status = _mu_imap_tag_next (imap);
       MU_IMAP_CHECK_EAGAIN (imap, status);
-      status = mu_stream_printf (imap->carrier, "%s CAPABILITY\r\n",
+      status = mu_imapio_printf (imap->io, "%s CAPABILITY\r\n",
 				 imap->tag_str); 
       MU_IMAP_CHECK_EAGAIN (imap, status);
       MU_IMAP_FCLR (imap, MU_IMAP_RESP);
@@ -92,35 +93,35 @@ mu_imap_capability (mu_imap_t imap, int reread, mu_iterator_t *piter)
       else
 	{
 	  size_t count;
-	  char *str;
+	  struct imap_list_element *elt;
 	  
 	  imap->state = MU_IMAP_CONNECTED;
 	  mu_list_count (imap->untagged_resp, &count);
-	  if (mu_list_get (imap->untagged_resp, 0, (void*)&str) == 0)
+	  if (mu_list_get (imap->untagged_resp, 0, (void*)&elt) == 0)
 	    {
-	      size_t i;
+	      /* Top-level elements are always of imap_eltype_list type. */
+	      mu_iterator_t itr;
 	      
-	      struct mu_wordsplit ws;
-
-	      if (mu_wordsplit (str, &ws,
-				MU_WRDSF_NOVAR | MU_WRDSF_NOCMD |
-				MU_WRDSF_QUOTE | MU_WRDSF_SQUEEZE_DELIMS))
+	      mu_list_get_iterator (elt->v.list, &itr);
+	      mu_iterator_first (itr);
+	      if (mu_iterator_is_done (itr))
+		return MU_ERR_PARSE;
+	      mu_iterator_current (itr, (void **) &elt);
+	      if (elt->type == imap_eltype_string &&
+		  strcmp (elt->v.string, "CAPABILITY") == 0)
 		{
-		  int ec = errno;
-		  mu_error ("mu_imap_capability: cannot split line: %s",
-			    mu_wordsplit_strerror (&ws));
-		  return ec;
-		}
-	      if (ws.ws_wordc > 1 &&
-		  mu_c_strcasecmp (ws.ws_wordv[0], "CAPABILITY") == 0)
-		{
-		  for (i = 1; i < ws.ws_wordc; i++)
+		  for (mu_iterator_next (itr); !mu_iterator_is_done (itr);
+		       mu_iterator_next (itr))
 		    {
-		      mu_list_append (imap->capa, ws.ws_wordv[i]);
-		      ws.ws_wordv[i] = NULL;
+		      mu_iterator_current (itr, (void **) &elt);
+		      if (elt->type == imap_eltype_string)
+			{
+			  mu_list_append (imap->capa, elt->v.string);
+			  elt->v.string = NULL;
+			}
 		    }
 		}
-	      mu_wordsplit_free (&ws);
+	      mu_iterator_destroy (&itr);
 	    }
 	  if (piter)
 	    status = mu_list_get_iterator (imap->capa, piter);

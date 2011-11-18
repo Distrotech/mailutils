@@ -24,18 +24,23 @@
 #include <sys/select.h>
 #include <sys/time.h>
 #include <mailutils/errno.h>
-#include <mailutils/wordsplit.h>
+#include <mailutils/imapio.h>
 #include <mailutils/sys/imap.h>
+#include <mailutils/sys/imapio.h>
 
 
 int
 mu_imap_connect (mu_imap_t imap)
 {
   int status;
-
+  size_t wc;
+  char **wv;
+  char *bufptr;
+  size_t bufsize;
+  
   if (imap == NULL)
     return EINVAL;
-  if (imap->carrier == NULL)
+  if (imap->io == NULL)
     return EINVAL;
   switch (imap->state)
     {
@@ -54,66 +59,48 @@ mu_imap_connect (mu_imap_t imap)
 
     case MU_IMAP_CONNECT:
       /* Establish the connection.  */
-      if (!mu_stream_is_open (imap->carrier))
+      if (!mu_stream_is_open (imap->io->_imap_stream))
         {
-          status = mu_stream_open (imap->carrier);
+          status = mu_stream_open (imap->io->_imap_stream);
           MU_IMAP_CHECK_EAGAIN (imap, status);
           MU_IMAP_FCLR (imap, MU_IMAP_RESP);
         }
       imap->state = MU_IMAP_GREETINGS;
 
     case MU_IMAP_GREETINGS:
-      status = mu_stream_getline (imap->carrier, &imap->rdbuf,
-				  &imap->rdsize, NULL);
+      status = mu_imapio_getline (imap->io);
       MU_IMAP_CHECK_EAGAIN (imap, status);
-      if (imap->rdsize < 2 ||
-	  !(imap->rdbuf[0] == '*' && imap->rdbuf[1] == ' '))
+      mu_imapio_get_words (imap->io, &wc, &wv);
+      if (wc < 2 || strcmp (wv[0], "*"))
 	{
+	  mu_imapio_getbuf (imap->io, &bufptr, &bufsize);
 	  mu_error ("mu_imap_connect: invalid server response: %s",
-		    imap->rdbuf);
+		    bufptr);
 	  imap->state = MU_IMAP_ERROR;
 	  return MU_ERR_BADREPLY;
 	}
+      else if (strcmp (wv[1], "BYE") == 0)
+	{
+	  status = EACCES;
+	  mu_imapio_getbuf (imap->io, &bufptr, &bufsize);
+	  _mu_imap_seterrstr (imap, bufptr + 2, bufsize - 2);
+	}
+      else if (strcmp (wv[1], "PREAUTH") == 0)
+	{
+	  status = 0;
+	  imap->state = MU_IMAP_CONNECTED;
+	  imap->imap_state = MU_IMAP_STATE_AUTH;
+	}
+      else if (strcmp (wv[1], "OK") == 0)
+	{
+	  status = 0;
+	  imap->state = MU_IMAP_CONNECTED;
+	  imap->imap_state = MU_IMAP_STATE_NONAUTH;
+	}
       else
 	{
-	  struct mu_wordsplit ws;
-	  
- 	  if (mu_wordsplit (imap->rdbuf, &ws,
-			    MU_WRDSF_NOVAR | MU_WRDSF_NOCMD |
-			    MU_WRDSF_SQUEEZE_DELIMS))
-	    {
-	      int ec = errno;
-	      mu_error ("mu_imap_connect: cannot split line: %s",
-			mu_wordsplit_strerror (&ws));
-	      imap->state = MU_IMAP_ERROR;
-	      return ec;
-	    }
-	  if (ws.ws_wordc < 2)
-	    status = MU_ERR_BADREPLY;
-	  else if (strcmp (ws.ws_wordv[1], "BYE") == 0)
-	    {
-	      status = EACCES;
-	      _mu_imap_seterrstr (imap, imap->rdbuf + 2,
-				  strlen (imap->rdbuf + 2));
-	    }
-	  else if (strcmp (ws.ws_wordv[1], "PREAUTH") == 0)
-	    {
-	      status = 0;
-	      imap->state = MU_IMAP_CONNECTED;
-	      imap->imap_state = MU_IMAP_STATE_AUTH;
-	    }
-	  else if (strcmp (ws.ws_wordv[1], "OK") == 0)
-	    {
-	      status = 0;
-	      imap->state = MU_IMAP_CONNECTED;
-	      imap->imap_state = MU_IMAP_STATE_NONAUTH;
-	    }
-	  else
-	    {
-	      status = MU_ERR_BADREPLY;
-	      imap->state = MU_IMAP_ERROR;
-	    }
-	  mu_wordsplit_free (&ws);
+	  status = MU_ERR_BADREPLY;
+	  imap->state = MU_IMAP_ERROR;
 	}
     }
   

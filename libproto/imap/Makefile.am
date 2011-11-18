@@ -39,6 +39,7 @@ libmu_imap_la_SOURCES = \
  id.c\
  login.c\
  logout.c\
+ resplist.c\
  response.c\
  state.c\
  tag.c\

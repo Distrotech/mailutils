@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <mailutils/imapio.h>
 #include <mailutils/sys/imap.h>
 
 int
@@ -34,14 +35,11 @@ mu_imap_disconnect (mu_imap_t imap)
   imap->state = MU_IMAP_NO_STATE;
   MU_IMAP_FCLR (imap, MU_IMAP_RESP);
 
-  if (imap->rdbuf)
-    imap->rdbuf[0] = 0;
-
   mu_list_clear (imap->untagged_resp);
   mu_list_clear (imap->capa);
   
   /* Close the stream.  */
-  if (mu_stream_is_open (imap->carrier))
-    return mu_stream_close (imap->carrier);
+  mu_imapio_destroy (&imap->io);
+
   return 0;
 }

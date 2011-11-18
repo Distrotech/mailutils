@@ -23,23 +23,30 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <mailutils/errno.h>
+#include <mailutils/imapio.h>
 #include <mailutils/sys/imap.h>
+#include <mailutils/sys/imapio.h>
 
 int
 mu_imap_set_carrier (mu_imap_t imap, mu_stream_t carrier)
 {
+  int rc;
+  mu_imapio_t io;
+  
   /* Sanity checks.  */
   if (imap == NULL)
     return EINVAL;
 
-  if (imap->carrier)
+  rc = mu_imapio_create (&io, carrier);
+  if (rc)
+    return rc;
+  if (imap->io)
     {
       /* Close any old carrier.  */
       mu_imap_disconnect (imap);
-      mu_stream_destroy (&imap->carrier);
+      mu_imapio_free (imap->io);
     }
-  mu_stream_ref (carrier);
-  imap->carrier = carrier;
+  imap->io = io;
   if (MU_IMAP_FISSET (imap, MU_IMAP_TRACE))
     _mu_imap_trace_enable (imap);
   imap->state = MU_IMAP_CONNECT;
@@ -55,8 +62,8 @@ mu_imap_get_carrier (mu_imap_t imap, mu_stream_t *pcarrier)
   if (pcarrier == NULL)
     return MU_ERR_OUT_PTR_NULL;
 
-  mu_stream_ref (imap->carrier);
-  *pcarrier = imap->carrier;
+  mu_stream_ref (imap->io->_imap_stream);
+  *pcarrier = imap->io->_imap_stream;
   return 0;
 }
 

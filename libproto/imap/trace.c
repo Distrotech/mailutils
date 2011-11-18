@@ -19,78 +19,50 @@
 # include <config.h>
 #endif
 
-#include <string.h>
-#include <errno.h>
-#include <stdio.h>
-#include <mailutils/error.h>
 #include <mailutils/errno.h>
-#include <mailutils/nls.h>
-#include <mailutils/stream.h>
+#include <mailutils/imapio.h>
 #include <mailutils/sys/imap.h>
-
-static const char *imap_prefix[] = {
-  "S: ", "C: "
-};
 
 int
 _mu_imap_trace_enable (mu_imap_t imap)
 {
-  int rc = 0;
-  mu_stream_t dstr, xstr;
-
-  if (!imap->carrier)
+  int rc;
+  if (!imap->io)
+    return 0;
+  rc = mu_imapio_trace_enable (imap->io);
+  switch (rc)
     {
+    case 0:
+    case MU_ERR_OPEN:
       MU_IMAP_FSET (imap, MU_IMAP_TRACE);
-      return 0;
+      break;
     }
-  
-  rc = mu_dbgstream_create (&dstr, MU_DIAG_DEBUG);
-  if (rc)
-    mu_error (_("cannot create debug stream; transcript disabled: %s"),
-	      mu_strerror (rc));
-  else
-    {
-      rc = mu_xscript_stream_create (&xstr, imap->carrier, dstr,
-				     imap_prefix);
-      if (rc)
-	mu_error (_("cannot create transcript stream: %s"),
-		  mu_strerror (rc));
-      else
-	{
-	  mu_stream_unref (imap->carrier);
-	  imap->carrier = xstr;
-	  MU_IMAP_FSET (imap, MU_IMAP_TRACE);
-	}
-    }
-
   return rc;
 }
 
 int
 _mu_imap_trace_disable (mu_imap_t imap)
 {
-  mu_stream_t xstr = imap->carrier;
-  mu_stream_t stream[2];
   int rc;
-
-  if (!xstr)
+  if (!imap->io)
     return 0;
-  
-  rc = mu_stream_ioctl (xstr, MU_IOCTL_TRANSPORT, MU_IOCTL_OP_GET, stream);
-  if (rc)
-    return rc;
+  rc = mu_imapio_trace_disable (imap->io);
+  switch (rc)
+    {
+    case 0:
+    case MU_ERR_NOT_OPEN:
+      MU_IMAP_FCLR (imap, MU_IMAP_TRACE);
+      break;
+    }
+  return rc;
 
-  imap->carrier = stream[0];
-  mu_stream_destroy (&xstr);
-  MU_IMAP_FCLR (imap, MU_IMAP_TRACE);
-  return 0;
 }
 
 int
 mu_imap_trace (mu_imap_t imap, int op)
 {
-  int trace_on = MU_IMAP_FISSET (imap, MU_IMAP_TRACE);
-  
+  int trace_on = mu_imapio_get_trace (imap->io);
+
   switch (op)
     {
     case MU_IMAP_TRACE_SET:
@@ -117,15 +89,15 @@ mu_imap_trace_mask (mu_imap_t imap, int op, int lev)
   switch (op)
     {
     case MU_IMAP_TRACE_SET:
-      imap->flags |= MU_IMAP_XSCRIPT_MASK(lev);
+      imap->flags |= MU_IMAP_XSCRIPT_MASK (lev);
       break;
       
     case MU_IMAP_TRACE_CLR:
-      imap->flags &= ~MU_IMAP_XSCRIPT_MASK(lev);
+      imap->flags &= ~MU_IMAP_XSCRIPT_MASK (lev);
       break;
       
     case MU_IMAP_TRACE_QRY:
-      if (imap->flags & MU_IMAP_XSCRIPT_MASK(lev))
+      if (imap->flags & MU_IMAP_XSCRIPT_MASK (lev))
 	break;
       return MU_ERR_NOENT;
       
@@ -138,8 +110,5 @@ mu_imap_trace_mask (mu_imap_t imap, int op, int lev)
 int
 _mu_imap_xscript_level (mu_imap_t imap, int xlev)
 {
-  if (mu_stream_ioctl (imap->carrier, MU_IOCTL_XSCRIPTSTREAM,
-                       MU_IOCTL_XSCRIPTSTREAM_LEVEL, &xlev) == 0)
-    return xlev;
-  return MU_XSCRIPT_NORMAL;
+  return mu_imapio_set_xscript_level (imap->io, xlev);
 }
