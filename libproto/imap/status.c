@@ -87,41 +87,32 @@ _status_mapper (void **itmv, size_t itmc, void *call_data)
   return 0;
 }
 
-static int
-_parse_status_response (mu_imap_t imap, const char *mboxname,
-			struct mu_imap_stat *ps)
+struct status_data
 {
-  struct imap_list_element *response, *elt;
-  size_t count;
-  int rc;
-  
-  rc = mu_list_get (imap->untagged_resp, 0, (void*) &response);
-  if (rc)
-    return rc;
+  const char *mboxname;
+  struct mu_imap_stat *ps;
+};
 
-  mu_list_count (response->v.list, &count);
-  if (count != 3)
-    return MU_ERR_PARSE;
-  rc = mu_list_get (response->v.list, 0, (void*) &elt);
-  if (rc)
-    return rc;
-  if (!_mu_imap_list_element_is_string (elt, "STATUS"))
-    return MU_ERR_NOENT;
-  
-  rc = mu_list_get (response->v.list, 1, (void*) &elt);
-  if (rc)
-    return rc;
-  if (!_mu_imap_list_element_is_string (elt, mboxname))
-    return MU_ERR_NOENT;
+static void
+_status_response_action (mu_imap_t imap, mu_list_t response, void *data)
+{
+  struct status_data *sd = data;
+  struct imap_list_element *elt;
 
-  rc = mu_list_get (response->v.list, 2, (void*) &elt);
-  if (rc)
-    return rc;
-  if (elt->type != imap_eltype_list)
-    return MU_ERR_PARSE;
-
-  ps->flags = 0;
-  return mu_list_gmap (elt->v.list, _status_mapper, 2, ps);
+  elt = _mu_imap_list_at (response, 0);
+  if (elt && _mu_imap_list_element_is_string (elt, "STATUS"))
+    {
+      elt = _mu_imap_list_at (response, 1);
+      if (elt && _mu_imap_list_element_is_string (elt, sd->mboxname))
+	{
+	  elt = _mu_imap_list_at (response, 2);
+	  if (elt && elt->type == imap_eltype_list)
+	    {
+	      sd->ps->flags = 0;
+	      mu_list_gmap (elt->v.list, _status_mapper, 2, sd->ps);
+	    }
+	}
+    }
 }
 
 int
@@ -197,8 +188,11 @@ mu_imap_status (mu_imap_t imap, const char *mboxname, struct mu_imap_stat *ps)
       switch (imap->resp_code)
 	{
 	case MU_IMAP_OK:
-	  memset (&imap->mbox_stat, 0, sizeof (imap->mbox_stat));
-	  status = _parse_status_response (imap, mboxname, ps);
+	  {
+	    struct status_data sd = { mboxname, ps };
+	    status = mu_imap_foreach_response (imap, _status_response_action,
+					       &sd);
+	  }
 	  break;
 
 	case MU_IMAP_NO:
