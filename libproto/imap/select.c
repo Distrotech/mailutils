@@ -38,103 +38,28 @@ _collect_flags (void *item, void *data)
   return 0;
 }
 
-static int
-_parse_stat (void *item, void *data)
+int
+_mu_imap_collect_flags (struct imap_list_element *arg, int *res)
 {
-  struct imap_list_element *response = item;
-  mu_imap_t imap = data;
-  struct imap_list_element *elt;
-  size_t count;
-  int rc;
-  char *p;
-  
-  if (response->type != imap_eltype_list)
-    return 0;
-
-  mu_list_count (response->v.list, &count);
-  
-  rc = mu_list_get (response->v.list, 0, (void*) &elt);
-  if (rc)
-    return rc;
-  
-  if (_mu_imap_list_element_is_string (elt, "OK"))
-    {
-      struct imap_list_element *arg;
-      
-      if (count < 3)
-	return 0; /* ignore the line */
-      rc = mu_list_get (response->v.list, 1, (void*) &elt);
-      if (rc)
-	return rc;
-      rc = mu_list_get (response->v.list, 2, (void*) &arg);
-      if (rc)
-	return rc;
-      
-      if (_mu_imap_list_element_is_string (elt, "[UIDVALIDITY"))
-	{
-	  if (arg->type != imap_eltype_string)
-	    return 0;
-	  imap->mbox_stat.uidvalidity = strtoul (arg->v.string, &p, 10);
-	  if (*p == ']')
-	    imap->mbox_stat.flags |= MU_IMAP_STAT_UIDVALIDITY;
-	}
-      else if (_mu_imap_list_element_is_string (elt, "[UIDNEXT"))
-	{
-	  if (arg->type != imap_eltype_string)
-	    return 0;
-	  imap->mbox_stat.uidnext = strtoul (arg->v.string, &p, 10);
-	  if (*p == ']')
-	    imap->mbox_stat.flags |= MU_IMAP_STAT_UIDNEXT;
-	}
-      else if (_mu_imap_list_element_is_string (elt, "[UNSEEN"))
-	{
-	  if (arg->type != imap_eltype_string)
-	    return 0;
-	  imap->mbox_stat.first_unseen = strtoul (arg->v.string, &p, 10);
-	  if (*p == ']')
-	    imap->mbox_stat.flags |= MU_IMAP_STAT_FIRST_UNSEEN;
-	}
-      else if (_mu_imap_list_element_is_string (elt, "[PERMANENTFLAGS"))
-	{
-	  if (arg->type != imap_eltype_list)
-	    return 0;
-	  mu_list_foreach (arg->v.list, _collect_flags,
-		      &imap->mbox_stat.permanent_flags);
-	  imap->mbox_stat.flags |= MU_IMAP_STAT_PERMANENT_FLAGS;
-	}
-    }
-  else if (_mu_imap_list_element_is_string (elt, "FLAGS"))
-    {
-      struct imap_list_element *arg;
-      rc = mu_list_get (response->v.list, 1, (void*) &arg);
-      if (rc)
-	return 0;
-      if (arg->type != imap_eltype_list)
-	return 0;
-      mu_list_foreach (arg->v.list, _collect_flags, &imap->mbox_stat.defined_flags);
-      imap->mbox_stat.flags |= MU_IMAP_STAT_DEFINED_FLAGS;
-    }
-  else if (count == 2)
-    {
-      struct imap_list_element *arg;
-      rc = mu_list_get (response->v.list, 1, (void*) &arg);
-      if (rc)
-	return rc;
-      if (_mu_imap_list_element_is_string (arg, "EXISTS"))
-	{
-	  imap->mbox_stat.message_count = strtoul (elt->v.string, &p, 10);
-	  if (*p == 0)
-	    imap->mbox_stat.flags |= MU_IMAP_STAT_MESSAGE_COUNT;
-	}
-      else if (_mu_imap_list_element_is_string (arg, "RECENT"))
-	{
-	  imap->mbox_stat.recent_count = strtoul (elt->v.string, &p, 10);
-	  if (*p == 0)
-	    imap->mbox_stat.flags |= MU_IMAP_STAT_RECENT_COUNT;
-	}
-    }
-  
+  if (arg->type != imap_eltype_list)
+    return EINVAL;
+  mu_list_foreach (arg->v.list, _collect_flags, res);
   return 0;
+}
+
+static void
+_select_response_action (mu_imap_t imap, mu_list_t response, void *data)
+{
+  struct imap_list_element *elt;
+  
+  elt = _mu_imap_list_at (response, 0);
+  if (elt && _mu_imap_list_element_is_string (elt, "FLAGS"))
+    {
+      struct imap_list_element *arg = _mu_imap_list_at (response, 1);
+      if (arg &&
+	  _mu_imap_collect_flags (arg, &imap->mbox_stat.defined_flags) == 0)
+	imap->mbox_stat.flags |= MU_IMAP_STAT_DEFINED_FLAGS;
+    }
 }
 
 int
@@ -202,7 +127,7 @@ mu_imap_select (mu_imap_t imap, const char *mbox, int writable,
 	    }
 	  imap->mbox_writable = writable;
 	  memset (&imap->mbox_stat, 0, sizeof (imap->mbox_stat));
-	  mu_list_foreach (imap->untagged_resp, _parse_stat, imap);
+	  mu_imap_foreach_response (imap, _select_response_action, NULL);
 	  if (ps)
 	    *ps = imap->mbox_stat;
 	  break;

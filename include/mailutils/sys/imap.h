@@ -83,6 +83,13 @@ struct _mu_imap
     char *mbox_name;  /* Name of the currently opened mailbox */
     int mbox_writable:1; /* Is it open read/write? */
     struct mu_imap_stat mbox_stat;  /* Stats obtained from it */
+
+    /* Callbacks */
+    struct
+    {
+      mu_imap_callback_t action;
+      void *data;
+    } callback[_MU_IMAP_CB_MAX];
 };
 
 enum imap_eltype
@@ -160,6 +167,10 @@ int _mu_imap_untagged_response_add (mu_imap_t imap);
 
 int _mu_imap_list_element_is_string (struct imap_list_element *elt,
 				     const char *str);
+int _mu_imap_collect_flags (struct imap_list_element *arg, int *res);
+
+struct imap_list_element *_mu_imap_list_at (mu_list_t list, int idx);
+  
   
 # ifdef __cplusplus
 }

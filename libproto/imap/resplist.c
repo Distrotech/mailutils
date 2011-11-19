@@ -264,3 +264,19 @@ _mu_imap_list_element_is_string (struct imap_list_element *elt,
   return strcmp (elt->v.string, str) == 0;
 }
 
+struct imap_list_element *
+_mu_imap_list_at (mu_list_t list, int idx)
+{
+  struct imap_list_element *arg;
+  int rc = mu_list_get (list, idx, (void*) &arg);
+  if (rc)
+    {
+      mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR,
+		("%s:%d: cannot get list element: %s",
+		 __FILE__, __LINE__, mu_strerror (rc)));
+      return NULL;
+    }
+  return arg;
+}
+
+

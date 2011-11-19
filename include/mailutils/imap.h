@@ -18,6 +18,7 @@
 #ifndef _MAILUTILS_IMAP_H
 #define _MAILUTILS_IMAP_H
 
+#include <stdarg.h>
 #include <mailutils/iterator.h>
 #include <mailutils/debug.h>
 #include <mailutils/stream.h>
@@ -99,6 +100,45 @@ int mu_imap_select (mu_imap_t imap, const char *mbox, int writable,
 int mu_imap_status (mu_imap_t imap, const char *mbox, struct mu_imap_stat *ps);
 
 extern struct mu_kwd _mu_imap_status_name_table[];
+
+typedef void (*mu_imap_response_action_t) (mu_imap_t imap, mu_list_t resp,
+					   void *data);
+
+int mu_imap_foreach_response (mu_imap_t imap, mu_imap_response_action_t fun,
+			      void *data);
+  
+
+#define MU_IMAP_CB_PERMANENT_FLAGS  0
+#define MU_IMAP_CB_MESSAGE_COUNT    1
+#define MU_IMAP_CB_RECENT_COUNT     2
+#define MU_IMAP_CB_FIRST_UNSEEN     3
+#define MU_IMAP_CB_UIDNEXT          4 
+#define MU_IMAP_CB_UIDVALIDITY      5
+#define MU_IMAP_CB_OK               6
+#define _MU_IMAP_CB_MAX             7
+
+typedef void (*mu_imap_callback_t) (void *, int code, mu_list_t resp,
+				    va_list ap);
+  
+void mu_imap_callback (mu_imap_t imap, int code, mu_list_t resp, ...);
+
+void mu_imap_register_callback_function (mu_imap_t imap, int code,
+					 mu_imap_callback_t callback,
+					 void *data);
+
+#define MU_IMAP_RESPONSE_ALERT            0
+#define MU_IMAP_RESPONSE_BADCHARSET       1
+#define MU_IMAP_RESPONSE_CAPABILITY       2
+#define MU_IMAP_RESPONSE_PARSE            3
+#define MU_IMAP_RESPONSE_PERMANENTFLAGS   4
+#define MU_IMAP_RESPONSE_READ_ONLY        5     
+#define MU_IMAP_RESPONSE_READ_WRITE       6
+#define MU_IMAP_RESPONSE_TRYCREATE        7
+#define MU_IMAP_RESPONSE_UIDNEXT          8
+#define MU_IMAP_RESPONSE_UIDVALIDITY      9
+#define MU_IMAP_RESPONSE_UNSEEN          10
+
+extern struct mu_kwd mu_imap_response_codes[];  
   
 #ifdef __cplusplus
 }

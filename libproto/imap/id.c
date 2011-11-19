@@ -48,44 +48,25 @@ _id_mapper (void **itmv, size_t itmc, void *call_data)
   return rc;
 }
 
-struct id_convert_state
+static void
+_id_response_action (mu_imap_t imap, mu_list_t response, void *data)
 {
-  int item;
-  mu_assoc_t assoc;
-  int ret;
-};
+  mu_assoc_t assoc = data;
+  struct imap_list_element *elt;
 
-static int
-_id_convert (void *item, void *data)
-{
-  struct imap_list_element *elt = item;
-  struct id_convert_state *stp = data;
-
-  switch (stp->item)
+  elt = _mu_imap_list_at (response, 0);
+  if (elt && _mu_imap_list_element_is_string (elt, "ID"))
     {
-    case 0:
-      if (!(elt->type == imap_eltype_string &&
-	    strcmp (elt->v.string, "ID") == 0))
-	{
-	  stp->ret = MU_ERR_PARSE;
-	  return 1;
-	}
-      stp->item++;
-      return 0;
-
-    case 1:
+      elt = _mu_imap_list_at (response, 1);
       if (elt->type == imap_eltype_list)
-	mu_list_gmap (elt->v.list, _id_mapper, 2, stp->assoc);
+	mu_list_gmap (elt->v.list, _id_mapper, 2, assoc);
     }
-  return 1;
-}	
+}
 
 static int
 parse_id_reply (mu_imap_t imap, mu_assoc_t *passoc)
 {
   int rc;
-  struct imap_list_element const *response;
-  struct id_convert_state st;
   mu_assoc_t assoc;
   
   rc = mu_assoc_create (&assoc, sizeof (char**), MU_ASSOC_ICASE);
@@ -93,16 +74,11 @@ parse_id_reply (mu_imap_t imap, mu_assoc_t *passoc)
     return rc;
   mu_assoc_set_free (assoc, _id_free);
   
-  rc = mu_list_get (imap->untagged_resp, 0, (void*) &response);
+  rc = mu_imap_foreach_response (imap, _id_response_action, assoc);
+  if (rc)
+    return rc;
   *passoc = assoc;
-  if (rc == MU_ERR_NOENT)
-    return 0;
-
-  st.item = 0;
-  st.assoc = assoc;
-  st.ret = 0;
-  mu_list_foreach (response->v.list, _id_convert, &st);
-  return st.ret;
+  return 0;
 }
   
 int
