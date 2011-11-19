@@ -98,7 +98,7 @@ _parse_stat (void *item, void *data)
 	{
 	  if (arg->type != imap_eltype_list)
 	    return 0;
-	  mu_list_do (arg->v.list, _collect_flags,
+	  mu_list_foreach (arg->v.list, _collect_flags,
 		      &imap->mbox_stat.permanent_flags);
 	  imap->mbox_stat.flags |= MU_IMAP_STAT_PERMANENT_FLAGS;
 	}
@@ -111,7 +111,7 @@ _parse_stat (void *item, void *data)
 	return 0;
       if (arg->type != imap_eltype_list)
 	return 0;
-      mu_list_do (arg->v.list, _collect_flags, &imap->mbox_stat.defined_flags);
+      mu_list_foreach (arg->v.list, _collect_flags, &imap->mbox_stat.defined_flags);
       imap->mbox_stat.flags |= MU_IMAP_STAT_DEFINED_FLAGS;
     }
   else if (count == 2)
@@ -202,7 +202,7 @@ mu_imap_select (mu_imap_t imap, const char *mbox, int writable,
 	    }
 	  imap->mbox_writable = writable;
 	  memset (&imap->mbox_stat, 0, sizeof (imap->mbox_stat));
-	  mu_list_do (imap->untagged_resp, _parse_stat, imap);
+	  mu_list_foreach (imap->untagged_resp, _parse_stat, imap);
 	  if (ps)
 	    *ps = imap->mbox_stat;
 	  break;

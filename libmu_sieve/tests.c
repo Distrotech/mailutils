@@ -51,7 +51,7 @@ address_aget_t
 sieve_get_address_part (mu_list_t tags)
 {
   address_aget_t ret = mu_address_aget_email;
-  mu_list_do (tags, _get_address_part, &ret);
+  mu_list_foreach (tags, _get_address_part, &ret);
   return ret;
 }
 

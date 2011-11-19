@@ -169,7 +169,7 @@ dup_container (struct mu_cfg_cont **pcont)
       newcont->v.section.offset = oldcont->v.section.offset;
       newcont->v.section.docstring = oldcont->v.section.docstring;
       newcont->v.section.children = NULL;
-      mu_list_do (oldcont->v.section.children, _dup_cont_action, &dd);
+      mu_list_foreach (oldcont->v.section.children, _dup_cont_action, &dd);
       break;
 
     case mu_cfg_cont_param:
@@ -329,7 +329,7 @@ mu_config_clone_container (struct mu_cfg_cont *cont)
   switch (cont->type)
     {
     case mu_cfg_cont_section:
-      mu_list_do (cont->v.section.children, _clone_action, NULL);
+      mu_list_foreach (cont->v.section.children, _clone_action, NULL);
       break;
 
     case mu_cfg_cont_param:

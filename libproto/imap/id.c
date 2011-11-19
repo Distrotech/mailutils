@@ -101,7 +101,7 @@ parse_id_reply (mu_imap_t imap, mu_assoc_t *passoc)
   st.item = 0;
   st.assoc = assoc;
   st.ret = 0;
-  mu_list_do (response->v.list, _id_convert, &st);
+  mu_list_foreach (response->v.list, _id_convert, &st);
   return st.ret;
 }
   

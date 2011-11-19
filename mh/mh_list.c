@@ -356,7 +356,7 @@ _destroy_stmt (void *item, void *data)
 void
 mhl_format_destroy (mu_list_t *fmt)
 {
-  mu_list_do (*fmt, _destroy_stmt, NULL);
+  mu_list_foreach (*fmt, _destroy_stmt, NULL);
   mu_list_destroy (fmt);
 }
 
@@ -474,7 +474,7 @@ _comp_name (void *item, void *date)
 int
 header_is_printed (struct eval_env *env, const char *name)
 {
-  return mu_list_do (env->printed_fields, _comp_name, (void*) name) == 1;
+  return mu_list_foreach (env->printed_fields, _comp_name, (void*) name) == 1;
 }
 
 int
@@ -781,7 +781,7 @@ eval_comp (struct eval_env *env, char *compname, mu_list_t format)
 {
   struct eval_env lenv = *env;
   
-  mu_list_do (format, eval_stmt, &lenv);
+  mu_list_foreach (format, eval_stmt, &lenv);
 
   goto_offset (&lenv, lenv.ivar[I_OFFSET]);
 
@@ -852,7 +852,7 @@ mhl_format_run (mu_list_t fmt,
   env.nlines = 0;
   env.msg = msg;
   env.output = output;
-  rc = mu_list_do (fmt, eval_stmt, &env);
+  rc = mu_list_foreach (fmt, eval_stmt, &env);
   mu_list_destroy (&env.printed_fields);
   return rc;
 }

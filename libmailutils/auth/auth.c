@@ -136,7 +136,7 @@ mu_authority_authenticate (mu_authority_t authority)
       struct auth_cb cb;
       cb.status = MU_ERR_AUTH_FAILURE;
       cb.authority = authority;
-      mu_list_do (authority->auth_methods, try_auth, &cb);
+      mu_list_foreach (authority->auth_methods, try_auth, &cb);
       return cb.status;
     }
   return EINVAL;

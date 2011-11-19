@@ -222,7 +222,7 @@ main (int argc, char **argv)
 	  mu_error (_("--add requires at least one --sequence argument"));
 	  return 1;
 	}
-      mu_list_do (seq_list, action_add, (void *) &clos);
+      mu_list_foreach (seq_list, action_add, (void *) &clos);
       mh_global_save_state ();
       break;
       
@@ -232,7 +232,7 @@ main (int argc, char **argv)
 	  mu_error (_("--delete requires at least one --sequence argument"));
 	  return 1;
 	}
-      mu_list_do (seq_list, action_delete, (void *) &clos);
+      mu_list_foreach (seq_list, action_delete, (void *) &clos);
       mh_global_save_state ();
       break;
       
@@ -240,7 +240,7 @@ main (int argc, char **argv)
       if (!seq_list)
 	list_all (mbox);
       else
-	mu_list_do (seq_list, action_list, &clos);
+	mu_list_foreach (seq_list, action_list, &clos);
       break;
     }
   mu_mailbox_close (mbox);

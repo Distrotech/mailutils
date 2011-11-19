@@ -381,7 +381,7 @@ cfun_data (mu_stream_t iostr, char *arg)
       maidag_error (_("copy error: %s"), mu_strerror (rc));
       mu_stream_destroy (&flt);
       mu_stream_destroy (&tempstr);
-      mu_list_do (rcpt_list, dot_temp_fail, iostr);
+      mu_list_foreach (rcpt_list, dot_temp_fail, iostr);
     }
 
   lmtp_reply (iostr, "354", NULL, "Go ahead");
@@ -413,7 +413,7 @@ cfun_data (mu_stream_t iostr, char *arg)
   if (rc)
     {
       maidag_error (_("copy error: %s"), mu_strerror (rc));
-      mu_list_do (rcpt_list, dot_temp_fail, iostr);
+      mu_list_foreach (rcpt_list, dot_temp_fail, iostr);
     }
 
   rc = mu_stream_to_message (tempstr, &mesg);
@@ -422,14 +422,14 @@ cfun_data (mu_stream_t iostr, char *arg)
     {
       maidag_error (_("error creating temporary message: %s"),
 		    mu_strerror (rc));
-      mu_list_do (rcpt_list, dot_temp_fail, iostr);
+      mu_list_foreach (rcpt_list, dot_temp_fail, iostr);
     }
   
-  rc = mu_list_do (rcpt_list, dot_deliver, iostr);
+  rc = mu_list_foreach (rcpt_list, dot_deliver, iostr);
 
   mu_message_destroy (&mesg, mu_message_get_owner (mesg));
   if (rc)
-    mu_list_do (rcpt_list, dot_temp_fail, iostr);
+    mu_list_foreach (rcpt_list, dot_temp_fail, iostr);
 
   return 0;
 }

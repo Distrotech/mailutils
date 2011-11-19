@@ -152,7 +152,7 @@ destroy_addrs (mu_list_t *list)
 {
   if (!*list)
     return;
-  mu_list_do (*list, _destroy_recipient, NULL);
+  mu_list_foreach (*list, _destroy_recipient, NULL);
   mu_list_destroy (list);
 }
 
@@ -296,13 +296,13 @@ mh_whom (const char *filename, int check)
       if (local_rcp)
 	{
 	  printf ("  %s\n", _("-- Local Recipients --"));
-	  mu_list_do (local_rcp, _print_local_recipient, &count);
+	  mu_list_foreach (local_rcp, _print_local_recipient, &count);
 	}
 
       if (network_rcp)
 	{
 	  printf ("  %s\n", _("-- Network Recipients --"));
-	  mu_list_do (network_rcp, _print_recipient, &count);
+	  mu_list_foreach (network_rcp, _print_recipient, &count);
 	}
 
       if (count == 0)

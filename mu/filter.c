@@ -95,7 +95,7 @@ list_filters ()
       mu_diag_funcall (MU_DIAG_ERROR, "mu_filter_get_list", NULL, rc);
       return 1;
     }
-  return mu_list_do (list, filter_printer, NULL);
+  return mu_list_foreach (list, filter_printer, NULL);
 }
 
 static int

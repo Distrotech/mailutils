@@ -80,7 +80,7 @@ mu_smtp_add_auth_mech_list (mu_smtp_t smtp, mu_list_t list)
 {
   if (!smtp)
     return EINVAL;
-  return mu_list_do (list, _mech_append, smtp);
+  return mu_list_foreach (list, _mech_append, smtp);
 }
 
 /* Set a list of implemented authentication mechanisms */
@@ -127,7 +127,7 @@ mu_smtp_mech_select (mu_smtp_t smtp, const char **pmech)
     {
       rc = mu_list_create (&alist);
       if (rc == 0)
-	rc = mu_list_do (smtp->authimpl, _mech_copy, alist);
+	rc = mu_list_foreach (smtp->authimpl, _mech_copy, alist);
     }
   else
     {

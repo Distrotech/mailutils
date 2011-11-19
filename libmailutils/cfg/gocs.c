@@ -376,7 +376,7 @@ void
 mu_gocs_flush ()
 {
   int i;
-  mu_list_do (data_list, _gocs_flush, NULL);
+  mu_list_foreach (data_list, _gocs_flush, NULL);
 
   for (i = 0; _gocs_table[i].name; i++)
     _gocs_table[i].init (mu_gocs_op_flush, NULL);

@@ -250,7 +250,7 @@ main (int argc, char **argv)
     }
   
   MU_ASSERT (mu_smtp_mail_basic (smtp, from, NULL));
-  mu_list_do (rcpt_list, send_rcpt_command, smtp);
+  mu_list_foreach (rcpt_list, send_rcpt_command, smtp);
   
   if (raw)
     {

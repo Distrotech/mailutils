@@ -52,11 +52,11 @@ sieve_init_load_path ()
     {
       if (lt_dlinit ())
 	return 1;
-      mu_list_do (mu_sieve_library_path_prefix, _add_load_dir, NULL);
+      mu_list_foreach (mu_sieve_library_path_prefix, _add_load_dir, NULL);
 #ifdef MU_SIEVE_MODDIR
       _add_load_dir (MU_SIEVE_MODDIR, NULL);
 #endif
-      mu_list_do (mu_sieve_library_path, _add_load_dir, NULL);
+      mu_list_foreach (mu_sieve_library_path, _add_load_dir, NULL);
       inited = 1;
     }
   return 0;

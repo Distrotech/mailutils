@@ -1061,7 +1061,7 @@ _run_and_free (void *item, void *data)
 void
 util_run_cached_commands (mu_list_t *list)
 {
-  mu_list_do (*list, _run_and_free, NULL);
+  mu_list_foreach (*list, _run_and_free, NULL);
   mu_list_destroy (list);
 }
 

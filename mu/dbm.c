@@ -1419,7 +1419,7 @@ delete_database (int argc, char **argv)
 	free_regexes (&m);
       }
     }
-  mu_list_do (templist, do_delete, db);
+  mu_list_foreach (templist, do_delete, db);
   mu_list_destroy (&templist);
   mu_dbm_destroy (&db);
 }

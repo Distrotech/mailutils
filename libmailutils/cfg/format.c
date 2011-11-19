@@ -401,7 +401,7 @@ format_section (mu_stream_t stream, struct mu_cfg_section *sect, int level)
       mu_stream_write (stream, " {\n", 3, NULL);
       c.stream = stream;
       c.level = level + 1; 
-      mu_list_do (sect->children, _f_helper, &c);
+      mu_list_foreach (sect->children, _f_helper, &c);
       format_level (stream, level);
       mu_stream_write (stream, "};\n\n", 4, NULL);
     }
@@ -409,7 +409,7 @@ format_section (mu_stream_t stream, struct mu_cfg_section *sect, int level)
     {
       c.stream = stream;
       c.level = level; 
-      mu_list_do (sect->children, _f_helper, &c);
+      mu_list_foreach (sect->children, _f_helper, &c);
     }
 }
 

@@ -1057,7 +1057,7 @@ _frt_header_fields (struct fetch_function_closure *ffc,
     io_sendf (".NOT");
   io_sendf (" (");
   status = 0;
-  mu_list_do (ffc->headers, _send_header_name, &status);
+  mu_list_foreach (ffc->headers, _send_header_name, &status);
   io_sendf (")]");
   
   msg = fetch_get_part (ffc, frt);
@@ -1683,7 +1683,7 @@ imap4d_fetch0 (imap4d_tokbuf_t tok, int isuid, char **err_text)
 	    {
 	      io_sendf ("* %lu FETCH (", (unsigned long) frc.msgno);
 	      frc.eltno = 0;
-	      rc = mu_list_do (pclos.fnlist, _do_fetch, &frc);
+	      rc = mu_list_foreach (pclos.fnlist, _do_fetch, &frc);
 	      io_sendf (")\n");
 	    }
 	}

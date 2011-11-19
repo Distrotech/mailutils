@@ -162,7 +162,7 @@ script_apply (mu_message_t msg, struct mu_auth_data *auth)
       if (switch_user_id (auth, 1) == 0)
 	{
 	  chdir (auth->dir);
-	  rc = mu_list_do (script_list, apply_script, &clos);
+	  rc = mu_list_foreach (script_list, apply_script, &clos);
 	  chdir ("/");
 	  switch_user_id (auth, 0);
 	}

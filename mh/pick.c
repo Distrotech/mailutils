@@ -410,7 +410,7 @@ main (int argc, char **argv)
       msgset.list = obstack_finish (&msgno_stk);
       clos.mbox = mbox;
       clos.msgset = &msgset;
-      mu_list_do (seq_list, action_add, &clos);
+      mu_list_foreach (seq_list, action_add, &clos);
     }
 
   mh_global_save_state ();

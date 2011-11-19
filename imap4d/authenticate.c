@@ -83,7 +83,7 @@ _auth_try (void *item, void *data)
 void
 imap4d_auth_capability ()
 {
-  mu_list_do (imap_auth_list, _auth_capa, NULL);
+  mu_list_foreach (imap_auth_list, _auth_capa, NULL);
 }
 
 /*
@@ -112,7 +112,7 @@ imap4d_authenticate (struct imap4d_command *command, imap4d_tokbuf_t tok)
   adata.auth_type = auth_type;
   adata.username = NULL;
 
-  res = mu_list_do (imap_auth_list, _auth_try, &adata);
+  res = mu_list_foreach (imap_auth_list, _auth_try, &adata);
 
   switch (res)
     {

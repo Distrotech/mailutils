@@ -56,7 +56,7 @@ print_namespace (int nsid)
       int count;
       count = 0;
       io_sendf ("(");
-      mu_list_do (list, print_namespace_fun, &count);
+      mu_list_foreach (list, print_namespace_fun, &count);
       io_sendf (")");
     }
 }
@@ -84,7 +84,7 @@ namespace_enumerate (int id, nsfp_t f, void *closure)
   nsc.fun = f;
   nsc.closure = closure;
   return namespace[id] == 0 ? 0 :
-          mu_list_do (namespace[id], _enum_fun, &nsc);
+          mu_list_foreach (namespace[id], _enum_fun, &nsc);
 }
 
 static int
@@ -271,7 +271,7 @@ namespace_init ()
 	  mu_list_t list;
 	  mu_list_create (&list);
 	  mu_list_set_destroy_item (list, mu_list_free_item);
-	  mu_list_do (namespace[i], normalize_fun, list);
+	  mu_list_foreach (namespace[i], normalize_fun, list);
 	  mu_list_set_destroy_item (namespace[i], mu_list_free_item);
 	  mu_list_destroy (&namespace[i]);
 	  namespace[i] = list;

@@ -382,7 +382,7 @@ sieve_include ()
     {
       char *p = name;
       if (mu_sieve_include_path
-	  && mu_list_do (mu_sieve_include_path, _try_include, &p))
+	  && mu_list_foreach (mu_sieve_include_path, _try_include, &p))
 	{
 	  push_source (p);
 	  free (name);

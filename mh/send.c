@@ -838,7 +838,7 @@ main (int argc, char **argv)
   free (p);
   
   /* Finally, do the work */
-  rc = mu_list_do (mesg_list, _action_send, NULL);
+  rc = mu_list_foreach (mesg_list, _action_send, NULL);
 
   mu_mailbox_destroy (&mbox);
   return !!rc;

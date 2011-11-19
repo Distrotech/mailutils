@@ -24,8 +24,8 @@ liblist_la_SOURCES = \
  count.c\
  create.c\
  destroy.c\
- do.c\
  empty.c\
+ foreach.c\
  get.c\
  getcomp.c\
  gmap.c\

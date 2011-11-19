@@ -565,7 +565,7 @@ mu_sieve_machine_destroy (mu_sieve_machine_t *pmach)
                    MU_IOCTL_LOGSTREAM_SET_LOCUS, NULL);
   mu_stream_destroy (&mach->errstream);
   mu_mailer_destroy (&mach->mailer);
-  mu_list_do (mach->destr_list, _run_destructor, NULL);
+  mu_list_foreach (mach->destr_list, _run_destructor, NULL);
   mu_list_destroy (&mach->destr_list);
   mu_list_destroy (&mach->action_list);
   mu_list_destroy (&mach->test_list);

@@ -307,7 +307,7 @@ annotate (struct mh_whatnow_env *wh)
 	  d.field = wh->anno_field;
 	  d.date = i == 1;
 	  mu_address_to_string (subaddr, d.value, size + 1, NULL);
-	  mu_list_do (wh->anno_list, anno, &d);
+	  mu_list_foreach (wh->anno_list, anno, &d);
 	  free (d.value);
 	  mu_address_destroy (&subaddr);
 	}

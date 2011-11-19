@@ -454,7 +454,7 @@ addr_cmp (void *item, void *data)
 static int
 addrlist_lookup (mu_list_t list, mu_address_t addr)
 {
-  return mu_list_do (list, addr_cmp, addr);
+  return mu_list_foreach (list, addr_cmp, addr);
 }
 
 static int
@@ -468,7 +468,7 @@ addr_free (void *item, void *data)
 static void
 addrlist_destroy (mu_list_t *list)
 {
-  mu_list_do (*list, addr_free, NULL);
+  mu_list_foreach (*list, addr_free, NULL);
   mu_list_destroy (list);
 }
 

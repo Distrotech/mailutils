@@ -702,7 +702,7 @@ const char *
 get_file_type ()
 {
   const char *type = NULL;
-  mu_list_do (rule_list, evaluate, &type);
+  mu_list_foreach (rule_list, evaluate, &type);
   return type;
 }
     

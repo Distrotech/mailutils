@@ -229,7 +229,7 @@ mu_m_server_idle (void *server_data MU_ARG_UNUSED)
       need_cleanup = 0;
       while ( (ex.pid = waitpid (-1, &ex.status, WNOHANG)) > 0)
 	/* Iterate over all m-servers and notify them about the fact. */
-	mu_list_do (m_server_list, m_server_cleanup, &ex);
+	mu_list_foreach (m_server_list, m_server_cleanup, &ex);
     }
   return stop;
 }
@@ -619,7 +619,7 @@ mu_m_server_run (mu_m_server_t msrv)
   int rc;
   size_t count;
   mode_t saved_umask = umask (0117);
-  mu_list_do (msrv->srvlist, _open_conn, msrv);
+  mu_list_foreach (msrv->srvlist, _open_conn, msrv);
   umask (saved_umask);
   mu_list_destroy (&msrv->srvlist);
   MU_ASSERT (mu_server_count (msrv->server, &count));

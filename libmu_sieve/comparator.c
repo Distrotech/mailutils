@@ -131,7 +131,7 @@ mu_sieve_get_comparator (mu_sieve_machine_t mach, mu_list_t tags)
 {
   mu_sieve_comparator_t comp = NULL;
 
-  mu_list_do (tags, _find_comparator, &comp);
+  mu_list_foreach (tags, _find_comparator, &comp);
   return comp ? comp : mu_sieve_comparator_lookup (mach,
 						"i;ascii-casemap",
 						MU_SIEVE_MATCH_IS);
@@ -192,7 +192,7 @@ static void
 _free_reglist (void *data)
 {
   mu_list_t list = data;
-  mu_list_do (list, _free_regex, NULL);
+  mu_list_foreach (list, _free_regex, NULL);
   mu_list_destroy (&list);
 }
 

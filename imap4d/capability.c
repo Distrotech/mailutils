@@ -75,7 +75,7 @@ imap4d_capability (struct imap4d_command *command, imap4d_tokbuf_t tok)
   
   io_sendf ("* CAPABILITY");
 
-  mu_list_do (capa_list, print_capa, NULL);
+  mu_list_foreach (capa_list, print_capa, NULL);
   
   imap4d_auth_capability ();
   io_sendf ("\n");

@@ -136,7 +136,7 @@ mu_sieve_slist_destroy (mu_list_t *plist)
 {
   if (!plist)
     return;
-  mu_list_do (*plist, _destroy_item, NULL);
+  mu_list_foreach (*plist, _destroy_item, NULL);
   mu_list_destroy (plist);
 }
 
@@ -344,11 +344,11 @@ sieve_print_value (mu_sieve_value_t *val, mu_stream_t str)
       break;
       
     case SVT_STRING_LIST:
-      mu_list_do (val->v.list, string_printer, str);
+      mu_list_foreach (val->v.list, string_printer, str);
       break;
 
     case SVT_VALUE_LIST:
-      mu_list_do (val->v.list, value_printer, str);
+      mu_list_foreach (val->v.list, value_printer, str);
 
     case SVT_POINTER:
       mu_stream_printf (str, "%p", val->v.ptr);
@@ -386,7 +386,7 @@ tag_printer (void *item, void *data)
 void
 mu_sv_print_tag_list (mu_list_t list, mu_stream_t str)
 {
-  mu_list_do (list, tag_printer, str);
+  mu_list_foreach (list, tag_printer, str);
 }
 
 static int
@@ -409,7 +409,7 @@ mu_sieve_tag_lookup (mu_list_t taglist, char *name, mu_sieve_value_t **arg)
   mu_sieve_runtime_tag_t t;
 
   t.tag = name;
-  if (taglist && mu_list_do (taglist, tag_finder, &t))
+  if (taglist && mu_list_foreach (taglist, tag_finder, &t))
     {
       if (arg)
 	*arg = t.arg;
@@ -425,7 +425,7 @@ mu_sieve_vlist_do (mu_sieve_value_t *val, mu_list_action_t *ac, void *data)
     {
     case SVT_VALUE_LIST:
     case SVT_STRING_LIST:
-      return mu_list_do (val->v.list, ac, data);
+      return mu_list_foreach (val->v.list, ac, data);
       
     default:
       return -1;

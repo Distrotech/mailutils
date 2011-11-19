@@ -188,7 +188,7 @@ static int
 odbc_release_result (mu_sql_connection_t conn)
 {
   struct mu_odbc_data *dp = conn->data;
-  mu_list_do (dp->result, odbc_free_char_data, NULL);
+  mu_list_foreach (dp->result, odbc_free_char_data, NULL);
   mu_list_destroy (&dp->result);
   mu_argcv_free (dp->fcount, dp->fnames);
   dp->fcount = 0;

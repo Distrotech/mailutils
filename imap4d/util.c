@@ -659,7 +659,7 @@ util_bye ()
 {
   mu_stream_close (iostream);
   mu_stream_destroy (&iostream);
-  mu_list_do (atexit_list, atexit_run, 0);
+  mu_list_foreach (atexit_list, atexit_run, 0);
 }
 
 void

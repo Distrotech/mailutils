@@ -234,7 +234,7 @@ mu_sv_code_command (mu_sieve_register_t *reg, mu_list_t arglist)
 		      err = 1;
 		      break;
 		    }
-		  if (mu_list_do (chk_list, _compare_ptr, cf) == 0)
+		  if (mu_list_foreach (chk_list, _compare_ptr, cf) == 0)
 		    mu_list_append (chk_list, cf);
 		}
 	    }
@@ -307,7 +307,7 @@ mu_sv_code_command (mu_sieve_register_t *reg, mu_list_t arglist)
 	  chk_arg.name = reg->name;
 	  chk_arg.tags = tag_list;
 	  chk_arg.args = arg_list;
-	  err = mu_list_do (chk_list, _run_checker, &chk_arg);
+	  err = mu_list_foreach (chk_list, _run_checker, &chk_arg);
 	}
     }
   

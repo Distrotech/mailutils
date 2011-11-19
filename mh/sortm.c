@@ -243,7 +243,7 @@ remop (compfun comp)
   struct rem_data d;
   d.comp = comp;
   d.op = NULL;
-  mu_list_do (oplist, rem_action, &d);
+  mu_list_foreach (oplist, rem_action, &d);
   mu_list_remove (oplist, d.op);
 }
 
@@ -297,7 +297,7 @@ compare_messages (mu_message_t a, mu_message_t b, size_t anum, size_t bnum)
   d.r = 0;
   d.m[0] = a;
   d.m[1] = b;
-  mu_list_do (oplist, compare_action, &d);
+  mu_list_foreach (oplist, compare_action, &d);
   if (d.r == 0)
     {
       if (anum < bnum)

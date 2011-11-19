@@ -556,7 +556,7 @@ mu_acl_check_sockaddr (mu_acl_t acl, const struct sockaddr *sa, int salen,
   r.result = pres;
   *r.result = mu_acl_result_undefined;
   r.numbuf = NULL;
-  mu_list_do (acl->aclist, _run_entry, &r);
+  mu_list_foreach (acl->aclist, _run_entry, &r);
   free (r.numbuf);
   free (r.addrstr);
   return 0;

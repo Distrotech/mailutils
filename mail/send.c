@@ -112,13 +112,13 @@ int
 mail_sendheader (int argc, char **argv)
 {
   if (argc == 1)
-    mu_list_do (add_header_list, list_headers, NULL);
+    mu_list_foreach (add_header_list, list_headers, NULL);
   else if (argc == 2)
     {
       if (strchr (argv[1], ':'))
 	send_append_header (argv[1]);
       else
-	mu_list_do (add_header_list, list_headers, argv[1]);
+	mu_list_foreach (add_header_list, list_headers, argv[1]);
     }
   else
     {
@@ -207,7 +207,7 @@ void
 compose_init (compose_env_t * env)
 {
   memset (env, 0, sizeof (*env));
-  mu_list_do (add_header_list, seed_headers, env);
+  mu_list_foreach (add_header_list, seed_headers, env);
 }
 
 int

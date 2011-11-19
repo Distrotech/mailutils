@@ -201,7 +201,7 @@ List :: size ()
 void
 List :: apply (mu_list_action_t* action, void* cbdata)
 {
-  int status = mu_list_do (mu_list, action, cbdata);
+  int status = mu_list_foreach (mu_list, action, cbdata);
   if (status)
     throw Exception ("List::apply", status);
 }

@@ -234,7 +234,7 @@ block   : ident tag '{' '}' opt_sc
 	  {
 	    $$ = mu_cfg_alloc_node (mu_cfg_node_statement, &$1.locus,
 				    $1.name, $2, $4);
-	    mu_list_do ($4, _node_set_parent, $$);
+	    mu_list_foreach ($4, _node_set_parent, $$);
 	  }
 	;
 
@@ -568,7 +568,7 @@ mu_cfg_tree_postprocess (mu_cfg_tree_t *tree,
 		      && strcmp (node->label->v.string, hints->program) == 0)
 		    {
 		      /* Reset the parent node */
-		      mu_list_do (node->nodes, _node_set_parent,
+		      mu_list_foreach (node->nodes, _node_set_parent,
 				  node->parent);
 		      /* Move all nodes from this block to the topmost
 			 level */
@@ -656,7 +656,7 @@ _mu_cfg_preorder_recursive (void *item, void *cbdata)
 int
 mu_cfg_preorder (mu_list_t nodelist, struct mu_cfg_iter_closure *clos)
 {
-  return mu_list_do (nodelist, _mu_cfg_preorder_recursive, clos);
+  return mu_list_foreach (nodelist, _mu_cfg_preorder_recursive, clos);
 }
 
 
@@ -1254,7 +1254,7 @@ parse_param (struct scan_tree_data *sdata, const mu_cfg_node_t *node)
 	}
       
       mu_list_create (&clos.list);
-      mu_list_do (node->label->v.list, _set_fun, &clos);
+      mu_list_foreach (node->label->v.list, _set_fun, &clos);
       *(mu_list_t*)tgt = clos.list;
     }
   else if (clos.type == mu_cfg_callback)

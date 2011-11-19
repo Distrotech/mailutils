@@ -25,72 +25,180 @@
 extern "C" {
 #endif
 
-extern int mu_list_create   (mu_list_t *);
-extern void mu_list_destroy (mu_list_t *);
-extern void mu_list_clear (mu_list_t list);
-extern int mu_list_append   (mu_list_t, void *item);
-extern int mu_list_prepend  (mu_list_t, void *item);
-extern int mu_list_insert   (mu_list_t list, void *item, void *new_item, 
-                          int insert_before);
-extern int mu_list_is_empty (mu_list_t);
-extern int mu_list_count    (mu_list_t, size_t *pcount);
-extern int mu_list_remove   (mu_list_t, void *item);
-extern int mu_list_remove_nd  (mu_list_t, void *item);
-extern int mu_list_replace  (mu_list_t list, void *old_item, void *new_item);  
-extern int mu_list_replace_nd (mu_list_t list, void *old_item, void *new_item);  
-extern int mu_list_get      (mu_list_t, size_t _index, void **pitem);
-extern int mu_list_to_array (mu_list_t list, void **array, size_t count, size_t *pcount);
-extern int mu_list_locate   (mu_list_t list, void *item, void **ret_item);
-extern int mu_list_get_iterator (mu_list_t, mu_iterator_t *);
-
-typedef int mu_list_action_t (void *item, void *cbdata);
-
-extern int mu_list_do       (mu_list_t list, mu_list_action_t *action, void *cbdata);
-
-typedef int (*mu_list_comparator_t) (const void*, const void*);
-
-extern int _mu_list_ptr_comparator (const void*, const void*);
-  
-extern mu_list_comparator_t mu_list_set_comparator (mu_list_t,
-						    mu_list_comparator_t);
-extern int mu_list_get_comparator (mu_list_t, mu_list_comparator_t *);
-
-extern void mu_list_free_item (void *item);
-
-typedef void (*mu_list_destroy_item_t) (void *);
-  
-extern mu_list_destroy_item_t mu_list_set_destroy_item
-              (mu_list_t list, mu_list_destroy_item_t destroy_item);
-
-
-extern int mu_list_intersect_dup (mu_list_t *, mu_list_t, mu_list_t,
-				  int (*dup_item) (void **, void *, void *),
-				  void *);
-extern int mu_list_intersect (mu_list_t *, mu_list_t, mu_list_t);  
-
-extern int mu_list_insert_list (mu_list_t list, void *item, mu_list_t new_list,
-				int insert_before);
-extern void mu_list_append_list (mu_list_t list, mu_list_t new_list);
-extern void mu_list_prepend_list (mu_list_t list, mu_list_t new_list);
+  /* ************************************************* */
+  /* List creation and destruction                     */
+  /* ************************************************* */
+int mu_list_create (mu_list_t *_plist);
+void mu_list_destroy (mu_list_t *_plist);
+  /* Remove all elements from the list, reclaiming the associated memory
+     if necessary (see mu_list_set_destroy_item), but don't destroy the
+     list itself. */
+void mu_list_clear (mu_list_t _list);
 
-/* List mapper functions */
-typedef int (*mu_list_mapper_t) (void **itmv, size_t itmc, void *call_data);
+  /* ************************************************* */
+  /* List Comparators                                  */
+  /* ************************************************* */
+  
+  /* A comparator is associated with each list, which is used to compare
+     two elements for equality.  The comparator is a function of
+     mu_list_comparator_t type, which returns 0 if its arguments are equal
+     and non-zero otherwise: */
+typedef int (*mu_list_comparator_t) (const void*, const void*);
+  /* The default comparator function compares two pointers for equality. */
+int _mu_list_ptr_comparator (const void*, const void*);
+  /* Set _cmp as a new comparator function for _list.  Return old
+     comparator. */
+mu_list_comparator_t mu_list_set_comparator (mu_list_t _list,
+					     mu_list_comparator_t _cmp);
+  /* Returns in _pcmp a pointer to the comparator function of _list: */
+int mu_list_get_comparator (mu_list_t _list, mu_list_comparator_t *_pcmp);
+
+  /* ************************************************* */
+  /* Memory management                                 */
+  /* ************************************************* */
+
+  /* The destroy function is responsible for deallocating a list element.
+     By default, it is not set. */
+typedef void (*mu_list_destroy_item_t) (void *);
+
+  /* An often used destroy function.  It simply calls free(3) over the
+     _item. */
+void mu_list_free_item (void *_item);
+
+  /* Sets the destroy function for _list and returns old destroy
+     function: */
+mu_list_destroy_item_t mu_list_set_destroy_item (mu_list_t _list,
+			   mu_list_destroy_item_t _destroy_item);
+
+  /* ************************************************* */
+  /* List informational functions:                     */
+  /* ************************************************* */
+
+  /* Return true if _list has no items. */
+int mu_list_is_empty (mu_list_t _list);
+  /* Write the number of items currently in _list to the memory location
+     pointed to by _pcount. */
+int mu_list_count    (mu_list_t _list, size_t *_pcount);
+
+  /* ************************************************* */
+  /* Functions for retrieving list elements:           */
+  /* ************************************************* */
+  
+  /* Get _indexth element from the list and store it in _pitem. */
+int mu_list_get      (mu_list_t _list, size_t _index, void **_pitem);
+  /* Store at most _count first elements from _list in the _array.  Unless
+     _pcount is NULL, fill it with the actual number of elements copied. */
+int mu_list_to_array (mu_list_t _list, void **_array, size_t _count,
+		      size_t *_pcount);
+  /* Look for the element matching _item (in the sense of the item comparator
+     method, see mu_list_set_comparator) and return it in the memory location
+     pointed to by _ret_item. */
+int mu_list_locate   (mu_list_t list, void *item, void **ret_item);
+  
+  /* ************************************************* */
+  /* Functions for adding and removing elements:       */
+  /* ************************************************* */
+  
+  /* Add _item to the tail of the _list. */
+int mu_list_append   (mu_list_t _list, void *_item);
+  /* Add _item to the head of the _list */
+int mu_list_prepend  (mu_list_t _list, void *_item);
+  /* Insert _item after _new_item in _list (or before it, if _insert_before
+     is 1. */
+int mu_list_insert   (mu_list_t _list, void *_item, void *_new_item, 
+                      int _insert_before);
+  /* Remove _item from _list and deallocate any memory associated with it
+     using the `destroy_item' method. */
+int mu_list_remove   (mu_list_t _list, void *_item);
+  /* A non-destructive version of mu_list_remove: removes the _item but does
+     not deallocate it. */
+int mu_list_remove_nd  (mu_list_t _list, void *_item);
+  /* Find _old_item in _list and if found, replace it with _new_item,
+     deallocating the removed item via the `destroy_item' method. */
+int mu_list_replace  (mu_list_t _list, void *_old_item, void *_new_item);
+  /* A non-destructive version of mu_list_replace: the removed item is not
+     deallocated. */
+int mu_list_replace_nd (mu_list_t _list, void *_old_item, void *_new_item);
+
+  /* ************************************************* */
+  /* Interation over lists.                            */
+  /* ************************************************* */
+
+  /* Get iterator for this _list and return it in _pitr, if successful. */
+int mu_list_get_iterator (mu_list_t _list, mu_iterator_t *_pitr);
+
+  /* A general-purpose iteration function.  When called, _item points to
+     the item currently visited and _data points to call-specific data. */
+typedef int mu_list_action_t (void *_item, void *_data);
+
+  /* Execute _action for each element in _list.  Use _data as the call-specific
+     data. */
+int mu_list_foreach (mu_list_t _list, mu_list_action_t *_action, void *_data);
+  /* A historical alias to the above. */
+int mu_list_do (mu_list_t, mu_list_action_t *, void *) MU_DEPRECATED;
+
+  /* ************************************************* */
+  /* Functions for combining two lists.                */
+  /* ************************************************* */
+
+  /* Move elements from _new_list to _list, adding them to the tail of
+     the latter. */
+void mu_list_append_list (mu_list_t _list, mu_list_t _new_list);
+  /* Move elements from _new_list to _list, adding them to the head of
+     the latter. */
+void mu_list_prepend_list (mu_list_t _list, mu_list_t _new_list);
+
+  /* Move data from _new_list to _list, inserting them after the
+     element matching _anchor (in the sense of _list's comparator
+     function).  If _insert_before is 1, items are inserted before
+     _achor instead. */
+int mu_list_insert_list (mu_list_t _list, void *_anchor,
+			 mu_list_t _new_list,
+			 int _insert_before);
+
+  /* Compute an intersection of two lists (_list1 and _list2) and return
+     it in _pdest.  The resulting list contains elements from _list1 that
+     are also encountered in _list2 (as per comparison function of
+     the latter).
+     
+     If _dup_item is not NULL, it is called to create copies of
+     items to be stored in _pdest.  In this case, the destroy_item
+     function of _list2 is also attached to _pdest.
+
+     The _dup_item parameters are: a pointer for returned data, the
+     original item and call-specific data.  The _dup_data 
+     argument is passed as the 3rd argument in each call to _dup_item.
+     
+     If _dup_item is NULL, pointers to elements are stored and
+     no destroy_item function is assigned. */
+int mu_list_intersect_dup (mu_list_t *_pdest,
+			   mu_list_t _list1, mu_list_t _list2,
+			   int (*_dup_item) (void **, void *, void *),
+			   void *_dup_data);
+  
+  /* Same as mu_list_intersect_dup with _dup_item = NULL */
+int mu_list_intersect (mu_list_t *, mu_list_t, mu_list_t);  
+
+  /* ************************************************* */
+  /* List mapper functions                             */
+  /* ************************************************* */
+  
+typedef int (*mu_list_mapper_t) (void **_itmv, size_t _itmc, void *_call_data);
 
 /* A generalized list mapping function.
 
-   Mu_list_gmap iterates over the LIST, gathering its elements in an
-   array of type void **.  When NELEM elements has been collected, it
-   calls the MAP function, passing it as arguments the constructed array,
-   number of elements in it (can be less than NELEM on the last call),
-   and call-specific DATA.  Iteration continues while MAP returns 0 and
-   until all elements from the array have been visited.
+   Mu_list_gmap iterates over the _list, gathering its elements in an
+   array of type void **.  Each time _nelem elements has been collected,
+   it calls the _map function, passing it as arguments the constructed array,
+   the number of elements in it (which can be less than _nelem on the last
+   call), and call-specific _data.  Iteration continues while _map returns 0
+   and until all elements from the array have been visited.
 
    Mu_list_gmap returns 0 on success and a non-zero error code on failure.
-   If MAP returns !0, its return value is propagated to the caller.
-*/
+   If _map returns non-zero, its return value is propagated to the caller. */
    
-int mu_list_gmap (mu_list_t list, mu_list_mapper_t map, size_t nelem,
-		  void *data);
+int mu_list_gmap (mu_list_t _list, mu_list_mapper_t _map, size_t _nelem,
+		  void *_data);
   
   
 #define MU_LIST_MAP_OK     0x00
@@ -99,24 +207,24 @@ int mu_list_gmap (mu_list_t list, mu_list_mapper_t map, size_t nelem,
 
 /* List-to-list mapping.
    
-   Apply the list mapping function MAP to each NELEM elements from the source
-   LIST and use its return values to form a new list, which will be returned
-   in RES.
+   Apply the list mapping function _map to each _nelem elements from the source
+   _list and use its return values to form a new list, which will be returned
+   in _res.
 
-   MAP gets pointers to the collected elements in its first argument (ITMV).
-   Its second argument (ITMC) gives the number of elements filled in ARR.
-   It can be less than NELEM on the last call to MAP.  The DATA pointer is
-   passed as the 3rd argument.
+   The _map function gets pointers to the collected elements in its first
+   argument (_itmv).  Its second argument (_itmc) keeps the number of elements
+   filled in there.  It can be less than _nelem on the last call to _map.
+   The _data pointer is passed as the 3rd argument.
 
-   Return value from MAP governs the mapping process.  Unless it has the
-   MU_LIST_MAP_SKIP bit set, the itmv[0] element is appended to the new
+   The return value from _map governs the mapping process.  Unless it has the
+   MU_LIST_MAP_SKIP bit set, the _itmv[0] element is appended to the new
    list.  If it has MU_LIST_MAP_STOP bit set, iteration is stopped
-   immediately and any remaining elements in LIST are ignored.
+   immediately and any remaining elements in _list are ignored.
 */
 
-int mu_list_map (mu_list_t list, mu_list_mapper_t map,
-		 void *data, size_t nelem,
-		 mu_list_t *res);
+int mu_list_map (mu_list_t _list, mu_list_mapper_t _map,
+		 void *_data, size_t _nelem,
+		 mu_list_t *_res);
 #ifdef __cplusplus
 }
 #endif

@@ -62,15 +62,15 @@ mu_sieve_module_init (enum mu_gocs_op op, void *data)
 
   if (p->clearflags & MU_SIEVE_CLEAR_INCLUDE_PATH)
     mu_list_destroy (&mu_sieve_include_path);
-  mu_list_do (p->include_path, _path_append, &mu_sieve_include_path);
+  mu_list_foreach (p->include_path, _path_append, &mu_sieve_include_path);
   if (p->clearflags & MU_SIEVE_CLEAR_LIBRARY_PATH)
     {
       mu_list_destroy (&mu_sieve_library_path);
       mu_list_destroy (&mu_sieve_library_path_prefix);
     }
-  mu_list_do (p->library_path_prefix, _path_append,
+  mu_list_foreach (p->library_path_prefix, _path_append,
 	      &mu_sieve_library_path_prefix);
-  mu_list_do (p->library_path, _path_append, &mu_sieve_library_path);
+  mu_list_foreach (p->library_path, _path_append, &mu_sieve_library_path);
   mu_list_destroy (&p->library_path);
   mu_list_destroy (&p->library_path_prefix);
   mu_list_destroy (&p->include_path);
