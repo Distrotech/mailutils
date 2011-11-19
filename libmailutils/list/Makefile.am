@@ -39,7 +39,9 @@ liblist_la_SOURCES = \
  remove.c\
  replace.c\
  setcomp.c\
- setdestr.c
+ setdestr.c\
+ slice.c\
+ slice2.c
 
 INCLUDES = @MU_LIB_COMMON_INCLUDES@ -I/libmailutils
 

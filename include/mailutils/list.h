@@ -177,7 +177,45 @@ int mu_list_intersect_dup (mu_list_t *_pdest,
 			   void *_dup_data);
   
   /* Same as mu_list_intersect_dup with _dup_item = NULL */
-int mu_list_intersect (mu_list_t *, mu_list_t, mu_list_t);  
+int mu_list_intersect (mu_list_t *, mu_list_t, mu_list_t);
+
+  /* ************************************************* */
+  /* List slicing                                      */
+  /* ************************************************* */
+  /* Create a new list from elements of _list located between
+     indices in _posv.  Return the result in _pdest.  
+     The resulting list will contain elements between _posv[0] and
+     _posv[1], _posv[2] and _posv[3], ..., _posv[_posc-2]
+     and _posv[_posc-1], inclusive.  If _posc is an odd number, an extra
+     element with the value [count-1] (where count is the number of
+     elements in _list) is implied.
+
+     The elements in _posv are sorted in ascending order prior to use. 
+     
+     See mu_list_intersect_dup for a description of _dup_item and
+     _dup_data */
+int mu_list_slice_dup (mu_list_t *_pdest, mu_list_t _list,
+		       size_t *_posv, size_t _posc,
+		       int (*_dup_item) (void **, void *, void *),
+		       void *_dup_data);
+  /* Same as mu_list_slice_dup invoked with _dup_item=NULL */
+int mu_list_slice (mu_list_t *_pdest, mu_list_t _list,
+		   size_t *_posv, size_t _posc);
+  
+  /* Two functions for the most common case: */
+  /* Create a slice containing elements between indices _from and
+     _to in the _list.
+
+     See mu_list_intersect_dup for a description of _dup_item and
+     _dup_data */
+int mu_list_slice2_dup (mu_list_t *_pdest, mu_list_t _list,
+			size_t _from, size_t _to,
+			int (*_dup_item) (void **, void *, void *),
+			void *_dup_data);
+  /* Same as mu_list_slice2_dup with _dup_item=NULL */
+int mu_list_slice2 (mu_list_t *_pdest, mu_list_t _list,
+                    size_t _from, size_t _to);
+  
 
   /* ************************************************* */
   /* List mapper functions                             */

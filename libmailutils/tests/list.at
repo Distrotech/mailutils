@@ -323,7 +323,60 @@ to
 ])
 
 m4_popdef([MU_TEST_KEYWORDS])
+
+# ------------------------------------------------------------
+# Slices
+# ------------------------------------------------------------
 
+m4_define([MU_TEST_GROUP],[Slice])
+m4_pushdef([MU_TEST_KEYWORDS],MU_TEST_KEYWORDS[ slice])
+
+TESTLIST([one limit],[],
+[add null en to tre fire
+slice 3
+],
+[# items: 2
+tre
+fire
+])
+
+TESTLIST([two limits],[],
+[add null en to tre fire fem seks syv atte ni ti
+slice 4 7
+],
+[# items: 4
+fire
+fem
+seks
+syv
+])
+
+TESTLIST([four limits],[],
+[add null en to tre fire fem seks syv atte ni ti
+slice 4 6 9 10
+],
+[# items: 5
+fire
+fem
+seks
+ni
+ti
+])
+
+TESTLIST([four limits unsorted],[],
+[add null en to tre fire fem seks syv atte ni ti
+slice 10 6 9 4 
+],
+[# items: 5
+fire
+fem
+seks
+ni
+ti
+])
+
+m4_popdef([MU_TEST_KEYWORDS])
+
 dnl ------------------------------------------------------------
 dnl Cleanup
 m4_popdef([TESTLIST])

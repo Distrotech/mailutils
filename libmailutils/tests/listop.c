@@ -619,6 +619,71 @@ map (mu_list_t *plist, int argc, char **argv)
   return 0;
 }
 
+static int
+dup_string (void **res, void *itm, void *closure)
+{
+  *res = strdup (itm);
+  return *res ? 0 : ENOMEM;
+}
+
+int
+slice (mu_list_t *plist, int argc, char **argv)
+{
+  mu_list_t list = *plist;
+  mu_list_t result;
+  int rc, i;
+  int replace = 0;
+  size_t *buf;
+  
+  argc--;
+  argv++;
+  
+  if (argc > 0 && strcmp (argv[0], "-replace") == 0)
+    {
+      replace = 1;
+      argc--;
+      argv++;
+    }
+  
+  if (argc < 1)
+    {
+      fprintf (stderr, "slice [-replace] num [num...]\n");
+      return 0;
+    }
+
+  buf = calloc (argc, sizeof (buf[0]));
+  if (!buf)
+    abort ();
+  for (i = 0; i < argc; i++)
+    buf[i] = atoi (argv[i]);
+
+  rc = mu_list_slice_dup (&result, list, buf, argc,
+			  dup_string, NULL);
+  if (rc)
+    {
+      mu_error ("slice failed: %s", mu_strerror (rc));
+      return 0;
+    }
+  if (replace)
+    {
+      size_t count[2];
+      mu_list_count (list, &count[0]);
+      mu_list_count (result, &count[1]);
+      
+      printf ("%lu in, %lu out\n", (unsigned long) count[0],
+	      (unsigned long) count[1]);
+      mu_list_destroy (&list);
+      *plist = result;
+      return 1;
+    }
+  else
+    {
+      print (result);
+      mu_list_destroy (&result);
+    }
+  return 0;  
+}
+
 void
 help ()
 {
@@ -637,8 +702,9 @@ help ()
   printf ("ictl repl item\n");
   printf ("ictl ins item [item*]\n");
   printf ("ictl dir [backwards|forwards]\n");
-  printf ("map NAME [ARGS]\n");
+  printf ("map [-replace] NAME [ARGS]\n");
   printf ("print\n");
+  printf ("slice [-replace] num [num...]\n");
   printf ("quit\n");
   printf ("iter num\n");
   printf ("help\n");
@@ -714,6 +780,14 @@ shell (mu_list_t list)
 	      int i;
 	      
 	      if (map (&list, ws.ws_wordc, ws.ws_wordv))
+		for (i = 0; i < NITR; i++)
+		  mu_iterator_destroy (&itr[i]);
+	    }
+	  else if (strcmp (ws.ws_wordv[0], "slice") == 0)
+	    {
+	      int i;
+	      
+	      if (slice (&list, ws.ws_wordc, ws.ws_wordv))
 		for (i = 0; i < NITR; i++)
 		  mu_iterator_destroy (&itr[i]);
 	    }
