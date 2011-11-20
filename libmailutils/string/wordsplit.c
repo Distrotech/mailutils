@@ -1115,7 +1115,8 @@ scan_word (struct mu_wordsplit *wsp, size_t start)
 		  continue;
 		}
 
-	      if (command[i] == '\'' || command[i] == '"')
+	      if (((wsp->ws_flags & MU_WRDSF_SQUOTE) && command[i] == '\'') ||
+		  ((wsp->ws_flags & MU_WRDSF_DQUOTE) && command[i] == '"'))
 		{
 		  if (join && wsp->ws_tail)
 		    wsp->ws_tail->flags |= _WSNF_JOIN;

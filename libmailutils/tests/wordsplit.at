@@ -355,4 +355,22 @@ TESTWSP([unescape],[],[-default novar nocmd quote escape '\"'],
 2: "bs \\"
 ])
 
+TESTWSP([dquote],[],[-default novar nocmd dquote],
+[a "quoted example" isn't it],
+[NF: 4
+0: a
+1: "quoted example"
+2: isn't
+3: it
+])
+
+TESTWSP([squote],[],[-default novar nocmd squote],
+[a 'quoted example' isn"t it],
+[NF: 4
+0: a
+1: "quoted example"
+2: "isn\"t"
+3: it
+])
+
 m4_popdef([TESTWSP])

@@ -37,6 +37,8 @@ struct mu_kwd bool_keytab[] = {
   { "nocmd",  MU_WRDSF_NOCMD },
   { "ws",     MU_WRDSF_WS },
   { "quote",  MU_WRDSF_QUOTE },
+  { "squote", MU_WRDSF_SQUOTE },
+  { "dquote", MU_WRDSF_DQUOTE },
   { "squeeze_delims", MU_WRDSF_SQUEEZE_DELIMS },
   { "return_delims",  MU_WRDSF_RETURN_DELIMS },
   { "sed",     MU_WRDSF_SED_EXPR },
