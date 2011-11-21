@@ -33,8 +33,7 @@ int debug_mode;
 int tls_required;
 int pop3d_xlines;
 char *apop_database_name = APOP_PASSFILE;
-int apop_database_safety;
-int apop_database_safety_set;
+int apop_database_safety = MU_FILE_SAFETY_ALL;
 
 #ifdef WITH_TLS
 int tls_available;
@@ -92,7 +91,6 @@ cb2_file_safety_checks (const char *name, void *data)
 static int
 cb_apop_safety_checks (void *data, mu_config_value_t *arg)
 {
-  apop_database_safety_set = 1;
   return mu_cfg_string_value_cb (arg, cb2_file_safety_checks,
 				 &apop_database_safety);
 }

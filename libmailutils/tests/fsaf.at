@@ -59,6 +59,15 @@ ln ../data file
 ],
 [Linked file in a writable directory])
 
+FSAFCODE([+linkwrdir],
+[mkdir dir
+chmod g+w dir
+> data
+cd dir
+ln -s ../data file
+],
+[Linked file in a writable directory])
+
 FSAFCODE([+awrdir],
 [mkdir dir
 chmod o+w dir

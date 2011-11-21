@@ -106,7 +106,7 @@ open_db_file (int mode)
       exit (EX_USAGE);
     }
   
-  rc = mu_dbm_create (db_name, &db);
+  rc = mu_dbm_create (db_name, &db, 0);
   if (rc)
     {
       mu_diag_output (MU_DIAG_ERROR, _("unable to create database %s: %s"),

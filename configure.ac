@@ -518,7 +518,7 @@ check_dbm_impl() {
 	  done;;
 
   BDB=*)
-	  name=`expr $use_dbm : 'BDB=\(.*\)'`
+	  name=`expr $1 : 'BDB=\(.*\)'`
   	  case $name in
 	  [[0-9]]*)  check_slackware_bdb $name;;
 	  *)	     for version in 4 3 2

@@ -68,8 +68,9 @@ _check_awrfil (struct file_check_buffer *fb)
 static int
 _check_linkwrdir (struct file_check_buffer *fb)
 {
-  return (fb->filst.st_mode & S_IFLNK) &&
-         (fb->dirst.st_mode & (S_IWGRP | S_IWOTH));
+  return ((((fb->filst.st_mode & S_IFMT) == S_IFLNK) ||
+	   fb->filst.st_nlink > 1) &&
+	  (fb->dirst.st_mode & (S_IWGRP | S_IWOTH)));
 }
 
 static int
@@ -199,7 +200,7 @@ mu_file_safety_check (const char *filename, int mode,
   if (!filename)
     return EFAULT;
   memset (&buf, 0, sizeof (buf));
-  if (stat (filename, &buf.filst) == 0)
+  if (lstat (filename, &buf.filst) == 0)
     {
       struct safety_checker *pck;
 

@@ -29,7 +29,7 @@
 #include "mudbm.h"
 
 int
-mu_dbm_create (char *name, mu_dbm_file_t *db)
+mu_dbm_create (char *name, mu_dbm_file_t *db, int defsafety)
 {
   int rc;
   mu_url_t url;
@@ -38,7 +38,7 @@ mu_dbm_create (char *name, mu_dbm_file_t *db)
   rc = mu_url_create_hint (&url, name, 0, mu_dbm_hint);
   if (rc)
     return rc;
-  rc = mu_dbm_create_from_url (url, db);
+  rc = mu_dbm_create_from_url (url, db, defsafety);
   mu_url_destroy (&url);
   return rc;
 }

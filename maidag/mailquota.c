@@ -77,7 +77,7 @@ dbm_retrieve_quota (char *name, mu_off_t *quota)
   if (!quotadbname)
     return RETR_FAILURE;
 
-  rc = mu_dbm_create (quotadbname, &db);
+  rc = mu_dbm_create (quotadbname, &db, MU_FILE_SAFETY_ALL);
   if (rc)
     {
       mu_error (_("unable to create quota db"));

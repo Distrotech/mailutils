@@ -50,16 +50,13 @@ pop3d_apopuser (const char *user)
     mu_dbm_file_t db;
     struct mu_dbm_datum key, data;
 
-    rc = mu_dbm_create (apop_database_name, &db);
+    rc = mu_dbm_create (apop_database_name, &db, apop_database_safety);
     if (rc)
       {
 	mu_diag_output (MU_DIAG_ERROR, _("unable to create APOP db"));
 	return NULL;
       }
 
-    if (apop_database_safety_set)
-      mu_dbm_safety_set_flags (db, apop_database_safety);
-    
     rc = mu_dbm_safety_check (db);
     if (rc)
       {

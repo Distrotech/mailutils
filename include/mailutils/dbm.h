@@ -53,8 +53,8 @@ void mu_dbm_init (void);
 mu_url_t mu_dbm_get_hint (void);
 
 int mu_dbm_register (struct mu_dbm_impl *impl);
-int mu_dbm_create_from_url (mu_url_t url, mu_dbm_file_t *db);
-int mu_dbm_create (char *name, mu_dbm_file_t *db);
+int mu_dbm_create_from_url (mu_url_t url, mu_dbm_file_t *db, int defsafety);
+int mu_dbm_create (char *name, mu_dbm_file_t *db, int defsafety);
 int mu_dbm_close (mu_dbm_file_t db);
 void mu_dbm_datum_free (struct mu_dbm_datum *datum);
 int mu_dbm_delete (mu_dbm_file_t db, struct mu_dbm_datum const *key);

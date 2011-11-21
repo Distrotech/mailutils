@@ -132,7 +132,7 @@ mu_dbm_register (struct mu_dbm_impl *impl)
 }
 
 int
-mu_dbm_create_from_url (mu_url_t url, mu_dbm_file_t *db)
+mu_dbm_create_from_url (mu_url_t url, mu_dbm_file_t *db, int defsafety)
 {
   mu_dbm_file_t p;
   int flags;
@@ -142,6 +142,7 @@ mu_dbm_create_from_url (mu_url_t url, mu_dbm_file_t *db)
   struct mu_dbm_impl *impl;
   struct mu_auth_data *auth;
   int safety_flags = 0;
+  int safety_flags_set = 0;
   uid_t owner_uid = getuid ();
 
   mu_dbm_init ();
@@ -183,7 +184,8 @@ mu_dbm_create_from_url (mu_url_t url, mu_dbm_file_t *db)
 	    }
 	  else if (*name == '+')
 	    name++;
-
+	  
+	  safety_flags_set = 1;
 	  if (strncmp (name, "owner", 5) == 0)
 	    {
 	      val = MU_FILE_SAFETY_OWNER_MISMATCH;
@@ -243,7 +245,8 @@ mu_dbm_create_from_url (mu_url_t url, mu_dbm_file_t *db)
       free (p);
       return ENOMEM;
     }
-  p->db_safety_flags = safety_flags;
+
+  p->db_safety_flags = safety_flags_set ? safety_flags : defsafety;
   p->db_owner = owner_uid;
   p->db_sys = impl;
 
@@ -257,3 +260,4 @@ mu_dbm_impl_iterator (mu_iterator_t *itr)
   mu_dbm_init ();
   return mu_list_get_iterator (implist, itr);
 }
+

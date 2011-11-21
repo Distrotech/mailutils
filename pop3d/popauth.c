@@ -273,15 +273,6 @@ open_db_file (int action, struct action_data *ap, int *my_file)
 
   uid = getuid ();
 
-  rc = mu_dbm_create (db_name, &db);
-  if (rc)
-    {
-      mu_diag_output (MU_DIAG_ERROR, _("unable to create database %s: %s"),
-		      db_name, mu_strerror (rc));
-      exit (EX_SOFTWARE);
-    }
-
-  //  mu_dbm_safety_set_owner (db, uid);
   /* Adjust safety flags */
   if (permissions & 0002)
     safety_flags &= ~MU_FILE_SAFETY_WORLD_WRITABLE;
@@ -291,8 +282,15 @@ open_db_file (int action, struct action_data *ap, int *my_file)
     safety_flags &= ~MU_FILE_SAFETY_GROUP_WRITABLE;
   if (permissions & 0040)
     safety_flags &= ~MU_FILE_SAFETY_GROUP_READABLE;
-  
-  mu_dbm_safety_set_flags (db, safety_flags);
+
+  rc = mu_dbm_create (db_name, &db, safety_flags);
+  if (rc)
+    {
+      mu_diag_output (MU_DIAG_ERROR, _("unable to create database %s: %s"),
+		      db_name, mu_strerror (rc));
+      exit (EX_SOFTWARE);
+    }
+
   rc = mu_dbm_safety_check (db);
   if (rc && rc != ENOENT)
     {

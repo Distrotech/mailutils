@@ -25,15 +25,13 @@ open_stat_db (int mode)
   mu_dbm_file_t db;
   int rc;
 
-  rc = mu_dbm_create (login_stat_file, &db);
+  rc = mu_dbm_create (login_stat_file, &db, DEFAULT_GROUP_DB_SAFETY);
   if (rc)
     {
       mu_diag_output (MU_DIAG_ERROR, _("unable to create statistics db"));
       return NULL;
     }
 
-  mu_dbm_safety_set_flags (db, DEFAULT_GROUP_DB_SAFETY);
-  
   rc = mu_dbm_safety_check (db);
   if (rc && rc != ENOENT)
     {
