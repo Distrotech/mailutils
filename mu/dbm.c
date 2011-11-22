@@ -209,13 +209,16 @@ set_db_ownership (mu_dbm_file_t db)
 }
 
 
+#define IOBUF_REREAD 1
+#define IOBUF_EOF    2
+
 struct iobuf
 {
   mu_stream_t stream;
   char *buffer;
   size_t bufsize;
   size_t length;
-  int read;
+  int flag;            /* 0 or one of the IOBUF_ constants above. */
 };
 
 static int is_dbm_directive (struct iobuf *input);
@@ -224,15 +227,25 @@ static int is_ignored_directive (const char *name);
 static int set_directive (char *val);
 static void print_header (const char *name, mu_stream_t str);
 
+#define input_eof(iob) ((iob)->flag == IOBUF_EOF)
+
 static int
 input_getline (struct iobuf *inp)
 {
   int rc;
   size_t len;
 
-  if (inp->read)
+  switch (inp->flag)
     {
-      inp->read = 0;
+    case 0:
+      break;
+
+    case IOBUF_REREAD:
+      inp->flag = 0;
+      return 0;
+
+    case IOBUF_EOF:
+      inp->length = 0;
       return 0;
     }
   
@@ -243,6 +256,7 @@ input_getline (struct iobuf *inp)
 	return rc;
       if (len == 0)
 	{
+	  inp->flag = IOBUF_EOF;
 	  inp->length = 0;
 	  break;
 	}
@@ -270,7 +284,8 @@ input_getline (struct iobuf *inp)
 static void
 input_ungetline (struct iobuf *inp)
 {
-  inp->read = 1;
+  if (inp->flag == 0)
+    inp->flag = IOBUF_REREAD;
 }
 
 static size_t
@@ -298,6 +313,13 @@ static int ascii_writer (struct iobuf *, void *data,
 			 struct mu_dbm_datum const *key,
 			 struct mu_dbm_datum const *content);
 
+static int C_reader (struct iobuf *, void *data,
+		     struct mu_dbm_datum *key,
+		     struct mu_dbm_datum *content);
+static int C_writer (struct iobuf *, void *data,
+		     struct mu_dbm_datum const *key,
+		     struct mu_dbm_datum const *content);
+
 static void newfmt_init (struct xfer_format *fmt,
 			 const char *version, struct iobuf *iop, int wr);
 
@@ -309,14 +331,15 @@ static int newfmt_writer (struct iobuf *, void *data,
 			  struct mu_dbm_datum const *content);
 
 static struct xfer_format format_tab[] = {
+  { "C",   NULL, C_reader,     C_writer, NULL },
   { "0.0", NULL, ascii_reader, ascii_writer, NULL },
   { "1.0", newfmt_init, newfmt_reader, newfmt_writer, NULL },
   { NULL }
 };
 						     
-#define DEFAULT_LIST_FORMAT (&format_tab[0])
-#define DEFAULT_DUMP_FORMAT (&format_tab[1])
-#define DEFAULT_LOAD_FORMAT (&format_tab[0])
+#define DEFAULT_LIST_FORMAT (&format_tab[1])
+#define DEFAULT_DUMP_FORMAT (&format_tab[2])
+#define DEFAULT_LOAD_FORMAT (&format_tab[1])
 
 static struct xfer_format *format;
 static const char *dump_format_version;
@@ -405,8 +428,13 @@ ascii_reader (struct iobuf *inp, void *data MU_ARG_UNUSED,
       mu_error ("%s", mu_strerror (rc));
       return -1;
     }
-  if (input_length (inp) == 0)
+  if (input_eof (inp))
     return 1;
+  if (input_length (inp) == 0)
+    {
+      key->mu_dsize = 0;
+      return 0;
+    }
   kstr = mu_str_stripws (inp->buffer);
   val = mu_str_skip_class_comp (kstr, MU_CTYPE_SPACE);
   *val++ = 0;
@@ -421,6 +449,150 @@ ascii_reader (struct iobuf *inp, void *data MU_ARG_UNUSED,
       init_datum (key, kstr);
       init_datum (content, val);
     }
+  return 0;
+}  
+
+void
+write_quoted_string (mu_stream_t stream, char *str, size_t len)
+{
+  for (; len; str++, len--)
+    {
+      if (*str == '"')
+	{
+	  mu_stream_write (stream, "\\", 1, NULL);
+	  mu_stream_write (stream, str, 1, NULL);
+	}
+      else if (*str != '\t' && *str != '\\' && mu_isprint (*str))
+	mu_stream_write (stream, str, 1, NULL);
+      else
+	{
+	  int c = mu_wordsplit_c_quote_char (*str);
+
+	  mu_stream_write (stream, "\\", 1, NULL);
+	  if (c != -1)
+	    mu_stream_write (stream, str, 1, NULL);
+	  else
+	    mu_stream_printf (stream, "%03o", *(unsigned char *) str);
+	}
+    }
+}
+
+static int
+C_writer (struct iobuf *iop, void *data MU_ARG_UNUSED,
+	  struct mu_dbm_datum const *key,
+	  struct mu_dbm_datum const *content)
+{
+  write_quoted_string (iop->stream, key->mu_dptr, key->mu_dsize);
+  mu_stream_write (iop->stream, "\n", 1, NULL);
+  write_quoted_string (iop->stream, content->mu_dptr, content->mu_dsize);
+  mu_stream_write (iop->stream, "\n\n", 2, NULL);
+  return 0;
+}
+
+#define ISODIGIT(c) ((c) >= '0' && c < '8')
+#define OCTVAL(c) ((c) - '0')
+
+static int
+C_read_datum (struct iobuf *inp, struct mu_dbm_datum *datum)
+{
+  size_t i = 0;
+  char *base, *ptr;
+  size_t length;
+  int rc;
+  
+  free (datum->mu_dptr);
+  memset (datum, 0, sizeof (*datum));
+
+  rc = input_getline (inp);
+  if (rc)
+    {
+      mu_error ("%s", mu_strerror (rc));
+      return -1;
+    }
+  if (input_eof (inp))
+    return 1;
+  if ((length = input_length (inp)) == 0)
+    {
+      mu_error (_("empty line"));
+      return -1;
+    }
+
+  memset (datum, 0, sizeof (*datum));
+  datum->mu_dptr = ptr = xmalloc (length);
+  base = inp->buffer;
+  for (i = 0; i < length; ptr++)
+    {
+      if (base[i] == '\\')
+	{
+	  if (++i >= length)
+	    {
+	      mu_error (_("unfinished string"));
+	      return -1;
+	    }
+	  else if (ISODIGIT (base[i]))
+	    {
+	      unsigned c;
+
+	      if (i + 3 > length)
+		{
+		  mu_error (_("unfinished string"));
+		  return -1;
+		}
+	      c = OCTVAL (base[i]);
+	      c <<= 3;
+	      c |= OCTVAL (base[i + 1]);
+	      c <<= 3;
+	      c |= OCTVAL (base[i + 2]);
+	      *ptr = c;
+	      i += 3;
+	    }
+	  else
+	    {
+	      int c = mu_wordsplit_c_unquote_char (base[i]);
+	      if (c == -1)
+		{
+		  mu_error (_("invalid escape sequence (\\%c)"), base[i]);
+		  return -1;
+		}
+	      *ptr = c;
+	    }
+	}
+      else
+	*ptr = base[i++];
+    }
+  datum->mu_dsize = ptr - datum->mu_dptr;
+  return 0;
+}
+
+static int
+C_reader (struct iobuf *inp, void *data MU_ARG_UNUSED,
+	  struct mu_dbm_datum *key,
+	  struct mu_dbm_datum *content)
+{
+  int rc;
+
+  rc = C_read_datum (inp, key);
+  if (rc < 0)
+    exit (EX_DATAERR);
+  else if (rc == 1)
+    return 1;
+  
+  if (C_read_datum (inp, content))
+    exit (EX_DATAERR);
+
+  rc = input_getline (inp);
+  if (rc)
+    {
+      mu_error ("%s", mu_strerror (rc));
+      return -1;
+    }
+
+  if (input_length (inp) != 0)
+    {
+      mu_error (_("unrecognized line"));
+      return -1;
+    }
+
   return 0;
 }  
 
@@ -465,15 +637,16 @@ newfmt_read_datum (struct iobuf *iop, mu_opool_t pool,
   unsigned char *ptr, *out;
   size_t len;
 
-  mu_dbm_datum_free (datum);
-  
+  free (datum->mu_dptr);
+  memset (datum, 0, sizeof (*datum));
+	  
   rc = input_getline (iop);
   if (rc)
     {
       mu_error ("%s", mu_strerror (rc));
       exit (EX_IOERR);
     }
-  if (iop->length == 0)
+  if (input_eof (iop))
     return 1;
   
   if (!is_len_directive (iop))
@@ -505,7 +678,7 @@ newfmt_read_datum (struct iobuf *iop, mu_opool_t pool,
 	  mu_error ("%s", mu_strerror (rc));
 	  exit (EX_IOERR);
 	}
-      if (iop->length == 0)
+      if (input_eof (iop))
 	break;
       if (is_len_directive (iop))
 	{
@@ -524,8 +697,6 @@ newfmt_read_datum (struct iobuf *iop, mu_opool_t pool,
       exit (EX_SOFTWARE);
     }
 
-  mu_dbm_datum_free (datum);
-  
   datum->mu_dptr = (void*) out;
   return 0;
 }
@@ -559,7 +730,7 @@ newfmt_write_datum (struct iobuf *iop, struct mu_dbm_datum const *datum)
       exit (EX_SOFTWARE);
     }
   mu_stream_write (iop->stream, iop->buffer, iop->bufsize, NULL);
-  free (iop->buffer); // FIXME
+  free (iop->buffer); /* FIXME */
   mu_stream_write (iop->stream, "\n", 1, NULL);
 }
 
@@ -1220,7 +1391,7 @@ add_records (int mode, int replace)
   input.buffer = NULL;
   input.bufsize = 0;
   input.length = 0;
-  input.read = 0;
+  input.flag = 0;
   input.stream = instream;
 
   /* Read directive header */
