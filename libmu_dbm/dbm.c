@@ -179,6 +179,9 @@ mu_dbm_create_from_url (mu_url_t url, mu_dbm_file_t *db, int defsafety)
 
 	  if (*name == '-')
 	    {
+	      if (!safety_flags_set)
+		/* Imply default safety settings */
+		safety_flags = defsafety;
 	      negate = 1;
 	      name++;
 	    }
@@ -224,7 +227,7 @@ mu_dbm_create_from_url (mu_url_t url, mu_dbm_file_t *db, int defsafety)
 	    }
 	  else if (strcmp (name, "default") == 0)
 	    {
-	      val = DEFAULT_DBM_SAFETY_FLAGS;
+	      val = defsafety;
 	    }
 	  else if (mu_file_safety_name_to_code (name, &val))
 	    return MU_ERR_URL_INVALID_PARAMETER;

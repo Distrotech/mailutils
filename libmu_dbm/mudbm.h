@@ -28,8 +28,6 @@
     }								\
   while (0)
 
-#define DEFAULT_DBM_SAFETY_FLAGS MU_FILE_SAFETY_ALL
-
 #ifdef WITH_GDBM
 extern struct mu_dbm_impl _mu_dbm_gdbm;
 #endif

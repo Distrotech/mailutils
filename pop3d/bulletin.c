@@ -133,8 +133,6 @@ read_bulletin_db (size_t *pnum)
       return rc;
     }
 
-  mu_dbm_safety_set_flags (db, DEFAULT_GROUP_DB_SAFETY);
-
   rc = mu_dbm_safety_check (db);
   if (rc)
     {
