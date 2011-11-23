@@ -14,20 +14,20 @@ dnl
 dnl You should have received a copy of the GNU General Public License along
 dnl with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
 dnl
+
+dnl MU_CHECK_GSASL([VERSION = `'],[ACTION-IF-TRUE=`'],[ACTION-IF-FALSE=`']
 AC_DEFUN([MU_CHECK_GSASL],
-[AC_CACHE_CHECK([whether to use GNU SASL library],
-                 [mu_cv_lib_gsasl],
- [if test "x$mu_cv_lib_gsasl" = x; then
+[if test "x$mu_cv_lib_gsasl" = x; then
    cached=""
    mu_cv_lib_gsasl=no
 
    AC_ARG_WITH(gsasl,
-     AC_HELP_STRING([--with-gsasl], [use libgsasl for SASL authentication]),
+     AC_HELP_STRING([--without-gsasl], [do not use libgsasl]),
      [case $withval in
       yes|no) wantgsasl=$withval;;
       *) AC_MSG_ERROR([bad value for --with-gsasl: $withval]);;
       esac],
-     [wantgsasl=no])
+     [wantgsasl=yes])
 
    if test $wantgsasl = yes; then
      AC_CHECK_HEADER(gsasl.h,
@@ -56,9 +56,17 @@ main()
        LIBS=$save_LIBS
      fi       
    fi
-  fi])
+ else
+  cached=" (cached) "
+ fi
  if test $mu_cv_lib_gsasl != no; then
    GSASL_LIBS=$mu_cv_lib_gsasl
-   ifelse([$2],,,[$2])
+   m4_if([$2],,,[$2])
+ fi
+ m4_if([$3],,,[if test $mu_cv_lib_gsasl = no; then
+   $3
  fi])
+ AC_MSG_CHECKING([whether to use GSASL])
+ AC_MSG_RESULT(${cached}${mu_cv_lib_gsasl})
+ ])
  

@@ -251,13 +251,13 @@ AC_SUBST(SERV_AUTHLIBS)
 AC_SUBST(SERV_AUTHINCS)
 
 AC_ARG_WITH([gssapi],
-            AC_HELP_STRING([--with-gssapi],
+            AC_HELP_STRING([--with-gssapi@<:@=PATH@:>@],
                            [use GSSAPI authentication]),
-            [WITH_GSSAPI=$withval],
-            [WITH_GSSAPI=no])
+            [status_gssapi=$withval],
+            [status_gssapi=no])
 
-if test "x$WITH_GSSAPI" != "xno"; then
-  MU_CHECK_GSSAPI($WITH_GSSAPI)
+if test "x$status_gssapi" != "xno"; then
+  MU_CHECK_GSSAPI($status_gssapi)
   if test "$GSSAPI_IMPL" = "none"; then
     AC_CACHE_SAVE
     AC_MSG_RESULT([GSSAPI libraries not found])
@@ -299,19 +299,19 @@ AC_SUBST(SITE_CRAM_MD5_PWD,"\$(sysconfdir)/cram-md5.pwd")
 
 AC_ARG_WITH(cram-passwd,
             AC_HELP_STRING([--with-cram-passwd=FILE],
-                           [use keep passwords for CRAM-MD5 authentication method in FILE (default $SITE_CRAM_MD5_PWD)]),
+                           [keep passwords for CRAM-MD5 authentication method in FILE (default $SITE_CRAM_MD5_PWD)]),
             [case "${withval}" in
             /*) SITE_CRAM_MD5_PWD="${withval}";;
             ./*|../*) AC_MSG_ERROR(Bad value for --with-cram-passwd);;
             *)  SITE_CRAM_MD5_PWD="\$(sysconfdir)/${withval}";;
             esac])
 
-MU_CHECK_TLS
-if test "$WITH_GNUTLS" != "no"; then
+MU_CHECK_GNUTLS([1.2.1],[
   MU_AUTHLIBS="$MU_AUTHLIBS $TLS_LIBS"
   AC_DEFINE(WITH_GNUTLS,1,[Define if mailutils is using GNU TLS])
   AC_DEFINE(WITH_TLS,1,[Define if mailutils is using TLS])
-fi
+  status_gnutls=yes
+])
 
 AC_SUBST(SITE_MAIL_RC)
 AC_ARG_WITH([mail-rc],
@@ -1394,9 +1394,9 @@ status_pam=$status_pam
 status_ltdl=$status_ltdl
 status_dbm="$status_dbm"
 status_ldap=$status_ldap
-status_gnutls=$WITH_GNUTLS
+status_gnutls=$status_gnutls
 status_gsasl=$status_gsasl
-status_gssapi=$WITH_GSSAPI
+status_gssapi=$status_gssapi
 status_guile=$useguile
 status_python=$status_python
 status_cxx=$mu_cv_enable_cxx

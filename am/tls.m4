@@ -15,34 +15,62 @@ dnl
 dnl You should have received a copy of the GNU General Public License along
 dnl with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
 dnl
-AC_DEFUN([MU_CHECK_TLS],
+
+dnl MU_CHECK_GNUTLS([VERSION = `'],[ACTION-IF-TRUE=`'],[ACTION-IF-FALSE=`']
+AC_DEFUN([MU_CHECK_GNUTLS],
 [
- if test "x$WITH_GNUTLS" = x; then
+ if test "x$mu_cv_lib_gnutls" = x; then
    cached=""
    AC_ARG_WITH([gnutls],
                AC_HELP_STRING([--without-gnutls],
                               [do not use GNU TLS library]),
-               [WITH_GNUTLS=$withval],
-               [WITH_GNUTLS=yes])
+               [case "$withval" in
+	        yes|no) mu_cv_lib_gnutls=$withval;;
+	        *) AC_MSG_ERROR([bad value for --with-gnutls: $withval]);;
+                esac],
+               [mu_cv_lib_gnutls=yes])
 
-   if test "$WITH_GNUTLS" != "no"; then
+   if test "$mu_cv_lib_gnutls" != "no"; then
      AC_CHECK_HEADER(gnutls/gnutls.h,
                      [:],
-                     [WITH_GNUTLS=no])
-     if test "$WITH_GNUTLS" != "no"; then
+                     [mu_cv_lib_gnutls=no])
+     if test "$mu_cv_lib_gnutls" != "no"; then
        saved_LIBS=$LIBS
        AC_CHECK_LIB(gcrypt, main,
                     [TLS_LIBS="-lgcrypt"],
-                    [WITH_GNUTLS=no])
+                    [mu_cv_lib_gnutls=no])
        LIBS="$LIBS $TLS_LIBS"
        AC_CHECK_LIB(gnutls, gnutls_global_init,
                     [TLS_LIBS="-lgnutls $TLS_LIBS"],
-                    [WITH_GNUTLS=no])
+                    [mu_cv_lib_gnutls=no])
        LIBS=$saved_LIBS
+       m4_if([$1],,,[if test $mu_cv_lib_gnutls != no; then
+         LIBS="$LIBS $TLS_LIBS"
+         AC_TRY_RUN([
+#include <gnutls/gnutls.h>
+
+int
+main()
+{
+  return gnutls_check_version ("$1") == (char*) 0;
+}],
+                    [:],
+                    [mu_cv_lib_gnutls=no],
+                    [mu_cv_lib_gnutls=no])
+         LIBS=$saved_LIBS
+       fi])
      fi
    fi
  else
   cached=" (cached) "
  fi
- AC_MSG_CHECKING([whether to use TLS libraries])
- AC_MSG_RESULT(${cached}${WITH_GNUTLS})])
+ 
+ m4_if([$2],,,[if test $mu_cv_lib_gnutls != no; then
+   $2
+ fi])
+ m4_if([$3],,,[if test $mu_cv_lib_gnutls = no; then
+   $3
+ fi])
+ 
+ AC_MSG_CHECKING([whether to use GNU TLS])
+ AC_MSG_RESULT(${cached}${mu_cv_lib_gnutls})])

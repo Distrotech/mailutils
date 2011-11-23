@@ -156,11 +156,14 @@ mailutils-specific configuration options:
 	Disable the TLS/SSL encryption via GnuTLS (a Transport Layer
 	Security Library) in IMAP4/POP3 daemons and utilities.
 
-    --with-gsasl
+    --without-gsasl
 
-	Enable GNU SASL support (Simple Authentication and Security
-	Layer framework). IMAP4d supports this mechanism. This
-	requires GSASL version 0.2.3 or newer. 
+	Disable GNU SASL support.
+
+	GSASL is used by several Mailutils components (notably pop3d
+	and imap4d as well as their client counterparts) for
+	authentification.  It is enabled by default if configure
+	detects the presense of GNU SASL version 0.2.3 or later.
 
     --with-gssapi
 

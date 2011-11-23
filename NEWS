@@ -1,4 +1,4 @@
-GNU mailutils NEWS -- history of user-visible changes. 2011-11-21
+GNU mailutils NEWS -- history of user-visible changes. 2011-11-23
 Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 Free Software Foundation, Inc.
 See the end of file for copying conditions.
@@ -146,6 +146,15 @@ or --with-ndbm explicitly.  Configuration will automatically pick up
 all available DBM libraries it can use.
 
 ** Imap and nntp clients are not yet implemented
+
+** Link with GSASL by default
+
+GSASL is used by several Mailutils components (notably pop3d
+and imap4d as well as their client counterparts) for authentification.
+Since this version, it is enabled by default if configure detects the
+presense of GNU SASL version 0.2.3 or later.
+
+This can be disabled using the --without-gsasl option.
 
 ** Experimental features
 
