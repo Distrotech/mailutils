@@ -67,9 +67,6 @@ mu_tls_module_init (enum mu_gocs_op op, void *data)
 #include <gnutls/gnutls.h>
 #include <mailutils/sys/tls-stream.h>
 
-#define DH_BITS 768
-
-static gnutls_dh_params dh_params;
 static gnutls_certificate_server_credentials x509_cred;
 
 /* Return: zero means NOT READY, one means READY */
@@ -145,7 +142,6 @@ mu_init_tls_libs (int x509_setup)
 
   if (x509_setup && !x509_cred)
     {
-      mu_diag_output (MU_DIAG_INFO, _("initializing X509..."));
       gnutls_certificate_allocate_credentials (&x509_cred);
       if (mu_tls_module_config.ssl_cafile)
 	gnutls_certificate_set_x509_trust_file (x509_cred,
@@ -156,11 +152,6 @@ mu_init_tls_libs (int x509_setup)
 					    mu_tls_module_config.ssl_cert, 
 					    mu_tls_module_config.ssl_key,
 					    GNUTLS_X509_FMT_PEM);
-      
-      gnutls_dh_params_init (&dh_params);
-      gnutls_dh_params_generate2 (dh_params, DH_BITS);
-      gnutls_certificate_set_dh_params (x509_cred, dh_params);
-      mu_diag_output (MU_DIAG_INFO, _("finished initializing X509"));
     }
   
 #ifdef DEBUG_TLS
@@ -191,7 +182,6 @@ initialize_tls_session (void)
   gnutls_set_default_priority (session);
   gnutls_credentials_set (session, GNUTLS_CRD_CERTIFICATE, x509_cred);
   gnutls_certificate_server_set_request (session, GNUTLS_CERT_REQUEST);
-  gnutls_dh_set_prime_bits (session, DH_BITS);
 
   return session;
 }
