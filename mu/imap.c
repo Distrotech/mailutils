@@ -206,7 +206,7 @@ com_connect (int argc, char **argv)
 #ifdef WITH_TLS
 	    tls = 1;
 #else
-            mu_error ("TLS not supported");
+            mu_error (_("TLS not supported"));
 	    return 0;
 #endif
 	}
@@ -252,7 +252,7 @@ com_connect (int argc, char **argv)
 	      mu_stream_unref (tcp);
 	      if (status)
 		{
-		  mu_error ("cannot create TLS stream: %s",
+		  mu_error (_("cannot create TLS stream: %s"),
 			    mu_strerror (status));
 		  return 0;
 		}
@@ -291,7 +291,7 @@ com_connect (int argc, char **argv)
 	mu_imap_destroy (&imap);
     }
   else
-    mu_error ("Failed to create imap: %s", mu_strerror (status));
+    mu_error (_("Failed to create imap connection: %s"), mu_strerror (status));
   
   if (!status)
     {
@@ -323,7 +323,7 @@ com_logout (int argc MU_ARG_UNUSED, char **argv MU_ARG_UNUSED)
 	}
     }
   else
-    mu_printf ("Try 'exit' to leave %s\n", mu_program_name);
+    mu_printf (_("Try 'exit' to leave %s\n"), mu_program_name);
   return status;
 }
 
@@ -361,11 +361,11 @@ com_capability (int argc, char **argv)
 	      if (*elt)
 		mu_printf ("%s: %s\n", argv[i], elt);
 	      else
-		mu_printf ("%s is set\n", argv[i]);
+		mu_printf (_("%s is set\n"), argv[i]);
 	      break;
 
 	    case MU_ERR_NOENT:
-	      mu_printf ("%s is not set\n", argv[i]);
+	      mu_printf (_("%s is not set\n"), argv[i]);
 	      break;
 
 	    default:
@@ -411,7 +411,7 @@ com_login (int argc, char **argv)
 	  mu_error (_("login: password required"));
 	  return 1;
 	}
-      status = mu_getpass (mu_strin, mu_strout, "Password:", &passbuf);
+      status = mu_getpass (mu_strin, mu_strout, _("Password:"), &passbuf);
       if (status)
 	return status;
       pwd = passbuf;
@@ -428,9 +428,9 @@ com_login (int argc, char **argv)
     {
       const char *str;
       
-      mu_error ("authentication failed: %s", mu_strerror (status));
+      mu_error (_("authentication failed: %s"), mu_strerror (status));
       if (mu_imap_strerror (imap, &str) == 0)
-	mu_error ("server reply: %s", str);
+	mu_error (_("server reply: %s"), str);
     }
   return 0;
 }
@@ -448,7 +448,7 @@ com_id (int argc, char **argv)
       argv++;
       if (argv[0] == NULL)
 	{
-	  mu_error ("id -test requires an argument");
+	  mu_error (_("id -test requires an argument"));
 	  return 0;
 	}
       test = argv[0];
@@ -466,7 +466,7 @@ com_id (int argc, char **argv)
 	      mu_printf ("%s: %s\n", test, *(char **)res);
 	    }
 	  else
-	    mu_printf ("%s is not set\n", test);
+	    mu_printf (_("%s is not set\n"), test);
 	}
       else
 	{
@@ -535,9 +535,9 @@ select_mbox (int argc, char **argv, int writable)
     {
       const char *str;
       
-      mu_error ("select failed: %s", mu_strerror (status));
+      mu_error (_("select failed: %s"), mu_strerror (status));
       if (mu_imap_strerror (imap, &str) == 0)
-	mu_error ("server reply: %s", str);
+	mu_error (_("server reply: %s"), str);
     }
   return 0;
 }
@@ -581,9 +581,9 @@ com_status (int argc, char **argv)
     {
       const char *str;
       
-      mu_error ("status failed: %s", mu_strerror (status));
+      mu_error (_("status failed: %s"), mu_strerror (status));
       if (mu_imap_strerror (imap, &str) == 0)
-	mu_error ("server reply: %s", str);
+	mu_error (_("server reply: %s"), str);
     }
   return 0;
 }
