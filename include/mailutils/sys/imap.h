@@ -45,7 +45,8 @@ enum mu_imap_client_state
     MU_IMAP_LOGOUT_RX,
     MU_IMAP_ID_RX,
     MU_IMAP_SELECT_RX,
-    MU_IMAP_STATUS_RX
+    MU_IMAP_STATUS_RX,
+    MU_IMAP_CLOSING
   };
 
 enum mu_imap_response

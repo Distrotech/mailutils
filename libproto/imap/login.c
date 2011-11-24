@@ -28,7 +28,6 @@ int
 mu_imap_login (mu_imap_t imap, const char *user, const char *pass)
 {
   int status;
-  char *p;
   
   if (imap == NULL)
     return EINVAL;

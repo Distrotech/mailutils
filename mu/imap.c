@@ -150,7 +150,18 @@ imap_prompt_env ()
 
   mutool_prompt_env[14] = NULL;
 }
-
+
+/* Callbacks */
+static void
+imap_popauth_callback (void *data, int code, va_list ap)
+{
+  int rcode = va_arg (ap, int);
+  const char *text = va_arg (ap, const char *);
+  if (text)
+    mu_diag_output (MU_DIAG_INFO, _("session authenticated: %s"), text);
+  else
+    mu_diag_output (MU_DIAG_INFO, _("session authenticated"));
+}
 
 static int
 com_disconnect (int argc MU_ARG_UNUSED, char **argv MU_ARG_UNUSED)
@@ -206,12 +217,6 @@ com_connect (int argc, char **argv)
       struct mu_sockaddr *sa;
       struct mu_sockaddr_hints hints;
 
-      if (QRY_VERBOSE ())
-	{
-	  imap_set_verbose ();
-	  imap_set_verbose_mask ();
-	}
-
       memset (&hints, 0, sizeof (hints));
       hints.flags = MU_AH_DETECT_FAMILY;
       hints.port = tls ? MU_IMAP_DEFAULT_SSL_PORT : MU_IMAP_DEFAULT_PORT;
@@ -243,6 +248,19 @@ com_connect (int argc, char **argv)
 	    }
 #endif
 	  mu_imap_set_carrier (imap, tcp);
+
+	  if (QRY_VERBOSE ())
+	    {
+	      imap_set_verbose ();
+	      imap_set_verbose_mask ();
+	    }
+
+	  /* Set callbacks */
+	  mu_imap_register_callback_function (imap, MU_IMAP_CB_PREAUTH,
+					      imap_popauth_callback,
+					      NULL);
+
+	  
 	  status = mu_imap_connect (imap);
 	  if (status)
 	    {
@@ -554,7 +572,6 @@ com_status (int argc, char **argv)
     }
   return 0;
 }
-
 
 struct mutool_command imap_comtab[] = {
   { "capability", 1, -1, com_capability,

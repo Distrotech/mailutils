@@ -59,6 +59,13 @@ _mu_imap_response (mu_imap_t imap)
 	  size_t wc;
 	  
 	  mu_imapio_get_words (imap->io, &wc, &wv);
+	  if (wc == 0)
+	    {
+	      imap->state = MU_IMAP_ERROR;
+	      status = MU_ERR_BADREPLY;/* FIXME: ECONNRESET ? */
+	      break;
+	    }
+	    
 	  if (strcmp (wv[0], "*") == 0)
 	    {
 	      _mu_imap_untagged_response_add (imap);/* FIXME: error checking */

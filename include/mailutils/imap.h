@@ -108,19 +108,30 @@ int mu_imap_foreach_response (mu_imap_t imap, mu_imap_response_action_t fun,
 			      void *data);
   
 
+  /* The following five callbacks correspond to members of struct
+     mu_imap_stat and take a pointer to struct mu_imap_stat as their
+     only argument. */
 #define MU_IMAP_CB_PERMANENT_FLAGS  0
 #define MU_IMAP_CB_MESSAGE_COUNT    1
 #define MU_IMAP_CB_RECENT_COUNT     2
 #define MU_IMAP_CB_FIRST_UNSEEN     3
 #define MU_IMAP_CB_UIDNEXT          4 
 #define MU_IMAP_CB_UIDVALIDITY      5
-#define MU_IMAP_CB_OK               6
-#define _MU_IMAP_CB_MAX             7
 
-typedef void (*mu_imap_callback_t) (void *, int code, mu_list_t resp,
-				    va_list ap);
+  /* The following callbacks correspond to server responses and take two
+     argument: a response code (see MU_IMAP_RESPONSE, below), and
+     human-readable text string as returned by the server.  The latter can
+     be NULL. */
+#define MU_IMAP_CB_OK               6
+#define MU_IMAP_CB_NO               7
+#define MU_IMAP_CB_BAD              8
+#define MU_IMAP_CB_BYE              9
+#define MU_IMAP_CB_PREAUTH         10
+#define _MU_IMAP_CB_MAX            11
+
+typedef void (*mu_imap_callback_t) (void *, int code, va_list ap);
   
-void mu_imap_callback (mu_imap_t imap, int code, mu_list_t resp, ...);
+void mu_imap_callback (mu_imap_t imap, int code, ...);
 
 void mu_imap_register_callback_function (mu_imap_t imap, int code,
 					 mu_imap_callback_t callback,

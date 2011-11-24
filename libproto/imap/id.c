@@ -85,7 +85,6 @@ int
 mu_imap_id (mu_imap_t imap, char **idenv, mu_assoc_t *passoc)
 {
   int status;
-  char *p;
   
   if (imap == NULL)
     return EINVAL;

@@ -23,15 +23,15 @@
 #include <mailutils/sys/imap.h>
 
 void
-mu_imap_callback (mu_imap_t imap, int code, mu_list_t resp, ...)
+mu_imap_callback (mu_imap_t imap, int code, ...)
 {
   va_list ap;
   
-  if (code < 0 || code > _MU_IMAP_CB_MAX || !imap->callback[code].action)
+  if (code < 0 || code >= _MU_IMAP_CB_MAX || !imap->callback[code].action)
     return;
   
-  va_start (ap, resp);
-  imap->callback[code].action (imap->callback[code].data, code, resp, ap);
+  va_start (ap, code);
+  imap->callback[code].action (imap->callback[code].data, code, ap);
   va_end (ap);
 }
 
@@ -40,7 +40,7 @@ mu_imap_register_callback_function (mu_imap_t imap, int code,
 				    mu_imap_callback_t callback,
 				    void *data)
 {
-  if (code < 0 || code > _MU_IMAP_CB_MAX)
+  if (code < 0 || code >= _MU_IMAP_CB_MAX)
     {
       mu_error ("%s:%d: ignoring unsupported callback code %d",
 		__FILE__, __LINE__, code);

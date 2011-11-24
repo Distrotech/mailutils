@@ -67,7 +67,6 @@ mu_imap_select (mu_imap_t imap, const char *mbox, int writable,
 		struct mu_imap_stat *ps)
 {
   int status;
-  char *p;
   
   if (imap == NULL)
     return EINVAL;

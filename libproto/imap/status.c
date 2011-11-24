@@ -119,7 +119,6 @@ int
 mu_imap_status (mu_imap_t imap, const char *mboxname, struct mu_imap_stat *ps)
 {
   int status;
-  char *p;
   int delim = 0;
   int i;
   

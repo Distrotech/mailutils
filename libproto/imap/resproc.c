@@ -53,88 +53,156 @@ struct mu_kwd mu_imap_response_codes[] = {
   { NULL }
 };
 
+static int
+parse_response_code (mu_imap_t imap, mu_list_t resp)
+{
+  struct imap_list_element *arg;
+  int rcode = -1;
+
+  arg = _mu_imap_list_at (resp, 1);
+  if (!arg)
+    return -1;
+  
+  if (_mu_imap_list_element_is_string (arg, "["))
+    {
+      arg = _mu_imap_list_at (resp, 2);
+      if (!arg || arg->type != imap_eltype_string)
+	return -1;
+      
+      if (mu_kwd_xlat_name (mu_imap_response_codes, arg->v.string, &rcode))
+	return -1;
+      
+      arg = _mu_imap_list_at (resp, 4);
+      if (!arg || !_mu_imap_list_element_is_string (arg, "]"))
+	return -1;
+    }
+  return rcode;
+}
+  
 static void
 ok_response (mu_imap_t imap, mu_list_t resp, void *data)
 {
   struct imap_list_element *arg;
-  int rcode = -1;
+  int rcode;
   size_t n = 0;
-  
-  arg = _mu_imap_list_at (resp, 1);
-  if (!arg)
-    return;
-  if (_mu_imap_list_element_is_string (arg, "["))
+  char *p;
+
+  rcode = parse_response_code (imap, resp);
+  switch (rcode)
     {
-      char *p;
-      
-      arg = _mu_imap_list_at (resp, 2);
-      if (!arg || arg->type != imap_eltype_string)
-	return;
-      
-      if (mu_kwd_xlat_name (mu_imap_response_codes, arg->v.string, &rcode))
-	rcode = -1;
-      
-      arg = _mu_imap_list_at (resp, 4);
-      if (!arg || !_mu_imap_list_element_is_string (arg, "]"))
-	return;
-      
-      switch (rcode)
-	{
-	case MU_IMAP_RESPONSE_PERMANENTFLAGS:
-	  arg = _mu_imap_list_at (resp, 3);
-	  if (!arg ||
-	      _mu_imap_collect_flags (arg, &imap->mbox_stat.permanent_flags))
-	    break;
-	  imap->mbox_stat.flags |= MU_IMAP_STAT_PERMANENT_FLAGS;
-	  mu_imap_callback (imap, MU_IMAP_CB_PERMANENT_FLAGS, resp,
-			    &imap->mbox_stat);
-	  return;
+    case MU_IMAP_RESPONSE_PERMANENTFLAGS:
+      arg = _mu_imap_list_at (resp, 3);
+      if (!arg ||
+	  _mu_imap_collect_flags (arg, &imap->mbox_stat.permanent_flags))
+	break;
+      imap->mbox_stat.flags |= MU_IMAP_STAT_PERMANENT_FLAGS;
+      mu_imap_callback (imap, MU_IMAP_CB_PERMANENT_FLAGS, &imap->mbox_stat);
+      return;
 	  
-	case MU_IMAP_RESPONSE_UIDNEXT:
-	  arg = _mu_imap_list_at (resp, 3);
-	  if (!arg || arg->type != imap_eltype_string)
-	    break;
-	  n = strtoul (arg->v.string, &p, 10);
-	  if (*p == 0)
-	    {
-	      imap->mbox_stat.uidnext = n;
-	      imap->mbox_stat.flags |= MU_IMAP_STAT_UIDNEXT;
-	      mu_imap_callback (imap, MU_IMAP_CB_UIDNEXT, resp,
-				&imap->mbox_stat);
-	    }
-	  return;
-			    
-	case MU_IMAP_RESPONSE_UIDVALIDITY:
-	  arg = _mu_imap_list_at (resp, 3);
-	  if (!arg || arg->type != imap_eltype_string)
-	    break;
-	  n = strtoul (arg->v.string, &p, 10);
-	  if (*p == 0)
-	    {
-	      imap->mbox_stat.uidvalidity = n;
-	      imap->mbox_stat.flags |= MU_IMAP_STAT_UIDVALIDITY;
-	      mu_imap_callback (imap, MU_IMAP_CB_UIDVALIDITY, resp,
-				&imap->mbox_stat);
-	    }
-	  return;
-			    
-	case MU_IMAP_RESPONSE_UNSEEN:
-	  arg = _mu_imap_list_at (resp, 3);
-	  if (!arg || arg->type != imap_eltype_string)
-	    break;
-	  n = strtoul (arg->v.string, &p, 10);
-	  if (*p == 0)
-	    {
-	      imap->mbox_stat.first_unseen = n;
-	      imap->mbox_stat.flags |= MU_IMAP_STAT_FIRST_UNSEEN;
-	      mu_imap_callback (imap, MU_IMAP_CB_FIRST_UNSEEN, resp,
-				&imap->mbox_stat);
-	    }
-	  return;
+    case MU_IMAP_RESPONSE_UIDNEXT:
+      arg = _mu_imap_list_at (resp, 3);
+      if (!arg || arg->type != imap_eltype_string)
+	break;
+      n = strtoul (arg->v.string, &p, 10);
+      if (*p == 0)
+	{
+	  imap->mbox_stat.uidnext = n;
+	  imap->mbox_stat.flags |= MU_IMAP_STAT_UIDNEXT;
+	  mu_imap_callback (imap, MU_IMAP_CB_UIDNEXT, &imap->mbox_stat);
 	}
+      return;
+			    
+    case MU_IMAP_RESPONSE_UIDVALIDITY:
+      arg = _mu_imap_list_at (resp, 3);
+      if (!arg || arg->type != imap_eltype_string)
+	break;
+      n = strtoul (arg->v.string, &p, 10);
+      if (*p == 0)
+	{
+	  imap->mbox_stat.uidvalidity = n;
+	  imap->mbox_stat.flags |= MU_IMAP_STAT_UIDVALIDITY;
+	  mu_imap_callback (imap, MU_IMAP_CB_UIDVALIDITY, &imap->mbox_stat);
+	}
+      return;
+      
+    case MU_IMAP_RESPONSE_UNSEEN:
+      arg = _mu_imap_list_at (resp, 3);
+      if (!arg || arg->type != imap_eltype_string)
+	break;
+      n = strtoul (arg->v.string, &p, 10);
+      if (*p == 0)
+	{
+	  imap->mbox_stat.first_unseen = n;
+	  imap->mbox_stat.flags |= MU_IMAP_STAT_FIRST_UNSEEN;
+	  mu_imap_callback (imap, MU_IMAP_CB_FIRST_UNSEEN, &imap->mbox_stat);
+	}
+      return;
     }
-  mu_imap_callback (imap, MU_IMAP_CB_OK, resp, rcode);
+
+  if (mu_list_tail (resp, (void*) &arg) || arg->type != imap_eltype_string)
+    arg = NULL;
+  mu_imap_callback (imap, MU_IMAP_CB_OK, rcode, arg ? arg->v.string : NULL);
+  if (imap->state == MU_IMAP_GREETINGS)
+    {
+      imap->state = MU_IMAP_CONNECTED;
+      imap->imap_state = MU_IMAP_STATE_NONAUTH;
+    }
 }
+
+static void
+default_response (mu_imap_t imap, int code, mu_list_t resp, void *data)
+{
+  struct imap_list_element *arg;
+
+  if (mu_list_tail (resp, (void*) &arg) || arg->type != imap_eltype_string)
+    arg = NULL;
+  mu_imap_callback (imap, code, parse_response_code (imap, resp),
+		    arg ? arg->v.string : NULL);
+}
+
+static void
+no_response (mu_imap_t imap, mu_list_t resp, void *data)
+{
+  default_response (imap, MU_IMAP_CB_NO, resp, data);
+  if (imap->state == MU_IMAP_GREETINGS)
+    imap->state = MU_IMAP_ERROR;
+}
+
+static void
+bad_response (mu_imap_t imap, mu_list_t resp, void *data)
+{
+  default_response (imap, MU_IMAP_CB_BAD, resp, data);
+  if (imap->state == MU_IMAP_GREETINGS)
+    imap->state = MU_IMAP_ERROR;
+}
+
+static void
+bye_response (mu_imap_t imap, mu_list_t resp, void *data)
+{
+  default_response (imap, MU_IMAP_CB_BYE, resp, data);
+  imap->state = MU_IMAP_CLOSING;
+}
+
+static void
+preauth_response (mu_imap_t imap, mu_list_t resp, void *data)
+{
+  if (imap->state == MU_IMAP_GREETINGS)
+    {
+      struct imap_list_element *arg;
+
+      if (mu_list_tail (resp, (void*) &arg) || arg->type != imap_eltype_string)
+	arg = NULL;
+      mu_imap_callback (imap, MU_IMAP_CB_PREAUTH,
+			parse_response_code (imap, resp),
+			arg ? arg->v.string : NULL);
+      imap->state = MU_IMAP_CONNECTED;
+      imap->imap_state = MU_IMAP_STATE_AUTH;
+    }
+  else
+    mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR,
+	      ("ignoring unexpected PREAUTH response"));
+}
+
 
 
 struct response_closure
@@ -152,10 +220,10 @@ struct resptab
 
 static struct resptab resptab[] = {
   { "OK", ok_response },
-  { "NO", },
-  { "BAD", },
-  { "PREAUTH", },
-  { "BYE", },
+  { "NO", no_response },
+  { "BAD", bad_response },
+  { "PREAUTH", preauth_response },
+  { "BYE", bye_response },
   { NULL }
 };
 
@@ -216,7 +284,8 @@ _process_unsolicited_response (mu_imap_t imap, mu_list_t resp)
 	    return 1;
 	  imap->mbox_stat.message_count = n;
 	  imap->mbox_stat.flags |= MU_IMAP_STAT_MESSAGE_COUNT;
-	  mu_imap_callback (imap, MU_IMAP_CB_MESSAGE_COUNT, resp, n);
+	  mu_imap_callback (imap, MU_IMAP_CB_MESSAGE_COUNT, resp,
+			    &imap->mbox_stat);
 	  return 0;
 	}
       else if (_mu_imap_list_element_is_string (arg, "RECENT"))
@@ -229,7 +298,8 @@ _process_unsolicited_response (mu_imap_t imap, mu_list_t resp)
 	    return 1;
 	  imap->mbox_stat.recent_count = n;
 	  imap->mbox_stat.flags |= MU_IMAP_STAT_RECENT_COUNT;
-	  mu_imap_callback (imap, MU_IMAP_CB_RECENT_COUNT, resp, n);
+	  mu_imap_callback (imap, MU_IMAP_CB_RECENT_COUNT, resp,
+			    &imap->mbox_stat);
 	  return 0;
 	}
     }
@@ -248,7 +318,13 @@ _process_response (void *item, void *data)
 		("ignoring string response \"%s\"", elt->v.string));
     }
   else if (_process_unsolicited_response (clos->imap, elt->v.list))
-    clos->fun (clos->imap, elt->v.list, clos->data);
+    {
+      if (clos->fun)
+	clos->fun (clos->imap, elt->v.list, clos->data);
+      else
+	mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR,
+		  ("ignoring unexpected response"));
+    }
   return 0;
 }
 

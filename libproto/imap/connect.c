@@ -37,11 +37,17 @@ mu_imap_connect (mu_imap_t imap)
   char **wv;
   char *bufptr;
   size_t bufsize;
-  
+
   if (imap == NULL)
     return EINVAL;
   if (imap->io == NULL)
     return EINVAL;
+
+  _mu_imap_clrerrstr (imap);
+  status = _mu_imap_untagged_response_clear (imap);
+  if (status)
+    return status;
+  
   switch (imap->state)
     {
     default:
@@ -79,29 +85,26 @@ mu_imap_connect (mu_imap_t imap)
 	  imap->state = MU_IMAP_ERROR;
 	  return MU_ERR_BADREPLY;
 	}
-      else if (strcmp (wv[1], "BYE") == 0)
-	{
-	  status = EACCES;
-	  mu_imapio_getbuf (imap->io, &bufptr, &bufsize);
-	  _mu_imap_seterrstr (imap, bufptr + 2, bufsize - 2);
-	}
-      else if (strcmp (wv[1], "PREAUTH") == 0)
-	{
-	  status = 0;
-	  imap->state = MU_IMAP_CONNECTED;
-	  imap->imap_state = MU_IMAP_STATE_AUTH;
-	}
-      else if (strcmp (wv[1], "OK") == 0)
-	{
-	  status = 0;
-	  imap->state = MU_IMAP_CONNECTED;
-	  imap->imap_state = MU_IMAP_STATE_NONAUTH;
-	}
       else
 	{
-	  status = MU_ERR_BADREPLY;
-	  imap->state = MU_IMAP_ERROR;
+	  _mu_imap_untagged_response_add (imap);
+	  mu_imap_foreach_response (imap, NULL, NULL);
+	  switch (imap->state)
+	    {
+	    case MU_IMAP_CONNECTED:
+	      status = 0;
+	      break;
+
+	    case MU_IMAP_CLOSING:
+	      status = EACCES;
+	      break;
+
+	    default:
+	      imap->state = MU_IMAP_ERROR;
+	      status = MU_ERR_BADREPLY;
+	    }
 	}
+      break;
     }
   
   return status;
