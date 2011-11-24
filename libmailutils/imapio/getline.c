@@ -23,16 +23,86 @@
 #include <mailutils/cstr.h>
 #include <mailutils/cctype.h>
 #include <mailutils/errno.h>
+#include <mailutils/kwd.h>
 #include <mailutils/sys/imapio.h>
+
+#define STATUS_RESPONSE           1
+#define STATUS_RESPONSE_UNTAGGED  2
+
+static int
+is_status_response (const char *word)
+{
+  static struct mu_kwd resptab[] = {
+    /* RFC 3501, 7.1:
+
+       Status responses are OK, NO, BAD, PREAUTH and BYE.  OK, NO, and BAD
+       can be tagged or untagged.  PREAUTH and BYE are always untagged.
+    */
+    { "OK", STATUS_RESPONSE },
+    { "NO", STATUS_RESPONSE },
+    { "BAD", STATUS_RESPONSE },
+    { "PREAUTH", STATUS_RESPONSE_UNTAGGED },
+    { "BYE", STATUS_RESPONSE_UNTAGGED },
+    { NULL }
+  };
+  int result;
+  
+  if (mu_kwd_xlat_name (resptab, word, &result))
+    return 0;
+  return result;
+}
+
+static int
+get_response_code (struct _mu_imapio *io)
+{
+  size_t end = io->_imap_ws.ws_endp;
+  size_t wc = io->_imap_ws.ws_wordc;
+  int rc, i;
+  
+  do
+    {
+      if ((rc = mu_wordsplit (NULL, &io->_imap_ws, MU_WRDSF_INCREMENTAL)))
+	{
+	  if (rc == MU_WRDSE_NOINPUT)
+	    break;
+	  return MU_ERR_PARSE;
+	}
+
+      if (strcmp (io->_imap_ws.ws_wordv[io->_imap_ws.ws_wordc-1], "[") == 0)
+	{
+	  do
+	    {
+	      /* Get word */
+	      if ((rc = mu_wordsplit (NULL, &io->_imap_ws, MU_WRDSF_INCREMENTAL)))
+		{
+		  if (rc == MU_WRDSE_NOINPUT)
+		    break;
+		  return MU_ERR_PARSE;
+		}
+	    }
+	  while (strcmp (io->_imap_ws.ws_wordv[io->_imap_ws.ws_wordc-1], "]"));
+	  if (rc)
+	    break;
+	  return 0;
+	}
+    }
+  while (0);
+
+  for (i = wc; i < io->_imap_ws.ws_wordc; i++)
+    free (io->_imap_ws.ws_wordv[i]);
+  io->_imap_ws.ws_wordv[wc] = NULL;
+  io->_imap_ws.ws_wordc = wc;
+  io->_imap_ws.ws_endp = end;
+  return 0;
+}
 
 int
 mu_imapio_getline (struct _mu_imapio *io)
 {
   int rc;
   char *last_arg;
+  int type;
   
-  io->_imap_ws_flags &= ~MU_WRDSF_APPEND;
-
   if (io->_imap_reply_ready)
     {
       mu_wordsplit_free_words (&io->_imap_ws);
@@ -50,11 +120,51 @@ mu_imapio_getline (struct _mu_imapio *io)
 	break;
       io->_imap_buf_level = mu_rtrim_class (io->_imap_buf_base,
 					    MU_CTYPE_ENDLN);
+      if ((rc = mu_wordsplit_len (io->_imap_buf_base, io->_imap_buf_level,
+				  &io->_imap_ws,
+				  io->_imap_ws_flags | MU_WRDSF_INCREMENTAL)))
+	{
+	  if (rc == MU_WRDSE_NOINPUT)
+	    break;
+	  return MU_ERR_PARSE;
+	}
+      io->_imap_ws_flags |= MU_WRDSF_REUSE;
 
-      if (mu_wordsplit_len (io->_imap_buf_base, io->_imap_buf_level,
-			    &io->_imap_ws, io->_imap_ws_flags))
+      if ((rc = mu_wordsplit (NULL, &io->_imap_ws, MU_WRDSF_INCREMENTAL)))
+	{
+	  if (rc == MU_WRDSE_NOINPUT)
+	    break;
+	  return MU_ERR_PARSE;
+	}
+      
+      if ((type = is_status_response (io->_imap_ws.ws_wordv[1]))
+	  && (type == STATUS_RESPONSE ||
+	      strcmp (io->_imap_ws.ws_wordv[0], "*") == 0))
+	{
+	  rc = get_response_code (io);
+	  if (rc)
+	    return MU_ERR_PARSE;
+	  while (io->_imap_ws.ws_endp < io->_imap_ws.ws_len &&
+		 mu_isblank (io->_imap_ws.ws_input[io->_imap_ws.ws_endp]))
+	    io->_imap_ws.ws_endp++;
+	  io->_imap_ws.ws_flags |= MU_WRDSF_NOSPLIT;
+	  rc = mu_wordsplit (NULL, &io->_imap_ws, MU_WRDSF_INCREMENTAL);
+	  io->_imap_ws.ws_flags &= ~MU_WRDSF_NOSPLIT;
+	  if (rc)
+	    {
+	      if (rc == MU_WRDSE_NOINPUT)
+		break;
+	      return MU_ERR_PARSE;
+	    }
+	  break;
+	}
+
+      
+      rc = mu_wordsplit_len (io->_imap_buf_base + io->_imap_ws.ws_endp,
+			     io->_imap_buf_level - io->_imap_ws.ws_endp,
+			     &io->_imap_ws, io->_imap_ws_flags);
+      if (rc)
 	return MU_ERR_PARSE;
-      io->_imap_ws_flags |= MU_WRDSF_REUSE|MU_WRDSF_APPEND;
 
       last_arg = io->_imap_ws.ws_wordv[io->_imap_ws.ws_wordc - 1];
       if (last_arg[0] == '{' && last_arg[strlen (last_arg)-1] == '}')

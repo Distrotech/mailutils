@@ -28,15 +28,16 @@ mu_imapio_create (mu_imapio_t *iop, mu_stream_t str)
     return ENOMEM;
   io->_imap_stream = str;
   mu_stream_ref (str);
-  io->_imap_ws.ws_delim = " \t()";
+  io->_imap_ws.ws_delim = " \t()[]";
   io->_imap_ws.ws_escape = "\\\"";
   io->_imap_ws_flags = MU_WRDSF_DELIM |
                        MU_WRDSF_ESCAPE |
                        MU_WRDSF_NOVAR |
                        MU_WRDSF_NOCMD | 
-                       MU_WRDSF_QUOTE |
+                       MU_WRDSF_DQUOTE |
                        MU_WRDSF_RETURN_DELIMS |
-                       MU_WRDSF_WS;
+                       MU_WRDSF_WS |
+                       MU_WRDSF_APPEND;
   *iop = io;
   return 0;
 }
