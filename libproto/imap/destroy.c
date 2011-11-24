@@ -39,7 +39,6 @@ mu_imap_destroy (mu_imap_t *pimap)
       if (imap->tag_buf)
 	free (imap->tag_buf);
       
-      mu_list_destroy (&imap->untagged_resp);
       mu_list_destroy (&imap->capa);
       
       mu_imapio_destroy (&imap->io);

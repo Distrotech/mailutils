@@ -49,36 +49,30 @@ _id_mapper (void **itmv, size_t itmc, void *call_data)
 }
 
 static void
-_id_response_action (mu_imap_t imap, mu_list_t response, void *data)
-{
-  mu_assoc_t assoc = data;
-  struct imap_list_element *elt;
-
-  elt = _mu_imap_list_at (response, 0);
-  if (elt && _mu_imap_list_element_is_string (elt, "ID"))
-    {
-      elt = _mu_imap_list_at (response, 1);
-      if (elt->type == imap_eltype_list)
-	mu_list_gmap (elt->v.list, _id_mapper, 2, assoc);
-    }
-}
-
-static int
-parse_id_reply (mu_imap_t imap, mu_assoc_t *passoc)
+parse_id_reply (mu_imap_t imap, mu_list_t resp, void *data)
 {
   int rc;
-  mu_assoc_t assoc;
-  
-  rc = mu_assoc_create (&assoc, sizeof (char**), MU_ASSOC_ICASE);
-  if (rc)
-    return rc;
-  mu_assoc_set_free (assoc, _id_free);
-  
-  rc = mu_imap_foreach_response (imap, _id_response_action, assoc);
-  if (rc)
-    return rc;
-  *passoc = assoc;
-  return 0;
+  mu_assoc_t *passoc = data;
+  struct imap_list_element *elt;
+
+  if (!data)
+    return;
+  elt = _mu_imap_list_at (resp, 0);
+  if (elt && _mu_imap_list_element_is_string (elt, "ID"))
+    {
+      elt = _mu_imap_list_at (resp, 1);
+      if (elt->type == imap_eltype_list)
+	{
+	  mu_assoc_t assoc;
+
+	  rc = mu_assoc_create (&assoc, sizeof (char**), MU_ASSOC_ICASE);
+	  if (rc)
+	    return;
+	  mu_assoc_set_free (assoc, _id_free);
+	  mu_list_gmap (elt->v.list, _id_mapper, 2, assoc);
+	  *passoc = assoc;
+	}
+    }
 }
   
 int
@@ -130,14 +124,12 @@ mu_imap_id (mu_imap_t imap, char **idenv, mu_assoc_t *passoc)
       imap->state = MU_IMAP_ID_RX;
 
     case MU_IMAP_ID_RX:
-      status = _mu_imap_response (imap);
+      status = _mu_imap_response (imap, parse_id_reply, passoc);
       MU_IMAP_CHECK_EAGAIN (imap, status);
       switch (imap->resp_code)
 	{
 	case MU_IMAP_OK:
-	  imap->imap_state = MU_IMAP_STATE_AUTH;
-	  if (passoc)
-	    status = parse_id_reply (imap, passoc);
+	  status = 0;
 	  break;
 
 	case MU_IMAP_NO:

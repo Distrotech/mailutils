@@ -47,7 +47,7 @@ mu_imap_logout (mu_imap_t imap)
       imap->state = MU_IMAP_LOGOUT_RX;
 
     case MU_IMAP_LOGOUT_RX:
-      status = _mu_imap_response (imap);
+      status = _mu_imap_response (imap, NULL, NULL);
       MU_IMAP_CHECK_EAGAIN (imap, status);
       imap->state = MU_IMAP_NO_STATE;
       imap->imap_state = MU_IMAP_STATE_LOGOUT;

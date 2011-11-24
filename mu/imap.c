@@ -162,6 +162,18 @@ imap_popauth_callback (void *data, int code, va_list ap)
   else
     mu_diag_output (MU_DIAG_INFO, _("session authenticated"));
 }
+
+static void
+imap_bye_callback (void *data, int code, va_list ap)
+{
+  int rcode = va_arg (ap, int);
+  const char *text = va_arg (ap, const char *);
+  if (text)
+    mu_diag_output (MU_DIAG_INFO, _("server is closing connection: %s"), text);
+  else
+    mu_diag_output (MU_DIAG_INFO, _("server is closing connection"));
+}
+
 
 static int
 com_disconnect (int argc MU_ARG_UNUSED, char **argv MU_ARG_UNUSED)
@@ -258,6 +270,9 @@ com_connect (int argc, char **argv)
 	  /* Set callbacks */
 	  mu_imap_register_callback_function (imap, MU_IMAP_CB_PREAUTH,
 					      imap_popauth_callback,
+					      NULL);
+	  mu_imap_register_callback_function (imap, MU_IMAP_CB_BYE,
+					      imap_bye_callback,
 					      NULL);
 
 	  

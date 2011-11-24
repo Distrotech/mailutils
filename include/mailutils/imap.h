@@ -101,13 +101,6 @@ int mu_imap_status (mu_imap_t imap, const char *mbox, struct mu_imap_stat *ps);
 
 extern struct mu_kwd _mu_imap_status_name_table[];
 
-typedef void (*mu_imap_response_action_t) (mu_imap_t imap, mu_list_t resp,
-					   void *data);
-
-int mu_imap_foreach_response (mu_imap_t imap, mu_imap_response_action_t fun,
-			      void *data);
-  
-
   /* The following five callbacks correspond to members of struct
      mu_imap_stat and take a pointer to struct mu_imap_stat as their
      only argument. */

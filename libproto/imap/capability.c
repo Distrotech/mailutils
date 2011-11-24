@@ -115,23 +115,18 @@ mu_imap_capability (mu_imap_t imap, int reread, mu_iterator_t *piter)
       imap->state = MU_IMAP_CAPABILITY_RX;
 
     case MU_IMAP_CAPABILITY_RX:
-      status = _mu_imap_response (imap);
+      status = _mu_imap_response (imap, _capability_response_action,
+				  NULL);
+      imap->state = MU_IMAP_CONNECTED;
       MU_IMAP_CHECK_EAGAIN (imap, status);
       if (imap->resp_code != MU_IMAP_OK)
 	return MU_ERR_REPLY;
       else
 	{
-	  imap->state = MU_IMAP_CONNECTED;
-	  status = mu_imap_foreach_response (imap,
-					     _capability_response_action,
-					     NULL);
-	  if (status == 0)
-	    {
-	      if (piter)
-		status = mu_list_get_iterator (imap->capa, piter);
-	      else
-		status = 0;
-	    }
+	  if (piter)
+	    status = mu_list_get_iterator (imap->capa, piter);
+	  else
+	    status = 0;
 	}  
       break;
       

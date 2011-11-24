@@ -306,21 +306,15 @@ _process_unsolicited_response (mu_imap_t imap, mu_list_t resp)
   return 1;
 }
 
-static int
-_process_response (void *item, void *data)
+int
+_mu_imap_process_untagged_response (mu_imap_t imap, mu_list_t list,
+				    mu_imap_response_action_t fun,
+				    void *data)
 {
-  struct imap_list_element *elt = item;
-  struct response_closure *clos = data;
-
-  if (elt->type != imap_eltype_list)
+  if (_process_unsolicited_response (imap, list))
     {
-      mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR,
-		("ignoring string response \"%s\"", elt->v.string));
-    }
-  else if (_process_unsolicited_response (clos->imap, elt->v.list))
-    {
-      if (clos->fun)
-	clos->fun (clos->imap, elt->v.list, clos->data);
+      if (fun)
+	fun (imap, list, data);
       else
 	mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR,
 		  ("ignoring unexpected response"));
@@ -328,14 +322,4 @@ _process_response (void *item, void *data)
   return 0;
 }
 
-int
-mu_imap_foreach_response (mu_imap_t imap, mu_imap_response_action_t fun,
-			  void *data)
-{
-  struct response_closure clos;
-  clos.imap = imap;
-  clos.fun = fun;
-  clos.data = data;
-  return mu_list_foreach (imap->untagged_resp, _process_response, &clos);
-}
 			  

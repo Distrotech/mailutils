@@ -63,9 +63,6 @@ struct _mu_imap
     /* Holds the recect response code */
     enum mu_imap_response resp_code;
     
-    /* Untagged responses */
-    mu_list_t untagged_resp;
-
     /* Error string (if any) */
     char *errstr;
     size_t errsize;
@@ -162,11 +159,18 @@ void _mu_imap_clrerrstr (mu_imap_t imap);
 int _mu_imap_tag_next (mu_imap_t imap);
 int _mu_imap_tag_clr (mu_imap_t imap);
 
-int _mu_imap_response (mu_imap_t imap);
+
+typedef void (*mu_imap_response_action_t) (mu_imap_t imap, mu_list_t resp,
+					   void *data);
 
-int _mu_imap_untagged_response_clear (mu_imap_t imap);
-int _mu_imap_untagged_response_add (mu_imap_t imap);
-
+int _mu_imap_untagged_response_to_list (mu_imap_t imap, mu_list_t *plist);
+int _mu_imap_process_untagged_response (mu_imap_t imap, mu_list_t list,
+					mu_imap_response_action_t fun,
+					void *data);
+ 
+int _mu_imap_response (mu_imap_t imap, mu_imap_response_action_t fun,
+		       void *data);
+  
 int _mu_imap_list_element_is_string (struct imap_list_element *elt,
 				     const char *str);
 int _mu_imap_collect_flags (struct imap_list_element *arg, int *res);

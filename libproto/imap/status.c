@@ -182,27 +182,26 @@ mu_imap_status (mu_imap_t imap, const char *mboxname, struct mu_imap_stat *ps)
       imap->state = MU_IMAP_STATUS_RX;
 
     case MU_IMAP_STATUS_RX:
-      status = _mu_imap_response (imap);
-      MU_IMAP_CHECK_EAGAIN (imap, status);
-      switch (imap->resp_code)
-	{
-	case MU_IMAP_OK:
+      {
+	struct status_data sd = { mboxname, ps };
+
+	status = _mu_imap_response (imap, _status_response_action, &sd);
+	MU_IMAP_CHECK_EAGAIN (imap, status);
+	switch (imap->resp_code)
 	  {
-	    struct status_data sd = { mboxname, ps };
-	    status = mu_imap_foreach_response (imap, _status_response_action,
-					       &sd);
+	  case MU_IMAP_OK:
+	    break;
+
+	  case MU_IMAP_NO:
+	    status = EACCES;
+	    break;
+
+	  case MU_IMAP_BAD:
+	    status = MU_ERR_BADREPLY;
+	    break;
 	  }
-	  break;
-
-	case MU_IMAP_NO:
-	  status = EACCES;
-	  break;
-
-	case MU_IMAP_BAD:
-	  status = MU_ERR_BADREPLY;
-	  break;
-	}
-      imap->state = MU_IMAP_CONNECTED;
+	imap->state = MU_IMAP_CONNECTED;
+      }
       break;
 
     default:

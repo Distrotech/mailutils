@@ -111,7 +111,8 @@ mu_imap_select (mu_imap_t imap, const char *mbox, int writable,
       imap->state = MU_IMAP_SELECT_RX;
 
     case MU_IMAP_SELECT_RX:
-      status = _mu_imap_response (imap);
+      memset (&imap->mbox_stat, 0, sizeof (imap->mbox_stat));
+      status = _mu_imap_response (imap, _select_response_action, NULL);
       MU_IMAP_CHECK_EAGAIN (imap, status);
       switch (imap->resp_code)
 	{
@@ -125,8 +126,6 @@ mu_imap_select (mu_imap_t imap, const char *mbox, int writable,
 	      return errno;
 	    }
 	  imap->mbox_writable = writable;
-	  memset (&imap->mbox_stat, 0, sizeof (imap->mbox_stat));
-	  mu_imap_foreach_response (imap, _select_response_action, NULL);
 	  if (ps)
 	    *ps = imap->mbox_stat;
 	  break;

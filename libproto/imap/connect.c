@@ -44,9 +44,6 @@ mu_imap_connect (mu_imap_t imap)
     return EINVAL;
 
   _mu_imap_clrerrstr (imap);
-  status = _mu_imap_untagged_response_clear (imap);
-  if (status)
-    return status;
   
   switch (imap->state)
     {
@@ -87,8 +84,14 @@ mu_imap_connect (mu_imap_t imap)
 	}
       else
 	{
-	  _mu_imap_untagged_response_add (imap);
-	  mu_imap_foreach_response (imap, NULL, NULL);
+	  mu_list_t list;
+
+	  status = _mu_imap_untagged_response_to_list (imap, &list);
+	  if (status)
+	    break;
+	  _mu_imap_process_untagged_response (imap, list, NULL, NULL);
+	  mu_list_destroy (&list);
+
 	  switch (imap->state)
 	    {
 	    case MU_IMAP_CONNECTED:

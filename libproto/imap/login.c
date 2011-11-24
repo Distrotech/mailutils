@@ -54,7 +54,8 @@ mu_imap_login (mu_imap_t imap, const char *user, const char *pass)
       imap->state = MU_IMAP_LOGIN_RX;
 
     case MU_IMAP_LOGIN_RX:
-      status = _mu_imap_response (imap);
+      status = _mu_imap_response (imap, NULL, NULL);
+      imap->state = MU_IMAP_CONNECTED;
       MU_IMAP_CHECK_EAGAIN (imap, status);
       switch (imap->resp_code)
 	{
@@ -70,7 +71,6 @@ mu_imap_login (mu_imap_t imap, const char *user, const char *pass)
 	  status = MU_ERR_BADREPLY;
 	  break;
 	}
-      imap->state = MU_IMAP_CONNECTED;
       break;
 
     default:

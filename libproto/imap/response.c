@@ -35,7 +35,8 @@ response_to_errstr (mu_imap_t imap, size_t argc, char **argv)
 }
 
 int
-_mu_imap_response (mu_imap_t imap)
+_mu_imap_response (mu_imap_t imap, mu_imap_response_action_t fun,
+		   void *data)
 {
   int status = 0;
 
@@ -46,9 +47,6 @@ _mu_imap_response (mu_imap_t imap)
     return 0;
 
   _mu_imap_clrerrstr (imap);
-  status = _mu_imap_untagged_response_clear (imap);
-  if (status)
-    return status;
   
   while (1)
     {
@@ -68,7 +66,12 @@ _mu_imap_response (mu_imap_t imap)
 	    
 	  if (strcmp (wv[0], "*") == 0)
 	    {
-	      _mu_imap_untagged_response_add (imap);/* FIXME: error checking */
+	      mu_list_t list;
+	      status = _mu_imap_untagged_response_to_list (imap, &list);
+	      if (status)
+		break;
+	      _mu_imap_process_untagged_response (imap, list, fun, data);
+	      mu_list_destroy (&list);
 	      continue;
 	    }
 	  else if (strlen (wv[0]) == imap->tag_len &&

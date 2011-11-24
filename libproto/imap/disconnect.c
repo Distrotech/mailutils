@@ -35,7 +35,6 @@ mu_imap_disconnect (mu_imap_t imap)
   imap->state = MU_IMAP_NO_STATE;
   MU_IMAP_FCLR (imap, MU_IMAP_RESP);
 
-  mu_list_clear (imap->untagged_resp);
   mu_list_clear (imap->capa);
   
   /* Close the stream.  */

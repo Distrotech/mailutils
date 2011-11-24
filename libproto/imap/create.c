@@ -53,8 +53,6 @@ _mu_imap_init (mu_imap_t imap)
     {
       int rc;
       
-      if (imap->untagged_resp)
-	mu_list_clear (imap->untagged_resp);
       mu_list_destroy (&imap->capa);
       _mu_imap_clrerrstr (imap);
       rc = _mu_imap_tag_clr (imap);

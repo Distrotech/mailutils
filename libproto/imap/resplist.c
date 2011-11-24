@@ -55,16 +55,6 @@ _mu_imap_response_list_create (mu_imap_t imap, mu_list_t *plist)
   return 0;
 }
 
-int
-_mu_imap_untagged_response_clear (mu_imap_t imap)
-{
-  if (imap->untagged_resp)
-    mu_list_clear (imap->untagged_resp);
-  else
-    return _mu_imap_response_list_create (imap, &imap->untagged_resp);
-  return 0;
-}
-
 #define IS_LBRACE(p) ((p)[0] == '(')
 #define IS_RBRACE(p) ((p)[0] == ')')
 
@@ -235,7 +225,7 @@ _parse_element (struct parsebuf *pb)
 }
 
 int
-_mu_imap_untagged_response_add (mu_imap_t imap)
+_mu_imap_untagged_response_to_list (mu_imap_t imap, mu_list_t *plist)
 {
   struct imap_list_element *elt;
   struct parsebuf pb;
@@ -251,7 +241,8 @@ _mu_imap_untagged_response_add (mu_imap_t imap)
       imap->state = MU_IMAP_ERROR;
       return pb.pb_err;
     }
-  mu_list_append (imap->untagged_resp, elt);
+  *plist = elt->v.list;
+  free (elt);
   return 0;
 }
 
