@@ -40,6 +40,7 @@ libmu_imap_la_SOURCES = \
  id.c\
  login.c\
  logout.c\
+ noop.c\
  resplist.c\
  response.c\
  resproc.c\

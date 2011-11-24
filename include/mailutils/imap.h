@@ -56,7 +56,9 @@ int mu_imap_login (mu_imap_t imap, const char *user, const char *pass);
 int mu_imap_logout (mu_imap_t imap);
 
 int mu_imap_id (mu_imap_t imap, char **idenv, mu_assoc_t *passoc);
-  
+
+int mu_imap_noop (mu_imap_t imap);
+
 int mu_imap_set_carrier (mu_imap_t imap, mu_stream_t carrier);
 int mu_imap_get_carrier (mu_imap_t imap, mu_stream_t *pcarrier);
 

@@ -112,6 +112,16 @@ com_verbose (int argc, char **argv)
   
 }
 
+static void
+report_failure (const char *what, int status)
+{
+  const char *str;
+      
+  mu_error (_("%s failed: %s"), what, mu_strerror (status));
+  if (mu_imap_strerror (imap, &str) == 0)
+    mu_error (_("server reply: %s"), str);
+}
+
 static int connect_argc;
 static char **connect_argv;
 #define host connect_argv[0]
@@ -425,13 +435,7 @@ com_login (int argc, char **argv)
   if (status == 0)
     imap_prompt_env ();
   else
-    {
-      const char *str;
-      
-      mu_error (_("authentication failed: %s"), mu_strerror (status));
-      if (mu_imap_strerror (imap, &str) == 0)
-	mu_error (_("server reply: %s"), str);
-    }
+    report_failure ("login", status);
   return 0;
 }
 
@@ -532,13 +536,7 @@ select_mbox (int argc, char **argv, int writable)
       imap_prompt_env ();
     }
   else
-    {
-      const char *str;
-      
-      mu_error (_("select failed: %s"), mu_strerror (status));
-      if (mu_imap_strerror (imap, &str) == 0)
-	mu_error (_("server reply: %s"), str);
-    }
+    report_failure ("select", status);
   return 0;
 }
 
@@ -578,13 +576,16 @@ com_status (int argc, char **argv)
       print_imap_stats (&st);
     }
   else
-    {
-      const char *str;
-      
-      mu_error (_("status failed: %s"), mu_strerror (status));
-      if (mu_imap_strerror (imap, &str) == 0)
-	mu_error (_("server reply: %s"), str);
-    }
+    report_failure ("status", status);
+  return 0;
+}
+
+static int
+com_noop (int argc MU_ARG_UNUSED, char **argv MU_ARG_UNUSED)
+{
+  int status = mu_imap_noop (imap);
+  if (status)
+    report_failure ("noop", status);
   return 0;
 }
 
@@ -613,6 +614,9 @@ struct mutool_command imap_comtab[] = {
   { "id",           1, -1, com_id,
     N_("[-test KW] [ARG [ARG...]]"),
     N_("send ID command") },
+  { "noop",         1, 1, com_noop,
+    NULL,
+    N_("no operation (keepalive)") },
   { "select",       1, 2, com_select,
     N_("[MBOX]"),
     N_("select a mailbox") },
