@@ -49,6 +49,7 @@ struct mu_kwd bool_keytab[] = {
   { "cescapes", MU_WRDSF_CESCAPES },
   { "default", MU_WRDSF_DEFFLAGS },
   { "env_kv", MU_WRDSF_ENV_KV },
+  { "incremental", MU_WRDSF_INCREMENTAL },
   { NULL, 0 }
 };
 
@@ -164,7 +165,7 @@ make_env_kv ()
 int
 main (int argc, char **argv)
 {
-  char buf[1024];
+  char buf[1024], *ptr;
   int i, offarg = 0;
   int trimnl_option = 0;
   int plaintext_option = 0;
@@ -172,6 +173,7 @@ main (int argc, char **argv)
                  MU_WRDSF_ENOMEMABRT |
                  MU_WRDSF_ENV | MU_WRDSF_SHOWERR;
   struct mu_wordsplit ws;
+  int next_call = 0;
 
   for (i = 1; i < argc; i++)
     {
@@ -296,15 +298,39 @@ main (int argc, char **argv)
     ws.ws_env = (const char **) make_env_kv ();
   else
     ws.ws_env = (const char **) environ;
-	
-  while (fgets (buf, sizeof (buf), stdin))
+
+  if (wsflags & MU_WRDSF_INCREMENTAL)
+    trimnl_option = 1;
+  
+  next_call = 0;
+  while ((ptr = fgets (buf, sizeof (buf), stdin)))
     {
       int rc;
       size_t i;
       
       if (trimnl_option)
-	mu_rtrim_cset (buf, "\n");
-      rc = mu_wordsplit (buf, &ws, wsflags);
+	mu_rtrim_cset (ptr, "\n");
+      
+      if (wsflags & MU_WRDSF_INCREMENTAL)
+	{
+	  if (next_call)
+	    {
+	      if (*ptr == 0)
+		ptr = NULL;
+	      else
+		free ((void*)ws.ws_input);
+	    }
+	  else
+	    next_call = 1;
+	  if (ptr)
+	    {
+	      ptr = strdup (ptr);
+	      if (!ptr)
+		abort ();
+	    }
+	}
+	
+      rc = mu_wordsplit (ptr, &ws, wsflags);
       if (rc)
 	{
 	  if (!(wsflags & MU_WRDSF_SHOWERR))

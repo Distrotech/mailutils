@@ -46,7 +46,7 @@ struct mu_wordsplit
   struct mu_wordsplit_node *ws_head, *ws_tail;
 };
 
-/* Wordsplit flags.  Only 3 bits of a 32-bit word remain unused.
+/* Wordsplit flags.  Only 2 bits of a 32-bit word remain unused.
    It is getting crowded... */
 /* Append the words found to the array resulting from a previous
    call. */
@@ -120,6 +120,9 @@ struct mu_wordsplit
 /* ws_escape is set */
 #define MU_WRDSF_ESCAPE            0x10000000
 
+/* Incremental mode */
+#define MU_WRDSF_INCREMENTAL       0x20000000
+
 #define MU_WRDSF_DEFFLAGS	       \
   (MU_WRDSF_NOVAR | MU_WRDSF_NOCMD | \
    MU_WRDSF_QUOTE | MU_WRDSF_SQUEEZE_DELIMS | MU_WRDSF_CESCAPES)
@@ -131,6 +134,7 @@ struct mu_wordsplit
 #define MU_WRDSE_USAGE      4
 #define MU_WRDSE_CBRACE     5
 #define MU_WRDSE_UNDEF      6
+#define MU_WRDSE_NOINPUT    7
 
 int mu_wordsplit (const char *s, struct mu_wordsplit *p, int flags);
 int mu_wordsplit_len (const char *s, size_t len,

@@ -85,6 +85,25 @@ _wsplt_nomem (struct mu_wordsplit *wsp)
   return wsp->ws_errno;
 }
 
+static void
+mu_wordsplit_init0 (struct mu_wordsplit *wsp)
+{
+  if (wsp->ws_flags & MU_WRDSF_REUSE)
+    {
+      if (!(wsp->ws_flags & MU_WRDSF_APPEND))
+	mu_wordsplit_free_words (wsp);
+    }
+  else
+    {
+      wsp->ws_wordv = NULL;
+      wsp->ws_wordc = 0;
+      wsp->ws_wordn = 0;
+    }
+
+  wsp->ws_errno = 0;
+  wsp->ws_head = wsp->ws_tail = NULL;
+}  
+
 static int
 mu_wordsplit_init (struct mu_wordsplit *wsp, const char *input, size_t len,
 		   int flags)
@@ -140,24 +159,13 @@ mu_wordsplit_init (struct mu_wordsplit *wsp, const char *input, size_t len,
   if (!(wsp->ws_flags & MU_WRDSF_COMMENT))
     wsp->ws_comment = NULL;
 
-  if (wsp->ws_flags & MU_WRDSF_REUSE)
-    {
-      if (!(wsp->ws_flags & MU_WRDSF_APPEND))
-	mu_wordsplit_free_words (wsp);
-    }
-  else
-    {
-      wsp->ws_wordv = NULL;
-      wsp->ws_wordc = 0;
-      wsp->ws_wordn = 0;
-    }
-
   if (!(wsp->ws_flags & MU_WRDSF_CLOSURE))
     wsp->ws_closure = NULL;
-  
+
   wsp->ws_endp = 0;
-  wsp->ws_errno = 0;
-  wsp->ws_head = wsp->ws_tail = NULL;
+  
+  mu_wordsplit_init0 (wsp);
+
   return 0;
 }
 
@@ -815,7 +823,7 @@ expvar (struct mu_wordsplit *wsp, const char *str, size_t len,
 	  ws.ws_delim = wsp->ws_delim;
 	  if (mu_wordsplit (value, &ws,
 			    MU_WRDSF_NOVAR | MU_WRDSF_NOCMD |
-			    MU_WRDSF_DELIM | MU_WRDSF_SQUEEZE_DELIMS))
+			    MU_WRDSF_DELIM | MU_WRDSF_WS))
 	    {
 	      mu_wordsplit_free (&ws);
 	      return 1;
@@ -1017,10 +1025,20 @@ skip_delim (struct mu_wordsplit *wsp)
   size_t start = wsp->ws_endp;
   if (wsp->ws_flags & MU_WRDSF_SQUEEZE_DELIMS)
     {
-      do
-	start++;
-      while (start < wsp->ws_len
-	     && ISDELIM (wsp, wsp->ws_input[start]));
+      if ((wsp->ws_flags & MU_WRDSF_RETURN_DELIMS) &&
+	  ISDELIM (wsp, wsp->ws_input[start]))
+	{
+	  int delim = wsp->ws_input[start];
+	  do
+	    start++;
+	  while (start < wsp->ws_len && delim == wsp->ws_input[start]);
+	}
+      else
+	{
+	  do
+	    start++;
+	  while (start < wsp->ws_len && ISDELIM (wsp, wsp->ws_input[start]));
+	}
       start--;
     }
 
@@ -1030,9 +1048,9 @@ skip_delim (struct mu_wordsplit *wsp)
   return start;
 }
 
-#define _MU_WRDS_EOF  0
-#define _MU_WRDS_OK   1
-#define _MU_WRDS_ERR  2
+#define _MU_WRDS_EOF   0
+#define _MU_WRDS_OK    1
+#define _MU_WRDS_ERR   2
 
 static int
 scan_qstring (struct mu_wordsplit *wsp, size_t start, size_t * end)
@@ -1151,7 +1169,8 @@ scan_word (struct mu_wordsplit *wsp, size_t start)
   if (mu_wordsplit_add_segm (wsp, start, i, flags))
     return _MU_WRDS_ERR;
   wsp->ws_endp = i;
-
+  if (wsp->ws_flags & MU_WRDSF_INCREMENTAL)
+    return _MU_WRDS_EOF;
   return _MU_WRDS_OK;
 }
 
@@ -1366,44 +1385,32 @@ mu_wordsplit_c_quote_copy (char *dst, const char *src, int quote_hex)
     }
 }
 
-int
-mu_wordsplit_len (const char *command, size_t len, struct mu_wordsplit *wsp,
-		  int flags)
+static int
+wordsplit_process_list (struct mu_wordsplit *wsp, size_t start)
 {
-  int rc;
-  size_t start = 0;
-
-  rc = mu_wordsplit_init (wsp, command, len, flags);
-  if (rc)
-    return rc;
-
-  if (wsp->ws_flags & MU_WRDSF_SHOWDBG)
-    wsp->ws_debug ("Input:%.*s;", (int)len, command);
-
   if (wsp->ws_flags & MU_WRDSF_NOSPLIT)
     {
       /* Treat entire input as a quoted argument */
-      if (mu_wordsplit_add_segm (wsp, 0, len, _WSNF_QUOTE))
+      if (mu_wordsplit_add_segm (wsp, start, wsp->ws_len, _WSNF_QUOTE))
 	return wsp->ws_errno;
     }
   else
     {
+      int rc;
+  
       while ((rc = scan_word (wsp, start)) == _MU_WRDS_OK)
 	start = skip_delim (wsp);
       /* Make sure tail element is not joinable */
       if (wsp->ws_tail)
 	wsp->ws_tail->flags &= ~_WSNF_JOIN;
+      if (rc == _MU_WRDS_ERR)
+	return wsp->ws_errno;
     }
 
   if (wsp->ws_flags & MU_WRDSF_SHOWDBG)
     {
       wsp->ws_debug ("Initial list:");
       mu_wordsplit_dump_nodes (wsp);
-    }
-  if (rc)
-    {
-      mu_wordsplit_free_nodes (wsp);
-      return wsp->ws_errno;
     }
 
   if (wsp->ws_flags & MU_WRDSF_WS)
@@ -1450,10 +1457,75 @@ mu_wordsplit_len (const char *command, size_t len, struct mu_wordsplit *wsp,
 	  wsp->ws_debug ("Coalesced list:");
 	  mu_wordsplit_dump_nodes (wsp);
 	}
-
-      mu_wordsplit_finish (wsp);
     }
   while (0);
+  return wsp->ws_errno;
+}  
+
+int
+mu_wordsplit_len (const char *command, size_t length, struct mu_wordsplit *wsp,
+		  int flags)
+{
+  int rc;
+  size_t start;
+  const char *cmdptr;
+  size_t cmdlen;
+
+  if (!command)
+    {
+      if (!(flags & MU_WRDSF_INCREMENTAL))
+	return EINVAL;
+
+      start = skip_delim (wsp);
+      if (wsp->ws_endp == wsp->ws_len)
+	{
+	  wsp->ws_errno = MU_WRDSE_NOINPUT;
+	  if (wsp->ws_flags & MU_WRDSF_SHOWERR)
+	    mu_wordsplit_perror (wsp);
+	  return wsp->ws_errno;
+	}
+      
+      cmdptr = wsp->ws_input + wsp->ws_endp;
+      cmdlen = wsp->ws_len - wsp->ws_endp;
+      wsp->ws_flags |= MU_WRDSF_REUSE;
+      mu_wordsplit_init0 (wsp);
+    }
+  else
+    {
+      cmdptr = command;
+      cmdlen = length;
+      start = 0;
+      rc = mu_wordsplit_init (wsp, cmdptr, cmdlen, flags);
+      if (rc)
+	return rc;
+    }
+
+  if (wsp->ws_flags & MU_WRDSF_SHOWDBG)
+    wsp->ws_debug ("Input:%.*s;", (int)cmdlen, cmdptr);
+
+  rc = wordsplit_process_list (wsp, start);
+  if (rc == 0 && (flags & MU_WRDSF_INCREMENTAL))
+    {
+      while (!wsp->ws_head && wsp->ws_endp < wsp->ws_len)
+	{
+	  start = skip_delim (wsp);
+	  if (wsp->ws_flags & MU_WRDSF_SHOWDBG)
+	    {
+	      cmdptr = wsp->ws_input + wsp->ws_endp;
+	      cmdlen = wsp->ws_len - wsp->ws_endp;
+	      wsp->ws_debug ("Restart:%.*s;", (int)cmdlen, cmdptr);
+	    }
+	  rc = wordsplit_process_list (wsp, start);
+	  if (rc)
+	    break;
+	}
+    }
+  if (rc)
+    {
+      mu_wordsplit_free_nodes (wsp);
+      return rc;
+    }
+  mu_wordsplit_finish (wsp);
   mu_wordsplit_free_nodes (wsp);
   return wsp->ws_errno;
 }
@@ -1461,7 +1533,7 @@ mu_wordsplit_len (const char *command, size_t len, struct mu_wordsplit *wsp,
 int
 mu_wordsplit (const char *command, struct mu_wordsplit *ws, int flags)
 {
-  return mu_wordsplit_len (command, strlen (command), ws, flags);
+  return mu_wordsplit_len (command, command ? strlen (command) : 0, ws, flags);
 }
 
 void
@@ -1523,6 +1595,10 @@ mu_wordsplit_perror (struct mu_wordsplit *wsp)
       wsp->ws_error (_("undefined variable"));
       break;
 
+    case MU_WRDSE_NOINPUT:
+      wsp->ws_error (_("input exhausted"));
+      break;
+      
     default:
       wsp->ws_error (_("unknown error"));
     }
@@ -1532,10 +1608,11 @@ const char *_mu_wordsplit_errstr[] = {
   N_("no error"),
   N_("missing closing quote"),
   N_("memory exhausted"),
-  N_("variable expansion and command substitution " "are not yet supported"),
+  N_("command substitution is not yet supported"),
   N_("invalid mu_wordsplit usage"),
   N_("unbalanced curly brace"),
-  N_("undefined variable")
+  N_("undefined variable"),
+  N_("input exhausted")
 };
 int _mu_wordsplit_nerrs =
   sizeof (_mu_wordsplit_errstr) / sizeof (_mu_wordsplit_errstr[0]);

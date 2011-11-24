@@ -373,4 +373,52 @@ TESTWSP([squote],[],[-default novar nocmd squote],
 3: it
 ])
 
+TESTWSP([incremental],[],[incremental],
+[incremental "input test" line
+
+
+],
+[NF: 1
+0: incremental
+NF: 1
+0: "input test"
+NF: 1
+0: line
+],
+[input exhausted
+])
+
+TESTWSP([incremental append],[],[incremental append],
+[incremental "input test" line
+
+
+],
+[NF: 1
+0: incremental
+NF: 2
+0: incremental
+1: "input test"
+NF: 3
+0: incremental
+1: "input test"
+2: line
+],
+[input exhausted
+])
+
+TESTWSP([incremental ws],[],[return_delims -squeeze_delims incremental ws],
+[a   list  test
+
+
+],
+[NF: 1
+0: a
+NF: 1
+0: list
+NF: 1
+0: test
+],
+[input exhausted
+])
+
 m4_popdef([TESTWSP])
