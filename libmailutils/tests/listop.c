@@ -685,6 +685,42 @@ slice (mu_list_t *plist, int argc, char **argv)
 }
 
 void
+head (size_t argc, mu_list_t list)
+{
+  int rc;
+  const char *text;
+    
+  if (argc != 1)
+    {
+      fprintf (stderr, "head ?\n");
+      return;
+    }
+  rc = mu_list_head (list, (void**) &text);
+  if (rc)
+    mu_diag_funcall (MU_DIAG_ERROR, "mu_list_head", NULL, rc);
+  else
+    printf ("%s\n", text);
+}
+
+void
+tail (size_t argc, mu_list_t list)
+{
+  int rc;
+  const char *text;
+    
+  if (argc != 1)
+    {
+      fprintf (stderr, "head ?\n");
+      return;
+    }
+  rc = mu_list_tail (list, (void**) &text);
+  if (rc)
+    mu_diag_funcall (MU_DIAG_ERROR, "mu_list_tail", NULL, rc);
+  else
+    printf ("%s\n", text);
+}
+
+void
 help ()
 {
   printf ("count\n");
@@ -708,6 +744,8 @@ help ()
   printf ("quit\n");
   printf ("iter num\n");
   printf ("help\n");
+  printf ("head\n");
+  printf ("tail\n");
   printf ("NUMBER\n");
 }
 
@@ -819,6 +857,10 @@ shell (mu_list_t list)
 	    find (itr[num], ws.ws_wordv[1]);
 	  else if (strcmp (ws.ws_wordv[0], "help") == 0)
 	    help ();
+	  else if (strcmp (ws.ws_wordv[0], "head") == 0)
+	    head (ws.ws_wordc, list);
+	  else if (strcmp (ws.ws_wordv[0], "tail") == 0)
+	    tail (ws.ws_wordc, list);
 	  else if (ws.ws_wordc == 1)
 	    {
 	      char *p;

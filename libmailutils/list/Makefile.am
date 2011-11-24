@@ -29,6 +29,7 @@ liblist_la_SOURCES = \
  get.c\
  getcomp.c\
  gmap.c\
+ head.c\
  insert.c\
  intersect.c\
  iterator.c\
@@ -41,7 +42,8 @@ liblist_la_SOURCES = \
  setcomp.c\
  setdestr.c\
  slice.c\
- slice2.c
+ slice2.c\
+ tail.c
 
 INCLUDES = @MU_LIB_COMMON_INCLUDES@ -I/libmailutils
 

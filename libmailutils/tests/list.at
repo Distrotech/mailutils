@@ -103,6 +103,18 @@ TESTLIST([get],[],
 [fire
 ])
 
+TESTLIST([head],[],
+[add en to tre fire fem
+head],
+[en
+])
+
+TESTLIST([tail],[],
+[add en to tre fire fem
+tail],
+[fem
+])
+
 
 # ------------------------------------------------------------
 # Iterators

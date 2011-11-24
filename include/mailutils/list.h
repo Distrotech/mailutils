@@ -86,6 +86,11 @@ int mu_list_count    (mu_list_t _list, size_t *_pcount);
   
   /* Get _indexth element from the list and store it in _pitem. */
 int mu_list_get      (mu_list_t _list, size_t _index, void **_pitem);
+  /* Retrieve first element of _list */
+int mu_list_head (mu_list_t _list, void **_pitem);
+  /* Retrieve last element of _list */
+int mu_list_tail (mu_list_t _list, void **_pitem);
+  
   /* Store at most _count first elements from _list in the _array.  Unless
      _pcount is NULL, fill it with the actual number of elements copied. */
 int mu_list_to_array (mu_list_t _list, void **_array, size_t _count,
