@@ -21,7 +21,8 @@
 #include <mailutils/argcv.h>
 #include <mailutils/sys/imapio.h>
 
-/* FIXME: It would be good to have a `, size_t *psize' argument, to allow
+/* FIXME: 1. Is it needed at all?
+   2. It would be good to have a `, size_t *psize' argument, to allow
    for passing an already allocated buffer.  This implies similar changes
    to mu_argcv_join. */
 int

@@ -63,20 +63,25 @@ ok_response (mu_imap_t imap, mu_list_t resp, void *data)
   arg = _mu_imap_list_at (resp, 1);
   if (!arg)
     return;
-  if (arg->type == imap_eltype_string && arg->v.string[0] == '[')
+  if (_mu_imap_list_element_is_string (arg, "["))
     {
       char *p;
       
-      size_t len = strcspn (arg->v.string, "]");
+      arg = _mu_imap_list_at (resp, 2);
+      if (!arg || arg->type != imap_eltype_string)
+	return;
       
-      if (mu_kwd_xlat_name_len (mu_imap_response_codes,
-				arg->v.string + 1, len - 1, &rcode))
+      if (mu_kwd_xlat_name (mu_imap_response_codes, arg->v.string, &rcode))
 	rcode = -1;
+      
+      arg = _mu_imap_list_at (resp, 4);
+      if (!arg || !_mu_imap_list_element_is_string (arg, "]"))
+	return;
       
       switch (rcode)
 	{
 	case MU_IMAP_RESPONSE_PERMANENTFLAGS:
-	  arg = _mu_imap_list_at (resp, 2);
+	  arg = _mu_imap_list_at (resp, 3);
 	  if (!arg ||
 	      _mu_imap_collect_flags (arg, &imap->mbox_stat.permanent_flags))
 	    break;
@@ -86,11 +91,11 @@ ok_response (mu_imap_t imap, mu_list_t resp, void *data)
 	  return;
 	  
 	case MU_IMAP_RESPONSE_UIDNEXT:
-	  arg = _mu_imap_list_at (resp, 2);
+	  arg = _mu_imap_list_at (resp, 3);
 	  if (!arg || arg->type != imap_eltype_string)
 	    break;
 	  n = strtoul (arg->v.string, &p, 10);
-	  if (*p == ']')
+	  if (*p == 0)
 	    {
 	      imap->mbox_stat.uidnext = n;
 	      imap->mbox_stat.flags |= MU_IMAP_STAT_UIDNEXT;
@@ -100,11 +105,11 @@ ok_response (mu_imap_t imap, mu_list_t resp, void *data)
 	  return;
 			    
 	case MU_IMAP_RESPONSE_UIDVALIDITY:
-	  arg = _mu_imap_list_at (resp, 2);
+	  arg = _mu_imap_list_at (resp, 3);
 	  if (!arg || arg->type != imap_eltype_string)
 	    break;
 	  n = strtoul (arg->v.string, &p, 10);
-	  if (*p == ']')
+	  if (*p == 0)
 	    {
 	      imap->mbox_stat.uidvalidity = n;
 	      imap->mbox_stat.flags |= MU_IMAP_STAT_UIDVALIDITY;
@@ -114,11 +119,11 @@ ok_response (mu_imap_t imap, mu_list_t resp, void *data)
 	  return;
 			    
 	case MU_IMAP_RESPONSE_UNSEEN:
-	  arg = _mu_imap_list_at (resp, 2);
+	  arg = _mu_imap_list_at (resp, 3);
 	  if (!arg || arg->type != imap_eltype_string)
 	    break;
 	  n = strtoul (arg->v.string, &p, 10);
-	  if (*p == ']')
+	  if (*p == 0)
 	    {
 	      imap->mbox_stat.first_unseen = n;
 	      imap->mbox_stat.flags |= MU_IMAP_STAT_FIRST_UNSEEN;

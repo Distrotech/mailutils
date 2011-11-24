@@ -27,6 +27,13 @@
 #include <mailutils/errno.h>
 #include <mailutils/sys/imap.h>
 
+static void
+response_to_errstr (mu_imap_t imap, size_t argc, char **argv)
+{
+  if (argc && strcmp (argv[argc-1], "]"))
+    _mu_imap_seterrstrz (imap, argv[argc-1]);
+}
+
 int
 _mu_imap_response (mu_imap_t imap)
 {
@@ -50,7 +57,6 @@ _mu_imap_response (mu_imap_t imap)
 	{
 	  char **wv;
 	  size_t wc;
-	  char *p;
 	  
 	  mu_imapio_get_words (imap->io, &wc, &wv);
 	  if (strcmp (wv[0], "*") == 0)
@@ -70,29 +76,17 @@ _mu_imap_response (mu_imap_t imap)
 	      else if (strcmp (wv[1], "OK") == 0)
 		{
 		  imap->resp_code = MU_IMAP_OK;
-		  if (mu_imapio_reply_string (imap->io, 2, &p) == 0)
-		    {
-		      _mu_imap_seterrstr (imap, p, strlen (p));
-		      free (p);
-		    }
+		  response_to_errstr (imap, wc, wv);
 		}
 	      else if (strcmp (wv[1], "NO") == 0)
 		{
 		  imap->resp_code = MU_IMAP_NO;
-		  if (mu_imapio_reply_string (imap->io, 2, &p) == 0)
-		    {
-		      _mu_imap_seterrstr (imap, p, strlen (p));
-		      free (p);
-		    }
+		  response_to_errstr (imap, wc, wv);
 		}
 	      else if (strcmp (wv[1], "BAD") == 0)
 		{
 		  imap->resp_code = MU_IMAP_BAD;
-		  if (mu_imapio_reply_string (imap->io, 2, &p) == 0)
-		    {
-		      _mu_imap_seterrstr (imap, p, strlen (p));
-		      free (p);
-		    }
+		  response_to_errstr (imap, wc, wv);
 		}
 	      else
 		status = MU_ERR_BADREPLY;

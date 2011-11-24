@@ -69,11 +69,6 @@ mu_imap_login (mu_imap_t imap, const char *user, const char *pass)
 
 	case MU_IMAP_BAD:
 	  status = MU_ERR_BADREPLY;
-	  if (mu_imapio_reply_string (imap->io, 2, &p) == 0)
-	    {
-	      _mu_imap_seterrstr (imap, p, strlen (p));
-	      free (p);
-	    }
 	  break;
 	}
       imap->state = MU_IMAP_CONNECTED;

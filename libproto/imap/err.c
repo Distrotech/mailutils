@@ -41,6 +41,12 @@ _mu_imap_seterrstr (mu_imap_t imap, const char *str, size_t len)
   return 0;
 }
 
+int
+_mu_imap_seterrstrz (mu_imap_t imap, const char *str)
+{
+  return _mu_imap_seterrstr (imap, str, strlen (str));
+}
+
 void
 _mu_imap_clrerrstr (mu_imap_t imap)
 {

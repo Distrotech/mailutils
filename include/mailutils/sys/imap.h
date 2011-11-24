@@ -155,6 +155,7 @@ int _mu_imap_xscript_level (mu_imap_t imap, int xlev);
   while (0)
 
 int _mu_imap_seterrstr (mu_imap_t imap, const char *str, size_t len);
+int _mu_imap_seterrstrz (mu_imap_t imap, const char *str);
 void _mu_imap_clrerrstr (mu_imap_t imap);
 
 int _mu_imap_tag_next (mu_imap_t imap);

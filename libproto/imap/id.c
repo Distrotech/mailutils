@@ -147,11 +147,6 @@ mu_imap_id (mu_imap_t imap, char **idenv, mu_assoc_t *passoc)
 
 	case MU_IMAP_BAD:
 	  status = MU_ERR_BADREPLY;
-	  if (mu_imapio_reply_string (imap->io, 2, &p) == 0)
-	    {
-	      _mu_imap_seterrstr (imap, p, strlen (p));
-	      free (p);
-	    }
 	  break;
 	}
       imap->state = MU_IMAP_CONNECTED;
