@@ -1155,11 +1155,7 @@ scan_word (struct mu_wordsplit *wsp, size_t start)
     }
   else if (wsp->ws_flags & MU_WRDSF_RETURN_DELIMS)
     {
-      do
-	{
-	  i++;
-	}
-      while (i < len && ISDELIM (wsp, command[i]));
+      i++;
     }
   else if (!(wsp->ws_flags & MU_WRDSF_SQUEEZE_DELIMS))
     flags |= _WSNF_EMPTYOK;
