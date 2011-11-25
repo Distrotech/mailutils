@@ -80,4 +80,7 @@ m4_include([linecon.at])
 AT_BANNER(Debug Specification)
 m4_include([debugspec.at])
 
+AT_BANNER([IMAP IO])
+m4_include([imapio.at])
+
 m4_include([fsaf.at])

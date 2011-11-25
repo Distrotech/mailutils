@@ -42,7 +42,6 @@ main (int argc, char **argv)
   mu_imapio_t io;
   mu_stream_t str;
   
-  mu_set_program_name (argv[0]);
   mu_stdstream_setup (MU_STDSTREAM_RESET_NONE);
   
   for (i = 1; i < argc; i++)

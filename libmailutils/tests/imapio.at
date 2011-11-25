@@ -1,0 +1,97 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2011 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# GNU Mailutils is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+
+AT_BANNER(IMAP IO)
+
+dnl ------------------------------------------------------------
+dnl IMAPIO([NAME], [KW = `'], [INPUT], [STDOUT = `'],
+dnl        [STDERR = `'])
+dnl
+m4_pushdef([IMAPIO],[
+m4_pushdef([MU_TEST_GROUP],[imapio])
+m4_pushdef([MU_TEST_KEYWORDS],[imapio])
+m4_pushdef([MU_TEST_COMMAND],[imapio])
+MU_GENERIC_TEST([$1],[$2],[$3],[],[$4],[$5])
+m4_popdef([MU_TEST_COMMAND])
+m4_popdef([MU_TEST_KEYWORDS])
+m4_popdef([MU_TEST_GROUP])
+])
+
+dnl ------------------------------------------------------------
+dnl Tests
+dnl ------------------------------------------------------------
+
+IMAPIO([simple string],[],
+[1 select INBOX
+],
+[],
+[3
+0: '1'
+1: 'select'
+2: 'INBOX'
+])
+
+IMAPIO([quoted string],[],
+[1 select "Test mailbox"
+],
+[],
+[3
+0: '1'
+1: 'select'
+2: 'Test mailbox'
+])
+
+IMAPIO([server response],[],
+[1 OK That's OK
+],
+[],
+[3
+0: '1'
+1: 'OK'
+2: 'That's OK'
+])
+
+IMAPIO([server response with code],[],
+[* OK [[UIDNEXT 61]] Predicted next uid
+],
+[],
+[7
+0: '*'
+1: 'OK'
+[2: '['
+3: 'UIDNEXT'
+4: '61'
+5: ']']
+6: 'Predicted next uid'
+])
+
+IMAPIO([literals],[literal],
+[A001 LOGIN {11}
+FRED FOOBAR {7}
+fat man
+],
+[+ GO AHEAD
++ GO AHEAD
+],
+[4
+0: 'A001'
+1: 'LOGIN'
+2: 'FRED FOOBAR'
+3: 'fat man'
+])
+
+dnl ------------------------------------------------------------
+m4_popdef([IMAPIO])

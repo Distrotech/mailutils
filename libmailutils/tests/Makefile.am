@@ -75,6 +75,7 @@ TESTSUITE_AT = \
  fromflt.at\
  fsaf.at\
  hdrflt.at\
+ imapio.at\
  inline-comment.at\
  linecon.at\
  list.at\

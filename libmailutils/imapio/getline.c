@@ -96,12 +96,60 @@ get_response_code (struct _mu_imapio *io)
   return 0;
 }
 
+#define IMAPIO_OK   0
+#define IMAPIO_RESP 1 
+#define IMAPIO_ERR  2
+
+static int
+initial_parse (struct _mu_imapio *io)
+{
+  int rc, type;
+  
+  if ((rc = mu_wordsplit_len (io->_imap_buf_base, io->_imap_buf_level,
+			      &io->_imap_ws,
+			      io->_imap_ws_flags | MU_WRDSF_INCREMENTAL)))
+    {
+      if (rc == MU_WRDSE_NOINPUT)
+	return IMAPIO_OK;
+      return IMAPIO_ERR;
+    }
+  io->_imap_ws_flags |= MU_WRDSF_REUSE;
+
+  if ((rc = mu_wordsplit (NULL, &io->_imap_ws, MU_WRDSF_INCREMENTAL)))
+    {
+      if (rc == MU_WRDSE_NOINPUT)
+	return IMAPIO_OK;
+      return IMAPIO_ERR;
+    }
+  
+  if ((type = is_status_response (io->_imap_ws.ws_wordv[1]))
+      && (type == STATUS_RESPONSE ||
+	  strcmp (io->_imap_ws.ws_wordv[0], "*") == 0))
+    {
+      rc = get_response_code (io);
+      if (rc)
+	return IMAPIO_ERR;
+      while (io->_imap_ws.ws_endp < io->_imap_ws.ws_len &&
+	     mu_isblank (io->_imap_ws.ws_input[io->_imap_ws.ws_endp]))
+	io->_imap_ws.ws_endp++;
+      io->_imap_ws.ws_flags |= MU_WRDSF_NOSPLIT;
+      rc = mu_wordsplit (NULL, &io->_imap_ws, MU_WRDSF_INCREMENTAL);
+      io->_imap_ws.ws_flags &= ~MU_WRDSF_NOSPLIT;
+      if (rc)
+	{
+	  if (rc != MU_WRDSE_NOINPUT)
+	    return IMAPIO_ERR;
+	}
+      return IMAPIO_RESP;
+    }
+  return IMAPIO_OK;
+}  
+
 int
 mu_imapio_getline (struct _mu_imapio *io)
 {
   int rc;
   char *last_arg;
-  int type;
   
   if (io->_imap_reply_ready)
     {
@@ -120,52 +168,28 @@ mu_imapio_getline (struct _mu_imapio *io)
 	break;
       io->_imap_buf_level = mu_rtrim_class (io->_imap_buf_base,
 					    MU_CTYPE_ENDLN);
-      if ((rc = mu_wordsplit_len (io->_imap_buf_base, io->_imap_buf_level,
-				  &io->_imap_ws,
-				  io->_imap_ws_flags | MU_WRDSF_INCREMENTAL)))
-	{
-	  if (rc == MU_WRDSE_NOINPUT)
-	    break;
-	  return MU_ERR_PARSE;
-	}
-      io->_imap_ws_flags |= MU_WRDSF_REUSE;
-
-      if ((rc = mu_wordsplit (NULL, &io->_imap_ws, MU_WRDSF_INCREMENTAL)))
-	{
-	  if (rc == MU_WRDSE_NOINPUT)
-	    break;
-	  return MU_ERR_PARSE;
-	}
       
-      if ((type = is_status_response (io->_imap_ws.ws_wordv[1]))
-	  && (type == STATUS_RESPONSE ||
-	      strcmp (io->_imap_ws.ws_wordv[0], "*") == 0))
+      rc = initial_parse (io);
+      if (rc == IMAPIO_ERR)
 	{
-	  rc = get_response_code (io);
-	  if (rc)
-	    return MU_ERR_PARSE;
-	  while (io->_imap_ws.ws_endp < io->_imap_ws.ws_len &&
-		 mu_isblank (io->_imap_ws.ws_input[io->_imap_ws.ws_endp]))
-	    io->_imap_ws.ws_endp++;
-	  io->_imap_ws.ws_flags |= MU_WRDSF_NOSPLIT;
-	  rc = mu_wordsplit (NULL, &io->_imap_ws, MU_WRDSF_INCREMENTAL);
-	  io->_imap_ws.ws_flags &= ~MU_WRDSF_NOSPLIT;
-	  if (rc)
-	    {
-	      if (rc == MU_WRDSE_NOINPUT)
-		break;
-	      return MU_ERR_PARSE;
-	    }
+	  rc = MU_ERR_PARSE;
 	  break;
 	}
-
-      
+      else if (rc == IMAPIO_RESP)
+	{
+	  rc = 0;
+	  break;
+	}
+	
       rc = mu_wordsplit_len (io->_imap_buf_base + io->_imap_ws.ws_endp,
 			     io->_imap_buf_level - io->_imap_ws.ws_endp,
 			     &io->_imap_ws, io->_imap_ws_flags);
       if (rc)
 	return MU_ERR_PARSE;
 
+      if (io->_imap_ws.ws_wordc == 0)
+	break;
+      
       last_arg = io->_imap_ws.ws_wordv[io->_imap_ws.ws_wordc - 1];
       if (last_arg[0] == '{' && last_arg[strlen (last_arg)-1] == '}')
 	{
