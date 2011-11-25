@@ -23,16 +23,11 @@
 #include <mailutils/sys/imap.h>
 
 void
-mu_imap_callback (mu_imap_t imap, int code, ...)
+mu_imap_callback (mu_imap_t imap, int code, size_t sdat, void *pdat)
 {
-  va_list ap;
-  
   if (code < 0 || code >= _MU_IMAP_CB_MAX || !imap->callback[code].action)
     return;
-  
-  va_start (ap, code);
-  imap->callback[code].action (imap->callback[code].data, code, ap);
-  va_end (ap);
+  imap->callback[code].action (imap->callback[code].data, code, sdat, pdat);
 }
 
 void

@@ -18,7 +18,6 @@
 #ifndef _MAILUTILS_IMAP_H
 #define _MAILUTILS_IMAP_H
 
-#include <stdarg.h>
 #include <mailutils/iterator.h>
 #include <mailutils/debug.h>
 #include <mailutils/stream.h>
@@ -124,9 +123,9 @@ extern struct mu_kwd _mu_imap_status_name_table[];
 #define MU_IMAP_CB_PREAUTH         10
 #define _MU_IMAP_CB_MAX            11
 
-typedef void (*mu_imap_callback_t) (void *, int code, va_list ap);
+typedef void (*mu_imap_callback_t) (void *, int code, size_t sdat, void *pdat);
   
-void mu_imap_callback (mu_imap_t imap, int code, ...);
+void mu_imap_callback (mu_imap_t imap, int code, size_t sdat, void *pdat);
 
 void mu_imap_register_callback_function (mu_imap_t imap, int code,
 					 mu_imap_callback_t callback,

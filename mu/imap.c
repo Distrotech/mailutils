@@ -163,10 +163,9 @@ imap_prompt_env ()
 
 /* Callbacks */
 static void
-imap_popauth_callback (void *data, int code, va_list ap)
+imap_popauth_callback (void *data, int code, size_t sdat, void *pdat)
 {
-  int rcode = va_arg (ap, int);
-  const char *text = va_arg (ap, const char *);
+  const char *text = pdat;
   if (text)
     mu_diag_output (MU_DIAG_INFO, _("session authenticated: %s"), text);
   else
@@ -174,10 +173,9 @@ imap_popauth_callback (void *data, int code, va_list ap)
 }
 
 static void
-imap_bye_callback (void *data, int code, va_list ap)
+imap_bye_callback (void *data, int code, size_t sdat, void *pdat)
 {
-  int rcode = va_arg (ap, int);
-  const char *text = va_arg (ap, const char *);
+  const char *text = pdat;
   if (text)
     mu_diag_output (MU_DIAG_INFO, _("server is closing connection: %s"), text);
   else

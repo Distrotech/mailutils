@@ -96,7 +96,7 @@ ok_response (mu_imap_t imap, mu_list_t resp, void *data)
 	  _mu_imap_collect_flags (arg, &imap->mbox_stat.permanent_flags))
 	break;
       imap->mbox_stat.flags |= MU_IMAP_STAT_PERMANENT_FLAGS;
-      mu_imap_callback (imap, MU_IMAP_CB_PERMANENT_FLAGS, &imap->mbox_stat);
+      mu_imap_callback (imap, MU_IMAP_CB_PERMANENT_FLAGS, 0, &imap->mbox_stat);
       return;
 	  
     case MU_IMAP_RESPONSE_UIDNEXT:
@@ -108,7 +108,7 @@ ok_response (mu_imap_t imap, mu_list_t resp, void *data)
 	{
 	  imap->mbox_stat.uidnext = n;
 	  imap->mbox_stat.flags |= MU_IMAP_STAT_UIDNEXT;
-	  mu_imap_callback (imap, MU_IMAP_CB_UIDNEXT, &imap->mbox_stat);
+	  mu_imap_callback (imap, MU_IMAP_CB_UIDNEXT, 0, &imap->mbox_stat);
 	}
       return;
 			    
@@ -121,7 +121,7 @@ ok_response (mu_imap_t imap, mu_list_t resp, void *data)
 	{
 	  imap->mbox_stat.uidvalidity = n;
 	  imap->mbox_stat.flags |= MU_IMAP_STAT_UIDVALIDITY;
-	  mu_imap_callback (imap, MU_IMAP_CB_UIDVALIDITY, &imap->mbox_stat);
+	  mu_imap_callback (imap, MU_IMAP_CB_UIDVALIDITY, 0, &imap->mbox_stat);
 	}
       return;
       
@@ -134,7 +134,8 @@ ok_response (mu_imap_t imap, mu_list_t resp, void *data)
 	{
 	  imap->mbox_stat.first_unseen = n;
 	  imap->mbox_stat.flags |= MU_IMAP_STAT_FIRST_UNSEEN;
-	  mu_imap_callback (imap, MU_IMAP_CB_FIRST_UNSEEN, &imap->mbox_stat);
+	  mu_imap_callback (imap, MU_IMAP_CB_FIRST_UNSEEN, 0,
+			    &imap->mbox_stat);
 	}
       return;
     }
@@ -284,7 +285,7 @@ _process_unsolicited_response (mu_imap_t imap, mu_list_t resp)
 	    return 1;
 	  imap->mbox_stat.message_count = n;
 	  imap->mbox_stat.flags |= MU_IMAP_STAT_MESSAGE_COUNT;
-	  mu_imap_callback (imap, MU_IMAP_CB_MESSAGE_COUNT, resp,
+	  mu_imap_callback (imap, MU_IMAP_CB_MESSAGE_COUNT, 0,
 			    &imap->mbox_stat);
 	  return 0;
 	}
@@ -298,7 +299,7 @@ _process_unsolicited_response (mu_imap_t imap, mu_list_t resp)
 	    return 1;
 	  imap->mbox_stat.recent_count = n;
 	  imap->mbox_stat.flags |= MU_IMAP_STAT_RECENT_COUNT;
-	  mu_imap_callback (imap, MU_IMAP_CB_RECENT_COUNT, resp,
+	  mu_imap_callback (imap, MU_IMAP_CB_RECENT_COUNT, 0,
 			    &imap->mbox_stat);
 	  return 0;
 	}
