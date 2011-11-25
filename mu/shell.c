@@ -627,7 +627,10 @@ mutool_shell (const char *name, struct mutool_command *cmd)
 	      continue;
 	    }
 	  else
-	    break;
+	    {
+	      mu_printf ("\n");
+	      break;
+	    }
 	}
       
       /* Remove leading and trailing whitespace from the line.
