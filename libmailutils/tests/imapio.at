@@ -93,5 +93,18 @@ fat man
 3: 'fat man'
 ])
 
+IMAPIO([non-synch literals],[literal],
+[A001 LOGIN {11+}
+FRED FOOBAR {7+}
+fat man
+],
+[],
+[4
+0: 'A001'
+1: 'LOGIN'
+2: 'FRED FOOBAR'
+3: 'fat man'
+])
+
 dnl ------------------------------------------------------------
 m4_popdef([IMAPIO])
