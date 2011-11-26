@@ -685,6 +685,62 @@ fetch_get_part (struct fetch_function_closure *ffc,
   return msg;
 }
 
+static mu_message_t 
+fetch_get_part_rfc822 (struct fetch_function_closure *ffc,
+		       struct fetch_runtime_closure *frt)
+{
+  mu_message_t msg = frt->msg, retmsg = NULL;
+  size_t i;
+  mu_header_t header;
+  const char *hval;
+  
+  if (ffc->nset == 0)
+    {
+      mu_message_ref (msg);
+      return msg;
+    }
+  
+  for (i = 0; i < ffc->nset; i++)
+    if (mu_message_get_part (msg, ffc->section_part[i], &msg))
+      return NULL;
+
+  if (mu_message_get_header (msg, &header))
+    return NULL;
+  
+  if (mu_header_sget_value (header, MU_HEADER_CONTENT_TYPE, &hval) == 0)
+    {
+      struct mu_wordsplit ws;
+      int rc;
+      
+      ws.ws_delim = " \t\r\n;=";
+      ws.ws_alloc_die = imap4d_ws_alloc_die;
+      if (mu_wordsplit (hval, &ws, IMAP4D_WS_FLAGS))
+	{
+	  mu_error (_("%s failed: %s"), "mu_wordsplit",
+		    mu_wordsplit_strerror (&ws));
+	  return NULL;
+	}
+
+      rc = mu_c_strcasecmp (ws.ws_wordv[0], "MESSAGE/RFC822");
+      mu_wordsplit_free (&ws);
+
+      if (rc == 0)
+	{
+	  mu_body_t body;
+	  mu_stream_t str;
+	  
+	  if (mu_message_get_body (msg, &body) ||
+	      mu_body_get_streamref (body, &str))
+	    return NULL;
+
+	  rc = mu_stream_to_message (str, &retmsg);
+	  mu_stream_unref (str);
+	}
+    }
+  
+  return retmsg;
+}
+
 static void
 fetch_send_section_part (struct fetch_function_closure *ffc,
                          const char *suffix, int close_bracket)
@@ -918,7 +974,7 @@ static int
 _frt_body (struct fetch_function_closure *ffc,
 	   struct fetch_runtime_closure *frt)
 {
-  mu_message_t msg;
+  mu_message_t msg = frt->msg;
   mu_stream_t stream = NULL;
   size_t size = 0, lines = 0;
   int rc;
@@ -928,17 +984,44 @@ _frt_body (struct fetch_function_closure *ffc,
     io_sendf ("%s", ffc->name);
   else
     fetch_send_section_part (ffc, NULL, 1);
-  msg = fetch_get_part (ffc, frt);
-  if (!msg)
-    {
-      io_sendf (" \"\"");
-      return RESP_OK;
-    }
   mu_message_get_streamref (msg, &stream);
   mu_message_size (msg, &size);
   mu_message_lines (msg, &lines);
   rc = fetch_io (stream, ffc->start, ffc->size, size + lines);
   mu_stream_destroy (&stream);
+  return rc;
+}
+
+/* BODY[N] */
+static int
+_frt_body_n (struct fetch_function_closure *ffc,
+	     struct fetch_runtime_closure *frt)
+{
+  mu_message_t msg;
+  mu_body_t body = NULL;
+  mu_stream_t stream = NULL;
+  size_t size = 0, lines = 0;
+  int rc;
+  
+  set_seen (ffc, frt);
+  if (ffc->name)
+    io_sendf ("%s",  ffc->name);
+  else
+    fetch_send_section_part (ffc, ffc->section_tag, 1);
+  msg = fetch_get_part (ffc, frt);
+  if (!msg)
+    {
+      io_sendf (" NIL");
+      return RESP_OK;
+    }
+
+  mu_message_get_body (msg, &body);
+  mu_body_size (body, &size);
+  mu_body_lines (body, &lines);
+  mu_body_get_streamref (body, &stream);
+  rc = fetch_io (stream, ffc->start, ffc->size, size + lines);
+  mu_stream_destroy (&stream);
+
   return rc;
 }
 
@@ -957,10 +1040,10 @@ _frt_body_text (struct fetch_function_closure *ffc,
     io_sendf ("%s",  ffc->name);
   else
     fetch_send_section_part (ffc, ffc->section_tag, 1);
-  msg = fetch_get_part (ffc, frt);
+  msg = fetch_get_part_rfc822 (ffc, frt);
   if (!msg)
     {
-      io_sendf (" \"\"");
+      io_sendf (" NIL");
       return RESP_OK;
     }
 
@@ -970,6 +1053,7 @@ _frt_body_text (struct fetch_function_closure *ffc,
   mu_body_get_streamref (body, &stream);
   rc = fetch_io (stream, ffc->start, ffc->size, size + lines);
   mu_stream_destroy (&stream);
+  mu_message_unref (msg);
   return rc;
 }
 
@@ -1002,10 +1086,10 @@ _frt_header (struct fetch_function_closure *ffc,
   else
     fetch_send_section_part (ffc, ffc->section_tag, 1);
 
-  msg = fetch_get_part (ffc, frt);
+  msg = fetch_get_part_rfc822 (ffc, frt);
   if (!msg)
     {
-      io_sendf (" \"\"");
+      io_sendf (" NIL");
       return RESP_OK;
     }
   mu_message_get_header (msg, &header);
@@ -1014,6 +1098,39 @@ _frt_header (struct fetch_function_closure *ffc,
   mu_header_get_streamref (header, &stream);
   rc = fetch_io (stream, ffc->start, ffc->size, size + lines);
   mu_stream_destroy (&stream);
+  mu_message_unref (msg);
+  return rc;
+}
+
+static int
+_frt_mime (struct fetch_function_closure *ffc,
+	     struct fetch_runtime_closure *frt)
+{
+  mu_message_t msg;
+  mu_header_t header = NULL;
+  mu_stream_t stream = NULL;
+  size_t size = 0, lines = 0;
+  int rc;
+  
+  set_seen (ffc, frt);
+  if (ffc->name)
+    io_sendf ("%s",  ffc->name);
+  else
+    fetch_send_section_part (ffc, ffc->section_tag, 1);
+
+  msg = fetch_get_part (ffc, frt);
+  if (!msg)
+    {
+      io_sendf (" NIL");
+      return RESP_OK;
+    }
+  mu_message_get_header (msg, &header);
+  mu_header_size (header, &size);
+  mu_header_lines (header, &lines);
+  mu_header_get_streamref (header, &stream);
+  rc = fetch_io (stream, ffc->start, ffc->size, size + lines);
+  mu_stream_destroy (&stream);
+
   return rc;
 }
 
@@ -1060,10 +1177,10 @@ _frt_header_fields (struct fetch_function_closure *ffc,
   mu_list_foreach (ffc->headers, _send_header_name, &status);
   io_sendf (")]");
   
-  msg = fetch_get_part (ffc, frt);
+  msg = fetch_get_part_rfc822 (ffc, frt);
   if (!msg)
     {
-      io_sendf (" \"\"");
+      io_sendf (" NIL");
       return RESP_OK;
     }
 
@@ -1071,7 +1188,8 @@ _frt_header_fields (struct fetch_function_closure *ffc,
   if (mu_message_get_header (msg, &header)
       || mu_header_get_iterator (header, &itr))
     {
-      io_sendf (" \"\"");
+      mu_message_unref (msg);
+      io_sendf (" NIL");
       return RESP_OK;
     }
 
@@ -1109,6 +1227,7 @@ _frt_header_fields (struct fetch_function_closure *ffc,
   mu_stream_seek (stream, 0, MU_SEEK_SET, NULL);
   status = fetch_io (stream, ffc->start, ffc->size, size + lines);
   mu_stream_destroy (&stream);
+  mu_message_unref (msg);
   
   return status;
 }
@@ -1347,7 +1466,7 @@ parse_section_text (imap4d_parsebuf_t p, struct fetch_function_closure *ffc,
   else if (allow_mime && mu_c_strcasecmp (p->token, "MIME") == 0)
     {
       imap4d_parsebuf_next (p, 1);
-      ffc->fun = _frt_header;
+      ffc->fun = _frt_mime;
       ffc->section_tag = "MIME";
     }
   else
@@ -1436,6 +1555,8 @@ parse_section (imap4d_parsebuf_t p, struct fetch_function_closure *ffc)
 	      imap4d_parsebuf_next (p, 1);
 	      parse_section_text (p, ffc, 1);
 	    }
+	  else
+	    ffc->fun = _frt_body_n;
 	}
       else
 	imap4d_parsebuf_exit (p, "Syntax error");
