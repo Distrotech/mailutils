@@ -393,11 +393,10 @@ bodystructure (mu_message_t msg, int extension)
       io_send_qstring (s);
 
       /* body parameter parenthesized list: Content-type attributes */
-      if (ws.ws_wordc > 1 || text_plain)
+      if (ws.ws_wordc > 1)
 	{
 	  int space = 0;
 	  char *lvalue = NULL;
-	  int have_charset = 0;
 	  int i;
 	  
 	  io_sendf (" (");
@@ -429,8 +428,6 @@ bodystructure (mu_message_t msg, int extension)
 		  
 		default:
 		  lvalue = ws.ws_wordv[i];
-		  if (mu_c_strcasecmp (lvalue, "charset") == 0)
-		    have_charset = 1;
 		}
 	    }
 	  
@@ -440,13 +437,7 @@ bodystructure (mu_message_t msg, int extension)
 		io_sendf (" ");
 	      io_send_qstring (lvalue);
 	    }
-	  
-	  if (!have_charset && text_plain)
-	    {
-	      if (space)
-		io_sendf (" ");
-	      io_sendf ("\"CHARSET\" \"US-ASCII\"");
-	    }
+
 	  io_sendf (")");
 	}
       else
@@ -726,15 +717,10 @@ fetch_get_part_rfc822 (struct fetch_function_closure *ffc,
 
       if (rc == 0)
 	{
-	  mu_body_t body;
-	  mu_stream_t str;
-	  
-	  if (mu_message_get_body (msg, &body) ||
-	      mu_body_get_streamref (body, &str))
-	    return NULL;
-
-	  rc = mu_stream_to_message (str, &retmsg);
-	  mu_stream_unref (str);
+	  rc = mu_message_unencapsulate  (msg, &retmsg, NULL);
+	  if (rc)
+	    mu_error (_("%s failed: %s"), "mu_message_unencapsulate",
+		      mu_strerror (rc));
 	}
     }
   

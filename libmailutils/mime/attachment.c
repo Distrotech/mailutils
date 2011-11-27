@@ -346,7 +346,7 @@ mu_message_unencapsulate (mu_message_t msg, mu_message_t *newmsg,
 {
   int ret = 0;
   mu_header_t hdr;
-  mu_stream_t istream, ostream;
+  mu_stream_t istream;
 
   if (msg == NULL)
     return EINVAL;
@@ -364,18 +364,10 @@ mu_message_unencapsulate (mu_message_t msg, mu_message_t *newmsg,
     }
   if ((ret = _attachment_setup (&info, msg, &istream)) != 0)
     return ret;
-  if (info->msg == NULL)
-    ret = mu_message_create (&info->msg, NULL);
-  if (ret == 0)
-    {
-      mu_message_get_streamref (info->msg, &ostream);
-      mu_stream_seek (ostream, 0, MU_SEEK_SET, NULL);
-      ret = mu_stream_copy (ostream, istream, 0, NULL);
-      mu_stream_destroy (&ostream);
-    }
+  ret = mu_stream_to_message (istream, &info->msg);
+  mu_stream_unref (istream);
   if (ret == 0)
     *newmsg = info->msg;
-  mu_stream_destroy (&istream);
   _attachment_free (info, ret && ret != EAGAIN);
   return ret;
 }
