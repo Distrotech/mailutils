@@ -32,6 +32,7 @@ imap4d_SOURCES = \
  append.c\
  authenticate.c\
  $(AUTH_GSASL)\
+ $(AUTH_GSSAPI)\
  bye.c\
  capability.c\
  check.c\
