@@ -17,8 +17,12 @@ remove_uidvalidity() {
   sed '/^\* OK \[UIDVALIDITY/d'
 }
 
-remove_select_unagged() {
+remove_select_untagged() {
   sed '/^\* [0-9][0-9]* EXISTS/,/^1 OK.*SELECT Completed/d'
+}
+
+fixup_tz() {
+  sed '/^\* [0-9][0-9]* FETCH/s/ [+-][0-9][0-9][0-9][0-9]"/ +0000"/'
 }
 
 sorted_list_output() {

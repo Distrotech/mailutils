@@ -32,7 +32,7 @@ X LOGOUT
 X OK LOGOUT Completed
 ],
 [],
-[remove_select_unagged])
+[remove_select_untagged])
 
 AT_CLEANUP
 ])

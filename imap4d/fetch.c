@@ -1728,7 +1728,11 @@ fetch_thunk (imap4d_parsebuf_t pb)
 
 	 Obviously the same holds true for non-existing message numbers
 	 as well, although I did not find any explicit mention thereof
-	 in the RFC. */
+	 in the RFC.
+
+	 FIXME: This code also causes imap4d to silently ignore erroneous
+	 msgset specifications (e.g. FETCH foobar (FLAGS)), which should
+	 be fixed.  */
       
       pb->err_text = "Completed";
       return RESP_OK;

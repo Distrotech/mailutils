@@ -83,6 +83,9 @@ m4_include([list.at])
 AT_BANNER([SEARCH])
 m4_include([search.at])
 
+AT_BANNER([FETCH])
+m4_include([fetch.at])
+
 AT_BANNER([IDEF Checks])
 m4_include([IDEF0955.at])
 m4_include([IDEF0956.at])

@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
 
-EXTRA_DIST = $(TESTSUITE_AT) testsuite package.m4 input.msg
+EXTRA_DIST = $(TESTSUITE_AT) testsuite package.m4 
 DISTCLEANFILES       = atconfig $(check_SCRIPTS)
 MAINTAINERCLEANFILES = Makefile.in $(TESTSUITE)
 
@@ -46,6 +46,7 @@ TESTSUITE_AT = \
  create02.at\
  examine.at\
  expunge.at\
+ fetch.at\
  id.at\
  IDEF0955.at\
  IDEF0956.at\

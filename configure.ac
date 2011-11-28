@@ -1438,7 +1438,6 @@ AC_CONFIG_FILES([
  frm/Makefile
  scheme/Makefile
  imap4d/Makefile
- imap4d/testsuite/Makefile
  include/Makefile
  include/mailutils/Makefile
  include/mailutils/sys/Makefile

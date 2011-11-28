@@ -1,8 +1,0 @@
-Makefile
-Makefile.in
-*.log
-*.sum
-imap4d.rc
-site.exp
-remote.exp
-data
