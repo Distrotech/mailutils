@@ -40,6 +40,8 @@ $(srcdir)/package.m4: $(top_srcdir)/configure.ac
 
 TESTSUITE_AT = \
  anystate.at\
+ append00.at\
+ append01.at\
  create01.at\
  create02.at\
  examine.at\

@@ -73,6 +73,10 @@ m4_include([expunge.at])
 m4_include([create01.at])
 m4_include([create02.at])
 
+AT_BANNER([APPEND])
+m4_include([append00.at])
+m4_include([append01.at])
+
 AT_BANNER([LIST])
 m4_include([list.at])
 

@@ -1,0 +1,60 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2011 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# GNU Mailutils is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+
+AT_SETUP([append with envelope date])
+AT_KEYWORDS([append01])
+
+AT_DATA([input],
+[1 APPEND mbox "25-Aug-2002 18:00:00 +0200" {274+}
+Date: Mon, 7 Feb 1994 21:52:25 -0800 (PST)
+From: Fred Foobar <foobar@Blurdybloop.COM>
+Subject: afternoon meeting again
+To: mooch@owatagu.siam.edu
+Message-Id: <B27397-0200000@Blurdybloop.COM>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; CHARSET=US-ASCII
+
+Better yet at 04:00?
+
+X LOGOUT
+])
+
+AT_CHECK([
+> mbox
+imap4d IMAP4D_OPTIONS < input | tr -d '\r'
+echo "=="
+awk 'NF==0 {print NR":"; next} {print NR":",$0}' mbox
+],
+[0],
+[* PREAUTH IMAP4rev1 Test mode
+1 OK APPEND Completed
+* BYE Session terminating.
+X OK LOGOUT Completed
+==
+1: From GNU-imap4d Sun Aug 25 16:00:00 2002
+2: Date: Mon, 7 Feb 1994 21:52:25 -0800 (PST)
+3: From: Fred Foobar <foobar@Blurdybloop.COM>
+4: Subject: afternoon meeting again
+5: To: mooch@owatagu.siam.edu
+6: Message-Id: <B27397-0200000@Blurdybloop.COM>
+7: MIME-Version: 1.0
+8: Content-Type: TEXT/PLAIN; CHARSET=US-ASCII
+9:
+10: Better yet at 04:00?
+11:
+])
+
+AT_CLEANUP
