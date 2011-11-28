@@ -485,8 +485,13 @@ imap4d_preauth_setup (int fd)
     }
   else
     psrv_sa = &srv_sa;
-  
-  if (getpeername (fd, (struct sockaddr *) &clt_sa, &clt_len) == -1)
+
+  if (test_mode)
+    {
+      pclt_sa = NULL;
+      clt_len = 0;
+    }
+  else if (getpeername (fd, (struct sockaddr *) &clt_sa, &clt_len) == -1)
     {
       mu_diag_output (MU_DIAG_ERROR,
 		      _("cannot obtain IP address of client: %s"),

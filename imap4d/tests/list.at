@@ -1,0 +1,143 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2011 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# GNU Mailutils is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+
+m4_pushdef([IMAP4D_HOMEDIR],[spool])
+
+dnl LIST_CHECK([NAME],[KW],[ARG],[OUTPUT],[EXTRA-CODE],[filter,][expand]
+m4_define([LIST_CHECK],[
+AT_SETUP([$1])
+AT_KEYWORDS([list $2])
+
+IMAP4D_CHECK([
+mkdir IMAP4D_HOMEDIR
+m4_foreach([MAILBOX],[bigto.mbox,mbox1,mbox,relational.mbox,relational.mbox,
+ search.mbox,sieve.mbox,teaparty.mbox],[
+  MUT_MBCOPY($abs_top_srcdir/testsuite/spool/MAILBOX,IMAP4D_HOMEDIR)
+])
+$5
+],
+[1 LIST $3
+X LOGOUT
+],
+[$4],
+[],
+[sorted_list_output[]m4_if([$6],,,|[$6])],[$7])
+AT_CLEANUP
+])
+
+dnl ----------------------------------------------------------------------
+LIST_CHECK([asterisk],[list00],
+["~" "*"],
+[dnl
+* LIST (\NoInferiors) "/" ~/bigto.mbox
+* LIST (\NoInferiors) "/" ~/mbox
+* LIST (\NoInferiors) "/" ~/mbox1
+* LIST (\NoInferiors) "/" ~/relational.mbox
+* LIST (\NoInferiors) "/" ~/search.mbox
+* LIST (\NoInferiors) "/" ~/sieve.mbox
+* LIST (\NoInferiors) "/" ~/teaparty.mbox
+])
+
+LIST_CHECK([percent],[list01],
+["~" "%"],
+[dnl
+* LIST (\NoInferiors) "/" ~/bigto.mbox
+* LIST (\NoInferiors) "/" ~/mbox
+* LIST (\NoInferiors) "/" ~/mbox1
+* LIST (\NoInferiors) "/" ~/relational.mbox
+* LIST (\NoInferiors) "/" ~/search.mbox
+* LIST (\NoInferiors) "/" ~/sieve.mbox
+* LIST (\NoInferiors) "/" ~/teaparty.mbox
+])
+
+LIST_CHECK([empty ref + asterisk],[list02],
+["" "*"],
+[dnl
+* LIST (\NoInferiors) "/" bigto.mbox
+* LIST (\NoInferiors) "/" mbox
+* LIST (\NoInferiors) "/" mbox1
+* LIST (\NoInferiors) "/" relational.mbox
+* LIST (\NoInferiors) "/" search.mbox
+* LIST (\NoInferiors) "/" sieve.mbox
+* LIST (\NoInferiors) "/" teaparty.mbox
+* LIST (\NoInferiors) NIL INBOX
+])
+
+LIST_CHECK([root ref + asterisk],[list03],
+["/" "*"],
+[dnl
+1 NO LIST The requested item could not be found.
+])
+
+LIST_CHECK([absolute reference + asterisk],[list04],
+["$cwd/spool" "*"],
+[dnl
+* LIST (\NoInferiors) "/" ////bigto.mbox
+* LIST (\NoInferiors) "/" ////folder/one
+* LIST (\NoInferiors) "/" ////folder/two
+* LIST (\NoInferiors) "/" ////mbox
+* LIST (\NoInferiors) "/" ////mbox1
+* LIST (\NoInferiors) "/" ////relational.mbox
+* LIST (\NoInferiors) "/" ////search.mbox
+* LIST (\NoInferiors) "/" ////sieve.mbox
+* LIST (\NoInferiors) "/" ////teaparty.mbox
+* LIST (\NoSelect) "/" ////folder
+],
+[mkdir IMAP4D_HOMEDIR/folder
+ MUT_MBCOPY($abs_top_srcdir/testsuite/folder/one,IMAP4D_HOMEDIR/folder)
+ MUT_MBCOPY($abs_top_srcdir/testsuite/folder/two,IMAP4D_HOMEDIR/folder)],
+[sed "s|$cwd/IMAP4D_HOMEDIR|///|"],
+[expand])
+
+LIST_CHECK([absolute reference + percent],[list05],
+["$cwd/spool" "%"],
+[dnl
+* LIST (\NoInferiors) "/" ////bigto.mbox
+* LIST (\NoInferiors) "/" ////mbox
+* LIST (\NoInferiors) "/" ////mbox1
+* LIST (\NoInferiors) "/" ////relational.mbox
+* LIST (\NoInferiors) "/" ////search.mbox
+* LIST (\NoInferiors) "/" ////sieve.mbox
+* LIST (\NoInferiors) "/" ////teaparty.mbox
+* LIST (\NoSelect) "/" ////folder
+],
+[mkdir IMAP4D_HOMEDIR/folder
+ MUT_MBCOPY($abs_top_srcdir/testsuite/folder/one,IMAP4D_HOMEDIR/folder)
+ MUT_MBCOPY($abs_top_srcdir/testsuite/folder/two,IMAP4D_HOMEDIR/folder)],
+[sed "s|$cwd/IMAP4D_HOMEDIR|///|"],
+[expand])
+
+LIST_CHECK([absolute reference + mailbox],[list06],
+["$cwd/spool" "search.mbox"],
+[dnl
+* LIST (\NoInferiors) "/" ////search.mbox
+],
+[],
+[sed "s|$cwd/IMAP4D_HOMEDIR|///|"],
+[expand])
+
+LIST_CHECK([empty reference + INBOX],[list07],
+["" INBOX],
+[dnl
+* LIST (\NoInferiors) NIL INBOX
+])
+
+dnl ----------------------------------------------------------------------
+
+m4_popdef([IMAP4D_HOMEDIR])
+
+
+

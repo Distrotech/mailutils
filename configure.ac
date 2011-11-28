@@ -246,7 +246,6 @@ case "${withval}" in
   *)   AC_MSG_ERROR(bad value ${withval} for --without-readline) ;;
 esac],[usereadline=yes])
 
-AC_SUBST(IMAP_AUTHOBJS)
 AC_SUBST(SERV_AUTHLIBS)
 AC_SUBST(SERV_AUTHINCS)
 
@@ -283,15 +282,14 @@ if test "x$status_gssapi" != "xno"; then
       esac
     done
     SERV_AUTHINCS="$SERV_AUTHINCS $GSSAPI_CFLAGS"
-    IMAP_AUTHOBJS="$IMAP_AUTHOBJS auth_gss.o"
     AC_DEFINE(WITH_GSSAPI,1,[Define if mailutils is using GSSAPI])
   fi
 fi
+AM_CONDITIONAL([MU_COND_GSSAPI],[test "$status_gssapi" = "yes"])
 
 MU_CHECK_GSASL(0.2.3, [
     AC_DEFINE(WITH_GSASL,1,[Define if mailutils is using GNU SASL])
     MU_AUTHLIBS="$MU_AUTHLIBS $GSASL_LIBS"
-    IMAP_AUTHOBJS="$IMAP_AUTHOBJS auth_gsasl.o"
     status_gsasl=yes])
 AM_CONDITIONAL([MU_COND_GSASL],[test "$status_gsasl" = "yes"])
 
@@ -1304,6 +1302,7 @@ AC_CONFIG_TESTDIR(readmsg/tests)
 AC_CONFIG_TESTDIR(sieve/tests)
 AC_CONFIG_TESTDIR(mh/tests)
 AC_CONFIG_TESTDIR(comsat/tests)
+AC_CONFIG_TESTDIR(imap4d/tests)
 
 AC_CONFIG_FILES([libmailutils/tests/Makefile
                  libmailutils/tests/atlocal
@@ -1315,6 +1314,8 @@ AC_CONFIG_FILES([libmailutils/tests/Makefile
                  comsat/tests/atlocal
                  frm/tests/Makefile
                  frm/tests/atlocal
+                 imap4d/tests/Makefile
+                 imap4d/tests/atlocal
 		 maidag/tests/Makefile
 		 maidag/tests/atlocal
 		 messages/tests/Makefile

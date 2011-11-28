@@ -330,7 +330,7 @@ mu_mailbox_flush (mu_mailbox_t mbox, int expunge)
     return MU_ERR_MBX_REMOVED;
   if (!(mbox->flags & _MU_MAILBOX_OPEN))
     return _MU_MAILBOX_OPEN;
-  if (!(mbox->flags & (MU_STREAM_RDWR|MU_STREAM_WRITE|MU_STREAM_APPEND)))
+  if (!(mbox->flags & (MU_STREAM_WRITE|MU_STREAM_APPEND)))
     return 0;
 
   mu_mailbox_messages_count (mbox, &total);
@@ -375,7 +375,7 @@ int
 mu_mailbox_append_message (mu_mailbox_t mbox, mu_message_t msg)
 {
   _MBOX_CHECK_Q (mbox, _append_message);
-  if (!(mbox->flags & (MU_STREAM_RDWR|MU_STREAM_WRITE|MU_STREAM_APPEND)))
+  if (!(mbox->flags & (MU_STREAM_WRITE|MU_STREAM_APPEND)))
     return EACCES;
   return mbox->_append_message (mbox, msg);
 }
@@ -422,7 +422,7 @@ int
 mu_mailbox_sync (mu_mailbox_t mbox)
 {
   _MBOX_CHECK_Q (mbox, _sync);
-  if (!(mbox->flags & (MU_STREAM_RDWR|MU_STREAM_WRITE|MU_STREAM_APPEND)))
+  if (!(mbox->flags & (MU_STREAM_WRITE|MU_STREAM_APPEND)))
     return 0;
   return mbox->_sync (mbox);
 }
@@ -438,7 +438,7 @@ int
 mu_mailbox_expunge (mu_mailbox_t mbox)
 {
   _MBOX_CHECK_Q (mbox, _expunge);
-  if (!(mbox->flags & (MU_STREAM_RDWR|MU_STREAM_WRITE|MU_STREAM_APPEND)))
+  if (!(mbox->flags & (MU_STREAM_WRITE|MU_STREAM_APPEND)))
     return EACCES;
   return mbox->_expunge (mbox);
 }

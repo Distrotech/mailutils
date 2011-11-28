@@ -16,13 +16,22 @@
 ## along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
 
 INCLUDES = @MU_APP_COMMON_INCLUDES@ @MU_AUTHINCS@ @SERV_AUTHINCS@ 
-SUBDIRS = testsuite
+SUBDIRS = tests testsuite
 
 sbin_PROGRAMS =	imap4d
+
+if MU_COND_GSASL
+ AUTH_GSASL = auth_gsasl.c
+endif
+
+if MU_COND_GSSAPI
+ AUTH_GSSAPI = auth_gss.c
+endif
 
 imap4d_SOURCES = \
  append.c\
  authenticate.c\
+ $(AUTH_GSASL)\
  bye.c\
  capability.c\
  check.c\
@@ -62,7 +71,6 @@ imap4d_SOURCES = \
  util.c
 
 imap4d_LDADD = \
- @IMAP_AUTHOBJS@\
  ${MU_APP_LIBRARIES}\
  ${MU_LIB_MBOX}\
  ${MU_LIB_MH}\
@@ -72,16 +80,12 @@ imap4d_LDADD = \
  ${MU_LIB_MAILUTILS}\
  @SERV_AUTHLIBS@ @MU_COMMON_LIBRARIES@ @TCPWRAP_LIBRARIES@
 
-## This kludge is necessary to correctly establish imap4d -> IMAP_AUTHOBJS
-## and imap4d -> MU_AUTHLIBS dependencies. Automake stupidly refuses to 
-## include them.
-## Same kludge appears in pop3d/Makefile.am and auth/Makefile.am
+## This kludge is necessary to correctly establish imap4d -> MU_AUTHLIBS
+## dependencies. Automake stupidly refuses to include them.
+## The same kludge appears in pop3d/Makefile.am and auth/Makefile.am
 ## Think about better approach         --gray
 imap4d_DEPENDENCIES = \
- @IMAP_AUTHOBJS@\
  @MU_AUTHLIBS_DEPENDENCY@\
  ../lib/libmuaux.a\
  ${MU_LIB_MBOX}\
  ${MU_LIB_MAILUTILS}
-
-EXTRA_DIST=auth_gss.c auth_gsasl.c

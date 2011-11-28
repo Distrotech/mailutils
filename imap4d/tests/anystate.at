@@ -1,0 +1,40 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2011 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# GNU Mailutils is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+
+AT_SETUP([Non-authenticated state])
+AT_KEYWORDS([anystate])
+
+m4_pushdef([IMAP4D_OPTIONS],[IMAP4D_DEFAULT_OPTIONS])
+
+IMAP4D_CHECK([],
+[1 CAPABILITY
+2 NOOP
+3 NAMESPACE
+X LOGOUT
+],
+[* OK IMAP4rev1 Test mode
+* CAPABILITY IMAP4rev1 NAMESPACE ID IDLE LITERAL+ UNSELECT
+1 OK CAPABILITY Completed
+2 OK NOOP Completed
+3 BAD NAMESPACE Wrong state
+* BYE Session terminating.
+X OK LOGOUT Completed
+])
+
+m4_popdef([IMAP4D_OPTIONS])
+
+AT_CLEANUP
+

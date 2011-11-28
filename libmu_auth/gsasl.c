@@ -38,7 +38,12 @@
 #include <gsasl.h>
 
 struct mu_gsasl_module_data mu_gsasl_module_data = {
-    SITE_CRAM_MD5_PWD
+  1,
+  NULL,
+  NULL,
+  NULL,
+  NULL,
+  SITE_CRAM_MD5_PWD
 };
 
 int
@@ -47,6 +52,12 @@ mu_gsasl_module_init (enum mu_gocs_op op, void *data)
   if (op == mu_gocs_op_set && data)
     memcpy (&mu_gsasl_module_data, data, sizeof (mu_gsasl_module_data));
   return 0;
+}
+
+int
+mu_gsasl_enabled (void)
+{
+  return mu_gsasl_module_data.enable;
 }
 
 
@@ -214,5 +225,10 @@ mu_gsasl_stream_create (mu_stream_t *stream, mu_stream_t transport,
   mu_stream_unref (out);
   return rc;
 }
-  
+#else
+int
+mu_gsasl_enabled (void)
+{
+  return 0;
+}
 #endif

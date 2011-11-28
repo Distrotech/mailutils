@@ -784,17 +784,20 @@ fetch_io (mu_stream_t stream, size_t start, size_t size, size_t max)
       io_sendf ("<%lu>", (unsigned long) start);
       io_sendf (" \"\"");
     }
-  else if (size + 2 < size) /* Check for integer overflow */
-    {
-      mu_stream_destroy (&rfc);
-      return RESP_BAD;
-    }
   else
     {
       int rc;
       char *buffer, *p;
       size_t total = 0;
 
+      if (size > max)
+	size = max;
+      if (size + 2 < size) /* Check for integer overflow */
+	{
+	  mu_stream_destroy (&rfc);
+	  return RESP_BAD;
+	}
+      
       p = buffer = malloc (size + 1);
       if (!p)
 	imap4d_bye (ERR_NO_MEM);

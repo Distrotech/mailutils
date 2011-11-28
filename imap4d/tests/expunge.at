@@ -1,0 +1,45 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2011 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# GNU Mailutils is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+
+AT_SETUP([expunge])
+
+IMAP4D_CHECK([
+MUT_MBCOPY($abs_top_srcdir/testsuite/spool/search.mbox,temp)
+sed 's/^\(Status: .*\)/\1D/' temp > INBOX
+],
+[1 SELECT INBOX
+2 EXPUNGE
+X LOGOUT
+],
+[* PREAUTH IMAP4rev1 Test mode
+* 8 EXISTS
+* 5 RECENT
+* OK [[UIDNEXT 9]] Predicted next uid
+* OK [[UNSEEN 4]] first unseen messsage
+* FLAGS (\Answered \Flagged \Deleted \Seen \Draft)
+* OK [[PERMANENTFLAGS (\Answered \Flagged \Deleted \Seen \Draft)]] Permanent flags
+1 OK [[READ-WRITE]] SELECT Completed
+* 1 EXPUNGED
+* 1 EXPUNGED
+* 1 EXPUNGED
+* 5 EXISTS
+* 5 RECENT
+2 OK EXPUNGE Completed
+* BYE Session terminating.
+X OK LOGOUT Completed
+])
+
+AT_CLEANUP

@@ -21,6 +21,7 @@
 
 struct mu_gsasl_module_data
 {
+  int enable;
   char *service;
   char *realm;
   char *hostname;
@@ -28,12 +29,14 @@ struct mu_gsasl_module_data
   char *cram_md5_pwd;
 };
 
-int mu_gsasl_module_init (enum mu_gocs_op, void *);
-
-extern struct mu_gsasl_module_data mu_gsasl_module_data;
+int mu_gsasl_enabled (void);
 
 #ifdef WITH_GSASL
 #include <gsasl.h>
+
+int mu_gsasl_module_init (enum mu_gocs_op, void *);
+extern struct mu_gsasl_module_data mu_gsasl_module_data;
+
 
 int gsasl_encoder_stream (mu_stream_t *pstr, mu_stream_t transport,
 			  Gsasl_session *ctx, int flags);

@@ -52,18 +52,22 @@ int ident_port;
 char *ident_keyfile;
 int ident_encrypt_only;
 
+int test_mode;
+
 const char *program_version = "imap4d (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU imap4d -- the IMAP4D daemon.");
 
 #define OPT_PREAUTH         259
 #define OPT_FOREGROUND      260
+#define OPT_TEST_MODE       261
 
 static struct argp_option options[] = {
   { "foreground", OPT_FOREGROUND, 0, 0, N_("remain in foreground"), 0},
   { "inetd",  'i', 0, 0, N_("run in inetd mode"), 0},
   { "daemon", 'd', N_("NUMBER"), OPTION_ARG_OPTIONAL,
     N_("runs in daemon mode with a maximum of NUMBER children"), 0 },
-
+  { "test", OPT_TEST_MODE, 0, 0,
+    N_("run in test mode"), 0 },
   { "preauth", OPT_PREAUTH, NULL, 0,
     N_("start in preauth mode") },
   
@@ -118,6 +122,11 @@ imap4d_parse_opt (int key, char *arg, struct argp_state *state)
       
     case OPT_PREAUTH:
       preauth_mode = preauth_stdio;
+      break;
+
+    case OPT_TEST_MODE:
+      mu_argp_node_list_new (lst, "mode", "inetd");
+      test_mode = 1;
       break;
       
     case ARGP_KEY_INIT:
@@ -318,7 +327,7 @@ imap4d_session_setup0 ()
     {
       char *expr = mu_tilde_expansion (modify_homedir, "/", real_homedir);
       struct mu_wordsplit ws;
-      const char *env[3];
+      const char *env[5];
 
       env[0] = "user";
       env[1] = auth_data->name;
@@ -414,8 +423,10 @@ imap4d_mainloop (int ifd, int ofd, int tls)
 {
   imap4d_tokbuf_t tokp;
   char *text;
-  int debug_mode = isatty (ifd);
   int signo;
+
+  if (!test_mode)
+    test_mode = isatty (ifd);
 
   if ((signo = setjmp (child_jmp)))
     {
@@ -453,10 +464,10 @@ imap4d_mainloop (int ifd, int ofd, int tls)
 
   if (imap4d_preauth_setup (ifd) == 0)
     {
-      if (debug_mode)
+      if (test_mode)
 	{
-	  mu_diag_output (MU_DIAG_INFO, _("started in debugging mode"));
-	  text = "IMAP4rev1 Debugging mode";
+	  mu_diag_output (MU_DIAG_INFO, _("started in test mode"));
+	  text = "IMAP4rev1 Test mode";
 	}
       else
 	text = "IMAP4rev1";
@@ -603,9 +614,12 @@ main (int argc, char **argv)
 #endif
 
   namespace_init ();
-  
-  auth_gssapi_init ();
-  auth_gsasl_init ();
+
+  if (mu_gsasl_enabled ())
+    {
+      auth_gssapi_init ();
+      auth_gsasl_init ();
+    }
 
 #ifdef USE_LIBPAM
   if (!mu_pam_service)

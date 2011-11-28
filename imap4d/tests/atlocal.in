@@ -1,0 +1,32 @@
+# @configure_input@                                     -*- shell-script -*-
+# Configurable variable values for Mailutils test suite.
+# Copyright (C) 2011 Free Software Foundation, Inc.
+
+PATH=@abs_builddir@:@abs_top_builddir@/imap4d:$top_srcdir:$srcdir:$PATH
+MU_ULONG_MAX=@MU_ULONG_MAX@
+
+remove_untagged() {
+  sed '/^\*/d'
+}
+
+filter_untagged() {
+  sed 's/\(^\* \(OK\|BAD\|NO\|PREAUTH\)\).*/\1/'
+}
+
+remove_uidvalidity() {
+  sed '/^\* OK \[UIDVALIDITY/d'
+}
+
+remove_select_unagged() {
+  sed '/^\* [0-9][0-9]* EXISTS/,/^1 OK.*SELECT Completed/d'
+}
+
+sorted_list_output() {
+  sed '/^\* PREAUTH/d
+       /^\* OK/d
+       /^\* BYE/d
+       /^\* [0-9][0-9]* EXISTS/d
+       /^\* [0-9][0-9]* RECENT/d
+       /^\* FLAGS/d
+       /^[0-9X][0-9]* OK/d' | sort
+}       

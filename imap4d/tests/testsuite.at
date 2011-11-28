@@ -1,0 +1,84 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2011 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# GNU Mailutils is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+
+m4_include([testsuite.inc])
+
+m4_define([IMAP4D_HOMEDIR])
+
+m4_define([IMAP4D_DEFAULT_OPTIONS],[dnl
+--no-site-config dnl
+--no-user-config dnl
+--test dnl
+--set logging.syslog=0 dnl
+--set logging.severity=notice dnl
+--set .gsasl.enable=0 dnl
+--set '|homedir='`pwd`m4_if([IMAP4D_HOMEDIR],,,/[IMAP4D_HOMEDIR]) dnl
+--set '|mailbox|folder='`pwd` dnl
+--set '|mailbox|mailbox-pattern='`pwd`/INBOX dnl
+])
+
+m4_define([IMAP4D_PREAUTH_OPTIONS],[dnl
+IMAP4D_DEFAULT_OPTIONS dnl
+--preauth dnl
+])
+
+m4_define([IMAP4D_OPTIONS],[IMAP4D_PREAUTH_OPTIONS])
+
+dnl ------------------------------------------------------------
+dnl IMAP4D_CHECK([PREP], [INPUT], [STDOUT = `'], [STDERR = `'],
+dnl              [FILTER = `'],[expand])
+dnl
+m4_pushdef([IMAP4D_CHECK],[
+cwd=`pwd`
+m4_if([$6],,[dnl
+AT_DATA([input],[$2])dnl
+],[cat > input <<EOT
+[$2]
+EOT
+])
+$1
+AT_CHECK([
+imap4d IMAP4D_OPTIONS < input | tr -d '\r' | dnl
+ m4_if([$5],,[remove_uidvalidity],[$5])
+],
+[0],
+[$3],
+[$4])
+])
+
+AT_INIT
+AT_TESTED([imap4d])
+MUT_VERSION(imap4d)
+
+m4_include([anystate.at])
+m4_include([id.at])
+
+m4_include([select.at])
+m4_include([examine.at])
+m4_include([status.at])
+m4_include([expunge.at])
+m4_include([create01.at])
+m4_include([create02.at])
+
+AT_BANNER([LIST])
+m4_include([list.at])
+
+AT_BANNER([SEARCH])
+m4_include([search.at])
+
+AT_BANNER([IDEF Checks])
+m4_include([IDEF0955.at])
+m4_include([IDEF0956.at])
