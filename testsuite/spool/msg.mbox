@@ -1,0 +1,44 @@
+From gray@example.org Sat Nov 26 22:45:20 2011
+Date: Sat, 26 Nov 2011 22:45:20 +0200
+From: Sergey Poznyakoff <gray@example.org>
+To: <root@example.com>
+Subject: rfc2046
+Content-Type: multipart/mixed; boundary="1595057156-1322340286=:8528"
+MIME-Version: 1.0
+Status: OR
+
+--1595057156-1322340286=:8528
+Content-ID: <20111126224446.8528.1@host.example.org>
+Content-Type: text/plain
+
+An excerpt from RFC 2046 regarding message/rfc822.
+
+
+--1595057156-1322340286=:8528
+Content-Transfer-Encoding: 7bit
+Content-Description: 
+Content-ID: <20111126224446.8528.1@host.example.org>
+Content-Type: message/rfc822; name="1.msg"
+
+Message-ID: <20111123103317.27412@host.example.org>
+Date: Wed, 23 Nov 2011 10:33:17 +0200
+From: Sergey Poznyakoff <gray@example.org>
+To: <gray@example.com>
+Subject: Re: RFC822 Subtype
+In-reply-to: Your message of Wed, 23 Nov 2011 08:48:16 +0100
+         <87wrar6zzz@example.com>
+References: <87wrar6zzz@example.com>
+X-Envelope-Date: Wed Nov 23 08:33:17 2011
+X-Envelope-Sender: gray@example.org
+
+5.2.1.  RFC822 Subtype
+
+   A media type of "message/rfc822" indicates that the body contains an
+   encapsulated message, with the syntax of an RFC 822 message.
+   However, unlike top-level RFC 822 messages, the restriction that each
+   "message/rfc822" body must include a "From", "Date", and at least one
+   destination header is removed and replaced with the requirement that
+   at least one of "From", "Subject", or "Date" must be present.
+
+--1595057156-1322340286=:8528--
+

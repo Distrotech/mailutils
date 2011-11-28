@@ -528,9 +528,9 @@ gettok (struct imap4d_tokbuf *tok, size_t off)
 	return insert_nul (tok, off);
       off++;
     }
-  buf[off++] = 0;
+  insert_nul (tok, off);
   
-  return off;
+  return off + 1;
 }
 
 static void
