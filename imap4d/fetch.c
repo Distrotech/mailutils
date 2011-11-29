@@ -32,10 +32,11 @@
 
 struct fetch_runtime_closure
 {
-  int eltno;
-  size_t msgno;
-  mu_message_t msg;
-  char *err_text;
+  int eltno;           /* Serial number of the last output FETCH element */
+  size_t msgno;        /* Sequence number of the message being processed */
+  mu_message_t msg;    /* The message itself */
+  mu_list_t msglist;   /* A list of referenced messages.  See KLUDGE below. */
+  char *err_text;      /* On return: error description if failed. */
 };
 
 struct fetch_function_closure;
@@ -662,7 +663,7 @@ set_seen (struct fetch_function_closure *ffc,
 	}
     }
 }
-
+
 static mu_message_t 
 fetch_get_part (struct fetch_function_closure *ffc,
 		struct fetch_runtime_closure *frt)
@@ -675,7 +676,50 @@ fetch_get_part (struct fetch_function_closure *ffc,
       return NULL;
   return msg;
 }
+
+/* FIXME: This is a KLUDGE.
 
+   There is so far no way to unref the MU elements being used to construct
+   a certain entity when this entity itself is being destroyed.  In particular,
+   retrieving a nested message/rfc822 part involves creating several messages
+   while unencapsulating, which messages should be unreferenced when the
+   topmost one is destroyed.
+
+   A temporary solution used here is to keep a list of such messages and
+   unreference them together with the topmost one when no longer needed.
+   A message is added to the list by frt_register_message().  All messages
+   in the list are unreferenced by calling frt_unregister_messages().
+
+   The proper solution is of course providing a way for mu_message_t (and
+   other MU objects) to unreference its parent elements.  This should be fixed
+   in later releases.
+ */
+
+static void
+_unref_message_item (void *data)
+{
+  mu_message_unref ((mu_message_t)data);
+}
+
+static int
+frt_register_message (struct fetch_runtime_closure *frt, mu_message_t msg)
+{
+  if (!frt->msglist)
+    {
+      int rc = mu_list_create (&frt->msglist);
+      if (rc)
+	return rc;
+      mu_list_set_destroy_item (frt->msglist, _unref_message_item);
+    }
+  return mu_list_append (frt->msglist, msg);
+}
+
+static void
+frt_unregister_messages (struct fetch_runtime_closure *frt)
+{
+  mu_list_clear (frt->msglist);
+}
+
 static mu_message_t 
 fetch_get_part_rfc822 (struct fetch_function_closure *ffc,
 		       struct fetch_runtime_closure *frt)
@@ -692,35 +736,46 @@ fetch_get_part_rfc822 (struct fetch_function_closure *ffc,
     }
   
   for (i = 0; i < ffc->nset; i++)
-    if (mu_message_get_part (msg, ffc->section_part[i], &msg))
-      return NULL;
-
-  if (mu_message_get_header (msg, &header))
-    return NULL;
-  
-  if (mu_header_sget_value (header, MU_HEADER_CONTENT_TYPE, &hval) == 0)
     {
-      struct mu_wordsplit ws;
-      int rc;
+      if (mu_message_get_part (msg, ffc->section_part[i], &msg))
+	return NULL;
+
+      if (mu_message_get_header (msg, &header))
+	return NULL;
+  
+      if (mu_header_sget_value (header, MU_HEADER_CONTENT_TYPE, &hval) == 0)
+	{
+	  struct mu_wordsplit ws;
+	  int rc;
       
-      ws.ws_delim = " \t\r\n;=";
-      ws.ws_alloc_die = imap4d_ws_alloc_die;
-      if (mu_wordsplit (hval, &ws, IMAP4D_WS_FLAGS))
-	{
-	  mu_error (_("%s failed: %s"), "mu_wordsplit",
-		    mu_wordsplit_strerror (&ws));
-	  return NULL;
-	}
+	  ws.ws_delim = " \t\r\n;=";
+	  ws.ws_alloc_die = imap4d_ws_alloc_die;
+	  if (mu_wordsplit (hval, &ws, IMAP4D_WS_FLAGS))
+	    {
+	      mu_error (_("%s failed: %s"), "mu_wordsplit",
+			mu_wordsplit_strerror (&ws));
+	      return NULL;
+	    }
 
-      rc = mu_c_strcasecmp (ws.ws_wordv[0], "MESSAGE/RFC822");
-      mu_wordsplit_free (&ws);
+	  rc = mu_c_strcasecmp (ws.ws_wordv[0], "MESSAGE/RFC822");
+	  mu_wordsplit_free (&ws);
 
-      if (rc == 0)
-	{
-	  rc = mu_message_unencapsulate  (msg, &retmsg, NULL);
-	  if (rc)
-	    mu_error (_("%s failed: %s"), "mu_message_unencapsulate",
-		      mu_strerror (rc));
+	  if (rc == 0)
+	    {
+	      rc = mu_message_unencapsulate  (msg, &retmsg, NULL);
+	      if (rc)
+		{
+		  mu_error (_("%s failed: %s"), "mu_message_unencapsulate",
+			    mu_strerror (rc));
+		  return NULL;
+		}
+	      if (frt_register_message (frt, retmsg))
+		{
+		  frt_unregister_messages (frt);
+		  return NULL;
+		}
+	      msg = retmsg;
+	    }
 	}
     }
   
@@ -1042,7 +1097,7 @@ _frt_body_text (struct fetch_function_closure *ffc,
   mu_body_get_streamref (body, &stream);
   rc = fetch_io (stream, ffc->start, ffc->size, size + lines);
   mu_stream_destroy (&stream);
-  mu_message_unref (msg);
+  frt_unregister_messages (frt);
   return rc;
 }
 
@@ -1087,7 +1142,7 @@ _frt_header (struct fetch_function_closure *ffc,
   mu_header_get_streamref (header, &stream);
   rc = fetch_io (stream, ffc->start, ffc->size, size + lines);
   mu_stream_destroy (&stream);
-  mu_message_unref (msg);
+  frt_unregister_messages (frt);
   return rc;
 }
 
@@ -1177,7 +1232,7 @@ _frt_header_fields (struct fetch_function_closure *ffc,
   if (mu_message_get_header (msg, &header)
       || mu_header_get_iterator (header, &itr))
     {
-      mu_message_unref (msg);
+      frt_unregister_messages (frt);
       io_sendf (" NIL");
       return RESP_OK;
     }
@@ -1216,7 +1271,7 @@ _frt_header_fields (struct fetch_function_closure *ffc,
   mu_stream_seek (stream, 0, MU_SEEK_SET, NULL);
   status = fetch_io (stream, ffc->start, ffc->size, size + lines);
   mu_stream_destroy (&stream);
-  mu_message_unref (msg);
+  frt_unregister_messages (frt);
   
   return status;
 }
@@ -1783,7 +1838,8 @@ imap4d_fetch0 (imap4d_tokbuf_t tok, int isuid, char **err_text)
     {
       size_t i;
       struct fetch_runtime_closure frc;
-      
+
+      memset (&frc, 0, sizeof (frc));
       /* Prepare status code. It will be replaced if an error occurs in the
 	 loop below */
       frc.err_text = "Completed";
@@ -1801,7 +1857,8 @@ imap4d_fetch0 (imap4d_tokbuf_t tok, int isuid, char **err_text)
 	      io_sendf (")\n");
 	    }
 	}
-      }
+      mu_list_destroy (&frc.msglist);
+    }
   
   mu_list_destroy (&pclos.fnlist);
   free (pclos.set);

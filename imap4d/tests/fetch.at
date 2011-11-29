@@ -363,10 +363,40 @@ TO: <gray@example.com>
 )],
 [msg.mbox])
 
+FETCH_CHECK([nested message/rfc822],[fetch-nested fetch21],
+[2 BODY[[2.2.TEXT]]],
+[* 2 FETCH (FLAGS (\Seen) BODY[[2.2.TEXT]] {451}
+5.2.1.  RFC822 Subtype
+
+   A media type of "message/rfc822" indicates that the body contains an
+   encapsulated message, with the syntax of an RFC 822 message.
+   However, unlike top-level RFC 822 messages, the restriction that each
+   "message/rfc822" body must include a "From", "Date", and at least one
+   destination header is removed and replaced with the requirement that
+   at least one of "From", "Subject", or "Date" must be present.
+)],
+[msg.mbox])
+
+FETCH_CHECK([nested multipart + message/rfc822],[fetch-nested fetch22],
+[2 BODY[[2.2.TEXT]]],
+[* 2 FETCH (FLAGS (\Seen) BODY[[2.2.TEXT]] {451}
+5.2.1.  RFC822 Subtype
+
+   A media type of "message/rfc822" indicates that the body contains an
+   encapsulated message, with the syntax of an RFC 822 message.
+   However, unlike top-level RFC 822 messages, the restriction that each
+   "message/rfc822" body must include a "From", "Date", and at least one
+   destination header is removed and replaced with the requirement that
+   at least one of "From", "Subject", or "Date" must be present.
+)],
+[msg.mbox])
+
+
+
 # BODY.PEEK[<section>]<<partial>>
 #                    An alternate form of BODY[<section>] that does not
 #                    implicitly set the \Seen flag.
-FETCH_CHECK([BODY.PEEK[[HEADER]]],[fetch-body-peek-header fetch21],
+FETCH_CHECK([BODY.PEEK[[HEADER]]],[fetch-body-peek-header fetch23],
 [1 BODY.PEEK[[HEADER]]],
 [* 1 FETCH (BODY[[HEADER]] {326}
 Received: (from foobar@nonexistent.net)
@@ -384,7 +414,7 @@ Subject: Jabberwocky
 #                syntax of the resulting untagged FETCH data (RFC822
 #                is returned).
 
-FETCH_CHECK([RFC822],[fetch-rfc822 fetch22],
+FETCH_CHECK([RFC822],[fetch-rfc822 fetch24],
 [1 RFC822],
 [* 1 FETCH (FLAGS (\Seen) RFC822 {1298}
 Received: (from foobar@nonexistent.net)
@@ -437,7 +467,7 @@ And the mome raths outgrabe.
 #                differing in the syntax of the resulting untagged
 #                FETCH data (RFC822.HEADER is returned).
 # FIXME: Should it set \Seen flag?
-FETCH_CHECK([RFC822.HEADER],[fetch-rfc822-header fetch23],
+FETCH_CHECK([RFC822.HEADER],[fetch-rfc822-header fetch25],
 [2 RFC822.HEADER],
 [* 2 FETCH (RFC822.HEADER {328}
 Received: (from bar@dontmailme.org)
@@ -453,14 +483,14 @@ Subject: Re: Jabberwocky
 
 # RFC822.SIZE    The [RFC-822] size of the message.
 
-FETCH_CHECK([RFC822.SIZE],[fetch-rfc822-size fetch24],
+FETCH_CHECK([RFC822.SIZE],[fetch-rfc822-size fetch26],
 [3 RFC822.SIZE],
 [* 3 FETCH (RFC822.SIZE 1611)])
 
 # RFC822.TEXT    Functionally equivalent to BODY[TEXT], differing in
 #                the syntax of the resulting untagged FETCH data
 #                (RFC822.TEXT is returned).
-FETCH_CHECK([RFC822.TEXT],[fetch-rfc822-text  fetch25],
+FETCH_CHECK([RFC822.TEXT],[fetch-rfc822-text  fetch27],
 [2 RFC822.TEXT],
 [* 2 FETCH (FLAGS (\Seen) RFC822.TEXT {219}
 It seems very pretty, but it's *rather* hard to understand!'
@@ -472,7 +502,7 @@ that's clear, at any rate...
 # FAST           Macro equivalent to: (FLAGS INTERNALDATE
 #                RFC822.SIZE)
 
-FETCH_CHECK([FAST],[fetch-fast fetch26],
+FETCH_CHECK([FAST],[fetch-fast fetch28],
 [1 FAST],
 [* 1 FETCH (FLAGS (\Recent) INTERNALDATE "28-Dec-2001 22:18:09 +0000" RFC822.SIZE 1298)],
 [],
@@ -481,7 +511,7 @@ FETCH_CHECK([FAST],[fetch-fast fetch26],
 # FULL           Macro equivalent to: (FLAGS INTERNALDATE
 #                RFC822.SIZE ENVELOPE BODY)
 
-FETCH_CHECK([FULL],[fetch-full fetch27],
+FETCH_CHECK([FULL],[fetch-full fetch29],
 [4 FULL],
 [* 4 FETCH (FLAGS (\Recent) INTERNALDATE "13-Jul-2002 00:50:58 +0000" RFC822.SIZE 3483 ENVELOPE ("Sat, 13 Jul 2002 00:50:58 +0300" "Nested MIME" (("Sergey Poznyakoff" NIL "gray" "example.net")) (("Sergey Poznyakoff" NIL "gray" "example.net")) (("Sergey Poznyakoff" NIL "gray" "example.net")) (("Foo Bar" NIL "foobar" "nonexistent.net")) NIL NIL NIL "<200207122150.g6CLowb05126@example.net>") BODY (("text" "plain" ("name" "msg.21" "charset" "us-ascii") "<5122.1026510654.2@example.net>" "Father William Part I" "7BIT" 351 10)(("application" "octet-stream" ("name" "msg.22") "<5122.1026510654.4@example.net>" "Father William Part II" "base64" 486)(("application" "octet-stream" ("name" "msg.23") "<5122.1026510654.6@example.net>" "Father William Part III" "base64" 490)("application" "octet-stream" ("name" "msg.24") "<5122.1026510654.7@example.net>" "Father William Part IV" "base64" 502) "mixed" NIL NIL NIL) "mixed" NIL NIL NIL) "mixed" NIL NIL NIL))],
 [],
