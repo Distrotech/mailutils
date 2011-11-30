@@ -33,14 +33,12 @@ mu_imap_login (mu_imap_t imap, const char *user, const char *pass)
     return EINVAL;
   if (!imap->io)
     return MU_ERR_NO_TRANSPORT;
-  if (imap->state != MU_IMAP_CONNECTED)
-    return MU_ERR_SEQ;
-  if (imap->imap_state != MU_IMAP_STATE_NONAUTH)
+  if (imap->session_state != MU_IMAP_SESSION_NONAUTH)
     return MU_ERR_SEQ;
   
-  switch (imap->state)
+  switch (imap->client_state)
     {
-    case MU_IMAP_CONNECTED:
+    case MU_IMAP_CLIENT_READY:
       if (mu_imap_trace_mask (imap, MU_IMAP_TRACE_QRY, MU_XSCRIPT_SECURE))
 	_mu_imap_xscript_level (imap, MU_XSCRIPT_SECURE);
       status = _mu_imap_tag_next (imap);
@@ -51,16 +49,16 @@ mu_imap_login (mu_imap_t imap, const char *user, const char *pass)
       /* FIXME: how to obscure the passwd in the stream buffer? */
       MU_IMAP_CHECK_EAGAIN (imap, status);
       MU_IMAP_FCLR (imap, MU_IMAP_RESP);
-      imap->state = MU_IMAP_LOGIN_RX;
+      imap->client_state = MU_IMAP_CLIENT_LOGIN_RX;
 
-    case MU_IMAP_LOGIN_RX:
+    case MU_IMAP_CLIENT_LOGIN_RX:
       status = _mu_imap_response (imap, NULL, NULL);
-      imap->state = MU_IMAP_CONNECTED;
+      imap->client_state = MU_IMAP_CLIENT_READY;
       MU_IMAP_CHECK_EAGAIN (imap, status);
       switch (imap->resp_code)
 	{
 	case MU_IMAP_OK:
-	  imap->imap_state = MU_IMAP_STATE_AUTH;
+	  imap->session_state = MU_IMAP_SESSION_AUTH;
 	  break;
 
 	case MU_IMAP_NO:

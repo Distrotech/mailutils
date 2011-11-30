@@ -36,7 +36,7 @@ mu_imap_state (mu_imap_t imap, int *pstate)
 {
   if (imap == NULL || pstate == NULL)
     return EINVAL;
-  *pstate = imap->imap_state;
+  *pstate = imap->session_state;
   return 0;
 }
 

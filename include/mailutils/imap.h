@@ -33,13 +33,13 @@ extern "C" {
   
 typedef struct _mu_imap *mu_imap_t;
 
-enum mu_imap_state
+enum mu_imap_session_state
   {
-    MU_IMAP_STATE_INIT,     /* Initial state */
-    MU_IMAP_STATE_NONAUTH,  /* Non-Authenticated State */
-    MU_IMAP_STATE_AUTH,     /* Authenticated State */
-    MU_IMAP_STATE_SELECTED, /* Selected State */
-    MU_IMAP_STATE_LOGOUT,   /* Logout State */
+    MU_IMAP_SESSION_INIT,     /* Initial state (disconnected) */
+    MU_IMAP_SESSION_NONAUTH,  /* Non-Authenticated State */
+    MU_IMAP_SESSION_AUTH,     /* Authenticated State */
+    MU_IMAP_SESSION_SELECTED, /* Selected State */
+    MU_IMAP_SESSION_LOGOUT,   /* Logout State */
   };
   
 int mu_imap_create (mu_imap_t *pimap);

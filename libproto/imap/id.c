@@ -84,12 +84,12 @@ mu_imap_id (mu_imap_t imap, char **idenv, mu_assoc_t *passoc)
     return EINVAL;
   if (!imap->io)
     return MU_ERR_NO_TRANSPORT;
-  if (imap->state != MU_IMAP_CONNECTED)
+  if (imap->session_state == MU_IMAP_SESSION_INIT)
     return MU_ERR_SEQ;
-
-  switch (imap->state)
+  
+  switch (imap->client_state)
     {
-    case MU_IMAP_CONNECTED:
+    case MU_IMAP_CLIENT_READY:
       status = _mu_imap_tag_next (imap);
       MU_IMAP_CHECK_EAGAIN (imap, status);
       status = mu_imapio_printf (imap->io, "%s ID ", imap->tag_str);
@@ -121,9 +121,9 @@ mu_imap_id (mu_imap_t imap, char **idenv, mu_assoc_t *passoc)
       status = mu_imapio_printf (imap->io, "\r\n");
       MU_IMAP_CHECK_ERROR (imap, status);
       MU_IMAP_FCLR (imap, MU_IMAP_RESP);
-      imap->state = MU_IMAP_ID_RX;
+      imap->client_state = MU_IMAP_CLIENT_ID_RX;
 
-    case MU_IMAP_ID_RX:
+    case MU_IMAP_CLIENT_ID_RX:
       status = _mu_imap_response (imap, parse_id_reply, passoc);
       MU_IMAP_CHECK_EAGAIN (imap, status);
       switch (imap->resp_code)
@@ -140,7 +140,7 @@ mu_imap_id (mu_imap_t imap, char **idenv, mu_assoc_t *passoc)
 	  status = MU_ERR_BADREPLY;
 	  break;
 	}
-      imap->state = MU_IMAP_CONNECTED;
+      imap->client_state = MU_IMAP_CLIENT_READY;
       break;
 
     default:

@@ -62,17 +62,17 @@ static struct argp imap_argp = {
 
 static mu_imap_t imap;
 
-static enum mu_imap_state
+static enum mu_imap_session_state
 current_imap_state ()
 {
   int state;
   if (imap == NULL)
-    state = MU_IMAP_STATE_INIT;
+    state = MU_IMAP_SESSION_INIT;
   else
     {
       mu_imap_state (imap, &state);
-      if (state == MU_IMAP_STATE_LOGOUT)
-	state = MU_IMAP_STATE_INIT;
+      if (state == MU_IMAP_SESSION_LOGOUT)
+	state = MU_IMAP_SESSION_INIT;
     }
   return state;
 }
@@ -131,12 +131,12 @@ static char *username;
 static void
 imap_prompt_env ()
 {
-  enum mu_imap_state state = current_imap_state ();
+  enum mu_imap_session_state state = current_imap_state ();
   if (!mutool_prompt_env)
     mutool_prompt_env = xcalloc (2*7 + 1, sizeof(mutool_prompt_env[0]));
 
   mutool_prompt_env[0] = "user";
-  mutool_prompt_env[1] = (state >= MU_IMAP_STATE_AUTH && username) ?
+  mutool_prompt_env[1] = (state >= MU_IMAP_SESSION_AUTH && username) ?
                            username : "[nouser]";
 
   mutool_prompt_env[2] = "host"; 
@@ -188,7 +188,133 @@ imap_bad_callback (void *data, int code, size_t sdat, void *pdat)
   const char *text = pdat;
   mu_diag_output (MU_DIAG_CRIT, "SERVER ALERT: %s", text);
 }
+
+/* Fetch callback */
+static void
+format_email (mu_stream_t str, const char *name, mu_address_t addr)
+{
+  mu_stream_printf (str, "  %s = ", name);
+  if (!addr)
+    mu_stream_printf (str, "NIL");
+  else
+    {
+      size_t sz = mu_address_format_string (addr, NULL, 0);
+      char *buf = xmalloc (sz + 1);
+      mu_address_format_string (addr, buf, sz);
+      mu_stream_write (str, buf, strlen (buf), NULL);
+    }
+  mu_stream_printf (str, "\n");
+}
 
+static void
+format_date (mu_stream_t str, char *name,
+	     struct tm *tm, struct mu_timezone *tz)
+{
+  char date[128];
+  
+  strftime (date, sizeof (date), "%a %b %e %H:%M:%S", tm);
+  mu_stream_printf (str, "  %s = %s", name, date);
+  if (tz->tz_name)
+    mu_stream_printf (str, " %s", tz->tz_name);
+  else
+    {
+      int off = tz->utc_offset;
+      if (off < 0)
+	{
+	  mu_stream_printf (str, " -");
+	  off = - off;
+	}
+      else
+	mu_stream_printf (str, " +");
+      off /= 60;
+      mu_stream_printf (str, "%02d%02d", off / 60, off % 60);
+    }
+  mu_stream_printf (str, "\n");
+}
+
+static int
+fetch_response_printer (void *item, void *data)
+{
+  union mu_imap_fetch_response *resp = item;
+  mu_stream_t str = data;
+
+  switch (resp->type)
+    {
+    case MU_IMAP_FETCH_BODY:
+      mu_stream_printf (str, "BODY [%s]", resp->body.key);
+      if (resp->body.partv)
+	{
+	  size_t i;
+	  
+	  mu_stream_printf (str, ", part: ");
+	  for (i = 0; i < resp->body.partc; i++)
+	    mu_stream_printf (str, "%lu.",
+			      (unsigned long) resp->body.partv[i]);
+	}
+      mu_stream_printf (str, "\nBEGIN%s\nEND\n", resp->body.text);
+      break;
+      
+    case MU_IMAP_FETCH_BODYSTRUCTURE:
+      /* FIXME */
+      mu_stream_printf (str, "BODYSTRUCTURE (not yet implemented)\n");
+      break;
+      
+    case MU_IMAP_FETCH_ENVELOPE:
+      {
+	mu_stream_printf (str, "ENVELOPE:\n");
+	
+	format_date (str, "date", &resp->envelope.date, &resp->envelope.tz);
+
+	format_email (str, "from", resp->envelope.from);
+	format_email (str, "sender", resp->envelope.sender);
+	format_email (str, "reply-to", resp->envelope.reply_to);
+	format_email (str, "to", resp->envelope.to);
+	format_email (str, "cc", resp->envelope.cc);
+	format_email (str, "bcc", resp->envelope.bcc);
+
+	mu_stream_printf (str, "  in-reply-to = %s\n",
+			  resp->envelope.in_reply_to ?
+			   resp->envelope.in_reply_to : "NIL");
+	mu_stream_printf (str, "  message-id = %s\n",
+			  resp->envelope.message_id ?
+			   resp->envelope.message_id : "NIL");
+      }
+      break;
+      
+    case MU_IMAP_FETCH_FLAGS:
+      mu_stream_printf (str, "  flags = ");
+      mu_imap_format_flags (str, resp->flags.flags);
+      mu_stream_printf (str, "\n");
+      break;
+      
+    case MU_IMAP_FETCH_INTERNALDATE:
+      format_date (str, "internaldate", &resp->internaldate.tm,
+		   &resp->internaldate.tz);
+      break;
+      
+    case MU_IMAP_FETCH_RFC822_SIZE:
+      mu_stream_printf (str, "  size = %lu\n",
+			(unsigned long) resp->rfc822_size.size);
+      break;
+      
+    case MU_IMAP_FETCH_UID:
+      mu_stream_printf (str, "  UID = %lu\n",
+			(unsigned long) resp->uid.uid);
+    }
+  return 0;
+}
+
+static void
+imap_fetch_callback (void *data, int code, size_t sdat, void *pdat)
+{
+  mu_stream_t str = data;
+  mu_list_t list = pdat;
+
+  mu_stream_printf (str, "Message #%lu:\n", (unsigned long) sdat);
+  mu_list_foreach (list, fetch_response_printer, str);
+  mu_stream_printf (str, "\n\n");
+}
+  
 
 static int
 com_disconnect (int argc MU_ARG_UNUSED, char **argv MU_ARG_UNUSED)
@@ -212,7 +338,7 @@ com_connect (int argc, char **argv)
   int status;
   int tls = 0;
   int i = 1;
-  enum mu_imap_state state;
+  enum mu_imap_session_state state;
   
   for (i = 1; i < argc; i++)
     {
@@ -234,7 +360,7 @@ com_connect (int argc, char **argv)
   
   state = current_imap_state ();
   
-  if (state != MU_IMAP_STATE_INIT)
+  if (state != MU_IMAP_SESSION_INIT)
     com_disconnect (0, NULL);
   
   status = mu_imap_create (&imap);
@@ -292,7 +418,9 @@ com_connect (int argc, char **argv)
 	  mu_imap_register_callback_function (imap, MU_IMAP_CB_BAD,
 					      imap_bad_callback,
 					      NULL);
-
+	  mu_imap_register_callback_function (imap, MU_IMAP_CB_FETCH,
+					      imap_fetch_callback,
+					      mu_strout);
 	  
 	  status = mu_imap_connect (imap);
 	  if (status)
@@ -600,7 +728,17 @@ com_noop (int argc MU_ARG_UNUSED, char **argv MU_ARG_UNUSED)
 static int
 com_fetch (int argc, char **argv)
 {
-  int status = mu_imap_fetch (imap, argv[1], argv[2]);
+  int status;
+  mu_stream_t out = mutool_open_pager ();
+  
+  mu_imap_register_callback_function (imap, MU_IMAP_CB_FETCH,
+				      imap_fetch_callback,
+				      out);
+  status = mu_imap_fetch (imap, argv[1], argv[2]);
+  mu_stream_destroy (&out);
+  mu_imap_register_callback_function (imap, MU_IMAP_CB_FETCH,
+				      imap_fetch_callback,
+				      mu_strout);
   if (status)
     report_failure ("fetch", status);
   return 0;  

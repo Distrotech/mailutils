@@ -82,7 +82,8 @@ mu_imap_capability (mu_imap_t imap, int reread, mu_iterator_t *piter)
     return EINVAL;
   if (!imap->io)
     return MU_ERR_NO_TRANSPORT;
-  if (imap->state != MU_IMAP_CONNECTED)
+  if (imap->session_state == MU_IMAP_SESSION_INIT ||
+      imap->client_state != MU_IMAP_CLIENT_READY)
     return MU_ERR_SEQ;
 
   if (imap->capa)
@@ -103,21 +104,21 @@ mu_imap_capability (mu_imap_t imap, int reread, mu_iterator_t *piter)
       mu_list_set_destroy_item (imap->capa, mu_list_free_item);
     }
 
-  switch (imap->state)
+  switch (imap->client_state)
     {
-    case MU_IMAP_CONNECTED:
+    case MU_IMAP_CLIENT_READY:
       status = _mu_imap_tag_next (imap);
       MU_IMAP_CHECK_EAGAIN (imap, status);
       status = mu_imapio_printf (imap->io, "%s CAPABILITY\r\n",
 				 imap->tag_str); 
       MU_IMAP_CHECK_EAGAIN (imap, status);
       MU_IMAP_FCLR (imap, MU_IMAP_RESP);
-      imap->state = MU_IMAP_CAPABILITY_RX;
+      imap->client_state = MU_IMAP_CLIENT_CAPABILITY_RX;
 
-    case MU_IMAP_CAPABILITY_RX:
+    case MU_IMAP_CLIENT_CAPABILITY_RX:
       status = _mu_imap_response (imap, _capability_response_action,
 				  NULL);
-      imap->state = MU_IMAP_CONNECTED;
+      imap->client_state = MU_IMAP_CLIENT_READY;
       MU_IMAP_CHECK_EAGAIN (imap, status);
       if (imap->resp_code != MU_IMAP_OK)
 	return MU_ERR_REPLY;
@@ -130,7 +131,7 @@ mu_imap_capability (mu_imap_t imap, int reread, mu_iterator_t *piter)
 	}  
       break;
       
-    case MU_IMAP_ERROR:
+    case MU_IMAP_CLIENT_ERROR:
       status = ECANCELED;
       break;
 

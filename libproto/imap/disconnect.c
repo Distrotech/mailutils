@@ -32,7 +32,7 @@ mu_imap_disconnect (mu_imap_t imap)
   if (imap == NULL)
     return EINVAL;
 
-  imap->state = MU_IMAP_NO_STATE;
+  imap->client_state = MU_IMAP_CLIENT_READY;
   MU_IMAP_FCLR (imap, MU_IMAP_RESP);
 
   mu_list_clear (imap->capa);

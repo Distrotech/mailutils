@@ -60,6 +60,7 @@ _mu_imap_init (mu_imap_t imap)
       if (rc)
 	return rc;
     }
-  imap->state = MU_IMAP_NO_STATE; /* Init with no state.  */
+  imap->client_state = MU_IMAP_CLIENT_READY; 
+  imap->session_state = MU_IMAP_SESSION_INIT;
   return 0;
 }

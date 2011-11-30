@@ -49,7 +49,8 @@ mu_imap_set_carrier (mu_imap_t imap, mu_stream_t carrier)
   imap->io = io;
   if (MU_IMAP_FISSET (imap, MU_IMAP_TRACE))
     _mu_imap_trace_enable (imap);
-  imap->state = MU_IMAP_CONNECT;
+  imap->client_state = MU_IMAP_CLIENT_READY;
+  imap->session_state = MU_IMAP_SESSION_INIT;
   return 0;
 }
 

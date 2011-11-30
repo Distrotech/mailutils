@@ -37,24 +37,22 @@ mu_imap_fetch (mu_imap_t imap, const char *msgset, const char *items)
     return EINVAL;
   if (!imap->io)
     return MU_ERR_NO_TRANSPORT;
-  if (imap->state != MU_IMAP_CONNECTED)
-    return MU_ERR_SEQ;
 
-  if (imap->imap_state != MU_IMAP_STATE_SELECTED)
+  if (imap->session_state != MU_IMAP_SESSION_SELECTED)
     return MU_ERR_SEQ;
   
-  switch (imap->state)
+  switch (imap->client_state)
     {
-    case MU_IMAP_CONNECTED:
+    case MU_IMAP_CLIENT_READY:
       status = _mu_imap_tag_next (imap);
       MU_IMAP_CHECK_EAGAIN (imap, status);
       status = mu_imapio_printf (imap->io, "%s FETCH %s %s\r\n",
 				 imap->tag_str, msgset, items);
       MU_IMAP_CHECK_ERROR (imap, status);
       MU_IMAP_FCLR (imap, MU_IMAP_RESP);
-      imap->state = MU_IMAP_FETCH_RX;
+      imap->client_state = MU_IMAP_CLIENT_FETCH_RX;
 
-    case MU_IMAP_FETCH_RX:
+    case MU_IMAP_CLIENT_FETCH_RX:
       status = _mu_imap_response (imap, NULL, NULL);
       MU_IMAP_CHECK_EAGAIN (imap, status);
       switch (imap->resp_code)
@@ -71,7 +69,7 @@ mu_imap_fetch (mu_imap_t imap, const char *msgset, const char *items)
 	  status = MU_ERR_BADREPLY;
 	  break;
 	}
-      imap->state = MU_IMAP_CONNECTED;
+      imap->client_state = MU_IMAP_CLIENT_READY;
       break;
 
     default:
@@ -221,7 +219,9 @@ _body_mapper (struct imap_list_element **elt,
 	  break;
 	}
     }
-  
+  else
+    p = NULL;
+
   if (partc)
     {
       size_t i;
@@ -237,7 +237,7 @@ _body_mapper (struct imap_list_element **elt,
   resp->body.partc = partc;
   resp->body.partv = partv;
 
-  if (p)
+  if (p && *p)
     {
       size_t len = strlen (p);
       resp->body.key = malloc (len);
@@ -338,20 +338,22 @@ static int
 _date_mapper (struct imap_list_element **elt,
 	      union mu_imap_fetch_response **return_resp)
 {
-  struct mu_imap_fetch_internaldate idate;
   union mu_imap_fetch_response *resp;
   int rc;
   const char *p;
+  struct tm tm;
+  struct mu_timezone tz;
   
   if (elt[1]->type != imap_eltype_string)
     return MU_ERR_FAILURE;
   p = elt[1]->v.string;
-  if (mu_parse_imap_date_time (&p, &idate.tm, &idate.tz))
+  if (mu_parse_imap_date_time (&p, &tm, &tz))
     return MU_ERR_FAILURE;
   rc = alloc_response (&resp, MU_IMAP_FETCH_INTERNALDATE);
   if (rc)
     return rc;
-  resp->internaldate = idate;
+  resp->internaldate.tm = tm;
+  resp->internaldate.tz = tz;
   *return_resp = resp;
   return 0;
 }

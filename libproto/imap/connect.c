@@ -45,22 +45,25 @@ mu_imap_connect (mu_imap_t imap)
 
   _mu_imap_clrerrstr (imap);
   
-  switch (imap->state)
+  switch (imap->client_state)
     {
     default:
-    case MU_IMAP_NO_STATE:
-      status = mu_imap_disconnect (imap);
-      if (status != 0)
+    case MU_IMAP_CLIENT_READY:
+      if (imap->session_state != MU_IMAP_SESSION_INIT)
 	{
-	  /* Sleep for 2 seconds (FIXME: Must be configurable) */
-	  struct timeval tval;
-	  tval.tv_sec = 2;
-	  tval.tv_usec = 0;
-	  select (0, NULL, NULL, NULL, &tval);
+	  status = mu_imap_disconnect (imap);
+	  if (status != 0)
+	    {
+	      /* Sleep for 2 seconds (FIXME: Must be configurable) */
+	      struct timeval tval;
+	      tval.tv_sec = 2;
+	      tval.tv_usec = 0;
+	      select (0, NULL, NULL, NULL, &tval);
+	    }
 	}
-      imap->state = MU_IMAP_CONNECT;
+      imap->client_state = MU_IMAP_CLIENT_CONNECT_RX;
 
-    case MU_IMAP_CONNECT:
+    case MU_IMAP_CLIENT_CONNECT_RX:
       /* Establish the connection.  */
       if (!mu_stream_is_open (imap->io->_imap_stream))
         {
@@ -68,9 +71,9 @@ mu_imap_connect (mu_imap_t imap)
           MU_IMAP_CHECK_EAGAIN (imap, status);
           MU_IMAP_FCLR (imap, MU_IMAP_RESP);
         }
-      imap->state = MU_IMAP_GREETINGS;
+      imap->client_state = MU_IMAP_CLIENT_GREETINGS;
 
-    case MU_IMAP_GREETINGS:
+    case MU_IMAP_CLIENT_GREETINGS:
       status = mu_imapio_getline (imap->io);
       MU_IMAP_CHECK_EAGAIN (imap, status);
       mu_imapio_get_words (imap->io, &wc, &wv);
@@ -79,7 +82,7 @@ mu_imap_connect (mu_imap_t imap)
 	  mu_imapio_getbuf (imap->io, &bufptr, &bufsize);
 	  mu_error ("mu_imap_connect: invalid server response: %s",
 		    bufptr);
-	  imap->state = MU_IMAP_ERROR;
+	  imap->client_state = MU_IMAP_CLIENT_ERROR;
 	  return MU_ERR_BADREPLY;
 	}
       else
@@ -92,18 +95,18 @@ mu_imap_connect (mu_imap_t imap)
 	  _mu_imap_process_untagged_response (imap, list, NULL, NULL);
 	  mu_list_destroy (&list);
 
-	  switch (imap->state)
+	  switch (imap->client_state)
 	    {
-	    case MU_IMAP_CONNECTED:
+	    case MU_IMAP_CLIENT_READY:
 	      status = 0;
 	      break;
 
-	    case MU_IMAP_CLOSING:
+	    case MU_IMAP_CLIENT_CLOSING:
 	      status = EACCES;
 	      break;
 
 	    default:
-	      imap->state = MU_IMAP_ERROR;
+	      imap->client_state = MU_IMAP_CLIENT_ERROR;
 	      status = MU_ERR_BADREPLY;
 	    }
 	}

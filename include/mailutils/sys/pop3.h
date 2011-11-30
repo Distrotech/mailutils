@@ -107,8 +107,10 @@ int _mu_pop3_init (mu_pop3_t pop3);
         case EAGAIN:                            \
         case EINPROGRESS:                       \
         case EINTR:                             \
+	  return status;                        \
         case MU_ERR_REPLY:                      \
         case MU_ERR_BADREPLY:                   \
+	  pop3->state = MU_POP3_NO_STATE;	\
 	  return status;                        \
         default:                                \
           pop3->state = MU_POP3_ERROR;		\

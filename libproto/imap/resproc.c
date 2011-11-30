@@ -143,10 +143,10 @@ ok_response (mu_imap_t imap, mu_list_t resp, void *data)
   if (mu_list_tail (resp, (void*) &arg) || arg->type != imap_eltype_string)
     arg = NULL;
   mu_imap_callback (imap, MU_IMAP_CB_OK, rcode, arg ? arg->v.string : NULL);
-  if (imap->state == MU_IMAP_GREETINGS)
+  if (imap->client_state == MU_IMAP_CLIENT_GREETINGS)
     {
-      imap->state = MU_IMAP_CONNECTED;
-      imap->imap_state = MU_IMAP_STATE_NONAUTH;
+      imap->client_state = MU_IMAP_CLIENT_READY;
+      imap->session_state = MU_IMAP_SESSION_NONAUTH;
     }
 }
 
@@ -165,29 +165,29 @@ static void
 no_response (mu_imap_t imap, mu_list_t resp, void *data)
 {
   default_response (imap, MU_IMAP_CB_NO, resp, data);
-  if (imap->state == MU_IMAP_GREETINGS)
-    imap->state = MU_IMAP_ERROR;
+  if (imap->client_state == MU_IMAP_CLIENT_GREETINGS)
+    imap->client_state = MU_IMAP_CLIENT_ERROR;
 }
 
 static void
 bad_response (mu_imap_t imap, mu_list_t resp, void *data)
 {
   default_response (imap, MU_IMAP_CB_BAD, resp, data);
-  if (imap->state == MU_IMAP_GREETINGS)
-    imap->state = MU_IMAP_ERROR;
+  if (imap->client_state == MU_IMAP_CLIENT_GREETINGS)
+    imap->client_state = MU_IMAP_CLIENT_ERROR;
 }
 
 static void
 bye_response (mu_imap_t imap, mu_list_t resp, void *data)
 {
   default_response (imap, MU_IMAP_CB_BYE, resp, data);
-  imap->state = MU_IMAP_CLOSING;
+  imap->client_state = MU_IMAP_CLIENT_CLOSING;
 }
 
 static void
 preauth_response (mu_imap_t imap, mu_list_t resp, void *data)
 {
-  if (imap->state == MU_IMAP_GREETINGS)
+  if (imap->client_state == MU_IMAP_CLIENT_GREETINGS)
     {
       struct imap_list_element *arg;
 
@@ -196,8 +196,8 @@ preauth_response (mu_imap_t imap, mu_list_t resp, void *data)
       mu_imap_callback (imap, MU_IMAP_CB_PREAUTH,
 			parse_response_code (imap, resp),
 			arg ? arg->v.string : NULL);
-      imap->state = MU_IMAP_CONNECTED;
-      imap->imap_state = MU_IMAP_STATE_AUTH;
+      imap->client_state = MU_IMAP_CLIENT_READY;
+      imap->session_state = MU_IMAP_SESSION_AUTH;
     }
   else
     mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR,

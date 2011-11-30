@@ -59,7 +59,7 @@ _mu_imap_response (mu_imap_t imap, mu_imap_response_action_t fun,
 	  mu_imapio_get_words (imap->io, &wc, &wv);
 	  if (wc == 0)
 	    {
-	      imap->state = MU_IMAP_ERROR;
+	      imap->client_state = MU_IMAP_CLIENT_ERROR;
 	      status = MU_ERR_BADREPLY;/* FIXME: ECONNRESET ? */
 	      break;
 	    }
@@ -80,7 +80,7 @@ _mu_imap_response (mu_imap_t imap, mu_imap_response_action_t fun,
 	      /* Handle the tagged response */
 	      if (wc < 2)
 		{
-		  /*imap->state = MU_IMAP_ERROR;*/
+		  /*imap->client_state = MU_IMAP_CLIENT_ERROR;*/
 		  status = MU_ERR_BADREPLY;
 		}
 	      else if (strcmp (wv[1], "OK") == 0)
@@ -104,12 +104,12 @@ _mu_imap_response (mu_imap_t imap, mu_imap_response_action_t fun,
 	    }
 	  else
 	    {
-	      imap->state = MU_IMAP_ERROR;
+	      imap->client_state = MU_IMAP_CLIENT_ERROR;
 	      status = MU_ERR_BADREPLY;
 	    }
 	}
       else
-	imap->state = MU_IMAP_ERROR;
+	imap->client_state = MU_IMAP_CLIENT_ERROR;
       break;
     }
   return status;

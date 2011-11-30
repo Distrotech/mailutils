@@ -64,7 +64,7 @@ _new_imap_list_element (mu_imap_t imap, enum imap_eltype type)
   struct imap_list_element *elt = calloc (1, sizeof (*elt));
   if (!elt)
     {
-      imap->state = MU_IMAP_ERROR;
+      imap->client_state = MU_IMAP_CLIENT_ERROR;
     }
   else
     elt->type = type;
@@ -238,7 +238,7 @@ _mu_imap_untagged_response_to_list (mu_imap_t imap, mu_list_t *plist)
     {
       if (elt)
 	_imap_list_free (elt);
-      imap->state = MU_IMAP_ERROR;
+      imap->client_state = MU_IMAP_CLIENT_ERROR;
       return pb.pb_err;
     }
   *plist = elt->v.list;

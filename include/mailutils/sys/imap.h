@@ -45,20 +45,19 @@ extern "C" {
   
 enum mu_imap_client_state
   {
-    MU_IMAP_NO_STATE,
-    MU_IMAP_ERROR,
-    MU_IMAP_CONNECT,
-    MU_IMAP_GREETINGS,
-    MU_IMAP_CONNECTED,
-    MU_IMAP_CAPABILITY_RX,
-    MU_IMAP_LOGIN_RX,
-    MU_IMAP_LOGOUT_RX,
-    MU_IMAP_ID_RX,
-    MU_IMAP_SELECT_RX,
-    MU_IMAP_STATUS_RX,
-    MU_IMAP_NOOP_RX,
-    MU_IMAP_FETCH_RX,
-    MU_IMAP_CLOSING
+    MU_IMAP_CLIENT_READY,
+    MU_IMAP_CLIENT_ERROR,
+    MU_IMAP_CLIENT_CONNECT_RX,
+    MU_IMAP_CLIENT_GREETINGS,
+    MU_IMAP_CLIENT_CAPABILITY_RX,
+    MU_IMAP_CLIENT_LOGIN_RX,
+    MU_IMAP_CLIENT_LOGOUT_RX,
+    MU_IMAP_CLIENT_ID_RX,
+    MU_IMAP_CLIENT_SELECT_RX,
+    MU_IMAP_CLIENT_STATUS_RX,
+    MU_IMAP_CLIENT_NOOP_RX,
+    MU_IMAP_CLIENT_FETCH_RX,
+    MU_IMAP_CLIENT_CLOSING
   };
 
 enum mu_imap_response
@@ -79,8 +78,8 @@ struct _mu_imap
     char *errstr;
     size_t errsize;
     
-    enum mu_imap_state state;
-    enum mu_imap_state imap_state;
+    enum mu_imap_client_state client_state;
+    enum mu_imap_session_state session_state;
 
     /* Tag */
     size_t tag_len;  /* Length of the command tag */
@@ -129,39 +128,41 @@ int _mu_imap_xscript_level (mu_imap_t imap, int xlev);
 
 /* If status indicates an error, return.
   */
-#define MU_IMAP_CHECK_ERROR(imap, status)	\
-  do						\
-    {						\
-      if (status != 0)				\
-	{					\
-          imap->state = MU_IMAP_ERROR;		\
-          return status;			\
-	}					\
-    }						\
+#define MU_IMAP_CHECK_ERROR(imap, status)			\
+  do								\
+    {								\
+      if (status != 0)						\
+	{							\
+          imap->client_state = MU_IMAP_CLIENT_ERROR;		\
+          return status;					\
+	}							\
+    }								\
   while (0)
 
 /* Check if status indicates an error.
    If the error is recoverable just return the status.
    Otherwise, set the error state and return the status
  */
-#define MU_IMAP_CHECK_EAGAIN(imap, status)	\
-  do						\
-    {						\
-      switch (status)				\
-	{					\
-        case 0:                                 \
-	  break;				\
-        case EAGAIN:                            \
-        case EINPROGRESS:                       \
-        case EINTR:                             \
-        case MU_ERR_REPLY:                      \
-        case MU_ERR_BADREPLY:                   \
-	  return status;                        \
-        default:                                \
-          imap->state = MU_IMAP_ERROR;		\
-	  return status;			\
-	}					\
-    }						\
+#define MU_IMAP_CHECK_EAGAIN(imap, status)		\
+  do							\
+    {							\
+      switch (status)					\
+	{						\
+        case 0:						\
+	  break;					\
+        case EAGAIN:					\
+        case EINPROGRESS:				\
+        case EINTR:					\
+	  return status;				\
+        case MU_ERR_REPLY:				\
+        case MU_ERR_BADREPLY:				\
+	  imap->client_state = MU_IMAP_CLIENT_READY;	\
+	  return status;				\
+        default:					\
+          imap->client_state = MU_IMAP_CLIENT_ERROR;	\
+	  return status;				\
+	}						\
+    }							\
   while (0)
 
 int _mu_imap_seterrstr (mu_imap_t imap, const char *str, size_t len);

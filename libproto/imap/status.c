@@ -126,10 +126,8 @@ mu_imap_status (mu_imap_t imap, const char *mboxname, struct mu_imap_stat *ps)
     return EINVAL;
   if (!imap->io)
     return MU_ERR_NO_TRANSPORT;
-  if (imap->state != MU_IMAP_CONNECTED)
-    return MU_ERR_SEQ;
-  if (imap->imap_state != MU_IMAP_STATE_AUTH &&
-      imap->imap_state != MU_IMAP_STATE_SELECTED)
+  if (imap->session_state != MU_IMAP_SESSION_AUTH &&
+      imap->session_state != MU_IMAP_SESSION_SELECTED)
     return MU_ERR_SEQ;
   if (!ps)
     return MU_ERR_OUT_PTR_NULL;
@@ -138,7 +136,7 @@ mu_imap_status (mu_imap_t imap, const char *mboxname, struct mu_imap_stat *ps)
       
   if (!mboxname)
     {
-      if (imap->imap_state == MU_IMAP_STATE_SELECTED)
+      if (imap->session_state == MU_IMAP_SESSION_SELECTED)
 	{
 	  if (ps)
 	    *ps = imap->mbox_stat;
@@ -154,9 +152,9 @@ mu_imap_status (mu_imap_t imap, const char *mboxname, struct mu_imap_stat *ps)
       return 0;
     }
   
-  switch (imap->state)
+  switch (imap->client_state)
     {
-    case MU_IMAP_CONNECTED:
+    case MU_IMAP_CLIENT_READY:
       status = _mu_imap_tag_next (imap);
       MU_IMAP_CHECK_EAGAIN (imap, status);
       status = mu_imapio_printf (imap->io, "%s STATUS %s (",
@@ -179,9 +177,9 @@ mu_imap_status (mu_imap_t imap, const char *mboxname, struct mu_imap_stat *ps)
 	status = mu_imapio_send (imap->io, ")\r\n", 3);
       MU_IMAP_CHECK_ERROR (imap, status);
       MU_IMAP_FCLR (imap, MU_IMAP_RESP);
-      imap->state = MU_IMAP_STATUS_RX;
+      imap->client_state = MU_IMAP_CLIENT_STATUS_RX;
 
-    case MU_IMAP_STATUS_RX:
+    case MU_IMAP_CLIENT_STATUS_RX:
       {
 	struct status_data sd = { mboxname, ps };
 
@@ -200,7 +198,7 @@ mu_imap_status (mu_imap_t imap, const char *mboxname, struct mu_imap_stat *ps)
 	    status = MU_ERR_BADREPLY;
 	    break;
 	  }
-	imap->state = MU_IMAP_CONNECTED;
+	imap->client_state = MU_IMAP_CLIENT_READY;
       }
       break;
 

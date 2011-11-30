@@ -32,25 +32,26 @@ mu_imap_logout (mu_imap_t imap)
     return EINVAL;
   if (!imap->io)
     return MU_ERR_NO_TRANSPORT;
-  if (imap->state != MU_IMAP_CONNECTED)
+  if (!(imap->session_state == MU_IMAP_SESSION_AUTH ||
+	imap->session_state == MU_IMAP_SESSION_SELECTED))
     return MU_ERR_SEQ;
 
-  switch (imap->state)
+  switch (imap->client_state)
     {
-    case MU_IMAP_CONNECTED:
+    case MU_IMAP_CLIENT_READY:
       status = _mu_imap_tag_next (imap);
       MU_IMAP_CHECK_EAGAIN (imap, status);
       status = mu_imapio_printf (imap->io, "%s LOGOUT\r\n",
 				 imap->tag_str); 
       MU_IMAP_CHECK_EAGAIN (imap, status);
       MU_IMAP_FCLR (imap, MU_IMAP_RESP);
-      imap->state = MU_IMAP_LOGOUT_RX;
+      imap->client_state = MU_IMAP_CLIENT_LOGOUT_RX;
 
-    case MU_IMAP_LOGOUT_RX:
+    case MU_IMAP_CLIENT_LOGOUT_RX:
       status = _mu_imap_response (imap, NULL, NULL);
       MU_IMAP_CHECK_EAGAIN (imap, status);
-      imap->state = MU_IMAP_NO_STATE;
-      imap->imap_state = MU_IMAP_STATE_LOGOUT;
+      imap->client_state = MU_IMAP_CLIENT_READY;
+      imap->session_state = MU_IMAP_SESSION_LOGOUT;
       break;
 
     default:

@@ -43,6 +43,7 @@ _mu_imap_collect_flags (struct imap_list_element *arg, int *res)
 {
   if (arg->type != imap_eltype_list)
     return EINVAL;
+  *res = 0;
   mu_list_foreach (arg->v.list, _collect_flags, res);
   return 0;
 }
@@ -72,15 +73,13 @@ mu_imap_select (mu_imap_t imap, const char *mbox, int writable,
     return EINVAL;
   if (!imap->io)
     return MU_ERR_NO_TRANSPORT;
-  if (imap->state != MU_IMAP_CONNECTED)
-    return MU_ERR_SEQ;
-  if (imap->imap_state != MU_IMAP_STATE_AUTH &&
-      imap->imap_state != MU_IMAP_STATE_SELECTED)
+  if (imap->session_state != MU_IMAP_SESSION_AUTH &&
+      imap->session_state != MU_IMAP_SESSION_SELECTED)
     return MU_ERR_SEQ;
 
   if (!mbox)
     {
-      if (imap->imap_state == MU_IMAP_STATE_SELECTED)
+      if (imap->session_state == MU_IMAP_SESSION_SELECTED)
 	{
 	  if (ps)
 	    *ps = imap->mbox_stat;
@@ -97,9 +96,9 @@ mu_imap_select (mu_imap_t imap, const char *mbox, int writable,
       return 0;
     }
   
-  switch (imap->state)
+  switch (imap->client_state)
     {
-    case MU_IMAP_CONNECTED:
+    case MU_IMAP_CLIENT_READY:
       status = _mu_imap_tag_next (imap);
       MU_IMAP_CHECK_EAGAIN (imap, status);
       status = mu_imapio_printf (imap->io, "%s %s %s\r\n",
@@ -108,21 +107,21 @@ mu_imap_select (mu_imap_t imap, const char *mbox, int writable,
 				 mbox);
       MU_IMAP_CHECK_ERROR (imap, status);
       MU_IMAP_FCLR (imap, MU_IMAP_RESP);
-      imap->state = MU_IMAP_SELECT_RX;
+      imap->client_state = MU_IMAP_CLIENT_SELECT_RX;
 
-    case MU_IMAP_SELECT_RX:
+    case MU_IMAP_CLIENT_SELECT_RX:
       memset (&imap->mbox_stat, 0, sizeof (imap->mbox_stat));
       status = _mu_imap_response (imap, _select_response_action, NULL);
       MU_IMAP_CHECK_EAGAIN (imap, status);
       switch (imap->resp_code)
 	{
 	case MU_IMAP_OK:
-	  imap->imap_state = MU_IMAP_STATE_SELECTED;
+	  imap->session_state = MU_IMAP_SESSION_SELECTED;
 	  free (imap->mbox_name);
 	  imap->mbox_name = strdup (mbox);
 	  if (!imap->mbox_name)
 	    {
-	      imap->state = MU_IMAP_ERROR;
+	      imap->client_state = MU_IMAP_CLIENT_ERROR;
 	      return errno;
 	    }
 	  imap->mbox_writable = writable;
@@ -138,7 +137,7 @@ mu_imap_select (mu_imap_t imap, const char *mbox, int writable,
 	  status = MU_ERR_BADREPLY;
 	  break;
 	}
-      imap->state = MU_IMAP_CONNECTED;
+      imap->client_state = MU_IMAP_CLIENT_READY;
       break;
 
     default:
