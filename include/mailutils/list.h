@@ -238,7 +238,10 @@ typedef int (*mu_list_mapper_t) (void **_itmv, size_t _itmc, void *_call_data);
    and until all elements from the array have been visited.
 
    Mu_list_gmap returns 0 on success and a non-zero error code on failure.
-   If _map returns non-zero, its return value is propagated to the caller. */
+   If _map returns non-zero, its return value is propagated to the caller.
+
+   The _map function is not allowed to alter the _list.
+*/
    
 int mu_list_gmap (mu_list_t _list, mu_list_mapper_t _map, size_t _nelem,
 		  void *_data);
@@ -263,11 +266,56 @@ int mu_list_gmap (mu_list_t _list, mu_list_mapper_t _map, size_t _nelem,
    MU_LIST_MAP_SKIP bit set, the _itmv[0] element is appended to the new
    list.  If it has MU_LIST_MAP_STOP bit set, iteration is stopped
    immediately and any remaining elements in _list are ignored.
+
+   The mapper function (_map) is not allowed to alter the _list.
 */
 
 int mu_list_map (mu_list_t _list, mu_list_mapper_t _map,
 		 void *_data, size_t _nelem,
 		 mu_list_t *_res);
+
+  /* List fold */
+
+typedef int (*mu_list_folder_t) (void *_item, void *_data,
+				 void *_prev, void **_ret);
+
+  /* mu_list_fold iterates over list elements from first to last.
+     For each element it calls _fold with the following arguments:
+
+       _item     -  the current list element,
+       _data     -  call-specific data,
+       _prev     -  on the first call, _init; on subsequent calls,
+                    points to the value returned from the previous call
+		    to _fold in the _ret varialble,
+       _ret      -  memory location where to store the result of this
+                    call.
+
+     When all elements have been visited, mu_list_fold stores the result
+     of the last _fold invocation (as returned in *_ret) in the memory
+     location pointed to by _return_value.
+
+     If _fold returns a non-zero value, mu_list_fold stops iteration and
+     returns this value.  The *_return_value is filled in this case as
+     well.
+
+     Possible return codes:
+
+       0                   - success,
+       EINVAL              - _list or _fold is NULL,
+       MU_ERR_OUT_PTR_NULL - _return_code is NULL
+       other value         - non-zero value returned by _fold.
+
+     The _fold function is not allowed to alter the list it is being applied
+     to.
+       
+     The mu_list_rfold acts similarly, except that it iterates over list
+     elements from last to first.
+  */
+int mu_list_fold (mu_list_t _list, mu_list_folder_t _fold, void *_data,
+		  void *_init, void *_return_value);
+int mu_list_rfold (mu_list_t _list, mu_list_folder_t _fold, void *_data,
+		   void *_init, void *_return_value);
+  
 #ifdef __cplusplus
 }
 #endif

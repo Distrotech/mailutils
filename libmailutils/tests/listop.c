@@ -720,6 +720,60 @@ tail (size_t argc, mu_list_t list)
     printf ("%s\n", text);
 }
 
+static int
+fold_concat (void *item, void *data, void *prev, void **ret)
+{
+  char *s;
+  size_t len = strlen (item);
+  size_t prevlen = 0;
+  
+  if (prev)
+    prevlen = strlen (prev);
+
+  s = realloc (prev, len + prevlen + 1);
+  if (!s)
+    abort ();
+  strcpy (s + prevlen, item);
+  *ret = s;
+  return 0;
+}
+
+void
+fold (mu_list_t list)
+{
+  char *text = NULL;
+  int rc;
+
+  rc = mu_list_fold (list, fold_concat, NULL, NULL, &text);
+  if (rc)
+    mu_diag_funcall (MU_DIAG_ERROR, "mu_list_fold", NULL, rc);
+  else if (text)
+    {
+      printf ("%s\n", text);
+      free (text);
+    }
+  else
+    printf ("NULL\n");
+}
+
+void
+rfold (mu_list_t list)
+{
+  char *text = NULL;
+  int rc;
+
+  rc = mu_list_rfold (list, fold_concat, NULL, NULL, &text);
+  if (rc)
+    mu_diag_funcall (MU_DIAG_ERROR, "mu_list_fold", NULL, rc);
+  else if (text)
+    {
+      printf ("%s\n", text);
+      free (text);
+    }
+  else
+    printf ("NULL\n");
+}
+  
 void
 help ()
 {
@@ -739,6 +793,8 @@ help ()
   printf ("ictl ins item [item*]\n");
   printf ("ictl dir [backwards|forwards]\n");
   printf ("map [-replace] NAME [ARGS]\n");
+  printf ("fold\n");
+  printf ("rfold\n");
   printf ("print\n");
   printf ("slice [-replace] num [num...]\n");
   printf ("quit\n");
@@ -813,6 +869,10 @@ shell (mu_list_t list)
 	    print (list);
 	  else if (strcmp (ws.ws_wordv[0], "cur") == 0)
 	    cur (num, itr[num]);
+	  else if (strcmp (ws.ws_wordv[0], "fold") == 0)
+	    fold (list);
+	  else if (strcmp (ws.ws_wordv[0], "rfold") == 0)
+	    rfold (list);
 	  else if (strcmp (ws.ws_wordv[0], "map") == 0)
 	    {
 	      int i;

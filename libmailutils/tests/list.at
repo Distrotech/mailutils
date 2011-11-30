@@ -388,6 +388,62 @@ ti
 ])
 
 m4_popdef([MU_TEST_KEYWORDS])
+# ------------------------------------------------------------
+# Fold
+# ------------------------------------------------------------
+
+m4_define([MU_TEST_GROUP],[Fold])
+m4_pushdef([MU_TEST_KEYWORDS],MU_TEST_KEYWORDS[ fold])
+
+TESTLIST([empty list],[],
+[fold
+],
+[NULL
+])
+
+TESTLIST([one element],[],
+[add en
+fold
+],
+[en
+])
+
+TESTLIST([many elements],[],
+[add en to tre fire fem
+fold
+],
+[entotrefirefem
+])
+
+m4_popdef([MU_TEST_KEYWORDS])
+# ------------------------------------------------------------
+# Reverse Fold
+# ------------------------------------------------------------
+
+m4_define([MU_TEST_GROUP],[Reverse Fold])
+m4_pushdef([MU_TEST_KEYWORDS],MU_TEST_KEYWORDS[ rfold])
+
+TESTLIST([empty list],[],
+[rfold
+],
+[NULL
+])
+
+TESTLIST([one element],[],
+[add en
+rfold
+],
+[en
+])
+
+TESTLIST([many elements],[],
+[add en to tre fire fem
+rfold
+],
+[femfiretretoen
+])
+
+m4_popdef([MU_TEST_KEYWORDS])
 
 dnl ------------------------------------------------------------
 dnl Cleanup

@@ -25,6 +25,7 @@ liblist_la_SOURCES = \
  create.c\
  destroy.c\
  empty.c\
+ fold.c\
  foreach.c\
  get.c\
  getcomp.c\
@@ -39,6 +40,7 @@ liblist_la_SOURCES = \
  prepend.c\
  remove.c\
  replace.c\
+ rfold.c\
  setcomp.c\
  setdestr.c\
  slice.c\
