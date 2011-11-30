@@ -29,7 +29,7 @@
 void
 usage ()
 {
-  mu_stream_printf (mu_strout, "usage: %s [debug=SPEC] [-transcript]\n",
+  mu_stream_printf (mu_strout, "usage: %s [debug=SPEC] [-transcript] [-server]\n",
 		    mu_program_name);
   exit (0);
 }
@@ -41,6 +41,7 @@ main (int argc, char **argv)
   int transcript = 0;
   mu_imapio_t io;
   mu_stream_t str;
+  int imapio_mode = MU_IMAPIO_CLIENT;
   
   mu_stdstream_setup (MU_STDSTREAM_RESET_NONE);
   
@@ -52,6 +53,8 @@ main (int argc, char **argv)
 	mu_debug_parse_spec (opt + 6);
       else if (strcmp (opt, "-transcript") == 0)
 	transcript = 1;
+      else if (strcmp (opt, "-server") == 0)
+	imapio_mode = MU_IMAPIO_SERVER;
       else if (strcmp (opt, "-h") == 0)
 	usage ();
       else
@@ -64,7 +67,7 @@ main (int argc, char **argv)
   MU_ASSERT (mu_iostream_create (&str, mu_strin, mu_strout));
 
   
-  MU_ASSERT (mu_imapio_create (&io, str));
+  MU_ASSERT (mu_imapio_create (&io, str, imapio_mode));
 
   if (transcript)
     mu_imapio_trace_enable (io);

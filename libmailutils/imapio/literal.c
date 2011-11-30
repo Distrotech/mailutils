@@ -18,6 +18,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <mailutils/types.h>
+#include <mailutils/errno.h>
 #include <mailutils/imapio.h>
 #include <mailutils/sys/imapio.h>
 #include <mailutils/stream.h>
@@ -25,7 +26,18 @@
 int
 mu_imapio_send_literal (struct _mu_imapio *io, const char *buffer)
 {
-  return mu_stream_printf (io->_imap_stream,
-			   "{%lu}\n%s", (unsigned long) strlen (buffer),
-			   buffer);
+  size_t len = strlen (buffer);
+
+  mu_stream_printf (io->_imap_stream, "{%lu}\n", (unsigned long) len);
+
+  if (!io->_imap_server)
+    {
+      int rc = mu_imapio_getline (io);
+      if (rc)
+	return rc;
+      if (!(io->_imap_reply_ready && io->_imap_ws.ws_wordv[0][0] == '+'))
+	return MU_ERR_BADREPLY;
+    }
+
+  return mu_stream_write (io->_imap_stream, buffer, len, NULL);
 }

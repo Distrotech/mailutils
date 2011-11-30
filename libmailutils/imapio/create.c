@@ -21,7 +21,7 @@
 #include <mailutils/sys/imapio.h>
 
 int
-mu_imapio_create (mu_imapio_t *iop, mu_stream_t str)
+mu_imapio_create (mu_imapio_t *iop, mu_stream_t str, int server)
 {
   struct _mu_imapio *io = calloc (1, sizeof (*io));
   if (!io)
@@ -38,6 +38,7 @@ mu_imapio_create (mu_imapio_t *iop, mu_stream_t str)
                        MU_WRDSF_RETURN_DELIMS |
                        MU_WRDSF_WS |
                        MU_WRDSF_APPEND;
+  io->_imap_server = server;
   *iop = io;
   return 0;
 }

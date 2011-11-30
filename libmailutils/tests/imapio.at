@@ -16,6 +16,8 @@
 
 AT_BANNER(IMAP IO)
 
+m4_pushdef([IMAPIO_FLAGS])
+
 dnl ------------------------------------------------------------
 dnl IMAPIO([NAME], [KW = `'], [INPUT], [STDOUT = `'],
 dnl        [STDERR = `'])
@@ -23,7 +25,7 @@ dnl
 m4_pushdef([IMAPIO],[
 m4_pushdef([MU_TEST_GROUP],[imapio])
 m4_pushdef([MU_TEST_KEYWORDS],[imapio])
-m4_pushdef([MU_TEST_COMMAND],[imapio])
+m4_pushdef([MU_TEST_COMMAND],[imapio IMAPIO_FLAGS])
 MU_GENERIC_TEST([$1],[$2],[$3],[],[$4],[$5])
 m4_popdef([MU_TEST_COMMAND])
 m4_popdef([MU_TEST_KEYWORDS])
@@ -78,7 +80,21 @@ IMAPIO([server response with code],[],
 6: 'Predicted next uid'
 ])
 
-IMAPIO([literals],[literal],
+IMAPIO([literals (client)],[literal],
+[A001 LOGIN {11}
+FRED FOOBAR {7}
+fat man
+],
+[],
+[4
+0: 'A001'
+1: 'LOGIN'
+2: 'FRED FOOBAR'
+3: 'fat man'
+])
+
+m4_pushdef([IMAPIO_FLAGS],[-server])
+IMAPIO([literals (server)],[literal],
 [A001 LOGIN {11}
 FRED FOOBAR {7}
 fat man
@@ -93,7 +109,7 @@ fat man
 3: 'fat man'
 ])
 
-IMAPIO([non-synch literals],[literal],
+IMAPIO([non-synchronized literals (server)],[literal],
 [A001 LOGIN {11+}
 FRED FOOBAR {7+}
 fat man
@@ -105,6 +121,9 @@ fat man
 2: 'FRED FOOBAR'
 3: 'fat man'
 ])
+m4_popdef([IMAPIO_FLAGS])
 
 dnl ------------------------------------------------------------
 m4_popdef([IMAPIO])
+m4_pushdef([IMAPIO_FLAGS])
+

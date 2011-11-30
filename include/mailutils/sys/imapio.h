@@ -28,7 +28,9 @@ struct _mu_imapio
   size_t _imap_buf_level;
   struct mu_wordsplit _imap_ws;
   int _imap_ws_flags;
+  int _imap_server:1;
   int _imap_transcript:1;
+  int _imap_trace_payload:1;
   int _imap_reply_ready:1;
 };
   

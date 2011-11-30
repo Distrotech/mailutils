@@ -84,3 +84,15 @@ mu_imapio_get_trace (mu_imapio_t io)
 {
   return io ? io->_imap_transcript : 0; 
 }
+
+void
+mu_imapio_trace_payload (mu_imapio_t io, int val)
+{
+  io->_imap_trace_payload = !!val;
+}
+
+int
+mu_imapio_get_trace_payload (mu_imapio_t io)
+{
+  return io ? io->_imap_trace_payload : 0;
+}

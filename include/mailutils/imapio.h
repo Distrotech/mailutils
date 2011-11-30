@@ -22,8 +22,11 @@ extern "C" {
 #endif
 
 # include <mailutils/types.h>
-  
-int mu_imapio_create (mu_imapio_t *iop, mu_stream_t str);
+
+#define MU_IMAPIO_CLIENT 0
+#define MU_IMAPIO_SERVER 1
+
+int mu_imapio_create (mu_imapio_t *iop, mu_stream_t str, int server);
 void mu_imapio_free (mu_imapio_t io);
 void mu_imapio_destroy (mu_imapio_t *pio);
   
@@ -41,6 +44,8 @@ int mu_imapio_send_qstring_unfold (struct _mu_imapio *io, const char *buffer,
 int mu_imapio_trace_enable (mu_imapio_t io);
 int mu_imapio_trace_disable (mu_imapio_t io);
 int mu_imapio_get_trace (mu_imapio_t io);
+void mu_imapio_trace_payload (mu_imapio_t io, int val);
+int mu_imapio_get_trace_payload (mu_imapio_t io);
 
 int mu_imapio_getbuf (mu_imapio_t io, char **pptr, size_t *psize);
 

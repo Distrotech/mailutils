@@ -104,31 +104,42 @@ static int
 initial_parse (struct _mu_imapio *io)
 {
   int rc, type;
-  
+  int eat_rest = 0;
+
   if ((rc = mu_wordsplit_len (io->_imap_buf_base, io->_imap_buf_level,
 			      &io->_imap_ws,
-			      io->_imap_ws_flags | MU_WRDSF_INCREMENTAL)))
+			      io->_imap_ws_flags |
+			      (io->_imap_server ? 0 : MU_WRDSF_INCREMENTAL))))
     {
       if (rc == MU_WRDSE_NOINPUT)
 	return IMAPIO_OK;
       return IMAPIO_ERR;
     }
   io->_imap_ws_flags |= MU_WRDSF_REUSE;
-
+  if (io->_imap_server)
+    return IMAPIO_OK;
+  
   if ((rc = mu_wordsplit (NULL, &io->_imap_ws, MU_WRDSF_INCREMENTAL)))
     {
       if (rc == MU_WRDSE_NOINPUT)
 	return IMAPIO_OK;
       return IMAPIO_ERR;
     }
-  
-  if ((type = is_status_response (io->_imap_ws.ws_wordv[1]))
+
+  if (strcmp (io->_imap_ws.ws_wordv[0], "+") == 0)
+    eat_rest = 1;
+  else if ((type = is_status_response (io->_imap_ws.ws_wordv[1]))
       && (type == STATUS_RESPONSE ||
 	  strcmp (io->_imap_ws.ws_wordv[0], "*") == 0))
     {
       rc = get_response_code (io);
       if (rc)
 	return IMAPIO_ERR;
+      eat_rest = 1;
+    }
+
+  if (eat_rest)
+    {
       while (io->_imap_ws.ws_endp < io->_imap_ws.ws_len &&
 	     mu_isblank (io->_imap_ws.ws_input[io->_imap_ws.ws_endp]))
 	io->_imap_ws.ws_endp++;
@@ -150,6 +161,7 @@ mu_imapio_getline (struct _mu_imapio *io)
 {
   int rc;
   char *last_arg;
+  int xlev = MU_XSCRIPT_NORMAL;
   
   if (io->_imap_reply_ready)
     {
@@ -163,7 +175,7 @@ mu_imapio_getline (struct _mu_imapio *io)
 			      &io->_imap_buf_base, &io->_imap_buf_size,
 			      &io->_imap_buf_level);
       if (rc)
-	return rc;
+	break;
       if (io->_imap_buf_level == 0)
 	break;
       io->_imap_buf_level = mu_rtrim_class (io->_imap_buf_base,
@@ -185,8 +197,11 @@ mu_imapio_getline (struct _mu_imapio *io)
 			     io->_imap_buf_level - io->_imap_ws.ws_endp,
 			     &io->_imap_ws, io->_imap_ws_flags);
       if (rc)
-	return MU_ERR_PARSE;
-
+	{
+	  rc = MU_ERR_PARSE;
+	  break;
+	}
+      
       if (io->_imap_ws.ws_wordc == 0)
 	break;
       
@@ -196,13 +211,18 @@ mu_imapio_getline (struct _mu_imapio *io)
 	  int rc;
 	  unsigned long number;
 	  char *sp = NULL;
-	  int xlev = mu_imapio_set_xscript_level (io, MU_XSCRIPT_PAYLOAD);
+
+	  if (!io->_imap_trace_payload)
+	    xlev = mu_imapio_set_xscript_level (io, MU_XSCRIPT_PAYLOAD);
 	  
 	  number = strtoul (last_arg + 1, &sp, 10);
 	  /* Client can ask for non-synchronised literal,
 	     if a '+' is appended to the octet count. */
 	  if (*sp == '}')
-	    mu_stream_printf (io->_imap_stream, "+ GO AHEAD\n");
+	    {
+	      if (io->_imap_server)
+		mu_stream_printf (io->_imap_stream, "+ GO AHEAD\n");
+	    }
 	  else if (*sp != '+')
 	    break;
 
@@ -211,7 +231,10 @@ mu_imapio_getline (struct _mu_imapio *io)
 	      size_t newsize = number + 1;
 	      void *newp = realloc (io->_imap_buf_base, newsize);
 	      if (!newp)
-		return ENOMEM;
+		{
+		  rc = ENOMEM;
+		  break;
+		}
 	      io->_imap_buf_base = newp;
 	      io->_imap_buf_size = newsize;
 	    }
@@ -229,7 +252,7 @@ mu_imapio_getline (struct _mu_imapio *io)
             }
 	  mu_imapio_set_xscript_level (io, xlev);
 	  if (rc)
-	    return rc;
+	    break;
 	  io->_imap_buf_base[io->_imap_buf_level++] = 0;
 
 	  free (last_arg);
@@ -237,12 +260,18 @@ mu_imapio_getline (struct _mu_imapio *io)
 	  if (mu_wordsplit_len (io->_imap_buf_base, io->_imap_buf_level,
 				&io->_imap_ws,
 				io->_imap_ws_flags|MU_WRDSF_NOSPLIT))
-	    return MU_ERR_PARSE;
+	    {
+	      rc = MU_ERR_PARSE;
+	      break;
+	    }
 	}
       else
 	break;
     }
 
+  if (!io->_imap_trace_payload)
+    mu_imapio_set_xscript_level (io, xlev);
+
   io->_imap_reply_ready = 1;
-  return 0;
+  return rc;
 }
