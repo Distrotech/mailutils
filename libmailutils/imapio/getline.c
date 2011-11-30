@@ -209,7 +209,7 @@ mu_imapio_getline (struct _mu_imapio *io)
 	  if (number + 1 > io->_imap_buf_size)
 	    {
 	      size_t newsize = number + 1;
-	      void *newp = realloc (&io->_imap_buf_base, newsize);
+	      void *newp = realloc (io->_imap_buf_base, newsize);
 	      if (!newp)
 		return ENOMEM;
 	      io->_imap_buf_base = newp;
