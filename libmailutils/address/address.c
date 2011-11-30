@@ -36,6 +36,16 @@
 #include <mailutils/address.h>
 #include <mailutils/cstr.h>
 
+int
+mu_address_create_null (mu_address_t *pa)
+{
+  mu_address_t a = calloc (1, sizeof (*a));
+  if (!a)
+    return ENOMEM;
+  *pa = a;
+  return 0;
+}
+
 /* Get email addresses from rfc822 address.  */
 int
 mu_address_create_hint (mu_address_t *a, const char *s, mu_address_t hint,
