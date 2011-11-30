@@ -86,7 +86,8 @@ _free_fetch_response (void *ptr)
     {
     case MU_IMAP_FETCH_BODY:
       free (resp->body.partv);
-      free (resp->body.key);
+      free (resp->body.section);
+      mu_list_destroy (&resp->body.fields);
       free (resp->body.text);
       break;
       
@@ -139,81 +140,94 @@ alloc_response (union mu_imap_fetch_response **resp, int type)
   return 0;
 }
 
-static int
-_uid_mapper (struct imap_list_element **elt,
-	     union mu_imap_fetch_response **return_resp)
+enum parse_response_state
+  {
+    resp_kw,
+    resp_val,
+    resp_body,
+    resp_body_section,
+    resp_skip,
+    resp_body_hlist,
+    resp_body_end
+  };
+
+struct parse_response_env;
+
+typedef int (*mapper_fn) (union mu_imap_fetch_response *resp,
+			  struct imap_list_element *elt,
+			  struct parse_response_env *env);
+
+struct parse_response_env
 {
+  mu_list_t result;
+  struct imap_list_element *elt;
+  enum parse_response_state state;
   union mu_imap_fetch_response *resp;
-  int rc;
+  mapper_fn mapper;
+  const char *section;
+  mu_list_t hlist;
+  int status;
+};
+
+
+static int
+_uid_mapper (union mu_imap_fetch_response *resp,
+	     struct imap_list_element *elt,
+	     struct parse_response_env *parse_env)
+{
   char *p;
   size_t uid;
   
-  if (elt[1]->type != imap_eltype_string)
+  if (elt->type != imap_eltype_string)
     return MU_ERR_FAILURE;
-  uid = strtoul (elt[1]->v.string, &p, 0);
+  uid = strtoul (elt->v.string, &p, 0);
   if (*p)
     return MU_ERR_FAILURE;
-  rc = alloc_response (&resp, MU_IMAP_FETCH_UID);
-  if (rc)
-    return rc;
   resp->uid.uid = uid;
-  *return_resp = resp;
   return 0;
 }
 			 
 static int
-_size_mapper (struct imap_list_element **elt,
-	      union mu_imap_fetch_response **return_resp)
+_size_mapper (union mu_imap_fetch_response *resp,
+	      struct imap_list_element *elt,
+	      struct parse_response_env *parse_env)
 {
-  union mu_imap_fetch_response *resp;
-  int rc;
   char *p;
   size_t size;
   
-  if (elt[1]->type != imap_eltype_string)
+  if (elt->type != imap_eltype_string)
     return MU_ERR_FAILURE;
-  size = strtoul (elt[1]->v.string, &p, 0);
+  size = strtoul (elt->v.string, &p, 0);
   if (*p)
     return MU_ERR_FAILURE;
-  rc = alloc_response (&resp, MU_IMAP_FETCH_RFC822_SIZE);
-  if (rc)
-    return rc;
   resp->rfc822_size.size = size;
-  *return_resp = resp;
   return 0;
 }
 
 static int
-_body_mapper (struct imap_list_element **elt,
-	      union mu_imap_fetch_response **return_resp)
+_body_mapper (union mu_imap_fetch_response *resp,
+	      struct imap_list_element *elt,
+	      struct parse_response_env *parse_env)
 {
-  union mu_imap_fetch_response *resp;
-  int rc;
-  char *section, *p;
+  const char *section, *p;
   size_t partc = 0;
   size_t *partv = NULL;
   
-  if (elt[1]->type != imap_eltype_string)
+  if (elt->type != imap_eltype_string)
     return MU_ERR_FAILURE;
-  rc = alloc_response (&resp, MU_IMAP_FETCH_BODY);
-  if (rc)
-    return rc;
 
-  section = strchr (elt[0]->v.string, '[');
+  section = parse_env->section;
   if (section)
     {
       p = section;
-      while (1)
+      while (mu_isdigit (*p))
 	{
+	  partc++;
 	  p = strchr (p, '.');
-	  if (*p)
+	  if (p)
 	    {
 	      p++;
-	      if (mu_isdigit (p[1]))
-		{
-		  partc++;
-		  continue;
-		}
+	      continue;
 	    }
 	  
 	  break;
@@ -221,6 +235,16 @@ _body_mapper (struct imap_list_element **elt,
     }
   else
     p = NULL;
+
+  if (p)
+    {
+      resp->body.section = strdup (p);
+      if (!resp->body.section)
+	{
+	  free (resp);
+	  return ENOMEM;
+	}
+    }
 
   if (partc)
     {
@@ -237,51 +261,33 @@ _body_mapper (struct imap_list_element **elt,
   resp->body.partc = partc;
   resp->body.partv = partv;
 
-  if (p && *p)
-    {
-      size_t len = strlen (p);
-      resp->body.key = malloc (len);
-      if (!resp->body.key)
-	{
-	  free (resp->body.partv);
-	  free (resp);
-	  return ENOMEM;
-	}
-      len--;
-      memcpy (resp->body.key, p, len);
-      resp->body.key[len] = 0;
-    }
+  resp->body.fields = parse_env->hlist;
+  parse_env->hlist = NULL;
   
-  resp->body.text = strdup (elt[1]->v.string);
+  resp->body.text = strdup (elt->v.string);
   if (!resp->body.text)
     {
-      free (resp->body.key);
+      free (resp->body.section);
       free (resp->body.partv);
       free (resp);
       return ENOMEM;
     }
-  *return_resp = resp;
   return 0;
 }
 
 static int
-_rfc822_mapper (const char *key, struct imap_list_element *elt,
-		union mu_imap_fetch_response **return_resp)
+_rfc822_mapper (union mu_imap_fetch_response *resp,
+		struct imap_list_element *elt,
+		struct parse_response_env *parse_env)
 {
-  union mu_imap_fetch_response *resp;
-  int rc;
-  
   if (elt->type != imap_eltype_string)
     return MU_ERR_FAILURE;
-  rc = alloc_response (&resp, MU_IMAP_FETCH_BODY);
-  if (rc)
-    return rc;
 
   resp->body.partc = 0;
   resp->body.partv = NULL;
 
-  resp->body.key = strdup (key);
-  if (!resp->body.key)
+  resp->body.section = strdup (parse_env->section);
+  if (!resp->body.section)
     {
       free (resp);
       return ENOMEM;
@@ -290,73 +296,65 @@ _rfc822_mapper (const char *key, struct imap_list_element *elt,
   resp->body.text = strdup (elt->v.string);
   if (!resp->body.text)
     {
-      free (resp->body.key);
+      free (resp->body.section);
       free (resp->body.partv);
       free (resp);
       return ENOMEM;
     }
-  *return_resp = resp;
   return 0;
 }
 
 static int
-_rfc822_header_mapper (struct imap_list_element **elt,
-		       union mu_imap_fetch_response **return_resp)
+_rfc822_header_mapper (union mu_imap_fetch_response *resp,
+		       struct imap_list_element *elt,
+		       struct parse_response_env *parse_env)
 {
-  return _rfc822_mapper ("HEADER", elt[1], return_resp);
+  parse_env->section = "HEADER";
+  return _rfc822_mapper (resp, elt, parse_env);
 }
 
 static int
-_rfc822_text_mapper (struct imap_list_element **elt,
-		     union mu_imap_fetch_response **return_resp)
+_rfc822_text_mapper (union mu_imap_fetch_response *resp,
+		     struct imap_list_element *elt,
+		     struct parse_response_env *parse_env)
 {
-  return _rfc822_mapper ("TEXT", elt[1], return_resp);
+  parse_env->section = "TEXT";
+  return _rfc822_mapper (resp, elt, parse_env);
 }
 
 static int
-_flags_mapper (struct imap_list_element **elt,
-	       union mu_imap_fetch_response **return_resp)
+_flags_mapper (union mu_imap_fetch_response *resp,
+	       struct imap_list_element *elt,
+	       struct parse_response_env *parse_env)
 {
-  union mu_imap_fetch_response *resp;
-  int rc;
-  int flags;
-  
-  if (elt[1]->type != imap_eltype_list)
+  if (elt->type != imap_eltype_list)
     return MU_ERR_FAILURE;
-  if (_mu_imap_collect_flags (elt[1], &flags))
+  if (_mu_imap_collect_flags (elt, &resp->flags.flags))
     return MU_ERR_FAILURE;
-
-  rc = alloc_response (&resp, MU_IMAP_FETCH_FLAGS);
-  if (rc)
-    return rc;
-  resp->flags.flags = flags;
-  *return_resp = resp;
   return 0;
 }
 
 static int
-_date_mapper (struct imap_list_element **elt,
-	      union mu_imap_fetch_response **return_resp)
+_date_mapper (union mu_imap_fetch_response *resp,
+	      struct imap_list_element *elt,
+	      struct parse_response_env *parse_env)
 {
-  union mu_imap_fetch_response *resp;
-  int rc;
   const char *p;
   struct tm tm;
   struct mu_timezone tz;
   
-  if (elt[1]->type != imap_eltype_string)
+  if (elt->type != imap_eltype_string)
     return MU_ERR_FAILURE;
-  p = elt[1]->v.string;
+  p = elt->v.string;
   if (mu_parse_imap_date_time (&p, &tm, &tz))
     return MU_ERR_FAILURE;
-  rc = alloc_response (&resp, MU_IMAP_FETCH_INTERNALDATE);
-  if (rc)
-    return rc;
   resp->internaldate.tm = tm;
   resp->internaldate.tz = tz;
-  *return_resp = resp;
   return 0;
 }
+
+/* FIXME */
+#define _bodystructure_mapper NULL
 
 struct fill_env
 {
@@ -524,23 +522,17 @@ _fill_response (void *item, void *data)
 }
   
 static int
-_envelope_mapper (struct imap_list_element **elt,
-		  union mu_imap_fetch_response **return_resp)
+_envelope_mapper (union mu_imap_fetch_response *resp,
+		  struct imap_list_element *elt,
+		  struct parse_response_env *parse_env)
 {
-  union mu_imap_fetch_response *resp;
-  int rc;
   struct fill_env env;
   
-  if (elt[1]->type != imap_eltype_list)
+  if (elt->type != imap_eltype_list)
     return MU_ERR_FAILURE;
-  rc = alloc_response (&resp, MU_IMAP_FETCH_ENVELOPE);
-  if (rc)
-    return rc;
   env.envelope = &resp->envelope;
   env.n = 0;
-  mu_list_foreach (elt[1]->v.list, _fill_response, &env);
-  
-  *return_resp = resp;
+  mu_list_foreach (elt->v.list, _fill_response, &env);
   return 0;
 }
 
@@ -548,81 +540,146 @@ struct mapper_tab
 {
   char *name;
   size_t size;
-  int prefix;
-  int (*mapper) (struct imap_list_element **, union mu_imap_fetch_response **);
+  int type;
+  mapper_fn mapper;
 };
   
 static struct mapper_tab mapper_tab[] = {
 #define S(s) s, (sizeof (s) - 1)
-  { S("BODYSTRUCTURE"), 0, },
-  { S("BODY["),         1, _body_mapper },
-  { S("BODY"),          0, _body_mapper },
-  { S("ENVELOPE"),      0, _envelope_mapper },
-  { S("FLAGS"),         0, _flags_mapper },
-  { S("INTERNALDATE"),  0, _date_mapper },
-  { S("RFC822"),        0, _body_mapper},
-  { S("RFC822.HEADER"), 0, _rfc822_header_mapper }, 
-  { S("RFC822.SIZE"),   0, _size_mapper },
-  { S("RFC822.TEXT"),   0, _rfc822_text_mapper },
-  { S("UID"),           0, _uid_mapper },
+  { S("BODYSTRUCTURE"), },
+  { S("BODY"),          MU_IMAP_FETCH_BODY,        _body_mapper },
+  { S("ENVELOPE"),      MU_IMAP_FETCH_ENVELOPE,    _envelope_mapper },
+  { S("FLAGS"),         MU_IMAP_FETCH_FLAGS,       _flags_mapper },
+  { S("INTERNALDATE"),  MU_IMAP_FETCH_INTERNALDATE, _date_mapper },
+  { S("RFC822"),        MU_IMAP_FETCH_BODY,        _body_mapper},
+  { S("RFC822.HEADER"), MU_IMAP_FETCH_BODY,        _rfc822_header_mapper }, 
+  { S("RFC822.SIZE"),   MU_IMAP_FETCH_RFC822_SIZE, _size_mapper },
+  { S("RFC822.TEXT"),   MU_IMAP_FETCH_BODY,        _rfc822_text_mapper },
+  { S("UID"),           MU_IMAP_FETCH_UID,         _uid_mapper },
 #undef S
   { NULL }
 };
-  
+
 static int
-_fetch_mapper (void **itmv, size_t itmc, void *call_data)
+_extract_string (void **itmv, size_t itmc, void *call_data)
 {
-  int *status = call_data;
-  struct mapper_tab *mt;
-  struct imap_list_element *elt[2];
-  char *kw;
-  size_t kwlen;
-  union mu_imap_fetch_response *resp;
+  struct imap_list_element *elt = itmv[0];
+  if (elt->type != imap_eltype_string)
+    return MU_LIST_MAP_SKIP;
+  itmv[0] = elt->v.string;
+  return 0;
+}
 
-  elt[0] = itmv[0];
-  elt[1] = itmv[1];
-  
-  if (elt[0]->type != imap_eltype_string)
+static int
+_fetch_fold (void *item, void *data)
+{
+  struct imap_list_element *elt = item;
+  struct parse_response_env *env = data;
+
+  switch (env->state)
     {
-      *status = MU_ERR_FAILURE;
-      return MU_LIST_MAP_STOP|MU_LIST_MAP_SKIP;
-    }
-  kw = elt[0]->v.string;
-  kwlen = strlen (kw);
-  for (mt = mapper_tab; mt->name; mt++)
-    {
-      if (mt->prefix)
-	{
-	  if (mt->size >= kwlen && memcmp (mt->name, kw, kwlen) == 0)
-	    break;
-	}
-      else if (mt->size == kwlen && memcmp (mt->name, kw, kwlen) == 0)
+    case resp_kw:
+      {
+	int rc;
+	char *kw;
+	size_t kwlen;
+	struct mapper_tab *mt;
+
+	if (elt->type != imap_eltype_string)
+	  {
+	    env->status = MU_ERR_FAILURE;
+	    return MU_ERR_FAILURE;
+	  }
+	kw = elt->v.string;
+	kwlen = strlen (kw);
+	for (mt = mapper_tab; mt->name; mt++)
+	  {
+	    if (mt->size == kwlen && memcmp (mt->name, kw, kwlen) == 0)
+	      break;
+	  }
+
+	if (!mt->name)
+	  {
+	    mu_debug (MU_DEBCAT_MAILER, MU_DEBUG_TRACE9,
+		      ("ignoring unknown FETCH item '%s'", kw));
+	    env->state = resp_skip;
+	    return 0;
+	  }
+
+	env->mapper = mt->mapper;
+	rc = alloc_response (&env->resp, mt->type);
+	if (rc)
+	  {
+	    env->status = rc;
+	    return MU_ERR_FAILURE;
+	  }
+	env->state = mt->type == MU_IMAP_FETCH_BODY ? resp_body : resp_val;
 	break;
-    }
-
-  if (!mt->name)
-    {
-      mu_debug (MU_DEBCAT_MAILER, MU_DEBUG_TRACE9,
-		("ignoring unknown FETCH item '%s'", kw));
-      return MU_LIST_MAP_SKIP;
-    }
-
-  if (mt->mapper)
-    {
-      int rc = mt->mapper (elt, &resp);
-      if (rc == 0)
+      }
+      
+    case resp_val:
+      if (env->mapper)
 	{
-	  itmv[0] = resp;
-	  return MU_LIST_MAP_OK;
+	  int rc = env->mapper (env->resp, elt, env);
+	  if (rc)
+	    _free_fetch_response (env->resp);
+	  else
+	    mu_list_append (env->result, env->resp);
 	}
+      env->resp = NULL;
+      mu_list_destroy (&env->hlist);
+      env->state = resp_kw;
+      break;
+      
+    case resp_body:
+      if (_mu_imap_list_element_is_string (elt, "["))
+	env->state = resp_body_section;
       else
 	{
-	  *status = rc;
-	  return MU_LIST_MAP_STOP|MU_LIST_MAP_SKIP;
+	  env->mapper = _bodystructure_mapper;
+	  env->state = resp_val;
+	}
+      break;
+      
+    case resp_body_section:
+      if (elt->type != imap_eltype_string)
+	{
+	  env->status = MU_ERR_PARSE;
+	  return MU_ERR_FAILURE;
+	}
+      else if (strncmp (elt->v.string, "HEADER.FIELDS", 13) == 0)
+	env->state = resp_body_hlist;
+      else
+	env->state = resp_body_end;
+      env->section = elt->v.string;
+      break;
+      
+    case resp_skip:
+      mu_list_destroy (&env->hlist);
+      env->state = resp_kw;
+      break;
+      
+    case resp_body_hlist:
+      if (elt->type != imap_eltype_list)
+	{
+	  env->status = MU_ERR_PARSE;
+	  return MU_ERR_FAILURE;
+	}
+      mu_list_map (elt->v.list, _extract_string, NULL, 1, &env->hlist);
+      env->state = resp_body_end;
+      break;
+      
+    case resp_body_end:
+      if (_mu_imap_list_element_is_string (elt, "]"))
+	env->state = resp_val;
+      else
+	{
+	  env->status = MU_ERR_PARSE;
+	  return MU_ERR_FAILURE;
 	}
     }
-      
-  return MU_LIST_MAP_SKIP;
+  
+  return 0;
 }
 
 int
@@ -630,7 +687,8 @@ _mu_imap_parse_fetch_response (mu_list_t input, mu_list_t *result_list)
 {
   mu_list_t result;
   int status;
-
+  struct parse_response_env env;
+  
   status = mu_list_create (&result);
   if (status)
     {
@@ -639,11 +697,14 @@ _mu_imap_parse_fetch_response (mu_list_t input, mu_list_t *result_list)
       return 1;
     }
   mu_list_set_destroy_item (result, _free_fetch_response);
-  mu_list_map (input, _fetch_mapper, &status, 2, &result);
-  if (status)
+  memset (&env, 0, sizeof (env));
+
+  env.result = result;
+  mu_list_foreach (input, _fetch_fold, &env);
+  if (env.status)
     mu_list_destroy (&result);
   else
     *result_list = result;
-  
+  mu_list_destroy (&env.hlist);
   return status;
 }

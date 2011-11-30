@@ -241,17 +241,19 @@ fetch_response_printer (void *item, void *data)
   switch (resp->type)
     {
     case MU_IMAP_FETCH_BODY:
-      mu_stream_printf (str, "BODY [%s]", resp->body.key);
+      mu_stream_printf (str, "BODY [");
       if (resp->body.partv)
 	{
 	  size_t i;
 	  
-	  mu_stream_printf (str, ", part: ");
 	  for (i = 0; i < resp->body.partc; i++)
 	    mu_stream_printf (str, "%lu.",
 			      (unsigned long) resp->body.partv[i]);
 	}
-      mu_stream_printf (str, "\nBEGIN%s\nEND\n", resp->body.text);
+      if (resp->body.section)
+	mu_stream_printf (str, "%s", resp->body.section);
+      mu_stream_printf (str, "]");
+      mu_stream_printf (str, "\nBEGIN\n%s\nEND\n", resp->body.text);
       break;
       
     case MU_IMAP_FETCH_BODYSTRUCTURE:

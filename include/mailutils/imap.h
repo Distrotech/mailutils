@@ -175,7 +175,8 @@ struct mu_imap_fetch_body
   int type;
   size_t *partv;
   size_t partc;
-  char *key;
+  char *section;
+  mu_list_t fields;
   char *text;
 };
 
