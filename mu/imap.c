@@ -182,6 +182,13 @@ imap_bye_callback (void *data, int code, size_t sdat, void *pdat)
     mu_diag_output (MU_DIAG_INFO, _("server is closing connection"));
 }
 
+static void
+imap_bad_callback (void *data, int code, size_t sdat, void *pdat)
+{
+  const char *text = pdat;
+  mu_diag_output (MU_DIAG_CRIT, "SERVER ALERT: %s", text);
+}
+
 
 static int
 com_disconnect (int argc MU_ARG_UNUSED, char **argv MU_ARG_UNUSED)
@@ -281,6 +288,9 @@ com_connect (int argc, char **argv)
 					      NULL);
 	  mu_imap_register_callback_function (imap, MU_IMAP_CB_BYE,
 					      imap_bye_callback,
+					      NULL);
+	  mu_imap_register_callback_function (imap, MU_IMAP_CB_BAD,
+					      imap_bad_callback,
 					      NULL);
 
 	  
@@ -587,44 +597,68 @@ com_noop (int argc MU_ARG_UNUSED, char **argv MU_ARG_UNUSED)
   return 0;
 }
 
+static int
+com_fetch (int argc, char **argv)
+{
+  int status = mu_imap_fetch (imap, argv[1], argv[2]);
+  if (status)
+    report_failure ("fetch", status);
+  return 0;  
+}
+
 struct mutool_command imap_comtab[] = {
-  { "capability", 1, -1, com_capability,
+  { "capability", 1, -1, 0,
+    com_capability,
     /* TRANSLATORS: -reread is a keyword; do not translate. */
     N_("[-reread] [NAME...]"),
     N_("list server capabilities") },
-  { "verbose",    1, 4, com_verbose,
+  { "verbose",    1, 4, 0,
+    com_verbose,
     "[on|off|mask|unmask] [secure [payload]]",
     N_("control the protocol tracing") },
-  { "connect",    1, 4, com_connect,
+  { "connect",    1, 4, 0,
+    com_connect,
     /* TRANSLATORS: --tls is a keyword. */
     N_("[-tls] HOSTNAME [PORT]"),
     N_("open connection") },
-  { "disconnect", 1, 1,
+  { "disconnect", 1, 1, 0,
     com_disconnect,
     NULL,
     N_("close connection") },
-  { "login",        2, 3, com_login,
+  { "login",        2, 3, 0,
+    com_login,
     N_("USER [PASS]"),
     N_("login to the server") },
-  { "logout",       1, 1, com_logout,
+  { "logout",       1, 1, 0,
+    com_logout,
     NULL,
     N_("quit imap session") },
-  { "id",           1, -1, com_id,
+  { "id",           1, -1, 0,
+    com_id,
     N_("[-test KW] [ARG [ARG...]]"),
     N_("send ID command") },
-  { "noop",         1, 1, com_noop,
+  { "noop",         1, 1, 0,
+    com_noop,
     NULL,
     N_("no operation (keepalive)") },
-  { "select",       1, 2, com_select,
+  { "select",       1, 2, 0,
+    com_select,
     N_("[MBOX]"),
     N_("select a mailbox") },
-  { "examine",      1, 2, com_examine,
+  { "examine",      1, 2, 0,
+    com_examine,
     N_("[MBOX]"),
     N_("examine a mailbox") },
-  { "status",       3, -1, com_status,
+  { "status",       3, -1, 0,
+    com_status,
     N_("MBOX KW [KW...]"),
     N_("get mailbox status") },
-  { "quit",         1, 1, com_logout,
+  { "fetch",        3, 3, CMD_COALESCE_EXTRA_ARGS,
+    com_fetch,
+    N_("MSGSET ITEMS"),
+    N_("fetch message data") },
+  { "quit",         1, 1, 0,
+    com_logout,
     NULL,
     N_("same as `logout'") },
   { NULL }

@@ -89,21 +89,26 @@ mu_imap_trace_mask (mu_imap_t imap, int op, int lev)
   switch (op)
     {
     case MU_IMAP_TRACE_SET:
-      imap->flags |= MU_IMAP_XSCRIPT_MASK (lev);
+      MU_IMAP_SET_XSCRIPT_MASK (imap, lev);
+      if (lev & MU_XSCRIPT_PAYLOAD)
+	mu_imapio_trace_payload (imap->io, 1);
       break;
       
     case MU_IMAP_TRACE_CLR:
-      imap->flags &= ~MU_IMAP_XSCRIPT_MASK (lev);
+      MU_IMAP_CLR_XSCRIPT_MASK (imap, lev);
+      if (lev & MU_XSCRIPT_PAYLOAD)
+	mu_imapio_trace_payload (imap->io, 0);
       break;
       
     case MU_IMAP_TRACE_QRY:
-      if (imap->flags & MU_IMAP_XSCRIPT_MASK (lev))
+      if (MU_IMAP_IS_XSCRIPT_MASK (imap, lev))
 	break;
       return MU_ERR_NOENT;
       
     default:
       return EINVAL;
     }
+  
   return 0;
 }
 

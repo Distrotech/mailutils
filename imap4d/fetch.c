@@ -560,7 +560,6 @@ fetch_bodystructure0 (mu_message_t message, int extension)
 
       mu_message_get_header (message, &header);
 
-
       /* The subtype.  */
       if (mu_header_aget_value (header, MU_HEADER_CONTENT_TYPE, &buffer) == 0)
 	{

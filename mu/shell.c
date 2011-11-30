@@ -71,18 +71,18 @@ static int shell_history (int, char **);
 #endif
 
 struct mutool_command default_comtab[] = {
-  { "prompt",   -1, -1, shell_prompt,
+  { "prompt",     1, 2, CMD_COALESCE_EXTRA_ARGS, shell_prompt,
     N_("STRING"),
     N_("set command prompt") },
-  { "exit",       1, 1, shell_exit,    NULL,        N_("exit program") },
-  { "help",       1, 2, shell_help,
+  { "exit",       1, 1, 0, shell_exit,    NULL,        N_("exit program") },
+  { "help",       1, 2, 0, shell_help,
     N_("[COMMAND]"),
     N_("display this text") },
-  { "?",          1, 1, shell_help,
+  { "?",          1, 1, 0, shell_help,
     N_("[COMMAND]"),
     N_("synonym for `help'") },
 #ifdef WITH_READLINE
-  { "history",    1, 1, shell_history,
+  { "history",    1, 1, 0, shell_history,
     NULL,
     N_("show command history") },
 #endif
@@ -492,59 +492,101 @@ add_history (const char *s MU_ARG_UNUSED)
 }
 #endif
 
+static int
+next_arg (struct mu_wordsplit *ws)
+{
+  int rc = mu_wordsplit (NULL, ws, MU_WRDSF_INCREMENTAL);
+  if (rc == MU_WRDSE_NOINPUT)
+    {
+      mu_error ("%s: too few arguments", ws->ws_wordv[0]);
+      mu_wordsplit_free (ws);
+      return -1;
+    }
+  else if (rc)
+    {
+      mu_error ("cannot parse input line: %s",
+		mu_wordsplit_strerror (ws));
+      return 1;
+    }
+  return 0;
+}
+
 /* Parse and execute a command line. */
 int
 execute_line (char *line)
 {
+  int rc;
   struct mu_wordsplit ws;
-  int argc;
-  char **argv;
+  struct mutool_command *cmd;
   int status = 0;
-
+  
   ws.ws_comment = "#";
-  ws.ws_offs = 1; /* Keep extra slot for expansion in case when argmin == -1 */
-  if (mu_wordsplit (line, &ws,
-		    MU_WRDSF_DEFFLAGS|MU_WRDSF_COMMENT|MU_WRDSF_DOOFFS))
+  rc = mu_wordsplit (line, &ws,
+		     MU_WRDSF_DEFFLAGS|MU_WRDSF_COMMENT|
+		     MU_WRDSF_INCREMENTAL|MU_WRDSF_APPEND);
+  if (rc == MU_WRDSE_NOINPUT)
     {
-      mu_error("cannot parse input line: %s", mu_wordsplit_strerror (&ws));
+      mu_wordsplit_free (&ws);
       return 0;
     }
-  argc = ws.ws_wordc;
-  argv = ws.ws_wordv + 1;
-  
-  if (argc >= 0)
+  else if (rc)
     {
-      struct mutool_command *cmd = find_command (argv[0]);
-      
+      mu_error ("cannot parse input line: %s", mu_wordsplit_strerror (&ws));
+      return 0;
+    }
+  
+  if (ws.ws_wordc)
+    {
+      int argmin;
+      cmd = find_command (ws.ws_wordv[0]);
+
       if (!cmd)
-	mu_error ("%s: no such command.", argv[0]);
-      else if (cmd->argmin > 0 && argc < cmd->argmin)
-	mu_error ("%s: too few arguments", argv[0]);
-      else if (cmd->argmax > 0 && argc > cmd->argmax)
-	mu_error ("%s: too many arguments", argv[0]);
+	{
+	  mu_error ("%s: no such command.", ws.ws_wordv[0]);
+	  mu_wordsplit_free (&ws);
+	  return 0;
+	}
+
+      argmin = cmd->argmin;
+      if (cmd->flags & CMD_COALESCE_EXTRA_ARGS)
+	--argmin;
+      while (ws.ws_wordc < argmin)
+	{
+	  if (next_arg (&ws))
+	    return 0;
+	}
+
+      if (cmd->flags & CMD_COALESCE_EXTRA_ARGS)
+	{
+	  ws.ws_flags |= MU_WRDSF_NOSPLIT;
+	  if (next_arg (&ws))
+	    return 0;
+	}
       else
 	{
-	  if (cmd->argmin <= 0 && argc != 2)
+	  for (;;)
 	    {
-	      size_t i;
-	      char *word = mu_str_skip_class (line, MU_CTYPE_SPACE);
-	      char *arg = mu_str_skip_class_comp (word, MU_CTYPE_SPACE);
-	      if (*arg)
+	      if (cmd->argmax > 0 && ws.ws_wordc > cmd->argmax)
 		{
-		  *arg++ = 0;
-		  arg = mu_str_skip_class (arg, MU_CTYPE_SPACE);
+		  mu_error ("%s: too many arguments", ws.ws_wordv[0]);
+		  mu_wordsplit_free (&ws);
+		  return 0;
 		}
-	      for (i = 0; i < ws.ws_wordc; i++)
-		free (ws.ws_wordv[i + 1]);
-	      ws.ws_wordv[0] = xstrdup (word);
-	      ws.ws_wordv[1] = xstrdup (arg);
-	      ws.ws_wordv[2] = NULL;
-	      ws.ws_wordc = 2;
-	      argc = ws.ws_wordc;
-	      argv = ws.ws_wordv;
+	      rc = mu_wordsplit (NULL, &ws, MU_WRDSF_INCREMENTAL);
+	      if (rc == 0)
+		continue;
+	      else if (rc == MU_WRDSE_NOINPUT)
+		break;
+	      else
+		{
+		  mu_error ("cannot parse input line: %s",
+			    mu_wordsplit_strerror (&ws));
+		  return 0;
+		}
 	    }
-	  status = cmd->func (argc, argv);
 	}
+
+      status = cmd->func (ws.ws_wordc, ws.ws_wordv);
     }
   mu_wordsplit_free (&ws);
   return status;

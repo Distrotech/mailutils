@@ -18,13 +18,15 @@
 
 typedef int (*mutool_action_t) (int argc, char **argv);
 
+#define CMD_COALESCE_EXTRA_ARGS 0x01
+
 struct mutool_command
 {
   const char *name;	/* User printable name of the function. */
-  int argmin;           /* Min. acceptable number of arguments (-1 means
-			   pass all arguments as a single string */ 
+  int argmin;           /* Min. acceptable number of arguments (> 1) */ 
   int argmax;           /* Max. allowed number of arguments (-1 means not
 			   limited */
+  int flags;
   mutool_action_t func;	/* Function to call to do the job. */
   const char *argdoc;   /* Documentation for the arguments */
   const char *docstring;/* Documentation for this function.  */

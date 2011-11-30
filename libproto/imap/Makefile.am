@@ -28,6 +28,7 @@ libmu_imap_la_LIBADD = ${MU_LIB_AUTH} ${MU_LIB_MAILUTILS} @INTLLIBS@
 #  url.c
 libmu_imap_la_SOURCES = \
  fake-folder.c\
+ fetch.c\
  callback.c\
  capability.c\
  capatst.c\

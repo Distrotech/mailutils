@@ -32,7 +32,17 @@ extern "C" {
 #define MU_IMAP_RESP  0x01
 #define MU_IMAP_TRACE 0x02
 #define MU_IMAP_XSCRIPT_MASK(n) (1<<((n)+1))
-
+#define MU_IMAP_SET_XSCRIPT_MASK(imap,n)	\
+  do						\
+    (imap)->flags |= MU_IMAP_XSCRIPT_MASK (n);	\
+  while (0)
+#define MU_IMAP_CLR_XSCRIPT_MASK(imap,n)	\
+  do						\
+    (imap)->flags &= ~MU_IMAP_XSCRIPT_MASK (n);	\
+  while (0)
+#define MU_IMAP_IS_XSCRIPT_MASK(imap,n)         \
+  ((imap)->flags & MU_IMAP_XSCRIPT_MASK (n))
+  
 enum mu_imap_client_state
   {
     MU_IMAP_NO_STATE,
@@ -47,6 +57,7 @@ enum mu_imap_client_state
     MU_IMAP_SELECT_RX,
     MU_IMAP_STATUS_RX,
     MU_IMAP_NOOP_RX,
+    MU_IMAP_FETCH_RX,
     MU_IMAP_CLOSING
   };
 
@@ -174,10 +185,14 @@ int _mu_imap_response (mu_imap_t imap, mu_imap_response_action_t fun,
   
 int _mu_imap_list_element_is_string (struct imap_list_element *elt,
 				     const char *str);
+int _mu_imap_list_nth_element_is_string (mu_list_t list, size_t n,
+					 const char *str);
+  
 int _mu_imap_collect_flags (struct imap_list_element *arg, int *res);
 
 struct imap_list_element *_mu_imap_list_at (mu_list_t list, int idx);
   
+int _mu_imap_parse_fetch_response (mu_list_t resp, mu_list_t *result_list);
   
 # ifdef __cplusplus
 }

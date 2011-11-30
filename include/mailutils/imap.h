@@ -21,6 +21,7 @@
 #include <mailutils/iterator.h>
 #include <mailutils/debug.h>
 #include <mailutils/stream.h>
+#include <mailutils/util.h>
 #include <mailutils/kwd.h>
 
 #ifdef __cplusplus
@@ -58,6 +59,8 @@ int mu_imap_id (mu_imap_t imap, char **idenv, mu_assoc_t *passoc);
 
 int mu_imap_noop (mu_imap_t imap);
 
+int mu_imap_fetch (mu_imap_t imap, const char *msgset, const char *items);
+  
 int mu_imap_set_carrier (mu_imap_t imap, mu_stream_t carrier);
 int mu_imap_get_carrier (mu_imap_t imap, mu_stream_t *pcarrier);
 
@@ -104,7 +107,7 @@ extern struct mu_kwd _mu_imap_status_name_table[];
 
   /* The following five callbacks correspond to members of struct
      mu_imap_stat and take a pointer to struct mu_imap_stat as their
-     only argument. */
+     PDAT argument.  SDAT is always 0. */
 #define MU_IMAP_CB_PERMANENT_FLAGS  0
 #define MU_IMAP_CB_MESSAGE_COUNT    1
 #define MU_IMAP_CB_RECENT_COUNT     2
@@ -113,15 +116,20 @@ extern struct mu_kwd _mu_imap_status_name_table[];
 #define MU_IMAP_CB_UIDVALIDITY      5
 
   /* The following callbacks correspond to server responses and take two
-     argument: a response code (see MU_IMAP_RESPONSE, below), and
-     human-readable text string as returned by the server.  The latter can
-     be NULL. */
+     arguments: a response code (see MU_IMAP_RESPONSE, below) in SDAT, and
+     human-readable text string as returned by the server in PDAT.  The
+     latter can be NULL. */
 #define MU_IMAP_CB_OK               6
 #define MU_IMAP_CB_NO               7
 #define MU_IMAP_CB_BAD              8
 #define MU_IMAP_CB_BYE              9
 #define MU_IMAP_CB_PREAUTH         10
-#define _MU_IMAP_CB_MAX            11
+
+  /* FETCH callback.  Arguments: SDAT - message sequence number, PDAT - a
+     list (mu_list_t) of union mu_imap_fetch_response (see below). */
+#define MU_IMAP_CB_FETCH           11
+
+#define _MU_IMAP_CB_MAX            12
 
 typedef void (*mu_imap_callback_t) (void *, int code, size_t sdat, void *pdat);
   
@@ -144,7 +152,92 @@ void mu_imap_register_callback_function (mu_imap_t imap, int code,
 #define MU_IMAP_RESPONSE_UNSEEN          10
 
 extern struct mu_kwd mu_imap_response_codes[];  
+
+  /* FETCH Response Codes */
+
+  /* BODY[<section>]<<origin octet>> */
+#define MU_IMAP_FETCH_BODY                 0
+  /* BODY & BODYSTRUCTURE */
+#define MU_IMAP_FETCH_BODYSTRUCTURE        1
+  /* ENVELOPE */
+#define MU_IMAP_FETCH_ENVELOPE             2 
+  /* FLAGS */
+#define MU_IMAP_FETCH_FLAGS                3
+  /* INTERNALDATE */
+#define MU_IMAP_FETCH_INTERNALDATE         4
+  /* RFC822.SIZE */
+#define MU_IMAP_FETCH_RFC822_SIZE          5
+  /* UID */
+#define MU_IMAP_FETCH_UID                  6
+
+struct mu_imap_fetch_body
+{
+  int type;
+  size_t *partv;
+  size_t partc;
+  char *key;
+  char *text;
+};
+
+struct mu_imap_fetch_bodystructure
+{
+  int type;
+  //FIXME?
+};
   
+struct mu_imap_fetch_envelope
+{
+  int type;
+  struct tm date;
+  struct mu_timezone tz;
+  char *subject;
+  mu_address_t from;
+  mu_address_t sender;
+  mu_address_t reply_to;
+  mu_address_t to;
+  mu_address_t cc;
+  mu_address_t bcc;
+  char *in_reply_to;
+  char *message_id;
+};
+
+struct mu_imap_fetch_flags
+{
+  int type;
+  int flags;
+};
+
+struct mu_imap_fetch_internaldate
+{
+  int type;
+  struct tm tm;
+  struct mu_timezone tz;
+};
+  
+struct mu_imap_fetch_rfc822_size
+{
+  int type;
+  size_t size;
+};
+  
+struct mu_imap_fetch_uid
+{
+  int type;
+  size_t uid;
+};
+
+union mu_imap_fetch_response
+{
+  int type;
+  struct mu_imap_fetch_body body;
+  struct mu_imap_fetch_bodystructure bodystructure;
+  struct mu_imap_fetch_envelope envelope;
+  struct mu_imap_fetch_flags flags;
+  struct mu_imap_fetch_internaldate internaldate;
+  struct mu_imap_fetch_rfc822_size rfc822_size;
+  struct mu_imap_fetch_uid uid;
+};
+
 #ifdef __cplusplus
 }
 #endif

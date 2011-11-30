@@ -37,7 +37,7 @@ mu_imap_set_carrier (mu_imap_t imap, mu_stream_t carrier)
   if (imap == NULL)
     return EINVAL;
 
-  rc = mu_imapio_create (&io, carrier);
+  rc = mu_imapio_create (&io, carrier, MU_IMAPIO_CLIENT);
   if (rc)
     return rc;
   if (imap->io)

@@ -304,6 +304,34 @@ _process_unsolicited_response (mu_imap_t imap, mu_list_t resp)
 	  return 0;
 	}
     }
+  else if (count == 3 &&
+	   _mu_imap_list_nth_element_is_string (resp, 1, "FETCH"))
+    {
+      size_t msgno;
+
+      arg = _mu_imap_list_at (resp, 0);
+      if (arg && arg->type == imap_eltype_string)
+	{
+	  char *p;
+	  msgno = strtoul (arg->v.string, &p, 10);
+	  if (*p)
+	    return 1;
+	  
+	  arg = _mu_imap_list_at (resp, 2);
+	  if (arg->type == imap_eltype_list)
+	    {
+	      mu_list_t list;
+	      
+	      if (_mu_imap_parse_fetch_response (arg->v.list, &list) == 0)
+		{
+		  mu_imap_callback (imap, MU_IMAP_CB_FETCH, msgno, list);
+		  mu_list_destroy (&list);
+		}
+	      return 0;
+	    }
+	}
+    }
+
   return 1;
 }
 
@@ -317,8 +345,8 @@ _mu_imap_process_untagged_response (mu_imap_t imap, mu_list_t list,
       if (fun)
 	fun (imap, list, data);
       else
-	mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR,
-		  ("ignoring unexpected response"));
+	mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_TRACE9,
+		  ("ignoring unrecognized response"));
     }
   return 0;
 }
