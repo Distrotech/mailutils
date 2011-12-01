@@ -28,7 +28,27 @@ libmailbox_la_SOURCES =  \
  hdrfirst.c\
  hdritr.c\
  header.c\
- message.c\
- msgscan.c
+ msgcpy.c\
+ msgattr.c\
+ msgbody.c\
+ msgcreat.c\
+ msgheader.c\
+ msgenv.c\
+ msglines.c\
+ msgmbx.c\
+ msgmod.c\
+ msgmulti.c\
+ msgnumparts.c\
+ msgobs.c\
+ msgpart.c\
+ msgqid.c\
+ msgqlines.c\
+ msgref.c\
+ msgsave.c\
+ msgscan.c\
+ msgsize.c\
+ msgstream.c\
+ msguid.c\
+ msguidl.c
 
 INCLUDES = @MU_LIB_COMMON_INCLUDES@ -I/libmailutils
