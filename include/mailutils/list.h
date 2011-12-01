@@ -274,7 +274,9 @@ int mu_list_map (mu_list_t _list, mu_list_mapper_t _map,
 		 void *_data, size_t _nelem,
 		 mu_list_t *_res);
 
-  /* List fold */
+  /* ************************************************* */
+  /* List folding                                      */
+  /* ************************************************* */
 
 typedef int (*mu_list_folder_t) (void *_item, void *_data,
 				 void *_prev, void **_ret);
@@ -315,6 +317,18 @@ int mu_list_fold (mu_list_t _list, mu_list_folder_t _fold, void *_data,
 		  void *_init, void *_return_value);
 int mu_list_rfold (mu_list_t _list, mu_list_folder_t _fold, void *_data,
 		   void *_init, void *_return_value);
+
+  /* ************************************************* */
+  /* Sorting                                           */
+  /* ************************************************* */
+
+  /* Sort _list using quicksort algorithm.  Use _comp to compare elements.
+     If it is NULL, use the comparator method of _list.
+
+     Comparator must return 0 if the two elements are equal, -1 if
+     first of them is less than the second, and +1 otherwise.
+  */
+void mu_list_sort (mu_list_t _list, mu_list_comparator_t _comp);
   
 #ifdef __cplusplus
 }

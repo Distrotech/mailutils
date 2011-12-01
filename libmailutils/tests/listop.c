@@ -773,7 +773,13 @@ rfold (mu_list_t list)
   else
     printf ("NULL\n");
 }
-  
+
+void
+sort (mu_list_t list)
+{
+  mu_list_sort (list, NULL);
+}
+
 void
 help ()
 {
@@ -802,6 +808,7 @@ help ()
   printf ("help\n");
   printf ("head\n");
   printf ("tail\n");
+  printf ("sort\n");
   printf ("NUMBER\n");
 }
 
@@ -921,6 +928,14 @@ shell (mu_list_t list)
 	    head (ws.ws_wordc, list);
 	  else if (strcmp (ws.ws_wordv[0], "tail") == 0)
 	    tail (ws.ws_wordc, list);
+	  else if (strcmp (ws.ws_wordv[0], "sort") == 0)
+	    {
+	      int i;
+	      sort (list);
+
+	      for (i = 0; i < NITR; i++)
+		mu_iterator_destroy (&itr[i]);
+	    }
 	  else if (ws.ws_wordc == 1)
 	    {
 	      char *p;

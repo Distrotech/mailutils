@@ -45,6 +45,7 @@ liblist_la_SOURCES = \
  setdestr.c\
  slice.c\
  slice2.c\
+ sort.c\
  tail.c
 
 INCLUDES = @MU_LIB_COMMON_INCLUDES@ -I/libmailutils

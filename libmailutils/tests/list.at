@@ -445,6 +445,68 @@ rfold
 
 m4_popdef([MU_TEST_KEYWORDS])
 
+# ------------------------------------------------------------
+# Sort
+# ------------------------------------------------------------
+
+m4_define([MU_TEST_GROUP],[Sort])
+m4_pushdef([MU_TEST_KEYWORDS],MU_TEST_KEYWORDS[ sort])
+
+TESTLIST([empty list],[],
+[sort
+print
+],
+[# items: 0
+])
+
+TESTLIST([sorted list asc],[],
+[add a b c d e f
+sort
+print
+],
+[# items: 6
+a
+b
+c
+d
+e
+f
+])
+
+TESTLIST([sorted list desc],[],
+[add f e d c b a
+sort
+print
+],
+[# items: 6
+a
+b
+c
+d
+e
+f
+])
+
+TESTLIST([unsorted list],[],
+[add en to tre fire fem seks syv atte ni ti
+sort
+print
+],
+[# items: 10
+atte
+en
+fem
+fire
+ni
+seks
+syv
+ti
+to
+tre
+])
+
+m4_popdef([MU_TEST_KEYWORDS])
+
 dnl ------------------------------------------------------------
 dnl Cleanup
 m4_popdef([TESTLIST])
