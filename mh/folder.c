@@ -28,10 +28,6 @@
 
 #include <dirent.h>
 
-#define obstack_chunk_alloc malloc
-#define obstack_chunk_free free
-#include <obstack.h>
-
 static char doc[] = N_("GNU MH folder")"\v"
 N_("Use -help to obtain the list of traditional MH options.");
 static char args_doc[] = N_("[ACTION] [MSG]");
@@ -243,10 +239,7 @@ struct folder_info
   size_t others;           /* Number of non-message files */ 
 };
 
-struct obstack folder_info_stack; /* Memory storage for folder infp */
-struct folder_info *folder_info;  /* Finalized array of information
-				     structures */
-size_t folder_info_count;         /* Number of the entries in the array */
+mu_list_t folder_info_list; /* Memory storage for folder info */
 
 size_t message_count;             /* Total number of messages */
 
@@ -255,9 +248,10 @@ int name_prefix_len;              /* Length of the mu_path_folder_dir */
 void
 install_folder_info (const char *name, struct folder_info *info)
 {
-  info->name = strdup (name) + name_prefix_len;
-  obstack_grow (&folder_info_stack, info, sizeof (*info));
-  folder_info_count++;
+  struct folder_info *new_info = xmalloc (sizeof (*new_info));
+  *new_info = *info;
+  new_info->name = strdup (new_info->name + name_prefix_len);
+  mu_list_append (folder_info_list, new_info);
   message_count += info->message_count;
 }
 
@@ -321,7 +315,7 @@ _scan (const char *name, size_t depth)
       if (fast_mode && depth > 0)
 	{
 	  memset (&info, 0, sizeof (info));
-	  info.name = strdup (name);
+	  info.name = name;
 	  install_folder_info (name, &info);
 	  closedir (dir);
 	  return;
@@ -382,60 +376,69 @@ _scan (const char *name, size_t depth)
   if (depth > 0)
     install_folder_info (name, &info);
 }
-    
+
+static int
+_folder_info_printer (void *item, void *data)
+{
+  struct folder_info *info = item;
+  int len = strlen (info->name);
+
+  if (len < 22)
+    printf ("%22.22s", info->name);
+  else
+    printf ("%s", info->name);
+  
+  if (strcmp (info->name, mh_current_folder ()) == 0)
+    printf ("+");
+  else
+    printf (" ");
+  
+  if (info->message_count)
+    {
+      printf (ngettext(" has %4lu message  (%4lu-%4lu)",
+		       " has %4lu messages (%4lu-%4lu)",
+		       info->message_count),
+	      (unsigned long) info->message_count,
+	      (unsigned long) info->min,
+	      (unsigned long) info->max);
+      if (info->cur)
+	printf ("; cur=%4lu", (unsigned long) info->cur);
+    }
+  else
+    {
+      printf (_(" has no messages"));
+    }
+  
+  if (info->others)
+    {
+      if (!info->cur)
+	printf (";           ");
+      else
+	printf ("; ");
+      printf (_("(others)"));
+    }
+  printf (".\n");
+  return 0;
+}
+
+static int
+_folder_name_printer (void *item, void *data)
+{
+  struct folder_info *info = item;
+  printf ("%s\n", info->name);
+  return 0;
+}
+
 static void
 print_all ()
 {
-  struct folder_info *info, *end = folder_info + folder_info_count;
-
-  for (info = folder_info; info < end; info++)
-    {
-      int len = strlen (info->name);
-      if (len < 22)
-	printf ("%22.22s", info->name);
-      else
-	printf ("%s", info->name);
-      
-      if (strcmp (info->name, mh_current_folder ()) == 0)
-	printf ("+");
-      else
-	printf (" ");
-      
-      if (info->message_count)
-	{
-	  printf (ngettext(" has %4lu message  (%4lu-%4lu)",
-			   " has %4lu messages (%4lu-%4lu)",
-			   info->message_count),
-		  (unsigned long) info->message_count,
-		  (unsigned long) info->min,
-		  (unsigned long) info->max);
-	  if (info->cur)
-	    printf ("; cur=%4lu", (unsigned long) info->cur);
-	}
-      else
-	{
-	  printf (_(" has no messages"));
-	}
-      
-      if (info->others)
-	{
-	  if (!info->cur)
-	    printf (";           ");
-	  else
-	    printf ("; ");
-	  printf (_("(others)"));
-	}
-      printf (".\n");
-    }
+  mu_list_foreach (folder_info_list, _folder_info_printer, NULL);
 }
 
 static void
 print_fast ()
 {
-  struct folder_info *info, *end = folder_info + folder_info_count;
-
-  for (info = folder_info; info < end; info++)
-    printf ("%s\n", info->name);
+  mu_list_foreach (folder_info_list, _folder_name_printer, NULL);
 }
 
 static int
@@ -449,7 +452,7 @@ action_print ()
     name_prefix_len++;
   name_prefix_len++;  /* skip past the slash */
 
-  obstack_init (&folder_info_stack);
+  mu_list_create (&folder_info_list);
 
   if (show_all)
     {
@@ -462,9 +465,7 @@ action_print ()
       free (p);
     }
   
-  folder_info = obstack_finish (&folder_info_stack);
-  qsort (folder_info, folder_info_count, sizeof (folder_info[0]),
-	 folder_info_comp);
+  mu_list_sort (folder_info_list, folder_info_comp);
 
   if (fast_mode)
     print_fast ();
@@ -477,13 +478,16 @@ action_print ()
 
       if (OPTION_IS_SET (print_total))
 	{
+	  size_t folder_count;
+
+	  mu_list_count (folder_info_list, &folder_count);
 	  printf ("\n%24.24s=", _("TOTAL"));
 	  printf (ngettext ("%4lu message  ", "%4lu messages ",
 			    message_count),
 		  (unsigned long) message_count);
 	  printf (ngettext ("in %4lu folder", "in %4lu folders",
-			    folder_info_count),
-		  (unsigned long) folder_info_count);
+			    folder_count),
+		  (unsigned long) folder_count);
 	  printf ("\n");
 	}
     }
