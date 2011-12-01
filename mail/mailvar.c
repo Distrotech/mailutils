@@ -343,10 +343,10 @@ mailvar_variable_comp (const void *a, const void *b)
 static int
 mailvar_varptr_comp (const void *a, const void *b)
 {
-  const struct mailvar_variable * const * v1 = a;
-  const struct mailvar_variable * const * v2 = b;
+  const struct mailvar_variable const * v1 = a;
+  const struct mailvar_variable const *v2 = b;
 
-  return strcmp ((*v1)->name, (*v2)->name);
+  return strcmp (v1->name, v2->name);
 }
 
 /* Find mailvar_list entry VAR. If not found and CREATE is not NULL, then
@@ -602,35 +602,34 @@ _mailvar_symbol_count (int set)
     }
 }
 
-void
-_mailvar_symbol_to_array (int set, struct mailvar_variable **vartab)
+static int
+mailvar_mapper (void **itmv, size_t itmc, void *call_data)
+{
+  return MU_LIST_MAP_OK;
+}
+
+int
+_mailvar_symbol_to_list (int set, mu_list_t list)
 {
   struct mailvar_symbol *s;
   for (s = mailvar_tab; s->var.name; s++)
     if (!set || s->var.set)
-      {
-	*vartab = &s->var;
-	vartab++;
-      }
+      mu_list_append (list, &s->var);
+  return 0;
 }
 
-struct mailvar_variable **
-mailvar_make_array (int set, size_t *pcount)
+mu_list_t
+mailvar_list_copy (int set)
 {
-  struct mailvar_variable **vartab;
-  size_t count = 0, symcount;
-
-  symcount = _mailvar_symbol_count (set);
-  mu_list_count (mailvar_list, &count);
-  vartab = xcalloc (symcount + count + 1, sizeof *vartab);
-  mu_list_to_array (mailvar_list, (void**) vartab, count, NULL);
-  _mailvar_symbol_to_array (set, vartab + count);
-  count += symcount;
-  qsort (vartab, count, sizeof *vartab, mailvar_varptr_comp);
-  vartab[count] = NULL;
-  if (pcount)
-    *pcount = count;
-  return vartab;
+  mu_list_t list;
+  
+  if (mailvar_list)
+    mu_list_map (mailvar_list, mailvar_mapper, NULL, 1, &list);
+  else
+    mu_list_create (&list);
+  _mailvar_symbol_to_list (set, list);
+  mu_list_sort (list, mailvar_varptr_comp);
+  return list;
 }
   
 
@@ -638,24 +637,25 @@ struct mailvar_iterator
 {
   const char *prefix;
   int prefixlen;
-  struct mailvar_variable **varptr;
-  size_t varcnt;
-  size_t pos;
+  mu_list_t varlist;
+  mu_iterator_t varitr;
 };
   
 const char *
 mailvar_iterate_next (struct mailvar_iterator *itr)
 {
   struct mailvar_variable *vp;
-  
-  while (itr->pos < itr->varcnt)
+
+  do
     {
-      vp = itr->varptr[itr->pos++];
-  
+      mu_iterator_current (itr->varitr, (void**) &vp);
+      mu_iterator_next (itr->varitr);
+      
       if (strlen (vp->name) >= itr->prefixlen
 	  && strncmp (vp->name, itr->prefix, itr->prefixlen) == 0)
 	return vp->name;
     }
+  while (!mu_iterator_is_done (itr->varitr));
   return NULL;
 }
 
@@ -665,8 +665,9 @@ mailvar_iterate_first (int set, const char *prefix, struct mailvar_iterator **pi
   struct mailvar_iterator *itr = xmalloc (sizeof *itr);
   itr->prefix = prefix;
   itr->prefixlen = strlen (prefix);
-  itr->varptr = mailvar_make_array (set, &itr->varcnt);
-  itr->pos = 0;
+  itr->varlist = mailvar_list_copy (set);
+  mu_list_get_iterator (itr->varlist, &itr->varitr);
+  mu_iterator_first (itr->varitr);
   *pitr = itr;
   return mailvar_iterate_next (itr);
 }
@@ -677,68 +678,80 @@ mailvar_iterate_end (struct mailvar_iterator **pitr)
   if (pitr && *pitr)
     {
       struct mailvar_iterator *itr = *pitr;
-      free (itr->varptr);
+      mu_iterator_destroy (&itr->varitr);
+      mu_list_destroy (&itr->varlist);
       free (itr);
       *pitr = NULL;
     }
 }
 
+struct mailvar_print_closure
+{
+  int prettyprint;
+  mu_stream_t out;
+  int width;
+};
+
+static int
+mailvar_printer (void *item, void *data)
+{
+  struct mailvar_variable *vp = item;
+  struct mailvar_print_closure *clos = data;
+  
+  if (clos->prettyprint)
+    {
+      const struct mailvar_symbol *sym = find_mailvar_symbol (vp->name);
+
+      if (sym)
+	{
+	  if (sym->flags & MAILVAR_HIDDEN)
+	    return 0;
+	  if (sym->flags & MAILVAR_RDONLY)
+	    mu_stream_printf (clos->out, "# %s:\n", _("Read-only variable"));
+	  print_descr (clos->out, gettext (sym->descr), 1, 3,
+		       clos->width - 1, "# ");
+	}
+    }
+  switch (vp->type)
+    {
+    case mailvar_type_number:
+      mu_stream_printf (clos->out, "%s=%d", vp->name, vp->value.number);
+      break;
+	  
+    case mailvar_type_string:
+      mu_stream_printf (clos->out, "%s=\"%s\"", vp->name, vp->value.string);
+      break;
+	  
+    case mailvar_type_boolean:
+      if (!vp->value.bool)
+	mu_stream_printf (clos->out, "no");
+      mu_stream_printf (clos->out, "%s", vp->name);
+      break;
+	  
+    case mailvar_type_whatever:
+      mu_stream_printf (clos->out, "%s %s", vp->name, _("oops?"));
+    }
+  mu_stream_printf (clos->out, "\n");
+  return 0;
+}
+
 void
 mailvar_print (int set)
 {
-  struct mailvar_variable **vartab;
-  mu_stream_t out;
-  size_t i, count;
-  int width = util_getcols ();
-  int prettyprint = mailvar_get (NULL, "variable-pretty-print",
-				 mailvar_type_boolean, 0) == 0;
+  mu_list_t varlist;
+  size_t count;
+  struct mailvar_print_closure clos;
   
-  vartab = mailvar_make_array (set, &count);
+  varlist = mailvar_list_copy (set);
+  mu_list_count (varlist, &count);
+  clos.out = open_pager (count);
+  clos.prettyprint = mailvar_get (NULL, "variable-pretty-print",
+				  mailvar_type_boolean, 0) == 0;
+  clos.width = util_getcols ();
 
-  out = open_pager (count);
-
-  for (i = 0; i < count; i++)
-    {
-      if (prettyprint)
-	{
-	  const struct mailvar_symbol *sym =
-	    find_mailvar_symbol (vartab[i]->name);
-
-	  if (sym)
-	    {
-	      if (sym->flags & MAILVAR_HIDDEN)
-		continue;
-	      if (sym->flags & MAILVAR_RDONLY)
-		mu_stream_printf (out, "# %s:\n", _("Read-only variable"));
-	      print_descr (out, gettext (sym->descr), 1, 3, width - 1, "# ");
-	    }
-	}
-      switch (vartab[i]->type)
-	{
-	case mailvar_type_number:
-	  mu_stream_printf (out, "%s=%d",
-			    vartab[i]->name, vartab[i]->value.number);
-	  break;
-	  
-	case mailvar_type_string:
-	  mu_stream_printf (out, "%s=\"%s\"",
-			    vartab[i]->name, vartab[i]->value.string);
-	  break;
-	  
-	case mailvar_type_boolean:
-	  if (!vartab[i]->value.bool)
-	    mu_stream_printf (out, "no");
-	  mu_stream_printf (out, "%s", vartab[i]->name);
-	  break;
-	  
-	case mailvar_type_whatever:
-	  mu_stream_printf (out, "%s %s", vartab[i]->name, _("oops?"));
-	}
-      mu_stream_printf (out, "\n");
-    }
-  free (vartab);
-
-  mu_stream_unref (out);
+  mu_list_foreach (varlist, mailvar_printer, &clos);
+  mu_list_destroy (&varlist);
+  mu_stream_unref (clos.out);
 }
 
 
