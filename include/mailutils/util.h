@@ -70,6 +70,9 @@ time_t mu_utc_offset (void);
 time_t mu_tm2time (struct tm *timeptr, mu_timezone *tz);
 size_t mu_strftime (char *s, size_t max, const char *format,
 		    const struct tm *tm);
+
+int mu_c_streamftime (mu_stream_t str, const char *fmt, struct tm *tm,
+		      struct mu_timezone *tz);
   
   /* ----------------------- */
   /* File & path names.      */
