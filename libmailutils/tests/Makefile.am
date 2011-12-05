@@ -51,6 +51,7 @@ noinst_PROGRAMS = \
  listop\
  mailcap\
  prop\
+ scantime\
  strftime\
  tempfile\
  url-comp\
@@ -82,6 +83,7 @@ TESTSUITE_AT = \
  list.at\
  mailcap.at\
  prop.at\
+ scantime.at\
  strftime.at\
  testsuite.at\
  url.at\

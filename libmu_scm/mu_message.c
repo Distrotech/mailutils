@@ -104,7 +104,7 @@ mu_scm_message_print (SCM message_smob, SCM port, scm_print_state * pstate)
 	scm_puts ("UNKNOWN", port);
       
       if (mu_envelope_sget_date (env, &p) == 0
-          && mu_parse_ctime_date_time (&p, &tm, &tz) == 0)
+          && mu_scan_datetime (p, MU_DATETIME_FROM, &tm, &tz, NULL) == 0)
 	{
 	  strftime (datebuf, sizeof (datebuf), "%a %b %e %H:%M", &tm);
 	  buffer = datebuf;
@@ -416,7 +416,7 @@ SCM_DEFINE_PUBLIC (scm_mu_message_get_envelope_date, "mu-message-get-envelope-da
   if (status)
     mu_scm_error (FUNC_NAME, status, "cannot get envelope date",
 		  scm_list_1 (mesg));
-  status = mu_parse_ctime_date_time (&sdate, &tm, &tz);
+  status = mu_scan_datetime (sdate, MU_DATETIME_FROM, &tm, &tz, NULL);
   if (status)
     mu_scm_error (FUNC_NAME, status, "invalid envelope date",
 		  scm_list_1 (scm_from_locale_string (sdate)));

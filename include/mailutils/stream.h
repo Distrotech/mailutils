@@ -305,6 +305,8 @@ int mu_stdio_stream_create (mu_stream_t *pstream, int fd, int flags);
 int mu_memory_stream_create (mu_stream_t *pstream, int flags);
 int mu_static_memory_stream_create (mu_stream_t *pstream, const void *mem,
 				    size_t size);
+int mu_fixed_memory_stream_create (mu_stream_t *pstream, void *mem,
+				   size_t size, int flags);
 
 int mu_mapfile_stream_create (mu_stream_t *pstream, const char *filename,
 			      int flags);

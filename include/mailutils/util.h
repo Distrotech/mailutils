@@ -61,18 +61,22 @@ struct mu_timezone
 typedef struct mu_timezone mu_timezone;
 
 int mu_parse_date (const char *p, time_t *rettime, const time_t *now);
-int mu_parse_imap_date_time (const char **p, struct tm *tm,
-			     mu_timezone *tz);
-int mu_parse_ctime_date_time (const char **p, struct tm *tm,
-			      mu_timezone *tz);
 
 time_t mu_utc_offset (void);
 time_t mu_tm2time (struct tm *timeptr, mu_timezone *tz);
-size_t mu_strftime (char *s, size_t max, const char *format,
-		    const struct tm *tm);
+size_t mu_strftime (char *s, size_t max, const char *format, struct tm *tm);
 
 int mu_c_streamftime (mu_stream_t str, const char *fmt, struct tm *tm,
 		      struct mu_timezone *tz);
+int mu_scan_datetime (const char *input, const char *fmt, struct tm *tm,
+		      struct mu_timezone *tz, char **endp);
+
+  /* Common datetime formats: */
+#define MU_DATETIME_FROM         "%a %b %e %H:%M:%S %Y"
+#define MU_DATETIME_IMAP         "%d-%b-%Y %H:%M:%S %z"
+#define MU_DATETIME_IMAP_SEARCH  "%d-%b-%Y%? %H:%M:%S %z"
+#define MU_DATETIME_INTERNALDATE "%a, %e %b %Y %H:%M:%S %z"
+
   
   /* ----------------------- */
   /* File & path names.      */

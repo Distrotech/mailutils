@@ -26,6 +26,7 @@
 #include <mailutils/stream.h>
 #include <mailutils/errno.h>
 #include <mailutils/cstr.h>
+#include <mailutils/cctype.h>
 
 #define SECS_PER_DAY 86400
 #define ADJUSTMENT -719162L
@@ -528,140 +529,349 @@ mu_c_streamftime (mu_stream_t str, const char *fmt, struct tm *input_tm,
   return rc;
 }
 
-int
-mu_parse_imap_date_time (const char **p, struct tm *tm, mu_timezone *tz)
+static int
+_mu_short_weekday_string (const char *str)
 {
-  int year, mon, day, hour, min, sec;
-  char zone[6] = "+0000";	/* ( "+" / "-" ) hhmm */
-  char month[5] = "";
-  int hh = 0;
-  int mm = 0;
-  int sign = 1;
-  int scanned = 0, scanned3;
   int i;
-  int tzoffset;
-
-  day = mon = year = hour = min = sec = 0;
-
-  memset (tm, 0, sizeof (*tm));
-
-  switch (sscanf (*p,
-		  "%2d-%3s-%4d%n %2d:%2d:%2d %5s%n",
-		  &day, month, &year, &scanned3, &hour, &min, &sec, zone,
-		  &scanned))
-    {
-    case 3:
-      scanned = scanned3;
-      break;
-    case 7:
-      break;
-    default:
-      return -1;
-    }
-
-  tm->tm_sec = sec;
-  tm->tm_min = min;
-  tm->tm_hour = hour;
-  tm->tm_mday = day;
-
-  for (i = 0; i < 12; i++)
-    {
-      if (mu_c_strncasecmp (month, short_month[i], 3) == 0)
-	{
-	  mon = i;
-	  break;
-	}
-    }
-  tm->tm_mon = mon;
-  tm->tm_year = (year > 1900) ? year - 1900 : year;
-  tm->tm_yday = 0;		/* unknown. */
-  tm->tm_wday = 0;		/* unknown. */
-#if HAVE_STRUCT_TM_TM_ISDST
-  tm->tm_isdst = -1;		/* unknown. */
-#endif
-
-  hh = (zone[1] - '0') * 10 + (zone[2] - '0');
-  mm = (zone[3] - '0') * 10 + (zone[4] - '0');
-  sign = (zone[0] == '-') ? -1 : +1;
-  tzoffset = sign * (hh * 60 * 60 + mm * 60);
-
-#if HAVE_STRUCT_TM_TM_GMTOFF
-  tm->tm_gmtoff = tzoffset;
-#endif
-
-  if (tz)
-    {
-      tz->utc_offset = tzoffset;
-      tz->tz_name = NULL;
-    }
-
-  *p += scanned;
-
-  return 0;
-}
-
-/* "ctime" format is: Thu Jul 01 15:58:27 1999, with no trailing \n.  */
-int
-mu_parse_ctime_date_time (const char **p, struct tm *tm, mu_timezone *tz)
-{
-  int wday = 0;
-  int year = 0;
-  int mon = 0;
-  int day = 0;
-  int hour = 0;
-  int min = 0;
-  int sec = 0;
-  int n = 0;
-  int i;
-  char weekday[5] = "";
-  char month[5] = "";
-
-  if (sscanf (*p, "%3s %3s %2d %2d:%2d:%2d %d%n\n",
-	weekday, month, &day, &hour, &min, &sec, &year, &n) != 7)
-    return -1;
-
-  *p += n;
-
+  
   for (i = 0; i < 7; i++)
     {
-      if (mu_c_strncasecmp (weekday, short_wday[i], 3) == 0)
+      if (mu_c_strncasecmp (str, short_wday[i], 3) == 0)
+	return i;
+    }
+  return -1;
+}
+
+static int
+_mu_full_weekday_string (const char *str, char **endp)
+{
+  int i;
+  
+  for (i = 0; i < 7; i++)
+    {
+      if (mu_c_strcasecmp (str, full_wday[i]) == 0)
 	{
-	  wday = i;
-	  break;
+	  if (endp)
+	    *endp = (char*) (str + strlen (full_wday[i]));
+	  return i;
 	}
     }
+  return -1;
+}
 
+
+static int
+_mu_short_month_string (const char *str)
+{  
+  int i;
+  
   for (i = 0; i < 12; i++)
     {
-      if (mu_c_strncasecmp (month, short_month[i], 3) == 0)
+      if (mu_c_strncasecmp (str, short_month[i], 3) == 0)
+	return i;
+    }
+  return -1;
+}
+
+static int
+_mu_full_month_string (const char *str, char **endp)
+{  
+  int i;
+  
+  for (i = 0; i < 12; i++)
+    {
+      if (mu_c_strcasecmp (str, full_month[i]) == 0)
 	{
-	  mon = i;
-	  break;
+	  if (endp)
+	    *endp = (char*) (str + strlen (full_month[i]));
+	  return i;
 	}
     }
+  return -1;
+}
 
-  if (tm)
-    {
-      memset (tm, 0, sizeof (struct tm));
+int
+get_num (const char *str, char **endp, int ndig, int minval, int maxval,
+	 int *pn)
+{
+  int x = 0;
+  int i;
+  
+  errno = 0;
+  for (i = 0; i < ndig && *str && mu_isdigit (*str); str++, i++)
+    x = x * 10 + *str - '0';
 
-      tm->tm_sec = sec;
-      tm->tm_min = min;
-      tm->tm_hour = hour;
-      tm->tm_mday = day;
-      tm->tm_wday = wday;
-      tm->tm_mon = mon;
-      tm->tm_year = (year > 1900) ? year - 1900 : year;
+  *endp = (char*) str;
+  if (i == 0)
+    return -1;
+  else if (pn)
+    *pn = i;
+  else if (i != ndig)
+    return -1;
+  if (x < minval || x > maxval)
+    return -1;
+  return x;
+}
+
+#define DT_YEAR  0x01
+#define DT_MONTH 0x02
+#define DT_MDAY  0x04
+#define DT_WDAY  0x08
+#define DT_HOUR  0x10
+#define DT_MIN   0x20
+#define DT_SEC   0x40
+
+int
+mu_scan_datetime (const char *input, const char *fmt,
+		  struct tm *tm, struct mu_timezone *tz, char **endp)
+{
+  int rc = 0;
+  char *p;
+  int n;
+  int eof_ok = 0;
+  int datetime_parts = 0;
+  
+  memset (tm, 0, sizeof *tm);
 #ifdef HAVE_STRUCT_TM_TM_ISDST
-      tm->tm_isdst = -1;	/* unknown. */
+  tm->tm_isdst = -1;	/* unknown. */
 #endif
-    }
-
-  /* ctime has no timezone information, set tz to local TZ if they ask. */
+  /* provide default timezone, in case it is not supplied in input */
   if (tz)
     {
+      memset (tz, 0, sizeof *tz);
       tz->utc_offset = mu_utc_offset ();
-      tz->tz_name = NULL;
     }
+
+  /* Skip leading whitespace */
+  input = mu_str_skip_class (input, MU_CTYPE_BLANK);
+  for (; *fmt && rc == 0; fmt++)
+    {
+      if (mu_isspace (*fmt))
+	{
+	  fmt = mu_str_skip_class (fmt, MU_CTYPE_BLANK);
+	  input = mu_str_skip_class (input, MU_CTYPE_BLANK);
+	  if (!*fmt)
+	    break;
+	}
+      eof_ok = 0;
+      
+      if (*fmt == '%')
+	{
+	  switch (*++fmt)
+	    {
+	    case 'a':
+	      /* The abbreviated weekday name. */
+	      n = _mu_short_weekday_string (input);
+	      if (n == -1)
+		rc = MU_ERR_PARSE;
+	      else
+		{
+		  tm->tm_wday = n;
+		  datetime_parts |= DT_WDAY;
+		  input += 3;
+		}
+	      break;
+		  
+	    case 'A':
+	      /* The full weekday name. */
+	      n = _mu_full_weekday_string (input, &p);
+	      if (n == -1)
+		rc = MU_ERR_PARSE;
+	      else
+		{
+		  tm->tm_wday = n;
+		  datetime_parts |= DT_WDAY;
+		  input = p;
+		}
+	      break;
+	      
+	    case 'b':
+	      /* The abbreviated month name. */
+	      n = _mu_short_month_string (input);
+	      if (n == -1)
+		rc = MU_ERR_PARSE;
+	      else
+		{
+		  tm->tm_mon = n;
+		  datetime_parts |= DT_MONTH;
+		  input += 3;
+		}
+	      break;
+
+	    case 'B':
+	      /* The full month name. */
+	      n = _mu_full_month_string (input, &p);
+	      if (n == -1)
+		rc = MU_ERR_PARSE;
+	      else
+		{
+		  tm->tm_mon = n;
+		  datetime_parts |= DT_MONTH;
+		  input = p;
+		}
+	      break;
+	      
+	    case 'd':
+	      /* The day of the month as a decimal number (range 01 to 31). */
+	      n = get_num (input, &p, 2, 1, 31, NULL);
+	      if (n == -1)
+		rc = MU_ERR_PARSE;
+	      else
+		{
+		  tm->tm_mday = n;
+		  datetime_parts |= DT_MDAY;
+		  input = p;
+		}
+	      break;
+	      
+	    case 'e':
+	      /* Like %d, the day of the month as a decimal number, but a
+		 leading zero is replaced by a space. */
+	      {
+		int ndig;
+		
+		n = get_num (input, &p, 2, 1, 31, &ndig);
+		if (n == -1)
+		  rc = MU_ERR_PARSE;
+		else
+		  {
+		    tm->tm_mday = n;
+		    datetime_parts |= DT_MDAY;
+		    input = p;
+		  }
+	      }
+	      break;
+	      
+	    case 'H':
+	      /* The hour as a decimal number using a 24-hour clock (range
+		 00 to 23). */
+	      n = get_num (input, &p, 2, 0, 23, NULL);
+	      if (n == -1)
+		rc = MU_ERR_PARSE;
+	      else
+		{
+		  tm->tm_hour = n;
+		  datetime_parts |= DT_HOUR;
+		  input = p;
+		}
+	      break;
+	      
+	    case 'm':
+	      /* The month as a decimal number (range 01 to 12). */
+	      n = get_num (input, &p, 2, 1, 12, NULL);
+	      if (n == -1)
+		rc = MU_ERR_PARSE;
+	      else
+		{
+		  tm->tm_mon = n - 1;
+		  datetime_parts |= DT_MONTH;
+		  input = p;
+		}
+	      break;
+	      
+	    case 'M':
+	      /* The minute as a decimal number (range 00 to 59). */
+	      n = get_num (input, &p, 2, 0, 59, NULL);
+	      if (n == -1)
+		rc = MU_ERR_PARSE;
+	      else
+		{
+		  tm->tm_min = n;
+		  datetime_parts |= DT_MIN;
+		  input = p;
+		}
+	      break;
+	      
+	    case 'S':
+	      /* The second as a decimal number (range 00 to 60) */
+	      n = get_num (input, &p, 2, 0, 60, NULL);
+	      if (n == -1)
+		rc = MU_ERR_PARSE;
+	      else
+		{
+		  tm->tm_sec = n;
+		  datetime_parts |= DT_SEC;
+		  input = p;
+		}
+	      break;
+	      
+	    case 'Y':
+	      /* The year as a decimal number including the century. */
+	      errno = 0;
+	      n = strtoul (input, &p, 10);
+	      if (errno || p == input)
+		rc = MU_ERR_PARSE;
+	      else
+		{
+		  tm->tm_year = n - 1900;
+		  datetime_parts |= DT_YEAR;
+		  input = p;
+		}
+	      break;
+		  
+	    case 'z':
+	      /* The time-zone as hour offset from GMT */
+	      {
+		int sign = 1;
+		int hr;
+		
+		if (*input == '+')
+		  input++;
+		else if (*input == '-')
+		  {
+		    input++;
+		    sign = -1;
+		  }
+		n = get_num (input, &p, 2, 0, 11, NULL);
+		if (n == -1)
+		  rc = MU_ERR_PARSE;
+		else
+		  {
+		    input = p;
+		    hr = n;
+		    n = get_num (input, &p, 2, 0, 59, NULL);
+		    if (n == -1)
+		      rc = MU_ERR_PARSE;
+		    else
+		      {
+			input = p;
+			if (tz)
+			  tz->utc_offset = sign * (hr * 60 + n) * 60;
+		      }
+		  }
+	      }
+	      break;
+		      
+	    case '%':
+	      if (*input == '%')
+		input++;
+	      else
+		rc = MU_ERR_PARSE;
+	      break;
+	      
+	    case '?':
+	      eof_ok = 1;
+	      break;
+	    }
+	  if (eof_ok && rc == 0 && *input == 0)
+	    break;
+	}
+      else if (*input != *fmt)
+	rc = MU_ERR_PARSE;
+      else
+	input++;
+    }
+
+  if (!eof_ok && rc == 0 && *input == 0 && *fmt)
+    rc = MU_ERR_PARSE;
+
+  if (!(datetime_parts & DT_WDAY) &&
+      (datetime_parts & (DT_YEAR|DT_MONTH|DT_MDAY)) ==
+      (DT_YEAR|DT_MONTH|DT_MDAY))
+    tm->tm_wday = dayofweek (tm->tm_year + 1900, tm->tm_mon, tm->tm_mday);
   
-  return 0;
+  if (endp)
+    *endp = (char*) input;
+  
+  return rc;
 }

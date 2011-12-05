@@ -32,7 +32,7 @@ m4_popdef([MU_TEST_GROUP])
 ])
 
 dnl ------------------------------------------------------------
-# Test data
+# Some test data
 
 #    January 1970
 # Su Mo Tu We Th Fr Sa

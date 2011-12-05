@@ -960,16 +960,12 @@ _frt_internaldate (struct fetch_function_closure *ffc,
   mu_envelope_t env = NULL;
   struct tm tm, *tmp = NULL;
   mu_timezone tz;
-  char datebuf[sizeof ("13-Jul-2002 00:00:00")];
-  int tzoff;
-  int tzh = 0, tzm = 0;
   
   mu_message_get_envelope (frt->msg, &env);
   if (mu_envelope_sget_date (env, &date) == 0
-      && mu_parse_ctime_date_time (&date, &tm, &tz) == 0)
+      && mu_scan_datetime (date, MU_DATETIME_FROM, &tm, &tz, NULL) == 0)
     {
       tmp = &tm;
-      tzoff = tz.utc_offset;
     }
   else
     {
@@ -977,18 +973,13 @@ _frt_internaldate (struct fetch_function_closure *ffc,
       struct timeval stv;
       struct timezone stz;
       
-      gettimeofday(&stv, &stz);
+      gettimeofday (&stv, &stz);
       t = stv.tv_sec;
-      tzoff = - stz.tz_minuteswest;
+      tz.utc_offset = - stz.tz_minuteswest;
       tmp = localtime (&t);
     }
-  tzh = tzoff / 3600;
-  if (tzoff < 0)
-    tzoff = - tzoff;
-  tzm = tzoff % 3600;
-  mu_strftime (datebuf, sizeof (datebuf), "%d-%b-%Y %H:%M:%S", tmp);
   io_sendf ("%s", ffc->name);
-  io_sendf (" \"%s %+03d%02d\"", datebuf, tzh, tzm);
+  mu_c_streamftime (iostream, " \"%d-%b-%Y %H:%M:%S %z\"", tmp, &tz);
   return 0;
 }
 

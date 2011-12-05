@@ -213,7 +213,7 @@ hdr_date (struct header_call_args *args, void *data)
       
       mu_message_get_envelope (args->msg, &env);
       if (mu_envelope_sget_date (env, &p) == 0
-          && mu_parse_ctime_date_time (&p, &tm, &tz) == 0)
+          && mu_scan_datetime (p, MU_DATETIME_FROM, &tm, &tz, NULL) == 0)
 	strftime (date, sizeof(date), "%a %b %e %H:%M", &tm);
     }
   return header_buf_string (args, date);

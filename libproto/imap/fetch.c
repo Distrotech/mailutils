@@ -339,14 +339,13 @@ _date_mapper (union mu_imap_fetch_response *resp,
 	      struct imap_list_element *elt,
 	      struct parse_response_env *parse_env)
 {
-  const char *p;
   struct tm tm;
   struct mu_timezone tz;
   
   if (elt->type != imap_eltype_string)
     return MU_ERR_FAILURE;
-  p = elt->v.string;
-  if (mu_parse_imap_date_time (&p, &tm, &tz))
+  if (mu_scan_datetime (elt->v.string, MU_DATETIME_INTERNALDATE, &tm, &tz,
+			NULL))
     return MU_ERR_FAILURE;
   resp->internaldate.tm = tm;
   resp->internaldate.tz = tz;
@@ -472,10 +471,10 @@ _fill_response (void *item, void *data)
 	rc = MU_ERR_FAILURE;
       else
 	{
-	  char const *p = elt->v.string;
-	  if (mu_parse_imap_date_time (&p,
-				       &env->envelope->date,
-				       &env->envelope->tz))
+	  if (mu_scan_datetime (elt->v.string,
+				MU_DATETIME_IMAP,
+				&env->envelope->date,
+				&env->envelope->tz, NULL))
 	    rc = MU_ERR_FAILURE;
 	  else
 	    rc = 0;

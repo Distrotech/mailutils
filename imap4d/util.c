@@ -373,9 +373,8 @@ util_parse_internal_date (char *date, time_t *timep,
   struct tm tm;
   mu_timezone tz;
   time_t time;
-  char **datep = &date;
 
-  if (mu_parse_imap_date_time ((const char **) datep, &tm, &tz))
+  if (mu_scan_datetime (date, MU_DATETIME_IMAP_SEARCH, &tm, &tz, NULL))
     return 1;
 
   adjust_tm (&tm, &tz, flag);
@@ -412,7 +411,7 @@ util_parse_ctime_date (const char *date, time_t *timep,
   struct tm tm;
   mu_timezone tz;
 
-  if (mu_parse_ctime_date_time (&date, &tm, &tz) == 0)
+  if (mu_scan_datetime (date, MU_DATETIME_FROM, &tm, &tz, NULL) == 0)
     {
       adjust_tm (&tm, &tz, flag);
       *timep = mu_tm2time (&tm, &tz);

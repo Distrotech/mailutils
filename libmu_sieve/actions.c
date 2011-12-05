@@ -145,7 +145,6 @@ mime_create_reason (mu_mime_t mime, mu_message_t msg, const char *text)
   char *sender;
   mu_body_t body;
   mu_header_t hdr;
-  char datestr[80];
   static char *content_header =
     "Content-Type: text/plain;charset=" MU_SIEVE_CHARSET "\n"
     "Content-Transfer-Encoding: 8bit\n";
@@ -156,13 +155,14 @@ mime_create_reason (mu_mime_t mime, mu_message_t msg, const char *text)
 
   time (&t);
   tm = localtime (&t);
-  mu_strftime (datestr, sizeof datestr, "%a, %b %d %H:%M:%S %Y %Z", tm);
 
   mu_sieve_get_message_sender (msg, &sender);
 
-  mu_stream_printf (stream, 
-		    "The original message was received at %s from %s.\n",
-		    datestr, sender);
+  mu_c_streamftime (stream,
+		    "The original message was received at "
+		    "%a, %b %d %H:%M:%S %Y %Z", tm, NULL);
+  
+  mu_stream_printf (stream, " from %s.\n", sender);
   free (sender);
   mu_stream_printf (stream,
 		    "Message was refused by recipient's mail filtering program.\n");
@@ -201,7 +201,7 @@ mime_create_ds (mu_mime_t mime, mu_message_t orig)
 
   mu_message_get_envelope (orig, &env);
   if (mu_envelope_sget_date (env, &p) == 0
-      && mu_parse_ctime_date_time (&p, &tm, &tz) == 0)
+      && mu_scan_datetime (p, MU_DATETIME_FROM, &tm, &tz, NULL) == 0)
     t = mu_tm2time (&tm, &tz);
   else
     /* Use local time instead */

@@ -41,38 +41,21 @@ int
 main (int argc, char **argv)
 {
   int rc, i;
-  char *format = "%c";
+  char *format = "%d-%b-%Y%? %H:%M:%S %z";
   char *buf = NULL;
   size_t size = 0;
   size_t n;
-  struct mu_timezone tz, *tzp = NULL;
 
   mu_set_program_name (argv[0]);
   
-  mu_set_program_name (argv[0]);
   mu_stdstream_setup (MU_STDSTREAM_RESET_NONE);
 
-  memset (&tz, 0, sizeof tz);
   for (i = 1; i < argc; i++)
     {
       char *opt = argv[i];
 
       if (strncmp (opt, "-format=", 8) == 0)
 	format = opt + 8;
-      else if (strncmp (opt, "-tz=", 4) == 0)
-	{
-	  int sign;
-	  int n = atoi (opt + 4);
-	  if (n < 0)
-	    {
-	      sign = -1;
-	      n = - n;
-	    }
-	  else
-	    sign = 1;
-	  tz.utc_offset = sign * ((n / 100 * 60) + n % 100) * 60;
-	  tzp = &tz;
-	}
       else if (strcmp (opt, "-h") == 0)
 	usage ();
       else
@@ -84,27 +67,29 @@ main (int argc, char **argv)
 
   while ((rc = mu_stream_getline (mu_strin, &buf, &size, &n)) == 0 && n > 0)
     {
-      char *p;
-      struct tm *tm;
-      time_t t;
+      char *endp;
+      struct tm tm;
+      struct mu_timezone tz;
 
       mu_rtrim_class (buf, MU_CTYPE_ENDLN);
 
-      if (*buf == ';')
+      rc = mu_scan_datetime (buf, format, &tm, &tz, &endp);
+      if (rc)
 	{
-	  mu_printf ("%s\n", buf);
+	  if (*endp)
+	    mu_error ("parse failed near %s", endp);
+	  else
+	    mu_error ("parse failed at end of input");
 	  continue;
 	}
-      t = strtoul (buf, &p, 10);
-      if (*p)
-	{
-	  mu_error ("bad input line near %s", p);
-	  continue;
-	}
-
-      tm = gmtime (&t);
-      mu_c_streamftime (mu_strout, format, tm, tzp);
-      mu_printf ("\n");
+      if (*endp)
+	mu_printf ("# stopped at %s\n", endp);
+      /* FIXME: add tm_yday? */
+      mu_printf ("sec=%d,min=%d,hour=%d,mday=%d,mon=%d,year=%d,wday=%d,tz=%d\n",
+		 tm.tm_sec, tm.tm_min, tm.tm_hour, tm.tm_mday, tm.tm_mon,
+		 tm.tm_year, tm.tm_wday, tz.utc_offset);
+		 
+      //mu_c_streamftime (mu_strout, "%c %z%n", &tm, &tz);
     }
   
   if (rc)

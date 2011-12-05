@@ -56,18 +56,6 @@ mu_mh_delim (const char *str)
   return str[0] == '\n';
 }
 
-/* A locale-independent version of strftime */
-size_t
-mu_strftime (char *s, size_t max, const char *format, const struct tm *tm)
-{
-  size_t size;
-  mu_set_locale ("C");
-  size = strftime (s, max, format, tm);
-  mu_restore_locale ();
-  return size;
-}
-  
-
 static void
 assoc_str_free (void *data)
 {

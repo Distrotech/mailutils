@@ -1,0 +1,64 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2011 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# GNU Mailutils is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+
+AT_BANNER(mu_scan_datetime)
+
+dnl ---------------------------------------------------------------------
+dnl SCANTIME([NAME], [KW], [FMT], [INPUT], [STDOUT = `'], [STDERR = `'])
+dnl
+m4_pushdef([SCANTIME],[
+m4_pushdef([MU_TEST_GROUP],[scantime])
+m4_pushdef([MU_TEST_KEYWORDS],[scantime mu_scan_datetime])
+m4_pushdef([MU_TEST_COMMAND],[TZ=0 scantime -format='$3'])
+MU_GENERIC_TEST([$1],[$2],[$4],[],[$5],[$6])
+m4_popdef([MU_TEST_COMMAND])
+m4_popdef([MU_TEST_KEYWORDS])
+m4_popdef([MU_TEST_GROUP])
+])
+dnl ---------------------------------------------------------------------
+
+SCANTIME([RFC-822 time],[rfc822],
+[%a %b %e %H:%M:%S %Y],
+[Tue May  3 13:25:26 2011
+Fri Nov 11 11:55:01 2011],
+[sec=26,min=25,hour=13,mday=3,mon=4,year=111,wday=2,tz=0
+sec=1,min=55,hour=11,mday=11,mon=10,year=111,wday=5,tz=0
+])
+
+SCANTIME([IMAP time format],[imap],
+[%d-%b-%Y %H:%M:%S %z],
+[03-May-2011 13:25:26 +0100
+11-Nov-2011 11:55:01 +0100],
+[sec=26,min=25,hour=13,mday=3,mon=4,year=111,wday=2,tz=3600
+sec=1,min=55,hour=11,mday=11,mon=10,year=111,wday=5,tz=3600
+])
+
+SCANTIME([IMAP search time format],[imap-search],
+[%d-%b-%Y%? %H:%M:%S %z],
+[03-May-2011 13:25:26 +0100
+03-May-2011],
+[sec=26,min=25,hour=13,mday=3,mon=4,year=111,wday=2,tz=3600
+sec=0,min=0,hour=0,mday=3,mon=4,year=111,wday=2,tz=0
+])
+
+SCANTIME([IMAP INTERNALDATE],[imap-internaldate],
+[%a, %d %b %Y %H:%M:%S %z],
+[Tue, 03 May 2011 13:25:26 +0200],
+[sec=26,min=25,hour=13,mday=3,mon=4,year=111,wday=2,tz=7200
+])
+
+m4_popdef([SCANTIME])
+dnl ---------------------------------------------------------------------

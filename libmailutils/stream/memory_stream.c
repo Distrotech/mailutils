@@ -88,6 +88,27 @@ _memory_write (mu_stream_t stream, const char *iptr, size_t isize,
 }
 
 static int
+_fixed_size_memory_write (mu_stream_t stream, const char *iptr, size_t isize,
+			  size_t *nbytes)
+{
+  struct _mu_memory_stream *mfs = (struct _mu_memory_stream *) stream;
+  
+  if (mfs->capacity < mfs->offset + isize)
+    isize = mfs->capacity - mfs->offset;
+
+  memcpy (mfs->ptr + mfs->offset, iptr, isize);
+  
+  mfs->offset += isize;
+
+  if (mfs->offset > mfs->size)
+    mfs->size = mfs->offset;
+
+  if (nbytes)
+    *nbytes = isize;
+  return 0;
+}
+
+static int
 _memory_truncate (mu_stream_t stream, mu_off_t len)
 {
   struct _mu_memory_stream *mfs = (struct _mu_memory_stream *) stream;
@@ -271,3 +292,39 @@ mu_static_memory_stream_create (mu_stream_t *pstream, const void *mem,
   return 0;
 }
   
+int
+mu_fixed_memory_stream_create (mu_stream_t *pstream, void *mem,
+			       size_t size, int flags)
+{
+  mu_stream_t stream;
+  struct _mu_memory_stream *str;
+
+  flags &= (MU_STREAM_READ|MU_STREAM_WRITE);
+  if (!flags)
+    return EINVAL;
+  
+  str = (struct _mu_memory_stream *)
+    _mu_stream_create (sizeof (*str), flags | MU_STREAM_SEEK);
+  
+  if (!str)
+    return ENOMEM;
+
+  str->ptr = (void*) mem;
+  str->size = size;
+  str->offset = 0;
+  str->capacity = size;
+
+  str->stream.flags |= _MU_STR_OPEN;
+  if (flags & MU_STREAM_READ)
+    str->stream.read = _memory_read;
+  if (flags & MU_STREAM_WRITE)
+    str->stream.write = _fixed_size_memory_write;
+  str->stream.size = _memory_size;
+  str->stream.ctl = _memory_ioctl;
+  str->stream.seek = _memory_seek;
+  
+  stream = (mu_stream_t) str;
+  *pstream = stream;
+
+  return 0;
+}

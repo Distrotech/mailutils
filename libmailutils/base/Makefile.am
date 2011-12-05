@@ -61,6 +61,7 @@ libbase_la_SOURCES = \
  sha1.c\
  secret.c\
  spawnvp.c\
+ strftime.c\
  symlink.c\
  tempfile.c\
  ticket.c\

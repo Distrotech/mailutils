@@ -24,7 +24,7 @@ m4_define([MU_TEST_KEYWORDS])
 dnl ------------------------------------------------------------
 m4_define([MU_TEST_COMMAND])
 
-m4_define([mu_trimstr],[m4_if([$2],-1,[$1],[m4_substr($1,0,$2)...])])
+m4_define([mu_trimstr],[m4_if([$2],-1,[$1],[m4_substr([$1],0,$2)...])])
 m4_define([mu_firstline],[mu_trimstr([$1],m4_index([$1],[
 ]))])
 
@@ -43,7 +43,7 @@ dnl RUN-IF-FAIL $7
 dnl RUN-IF-PASS $8
 dnl
 m4_define([MU_GENERIC_TEST],[
-AT_SETUP([m4_if(MU_TEST_GROUP,[],,MU_TEST_GROUP: )m4_if([$1],[],mu_firstline([$3]),[$1])])
+AT_SETUP([m4_if(MU_TEST_GROUP,[],,MU_TEST_GROUP: )m4_if([$1],[],[mu_firstline([$3])],[$1])])
 AT_KEYWORDS([MU_TEST_KEYWORDS $2])
 AT_CHECK([
 AT_DATA([input],[$3
@@ -83,6 +83,7 @@ m4_include([debugspec.at])
 AT_BANNER([IMAP IO])
 m4_include([imapio.at])
 
+m4_include([scantime.at])
 m4_include([strftime.at])
 
 m4_include([fsaf.at])
