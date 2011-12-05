@@ -124,6 +124,13 @@ int mu_list_replace  (mu_list_t _list, void *_old_item, void *_new_item);
   /* A non-destructive version of mu_list_replace: the removed item is not
      deallocated. */
 int mu_list_replace_nd (mu_list_t _list, void *_old_item, void *_new_item);
+
+  /* ************************************************* */
+  /* LIFO Access                                       */
+  /* ************************************************* */
+int mu_list_push (mu_list_t list, void *item);
+int mu_list_pop (mu_list_t list, void **item);
+  
 
   /* ************************************************* */
   /* Interation over lists.                            */

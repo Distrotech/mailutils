@@ -781,6 +781,42 @@ sort (mu_list_t list)
 }
 
 void
+push (mu_list_t list, int argc, char **argv)
+{
+  if (argc < 2)
+    {
+      fprintf (stderr, "push arg [arg] ?\n");
+      return;
+    }
+
+  while (--argc)
+    {
+      int rc = mu_list_push (list, strdup (*++argv));
+      if (rc)
+	fprintf (stderr, "mu_list_push: %s\n", mu_strerror (rc));
+    }
+}
+
+void
+pop (mu_list_t list, int argc, char **argv)
+{
+  char *text;
+  int rc;
+  
+  if (argc != 1)
+    {
+      fprintf (stderr, "pop ?\n");
+      return;
+    }
+
+  rc = mu_list_pop (list, (void**) &text);
+  if (rc)
+    fprintf (stderr, "mu_list_pop: %s\n", mu_strerror (rc));
+  else
+    printf ("%s\n", text);
+}
+  
+void
 help ()
 {
   printf ("count\n");
@@ -808,6 +844,8 @@ help ()
   printf ("help\n");
   printf ("head\n");
   printf ("tail\n");
+  printf ("push item\n");
+  printf ("pop\n");
   printf ("sort\n");
   printf ("NUMBER\n");
 }
@@ -928,6 +966,10 @@ shell (mu_list_t list)
 	    head (ws.ws_wordc, list);
 	  else if (strcmp (ws.ws_wordv[0], "tail") == 0)
 	    tail (ws.ws_wordc, list);
+	  else if (strcmp (ws.ws_wordv[0], "push") == 0)
+	    push (list, ws.ws_wordc, ws.ws_wordv);
+	  else if (strcmp (ws.ws_wordv[0], "pop") == 0)
+	    pop (list, ws.ws_wordc, ws.ws_wordv);
 	  else if (strcmp (ws.ws_wordv[0], "sort") == 0)
 	    {
 	      int i;

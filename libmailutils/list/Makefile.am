@@ -37,7 +37,9 @@ liblist_la_SOURCES = \
  listlist.c\
  locate.c\
  map.c\
+ pop.c\
  prepend.c\
+ push.c\
  remove.c\
  replace.c\
  rfold.c\

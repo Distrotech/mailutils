@@ -97,6 +97,31 @@ tre
 fem
 ])
 
+TESTLIST([push],[],
+[push en to tre
+print],
+[# items: 3
+en
+to
+tre
+])
+
+TESTLIST([pop],[],
+[push en to tre
+pop
+pop
+pop],
+[tre
+to
+en
+])
+
+TESTLIST([pop-null],[],
+[pop],
+[],
+[mu_list_pop: Requested item not found
+])
+
 TESTLIST([get],[],
 [add en to tre fire fem
 3],
