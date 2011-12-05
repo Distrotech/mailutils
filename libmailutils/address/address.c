@@ -13,7 +13,7 @@
    Lesser General Public License for more details.
 
    You should have received a copy of the GNU Lesser General
-   Public License along with this library.  If not, see 
+   Public License along with this library.  If not, see
    <http://www.gnu.org/licenses/>. */
 
 #ifdef HAVE_CONFIG_H
@@ -213,11 +213,11 @@ mu_address_concatenate (mu_address_t to, mu_address_t *from)
   return 0;
 }
 
-mu_address_t 
+mu_address_t
 _address_get_nth (mu_address_t addr, size_t no)
 {
   int i;
-  
+
   for (i = 1; addr; addr = addr->next, i++)
     if (i == no)
       break;
@@ -239,13 +239,13 @@ mu_address_get_nth (mu_address_t addr, size_t no, mu_address_t *pret)
 #define AC4(a,b,c,d) a ## b ## c ## d
 #define ACCESSOR(action,field) AC4(mu_address_,action,_,field)
 
-#define DECL_SET(field)							\
+#define DECL_SET(field)						        \
 int									\
 ACCESSOR(set, field) (mu_address_t addr, size_t no, const char *buf)	\
 {									\
   char *s;								\
   mu_address_t subaddr;							\
-  									\
+									\
   if (addr == NULL)							\
     return EINVAL;							\
 									\
@@ -253,12 +253,49 @@ ACCESSOR(set, field) (mu_address_t addr, size_t no, const char *buf)	\
   if (!subaddr)								\
     return MU_ERR_NOENT;						\
 									\
-  s = strdup (buf);							\
-  if (!s)								\
-    return errno;							\
-  									\
+  if (buf)						                \
+    {                                                                   \
+       s = strdup (buf);						\
+       if (!s)								\
+	 return errno;							\
+    }							                \
+  else									\
+    s = (char *) buf;							\
+									\
   free (subaddr->field);						\
   subaddr->field = s;							\
+									\
+  return 0;								\
+}
+
+#define DECL_SET_EI(field)					        \
+int									\
+ACCESSOR(set, field) (mu_address_t addr, size_t no, const char *buf)	\
+{									\
+  char *s;								\
+  mu_address_t subaddr;							\
+									\
+  if (addr == NULL)							\
+    return EINVAL;							\
+									\
+  subaddr = _address_get_nth (addr, no);				\
+  if (!subaddr)								\
+    return MU_ERR_NOENT;						\
+									\
+  if (buf)						                \
+    {                                                                   \
+       s = strdup (buf);						\
+       if (!s)								\
+	 return errno;							\
+    }							                \
+  else									\
+    s = (char *) buf;							\
+									\
+  free (subaddr->field);						\
+  subaddr->field = s;							\
+									\
+  free (subaddr->email);						\
+  subaddr->email = NULL;						\
 									\
   return 0;								\
 }
@@ -268,7 +305,7 @@ int									\
 ACCESSOR(sget,field) (mu_address_t addr, size_t no, char const **sptr)	\
 {									\
   mu_address_t subaddr;							\
-  									\
+									\
   if (addr == NULL)							\
     return EINVAL;							\
 									\
@@ -287,7 +324,7 @@ ACCESSOR(get,field) (mu_address_t addr, size_t no, char *buf, size_t len, \
   size_t i;								  \
   const char *str;							  \
   int status = ACCESSOR(sget, field) (addr, no, &str);			  \
-  									  \
+									  \
   if (status)								  \
     return status;							  \
 									  \
@@ -322,7 +359,13 @@ ACCESSOR(aget, field) (mu_address_t addr, size_t no, char **buf)	\
 DECL_SET(field)					\
 DECL_SGET(field)				\
 DECL_GET(field)					\
-DECL_AGET(field)          
+DECL_AGET(field)
+
+#define DECL_ACCESSORS_EI(field)		\
+DECL_SET_EI(field)				\
+DECL_SGET(field)			        \
+DECL_GET(field)					\
+DECL_AGET(field)
 
 
 
@@ -330,14 +373,114 @@ DECL_AGET(field)
 DECL_ACCESSORS(personal)
 /* Comments */
 DECL_ACCESSORS(comments)
-/* Email */
-DECL_ACCESSORS(email)     
 /* Local part */
-DECL_ACCESSORS(local_part)
+DECL_ACCESSORS_EI(local_part)
 /* Domain */
-DECL_ACCESSORS(domain)
+DECL_ACCESSORS_EI(domain)
 /* Route */
 DECL_ACCESSORS(route)
+
+/* Email */
+int
+mu_address_set_email (mu_address_t addr, size_t no, const char *buf)
+{
+  char *s;
+  mu_address_t subaddr;
+
+  if (addr == NULL)
+    return EINVAL;
+
+  subaddr = _address_get_nth (addr, no);
+  if (!subaddr)
+    return MU_ERR_NOENT;
+
+  if (buf)
+    {
+      s = strdup (buf);
+      if (!s)
+	return errno;
+    }
+  else
+    s = (char *) buf;
+
+  free (subaddr->email);
+  subaddr->email = s;
+
+  free (subaddr->local_part);
+  free (subaddr->domain);
+  if (s)
+    {
+      char *p = strchr (subaddr->email, '@');
+      if (p)
+	{
+	  size_t len = p - subaddr->email;
+	  subaddr->local_part = malloc (len + 1);
+	  if (subaddr->local_part)
+	    {
+	      memcpy (subaddr->local_part, p, len);
+	      subaddr->local_part[len] = 0;
+	    }
+	  subaddr->domain = strdup (p + 1);
+	}
+    }
+  else
+    {
+      subaddr->local_part = NULL;
+      subaddr->domain = NULL;
+    }
+
+  return 0;
+}
+
+static int
+validate_email (mu_address_t subaddr)
+{
+  if (!subaddr->email)
+    {
+      if (subaddr->local_part)
+	{
+	  const char *domain;
+
+	  if (subaddr->domain)
+	    domain = subaddr->domain;
+	  else
+	    mu_get_user_email_domain (&domain);
+	  if (domain)
+	    {
+	      char *p;
+	      subaddr->email = malloc (strlen (subaddr->local_part) +
+				       strlen (domain) + 2);
+	      if (!subaddr->email)
+		return ENOMEM;
+	      p = mu_stpcpy (subaddr->email, subaddr->local_part);
+	      *p++ = '@';
+	      mu_stpcpy (p, (char*) domain);
+	    }
+	}
+    }
+  return 0;
+}
+
+int
+mu_address_sget_email (mu_address_t addr, size_t no, char const **sptr)
+{
+  mu_address_t subaddr;
+
+  if (addr == NULL)
+    return EINVAL;
+
+  subaddr = _address_get_nth (addr, no);
+  if (!subaddr)
+    return MU_ERR_NOENT;
+
+  validate_email (subaddr);
+  *sptr = subaddr->email;
+  return 0;
+}
+
+DECL_GET(email)
+DECL_AGET(email)
+
 
 
 
@@ -349,7 +492,7 @@ DECL_ACCESSORS(route)
    }\
  else\
    rc++;\
-} while(0) 
+} while(0)
 
 #define format_string(str) do {\
  if (buflen) \
@@ -361,22 +504,23 @@ DECL_ACCESSORS(route)
  else\
    rc += strlen (str);\
 } while (0)
-     
+
 size_t
 mu_address_format_string (mu_address_t addr, char *buf, size_t buflen)
 {
   int rc = 0;
   int comma = 0;
-  
+
   for (;addr; addr = addr->next)
     {
+      validate_email (addr);
       if (addr->email)
 	{
 	  int space = 0;
 
 	  if (comma)
 	    format_char (',');
-	  
+
 	  if (addr->personal)
 	    {
 	      format_char ('"');
@@ -384,7 +528,7 @@ mu_address_format_string (mu_address_t addr, char *buf, size_t buflen)
 	      format_char ('"');
 	      space++;
 	    }
-	  
+
 	  if (addr->comments)
 	    {
 	      if (space)
@@ -394,7 +538,7 @@ mu_address_format_string (mu_address_t addr, char *buf, size_t buflen)
 	      format_char (')');
 	      space++;
 	    }
-	  
+
 	  if (space)
 	    format_char (' ');
 	  format_char ('<');
@@ -435,14 +579,14 @@ int
 mu_address_is_group (mu_address_t addr, size_t no, int *yes)
 {
   mu_address_t subaddr;
-  
+
   if (addr == NULL)
     return EINVAL;
 
   subaddr = _address_get_nth (addr, no);
   if (!subaddr)
     return MU_ERR_NOENT;
-  
+
   if (yes)
     *yes = _address_is_group (subaddr);
   return 0;
@@ -465,7 +609,7 @@ mu_address_to_string (mu_address_t addr, char *buf, size_t len, size_t *n)
 	return ENOMEM;
       mu_address_format_string (addr, addr->addr, i+1);
     }
-      
+
   i = mu_cpystr (buf, addr->addr, len);
   if (n)
     *n = i;
@@ -562,12 +706,12 @@ mu_address_dup (mu_address_t src)
 
   return dst;
 }
-  
+
 int
 mu_address_union (mu_address_t *a, mu_address_t b)
 {
   mu_address_t last = NULL;
-    
+
   if (!a || !b)
     return EINVAL;
 
@@ -601,4 +745,3 @@ mu_address_union (mu_address_t *a, mu_address_t b)
       }
   return 0;
 }
-  

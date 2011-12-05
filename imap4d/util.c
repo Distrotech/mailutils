@@ -374,7 +374,7 @@ util_parse_internal_date (char *date, time_t *timep,
   mu_timezone tz;
   time_t time;
 
-  if (mu_scan_datetime (date, MU_DATETIME_IMAP_SEARCH, &tm, &tz, NULL))
+  if (mu_scan_datetime (date, MU_DATETIME_INTERNALDATE, &tm, &tz, NULL))
     return 1;
 
   adjust_tm (&tm, &tz, flag);

@@ -74,8 +74,9 @@ int mu_scan_datetime (const char *input, const char *fmt, struct tm *tm,
   /* Common datetime formats: */
 #define MU_DATETIME_FROM         "%a %b %e %H:%M:%S %Y"
 #define MU_DATETIME_IMAP         "%d-%b-%Y %H:%M:%S %z"
-#define MU_DATETIME_IMAP_SEARCH  "%d-%b-%Y%? %H:%M:%S %z"
-#define MU_DATETIME_INTERNALDATE "%a, %e %b %Y %H:%M:%S %z"
+#define MU_DATETIME_INTERNALDATE "%d-%b-%Y%$ %H:%M:%S %z"
+  /* FIXME: [%a, ] part is actually optional */
+#define MU_DATETIME_RFC822       "%a, %e %b %Y %H:%M:%S %z"
 
   
   /* ----------------------- */

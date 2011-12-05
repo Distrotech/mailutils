@@ -47,7 +47,7 @@ sec=1,min=55,hour=11,mday=11,mon=10,year=111,wday=5,tz=3600
 ])
 
 SCANTIME([IMAP search time format],[imap-search],
-[%d-%b-%Y%? %H:%M:%S %z],
+[%d-%b-%Y%$ %H:%M:%S %z],
 [03-May-2011 13:25:26 +0100
 03-May-2011],
 [sec=26,min=25,hour=13,mday=3,mon=4,year=111,wday=2,tz=3600

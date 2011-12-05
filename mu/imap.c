@@ -266,6 +266,9 @@ fetch_response_printer (void *item, void *data)
 	mu_stream_printf (str, "ENVELOPE:\n");
 	
 	format_date (str, "date", &resp->envelope.date, &resp->envelope.tz);
+	mu_stream_printf (str, "  subject = %s\n",
+			  resp->envelope.subject ?
+			   resp->envelope.subject : "NIL");
 
 	format_email (str, "from", resp->envelope.from);
 	format_email (str, "sender", resp->envelope.sender);

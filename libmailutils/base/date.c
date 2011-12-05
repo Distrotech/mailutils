@@ -515,6 +515,10 @@ mu_c_streamftime (mu_stream_t str, const char *fmt, struct tm *input_tm,
 	  /* A literal '%' character. */
 	  rc = mu_stream_write (str, "%", 1, NULL);
 	  break;
+
+	case '$':
+	  /* Ignored for compatibilty with mu_scan_datetime */
+	  break;
 	  
 	case '+':
 	  /* Not supported (date and time in date(1) format. */
@@ -849,7 +853,7 @@ mu_scan_datetime (const char *input, const char *fmt,
 		rc = MU_ERR_PARSE;
 	      break;
 	      
-	    case '?':
+	    case '$':
 	      eof_ok = 1;
 	      break;
 	    }
