@@ -131,7 +131,7 @@ _mu_sv_instr_push (mu_sieve_machine_t mach)
       mu_sieve_error (mach, _("cannot create stack"));
       mu_sieve_abort (mach);
     }
-  mu_list_prepend (mach->stack, (void*) mach->reg);
+  mu_list_push (mach->stack, (void*) mach->reg);
 }
 
 void
@@ -149,8 +149,7 @@ _mu_sv_instr_pop (mu_sieve_machine_t mach)
       mu_sieve_error (mach, _("stack underflow"));
       mu_sieve_abort (mach);
     }
-  mu_list_get (mach->stack, 0, (void **)&mach->reg);
-  mu_list_remove (mach->stack, (void *)mach->reg);
+  mu_list_pop (mach->stack, (void **)&mach->reg);
 }
 
 void

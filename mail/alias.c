@@ -131,9 +131,9 @@ recursive_alias_expand (const char *name, mu_list_t exlist, mu_list_t origlist)
       mu_iterator_current (itr, (void **)&word);
       if (mu_list_locate (origlist, word, NULL) == MU_ERR_NOENT)
 	{
-	  mu_list_prepend (origlist, word);
+	  mu_list_push (origlist, word);
 	  recursive_alias_expand (word, exlist, origlist);
-	  mu_list_remove (origlist, word);
+	  mu_list_pop (origlist, NULL);
 	}
     }
   mu_iterator_destroy (&itr);
