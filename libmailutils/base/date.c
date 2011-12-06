@@ -674,19 +674,6 @@ peek_state (mu_list_t list, int *state, const char **input)
 }      
 
 static int
-change_top_input (mu_list_t list, const char *input)
-{
-  int rc;
-  struct save_input *inp;
-
-  rc = mu_list_tail (list, (void**)&inp);
-  if (rc)
-    return rc;
-  inp->input = input;
-  return 0;
-}
-
-static int
 pop_input (mu_list_t list, int *state, const char **input)
 {
   int rc;
