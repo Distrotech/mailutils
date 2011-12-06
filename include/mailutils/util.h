@@ -75,9 +75,12 @@ int mu_scan_datetime (const char *input, const char *fmt, struct tm *tm,
 #define MU_DATETIME_FROM         "%a %b %e %H:%M:%S %Y"
 #define MU_DATETIME_IMAP         "%d-%b-%Y %H:%M:%S %z"
 #define MU_DATETIME_INTERNALDATE "%d-%b-%Y%$ %H:%M:%S %z"
-  /* FIXME: [%a, ] part is actually optional */
-#define MU_DATETIME_RFC822       "%a, %e %b %Y %H:%M:%S %z"
 
+  /* RFC2822 date.  Scan format contains considerable allowances which would
+     stun formatting functions, therefore two distinct formats are provided:
+     one for outputting and one for scanning: */
+#define MU_DATETIME_FORM_RFC822  "%a, %e %b %Y %H:%M:%S %z"  
+#define MU_DATETIME_SCAN_RFC822  "%[%a, %]%e %b %Y %H:%M%[:%S%] %z"
   
   /* ----------------------- */
   /* File & path names.      */

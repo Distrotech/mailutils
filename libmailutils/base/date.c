@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <mailutils/diag.h>
 #include <mailutils/util.h>
 #include <mailutils/stream.h>
 #include <mailutils/errno.h>
@@ -53,8 +54,7 @@ static int  month_start[]=
          31  28  31   30   31   30   31   31   30   31   30   31
      */
 
-/* NOTE: ignore GCC warning. The precedence of operators is OK here */
-#define leap_year(y) ((y) % 4 == 0 && (y) % 100 != 0 || (y) % 400 == 0)
+#define leap_year(y) ((y) % 4 == 0 && ((y) % 100 != 0 || (y) % 400 == 0))
 
 static int
 dayofyear (int year, int month, int day)
@@ -625,6 +625,203 @@ get_num (const char *str, char **endp, int ndig, int minval, int maxval,
 #define DT_MIN   0x20
 #define DT_SEC   0x40
 
+#define ST_NON   -1
+#define ST_OPT   0
+#define ST_ALT   1
+
+struct save_input
+{
+  int state;
+  const char *input;
+};
+
+static int
+push_input (mu_list_t *plist, int state, const char *input)
+{
+  mu_list_t list = *plist;
+  struct save_input *inp = malloc (sizeof (*inp));
+  if (!inp)
+    return ENOMEM;
+  if (!list)
+    {
+      int rc = mu_list_create (&list);
+      if (rc)
+	{
+	  free (inp);
+	  return rc;
+	}
+      mu_list_set_destroy_item (list, mu_list_free_item);
+      *plist = list;
+    }
+  inp->state = state;
+  inp->input = input;
+  return mu_list_push (list, (void*)inp);
+}
+
+static int
+peek_state (mu_list_t list, int *state, const char **input)
+{
+  int rc;
+  struct save_input *inp;
+
+  rc = mu_list_tail (list, (void**)&inp);
+  if (rc)
+    return rc;
+  *state = inp->state;
+  if (input)
+    *input = inp->input;
+  return 0;
+}      
+
+static int
+change_top_input (mu_list_t list, const char *input)
+{
+  int rc;
+  struct save_input *inp;
+
+  rc = mu_list_tail (list, (void**)&inp);
+  if (rc)
+    return rc;
+  inp->input = input;
+  return 0;
+}
+
+static int
+pop_input (mu_list_t list, int *state, const char **input)
+{
+  int rc;
+  struct save_input *inp;
+
+  rc = mu_list_pop (list, (void**)&inp);
+  if (rc)
+    return rc;
+  *state = inp->state;
+  if (input)
+    *input = inp->input;
+  return 0;
+}
+
+static int
+bracket_to_state (int c)
+{
+  switch (c)
+    {
+    case '[':
+    case ']':
+      return ST_OPT;
+    case '(':
+    case ')':
+      return ST_ALT;
+    }
+  return ST_NON;
+}
+
+static int
+state_to_closing_bracket (int st)
+{
+  switch (st)
+    {
+    case ST_OPT:
+      return ']';
+    case ST_ALT:
+      return ')';
+    }
+  return '?';
+}
+
+static int
+scan_recovery (const char *fmt, mu_list_t *plist, int skip_alt,
+	       const char **endp,
+	       const char **input)
+{
+  int c, rc = 0;
+  int nesting_level = 1;
+  int st;
+  const char *p;
+  
+  while (*fmt)
+    {
+      c = *fmt++;
+      
+      if (c == '%')
+	{
+	  c = *fmt++;
+	  if (!c)
+	    {
+	      mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR,
+			("%s:%d: error in format: %% at the end of input",
+			 __FILE__, __LINE__));
+	      rc = MU_ERR_FORMAT;
+	      break;
+	    }
+	      
+	  switch (c)
+	    {
+	    case '[':
+	    case '(':
+	      nesting_level++;
+	      rc = push_input (plist, bracket_to_state (c), NULL);
+	      break;
+	      
+	    case ')':
+	    case ']':
+	      rc = pop_input (*plist, &st, &p);
+	      if (rc || st != bracket_to_state (c))
+		{
+		  mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR,
+			    ("%s:%d: error in format: %%%c out of context",
+			     __FILE__, __LINE__, c));
+		  rc = MU_ERR_FORMAT;
+		  break;
+		}
+	      if (--nesting_level == 0)
+		{
+		  *endp = fmt;
+		  if (skip_alt)
+		    return 0;
+		  *input = p;
+		  if (st == ST_ALT)
+		    {
+		      if (*fmt == '%' && (fmt[1] == '|' || fmt[1] == ']'))
+			return 0;
+		      return MU_ERR_PARSE; /* No match found */
+		    }
+		  return 0;
+		}
+	      break;
+
+	    case '|':
+	      if (skip_alt)
+		continue;
+	      if (nesting_level == 1)
+		{
+		  *endp = fmt;
+		  return peek_state (*plist, &st, input);
+		}
+	      break;
+
+	    case '\\':
+	      if (*++fmt == 0)
+		{
+		  peek_state (*plist, &st, NULL);
+		  mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR,
+			    ("%s:%d: error in format: missing closing %%%c",
+			     __FILE__, __LINE__,
+			     state_to_closing_bracket (st)));
+		  return MU_ERR_FORMAT;		  
+		}
+	    }
+	}
+    }
+  
+  peek_state (*plist, &st, NULL);
+  mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR,
+	    ("%s:%d: error in format: missing closing %%%c",
+	     __FILE__, __LINE__,
+	     state_to_closing_bracket (st)));
+  return MU_ERR_FORMAT;		  
+}
+
 int
 mu_scan_datetime (const char *input, const char *fmt,
 		  struct tm *tm, struct mu_timezone *tz, char **endp)
@@ -632,8 +829,12 @@ mu_scan_datetime (const char *input, const char *fmt,
   int rc = 0;
   char *p;
   int n;
+  int c;
+  int st;
+  int recovery = 0;
   int eof_ok = 0;
   int datetime_parts = 0;
+  mu_list_t save_input_list = NULL;
   
   memset (tm, 0, sizeof *tm);
 #ifdef HAVE_STRUCT_TM_TM_ISDST
@@ -661,7 +862,17 @@ mu_scan_datetime (const char *input, const char *fmt,
       
       if (*fmt == '%')
 	{
-	  switch (*++fmt)
+	  c = *++fmt;
+	  if (!c)
+	    {
+	      mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR,
+			("%s:%d: error in format: %% at the end of input",
+			 __FILE__, __LINE__));
+	      rc = MU_ERR_FORMAT;
+	      break;
+	    }
+	  
+	  switch (c)
 	    {
 	    case 'a':
 	      /* The abbreviated weekday name. */
@@ -852,27 +1063,110 @@ mu_scan_datetime (const char *input, const char *fmt,
 	      else
 		rc = MU_ERR_PARSE;
 	      break;
+
+	      rc = push_input (&save_input_list, ST_ALT, (void*)input);
+	      break;
+	      
+	    case '(':
+	    case '[':
+	      rc = push_input (&save_input_list, bracket_to_state (c),
+			       (void*)input);
+	      break;
+
+	    case ')':
+	    case ']':
+	      if (pop_input (save_input_list, &st, NULL))
+		{
+		  mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR,
+			    ("%s:%d: error in format: unbalanced %%%c near %s",
+			     __FILE__, __LINE__, c, fmt));
+		  rc = MU_ERR_FORMAT;
+		}
+	      else if (st != bracket_to_state (c))
+		{
+		  mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR,
+			    ("%s:%d: error in format: %%%c out of context",
+			     __FILE__, __LINE__, c));
+		  rc = MU_ERR_FORMAT;
+		}
+	      break;
+
+	    case '|':
+	      rc = scan_recovery (fmt, &save_input_list, 1, &fmt, NULL);
+	      if (rc == 0)
+		fmt--;
+	      break;
 	      
 	    case '$':
 	      eof_ok = 1;
 	      break;
+
+	    case '\\':
+	      c = *++fmt;
+	      if (!c)
+		{
+		  mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR,
+			    ("%s:%d: error in format: %% at the end of input",
+			     __FILE__, __LINE__));
+		  rc = MU_ERR_FORMAT;
+		}
+	      else if (c == *input)
+		input++;
+	      else
+		rc = MU_ERR_PARSE;
+	      break;
+
+	    case '?':
+	      input++;
+	      break;
+	      
+	    default:
+	      mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR,
+			("%s:%d: error in format: unrecognized conversion type"
+			 " near %s",
+			 __FILE__, __LINE__, fmt));
+	      rc = MU_ERR_FORMAT;
+	      break;
 	    }
+
 	  if (eof_ok && rc == 0 && *input == 0)
 	    break;
 	}
-      else if (*input != *fmt)
+      else if (!recovery && *input != *fmt)
 	rc = MU_ERR_PARSE;
       else
 	input++;
+
+      if (rc == MU_ERR_PARSE && !mu_list_is_empty (save_input_list))
+	{
+	  rc = scan_recovery (fmt, &save_input_list, 0, &fmt, &input);
+	  if (rc == 0)
+	    --fmt;
+	}
     }
 
+  if (!mu_list_is_empty (save_input_list))
+    {
+      mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR,
+		("%s:%d: error in format: closing bracket missing",
+		 __FILE__, __LINE__));
+      rc = MU_ERR_FORMAT;
+    }
+  mu_list_destroy (&save_input_list);
+  
+  if (rc == 0 && recovery)
+    rc = MU_ERR_PARSE;
+  
   if (!eof_ok && rc == 0 && *input == 0 && *fmt)
     rc = MU_ERR_PARSE;
 
-  if (!(datetime_parts & DT_WDAY) &&
-      (datetime_parts & (DT_YEAR|DT_MONTH|DT_MDAY)) ==
+  if ((datetime_parts & (DT_YEAR|DT_MONTH|DT_MDAY)) ==
       (DT_YEAR|DT_MONTH|DT_MDAY))
-    tm->tm_wday = dayofweek (tm->tm_year + 1900, tm->tm_mon, tm->tm_mday);
+    {
+      if (!(datetime_parts & DT_WDAY))
+	tm->tm_wday = dayofweek (tm->tm_year + 1900, tm->tm_mon, tm->tm_mday);
+      tm->tm_yday = dayofyear (tm->tm_year + 1900, tm->tm_mon, tm->tm_mday);
+    }
   
   if (endp)
     *endp = (char*) input;

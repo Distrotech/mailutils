@@ -30,34 +30,127 @@ m4_popdef([MU_TEST_GROUP])
 ])
 dnl ---------------------------------------------------------------------
 
-SCANTIME([RFC-822 time],[rfc822],
+SCANTIME([Envelope (From) time],[envelope],
 [%a %b %e %H:%M:%S %Y],
 [Tue May  3 13:25:26 2011
 Fri Nov 11 11:55:01 2011],
-[sec=26,min=25,hour=13,mday=3,mon=4,year=111,wday=2,tz=0
-sec=1,min=55,hour=11,mday=11,mon=10,year=111,wday=5,tz=0
-])
-
-SCANTIME([IMAP time format],[imap],
-[%d-%b-%Y %H:%M:%S %z],
-[03-May-2011 13:25:26 +0100
-11-Nov-2011 11:55:01 +0100],
-[sec=26,min=25,hour=13,mday=3,mon=4,year=111,wday=2,tz=3600
-sec=1,min=55,hour=11,mday=11,mon=10,year=111,wday=5,tz=3600
-])
-
-SCANTIME([IMAP search time format],[imap-search],
-[%d-%b-%Y%$ %H:%M:%S %z],
-[03-May-2011 13:25:26 +0100
-03-May-2011],
-[sec=26,min=25,hour=13,mday=3,mon=4,year=111,wday=2,tz=3600
-sec=0,min=0,hour=0,mday=3,mon=4,year=111,wday=2,tz=0
+[sec=26,min=25,hour=13,mday=3,mon=4,year=111,wday=2,yday=123,tz=0
+sec=1,min=55,hour=11,mday=11,mon=10,year=111,wday=5,yday=315,tz=0
 ])
 
 SCANTIME([IMAP INTERNALDATE],[imap-internaldate],
+[%d-%b-%Y %H:%M:%S %z],
+[03-May-2011 13:25:26 +0100
+11-Nov-2011 11:55:01 +0100],
+[sec=26,min=25,hour=13,mday=3,mon=4,year=111,wday=2,yday=123,tz=3600
+sec=1,min=55,hour=11,mday=11,mon=10,year=111,wday=5,yday=315,tz=3600
+])
+
+SCANTIME([IMAP INTERNALDATE (optional time)],[imap-search],
+[%d-%b-%Y%$ %H:%M:%S %z],
+[03-May-2011 13:25:26 +0100
+03-May-2011],
+[sec=26,min=25,hour=13,mday=3,mon=4,year=111,wday=2,yday=123,tz=3600
+sec=0,min=0,hour=0,mday=3,mon=4,year=111,wday=2,yday=123,tz=0
+])
+
+SCANTIME([RFC-822 Strict],[rfc822-strict],
 [%a, %d %b %Y %H:%M:%S %z],
 [Tue, 03 May 2011 13:25:26 +0200],
-[sec=26,min=25,hour=13,mday=3,mon=4,year=111,wday=2,tz=7200
+[sec=26,min=25,hour=13,mday=3,mon=4,year=111,wday=2,yday=123,tz=7200
+])
+
+SCANTIME([RFC-822],[rfc822],
+[[%[%a, %]%d %b %Y %H:%M%[:%S%] %z]],
+[Tue, 03 May 2011 13:25:26 +0200
+03 May 2011 13:25:26 +0200
+Tue, 03 May 2011 13:25 +0200
+03 May 2011 13:25 +0200],
+[sec=26,min=25,hour=13,mday=3,mon=4,year=111,wday=2,yday=123,tz=7200
+sec=26,min=25,hour=13,mday=3,mon=4,year=111,wday=2,yday=123,tz=7200
+sec=0,min=25,hour=13,mday=3,mon=4,year=111,wday=2,yday=123,tz=7200
+sec=0,min=25,hour=13,mday=3,mon=4,year=111,wday=2,yday=123,tz=7200
+])
+
+SCANTIME([Any char],[anychar],
+[%a%? %d %b %Y %H:%M:%S %z],
+[Tue, 03 May 2011 13:25:26 +0200
+Tue: 03 May 2011 13:25:26 +0200
+Tue; 03 May 2011 13:25:26 +0200
+Tue 03 May 2011 13:25:26 +0200],
+[sec=26,min=25,hour=13,mday=3,mon=4,year=111,wday=2,yday=123,tz=7200
+sec=26,min=25,hour=13,mday=3,mon=4,year=111,wday=2,yday=123,tz=7200
+sec=26,min=25,hour=13,mday=3,mon=4,year=111,wday=2,yday=123,tz=7200
+sec=26,min=25,hour=13,mday=3,mon=4,year=111,wday=2,yday=123,tz=7200
+])
+
+SCANTIME([Percent],[percent],
+[%d%%%b%%%Y %H:%M:%S %z],
+[03%May%2011 13:25:26 +0100],
+[sec=26,min=25,hour=13,mday=3,mon=4,year=111,wday=2,yday=123,tz=3600
+])
+
+SCANTIME([Fixed WS],[fixws],
+[%d-%b-%Y%\ %H:%M:%S %z],
+[03-May-2011 13:25:26 +0100
+03-May-2011  13:25:26 +0100],
+[sec=26,min=25,hour=13,mday=3,mon=4,year=111,wday=2,yday=123,tz=3600
+],
+[scantime: 2: parse failed near  13:25:26 +0100
+])
+
+SCANTIME([endp return],[endp],
+[%a, %d %b %Y %H:%M:%S %z],
+[Tue, 03 May 2011 13:25:26 +0100 other data
+],
+[# 1: stopped at  other data
+sec=26,min=25,hour=13,mday=3,mon=4,year=111,wday=2,yday=123,tz=3600
+])
+
+SCANTIME([Optional blocks],[opt],
+[[%[%a, %]%d %b %Y %H:%M:%S %z]],
+[Tue, 03 May 2011 13:25:26 +0200
+03 May 2011 13:25:26 +0200],
+[sec=26,min=25,hour=13,mday=3,mon=4,year=111,wday=2,yday=123,tz=7200
+sec=26,min=25,hour=13,mday=3,mon=4,year=111,wday=2,yday=123,tz=7200
+])
+
+SCANTIME([Nested optional blocks],[nested-opt],
+[[%[%a%[,%] %]%d %b %Y %H:%M:%S %z]],
+[Tue, 03 May 2011 13:25:26 +0200
+Tue 03 May 2011 13:25:26 +0200
+03 May 2011 13:25:26 +0200],
+[sec=26,min=25,hour=13,mday=3,mon=4,year=111,wday=2,yday=123,tz=7200
+sec=26,min=25,hour=13,mday=3,mon=4,year=111,wday=2,yday=123,tz=7200
+sec=26,min=25,hour=13,mday=3,mon=4,year=111,wday=2,yday=123,tz=7200
+])
+
+SCANTIME([Optional alternatives],[opt-alt],
+[[%a%[,%|:%] %d %b %Y %H:%M:%S %z]],
+[Tue, 03 May 2011 13:25:26 +0200
+Tue: 03 May 2011 13:25:26 +0200
+Tue 03 May 2011 13:25:26 +0200
+Tue; 03 May 2011 13:25:26 +0200],
+[sec=26,min=25,hour=13,mday=3,mon=4,year=111,wday=2,yday=123,tz=7200
+sec=26,min=25,hour=13,mday=3,mon=4,year=111,wday=2,yday=123,tz=7200
+sec=26,min=25,hour=13,mday=3,mon=4,year=111,wday=2,yday=123,tz=7200
+],
+[scantime: 4: parse failed near ; 03 May 2011 13:25:26 +0200
+])
+
+SCANTIME([Alternatives],[alt],
+[%a%(,%|:%|/%) %d %b %Y %H:%M:%S %z],
+[Tue, 03 May 2011 13:25:26 +0200
+Tue: 03 May 2011 13:25:26 +0200
+Tue/ 03 May 2011 13:25:26 +0200
+Tue 03 May 2011 13:25:26 +0200
+Tue; 03 May 2011 13:25:26 +0200],
+[sec=26,min=25,hour=13,mday=3,mon=4,year=111,wday=2,yday=123,tz=7200
+sec=26,min=25,hour=13,mday=3,mon=4,year=111,wday=2,yday=123,tz=7200
+sec=26,min=25,hour=13,mday=3,mon=4,year=111,wday=2,yday=123,tz=7200
+],
+[scantime: 4: parse failed near  03 May 2011 13:25:26 +0200
+scantime: 5: parse failed near ; 03 May 2011 13:25:26 +0200
 ])
 
 m4_popdef([SCANTIME])

@@ -45,7 +45,8 @@ main (int argc, char **argv)
   char *buf = NULL;
   size_t size = 0;
   size_t n;
-
+  int line;
+  
   mu_set_program_name (argv[0]);
   
   mu_stdstream_setup (MU_STDSTREAM_RESET_NONE);
@@ -65,31 +66,34 @@ main (int argc, char **argv)
 	}
     }
 
+  line = 0;
   while ((rc = mu_stream_getline (mu_strin, &buf, &size, &n)) == 0 && n > 0)
     {
       char *endp;
       struct tm tm;
       struct mu_timezone tz;
 
+      line++;
+      mu_ltrim_class (buf, MU_CTYPE_BLANK);
       mu_rtrim_class (buf, MU_CTYPE_ENDLN);
-
+      if (!*buf)
+	continue;
       rc = mu_scan_datetime (buf, format, &tm, &tz, &endp);
       if (rc)
 	{
 	  if (*endp)
-	    mu_error ("parse failed near %s", endp);
+	    mu_error ("%d: parse failed near %s", line, endp);
 	  else
-	    mu_error ("parse failed at end of input");
+	    mu_error ("%d: parse failed at end of input", line);
 	  continue;
 	}
       if (*endp)
-	mu_printf ("# stopped at %s\n", endp);
-      /* FIXME: add tm_yday? */
-      mu_printf ("sec=%d,min=%d,hour=%d,mday=%d,mon=%d,year=%d,wday=%d,tz=%d\n",
+	mu_printf ("# %d: stopped at %s\n", line, endp);
+      mu_printf ("sec=%d,min=%d,hour=%d,mday=%d,mon=%d,year=%d,wday=%d,yday=%d,tz=%d\n",
 		 tm.tm_sec, tm.tm_min, tm.tm_hour, tm.tm_mday, tm.tm_mon,
-		 tm.tm_year, tm.tm_wday, tz.utc_offset);
+		 tm.tm_year, tm.tm_wday, tm.tm_yday, tz.utc_offset);
 		 
-      //mu_c_streamftime (mu_strout, "%c %z%n", &tm, &tz);
+      /*mu_c_streamftime (mu_strout, "%c %z%n", &tm, &tz);*/
     }
   
   if (rc)

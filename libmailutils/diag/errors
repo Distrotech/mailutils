@@ -123,3 +123,5 @@ MU_ERR_PERM_DIR_IWGRP       _("File in group writable directory")
 MU_ERR_PERM_DIR_IWOTH       _("File in world writable directory")
 
 MU_ERR_DISABLED             _("Requested feature disabled in configuration")
+
+MU_ERR_FORMAT		    _("Error in format string")

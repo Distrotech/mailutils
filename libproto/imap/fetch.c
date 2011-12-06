@@ -472,7 +472,7 @@ _fill_response (void *item, void *data)
       else
 	{
 	  if (mu_scan_datetime (elt->v.string,
-				MU_DATETIME_RFC822,
+				MU_DATETIME_SCAN_RFC822,
 				&env->envelope->date,
 				&env->envelope->tz, NULL))
 	    rc = MU_ERR_FAILURE;
