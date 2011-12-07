@@ -51,7 +51,7 @@ mu_imap_logout (mu_imap_t imap)
       status = _mu_imap_response (imap, NULL, NULL);
       MU_IMAP_CHECK_EAGAIN (imap, status);
       imap->client_state = MU_IMAP_CLIENT_READY;
-      imap->session_state = MU_IMAP_SESSION_LOGOUT;
+      imap->session_state = MU_IMAP_SESSION_INIT;
       break;
 
     default:

@@ -16,6 +16,7 @@ imapio
 listop
 mailcap
 prop
+scantime
 strftime
 url-comp
 url-parse

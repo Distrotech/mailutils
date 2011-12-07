@@ -29,53 +29,24 @@
 #include <mailutils/sys/imap.h>
 
 int
-mu_imap_fetch (mu_imap_t imap, const char *msgset, const char *items)
+mu_imap_fetch (mu_imap_t imap, int uid, const char *msgset, const char *items)
 {
-  int status;
+  char const *argv[3];
+  static struct imap_command com;
+
+  argv[0] = "FETCH";
+  argv[1] = msgset;
+  argv[2] = items;
   
-  if (imap == NULL)
-    return EINVAL;
-  if (!imap->io)
-    return MU_ERR_NO_TRANSPORT;
+  com.session_state = MU_IMAP_SESSION_SELECTED;
+  com.capa = NULL;
+  com.rx_state = MU_IMAP_CLIENT_FETCH_RX;
+  com.uid = uid;
+  com.argc = 3;
+  com.argv = argv;
+  com.handler = NULL;
 
-  if (imap->session_state != MU_IMAP_SESSION_SELECTED)
-    return MU_ERR_SEQ;
-  
-  switch (imap->client_state)
-    {
-    case MU_IMAP_CLIENT_READY:
-      status = _mu_imap_tag_next (imap);
-      MU_IMAP_CHECK_EAGAIN (imap, status);
-      status = mu_imapio_printf (imap->io, "%s FETCH %s %s\r\n",
-				 imap->tag_str, msgset, items);
-      MU_IMAP_CHECK_ERROR (imap, status);
-      MU_IMAP_FCLR (imap, MU_IMAP_RESP);
-      imap->client_state = MU_IMAP_CLIENT_FETCH_RX;
-
-    case MU_IMAP_CLIENT_FETCH_RX:
-      status = _mu_imap_response (imap, NULL, NULL);
-      MU_IMAP_CHECK_EAGAIN (imap, status);
-      switch (imap->resp_code)
-	{
-	case MU_IMAP_OK:
-	  status = 0;
-	  break;
-
-	case MU_IMAP_NO:
-	  status = MU_ERR_FAILURE;
-	  break;
-
-	case MU_IMAP_BAD:
-	  status = MU_ERR_BADREPLY;
-	  break;
-	}
-      imap->client_state = MU_IMAP_CLIENT_READY;
-      break;
-
-    default:
-      status = EINPROGRESS;
-    }
-  return status;
+  return mu_imap_gencom (imap, &com);
 }
 
 static void

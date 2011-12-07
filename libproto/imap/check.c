@@ -23,13 +23,13 @@
 #include <mailutils/sys/imap.h>
 
 int
-mu_imap_noop (mu_imap_t imap)
+mu_imap_check (mu_imap_t imap)
 {
-  static char const *command = "NOOP";
+  static char const *command = "CHECK";
   static struct imap_command com = {
-    MU_IMAP_SESSION_INIT,
+    MU_IMAP_SESSION_SELECTED,
     NULL,
-    MU_IMAP_CLIENT_NOOP_RX,
+    MU_IMAP_CLIENT_CHECK_RX,
     0,
     1,
     &command,

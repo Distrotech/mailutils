@@ -19,22 +19,30 @@
 # include <config.h>
 #endif
 
+#include <stdlib.h>
+#include <string.h>
+#include <mailutils/errno.h>
 #include <mailutils/imap.h>
 #include <mailutils/sys/imap.h>
 
 int
-mu_imap_noop (mu_imap_t imap)
+mu_imap_store (mu_imap_t imap, int uid, const char *msgset, const char *items)
 {
-  static char const *command = "NOOP";
-  static struct imap_command com = {
-    MU_IMAP_SESSION_INIT,
-    NULL,
-    MU_IMAP_CLIENT_NOOP_RX,
-    0,
-    1,
-    &command,
-    NULL
-  };
+  char const *argv[3];
+  static struct imap_command com;
+
+  argv[0] = "STORE";
+  argv[1] = msgset;
+  argv[2] = items;
+  
+  com.session_state = MU_IMAP_SESSION_SELECTED;
+  com.capa = NULL;
+  com.rx_state = MU_IMAP_CLIENT_STORE_RX;
+  com.uid = uid;
+  com.argc = 3;
+  com.argv = argv;
+  com.handler = NULL;
+
   return mu_imap_gencom (imap, &com);
 }
       

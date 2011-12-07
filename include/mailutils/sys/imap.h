@@ -57,6 +57,14 @@ enum mu_imap_client_state
     MU_IMAP_CLIENT_STATUS_RX,
     MU_IMAP_CLIENT_NOOP_RX,
     MU_IMAP_CLIENT_FETCH_RX,
+    MU_IMAP_CLIENT_STORE_RX,
+    MU_IMAP_CLIENT_DELETE_RX,
+    MU_IMAP_CLIENT_RENAME_RX,
+    MU_IMAP_CLIENT_CLOSE_RX,
+    MU_IMAP_CLIENT_UNSELECT_RX,
+    MU_IMAP_CLIENT_CHECK_RX,
+    MU_IMAP_CLIENT_COPY_RX,
+    MU_IMAP_CLIENT_EXPUNGE_RX,
     MU_IMAP_CLIENT_CLOSING
   };
 
@@ -194,6 +202,8 @@ int _mu_imap_collect_flags (struct imap_list_element *arg, int *res);
 struct imap_list_element *_mu_imap_list_at (mu_list_t list, int idx);
   
 int _mu_imap_parse_fetch_response (mu_list_t resp, mu_list_t *result_list);
+
+void _mu_close_handler (mu_imap_t imap);
   
 # ifdef __cplusplus
 }
