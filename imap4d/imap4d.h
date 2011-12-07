@@ -205,7 +205,8 @@ extern char **imap4d_argv;
 extern jmp_buf child_jmp;
 
 extern int test_mode;
-  
+extern int silent_expunge;
+
 /* Input functions */
 extern mu_stream_t iostream;
 extern int  io_untagged_response (int, const char *, ...) MU_PRINTFLIKE(2,3);

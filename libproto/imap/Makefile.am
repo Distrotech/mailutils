@@ -29,25 +29,34 @@ libmu_imap_la_LIBADD = ${MU_LIB_AUTH} ${MU_LIB_MAILUTILS} @INTLLIBS@
 libmu_imap_la_SOURCES = \
  fake-folder.c\
  fetch.c\
+ gencom.c\
  callback.c\
  capability.c\
  capatst.c\
  carrier.c\
+ check.c\
+ close.c\
  connect.c\
+ copy.c\
  create.c\
+ delete.c\
  destroy.c\
  disconnect.c\
  err.c\
+ expunge.c\
  id.c\
  login.c\
  logout.c\
  noop.c\
+ rename.c\
  resplist.c\
  response.c\
  resproc.c\
  select.c\
  state.c\
  status.c\
+ store.c\
  tag.c\
- trace.c
+ trace.c\
+ unselect.c
 

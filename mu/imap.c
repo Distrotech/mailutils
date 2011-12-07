@@ -69,11 +69,7 @@ current_imap_state ()
   if (imap == NULL)
     state = MU_IMAP_SESSION_INIT;
   else
-    {
-      mu_imap_state (imap, &state);
-      if (state == MU_IMAP_SESSION_LOGOUT)
-	state = MU_IMAP_SESSION_INIT;
-    }
+    mu_imap_state (imap, &state);
   return state;
 }
 
@@ -731,6 +727,15 @@ com_noop (int argc MU_ARG_UNUSED, char **argv MU_ARG_UNUSED)
 }
 
 static int
+com_check (int argc MU_ARG_UNUSED, char **argv MU_ARG_UNUSED)
+{
+  int status = mu_imap_check (imap);
+  if (status)
+    report_failure ("check", status);
+  return 0;
+}
+
+static int
 com_fetch (int argc, char **argv)
 {
   int status;
@@ -739,7 +744,7 @@ com_fetch (int argc, char **argv)
   mu_imap_register_callback_function (imap, MU_IMAP_CB_FETCH,
 				      imap_fetch_callback,
 				      out);
-  status = mu_imap_fetch (imap, argv[1], argv[2]);
+  status = mu_imap_fetch (imap, 0, argv[1], argv[2]);
   mu_stream_destroy (&out);
   mu_imap_register_callback_function (imap, MU_IMAP_CB_FETCH,
 				      imap_fetch_callback,
@@ -749,22 +754,76 @@ com_fetch (int argc, char **argv)
   return 0;  
 }
 
+static int
+com_store (int argc, char **argv)
+{
+  int status = mu_imap_store (imap, 0, argv[1], argv[2]);
+  if (status)
+    report_failure ("store", status);
+  return 0;
+}
+
+static int
+com_close (int argc MU_ARG_UNUSED, char **argv MU_ARG_UNUSED)
+{
+  int status = mu_imap_close (imap);
+  if (status)
+    report_failure ("close", status);
+  return 0;
+}
+
+static int
+com_unselect (int argc MU_ARG_UNUSED, char **argv MU_ARG_UNUSED)
+{
+  int status = mu_imap_noop (imap);
+  if (status)
+    report_failure ("unselect", status);
+  return 0;
+}
+
+static int
+com_delete (int argc, char **argv)
+{
+  int status = mu_imap_delete (imap, argv[1]);
+  if (status)
+    report_failure ("delete", status);
+  return 0;
+}
+
+static int
+com_rename (int argc, char **argv)
+{
+  int status = mu_imap_rename (imap, argv[1], argv[2]);
+  if (status)
+    report_failure ("rename", status);
+  return 0;
+}
+
+static int
+com_expunge (int argc MU_ARG_UNUSED, char **argv MU_ARG_UNUSED)
+{
+  int status = mu_imap_expunge (imap);
+  if (status)
+    report_failure ("expunge", status);
+  return 0;
+}
+
 struct mutool_command imap_comtab[] = {
-  { "capability", 1, -1, 0,
+  { "capability",   1, -1, 0,
     com_capability,
     /* TRANSLATORS: -reread is a keyword; do not translate. */
     N_("[-reread] [NAME...]"),
     N_("list server capabilities") },
-  { "verbose",    1, 4, 0,
+  { "verbose",      1, 4, 0,
     com_verbose,
     "[on|off|mask|unmask] [secure [payload]]",
     N_("control the protocol tracing") },
-  { "connect",    1, 4, 0,
+  { "connect",      1, 4, 0,
     com_connect,
-    /* TRANSLATORS: --tls is a keyword. */
+    /* TRANSLATORS: -tls is a keyword. */
     N_("[-tls] HOSTNAME [PORT]"),
     N_("open connection") },
-  { "disconnect", 1, 1, 0,
+  { "disconnect",   1, 1, 0,
     com_disconnect,
     NULL,
     N_("close connection") },
@@ -784,6 +843,10 @@ struct mutool_command imap_comtab[] = {
     com_noop,
     NULL,
     N_("no operation (keepalive)") },
+  { "check",        1, 1, 0,
+    com_check,
+    NULL,
+    N_("request a server checkpoint") },
   { "select",       1, 2, 0,
     com_select,
     N_("[MBOX]"),
@@ -800,6 +863,30 @@ struct mutool_command imap_comtab[] = {
     com_fetch,
     N_("MSGSET ITEMS"),
     N_("fetch message data") },
+  { "store",        3, 3, CMD_COALESCE_EXTRA_ARGS,
+    com_store,
+    N_("MSGSET ITEMS"),
+    N_("alter mailbox data") },
+  { "close",        1, 1, 0,
+    com_close,
+    NULL,
+    N_("close the mailbox (with expunge)") },
+  { "unselect",     1, 1, 0,
+    com_unselect,
+    NULL,
+    N_("close the mailbox (without expunge)") },
+  { "delete",       2, 2, 0,
+    com_delete,
+    N_("MAILBOX"),
+    N_("delete the mailbox") },
+  { "rename",       3, 3, 0,
+    com_rename,
+    N_("OLD-NAME NEW-NAME"),
+    N_("rename existing mailbox") },
+  { "expunge",      1, 1, 0,
+    com_expunge,
+    NULL,
+    N_("permanently remove messages marked for deletion") },
   { "quit",         1, 1, 0,
     com_logout,
     NULL,

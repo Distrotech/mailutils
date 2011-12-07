@@ -19,22 +19,27 @@
 # include <config.h>
 #endif
 
+#include <mailutils/errno.h>
 #include <mailutils/imap.h>
 #include <mailutils/sys/imap.h>
 
 int
-mu_imap_noop (mu_imap_t imap)
+mu_imap_copy (mu_imap_t imap, int uid, const char *msgset, const char *mailbox)
 {
-  static char const *command = "NOOP";
-  static struct imap_command com = {
-    MU_IMAP_SESSION_INIT,
-    NULL,
-    MU_IMAP_CLIENT_NOOP_RX,
-    0,
-    1,
-    &command,
-    NULL
-  };
+  char const *argv[3];
+  static struct imap_command com;
+
+  argv[0] = "COPY";
+  argv[1] = msgset;
+  argv[2] = mailbox;
+
+  com.session_state = MU_IMAP_SESSION_SELECTED;
+  com.capa = NULL;
+  com.rx_state = MU_IMAP_CLIENT_COPY_RX;
+  com.uid = 0;
+  com.argc = 3;
+  com.argv = argv;
+  com.handler = NULL;
+
   return mu_imap_gencom (imap, &com);
 }
-      

@@ -22,18 +22,25 @@
 #include <mailutils/imap.h>
 #include <mailutils/sys/imap.h>
 
-int
-mu_imap_noop (mu_imap_t imap)
+void
+_mu_close_handler (mu_imap_t imap)
 {
-  static char const *command = "NOOP";
+  if (imap->resp_code == MU_IMAP_OK)
+    imap->session_state = MU_IMAP_SESSION_AUTH;
+}
+
+int
+mu_imap_close (mu_imap_t imap)
+{
+  static char const *command = "CLOSE";
   static struct imap_command com = {
-    MU_IMAP_SESSION_INIT,
+    MU_IMAP_SESSION_SELECTED,
     NULL,
-    MU_IMAP_CLIENT_NOOP_RX,
+    MU_IMAP_CLIENT_CLOSE_RX,
     0,
     1,
     &command,
-    NULL
+    _mu_close_handler
   };
   return mu_imap_gencom (imap, &com);
 }

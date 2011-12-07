@@ -70,6 +70,7 @@ m4_include([select.at])
 m4_include([examine.at])
 m4_include([status.at])
 m4_include([expunge.at])
+m4_include([close-expunge.at])
 m4_include([create01.at])
 m4_include([create02.at])
 

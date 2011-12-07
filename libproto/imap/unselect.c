@@ -23,17 +23,17 @@
 #include <mailutils/sys/imap.h>
 
 int
-mu_imap_noop (mu_imap_t imap)
+mu_imap_unselect (mu_imap_t imap)
 {
-  static char const *command = "NOOP";
+  static char const *command = "UNSELECT";
   static struct imap_command com = {
-    MU_IMAP_SESSION_INIT,
+    MU_IMAP_SESSION_SELECTED,
     NULL,
-    MU_IMAP_CLIENT_NOOP_RX,
+    MU_IMAP_CLIENT_UNSELECT_RX,
     0,
     1,
     &command,
-    NULL
+    _mu_close_handler
   };
   return mu_imap_gencom (imap, &com);
 }

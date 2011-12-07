@@ -521,8 +521,9 @@ execute_line (char *line)
   int status = 0;
   
   ws.ws_comment = "#";
+  ws.ws_escape = "\\\"";
   rc = mu_wordsplit (line, &ws,
-		     MU_WRDSF_DEFFLAGS|MU_WRDSF_COMMENT|
+		     MU_WRDSF_DEFFLAGS|MU_WRDSF_COMMENT|MU_WRDSF_ESCAPE|
 		     MU_WRDSF_INCREMENTAL|MU_WRDSF_APPEND);
   if (rc == MU_WRDSE_NOINPUT)
     {
