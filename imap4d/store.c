@@ -79,12 +79,10 @@ store_thunk (imap4d_parsebuf_t p)
     case EINVAL:
       /* See RFC 3501, section 6.4.8, and a comment to the equivalent code
 	 in fetch.c */
-      p->err_text = "Completed";
       return RESP_OK;
 
     default:
-      p->err_text = "Failed to parse message set";
-      return RESP_NO;
+      imap4d_parsebuf_exit (p, "Failed to parse message set");
     }      
 
   if (p->token[0] != '(')
@@ -94,7 +92,9 @@ store_thunk (imap4d_parsebuf_t p)
   do
     {
       int t;
-      if (!util_attribute_to_type (p->token, &t))
+      if (util_attribute_to_type (p->token, &t))
+	imap4d_parsebuf_exit (p, "Failed to parse flags");
+      else
 	pclos->type |= t;
     }
   while (imap4d_parsebuf_next (p, 1) && p->token[0] != ')');
@@ -163,7 +163,7 @@ imap4d_store0 (imap4d_tokbuf_t tok, int isuid, char **ptext)
 
       *ptext = "Completed";
     }
-
+  
   free (pclos.set);
   
   return rc;
@@ -173,9 +173,9 @@ int
 imap4d_store (struct imap4d_command *command, imap4d_tokbuf_t tok)
 {
   int rc;
-  char *err_text;
+  char *err_text = NULL;
   
   rc = imap4d_store0 (tok, 0, &err_text);
-  return io_completion_response (command, rc, "%s", err_text);
+  return io_completion_response (command, rc, "%s", err_text ? err_text : "");
 }
 

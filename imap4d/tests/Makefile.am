@@ -42,6 +42,7 @@ TESTSUITE_AT = \
  anystate.at\
  append00.at\
  append01.at\
+ close-expunge.at\
  create01.at\
  create02.at\
  examine.at\

@@ -136,7 +136,11 @@ imap4d_sync_flags (size_t msgno)
   return 0;
 }
 
+int silent_expunge;
+/* When true, non-tagged EXPUNGE responses are suppressed. */
+
 static int mailbox_corrupt;
+/* When true, mailbox has been altered by another party. */
 
 static int
 action (mu_observer_t observer, size_t type, void *data, void *action_data)
@@ -158,11 +162,12 @@ action (mu_observer_t observer, size_t type, void *data, void *action_data)
 	 immediately decremented by 1, and this decrement is reflected in
 	 message sequence numbers in subsequent responses (including other
 	 untagged EXPUNGE responses). */
-      {
-	size_t *exp = data;
-	io_untagged_response (RESP_NONE, "%lu EXPUNGED",
-			      (unsigned long) (exp[0] - exp[1]));
-      }
+      if (!silent_expunge)
+	{
+	  size_t *exp = data;
+	  io_untagged_response (RESP_NONE, "%lu EXPUNGED",
+				(unsigned long) (exp[0] - exp[1]));
+	}
     }
   return 0;
 }

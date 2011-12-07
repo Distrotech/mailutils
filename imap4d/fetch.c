@@ -1778,13 +1778,10 @@ fetch_thunk (imap4d_parsebuf_t pb)
 	 FIXME: This code also causes imap4d to silently ignore erroneous
 	 msgset specifications (e.g. FETCH foobar (FLAGS)), which should
 	 be fixed.  */
-      
-      pb->err_text = "Completed";
       return RESP_OK;
 
     default:
-      pb->err_text = "Failed to parse message set";
-      return RESP_NO;
+      imap4d_parsebuf_exit (pb, "Failed to parse message set");
     }
 
   /* Compile the expression */

@@ -30,9 +30,11 @@ imap4d_close0 (struct imap4d_command *command, imap4d_tokbuf_t tok,
   mu_mailbox_get_flags (mbox, &flags);
   if (flags & MU_STREAM_WRITE)
     {
+      silent_expunge = expunge;
       imap4d_enter_critical ();
       status = mu_mailbox_flush (mbox, expunge);
       imap4d_leave_critical ();
+      silent_expunge = 0;
       if (status)
 	{
 	  mu_diag_funcall (MU_DIAG_ERROR, "mu_mailbox_flush", NULL, status);
@@ -69,9 +71,11 @@ imap4d_close0 (struct imap4d_command *command, imap4d_tokbuf_t tok,
                NO - close failure: no mailbox selected
                BAD - command unknown or arguments invalid
 
-   The CLOSE command permanently removes from the currently selected
-   mailbox all messages that have the \\Deleted flag set, and returns
-   to authenticated state from selected state.  */
+      The CLOSE command permanently removes all messages that have the
+      \Deleted flag set from the currently selected mailbox, and returns
+      to the authenticated state from the selected state.  No untagged
+      EXPUNGE responses are sent. */
+
 int
 imap4d_close (struct imap4d_command *command, imap4d_tokbuf_t tok)
 {
