@@ -346,6 +346,7 @@ cfun_data (mu_stream_t iostr, char *arg)
   int rc;
   mu_stream_t flt, tempstr;
   time_t t;
+  struct tm *tm;
   int xlev = MU_XSCRIPT_PAYLOAD, xlev_switch = 0, buf_switch = 0;
   struct mu_buffer_query oldbuf;
   
@@ -375,7 +376,10 @@ cfun_data (mu_stream_t iostr, char *arg)
 
   /* Write out envelope */
   time (&t);
-  rc = mu_stream_printf (tempstr, "From %s %s", mail_from, ctime (&t));
+  tm = gmtime (&t);
+  rc = mu_stream_printf (tempstr, "From %s ", mail_from);
+  if (rc == 0)
+    rc = mu_c_streamftime (tempstr, "%c%n", tm, NULL);
   if (rc)
     {
       maidag_error (_("copy error: %s"), mu_strerror (rc));

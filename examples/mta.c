@@ -222,6 +222,7 @@ make_tmp (mu_stream_t in)
   if (n >= 5 && memcmp (buf, "From ", 5))
     {
       time_t t;
+      struct tm *tm;
       const char *from = from_address ();
       if (!from)
 	{
@@ -230,7 +231,9 @@ make_tmp (mu_stream_t in)
 	}
 	  
       time (&t);
-      mu_stream_printf (out, "From %s %s", from, ctime (&t));
+      tm = gmtime (&t);
+      mu_stream_printf (out, "From %s ", from);
+      mu_c_streamftime (out, "%c%n", tm, NULL);
     }
 
   mu_stream_write (out, buf, n, NULL);

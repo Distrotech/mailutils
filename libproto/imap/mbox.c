@@ -1536,11 +1536,8 @@ imap_envelope_date (mu_envelope_t envelope, char *buffer, size_t buflen,
      parsed, use the calendar time. */
   if (now == (time_t)-1)
     {
-      struct tm *gmt;
-
       time (&now);
-      gmt = gmtime (&now);
-      tm = *gmt;
+      tm = *gmtime (&now);
     }
 
   {

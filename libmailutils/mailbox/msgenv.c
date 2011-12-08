@@ -57,7 +57,7 @@ message_envelope_date (mu_envelope_t envelope, char *buf, size_t len,
       char tmpbuf[MU_DATETIME_FROM_LENGTH+1];
       t = time (NULL);
       n = mu_strftime (tmpbuf, sizeof tmpbuf, 
-                       MU_DATETIME_FROM, localtime (&t));
+                       MU_DATETIME_FROM, gmtime (&t));
       n = mu_cpystr (buf, tmpbuf, len);
     }
   if (pnwrite)

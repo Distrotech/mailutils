@@ -184,7 +184,7 @@ print_unix_header (mu_message_t message)
       struct tm *tm;
 
       t = time (NULL);
-      tm = localtime (&t);
+      tm = gmtime (&t);
       mu_strftime (datebuf, sizeof datebuf, MU_DATETIME_FROM, tm);
       buf = datebuf;
     }

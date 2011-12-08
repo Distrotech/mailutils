@@ -69,9 +69,12 @@ make_tmp (const char *from)
       if (from)
 	{
 	  time_t t;
+	  struct tm *tm;
 	  
 	  time (&t);
-	  mu_stream_printf (out, "From %s %s", from, ctime (&t));
+	  tm = gmtime (&t);
+	  mu_stream_printf (out, "From %s ", from);
+	  mu_c_streamftime (out, "%c%n", tm, NULL);
 	}
       else
 	{
