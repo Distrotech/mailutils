@@ -185,12 +185,11 @@ mime_create_ds (mu_mime_t mime, mu_message_t orig)
   mu_header_t hdr;
   mu_body_t body;
   char *email;
-  char datestr[80];
-  time_t t = time (NULL);
   struct tm tm, *tmp;
   struct mu_timezone tz;
   mu_envelope_t env;
   const char *p;
+  time_t t = time (NULL);
   
   mu_message_create (&newmsg, NULL);
   mu_message_get_header (newmsg, &hdr); 
@@ -202,15 +201,17 @@ mime_create_ds (mu_mime_t mime, mu_message_t orig)
   mu_message_get_envelope (orig, &env);
   if (mu_envelope_sget_date (env, &p) == 0
       && mu_scan_datetime (p, MU_DATETIME_FROM, &tm, &tz, NULL) == 0)
-    t = mu_datetime_to_utc (&tm, &tz);
+    {
+      tmp = &tm;
+    }
   else
-    /* Use local time instead */
-    t = time (NULL);
-  tmp = localtime (&t);
+    {
+      tmp = localtime (&t);
+      mu_datetime_tz_local (&tz);
+    }
       
-  /* FIXME: timezone info is lost */
-  mu_strftime (datestr, sizeof datestr, "%a, %b %d %H:%M:%S %Y %Z", tmp);
-  mu_stream_printf (stream, "Arrival-Date: %s\n", datestr);
+  mu_c_streamftime (stream, "Arrival-Date: %a, %b %d %H:%M:%S %Y %Z%n",
+		    tmp, &tz);
 
   email = mu_get_user_email (NULL);
   mu_stream_printf (stream, "Final-Recipient: RFC822; %s\n",
@@ -220,10 +221,10 @@ mime_create_ds (mu_mime_t mime, mu_message_t orig)
   mu_stream_printf (stream,  
 		    "Disposition: automatic-action/MDN-sent-automatically;deleted\n");
 
-  t = time (NULL);
   tmp = localtime (&t);
-  mu_strftime (datestr, sizeof datestr, "%a, %b %d %H:%M:%S %Y %Z", tmp);
-  mu_stream_printf (stream, "Last-Attempt-Date: %s\n", datestr);
+  mu_datetime_tz_local (&tz);
+  mu_c_streamftime (stream, "Last-Attempt-Date: %a, %b %d %H:%M:%S %Y %Z%n",
+		    tmp, &tz);
 
   mu_stream_close (stream);
   mu_stream_destroy (&stream);

@@ -1172,7 +1172,7 @@ _parse_date (struct mh_machine *mach, struct tm *tm, struct mu_timezone *tz)
       /*mu_error ("can't parse date: [%s]", date);*/
       time (&t);
       *tm = *localtime (&t);
-      tz->utc_offset = mu_utc_offset ();
+      mu_datetime_tz_local (tz);
     }
   
   return 0;

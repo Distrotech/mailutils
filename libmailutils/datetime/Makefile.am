@@ -25,6 +25,7 @@ libdatetime_la_SOURCES = \
  streamftime.c\
  strftime.c\
  tab.c\
+ tzlocal.c\
  unixtime.c\
  utcoff.c\
  yd.c

@@ -1,6 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2007, 2009, 2010, 2011 Free Software
-   Foundation, Inc.
+   Copyright (C) 2011 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -18,15 +17,11 @@
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
-#include <time.h>
+#include <mailutils/datetime.h>
 
-/* Convert time 0 at UTC to our localtime, that tells us the offset
-   of our current timezone from UTC. */
-int
-mu_utc_offset (void)
+void
+mu_datetime_tz_local (struct mu_timezone *tz)
 {
-  time_t t = 0;
-  struct tm *tm = gmtime (&t);
-
-  return - mktime (tm);
+  tz->utc_offset = mu_utc_offset ();
+  tz->tz_name = NULL;
 }
