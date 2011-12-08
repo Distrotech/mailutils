@@ -1458,7 +1458,7 @@ builtin_clock (struct mh_machine *mach)
 
   if (_parse_date (mach, &tm, &tz))
     return;
-  mach->arg_num = mu_tm2time (&tm, &tz);
+  mach->arg_num = mu_datetime_to_utc (&tm, &tz);
 }
 
 /*     rclock     date     integer  seconds prior to current time*/
@@ -1471,7 +1471,7 @@ builtin_rclock (struct mh_machine *mach)
   
   if (_parse_date (mach, &tm, &tz))
     return;
-  mach->arg_num = now - mu_tm2time (&tm, &tz);
+  mach->arg_num = now - mu_datetime_to_utc (&tm, &tz);
 }
 
 struct

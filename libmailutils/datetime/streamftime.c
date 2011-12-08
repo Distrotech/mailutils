@@ -298,7 +298,7 @@ mu_c_streamftime (mu_stream_t str, const char *fmt, struct tm *input_tm,
 	case 's':
 	  /* The number of seconds since the Epoch */
 	  rc = mu_stream_printf (str, "%lu",
-				 (unsigned long) mu_tm2time (&tm, tz));
+				 (unsigned long) mu_datetime_to_utc (&tm, tz));
 	  break;
 	  
 	case 'S':

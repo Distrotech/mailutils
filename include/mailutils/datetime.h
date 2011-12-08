@@ -59,7 +59,7 @@ struct mu_timezone
 int mu_parse_date (const char *p, time_t *rettime, const time_t *now);
 
 time_t mu_utc_offset (void);
-time_t mu_tm2time (struct tm *timeptr, struct mu_timezone *tz);
+time_t mu_datetime_to_utc (struct tm *timeptr, struct mu_timezone *tz);
 size_t mu_strftime (char *s, size_t max, const char *format, struct tm *tm);
 
 int mu_c_streamftime (mu_stream_t str, const char *fmt, struct tm *tm,

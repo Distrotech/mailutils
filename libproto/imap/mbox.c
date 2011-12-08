@@ -1530,7 +1530,7 @@ imap_envelope_date (mu_envelope_t envelope, char *buffer, size_t buflen,
   if (mu_parse_imap_date_time(datep, &tm, &tz) != 0)
     now = (time_t)-1;
   else
-    now = mu_tm2time (&tm, &tz);
+    now = mu_datetime_to_utc (&tm, &tz);
 
   /* if the time was unparseable, or mktime() didn't like what we
      parsed, use the calendar time. */

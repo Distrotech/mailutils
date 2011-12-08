@@ -341,7 +341,7 @@ _parse_822_date (char *date, time_t * timep)
 
   if (mu_parse822_date_time (&p, date + strlen (date), &tm, &tz) == 0)
     {
-      *timep = mu_tm2time (&tm, &tz);
+      *timep = mu_datetime_to_utc (&tm, &tz);
       return 0;
     }
   return 1;

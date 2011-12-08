@@ -25,10 +25,9 @@
 
 #define JD_OF_EPOCH 2440588
 
-/* Convert struct tm into time_t, taking into account timezone offset. */
-/* FIXME: Ignores DST */
+/* Convert struct tm into UTC. */
 time_t
-mu_tm2time (struct tm *tm, struct mu_timezone *tz)
+mu_datetime_to_utc (struct tm *tm, struct mu_timezone *tz)
 {
   int jd = mu_datetime_julianday (tm->tm_year + 1900, tm->tm_mon + 1,
 				  tm->tm_mday);

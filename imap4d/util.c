@@ -379,7 +379,7 @@ util_parse_internal_date (char *date, time_t *timep,
 
   adjust_tm (&tm, &tz, flag);
   
-  time = mu_tm2time (&tm, &tz);
+  time = mu_datetime_to_utc (&tm, &tz);
   if (time == (time_t) - 1)
     return 2;
 
@@ -398,7 +398,7 @@ util_parse_822_date (const char *date, time_t *timep,
   if (mu_parse822_date_time (&p, date + strlen (date), &tm, &tz) == 0)
     {
       adjust_tm (&tm, &tz, flag);
-      *timep = mu_tm2time (&tm, &tz);
+      *timep = mu_datetime_to_utc (&tm, &tz);
       return 0;
     }
   return 1;
@@ -414,7 +414,7 @@ util_parse_ctime_date (const char *date, time_t *timep,
   if (mu_scan_datetime (date, MU_DATETIME_FROM, &tm, &tz, NULL) == 0)
     {
       adjust_tm (&tm, &tz, flag);
-      *timep = mu_tm2time (&tm, &tz);
+      *timep = mu_datetime_to_utc (&tm, &tz);
       return 0;
     }
   return 1;

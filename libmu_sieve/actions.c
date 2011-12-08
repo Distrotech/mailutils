@@ -202,7 +202,7 @@ mime_create_ds (mu_mime_t mime, mu_message_t orig)
   mu_message_get_envelope (orig, &env);
   if (mu_envelope_sget_date (env, &p) == 0
       && mu_scan_datetime (p, MU_DATETIME_FROM, &tm, &tz, NULL) == 0)
-    t = mu_tm2time (&tm, &tz);
+    t = mu_datetime_to_utc (&tm, &tz);
   else
     /* Use local time instead */
     t = time (NULL);
