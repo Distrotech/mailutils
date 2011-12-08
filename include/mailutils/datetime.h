@@ -24,6 +24,29 @@
   /* ----------------------- */
   /* Date & time functions   */
   /* ----------------------- */
+
+/* Argument ranges:
+
+   year != 0, AD if > 0, BC if < 0
+   1 <= month <= 12
+   1 <= day <= maxday(month)
+*/
+/* Compute Julian Day for the given date */
+int mu_datetime_julianday (int year, int month, int day);
+/* Compute day of week (Sunday - 0) */
+int mu_datetime_dayofweek (int year, int month, int day);
+/* Compute ordinal date (1-based) */
+int mu_datetime_dayofyear (int year, int month, int day);
+/* Return number of days in the year */
+int mu_datetime_year_days (int year);
+
+/* Day of week and month names in C locale */
+extern const char *_mu_datetime_short_month[];
+extern const char *_mu_datetime_full_month[];
+extern const char *_mu_datetime_short_wday[];
+extern const char *_mu_datetime_full_wday[];
+
+
 struct mu_timezone
 {
   int utc_offset;  /* Seconds east of UTC. */

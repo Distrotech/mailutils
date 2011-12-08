@@ -1470,6 +1470,7 @@ AC_CONFIG_FILES([
  libmailutils/sockaddr/Makefile
  libmailutils/cidr/Makefile
  libmailutils/cfg/Makefile
+ libmailutils/datetime/Makefile
  libmailutils/diag/Makefile
  libmailutils/filter/Makefile
  libmailutils/imapio/Makefile

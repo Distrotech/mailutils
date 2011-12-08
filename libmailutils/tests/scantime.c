@@ -92,8 +92,6 @@ main (int argc, char **argv)
       mu_printf ("sec=%d,min=%d,hour=%d,mday=%d,mon=%d,year=%d,wday=%d,yday=%d,tz=%d\n",
 		 tm.tm_sec, tm.tm_min, tm.tm_hour, tm.tm_mday, tm.tm_mon,
 		 tm.tm_year, tm.tm_wday, tm.tm_yday, tz.utc_offset);
-		 
-      /*mu_c_streamftime (mu_strout, "%c %z%n", &tm, &tz);*/
     }
   
   if (rc)

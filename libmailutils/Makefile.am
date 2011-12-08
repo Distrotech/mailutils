@@ -19,7 +19,7 @@
 SUBDIRS = \
  auth base address list sockaddr cidr cfg diag\
  filter mailbox mailer mime server string stream stdstream\
- property url imapio . tests 
+ property url imapio datetime . tests 
 
 lib_LTLIBRARIES = libmailutils.la
 
@@ -33,6 +33,7 @@ libmailutils_la_LIBADD = \
  sockaddr/libsockaddr.la\
  cidr/libcidr.la\
  cfg/libcfg.la\
+ datetime/libdatetime.la\
  diag/libdiag.la\
  filter/libfilter.la\
  imapio/libimapio.la\

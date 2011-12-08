@@ -26,7 +26,6 @@ libbase_la_SOURCES = \
  assoc.c\
  filesafety.c\
  daemon.c\
- date.c\
  fdwait.c\
  fgetpwent.c\
  filename.c\
@@ -61,7 +60,6 @@ libbase_la_SOURCES = \
  sha1.c\
  secret.c\
  spawnvp.c\
- strftime.c\
  symlink.c\
  tempfile.c\
  ticket.c\
