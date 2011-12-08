@@ -174,9 +174,11 @@ imap4d_append0 (mu_mailbox_t mbox, int flags, char *date_time, char *text,
 	{
 	  size_t num = 0;
 	  mu_attribute_t attr = NULL;
+	  mu_message_t temp;
+	  
 	  mu_mailbox_messages_count (mbox, &num);
-	  mu_mailbox_get_message (mbox, num, &msg);
-	  mu_message_get_attribute (msg, &attr);
+	  mu_mailbox_get_message (mbox, num, &temp);
+	  mu_message_get_attribute (temp, &attr);
 	  mu_attribute_set_flags (attr, flags);
 	}
       /* FIXME: If not INBOX */
