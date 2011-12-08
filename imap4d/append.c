@@ -17,46 +17,68 @@
 
 #include "imap4d.h"
 
-static int
-_append_date (mu_envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
+struct _temp_envelope
 {
-  mu_message_t msg = mu_envelope_get_owner (envelope);
-  size_t size;
-  if (!buf)
-    size = MU_ENVELOPE_DATE_LENGTH;
-  else
-    {
-      struct tm **tm = mu_message_get_owner (msg);
-      size = mu_strftime (buf, len, "%a %b %d %H:%M:%S %Y", *tm);
-    }
-  if (pnwrite)
-    *pnwrite = size;
-  return 0;
-}
+  struct tm tm;
+  mu_timezone tz;
+  char *sender;
+};
 
 static int
-_append_sender (mu_envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
+_temp_envelope_date (mu_envelope_t envelope, char *buf, size_t len,
+		     size_t *pnwrite)
 {
-  size_t n = mu_cpystr (buf, "GNU-imap4d", len);
-  if (pnwrite)
-    *pnwrite = n;
-  return 0;
-}
-
-/* FIXME: Why not use mu_message_size instead? */
-static int
-_append_size (mu_message_t msg, size_t *psize)
-{
+  struct _temp_envelope *tenv = mu_envelope_get_owner (envelope);
+  int rc;
   mu_stream_t str;
-  int status = mu_message_get_stream (msg, &str);
-  if (status == 0)
+  mu_stream_stat_buffer stat;
+  
+  if (!buf)
     {
-      mu_off_t size;
-      status = mu_stream_size (str, &size);
-      if (status == 0 && psize)
-	*psize = size;
+      if (!pnwrite)
+	return MU_ERR_OUT_PTR_NULL;
+      
+      rc = mu_nullstream_create (&str, MU_STREAM_WRITE);
     }
-  return status;
+  else
+    rc = mu_fixed_memory_stream_create (&str, buf, len, MU_STREAM_WRITE);
+
+  if (rc)
+    return rc;
+  mu_stream_set_stat (str, MU_STREAM_STAT_MASK (MU_STREAM_STAT_OUT), stat);
+      
+  rc = mu_c_streamftime (str, MU_DATETIME_FROM, &tenv->tm, &tenv->tz);
+  if (rc == 0)
+    {
+      mu_stream_flush (str);
+      if (pnwrite)
+	*pnwrite = stat[MU_STREAM_STAT_OUT];
+      rc = mu_stream_write (str, "", 1, NULL);
+    }
+  mu_stream_unref (str);
+  
+  if (rc)
+    return rc;
+  return 0;
+}
+
+static int
+_temp_envelope_sender (mu_envelope_t envelope, char *buf, size_t len,
+		       size_t *pnwrite)
+{
+  struct _temp_envelope *tenv = mu_envelope_get_owner (envelope);
+  size_t n = mu_cpystr (buf, tenv->sender, len);
+  if (pnwrite)
+    *pnwrite = n;       
+  return 0;
+}
+
+static int
+_temp_envelope_destroy (mu_envelope_t envelope)
+{
+  struct _temp_envelope *tenv = mu_envelope_get_owner (envelope);
+  free (tenv->sender);
+  return 0;
 }
 
 int
@@ -66,65 +88,84 @@ imap4d_append0 (mu_mailbox_t mbox, int flags, char *date_time, char *text,
   mu_stream_t stream;
   int rc = 0;
   mu_message_t msg = 0;
-  struct tm *tm;
-  time_t t;
-  mu_envelope_t env;
+  mu_envelope_t env = NULL;
   size_t size;
-  
-  if (mu_message_create (&msg, &tm))
-    return 1;
+  struct _temp_envelope tenv;
+
+  memset (&tenv, 0, sizeof (tenv));
+	  
+  text = mu_str_skip_class (text, MU_CTYPE_BLANK);
+
+  size = strlen (text);
+  rc = quota_check (size);
+  if (rc != RESP_OK)
+    {
+      *err_text = rc == RESP_NO ?
+	                   "Mailbox quota exceeded" : "Operation failed";
+      return 1;
+    }
 
   /* If a date_time is specified, the internal date SHOULD be set in the
      resulting message; otherwise, the internal date of the resulting
      message is set to the current date and time by default. */
   if (date_time)
     {
-      if (util_parse_internal_date (date_time, &t, datetime_default))
+      if (mu_scan_datetime (date_time, MU_DATETIME_INTERNALDATE, &tenv.tm,
+			    &tenv.tz, NULL))
 	{
 	  *err_text = "Invalid date/time format";
 	  return 1;
 	}
+      rc = mu_envelope_create (&env, &tenv);
+      if (rc)
+	return rc;
+      mu_envelope_set_date (env, _temp_envelope_date, &tenv);
+      mu_envelope_set_sender (env, _temp_envelope_sender, &tenv);
+      mu_envelope_set_destroy (env, _temp_envelope_destroy, &tenv);
     }
-  else
-    time (&t);
-  
-  tm = gmtime (&t);
 
-  text = mu_str_skip_class (text, MU_CTYPE_BLANK);
-
-  if (mu_static_memory_stream_create (&stream, text, strlen (text)))
+  if (mu_static_memory_stream_create (&stream, text, size))
     {
-      mu_message_destroy (&msg, &tm);
+      if (env)
+	mu_envelope_destroy (&env, mu_envelope_get_owner (env));
       return 1;
     }
+  
+  rc = mu_message_from_stream_with_envelope (&msg, stream, env);
+  mu_stream_unref (stream);
 
-  mu_message_set_stream (msg, stream, &tm);
-  mu_message_set_size (msg, _append_size, &tm);
-
-  mu_envelope_create (&env, msg);
-  mu_envelope_set_date (env, _append_date, msg);
-  mu_envelope_set_sender (env, _append_sender, msg);
-  mu_message_set_envelope (msg, env, &tm);
-
-  rc = _append_size (msg, &size);
   if (rc)
     {
-      mu_diag_output (MU_DIAG_NOTICE,
-		      _("cannot compute size of the message being appended; "
-			"using estimated value: %s"),
-		      mu_strerror (rc));
-      /* raw estimate */
-      size = strlen (text);
-    }
-  rc = quota_check (size);
-  if (rc != RESP_OK)
-    {
-      *err_text = rc == RESP_NO ?
-	                   "Mailbox quota exceeded" : "Operation failed";
-      mu_message_destroy (&msg, &tm);
+      if (env)
+	mu_envelope_destroy (&env, mu_envelope_get_owner (env));
       return 1;
     }
 
+  if (env)
+    {
+      /* Restore sender */
+      mu_header_t hdr = NULL;
+      char *val;
+      
+      mu_message_get_header (msg, &hdr);
+      if (mu_header_aget_value_unfold (hdr, MU_HEADER_ENV_SENDER, &val) == 0 ||
+	  mu_header_aget_value_unfold (hdr, MU_HEADER_SENDER, &val) == 0 ||
+	  mu_header_aget_value_unfold (hdr, MU_HEADER_FROM, &val) == 0)
+	{
+	  mu_address_t addr;
+	  rc = mu_address_create (&addr, val);
+	  free (val);
+	  if (rc == 0)
+	    {
+	      mu_address_aget_email (addr, 1, &tenv.sender);
+	      mu_address_destroy (&addr);
+	    }
+	}
+
+      if (!tenv.sender)
+	tenv.sender = strdup ("GNU-imap4d");
+    }
+      
   imap4d_enter_critical ();
   rc = mu_mailbox_append_message (mbox, msg);
   if (rc == 0)
@@ -143,7 +184,10 @@ imap4d_append0 (mu_mailbox_t mbox, int flags, char *date_time, char *text,
     }
   imap4d_leave_critical ();
   
-  mu_message_destroy (&msg, &tm);
+  mu_message_unref (msg);
+  if (env)
+    mu_envelope_destroy (&env, mu_envelope_get_owner (env));
+
   return rc;
 }
 

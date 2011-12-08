@@ -27,6 +27,9 @@ libmu_imap_la_LIBADD = ${MU_LIB_AUTH} ${MU_LIB_MAILUTILS} @INTLLIBS@
 #  mbox.c\
 #  url.c
 libmu_imap_la_SOURCES = \
+ appmsg.c\
+ appstr.c\
+ appstrsiz.c\
  fake-folder.c\
  fetch.c\
  gencom.c\
@@ -47,6 +50,7 @@ libmu_imap_la_SOURCES = \
  id.c\
  login.c\
  logout.c\
+ mbcreate.c\
  noop.c\
  rename.c\
  resplist.c\

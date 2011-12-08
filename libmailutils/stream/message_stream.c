@@ -187,30 +187,33 @@ _message_open (mu_stream_t stream)
     {
       if (offset == 0 && memcmp (buffer, "From ", 5) == 0)
 	{
-	  char *s, *p;
-	  
 	  str->envelope_length = len;
-	  str->envelope = mu_strdup (buffer);
-	  if (!str->envelope)
-	    return ENOMEM;
-	  str->envelope[len - 1] = 0;
-
-	  s = str->envelope + 5;
-	  p = strchr (s, ' ');
-
-	  if (p)
+	  if (str->construct_envelope)
 	    {
-	      size_t n = p - s;
-	      env_from = mu_alloc (n + 1);
-	      if (!env_from)
+	      char *s, *p;
+	  
+	      str->envelope_string = mu_strdup (buffer);
+	      if (!str->envelope_string)
 		return ENOMEM;
-	      memcpy (env_from, s, n);
-	      env_from[n] = 0;
-	      env_date = mu_strdup (p + 1);
-	      if (!env_date)
+	      str->envelope_string[len - 1] = 0;
+	      
+	      s = str->envelope_string + 5;
+	      p = strchr (s, ' ');
+	      
+	      if (p)
 		{
-		  free (env_from);
-		  return ENOMEM;
+		  size_t n = p - s;
+		  env_from = mu_alloc (n + 1);
+		  if (!env_from)
+		    return ENOMEM;
+		  memcpy (env_from, s, n);
+		  env_from[n] = 0;
+		  env_date = mu_strdup (p + 1);
+		  if (!env_date)
+		    {
+		      free (env_from);
+		      return ENOMEM;
+		    }
 		}
 	    }
 	}
@@ -233,7 +236,7 @@ _message_open (mu_stream_t stream)
 	      return MU_ERR_INVALID_EMAIL;
 	    }
 	  has_headers = 1;
-	  if (!env_from || !env_date)
+	  if (str->construct_envelope && (!env_from || !env_date))
 	    {
 	      if (!from && mu_c_strncasecmp (buffer, MU_HEADER_FROM,
 					     sizeof (MU_HEADER_FROM) - 1) == 0)
@@ -263,40 +266,43 @@ _message_open (mu_stream_t stream)
   if (rc)
     return rc;
   
-  if (!env_from)
+  if (str->construct_envelope)
     {
-      if (from)
-	{
-	  mu_address_t addr;
-	  
-	  mu_address_create (&addr, from);
-	  if (addr)
-	    {
-	      mu_address_aget_email (addr, 1, &env_from);
-	      mu_address_destroy (&addr);
-	    }
-	}
-
       if (!env_from)
-	env_from = mu_get_user_email (NULL);
+	{
+	  if (from)
+	    {
+	      mu_address_t addr;
+	      
+	      mu_address_create (&addr, from);
+	      if (addr)
+		{
+		  mu_address_aget_email (addr, 1, &env_from);
+		  mu_address_destroy (&addr);
+		}
+	    }
+
+	  if (!env_from)
+	    env_from = mu_get_user_email (NULL);
+	}
+      free (from);
+      
+      if (!env_date)
+	{
+	  struct tm *tm;
+	  time_t t;
+	  char date[80]; /* FIXME: This size is way too big */
+	  
+	  time(&t);
+	  tm = gmtime(&t);
+	  mu_strftime (date, sizeof (date), "%a %b %e %H:%M:%S %Y", tm);
+	  env_date = strdup (date);
+	}
+      
+      str->from = env_from;
+      str->date = env_date;
     }
-  free (from);
   
-  if (!env_date)
-    {
-      struct tm *tm;
-      time_t t;
-      char date[80]; /* FIXME: This size is way too big */
-
-      time(&t);
-      tm = gmtime(&t);
-      mu_strftime (date, sizeof (date), "%a %b %e %H:%M:%S %Y", tm);
-      env_date = strdup (date);
-    }
-
-  str->from = env_from;
-  str->date = env_date;
-
   str->body_start = body_start;
   str->body_end = body_end - 1;
   
@@ -315,7 +321,7 @@ _message_done (mu_stream_t stream)
 {
   struct _mu_message_stream *s = (struct _mu_message_stream*) stream;
 
-  free (s->envelope);
+  free (s->envelope_string);
   free (s->date);
   free (s->from);
   mu_stream_destroy (&s->transport);
@@ -342,8 +348,9 @@ _message_error_string (struct _mu_stream *stream, int rc)
   return mu_stream_strerror (str->transport, rc);
 }
 
-int
-mu_message_stream_create (mu_stream_t *pstream, mu_stream_t src, int flags)
+static int
+mu_message_stream_create (mu_stream_t *pstream, mu_stream_t src, int flags,
+			  int construct_envelope)
 {
   struct _mu_message_stream *s;
   int sflag;
@@ -368,6 +375,7 @@ mu_message_stream_create (mu_stream_t *pstream, mu_stream_t src, int flags)
       free (s);
       return rc;
     }
+  s->construct_envelope = construct_envelope;
   s->stream.open = _message_open;
   s->stream.close = _message_close;
   s->stream.done = _message_done;
@@ -400,13 +408,12 @@ _body_obj_size (mu_body_t body, size_t *size)
     *size = str->body_end - str->body_start + 1;
   return 0;
 }
-
-
 
 int
-mu_stream_to_message (mu_stream_t instream, mu_message_t *pmsg)
+mu_message_from_stream_with_envelope (mu_message_t *pmsg,
+				      mu_stream_t instream,
+				      mu_envelope_t env)
 {
-  mu_envelope_t env;
   mu_message_t msg;
   mu_body_t body;
   mu_stream_t bstream;
@@ -415,7 +422,7 @@ mu_stream_to_message (mu_stream_t instream, mu_message_t *pmsg)
   struct _mu_message_stream *sp;
   
   /* FIXME: Perhaps MU_STREAM_NO_CLOSE is needed */
-  if ((rc = mu_message_stream_create (&draftstream, instream, 0)))
+  if ((rc = mu_message_stream_create (&draftstream, instream, 0, !env)))
     return rc;
 
   if ((rc = mu_message_create (&msg, draftstream)))
@@ -425,16 +432,19 @@ mu_stream_to_message (mu_stream_t instream, mu_message_t *pmsg)
     }
   
   mu_message_set_stream (msg, draftstream, draftstream);
-  
-  if ((rc = mu_envelope_create (&env, draftstream)))
+
+  if (!env)
     {
-      mu_message_destroy (&msg, draftstream);
-      mu_stream_destroy (&draftstream);
-      return rc;
-    }
+      if ((rc = mu_envelope_create (&env, draftstream)))
+	{
+	  mu_message_destroy (&msg, draftstream);
+	  mu_stream_destroy (&draftstream);
+	  return rc;
+	}
   
-  mu_envelope_set_date (env, _env_msg_date, draftstream);
-  mu_envelope_set_sender (env, _env_msg_sender, draftstream);
+      mu_envelope_set_date (env, _env_msg_date, draftstream);
+      mu_envelope_set_sender (env, _env_msg_sender, draftstream);
+    }
   mu_message_set_envelope (msg, env, draftstream);
 
   mu_body_create (&body, msg);
@@ -456,4 +466,10 @@ mu_stream_to_message (mu_stream_t instream, mu_message_t *pmsg)
 
   *pmsg = msg;
   return 0;
+}
+
+int
+mu_stream_to_message (mu_stream_t instream, mu_message_t *pmsg)
+{
+  return mu_message_from_stream_with_envelope (pmsg, instream, NULL);
 }

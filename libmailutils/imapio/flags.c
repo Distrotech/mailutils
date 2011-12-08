@@ -83,3 +83,17 @@ mu_imap_format_flags (mu_stream_t str, int flags)
   
   return 0;
 }
+
+int
+mu_imapio_send_flags (struct _mu_imapio *io, int flags)
+{
+  int rc;
+
+  rc = mu_stream_write (io->_imap_stream, "(", 1, NULL);
+  if (rc)
+    return rc;
+  rc = mu_imap_format_flags (io->_imap_stream, flags);
+  if (rc == 0)
+    rc = mu_stream_write (io->_imap_stream, ")", 1, NULL);
+  return rc;
+}

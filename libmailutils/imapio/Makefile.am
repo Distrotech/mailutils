@@ -21,11 +21,13 @@ libimapio_la_SOURCES = \
  create.c\
  flags.c\
  getline.c\
- literal.c\
+ litstream.c\
+ litstring.c\
  printf.c\
  qstring.c\
  replstr.c\
  send.c\
+ time.c\
  trace.c\
  words.c\
  xscript.c

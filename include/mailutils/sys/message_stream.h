@@ -25,7 +25,8 @@ struct _mu_message_stream
   mu_stream_t transport;  /* Actual stream */
   mu_off_t offset;
 
-  char *envelope;
+  int construct_envelope;
+  char *envelope_string;
   size_t envelope_length; 
   char *from;
   char *date;

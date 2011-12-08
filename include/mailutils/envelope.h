@@ -47,6 +47,9 @@ int mu_envelope_set_date (mu_envelope_t,
 			  int (*_date) (mu_envelope_t, char *, size_t ,
 					size_t *), 
 			  void *);
+int mu_envelope_set_destroy (mu_envelope_t envelope,
+			     int (*_destroy) (mu_envelope_t),
+			     void *owner);
 
 /* mu_strftime format for envelope dates */
 #define MU_ENVELOPE_DATE_FORMAT "%a %b %d %H:%M:%S %Y"

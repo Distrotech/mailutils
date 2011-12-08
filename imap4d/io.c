@@ -235,6 +235,8 @@ io_format_completion_response (mu_stream_t str,
   int status = 0;
   const char *sc = sc2string (rc);
 
+  imap4d_sync ();
+  
   mu_stream_printf (str, "%s %s%s ",
 		    command->tag, sc, command->name);
   mu_stream_vprintf (str, format, ap);

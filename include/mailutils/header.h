@@ -34,7 +34,6 @@ extern "C" {
 #define MU_HEADER_SENDER                    "Sender"
 #define MU_HEADER_RESENT_FROM               "Resent-From"
 #define MU_HEADER_SUBJECT                   "Subject"
-#define MU_HEADER_SENDER                    "Sender"
 #define MU_HEADER_RESENT_SENDER             "Resent-Sender"
 #define MU_HEADER_TO                        "To"
 #define MU_HEADER_RESENT_TO                 "Resent-To"

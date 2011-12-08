@@ -808,6 +808,93 @@ com_expunge (int argc MU_ARG_UNUSED, char **argv MU_ARG_UNUSED)
   return 0;
 }
 
+static int
+com_create (int argc, char **argv)
+{
+  int status = mu_imap_mailbox_create (imap, argv[1]);
+  if (status)
+    report_failure ("create", status);
+  return 0;
+}
+
+static int
+com_append (int argc, char **argv)
+{
+  struct tm tmbuf, *tm = NULL;
+  struct mu_timezone tzbuf, *tz = NULL;
+  int flags = 0;
+  mu_stream_t stream;
+  int rc, i;
+  
+  for (i = 1; i < argc; i++)
+    {
+      if (strcmp (argv[i], "-time") == 0)
+	{
+	  char *p;
+	  
+	  if (++i == argc)
+	    {
+	      mu_error (_("-time requires argument"));
+	      return 0;
+	    }
+	  rc = mu_scan_datetime (argv[i], MU_DATETIME_INTERNALDATE,
+				 &tmbuf, &tzbuf, &p);
+	  if (rc || *p)
+	    {
+	      mu_error (_("cannot parse time"));
+	      return 0;
+	    }
+	  tm = &tmbuf;
+	  tz = &tzbuf;
+	}
+      else if (strcmp (argv[i], "-flag") == 0)
+	{
+	  if (++i == argc)
+	    {
+	      mu_error (_("-flag requires argument"));
+	      return 0;
+	    }
+	  if (mu_imap_flag_to_attribute (argv[i], &flags))
+	    {
+	      mu_error (_("unrecognized flag: %s"), argv[i]);
+	      return 0;
+	    }
+	}
+      else if (strcmp (argv[i], "--") == 0)
+	{
+	  i++;
+	  break;
+	}
+      else if (argv[i][0] == '-')
+	{
+	  mu_error (_("unrecognized option: %s"), argv[i]);
+	  return 0;
+	}
+      else
+	break;
+    }
+
+  if (argc - i != 2)
+    {
+      mu_error (_("wrong number of arguments"));
+      return 0;
+    }
+
+  rc = mu_file_stream_create (&stream, argv[i + 1],
+			      MU_STREAM_READ|MU_STREAM_SEEK);
+  if (rc)
+    {
+      mu_error (_("cannot open file %s: %s"), argv[i + 1], mu_strerror (rc));
+      return 0;
+    }
+
+  rc = mu_imap_append_stream (imap, argv[i], flags, tm, tz, stream);
+  mu_stream_unref (stream);
+  if (rc)
+    report_failure ("append", rc);
+  return 0;
+}
+
 struct mutool_command imap_comtab[] = {
   { "capability",   1, -1, 0,
     com_capability,
@@ -887,6 +974,14 @@ struct mutool_command imap_comtab[] = {
     com_expunge,
     NULL,
     N_("permanently remove messages marked for deletion") },
+  { "create",       2, 2, 0,
+    com_create,
+    N_("MAILBOX"),
+    N_("create new mailbox") },
+  { "append",       3, -1, 0,
+    com_append,
+    N_("[-time DATETIME] [-flag FLAG] MAILBOX FILE"),
+    N_("append message text from FILE to MAILBOX") },
   { "quit",         1, 1, 0,
     com_logout,
     NULL,

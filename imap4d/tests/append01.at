@@ -44,7 +44,7 @@ awk 'NF==0 {print NR":"; next} {print NR":",$0}' mbox
 * BYE Session terminating.
 X OK LOGOUT Completed
 ==
-1: From GNU-imap4d Sun Aug 25 16:00:00 2002
+1: From foobar@Blurdybloop.COM Sun Aug 25 18:00:00 2002
 2: Date: Mon, 7 Feb 1994 21:52:25 -0800 (PST)
 3: From: Fred Foobar <foobar@Blurdybloop.COM>
 4: Subject: afternoon meeting again

@@ -87,6 +87,18 @@ int mu_imap_close (mu_imap_t imap);
 int mu_imap_unselect (mu_imap_t imap);
 
 int mu_imap_expunge (mu_imap_t imap);
+
+int mu_imap_mailbox_create (mu_imap_t imap, const char *mailbox);
+
+int mu_imap_append_stream_size (mu_imap_t imap, const char *mailbox, int flags,
+				struct tm *tm, struct mu_timezone *tz,
+				mu_stream_t stream, mu_off_t size);
+int mu_imap_append_stream (mu_imap_t imap, const char *mailbox, int flags,
+			   struct tm *tm, struct mu_timezone *tz,
+			   mu_stream_t stream);
+int mu_imap_append_message (mu_imap_t imap, const char *mailbox, int flags,
+			    struct tm *tm, struct mu_timezone *tz,
+			    mu_message_t msg);
   
 int mu_imap_set_carrier (mu_imap_t imap, mu_stream_t carrier);
 int mu_imap_get_carrier (mu_imap_t imap, mu_stream_t *pcarrier);

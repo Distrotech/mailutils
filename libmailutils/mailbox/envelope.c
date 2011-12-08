@@ -91,6 +91,19 @@ mu_envelope_set_date (mu_envelope_t envelope,
   return 0;
 }
 
+int
+mu_envelope_set_destroy (mu_envelope_t envelope,
+			 int (*_destroy) (mu_envelope_t),
+			 void *owner)
+{
+  if (envelope == NULL)
+    return EINVAL;
+  if (envelope->owner != owner)
+    return EACCES;
+  envelope->_destroy = _destroy;
+  return 0;
+}
+
 
 /* General accessors: */
 #define AC2(a,b) a ## b

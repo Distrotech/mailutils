@@ -22,6 +22,8 @@ extern "C" {
 #endif
 
 # include <mailutils/types.h>
+# include <mailutils/util.h>  
+# include <time.h>
 
 #define MU_IMAPIO_CLIENT 0
 #define MU_IMAPIO_SERVER 1
@@ -36,11 +38,17 @@ int mu_imapio_get_words (mu_imapio_t io, size_t *pwc, char ***pwv);
 
 int mu_imapio_send (mu_imapio_t io, const char *buf, size_t bytes);
 int mu_imapio_printf (mu_imapio_t io, const char *fmt, ...);
-int mu_imapio_send_literal (struct _mu_imapio *io, const char *buffer);
+int mu_imapio_send_literal_string (struct _mu_imapio *io, const char *buffer);
+int mu_imapio_send_literal_stream (struct _mu_imapio *io, mu_stream_t stream,
+				   mu_off_t size);  
 int mu_imapio_send_qstring (struct _mu_imapio *io, const char *buffer);
 int mu_imapio_send_qstring_unfold (struct _mu_imapio *io, const char *buffer,
 				   int unfold);
 
+int mu_imapio_send_flags (struct _mu_imapio *io, int flags);
+int mu_imapio_send_time (struct _mu_imapio *io, struct tm *tm,
+			 struct mu_timezone *tz);
+  
 int mu_imapio_trace_enable (mu_imapio_t io);
 int mu_imapio_trace_disable (mu_imapio_t io);
 int mu_imapio_get_trace (mu_imapio_t io);

@@ -60,7 +60,7 @@ mu_imapio_send_qstring_unfold (struct _mu_imapio *io, const char *buffer,
 	    }
 	}
       else
-	return mu_imapio_send_literal (io, buffer);
+	return mu_imapio_send_literal_string (io, buffer);
     }
   return mu_imapio_printf (io, "\"%s\"", buffer);
 }

@@ -196,6 +196,9 @@ extern int mu_message_save_to_mailbox (mu_message_t msg, const char *toname,
 				       int perms);
 
 
+extern int mu_message_from_stream_with_envelope (mu_message_t *pmsg,
+						 mu_stream_t instream,
+						 mu_envelope_t env);
 extern int mu_stream_to_message (mu_stream_t instream, mu_message_t *pmsg);
 
   
