@@ -179,13 +179,13 @@ print_unix_header (mu_message_t message)
   
   if (mu_envelope_sget_date (envelope, &buf))
     { 
-      char datebuf[MU_ENVELOPE_DATE_LENGTH+1];
+      char datebuf[MU_DATETIME_FROM_LENGTH+1];
       time_t t;
       struct tm *tm;
 
       t = time (NULL);
       tm = localtime (&t);
-      mu_strftime (datebuf, sizeof datebuf, "%a %b %d %H:%M:%S %Y", tm);
+      mu_strftime (datebuf, sizeof datebuf, MU_DATETIME_FROM, tm);
       buf = datebuf;
     }
 

@@ -51,12 +51,6 @@ int mu_envelope_set_destroy (mu_envelope_t envelope,
 			     int (*_destroy) (mu_envelope_t),
 			     void *owner);
 
-/* mu_strftime format for envelope dates */
-#define MU_ENVELOPE_DATE_FORMAT "%a %b %d %H:%M:%S %Y"
-/* Length of an envelope date in C locale, 
-   not counting the terminating nul character */
-#define MU_ENVELOPE_DATE_LENGTH 24
-
 #ifdef __cplusplus
 }
 #endif

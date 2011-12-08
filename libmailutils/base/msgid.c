@@ -28,6 +28,7 @@
 #include <mailutils/cctype.h>
 #include <mailutils/message.h>
 #include <mailutils/header.h>
+#include <mailutils/datetime.h>
 #include <mailutils/util.h>
 #include <mailutils/io.h>
 #include <mailutils/envelope.h>

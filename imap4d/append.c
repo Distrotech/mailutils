@@ -20,7 +20,7 @@
 struct _temp_envelope
 {
   struct tm tm;
-  mu_timezone tz;
+  struct mu_timezone tz;
   char *sender;
 };
 

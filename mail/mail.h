@@ -71,6 +71,7 @@
 #include <mailutils/mailer.h>
 #include <mailutils/message.h>
 #include <mailutils/util.h>
+#include <mailutils/datetime.h>
 #include <mailutils/registrar.h>
 #include <mailutils/stream.h>
 #include <mailutils/url.h>

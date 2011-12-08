@@ -188,7 +188,7 @@ mime_create_ds (mu_mime_t mime, mu_message_t orig)
   char datestr[80];
   time_t t = time (NULL);
   struct tm tm, *tmp;
-  mu_timezone tz;
+  struct mu_timezone tz;
   mu_envelope_t env;
   const char *p;
   

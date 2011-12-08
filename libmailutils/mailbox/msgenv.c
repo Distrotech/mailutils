@@ -28,6 +28,7 @@
 #include <mailutils/errno.h>
 #include <mailutils/envelope.h>
 #include <mailutils/util.h>
+#include <mailutils/datetime.h>
 #include <mailutils/header.h>
 #include <mailutils/mu_auth.h>
 #include <mailutils/address.h>
@@ -49,14 +50,14 @@ message_envelope_date (mu_envelope_t envelope, char *buf, size_t len,
 
   if (buf == NULL || len == 0)
     {
-      n = MU_ENVELOPE_DATE_LENGTH;
+      n = MU_DATETIME_FROM_LENGTH;
     }
   else
     {
-      char tmpbuf[MU_ENVELOPE_DATE_LENGTH+1];
+      char tmpbuf[MU_DATETIME_FROM_LENGTH+1];
       t = time (NULL);
       n = mu_strftime (tmpbuf, sizeof tmpbuf, 
-                       MU_ENVELOPE_DATE_FORMAT, localtime (&t));
+                       MU_DATETIME_FROM, localtime (&t));
       n = mu_cpystr (buf, tmpbuf, len);
     }
   if (pnwrite)

@@ -79,7 +79,7 @@ mu_scm_message_print (SCM message_smob, SCM port, scm_print_state * pstate)
   const char *p;
   size_t m_size = 0, m_lines = 0;
   struct tm tm;
-  mu_timezone tz;
+  struct mu_timezone tz;
   char datebuf[sizeof ("Mon Jan 01 00:00")]; /* Warning: length must be > 9 */
 
   mu_message_get_envelope (mum->msg, &env);
@@ -404,7 +404,7 @@ SCM_DEFINE_PUBLIC (scm_mu_message_get_envelope_date, "mu-message-get-envelope-da
   int status;
   const char *sdate;
   struct tm tm;
-  mu_timezone tz;
+  struct mu_timezone tz;
   
   SCM_ASSERT (mu_scm_is_message (mesg), mesg, SCM_ARG1, FUNC_NAME);
   msg = mu_scm_message_get (mesg);

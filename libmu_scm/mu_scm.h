@@ -38,6 +38,7 @@
 #include <mailutils/address.h>
 #include <mailutils/registrar.h>
 #include <mailutils/util.h>
+#include <mailutils/datetime.h>
 #include <mailutils/stream.h>
 #include <mailutils/debug.h>
 #include <mailutils/attribute.h>

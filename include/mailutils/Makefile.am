@@ -38,6 +38,7 @@ pkginclude_HEADERS = \
  cfg.h\
  cidr.h\
  cstr.h\
+ datetime.h\
  daemon.h\
  dbm.h\
  debug.h\

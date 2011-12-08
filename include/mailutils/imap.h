@@ -21,7 +21,7 @@
 #include <mailutils/iterator.h>
 #include <mailutils/debug.h>
 #include <mailutils/stream.h>
-#include <mailutils/util.h>
+#include <mailutils/datetime.h>
 #include <mailutils/kwd.h>
 
 #ifdef __cplusplus

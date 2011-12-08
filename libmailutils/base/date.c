@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <mailutils/diag.h>
+#include <mailutils/datetime.h>
 #include <mailutils/util.h>
 #include <mailutils/stream.h>
 #include <mailutils/errno.h>
@@ -123,7 +124,7 @@ ISO_8601_weekdays (int yday, int wday)
 /* Convert struct tm into time_t, taking into account timezone offset. */
 /* FIXME: It does not take DST into account */
 time_t
-mu_tm2time (struct tm *tm, mu_timezone *tz)
+mu_tm2time (struct tm *tm, struct mu_timezone *tz)
 {
   time_t t;
   int day;

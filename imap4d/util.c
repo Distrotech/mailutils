@@ -336,7 +336,7 @@ add2set (size_t ** set, int *n, unsigned long val)
 }
 
 static void
-adjust_tm (struct tm *tm, mu_timezone *tz, enum datetime_parse_mode flag)
+adjust_tm (struct tm *tm, struct mu_timezone *tz, enum datetime_parse_mode flag)
 {
   switch (flag)
     {
@@ -371,7 +371,7 @@ util_parse_internal_date (char *date, time_t *timep,
 			  enum datetime_parse_mode flag)
 {
   struct tm tm;
-  mu_timezone tz;
+  struct mu_timezone tz;
   time_t time;
 
   if (mu_scan_datetime (date, MU_DATETIME_INTERNALDATE, &tm, &tz, NULL))
@@ -392,7 +392,7 @@ util_parse_822_date (const char *date, time_t *timep,
 		     enum datetime_parse_mode flag)
 {
   struct tm tm;
-  mu_timezone tz;
+  struct mu_timezone tz;
   const char *p = date;
 
   if (mu_parse822_date_time (&p, date + strlen (date), &tm, &tz) == 0)
@@ -409,7 +409,7 @@ util_parse_ctime_date (const char *date, time_t *timep,
 		       enum datetime_parse_mode flag)
 {
   struct tm tm;
-  mu_timezone tz;
+  struct mu_timezone tz;
 
   if (mu_scan_datetime (date, MU_DATETIME_FROM, &tm, &tz, NULL) == 0)
     {

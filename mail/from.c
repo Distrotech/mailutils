@@ -208,7 +208,7 @@ hdr_date (struct header_call_args *args, void *data)
     {
       const char *p;
       struct tm tm;
-      mu_timezone tz;
+      struct mu_timezone tz;
       mu_envelope_t env;
       
       mu_message_get_envelope (args->msg, &env);

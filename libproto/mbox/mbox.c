@@ -29,6 +29,7 @@
 #include <mailutils/io.h>
 #include <mailutils/filter.h>
 #include <mailutils/cctype.h>
+#include <mailutils/datetime.h>
 
 #define ATTRIBUTE_IS_DELETED(flag)        (flag & MU_ATTRIBUTE_DELETED)
 #define ATTRIBUTE_IS_EQUAL(flag1, flag2)  (flag1 == flag2)
@@ -859,22 +860,23 @@ restore_date (mu_message_t msg, char **pret)
   mu_header_t hdr;
   const char *s;
   char *date = NULL;
-  time_t t;
+  struct tm tm;
+  struct mu_timezone tz;
   
   if (mu_message_get_header (msg, &hdr) == 0)
     mu_header_sget_value (hdr, MU_HEADER_DATE, &s);
 
-  if (s && mu_parse_date (s, &t, NULL))
+  if (s && mu_scan_datetime (s, MU_DATETIME_SCAN_RFC822, &tm, &tz, NULL) == 0)
     {
-      char datebuf[MU_ENVELOPE_DATE_LENGTH+1];
+      char datebuf[MU_DATETIME_FROM_LENGTH+1];
       
-      /* FIXME: 1. Preserve TZ info */
-      mu_strftime (datebuf, sizeof datebuf, MU_ENVELOPE_DATE_FORMAT,
-		   localtime (&t));
+      /* FIXME: Compensate for TZ differences. */
+      mu_strftime (datebuf, sizeof datebuf, MU_DATETIME_FROM, &tm);
       date = strdup (datebuf);
     }
   else
     {
+      time_t t;
       time (&t);
       date = strdup (ctime (&t));
     }

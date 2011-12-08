@@ -1160,7 +1160,7 @@ builtin_putnumf (struct mh_machine *mach)
 }
 
 static int
-_parse_date (struct mh_machine *mach, struct tm *tm, mu_timezone *tz)
+_parse_date (struct mh_machine *mach, struct tm *tm, struct mu_timezone *tz)
 {
   char *date = strobj_ptr (&mach->arg_str);
   const char *p = date;
@@ -1183,7 +1183,7 @@ static void
 builtin_sec (struct mh_machine *mach)
 {
   struct tm tm;
-  mu_timezone tz;
+  struct mu_timezone tz;
   
   if (_parse_date (mach, &tm, &tz))
     return;
@@ -1196,7 +1196,7 @@ static void
 builtin_min (struct mh_machine *mach)
 {
   struct tm tm;
-  mu_timezone tz;
+  struct mu_timezone tz;
   
   if (_parse_date (mach, &tm, &tz))
     return;
@@ -1209,7 +1209,7 @@ static void
 builtin_hour (struct mh_machine *mach)
 {
   struct tm tm;
-  mu_timezone tz;
+  struct mu_timezone tz;
   
   if (_parse_date (mach, &tm, &tz))
     return;
@@ -1222,7 +1222,7 @@ static void
 builtin_wday (struct mh_machine *mach)
 {
   struct tm tm;
-  mu_timezone tz;
+  struct mu_timezone tz;
   
   if (_parse_date (mach, &tm, &tz))
     return;
@@ -1235,7 +1235,7 @@ static void
 builtin_day (struct mh_machine *mach)
 {
   struct tm tm;
-  mu_timezone tz;
+  struct mu_timezone tz;
   char buf[80];
   
   if (_parse_date (mach, &tm, &tz))
@@ -1251,7 +1251,7 @@ static void
 builtin_weekday (struct mh_machine *mach)
 {
   struct tm tm;
-  mu_timezone tz;
+  struct mu_timezone tz;
   char buf[80];
   
   if (_parse_date (mach, &tm, &tz))
@@ -1268,7 +1268,7 @@ static void
 builtin_sday (struct mh_machine *mach)
 {
   struct tm tm;
-  mu_timezone tz;
+  struct mu_timezone tz;
 
   /*FIXME: more elaborate check needed */
   if (_parse_date (mach, &tm, &tz))
@@ -1282,7 +1282,7 @@ static void
 builtin_mday (struct mh_machine *mach)
 {
   struct tm tm;
-  mu_timezone tz;
+  struct mu_timezone tz;
   
   if (_parse_date (mach, &tm, &tz))
     return;
@@ -1295,7 +1295,7 @@ static void
 builtin_yday (struct mh_machine *mach)
 {
   struct tm tm;
-  mu_timezone tz;
+  struct mu_timezone tz;
   
   if (_parse_date (mach, &tm, &tz))
     return;
@@ -1308,7 +1308,7 @@ static void
 builtin_mon (struct mh_machine *mach)
 {
   struct tm tm;
-  mu_timezone tz;
+  struct mu_timezone tz;
   
   if (_parse_date (mach, &tm, &tz))
     return;
@@ -1321,7 +1321,7 @@ static void
 builtin_month (struct mh_machine *mach)
 {
   struct tm tm;
-  mu_timezone tz;
+  struct mu_timezone tz;
   char buf[80];
   
   if (_parse_date (mach, &tm, &tz))
@@ -1337,7 +1337,7 @@ static void
 builtin_lmonth (struct mh_machine *mach)
 {
   struct tm tm;
-  mu_timezone tz;
+  struct mu_timezone tz;
   char buf[80];
   
   if (_parse_date (mach, &tm, &tz))
@@ -1353,7 +1353,7 @@ static void
 builtin_year (struct mh_machine *mach)
 {
   struct tm tm;
-  mu_timezone tz;
+  struct mu_timezone tz;
   
   if (_parse_date (mach, &tm, &tz))
     return;
@@ -1366,7 +1366,7 @@ static void
 builtin_zone (struct mh_machine *mach)
 {
   struct tm tm;
-  mu_timezone tz;
+  struct mu_timezone tz;
   
   if (_parse_date (mach, &tm, &tz))
     return;
@@ -1379,7 +1379,7 @@ static void
 builtin_tzone (struct mh_machine *mach)
 {
   struct tm tm;
-  mu_timezone tz;
+  struct mu_timezone tz;
   
   if (_parse_date (mach, &tm, &tz))
     return;
@@ -1410,7 +1410,7 @@ static void
 builtin_szone (struct mh_machine *mach)
 {
   struct tm tm;
-  mu_timezone tz;
+  struct mu_timezone tz;
 
   /*FIXME: more elaborate check needed */
   if (_parse_date (mach, &tm, &tz))
@@ -1438,7 +1438,7 @@ static void
 builtin_dst (struct mh_machine *mach)
 {
   struct tm tm;
-  mu_timezone tz;
+  struct mu_timezone tz;
 
   if (_parse_date (mach, &tm, &tz))
     return;
@@ -1454,7 +1454,7 @@ static void
 builtin_clock (struct mh_machine *mach)
 {
   struct tm tm;
-  mu_timezone tz;
+  struct mu_timezone tz;
 
   if (_parse_date (mach, &tm, &tz))
     return;
@@ -1466,7 +1466,7 @@ void
 builtin_rclock (struct mh_machine *mach)
 {
   struct tm tm;
-  mu_timezone tz;
+  struct mu_timezone tz;
   time_t now = time (NULL);
   
   if (_parse_date (mach, &tm, &tz))
@@ -1493,7 +1493,7 @@ static void
 date_cvt (struct mh_machine *mach, int pretty)
 {
   struct tm tm;
-  mu_timezone tz;
+  struct mu_timezone tz;
   char buf[80];
   int i, len;
   const char *tzname = NULL;
@@ -1567,7 +1567,7 @@ static void
 builtin_nodate (struct mh_machine *mach)
 {
   struct tm tm;
-  mu_timezone tz;
+  struct mu_timezone tz;
   
   mach->arg_num = _parse_date (mach, &tm, &tz);
 }

@@ -21,8 +21,6 @@
 
 /* A collection of utility routines that don't belong somewhere else. */
 
-#include <time.h>
-
 #include <mailutils/list.h>
 #include <mailutils/types.h>
 
@@ -46,42 +44,6 @@ int mu_mh_delim (const char *str);
 void mu_str_url_decode_inline (char *str);
 int mu_str_url_decode (char **ptr, const char *s);
 
-  /* ----------------------- */
-  /* Date & time functions   */
-  /* ----------------------- */
-struct mu_timezone
-{
-  int utc_offset;  /* Seconds east of UTC. */
-
-  const char *tz_name;
-    /* Nickname for this timezone, if known. It is always considered
-       to be a pointer to static string, so will never be freed. */
-};
-
-typedef struct mu_timezone mu_timezone;
-
-int mu_parse_date (const char *p, time_t *rettime, const time_t *now);
-
-time_t mu_utc_offset (void);
-time_t mu_tm2time (struct tm *timeptr, mu_timezone *tz);
-size_t mu_strftime (char *s, size_t max, const char *format, struct tm *tm);
-
-int mu_c_streamftime (mu_stream_t str, const char *fmt, struct tm *tm,
-		      struct mu_timezone *tz);
-int mu_scan_datetime (const char *input, const char *fmt, struct tm *tm,
-		      struct mu_timezone *tz, char **endp);
-
-  /* Common datetime formats: */
-#define MU_DATETIME_FROM         "%a %b %e %H:%M:%S %Y"
-#define MU_DATETIME_IMAP         "%d-%b-%Y %H:%M:%S %z"
-#define MU_DATETIME_INTERNALDATE "%d-%b-%Y%$ %H:%M:%S %z"
-
-  /* RFC2822 date.  Scan format contains considerable allowances which would
-     stun formatting functions, therefore two distinct formats are provided:
-     one for outputting and one for scanning: */
-#define MU_DATETIME_FORM_RFC822  "%a, %e %b %Y %H:%M:%S %z"  
-#define MU_DATETIME_SCAN_RFC822  "%[%a, %]%e %b %Y %H:%M%[:%S%] %z"
-  
   /* ----------------------- */
   /* File & path names.      */
   /* ----------------------- */

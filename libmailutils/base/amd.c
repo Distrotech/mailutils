@@ -63,6 +63,7 @@
 #include <mailutils/locker.h>
 #include <mailutils/message.h>
 #include <mailutils/util.h>
+#include <mailutils/datetime.h>
 #include <mailutils/property.h>
 #include <mailutils/stream.h>
 #include <mailutils/url.h>

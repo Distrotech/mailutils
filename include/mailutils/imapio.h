@@ -22,7 +22,7 @@ extern "C" {
 #endif
 
 # include <mailutils/types.h>
-# include <mailutils/util.h>  
+# include <mailutils/datetime.h>  
 # include <time.h>
 
 #define MU_IMAPIO_CLIENT 0

@@ -18,7 +18,7 @@
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
-#include <mailutils/util.h>
+#include <mailutils/datetime.h>
 #include <mailutils/stream.h>
 #include <mailutils/errno.h>
 #include <mailutils/cstr.h>

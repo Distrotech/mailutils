@@ -25,6 +25,7 @@
 #include <mailutils/attribute.h>
 #include <mailutils/auth.h>
 #include <mailutils/body.h>
+#include <mailutils/datetime.h>
 #include <mailutils/debug.h>
 #include <mailutils/envelope.h>
 #include <mailutils/errno.h>

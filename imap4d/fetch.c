@@ -959,7 +959,7 @@ _frt_internaldate (struct fetch_function_closure *ffc,
   const char *date;
   mu_envelope_t env = NULL;
   struct tm tm, *tmp = NULL;
-  mu_timezone tz;
+  struct mu_timezone tz;
   
   mu_message_get_envelope (frt->msg, &env);
   if (mu_envelope_sget_date (env, &date) == 0

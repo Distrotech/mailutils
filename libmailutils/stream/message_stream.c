@@ -36,6 +36,7 @@
 #include <mailutils/body.h>
 #include <mailutils/stream.h>
 #include <mailutils/util.h>
+#include <mailutils/datetime.h>
 #include <mailutils/errno.h>
 #include <mailutils/error.h>
 #include <mailutils/cctype.h>
@@ -291,11 +292,11 @@ _message_open (mu_stream_t stream)
 	{
 	  struct tm *tm;
 	  time_t t;
-	  char date[80]; /* FIXME: This size is way too big */
+	  char date[MU_DATETIME_FROM_LENGTH+1];
 	  
-	  time(&t);
-	  tm = gmtime(&t);
-	  mu_strftime (date, sizeof (date), "%a %b %e %H:%M:%S %Y", tm);
+	  time (&t);
+	  tm = gmtime (&t);
+	  mu_strftime (date, sizeof (date), MU_DATETIME_FROM, tm);
 	  env_date = strdup (date);
 	}
       

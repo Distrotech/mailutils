@@ -336,7 +336,7 @@ static int
 _parse_822_date (char *date, time_t * timep)
 {
   struct tm tm;
-  mu_timezone tz;
+  struct mu_timezone tz;
   const char *p = date;
 
   if (mu_parse822_date_time (&p, date + strlen (date), &tm, &tz) == 0)

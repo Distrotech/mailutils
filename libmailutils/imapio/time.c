@@ -19,7 +19,7 @@
 #include <mailutils/stream.h>
 #include <mailutils/errno.h>
 #include <mailutils/sys/imapio.h>
-#include <mailutils/util.h>
+#include <mailutils/datetime.h>
 
 int
 mu_imapio_send_time (struct _mu_imapio *io, struct tm *tm,

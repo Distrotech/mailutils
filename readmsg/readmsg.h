@@ -50,7 +50,7 @@
 #include <mailutils/error.h>
 #include <mailutils/envelope.h>
 #include <mailutils/wordsplit.h>
-#include <mailutils/util.h>
+#include <mailutils/datetime.h>
 
 int msglist (mu_mailbox_t mbox, int show_all, int argc, char **argv, int **set, int *n);
 
