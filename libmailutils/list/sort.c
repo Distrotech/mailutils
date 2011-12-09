@@ -65,7 +65,7 @@ _list_qsort (mu_list_t list, mu_list_comparator_t cmp)
   cur = list->head.next;
   do {
     cur = cur->next;
-    if (!cur)
+    if (cur == &list->head)
       return;
   } while ((rc = cmp (list->head.next->item, cur->item)) == 0);
 
