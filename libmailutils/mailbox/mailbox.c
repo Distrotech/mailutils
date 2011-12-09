@@ -840,7 +840,7 @@ _search_message_uid (mu_mailbox_t mbox, size_t uid, size_t *result)
   return _uid_bsearch (mbox, 1, count, uid, result);
 }
 
-/* Translat message UIDs to message numbers and vice versa. */
+/* Translate message UIDs to message numbers and vice versa. */
 int
 mu_mailbox_translate (mu_mailbox_t mbox, int cmd, size_t from, size_t *to)
 {

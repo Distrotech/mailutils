@@ -604,7 +604,7 @@ pop_create_pop3_message (struct _pop3_mailbox *mpd, size_t msgno,
   struct _pop3_message *mpm;
   
   if (msgno > mpd->msg_count)
-    return EINVAL;
+    return MU_ERR_NOENT;
 
   if (!mpd->msg)
     {

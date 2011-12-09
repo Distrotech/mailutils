@@ -723,7 +723,7 @@ amd_get_message (mu_mailbox_t mailbox, size_t msgno, mu_message_t *pmsg)
   /* Sanity checks.  */
   if (pmsg == NULL)
     return MU_ERR_OUT_PTR_NULL;
-  if (amd == NULL)
+  if (amd == NULL || msgno < 1)
     return EINVAL;
 
   /* If we did not start a scanning yet do it now.  */
@@ -735,7 +735,7 @@ amd_get_message (mu_mailbox_t mailbox, size_t msgno, mu_message_t *pmsg)
     }
 
   if ((mhm = _amd_get_message (amd, msgno)) == NULL)
-    return EINVAL;
+    return MU_ERR_NOENT;
   return _amd_attach_message (mailbox, mhm, pmsg);
 }
 

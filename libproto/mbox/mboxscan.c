@@ -320,7 +320,7 @@ mbox_scan_internal (mu_mailbox_t mailbox, mbox_message_t mum,
   int newline;
   size_t n = 0;
   mu_stream_t stream;
-  size_t min_uid = 1;
+  size_t min_uid = 0;
   int zn, isfrom = 0;
   char *temp;
   
@@ -367,9 +367,9 @@ mbox_scan_internal (mu_mailbox_t mailbox, mbox_message_t mum,
 		  mum->body_end = total - n - newline;
 		  mum->body_lines = --lines - newline;
 
-		  if (mum->uid < min_uid)
+		  if (mum->uid <= min_uid)
 		    {
-		      mum->uid = min_uid++;
+		      mum->uid = ++min_uid;
 		      /* Note that modification for when expunging.  */
 		      mum->attr_flags |= MU_ATTRIBUTE_MODIFIED;
 		    }
@@ -451,9 +451,9 @@ mbox_scan_internal (mu_mailbox_t mailbox, mbox_message_t mum,
       mum->body_end = total - newline;
       mum->body_lines = lines - newline;
 
-      if (mum->uid < min_uid)
+      if (mum->uid <= min_uid)
 	{
-	  mum->uid = min_uid++;
+	  mum->uid = ++min_uid;
 	  /* Note that modification for when expunging.  */
 	  mum->attr_flags |= MU_ATTRIBUTE_MODIFIED;
 	}

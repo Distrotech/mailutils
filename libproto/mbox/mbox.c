@@ -591,7 +591,7 @@ mbox_get_message (mu_mailbox_t mailbox, size_t msgno, mu_message_t *pmsg)
   /* Sanity checks.  */
   if (pmsg == NULL)
     return MU_ERR_OUT_PTR_NULL;
-  if (mud == NULL)
+  if (mud == NULL || msgno < 1)
     return EINVAL;
 
   /* If we did not start a scanning yet do it now.  */
@@ -606,7 +606,7 @@ mbox_get_message (mu_mailbox_t mailbox, size_t msgno, mu_message_t *pmsg)
   if (!(mud->messages_count > 0
 	&& msgno > 0
 	&& msgno <= mud->messages_count))
-    return EINVAL;
+    return MU_ERR_NOENT;
 
   mum = mud->umessages[msgno - 1];
 
