@@ -25,8 +25,7 @@ struct store_parse_closure
   int ack;
   int type;
   int isuid;
-  size_t *set;
-  int count;
+  mu_list_t msgnumlist;
 };
   
 static int
@@ -36,6 +35,7 @@ store_thunk (imap4d_parsebuf_t p)
   char *msgset;
   char *data;
   int status;
+  char *end;
   
   msgset = imap4d_parsebuf_next (p, 1);
   data = imap4d_parsebuf_next (p, 1);
@@ -70,20 +70,10 @@ store_thunk (imap4d_parsebuf_t p)
     }
 
   /* Get the message numbers in set[].  */
-  status = util_msgset (msgset, &pclos->set, &pclos->count, pclos->isuid);
-  switch (status)
-    {
-    case 0:
-      break;
-
-    case EINVAL:
-      /* See RFC 3501, section 6.4.8, and a comment to the equivalent code
-	 in fetch.c */
-      return RESP_OK;
-
-    default:
-      imap4d_parsebuf_exit (p, "Failed to parse message set");
-    }      
+  status = util_parse_msgset (msgset, pclos->isuid, mbox,
+			      &pclos->msgnumlist, &end);
+  if (status)
+    imap4d_parsebuf_exit (p, "Failed to parse message set");
 
   if (p->token[0] != '(')
     imap4d_parsebuf_exit (p, "Syntax error");
@@ -101,12 +91,59 @@ store_thunk (imap4d_parsebuf_t p)
   return RESP_OK;
 }
 
+static int
+_do_store (size_t msgno, void *data)
+{
+  struct store_parse_closure *pclos = data;
+  mu_message_t msg = NULL;
+  mu_attribute_t attr = NULL;
+      
+  mu_mailbox_get_message (mbox, msgno, &msg);
+  mu_message_get_attribute (msg, &attr);
+	      
+  switch (pclos->how)
+    {
+    case STORE_ADD:
+      mu_attribute_set_flags (attr, pclos->type);
+      break;
+      
+    case STORE_UNSET:
+      mu_attribute_unset_flags (attr, pclos->type);
+      break;
+      
+    case STORE_SET:
+      mu_attribute_unset_flags (attr, 0xffffffff); /* FIXME */
+      mu_attribute_set_flags (attr, pclos->type);
+    }
+
+	  
+  if (pclos->ack)
+    {
+      io_sendf ("* %lu FETCH (", (unsigned long) msgno);
+      
+      if (pclos->isuid)
+	{
+	  size_t uid;
+	  int rc = mu_mailbox_translate (mbox, MU_MAILBOX_UID_TO_MSGNO,
+					 msgno, &uid);
+	  if (rc == 0)
+	    io_sendf ("UID %lu ", (unsigned long) uid);
+	}
+      io_sendf ("FLAGS (");
+      util_print_flags (attr);
+      io_sendf ("))\n");
+    }
+  /* Update the flags of uid table.  */
+  imap4d_sync_flags (msgno);
+  return 0;
+}
+
 int
 imap4d_store0 (imap4d_tokbuf_t tok, int isuid, char **ptext)
 {
   int rc;
   struct store_parse_closure pclos;
-
+  
   memset (&pclos, 0, sizeof pclos);
   pclos.ack = 1;
   pclos.isuid = isuid;
@@ -118,53 +155,12 @@ imap4d_store0 (imap4d_tokbuf_t tok, int isuid, char **ptext)
 			     ptext);
   if (rc == RESP_OK)
     {
-      size_t i;
-      
-      for (i = 0; i < pclos.count; i++)
-	{
-	  mu_message_t msg = NULL;
-	  mu_attribute_t attr = NULL;
-	  size_t msgno = isuid ? uid_to_msgno (pclos.set[i]) : pclos.set[i];
-      
-	  if (msgno)
-	    {
-	      mu_mailbox_get_message (mbox, msgno, &msg);
-	      mu_message_get_attribute (msg, &attr);
-	      
-	      switch (pclos.how)
-		{
-		case STORE_ADD:
-		  mu_attribute_set_flags (attr, pclos.type);
-		  break;
-		  
-		case STORE_UNSET:
-		  mu_attribute_unset_flags (attr, pclos.type);
-		  break;
-      
-		case STORE_SET:
-		  mu_attribute_unset_flags (attr, 0xffffffff); /* FIXME */
-		  mu_attribute_set_flags (attr, pclos.type);
-		}
-	    }
-	  
-	  if (pclos.ack)
-	    {
-	      io_sendf ("* %lu FETCH (", (unsigned long) msgno);
-	      
-	      if (isuid)
-		io_sendf ("UID %lu ", (unsigned long) msgno);
-	      io_sendf ("FLAGS (");
-	      util_print_flags (attr);
-	      io_sendf ("))\n");
-	    }
-	  /* Update the flags of uid table.  */
-	  imap4d_sync_flags (pclos.set[i]);
-	}
-
+      util_foreach_message (pclos.msgnumlist, _do_store, &pclos);
+    
       *ptext = "Completed";
     }
   
-  free (pclos.set);
+  mu_list_destroy (&pclos.msgnumlist);
   
   return rc;
 }

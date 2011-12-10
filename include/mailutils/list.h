@@ -141,13 +141,13 @@ int mu_list_get_iterator (mu_list_t _list, mu_iterator_t *_pitr);
 
   /* A general-purpose iteration function.  When called, _item points to
      the item currently visited and _data points to call-specific data. */
-typedef int mu_list_action_t (void *_item, void *_data);
+typedef int (*mu_list_action_t) (void *_item, void *_data);
 
   /* Execute _action for each element in _list.  Use _data as the call-specific
      data. */
-int mu_list_foreach (mu_list_t _list, mu_list_action_t *_action, void *_data);
+int mu_list_foreach (mu_list_t _list, mu_list_action_t _action, void *_data);
   /* A historical alias to the above. */
-int mu_list_do (mu_list_t, mu_list_action_t *, void *) MU_DEPRECATED;
+int mu_list_do (mu_list_t, mu_list_action_t, void *) MU_DEPRECATED;
 
   /* ************************************************* */
   /* Functions for combining two lists.                */

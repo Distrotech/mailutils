@@ -39,6 +39,11 @@ imap4d IMAP4D_OPTIONS < input | remove_uidvalidity | tr -d '\r'
 * FLAGS (\Answered \Flagged \Deleted \Seen \Draft)
 * OK [[PERMANENTFLAGS (\Answered \Flagged \Deleted \Seen \Draft)]] Permanent flags
 1 OK [[READ-WRITE]] SELECT Completed
+* 1 FETCH (FLAGS (\Recent))
+* 2 FETCH (FLAGS (\Recent))
+* 3 FETCH (FLAGS (\Recent))
+* 4 FETCH (FLAGS (\Recent))
+* 5 FETCH (FLAGS (\Recent))
 2 OK FETCH Completed
 * 1 FETCH (UID 1 FLAGS (\Recent))
 * 2 FETCH (UID 2 FLAGS (\Recent))

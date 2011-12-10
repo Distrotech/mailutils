@@ -368,9 +368,16 @@ extern int  util_getstate (void);
 extern int  util_do_command (imap4d_tokbuf_t);
 extern char *util_tilde_expansion (const char *, const char *);
 extern char *util_getfullpath (const char *, const char *);
-extern int  util_msgset (char *, size_t **, int *, int);
 extern struct imap4d_command *util_getcommand (char *, 
                                                struct imap4d_command []);
+
+extern int util_parse_msgset (char *s, int isuid, mu_mailbox_t mbx,
+			      mu_list_t *plist, char **end);
+
+typedef int (*imap4d_message_action_t) (size_t, void *);
+
+int util_foreach_message (mu_list_t list, imap4d_message_action_t action,
+			  void *data);
 
 enum datetime_parse_mode     /* how to parse date/time strings */
   {

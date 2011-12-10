@@ -37,6 +37,8 @@ struct fetch_runtime_closure
   mu_message_t msg;    /* The message itself */
   mu_list_t msglist;   /* A list of referenced messages.  See KLUDGE below. */
   char *err_text;      /* On return: error description if failed. */
+
+  mu_list_t fnlist;
 };
 
 struct fetch_function_closure;
@@ -62,8 +64,7 @@ struct fetch_parse_closure
 {
   int isuid;
   mu_list_t fnlist;
-  size_t *set;
-  int count;
+  mu_list_t msgnumlist;
 };
 
 
@@ -1751,38 +1752,16 @@ fetch_thunk (imap4d_parsebuf_t pb)
 {
   int status;
   char *msgset;
+  char *end;
   struct fetch_parse_closure *pclos = imap4d_parsebuf_data (pb);
   
   msgset = imap4d_parsebuf_next (pb, 1);
 
-  /* Get the message numbers in set[].  */
-  status = util_msgset (msgset, &pclos->set, &pclos->count, pclos->isuid);
-  switch (status)
-    {
-    case 0:
-      /* Very good! */
-      break;
-      
-    case EINVAL:
-      /* RFC3501, section 6.4.8.
-	 
-	 A non-existent unique identifier is ignored without any error
-	 message generated.  Thus, it is possible for a UID FETCH command
-	 to return an OK without any data or a UID COPY or UID STORE to
-	 return an OK without performing any operations.
-
-	 Obviously the same holds true for non-existing message numbers
-	 as well, although I did not find any explicit mention thereof
-	 in the RFC.
-
-	 FIXME: This code also causes imap4d to silently ignore erroneous
-	 msgset specifications (e.g. FETCH foobar (FLAGS)), which should
-	 be fixed.  */
-      return RESP_OK;
-
-    default:
-      imap4d_parsebuf_exit (pb, "Failed to parse message set");
-    }
+  /* Parse sequence numbers. */
+  status = util_parse_msgset (msgset, pclos->isuid, mbox,
+			      &pclos->msgnumlist, &end);
+  if (status)
+    imap4d_parsebuf_exit (pb, "Failed to parse message set");
 
   /* Compile the expression */
 
@@ -1795,6 +1774,23 @@ fetch_thunk (imap4d_parsebuf_t pb)
 
   parse_macro (pb);
   return RESP_OK;
+}
+
+int
+_fetch_from_message (size_t msgno, void *data)
+{
+  int rc = 0;
+  struct fetch_runtime_closure *frc = data;
+
+  frc->msgno = msgno;
+  if (mu_mailbox_get_message (mbox, msgno, &frc->msg) == 0)
+    {
+      io_sendf ("* %lu FETCH (", (unsigned long) msgno);
+      frc->eltno = 0;
+      rc = mu_list_foreach (frc->fnlist, _do_fetch, frc);
+      io_sendf (")\n");
+    }
+  return rc;
 }
 
 /* Where the real implementation is.  It is here since UID command also
@@ -1823,32 +1819,20 @@ imap4d_fetch0 (imap4d_tokbuf_t tok, int isuid, char **err_text)
 
   if (rc == RESP_OK)
     {
-      size_t i;
       struct fetch_runtime_closure frc;
 
       memset (&frc, 0, sizeof (frc));
+      frc.fnlist = pclos.fnlist;
       /* Prepare status code. It will be replaced if an error occurs in the
 	 loop below */
       frc.err_text = "Completed";
-  
-      for (i = 0; i < pclos.count && rc == RESP_OK; i++)
-	{
-	  frc.msgno = (isuid) ? uid_to_msgno (pclos.set[i]) : pclos.set[i];
-	  
-	  if (frc.msgno &&
-	      mu_mailbox_get_message (mbox, frc.msgno, &frc.msg) == 0)
-	    {
-	      io_sendf ("* %lu FETCH (", (unsigned long) frc.msgno);
-	      frc.eltno = 0;
-	      rc = mu_list_foreach (pclos.fnlist, _do_fetch, &frc);
-	      io_sendf (")\n");
-	    }
-	}
+
+      util_foreach_message (pclos.msgnumlist, _fetch_from_message, &frc);
       mu_list_destroy (&frc.msglist);
     }
   
   mu_list_destroy (&pclos.fnlist);
-  free (pclos.set);
+  mu_list_destroy (&pclos.msgnumlist);
   return rc;
 }
 

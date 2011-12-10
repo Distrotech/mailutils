@@ -554,7 +554,6 @@ imap4d_master_signal (int signo)
 }
 
 
-
 int
 main (int argc, char **argv)
 {

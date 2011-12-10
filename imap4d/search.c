@@ -62,11 +62,7 @@ struct value
     char *string;
     mu_off_t number;
     time_t date;
-    struct
-    {
-      int n;
-      size_t *set;
-    } msgset;
+    mu_list_t msgset;
   } v;
 };
 
@@ -168,7 +164,7 @@ struct cond condlist[] =
   { "SUBJECT",    "s",  cond_subject },
   { "TEXT",       "s",  cond_text },
   { "TO",         "s",  cond_to },
-  { "UID",        "m",  cond_uid },
+  { "UID",        "u",  cond_uid },
   { NULL }
 };
 
@@ -584,8 +580,6 @@ parse_simple_key (struct parsebuf *pb)
   struct search_node *node;
   struct cond *condp;
   time_t time;
-  size_t *set = NULL;
-  int n = 0;
   
   for (condp = condlist; condp->name && mu_c_strcasecmp (condp->name, pb->token);
        condp++)
@@ -593,13 +587,14 @@ parse_simple_key (struct parsebuf *pb)
 
   if (!condp->name)
     {
-      if (util_msgset (pb->token, &set, &n, 0) == 0) 
+      mu_list_t msglist;
+      
+      if (util_parse_msgset (pb->token, pb->isuid, mbox, &msglist, NULL) == 0) 
 	{
 	  struct search_node *np = parse_alloc (pb, sizeof *np);
 	  np->type = node_value;
 	  np->v.value.type = value_msgset;
-	  np->v.value.v.msgset.n = n;
-	  np->v.value.v.msgset.set = parse_regmem (pb, set);
+	  np->v.value.v.msgset = msglist;
 	  
 	  node = parse_alloc (pb, sizeof *node);
 	  node->type = node_call;
@@ -630,9 +625,7 @@ parse_simple_key (struct parsebuf *pb)
     {
       char *t = condp->argtypes;
       char *s;
-      int n;
       mu_off_t number;
-      size_t *set;
       struct search_node *arg;
       
       for (; *t; t++, parse_gettoken (pb, 0))
@@ -680,20 +673,20 @@ parse_simple_key (struct parsebuf *pb)
 	      arg->v.value.v.date = time;
 	      break;
 	      
-	    case 'm': /* message set */
-	      if (util_msgset (pb->token, &set, &n, 1)) /*FIXME: isuid?*/
+	    case 'u': /* UID message set */
+	      if (util_parse_msgset (pb->token, 0, NULL,
+				     &arg->v.value.v.msgset, NULL)) 
 		{
 		  pb->err_mesg = "Bogus number set";
 		  return NULL;
 		}
 	      arg->v.value.type = value_msgset;
-	      arg->v.value.v.msgset.n = n;
-	      arg->v.value.v.msgset.set = parse_regmem (pb, set);
 	      break;
 	      
 	    default:
-	      mu_diag_output (MU_DIAG_CRIT, _("%s:%d: INTERNAL ERROR (please report)"),
-		     __FILE__, __LINE__);
+	      mu_diag_output (MU_DIAG_CRIT,
+			      _("%s:%d: INTERNAL ERROR (please report)"),
+			      __FILE__, __LINE__);
 	      abort (); /* should never happen */
 	    }
 	  node->v.key.arg[node->v.key.narg++] = arg;
@@ -860,15 +853,9 @@ static void
 cond_msgset (struct parsebuf *pb, struct search_node *node, struct value *arg,
 	     struct value *retval)
 {
-  int  n = arg[0].v.msgset.n;
-  size_t *set = arg[0].v.msgset.set;
-  int i, rc;
-  
-  for (i = rc = 0; rc == 0 && i < n; i++)
-    rc = set[i] == pb->msgno;
-      
+  int rc = mu_list_locate (arg[0].v.msgset, &pb->msgno, NULL);
   retval->type = value_number;
-  retval->v.number = rc;
+  retval->v.number = rc == 0;
 }
 
 static void
@@ -1084,16 +1071,12 @@ static void
 cond_uid (struct parsebuf *pb, struct search_node *node, struct value *arg,
 	  struct value *retval)
 {
-  int  n = arg[0].v.msgset.n;
-  size_t *set = arg[0].v.msgset.set;
+  int rc;
   size_t uid = 0;
-  int i, rc;
   
   mu_message_get_uid (pb->msg, &uid);
-  for (i = rc = 0; rc == 0 && i < n; i++)
-    rc = set[i] == uid;
-      
+  rc = mu_list_locate (arg[0].v.msgset, &pb->msgno, NULL);
   retval->type = value_number;
-  retval->v.number = rc;
+  retval->v.number = rc == 0;
 }                      
 

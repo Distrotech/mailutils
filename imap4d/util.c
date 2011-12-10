@@ -17,10 +17,8 @@
 
 #include "imap4d.h"
 
-static int add2set (size_t **, int *, unsigned long);
-
 /* NOTE: Allocates Memory.  */
-/* Expand: ~ --> /home/user and to ~guest --> /home/guest.  */
+/* Expand: ~ --> /home/user, and ~guest --> /home/guest.  */
 char *
 util_tilde_expansion (const char *ref, const char *delim)
 {
@@ -43,18 +41,8 @@ util_getfullpath (const char *name, const char *delim)
     }
   return mu_normalize_path (p);
 }
-
-static int
-comp_int (const void *a, const void *b)
-{
-  return *(int *) a - *(int *) b;
-}
-
-/* Parse the message set specification from S. Store message numbers
-   in SET, store number of element in the SET into the memory pointed to
-   by N.
-
-   A message set is defined as:
+
+/* A message set is defined as:
 
    set ::= sequence_num / (sequence_num ":" sequence_num) / (set "," set)
    sequence_num    ::= nz_number / "*"
@@ -65,204 +53,301 @@ comp_int (const void *a, const void *b)
    ;; the mailbox.
    nz_number       ::= digit_nz *digit
 
-   FIXME: The message sets like <,,,> or <:12> or <20:10> are not considered
-   an error */
-int
-util_msgset (char *s, size_t ** set, int *n, int isuid)
+   Non-existing sequence numbers are ignored, except when they form part
+   of a message range (sequence_num ":" sequence_num), in which case they
+   are treated as minimal or maximal sequence numbers (uids) available in
+   the mailbox depending on whether they appear to the left or to the right
+   of ":".
+*/
+
+/* Message set is a list of non-overlapping msgranges, in ascending
+   order.  No matter what command flavor is used, msg_beg and msg_end are
+   treated as sequence numbers (not UIDs). */
+struct msgrange
 {
-  unsigned long val = 0;
-  unsigned long low = 0;
-  int done = 0;
-  int status = 0;
-  size_t max = 0;
-  size_t *tmp;
-  int i, j;
-  unsigned long invalid_uid = 0; /* For UID mode only: have we 
-				    encountered an uid > max uid? */
+  size_t msg_beg;           /* beginning message number */
+  size_t msg_end;           /* ending message number */
+};
+
+/* Comparator function used to sort the message set list. */
+static int
+compare_msgrange (const void *a, const void *b)
+{
+  struct msgrange const *sa = a;
+  struct msgrange const *sb = b;
   
-  status = mu_mailbox_messages_count (mbox, &max);
-  if (status != 0)
-    return status;
-  /* If it is a uid sequence, override max with the UID.  */
-  if (isuid)
-    {
-      mu_message_t msg = NULL;
-      mu_mailbox_get_message (mbox, max, &msg);
-      mu_message_get_uid (msg, &max);
-    }
-
-  *n = 0;
-  *set = NULL;
-  while (*s)
-    {
-      switch (*s)
-	{
-	  /* isdigit */
-	case '0':
-	case '1':
-	case '2':
-	case '3':
-	case '4':
-	case '5':
-	case '6':
-	case '7':
-	case '8':
-	case '9':
-	  {
-	    errno = 0;
-	    val = strtoul (s, &s, 10);
-	    if (val == ULONG_MAX && errno == ERANGE)
-	      {
-		if (*set)
-		  free (*set);
-		*set = NULL;
-		*n = 0;
-		return EINVAL;
-	      }
-	    else if (val > max)
-	      {
-		if (isuid)
-		  {
-		    invalid_uid = 1;
-		    continue;
-		  }
-		if (*set)
-		  free (*set);
-		*set = NULL;
-		*n = 0;
-		return EINVAL;
-	      }
-	    
-	    if (low)
-	      {
-		/* Reverse it. */
-		if (low > val)
-		  {
-		    long tmp = low;
-		    tmp -= 2;
-		    if (tmp < 0 || val == 0)
-		      {
-			free (*set);
-			*set = NULL;
-			*n = 0;
-			return EINVAL;
-		      }
-		    low = val;
-		    val = tmp;
-		  }
-		for (; low && low <= val; low++)
-		  {
-		    status = add2set (set, n, low);
-		    if (status != 0)
-		      return status;
-		  }
-		low = 0;
-	      }
-	    else
-	      {
-		status = add2set (set, n, val);
-		if (status != 0)
-		  return status;
-	      }
-	    break;
-	  }
-
-	  /* A pair of numbers separated by a ':' character indicates a
-	     contiguous set of mesages ranging from the first number to the
-	     second:
-	     3:5  --> 3 4 5
-	   */
-	case ':':
-	  low = val + 1;
-	  s++;
-	  break;
-
-	  /* As a convenience. '*' is provided to refer to the highest
-	     message number int the mailbox:
-	     5:*  --> 5 6 7 8
-	   */
-	case '*':
-	  {
-	    val = max;
-	    s++;
-	    status = add2set (set, n, val);
-	    if (status != 0)
-	      return status;
-	  }
-	  break;
-
-	  /* IMAP also allows a set of noncontiguous numbers to be specified
-	     with the ',' character:
-	     1,3,5,7  --> 1 3 5 7
-	   */
-	case ',':
-	  s++;
-	  break;
-
-	default:
-	  done = 1;
-	  if (*set)
-	    free (*set);
-	  *set = NULL;
-	  *n = 0;
-	  return EINVAL;
-
-	}			/* switch */
-
-      if (done)
-	break;
-    }				/* while */
-
-  if (*n == 0)
-    return 0;
-  
-  /* For message sets in form X:Y where Y is a not-existing UID greater
-     than max UID, replace Y with the max UID in the mailbox */
-  if (*n == 1 && invalid_uid)
-    {
-      val = max;
-      status = add2set (set, n, val);
-      if (status != 0)
-	return status;
-    }
-  
-  if (low)
-    {
-      /* Reverse it. */
-      if (low > val)
-	{
-	  long tmp = low;
-	  tmp -= 2;
-	  if (tmp < 0 || val == 0)
-	    {
-	      free (*set);
-	      *set = NULL;
-	      *n = 0;
-	      return EINVAL;
-	    }
-	  low = val;
-	  val = tmp;
-	}
-      for (; low && low <= val; low++)
-	{
-	  status = add2set (set, n, low);
-	  if (status != 0)
-	    return status;
-	}
-    }
-
-  /* Sort the resulting message set */
-  qsort (*set, *n, sizeof (**set), comp_int);
-
-  /* Remove duplicates. tmp serves to avoid extra dereferences */
-  tmp = *set;
-  for (i = 0, j = 1; i < *n; i++)
-    if (tmp[j - 1] != tmp[i])
-      tmp[j++] = tmp[i];
-  *n = j;
+  if (sa->msg_beg < sb->msg_beg)
+    return -1;
+  if (sa->msg_beg > sb->msg_beg)
+    return 1;
+  if (sa->msg_end < sb->msg_end)
+    return -1;
+  if (sa->msg_end > sb->msg_end)
+    return 1;
   return 0;
 }
 
+/* Comparator function used to locate a message in the list.  Second argument
+   (b) is a pointer to the message number. */
+static int
+compare_msgnum (const void *a, const void *b)
+{
+  struct msgrange const *range = a;
+  size_t msgno = *(size_t*)b;
+
+  if (range->msg_beg <= msgno && msgno <= range->msg_end)
+    return 0;
+  return 1;
+}
+
+/* This structure keeps parser state while parsing message set. */
+struct parse_msgnum_env
+{
+  char *s;               /* Current position in string */
+  size_t minval;         /* Min. sequence number or UID */
+  size_t maxval;         /* Max. sequence number or UID */
+  mu_list_t list;        /* List being built. */
+  int isuid:1;           /* True, if parsing an UID command. */
+  mu_mailbox_t mailbox;  /* Reference mailbox (can be NULL). */
+};
+
+/* Get a single message number/UID from env->s and store it into *PN.
+   Return 0 on success and error code on error.
+
+   Advance env->s to the point past the parsed message number.
+ */
+static int
+get_msgnum (struct parse_msgnum_env *env, size_t *pn)
+{
+  size_t msgnum;
+  char *p;
+  
+  errno = 0;
+  msgnum = strtoul (env->s, &p, 10);
+  if (msgnum == ULONG_MAX && errno == ERANGE)
+    return MU_ERR_PARSE;
+  env->s = p;
+  if (msgnum > env->maxval)
+    msgnum = env->maxval;
+  *pn = msgnum;
+  return 0;
+}
+
+/* Parse a single message range (A:B). Treat '*' as the largest number/UID
+   in use. */
+static int
+parse_msgrange (struct parse_msgnum_env *env)
+{
+  int rc;
+  struct msgrange msgrange, *mp;
+  
+  if (*env->s == '*')
+    {
+      msgrange.msg_beg = env->maxval;
+      env->s++;
+    }
+  else if ((rc = get_msgnum (env, &msgrange.msg_beg)))
+    return rc;
+
+  if (*env->s == ':')
+    {
+      if (*++env->s == '*')
+	{
+	  msgrange.msg_end = env->maxval;
+	  ++env->s;
+	}
+      else if (*env->s == 0)
+	return MU_ERR_PARSE;
+      else if ((rc = get_msgnum (env, &msgrange.msg_end)))
+	return rc;
+    }
+  else
+    msgrange.msg_end = msgrange.msg_beg;
+
+  if (msgrange.msg_end < msgrange.msg_beg)
+    {
+      size_t tmp = msgrange.msg_end;
+      msgrange.msg_end = msgrange.msg_beg;
+      msgrange.msg_beg = tmp;
+    }
+
+  if (env->isuid && env->mailbox)
+    {
+      int rc;
+
+      rc = mu_mailbox_translate (env->mailbox,
+				 MU_MAILBOX_UID_TO_MSGNO,
+				 msgrange.msg_beg, &msgrange.msg_beg);
+      if (rc == MU_ERR_NOENT)
+	msgrange.msg_beg = env->minval;
+      else if (rc)
+	return rc;
+      
+      rc = mu_mailbox_translate (env->mailbox,
+				 MU_MAILBOX_UID_TO_MSGNO,
+				 msgrange.msg_end, &msgrange.msg_end);
+      if (rc == MU_ERR_NOENT)
+	msgrange.msg_end = env->maxval;
+      else if (rc)
+	return rc;
+    }      
+
+  mp = malloc (sizeof (*mp));
+  if (!mp)
+    return ENOMEM;
+
+  *mp = msgrange;
+
+  rc = mu_list_append (env->list, mp);
+  if (rc)
+    free (mp);
+  return rc;
+}
+
+/* Parse message set specification S. ISUID indicates if the set is supposed
+   to contain UIDs (they will be translated to message sequence numbers).
+   MBX is a reference mailbox or NULL.
+
+   On success, return 0 and place the resulting set into *PLIST. On error,
+   return error code and point END to the position in the input string where
+   the parsing failed. */
+int
+util_parse_msgset (char *s, int isuid, mu_mailbox_t mbx,
+		   mu_list_t *plist, char **end)
+{
+  int rc;
+  struct parse_msgnum_env env;
+  size_t n;
+  
+  if (!s)
+    return EINVAL;
+  if (!*s)
+    return MU_ERR_PARSE;
+
+  memset (&env, 0, sizeof (env));
+  env.s = s;
+  if (mbox)
+    {
+      size_t lastmsgno;      /* Max. sequence number. */
+
+      rc = mu_mailbox_messages_count (mbx, &lastmsgno);
+      if (rc == 0)
+	{
+	  if (isuid)
+	    {
+	      rc = mu_mailbox_translate (mbox, MU_MAILBOX_MSGNO_TO_UID,
+					 lastmsgno, &env.maxval);
+	      if (rc == 0)
+		rc = mu_mailbox_translate (mbox, MU_MAILBOX_MSGNO_TO_UID,
+					   1, &env.minval);
+	    }
+	  else
+	    env.maxval = lastmsgno;
+	}
+      if (rc)
+	return rc;
+    }
+  rc = mu_list_create (&env.list);
+  if (rc)
+    return rc;
+  mu_list_set_destroy_item (env.list, mu_list_free_item);
+  
+  env.isuid = isuid;
+  env.mailbox = mbx;
+  
+  while ((rc = parse_msgrange (&env)) == 0 && *env.s)
+    {
+      if (*env.s != ',' || *++env.s == 0)
+	{
+	  rc = MU_ERR_PARSE;
+	  break;
+	}
+    }
+
+  if (end)
+    *end = env.s;
+  if (rc)
+    {
+      mu_list_destroy (&env.list);
+      return rc;
+    }
+
+  mu_list_count (env.list, &n);
+  if (n > 1)
+    {
+      mu_iterator_t itr;
+      struct msgrange *last = NULL;
+
+      /* Sort the list and coalesce overlapping message ranges. */
+      mu_list_sort (env.list, compare_msgrange);
+
+      mu_list_get_iterator (env.list, &itr);
+      for (mu_iterator_first (itr); !mu_iterator_is_done (itr);
+	   mu_iterator_next (itr))
+	{
+	  struct msgrange *msgrange;
+
+	  mu_iterator_current (itr, (void**)&msgrange);
+	  if (last)
+	    {
+	      if (last->msg_beg <= msgrange->msg_beg &&
+		  msgrange->msg_beg <= last->msg_end)
+		{
+		  if (msgrange->msg_end > last->msg_end)
+		    last->msg_end = msgrange->msg_end;
+		  mu_iterator_ctl (itr, mu_itrctl_delete, NULL);
+		  continue;
+		}
+		  
+	    }
+	  last = msgrange;
+	}
+      mu_iterator_destroy (&itr);
+    }
+
+  if (rc == 0)
+    {
+      mu_list_set_comparator (env.list, compare_msgnum);
+      *plist = env.list;
+    }
+  else
+    mu_list_destroy (&env.list);
+  return rc;
+}
+
+struct action_closure
+{
+  imap4d_message_action_t action;
+  void *data;
+};
+
+static int
+procrange (void *item, void *data)
+{
+  struct msgrange *mp = item;
+  struct action_closure *clos = data;
+  size_t i;
+
+  for (i = mp->msg_beg; i <= mp->msg_end; i++)
+    {
+      int rc = clos->action (i, clos->data);
+      if (rc)
+	return rc;
+    }
+  return 0;
+}
+
+/* Apply ACTION to each message number from LIST. */
+int
+util_foreach_message (mu_list_t list, imap4d_message_action_t action,
+		      void *data)
+{
+  struct action_closure clos;
+  clos.action = action;
+  clos.data = data;
+  return mu_list_foreach (list, procrange, &clos);
+}
+
 int
 util_do_command (imap4d_tokbuf_t tok)
 {
@@ -317,26 +402,9 @@ util_getcommand (char *cmd, struct imap4d_command command_table[])
   return NULL;
 }
 
-static int
-add2set (size_t ** set, int *n, unsigned long val)
-{
-  size_t *tmp;
-  tmp = realloc (*set, (*n + 1) * sizeof (**set));
-  if (tmp == NULL)
-    {
-      if (*set)
-	free (*set);
-      *n = 0;
-      return ENOMEM;
-    }
-  *set = tmp;
-  (*set)[*n] = val;
-  (*n)++;
-  return 0;
-}
-
 static void
-adjust_tm (struct tm *tm, struct mu_timezone *tz, enum datetime_parse_mode flag)
+adjust_tm (struct tm *tm, struct mu_timezone *tz,
+	   enum datetime_parse_mode flag)
 {
   switch (flag)
     {

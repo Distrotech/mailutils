@@ -55,88 +55,111 @@ imap4d_copy (struct imap4d_command *command, imap4d_tokbuf_t tok)
   return io_completion_response (command, rc, "%s", text);
 }
 
-static int
-copy_check_size (mu_mailbox_t mbox, size_t n, size_t *set, mu_off_t *size)
+struct copy_env
 {
-  int status;
-  size_t i;
-  mu_off_t total = 0;
-  
-  for (i = 0; i < n; i++)
-    {
-      mu_message_t msg = NULL;
-      size_t msgno = set[i];
-      if (msgno)
-	{
-	  status = mu_mailbox_get_message (mbox, msgno, &msg);
-	  if (status)
-	    {
-	      mu_diag_funcall (MU_DIAG_ERROR, "mu_mailbox_get_message", NULL,
-			       status);
-	      return RESP_BAD;
-	    }
-	  else 
-	    {
-	      size_t size;
-	      status = mu_message_size (msg, &size);
-	      if (status)
-		{
-		  mu_diag_funcall (MU_DIAG_ERROR, "mu_message_size", NULL,
-				   status);
-		  return RESP_BAD;
-		}
-	      total += size;
-	    }
-	}
-    }
-  *size = total;
-  return quota_check (total);
-}
-
-static int
-try_copy (mu_mailbox_t dst, mu_mailbox_t src, size_t n, size_t *set)
-{
-  int result;
-  size_t i;
+  mu_mailbox_t dst;
+  mu_mailbox_t src;
   mu_off_t total;
+  int ret;
+  char **err_text;
+};
+
+static int
+size_sum (size_t msgno, void *data)
+{
+  struct copy_env *env = data;
+  mu_message_t msg = NULL;
+  int rc;
   
-  result = copy_check_size (src, n, set, &total);
-  if (result)
-    return result;
-  
-  for (i = 0; i < n; i++)
+  rc = mu_mailbox_get_message (env->src, msgno, &msg);
+  if (rc)
     {
-      mu_message_t msg = NULL;
-      size_t msgno = set[i];
-
-      if (msgno)
-	{
-	  int status = mu_mailbox_get_message (src, msgno, &msg);
-	  if (status)
-	    {
-	      mu_diag_funcall (MU_DIAG_ERROR, "mu_mailbox_get_message", NULL,
-			       status);
-	      return RESP_BAD;
-	    }
-
-	  imap4d_enter_critical ();
-	  status = mu_mailbox_append_message (dst, msg);
-	  imap4d_leave_critical ();
-	  if (status)
-	    {
-	      mu_diag_funcall (MU_DIAG_ERROR, "mu_mailbox_append_message",
-			       NULL,
-			       status);
-	      return RESP_BAD;
-	    }
-	}
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_mailbox_get_message", NULL, rc);
+      env->ret = RESP_NO;
+      return MU_ERR_FAILURE;
     }
-  quota_update (total);
-  return RESP_OK;
+  else 
+    {
+      size_t size;
+      rc = mu_message_size (msg, &size);
+      if (rc)
+	{
+	  mu_diag_funcall (MU_DIAG_ERROR, "mu_message_size", NULL, rc);
+	  env->ret = RESP_BAD;
+	  return MU_ERR_FAILURE;
+	}
+      env->total += size;
+    }
+  return 0;
 }
 
 static int
-safe_copy (mu_mailbox_t dst, mu_mailbox_t src, size_t n, size_t *set,
+do_copy (size_t msgno, void *data)
+{
+  struct copy_env *env = data;
+  mu_message_t msg = NULL;
+  int status;
+
+  status = mu_mailbox_get_message (env->src, msgno, &msg);
+  if (status)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_mailbox_get_message", NULL,
+		       status);
+      env->ret = RESP_BAD;
+      return MU_ERR_FAILURE;
+    }
+
+  imap4d_enter_critical ();
+  status = mu_mailbox_append_message (env->dst, msg);
+  imap4d_leave_critical ();
+  if (status)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_mailbox_append_message", NULL,
+		       status);
+      env->ret = RESP_BAD;
+      return MU_ERR_FAILURE;
+    }
+
+  return 0;
+}
+
+static int
+try_copy (mu_mailbox_t dst, mu_mailbox_t src, mu_list_t msglist,
+	  char **err_text)
+{
+  int rc;
+  struct copy_env env;
+
+  env.dst = dst;
+  env.src = src;
+  env.total = 0;
+  env.ret = RESP_OK;
+  env.err_text = err_text;
+
+  *env.err_text = "Operation failed";
+
+  /* Check size */
+  rc = util_foreach_message (msglist, size_sum, &env);
+  if (rc)
+    return RESP_NO;
+  if (env.ret != RESP_OK)
+    return env.ret;
+  rc = quota_check (env.total);
+  if (rc)
+    {
+      *env.err_text = "Mailbox quota exceeded";
+      return RESP_NO;
+    }
+  env.total = 0;
+  rc = util_foreach_message (msglist, do_copy, &env);
+  quota_update (env.total);
+  if (rc)
+    return RESP_NO;
+  return env.ret;
+}
+  
+static int
+safe_copy (mu_mailbox_t dst, mu_mailbox_t src, mu_list_t msglist,
 	   char **err_text)
 {
   size_t nmesg;
@@ -151,16 +174,11 @@ safe_copy (mu_mailbox_t dst, mu_mailbox_t src, size_t n, size_t *set,
       return RESP_NO;
     }
 
-  status = try_copy (dst, src, n, set);
-  if (status)
+  status = try_copy (dst, src, msglist, err_text);
+  if (status != RESP_OK)
     {
       size_t maxmesg;
 
-      if (status == RESP_NO)
-	*err_text = "Mailbox quota exceeded";
-      else
-	*err_text = "Operation failed";
-      
       /* If the COPY command is unsuccessful for any reason, server
 	 implementations MUST restore the destination mailbox to its state
 	 before the COPY attempt. */
@@ -211,11 +229,11 @@ imap4d_copy0 (imap4d_tokbuf_t tok, int isuid, char **err_text)
 {
   int status;
   char *msgset;
+  mu_list_t msglist;
   char *name;
   char *mailbox_name;
   const char *delim = "/";
-  size_t *set = NULL;
-  int n = 0;
+  char *end;
   mu_mailbox_t cmbox = NULL;
   int arg = IMAP4_ARG_1 + !!isuid;
   int ns;
@@ -230,23 +248,14 @@ imap4d_copy0 (imap4d_tokbuf_t tok, int isuid, char **err_text)
   msgset = imap4d_tokbuf_getarg (tok, arg);
   name = imap4d_tokbuf_getarg (tok, arg + 1);
   /* Get the message numbers in set[].  */
-  status = util_msgset (msgset, &set, &n, isuid);
-  if (status != 0)
+  status = util_parse_msgset (msgset, isuid, mbox, &msglist, &end);
+  if (status)
     {
-      /* See RFC 3501, section 6.4.8, and a comment to the equivalent code
-	 in fetch.c */
-      *err_text = "Completed";
-      return RESP_OK;
+      *err_text = "Error parsing message set";
+      /* FIXME: print error location */
+      return RESP_BAD;
     }
 
-  if (isuid)
-    {
-      int i;
-      /* Fixup the message set. Perhaps util_msgset should do it itself? */
-      for (i = 0; i < n; i++)
-	set[i] = uid_to_msgno (set[i]);
-    }
-  
   mailbox_name = namespace_getfullpath (name, delim, &ns);
 
   if (!mailbox_name)
@@ -256,7 +265,7 @@ imap4d_copy0 (imap4d_tokbuf_t tok, int isuid, char **err_text)
     }
 
   /* If the destination mailbox does not exist, a server should return
-     an error.  */
+     an error. */
   status = mu_mailbox_create_default (&cmbox, mailbox_name);
   if (status == 0)
     {
@@ -264,13 +273,13 @@ imap4d_copy0 (imap4d_tokbuf_t tok, int isuid, char **err_text)
       status = mu_mailbox_open (cmbox, MU_STREAM_RDWR | mailbox_mode[ns]);
       if (status == 0)
 	{
-	  status = safe_copy (cmbox, mbox, n, set, err_text);
+	  if (!mu_list_is_empty (msglist))
+	    status = safe_copy (cmbox, mbox, msglist, err_text);
 	  mu_mailbox_close (cmbox);
 	}
       mu_mailbox_destroy (&cmbox);
     }
-  free (set);
-  free (mailbox_name);
+  mu_list_destroy (&msglist);
 
   if (status == 0)
     {
