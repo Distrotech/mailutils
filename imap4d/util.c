@@ -30,16 +30,20 @@ util_tilde_expansion (const char *ref, const char *delim)
 char *
 util_getfullpath (const char *name, const char *delim)
 {
-  char *p = util_tilde_expansion (name, delim);
-  if (*p != delim[0])
+  char *exp = util_tilde_expansion (name, delim);
+  if (*exp != delim[0])
     {
-      char *s =
-	calloc (strlen (imap4d_homedir) + strlen (delim) + strlen (p) + 1, 1);
-      sprintf (s, "%s%s%s", imap4d_homedir, delim, p);
-      free (p);
-      p = s;
+      char *p, *s =
+	malloc (strlen (imap4d_homedir) + strlen (delim) + strlen (exp) + 1);
+      if (!s)
+	imap4d_bye (ERR_NO_MEM);
+      p = strcpy (s, imap4d_homedir);
+      p = mu_stpcpy (p, (char*) delim);
+      strcpy (p, exp);
+      free (exp);
+      exp = s;
     }
-  return mu_normalize_path (p);
+  return mu_normalize_path (exp);
 }
 
 /* A message set is defined as:
@@ -496,76 +500,13 @@ util_strcasestr (const char *haystack, const char *needle)
   return mu_c_strcasestr (haystack, needle);
 }
 
-struct
-{
-  char *name;
-  int flag;
-}
-_imap4d_attrlist[] =
-{
-  { "\\Answered", MU_ATTRIBUTE_ANSWERED },
-  { "\\Flagged", MU_ATTRIBUTE_FLAGGED },
-  { "\\Deleted", MU_ATTRIBUTE_DELETED },
-  { "\\Draft", MU_ATTRIBUTE_DRAFT },
-  { "\\Seen", MU_ATTRIBUTE_SEEN|MU_ATTRIBUTE_READ },
-};
-
-#define NATTR sizeof(_imap4d_attrlist)/sizeof(_imap4d_attrlist[0])
-
-int _imap4d_nattr = NATTR;
-
-int
-util_attribute_to_type (const char *item, int *type)
-{
-  int i;
-
-  if (mu_c_strcasecmp (item, "\\Recent") == 0)
-    {
-      *type = MU_ATTRIBUTE_RECENT;
-      return 0;
-    }
-  
-  for (i = 0; i < _imap4d_nattr; i++)
-    if (mu_c_strcasecmp (item, _imap4d_attrlist[i].name) == 0)
-      {
-	*type = _imap4d_attrlist[i].flag;
-	return 0;
-      }
-  return 1;
-}
-
-int
-util_format_attribute_flags (mu_stream_t str, int flags)
-{
-  int i;
-  int delim = 0;
-  
-  for (i = 0; i < _imap4d_nattr; i++)
-    if (flags & _imap4d_attrlist[i].flag)
-      {
-	if (delim)
-	  mu_stream_printf (str, " ");
-	mu_stream_printf (str, "%s", _imap4d_attrlist[i].name);
-	delim = 1;
-      }
-
-  if (MU_ATTRIBUTE_IS_UNSEEN (flags))
-    {
-      if (delim)
-	mu_stream_printf (str, " ");
-      mu_stream_printf (str, "\\Recent");
-    }
-  
-  return 0;
-}
-
 void
 util_print_flags (mu_attribute_t attr)
 {
   int flags = 0;
 
   mu_attribute_get_flags (attr, &flags);
-  util_format_attribute_flags (iostream, flags);
+  mu_imap_format_flags (iostream, flags);
 }
 
 int
@@ -574,7 +515,7 @@ util_attribute_matches_flag (mu_attribute_t attr, const char *item)
   int flags = 0, mask = 0;
 
   mu_attribute_get_flags (attr, &flags);
-  util_attribute_to_type (item, &mask);
+  mu_imap_flag_to_attribute (item, &mask);
   if (mask == MU_ATTRIBUTE_RECENT)
     return MU_ATTRIBUTE_IS_UNSEEN (flags);
 

@@ -220,13 +220,13 @@ imap4d_append (struct imap4d_command *command, imap4d_tokbuf_t tok)
     {
       while (++i < argc)
 	{
-	  int type;
 	  char *arg = imap4d_tokbuf_getarg (tok, i);
 	  
-	  if (!util_attribute_to_type (arg, &type))
-	    flags |= type;
-	  else if (arg[0] == ')')
+	  if (arg[0] == ')')
 	    break;
+	  if (mu_imap_flag_to_attribute (arg, &flags))
+	    return io_completion_response (command, RESP_BAD,
+					   "Unrecognized flag");
 	}
       if (i == argc)
 	return io_completion_response (command, RESP_BAD, 

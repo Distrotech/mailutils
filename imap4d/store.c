@@ -80,13 +80,8 @@ store_thunk (imap4d_parsebuf_t p)
   imap4d_parsebuf_next (p, 1);
   
   do
-    {
-      int t;
-      if (util_attribute_to_type (p->token, &t))
-	imap4d_parsebuf_exit (p, "Failed to parse flags");
-      else
-	pclos->type |= t;
-    }
+    if (mu_imap_flag_to_attribute (p->token, &pclos->type))
+      imap4d_parsebuf_exit (p, "Unrecognized flag");
   while (imap4d_parsebuf_next (p, 1) && p->token[0] != ')');
   return RESP_OK;
 }

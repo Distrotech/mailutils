@@ -105,6 +105,7 @@
 #include <mailutils/cstr.h>
 #include <mailutils/io.h>
 #include <mailutils/prog.h>
+#include <mailutils/imapio.h>
 
 #include <mu_umaxtostr.h>
 #include <muaux.h>
@@ -397,10 +398,8 @@ extern char *util_localname (void);
 
 extern int util_wcard_match (const char *string, const char *pattern,
 			     const char *delim);
-int util_format_attribute_flags (mu_stream_t str, int flags);
+
 void util_print_flags (mu_attribute_t attr);
-int util_attribute_to_type (const char *item, int *type);
-int util_type_to_attribute (int type, char **attr_str);
 int util_attribute_matches_flag (mu_attribute_t attr, const char *item);
 int util_uidvalidity (mu_mailbox_t smbox, unsigned long *uidvp);
 
