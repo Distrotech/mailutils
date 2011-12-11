@@ -364,7 +364,7 @@ mu_sieve_machine_init_ex (mu_sieve_machine_t *pmach,
 
   mach->data = data;
   mach->errstream = errstream;
-  mu_stream_ref (mu_strerr);
+  mu_stream_ref (errstream);
   
   *pmach = mach;
   return 0;
