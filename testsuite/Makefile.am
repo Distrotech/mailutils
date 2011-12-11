@@ -50,6 +50,7 @@ $(srcdir)/package.m4: $(top_srcdir)/configure.ac
 
 INCLUDES = @MU_LIB_COMMON_INCLUDES@ 
 noinst_PROGRAMS = \
+ lstuid\
  mbdel\
  mimetest\
  smtpsend\
@@ -77,6 +78,9 @@ smtpsend_LDADD = \
 ## ------------ ##
 
 TESTSUITE_AT = \
+ lstuid00.at\
+ lstuid01.at\
+ lstuid02.at\
  mbdel.at\
  mime.at\
  ufms.at\

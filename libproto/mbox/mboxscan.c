@@ -367,14 +367,12 @@ mbox_scan_internal (mu_mailbox_t mailbox, mbox_message_t mum,
 		  mum->body_end = total - n - newline;
 		  mum->body_lines = --lines - newline;
 
-		  if (mum->uid <= min_uid)
+		  if (mum->uid == 0)
 		    {
 		      mum->uid = ++min_uid;
 		      /* Note that modification for when expunging.  */
 		      mum->attr_flags |= MU_ATTRIBUTE_MODIFIED;
 		    }
-		  else
-		    min_uid = mum->uid;
 
 		  if (flags & MBOX_SCAN_ONEMSG)
 		    break;
@@ -403,7 +401,7 @@ mbox_scan_internal (mu_mailbox_t mailbox, mbox_message_t mum,
 	    {
 	      char *p;
 	      unsigned long n = strtoul (buf + 6, &p, 10);
-	      if (*p == 0 || mu_isspace (*p))
+	      if ((*p == 0 || mu_isspace (*p)) && n > min_uid)
 		mum->uid = min_uid = n;
 	    }
 	  else if (mud->messages_count == 1 && IS_X_IMAPBASE (buf))
@@ -451,14 +449,12 @@ mbox_scan_internal (mu_mailbox_t mailbox, mbox_message_t mum,
       mum->body_end = total - newline;
       mum->body_lines = lines - newline;
 
-      if (mum->uid <= min_uid)
+      if (mum->uid == 0)
 	{
 	  mum->uid = ++min_uid;
 	  /* Note that modification for when expunging.  */
 	  mum->attr_flags |= MU_ATTRIBUTE_MODIFIED;
 	}
-      else
-	min_uid = mum->uid;
       
       if (flags & MBOX_SCAN_NOTIFY)
 	DISPATCH_ADD_MSG (mailbox, mud);
