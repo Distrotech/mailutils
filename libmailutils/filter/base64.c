@@ -267,12 +267,14 @@ _base64_encoder (void *xd,
 	{
 	case base64_init:
 	  break;
+
 	case base64_newline:
 	  *optr++ = '\n';
 	  nbytes++;
 	  lp->cur_len = 0;
 	  lp->state = base64_rollback;
-	  /* Fall through */
+	  continue;
+
 	case base64_rollback:
 	  if (lp->idx < 3)
 	    {

@@ -2187,9 +2187,14 @@ finish_text_msg (struct compose_env *env, mu_message_t *msg, int ascii)
 			     MU_STREAM_READ);
       if (rc == 0)
 	{
-	  mu_stream_copy (output, fstr, 0, NULL);
+	  rc = mu_stream_copy (output, fstr, 0, NULL);
 	  mu_stream_destroy (&fstr);
 	  mu_message_unref (*msg);
+	  if (rc)
+	    {
+	      mu_diag_funcall (MU_DIAG_ERROR, "mu_stream_copy", NULL, rc);
+	      exit (1);
+	    }
 	  *msg = newmsg;
 	}
       else
@@ -2533,8 +2538,13 @@ edit_mime (char *cmd, struct compose_env *env, mu_message_t *msg, int level)
 
   mu_message_get_body (*msg, &body);
   mu_body_get_streamref (body, &out);
-  mu_stream_copy (out, fstr, 0, NULL);
-
+  rc = mu_stream_copy (out, fstr, 0, NULL);
+  if (rc)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_stream_copy", NULL, rc);
+      exit (1);
+    }
+  
   mu_stream_close (out);
   mu_stream_destroy (&out);
   mu_stream_destroy (&fstr);
