@@ -37,7 +37,7 @@ util_getfullpath (const char *name, const char *delim)
 	malloc (strlen (imap4d_homedir) + strlen (delim) + strlen (exp) + 1);
       if (!s)
 	imap4d_bye (ERR_NO_MEM);
-      p = strcpy (s, imap4d_homedir);
+      p = mu_stpcpy (s, imap4d_homedir);
       p = mu_stpcpy (p, (char*) delim);
       strcpy (p, exp);
       free (exp);
