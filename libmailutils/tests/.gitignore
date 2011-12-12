@@ -18,6 +18,8 @@ mailcap
 prop
 scantime
 strftime
+strin
+strout
 url-comp
 url-parse
 wicket

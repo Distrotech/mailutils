@@ -153,7 +153,7 @@ fd_done (struct _mu_stream *str)
   struct _mu_file_stream *fstr = (struct _mu_file_stream *) str;
   if (fstr->fd != -1)
     fd_close (str);
-  if (fstr->filename)
+  if (fstr->filename && !(fstr->flags & _MU_FILE_STREAM_STATIC_FILENAME))
     free (fstr->filename);
   if (fstr->echo_state)
     free (fstr->echo_state);
@@ -312,15 +312,9 @@ fd_truncate (mu_stream_t stream, mu_off_t size)
   return 0;
 }
 
-int
-_mu_file_stream_create (struct _mu_file_stream **pstream, size_t size,
-			const char *filename, int fd, int flags)
+void
+_mu_file_stream_setup (struct _mu_file_stream *str)
 {
-  struct _mu_file_stream *str =
-    (struct _mu_file_stream *) _mu_stream_create (size, flags);
-  if (!str)
-    return ENOMEM;
-
   str->stream.read = fd_read;
   str->stream.write = fd_write;
   str->stream.open = fd_open;
@@ -331,6 +325,18 @@ _mu_file_stream_create (struct _mu_file_stream **pstream, size_t size,
   str->stream.ctl = fd_ioctl;
   str->stream.wait = fd_wait;
   str->stream.truncate = fd_truncate;
+}  
+
+int
+_mu_file_stream_create (struct _mu_file_stream **pstream, size_t size,
+			const char *filename, int fd, int flags)
+{
+  struct _mu_file_stream *str =
+    (struct _mu_file_stream *) _mu_stream_create (size, flags);
+  if (!str)
+    return ENOMEM;
+
+  _mu_file_stream_setup (str);
 
   if (filename)
     str->filename = mu_strdup (filename);

@@ -50,7 +50,7 @@ mu_stdstream_strerr_create (mu_stream_t *plogger, int type, int facility,
 	if (rc)
 	  {
 	    fprintf (stderr, _("%s: cannot open error stream: %s\n"),
-		     tag, mu_strerror (rc));
+		     tag ? tag : "<unknown>", mu_strerror (rc));
 	    return MU_ERR_FAILURE;
 	  }
         /* Make sure 2 is not closed when str is destroyed.
@@ -74,7 +74,7 @@ mu_stdstream_strerr_create (mu_stream_t *plogger, int type, int facility,
 	      {
 		fprintf (stderr,
 			 _("%s: cannot open output filter stream: %s"),
-			 tag, mu_strerror (rc));
+			 tag ? tag : "<unknown>", mu_strerror (rc));
 		return MU_ERR_FAILURE;
 	      }
 	    mu_stream_set_buffer (transport, mu_buffer_line, 0);
@@ -88,14 +88,14 @@ mu_stdstream_strerr_create (mu_stream_t *plogger, int type, int facility,
       if (rc)
 	{
 	  fprintf (stderr, _("%s: cannot create syslog stream: %s\n"),
-		   tag, mu_strerror (rc));
+		   tag ? tag : "<unknown>", mu_strerror (rc));
 	  return MU_ERR_FAILURE;
 	}
       break;
 
     default:
       fprintf (stderr, _("%s: cannot create error stream: %s\n"),
-	       tag, mu_strerror (EINVAL));
+	       tag ? tag : "<unknown>", mu_strerror (EINVAL));
       return EINVAL;
     }
 
@@ -104,7 +104,7 @@ mu_stdstream_strerr_create (mu_stream_t *plogger, int type, int facility,
   if (rc)
     {
       fprintf (stderr, _("%s: cannot open logger stream: %s\n"),
-	       tag , mu_strerror (rc));
+	       tag ? tag : "<unknown>", mu_strerror (rc));
       return MU_ERR_FAILURE;
     }
   return 0;

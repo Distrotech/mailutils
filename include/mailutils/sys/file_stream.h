@@ -24,6 +24,7 @@
 #define _MU_FILE_STREAM_TEMP        0x01
 #define _MU_FILE_STREAM_ECHO_OFF    0x02
 #define _MU_FILE_STREAM_FD_BORROWED 0x04
+#define _MU_FILE_STREAM_STATIC_FILENAME 0x08
 
 struct _mu_file_stream
 {
@@ -36,5 +37,6 @@ struct _mu_file_stream
 
 int _mu_file_stream_create (struct _mu_file_stream **pstream, size_t size,
 			    const char *filename, int fd, int flags);
+void _mu_file_stream_setup (struct _mu_file_stream *str);
 
 #endif

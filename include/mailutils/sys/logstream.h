@@ -33,4 +33,6 @@ struct _mu_log_stream
   struct mu_locus locus;   /* Location */
 };
 
+void _mu_log_stream_setup (struct _mu_log_stream *sp, mu_stream_t transport);
+  
 #endif

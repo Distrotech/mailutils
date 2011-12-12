@@ -103,7 +103,7 @@ _log_write (struct _mu_stream *str, const char *buf, size_t size,
   int rc;
   int escape_error = 0;
   
-#define NEXT do { buf++; size--; if (size == 0) return EINVAL; } while (0)
+#define NEXT do { if (size == 0) return EINVAL; buf++; size--; } while (0)
 #define READNUM(n) do {				\
     unsigned __x = 0;				\
     if (*buf != '<')				\
@@ -470,17 +470,11 @@ _log_ctl (struct _mu_stream *str, int code, int opcode, void *arg)
   return 0;
 }
 
-int
-mu_log_stream_create (mu_stream_t *pstr, mu_stream_t transport)
+void
+_mu_log_stream_setup (struct _mu_log_stream *sp, mu_stream_t transport)
 {
-  struct _mu_log_stream *sp;
   mu_stream_t stream;
-  int rc;
   
-  sp = (struct _mu_log_stream *)
-    _mu_stream_create (sizeof (*sp), MU_STREAM_WRITE);
-  if (!sp)
-    return ENOMEM;
   sp->base.write = _log_write;
   sp->base.flush = _log_flush;
   sp->base.close = _log_close;
@@ -494,13 +488,21 @@ mu_log_stream_create (mu_stream_t *pstr, mu_stream_t transport)
   
   stream = (mu_stream_t) sp;
   mu_stream_set_buffer (stream, mu_buffer_line, 0);
-  rc = mu_stream_open (stream);
-  if (rc)
-    mu_stream_destroy (&stream);
-  else
-    *pstr = stream;
+}
 
-  return rc;
+int
+mu_log_stream_create (mu_stream_t *pstr, mu_stream_t transport)
+{
+  struct _mu_log_stream *sp;
+  
+  sp = (struct _mu_log_stream *)
+    _mu_stream_create (sizeof (*sp), MU_STREAM_WRITE);
+  if (!sp)
+    return ENOMEM;
+  _mu_log_stream_setup (sp, transport);
+  *pstr = (mu_stream_t) sp;
+  
+  return 0;
 }
 
 

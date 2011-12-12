@@ -30,6 +30,7 @@
 #define _MU_STR_EVENT_FILLBUF   2
 #define _MU_STR_EVENT_FLUSHBUF  3
 #define _MU_STR_EVENT_CLOSE     4
+#define _MU_STR_EVENT_BOOTSTRAP 5
 
 #define _MU_STR_EVMASK(n) (1<<(n))
 
@@ -58,6 +59,7 @@ struct _mu_stream
   int (*open) (struct _mu_stream *);
   int (*close) (struct _mu_stream *);
   void (*done) (struct _mu_stream *);
+  void (*destroy) (struct _mu_stream *);
   int (*seek) (struct _mu_stream *, mu_off_t, mu_off_t *);
   int (*size) (struct _mu_stream *, mu_off_t *);
   int (*ctl) (struct _mu_stream *, int, int, void *);

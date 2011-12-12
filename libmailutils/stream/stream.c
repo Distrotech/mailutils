@@ -46,6 +46,19 @@ size_t mu_stream_default_buffer_size = MU_STREAM_DEFBUFSIZ;
     }								\
   while (0)
 
+#define _bootstrap_event(stream)					    \
+  do									    \
+    {									    \
+      if ((stream)->event_cb &&						    \
+          ((stream)->event_mask & _MU_STR_EVMASK(_MU_STR_EVENT_BOOTSTRAP))) \
+	{								    \
+	  (stream)->event_cb (stream, _MU_STR_EVENT_BOOTSTRAP, 0, NULL);    \
+	  (stream)->event_mask &= ~_MU_STR_EVMASK(_MU_STR_EVENT_BOOTSTRAP); \
+	}								    \
+    }									    \
+  while (0)
+  
+
 #define _stream_stat_incr(s, k, n) \
   (((s)->statmask & MU_STREAM_STAT_MASK(k)) ? ((s)->statbuf[k] += n) : 0)
 
@@ -292,7 +305,10 @@ mu_stream_destroy (mu_stream_t *pstream)
 	  mu_stream_close (str);
 	  if (str->done)
 	    str->done (str);
-	  free (str);
+	  if (str->destroy)
+	    str->destroy (str);
+	  else
+	    free (str);
 	  *pstream = NULL;
 	}
     }
@@ -336,6 +352,7 @@ mu_stream_open (mu_stream_t stream)
 
   if (stream->flags & _MU_STR_OPEN)
     return MU_ERR_OPEN;
+  _bootstrap_event (stream);
   if (stream->open)
     {
       if ((rc = stream->open (stream)))
@@ -399,6 +416,7 @@ mu_stream_seek (mu_stream_t stream, mu_off_t offset, int whence,
   int rc;
   mu_off_t size;
   
+  _bootstrap_event (stream);
   if (!(stream->flags & _MU_STR_OPEN))
     {
       if (stream->open)
@@ -551,6 +569,8 @@ int
 mu_stream_set_buffer (mu_stream_t stream, enum mu_buffer_type type,
 		      size_t size)
 {
+  _bootstrap_event (stream);
+  
   if (size == 0)
     size = mu_stream_default_buffer_size;
 
@@ -717,6 +737,8 @@ _stream_write_unbuffered (mu_stream_t stream,
 int
 mu_stream_read (mu_stream_t stream, void *buf, size_t size, size_t *pread)
 {
+  _bootstrap_event (stream);
+  
   if (!(stream->flags & _MU_STR_OPEN))
     {
       if (stream->open)
@@ -857,6 +879,8 @@ mu_stream_readdelim (mu_stream_t stream, char *buf, size_t size,
 {
   int rc;
   
+  _bootstrap_event (stream);
+  
   if (size == 0)
     return EINVAL;
 
@@ -904,7 +928,9 @@ mu_stream_getdelim (mu_stream_t stream, char **pbuf, size_t *psize,
   char *lineptr = *pbuf;
   size_t n = *psize;
   size_t cur_len = 0;
-    
+
+  _bootstrap_event (stream);
+  
   if (!(stream->flags & _MU_STR_OPEN))
     {
       if (stream->open)
@@ -987,7 +1013,7 @@ int
 mu_stream_getline (mu_stream_t stream, char **pbuf, size_t *psize,
 		   size_t *pread)
 {
-    return mu_stream_getdelim (stream, pbuf, psize, '\n', pread);
+  return mu_stream_getdelim (stream, pbuf, psize, '\n', pread);
 }
 
 int
@@ -995,6 +1021,8 @@ mu_stream_write (mu_stream_t stream, const void *buf, size_t size,
 		 size_t *pnwritten)
 {
   int rc = 0;
+
+  _bootstrap_event (stream);
   
   if (!(stream->flags & _MU_STR_OPEN))
     {
@@ -1063,6 +1091,7 @@ mu_stream_flush (mu_stream_t stream)
   
   if (!stream)
     return EINVAL;
+  _bootstrap_event (stream);
   if (!(stream->flags & _MU_STR_OPEN))
     {
       if (stream->open)
@@ -1104,7 +1133,8 @@ mu_stream_size (mu_stream_t stream, mu_off_t *psize)
 {
   int rc;
   mu_off_t size;
-  
+
+  _bootstrap_event (stream);
   if (!(stream->flags & _MU_STR_OPEN))
     {
       if (stream->open)
@@ -1126,6 +1156,7 @@ mu_stream_size (mu_stream_t stream, mu_off_t *psize)
 int
 mu_stream_ioctl (mu_stream_t stream, int family, int opcode, void *ptr)
 {
+  _bootstrap_event (stream);
   if (stream->ctl == NULL)
     return ENOSYS;
   return stream->ctl (stream, family, opcode, ptr);
@@ -1138,6 +1169,7 @@ mu_stream_wait (mu_stream_t stream, int *pflags, struct timeval *tvp)
 
   if (stream == NULL)
     return EINVAL;
+  _bootstrap_event (stream);
 #if 0
   /* NOTE: Sometimes mu_stream_wait is called after a failed mu_stream_open.
      In particular, this is needed for a TCP stream opened with a
@@ -1181,6 +1213,8 @@ mu_stream_wait (mu_stream_t stream, int *pflags, struct timeval *tvp)
 int
 mu_stream_truncate (mu_stream_t stream, mu_off_t size)
 {
+  _bootstrap_event (stream);
+  
   if (!(stream->flags & _MU_STR_OPEN))
     {
       if (stream->open)
@@ -1203,6 +1237,8 @@ int
 mu_stream_shutdown (mu_stream_t stream, int how)
 {
   int rc;
+
+  _bootstrap_event (stream);
   
   if (!(stream->flags & _MU_STR_OPEN))
     {

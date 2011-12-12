@@ -54,6 +54,11 @@ AT_CLEANUP
 
 AT_INIT
 
+AT_BANNER([Standard streams])
+m4_include([strin.at])
+m4_include([strout.at])
+m4_include([strerr.at])
+
 m4_include([list.at])
 m4_include([address.at])
 m4_include([wordsplit.at])
