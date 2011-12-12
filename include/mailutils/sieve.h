@@ -187,7 +187,7 @@ int mu_sieve_match_part_checker (const char *name, mu_list_t tags,
 				 mu_list_t args);
 /* Operations in value lists */
 mu_sieve_value_t *mu_sieve_value_get (mu_list_t vlist, size_t index);
-int mu_sieve_vlist_do (mu_sieve_value_t * val, mu_list_action_t * ac,
+int mu_sieve_vlist_do (mu_sieve_value_t * val, mu_list_action_t ac,
 		       void *data);
 int mu_sieve_vlist_compare (mu_sieve_value_t * a, mu_sieve_value_t * b,
 			    mu_sieve_comparator_t comp,

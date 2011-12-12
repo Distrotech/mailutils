@@ -419,7 +419,7 @@ mu_sieve_tag_lookup (mu_list_t taglist, char *name, mu_sieve_value_t **arg)
 }
 
 int
-mu_sieve_vlist_do (mu_sieve_value_t *val, mu_list_action_t *ac, void *data)
+mu_sieve_vlist_do (mu_sieve_value_t *val, mu_list_action_t ac, void *data)
 {
   switch (val->type)
     {
@@ -428,7 +428,7 @@ mu_sieve_vlist_do (mu_sieve_value_t *val, mu_list_action_t *ac, void *data)
       return mu_list_foreach (val->v.list, ac, data);
       
     default:
-      return -1;
+      return EINVAL;
     }
 }
 
