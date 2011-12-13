@@ -103,6 +103,13 @@ class Stream:
             raise StreamError (status)
         return rbuf
 
+    def to_message (self):
+        from mailutils import message
+        status, msg = stream.to_message (self.stm)
+        if status:
+            raise StreamError (status)
+        return message.Message (msg)
+
 class TcpStream (Stream):
     def __init__ (self, host, port, flags=MU_STREAM_READ):
         Stream.__init__ (self)
@@ -121,6 +128,13 @@ class StdioStream (Stream):
     def __init__ (self, fd=MU_STDIN_FD, flags=MU_STREAM_READ):
         Stream.__init__ (self)
         status = stream.stdio_stream_create (self.stm, fd, flags)
+        if status:
+            raise StreamError (status)
+
+class MemoryStream (Stream):
+    def __init__ (self, s):
+        Stream.__init__ (self)
+        status = stream.memory_stream_create (self.stm, s)
         if status:
             raise StreamError (status)
 

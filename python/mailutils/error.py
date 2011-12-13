@@ -22,9 +22,9 @@ def strerror (status):
     return error.strerror (status)
 
 class Error (Exception):
-    def __init__ (self, status):
+    def __init__ (self, status, str_error=None):
         self.status = status
-        self.strerror = strerror (status)
+        self.strerror = str_error or strerror (status)
     def __str__ (self):
         return "%d: %s" % (self.status, self.strerror)
 

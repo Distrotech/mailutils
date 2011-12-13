@@ -94,12 +94,58 @@ api_sieve_machine_init (PyObject *self, PyObject *args)
 {
   int status;
   PySieveMachine *py_mach;
-
+  mu_stream_t str, estr;
+  
   if (!PyArg_ParseTuple (args, "O!", &PySieveMachineType, &py_mach))
     return NULL;
 
-  status = mu_sieve_machine_init (&py_mach->mach);
+  status = mu_memory_stream_create (&str, MU_STREAM_RDWR);
+  if (status)
+    return _ro (PyInt_FromLong (status));
+  status = mu_log_stream_create (&estr, str);
+  mu_stream_unref (str);
+  if (status)
+    return _ro (PyInt_FromLong (status));
+  
+  status = mu_sieve_machine_init_ex (&py_mach->mach, NULL, estr);
+  mu_stream_unref (estr);
   return _ro (PyInt_FromLong (status));
+}
+
+static PyObject *
+api_sieve_machine_error_text (PyObject *self, PyObject *args)
+{
+  int status;
+  PySieveMachine *py_mach;
+  mu_stream_t estr;
+  mu_transport_t trans[2];
+  PyObject *retval;
+  size_t length = 0;
+  
+  if (!PyArg_ParseTuple (args, "O!", &PySieveMachineType, &py_mach))
+    return NULL;
+  if (!py_mach->mach)
+    PyErr_SetString (PyExc_RuntimeError, "Uninitialized Sieve machine");
+      
+  mu_sieve_get_diag_stream (py_mach->mach, &estr);
+  status = mu_stream_ioctl (estr, MU_IOCTL_TRANSPORT, MU_IOCTL_OP_GET,
+			    trans);
+  if (status == 0)
+    {
+      mu_stream_t str = (mu_stream_t) trans[0];
+
+      mu_stream_size (str, &length);
+      status = mu_stream_ioctl (str, MU_IOCTL_TRANSPORT, MU_IOCTL_OP_GET,
+				trans);
+      mu_stream_truncate (str, 0);
+    }
+  
+  if (status)
+    PyErr_SetString (PyExc_RuntimeError, mu_strerror (status));
+  retval = PyString_FromStringAndSize ((char*) trans[0], length);
+
+  mu_stream_unref (estr);
+  return _ro (retval);
 }
 
 static PyObject *
@@ -110,12 +156,13 @@ api_sieve_machine_destroy (PyObject *self, PyObject *args)
   if (!PyArg_ParseTuple (args, "O!", &PySieveMachineType, &py_mach))
     return NULL;
 
-  if (py_mach->mach) {
-    struct _mu_py_sieve_logger *s = mu_sieve_get_data (py_mach->mach);
-    if (s)
-      free (s);
-    mu_sieve_machine_destroy (&py_mach->mach);
-  }
+  if (py_mach->mach)
+    {
+      struct _mu_py_sieve_logger *s = mu_sieve_get_data (py_mach->mach);
+      if (s)
+	free (s);
+      mu_sieve_machine_destroy (&py_mach->mach);
+    }
   return _ro (Py_None);
 }
 
@@ -280,6 +327,9 @@ static PyMethodDef methods[] = {
   { "machine_destroy", (PyCFunction) api_sieve_machine_destroy, METH_VARARGS,
     "Destroy Sieve 'machine'." },
 
+  { "errortext", (PyCFunction) api_sieve_machine_error_text, METH_VARARGS,
+    "Return the most recent error description." },
+  
   { "compile", (PyCFunction) api_sieve_compile, METH_VARARGS,
     "Compile the sieve script from the file 'name'." },
 

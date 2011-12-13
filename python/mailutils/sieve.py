@@ -26,6 +26,9 @@ class Machine:
             raise SieveMachineError (status)
 
     def __del__ (self):
+        s = sieve.errortext (self.mach)
+        if s:
+            raise SieveMachineError (MU_ERR_FAILURE, s)
         sieve.machine_destroy (self.mach)
         del self.mach
 
@@ -38,7 +41,7 @@ class Machine:
         """Compile the sieve script from the file 'name'."""
         status = sieve.compile (self.mach, name)
         if status:
-            raise SieveMachineError (status)
+            raise SieveMachineError (status, sieve.errortext (self.mach))
 
     def disass (self):
         """Dump the disassembled code of the sieve machine."""
@@ -58,4 +61,4 @@ class Machine:
         over the 'msg'."""
         status = sieve.message (self.mach, msg.msg)
         if status:
-            raise SieveMachineError (status)
+            raise SieveMachineError (status, sieve.errortext (self.mach))

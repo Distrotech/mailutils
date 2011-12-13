@@ -126,6 +126,25 @@ api_stdio_stream_create (PyObject *self, PyObject *args)
 }
 
 static PyObject *
+api_memory_stream_create (PyObject *self, PyObject *args)
+{
+  int status;
+  char *s;
+  PyStream *py_stm;
+
+  if (!PyArg_ParseTuple (args, "O!s", &PyStreamType, &py_stm, &s))
+    return NULL;
+
+  status = mu_memory_stream_create (&py_stm->stm, MU_STREAM_RDWR);
+  if (status == 0)
+    {
+      status = mu_stream_write (py_stm->stm, s, strlen (s), NULL);
+      mu_stream_seek (py_stm->stm, MU_SEEK_SET, 0, NULL);
+    }
+  return _ro (PyInt_FromLong (status));
+}
+
+static PyObject *
 api_prog_stream_create (PyObject *self, PyObject *args)
 {
   int status, flags;
@@ -317,6 +336,22 @@ api_stream_readline (PyObject *self, PyObject *args)
   return _ro (py_ret);
 }
 
+static PyObject *
+api_stream_to_message (PyObject *self, PyObject *args)
+{
+  int status;
+  PyStream *py_stm;
+  PyMessage *py_msg = PyMessage_NEW ();
+
+  if (!PyArg_ParseTuple (args, "O!", &PyStreamType, &py_stm))
+    return NULL;
+
+  Py_INCREF (py_msg);
+
+  status = mu_stream_to_message (py_stm->stm, &py_msg->msg);
+  return status_object (status, (PyObject *)py_msg);
+}
+
 static PyMethodDef methods[] = {
   { "tcp_stream_create", (PyCFunction) api_tcp_stream_create, METH_VARARGS,
     "" },
@@ -325,6 +360,10 @@ static PyMethodDef methods[] = {
     "" },
 
   { "stdio_stream_create", (PyCFunction) api_stdio_stream_create, METH_VARARGS,
+    "" },
+
+  { "memory_stream_create",
+    (PyCFunction) api_memory_stream_create, METH_VARARGS,
     "" },
 
   { "prog_stream_create", (PyCFunction) api_prog_stream_create, METH_VARARGS,
@@ -362,6 +401,9 @@ static PyMethodDef methods[] = {
     "" },
 
   { "readline", (PyCFunction) api_stream_readline, METH_VARARGS,
+    "" },
+
+  { "to_message", (PyCFunction) api_stream_to_message, METH_VARARGS,
     "" },
 
   { NULL, NULL, 0, NULL }
