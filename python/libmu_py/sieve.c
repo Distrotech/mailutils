@@ -120,7 +120,7 @@ api_sieve_machine_error_text (PyObject *self, PyObject *args)
   mu_stream_t estr;
   mu_transport_t trans[2];
   PyObject *retval;
-  size_t length = 0;
+  mu_off_t length = 0;
   
   if (!PyArg_ParseTuple (args, "O!", &PySieveMachineType, &py_mach))
     return NULL;

@@ -606,7 +606,7 @@ mu_sieve_machine_finish (mu_sieve_machine_t mach)
 int
 mu_sieve_compile (mu_sieve_machine_t mach, const char *name)
 {
-  int rc;
+  int rc = 0;
   
   mu_sieve_machine_begin (mach, name);
 
