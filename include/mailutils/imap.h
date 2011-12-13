@@ -44,19 +44,6 @@ enum mu_imap_session_state
 int mu_imap_create (mu_imap_t *pimap);
 void mu_imap_destroy (mu_imap_t *pimap);
 
-struct imap_command
-{
-  int session_state;
-  char *capa;
-  int rx_state;
-  int uid;
-  int argc;
-  char const **argv;
-  void (*handler) (mu_imap_t);
-};
-
-int mu_imap_gencom (mu_imap_t imap, struct imap_command *cmd);
-  
 int mu_imap_connect (mu_imap_t imap);
 int mu_imap_disconnect (mu_imap_t imap);
 
@@ -99,6 +86,11 @@ int mu_imap_append_stream (mu_imap_t imap, const char *mailbox, int flags,
 int mu_imap_append_message (mu_imap_t imap, const char *mailbox, int flags,
 			    struct tm *tm, struct mu_timezone *tz,
 			    mu_message_t msg);
+  
+int mu_imap_list (mu_imap_t imap, const char *refname, const char *mboxname,
+		  mu_list_t retlist);
+int mu_imap_list_new (mu_imap_t imap, const char *refname, const char *mboxname,
+		      mu_list_t *plist);
   
 int mu_imap_set_carrier (mu_imap_t imap, mu_stream_t carrier);
 int mu_imap_get_carrier (mu_imap_t imap, mu_stream_t *pcarrier);

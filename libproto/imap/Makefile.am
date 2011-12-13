@@ -48,6 +48,7 @@ libmu_imap_la_SOURCES = \
  err.c\
  expunge.c\
  id.c\
+ list.c\
  login.c\
  logout.c\
  mbcreate.c\

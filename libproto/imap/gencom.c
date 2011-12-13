@@ -74,10 +74,11 @@ mu_imap_gencom (mu_imap_t imap, struct imap_command *cmd)
 
   if (imap->client_state == cmd->rx_state)
     {
-      status = _mu_imap_response (imap, NULL, NULL);
+      status = _mu_imap_response (imap, cmd->untagged_handler,
+				  cmd->untagged_handler_data);
       MU_IMAP_CHECK_EAGAIN (imap, status);
-      if (cmd->handler)
-	  cmd->handler (imap);
+      if (cmd->tagged_handler)
+	  cmd->tagged_handler (imap);
       switch (imap->resp_code)
 	{
 	case MU_IMAP_OK:

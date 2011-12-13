@@ -128,6 +128,7 @@ static struct _mu_file_stream stdstream[2] = {
   { { ref_count: 1,
       buftype: mu_buffer_none,
       flags: MU_STREAM_WRITE,
+      destroy: bootstrap_destroy,
       event_cb: std_bootstrap,
       event_mask: _MU_STR_EVMASK (_MU_STR_EVENT_BOOTSTRAP)
     }, fd: MU_STDOUT_FD, filename: "<stdout>",

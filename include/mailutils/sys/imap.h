@@ -66,6 +66,7 @@ enum mu_imap_client_state
     MU_IMAP_CLIENT_COPY_RX,
     MU_IMAP_CLIENT_EXPUNGE_RX,
     MU_IMAP_CLIENT_APPEND_RX,
+    MU_IMAP_CLIENT_LIST_RX,
     MU_IMAP_CLIENT_CLOSING
   };
 
@@ -135,6 +136,24 @@ int _mu_imap_trace_enable (mu_imap_t imap);
 int _mu_imap_trace_disable (mu_imap_t imap);
 int _mu_imap_xscript_level (mu_imap_t imap, int xlev);
 
+typedef void (*mu_imap_response_action_t) (mu_imap_t imap, mu_list_t resp,
+					   void *data);
+
+struct imap_command
+{
+  int session_state;
+  char *capa;
+  int rx_state;
+  int uid;
+  int argc;
+  char const **argv;
+  void (*tagged_handler) (mu_imap_t);
+  mu_imap_response_action_t untagged_handler;
+  void *untagged_handler_data;
+};
+
+int mu_imap_gencom (mu_imap_t imap, struct imap_command *cmd);
+  
 /* If status indicates an error, return.
   */
 #define MU_IMAP_CHECK_ERROR(imap, status)			\
@@ -182,9 +201,6 @@ int _mu_imap_tag_next (mu_imap_t imap);
 int _mu_imap_tag_clr (mu_imap_t imap);
 
 
-typedef void (*mu_imap_response_action_t) (mu_imap_t imap, mu_list_t resp,
-					   void *data);
-
 int _mu_imap_untagged_response_to_list (mu_imap_t imap, mu_list_t *plist);
 int _mu_imap_process_untagged_response (mu_imap_t imap, mu_list_t list,
 					mu_imap_response_action_t fun,

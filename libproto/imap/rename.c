@@ -39,7 +39,8 @@ mu_imap_rename (mu_imap_t imap, const char *mailbox, const char *new_mailbox)
   com.uid = 0;
   com.argc = 3;
   com.argv = argv;
-  com.handler = NULL;
+  com.tagged_handler = NULL;
+  com.untagged_handler = NULL;
 
   return mu_imap_gencom (imap, &com);
 }

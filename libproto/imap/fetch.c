@@ -44,7 +44,8 @@ mu_imap_fetch (mu_imap_t imap, int uid, const char *msgset, const char *items)
   com.uid = uid;
   com.argc = 3;
   com.argv = argv;
-  com.handler = NULL;
+  com.tagged_handler = NULL;
+  com.untagged_handler = NULL;
 
   return mu_imap_gencom (imap, &com);
 }

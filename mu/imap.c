@@ -895,6 +895,43 @@ com_append (int argc, char **argv)
   return 0;
 }
 
+static int
+print_list_item (void *item, void *data)
+{
+  struct mu_list_response *resp = item;
+  mu_stream_t out = data;
+
+  mu_stream_printf (out,
+		    "%c%c %c %4d %s\n",
+		    (resp->type & MU_FOLDER_ATTRIBUTE_DIRECTORY) ? 'd' : '-',
+		    (resp->type & MU_FOLDER_ATTRIBUTE_FILE) ? 'f' : '-',
+		    resp->separator,
+		    resp->level,
+		    resp->name);
+  return 0;
+}
+
+static int
+com_list (int argc, char **argv)
+{
+  mu_list_t list;
+  int rc;
+  mu_stream_t out;
+  
+  rc = mu_imap_list_new (imap, argv[1], argv[2], &list);
+  if (rc)
+    {
+      report_failure ("list", rc);
+      return 0;
+    }
+
+  out = mutool_open_pager ();
+  mu_list_foreach (list, print_list_item, out);
+  mu_stream_unref (out);
+  return 0;
+}
+
+
 struct mutool_command imap_comtab[] = {
   { "capability",   1, -1, 0,
     com_capability,
@@ -982,6 +1019,10 @@ struct mutool_command imap_comtab[] = {
     com_append,
     N_("[-time DATETIME] [-flag FLAG] MAILBOX FILE"),
     N_("append message text from FILE to MAILBOX") },
+  { "list",         3, 3, 0,
+    com_list,
+    N_("REF MBOX"),
+    N_("List matching mailboxes") },
   { "quit",         1, 1, 0,
     com_logout,
     NULL,

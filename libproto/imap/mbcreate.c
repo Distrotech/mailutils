@@ -40,7 +40,8 @@ mu_imap_mailbox_create (mu_imap_t imap, const char *mailbox)
   com.uid = 0;
   com.argc = 2;
   com.argv = argv;
-  com.handler = NULL;
+  com.tagged_handler = NULL;
+  com.untagged_handler = NULL;
 
   return mu_imap_gencom (imap, &com);
 }
