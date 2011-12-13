@@ -612,13 +612,12 @@ mu_sieve_compile (mu_sieve_machine_t mach, const char *name)
 
   if (mu_sv_lex_begin (name) == 0)
     {
-      rc = yyparse ();
-      if (mu_sieve_error_count)
-	rc = 1;
+      if (yyparse () || mu_sieve_error_count)
+	rc = MU_ERR_PARSE;
       mu_sv_lex_finish ();
     }
   else
-    rc = 1;
+    rc = MU_ERR_FAILURE;
   
   mu_sieve_machine_finish (mach);
   return rc;

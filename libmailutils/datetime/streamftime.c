@@ -368,8 +368,15 @@ mu_c_streamftime (mu_stream_t str, const char *fmt, struct tm *input_tm,
 	  rc = mu_stream_printf (str, "%d", tm.tm_year + 1900);
 	  break;
 	  
-	case 'z':
 	case 'Z':
+	  /* The timezone or name or abbreviation. */
+	  if (tz && tz->tz_name)
+	    {
+	      rc = mu_stream_printf (str, "%s", tz->tz_name);
+	      break;
+	    }
+	  /* fall through */
+	case 'z':
 	  /* The time-zone as hour offset from GMT, for formatting RFC-822
 	     dates (e.g. "%a, %d %b %Y %H:%M:%S %z") */
 	  {
