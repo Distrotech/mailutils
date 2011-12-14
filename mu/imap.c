@@ -61,6 +61,7 @@ static struct argp imap_argp = {
 
 
 static mu_imap_t imap;
+static int uid_mode;
 
 static enum mu_imap_session_state
 current_imap_state ()
@@ -315,7 +316,20 @@ imap_fetch_callback (void *data, int code, size_t sdat, void *pdat)
   mu_list_foreach (list, fetch_response_printer, str);
   mu_stream_printf (str, "\n\n");
 }
+
+static int
+com_uid (int argc, char **argv)
+{
+  int bv;
   
+  if (argc == 1)
+    mu_printf ("%s\n", uid_mode ? _("UID is on") : _("UID is off"));
+  else if (get_bool (argv[1], &bv) == 0)
+    uid_mode = bv;
+  else
+    mu_error (_("invalid boolean value"));
+  return 0;
+}
 
 static int
 com_disconnect (int argc MU_ARG_UNUSED, char **argv MU_ARG_UNUSED)
@@ -346,10 +360,10 @@ com_connect (int argc, char **argv)
       if (strcmp (argv[i], "-tls") == 0)
 	{
 #ifdef WITH_TLS
-	    tls = 1;
+	  tls = 1;
 #else
-            mu_error (_("TLS not supported"));
-	    return 0;
+	  mu_error (_("TLS not supported"));
+	  return 0;
 #endif
 	}
       else
@@ -753,7 +767,7 @@ com_fetch (int argc, char **argv)
   mu_imap_register_callback_function (imap, MU_IMAP_CB_FETCH,
 				      imap_fetch_callback,
 				      out);
-  status = mu_imap_fetch (imap, 0, argv[1], argv[2]);
+  status = mu_imap_fetch (imap, uid_mode, argv[1], argv[2]);
   mu_stream_destroy (&out);
   mu_imap_register_callback_function (imap, MU_IMAP_CB_FETCH,
 				      imap_fetch_callback,
@@ -766,7 +780,7 @@ com_fetch (int argc, char **argv)
 static int
 com_store (int argc, char **argv)
 {
-  int status = mu_imap_store (imap, 0, argv[1], argv[2]);
+  int status = mu_imap_store (imap, uid_mode, argv[1], argv[2]);
   if (status)
     report_failure ("store", status);
   return 0;
@@ -1085,6 +1099,10 @@ struct mutool_command imap_comtab[] = {
     com_unsubscribe,
     N_("MBOX"),
     N_("Remove mailbox from subscription list") },
+  { "uid",          1, 2, 0,
+    com_uid,
+    N_("[on|off]"),
+    N_("control UID mode") },
   { "quit",         1, 1, 0,
     com_logout,
     NULL,
