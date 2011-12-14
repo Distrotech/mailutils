@@ -91,6 +91,9 @@ int mu_imap_list (mu_imap_t imap, const char *refname, const char *mboxname,
 		  mu_list_t retlist);
 int mu_imap_list_new (mu_imap_t imap, const char *refname, const char *mboxname,
 		      mu_list_t *plist);
+
+int mu_imap_subscribe (mu_imap_t imap, const char *mailbox);
+int mu_imap_unsubscribe (mu_imap_t imap, const char *mailbox);
   
 int mu_imap_set_carrier (mu_imap_t imap, mu_stream_t carrier);
 int mu_imap_get_carrier (mu_imap_t imap, mu_stream_t *pcarrier);

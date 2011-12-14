@@ -61,7 +61,9 @@ libmu_imap_la_SOURCES = \
  state.c\
  status.c\
  store.c\
+ subscribe.c\
  tag.c\
  trace.c\
- unselect.c
+ unselect.c\
+ unsubscribe.c
 

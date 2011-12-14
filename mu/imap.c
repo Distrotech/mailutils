@@ -818,6 +818,24 @@ com_create (int argc, char **argv)
 }
 
 static int
+com_subscribe (int argc, char **argv)
+{
+  int status = mu_imap_subscribe (imap, argv[1]);
+  if (status)
+    report_failure ("subscribe", status);
+  return 0;
+}
+
+static int
+com_unsubscribe (int argc, char **argv)
+{
+  int status = mu_imap_unsubscribe (imap, argv[1]);
+  if (status)
+    report_failure ("unsubscribe", status);
+  return 0;
+}
+
+static int
 com_append (int argc, char **argv)
 {
   struct tm tmbuf, *tm = NULL;
@@ -1023,6 +1041,14 @@ struct mutool_command imap_comtab[] = {
     com_list,
     N_("REF MBOX"),
     N_("List matching mailboxes") },
+  { "subscribe",    2, 2, 0,
+    com_subscribe,
+    N_("MBOX"),
+    N_("Subscribe to a mailbox") },
+  { "unsubscribe",    2, 2, 0,
+    com_unsubscribe,
+    N_("MBOX"),
+    N_("Remove mailbox from subscription list") },
   { "quit",         1, 1, 0,
     com_logout,
     NULL,
