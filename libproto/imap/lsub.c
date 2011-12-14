@@ -22,17 +22,17 @@
 #include <mailutils/imap.h>
 
 int
-mu_imap_list (mu_imap_t imap, const char *refname, const char *mboxname,
+mu_imap_lsub (mu_imap_t imap, const char *refname, const char *mboxname,
 	      mu_list_t retlist)
 {
-  return mu_imap_genlist (imap, 0, refname, mboxname, retlist);
+  return mu_imap_genlist (imap, 1, refname, mboxname, retlist);
 }
 
 int
-mu_imap_list_new (mu_imap_t imap, const char *refname, const char *mboxname,
+mu_imap_lsub_new (mu_imap_t imap, const char *refname, const char *mboxname,
 		  mu_list_t *plist)
 {
-  return mu_imap_genlist_new (imap, 0, refname, mboxname, plist);
+  return mu_imap_genlist_new (imap, 1, refname, mboxname, plist);
 }
 
 

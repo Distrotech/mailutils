@@ -949,6 +949,25 @@ com_list (int argc, char **argv)
   return 0;
 }
 
+static int
+com_lsub (int argc, char **argv)
+{
+  mu_list_t list;
+  int rc;
+  mu_stream_t out;
+  
+  rc = mu_imap_lsub_new (imap, argv[1], argv[2], &list);
+  if (rc)
+    {
+      report_failure ("lsub", rc);
+      return 0;
+    }
+
+  out = mutool_open_pager ();
+  mu_list_foreach (list, print_list_item, out);
+  mu_stream_unref (out);
+  return 0;
+}
 
 struct mutool_command imap_comtab[] = {
   { "capability",   1, -1, 0,
@@ -1041,6 +1060,10 @@ struct mutool_command imap_comtab[] = {
     com_list,
     N_("REF MBOX"),
     N_("List matching mailboxes") },
+  { "lsub",         3, 3, 0,
+    com_lsub,
+    N_("REF MBOX"),
+    N_("List subscribed mailboxes") },
   { "subscribe",    2, 2, 0,
     com_subscribe,
     N_("MBOX"),

@@ -87,10 +87,22 @@ int mu_imap_append_message (mu_imap_t imap, const char *mailbox, int flags,
 			    struct tm *tm, struct mu_timezone *tz,
 			    mu_message_t msg);
   
+int mu_imap_genlist (mu_imap_t imap, int lsub,
+		     const char *refname, const char *mboxname,
+		     mu_list_t retlist);
+int mu_imap_genlist_new (mu_imap_t imap, int lsub,
+			 const char *refname, const char *mboxname,
+			 mu_list_t *plist);
+  
 int mu_imap_list (mu_imap_t imap, const char *refname, const char *mboxname,
 		  mu_list_t retlist);
-int mu_imap_list_new (mu_imap_t imap, const char *refname, const char *mboxname,
-		      mu_list_t *plist);
+int mu_imap_list_new (mu_imap_t imap, const char *refname,
+		      const char *mboxname, mu_list_t *plist);
+
+int mu_imap_lsub (mu_imap_t imap, const char *refname, const char *mboxname,
+		  mu_list_t retlist);
+int mu_imap_lsub_new (mu_imap_t imap, const char *refname,
+		      const char *mboxname, mu_list_t *plist);
 
 int mu_imap_subscribe (mu_imap_t imap, const char *mailbox);
 int mu_imap_unsubscribe (mu_imap_t imap, const char *mailbox);

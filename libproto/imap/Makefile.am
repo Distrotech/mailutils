@@ -33,6 +33,7 @@ libmu_imap_la_SOURCES = \
  fake-folder.c\
  fetch.c\
  gencom.c\
+ genlist.c\
  callback.c\
  capability.c\
  capatst.c\
@@ -51,6 +52,7 @@ libmu_imap_la_SOURCES = \
  list.c\
  login.c\
  logout.c\
+ lsub.c\
  mbcreate.c\
  noop.c\
  rename.c\
