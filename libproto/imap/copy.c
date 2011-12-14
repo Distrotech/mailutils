@@ -26,19 +26,23 @@
 int
 mu_imap_copy (mu_imap_t imap, int uid, const char *msgset, const char *mailbox)
 {
-  char const *argv[3];
+  char const *argv[4];
+  int i;
   static struct imap_command com;
 
-  argv[0] = "COPY";
-  argv[1] = msgset;
-  argv[2] = mailbox;
+  i = 0;
+  if (uid)
+    argv[i++] = "UID";
+  argv[i++] = "COPY";
+  argv[i++] = msgset;
+  argv[i++] = mailbox;
 
   com.session_state = MU_IMAP_SESSION_SELECTED;
   com.capa = NULL;
   com.rx_state = MU_IMAP_CLIENT_COPY_RX;
-  com.uid = 0;
-  com.argc = 3;
+  com.argc = i;
   com.argv = argv;
+  com.extra = NULL;
   com.tagged_handler = NULL;
   com.untagged_handler = NULL;
 

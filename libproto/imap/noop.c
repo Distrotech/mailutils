@@ -30,7 +30,6 @@ mu_imap_noop (mu_imap_t imap)
     MU_IMAP_SESSION_INIT,
     NULL,
     MU_IMAP_CLIENT_NOOP_RX,
-    0,
     1,
     &command,
     NULL

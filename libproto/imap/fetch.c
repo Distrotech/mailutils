@@ -32,18 +32,21 @@ int
 mu_imap_fetch (mu_imap_t imap, int uid, const char *msgset, const char *items)
 {
   char const *argv[3];
+  int i;
   static struct imap_command com;
 
-  argv[0] = "FETCH";
-  argv[1] = msgset;
-  argv[2] = items;
+  i = 0;
+  if (uid)
+    argv[i++] = "UID";
+  argv[i++] = "FETCH";
+  argv[i++] = msgset;
   
   com.session_state = MU_IMAP_SESSION_SELECTED;
   com.capa = NULL;
   com.rx_state = MU_IMAP_CLIENT_FETCH_RX;
-  com.uid = uid;
-  com.argc = 3;
+  com.argc = i;
   com.argv = argv;
+  com.extra = items;
   com.tagged_handler = NULL;
   com.untagged_handler = NULL;
 

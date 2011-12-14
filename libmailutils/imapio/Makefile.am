@@ -19,6 +19,7 @@ noinst_LTLIBRARIES = libimapio.la
 
 libimapio_la_SOURCES = \
  create.c\
+ errstate.c\
  flags.c\
  getline.c\
  litstream.c\
@@ -27,6 +28,9 @@ libimapio_la_SOURCES = \
  qstring.c\
  replstr.c\
  send.c\
+ sendcmd.c\
+ sendcmdv.c\
+ sendcmde.c\
  time.c\
  trace.c\
  words.c\

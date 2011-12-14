@@ -30,7 +30,6 @@ mu_imap_expunge (mu_imap_t imap)
     MU_IMAP_SESSION_SELECTED,
     NULL,
     MU_IMAP_CLIENT_EXPUNGE_RX,
-    0,
     1,
     &command,
     NULL

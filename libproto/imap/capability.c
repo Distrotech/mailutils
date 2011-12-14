@@ -109,8 +109,8 @@ mu_imap_capability (mu_imap_t imap, int reread, mu_iterator_t *piter)
     case MU_IMAP_CLIENT_READY:
       status = _mu_imap_tag_next (imap);
       MU_IMAP_CHECK_EAGAIN (imap, status);
-      status = mu_imapio_printf (imap->io, "%s CAPABILITY\r\n",
-				 imap->tag_str); 
+      status = mu_imapio_send_command (imap->io, imap->tag_str,
+				       "CAPABILITY", NULL); 
       MU_IMAP_CHECK_EAGAIN (imap, status);
       MU_IMAP_FCLR (imap, MU_IMAP_RESP);
       imap->client_state = MU_IMAP_CLIENT_CAPABILITY_RX;

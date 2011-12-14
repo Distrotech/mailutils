@@ -144,9 +144,9 @@ struct imap_command
   int session_state;
   char *capa;
   int rx_state;
-  int uid;
   int argc;
   char const **argv;
+  char const *extra;
   void (*tagged_handler) (mu_imap_t);
   mu_imap_response_action_t untagged_handler;
   void *untagged_handler_data;

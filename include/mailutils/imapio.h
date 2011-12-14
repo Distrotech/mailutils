@@ -45,6 +45,13 @@ int mu_imapio_send_qstring (struct _mu_imapio *io, const char *buffer);
 int mu_imapio_send_qstring_unfold (struct _mu_imapio *io, const char *buffer,
 				   int unfold);
 
+int mu_imapio_send_command_v (struct _mu_imapio *io, const char *tag,
+			      int argc, char const **argv, const char *extra);
+int mu_imapio_send_command (struct _mu_imapio *io, const char *tag,
+			char const *cmd, ...);
+int mu_imapio_send_command_e (struct _mu_imapio *io, const char *tag,
+			      char const *cmd, ...);
+  
 int mu_imapio_send_flags (struct _mu_imapio *io, int flags);
 int mu_imapio_send_time (struct _mu_imapio *io, struct tm *tm,
 			 struct mu_timezone *tz);
@@ -59,6 +66,9 @@ int mu_imapio_getbuf (mu_imapio_t io, char **pptr, size_t *psize);
 
 int mu_imapio_reply_string (struct _mu_imapio *io, size_t start, char **pbuf);
 
+int mu_imapio_last_error (struct _mu_imapio *io);
+void mu_imapio_clearerr (struct _mu_imapio *io);
+  
 int mu_imap_flag_to_attribute (const char *item, int *attr);
 int mu_imap_format_flags (mu_stream_t str, int flags);
 

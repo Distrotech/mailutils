@@ -37,9 +37,9 @@ mu_imap_close (mu_imap_t imap)
     MU_IMAP_SESSION_SELECTED,
     NULL,
     MU_IMAP_CLIENT_CLOSE_RX,
-    0,
     1,
     &command,
+    NULL,
     _mu_close_handler
   };
   return mu_imap_gencom (imap, &com);

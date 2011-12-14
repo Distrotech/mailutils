@@ -28,7 +28,6 @@ int
 mu_imap_gencom (mu_imap_t imap, struct imap_command *cmd)
 {
   int status;
-  int i;
   
   if (imap == NULL || !cmd || cmd->argc < 1)
     return EINVAL;
@@ -57,16 +56,8 @@ mu_imap_gencom (mu_imap_t imap, struct imap_command *cmd)
     {
       status = _mu_imap_tag_next (imap);
       MU_IMAP_CHECK_EAGAIN (imap, status);
-      status = mu_imapio_printf (imap->io, "%s", imap->tag_str);
-      if (status == 0 && cmd->uid)
-	status = mu_imapio_printf (imap->io, " UID");
-      MU_IMAP_CHECK_ERROR (imap, status);
-      for (i = 0; i < cmd->argc; i++)
-	{
-	  status = mu_imapio_printf (imap->io, " %s", cmd->argv[i]);
-	  MU_IMAP_CHECK_ERROR (imap, status);
-	}
-      status = mu_imapio_send (imap->io, "\r\n", 2);
+      status = mu_imapio_send_command_v (imap->io, imap->tag_str,
+					 cmd->argc, cmd->argv, cmd->extra);
       MU_IMAP_CHECK_ERROR (imap, status);
       MU_IMAP_FCLR (imap, MU_IMAP_RESP);
       imap->client_state = cmd->rx_state;

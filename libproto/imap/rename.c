@@ -36,9 +36,9 @@ mu_imap_rename (mu_imap_t imap, const char *mailbox, const char *new_mailbox)
   com.session_state = MU_IMAP_SESSION_AUTH;
   com.capa = NULL;
   com.rx_state = MU_IMAP_CLIENT_DELETE_RX;
-  com.uid = 0;
   com.argc = 3;
   com.argv = argv;
+  com.extra = NULL;
   com.tagged_handler = NULL;
   com.untagged_handler = NULL;
 

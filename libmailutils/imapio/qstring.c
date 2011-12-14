@@ -19,50 +19,80 @@
 #include <mailutils/types.h>
 #include <mailutils/imapio.h>
 #include <mailutils/stream.h>
+#include <mailutils/cstr.h>
+#include <mailutils/cctype.h>
 #include <mailutils/sys/imapio.h>
 
-/* Send NIL if empty string, change the quoted string to a literal if the
-   string contains: double quotes, CR, LF, or \. */
+/* If string is NULL, send NIL.
+   If it contains \r\n, send it as a literal, replacing 
+   contiguous sequences of \r\n by a single space, if UNFOLD is set.
+   If string contains " or \, quote it,
+   Otherwise send it as is. */
 
 int
 mu_imapio_send_qstring_unfold (struct _mu_imapio *io, const char *buffer,
 			       int unfold)
 {
-  if (buffer == NULL || *buffer == '\0')
+  int len;
+  
+  if (buffer == NULL)
     return mu_imapio_printf (io, "NIL");
-  if (strchr (buffer, '"') ||
-      strchr (buffer, '\r') ||
-      strchr (buffer, '\n') ||
-      strchr (buffer, '\\'))
+
+  if (buffer[len = strcspn (buffer, "\r\n")])
     {
       if (unfold)
 	{
 	  int rc;
-	  size_t len = strlen (buffer);
+	  size_t size = strlen (buffer);
 
 	  rc = mu_stream_printf (io->_imap_stream,
-				 "{%lu}\n", (unsigned long) strlen (buffer));
+				 "{%lu}\n", (unsigned long) size);
 	  if (rc)
 	    return rc;
-	  for (;;)
+	  while (1)
 	    {
-	      size_t s = strcspn (buffer, "\r\n");
-	      rc = mu_stream_write (io->_imap_stream, buffer, s, NULL);
-	      if (rc)
-		return rc;
-	      len -= s;
-	      if (len == 0)
+	      mu_stream_write (io->_imap_stream, buffer, len, NULL);
+	      buffer += len;
+	      if (*buffer)
+		{
+		  mu_stream_write (io->_imap_stream, " ", 1, NULL);
+		  buffer = mu_str_skip_class (buffer, MU_CTYPE_ENDLN);
+		  len = strcspn (buffer, "\r\n");
+		}
+	      else
 		break;
-	      buffer += s;
-	      rc = mu_stream_write (io->_imap_stream, " ", 1, NULL);
-	      if (rc)
-		return rc;
 	    }
 	}
       else
-	return mu_imapio_send_literal_string (io, buffer);
+	mu_imapio_send_literal_string (io, buffer);
     }
-  return mu_imapio_printf (io, "\"%s\"", buffer);
+  else if (buffer[len = strcspn (buffer, io->_imap_ws.ws_escape)])
+    {
+      int rc;
+      
+      rc = mu_stream_write (io->_imap_stream, "\"", 1, NULL);
+      while (1)
+	{
+	  mu_stream_write (io->_imap_stream, buffer, len, NULL);
+	  buffer += len;
+	  if (*buffer)
+	    {
+	      mu_stream_write (io->_imap_stream, "\\", 1, NULL);
+	      mu_stream_write (io->_imap_stream, buffer, 1, NULL);
+	      buffer++;
+	      len = strcspn (buffer, io->_imap_ws.ws_escape);
+	    }
+	  else
+	    break;
+	}
+      mu_stream_write (io->_imap_stream, "\"", 1, NULL);
+    }
+  else if (buffer[0] == 0 || buffer[strcspn (buffer, io->_imap_ws.ws_delim)])
+    mu_stream_printf (io->_imap_stream, "\"%s\"", buffer);
+  else
+    mu_stream_write (io->_imap_stream, buffer, len, NULL);
+      
+  return mu_stream_last_error (io->_imap_stream);
 }
 
 int

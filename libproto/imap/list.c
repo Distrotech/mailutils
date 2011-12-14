@@ -139,9 +139,9 @@ mu_imap_list (mu_imap_t imap, const char *refname, const char *mboxname,
   com.session_state = MU_IMAP_SESSION_AUTH;
   com.capa = NULL;
   com.rx_state = MU_IMAP_CLIENT_LIST_RX;
-  com.uid = 0;
   com.argc = 3;
   com.argv = argv;
+  com.extra = NULL;
   com.tagged_handler = NULL;
   com.untagged_handler = list_untagged_handler;
   com.untagged_handler_data = &clos;

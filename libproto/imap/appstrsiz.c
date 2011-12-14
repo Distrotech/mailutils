@@ -80,8 +80,9 @@ mu_imap_append_stream_size (mu_imap_t imap, const char *mailbox, int flags,
       
       status = _mu_imap_tag_next (imap);
       MU_IMAP_CHECK_EAGAIN (imap, status);
-      status = mu_imapio_printf (imap->io, "%s APPEND %s",
-				 imap->tag_str, mailbox);
+      status = mu_imapio_printf (imap->io, "%s APPEND ", imap->tag_str);
+      MU_IMAP_CHECK_ERROR (imap, status);
+      status = mu_imapio_send_qstring (imap->io, mailbox);
       MU_IMAP_CHECK_ERROR (imap, status);
       if (flags)
 	{
