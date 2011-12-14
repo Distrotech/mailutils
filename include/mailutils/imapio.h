@@ -38,22 +38,22 @@ int mu_imapio_get_words (mu_imapio_t io, size_t *pwc, char ***pwv);
 
 int mu_imapio_send (mu_imapio_t io, const char *buf, size_t bytes);
 int mu_imapio_printf (mu_imapio_t io, const char *fmt, ...);
-int mu_imapio_send_literal_string (struct _mu_imapio *io, const char *buffer);
-int mu_imapio_send_literal_stream (struct _mu_imapio *io, mu_stream_t stream,
+int mu_imapio_send_literal_string (mu_imapio_t io, const char *buffer);
+int mu_imapio_send_literal_stream (mu_imapio_t io, mu_stream_t stream,
 				   mu_off_t size);  
-int mu_imapio_send_qstring (struct _mu_imapio *io, const char *buffer);
-int mu_imapio_send_qstring_unfold (struct _mu_imapio *io, const char *buffer,
+int mu_imapio_send_qstring (mu_imapio_t io, const char *buffer);
+int mu_imapio_send_qstring_unfold (mu_imapio_t io, const char *buffer,
 				   int unfold);
 
-int mu_imapio_send_command_v (struct _mu_imapio *io, const char *tag,
+int mu_imapio_send_command_v (mu_imapio_t io, const char *tag,
 			      int argc, char const **argv, const char *extra);
-int mu_imapio_send_command (struct _mu_imapio *io, const char *tag,
+int mu_imapio_send_command (mu_imapio_t io, const char *tag,
 			char const *cmd, ...);
-int mu_imapio_send_command_e (struct _mu_imapio *io, const char *tag,
+int mu_imapio_send_command_e (mu_imapio_t io, const char *tag,
 			      char const *cmd, ...);
   
-int mu_imapio_send_flags (struct _mu_imapio *io, int flags);
-int mu_imapio_send_time (struct _mu_imapio *io, struct tm *tm,
+int mu_imapio_send_flags (mu_imapio_t io, int flags);
+int mu_imapio_send_time (mu_imapio_t io, struct tm *tm,
 			 struct mu_timezone *tz);
   
 int mu_imapio_trace_enable (mu_imapio_t io);
@@ -62,12 +62,15 @@ int mu_imapio_get_trace (mu_imapio_t io);
 void mu_imapio_trace_payload (mu_imapio_t io, int val);
 int mu_imapio_get_trace_payload (mu_imapio_t io);
 
+int mu_imapio_get_streams (mu_imapio_t io, mu_stream_t *streams);
+int mu_imapio_set_streams (mu_imapio_t io, mu_stream_t *streams);
+  
 int mu_imapio_getbuf (mu_imapio_t io, char **pptr, size_t *psize);
 
-int mu_imapio_reply_string (struct _mu_imapio *io, size_t start, char **pbuf);
+int mu_imapio_reply_string (mu_imapio_t io, size_t start, char **pbuf);
 
-int mu_imapio_last_error (struct _mu_imapio *io);
-void mu_imapio_clearerr (struct _mu_imapio *io);
+int mu_imapio_last_error (mu_imapio_t io);
+void mu_imapio_clearerr (mu_imapio_t io);
   
 int mu_imap_flag_to_attribute (const char *item, int *attr);
 int mu_imap_format_flags (mu_stream_t str, int flags);

@@ -33,6 +33,7 @@ libimapio_la_SOURCES = \
  sendcmde.c\
  time.c\
  trace.c\
+ transport.c\
  words.c\
  xscript.c
 

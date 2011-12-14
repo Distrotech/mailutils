@@ -51,6 +51,8 @@ int mu_imap_capability (mu_imap_t imap, int reread, mu_iterator_t *piter);
 int mu_imap_capability_test (mu_imap_t imap, const char *name,
 			     const char **pret);
 
+int mu_imap_starttls (mu_imap_t imap);
+  
 int mu_imap_login (mu_imap_t imap, const char *user, const char *pass);
 int mu_imap_logout (mu_imap_t imap);
 

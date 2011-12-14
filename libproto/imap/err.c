@@ -62,11 +62,12 @@ mu_imap_strerror (mu_imap_t imap, const char **pstr)
       *pstr = "(imap not initialized)";
       return EINVAL;
     }
-  if (imap->errstr)
+
+  if (MU_IMAP_FISSET (imap, MU_IMAP_RESP))
     {
       *pstr = imap->errstr;
       return 0;
     }
-  *pstr = "(no error)";
+  *pstr = "(no recent reply)";
   return MU_ERR_NOENT;
 }

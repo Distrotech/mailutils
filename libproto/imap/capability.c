@@ -94,14 +94,7 @@ mu_imap_capability (mu_imap_t imap, int reread, mu_iterator_t *piter)
 	    return 0;
 	  return mu_list_get_iterator (imap->capa, piter);
 	}
-      mu_list_clear (imap->capa);
-    }
-  else
-    {
-      status = mu_list_create (&imap->capa);
-      MU_IMAP_CHECK_ERROR (imap, status);
-      mu_list_set_comparator (imap->capa, capa_comp);
-      mu_list_set_destroy_item (imap->capa, mu_list_free_item);
+      mu_list_destroy (&imap->capa);
     }
 
   switch (imap->client_state)
@@ -124,6 +117,9 @@ mu_imap_capability (mu_imap_t imap, int reread, mu_iterator_t *piter)
 	return MU_ERR_REPLY;
       else
 	{
+	  mu_list_set_comparator (imap->capa, capa_comp);
+	  mu_list_set_destroy_item (imap->capa, mu_list_free_item);
+
 	  if (piter)
 	    status = mu_list_get_iterator (imap->capa, piter);
 	  else

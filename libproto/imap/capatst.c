@@ -31,5 +31,6 @@ mu_imap_capability_test (mu_imap_t imap, const char *name, const char **pret)
   rc = mu_imap_capability (imap, 0, NULL);
   if (rc)
     return rc;
+  MU_IMAP_FCLR (imap, MU_IMAP_RESP);
   return mu_list_locate (imap->capa, (void*) name, (void**)pret);
 }

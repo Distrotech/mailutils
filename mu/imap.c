@@ -455,6 +455,15 @@ com_connect (int argc, char **argv)
 }
 
 static int
+com_starttls (int argc MU_ARG_UNUSED, char **argv MU_ARG_UNUSED)
+{
+  int status = mu_imap_starttls (imap);
+  if (status)
+    report_failure ("starttls", status);
+  return 0;
+}
+
+static int
 com_logout (int argc MU_ARG_UNUSED, char **argv MU_ARG_UNUSED)
 {
   int status = 0;
@@ -988,6 +997,10 @@ struct mutool_command imap_comtab[] = {
     com_disconnect,
     NULL,
     N_("close connection") },
+  { "starttls",     1, 1, 0,
+    com_starttls,
+    NULL,
+    N_("Establish TLS encrypted channel") },
   { "login",        2, 3, 0,
     com_login,
     N_("USER [PASS]"),
