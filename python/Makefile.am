@@ -15,4 +15,5 @@
 ## along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>. 
 
 SUBDIRS = libmu_py mailutils
+EXTRA_DIST=usercustomize.py
 
