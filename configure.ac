@@ -1460,6 +1460,7 @@ AC_CONFIG_FILES([
  libproto/pop/Makefile
  libproto/nntp/Makefile
  libproto/imap/Makefile
+ libproto/imap/tests/Makefile
  libmu_compat/Makefile
  maidag/Makefile
  mail/Makefile

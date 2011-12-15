@@ -215,6 +215,8 @@ int _mu_imap_response (mu_imap_t imap, mu_imap_response_action_t fun,
   
 int _mu_imap_list_element_is_string (struct imap_list_element *elt,
 				     const char *str);
+int _mu_imap_list_element_is_nil (struct imap_list_element *elt);
+
 int _mu_imap_list_nth_element_is_string (mu_list_t list, size_t n,
 					 const char *str);
   
@@ -225,7 +227,18 @@ struct imap_list_element *_mu_imap_list_at (mu_list_t list, int idx);
 int _mu_imap_parse_fetch_response (mu_list_t resp, mu_list_t *result_list);
 
 void _mu_close_handler (mu_imap_t imap);
-  
+
+/* ----------------------------- */
+/* URL Auxiliaries               */
+/* ----------------------------- */
+int _mu_imap_url_init (mu_url_t url);
+int _mu_imaps_url_init (mu_url_t url);
+
+/* ----------------------------- */
+/* Folder interface              */
+/* ----------------------------- */
+
+
 # ifdef __cplusplus
 }
 # endif

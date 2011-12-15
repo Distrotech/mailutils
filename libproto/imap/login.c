@@ -22,6 +22,7 @@
 #include <string.h>
 #include <mailutils/errno.h>
 #include <mailutils/stream.h>
+#include <mailutils/secret.h>
 #include <mailutils/sys/imap.h>
 
 int
@@ -77,3 +78,12 @@ mu_imap_login (mu_imap_t imap, const char *user, const char *pass)
   return status;
 }
 
+int
+mu_imap_login_secret (mu_imap_t imap, const char *user, mu_secret_t secret)
+{
+  int rc = mu_imap_login (imap, user, mu_secret_password (secret));
+  mu_secret_password_unref (secret);
+  return rc;
+}
+  
+  

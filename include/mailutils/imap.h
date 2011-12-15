@@ -47,6 +47,10 @@ void mu_imap_destroy (mu_imap_t *pimap);
 int mu_imap_connect (mu_imap_t imap);
 int mu_imap_disconnect (mu_imap_t imap);
 
+int mu_imap_session_state (mu_imap_t imap);
+int mu_imap_iserror (mu_imap_t imap);
+void mu_imap_clearerr (mu_imap_t imap);
+  
 int mu_imap_capability (mu_imap_t imap, int reread, mu_iterator_t *piter);
 int mu_imap_capability_test (mu_imap_t imap, const char *name,
 			     const char **pret);
@@ -54,6 +58,8 @@ int mu_imap_capability_test (mu_imap_t imap, const char *name,
 int mu_imap_starttls (mu_imap_t imap);
   
 int mu_imap_login (mu_imap_t imap, const char *user, const char *pass);
+int mu_imap_login_secret (mu_imap_t imap, const char *user,
+			  mu_secret_t secret);
 int mu_imap_logout (mu_imap_t imap);
 
 int mu_imap_id (mu_imap_t imap, char **idenv, mu_assoc_t *passoc);

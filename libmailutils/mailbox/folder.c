@@ -368,7 +368,8 @@ mu_folder_list (mu_folder_t folder, const char *dirname, void *pattern,
 		size_t max_level,
 		mu_list_t *pflist)
 {
-  return mu_folder_enumerate (folder, dirname, pattern, 0, max_level,
+  return mu_folder_enumerate (folder, dirname, pattern,
+			      MU_FOLDER_ATTRIBUTE_ALL, max_level,
 			      pflist, NULL, NULL);
 }
 

@@ -21,16 +21,14 @@ lib_LTLIBRARIES = libmu_imap.la
 libmu_imap_la_LDFLAGS=-version-info @VI_CURRENT@:@VI_REVISION@:@VI_AGE@
 libmu_imap_la_LIBADD = ${MU_LIB_AUTH} ${MU_LIB_MAILUTILS} @INTLLIBS@ 
 
-# FIXME: Put these back when ready
+SUBDIRS = . tests
 
-#  folder.c\
-#  mbox.c\
-#  url.c
+# FIXME: Put this back when ready
+#  mbox.c
 libmu_imap_la_SOURCES = \
  appmsg.c\
  appstr.c\
  appstrsiz.c\
- fake-folder.c\
  fetch.c\
  gencom.c\
  genlist.c\
@@ -68,5 +66,6 @@ libmu_imap_la_SOURCES = \
  tag.c\
  trace.c\
  unselect.c\
- unsubscribe.c
-
+ unsubscribe.c\
+ folder.c\
+ url.c

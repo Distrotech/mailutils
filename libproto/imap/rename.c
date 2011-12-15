@@ -29,6 +29,9 @@ mu_imap_rename (mu_imap_t imap, const char *mailbox, const char *new_mailbox)
   char const *argv[3];
   static struct imap_command com;
 
+  if (!mailbox || !new_mailbox)
+    return EINVAL;
+
   argv[0] = "RENAME";
   argv[1] = mailbox;
   argv[2] = new_mailbox;

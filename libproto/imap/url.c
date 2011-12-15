@@ -20,18 +20,15 @@
 # include <config.h>
 #endif
 
-#ifdef ENABLE_IMAP
-
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-#ifdef HAVE_STRINGS_H
-# include <strings.h>
-#endif
+#include <string.h>
 
 #include <mailutils/sys/registrar.h>
 #include <mailutils/sys/url.h>
+#include <mailutils/sys/imap.h>
 
 static void url_imap_destroy (mu_url_t url);
 
@@ -47,7 +44,7 @@ url_imap_destroy (mu_url_t url MU_ARG_UNUSED)
 */
 
 int
-_url_imap_init (mu_url_t url)
+_mu_imap_url_init (mu_url_t url)
 {
   if (url->port == 0)
     url->port = MU_IMAP_PORT;
@@ -78,7 +75,7 @@ _url_imap_init (mu_url_t url)
 */
 
 int
-_url_imaps_init (mu_url_t url)
+_mu_imaps_url_init (mu_url_t url)
 {
   if (url->port == 0)
     url->port = MU_IMAPS_PORT;
@@ -102,4 +99,3 @@ _url_imaps_init (mu_url_t url)
   return 0;
 }
 
-#endif /* ENABLE_IMAP */

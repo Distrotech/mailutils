@@ -31,6 +31,9 @@ mu_imap_delete (mu_imap_t imap, const char *mailbox)
   char const *argv[2];
   static struct imap_command com;
 
+  if (!mailbox)
+    return EINVAL;
+  
   argv[0] = "DELETE";
   argv[1] = mailbox;
 

@@ -19,6 +19,7 @@
 # include <config.h>
 #endif
 
+#include <errno.h>
 #include <mailutils/imap.h>
 #include <mailutils/sys/imap.h>
 
@@ -28,6 +29,9 @@ mu_imap_subscribe (mu_imap_t imap, const char *mailbox)
   char const *argv[2];
   static struct imap_command com;
 
+  if (!mailbox)
+    return EINVAL;
+  
   argv[0] = "SUBSCRIBE";
   argv[1] = mailbox;
 

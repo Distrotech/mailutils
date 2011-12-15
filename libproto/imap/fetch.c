@@ -354,11 +354,11 @@ static int
 elt_to_string (struct imap_list_element *elt, char **pstr)
 {
   char *p;
-  
-  if (elt->type != imap_eltype_string)
-    return EINVAL;
-  if (mu_c_strcasecmp (elt->v.string, "NIL") == 0)
+
+  if (_mu_imap_list_element_is_nil (elt))
     p = NULL;
+  else if (elt->type != imap_eltype_string)
+    return EINVAL;
   else
     {
       p = strdup (elt->v.string);
@@ -386,13 +386,13 @@ _fill_subaddr (void *item, void *data)
     return 0;
   
   arg = _mu_imap_list_at (elt->v.list, 0);
-  if (arg && arg->type == imap_eltype_string && strcmp (arg->v.string, "NIL"))
+  if (arg && arg->type == imap_eltype_string)
     personal = arg->v.string;
   arg = _mu_imap_list_at (elt->v.list, 2);
-  if (arg && arg->type == imap_eltype_string && strcmp (arg->v.string, "NIL"))
+  if (arg && arg->type == imap_eltype_string)
     local = arg->v.string;
   arg = _mu_imap_list_at (elt->v.list, 3);
-  if (arg && arg->type == imap_eltype_string && strcmp (arg->v.string, "NIL"))
+  if (arg && arg->type == imap_eltype_string)
     domain = arg->v.string;
 
   if (domain && local)
@@ -414,13 +414,10 @@ _fill_subaddr (void *item, void *data)
 static int
 elt_to_address (struct imap_list_element *elt, mu_address_t *paddr)
 {
-  if (elt->type != imap_eltype_list)
-    {
-      if (mu_c_strcasecmp (elt->v.string, "NIL") == 0)
-	*paddr = NULL;
-      else
-	return EINVAL;
-    }
+  if (_mu_imap_list_element_is_nil (elt))
+    *paddr = NULL;
+  else if (elt->type != imap_eltype_list)
+    return EINVAL;
   else
     {
       struct addr_env addr_env;

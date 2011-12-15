@@ -160,7 +160,7 @@ imap_prompt_env ()
 
 /* Callbacks */
 static void
-imap_popauth_callback (void *data, int code, size_t sdat, void *pdat)
+imap_preauth_callback (void *data, int code, size_t sdat, void *pdat)
 {
   const char *text = pdat;
   if (text)
@@ -425,7 +425,7 @@ com_connect (int argc, char **argv)
 
 	  /* Set callbacks */
 	  mu_imap_register_callback_function (imap, MU_IMAP_CB_PREAUTH,
-					      imap_popauth_callback,
+					      imap_preauth_callback,
 					      NULL);
 	  mu_imap_register_callback_function (imap, MU_IMAP_CB_BYE,
 					      imap_bye_callback,

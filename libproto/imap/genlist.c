@@ -104,13 +104,15 @@ list_untagged_handler (mu_imap_t imap, mu_list_t resp, void *data)
 	}
 
       elt = _mu_imap_list_at (resp, 2);
-      if (!(elt && elt->type == imap_eltype_string))
+      if (!elt)
 	return;
-      if (mu_c_strcasecmp (elt->v.string, "NIL") == 0)
+      if (_mu_imap_list_element_is_nil (elt))
 	{
 	  rp->separator = 0;
 	  rp->level = 0;
 	}
+      else if (elt->type != imap_eltype_string)
+	return;
       else
 	{
 	  rp->separator = elt->v.string[0];
@@ -131,6 +133,9 @@ mu_imap_genlist (mu_imap_t imap, int lsub,
   struct list_closure clos;
   int rc;
 
+  if (!refname || !mboxname)
+    return EINVAL;
+  
   argv[0] = lsub ? "LSUB" : "LIST";
   argv[1] = refname;
   argv[2] = mboxname;

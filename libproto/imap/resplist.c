@@ -57,6 +57,7 @@ _mu_imap_response_list_create (mu_imap_t imap, mu_list_t *plist)
 
 #define IS_LBRACE(p) ((p)[0] == '(')
 #define IS_RBRACE(p) ((p)[0] == ')')
+#define IS_NIL(p) (strcmp (p, "NIL") == 0)
 
 static struct imap_list_element *
 _new_imap_list_element (mu_imap_t imap, enum imap_eltype type)
@@ -181,6 +182,7 @@ _parse_element (struct parsebuf *pb)
       
       if (IS_RBRACE (tok))
 	{
+	  parsebuf_gettok (pb);
 	  elt = _new_imap_list_element (pb->pb_imap, imap_eltype_list);
 	  if (!elt)
 	    {
@@ -202,6 +204,16 @@ _parse_element (struct parsebuf *pb)
       else
 	parsebuf_seterr (pb, MU_ERR_PARSE);
       return NULL;
+    }
+  else if (IS_NIL (tok))
+    {
+      elt = _new_imap_list_element (pb->pb_imap, imap_eltype_list);
+      if (!elt)
+	{
+	  parsebuf_seterr (pb, ENOMEM);
+	  return NULL;
+	}
+      elt->v.list = NULL;
     }
   else
     {
@@ -253,6 +265,12 @@ _mu_imap_list_element_is_string (struct imap_list_element *elt,
   if (elt->type != imap_eltype_string)
     return 0;
   return strcmp (elt->v.string, str) == 0;
+}
+
+int
+_mu_imap_list_element_is_nil (struct imap_list_element *elt)
+{
+  return elt->type == imap_eltype_list && mu_list_is_empty (elt->v.list);
 }
 
 struct imap_list_element *

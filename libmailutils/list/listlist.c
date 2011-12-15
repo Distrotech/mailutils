@@ -99,7 +99,9 @@ mu_list_insert_list (mu_list_t list, void *item, mu_list_t new_list,
 void
 mu_list_append_list (mu_list_t list, mu_list_t new_list)
 {
-  if (list->count == 0)
+  if (new_list->count == 0)
+    return;
+  else if (list->count == 0)
     {
       list->head = new_list->head;
       list->head.next->prev = list->head.prev->next = &list->head;
