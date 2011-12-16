@@ -475,7 +475,7 @@ util_get_homedir ()
 char *
 util_fullpath (const char *inpath)
 {
-  return mu_tilde_expansion (inpath, "/", NULL);
+  return mu_tilde_expansion (inpath, MU_HIERARCHY_DELIMITER, NULL);
 }
 
 char *

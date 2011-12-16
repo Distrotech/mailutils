@@ -94,7 +94,7 @@ mh_read_profile ()
   
   p = getenv ("MH");
   if (p)
-    p = mu_tilde_expansion (p, "/", NULL);
+    p = mu_tilde_expansion (p, MU_HIERARCHY_DELIMITER, NULL);
   else
     {
       char *home = mu_get_homedir ();

@@ -166,7 +166,7 @@ risky_pattern (const char *pattern, int delim)
 
 char *
 namespace_checkfullpath (const char *name, const char *pattern, 
-			 const char *delim, int *nspace)
+			 int *nspace)
 {
   struct namespace_info info;
   const char *p;
@@ -185,7 +185,7 @@ namespace_checkfullpath (const char *name, const char *pattern,
       name = p + 1;
     }
 
-  path = util_getfullpath (name, delim);
+  path = util_getfullpath (name);
   if (!path)
     {
       free (scheme);
@@ -226,7 +226,7 @@ namespace_checkfullpath (const char *name, const char *pattern,
 }
 
 char *
-namespace_getfullpath (const char *name, const char *delim, int *nspace)
+namespace_getfullpath (const char *name, int *nspace)
 {
   char *ret;
   if (mu_c_strcasecmp (name, "INBOX") == 0 && auth_data->change_uid)
@@ -236,7 +236,7 @@ namespace_getfullpath (const char *name, const char *delim, int *nspace)
 	*nspace = NS_PRIVATE;
     }
   else
-    ret = namespace_checkfullpath (name, NULL, delim, nspace);
+    ret = namespace_checkfullpath (name, NULL, nspace);
   return ret;
 }
 

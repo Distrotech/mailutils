@@ -503,7 +503,7 @@ mu_parse_config (const char *file, const char *progname,
 		 void *target_ptr)
 {
   int rc;
-  char *full_name = mu_tilde_expansion (file, "/", NULL);
+  char *full_name = mu_tilde_expansion (file, MU_HIERARCHY_DELIMITER, NULL);
   if (full_name)
     {
       if (access (full_name, R_OK) == 0)

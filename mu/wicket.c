@@ -141,7 +141,7 @@ mutool_wicket (int argc, char **argv)
       return 1;
     }
 
-  wicket_file = mu_tilde_expansion (wicket_file, "/", NULL);
+  wicket_file = mu_tilde_expansion (wicket_file, MU_HIERARCHY_DELIMITER, NULL);
   if (!wicket_file)
     {
       mu_diag_funcall (MU_DIAG_ERROR, "mu_tilde_expansion", wicket_file,

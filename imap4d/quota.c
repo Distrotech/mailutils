@@ -138,7 +138,7 @@ quota_check (mu_off_t size)
 
   total = used_size;
 
-  mailbox_name = namespace_getfullpath ("INBOX", "/", NULL);
+  mailbox_name = namespace_getfullpath ("INBOX", NULL);
   rc = mu_mailbox_create (&mbox, mailbox_name);
   if (rc)
     {

@@ -75,7 +75,8 @@ read_popbull_file (size_t *pnum)
 {
   int rc = 1;
   FILE *fp;
-  char *filename = mu_tilde_expansion ("~/.popbull", "/", auth_data->dir);
+  char *filename = mu_tilde_expansion ("~/.popbull", MU_HIERARCHY_DELIMITER,
+				       auth_data->dir);
   
   if (!filename)
     return 1;
@@ -99,7 +100,8 @@ write_popbull_file (size_t num)
 {
   int rc = 1;
   FILE *fp;
-  char *filename = mu_tilde_expansion ("~/.popbull", "/", auth_data->dir);
+  char *filename = mu_tilde_expansion ("~/.popbull", MU_HIERARCHY_DELIMITER,
+				       auth_data->dir);
   
   if (!filename)
     return 1;

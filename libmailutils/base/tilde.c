@@ -31,7 +31,7 @@
 /* NOTE: Allocates Memory.  */
 /* Expand: ~ --> /home/user and to ~guest --> /home/guest.  */
 char *
-mu_tilde_expansion (const char *ref, const char *delim, const char *homedir)
+mu_tilde_expansion (const char *ref, int delim, const char *homedir)
 {
   char *base = strdup (ref);
   char *home = NULL;
@@ -52,9 +52,9 @@ mu_tilde_expansion (const char *ref, const char *delim, const char *homedir)
       memcpy (proto, base, proto_len);
       proto[proto_len] = 0;
       /* Allow for extra pair of slashes after the protocol specifier */
-      if (*p == delim[0])
+      if (*p == delim)
 	p++;
-      if (*p == delim[0])
+      if (*p == delim)
 	p++;
     }
   else
@@ -63,7 +63,7 @@ mu_tilde_expansion (const char *ref, const char *delim, const char *homedir)
   if (*p == '~')
     {
       p++;
-      if (*p == delim[0] || *p == '\0')
+      if (*p == delim || *p == '\0')
         {
 	  char *s;
 	  if (!homedir)
@@ -88,7 +88,7 @@ mu_tilde_expansion (const char *ref, const char *delim, const char *homedir)
           struct mu_auth_data *auth;
           char *s = p;
           char *name;
-          while (*s && *s != delim[0])
+          while (*s && *s != delim)
             s++;
           name = calloc (s - p + 1, 1);
           memcpy (name, p, s - p);

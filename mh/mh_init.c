@@ -390,8 +390,8 @@ mh_audit_open (char *name, mu_mailbox_t mbox)
   mu_url_t url;
   char *namep;
   
-  namep = mu_tilde_expansion (name, "/", NULL);
-  if (strchr (namep, '/') == NULL)
+  namep = mu_tilde_expansion (name, MU_HIERARCHY_DELIMITER, NULL);
+  if (strchr (namep, MU_HIERARCHY_DELIMITER) == NULL)
     {
       char *p = mh_safe_make_file_name (mu_folder_directory (), namep);
       free (namep);
@@ -487,7 +487,7 @@ mh_expand_name (const char *base, const char *name, int is_folder)
   char *p = NULL;
   char *namep = NULL;
   
-  namep = mu_tilde_expansion (name, "/", NULL);
+  namep = mu_tilde_expansion (name, MU_HIERARCHY_DELIMITER, NULL);
   if (namep[0] == '+')
     memmove (namep, namep + 1, strlen (namep)); /* copy null byte as well */
   else if (strncmp (namep, "../", 3) == 0 || strncmp (namep, "./", 2) == 0)
@@ -536,7 +536,7 @@ mh_find_file (const char *name, char **resolved_name)
 
   if (name[0] == '~')
     {
-      s = mu_tilde_expansion (name, "/", NULL);
+      s = mu_tilde_expansion (name, MU_HIERARCHY_DELIMITER, NULL);
       *resolved_name = s;
       if (access (s, R_OK) == 0)
 	return 0;

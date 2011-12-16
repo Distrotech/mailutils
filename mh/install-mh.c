@@ -69,7 +69,7 @@ main (int argc, char **argv)
 
   name = getenv ("MH");
   if (name)
-    name = mu_tilde_expansion (name, "/", NULL);
+    name = mu_tilde_expansion (name, MU_HIERARCHY_DELIMITER, NULL);
   else
     {
       char *home = mu_get_homedir ();

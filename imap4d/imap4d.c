@@ -325,7 +325,8 @@ imap4d_session_setup0 ()
 
   if (modify_homedir)
     {
-      char *expr = mu_tilde_expansion (modify_homedir, "/", real_homedir);
+      char *expr = mu_tilde_expansion (modify_homedir, MU_HIERARCHY_DELIMITER,
+				       real_homedir);
       struct mu_wordsplit ws;
       const char *env[5];
 

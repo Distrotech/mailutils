@@ -110,7 +110,6 @@ imap4d_rename (struct imap4d_command *command, imap4d_tokbuf_t tok)
   int rc = RESP_OK;
   const char *msg = "Completed";
   struct stat newst;
-  const char *delim = "/";
   int ns;
   
   if (imap4d_tokbuf_argc (tok) != 4)
@@ -123,7 +122,7 @@ imap4d_rename (struct imap4d_command *command, imap4d_tokbuf_t tok)
     return io_completion_response (command, RESP_NO, "Name Inbox is reservered");
 
   /* Allocates memory.  */
-  newname = namespace_getfullpath (newname, delim, &ns);
+  newname = namespace_getfullpath (newname, &ns);
   if (!newname)
     return io_completion_response (command, RESP_NO, "Permission denied");
 
@@ -140,7 +139,7 @@ imap4d_rename (struct imap4d_command *command, imap4d_tokbuf_t tok)
 	}
     }
 
-  if (make_interdir (newname, delim[0], MKDIR_PERMISSIONS))
+  if (make_interdir (newname, MU_HIERARCHY_DELIMITER, MKDIR_PERMISSIONS))
     {
       free (newname);
       return io_completion_response (command, RESP_NO, "Cannot rename");
@@ -202,7 +201,7 @@ imap4d_rename (struct imap4d_command *command, imap4d_tokbuf_t tok)
       return io_completion_response (command, RESP_OK, "Rename successful");
     }
 
-  oldname = namespace_getfullpath (oldname, delim, NULL);
+  oldname = namespace_getfullpath (oldname, NULL);
 
   /* It must exist.  */
   /* FIXME: 1. What if odlname or newname is a remote mailbox?

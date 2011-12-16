@@ -345,7 +345,8 @@ attach_auth_ticket (mu_mailbox_t mbox)
       && mu_folder_get_authority (folder, &auth) == 0
       && auth)
     {
-      char *filename = mu_tilde_expansion (mu_ticket_file, "/", NULL);
+      char *filename = mu_tilde_expansion (mu_ticket_file,
+					   MU_HIERARCHY_DELIMITER, NULL);
       mu_wicket_t wicket;
       int rc;
   
@@ -420,7 +421,7 @@ mu_mailbox_create_default (mu_mailbox_t *pmbox, const char *mail)
 	}
     }
 
-  p = mu_tilde_expansion (mail, "/", NULL);
+  p = mu_tilde_expansion (mail, MU_HIERARCHY_DELIMITER, NULL);
   if (tmp_mbox)
     free (tmp_mbox);
   tmp_mbox = p;

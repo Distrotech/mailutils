@@ -350,10 +350,9 @@ extern mu_list_t namespace[NS_MAX];
   
 extern int namespace_init_session (char *path);
 extern void namespace_init (void);
-extern char *namespace_getfullpath (const char *name, const char *delim,
-				    int *pns);
+extern char *namespace_getfullpath (const char *name, int *pns);
 extern char *namespace_checkfullpath (const char *name, const char *pattern,
-				       const char *delim, int *pns);
+				      int *pns);
 int imap4d_session_setup (char *username);
 int imap4d_session_setup0 (void);
 void imap4d_child_signal_setup (RETSIGTYPE (*handler) (int signo));
@@ -368,8 +367,7 @@ extern void imap4d_capability_init (void);
 extern int  util_start (char *);
 extern int  util_getstate (void);
 extern int  util_do_command (imap4d_tokbuf_t);
-extern char *util_tilde_expansion (const char *, const char *);
-extern char *util_getfullpath (const char *, const char *);
+extern char *util_getfullpath (const char *);
 extern struct imap4d_command *util_getcommand (char *, 
                                                struct imap4d_command []);
 
@@ -396,9 +394,6 @@ extern int util_parse_ctime_date (const char *date, time_t *timep,
 				  enum datetime_parse_mode flag);
 extern char *util_strcasestr (const char *haystack, const char *needle);
 extern char *util_localname (void);
-
-extern int util_wcard_match (const char *string, const char *pattern,
-			     const char *delim);
 
 void util_print_flags (mu_attribute_t attr);
 int util_attribute_matches_flag (mu_attribute_t attr, const char *item);

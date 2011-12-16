@@ -17,28 +17,21 @@
 
 #include "imap4d.h"
 
-/* NOTE: Allocates Memory.  */
-/* Expand: ~ --> /home/user, and ~guest --> /home/guest.  */
-char *
-util_tilde_expansion (const char *ref, const char *delim)
-{
-  return mu_tilde_expansion (ref, delim, imap4d_homedir);
-}
-
 /* Get the absolute path.  */
 /* NOTE: Path is allocated and must be free()d by the caller.  */
 char *
-util_getfullpath (const char *name, const char *delim)
+util_getfullpath (const char *name)
 {
-  char *exp = util_tilde_expansion (name, delim);
-  if (*exp != delim[0])
+  char *exp = mu_tilde_expansion (name, MU_HIERARCHY_DELIMITER,
+				  imap4d_homedir);
+  if (*exp != MU_HIERARCHY_DELIMITER)
     {
       char *p, *s =
-	malloc (strlen (imap4d_homedir) + strlen (delim) + strlen (exp) + 1);
+	malloc (strlen (imap4d_homedir) + 1 + strlen (exp) + 1);
       if (!s)
 	imap4d_bye (ERR_NO_MEM);
       p = mu_stpcpy (s, imap4d_homedir);
-      p = mu_stpcpy (p, (char*) delim);
+      *p++ = MU_HIERARCHY_DELIMITER;
       strcpy (p, exp);
       free (exp);
       exp = s;

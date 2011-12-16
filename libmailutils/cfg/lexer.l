@@ -326,7 +326,7 @@ mu_cfg_parse_file (mu_cfg_tree_t **return_tree, const char *file, int flags)
   struct stat st;
   FILE *fp;
   int rc;
-  char *full_name = mu_tilde_expansion (file, "/", NULL);
+  char *full_name = mu_tilde_expansion (file, MU_HIERARCHY_DELIMITER, NULL);
 
   if (stat (full_name, &st))
     {

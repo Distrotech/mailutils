@@ -232,7 +232,6 @@ imap4d_copy0 (imap4d_tokbuf_t tok, int isuid, char **err_text)
   mu_list_t msglist;
   char *name;
   char *mailbox_name;
-  const char *delim = "/";
   char *end;
   mu_mailbox_t cmbox = NULL;
   int arg = IMAP4_ARG_1 + !!isuid;
@@ -256,7 +255,7 @@ imap4d_copy0 (imap4d_tokbuf_t tok, int isuid, char **err_text)
       return RESP_BAD;
     }
 
-  mailbox_name = namespace_getfullpath (name, delim, &ns);
+  mailbox_name = namespace_getfullpath (name, &ns);
 
   if (!mailbox_name)
     {

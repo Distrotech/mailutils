@@ -37,7 +37,6 @@ int
 imap4d_create (struct imap4d_command *command, imap4d_tokbuf_t tok)
 {
   char *name;
-  const char *delim = "/";
   int isdir = 0;
   int ns;
   int rc = RESP_OK;
@@ -63,11 +62,11 @@ imap4d_create (struct imap4d_command *command, imap4d_tokbuf_t tok)
      The trailing delimiter will be removed by namespace normalizer, so
      test for it now.
   */
-  if (name[strlen (name) - 1] == delim[0])
+  if (name[strlen (name) - 1] == MU_HIERARCHY_DELIMITER)
     isdir = 1;
   
   /* Allocates memory.  */
-  name = namespace_getfullpath (name, delim, &ns);
+  name = namespace_getfullpath (name, &ns);
 
   if (!name)
     return io_completion_response (command, RESP_NO, "Cannot create mailbox");
@@ -75,7 +74,7 @@ imap4d_create (struct imap4d_command *command, imap4d_tokbuf_t tok)
   /* It will fail if the mailbox already exists.  */
   if (access (name, F_OK) != 0)
     {
-      if (make_interdir (name, delim[0], MKDIR_PERMISSIONS))
+      if (make_interdir (name, MU_HIERARCHY_DELIMITER, MKDIR_PERMISSIONS))
 	{
 	  rc = RESP_NO;
 	  msg = "Cannot create mailbox";

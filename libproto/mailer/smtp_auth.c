@@ -32,7 +32,8 @@
 static int
 get_ticket (mu_ticket_t *pticket)
 {
-  char *filename = mu_tilde_expansion (mu_ticket_file, "/", NULL);
+  char *filename = mu_tilde_expansion (mu_ticket_file,
+				       MU_HIERARCHY_DELIMITER, NULL);
   mu_wicket_t wicket;
   int rc;
 

@@ -2961,7 +2961,8 @@ main (int argc, char **argv)
 	}
       message = mh_file_to_message (NULL,
 				    mu_tilde_expansion (input_file,
-							"/", NULL));
+							MU_HIERARCHY_DELIMITER,
+							NULL));
       if (!message)
 	return 1;
     }

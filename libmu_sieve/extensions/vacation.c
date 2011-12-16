@@ -348,7 +348,7 @@ check_db (mu_sieve_machine_t mach, mu_list_t tags, char *from)
   else
     days = DAYS_DEFAULT;
 
-  file = mu_tilde_expansion ("~/.vacation", "/", NULL);
+  file = mu_tilde_expansion ("~/.vacation", MU_HIERARCHY_DELIMITER, NULL);
   if (!file)
     {
       mu_sieve_error (mach, _("%lu: cannot build db file name"),

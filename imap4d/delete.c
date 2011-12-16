@@ -33,7 +33,6 @@ imap4d_delete (struct imap4d_command *command, imap4d_tokbuf_t tok)
 {
   int rc = RESP_OK;
   const char *msg = "Completed";
-  const char *delim = "/";
   char *name;
   mu_mailbox_t tmpbox;
   
@@ -49,7 +48,7 @@ imap4d_delete (struct imap4d_command *command, imap4d_tokbuf_t tok)
     return io_completion_response (command, RESP_NO, "Already exist");
 
  /* Allocates memory.  */
-  name = namespace_getfullpath (name, delim, NULL);
+  name = namespace_getfullpath (name, NULL);
   if (!name)
     return io_completion_response (command, RESP_NO, "Cannot remove");
 

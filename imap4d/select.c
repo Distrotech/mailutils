@@ -58,7 +58,7 @@ imap4d_select0 (struct imap4d_command *command, const char *mboxname,
 
   if (strcmp (mboxname, "INBOX") == 0)
     flags |= MU_STREAM_CREAT;
-  mailbox_name = namespace_getfullpath (mboxname, "/", NULL);
+  mailbox_name = namespace_getfullpath (mboxname, NULL);
 
   if (!mailbox_name)
     return io_completion_response (command, RESP_NO, "Couldn't open mailbox");

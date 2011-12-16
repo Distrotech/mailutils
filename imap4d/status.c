@@ -69,7 +69,6 @@ imap4d_status (struct imap4d_command *command, imap4d_tokbuf_t tok)
 {
   char *name;
   char *mailbox_name;
-  const char *delim = "/";
   mu_mailbox_t smbox = NULL;
   int status;
   int count = 0;
@@ -81,7 +80,7 @@ imap4d_status (struct imap4d_command *command, imap4d_tokbuf_t tok)
   
   name = imap4d_tokbuf_getarg (tok, IMAP4_ARG_1);
 
-  mailbox_name = namespace_getfullpath (name, delim, NULL);
+  mailbox_name = namespace_getfullpath (name, NULL);
 
   if (!mailbox_name)
     return io_completion_response (command, RESP_NO, "Error opening mailbox");

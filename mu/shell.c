@@ -296,7 +296,7 @@ get_history_file_name ()
       strcpy (hname, "~/.mu_");
       strcat (hname, rl_readline_name);
       strcat (hname, HISTFILE_SUFFIX);
-      filename = mu_tilde_expansion (hname, "/", NULL);
+      filename = mu_tilde_expansion (hname, MU_HIERARCHY_DELIMITER, NULL);
       free(hname);
     }
   return filename;

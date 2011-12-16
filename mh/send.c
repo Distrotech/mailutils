@@ -327,7 +327,7 @@ read_mts_profile ()
       name = mh_expand_name (MHLIBDIR, "mtstailor", 0);
       mts_profile = mh_read_property_file (name, 1);
 
-      name = mu_tilde_expansion ("~/.mtstailor", "/", NULL);
+      name = mu_tilde_expansion ("~/.mtstailor", MU_HIERARCHY_DELIMITER, NULL);
       local_profile = mh_read_property_file (name, 1);
 
       mh_property_merge (mts_profile, local_profile);

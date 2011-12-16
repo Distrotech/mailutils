@@ -135,7 +135,6 @@ imap4d_list (struct imap4d_command *command, imap4d_tokbuf_t tok)
 {
   char *ref;
   char *wcard;
-  const char *delim = "/";
 
   if (imap4d_tokbuf_argc (tok) != 4)
     return io_completion_response (command, RESP_BAD, "Invalid arguments");
@@ -147,9 +146,15 @@ imap4d_list (struct imap4d_command *command, imap4d_tokbuf_t tok)
      return the hierarchy.  */
   if (*wcard == '\0')
     {
-      io_untagged_response (RESP_NONE,
-                               "LIST (\\NoSelect) \"%s\" \"%s\"", delim,
-		               (*ref) ? delim : "");
+      if (*ref)
+	io_untagged_response (RESP_NONE,
+			      "LIST (\\NoSelect) \"%c\" \"%c\"",
+			      MU_HIERARCHY_DELIMITER,
+			      MU_HIERARCHY_DELIMITER);
+      else
+	io_untagged_response (RESP_NONE,
+			      "LIST (\\NoSelect) \"%c\" \"\"",
+			      MU_HIERARCHY_DELIMITER);
     }
   /* There is only one mailbox in the "INBOX" hierarchy ... INBOX.  */
   else if (mu_c_strcasecmp (ref, "INBOX") == 0
@@ -222,7 +227,7 @@ imap4d_list (struct imap4d_command *command, imap4d_tokbuf_t tok)
 	}
 
       /* Allocates.  */
-      cwd = namespace_checkfullpath (ref, wcard, delim, NULL);
+      cwd = namespace_checkfullpath (ref, wcard, NULL);
       if (!cwd)
 	{
 	  free (ref);
@@ -255,8 +260,9 @@ imap4d_list (struct imap4d_command *command, imap4d_tokbuf_t tok)
 	 failure; it is not relevant whether the user's real INBOX resides
 	 on this or some other server. */
 
-      if (!*ref && (mu_imap_wildmatch (wcard, "INBOX", delim[0]) == 0
-		    || mu_imap_wildmatch (wcard, "inbox", delim[0]) == 0))
+      if (!*ref &&
+	  (mu_imap_wildmatch (wcard, "INBOX", MU_HIERARCHY_DELIMITER) == 0
+	   || mu_imap_wildmatch (wcard, "inbox", MU_HIERARCHY_DELIMITER) == 0))
 	io_untagged_response (RESP_NONE, "LIST (\\NoInferiors) NIL INBOX");
 
       mu_folder_enumerate (folder, NULL, wcard, 0, 0, NULL,

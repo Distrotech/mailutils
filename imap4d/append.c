@@ -252,7 +252,7 @@ imap4d_append (struct imap4d_command *command, imap4d_tokbuf_t tok)
 
   msg_text = imap4d_tokbuf_getarg (tok, i);
   
-  mboxname = namespace_getfullpath (mboxname, "/", NULL);
+  mboxname = namespace_getfullpath (mboxname, NULL);
   if (!mboxname)
     return io_completion_response (command, RESP_NO, "Couldn't open mailbox"); 
 

@@ -47,11 +47,14 @@ int mu_str_url_decode (char **ptr, const char *s);
   /* ----------------------- */
   /* File & path names.      */
   /* ----------------------- */
+  
+#define MU_HIERARCHY_DELIMITER '/'
+  
 char *mu_get_homedir (void);
 char *mu_get_full_path (const char *file);
 char *mu_normalize_path (char *path);
 char *mu_expand_path_pattern (const char *pattern, const char *username);
-char *mu_tilde_expansion (const char *ref, const char *delim,
+char *mu_tilde_expansion (const char *ref, int delim,
 			  const char *homedir);
 int mu_readlink (const char *name, char **pbuf, size_t *psize, size_t *plen);
 int mu_unroll_symlink (const char *name, char **pout);

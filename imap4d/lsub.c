@@ -37,7 +37,6 @@ imap4d_lsub (struct imap4d_command *command, imap4d_tokbuf_t tok)
   char *ref;
   char *wcard;
   char *pattern;
-  const char *delim = "/";
   mu_property_t prop;
   mu_iterator_t itr;
   
@@ -64,9 +63,9 @@ imap4d_lsub (struct imap4d_command *command, imap4d_tokbuf_t tok)
 	  
 	  mu_iterator_current_kv (itr, (const void **)&name, (void**)&val);
 
-	  if (mu_imap_wildmatch (pattern, name, delim[0]) == 0)
-	    io_untagged_response (RESP_NONE, "LSUB () \"%s\" \"%s\"",
-				  delim, name);
+	  if (mu_imap_wildmatch (pattern, name, MU_HIERARCHY_DELIMITER) == 0)
+	    io_untagged_response (RESP_NONE, "LSUB () \"%c\" \"%s\"",
+				  MU_HIERARCHY_DELIMITER, name);
 	}
     }
   else

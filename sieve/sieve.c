@@ -231,7 +231,7 @@ parser (int key, char *arg, struct argp_state *state)
     case ARGP_KEY_ARG:
       if (script)
 	argp_error (state, _("Only one SCRIPT can be specified"));
-      script = mu_tilde_expansion (arg, "/", NULL);
+      script = mu_tilde_expansion (arg, MU_HIERARCHY_DELIMITER, NULL);
       break;
 
     case ARGP_KEY_INIT:
