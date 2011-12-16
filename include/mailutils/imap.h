@@ -47,7 +47,6 @@ void mu_imap_destroy (mu_imap_t *pimap);
 int mu_imap_connect (mu_imap_t imap);
 int mu_imap_disconnect (mu_imap_t imap);
 
-int mu_imap_session_state (mu_imap_t imap);
 int mu_imap_iserror (mu_imap_t imap);
 void mu_imap_clearerr (mu_imap_t imap);
   
@@ -126,8 +125,8 @@ int mu_imap_trace_mask (mu_imap_t imap, int op, int lev);
 
 int mu_imap_strerror (mu_imap_t imap, const char **pstr);
 
-int mu_imap_state (mu_imap_t imap, int *pstate);
-int mu_imap_state_str (int state, const char **pstr);
+int mu_imap_session_state (mu_imap_t imap);
+int mu_imap_session_state_str (int state, const char **pstr);
 
 int mu_imap_tag (mu_imap_t imap, const char **pseq);
 

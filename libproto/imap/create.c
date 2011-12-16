@@ -65,29 +65,3 @@ _mu_imap_init (mu_imap_t imap)
   return 0;
 }
 
-int
-mu_imap_session_state (mu_imap_t imap)
-{
-  if (!imap)
-    return -1;
-  return imap->session_state;
-}
-
-int
-mu_imap_iserror (mu_imap_t imap)
-{
-  if (!imap)
-    return -1;
-  return imap->client_state == MU_IMAP_CLIENT_ERROR;
-}
-
-void
-mu_imap_clearerr (mu_imap_t imap)
-{
-  if (imap)
-    {
-      imap->client_state = MU_IMAP_CLIENT_READY;
-      if (imap->io)
-	mu_imapio_clearerr (imap->io);
-    }
-}

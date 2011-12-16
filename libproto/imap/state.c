@@ -32,19 +32,37 @@ const char *_mu_imap_state_name[] = {
 int _mu_imap_state_count = MU_ARRAY_SIZE (_mu_imap_state_name);
 
 int
-mu_imap_state (mu_imap_t imap, int *pstate)
+mu_imap_session_state (mu_imap_t imap)
 {
-  if (imap == NULL || pstate == NULL)
-    return EINVAL;
-  *pstate = imap->session_state;
-  return 0;
+  if (!imap)
+    return -1;
+  return imap->session_state;
 }
 
 int
-mu_imap_state_str (int state, const char **pstr)
+mu_imap_session_state_str (int state, const char **pstr)
 {
   if (state < 0 || state >= _mu_imap_state_count)
     return EINVAL;
   *pstr = gettext (_mu_imap_state_name[state]);
   return 0;
+}
+
+int
+mu_imap_iserror (mu_imap_t imap)
+{
+  if (!imap)
+    return -1;
+  return imap->client_state == MU_IMAP_CLIENT_ERROR;
+}
+
+void
+mu_imap_clearerr (mu_imap_t imap)
+{
+  if (imap)
+    {
+      imap->client_state = MU_IMAP_CLIENT_READY;
+      if (imap->io)
+	mu_imapio_clearerr (imap->io);
+    }
 }

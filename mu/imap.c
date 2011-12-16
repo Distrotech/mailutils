@@ -70,7 +70,7 @@ current_imap_state ()
   if (imap == NULL)
     state = MU_IMAP_SESSION_INIT;
   else
-    mu_imap_state (imap, &state);
+    state = mu_imap_session_state (imap);
   return state;
 }
 
@@ -152,7 +152,8 @@ imap_prompt_env ()
   mutool_prompt_env[11] = PACKAGE_VERSION;
 
   mutool_prompt_env[12] = "status";
-  if (mu_imap_state_str (state, (const char **) &mutool_prompt_env[13]))
+  if (mu_imap_session_state_str (state,
+				 (const char **) &mutool_prompt_env[13]))
     mutool_prompt_env[12] = NULL;
 
   mutool_prompt_env[14] = NULL;
