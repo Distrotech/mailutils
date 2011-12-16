@@ -1167,7 +1167,7 @@ case "${enableval}" in
   yes) status_python=yes ;;
   no)  status_python=no ;;
   *)   AC_MSG_ERROR(bad value ${enableval} for --enable-python) ;;
-esac],[status_python=$mu_build_experimental])
+esac],[status_python=yes])
 
 AC_SUBST(PYTHON_LIBS)
 AC_SUBST(PYTHON_INCLUDES)
