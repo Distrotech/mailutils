@@ -36,6 +36,7 @@
 #include <mailutils/url.h>
 #include <mailutils/errno.h>
 #include <mailutils/property.h>
+#include <mailutils/mailbox.h>
 
 #include <mailutils/sys/folder.h>
 
@@ -49,7 +50,7 @@ static struct mu_monitor folder_lock = MU_MONITOR_INITIALIZER;
 int
 mu_folder_match (const char *name, void *pattern, int flags)
 {
-  return fnmatch (pattern, name[0] == '/' ? name + 1 : name, flags);
+  return fnmatch (pattern, name[0] == '/' ? name + 1 : name, 0);
 }
 
 /* A folder could be remote (IMAP), or local(a spool directory) like $HOME/Mail
@@ -249,7 +250,9 @@ mu_folder_get_property (mu_folder_t folder, mu_property_t *prop)
 int
 mu_folder_open (mu_folder_t folder, int flags)
 {
-  if (folder == NULL || folder->_open == NULL)
+  if (folder == NULL)
+    return EINVAL;
+  if (folder->_open == NULL)
     return ENOSYS;
   return folder->_open (folder, flags);
 }
@@ -257,7 +260,9 @@ mu_folder_open (mu_folder_t folder, int flags)
 int
 mu_folder_close (mu_folder_t folder)
 {
-  if (folder == NULL || folder->_close == NULL)
+  if (folder == NULL)
+    return EINVAL;
+  if (folder->_close == NULL)
     return ENOSYS;
   return folder->_close (folder);
 }
@@ -381,8 +386,10 @@ mu_folder_enumerate (mu_folder_t folder, const char *name,
 		     mu_folder_enumerate_fp enumfun, void *enumdata)
 {
   int status;
-  if (folder == NULL || folder->_list == NULL)
+  if (folder == NULL)
     return EINVAL;
+  else if (folder->_list == NULL)
+    return ENOSYS;
   else
     {
       mu_list_t list = NULL;
@@ -412,7 +419,9 @@ mu_folder_lsub (mu_folder_t folder, const char *dirname, const char *basename,
 {
   int status;
   
-  if (folder == NULL || folder->_lsub == NULL)
+  if (folder == NULL)
+    return EINVAL;
+  else if (folder->_lsub == NULL)
     return ENOSYS;
   else
     {
@@ -428,31 +437,64 @@ mu_folder_lsub (mu_folder_t folder, const char *dirname, const char *basename,
 int
 mu_folder_subscribe (mu_folder_t folder, const char *name)
 {
-  if (folder == NULL || folder->_subscribe == NULL)
+  if (folder == NULL)
     return EINVAL;
+  if (folder->_subscribe == NULL)
+    return ENOSYS;
   return folder->_subscribe (folder, name);
 }
 
 int
 mu_folder_unsubscribe (mu_folder_t folder, const char *name)
 {
-  if (folder == NULL || folder->_unsubscribe == NULL)
+  if (folder == NULL)
     return EINVAL;
+  if (folder->_unsubscribe == NULL)
+    return ENOSYS;
   return folder->_unsubscribe (folder, name);
 }
 
 int
 mu_folder_delete (mu_folder_t folder, const char *name)
 {
-  if (folder == NULL || folder->_delete == NULL)
-    return ENOSYS;
-  return folder->_delete (folder, name);
+  int rc;
+  
+  if (folder == NULL)
+    return EINVAL;
+  if (folder->_delete)
+    rc = folder->_delete (folder, name);
+  else
+    {
+      /* If there is no folder-specific _delete method, then try to create the
+	 mailbox and call mailbox delete (remove) method.  This is necessary
+	 because certain types of mailboxes share a common folder (e.g. mbox,
+	 maildir and mh all use filesystem folder), but have a different
+	 internal structure.  Supplying mu_folder_t with a knowledge of mailbox
+	 internals will harm separation of concerns.  On the other hand,
+	 removing something without looking into it may well yield undesired
+	 results.  For example, a MH mailbox can hold another mailboxes, i.e.
+	 be a folder itself.  Removing it blindly would result in removing
+	 these mailboxes as well, which is clearly not indended.
+
+	 To solve this folder and mailbox delete methods are tightly paired,
+	 but without looking into each-others internal mechanisms. */
+      mu_mailbox_t mbox;
+      rc = mu_mailbox_create_at (&mbox, folder, name);
+      if (rc == 0)
+	{
+	  rc = mu_mailbox_remove (mbox);
+	  mu_mailbox_destroy (&mbox);
+	}
+    }
+  return rc;
 }
 
 int
 mu_folder_rename (mu_folder_t folder, const char *oldname, const char *newname)
 {
-  if (folder == NULL || folder->_rename == NULL)
+  if (folder == NULL)
+    return EINVAL;
+  if (folder->_rename == NULL)
     return ENOSYS;
   return folder->_rename (folder, oldname, newname);
 }

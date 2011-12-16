@@ -43,6 +43,8 @@ extern int  mu_mailbox_create_from_record (mu_mailbox_t *pmbox,
 					   mu_record_t record,
 					   const char *name);
 extern int  mu_mailbox_create_default  (mu_mailbox_t *, const char *);
+extern int mu_mailbox_create_at (mu_mailbox_t *pmbox, mu_folder_t folder,
+				 const char *name);
 
 extern void mu_mailbox_destroy         (mu_mailbox_t *);
 

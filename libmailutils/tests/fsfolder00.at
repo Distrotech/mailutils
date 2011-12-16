@@ -1,0 +1,53 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2011 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# GNU Mailutils is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+
+AT_SETUP([List])
+AT_KEYWORDS([fsfolder folder-list])
+
+AT_CHECK([
+mkdir dir
+> dir/foo
+> dir/bar
+> dir/foo.mbox
+mkdir dir/subdir
+> dir/subdir/file
+> dir/subdir/baz.mbox
+
+fsfolder name=dir sort dnl
+ list "" "*" dnl
+ list subdir "*" dnl
+ list "" "*.mbox" dnl
+ list "subdir" "*.mbox"
+],
+[0],
+[listing '' '*'
+d- /    0 dir/bar
+d- /    0 dir/foo
+d- /    0 dir/foo.mbox
+d- /    0 dir/subdir
+d- /    1 dir/subdir/baz.mbox
+d- /    1 dir/subdir/file
+listing 'subdir' '*'
+d- /    0 dir/subdir/baz.mbox
+d- /    0 dir/subdir/file
+listing '' '*.mbox'
+d- /    0 dir/foo.mbox
+d- /    1 dir/subdir/baz.mbox
+listing 'subdir' '*.mbox'
+d- /    0 dir/subdir/baz.mbox
+])
+
+AT_CLEANUP

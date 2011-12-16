@@ -92,6 +92,8 @@ extern int  mu_folder_get_property   (mu_folder_t, mu_property_t *);
 extern int  mu_folder_decrement      (mu_folder_t);
 
 extern void mu_list_response_free    (void *data);
+
+int _mu_fsfolder_init (mu_folder_t folder);
   
 #ifdef __cplusplus
 }

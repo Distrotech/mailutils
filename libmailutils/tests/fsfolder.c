@@ -1,25 +1,38 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 2011 Free Software Foundation, Inc.
 
-   This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
-   License as published by the Free Software Foundation; either
-   version 3 of the License, or (at your option) any later version.
+   GNU Mailutils is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3, or (at your option)
+   any later version.
 
-   This library is distributed in the hope that it will be useful,
+   GNU Mailutils is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Lesser General Public License for more details.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General
-   Public License along with this library.  If not, see
-   <http://www.gnu.org/licenses/>. */
+   You should have received a copy of the GNU General Public License
+   along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>. */
 
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
+#include <stdlib.h>
+#include <string.h>
+#include <mailutils/error.h>
+#include <mailutils/errno.h>
+#include <mailutils/folder.h>
+#include <mailutils/stream.h>
+#include <mailutils/stdstream.h>
+#include <mailutils/list.h>
+#include <mailutils/url.h>
+#include <mailutils/util.h>
+#include <mailutils/registrar.h>
+#include <mailutils/sys/folder.h>
+#include <mailutils/sys/registrar.h>
 
-#include <mailutils/mailutils.h>
+int sort_option;
+int prefix_len;
 
 struct command
 {
@@ -30,15 +43,29 @@ struct command
 };
 
 static int
+compare_response (void const *a, void const *b)
+{
+  struct mu_list_response const *ra = a;
+  struct mu_list_response const *rb = b;
+
+  if (ra->level < rb->level)
+    return -1;
+  if (ra->level > rb->level)
+    return 1;
+  return strcmp (ra->name, rb->name);
+}
+
+static int
 _print_list_entry (void *item, void *data)
 {
   struct mu_list_response *resp = item;
+  int len = data ? *(int*) data : 0;
   mu_printf ("%c%c %c %4d %s\n",
 	     (resp->type & MU_FOLDER_ATTRIBUTE_DIRECTORY) ? 'd' : '-',
 	     (resp->type & MU_FOLDER_ATTRIBUTE_FILE) ? 'f' : '-',
 	     resp->separator ? resp->separator : ' ',
 	     resp->level,
-	     resp->name);
+	     resp->name + len);
   return 0;
 }
 
@@ -48,13 +75,15 @@ com_list (mu_folder_t folder, char **argv)
   int rc;
   mu_list_t list;
   
-  mu_printf ("listing %s %s\n", argv[0], argv[1]);
+  mu_printf ("listing '%s' '%s'\n", argv[0], argv[1]);
   rc = mu_folder_list (folder, argv[0], argv[1], 0, &list);
   if (rc)
     mu_diag_funcall (MU_DIAG_ERROR, "mu_folder_list", argv[0], rc);
   else
     {
-      mu_list_foreach (list, _print_list_entry, NULL);
+      if (sort_option)
+	mu_list_sort (list, compare_response);
+      mu_list_foreach (list, _print_list_entry, &prefix_len);
       mu_list_destroy (&list);
     }
 }
@@ -71,22 +100,11 @@ com_lsub (mu_folder_t folder, char **argv)
     mu_diag_funcall (MU_DIAG_ERROR, "mu_folder_lsub", argv[0], rc);
   else
     {
+      if (sort_option)
+	mu_list_sort (list, compare_response);
       mu_list_foreach (list, _print_list_entry, NULL);
       mu_list_destroy (&list);
     }
-}
-
-static void
-com_delete (mu_folder_t folder, char **argv)
-{
-  int rc;
-  
-  mu_printf ("deleting %s\n", argv[0]);
-  rc = mu_folder_delete (folder, argv[0]);
-  if (rc)
-    mu_diag_funcall (MU_DIAG_ERROR, "mu_folder_lsub", argv[0], rc);
-  else
-    mu_printf ("delete successful\n");
 }
 
 static void
@@ -131,7 +149,6 @@ com_unsubscribe (mu_folder_t folder, char **argv)
 static struct command comtab[] = {
   { "list", 2, "REF MBX", com_list },
   { "lsub", 2, "REF MBX", com_lsub },
-  { "delete", 1, "MBX", com_delete },
   { "rename", 2, "OLD NEW", com_rename },
   { "subscribe", 1, "MBX", com_subscribe },
   { "unsubscribe", 1, "MBX", com_unsubscribe },
@@ -155,12 +172,37 @@ usage ()
   struct command *cp;
   
   mu_printf (
-    "usage: %s [debug=SPEC] url=URL OP ARG [ARG...] [OP ARG [ARG...]...]\n",
+    "usage: %s [debug=SPEC] name=URL OP ARG [ARG...] [OP ARG [ARG...]...]\n",
     mu_program_name);
   mu_printf ("OPerations and corresponding ARGuments are:\n");
   for (cp = comtab; cp->verb; cp++)
     mu_printf (" %s %s\n", cp->verb, cp->args);
 }
+
+static int
+_always_is_scheme (mu_record_t record, mu_url_t url, int flags)
+{
+  return 1;
+}
+
+static struct _mu_record test_record =
+{
+  0,
+  "file",
+  MU_RECORD_LOCAL,
+  MU_URL_SCHEME | MU_URL_PATH,
+  MU_URL_PATH,
+  mu_url_expand_path, /* URL init.  */
+  NULL, /* Mailbox init.  */
+  NULL, /* Mailer init.  */
+  _mu_fsfolder_init, /* Folder init.  */
+  NULL, /* No need for an back pointer.  */
+  _always_is_scheme, /* _is_scheme method.  */
+  NULL, /* _get_url method.  */
+  NULL, /* _get_mailbox method.  */
+  NULL, /* _get_mailer method.  */
+  NULL  /* _get_folder method.  */
+};
 
 int
 main (int argc, char **argv)
@@ -171,8 +213,7 @@ main (int argc, char **argv)
   char *fname = NULL;
   
   mu_set_program_name (argv[0]);
-  mu_registrar_record (mu_imap_record);
-  mu_registrar_record (mu_imaps_record);
+  mu_registrar_record (&test_record);
 
   if (argc == 1)
     {
@@ -184,25 +225,36 @@ main (int argc, char **argv)
     {
       if (strncmp (argv[i], "debug=", 6) == 0)
 	mu_debug_parse_spec (argv[i] + 6);
-      else if (strncmp (argv[i], "url=", 4) == 0)
-	fname = argv[i] + 4;
+      else if (strncmp (argv[i], "name=", 5) == 0)
+	fname = argv[i] + 5;
+      else if (strcmp (argv[i], "sort") == 0)
+	sort_option = 1;
       else
 	break;
     }
 
   if (!fname)
     {
-      mu_error ("URL not specified");
+      mu_error ("name not specified");
       exit (1);
     }
-      
+  
+  if (fname[0] != '/')
+    {
+      char *cwd = mu_getcwd ();
+      prefix_len = strlen (cwd);
+      if (cwd[prefix_len-1] != '/')
+	prefix_len++;
+      fname = mu_make_file_name (cwd, fname);
+      free (cwd);
+    }
+  
   rc = mu_folder_create (&folder, fname);
   if (rc)
     {
       mu_diag_funcall (MU_DIAG_ERROR, "mu_folder_create", fname, rc);
       return 1;
     }
-  
   rc = mu_folder_open (folder, MU_STREAM_READ);
   if (rc)
     {

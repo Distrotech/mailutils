@@ -25,6 +25,7 @@ libmailbox_la_SOURCES =  \
  body.c\
  envelope.c\
  folder.c\
+ fsfolder.c\
  hdrfirst.c\
  hdritr.c\
  header.c\

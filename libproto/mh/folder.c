@@ -37,12 +37,6 @@
 #include <mailutils/util.h>
 #include <mailutils/cctype.h>
 
-static int
-_mh_folder_init (mu_folder_t folder MU_ARG_UNUSED)
-{
-  return 0;
-}
-
 /* Check if NAME is a valid MH message name */
 static int
 mh_message_name_p (const char *name)
@@ -90,13 +84,11 @@ static int
 _mh_is_scheme (mu_record_t record, mu_url_t url, int flags)
 {
   int rc = 0;
+  int scheme_matched = mu_url_is_scheme (url, record->scheme);
   
-  if (mu_url_is_scheme (url, record->scheme))
-    return MU_FOLDER_ATTRIBUTE_ALL & flags;
-
-  if (mu_scheme_autodetect_p (url))
+  if (scheme_matched || mu_scheme_autodetect_p (url))
     {
-      /* Attemp auto-detection */
+      /* Attempt auto-detection */
       const char *path;
       struct stat st;
       
@@ -104,18 +96,27 @@ _mh_is_scheme (mu_record_t record, mu_url_t url, int flags)
         return 0;
 
       if (stat (path, &st) < 0)
-	return 0; /* mu_mailbox_open will complain*/
-
+	{
+	  if (errno == ENOENT && scheme_matched)
+	    return MU_FOLDER_ATTRIBUTE_ALL & flags; 
+	  return 0; /* mu_mailbox_open will complain*/
+	}
+      
       if (!S_ISDIR (st.st_mode))
 	return 0;
 
-      rc |= (MU_FOLDER_ATTRIBUTE_DIRECTORY & flags);
+      if (scheme_matched)
+	rc = MU_FOLDER_ATTRIBUTE_ALL;
+      else
+	{
+	  rc |= MU_FOLDER_ATTRIBUTE_DIRECTORY;
       
-      if ((flags & MU_FOLDER_ATTRIBUTE_FILE) && mh_dir_p (path))
-        return rc | MU_FOLDER_ATTRIBUTE_FILE;
+	  if ((flags & MU_FOLDER_ATTRIBUTE_FILE) && mh_dir_p (path))
+	    rc |= MU_FOLDER_ATTRIBUTE_FILE;
+	}
     }
 
-  return 0;
+  return rc & flags;
 }
 
 static int
@@ -142,7 +143,7 @@ static struct _mu_record _mh_record =
   mu_url_expand_path, /* Url init.  */
   _mailbox_mh_init, /* Mailbox init.  */
   NULL, /* Mailer init.  */
-  _mh_folder_init, /* Folder init.  */
+  _mu_fsfolder_init, /* Folder init.  */
   NULL, /* back pointer.  */
   _mh_is_scheme, /* _is_scheme method.  */
   NULL, /* _get_url method.  */

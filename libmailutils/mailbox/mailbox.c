@@ -41,6 +41,7 @@
 #include <mailutils/util.h>
 
 #include <mailutils/sys/mailbox.h>
+#include <mailutils/sys/folder.h>
 #include <mailutils/sys/url.h>
 
 /* Mailbox-specific flags */
@@ -76,7 +77,8 @@ mailbox_folder_create (mu_mailbox_t mbox, const char *name,
 int
 _mailbox_create_from_record (mu_mailbox_t *pmbox,
 			     mu_record_t record,
-			     mu_url_t url, 
+			     mu_url_t url,
+			     mu_folder_t folder,
 			     const char *name)
 {
   int (*m_init) (mu_mailbox_t) = NULL;
@@ -127,10 +129,16 @@ _mailbox_create_from_record (mu_mailbox_t *pmbox,
 	}
       
       mbox->url = url;
-      
-      /* Create the folder before initializing the concrete mailbox.
-	 The mailbox needs it's back pointer. */
-      status = mailbox_folder_create (mbox, name, record);
+
+      if (folder)
+	{
+	  folder->ref++; /* FIXME: No ref/unref function for folders */
+	  mbox->folder = folder;
+	}
+      else
+	/* Create the folder before initializing the concrete mailbox.
+	   The mailbox needs it's back pointer. */
+	status = mailbox_folder_create (mbox, name, record);
       
       if (status == 0)
 	status = m_init (mbox);   /* Create the concrete mailbox type.  */
@@ -152,11 +160,12 @@ static int
 _create_mailbox0 (mu_mailbox_t *pmbox, mu_url_t url, const char *name)
 {
   mu_record_t record = NULL;
-
-  if (mu_registrar_lookup_url (url, MU_FOLDER_ATTRIBUTE_FILE, &record, NULL)
-      == 0)
-    return _mailbox_create_from_record (pmbox, record, url, name);
-  return ENOSYS;
+  int rc;
+  
+  rc = mu_registrar_lookup_url (url, MU_FOLDER_ATTRIBUTE_FILE, &record, NULL);
+  if (rc == 0)
+    rc = _mailbox_create_from_record (pmbox, record, url, NULL, name);
+  return rc;
 }
 
 static int
@@ -203,7 +212,71 @@ mu_mailbox_create_from_record (mu_mailbox_t *pmbox, mu_record_t record,
   rc = mu_url_create (&url, name);
   if (rc)
     return rc;
-  rc = _mailbox_create_from_record (pmbox, record, url, name);
+  rc = _mailbox_create_from_record (pmbox, record, url, NULL, name);
+  if (rc)
+    mu_url_destroy (&url);
+  return rc;
+}
+
+int
+mu_mailbox_create_at (mu_mailbox_t *pmbox, mu_folder_t folder,
+		      const char *name)
+{
+  int rc;
+  mu_url_t url;
+  const char *oldpath;
+  
+  rc = mu_url_dup (folder->url, &url);
+  if (rc)
+    return rc;
+  do
+    {
+      char *path;
+      size_t oldlen, len;
+      mu_record_t record;
+      
+      rc = mu_url_sget_path (url, &oldpath);
+      if (rc)
+	break;
+
+      oldlen = strlen (oldpath);
+      if (oldlen == 0)
+	{
+	  path = strdup (name);
+	  if (!path)
+	    {
+	      rc = ENOMEM;
+	      break;
+	    }
+	}
+      else
+	{
+	  if (oldpath[oldlen-1] == '/')
+	    oldlen--;
+	  len = oldlen + 1 + strlen (name) + 1;
+	  path = malloc (len);
+	  if (!path)
+	    {
+	      rc = ENOMEM;
+	      break;
+	    }
+	  memcpy (path, oldpath, oldlen);
+	  path[oldlen++] = '/';
+	  strcpy (path + oldlen, name);
+	}
+      rc = mu_url_set_path (url, path);
+      free (path);
+      if (rc)
+	break;
+
+      rc = mu_registrar_lookup_url (url, MU_FOLDER_ATTRIBUTE_FILE,
+				    &record, NULL);
+      if (rc)
+	break;
+      rc = _mailbox_create_from_record (pmbox, record, url, folder, name);
+    }
+  while (0);
+
   if (rc)
     mu_url_destroy (&url);
   return rc;
@@ -314,7 +387,24 @@ mu_mailbox_remove (mu_mailbox_t mbox)
   if (mbox->flags & _MU_MAILBOX_REMOVED)
     return MU_ERR_MBX_REMOVED;
   if (!mbox->_remove)
-    return MU_ERR_EMPTY_VFN;
+    {
+      /* Try the owning folder delete method.  See comment to mu_folder_delete
+	 in folder.c.  This may result in a recursive call to mu_mailbox_remove
+	 which is blocked by setting the _MU_MAILBOX_REMOVED flag. */
+
+      int rc;
+      const char *path;
+      
+      rc = mu_url_sget_path (mbox->url, &path);
+      if (rc == 0)
+	{
+	  mbox->flags |= _MU_MAILBOX_REMOVED;
+	  rc = mu_folder_delete (mbox->folder, path);
+	  if (rc)
+	    mbox->flags &= ~_MU_MAILBOX_REMOVED;
+	}
+      return rc;
+    }
   return mbox->_remove (mbox);
 }
 
@@ -689,7 +779,7 @@ mu_mailbox_set_folder (mu_mailbox_t mbox, mu_folder_t folder)
 {
   if (mbox == NULL)
     return EINVAL;
-   mbox->folder = folder;
+  mbox->folder = folder;
   return 0;
 }
 

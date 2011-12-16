@@ -37,12 +37,6 @@
 #include <mailutils/sys/amd.h>
 
 static int
-_maildir_folder_init (mu_folder_t folder MU_ARG_UNUSED)
-{
-  return 0;
-}
-
-static int
 dir_exists (const char *name, const char *suf)
 {
   struct stat st;
@@ -59,31 +53,42 @@ dir_exists (const char *name, const char *suf)
 static int
 _maildir_is_scheme (mu_record_t record, mu_url_t url, int flags)
 {
-  if (mu_url_is_scheme (url, record->scheme))
-    return MU_FOLDER_ATTRIBUTE_FILE & flags; 
-
-  if (mu_scheme_autodetect_p (url))
+  int scheme_matched = mu_url_is_scheme (url, record->scheme);
+  int rc = 0;
+  
+  if (scheme_matched || mu_scheme_autodetect_p (url))
     {
       /* Attemp auto-detection */
       const char *path;
       struct stat st;
-      
+
       if (mu_url_sget_path (url, &path))
         return 0;
 
       if (stat (path, &st) < 0)
-	return 0; 
-
+	{
+	  if (errno == ENOENT && scheme_matched)
+	    return MU_FOLDER_ATTRIBUTE_ALL & flags; 
+	  return 0; 
+	}
+      
       if (!S_ISDIR (st.st_mode))
 	return 0;
 
-      if ((flags & MU_FOLDER_ATTRIBUTE_FILE)
-	  && dir_exists (path, TMPSUF)
-	     && dir_exists (path, CURSUF)
- 	     && dir_exists (path, NEWSUF))
-        return MU_FOLDER_ATTRIBUTE_FILE|MU_FOLDER_ATTRIBUTE_DIRECTORY;
+      if (scheme_matched)
+	rc = MU_FOLDER_ATTRIBUTE_ALL;
+      else
+	{
+	  rc |= MU_FOLDER_ATTRIBUTE_DIRECTORY;
+      
+	  if ((flags & MU_FOLDER_ATTRIBUTE_FILE)
+	      && dir_exists (path, TMPSUF)
+	      && dir_exists (path, CURSUF)
+	      && dir_exists (path, NEWSUF))
+	    rc |= MU_FOLDER_ATTRIBUTE_FILE;
+	}
     }
-  return 0;
+  return rc & flags;
 }
 
 static int
@@ -106,7 +111,7 @@ static struct _mu_record _maildir_record =
   mu_url_expand_path, /* Url init.  */
   _mailbox_maildir_init, /* Mailbox init.  */
   NULL, /* Mailer init.  */
-  _maildir_folder_init, /* Folder init.  */
+  _mu_fsfolder_init, /* Folder init.  */
   NULL, /* back pointer.  */
   _maildir_is_scheme, /* _is_scheme method.  */
   NULL, /* _get_url method.  */

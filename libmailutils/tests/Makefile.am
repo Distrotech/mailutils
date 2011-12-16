@@ -47,6 +47,7 @@ noinst_PROGRAMS = \
  encode2047\
  fltst\
  fsaf\
+ fsfolder\
  imapio\
  listop\
  mailcap\
@@ -78,6 +79,9 @@ TESTSUITE_AT = \
  encode2047.at\
  fromflt.at\
  fsaf.at\
+ fsfolder00.at\
+ fsfolder01.at\
+ fsfolder02.at\
  hdrflt.at\
  imapio.at\
  inline-comment.at\

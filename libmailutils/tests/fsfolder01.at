@@ -1,0 +1,74 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2011 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# GNU Mailutils is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+
+AT_SETUP([Subscriptions])
+AT_KEYWORDS([fsfolder folder-subscribe])
+
+AT_CHECK([
+mkdir dir
+fsfolder name=dir sort lsub "" "*"
+fsfolder name=dir subscribe foo
+fsfolder name=dir sort lsub "" "*"
+fsfolder name=dir subscribe baz subscribe foo/baz subscribe foo/bar
+fsfolder name=dir sort lsub "" "*"
+fsfolder name=dir sort lsub foo "*"
+fsfolder name=dir sort lsub "" 'foo*'
+fsfolder name=dir unsubscribe baz
+fsfolder name=dir sort lsub "" "*"
+fsfolder name=dir unsubscribe foo
+fsfolder name=dir sort lsub "" "*"
+],
+[0],
+[listing subscriptions for '' '*'
+subscribing foo
+subscribe successful
+listing subscriptions for '' '*'
+-f /    0 foo
+subscribing baz
+subscribe successful
+subscribing foo/baz
+subscribe successful
+subscribing foo/bar
+subscribe successful
+listing subscriptions for '' '*'
+-f /    0 baz
+-f /    0 foo
+-f /    0 foo/bar
+-f /    0 foo/baz
+listing subscriptions for 'foo' '*'
+-f /    0 foo/bar
+-f /    0 foo/baz
+listing subscriptions for '' 'foo*'
+-f /    0 foo
+-f /    0 foo/bar
+-f /    0 foo/baz
+unsubscribing baz
+unsubscribe successful
+listing subscriptions for '' '*'
+-f /    0 foo
+-f /    0 foo/bar
+-f /    0 foo/baz
+unsubscribing foo
+unsubscribe successful
+listing subscriptions for '' '*'
+-f /    0 foo/bar
+-f /    0 foo/baz
+])
+
+AT_CLEANUP
+
+
+

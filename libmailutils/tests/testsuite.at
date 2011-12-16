@@ -68,6 +68,11 @@ m4_include([mailcap.at])
 m4_include([wicket.at])
 m4_include([prop.at])
 
+AT_BANNER(File-system folder)
+m4_include([fsfolder00.at])
+m4_include([fsfolder01.at])
+m4_include([fsfolder02.at])
+
 AT_BANNER(Base64)
 m4_include([base64e.at])
 m4_include([base64d.at])
