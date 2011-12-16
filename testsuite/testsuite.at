@@ -18,9 +18,19 @@ m4_include([testsuite.inc])
 
 AT_INIT
 
+AT_BANNER(UIDs)
 m4_include([lstuid00.at])
 m4_include([lstuid01.at])
 m4_include([lstuid02.at])
+
+AT_BANNER(mimetest)
 m4_include([mime.at])
+
+AT_BANNER(Mailbox removal)
 m4_include([mbdel.at])
+
+AT_BANNER(Folder mailbox removal)
+m4_include([fldel.at])
+
+AT_BANNER(Various)
 m4_include([ufms.at])

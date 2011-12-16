@@ -79,6 +79,7 @@ smtpsend_LDADD = \
 ## ------------ ##
 
 TESTSUITE_AT = \
+ fldel.at\
  lstuid00.at\
  lstuid01.at\
  lstuid02.at\

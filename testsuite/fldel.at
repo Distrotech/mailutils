@@ -15,64 +15,67 @@
 # along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
 
 dnl ------------------------------------------------------------
-dnl MBDEL_TEST([FORMAT], [PROG],
+dnl FLDEL_TEST([FORMAT], [PROG],
 dnl             [CODE], [STDOUT = `'], [STDERR = `'],
 dnl             [RUN-IF-FAIL], [RUN-IF-PASS])
-m4_pushdef([MBDEL_TEST],[
-AT_SETUP([Mailbox deletion: $1])
-AT_KEYWORDS([mailbox mbdel mbdel-$1])
+m4_pushdef([FLDEL_TEST],[
+AT_SETUP([Folder deletion: $1])
+AT_KEYWORDS([folder fldel fldel-$1])
 AT_CHECK([$2],[$3],[$4],[$5],[$6],[$7],[$8])
 AT_CLEANUP
 ])
 
 dnl ------------------------------------------------------------
-MBDEL_TEST([mbox],
-[MUT_MBCOPY($abs_top_srcdir/testsuite/spool/mbox1)
-mbdel mbox:mbox1 || exit 2
-test -f mbox1
+FLDEL_TEST([mbox],
+[mkdir dir
+MUT_MBCOPY($abs_top_srcdir/testsuite/spool/mbox1, dir/mbox1)
+fldel mbox:dir mbox1 || exit 2
+test -f dir/mbox1
 ],
 [1])
 
-MBDEL_TEST([mh],
+FLDEL_TEST([mh],
 [test "$MH_SUPPORT" = yes || AT_SKIP_TEST
-MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1)
-mbdel mh:mbox1 || exit 2
-test -d mbox1
+mkdir dir
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1, dir/mbox1)
+fldel mh:dir mbox1 || exit 2
+test -d dir/mbox1
 ],
 [1])
 
-MBDEL_TEST([maildir],
+FLDEL_TEST([maildir],
 [test "$MAILDIR_SUPPORT" = yes || AT_SKIP_TEST
-MUT_MBCOPY($abs_top_srcdir/testsuite/maildir/mbox1)
-mbdel maildir:mbox1 || exit 2
-test -d mbox1
+mkdir dir
+MUT_MBCOPY($abs_top_srcdir/testsuite/maildir/mbox1, dir/mbox1)
+fldel maildir:dir mbox1 || exit 2
+test -d dir/mbox1
 ],
 [1])
 
-MBDEL_TEST([mh with subdirs],
+FLDEL_TEST([mh with subdirs],
 [test "$MH_SUPPORT" = yes || AT_SKIP_TEST
-MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1)
-mkdir mbox1/subfolder
-mbdel mh:mbox1 || exit 2
-test -d mbox1 && find mbox1
+mkdir dir
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1, dir/mbox1)
+mkdir dir/mbox1/subfolder
+fldel mh:dir mbox1 || exit 2
+test -d dir/mbox1 && find dir/mbox1
 ],
 [0],
 [mailbox removed, but has subfolders
-mbox1
-mbox1/subfolder
+dir/mbox1
+dir/mbox1/subfolder
 ])
 
-MBDEL_TEST([maildir with subdirs],
+FLDEL_TEST([maildir with subdirs],
 [test "$MAILDIR_SUPPORT" = yes || AT_SKIP_TEST
-MUT_MBCOPY($abs_top_srcdir/testsuite/maildir/mbox1)
-mkdir mbox1/subfolder
-mbdel maildir:mbox1 || exit 2
-test -d mbox1 && find mbox1
+mkdir dir
+MUT_MBCOPY($abs_top_srcdir/testsuite/maildir/mbox1, dir/mbox1)
+mkdir dir/mbox1/subfolder
+fldel maildir:dir mbox1 || exit 2
+test -d dir/mbox1 && find dir/mbox1
 ],
 [0],
 [mailbox removed, but has subfolders
-mbox1
-mbox1/subfolder
+dir/mbox1
+dir/mbox1/subfolder
 ])
-
-m4_popdef([MBDEL_TEST])
