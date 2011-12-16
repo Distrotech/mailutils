@@ -54,6 +54,7 @@ pkginclude_HEADERS = \
  header.h\
  imap.h\
  imapio.h\
+ imaputil.h\
  io.h\
  iterator.h\
  kwd.h\

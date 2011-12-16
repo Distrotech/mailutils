@@ -26,6 +26,7 @@
 #include <mailutils/mailutils.h>
 #include <mailutils/imap.h>
 #include <mailutils/imapio.h>
+#include <mailutils/imaputil.h>
 #include "mu.h"
 #include "argp.h"
 #include "xalloc.h"

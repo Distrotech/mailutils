@@ -72,6 +72,12 @@ extern int  mu_folder_set_stream     (mu_folder_t, mu_stream_t);
 extern int mu_folder_set_match (mu_folder_t folder, mu_folder_match_fp pmatch);
 extern int mu_folder_get_match (mu_folder_t folder,
 				mu_folder_match_fp *pmatch);
+
+  /* Two often used matchers: */
+  /* 1. The default: IMAP-style wildcards: */
+extern int mu_folder_imap_match (const char *name, void *pattern, int flags);
+  /* 2. UNIX-style glob(7) wildcards: */
+extern int mu_folder_glob_match (const char *name, void *pattern, int flags);
   
   /* Notifications.  */
 extern int  mu_folder_get_observable (mu_folder_t, mu_observable_t *);

@@ -37,6 +37,7 @@
 #include <mailutils/errno.h>
 #include <mailutils/property.h>
 #include <mailutils/mailbox.h>
+#include <mailutils/imaputil.h>
 
 #include <mailutils/sys/folder.h>
 
@@ -48,9 +49,15 @@ static int is_known_folder (mu_url_t, mu_folder_t *);
 static struct mu_monitor folder_lock = MU_MONITOR_INITIALIZER;
 
 int
-mu_folder_match (const char *name, void *pattern, int flags)
+mu_folder_glob_match (const char *name, void *pattern, int flags)
 {
   return fnmatch (pattern, name[0] == '/' ? name + 1 : name, 0);
+}
+
+int
+mu_folder_imap_match (const char *name, void *pattern, int flags)
+{
+  return mu_imap_wildmatch (pattern, name, '/');
 }
 
 /* A folder could be remote (IMAP), or local(a spool directory) like $HOME/Mail
@@ -126,7 +133,7 @@ mu_folder_create_from_record (mu_folder_t *pfolder, mu_url_t url,
 		  if (status == 0)
 		    {
 		      if (!folder->_match)
-			folder->_match = mu_folder_match;
+			folder->_match = mu_folder_imap_match;
 		      *pfolder = folder;
 		      folder->ref++;
 		      /* Put on the internal list of known folders.  */
@@ -147,7 +154,7 @@ mu_folder_create_from_record (mu_folder_t *pfolder, mu_url_t url,
 	}
     }
 
-    return MU_ERR_NOENT;
+  return MU_ERR_NOENT;
 }
 
 int

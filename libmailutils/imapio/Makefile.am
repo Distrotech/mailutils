@@ -31,9 +31,11 @@ libimapio_la_SOURCES = \
  sendcmd.c\
  sendcmdv.c\
  sendcmde.c\
+ sendflg.c\
  time.c\
  trace.c\
  transport.c\
+ wildmatch.c\
  words.c\
  xscript.c
 

@@ -172,7 +172,7 @@ usage ()
   struct command *cp;
   
   mu_printf (
-    "usage: %s [debug=SPEC] name=URL OP ARG [ARG...] [OP ARG [ARG...]...]\n",
+    "usage: %s [-debug=SPEC] -name=URL [-sort] [-glob] OP ARG [ARG...] [OP ARG [ARG...]...]\n",
     mu_program_name);
   mu_printf ("OPerations and corresponding ARGuments are:\n");
   for (cp = comtab; cp->verb; cp++)
@@ -211,6 +211,7 @@ main (int argc, char **argv)
   int rc;
   mu_folder_t folder;
   char *fname = NULL;
+  int glob_option = 0;
   
   mu_set_program_name (argv[0]);
   mu_registrar_record (&test_record);
@@ -223,12 +224,14 @@ main (int argc, char **argv)
 
   for (i = 1; i < argc; i++)
     {
-      if (strncmp (argv[i], "debug=", 6) == 0)
-	mu_debug_parse_spec (argv[i] + 6);
-      else if (strncmp (argv[i], "name=", 5) == 0)
-	fname = argv[i] + 5;
-      else if (strcmp (argv[i], "sort") == 0)
+      if (strncmp (argv[i], "-debug=", 7) == 0)
+	mu_debug_parse_spec (argv[i] + 7);
+      else if (strncmp (argv[i], "-name=", 6) == 0)
+	fname = argv[i] + 6;
+      else if (strcmp (argv[i], "-sort") == 0)
 	sort_option = 1;
+      else if (strcmp (argv[i], "-glob") == 0)
+	glob_option = 1;
       else
 	break;
     }
@@ -261,6 +264,9 @@ main (int argc, char **argv)
       mu_diag_funcall (MU_DIAG_ERROR, "mu_folder_open", fname, rc);
       return 1;
     }
+
+  if (glob_option)
+    mu_folder_set_match (folder, mu_folder_glob_match);
   
   while (i < argc)
     {

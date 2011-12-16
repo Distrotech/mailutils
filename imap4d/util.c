@@ -566,63 +566,6 @@ util_localname ()
   return localname;
 }
 
-/* Match STRING against the IMAP4 wildcard pattern PATTERN. */
-
-#define WILD_FALSE 0
-#define WILD_TRUE  1
-#define WILD_ABORT 2
-
-int
-_wild_match (const char *expr, const char *name, char delim)
-{
-  while (expr && *expr)
-    {
-      if (*name == 0 && *expr != '*')
-	return WILD_ABORT;
-      switch (*expr)
-	{
-	case '*':
-	  while (*++expr == '*')
-	    ;
-	  if (*expr == 0)
-	    return WILD_TRUE;
-	  while (*name)
-	    {
-	      int res = _wild_match (expr, name++, delim);
-	      if (res != WILD_FALSE)
-		return res;
-	    }
-	  return WILD_ABORT;
-
-	case '%':
-	  while (*++expr == '%')
-	    ;
-	  if (*expr == 0)
-	    return strchr (name, delim) ? WILD_FALSE : WILD_TRUE;
-	  while (*name && *name != delim)
-	    {
-	      int res = _wild_match (expr, name++, delim);
-	      if (res != WILD_FALSE)
-		return res;
-	    }
-	  return _wild_match (expr, name, delim);
-	  
-	default:
-	  if (*expr != *name)
-	    return WILD_FALSE;
-	  expr++;
-	  name++;
-	}
-    }
-  return *name == 0;
-}
-
-int
-util_wcard_match (const char *name, const char *expr, const char *delim)
-{
-  return _wild_match (expr, name, delim[0]) != WILD_TRUE;
-}
-
 /* Return the uindvalidity of a mailbox.
    When a mailbox is selected, whose first message does not keep X-UIDVALIDITY
    value, the uidvalidity is computed basing on the return of time(). Now,

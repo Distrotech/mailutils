@@ -19,12 +19,6 @@
 #include <dirent.h>
 #include <pwd.h>
 
-static int
-imap4d_match (const char *name, void *pat, int flags)
-{
-  return util_wcard_match (name, pat, "/");
-}
-
 struct refinfo
 {
   char *refptr;   /* Original reference */
@@ -243,7 +237,8 @@ imap4d_list (struct imap4d_command *command, imap4d_tokbuf_t tok)
 	  return io_completion_response (command, RESP_NO,
 			              "The requested item could not be found.");
 	}
-      mu_folder_set_match (folder, imap4d_match);
+      /* Force the right matcher */
+      mu_folder_set_match (folder, mu_folder_imap_match);
 
       memset (&refinfo, 0, sizeof refinfo);
 
@@ -260,8 +255,8 @@ imap4d_list (struct imap4d_command *command, imap4d_tokbuf_t tok)
 	 failure; it is not relevant whether the user's real INBOX resides
 	 on this or some other server. */
 
-      if (!*ref && (imap4d_match ("INBOX", wcard, 0) == 0
-		    || imap4d_match ("inbox", wcard, 0) == 0))
+      if (!*ref && (mu_imap_wildmatch (wcard, "INBOX", delim[0]) == 0
+		    || mu_imap_wildmatch (wcard, "inbox", delim[0]) == 0))
 	io_untagged_response (RESP_NONE, "LIST (\\NoInferiors) NIL INBOX");
 
       mu_folder_enumerate (folder, NULL, wcard, 0, 0, NULL,

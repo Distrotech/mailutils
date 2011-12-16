@@ -20,10 +20,10 @@ AT_KEYWORDS([fsfolder folder-rename])
 AT_CHECK([
 mkdir dir
 > dir/foo
-fsfolder name=dir rename foo bar
-fsfolder name=dir list "" "*"
+fsfolder -name=dir rename foo bar
+fsfolder -name=dir list "" "*"
 > dir/baz
-fsfolder name=dir rename bar baz
+fsfolder -name=dir rename bar baz
 ],
 [0],
 [renaming foo to bar

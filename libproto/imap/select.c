@@ -25,6 +25,7 @@
 #include <mailutils/assoc.h>
 #include <mailutils/stream.h>
 #include <mailutils/imap.h>
+#include <mailutils/imaputil.h>
 #include <mailutils/sys/imap.h>
 
 static int

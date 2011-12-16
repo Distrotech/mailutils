@@ -106,6 +106,7 @@
 #include <mailutils/io.h>
 #include <mailutils/prog.h>
 #include <mailutils/imapio.h>
+#include <mailutils/imaputil.h>
 
 #include <mu_umaxtostr.h>
 #include <muaux.h>

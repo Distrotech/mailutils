@@ -26,7 +26,7 @@ mkdir dir/subdir
 > dir/subdir/file
 > dir/subdir/baz.mbox
 
-fsfolder name=dir sort dnl
+fsfolder -name=dir -sort dnl
  list "" "*" dnl
  list subdir "*" dnl
  list "" "*.mbox" dnl

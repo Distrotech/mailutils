@@ -64,7 +64,7 @@ imap4d_lsub (struct imap4d_command *command, imap4d_tokbuf_t tok)
 	  
 	  mu_iterator_current_kv (itr, (const void **)&name, (void**)&val);
 
-	  if (util_wcard_match (name, pattern, delim) == 0)
+	  if (mu_imap_wildmatch (pattern, name, delim[0]) == 0)
 	    io_untagged_response (RESP_NONE, "LSUB () \"%s\" \"%s\"",
 				  delim, name);
 	}

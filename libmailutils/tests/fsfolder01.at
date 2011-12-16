@@ -19,17 +19,17 @@ AT_KEYWORDS([fsfolder folder-subscribe])
 
 AT_CHECK([
 mkdir dir
-fsfolder name=dir sort lsub "" "*"
-fsfolder name=dir subscribe foo
-fsfolder name=dir sort lsub "" "*"
-fsfolder name=dir subscribe baz subscribe foo/baz subscribe foo/bar
-fsfolder name=dir sort lsub "" "*"
-fsfolder name=dir sort lsub foo "*"
-fsfolder name=dir sort lsub "" 'foo*'
-fsfolder name=dir unsubscribe baz
-fsfolder name=dir sort lsub "" "*"
-fsfolder name=dir unsubscribe foo
-fsfolder name=dir sort lsub "" "*"
+fsfolder -name=dir -sort lsub "" "*"
+fsfolder -name=dir subscribe foo
+fsfolder -name=dir -sort lsub "" "*"
+fsfolder -name=dir subscribe baz subscribe foo/baz subscribe foo/bar
+fsfolder -name=dir -sort lsub "" "*"
+fsfolder -name=dir -sort lsub foo "*"
+fsfolder -name=dir -sort lsub "" 'foo*'
+fsfolder -name=dir unsubscribe baz
+fsfolder -name=dir -sort lsub "" "*"
+fsfolder -name=dir unsubscribe foo
+fsfolder -name=dir -sort lsub "" "*"
 ],
 [0],
 [listing subscriptions for '' '*'
