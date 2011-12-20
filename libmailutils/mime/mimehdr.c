@@ -56,13 +56,11 @@ _mu_mime_param_free (struct mu_mime_param *p)
 /* Treat ITEM as a pointer to struct mu_mime_param and reclaim all
    memory associated with it.
 
-   This is intended for use as a destroy_item method of assoc tables and
-   lists. */
+   This is intended for use as a destroy_item method of assoc tables. */
 static void
 _mu_mime_param_free_item (void *item)
 {
   _mu_mime_param_free (item);
-  free (item);
 }
 
 /* Recode a string between two charsets.
