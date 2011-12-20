@@ -28,19 +28,8 @@
 #include <mailutils/stream.h>
 #include <mailutils/filter.h>
 #include <mailutils/errno.h>
+#include <mailutils/mime.h>
 #include <mailutils/util.h>
-
-static int
-realloc_buffer (char **bufp, size_t *bufsizep, size_t incr)
-{
-  size_t newsize = *bufsizep + incr;
-  char *newp = realloc (*bufp, newsize);
-  if (newp == NULL)
-    return 1;
-  *bufp = newp;
-  *bufsizep = newsize;
-  return 0;
-}
 
 int
 getword (char **pret, const char **pstr, int delim)
@@ -65,52 +54,32 @@ getword (char **pret, const char **pstr, int delim)
   return 0;
 }
     
-int
-mu_rfc2047_decode (const char *tocode, const char *input, char **ptostr)
+static int
+_rfc2047_decode_param (const char *tocode, const char *input,
+		       struct mu_mime_param *param)
 {
   int status = 0;
   const char *fromstr;
-  char *buffer;
-  size_t bufsize;
-  size_t bufpos;
   size_t run_count = 0;
   char *fromcode = NULL;
   char *encoding_type = NULL;
   char *encoded_text = NULL;
+  char *tocodetmp = NULL;
+  mu_stream_t str;
 
-#define BUFINC 128  
-#define CHKBUF(count) do {                       \
-  if (bufpos+count >= bufsize)                   \
-    {                                            \
-      size_t s = bufpos + count - bufsize;       \
-      if (s < BUFINC)                            \
-        s = BUFINC;                              \
-      if (realloc_buffer (&buffer, &bufsize, s)) \
-	{                                        \
-	  free (buffer);                         \
-          free (fromcode);                       \
-          free (encoding_type);                  \
-          free (encoded_text);                   \
-	  return ENOMEM;                         \
-	}                                        \
-     }                                           \
- } while (0) 
+  memset (param, 0, sizeof (*param));
+
+  status = mu_memory_stream_create (&str, MU_STREAM_RDWR);
+  if (status)
+    return status;
+
+  if (tocode && (param->cset = strdup (tocode)) == NULL)
+    {
+      mu_stream_destroy (&str);
+      return ENOMEM;
+    }
   
-  if (!input)
-    return EINVAL;
-  if (!ptostr)
-    return MU_ERR_OUT_PTR_NULL;
-
   fromstr = input;
-
-  /* Allocate the buffer. It is assumed that encoded string is always
-     longer than it's decoded variant, so it's safe to use its length
-     as the first estimate */
-  bufsize = strlen (fromstr) + 1;
-  buffer = malloc (bufsize);
-  if (buffer == NULL)
-    return ENOMEM;
-  bufpos = 0;
   
   while (*fromstr)
     {
@@ -119,13 +88,39 @@ mu_rfc2047_decode (const char *tocode, const char *input, char **ptostr)
 	  mu_stream_t filter = NULL;
 	  mu_stream_t in_stream = NULL;
 	  const char *filter_type = NULL;
-	  size_t nbytes = 0, size;
+	  size_t size;
 	  const char *sp = fromstr + 2;
-	  char tmp[128];
+	  char *lang;
 	  
 	  status = getword (&fromcode, &sp, '?');
 	  if (status)
 	    break;
+	  lang = strchr (fromcode, '*');
+	  if (lang)
+	    *lang++ = 0;
+	  if (!param->cset)
+	    {
+	      param->cset = strdup (fromcode);
+	      if (!param->cset)
+		{
+		  status = ENOMEM;
+		  break;
+		}
+	    }
+	  if (lang && !param->lang && (param->lang = strdup (lang)) == NULL)
+	    {
+	      status = ENOMEM;
+	      break;
+	    }
+	  if (!tocode)
+	    {
+	      if ((tocodetmp = strdup (fromcode)) == NULL)
+		{
+		  status = ENOMEM;
+		  break;
+		}
+	      tocode = tocodetmp;
+	    }
 	  status = getword (&encoding_type, &sp, '?');
 	  if (status)
 	    break;
@@ -162,22 +157,12 @@ mu_rfc2047_decode (const char *tocode, const char *input, char **ptostr)
 
 	  mu_static_memory_stream_create (&in_stream, encoded_text, size);
 	  mu_stream_seek (in_stream, 0, MU_SEEK_SET, NULL);
-	  status = mu_decode_filter (&filter, in_stream, filter_type, fromcode,
-				     tocode);
+	  status = mu_decode_filter (&filter, in_stream, filter_type,
+				     fromcode, tocode);
 	  mu_stream_unref (in_stream);
 	  if (status != 0)
 	    break;
-
-	  while ((status =
-		  mu_stream_read (filter, tmp, sizeof (tmp), &nbytes)) == 0
-		 && nbytes)
-	    {
-	      CHKBUF (nbytes);
-	      memcpy (buffer + bufpos, tmp, nbytes);
-	      bufpos += nbytes;
-	    }
-
-	  mu_stream_close (filter);
+	  status = mu_stream_copy (str, filter, 0, NULL);
 	  mu_stream_destroy (&filter);
 
 	  if (status)
@@ -198,44 +183,89 @@ mu_rfc2047_decode (const char *tocode, const char *input, char **ptostr)
 	    {
 	      if (--run_count)
 		{
-		  CHKBUF (run_count);
-		  memcpy (buffer + bufpos, fromstr - run_count, run_count);
-		  bufpos += run_count;
+		  status = mu_stream_write (str, fromstr - run_count,
+					    run_count, NULL);
+		  if (status)
+		    break;
 		  run_count = 0;
 		}
-	      CHKBUF (1);
-	      buffer[bufpos++] = *fromstr++;
+	      status = mu_stream_write (str, fromstr, 1, NULL);
+	      if (status)
+		break;
+	      fromstr++;
 	    }
 	}
       else
 	{
-	  CHKBUF (1);
-	  buffer[bufpos++] = *fromstr++;
+	  status = mu_stream_write (str, fromstr, 1, NULL);
+	  if (status)
+	    break;
+	  fromstr++;
 	}
     }
   
-  if (*fromstr)
-    {
-      size_t len = strlen (fromstr);
-      CHKBUF (len);
-      memcpy (buffer + bufpos, fromstr, len);
-      bufpos += len;
-    }
+  if (status == 0 && *fromstr)
+    status = mu_stream_write (str, fromstr, strlen (fromstr), NULL);
 
-  CHKBUF (1);
-  buffer[bufpos++] = 0;
-  
   free (fromcode);
   free (encoding_type);
   free (encoded_text);
+  free (tocodetmp);
+  
+  if (status == 0)
+    {
+      mu_off_t size;
 
-  if (status)
-    free (buffer);
-  else
-    *ptostr = realloc (buffer, bufpos);
+      mu_stream_size (str, &size);
+      param->value = malloc (size + 1);
+      if (!param->value)
+	status = ENOMEM;
+      else
+	{
+	  mu_stream_seek (str, 0, MU_SEEK_SET, NULL);
+	  status = mu_stream_read (str, param->value, size, NULL);
+	  param->value[size] = 0;
+	}
+    }
+  
+  mu_stream_destroy (&str);
   return status;
 }
 
+int
+mu_rfc2047_decode_param (const char *tocode, const char *input,
+			 struct mu_mime_param *param)
+{
+  int rc;
+  struct mu_mime_param tmp;
+
+  if (!input)
+    return EINVAL;
+  if (!param)
+    return MU_ERR_OUT_PTR_NULL;
+  rc = _rfc2047_decode_param (tocode, input, &tmp);
+  if (rc == 0)
+    *param = tmp;
+  return rc;
+}
+
+int
+mu_rfc2047_decode (const char *tocode, const char *input, char **ptostr)
+{
+  int rc;
+  struct mu_mime_param param;
+  
+  if (!input)
+    return EINVAL;
+  if (!ptostr)
+    return MU_ERR_OUT_PTR_NULL;
+  rc = _rfc2047_decode_param (tocode, input, &param);
+  free (param.cset);
+  free (param.lang);
+  if (rc == 0)
+    *ptostr = param.value;
+  return rc;
+}
 
 /**
    Encode a header according to RFC 2047

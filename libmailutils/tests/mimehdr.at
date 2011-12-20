@@ -1,0 +1,131 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2011 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# GNU Mailutils is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+
+# Warning: This text contains 8-bit UTF-8
+
+AT_BANNER(RFC 2231 header fields)
+
+dnl ---------------------------------------------------------------------
+dnl MIMEHDR([NAME], [KW], [OPT], [INPUT], [STDOUT = `'], [STDERR = `'])
+dnl
+m4_pushdef([MIMEHDR],[
+m4_pushdef([MU_TEST_GROUP],[mimehdr])
+m4_pushdef([MU_TEST_KEYWORDS],[mimehdr rfc2231])
+m4_pushdef([MU_TEST_COMMAND],[mimehdr $3])
+MU_GENERIC_TEST([$1],[$2],[$4],[],[$5],[$6])
+m4_popdef([MU_TEST_COMMAND])
+m4_popdef([MU_TEST_KEYWORDS])
+m4_popdef([MU_TEST_GROUP])
+])
+dnl ---------------------------------------------------------------------
+
+MIMEHDR([simple],[mimehdr00 mimehdr-simple],
+[],
+[message/external-body; access-type=URL;
+    URL="ftp://cs.utk.edu/pub/moore/bulk-mailer/bulk-mailer.tar"
+],
+[message/external-body
+access-type=URL
+URL=ftp://cs.utk.edu/pub/moore/bulk-mailer/bulk-mailer.tar
+])
+
+MIMEHDR([continuation],[mimehdr01 mimehdr-cont mimehdr-cont-00],
+[],
+[message/external-body; access-type=URL;
+         URL*0="ftp://";
+         URL*1="cs.utk.edu/pub/moore/bulk-mailer/bulk-mailer.tar"
+],
+[message/external-body
+access-type=URL
+URL=ftp://cs.utk.edu/pub/moore/bulk-mailer/bulk-mailer.tar
+])
+
+MIMEHDR([charset (2047)],[mimehdr02 mimehdr-charset-rfc2047 mimehdr-charset-00],
+[],
+[attachment; charset=utf-8;
+  filename==?UTF-8?B?zrHPgc+HzrXOr86/IM6zzrnOsSDPhM63zr0gzrTOv866zrnOvM6xz4POr86x==?=
+],
+[attachment
+charset=utf-8
+filename=αρχείο για την δοκιμασία
+])
+
+MIMEHDR([charset with language (2047)],[mimehdr03 mimehdr-charset-rfc2047 mimehdr-charset-01],
+[],
+[attachment; charset=utf-8;
+  filename==?UTF-8*el?B?zrHPgc+HzrXOr86/IM6zzrnOsSDPhM63zr0gzrTOv866zrnOvM6xz4POr86x==?=
+],
+[attachment
+charset=utf-8
+filename(lang:el/UTF-8)=αρχείο για την δοκιμασία
+])
+
+MIMEHDR([no charset (2231)],[mimehdr04 mimehdr-no-charset-rfc2231 mimehdr-nocharset-00],
+[],
+[attachment; charset=utf-8;
+  filename*=%CE%B1%CF%81%CF%87%CE%B5%CE%AF%CE%BF%20%CE%B3%CE%B9%CE%B1%20%CF%84%CE%B7%CE%BD%20%CE%B4%CE%BF%CE%BA%CE%B9%CE%BC%CE%B1%CF%83%CE%AF%CE%B1
+],
+[attachment
+charset=utf-8
+filename=αρχείο για την δοκιμασία
+])
+
+MIMEHDR([charset (2231)],[mimehdr05 mimehdr-charset-rfc2231 mimehdr-charset-rfc2231-00 mimehdr-charset-03],
+[],
+[attachment; charset=utf-8;
+  filename*=UTF-8''%CE%B1%CF%81%CF%87%CE%B5%CE%AF%CE%BF%20%CE%B3%CE%B9%CE%B1%20%CF%84%CE%B7%CE%BD%20%CE%B4%CE%BF%CE%BA%CE%B9%CE%BC%CE%B1%CF%83%CE%AF%CE%B1
+],
+[attachment
+charset=utf-8
+filename(lang:/UTF-8)=αρχείο για την δοκιμασία
+])
+
+MIMEHDR([charset with language (2231)],[mimehdr06 mimehdr-charset-rfc2231 mimehdr-charset-rfc2231-01 mimehdr-charset-04],
+[],
+[attachment; charset=utf-8;
+  filename*=UTF-8'el_GR'%CE%B1%CF%81%CF%87%CE%B5%CE%AF%CE%BF%20%CE%B3%CE%B9%CE%B1%20%CF%84%CE%B7%CE%BD%20%CE%B4%CE%BF%CE%BA%CE%B9%CE%BC%CE%B1%CF%83%CE%AF%CE%B1
+],
+[attachment
+charset=utf-8
+filename(lang:el_GR/UTF-8)=αρχείο για την δοκιμασία
+])
+
+MIMEHDR([charset with language and continuation (2231)],[mimehdr07 mimehdr-charset-rfc2231 mimehdr-charset-rfc2231-02 mimehdr-charset-05],
+[],
+[attachment; charset=utf-8;
+  filename*00*=UTF-8'el_GR'%CE%B1%CF%81%CF%87%CE%B5;
+  filename*01*=%CE%AF%CE%BF%20%CE%B3%CE;
+  filename*02*=%B9%CE%B1%20%CF%84%CE%B7;
+  filename*03*=%CE%BD%20%CE%B4%CE%BF%CE;
+  filename*04*=%BA%CE%B9%CE%BC%CE%B1%CF%83%CE%AF%CE%B1
+],
+[attachment
+charset=utf-8
+filename(lang:el_GR/UTF-8)=αρχείο για την δοκιμασία
+])
+
+MIMEHDR([combined charset, lang and cset],[mimehdr08 mimehdr-comb mimehdr-charset-rfc2231],
+[],
+[application/x-stuff
+    title*0*=us-ascii'en'This%20is%20even%20more%20
+    title*1*=%2A%2A%2Afun%2A%2A%2A%20
+    title*2="isn't it!"
+],
+[application/x-stuff
+title(lang:en/us-ascii)=This is even more ***fun*** isn't it!
+])
+
+m4_popdef([MIMEHDR])

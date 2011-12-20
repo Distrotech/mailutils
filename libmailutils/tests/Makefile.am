@@ -51,6 +51,7 @@ noinst_PROGRAMS = \
  imapio\
  listop\
  mailcap\
+ mimehdr\
  prop\
  scantime\
  strftime\
@@ -88,6 +89,7 @@ TESTSUITE_AT = \
  linecon.at\
  list.at\
  mailcap.at\
+ mimehdr.at\
  prop.at\
  scantime.at\
  strftime.at\

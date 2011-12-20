@@ -73,7 +73,7 @@ mu_decode_filter_args (mu_stream_t *pfilter, mu_stream_t input,
 
   rc = mu_filter_chain_create (pfilter, input,
 			       MU_FILTER_DECODE, MU_STREAM_READ,
-			       xargc, xargv);
+			       i, xargv);
   free (xargv);
   return rc;
 }

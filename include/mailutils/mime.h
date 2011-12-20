@@ -29,6 +29,13 @@
 extern "C" {
 #endif
 
+struct mu_mime_param
+{
+  char *lang;
+  char *cset;
+  char *value;
+};
+
 int mu_mime_create	(mu_mime_t *pmime, mu_message_t msg, int flags);
 void mu_mime_destroy	(mu_mime_t *pmime);
 void mu_mime_ref        (mu_mime_t mime);
@@ -49,13 +56,22 @@ int mu_rfc2047_decode   (const char *tocode, const char *fromstr,
 
 int mu_rfc2047_encode   (const char *charset, const char *encoding, 
 			 const char *text, char **result);
+int mu_rfc2047_decode_param (const char *tocode, const char *input,
+			     struct mu_mime_param *param);
 
 int mu_base64_encode    (const unsigned char *input, size_t input_len,
 			 unsigned char **output, size_t * output_len);
 
 int mu_base64_decode    (const unsigned char *input, size_t input_len,
 			 unsigned char **output, size_t * output_len);
+
 
+int mu_mime_header_parse (const char *text, char *charset, char **pvalue,
+			  mu_assoc_t *paramtab);
+int mu_mime_header_parse_subset (const char *text, const char *charset,
+				 char **pvalue,
+				 mu_assoc_t assoc);
+  
 #ifdef __cplusplus
 }
 #endif
