@@ -713,8 +713,8 @@ addr_field_by_mask (mu_address_t addr, int mask)
 {
   switch (mask)						
     {
-    case MU_ADDR_HINT_ADDR:
-      return addr->addr;
+    case MU_ADDR_HINT_PRINTABLE:
+      return addr->printable;
 	  
     case MU_ADDR_HINT_COMMENTS:				
       return addr->comments;					
@@ -758,7 +758,7 @@ addr_free_fields (mu_address_t a, int memflag)
 {
   char *p;
   
-  if ((p = addr_field_by_mask (a, memflag & MU_ADDR_HINT_ADDR)))
+  if ((p = addr_field_by_mask (a, memflag & MU_ADDR_HINT_PRINTABLE)))
     free (p);
   if ((p = addr_field_by_mask (a, memflag & MU_ADDR_HINT_COMMENTS)))
     free (p);

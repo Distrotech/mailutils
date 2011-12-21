@@ -287,7 +287,7 @@ static int
 _mime_header_parse (const char *text, char **pvalue,
 		    mu_assoc_t assoc, const char *outcharset, int subset)
 {
-  int rc;
+  int rc = 0;
   struct mu_wordsplit ws;
   struct param_continuation cont;
   size_t i;

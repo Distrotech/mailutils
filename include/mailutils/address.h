@@ -25,7 +25,7 @@
 extern "C" {
 #endif
 
-#define MU_ADDR_HINT_ADDR       0x0001 /* Not used yet */
+#define MU_ADDR_HINT_PRINTABLE  0x0001 /* Not used yet */
 #define MU_ADDR_HINT_COMMENTS   0x0002
 #define MU_ADDR_HINT_PERSONAL   0x0004
 #define MU_ADDR_HINT_EMAIL      0x0008
@@ -42,9 +42,11 @@ extern "C" {
  */
 struct mu_address
 {
-  char *addr;
-  	/* the original string that this list of addresses was created
-	 * from, only present at the head of the list */
+  char *printable;
+  	/* Printable representation of this address.  Normally, it is
+	 * the original string that this list of addresses was created
+	 * from, only present at the head of the list
+	 */
 
   char *comments;
   	/* the collection of comments stripped during parsing this MAILBOX */
@@ -129,8 +131,12 @@ extern int mu_address_aget_route
 
 extern int mu_address_is_group
 	(mu_address_t, size_t, int*);
-
-extern int mu_address_to_string (mu_address_t, char *, size_t, size_t *);
+  
+extern int mu_address_sget_printable (mu_address_t addr, const char **sptr);
+extern int mu_address_aget_printable (mu_address_t addr, char **presult);
+extern int mu_address_get_printable (mu_address_t addr, char *buf, size_t len,
+				     size_t *n);
+  
 extern int mu_address_get_count (mu_address_t, size_t *);
 extern int mu_address_get_group_count (mu_address_t, size_t *);
 extern int mu_address_get_email_count (mu_address_t, size_t *);
@@ -139,8 +145,21 @@ extern int mu_address_get_unix_mailbox_count (mu_address_t, size_t *);
 extern int mu_address_contains_email (mu_address_t addr, const char *email);
 extern int mu_address_union (mu_address_t *a, mu_address_t b);
   
-extern size_t mu_address_format_string (mu_address_t addr, char *buf, size_t buflen);
+extern int mu_stream_format_address (mu_stream_t str, mu_address_t addr);
 
+  /* Deprecated calls */
+  
+extern int mu_address_to_string (mu_address_t, char *, size_t, size_t *)
+  MU_DEPRECATED; /* Use mu_address_get_printable, if you really have to */
+  
+extern size_t mu_address_format_string (mu_address_t addr, char *buf,
+					size_t buflen)
+  MU_DEPRECATED; /* Use mu_stream_format_address, or any of the
+		    _get_printable functions */
+
+extern int mu_validate_email (mu_address_t subaddr);
+
+  
 #ifdef __cplusplus
 }
 #endif

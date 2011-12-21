@@ -112,8 +112,8 @@ addr_fieldptr_by_mask (mu_address_t addr, int mask)
 {
   switch (mask)						
     {
-    case MU_ADDR_HINT_ADDR:
-      return &addr->addr;
+    case MU_ADDR_HINT_PRINTABLE:
+      return &addr->printable;
 	  
     case MU_ADDR_HINT_COMMENTS:				
       return &addr->comments;					

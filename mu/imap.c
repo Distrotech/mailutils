@@ -196,12 +196,7 @@ format_email (mu_stream_t str, const char *name, mu_address_t addr)
   if (!addr)
     mu_stream_printf (str, "NIL");
   else
-    {
-      size_t sz = mu_address_format_string (addr, NULL, 0);
-      char *buf = xmalloc (sz + 1);
-      mu_address_format_string (addr, buf, sz);
-      mu_stream_write (str, buf, strlen (buf), NULL);
-    }
+    mu_stream_format_address (str, addr);
   mu_stream_printf (str, "\n");
 }
 

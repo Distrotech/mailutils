@@ -358,7 +358,8 @@ typedef int (*mh_alias_enumerator_t) (char *alias, mu_list_t names, void *data);
 void mh_alias_enumerate (mh_alias_enumerator_t fun, void *data);
 
 
-void mh_annotate (mu_message_t msg, char *field, char *text, int date);
+void mh_annotate (mu_message_t msg, const char *field, const char *text,
+		  int date);
 
 #define MHL_DECODE       1
 #define MHL_CLEARSCREEN  2

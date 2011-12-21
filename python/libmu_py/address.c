@@ -267,17 +267,14 @@ static PyObject *
 api_address_to_string (PyObject *self, PyObject *args)
 {
   int status;
-  size_t n;
-  char buf[256];
+  char const *sptr;
   PyAddress *py_addr;
-
-  memset (buf, 0, sizeof (buf));
 
   if (!PyArg_ParseTuple (args, "O!", &PyAddressType, &py_addr))
     return NULL;
 
-  status = mu_address_to_string (py_addr->addr, buf, sizeof (buf), &n);
-  return status_object (status, PyString_FromString (buf));
+  status = mu_address_sget_printable (py_addr->addr, &sptr);
+  return status_object (status, PyString_FromString (sptr));
 }
 
 static PyMethodDef methods[] = {

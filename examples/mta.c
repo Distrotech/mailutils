@@ -437,26 +437,17 @@ message_finalize (mu_message_t msg, int warn)
 
   if (finalize_option && !have_to)
     {
-      size_t n;
+      char const *sptr;
       int c;
       
-      c = mu_address_to_string (recipients, NULL, 0, &n);
+      c = mu_address_sget_printable (recipients, &sptr);
       if (c)
 	{
-	  mu_error ("%s: mu_address_to_string failure: %s",
+	  mu_error ("%s: mu_address_sget_printable failure: %s",
 		    progname, mu_strerror (c));
 	  return 1;
 	}
-      value = malloc (n + 1);
-      if (!value)
-	{
-	  mu_error ("%s: not enough memory", progname);
-	  return 1;
-	}
-
-      mu_address_to_string (recipients, value, n + 1, &n);
-      mu_header_set_value (header, MU_HEADER_TO, value, 1);
-      free (value);
+      mu_header_set_value (header, MU_HEADER_TO, sptr, 1);
     }
   return 0;
 }

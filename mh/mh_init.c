@@ -852,7 +852,7 @@ mh_install (char *name, int automode)
 }
         
 void
-mh_annotate (mu_message_t msg, char *field, char *text, int date)
+mh_annotate (mu_message_t msg, const char *field, const char *text, int date)
 {
   mu_header_t hdr;
   mu_attribute_t attr;

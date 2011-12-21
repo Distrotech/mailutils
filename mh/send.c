@@ -475,11 +475,10 @@ get_sender_personal ()
 static void
 set_address_header (mu_header_t hdr, char *name, mu_address_t addr)
 {
-  size_t s = mu_address_format_string (addr, NULL, 0);
-  char *value = xmalloc (s + 1);
-  mu_address_format_string (addr, value, s);
-  mu_header_set_value (hdr, name, value, 1);
-  free (value);
+  const char *value;
+  if (mu_address_sget_printable (addr, &value) == 0)
+    mu_header_set_value (hdr, name, value, 1);
+  /* FIXME: Error reporting */
 }
 
 void

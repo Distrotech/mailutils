@@ -1801,7 +1801,6 @@ static void
 builtin_formataddr (struct mh_machine *mach)
 {
   mu_address_t addr, dest;
-  size_t size;
   int i;
   size_t num;
   const char *buf;
@@ -1837,12 +1836,12 @@ builtin_formataddr (struct mh_machine *mach)
 	}
     }
 
-  if (mu_address_to_string (dest, NULL, 0, &size) == 0)
+  if (mu_address_sget_printable (dest, &buf) == 0)
     {
-      strobj_realloc (&mach->reg_str, size + 1);
-      mu_address_to_string (dest, strobj_ptr (&mach->reg_str), size + 1, NULL);
-      mu_address_destroy (&dest);
+      strobj_realloc (&mach->reg_str, strlen (buf) + 1);
+      strcpy (strobj_ptr (&mach->reg_str), buf);
     }
+  mu_address_destroy (&dest);
 }
 
 /*      putaddr    literal        print str address list with

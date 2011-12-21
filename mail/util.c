@@ -861,17 +861,13 @@ util_merge_addresses (char **addr_str, const char *value)
   rc = mu_address_union (&addr, new_addr);
   if (rc == 0)
     {
-      size_t n;
-
-      rc = mu_address_to_string (addr, NULL, 0, &n);
+      char *val;
+      
+      rc = mu_address_aget_printable (addr, &val);
       if (rc == 0)
 	{
 	  free (*addr_str);
-	  *addr_str = malloc (n + 1);
-	  if (!*addr_str)
-	    rc = ENOMEM;
-	  else
-	    mu_address_to_string (addr, *addr_str, n + 1, &n);
+	  *addr_str = val;
 	}
     }
 
@@ -972,15 +968,12 @@ util_header_expand (mu_header_t *phdr)
 	  
 	  if (addr)
 	    {
-	      char *newvalue;
-	      size_t n = 0;
+	      const char *newvalue;
 	      
-	      mu_address_to_string (addr, NULL, 0, &n);
-	      newvalue = xmalloc (n + 1);
-	      mu_address_to_string (addr, newvalue, n + 1, NULL);
+	      rc = mu_address_sget_printable (addr, &newvalue);
+	      if (rc == 0)
+		mu_header_set_value (hdr, name, newvalue, 1);
 	      mu_address_destroy (&addr);
-	      mu_header_set_value (hdr, name, newvalue, 1);
-	      free (newvalue);
 	    }
 	}
       else

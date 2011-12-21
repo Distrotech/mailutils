@@ -35,6 +35,7 @@
 #include <mailutils/parse822.h>
 #include <mailutils/address.h>
 #include <mailutils/cstr.h>
+#include <mailutils/stream.h>
 
 int
 mu_address_create_null (mu_address_t *pa)
@@ -70,8 +71,8 @@ mu_address_create_hint (mu_address_t *a, const char *s, mu_address_t hint,
       if (!*a)
 	return MU_ERR_EMPTY_ADDRESS;
 
-      (*a)->addr = strdup (s);
-      if (!(*a)->addr)
+      (*a)->printable = strdup (s);
+      if (!(*a)->printable)
 	{
 	  mu_address_destroy (a);
 	  return ENOMEM;
@@ -159,8 +160,8 @@ mu_address_destroy (mu_address_t *paddress)
       mu_address_t current;
       for (; address; address = current)
 	{
-	  if (address->addr)
-	    free (address->addr);
+	  if (address->printable)
+	    free (address->printable);
 	  if (address->comments)
 	    free (address->comments);
 	  if (address->personal)
@@ -195,19 +196,19 @@ mu_address_concatenate (mu_address_t to, mu_address_t *from)
   *from = NULL;
 
   /* discard the current string cache as it is now inaccurate */
-  if (to->addr)
+  if (to->printable)
     {
-      free (to->addr);
-      to->addr = NULL;
+      free (to->printable);
+      to->printable = NULL;
     }
 
   to = to->next;
 
   /* only the first address must have a cache */
-  if (to->addr)
+  if (to->printable)
     {
-      free (to->addr);
-      to->addr = NULL;
+      free (to->printable);
+      to->printable = NULL;
     }
 
   return 0;
@@ -432,8 +433,8 @@ mu_address_set_email (mu_address_t addr, size_t no, const char *buf)
   return 0;
 }
 
-static int
-validate_email (mu_address_t subaddr)
+int
+mu_validate_email (mu_address_t subaddr)
 {
   if (!subaddr->email)
     {
@@ -473,82 +474,45 @@ mu_address_sget_email (mu_address_t addr, size_t no, char const **sptr)
   if (!subaddr)
     return MU_ERR_NOENT;
 
-  validate_email (subaddr);
+  mu_validate_email (subaddr);
   *sptr = subaddr->email;
   return 0;
 }
 
 DECL_GET(email)
 DECL_AGET(email)
-
-
-
 
-#define format_char(c) do {\
- if (buflen) \
-   {\
-      *buf++ = c;\
-      buflen--;\
-   }\
- else\
-   rc++;\
-} while(0)
-
-#define format_string(str) do {\
- if (buflen) \
-   {\
-      int n = snprintf (buf, buflen, "%s", str);\
-      buf += n;\
-      buflen -= n;\
-   }\
- else\
-   rc += strlen (str);\
-} while (0)
-
 size_t
 mu_address_format_string (mu_address_t addr, char *buf, size_t buflen)
 {
-  int rc = 0;
-  int comma = 0;
-
-  for (;addr; addr = addr->next)
+  mu_stream_t str;
+  int rc;
+  
+  if (!buf)
+    rc = mu_nullstream_create (&str, MU_STREAM_WRITE);
+  else
+    rc = mu_fixed_memory_stream_create (&str, buf, buflen, MU_STREAM_WRITE);
+  if (rc == 0)
     {
-      validate_email (addr);
-      if (addr->email)
+      size_t size;
+      
+      mu_stream_stat_buffer statbuf;
+      mu_stream_set_stat (str, MU_STREAM_STAT_MASK (MU_STREAM_STAT_OUT),
+			  statbuf);
+      rc = mu_stream_format_address (str, addr);
+      mu_stream_destroy (&str);
+      if (rc)
+	return 0;
+      size = statbuf[MU_STREAM_STAT_OUT];
+      if (buf)
 	{
-	  int space = 0;
-
-	  if (comma)
-	    format_char (',');
-
-	  if (addr->personal)
-	    {
-	      format_char ('"');
-	      format_string (addr->personal);
-	      format_char ('"');
-	      space++;
-	    }
-
-	  if (addr->comments)
-	    {
-	      if (space)
-		format_char (' ');
-	      format_char ('(');
-	      format_string (addr->comments);
-	      format_char (')');
-	      space++;
-	    }
-
-	  if (space)
-	    format_char (' ');
-	  format_char ('<');
-	  format_string (addr->email);
-	  format_char ('>');
-	  comma++;
+	  if (size + 1 >= buflen)
+	    size = buflen - 1;
+	  buf[size] = 0;
 	}
+      return size;
     }
-  format_char (0);
-  return rc;
+  return 0;
 }
 
 static int
@@ -593,27 +557,86 @@ mu_address_is_group (mu_address_t addr, size_t no, int *yes)
 }
 
 int
-mu_address_to_string (mu_address_t addr, char *buf, size_t len, size_t *n)
+mu_address_sget_printable (mu_address_t addr, const char **sptr)
 {
-  size_t i;
   if (addr == NULL)
     return EINVAL;
-  if (buf)
-    *buf = '\0';
-
-  if (!addr->addr)
+  if (!sptr)
+    return MU_ERR_OUT_PTR_NULL;
+  if (!addr->printable)
     {
-      i = mu_address_format_string (addr, NULL, 0);
-      addr->addr = malloc (i + 1);
-      if (!addr->addr)
-	return ENOMEM;
-      mu_address_format_string (addr, addr->addr, i+1);
+      mu_stream_t str;
+      int rc;
+      
+      rc = mu_memory_stream_create (&str, MU_STREAM_RDWR);
+      if (rc)
+	return rc;
+      rc = mu_stream_format_address (str, addr);
+      if (rc == 0)
+	{
+	  mu_off_t size;
+	  mu_stream_size (str, &size);
+	  addr->printable = malloc (size + 1);
+	  if (!addr->printable)
+	    rc = ENOMEM;
+	  else
+	    {
+	      mu_stream_seek (str, 0, MU_SEEK_SET, NULL);
+	      rc = mu_stream_read (str, addr->printable, size, NULL);
+	      addr->printable[size] = 0;
+	    }
+	}
+      mu_stream_destroy (&str);
+      if (rc)
+	return rc;
     }
-
-  i = mu_cpystr (buf, addr->addr, len);
-  if (n)
-    *n = i;
+  *sptr = addr->printable;
   return 0;
+}
+
+int
+mu_address_aget_printable (mu_address_t addr, char **presult)
+{
+  int rc;
+  const char *s;
+
+  if (addr == NULL)
+    return EINVAL;
+  if (!presult)
+    return MU_ERR_OUT_PTR_NULL;
+  rc = mu_address_sget_printable (addr, &s);
+  if (rc == 0)
+    {
+      char *result = strdup (s);
+      if (result)
+	*presult = result;
+      else
+	rc = ENOMEM;
+    }
+  return rc;
+}
+
+int
+mu_address_get_printable (mu_address_t addr, char *buf, size_t len, size_t *n)
+{
+  const char *s;
+  int rc;
+  
+  rc = mu_address_sget_printable (addr, &s);
+  if (rc == 0)
+    {
+      size_t i;
+      i = mu_cpystr (buf, addr->printable, len);
+      if (n)
+	*n = i;
+    }
+  return rc;
+}
+
+int
+mu_address_to_string (mu_address_t addr, char *buf, size_t len, size_t *n)
+{
+  return mu_address_get_printable (addr, buf, len, n);
 }
 
 int
@@ -687,8 +710,8 @@ mu_address_dup (mu_address_t src)
     return NULL;
 
   /* FIXME: How about:
-    if (src->addr)
-      dst->addr = strdup (src->addr);
+    if (src->printable)
+      dst->printable = strdup (src->printable);
     ?
   */
   if (src->comments)
@@ -725,10 +748,10 @@ mu_address_union (mu_address_t *a, mu_address_t b)
     }
   else
     {
-      if ((*a)->addr)
+      if ((*a)->printable)
 	{
-	  free ((*a)->addr);
-	  (*a)->addr = NULL;
+	  free ((*a)->printable);
+	  (*a)->printable = NULL;
 	}
       for (last = *a; last->next; last = last->next)
 	;

@@ -19,6 +19,7 @@ noinst_LTLIBRARIES = libaddress.la
 
 libaddress_la_SOURCES = \
  address.c\
+ addrstream.c\
  parse822.c
 
 INCLUDES = @MU_LIB_COMMON_INCLUDES@ -I/libmailutils

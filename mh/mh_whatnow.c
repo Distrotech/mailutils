@@ -264,8 +264,8 @@ invoke (const char *compname, const char *defval, int argc, char **argv,
 
 struct anno_data
 {
-  char *field;
-  char *value;
+  const char *field;
+  const char *value;
   int date;
 };
 
@@ -299,16 +299,12 @@ annotate (struct mh_whatnow_env *wh)
 
       if (mu_address_get_nth (addr, i, &subaddr) == 0)
 	{
-	  size_t size;
 	  struct anno_data d;
 
-	  mu_address_to_string (subaddr, NULL, 0, &size);
-	  d.value = xmalloc (size + 1);
 	  d.field = wh->anno_field;
 	  d.date = i == 1;
-	  mu_address_to_string (subaddr, d.value, size + 1, NULL);
-	  mu_list_foreach (wh->anno_list, anno, &d);
-	  free (d.value);
+	  if (mu_address_sget_printable (subaddr, &d.value) == 0)
+	    mu_list_foreach (wh->anno_list, anno, &d);
 	  mu_address_destroy (&subaddr);
 	}
     }
