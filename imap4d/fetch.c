@@ -312,6 +312,8 @@ fetch_envelope0 (mu_message_t msg)
   return RESP_OK;
 }
 
+static int fetch_bodystructure0 (mu_message_t message, int extension);
+
 /* The basic fields of a non-multipart body part are in the following order:
    body type:
    A string giving the content media type name as defined in [MIME-IMB].
@@ -490,7 +492,7 @@ bodystructure (mu_message_t msg, int extension)
       io_sendf (")");
       /* Add body structure of the encapsulated message.  */
       io_sendf ("(");
-      bodystructure (emsg, extension);
+      fetch_bodystructure0 (emsg, extension);
       io_sendf (")");
       /* Size in text lines of the encapsulated message.  */
       mu_message_lines (emsg, &lines);
