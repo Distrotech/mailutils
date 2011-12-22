@@ -61,6 +61,8 @@ struct _mu_message
   int (*_get_qid)        (mu_message_t,	mu_message_qid_t *);
   int (*_get_num_parts)  (mu_message_t, size_t *);
   int (*_get_part)       (mu_message_t, size_t, mu_message_t *);
+  int (*_imapenvelope)   (mu_message_t, struct mu_imapenvelope **);
+  int (*_bodystructure)  (mu_message_t, struct mu_bodystructure **);
   int (*_is_multipart)   (mu_message_t, int *);
   int (*_lines)          (mu_message_t, size_t *, int);
   int (*_size)           (mu_message_t, size_t *);

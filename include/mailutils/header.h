@@ -59,6 +59,7 @@ extern "C" {
 #define MU_HEADER_CONTENT_DESCRIPTION       "Content-Description"
 #define MU_HEADER_CONTENT_DISPOSITION       "Content-Disposition"
 #define MU_HEADER_CONTENT_MD5               "Content-MD5"
+#define MU_HEADER_CONTENT_LOCATION          "Content-Location"   
 #define MU_HEADER_MIME_VERSION              "MIME-Version"
 #define MU_HEADER_X_MAILER                  "X-Mailer"
 #define MU_HEADER_X_UIDL                    "X-UIDL"

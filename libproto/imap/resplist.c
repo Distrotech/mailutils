@@ -297,4 +297,13 @@ _mu_imap_list_nth_element_is_string (mu_list_t list, size_t n,
 	 strcmp (elt->v.string, str) == 0;
 }
 
+int
+_mu_imap_list_nth_element_is_string_ci (mu_list_t list, size_t n,
+				     	const char *str)
+{
+  struct imap_list_element *elt = _mu_imap_list_at (list, n);
+  return elt && elt->type == imap_eltype_string &&
+	 mu_c_strcasecmp (elt->v.string, str) == 0;
+}
+
 

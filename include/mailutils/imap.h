@@ -236,23 +236,13 @@ struct mu_imap_fetch_body
 struct mu_imap_fetch_bodystructure
 {
   int type;
-  //FIXME?
+  struct mu_bodystructure *bs;
 };
   
 struct mu_imap_fetch_envelope
 {
   int type;
-  struct tm date;
-  struct mu_timezone tz;
-  char *subject;
-  mu_address_t from;
-  mu_address_t sender;
-  mu_address_t reply_to;
-  mu_address_t to;
-  mu_address_t cc;
-  mu_address_t bcc;
-  char *in_reply_to;
-  char *message_id;
+  struct mu_imapenvelope *imapenvelope;
 };
 
 struct mu_imap_fetch_flags

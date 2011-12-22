@@ -66,6 +66,9 @@ int mu_base64_decode    (const unsigned char *input, size_t input_len,
 			 unsigned char **output, size_t * output_len);
 
 
+int mu_mime_param_assoc_create (mu_assoc_t *passoc);
+int mu_mime_param_assoc_add (mu_assoc_t assoc, const char *name);
+  
 int mu_mime_header_parse (const char *text, char *charset, char **pvalue,
 			  mu_assoc_t *paramtab);
 int mu_mime_header_parse_subset (const char *text, const char *charset,

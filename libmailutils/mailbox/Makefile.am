@@ -23,12 +23,14 @@ libmailbox_la_SOURCES =  \
  mbxitr.c\
  attribute.c\
  body.c\
+ bodystruct.c\
  envelope.c\
  folder.c\
  fsfolder.c\
  hdrfirst.c\
  hdritr.c\
  header.c\
+ imapenv.c\
  msgcpy.c\
  msgattr.c\
  msgbody.c\

@@ -184,7 +184,7 @@ alloc_space (struct mu_wordsplit *wsp, size_t count)
   else if (wsp->ws_wordn < offs + wsp->ws_wordc + count)
     {
       newalloc = offs + wsp->ws_wordc +
-	count > ALLOC_INCR ? count : ALLOC_INCR;
+	(count > ALLOC_INCR ? count : ALLOC_INCR);
       ptr = realloc (wsp->ws_wordv, newalloc * sizeof (ptr[0]));
     }
   else

@@ -225,7 +225,143 @@ format_date (mu_stream_t str, char *name,
     }
   mu_stream_printf (str, "\n");
 }
+
+#define S(str) ((str) ? (str) : "")
 
+static void
+print_param (mu_stream_t ostr, const char *prefix, mu_assoc_t assoc,
+	     int indent)
+{
+  mu_iterator_t itr;
+  int i;
+
+  mu_stream_printf (ostr, "%*s%s:\n", indent, "", prefix);
+  indent += 4;
+  if (mu_assoc_get_iterator (assoc, &itr))
+    return;
+  for (i = 0, mu_iterator_first (itr);
+       !mu_iterator_is_done (itr);
+       i++, mu_iterator_next (itr))
+    {
+      const char *name;
+      struct mu_mime_param *p;
+      
+      mu_iterator_current_kv (itr, (const void **)&name, (void**)&p);
+      mu_stream_printf (ostr, "%*s%d: %s=%s\n", indent, "", i, name, p->value);
+    }
+  mu_iterator_destroy (&itr);
+}
+
+struct print_data
+{
+  mu_stream_t ostr;
+  int num;
+  int level;
+};
+
+static void print_bs (mu_stream_t ostr,
+		      struct mu_bodystructure *bs, int level);
+
+static int
+print_item (void *item, void *data)
+{
+  struct mu_bodystructure *bs = item;
+  struct print_data *pd = data;
+  mu_stream_printf (pd->ostr, "%*sPart #%d\n", (pd->level-1) << 2, "",
+		    pd->num);
+  print_bs (pd->ostr, bs, pd->level);
+  ++pd->num;
+  return 0;
+}
+
+static void
+print_address (mu_stream_t ostr, const char *title, mu_address_t addr,
+	       int indent)
+{
+  mu_stream_printf (ostr, "%*s%s: ", indent, "", title);
+  mu_stream_format_address (mu_strout, addr);
+  mu_stream_printf (ostr, "\n");
+}
+
+static void
+print_imapenvelope (mu_stream_t ostr, struct mu_imapenvelope *env, int level)
+{
+  int indent = (level << 2);
+
+  mu_stream_printf (ostr, "%*sEnvelope:\n", indent, "");
+  indent += 4;
+  mu_stream_printf (ostr, "%*sTime: ", indent, "");
+  mu_c_streamftime (mu_strout, "%c%n", &env->date, &env->tz);
+  mu_stream_printf (ostr, "%*sSubject: %s\n", indent, "", S(env->subject));
+  print_address (ostr, "From", env->from, indent);
+  print_address (ostr, "Sender", env->sender, indent);
+  print_address (ostr, "Reply-to", env->reply_to, indent);
+  print_address (ostr, "To", env->to, indent);
+  print_address (ostr, "Cc", env->cc, indent);
+  print_address (ostr, "Bcc", env->bcc, indent);
+  mu_stream_printf (ostr, "%*sIn-Reply-To: %s\n", indent, "",
+		    S(env->in_reply_to));
+  mu_stream_printf (ostr, "%*sMessage-ID: %s\n", indent, "",
+		    S(env->message_id));
+}
+
+static void
+print_bs (mu_stream_t ostr, struct mu_bodystructure *bs, int level)
+{
+  int indent = level << 2;
+  mu_stream_printf (ostr, "%*sbody_type=%s\n", indent, "", S(bs->body_type));
+  mu_stream_printf (ostr, "%*sbody_subtype=%s\n", indent, "",
+		    S(bs->body_subtype));
+  print_param (ostr, "Parameters", bs->body_param, indent);
+  mu_stream_printf (ostr, "%*sbody_id=%s\n", indent, "", S(bs->body_id));
+  mu_stream_printf (ostr, "%*sbody_descr=%s\n", indent, "", S(bs->body_descr));
+  mu_stream_printf (ostr, "%*sbody_encoding=%s\n", indent, "",
+		    S(bs->body_encoding));
+  mu_stream_printf (ostr, "%*sbody_size=%lu\n", indent, "",
+		    (unsigned long) bs->body_size);
+  /* Optional */
+  mu_stream_printf (ostr, "%*sbody_md5=%s\n", indent, "", S(bs->body_md5));
+  mu_stream_printf (ostr, "%*sbody_disposition=%s\n", indent, "",
+		    S(bs->body_disposition));
+  print_param (ostr, "Disposition Parameters", bs->body_disp_param, indent);
+  mu_stream_printf (ostr, "%*sbody_language=%s\n", indent, "",
+		    S(bs->body_language));
+  mu_stream_printf (ostr, "%*sbody_location=%s\n", indent, "",
+		    S(bs->body_location));
+
+  mu_stream_printf (ostr, "%*sType ", indent, "");
+  switch (bs->body_message_type)
+    {
+    case mu_message_other:
+      mu_stream_printf (ostr, "mu_message_other\n");
+      break;
+      
+    case mu_message_text:
+      mu_stream_printf (ostr, "mu_message_text:\n%*sbody_lines=%lu\n",
+			indent + 4, "",
+			(unsigned long) bs->v.text.body_lines);
+      break;
+      
+    case mu_message_rfc822:
+      mu_stream_printf (ostr, "mu_message_rfc822:\n%*sbody_lines=%lu\n",
+			indent + 4, "",
+		 (unsigned long) bs->v.rfc822.body_lines);
+      print_imapenvelope (ostr, bs->v.rfc822.body_env, level + 1);
+      print_bs (ostr, bs->v.rfc822.body_struct, level + 1);
+      break;
+      
+    case mu_message_multipart:
+      {
+	struct print_data pd;
+	pd.ostr = ostr;
+	pd.num = 0;
+	pd.level = level + 1;
+	mu_stream_printf (ostr, "mu_message_multipart:\n");
+	mu_list_foreach (bs->v.multipart.body_parts, print_item, &pd);
+      }
+    }
+}
+
 static int
 fetch_response_printer (void *item, void *data)
 {
@@ -252,31 +388,35 @@ fetch_response_printer (void *item, void *data)
       
     case MU_IMAP_FETCH_BODYSTRUCTURE:
       /* FIXME */
-      mu_stream_printf (str, "BODYSTRUCTURE (not yet implemented)\n");
+      mu_stream_printf (str, "BODYSTRUCTURE:\nBEGIN\n");
+      print_bs (str, resp->bodystructure.bs, 0);
+      mu_stream_printf (str, "END\n");
       break;
       
     case MU_IMAP_FETCH_ENVELOPE:
       {
+	struct mu_imapenvelope *env = resp->envelope.imapenvelope;
+	
 	mu_stream_printf (str, "ENVELOPE:\n");
 	
-	format_date (str, "date", &resp->envelope.date, &resp->envelope.tz);
+	format_date (str, "date", &env->date, &env->tz);
 	mu_stream_printf (str, "  subject = %s\n",
-			  resp->envelope.subject ?
-			   resp->envelope.subject : "NIL");
+			  env->subject ?
+			   env->subject : "NIL");
 
-	format_email (str, "from", resp->envelope.from);
-	format_email (str, "sender", resp->envelope.sender);
-	format_email (str, "reply-to", resp->envelope.reply_to);
-	format_email (str, "to", resp->envelope.to);
-	format_email (str, "cc", resp->envelope.cc);
-	format_email (str, "bcc", resp->envelope.bcc);
+	format_email (str, "from", env->from);
+	format_email (str, "sender", env->sender);
+	format_email (str, "reply-to", env->reply_to);
+	format_email (str, "to", env->to);
+	format_email (str, "cc", env->cc);
+	format_email (str, "bcc", env->bcc);
 
 	mu_stream_printf (str, "  in-reply-to = %s\n",
-			  resp->envelope.in_reply_to ?
-			   resp->envelope.in_reply_to : "NIL");
+			  env->in_reply_to ?
+			   env->in_reply_to : "NIL");
 	mu_stream_printf (str, "  message-id = %s\n",
-			  resp->envelope.message_id ?
-			   resp->envelope.message_id : "NIL");
+			  env->message_id ?
+			   env->message_id : "NIL");
       }
       break;
       

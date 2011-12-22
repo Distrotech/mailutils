@@ -20,6 +20,7 @@
 #define _MAILUTILS_MESSAGE_H
 
 #include <mailutils/types.h>
+#include <mailutils/datetime.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -27,6 +28,64 @@ extern "C" {
 
 #define MU_SCAN_SEEK  0x01
 #define MU_SCAN_SIZE  0x02
+
+struct mu_imapenvelope
+{
+  struct tm date;
+  struct mu_timezone tz;
+  char *subject;
+  mu_address_t from;
+  mu_address_t sender;
+  mu_address_t reply_to;
+  mu_address_t to;
+  mu_address_t cc;
+  mu_address_t bcc;
+  char *in_reply_to;
+  char *message_id;
+};
+
+enum mu_message_type
+  {
+    mu_message_other,
+    mu_message_text,     /* text/plain */
+    mu_message_rfc822,   /* message/rfc822 */
+    mu_message_multipart /* multipart/mixed */
+  };
+  
+struct mu_bodystructure
+{
+  enum mu_message_type body_message_type;
+  char *body_type;
+  char *body_subtype;
+  mu_assoc_t body_param;
+  char *body_id;
+  char *body_descr;
+  char *body_encoding;
+  size_t body_size;
+  /* Optional */
+  char *body_md5;
+  char *body_disposition;
+  mu_assoc_t body_disp_param;
+  char *body_language;
+  char *body_location;
+  union
+  {
+    struct
+    {
+      size_t body_lines;
+    } text;
+    struct 
+    {
+      struct mu_imapenvelope *body_env;
+      struct mu_bodystructure *body_struct;
+      size_t body_lines;
+    } rfc822;
+    struct
+    {
+      mu_list_t body_parts;
+    } multipart;
+  } v;
+};
 
 struct mu_message_scan
 {
@@ -137,6 +196,21 @@ extern int mu_message_set_qid (mu_message_t,
 			       int (*_get_qid) (mu_message_t,
 						mu_message_qid_t *),
 			       void *owner);
+
+extern int mu_message_get_imapenvelope (mu_message_t, struct mu_imapenvelope **);
+extern void mu_message_imapenvelope_free (struct mu_imapenvelope *);
+extern int mu_message_set_imapenvelope (mu_message_t,
+   int (*_imapenvelope) (mu_message_t, struct mu_imapenvelope **),
+   void *owner);
+
+extern void mu_bodystructure_free (struct mu_bodystructure *);
+extern void mu_list_free_bodystructure (void *item);
+
+extern int mu_message_get_bodystructure (mu_message_t,
+					 struct mu_bodystructure **);
+extern int mu_message_set_bodystructure (mu_message_t msg,
+      int (*_bodystructure) (mu_message_t, struct mu_bodystructure **),
+      void *owner);
   
 /* misc functions */
 extern int mu_message_create_attachment (const char *content_type,
@@ -190,7 +264,6 @@ extern int mu_message_from_stream_with_envelope (mu_message_t *pmsg,
 						 mu_envelope_t env);
 extern int mu_stream_to_message (mu_stream_t instream, mu_message_t *pmsg);
 
-  
 #ifdef __cplusplus
 }
 #endif

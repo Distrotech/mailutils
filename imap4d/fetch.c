@@ -372,8 +372,9 @@ bodystructure (mu_message_t msg, int extension)
   if (mu_header_aget_value (header, MU_HEADER_CONTENT_TYPE, &buffer) == 0)
     {
       struct mu_wordsplit ws;
-      char *s, *p;
-	  
+      char *p;
+      size_t len;
+      
       ws.ws_delim = " \t\r\n;=";
       ws.ws_alloc_die = imap4d_ws_alloc_die;
       if (mu_wordsplit (buffer, &ws, IMAP4D_WS_FLAGS))
@@ -383,18 +384,17 @@ bodystructure (mu_message_t msg, int extension)
 	  return RESP_BAD; /* FIXME: a better error handling, maybe? */
 	}
 
+      len = strcspn (ws.ws_wordv[0], "/");
       if (mu_c_strcasecmp (ws.ws_wordv[0], "MESSAGE/RFC822") == 0)
         message_rfc822 = 1;
-      else if (mu_c_strcasecmp (ws.ws_wordv[0], "TEXT/PLAIN") == 0)
+      else if (mu_c_strncasecmp (ws.ws_wordv[0], "TEXT", len) == 0)
         text_plain = 1;
 
-      s = strchr (ws.ws_wordv[0], '/');
-      if (s)
-	*s++ = 0;
+      ws.ws_wordv[0][len++] = 0;
       p = ws.ws_wordv[0];
       io_send_qstring (p);
       io_sendf (" ");
-      io_send_qstring (s);
+      io_send_qstring (ws.ws_wordv[0] + len);
 
       /* body parameter parenthesized list: Content-type attributes */
       if (ws.ws_wordc > 1)

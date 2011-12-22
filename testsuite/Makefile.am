@@ -50,6 +50,7 @@ $(srcdir)/package.m4: $(top_srcdir)/configure.ac
 
 INCLUDES = @MU_LIB_COMMON_INCLUDES@ 
 noinst_PROGRAMS = \
+ bs\
  fldel\
  lstuid\
  mbdel\
