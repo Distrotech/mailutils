@@ -1052,6 +1052,12 @@ _fetch_fold (void *item, void *data)
 	}
       else if (strncmp (elt->v.string, "HEADER.FIELDS", 13) == 0)
 	env->state = resp_body_hlist;
+      else if (strcmp (elt->v.string, "]") == 0)
+	{
+	  env->section = NULL;
+	  env->state = resp_val;
+	  break;
+	}
       else
 	env->state = resp_body_end;
       env->section = elt->v.string;
@@ -1109,5 +1115,5 @@ _mu_imap_parse_fetch_response (mu_list_t input, mu_list_t *result_list)
   else
     *result_list = result;
   mu_list_destroy (&env.hlist);
-  return status;
+  return env.status;
 }
