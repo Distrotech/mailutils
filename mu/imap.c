@@ -1074,6 +1074,15 @@ com_append (int argc, char **argv)
 }
 
 static int
+com_copy (int argc, char **argv)
+{
+  int status = mu_imap_copy (imap, uid_mode, argv[1], argv[2]);
+  if (status)
+    report_failure ("copy", status);
+  return 0;
+}
+
+static int
 print_list_item (void *item, void *data)
 {
   struct mu_list_response *resp = item;
@@ -1083,7 +1092,8 @@ print_list_item (void *item, void *data)
 		    "%c%c %c %4d %s\n",
 		    (resp->type & MU_FOLDER_ATTRIBUTE_DIRECTORY) ? 'd' : '-',
 		    (resp->type & MU_FOLDER_ATTRIBUTE_FILE) ? 'f' : '-',
-		    resp->separator,
+		    resp->separator ?
+		        resp->separator : MU_HIERARCHY_DELIMITER,
 		    resp->level,
 		    resp->name);
   return 0;
@@ -1220,6 +1230,10 @@ struct mutool_command imap_comtab[] = {
     com_append,
     N_("[-time DATETIME] [-flag FLAG] MAILBOX FILE"),
     N_("append message text from FILE to MAILBOX") },
+  { "copy",         3, 3, 0,
+    com_copy,
+    N_("MSGSET MAILBOX"),
+    N_("Copy messages from MSGSET to MAILBOX") },
   { "list",         3, 3, 0,
     com_list,
     N_("REF MBOX"),
