@@ -83,67 +83,66 @@ struct save_closure
   struct _mu_imap_message *imsg;
 };
 
+static int
+_save_message_parser (void *item, void *data)
+{
+  union mu_imap_fetch_response *resp = item;
+  struct save_closure *clos = data;
+
+  if (resp->type == MU_IMAP_FETCH_BODY)
+    {
+      struct _mu_imap_message *imsg = clos->imsg;
+      struct _mu_imap_mailbox *imbx = imsg->imbx;
+      int rc;
+      mu_stream_t istr, flt;
+      mu_off_t size;
+  
+      rc = mu_static_memory_stream_create (&istr, resp->body.text,
+					   strlen (resp->body.text));
+      
+      if (rc)
+	{
+	  mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR,
+		    (_("mu_static_memory_stream_create: %s"),
+		     mu_strerror (rc)));
+	  imbx->last_error = rc;
+	  return 0;
+	}
+
+      rc = mu_filter_create (&flt, istr, "CRLF", MU_FILTER_DECODE,
+			     MU_STREAM_READ);
+      mu_stream_unref (istr);
+      if (rc)
+	{
+	  mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR,
+		    (_("mu_filter_create: %s"), mu_strerror (rc)));
+	  imbx->last_error = rc;
+	  return 0;
+	}
+      
+      rc = mu_stream_copy (clos->save_stream, flt, 0, &size);
+      mu_stream_destroy (&flt);
+      if (rc)
+	{
+	  mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR,
+		    (_("copying to cache failed: %s"), mu_strerror (rc)));
+	  imbx->last_error = rc;
+	  return 0;
+	}
+      clos->size = size;
+    }
+  else
+    mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_TRACE0,
+	      (_("fetch returned a not requested item %d"),
+	       resp->type));
+  return 0;
+}
+
 static void
 _save_message (void *data, int code, size_t sdat, void *pdat)
 {
-  struct save_closure *clos = data;
-  struct _mu_imap_message *imsg = clos->imsg;
-  struct _mu_imap_mailbox *imbx = imsg->imbx;
   mu_list_t list = pdat;
-  union mu_imap_fetch_response *resp;
-  int rc;
-  mu_stream_t istr, flt;
-  mu_off_t size;
-  
-  rc = mu_list_get (list, 0, (void**)&resp);
-  if (rc)
-    {
-      mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR,
-		(_("cannot get response item: %s"),
-		 mu_strerror (rc)));
-      imbx->last_error = rc;
-      return;
-    }
-
-  if (resp->type != MU_IMAP_FETCH_BODY)
-    {
-      mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR,
-		(_("fetch returned a not requested item %d"), resp->type));
-      imbx->last_error = MU_ERR_FAILURE;
-      return;
-    }
-  rc = mu_static_memory_stream_create (&istr, resp->body.text,
-				       strlen (resp->body.text));
-
-  if (rc)
-    {
-      mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR,
-		(_("mu_static_memory_stream_create: %s"),
-		 mu_strerror (rc)));
-      imbx->last_error = rc;
-      return;
-    }
-
-  rc = mu_filter_create (&flt, istr, "CRLF", MU_FILTER_DECODE, MU_STREAM_READ);
-  mu_stream_unref (istr);
-  if (rc)
-    {
-      mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR,
-		(_("mu_filter_create: %s"), mu_strerror (rc)));
-      imbx->last_error = rc;
-      return;
-    }
-      
-  rc = mu_stream_copy (clos->save_stream, flt, 0, &size);
-  mu_stream_destroy (&flt);
-  if (rc)
-    {
-      mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR,
-		(_("copying to cache failed: %s"), mu_strerror (rc)));
-      imbx->last_error = rc;
-      return;
-    }
-  clos->size = size;
+  mu_list_foreach (list, _save_message_parser, data);
 }
 
 static int
@@ -310,6 +309,7 @@ _imap_attr_set_flags (mu_attribute_t attr, int flags)
   if (!imsg)
     return EINVAL;
   imsg->attr_flags |= flags;
+  imsg->flags |= _MU_IMAP_MSG_ATTRCHG;
   return 0;
 }
 
@@ -321,6 +321,7 @@ _imap_attr_clr_flags (mu_attribute_t attr, int flags)
   if (!imsg)
     return EINVAL;
   imsg->attr_flags |= flags;
+  imsg->flags |= _MU_IMAP_MSG_ATTRCHG;
   return 0;
 }
 
@@ -511,6 +512,97 @@ _imap_msg_lines (mu_message_t msg, size_t *plines, int quick)
 }
 
 static int
+_copy_imapenvelope (struct mu_imapenvelope *env,
+		    struct mu_imapenvelope const *src)
+{  
+  env->date = src->date;
+  env->tz   = src->tz;
+  
+  if (src->subject && (env->subject = strdup (src->subject)) == NULL)
+    return ENOMEM;
+  if (src->from && (env->from = mu_address_dup (src->from)) == NULL)
+    return ENOMEM;
+  if (src->sender && (env->sender = mu_address_dup (src->sender)) == NULL)
+    return ENOMEM;
+  if (src->reply_to && (env->reply_to = mu_address_dup (src->reply_to))
+      == NULL)
+    return ENOMEM;
+  if (src->to && (env->to = mu_address_dup (src->to)) == NULL)
+    return ENOMEM;
+  if (src->cc && (env->cc = mu_address_dup (src->cc)) == NULL)
+    return ENOMEM;
+  if (src->bcc && (env->bcc = mu_address_dup (src->bcc)) == NULL)
+    return ENOMEM;
+  if (src->in_reply_to && (env->in_reply_to = strdup (src->in_reply_to))
+      == NULL)
+    return ENOMEM;
+  if (src->message_id && (env->message_id = strdup (src->message_id)) == NULL)
+    return ENOMEM;
+  return 0;
+}
+		   
+static int
+_imap_msg_imapenvelope (mu_message_t msg, struct mu_imapenvelope **penv)
+{
+  struct _mu_imap_message *imsg = mu_message_get_owner (msg);
+  int rc = 0;
+  struct mu_imapenvelope *env = calloc (1, sizeof (*env));
+
+  if (!env)
+    return ENOMEM;
+  rc = _copy_imapenvelope (env, imsg->env);
+  if (rc)
+    mu_message_imapenvelope_free (env);
+  else
+    *penv = env;
+  return rc;
+}
+
+static int
+fetch_bodystructure_parser (void *item, void *data)
+{
+  union mu_imap_fetch_response *resp = item;
+  struct mu_bodystructure **pbs = data;
+
+  if (resp->type == MU_IMAP_FETCH_BODYSTRUCTURE)
+    {
+      *pbs = resp->bodystructure.bs;
+      resp->bodystructure.bs = NULL;
+    }
+  else
+    mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_TRACE0,
+	      (_("fetch returned a not requested item %d"),
+	       resp->type));
+  return 0;
+}
+
+static void
+_imap_bodystructure_callback (void *data, int code, size_t sdat, void *pdat)
+{
+  mu_list_t list = pdat;
+  mu_list_foreach (list, fetch_bodystructure_parser, data);
+}
+  
+static int
+_imap_msg_bodystructure (mu_message_t msg, struct mu_bodystructure **pbs)
+{
+  struct _mu_imap_message *imsg = mu_message_get_owner (msg);
+  struct _mu_imap_mailbox *imbx = imsg->imbx;
+  mu_imap_t imap = imbx->mbox->folder->data;
+  int rc;
+  char *msgset;
+  
+  rc = mu_asprintf (&msgset, "%lu", _imap_msg_no (imsg));
+  if (rc)
+    return rc;
+
+  rc = _imap_fetch_with_callback (imap, msgset, "BODYSTRUCTURE",
+				  _imap_bodystructure_callback, pbs);
+  free (msgset);
+  return rc;
+}
+
+static int
 _imap_mbx_get_message (mu_mailbox_t mailbox, size_t msgno, mu_message_t *pmsg)
 {
   struct _mu_imap_mailbox *imbx = mailbox->data;
@@ -535,7 +627,9 @@ _imap_mbx_get_message (mu_mailbox_t mailbox, size_t msgno, mu_message_t *pmsg)
       mu_message_set_get_stream (msg, _imap_msg_get_stream, imsg);
       mu_message_set_size (msg, _imap_msg_size, imsg);
       mu_message_set_lines (msg, _imap_msg_lines, imsg);
-
+      mu_message_set_imapenvelope (msg, _imap_msg_imapenvelope, imsg);
+      mu_message_set_bodystructure (msg, _imap_msg_bodystructure, imsg);
+      
       do
 	{
 	  rc = _imap_msg_env_setup (imsg, msg);
@@ -620,6 +714,8 @@ _imap_mbx_open (mu_mailbox_t mbox, int flags)
   const char *mbox_name;
   mu_url_t url;
   mu_imap_t imap;
+  
+  mbox->flags = flags;
   
   rc = mu_mailbox_get_url (mbox, &url);
   if (rc)
@@ -727,9 +823,86 @@ _imap_uidvalidity (mu_mailbox_t mbox, unsigned long *pn)
 static int
 _imap_mbx_expunge (mu_mailbox_t mbox)
 {
+  struct _mu_imap_mailbox *imbx = mbox->data;
   mu_folder_t folder = mbox->folder;
   mu_imap_t imap = folder->data;
-  return mu_imap_expunge (imap);
+  size_t i;
+  char *msgset;
+  int rc;
+  int delflg = 0;
+  
+  for (i = 0; i < imbx->msgs_cnt; i++)
+    {
+      if (imbx->msgs[i].flags & _MU_IMAP_MSG_ATTRCHG)
+	{
+	  rc = mu_asprintf (&msgset, "%lu", i + 1);
+	  if (rc)
+	    break;
+	  rc = mu_imap_store_flags (imap, 0, msgset,
+				    MU_IMAP_STORE_SET|MU_IMAP_STORE_SILENT,
+				    imbx->msgs[i].attr_flags);
+	  delflg |= imbx->msgs[i].attr_flags & MU_ATTRIBUTE_DELETED;
+	  free (msgset);
+	  if (rc)
+	    break;
+	}
+    }
+
+  if (rc)
+    return rc;
+
+  if (delflg)
+    rc = mu_imap_expunge (imap);
+  
+  return rc;
+}
+
+static int
+_imap_mbx_sync (mu_mailbox_t mbox)
+{
+  struct _mu_imap_mailbox *imbx = mbox->data;
+  mu_folder_t folder = mbox->folder;
+  mu_imap_t imap = folder->data;
+  size_t i;
+  char *msgset;
+  int rc;
+  
+  if (!imbx->msgs)
+    return 0; 
+
+  for (i = 0; i < imbx->msgs_cnt; i++)
+    {
+      if (imbx->msgs[i].flags & _MU_IMAP_MSG_ATTRCHG)
+	{
+	  rc = mu_asprintf (&msgset, "%lu", i + 1);
+	  if (rc)
+	    break;
+	  rc = mu_imap_store_flags (imap, 0, msgset,
+				    MU_IMAP_STORE_SET|MU_IMAP_STORE_SILENT,
+				    imbx->msgs[i].attr_flags);
+	  free (msgset);
+	  if (rc)
+	    break;
+	}
+    }
+  
+  return rc;
+}
+
+static int
+_imap_mbx_append_message (mu_mailbox_t mbox, mu_message_t msg)
+{
+  int rc;
+  mu_folder_t folder = mbox->folder;
+  mu_imap_t imap = folder->data;
+  mu_url_t url;
+  const char *mbox_name;
+  
+  rc = mu_mailbox_get_url (mbox, &url);
+  if (rc)
+    return rc;
+  rc = mu_url_sget_path (url, &mbox_name);
+  return mu_imap_append_message (imap, mbox_name, 0, NULL, NULL, msg);
 }
 
 static int _compute_lines (struct mu_bodystructure *bs, size_t *pcount);
@@ -934,13 +1107,9 @@ _mu_imap_mailbox_init (mu_mailbox_t mailbox)
   mailbox->_scan = _imap_mbx_scan;
   mailbox->_is_updated = _imap_mbx_is_updated;
   mailbox->_get_message = _imap_mbx_get_message;
+  mailbox->_sync = _imap_mbx_sync;
   
-  //FIXME
-#if 0
-
-  /* Messages.  */
-  mailbox->_append_message = _mu_imap_append_message;
-
-#endif
+  mailbox->_append_message = _imap_mbx_append_message;
+  
   return 0;
 }

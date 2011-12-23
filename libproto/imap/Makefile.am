@@ -60,6 +60,7 @@ libmu_imap_la_SOURCES = \
  status.c\
  starttls.c\
  store.c\
+ storeflg.c\
  subscribe.c\
  tag.c\
  trace.c\

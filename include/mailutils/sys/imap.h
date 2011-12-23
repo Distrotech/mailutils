@@ -240,9 +240,10 @@ int _mu_imaps_url_init (mu_url_t url);
 
 int _mu_imap_mailbox_init (mu_mailbox_t mailbox);
 
-#define _MU_IMAP_MSG_SCANNED   0x01
-#define _MU_IMAP_MSG_CACHED    0x02
-#define _MU_IMAP_MSG_LINES     0x04
+#define _MU_IMAP_MSG_SCANNED   0x01 /* Message has already been scanned */
+#define _MU_IMAP_MSG_CACHED    0x02 /* Message is cached */
+#define _MU_IMAP_MSG_LINES     0x04 /* Number of lines is computed */
+#define _MU_IMAP_MSG_ATTRCHG   0x08 /* Message attributes has changed */
 
 struct _mu_imap_message
 {

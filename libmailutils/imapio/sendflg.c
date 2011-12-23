@@ -29,7 +29,7 @@ mu_imapio_send_flags (struct _mu_imapio *io, int flags)
   rc = mu_stream_write (io->_imap_stream, "(", 1, NULL);
   if (rc)
     return rc;
-  rc = mu_imap_format_flags (io->_imap_stream, flags);
+  rc = mu_imap_format_flags (io->_imap_stream, flags, io->_imap_server);
   if (rc == 0)
     rc = mu_stream_write (io->_imap_stream, ")", 1, NULL);
   return rc;

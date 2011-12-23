@@ -26,7 +26,7 @@ extern "C" {
 int mu_imap_wildmatch (const char *pattern, const char *name, int delim);
 
 int mu_imap_flag_to_attribute (const char *item, int *attr);
-int mu_imap_format_flags (mu_stream_t str, int flags);
+  int mu_imap_format_flags (mu_stream_t str, int flags, int include_recent);
 
 #ifdef __cplusplus
 }

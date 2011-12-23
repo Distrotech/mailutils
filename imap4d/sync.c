@@ -100,7 +100,7 @@ notify (void)
 	      if (nflags != attr_table[i-1])
 		{
 		  io_sendf ("* %lu FETCH FLAGS (",  (unsigned long) i);
-		  mu_imap_format_flags (iostream, nflags);
+		  mu_imap_format_flags (iostream, nflags, 1);
 		  io_sendf (")\n");
 		  attr_table[i-1] = nflags;
 		}

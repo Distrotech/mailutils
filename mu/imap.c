@@ -422,7 +422,7 @@ fetch_response_printer (void *item, void *data)
       
     case MU_IMAP_FETCH_FLAGS:
       mu_stream_printf (str, "  flags = ");
-      mu_imap_format_flags (str, resp->flags.flags);
+      mu_imap_format_flags (str, resp->flags.flags, 1);
       mu_stream_printf (str, "\n");
       break;
       
@@ -796,13 +796,13 @@ print_imap_stats (struct mu_imap_stat *st)
   if (st->flags & MU_IMAP_STAT_DEFINED_FLAGS)
     {
       mu_printf (_("Flags defined: "));
-      mu_imap_format_flags (mu_strout, st->defined_flags);
+      mu_imap_format_flags (mu_strout, st->defined_flags, 0);
       mu_printf ("\n");
     }
   if (st->flags & MU_IMAP_STAT_PERMANENT_FLAGS)
     {
       mu_printf (_("Flags permanent: "));
-      mu_imap_format_flags (mu_strout, st->permanent_flags);
+      mu_imap_format_flags (mu_strout, st->permanent_flags, 0);
       mu_printf ("\n");
     }
 

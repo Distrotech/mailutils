@@ -60,7 +60,7 @@ mu_imap_flag_to_attribute (const char *item, int *attr)
 }
 
 int
-mu_imap_format_flags (mu_stream_t str, int flags)
+mu_imap_format_flags (mu_stream_t str, int flags, int include_recent)
 {
   int i;
   int delim = 0;
@@ -74,7 +74,7 @@ mu_imap_format_flags (mu_stream_t str, int flags)
 	delim = 1;
       }
 
-  if (MU_ATTRIBUTE_IS_UNSEEN (flags))
+  if (include_recent && MU_ATTRIBUTE_IS_UNSEEN (flags))
     {
       if (delim)
 	mu_stream_printf (str, " ");

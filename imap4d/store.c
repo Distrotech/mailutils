@@ -75,14 +75,14 @@ store_thunk (imap4d_parsebuf_t p)
   if (status)
     imap4d_parsebuf_exit (p, "Failed to parse message set");
 
-  if (p->token[0] != '(')
-    imap4d_parsebuf_exit (p, "Syntax error");
-  imap4d_parsebuf_next (p, 1);
-  
-  do
-    if (mu_imap_flag_to_attribute (p->token, &pclos->type))
-      imap4d_parsebuf_exit (p, "Unrecognized flag");
-  while (imap4d_parsebuf_next (p, 1) && p->token[0] != ')');
+  if (strcmp (p->token, "NIL"))
+    {
+      if (p->token[0] != '(')
+	imap4d_parsebuf_exit (p, "Syntax error");
+      while (imap4d_parsebuf_next (p, 1) && p->token[0] != ')')
+	if (mu_imap_flag_to_attribute (p->token, &pclos->type))
+	  imap4d_parsebuf_exit (p, "Unrecognized flag");
+    }
   return RESP_OK;
 }
 

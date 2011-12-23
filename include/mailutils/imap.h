@@ -71,6 +71,16 @@ int mu_imap_fetch (mu_imap_t imap, int uid, const char *msgset,
 int mu_imap_store (mu_imap_t imap, int uid, const char *msgset,
 		   const char *items);
 
+#define MU_IMAP_STORE_SET 0
+#define MU_IMAP_STORE_ADD 1
+#define MU_IMAP_STORE_CLR 2
+#define MU_IMAP_STORE_SILENT 0x10
+
+#define MU_IMAP_STORE_OPMASK 0xf
+
+int mu_imap_store_flags (mu_imap_t imap, int uid, const char *msgset,
+			 int op, int flags);
+  
 int mu_imap_delete (mu_imap_t imap, const char *mailbox);
 int mu_imap_rename (mu_imap_t imap, const char *mailbox,
 		    const char *new_mailbox);

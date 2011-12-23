@@ -499,7 +499,7 @@ util_print_flags (mu_attribute_t attr)
   int flags = 0;
 
   mu_attribute_get_flags (attr, &flags);
-  mu_imap_format_flags (iostream, flags);
+  mu_imap_format_flags (iostream, flags, 1);
 }
 
 int
