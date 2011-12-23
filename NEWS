@@ -126,6 +126,12 @@ See <http://mailutils.org/wiki/mu> for more information.
 
 See <http://mailutils.org/wiki/Fetching_Mail_with_Movemail>.
 
+** Support for Kyoto Cabinet DBM.
+
+Kyoto Cabinet is a library of routines for managing a database. It is
+the successor of Tokyo Cabinet. Kyoto Cabinet is a free software
+licensed under the GNU General Public License.
+
 * Configuration changes
 
 These are of particular interest to installers.
