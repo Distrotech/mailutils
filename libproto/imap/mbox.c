@@ -735,7 +735,7 @@ _imap_mbx_open (mu_mailbox_t mbox, int flags)
   mu_imap_register_callback_function (imap, MU_IMAP_CB_RECENT_COUNT,
 				      _imap_update_callback,
 				      imbx);
-  mu_imap_register_callback_function (imap, MU_IMAP_STAT_MESSAGE_COUNT,
+  mu_imap_register_callback_function (imap, MU_IMAP_CB_MESSAGE_COUNT,
 				      _imap_update_callback,
 				      imbx);
   

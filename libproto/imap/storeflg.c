@@ -54,6 +54,7 @@ mu_imap_store_flags (mu_imap_t imap, int uid, const char *msgset,
 			cmd[op & MU_IMAP_STORE_OPMASK]);
       if (op & MU_IMAP_STORE_SILENT)
 	mu_imapio_printf (imap->io, ".SILENT");
+      mu_imapio_printf (imap->io, " ");
       mu_imapio_send_flags (imap->io, flags);
       mu_imapio_printf (imap->io, "\r\n");
       status = mu_imapio_last_error (imap->io);

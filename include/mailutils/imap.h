@@ -202,17 +202,20 @@ void mu_imap_register_callback_function (mu_imap_t imap, int code,
 					 mu_imap_callback_t callback,
 					 void *data);
 
-#define MU_IMAP_RESPONSE_ALERT            0
-#define MU_IMAP_RESPONSE_BADCHARSET       1
-#define MU_IMAP_RESPONSE_CAPABILITY       2
-#define MU_IMAP_RESPONSE_PARSE            3
-#define MU_IMAP_RESPONSE_PERMANENTFLAGS   4
-#define MU_IMAP_RESPONSE_READ_ONLY        5     
-#define MU_IMAP_RESPONSE_READ_WRITE       6
-#define MU_IMAP_RESPONSE_TRYCREATE        7
-#define MU_IMAP_RESPONSE_UIDNEXT          8
-#define MU_IMAP_RESPONSE_UIDVALIDITY      9
-#define MU_IMAP_RESPONSE_UNSEEN          10
+#define MU_IMAP_RESPONSE_TAGGED  	   0x10
+
+#define MU_IMAP_RESPONSE_UNKNOWN           0 
+#define MU_IMAP_RESPONSE_ALERT             1
+#define MU_IMAP_RESPONSE_BADCHARSET        2
+#define MU_IMAP_RESPONSE_CAPABILITY        3
+#define MU_IMAP_RESPONSE_PARSE             4
+#define MU_IMAP_RESPONSE_PERMANENTFLAGS    5
+#define MU_IMAP_RESPONSE_READ_ONLY         6   
+#define MU_IMAP_RESPONSE_READ_WRITE        7
+#define MU_IMAP_RESPONSE_TRYCREATE         8
+#define MU_IMAP_RESPONSE_UIDNEXT           9
+#define MU_IMAP_RESPONSE_UIDVALIDITY      10
+#define MU_IMAP_RESPONSE_UNSEEN           11
 
 extern struct mu_kwd mu_imap_response_codes[];  
 

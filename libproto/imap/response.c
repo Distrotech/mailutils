@@ -97,6 +97,12 @@ _mu_imap_response (mu_imap_t imap, mu_imap_response_action_t fun,
 		{
 		  imap->resp_code = MU_IMAP_BAD;
 		  response_to_errstr (imap, wc, wv);
+		  /* This may be so important that CB_BAD callback is
+		   * overloaded to handle this case as well.
+		   */
+		  mu_imap_callback (imap, MU_IMAP_CB_BAD,
+				    MU_IMAP_RESPONSE_TAGGED,
+				    wc >= 1 ? wv[wc-1] : NULL);
 		}
 	      else
 		status = MU_ERR_BADREPLY;
