@@ -235,9 +235,46 @@ int _mu_imap_url_init (mu_url_t url);
 int _mu_imaps_url_init (mu_url_t url);
 
 /* ----------------------------- */
-/* Folder interface              */
+/* Mailbox interface             */
 /* ----------------------------- */
 
+int _mu_imap_mailbox_init (mu_mailbox_t mailbox);
+
+#define _MU_IMAP_MSG_SCANNED   0x01
+#define _MU_IMAP_MSG_CACHED    0x02
+#define _MU_IMAP_MSG_LINES     0x04
+
+struct _mu_imap_message
+{
+  int flags;
+  size_t uid;               /* Message UID */   
+  int attr_flags;           /* Attributes */
+  mu_off_t offset;          /* Offset in the message cache stream */
+  mu_off_t body_start;      /* Start of message, relative to offset */
+  mu_off_t body_end;        /* End of message, relative to offset */  
+  size_t header_lines;      /* Number of lines in the header */
+  size_t body_lines;        /* Number of lines in the body */
+  size_t message_size;      /* Message size */
+  size_t message_lines;     /* Number of lines in the message */
+  struct mu_imapenvelope *env; /* IMAP envelope */
+  mu_message_t message;     /* Pointer to the message structure */ 
+  struct _mu_imap_mailbox *imbx; /* Back pointer.  */
+};
+
+#define _MU_IMAP_MBX_UPTODATE  0x01
+
+struct _mu_imap_mailbox
+{
+  int flags;
+  mu_off_t total_size;        /* Total mailbox size. */
+  struct mu_imap_stat stats;     /* Mailbox statistics */ 
+  struct _mu_imap_message *msgs; /* Array of messages */
+  size_t msgs_cnt;               /* Number of used slots in msgs */
+  size_t msgs_max;               /* Number of slots in msgs */
+  mu_stream_t cache;          /* Message cache stream */
+  int last_error;             /* Last error code */
+  mu_mailbox_t mbox;
+};
 
 # ifdef __cplusplus
 }

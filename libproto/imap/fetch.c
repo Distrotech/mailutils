@@ -618,7 +618,7 @@ _parse_bodystructure_simple (struct imap_list_element *elt,
   struct body_field_map *map;
   
   mu_list_count (elt->v.list, &n);
-  if (n < 8)
+  if (n < 7)
     return MU_ERR_PARSE;
 
   tok = _mu_imap_list_at (elt->v.list, BSTOK_BODY_TYPE);
@@ -976,6 +976,7 @@ _extract_string (void **itmv, size_t itmc, void *call_data)
 static int
 _fetch_fold (void *item, void *data)
 {
+  int rc;
   struct imap_list_element *elt = item;
   struct parse_response_env *env = data;
 
@@ -983,7 +984,6 @@ _fetch_fold (void *item, void *data)
     {
     case resp_kw:
       {
-	int rc;
 	char *kw;
 	size_t kwlen;
 	struct mapper_tab *mt;
@@ -1020,6 +1020,26 @@ _fetch_fold (void *item, void *data)
 	break;
       }
       
+    case resp_body:
+      if (_mu_imap_list_element_is_string (elt, "["))
+	{
+	  env->state = resp_body_section;
+	  break;
+	}
+      else
+	{
+	  env->mapper = _bodystructure_mapper;
+	  _free_fetch_response (env->resp);
+	  rc = alloc_response (&env->resp, MU_IMAP_FETCH_BODYSTRUCTURE);
+	  if (rc)
+	    {
+	      env->status = rc;
+	      return MU_ERR_FAILURE;
+	    }
+	  env->state = resp_val;
+	}
+      /* fall through */
+      
     case resp_val:
       if (env->mapper)
 	{
@@ -1032,16 +1052,6 @@ _fetch_fold (void *item, void *data)
       env->resp = NULL;
       mu_list_destroy (&env->hlist);
       env->state = resp_kw;
-      break;
-      
-    case resp_body:
-      if (_mu_imap_list_element_is_string (elt, "["))
-	env->state = resp_body_section;
-      else
-	{
-	  env->mapper = _bodystructure_mapper;
-	  env->state = resp_val;
-	}
       break;
       
     case resp_body_section:

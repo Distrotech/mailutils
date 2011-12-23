@@ -23,8 +23,6 @@ libmu_imap_la_LIBADD = ${MU_LIB_AUTH} ${MU_LIB_MAILUTILS} @INTLLIBS@
 
 SUBDIRS = . tests
 
-# FIXME: Put this back when ready
-#  mbox.c
 libmu_imap_la_SOURCES = \
  appmsg.c\
  appstr.c\
@@ -68,4 +66,5 @@ libmu_imap_la_SOURCES = \
  unselect.c\
  unsubscribe.c\
  folder.c\
+ mbox.c\
  url.c

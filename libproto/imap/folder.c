@@ -39,21 +39,13 @@
 #include <mailutils/sys/imap.h>
 #include <mailutils/sys/folder.h>
 
-/* Placeholders. */
-#define _mu_imap_mailbox_init NULL
-#define _mu_imaps_mailbox_init NULL
-
-
 static void
 _mu_imap_folder_destroy (mu_folder_t folder)
 {
   mu_imap_t imap = folder->data;
   if (imap)
     {
-      /*
-	mu_imap_logout (imap);
-	mu_imap_disconnect (imap);
-      */
+      mu_folder_close (folder);
       mu_imap_destroy (&imap);
       folder->data = imap;
     }
@@ -90,13 +82,6 @@ _mu_folder_bad_callback (void *data, int code, size_t sdat, void *pdat)
   mu_error (_("This probably indicates a bug in Mailutils client code."));
   mu_error (_("Please, report that to <%s>."), PACKAGE_BUGREPORT);
 }
-#if 0
-static void
-_mu_folder_fetch_callback (void *data, int code, size_t sdat, void *pdat)
-{
-  mu_folder_t folder = data;
-}
-#endif
 
 /* Set up an IMAP(S) connection for this folder */
 static int
@@ -187,11 +172,6 @@ _mu_imap_folder_open (mu_folder_t folder, int flags)
   mu_imap_register_callback_function (imap, MU_IMAP_CB_BAD,
 				      _mu_folder_bad_callback,
 				      folder);
-#if 0
-  mu_imap_register_callback_function (imap, MU_IMAP_CB_FETCH,
-				      _mu_folder_fetch_callback,
-				      folder);
-#endif
   rc = mu_imap_connect (imap);
   if (rc)
     {
@@ -206,6 +186,32 @@ _mu_imap_folder_open (mu_folder_t folder, int flags)
       return rc;
     }
 
+#ifdef WITH_TLS
+  if (!tls && mu_imap_capability_test (imap, "STARTTLS", NULL) == 0)
+    {
+      size_t parmc = 0;
+      char **parmv = NULL;
+
+      tls = 1;
+      if (mu_url_sget_fvpairs (folder->url, &parmc, &parmv) == 0)
+	{
+	  size_t i;
+      
+	  for (i = 0; i < parmc; i++)
+	    {
+	      if (strcmp (parmv[i], "notls") == 0)
+		tls = 0;
+	      /*FIXME:
+		else if (strncmp (parmv[i], "auth=", 5) == 0)
+	      */
+	      /* unrecognized arguments silently ignored */
+	    }
+	}
+
+      if (tls)
+	mu_imap_starttls (imap);
+    }
+#endif
   if (mu_imap_session_state (imap) == MU_IMAP_SESSION_NONAUTH)
     {
       rc = mu_authority_authenticate (folder->authority);
@@ -217,7 +223,7 @@ _mu_imap_folder_open (mu_folder_t folder, int flags)
 	  mu_folder_close (folder);
 	}
     }
-  
+    
   return rc;
 }
 
@@ -551,7 +557,7 @@ static struct _mu_record _imap_record =
   MU_IMAP_PRIO,
   MU_IMAP_SCHEME,
   MU_RECORD_DEFAULT,
-  MU_URL_SCHEME | MU_URL_CRED | MU_URL_INET | MU_URL_PATH,
+  MU_URL_SCHEME | MU_URL_CRED | MU_URL_INET | MU_URL_PATH | MU_URL_PARAM,
   MU_URL_HOST,
   _mu_imap_url_init,     /* url entry.  */
   _mu_imap_mailbox_init, /* Mailbox entry.  */
@@ -576,7 +582,7 @@ static struct _mu_record _imaps_record =
   MU_URL_SCHEME | MU_URL_CRED | MU_URL_INET | MU_URL_PATH | MU_URL_PARAM,
   MU_URL_HOST,
   _mu_imaps_url_init,     /* url entry.  */
-  _mu_imaps_mailbox_init, /* Mailbox entry.  */
+  _mu_imap_mailbox_init,  /* Mailbox entry.  */
   NULL,                /* Mailer entry.  */
   _mu_imap_folder_init,   /* Folder entry.  */
   NULL, /* No need for a back pointer.  */
