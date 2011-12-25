@@ -157,7 +157,9 @@ __imap_msg_get_stream (struct _mu_imap_message *imsg, size_t msgno,
   if (!(imsg->flags & _MU_IMAP_MSG_CACHED))
     {
       char *msgset;
-	  
+      
+      mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_TRACE1,
+		(_("caching message %lu"), (unsigned long) msgno));
       if (!imbx->cache)
 	{
 	  rc = mu_temp_file_stream_create (&imbx->cache, NULL, 0);
@@ -183,7 +185,14 @@ __imap_msg_get_stream (struct _mu_imap_message *imsg, size_t msgno,
 					  _save_message, &clos);
 	  free (msgset);
 	  if (rc == 0 && !_imap_mbx_errno (imbx))
-	    imsg->message_size = clos.size;
+	    {
+	      mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_TRACE1,
+			(_("cached message %lu: offset=%lu, size=%lu"),
+			 (unsigned long) msgno,
+			 (unsigned long) imsg->offset,
+			 (unsigned long) clos.size));
+	      imsg->message_size = clos.size;
+	    }
 	}
 
       if (rc)
@@ -360,6 +369,9 @@ _imap_hdr_fill (void *data, char **pbuf, size_t *plen)
   rc = mu_asprintf (&msgset, "%lu", msgno);
   if (rc == 0)
     {
+      mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_TRACE1,
+		(_("message %lu: reading headers"),
+		 (unsigned long) msgno));
       rc = _imap_fetch_with_callback (imap, msgset, "BODY.PEEK[HEADER]",
 				      _save_message, &clos);
       free (msgset);
@@ -720,6 +732,8 @@ _imap_mbx_open (mu_mailbox_t mbox, int flags)
   rc = mu_mailbox_get_url (mbox, &url);
   if (rc)
     return rc;
+  mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_TRACE1,
+	    (_("opening mailbox %s"), mu_url_to_string (url)));
   rc = mu_url_sget_path (url, &mbox_name);
   if (rc == MU_ERR_NOENT)
     mbox_name = "INBOX";
@@ -758,6 +772,8 @@ _imap_mbx_close (mu_mailbox_t mbox)
   mu_folder_t folder = mbox->folder;
   mu_imap_t imap = folder->data;
 
+  mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_TRACE1,
+	    (_("closing mailbox %s"), mu_url_to_string (mbox->url)));
   if (mu_imap_capability_test (imap, "UNSELECT", NULL) == 0)
     rc = mu_imap_unselect (imap);
   else
@@ -820,73 +836,213 @@ _imap_uidvalidity (mu_mailbox_t mbox, unsigned long *pn)
   return 0;
 }
 
+struct attr_tab
+{
+  size_t start;
+  size_t end;
+  int attr_flags;
+};
+
 static int
-_imap_mbx_expunge (mu_mailbox_t mbox)
+attr_tab_cmp (void const *a, void const *b)
+{
+  struct attr_tab const *ta = a;
+  struct attr_tab const *tb = b;
+
+  if (ta->attr_flags < tb->attr_flags)
+    return -1;
+  else if (ta->attr_flags > tb->attr_flags)
+    return 1;
+
+  if (ta->start < tb->start)
+    return -1;
+  else if (ta->start > tb->start)
+    return 1;
+  return 0;
+} 
+
+static int
+aggregate_attributes (struct _mu_imap_mailbox *imbx,
+		      struct attr_tab **ptab, size_t *pcnt)
+{
+  size_t i, j;
+  size_t count;
+  struct attr_tab *tab;
+  
+  /* Pass 1: Count modified attributes */
+  count = 0;
+  for (i = 0; i < imbx->msgs_cnt; i++)
+    {
+      if (imbx->msgs[i].flags & _MU_IMAP_MSG_ATTRCHG)
+	count++;
+    }
+
+  if (count == 0)
+    {
+      *ptab = NULL;
+      *pcnt = 0;
+      return 0;
+    }
+  
+  /* Pass 2: Create and populate expanded array */
+  tab = calloc (count, sizeof (*tab));
+  if (!tab)
+    return ENOMEM;
+  for (i = j = 0; i < imbx->msgs_cnt; i++)
+    {
+      if (imbx->msgs[i].flags & _MU_IMAP_MSG_ATTRCHG)
+	{
+	  tab[j].start = tab[j].end = i;
+	  tab[j].attr_flags = imbx->msgs[i].attr_flags;
+	  j++;
+	}
+    }
+  
+  /* Sort the array */
+  qsort (tab, count, sizeof (tab[0]), attr_tab_cmp);
+
+  /* Pass 3: Coalesce message ranges */
+  for (i = j = 0; i < count; i++)
+    {
+      if (i == j)
+	continue;
+      else if ((tab[i].attr_flags == tab[j].attr_flags) &&
+	       (tab[i].start == tab[j].end + 1))
+	tab[j].end++;
+      else
+	tab[++j] = tab[i];
+    }
+
+  *ptab = tab;
+  *pcnt = j + 1;
+  return 0;
+}
+
+static int
+flush_attributes (mu_imap_t imap, mu_stream_t str, int attr_flags)
+{
+  int rc;
+  mu_transport_t trans[2];
+		      
+  mu_stream_write (str, "", 1, NULL);
+  if (mu_stream_err (str))
+    return mu_stream_last_error (str);
+
+  rc = mu_stream_ioctl (str, MU_IOCTL_TRANSPORT, MU_IOCTL_OP_GET, trans);
+  if (rc == 0)
+    rc = mu_imap_store_flags (imap, 0, (char*)trans[0],
+			      MU_IMAP_STORE_SET|MU_IMAP_STORE_SILENT,
+			      attr_flags);
+  return rc;
+}
+
+static int
+_imap_mbx_gensync (mu_mailbox_t mbox, int *pdel)
 {
   struct _mu_imap_mailbox *imbx = mbox->data;
   mu_folder_t folder = mbox->folder;
   mu_imap_t imap = folder->data;
-  size_t i;
+  size_t i, j;
   char *msgset;
   int rc;
   int delflg = 0;
+  struct attr_tab *tab;
+  size_t count;
   
-  for (i = 0; i < imbx->msgs_cnt; i++)
+  rc = aggregate_attributes (imbx, &tab, &count);
+  if (rc)
     {
-      if (imbx->msgs[i].flags & _MU_IMAP_MSG_ATTRCHG)
+      /* Too bad, but try to use naive approach */
+      for (i = 0; i < imbx->msgs_cnt; i++)
 	{
-	  rc = mu_asprintf (&msgset, "%lu", i + 1);
-	  if (rc)
-	    break;
-	  rc = mu_imap_store_flags (imap, 0, msgset,
-				    MU_IMAP_STORE_SET|MU_IMAP_STORE_SILENT,
-				    imbx->msgs[i].attr_flags);
-	  delflg |= imbx->msgs[i].attr_flags & MU_ATTRIBUTE_DELETED;
-	  free (msgset);
-	  if (rc)
-	    break;
+	  if (imbx->msgs[i].flags & _MU_IMAP_MSG_ATTRCHG)
+	    {
+	      rc = mu_asprintf (&msgset, "%lu", i + 1);
+	      if (rc)
+		break;
+	      rc = mu_imap_store_flags (imap, 0, msgset,
+					MU_IMAP_STORE_SET|MU_IMAP_STORE_SILENT,
+					imbx->msgs[i].attr_flags);
+	      delflg |= imbx->msgs[i].attr_flags & MU_ATTRIBUTE_DELETED;
+	      free (msgset);
+	      if (rc)
+		break;
+	    }
 	}
+    }
+  else
+    {
+      mu_stream_t str;
+
+      rc = mu_memory_stream_create (&str, MU_STREAM_RDWR);
+      if (rc == 0)
+	{
+	  for (i = j = 0; i < count; i++)
+	    {
+	      if (j < i)
+		{
+		  if (tab[j].attr_flags != tab[i].attr_flags)
+		    {
+		      rc = flush_attributes (imap, str, tab[j].attr_flags);
+		      delflg |= tab[j].attr_flags & MU_ATTRIBUTE_DELETED;
+		      if (rc)
+			break;
+		      mu_stream_truncate (str, 0);
+		      j = i;
+		    }
+		  else
+		    mu_stream_printf (str, ",");
+		}
+	      if (tab[i].end == tab[i].start)
+		mu_stream_printf (str, "%lu", (unsigned long)tab[i].start+1);
+	      else
+		mu_stream_printf (str, "%lu:%lu",
+				  (unsigned long)tab[i].start+1,
+				  (unsigned long)tab[i].end+1);
+	    }
+
+	  if (j < i)
+	    {
+	      rc = flush_attributes (imap, str, tab[j].attr_flags);
+	      delflg |= tab[j].attr_flags & MU_ATTRIBUTE_DELETED;
+	    }
+	  mu_stream_unref (str);
+	}
+      free (tab);
     }
 
   if (rc)
     return rc;
 
-  if (delflg)
-    rc = mu_imap_expunge (imap);
+  if (pdel)
+    *pdel = delflg;
   
+  return 0;
+}
+
+static int
+_imap_mbx_expunge (mu_mailbox_t mbox)
+{
+  int rc, del = 0;
+  
+  mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_TRACE1,
+	    (_("expunging mailbox %s"), mu_url_to_string (mbox->url)));
+  rc = _imap_mbx_gensync (mbox, &del);
+  if (rc == 0 && del)
+    {
+      mu_folder_t folder = mbox->folder;
+      mu_imap_t imap = folder->data;
+      rc = mu_imap_expunge (imap);
+    }
   return rc;
 }
 
 static int
 _imap_mbx_sync (mu_mailbox_t mbox)
 {
-  struct _mu_imap_mailbox *imbx = mbox->data;
-  mu_folder_t folder = mbox->folder;
-  mu_imap_t imap = folder->data;
-  size_t i;
-  char *msgset;
-  int rc;
-  
-  if (!imbx->msgs)
-    return 0; 
-
-  for (i = 0; i < imbx->msgs_cnt; i++)
-    {
-      if (imbx->msgs[i].flags & _MU_IMAP_MSG_ATTRCHG)
-	{
-	  rc = mu_asprintf (&msgset, "%lu", i + 1);
-	  if (rc)
-	    break;
-	  rc = mu_imap_store_flags (imap, 0, msgset,
-				    MU_IMAP_STORE_SET|MU_IMAP_STORE_SILENT,
-				    imbx->msgs[i].attr_flags);
-	  free (msgset);
-	  if (rc)
-	    break;
-	}
-    }
-  
-  return rc;
+  mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_TRACE1,
+	    (_("synchronizing mailbox %s"), mu_url_to_string (mbox->url)));
+  return _imap_mbx_gensync (mbox, NULL);
 }
 
 static int
@@ -1030,6 +1186,8 @@ _imap_mbx_scan (mu_mailbox_t mbox, size_t msgno, size_t *pcount)
   int rc;
   static char _imap_scan_items[] = "(UID FLAGS ENVELOPE RFC822.SIZE BODY)";
   
+  mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_TRACE1,
+	    (_("scanning mailbox %s"), mu_url_to_string (mbox->url)));
   rc = mu_asprintf (&msgset, "%lu:*", (unsigned long) msgno);
   if (rc)
     return rc;
