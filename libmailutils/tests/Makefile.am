@@ -52,6 +52,7 @@ noinst_PROGRAMS = \
  listop\
  mailcap\
  mimehdr\
+ msgset\
  prop\
  scantime\
  strftime\
@@ -90,6 +91,7 @@ TESTSUITE_AT = \
  list.at\
  mailcap.at\
  mimehdr.at\
+ msgset.at\
  prop.at\
  scantime.at\
  strftime.at\

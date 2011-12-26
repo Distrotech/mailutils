@@ -99,3 +99,5 @@ m4_include([strftime.at])
 m4_include([fsaf.at])
 
 m4_include([mimehdr.at])
+
+m4_include([msgset.at])

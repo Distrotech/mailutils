@@ -1,0 +1,175 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2011 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# GNU Mailutils is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+
+AT_BANNER([Message sets])
+
+dnl ------------------------------------------------------------------
+dnl MSGSET([NAME], [KW = `'], [OP], [STDOUT = `'], [STDERR = `'])
+dnl
+m4_pushdef([MSGSET],[
+AT_SETUP([$1])
+AT_KEYWORDS([msgset $2])
+AT_CHECK([msgset $3],[0],[$4],[$5])
+AT_CLEANUP
+])
+dnl ------------------------------------------------------------------
+
+MSGSET([Aggregation: simple],[msgset-aggr-simple msgset-aggr],
+[-msgset='1,5:11,20:24,80:90,22:30,50:60,4:12,41:50,70:81'],
+[1,4:12,20:30,41:60,70:90
+])
+
+MSGSET([Aggregation: open range (1)],
+[msgset-aggr-open-1 msgset-aggr-open msgset-aggr],
+[-msgset='12:*,1'],
+[1,12:*
+])
+
+MSGSET([Aggregation: coalescing open ranges],
+[msgset-aggr-open-2 msgset-aggr-open msgset-aggr],
+[-msgset='12:*,1,15:*,8:*'],
+[1,8:*
+])
+
+MSGSET([Aggregation: open range (3)],
+[msgset-aggr-open-3 msgset-aggr-open msgset-aggr],
+[-msgset='1,12:*,12:13'],
+[1,12:*
+])
+
+MSGSET([Aggregation: open range (4)],
+[msgset-aggr-open-4 msgset-aggr-open msgset-aggr],
+[-msgset='1,12:*,13:40'],
+[1,12:*
+])
+
+MSGSET([Aggregation: open range (5)],
+[msgset-aggr-open-5 msgset-aggr-open msgset-aggr],
+[-msgset='10:*,3,5:9'],
+[3,5:*
+])
+
+MSGSET([Create simple set],[msgset-simple msgset-add],
+[-add=1:10],
+[1:10
+])
+
+MSGSET([Create complex set],[msgset-complex msgset-add],
+[-add=1 -add=2 -add=3 -add=4 -add=10:20 -add=15:35 -add=36:40],
+[1:4,10:40
+])
+
+MSGSET([Subtract: no match],[msgset-sub msgset-sub-1],
+[-msgset=20:40 -sub=1:10],
+[20:40
+])
+
+MSGSET([Subtract: exact match],[msgset-sub msgset-sub-2],
+[-msgset=1,4:9,11 -sub=4:9],
+[1,11
+])
+
+MSGSET([Subtract: contained range],[msgset-sub msgset-sub-3],
+[-msgset=1:40 -sub=5:15
+],
+[1:4,16:40
+])
+
+MSGSET([Subtract: contained range (left border case)],
+[msgset-sub msgset-sub-3 msgset-sub-3-0],
+[-msgset=1:40 -sub=1:20],
+[21:40
+])
+
+MSGSET([Subtract: contained range (right border case)],
+[msgset-sub msgset-sub-3 msgset-sub-3-1],
+[-msgset=1:40 -sub=30:40],
+[1:29
+])
+
+MSGSET([Subtract: initial subrange],[msgset-sub msgset-sub-4],
+[-msgset=1:40,50:60,80:200 -sub=55:65],
+[1:40,50:54,80:200
+])
+
+MSGSET([Subtract: trailing subrange],[msgset-sub msgset-sub-5],
+[-msgset=1:40,50:60,80:200 -sub=45:55],
+[1:40,56:60,80:200
+])
+
+MSGSET([Subtract: overlapping subrange],[msgset-sub msgset-sub-6],
+[-msgset=1:40,50:60,80:200 -sub=41:70],
+[1:40,80:200
+])
+
+MSGSET([Subtract: 4, 5 and 6 combined],
+[msgset-sub msgset-sub-4 msgset-sub-5 msgset-sub-6 msgset-sub-456],
+[-msgset=1:40,50:60,80:200 -sub=30:100],
+[1:29,101:200
+])
+
+MSGSET([open range],[msgset-inf],
+[-msgset='1:*'],
+[1:*
+])
+
+MSGSET([add to open range],[msgset-inf-add msgset-add],
+[-msgset='10:*' -add=3 -add=5:9],
+[3,5:*
+])
+
+MSGSET([subtract from open range],[msgset-inf-sub msgset-sub],
+[-msgset='3,10:*' -sub=5:11],
+[3,12:*
+])
+
+MSGSET([subtract from open range an equal range],[msgset-inf-sub-1 msgset-sub],
+[-msgset='3,10:*' -sub=10:*],
+[3
+])
+
+MSGSET([subtract from open range a broader range],
+[msgset-inf-sub-2 msgset-sub],
+[-msgset='3,10:*' -sub=20:*],
+[3,10:*
+])
+
+MSGSET([subtract from open range a narrower range],
+[msgset-inf-sub-3 msgset-sub],
+[-msgset='3,10:*' -sub=5:*],
+[3
+])
+
+MSGSET([subtract an open range with matching left boundary],
+[msgset-inf-sub-4 msgset-sub],
+[-msgset='3,10:20' -sub=10:*],
+[3
+])
+
+MSGSET([subtract an open range with greater left boundary],
+[msgset-inf-sub-4 msgset-sub],
+[-msgset='3,10:20' -sub=11:*],
+[3,10:20
+])
+
+MSGSET([subtract an open range with smaller left boundary],
+[msgset-inf-sub-4 msgset-sub],
+[-msgset='3,10:20' -sub=8:*],
+[3
+])
+
+dnl ------------------------------------------------------------------
+m4_popdef([MSGSET])

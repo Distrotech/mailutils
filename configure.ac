@@ -1479,6 +1479,7 @@ AC_CONFIG_FILES([
  libmailutils/mailbox/Makefile
  libmailutils/mailer/Makefile
  libmailutils/mime/Makefile
+ libmailutils/msgset/Makefile
  libmailutils/property/Makefile
  libmailutils/server/Makefile
  libmailutils/string/Makefile

@@ -54,6 +54,7 @@ noinst_PROGRAMS = \
  fldel\
  lstuid\
  mbdel\
+ msgset\
  mimetest\
  smtpsend\
  ufms

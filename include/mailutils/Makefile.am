@@ -73,6 +73,7 @@ pkginclude_HEADERS = \
  mh.h\
  mime.h\
  monitor.h\
+ msgset.h\
  mu_auth.h\
  util.h\
  nls.h\

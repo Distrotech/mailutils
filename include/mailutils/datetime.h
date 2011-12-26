@@ -18,6 +18,10 @@
 #ifndef _MAILUTILS_DATETIME_H
 #define _MAILUTILS_DATETIME_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <time.h>
 #include <mailutils/types.h>
 
@@ -83,4 +87,8 @@ int mu_scan_datetime (const char *input, const char *fmt, struct tm *tm,
 #define MU_DATETIME_FORM_RFC822  "%a, %e %b %Y %H:%M:%S %z"
 #define MU_DATETIME_SCAN_RFC822  "%[%a, %]%e %b %Y %H:%M%[:%S%] %z"
 
+#ifdef __cplusplus
+}
+#endif
+  
 #endif
