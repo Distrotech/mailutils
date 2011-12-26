@@ -25,19 +25,19 @@ struct store_parse_closure
   int ack;
   int type;
   int isuid;
-  mu_list_t msgnumlist;
+  mu_msgset_t msgset;
 };
   
 static int
 store_thunk (imap4d_parsebuf_t p)
 {
   struct store_parse_closure *pclos = imap4d_parsebuf_data (p);
-  char *msgset;
+  char *mstr;
   char *data;
   int status;
   char *end;
   
-  msgset = imap4d_parsebuf_next (p, 1);
+  mstr = imap4d_parsebuf_next (p, 1);
   data = imap4d_parsebuf_next (p, 1);
 
   if (*data == '+')
@@ -69,9 +69,13 @@ store_thunk (imap4d_parsebuf_t p)
 	imap4d_parsebuf_exit (p, "Bogus data suffix");
     }
 
+  status = mu_msgset_create (&pclos->msgset, mbox,
+			     pclos->isuid ? MU_MSGSET_UID : 0);
+  if (status)
+    imap4d_parsebuf_exit (p, "Software error");
+  
   /* Get the message numbers in set[].  */
-  status = util_parse_msgset (msgset, pclos->isuid, mbox,
-			      &pclos->msgnumlist, &end);
+  status = mu_msgset_parse_imap (pclos->msgset, mstr, &end);
   if (status)
     imap4d_parsebuf_exit (p, "Failed to parse message set");
 
@@ -150,12 +154,12 @@ imap4d_store0 (imap4d_tokbuf_t tok, int isuid, char **ptext)
 			     ptext);
   if (rc == RESP_OK)
     {
-      util_foreach_message (pclos.msgnumlist, _do_store, &pclos);
+      util_foreach_message (pclos.msgset, _do_store, &pclos);
     
       *ptext = "Completed";
     }
   
-  mu_list_destroy (&pclos.msgnumlist);
+  mu_msgset_free (pclos.msgset);
   
   return rc;
 }

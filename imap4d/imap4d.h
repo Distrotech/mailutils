@@ -107,6 +107,7 @@
 #include <mailutils/prog.h>
 #include <mailutils/imapio.h>
 #include <mailutils/imaputil.h>
+#include <mailutils/msgset.h>
 
 #include <mu_umaxtostr.h>
 #include <muaux.h>
@@ -371,12 +372,9 @@ extern char *util_getfullpath (const char *);
 extern struct imap4d_command *util_getcommand (char *, 
                                                struct imap4d_command []);
 
-extern int util_parse_msgset (char *s, int isuid, mu_mailbox_t mbx,
-			      mu_list_t *plist, char **end);
-
 typedef int (*imap4d_message_action_t) (size_t, void *);
 
-int util_foreach_message (mu_list_t list, imap4d_message_action_t action,
+int util_foreach_message (mu_msgset_t list, imap4d_message_action_t action,
 			  void *data);
 
 enum datetime_parse_mode     /* how to parse date/time strings */

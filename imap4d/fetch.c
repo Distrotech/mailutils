@@ -64,7 +64,7 @@ struct fetch_parse_closure
 {
   int isuid;
   mu_list_t fnlist;
-  mu_list_t msgnumlist;
+  mu_msgset_t msgset;
 };
 
 
@@ -1753,18 +1753,22 @@ static int
 fetch_thunk (imap4d_parsebuf_t pb)
 {
   int status;
-  char *msgset;
+  char *mstr;
   char *end;
   struct fetch_parse_closure *pclos = imap4d_parsebuf_data (pb);
   
-  msgset = imap4d_parsebuf_next (pb, 1);
+  mstr = imap4d_parsebuf_next (pb, 1);
 
+  status = mu_msgset_create (&pclos->msgset, mbox,
+			     pclos->isuid ? MU_MSGSET_UID : 0);
+  if (status)
+    imap4d_parsebuf_exit (pb, "Software error");
+  
   /* Parse sequence numbers. */
-  status = util_parse_msgset (msgset, pclos->isuid, mbox,
-			      &pclos->msgnumlist, &end);
+  status = mu_msgset_parse_imap (pclos->msgset, mstr, &end);
   if (status)
     imap4d_parsebuf_exit (pb, "Failed to parse message set");
-
+  
   /* Compile the expression */
 
   /* Server implementations MUST implicitly
@@ -1829,12 +1833,12 @@ imap4d_fetch0 (imap4d_tokbuf_t tok, int isuid, char **err_text)
 	 loop below */
       frc.err_text = "Completed";
 
-      util_foreach_message (pclos.msgnumlist, _fetch_from_message, &frc);
+      util_foreach_message (pclos.msgset, _fetch_from_message, &frc);
       mu_list_destroy (&frc.msglist);
     }
   
   mu_list_destroy (&pclos.fnlist);
-  mu_list_destroy (&pclos.msgnumlist);
+  mu_msgset_free (pclos.msgset);
   return rc;
 }
 

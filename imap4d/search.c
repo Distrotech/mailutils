@@ -62,7 +62,7 @@ struct value
     char *string;
     mu_off_t number;
     time_t date;
-    mu_list_t msgset;
+    mu_msgset_t msgset;
   } v;
 };
 
@@ -198,11 +198,12 @@ struct cond_equiv equiv_list[] =
 };
 
 /* A memory allocation chain used to keep track of objects allocated during
-   the recursive-descent parsing. */
+   the recursive-descend parsing. */
 struct mem_chain
 {
   struct mem_chain *next;
   void *mem;
+  void (*free_fun) (void *);
 };
 
 /* Code and stack sizes for execution of compiled search statement */
@@ -233,7 +234,7 @@ struct parsebuf
 };
 
 static void parse_free_mem (struct parsebuf *pb);
-static void *parse_regmem (struct parsebuf *pb, void *mem);
+static void *parse_regmem (struct parsebuf *pb, void *mem, void (*f)(void*));
 static char *parse_strdup (struct parsebuf *pb, char *s);
 static void *parse_alloc (struct parsebuf *pb, size_t size);
 static struct search_node *parse_search_key_list (struct parsebuf *pb);
@@ -385,7 +386,10 @@ parse_free_mem (struct parsebuf *pb)
   while (alloc)
     {
       next = alloc->next;
-      free (alloc->mem);
+      if (alloc->free_fun)
+	alloc->free_fun (alloc->mem);
+      else
+	free (alloc->mem);
       free (alloc);
       alloc = next;
     }
@@ -393,7 +397,7 @@ parse_free_mem (struct parsebuf *pb)
 
 /* Register a memory pointer mem with the parsebuf */
 void *
-parse_regmem (struct parsebuf *pb, void *mem)
+parse_regmem (struct parsebuf *pb, void *mem, void (*f) (void*))
 {
   struct mem_chain *mp;
 
@@ -403,6 +407,7 @@ parse_regmem (struct parsebuf *pb, void *mem)
   mp->next = pb->alloc;
   pb->alloc = mp;
   mp->mem = mem;
+  mp->free_fun = f;
   return mem;
 }
 
@@ -413,7 +418,7 @@ parse_alloc (struct parsebuf *pb, size_t size)
   void *p = malloc (size);
   if (!p)
     imap4d_bye (ERR_NO_MEM);
-  return parse_regmem (pb, p);
+  return parse_regmem (pb, p, NULL);
 }
 
 /* Create a copy of the string. */ 
@@ -423,18 +428,34 @@ parse_strdup (struct parsebuf *pb, char *s)
   s = strdup (s);
   if (!s)
     imap4d_bye (ERR_NO_MEM);
-  return parse_regmem (pb, s);
+  return parse_regmem (pb, s, NULL);
+}
+
+static void
+free_msgset (void *ptr)
+{
+  mu_msgset_free (ptr);
+}
+
+mu_msgset_t
+parse_msgset_create (struct parsebuf *pb, mu_mailbox_t mbox, int flags)
+{
+  mu_msgset_t msgset;
+
+  if (mu_msgset_create (&msgset, mbox, flags))
+    imap4d_bye (ERR_NO_MEM);
+  return parse_regmem (pb, msgset, free_msgset);
 }
 
 /* A recursive-descent parser for the following grammar:
    search_key_list : search_key
-                   | search_key_list search_key
-                   ;
+	           | search_key_list search_key
+		   ;
 
    search_key      : simple_key
-                   | NOT simple_key
-                   | OR simple_key simple_key
-                   | '(' search_key_list ')'
+	           | NOT simple_key
+		   | OR simple_key simple_key
+		   | '(' search_key_list ')'
 		   ;
 */
 
@@ -445,7 +466,7 @@ struct search_node *
 parse_search_key_list (struct parsebuf *pb)
 {
   struct search_node *leftarg = NULL;
-  
+
   while (pb->token && pb->token[0] != ')')
     {
       struct search_node *rightarg = parse_search_key (pb);
@@ -478,7 +499,7 @@ parse_search_key (struct parsebuf *pb)
       node = parse_search_key_list (pb);
       if (!node)
 	return NULL;
-	
+      
       if (strcmp (pb->token, ")"))
 	{
 	  pb->err_mesg = "Unbalanced parenthesis";
@@ -500,30 +521,30 @@ parse_search_key (struct parsebuf *pb)
   else if (mu_c_strcasecmp (pb->token, "NOT") == 0)
     {
       struct search_node *np;
-      
+
       if (parse_gettoken (pb, 1) == 0)
-	return NULL;
+	 return NULL;
 
       np = parse_search_key (pb);
       if (!np)
-	return NULL;
+	 return NULL;
 
       node = parse_alloc (pb, sizeof *node);
       node->type = node_not;
       node->v.arg[0] = np;
-      
+
       return node;
     }
   else if (mu_c_strcasecmp (pb->token, "OR") == 0)
     {
       struct search_node *leftarg, *rightarg;
-      
+
       if (parse_gettoken (pb, 1) == 0)
-	return NULL;
+	 return NULL;
 
       if ((leftarg = parse_search_key (pb)) == NULL
-	  || (rightarg = parse_search_key (pb)) == NULL)
-	return NULL;
+	   || (rightarg = parse_search_key (pb)) == NULL)
+	 return NULL;
 
       node = parse_alloc (pb, sizeof *node);
       node->type = node_or;
@@ -543,9 +564,9 @@ parse_equiv_key (struct parsebuf *pb)
   struct cond_equiv *condp;
   int save_arg;
   imap4d_tokbuf_t save_tok;
-  
+
   for (condp = equiv_list; condp->name && mu_c_strcasecmp (condp->name, pb->token);
-       condp++)
+	condp++)
     ;
 
   if (!condp->name)
@@ -563,11 +584,11 @@ parse_equiv_key (struct parsebuf *pb)
     {
       /* shouldn't happen? */
       mu_diag_output (MU_DIAG_CRIT, _("%s:%d: INTERNAL ERROR (please report)"),
-		      __FILE__, __LINE__);
+		       __FILE__, __LINE__);
       abort (); 
     }
   imap4d_tokbuf_destroy (&pb->tok);
-  
+
   pb->arg = save_arg;
   pb->tok = save_tok;
   parse_gettoken (pb, 0);
@@ -580,21 +601,22 @@ parse_simple_key (struct parsebuf *pb)
   struct search_node *node;
   struct cond *condp;
   time_t time;
-  
+
   for (condp = condlist; condp->name && mu_c_strcasecmp (condp->name, pb->token);
        condp++)
     ;
-
+  
   if (!condp->name)
     {
-      mu_list_t msglist;
+      mu_msgset_t msgset = parse_msgset_create (pb, mbox,
+						pb->isuid ? MU_MSGSET_UID : 0);
       
-      if (util_parse_msgset (pb->token, pb->isuid, mbox, &msglist, NULL) == 0) 
+      if (mu_msgset_parse_imap (msgset, pb->token, NULL) == 0) 
 	{
 	  struct search_node *np = parse_alloc (pb, sizeof *np);
 	  np->type = node_value;
 	  np->v.value.type = value_msgset;
-	  np->v.value.v.msgset = msglist;
+	  np->v.value.v.msgset = msgset;
 	  
 	  node = parse_alloc (pb, sizeof *node);
 	  node->type = node_call;
@@ -602,7 +624,7 @@ parse_simple_key (struct parsebuf *pb)
 	  node->v.key.narg = 1;
 	  node->v.key.arg[0] = np;
 	  node->v.key.fun = cond_msgset;
-
+	  
 	  parse_gettoken (pb, 0);
 	  
 	  return node;
@@ -613,7 +635,7 @@ parse_simple_key (struct parsebuf *pb)
 	  return NULL;
 	}
     }
-
+  
   node = parse_alloc (pb, sizeof *node);
   node->type = node_call;
   node->v.key.keyword = condp->name;
@@ -674,9 +696,11 @@ parse_simple_key (struct parsebuf *pb)
 	      break;
 	      
 	    case 'u': /* UID message set */
-	      if (util_parse_msgset (pb->token, 0, NULL,
-				     &arg->v.value.v.msgset, NULL)) 
+	      arg->v.value.v.msgset = parse_msgset_create (pb, NULL, 0);
+	      if (mu_msgset_parse_imap (arg->v.value.v.msgset, pb->token,
+					NULL)) 
 		{
+		  mu_msgset_free (arg->v.value.v.msgset);
 		  pb->err_mesg = "Bogus number set";
 		  return NULL;
 		}
@@ -853,7 +877,7 @@ static void
 cond_msgset (struct parsebuf *pb, struct search_node *node, struct value *arg,
 	     struct value *retval)
 {
-  int rc = mu_list_locate (arg[0].v.msgset, &pb->msgno, NULL);
+  int rc = mu_msgset_locate (arg[0].v.msgset, pb->msgno, NULL);
   retval->type = value_number;
   retval->v.number = rc == 0;
 }
@@ -1075,7 +1099,7 @@ cond_uid (struct parsebuf *pb, struct search_node *node, struct value *arg,
   size_t uid = 0;
   
   mu_message_get_uid (pb->msg, &uid);
-  rc = mu_list_locate (arg[0].v.msgset, &pb->msgno, NULL);
+  rc = mu_msgset_locate (arg[0].v.msgset, pb->msgno, NULL);
   retval->type = value_number;
   retval->v.number = rc == 0;
 }                      

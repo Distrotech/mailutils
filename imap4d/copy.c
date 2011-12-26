@@ -124,7 +124,7 @@ do_copy (size_t msgno, void *data)
 }
 
 static int
-try_copy (mu_mailbox_t dst, mu_mailbox_t src, mu_list_t msglist,
+try_copy (mu_mailbox_t dst, mu_mailbox_t src, mu_msgset_t msgset,
 	  char **err_text)
 {
   int rc;
@@ -139,7 +139,7 @@ try_copy (mu_mailbox_t dst, mu_mailbox_t src, mu_list_t msglist,
   *env.err_text = "Operation failed";
 
   /* Check size */
-  rc = util_foreach_message (msglist, size_sum, &env);
+  rc = util_foreach_message (msgset, size_sum, &env);
   if (rc)
     return RESP_NO;
   if (env.ret != RESP_OK)
@@ -151,7 +151,7 @@ try_copy (mu_mailbox_t dst, mu_mailbox_t src, mu_list_t msglist,
       return RESP_NO;
     }
   env.total = 0;
-  rc = util_foreach_message (msglist, do_copy, &env);
+  rc = util_foreach_message (msgset, do_copy, &env);
   quota_update (env.total);
   if (rc)
     return RESP_NO;
@@ -159,7 +159,7 @@ try_copy (mu_mailbox_t dst, mu_mailbox_t src, mu_list_t msglist,
 }
   
 static int
-safe_copy (mu_mailbox_t dst, mu_mailbox_t src, mu_list_t msglist,
+safe_copy (mu_mailbox_t dst, mu_mailbox_t src, mu_msgset_t msgset,
 	   char **err_text)
 {
   size_t nmesg;
@@ -174,7 +174,7 @@ safe_copy (mu_mailbox_t dst, mu_mailbox_t src, mu_list_t msglist,
       return RESP_NO;
     }
 
-  status = try_copy (dst, src, msglist, err_text);
+  status = try_copy (dst, src, msgset, err_text);
   if (status != RESP_OK)
     {
       size_t maxmesg;
@@ -228,8 +228,8 @@ int
 imap4d_copy0 (imap4d_tokbuf_t tok, int isuid, char **err_text)
 {
   int status;
-  char *msgset;
-  mu_list_t msglist;
+  char *msgset_str;
+  mu_msgset_t msgset;
   char *name;
   char *mailbox_name;
   char *end;
@@ -244,12 +244,19 @@ imap4d_copy0 (imap4d_tokbuf_t tok, int isuid, char **err_text)
       return 1;
     }
   
-  msgset = imap4d_tokbuf_getarg (tok, arg);
+  msgset_str = imap4d_tokbuf_getarg (tok, arg);
   name = imap4d_tokbuf_getarg (tok, arg + 1);
-  /* Get the message numbers in set[].  */
-  status = util_parse_msgset (msgset, isuid, mbox, &msglist, &end);
+  status = mu_msgset_create (&msgset, mbox, isuid ? MU_MSGSET_UID : 0);
+  if (!status)
+    {
+      *err_text = "Software error";
+      return RESP_BAD;
+    }
+    
+  status = mu_msgset_parse_imap (msgset, msgset_str, &end);
   if (status)
     {
+      mu_msgset_free (msgset);
       *err_text = "Error parsing message set";
       /* FIXME: print error location */
       return RESP_BAD;
@@ -259,6 +266,7 @@ imap4d_copy0 (imap4d_tokbuf_t tok, int isuid, char **err_text)
 
   if (!mailbox_name)
     {
+      mu_msgset_free (msgset);
       *err_text = "Copy failed";
       return RESP_NO;
     }
@@ -272,13 +280,15 @@ imap4d_copy0 (imap4d_tokbuf_t tok, int isuid, char **err_text)
       status = mu_mailbox_open (cmbox, MU_STREAM_RDWR | mailbox_mode[ns]);
       if (status == 0)
 	{
+	  mu_list_t msglist;
+	  mu_msgset_get_list (msgset, &msglist);
 	  if (!mu_list_is_empty (msglist))
-	    status = safe_copy (cmbox, mbox, msglist, err_text);
+	    status = safe_copy (cmbox, mbox, msgset, err_text);
 	  mu_mailbox_close (cmbox);
 	}
       mu_mailbox_destroy (&cmbox);
     }
-  mu_list_destroy (&msglist);
+  mu_msgset_free (msgset);
 
   if (status == 0)
     {
