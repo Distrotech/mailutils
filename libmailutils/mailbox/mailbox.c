@@ -448,7 +448,7 @@ mu_mailbox_flush (mu_mailbox_t mbox, int expunge)
   if (mbox->flags & _MU_MAILBOX_REMOVED)	\
     return MU_ERR_MBX_REMOVED;			\
   if (!(mbox->flags & _MU_MAILBOX_OPEN))	\
-    return _MU_MAILBOX_OPEN
+    return MU_ERR_NOT_OPEN
 
 #define _MBOX_CHECK(mbox,method)		\
   _MBOX_CHECK_FLAGS(mbox);			\
