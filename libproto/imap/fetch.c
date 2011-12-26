@@ -32,7 +32,7 @@
 #include <mailutils/sys/imap.h>
 
 int
-mu_imap_fetch (mu_imap_t imap, int uid, const char *msgset, const char *items)
+mu_imap_fetch (mu_imap_t imap, int uid, mu_msgset_t msgset, const char *items)
 {
   char const *argv[3];
   int i;
@@ -42,7 +42,7 @@ mu_imap_fetch (mu_imap_t imap, int uid, const char *msgset, const char *items)
   if (uid)
     argv[i++] = "UID";
   argv[i++] = "FETCH";
-  argv[i++] = msgset;
+  argv[i++] = "\\";
   
   com.session_state = MU_IMAP_SESSION_SELECTED;
   com.capa = NULL;
@@ -50,6 +50,7 @@ mu_imap_fetch (mu_imap_t imap, int uid, const char *msgset, const char *items)
   com.argc = i;
   com.argv = argv;
   com.extra = items;
+  com.msgset = msgset;
   com.tagged_handler = NULL;
   com.untagged_handler = NULL;
 

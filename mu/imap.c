@@ -27,6 +27,7 @@
 #include <mailutils/imap.h>
 #include <mailutils/imapio.h>
 #include <mailutils/imaputil.h>
+#include <mailutils/msgset.h>
 #include "mu.h"
 #include "argp.h"
 #include "xalloc.h"
@@ -108,6 +109,29 @@ com_verbose (int argc, char **argv)
   return shell_verbose (argc, argv,
 			imap_set_verbose, imap_set_verbose_mask);
   
+}
+
+static mu_msgset_t
+parse_msgset (const char *arg)
+{
+  int status;
+  mu_msgset_t msgset;
+  char *p;
+  
+  status = mu_msgset_create (&msgset, NULL, 0);
+  if (status)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_msgset_create", NULL, status);
+      return NULL;
+    }
+  status = mu_msgset_parse_imap (msgset, arg, &p);
+  if (status)
+    {
+      mu_error (_("failed to parse message set near \"%s\": %s"),
+		p, mu_strerror (status));
+      mu_msgset_destroy (&msgset);
+    }
+  return msgset;
 }
 
 static void
@@ -898,28 +922,39 @@ com_check (int argc MU_ARG_UNUSED, char **argv MU_ARG_UNUSED)
 static int
 com_fetch (int argc, char **argv)
 {
-  int status;
   mu_stream_t out = mutool_open_pager ();
-  
-  mu_imap_register_callback_function (imap, MU_IMAP_CB_FETCH,
-				      imap_fetch_callback,
-				      out);
-  status = mu_imap_fetch (imap, uid_mode, argv[1], argv[2]);
-  mu_stream_destroy (&out);
-  mu_imap_register_callback_function (imap, MU_IMAP_CB_FETCH,
-				      imap_fetch_callback,
-				      mu_strout);
-  if (status)
-    report_failure ("fetch", status);
+  mu_msgset_t msgset = parse_msgset (argv[1]);
+
+  if (msgset)
+    {
+      int status;
+
+      mu_imap_register_callback_function (imap, MU_IMAP_CB_FETCH,
+					  imap_fetch_callback,
+					  out);
+      status = mu_imap_fetch (imap, uid_mode, msgset, argv[2]);
+      mu_stream_destroy (&out);
+      mu_imap_register_callback_function (imap, MU_IMAP_CB_FETCH,
+					  imap_fetch_callback,
+					  mu_strout);
+      mu_msgset_free (msgset);
+      if (status)
+	report_failure ("fetch", status);
+    }
   return 0;  
 }
 
 static int
 com_store (int argc, char **argv)
 {
-  int status = mu_imap_store (imap, uid_mode, argv[1], argv[2]);
-  if (status)
-    report_failure ("store", status);
+  mu_msgset_t msgset = parse_msgset (argv[1]);
+
+  if (msgset)
+    {
+      int status = mu_imap_store (imap, uid_mode, msgset, argv[2]);
+      if (status)
+	report_failure ("store", status);
+    }
   return 0;
 }
 
@@ -1076,9 +1111,14 @@ com_append (int argc, char **argv)
 static int
 com_copy (int argc, char **argv)
 {
-  int status = mu_imap_copy (imap, uid_mode, argv[1], argv[2]);
-  if (status)
-    report_failure ("copy", status);
+  mu_msgset_t msgset = parse_msgset (argv[1]);
+  if (msgset)
+    {
+      int status = mu_imap_copy (imap, uid_mode, msgset, argv[2]);
+      mu_msgset_free (msgset);
+      if (status)
+	report_failure ("copy", status);
+    }
   return 0;
 }
 

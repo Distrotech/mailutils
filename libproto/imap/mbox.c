@@ -38,6 +38,7 @@
 #include <mailutils/attribute.h>
 #include <mailutils/header.h>
 #include <mailutils/body.h>
+#include <mailutils/msgset.h>
 #include <mailutils/sys/imap.h>
 
 #define _imap_mbx_clrerr(imbx) ((imbx)->last_error = 0)
@@ -58,7 +59,7 @@ _imap_msg_no (struct _mu_imap_message *imsg)
 }
 
 static int
-_imap_fetch_with_callback (mu_imap_t imap, char *msgset, char *items,
+_imap_fetch_with_callback (mu_imap_t imap, mu_msgset_t msgset, char *items,
 			   mu_imap_callback_t cb, void *data)
 {
   int rc;
@@ -156,7 +157,7 @@ __imap_msg_get_stream (struct _mu_imap_message *imsg, size_t msgno,
   
   if (!(imsg->flags & _MU_IMAP_MSG_CACHED))
     {
-      char *msgset;
+      mu_msgset_t msgset;
       
       mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_TRACE1,
 		(_("caching message %lu"), (unsigned long) msgno));
@@ -174,16 +175,22 @@ __imap_msg_get_stream (struct _mu_imap_message *imsg, size_t msgno,
       if (rc)
 	return rc;
 
-      rc = mu_asprintf (&msgset, "%lu", msgno);
+      rc = mu_msgset_create (&msgset, NULL, 0);
       if (rc == 0)
 	{
 	  struct save_closure clos;
+
 	  clos.imsg = imsg;
 	  clos.save_stream = imbx->cache;
-	  _imap_mbx_clrerr (imbx);
-	  rc = _imap_fetch_with_callback (imap, msgset, "BODY[]",
-					  _save_message, &clos);
-	  free (msgset);
+
+	  rc = mu_msgset_add_range (msgset, msgno, msgno);
+	  if (rc == 0)
+	    {
+	      _imap_mbx_clrerr (imbx);
+	      rc = _imap_fetch_with_callback (imap, msgset, "BODY[]",
+					      _save_message, &clos);
+	    }
+	  mu_msgset_free (msgset);
 	  if (rc == 0 && !_imap_mbx_errno (imbx))
 	    {
 	      mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_TRACE1,
@@ -359,46 +366,54 @@ _imap_hdr_fill (void *data, char **pbuf, size_t *plen)
   struct _mu_imap_mailbox *imbx = imsg->imbx;
   mu_imap_t imap = imbx->mbox->folder->data;
   struct save_closure clos;
-  char *msgset;
+  mu_msgset_t msgset;
   unsigned long msgno = _imap_msg_no (imsg);
   int rc;
-  
-  clos.imsg = imsg;
-  rc = mu_memory_stream_create (&clos.save_stream, MU_STREAM_RDWR);
-  _imap_mbx_clrerr (imbx);
-  rc = mu_asprintf (&msgset, "%lu", msgno);
+
+  rc = mu_msgset_create (&msgset, NULL, 0);
   if (rc == 0)
     {
-      mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_TRACE1,
-		(_("message %lu: reading headers"),
-		 (unsigned long) msgno));
-      rc = _imap_fetch_with_callback (imap, msgset, "BODY.PEEK[HEADER]",
-				      _save_message, &clos);
-      free (msgset);
+      rc = mu_msgset_add_range (msgset, msgno, msgno);
       if (rc == 0)
 	{
-	  char *buf;
-	  mu_off_t size;
-	  
-	  mu_stream_size (clos.save_stream, &size);
-	  buf = malloc (size + 1);
-	  if (!buf)
-	    rc = ENOMEM;
-	  else
+	  clos.imsg = imsg;
+	  rc = mu_memory_stream_create (&clos.save_stream, MU_STREAM_RDWR);
+	  if (rc == 0)
 	    {
-	      mu_stream_seek (clos.save_stream, 0, MU_SEEK_SET, NULL);
-	      rc = mu_stream_read (clos.save_stream, buf, size, NULL);
+	      mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_TRACE1,
+			(_("message %lu: reading headers"),
+			 (unsigned long) msgno));
+	      _imap_mbx_clrerr (imbx);
+	      rc = _imap_fetch_with_callback (imap, msgset,
+					      "BODY.PEEK[HEADER]",
+					      _save_message, &clos);
 	      if (rc == 0)
 		{
-		  *pbuf = buf;
-		  *plen = size;
+		  char *buf;
+		  mu_off_t size;
+	  
+		  mu_stream_size (clos.save_stream, &size);
+		  buf = malloc (size + 1);
+		  if (!buf)
+		    rc = ENOMEM;
+		  else
+		    {
+		      mu_stream_seek (clos.save_stream, 0, MU_SEEK_SET, NULL);
+		      rc = mu_stream_read (clos.save_stream, buf, size, NULL);
+		      if (rc == 0)
+			{
+			  *pbuf = buf;
+			  *plen = size;
+			}
+		      else
+			free (buf);
+		    }
 		}
-	      else
-		free (buf);
+	      mu_stream_destroy (&clos.save_stream);
 	    }
 	}
+      mu_msgset_free (msgset);
     }
-  mu_stream_destroy (&clos.save_stream);
   return rc;
 }
 
@@ -602,15 +617,18 @@ _imap_msg_bodystructure (mu_message_t msg, struct mu_bodystructure **pbs)
   struct _mu_imap_mailbox *imbx = imsg->imbx;
   mu_imap_t imap = imbx->mbox->folder->data;
   int rc;
-  char *msgset;
-  
-  rc = mu_asprintf (&msgset, "%lu", _imap_msg_no (imsg));
-  if (rc)
-    return rc;
+  mu_msgset_t msgset;
 
-  rc = _imap_fetch_with_callback (imap, msgset, "BODYSTRUCTURE",
-				  _imap_bodystructure_callback, pbs);
-  free (msgset);
+  rc = mu_msgset_create (&msgset, NULL, 0);
+  if (rc == 0)
+    {
+      size_t msgno = _imap_msg_no (imsg);
+      rc = mu_msgset_add_range (msgset, msgno, msgno);
+      if (rc == 0)
+	rc = _imap_fetch_with_callback (imap, msgset, "BODYSTRUCTURE",
+					_imap_bodystructure_callback, pbs);
+      mu_msgset_free (msgset);
+    }
   return rc;
 }
 
@@ -919,36 +937,22 @@ aggregate_attributes (struct _mu_imap_mailbox *imbx,
 }
 
 static int
-flush_attributes (mu_imap_t imap, mu_stream_t str, int attr_flags)
-{
-  int rc;
-  mu_transport_t trans[2];
-		      
-  mu_stream_write (str, "", 1, NULL);
-  if (mu_stream_err (str))
-    return mu_stream_last_error (str);
-
-  rc = mu_stream_ioctl (str, MU_IOCTL_TRANSPORT, MU_IOCTL_OP_GET, trans);
-  if (rc == 0)
-    rc = mu_imap_store_flags (imap, 0, (char*)trans[0],
-			      MU_IMAP_STORE_SET|MU_IMAP_STORE_SILENT,
-			      attr_flags);
-  return rc;
-}
-
-static int
 _imap_mbx_gensync (mu_mailbox_t mbox, int *pdel)
 {
   struct _mu_imap_mailbox *imbx = mbox->data;
   mu_folder_t folder = mbox->folder;
   mu_imap_t imap = folder->data;
   size_t i, j;
-  char *msgset;
+  mu_msgset_t msgset;
   int rc;
   int delflg = 0;
   struct attr_tab *tab;
   size_t count;
-  
+
+  rc = mu_msgset_create (&msgset, NULL, 0);
+  if (rc)
+    return rc;
+
   rc = aggregate_attributes (imbx, &tab, &count);
   if (rc)
     {
@@ -957,14 +961,14 @@ _imap_mbx_gensync (mu_mailbox_t mbox, int *pdel)
 	{
 	  if (imbx->msgs[i].flags & _MU_IMAP_MSG_ATTRCHG)
 	    {
-	      rc = mu_asprintf (&msgset, "%lu", i + 1);
+	      mu_msgset_clear (msgset);
+	      mu_msgset_add_range (msgset, i + 1, i + 1);
 	      if (rc)
 		break;
 	      rc = mu_imap_store_flags (imap, 0, msgset,
 					MU_IMAP_STORE_SET|MU_IMAP_STORE_SILENT,
 					imbx->msgs[i].attr_flags);
 	      delflg |= imbx->msgs[i].attr_flags & MU_ATTRIBUTE_DELETED;
-	      free (msgset);
 	      if (rc)
 		break;
 	    }
@@ -972,45 +976,45 @@ _imap_mbx_gensync (mu_mailbox_t mbox, int *pdel)
     }
   else
     {
-      mu_stream_t str;
-
-      rc = mu_memory_stream_create (&str, MU_STREAM_RDWR);
-      if (rc == 0)
+      for (i = j = 0; i < count; i++)
 	{
-	  for (i = j = 0; i < count; i++)
-	    {
-	      if (j < i)
-		{
-		  if (tab[j].attr_flags != tab[i].attr_flags)
-		    {
-		      rc = flush_attributes (imap, str, tab[j].attr_flags);
-		      delflg |= tab[j].attr_flags & MU_ATTRIBUTE_DELETED;
-		      if (rc)
-			break;
-		      mu_stream_truncate (str, 0);
-		      j = i;
-		    }
-		  else
-		    mu_stream_printf (str, ",");
-		}
-	      if (tab[i].end == tab[i].start)
-		mu_stream_printf (str, "%lu", (unsigned long)tab[i].start+1);
-	      else
-		mu_stream_printf (str, "%lu:%lu",
-				  (unsigned long)tab[i].start+1,
-				  (unsigned long)tab[i].end+1);
-	    }
-
 	  if (j < i)
 	    {
-	      rc = flush_attributes (imap, str, tab[j].attr_flags);
-	      delflg |= tab[j].attr_flags & MU_ATTRIBUTE_DELETED;
+	      if (tab[j].attr_flags != tab[i].attr_flags)
+		{
+		  rc = mu_imap_store_flags (imap, 0, msgset,
+					    MU_IMAP_STORE_SET|
+					    MU_IMAP_STORE_SILENT,
+					    tab[j].attr_flags);
+		  delflg |= tab[j].attr_flags & MU_ATTRIBUTE_DELETED;
+		  if (rc)
+		    break;
+		  mu_msgset_clear (msgset);
+		  j = i;
+		}
 	    }
-	  mu_stream_unref (str);
+	  if (tab[i].end == tab[i].start)
+	    rc = mu_msgset_add_range (msgset, tab[i].start + 1,
+				      tab[i].start + 1);
+	  else
+	    rc = mu_msgset_add_range (msgset,
+				      tab[i].start + 1,
+				      tab[i].end + 1);
+	  if (rc)
+	    break;
+	}
+
+      if (rc == 0 && j < i)
+	{
+	  rc = mu_imap_store_flags (imap, 0, msgset,
+				    MU_IMAP_STORE_SET|MU_IMAP_STORE_SILENT,
+				    tab[j].attr_flags);
+	  delflg |= tab[j].attr_flags & MU_ATTRIBUTE_DELETED;
 	}
       free (tab);
     }
-
+  mu_msgset_free (msgset);
+  
   if (rc)
     return rc;
 
@@ -1182,20 +1186,26 @@ _imap_mbx_scan (mu_mailbox_t mbox, size_t msgno, size_t *pcount)
   struct _mu_imap_mailbox *imbx = mbox->data;
   mu_folder_t folder = mbox->folder;
   mu_imap_t imap = folder->data;
-  char *msgset;
+  mu_msgset_t msgset;
   int rc;
   static char _imap_scan_items[] = "(UID FLAGS ENVELOPE RFC822.SIZE BODY)";
   
   mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_TRACE1,
 	    (_("scanning mailbox %s"), mu_url_to_string (mbox->url)));
-  rc = mu_asprintf (&msgset, "%lu:*", (unsigned long) msgno);
+  rc = mu_msgset_create (&msgset, NULL, 0);
   if (rc)
     return rc;
-
+  rc = mu_msgset_add_range (msgset, msgno, MU_MSGNO_LAST);
+  if (rc)
+    {
+      mu_msgset_free (msgset);
+      return rc;
+    }
+  
   _imap_mbx_clrerr (imbx);
   rc = _imap_fetch_with_callback (imap, msgset, _imap_scan_items,
 				  _imap_fetch_callback, imbx);
-  free (msgset);
+  mu_msgset_free (msgset);
   if (rc == 0)
     rc = _imap_mbx_errno (imbx);
   if (rc == 0)

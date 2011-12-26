@@ -23,9 +23,14 @@
 /* Send a IMAP command to the server, quoting its arguments as necessary.
    TAG is the command tag, ARGV contains ARGC elements and supplies the
    command (in ARGV[0]) and its arguments. EXTRA (if not NULL) supplies
-   additional arguments that will be sent as is. */
+   additional arguments that will be sent as is.
+
+   If MSGSET is supplied, it is sent when the function encounters the
+   "\\" (single backslash) in ARGV.
+*/
 int
 mu_imapio_send_command_v (struct _mu_imapio *io, const char *tag,
+			  mu_msgset_t msgset,
 			  int argc, char const **argv, const char *extra)
 {
   int i;
@@ -34,7 +39,10 @@ mu_imapio_send_command_v (struct _mu_imapio *io, const char *tag,
   for (i = 1; i < argc; i++)
     {
       mu_imapio_send (io, " ", 1);
-      mu_imapio_send_qstring (io, argv[i]);
+      if (msgset && strcmp (argv[i], "\\") == 0)
+	mu_imapio_send_msgset (io, msgset);
+      else
+	mu_imapio_send_qstring (io, argv[i]);
     }
   if (extra)
     {

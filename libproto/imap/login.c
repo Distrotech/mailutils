@@ -44,7 +44,7 @@ mu_imap_login (mu_imap_t imap, const char *user, const char *pass)
 	_mu_imap_xscript_level (imap, MU_XSCRIPT_SECURE);
       status = _mu_imap_tag_next (imap);
       MU_IMAP_CHECK_EAGAIN (imap, status);
-      status = mu_imapio_send_command (imap->io, imap->tag_str,
+      status = mu_imapio_send_command (imap->io, imap->tag_str, NULL,
 				       "LOGIN", user, pass, NULL);
       _mu_imap_xscript_level (imap, MU_XSCRIPT_NORMAL);
       /* FIXME: how to obscure the passwd in the stream buffer? */

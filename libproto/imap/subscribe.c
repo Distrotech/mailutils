@@ -41,6 +41,7 @@ mu_imap_subscribe (mu_imap_t imap, const char *mailbox)
   com.argc = 2;
   com.argv = argv;
   com.extra = NULL;
+  com.msgset = NULL;
   com.tagged_handler = NULL;
   com.untagged_handler = NULL;
 

@@ -150,6 +150,7 @@ mu_imap_genlist (mu_imap_t imap, int lsub,
   com.argc = 3;
   com.argv = argv;
   com.extra = NULL;
+  com.msgset = NULL;
   com.tagged_handler = NULL;
   com.untagged_handler = list_untagged_handler;
   com.untagged_handler_data = &clos;

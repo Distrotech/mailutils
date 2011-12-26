@@ -29,7 +29,7 @@
 /* This structure keeps parser state while parsing message set. */
 struct parse_msgnum_env
 {
-  char *s;               /* Current position in string */
+  const char *s;         /* Current position in string */
   size_t minval;         /* Min. sequence number or UID */
   size_t maxval;         /* Max. sequence number or UID */
   mu_msgset_t msgset;    /* Message set being built. */
@@ -125,7 +125,7 @@ parse_msgrange (struct parse_msgnum_env *env)
    On error, return error code and point END to the position in the input
    string where parsing has failed. */
 int
-mu_msgset_parse_imap (mu_msgset_t mset, char *s, char **end)
+mu_msgset_parse_imap (mu_msgset_t mset, const char *s, char **end)
 {
   int rc;
   struct parse_msgnum_env env;
@@ -141,7 +141,7 @@ mu_msgset_parse_imap (mu_msgset_t mset, char *s, char **end)
   env.minval = 1;
   
   if (end)
-    *end = s;
+    *end = (char*) s;
   if (mset->mbox)
     {
       size_t lastmsgno;      /* Max. sequence number. */
@@ -174,6 +174,6 @@ mu_msgset_parse_imap (mu_msgset_t mset, char *s, char **end)
     }
 
   if (end)
-    *end = env.s;
+    *end = (char*) env.s;
   return rc;
 }

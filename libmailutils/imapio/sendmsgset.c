@@ -16,35 +16,14 @@
 
 #include <config.h>
 #include <stdarg.h>
-#include <string.h>
+#include <mailutils/types.h>
 #include <mailutils/imapio.h>
+#include <mailutils/msgset.h>
 #include <mailutils/stream.h>
 #include <mailutils/sys/imapio.h>
 
-/* Send a IMAP command to the server, quoting its arguments as necessary.
-   TAG is the command tag, CMD is the command verb.  Command arguments are
-   given in variadic list terminated with NULL.
-
-   If MSGSET is supplied, it is sent when the function encounters the
-   "\\" (single backslash) in ARGV.
-*/
 int
-mu_imapio_send_command (struct _mu_imapio *io, const char *tag,
-			mu_msgset_t msgset, char const *cmd, ...)
+mu_imapio_send_msgset (mu_imapio_t io, mu_msgset_t msgset)
 {
-  va_list ap;
-  
-  va_start (ap, cmd);
-  mu_imapio_printf (io, "%s %s", tag, cmd);
-  while ((cmd = va_arg (ap, char *)))
-    {
-      mu_imapio_send (io, " ", 1);
-      if (msgset && strcmp (cmd, "\\") == 0)
-	mu_imapio_send_msgset (io, msgset);
-      else
-	mu_imapio_send_qstring (io, cmd);
-    }
-  va_end (ap);
-  mu_imapio_send (io, "\r\n", 2);
-  return mu_stream_last_error (io->_imap_stream);
+  return mu_msgset_print (io->_imap_stream, msgset);
 }

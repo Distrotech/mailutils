@@ -44,13 +44,15 @@ int mu_imapio_send_literal_stream (mu_imapio_t io, mu_stream_t stream,
 int mu_imapio_send_qstring (mu_imapio_t io, const char *buffer);
 int mu_imapio_send_qstring_unfold (mu_imapio_t io, const char *buffer,
 				   int unfold);
+int mu_imapio_send_msgset (mu_imapio_t io, mu_msgset_t msgset);
 
 int mu_imapio_send_command_v (mu_imapio_t io, const char *tag,
+			      mu_msgset_t msgset,
 			      int argc, char const **argv, const char *extra);
 int mu_imapio_send_command (mu_imapio_t io, const char *tag,
-			char const *cmd, ...);
+			    mu_msgset_t msgset, char const *cmd, ...);
 int mu_imapio_send_command_e (mu_imapio_t io, const char *tag,
-			      char const *cmd, ...);
+			      mu_msgset_t msgset, char const *cmd, ...);
   
 int mu_imapio_send_flags (mu_imapio_t io, int flags);
 int mu_imapio_send_time (mu_imapio_t io, struct tm *tm,

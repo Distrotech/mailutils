@@ -66,9 +66,9 @@ int mu_imap_id (mu_imap_t imap, char **idenv, mu_assoc_t *passoc);
 int mu_imap_noop (mu_imap_t imap);
 int mu_imap_check (mu_imap_t imap);
 
-int mu_imap_fetch (mu_imap_t imap, int uid, const char *msgset,
+int mu_imap_fetch (mu_imap_t imap, int uid, mu_msgset_t msgset,
 		   const char *items);
-int mu_imap_store (mu_imap_t imap, int uid, const char *msgset,
+int mu_imap_store (mu_imap_t imap, int uid, mu_msgset_t msgset,
 		   const char *items);
 
 #define MU_IMAP_STORE_SET 0
@@ -78,13 +78,13 @@ int mu_imap_store (mu_imap_t imap, int uid, const char *msgset,
 
 #define MU_IMAP_STORE_OPMASK 0xf
 
-int mu_imap_store_flags (mu_imap_t imap, int uid, const char *msgset,
+int mu_imap_store_flags (mu_imap_t imap, int uid, mu_msgset_t msgset,
 			 int op, int flags);
   
 int mu_imap_delete (mu_imap_t imap, const char *mailbox);
 int mu_imap_rename (mu_imap_t imap, const char *mailbox,
 		    const char *new_mailbox);
-int mu_imap_copy (mu_imap_t imap, int uid, const char *msgset,
+int mu_imap_copy (mu_imap_t imap, int uid, mu_msgset_t msgset,
 		  const char *mailbox);
 
 int mu_imap_close (mu_imap_t imap);

@@ -24,7 +24,7 @@
 #include <mailutils/sys/imap.h>
 
 int
-mu_imap_copy (mu_imap_t imap, int uid, const char *msgset, const char *mailbox)
+mu_imap_copy (mu_imap_t imap, int uid, mu_msgset_t msgset, const char *mailbox)
 {
   char const *argv[4];
   int i;
@@ -34,7 +34,7 @@ mu_imap_copy (mu_imap_t imap, int uid, const char *msgset, const char *mailbox)
   if (uid)
     argv[i++] = "UID";
   argv[i++] = "COPY";
-  argv[i++] = msgset;
+  argv[i++] = "\\";
   argv[i++] = mailbox;
 
   com.session_state = MU_IMAP_SESSION_SELECTED;
@@ -43,6 +43,7 @@ mu_imap_copy (mu_imap_t imap, int uid, const char *msgset, const char *mailbox)
   com.argc = i;
   com.argv = argv;
   com.extra = NULL;
+  com.msgset = msgset;
   com.tagged_handler = NULL;
   com.untagged_handler = NULL;
 

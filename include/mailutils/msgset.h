@@ -47,7 +47,7 @@ int mu_msgset_clear (mu_msgset_t set);
 void mu_msgset_free (mu_msgset_t set);
 void mu_msgset_destroy (mu_msgset_t *set);
   
-int mu_msgset_parse_imap (mu_msgset_t set, char *s, char **end);
+int mu_msgset_parse_imap (mu_msgset_t set, const char *s, char **end);
 
 int mu_msgset_print (mu_stream_t str, mu_msgset_t msgset);
   

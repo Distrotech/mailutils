@@ -32,6 +32,7 @@ libimapio_la_SOURCES = \
  sendcmdv.c\
  sendcmde.c\
  sendflg.c\
+ sendmsgset.c\
  time.c\
  trace.c\
  transport.c\

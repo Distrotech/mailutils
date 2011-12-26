@@ -40,6 +40,7 @@ mu_imap_close (mu_imap_t imap)
     1,
     &command,
     NULL,
+    NULL,
     _mu_close_handler
   };
   return mu_imap_gencom (imap, &com);

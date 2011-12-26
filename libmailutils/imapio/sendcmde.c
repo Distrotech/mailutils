@@ -24,9 +24,12 @@
 /* Send a IMAP command to the server, quoting its arguments as necessary.
    TAG is the command tag, CMD is the command verb.  Command arguments are
    given in variadic list terminated with NULL. The last argument is sent
-   over the wire as is, without quoting. */
+   over the wire as is, without quoting. If MSGSET is supplied, it is sent
+   when the function encounters the "\\" (single backslash) in ARGV.
+*/
 int
 mu_imapio_send_command_e (struct _mu_imapio *io, const char *tag,
+			  mu_msgset_t msgset,
 			  char const *cmd, ...)
 {
   va_list ap;
@@ -40,7 +43,12 @@ mu_imapio_send_command_e (struct _mu_imapio *io, const char *tag,
       
       mu_imapio_send (io, " ", 1);
       if (next)
-	mu_imapio_send_qstring (io, cmd);
+	{
+	  if (msgset && strcmp (cmd, "\\") == 0)
+	    mu_imapio_send_msgset (io, msgset);
+	  else
+	    mu_imapio_send_qstring (io, cmd);
+	}
       else
 	mu_imapio_send (io, cmd, strlen (cmd));
       cmd = next;

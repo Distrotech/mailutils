@@ -102,7 +102,7 @@ mu_imap_select (mu_imap_t imap, const char *mbox, int writable,
     case MU_IMAP_CLIENT_READY:
       status = _mu_imap_tag_next (imap);
       MU_IMAP_CHECK_EAGAIN (imap, status);
-      status = mu_imapio_send_command (imap->io, imap->tag_str,
+      status = mu_imapio_send_command (imap->io, imap->tag_str, NULL,
 				       writable ? "SELECT" : "EXAMINE",
 				       mbox, NULL);
       MU_IMAP_CHECK_ERROR (imap, status);

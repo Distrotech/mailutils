@@ -33,6 +33,7 @@ mu_imap_unselect (mu_imap_t imap)
     1,
     &command,
     NULL,
+    NULL,
     _mu_close_handler
   };
   return mu_imap_gencom (imap, &com);

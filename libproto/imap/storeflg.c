@@ -29,7 +29,7 @@
 #include <mailutils/sys/imap.h>
 
 int
-mu_imap_store_flags (mu_imap_t imap, int uid, const char *msgset,
+mu_imap_store_flags (mu_imap_t imap, int uid, mu_msgset_t msgset,
 		     int op, int flags)
 {
   int status;
@@ -50,8 +50,9 @@ mu_imap_store_flags (mu_imap_t imap, int uid, const char *msgset,
       mu_imapio_printf (imap->io, "%s ", imap->tag_str);
       if (uid)
 	mu_imapio_printf (imap->io, "UID ");
-      mu_imapio_printf (imap->io, "STORE %s %s", msgset,
-			cmd[op & MU_IMAP_STORE_OPMASK]);
+      mu_imapio_printf (imap->io, "STORE ");
+      mu_imapio_send_msgset (imap->io, msgset);
+      mu_imapio_printf (imap->io, " %s", cmd[op & MU_IMAP_STORE_OPMASK]);
       if (op & MU_IMAP_STORE_SILENT)
 	mu_imapio_printf (imap->io, ".SILENT");
       mu_imapio_printf (imap->io, " ");

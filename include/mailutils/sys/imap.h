@@ -151,6 +151,7 @@ struct imap_command
   int argc;
   char const **argv;
   char const *extra;
+  mu_msgset_t msgset;
   void (*tagged_handler) (mu_imap_t);
   mu_imap_response_action_t untagged_handler;
   void *untagged_handler_data;

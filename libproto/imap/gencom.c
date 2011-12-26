@@ -57,6 +57,7 @@ mu_imap_gencom (mu_imap_t imap, struct imap_command *cmd)
       status = _mu_imap_tag_next (imap);
       MU_IMAP_CHECK_EAGAIN (imap, status);
       status = mu_imapio_send_command_v (imap->io, imap->tag_str,
+					 cmd->msgset,
 					 cmd->argc, cmd->argv, cmd->extra);
       MU_IMAP_CHECK_ERROR (imap, status);
       MU_IMAP_FCLR (imap, MU_IMAP_RESP);
