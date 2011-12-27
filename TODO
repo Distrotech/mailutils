@@ -16,17 +16,11 @@ See also mu_rfc2822_in_reply_to.
 
 * Check if _mu_smtp_trace_disable correctly dereferences streams.
 
-* re-implement imap4 client (in progress)
-
 * re-implement nntp client
 
 * properties:
 
-** implement libproperty - a library of various storage backends for mu_property_t.
-
 ** consider a possibility of typed properties (integer, unsigned, string, ...)
-
-* vacation: link with libproperty when it is ready
 
 * remove libmu_auth, rewrite mu_auth support via mu_property_t
 
@@ -38,15 +32,7 @@ See rfc2047_decode_wrapper in frm/common.c for a prototype.
 
 See frm/common.c (near line 425).
 
-* sieve.scm is exempted from installcheck.
-
-See guimb/scm/Makefile.am for a discussion.
-
-* sieve: extension tests [in progress]
-
 * mu_address_createv: pass hints as in mu_address_create_hint?
-
-* fix Python support
 
 * fix C++ support
 
