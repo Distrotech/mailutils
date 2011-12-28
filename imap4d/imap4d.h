@@ -372,11 +372,6 @@ extern char *util_getfullpath (const char *);
 extern struct imap4d_command *util_getcommand (char *, 
                                                struct imap4d_command []);
 
-typedef int (*imap4d_message_action_t) (size_t, void *);
-
-int util_foreach_message (mu_msgset_t list, imap4d_message_action_t action,
-			  void *data);
-
 enum datetime_parse_mode     /* how to parse date/time strings */
   {
     datetime_default,        /* default mode */

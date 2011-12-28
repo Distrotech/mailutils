@@ -1783,19 +1783,19 @@ fetch_thunk (imap4d_parsebuf_t pb)
 }
 
 int
-_fetch_from_message (size_t msgno, void *data)
+_fetch_from_message (size_t msgno, mu_message_t msg, void *data)
 {
   int rc = 0;
   struct fetch_runtime_closure *frc = data;
 
   frc->msgno = msgno;
-  if (mu_mailbox_get_message (mbox, msgno, &frc->msg) == 0)
-    {
-      io_sendf ("* %lu FETCH (", (unsigned long) msgno);
-      frc->eltno = 0;
-      rc = mu_list_foreach (frc->fnlist, _do_fetch, frc);
-      io_sendf (")\n");
-    }
+  frc->msg = msg;
+
+  io_sendf ("* %lu FETCH (", (unsigned long) msgno);
+  frc->eltno = 0;
+  rc = mu_list_foreach (frc->fnlist, _do_fetch, frc);
+  io_sendf (")\n");
+
   return rc;
 }
 
@@ -1833,7 +1833,7 @@ imap4d_fetch0 (imap4d_tokbuf_t tok, int isuid, char **err_text)
 	 loop below */
       frc.err_text = "Completed";
 
-      util_foreach_message (pclos.msgset, _fetch_from_message, &frc);
+      mu_msgset_foreach_message (pclos.msgset, _fetch_from_message, &frc);
       mu_list_destroy (&frc.msglist);
     }
   

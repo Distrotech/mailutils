@@ -29,7 +29,7 @@ mu_list_head (mu_list_t list, void **pitem)
     return EINVAL;
   if (pitem == NULL)
     return MU_ERR_OUT_PTR_NULL;
-  if (!list->head.next)
+  if (list->head.next == &list->head)
     return MU_ERR_NOENT;
   *pitem = list->head.next->item;
   return 0;

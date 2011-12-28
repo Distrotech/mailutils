@@ -26,7 +26,11 @@ int
 mu_msgset_locate (mu_msgset_t msgset, size_t n,
 		  struct mu_msgrange const **prange)
 {
+  int rc;
   if (!msgset || n == 0)
     return EINVAL;
+  rc = mu_msgset_aggregate (msgset);
+  if (rc)
+    return rc;
   return mu_list_locate (msgset->list, &n, (void**)prange);
 }

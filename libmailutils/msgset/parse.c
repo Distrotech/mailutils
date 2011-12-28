@@ -101,14 +101,6 @@ parse_msgrange (struct parse_msgnum_env *env)
 
       rc = mu_mailbox_translate (env->msgset->mbox,
 				 MU_MAILBOX_UID_TO_MSGNO,
-				 msgrange.msg_beg, &msgrange.msg_beg);
-      if (rc == MU_ERR_NOENT)
-	msgrange.msg_beg = env->minval;
-      else if (rc)
-	return rc;
-      
-      rc = mu_mailbox_translate (env->msgset->mbox,
-				 MU_MAILBOX_UID_TO_MSGNO,
 				 msgrange.msg_end, &msgrange.msg_end);
       if (rc == MU_ERR_NOENT)
 	msgrange.msg_end = env->maxval;

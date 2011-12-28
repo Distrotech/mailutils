@@ -24,7 +24,11 @@
 int
 mu_msgset_get_iterator (mu_msgset_t msgset, mu_iterator_t *pitr)
 {
+  int rc;
   if (!msgset)
     return EINVAL;
+  rc = mu_msgset_aggregate (msgset);
+  if (rc)
+    return rc;
   return mu_list_get_iterator (msgset->list, pitr);
 }

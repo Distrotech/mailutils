@@ -33,7 +33,7 @@ struct mu_msgrange
 #define MU_MSGNO_LAST   0
   
 #define MU_MSGSET_UID   0x01   /* Message set operates on UIDs */
-  
+
 int mu_msgset_create (mu_msgset_t *pmsgset, mu_mailbox_t mbox, int flags);
 int mu_msgset_get_list (mu_msgset_t msgset, mu_list_t *plist);
 int mu_msgset_get_iterator (mu_msgset_t msgset, mu_iterator_t *pitr);
@@ -53,6 +53,26 @@ int mu_msgset_print (mu_stream_t str, mu_msgset_t msgset);
   
 int mu_msgset_locate (mu_msgset_t msgset, size_t n,
 		      struct mu_msgrange const **prange);
+
+int mu_msgset_negate (mu_msgset_t msgset, mu_msgset_t *pnset);
+  
+typedef int (*mu_msgset_msgno_action_t) (size_t _n, void *_call_data);
+typedef int (*mu_msgset_message_action_t) (size_t _n, mu_message_t _msg,
+					   void *_call_data);
+
+int mu_msgset_foreach_dir_msgno (mu_msgset_t _msgset, int _dir,
+				 mu_msgset_msgno_action_t _action,
+				 void *_data);
+int mu_msgset_foreach_msgno (mu_msgset_t _msgset,
+			     mu_msgset_msgno_action_t _action,
+			     void *_call_data);
+int mu_msgset_foreach_dir_message (mu_msgset_t _msgset, int _dir,
+				   mu_msgset_message_action_t _action,
+				   void *_call_data);
+int mu_msgset_foreach_message (mu_msgset_t _msgset,
+			       mu_msgset_message_action_t _action,
+			       void *_call_data);
+
   
 #ifdef __cplusplus
 }

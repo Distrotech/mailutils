@@ -29,6 +29,7 @@ liblist_la_SOURCES = \
  foreach.c\
  get.c\
  getcomp.c\
+ foreachdir.c\
  gmap.c\
  head.c\
  insert.c\

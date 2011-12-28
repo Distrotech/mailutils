@@ -24,10 +24,14 @@
 int
 mu_msgset_get_list (mu_msgset_t msgset, mu_list_t *plist)
 {
+  int rc;
   if (!msgset)
     return EINVAL;
   if (!plist)
     return MU_ERR_OUT_PTR_NULL;
+  rc = mu_msgset_aggregate (msgset);
+  if (rc)
+    return rc;
   *plist = msgset->list;
   return 0;
 }

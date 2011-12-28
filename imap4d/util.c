@@ -39,42 +39,6 @@ util_getfullpath (const char *name)
   return mu_normalize_path (exp);
 }
 
-struct action_closure
-{
-  imap4d_message_action_t action;
-  void *data;
-};
-
-static int
-procrange (void *item, void *data)
-{
-  struct mu_msgrange *mp = item;
-  struct action_closure *clos = data;
-  size_t i;
-
-  for (i = mp->msg_beg; i <= mp->msg_end; i++)
-    {
-      int rc = clos->action (i, clos->data);
-      if (rc)
-	return rc;
-    }
-  return 0;
-}
-
-/* Apply ACTION to each message number from LIST. */
-int
-util_foreach_message (mu_msgset_t msgset, imap4d_message_action_t action,
-		      void *data)
-{
-  mu_list_t list;
-  struct action_closure clos;
-  
-  clos.action = action;
-  clos.data = data;
-  mu_msgset_get_list (msgset, &list);
-  return mu_list_foreach (list, procrange, &clos);
-}
-
 int
 util_do_command (imap4d_tokbuf_t tok)
 {

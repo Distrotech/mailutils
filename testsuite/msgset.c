@@ -117,6 +117,13 @@ main (int argc, char **argv)
 	  MU_ASSERT (mu_msgset_sub_range (msgset, range.msg_beg,
 					  range.msg_end));
 	}
+      else if (strcmp (arg, "-neg") == 0)
+	{
+	  mu_msgset_t negated_set;
+	  MU_ASSERT (mu_msgset_negate (msgset, &negated_set));
+	  mu_msgset_free (msgset);
+	  msgset = negated_set;
+	}
       else
       	{
 	  mu_error ("unknown option %s", arg);

@@ -91,13 +91,11 @@ store_thunk (imap4d_parsebuf_t p)
 }
 
 static int
-_do_store (size_t msgno, void *data)
+_do_store (size_t msgno, mu_message_t msg, void *data)
 {
   struct store_parse_closure *pclos = data;
-  mu_message_t msg = NULL;
   mu_attribute_t attr = NULL;
       
-  mu_mailbox_get_message (mbox, msgno, &msg);
   mu_message_get_attribute (msg, &attr);
 	      
   switch (pclos->how)
@@ -154,7 +152,7 @@ imap4d_store0 (imap4d_tokbuf_t tok, int isuid, char **ptext)
 			     ptext);
   if (rc == RESP_OK)
     {
-      util_foreach_message (pclos.msgset, _do_store, &pclos);
+      mu_msgset_foreach_message (pclos.msgset, _do_store, &pclos);
     
       *ptext = "Completed";
     }
