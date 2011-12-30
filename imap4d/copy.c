@@ -211,7 +211,7 @@ imap4d_copy0 (imap4d_tokbuf_t tok, int isuid, char **err_text)
   mu_mailbox_t cmbox = NULL;
   int arg = IMAP4_ARG_1 + !!isuid;
   int ns;
-
+  
   *err_text = NULL;
   if (imap4d_tokbuf_argc (tok) != arg + 2)
     {
@@ -221,14 +221,16 @@ imap4d_copy0 (imap4d_tokbuf_t tok, int isuid, char **err_text)
   
   msgset_str = imap4d_tokbuf_getarg (tok, arg);
   name = imap4d_tokbuf_getarg (tok, arg + 1);
-  status = mu_msgset_create (&msgset, mbox, isuid ? MU_MSGSET_UID : 0);
+  status = mu_msgset_create (&msgset, mbox, MU_MSGSET_NUM);
   if (!status)
     {
       *err_text = "Software error";
       return RESP_BAD;
     }
     
-  status = mu_msgset_parse_imap (msgset, msgset_str, &end);
+  status = mu_msgset_parse_imap (msgset,
+				 isuid ? MU_MSGSET_UID : MU_MSGSET_NUM,
+				 msgset_str, &end);
   if (status)
     {
       mu_msgset_free (msgset);

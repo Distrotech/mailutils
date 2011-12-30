@@ -737,6 +737,27 @@ _action_send (void *item, void *data)
   return 0;
 }
 
+static int
+_add_to_mesg_list (size_t num, mu_message_t msg, void *data)
+{
+  char const *path = data;
+  struct list_elt *elt;
+  size_t uid;
+  int rc;
+  
+  elt = xmalloc (sizeof *elt);
+  elt->msg = msg;
+  mu_message_get_uid (msg, &uid);
+  elt->file_name = mu_make_file_name (path, mu_umaxtostr (0, uid));
+  rc = mu_list_append (mesg_list, elt);
+  if (rc)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_list_append", NULL, rc);
+      exit (1);
+    }
+  return 0;
+}
+
 int
 main (int argc, char **argv)
 {
@@ -758,13 +779,12 @@ main (int argc, char **argv)
 
   if (draftfolder)
     {
-      mh_msgset_t msgset;
+      mu_msgset_t msgset;
       mu_url_t url;
       const char *path;
-      size_t i;
       
       mbox = mh_open_folder (draftfolder, MU_STREAM_RDWR|MU_STREAM_CREAT);
-      mh_msgset_parse (mbox, &msgset, argc, argv, draftmessage);
+      mh_msgset_parse (&msgset, mbox, argc, argv, draftmessage);
       mu_mailbox_get_url (mbox, &url);
       mu_url_sget_path (url, &path);
       if ((rc = mu_list_create (&mesg_list)))
@@ -772,25 +792,9 @@ main (int argc, char **argv)
 	  mu_error (_("cannot create message list: %s"), mu_strerror (rc));
 	  exit (1);
 	}
-      for (i = 0; i < msgset.count; i++)
-	{
-	  struct list_elt *elt;
-	  size_t uid;
-	  
-	  elt = xmalloc (sizeof *elt);
-	  mu_mailbox_get_message (mbox, msgset.list[i], &elt->msg);
-	  mu_message_get_uid (elt->msg, &uid);
-	  elt->file_name =
-	    mu_make_file_name (path, mu_umaxtostr (0, uid));
-	  rc = mu_list_append (mesg_list, elt);
-	  if (rc)
-	    {
-	      mu_diag_funcall (MU_DIAG_ERROR, "mu_list_append", NULL, rc);
-	      exit (1);
-	    }
-	}
+      mu_msgset_foreach_message (msgset, _add_to_mesg_list, (void*)path);
       
-      mh_msgset_free (&msgset);
+      mu_msgset_free (msgset);
     }
   else
     {

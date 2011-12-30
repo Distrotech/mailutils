@@ -60,6 +60,7 @@
 #include <mailutils/mh.h>
 #include <mailutils/stdstream.h>
 #include <mailutils/datetime.h>
+#include <mailutils/msgset.h>
 
 #include <mu_umaxtostr.h>
 
@@ -194,19 +195,6 @@ typedef struct
   mu_header_t header;
 } mh_context_t;
 
-#define MH_MSGSET_UID   0x01
-
-typedef struct
-{
-  int flags;
-  size_t *list;
-  size_t count;
-  size_t size;
-} mh_msgset_t;
-
-typedef void (*mh_iterator_fp) (mu_mailbox_t mbox, mu_message_t msg,
-			        size_t num, void *data);
-
 /* Recipient masks */
 #define RCPT_NONE 0
 #define RCPT_TO   0x0001
@@ -303,14 +291,14 @@ int mh_message_number (mu_message_t msg, size_t *pnum);
 
 mu_mailbox_t mh_open_folder (const char *folder, int flags);
 
-void mh_msgset_parse (mu_mailbox_t mbox, mh_msgset_t *msgset,
+void mh_msgset_parse (mu_msgset_t *msgset, mu_mailbox_t mbox, 
 		      int argc, char **argv, char *def);
-int mh_msgset_member (mh_msgset_t *msgset, size_t num);
-void mh_msgset_reverse (mh_msgset_t *msgset);
-void mh_msgset_negate (mu_mailbox_t mbox, mh_msgset_t *msgset);
-void mh_msgset_current (mu_mailbox_t mbox, mh_msgset_t *msgset, int index);
-void mh_msgset_free (mh_msgset_t *msgset);
-void mh_msgset_uids (mu_mailbox_t mbox, mh_msgset_t *msgset);
+void mh_msgset_parse_string (mu_msgset_t *msgset, mu_mailbox_t mbox, 
+			     const char *string, char *def);
+void mh_msgset_first_current (mu_mailbox_t mbox, mu_msgset_t msgset);
+size_t mh_msgset_first (mu_msgset_t msgset);
+size_t mh_msgset_first_uid (mu_msgset_t msgset);
+int mh_msgset_single_message (mu_msgset_t msgset);
 
 char *mh_get_dir (void);
 int mh_find_file (const char *name, char **resolved_name);
@@ -322,9 +310,6 @@ void mh_expand_aliases (mu_message_t msg, mu_address_t *addr_to,
 
 int mh_is_my_name (const char *name);
 char * mh_my_email (void);
-
-int mh_iterate (mu_mailbox_t mbox, mh_msgset_t *msgset,
-	        mh_iterator_fp itr, void *data);
 
 size_t mh_get_message (mu_mailbox_t mbox, size_t seqno, mu_message_t *mesg);
 
@@ -372,9 +357,9 @@ int mhl_format_run (mu_list_t fmt, int width, int length, int flags,
 		    mu_message_t msg, mu_stream_t output);
 void mhl_format_destroy (mu_list_t *fmt);
 
-void mh_seq_add (mu_mailbox_t mbox, const char *name, mh_msgset_t *mset,
+void mh_seq_add (mu_mailbox_t mbox, const char *name, mu_msgset_t mset,
 		 int flags);
-int mh_seq_delete (mu_mailbox_t mbox, const char *name, mh_msgset_t *mset,
+int mh_seq_delete (mu_mailbox_t mbox, const char *name, mu_msgset_t mset,
 		   int flags);
 const char *mh_seq_read (mu_mailbox_t mbox, const char *name, int flags);
 

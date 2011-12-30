@@ -50,12 +50,13 @@ opt_handler (int key, char *arg, struct argp_state *state)
   return 0;
 }
 
-void
-rmm (mu_mailbox_t mbox, mu_message_t msg, size_t num, void *data)
+static int
+rmm (size_t num, mu_message_t msg, void *data)
 {
   mu_attribute_t attr;
   mu_message_get_attribute (msg, &attr);
   mu_attribute_set_deleted (attr);
+  return 0;
 }
 
 int
@@ -63,7 +64,7 @@ main (int argc, char **argv)
 {
   int index = 0;
   mu_mailbox_t mbox;
-  mh_msgset_t msgset;
+  mu_msgset_t msgset;
   int status;
 
   /* Native Language Support */
@@ -75,9 +76,9 @@ main (int argc, char **argv)
 
   mbox = mh_open_folder (mh_current_folder (), MU_STREAM_RDWR);
 
-  mh_msgset_parse (mbox, &msgset, argc - index, argv + index, "cur");
+  mh_msgset_parse (&msgset, mbox, argc - index, argv + index, "cur");
 
-  status = mh_iterate (mbox, &msgset, rmm, NULL);
+  status = mu_msgset_foreach_message (msgset, rmm, NULL);
 
   mu_mailbox_expunge (mbox);
   mu_mailbox_close (mbox);

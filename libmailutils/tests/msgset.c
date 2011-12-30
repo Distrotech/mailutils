@@ -19,7 +19,7 @@
 #include <mailutils/mailutils.h>
 
 static void
-parse_msgset (char *arg, struct mu_msgrange *range)
+parse_msgrange (char *arg, struct mu_msgrange *range)
 {
   size_t msgnum;
   char *p;
@@ -52,13 +52,33 @@ parse_msgset (char *arg, struct mu_msgrange *range)
   range->msg_end = msgnum;
 }
 
+mu_msgset_t
+parse_msgset (const char *arg)
+{
+  int rc;
+  mu_msgset_t msgset;
+  char *end;
+
+  MU_ASSERT (mu_msgset_create (&msgset, NULL, MU_MSGSET_NUM));
+  if (arg)
+    {
+      rc = mu_msgset_parse_imap (msgset, MU_MSGSET_NUM, arg, &end);
+      if (rc)
+	{
+	  mu_error ("mu_msgset_parse_imap: %s near %s",
+		    mu_strerror (rc), end);
+	  exit (1);
+	}
+    }
+  return msgset;
+}
+
 int
 main (int argc, char **argv)
 {
   int i;
   char *msgset_string = NULL;
   mu_msgset_t msgset;
-  int rc;
   
   mu_set_program_name (argv[0]);
   for (i = 1; i < argc; i++)
@@ -67,7 +87,8 @@ main (int argc, char **argv)
 
       if (strcmp (arg, "-h") == 0 || strcmp (arg, "-help") == 0)
 	{
-	  mu_printf ("usage: %s [-msgset=SET] [-add X[:Y]] [-del X:[Y]]...\n",
+	  mu_printf ("usage: %s [-msgset=SET] [-add=X[:Y]] [-del=X[:Y]] "
+		     "[-addset=SET] [-delset=SET] ...\n",
 		     mu_program_name);
 	  return 0;
 	}
@@ -77,18 +98,7 @@ main (int argc, char **argv)
 	break;
     }
 
-  MU_ASSERT (mu_msgset_create (&msgset, NULL, 0));
-  if (msgset_string)
-    {
-      char *end;
-      rc = mu_msgset_parse_imap (msgset, msgset_string, &end);
-      if (rc)
-	{
-	  mu_error ("mu_msgset_parse_imap: %s near %s",
-		    mu_strerror (rc), end);
-	  return 1;
-	}
-    }
+  msgset = parse_msgset (msgset_string);
   
   for (; i < argc; i++)
     {
@@ -97,15 +107,40 @@ main (int argc, char **argv)
       
       if (strncmp (arg, "-add=", 5) == 0)
 	{
-	  parse_msgset (arg + 5, &range);
+	  parse_msgrange (arg + 5, &range);
 	  MU_ASSERT (mu_msgset_add_range (msgset, range.msg_beg,
-					  range.msg_end));
+					  range.msg_end, MU_MSGSET_NUM));
 	}
       else if (strncmp (arg, "-sub=", 5) == 0)
 	{
-	  parse_msgset (arg + 5, &range);
+	  parse_msgrange (arg + 5, &range);
 	  MU_ASSERT (mu_msgset_sub_range (msgset, range.msg_beg,
-					  range.msg_end));
+					  range.msg_end, MU_MSGSET_NUM));
+	}
+      else if (strncmp (arg, "-addset=", 8) == 0)
+	{
+	  mu_msgset_t tset = parse_msgset (arg + 8);
+	  if (!msgset)
+	    msgset = tset;
+	  else
+	    {
+	      MU_ASSERT (mu_msgset_add (msgset, tset));
+	      mu_msgset_free (tset);
+	    }
+	}
+      else if (strncmp (arg, "-subset=", 8) == 0)
+	{
+	  mu_msgset_t tset = parse_msgset (arg + 8);
+	  if (!msgset)
+	    {
+	      mu_error ("no initial message set");
+	      exit (1);
+	    }
+	  else
+	    {
+	      MU_ASSERT (mu_msgset_sub (msgset, tset));
+	      mu_msgset_free (tset);
+	    }
 	}
       else
       	{

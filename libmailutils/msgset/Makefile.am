@@ -19,19 +19,26 @@ noinst_LTLIBRARIES = libmsgset.la
 
 libmsgset_la_SOURCES = \
  add.c\
+ addset.c\
  aggr.c\
  clear.c\
  create.c\
+ count.c\
  getitr.c\
  getlist.c\
  foreachnum.c\
+ foreachmsgno.c\
+ foreachuid.c\
  foreachmsg.c\
  free.c\
+ isempty.c\
  locate.c\
  negate.c\
  parse.c\
  print.c\
- sub.c
+ sub.c\
+ subset.c\
+ trans.c
 
 INCLUDES = @MU_LIB_COMMON_INCLUDES@ -I/libmailutils
 

@@ -121,7 +121,7 @@ opt_handler (int key, char *arg, struct argp_state *state)
 struct mark_closure
 {
   mu_mailbox_t mbox;
-  mh_msgset_t *msgset;
+  mu_msgset_t msgset;
 };
 
 static int
@@ -191,7 +191,7 @@ int
 main (int argc, char **argv)
 {
   int index;
-  mh_msgset_t msgset;
+  mu_msgset_t msgset;
   mu_mailbox_t mbox;
   mu_url_t url;
   struct mark_closure clos;
@@ -209,11 +209,11 @@ main (int argc, char **argv)
 	
   argc -= index;
   argv += index;
-  mh_msgset_parse (mbox, &msgset, argc, argv, "cur");
-  mh_msgset_uids (mbox, &msgset);
+  mh_msgset_parse (&msgset, mbox, argc, argv, "cur");
   
   clos.mbox = mbox;
-  clos.msgset = &msgset;
+  clos.msgset = msgset;
+  //FIXME: msgset operates on UIDs but there's no way to inform it about that.
   switch (action)
     {
     case ARG_ADD:

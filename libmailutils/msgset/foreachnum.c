@@ -20,6 +20,7 @@
 #include <mailutils/errno.h>
 #include <mailutils/list.h>
 #include <mailutils/msgset.h>
+#include <mailutils/mailbox.h>
 #include <mailutils/sys/msgset.h>
 
 struct action_closure
@@ -27,8 +28,44 @@ struct action_closure
   mu_msgset_msgno_action_t action;
   void *data;
   mu_msgset_t msgset;
-  int dir;
+  int flags;
 };
+
+static int
+call_action (struct action_closure *clos, size_t i)
+{
+  size_t n;
+  int cmd;
+  
+  if (clos->msgset->flags != (clos->flags & MU_MSGSET_MODE_MASK))
+    {
+      int rc;
+
+      switch (clos->flags & MU_MSGSET_MODE_MASK)
+	{
+	case MU_MSGSET_NUM:
+	  cmd = MU_MAILBOX_UID_TO_MSGNO;
+	  break;
+	  
+	case MU_MSGSET_UID:
+	  cmd = MU_MAILBOX_MSGNO_TO_UID;
+	  break;
+	  
+	default:
+	  return EINVAL;
+	}
+      
+      rc = mu_mailbox_translate (clos->msgset->mbox, cmd, i, &n);
+      if (rc == MU_ERR_NOENT)
+	return 0;
+      if (rc)
+	return rc;
+    }
+  else
+    n = i;
+  return clos->action (n, clos->data);
+}
+    
 
 static int
 procrange (void *item, void *data)
@@ -36,29 +73,22 @@ procrange (void *item, void *data)
   struct mu_msgrange *mp = item;
   struct action_closure *clos = data;
   size_t i;
-
-  if (clos->dir)
-    for (i = mp->msg_end; i >= mp->msg_beg; i--)
-      {
-	int rc = clos->action (i, clos->data);
-	if (rc)
-	  return rc;
-      }
+  int rc = 0;
+  
+  if (clos->flags & MU_MSGSET_FOREACH_BACKWARD)
+    for (i = mp->msg_end; rc == 0 && i >= mp->msg_beg; i--)
+      rc = call_action (clos, i);
   else
-    for (i = mp->msg_beg; i <= mp->msg_end; i++)
-      {
-	int rc = clos->action (i, clos->data);
-	if (rc)
-	  return rc;
-      }
-  return 0;
+    for (i = mp->msg_beg; rc == 0 && i <= mp->msg_end; i++)
+      rc = call_action (clos, i);
+  return rc;
 }
 
-/* Apply ACTION to each message number from MSGSET. */
+/* Apply ACTION to each message number or UID from MSGSET. */
 int
-mu_msgset_foreach_dir_msgno (mu_msgset_t msgset, int dir,
-			     mu_msgset_msgno_action_t action,
-			     void *data)
+mu_msgset_foreach_num (mu_msgset_t msgset, int flags,
+		       mu_msgset_msgno_action_t action,
+		       void *data)
 {
   int rc;
   struct action_closure clos;
@@ -68,14 +98,9 @@ mu_msgset_foreach_dir_msgno (mu_msgset_t msgset, int dir,
     return rc;
   clos.action = action;
   clos.data = data;
-  clos.dir = dir;
-  return mu_list_foreach_dir (msgset->list, dir, procrange, &clos);
-}
-
-int
-mu_msgset_foreach_msgno (mu_msgset_t msgset,
-			 mu_msgset_msgno_action_t action,
-			 void *data)
-{
-  return mu_msgset_foreach_dir_msgno (msgset, 0, action, data);
+  clos.flags = flags;
+  clos.msgset = msgset;
+  return mu_list_foreach_dir (msgset->list,
+			      !!(flags & MU_MSGSET_FOREACH_BACKWARD),
+			      procrange, &clos);
 }

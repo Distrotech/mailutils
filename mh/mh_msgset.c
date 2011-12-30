@@ -18,169 +18,91 @@
 /* MH message sets. */
 
 #include <mh.h>
+#include <mailutils/sys/msgset.h>
 
-void
-mh_msgset_init (mh_msgset_t *msgset)
+size_t
+mh_msgset_first (mu_msgset_t msgset)
 {
-  memset (msgset, 0, sizeof (*msgset));
-}
-
-void
-mh_msgset_expand (mh_msgset_t *msgset, size_t count)
-{
-  size_t rest = msgset->size - msgset->count;
-
-  if (rest < count)
-    {
-      msgset->size += count;
-      msgset->list = xrealloc (msgset->list,
-			       msgset->size * sizeof (msgset->list[0]));
-    }
-}
-
-void
-mh_msgset_add (mh_msgset_t *msgset, size_t n)
-{
-  mh_msgset_expand (msgset, 1);
-  msgset->list[msgset->count++] = n;
-}
-
-static int
-comp_mesg (const void *a, const void *b)
-{
-  size_t an = *(size_t*)a;
-  size_t bn = *(size_t*)b;
-  if (an > bn)
-    return 1;
-  else if (an < bn)
-    return -1;
-  return 0;
-}
-
-void
-mh_msgset_optimize (mh_msgset_t *msgset)
-{
-  size_t i, msgno;
-  size_t msgcnt = msgset->count;
-  size_t *msglist = msgset->list;
-      
-  /* Sort the resulting message set */
-  qsort (msglist, msgcnt, sizeof (*msgset->list), comp_mesg);
-
-  /* Remove duplicates. */
-  for (i = 0, msgno = 1; i < msgset->count; i++)
-    if (msglist[msgno-1] != msglist[i])
-      msglist[msgno++] = msglist[i];
-  msgset->count = msgno;
-}
-
-/* Check if message with ordinal number `num' is contained in the
-   message set. */
-int
-mh_msgset_member (mh_msgset_t *msgset, size_t num)
-{
-  size_t i;
-
-  for (i = 0; i < msgset->count; i++)
-    if (msgset->list[i] == num)
-      return i + 1;
-  return 0;
-}
-
-/* Reverse the order of messages in the message set */
-void
-mh_msgset_reverse (mh_msgset_t *msgset)
-{
-  int head, tail;
-
-  for (head = 0, tail = msgset->count-1; head < tail; head++, tail--)
-    {
-      size_t val = msgset->list[head];
-      msgset->list[head] = msgset->list[tail];
-      msgset->list[tail] = val;
-    }
-}
-
-/* Set the current message to that contained at position `index'
-   in the given message set */
-void
-mh_msgset_current (mu_mailbox_t mbox, mh_msgset_t *msgset, int index)
-{
-  mu_message_t msg = NULL;
+  mu_list_t list;
+  struct mu_msgrange *r;
   int rc;
-  size_t cur;
   
-  rc = mu_mailbox_get_message (mbox, msgset->list[index], &msg);
+  rc = mu_msgset_get_list (msgset, &list);
   if (rc)
     {
-      mu_diag_funcall (MU_DIAG_ERROR, "mu_mailbox_get_message", NULL, rc);
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_msgset_get_list", NULL, rc);
       exit (1);
     }
-  mh_message_number (msg, &cur);
-  mh_mailbox_set_cur (mbox, cur);
+  rc = mu_list_head (list, (void**)&r);
+  if (rc)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_list_get", NULL, rc);
+      exit (1);
+    }
+  return r->msg_beg;
 }
 
-/* Free memory allocated for the message set. Note, that the msgset
-   itself is supposed to reside in the statically allocated memory and
-   therefore is not freed */
-void
-mh_msgset_free (mh_msgset_t *msgset)
+size_t
+mh_msgset_first_uid (mu_msgset_t msgset)
 {
-  if (msgset->count)
-    free (msgset->list);
+  int rc;
+  size_t cur;
+
+  cur = mh_msgset_first (msgset);
+  rc = mu_mailbox_translate (msgset->mbox, MU_MAILBOX_MSGNO_TO_UID, cur, &cur);
+  if (rc)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_mailbox_translate", NULL, rc);
+      exit (1);
+    }
+  return cur;
 }
 
-/* Negate the message set: on return `msgset' consists of the messages
-   _not contained_ in the input message set. Any memory associated with
-   the input message set is freed */
+/* Set the current message to that contained at position 0
+   in the given message set.
+   FIXME: mbox is superfluous
+*/
 void
-mh_msgset_negate (mu_mailbox_t mbox, mh_msgset_t *msgset)
+mh_msgset_first_current (mu_mailbox_t mbox, mu_msgset_t msgset)
 {
-  size_t i, total = 0, msgno;
-  size_t *list;
-
-  mu_mailbox_messages_count (mbox, &total);
-  list = calloc (total, sizeof (list[0]));
-  if (!list)
-    mh_err_memory (1);
-  for (i = 1, msgno = 0; i <= total; i++)
-    {
-      if (!mh_msgset_member (msgset, i))
-	list[msgno++] = i;
-    }
-
-  list = realloc (list, sizeof (list[0]) * msgno);
-  if (!list)
-    {
-      mu_error (_("not enough memory"));
-      abort ();
-    }
-  mh_msgset_free (msgset);
-  msgset->count = msgno;
-  msgset->list = list;
+  mh_mailbox_set_cur (mbox, mh_msgset_first_uid (msgset));
 }
 
-void
-mh_msgset_uids (mu_mailbox_t mbox, mh_msgset_t *msgset)
+int
+mh_msgset_single_message (mu_msgset_t msgset)
 {
-  size_t i;
-
-  if (msgset->flags & MH_MSGSET_UID)
-    return;
-  for (i = 0; i < msgset->count; i++)
+  int rc;
+  mu_list_t list;
+  struct mu_msgrange *r;
+  size_t count;
+  
+  rc = mu_msgset_get_list (msgset, &list);
+  if (rc)
     {
-      mu_message_t msg;
-      mu_mailbox_get_message (mbox, msgset->list[i], &msg);
-      mh_message_number (msg, &msgset->list[i]);
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_msgset_get_list", NULL, rc);
+      exit (1);
     }
-  msgset->flags |= MH_MSGSET_UID;
+  rc = mu_list_count (list, &count);
+  if (rc)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_list_count", NULL, rc);
+      exit (1);
+    }
+  if (count != 1)
+    return 0;
+  rc = mu_list_head (list, (void**)&r);
+  if (rc)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_list_get", NULL, rc);
+      exit (1);
+    }
+  return r->msg_beg == r->msg_end;
 }
 
 
 struct msgset_parser
 {
-  mu_mailbox_t mbox;
-  mh_msgset_t *msgset;
+  mu_msgset_t msgset;
   char *curp;
   int argc;
   char **argv;
@@ -192,10 +114,16 @@ struct msgset_parser
 
 static void
 msgset_parser_init (struct msgset_parser *parser, mu_mailbox_t mbox,
-		    mh_msgset_t *msgset, int argc, char **argv)
+		    int argc, char **argv)
 {
-  parser->mbox = mbox;
-  parser->msgset = msgset;
+  int rc;
+  
+  rc = mu_msgset_create (&parser->msgset, mbox, MU_MSGSET_NUM);//FIXME: flags?
+  if (rc)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_msgset_create", NULL, rc);
+      exit (1);
+    }
   parser->argc = argc;
   parser->argv = argv;
   parser->curp = "";
@@ -238,7 +166,7 @@ _expand_sequence (struct msgset_parser *parser, char *term)
   const char *listp;
   int negate = 0;
 
-  listp = mh_global_sequences_get (parser->mbox, term, NULL);
+  listp = mh_global_sequences_get (parser->msgset->mbox, term, NULL);
   if (!listp)
     {
       int len;
@@ -249,7 +177,7 @@ _expand_sequence (struct msgset_parser *parser, char *term)
       if (strncmp (term, neg, len))
 	return 1;
       negate = 1;
-      listp = mh_global_sequences_get (parser->mbox, term + len, NULL);
+      listp = mh_global_sequences_get (parser->msgset->mbox, term + len, NULL);
       if (!listp)
 	return 1;
     }
@@ -262,16 +190,35 @@ _expand_sequence (struct msgset_parser *parser, char *term)
     }
   else
     {
+      int rc;
       struct msgset_parser clone;
-      
-      msgset_parser_init (&clone, parser->mbox,  parser->msgset,
+
+      msgset_parser_init (&clone, parser->msgset->mbox,
 			  ws.ws_wordc, ws.ws_wordv);
       msgset_parser_run (&clone);
       mu_wordsplit_free (&ws);
+      if (negate)
+	{
+	  mu_msgset_t negset;
+	  
+	  rc = mu_msgset_negate (clone.msgset, &negset);
+	  if (rc)
+	    {
+	      mu_diag_funcall (MU_DIAG_ERROR, "mu_msgset_negate", NULL, rc);
+	      exit (1);
+	    }
+	  mu_msgset_free (clone.msgset);
+	  clone.msgset = negset;
+	}
+      rc = mu_msgset_add (parser->msgset, clone.msgset);
+      if (rc)
+	{
+	  mu_diag_funcall (MU_DIAG_ERROR, "mu_msgset_add", NULL, rc);
+	  exit (1);
+	}
+      mu_msgset_free (clone.msgset);
     }
   
-  if (negate)
-    mh_msgset_negate (parser->mbox, parser->msgset);
   return 0;
 }
 
@@ -310,7 +257,7 @@ static int
 msgset_last (mu_mailbox_t mbox, size_t *pnum)
 {
   int rc;
-
+  
   rc = mu_mailbox_messages_count (mbox, pnum);
   if (rc)
     {
@@ -406,8 +353,11 @@ parse_term (struct msgset_parser *parser, int seq)
       for (p = keywords; p->name; p++)
 	if (tlen == p->len && memcmp (p->name, term, tlen) == 0)
 	  {
-	    if (p->handler (parser->mbox, &parser->number))
+	    size_t num;
+	    
+	    if (p->handler (parser->msgset->mbox, &num))
 	      msgset_abort (term);
+	    parser->number = num;
 	    parser->sign = p->sign;
 	    parser->validuid = 1;
 	    return PARSE_MORE;
@@ -428,7 +378,8 @@ parse_term (struct msgset_parser *parser, int seq)
       if (endp != parser->curp)
 	msgset_abort (term);
       
-      if (mu_mailbox_translate (parser->mbox, MU_MAILBOX_UID_TO_MSGNO,
+      if (mu_mailbox_translate (parser->msgset->mbox,
+				MU_MAILBOX_UID_TO_MSGNO,
 				num, &parser->number))
 	{
 	  parser->validuid = 0;
@@ -447,48 +398,37 @@ static void
 add_messages (struct msgset_parser *parser, size_t start, size_t count,
 	      int sign)
 {
-  size_t i;
+  int rc;
 
   if (start == 0)
     start = 1;
-  mh_msgset_expand (parser->msgset, count);
   if (sign)
     {
       if (count > start)
 	count = start;
-      for (i = 0; i < count; i++, start--)
-	parser->msgset->list[parser->msgset->count++] = start;
+      rc = mu_msgset_add_range (parser->msgset, start, start - count + 1,
+				MU_MSGSET_NUM);
     }
   else
     {
       size_t total;
   
-      mu_mailbox_messages_count (parser->mbox, &total);
+      mu_mailbox_messages_count (parser->msgset->mbox, &total);
       if (start + count > total)
-	count = total - start + 1;
-      for (i = 0; i < count; i++, start++)
-	parser->msgset->list[parser->msgset->count++] = start;
+	{
+	  count = total - start + 1;
+	  if (count == 0)
+	    emptyrange_abort (parser->argv[-1]);
+	}
+      rc = mu_msgset_add_range (parser->msgset, start, start + count - 1,
+				MU_MSGSET_NUM);
     }
-  if (count == 0)
-    emptyrange_abort (parser->argv[-1]);
-}
 
-static void
-add_message_range (struct msgset_parser *parser, size_t start, size_t end)
-{
-  if (end == start)
-    emptyrange_abort (parser->argv[-1]);
-
-  if (end < start)
+  if (rc)
     {
-      size_t t = start;
-      start = end;
-      end = t;
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_msgset_add_range", NULL, rc);
+      exit (1);
     }
-  mh_msgset_expand (parser->msgset, end - start + 1);
-
-  for (; start <= end; start++)
-    parser->msgset->list[parser->msgset->count++] = start;
 }
 
 /* range: term '-' term
@@ -527,8 +467,9 @@ parse_range (struct msgset_parser *parser)
       if (!validuid)
 	{
 	  size_t total, lastuid;
-	  msgset_last (parser->mbox, &total);
-	  mu_mailbox_translate (parser->mbox, MU_MAILBOX_MSGNO_TO_UID,
+	  msgset_last (parser->msgset->mbox, &total);
+	  mu_mailbox_translate (parser->msgset->mbox,
+				MU_MAILBOX_MSGNO_TO_UID,
 				total, &lastuid);
 	  if (start > lastuid)
 	    {
@@ -550,6 +491,7 @@ parse_range (struct msgset_parser *parser)
     {
       size_t lastuid = 0;
       int validuid = parser->validuid;
+      int rc;
       
       parser->curp++;
       if (parse_term (parser, 0) == PARSE_EOF)
@@ -558,8 +500,8 @@ parse_range (struct msgset_parser *parser)
 	{
 	  size_t total;
 
-	  msgset_last (parser->mbox, &total);
-	  mu_mailbox_translate (parser->mbox, MU_MAILBOX_MSGNO_TO_UID,
+	  msgset_last (parser->msgset->mbox, &total);
+	  mu_mailbox_translate (parser->msgset->mbox, MU_MAILBOX_MSGNO_TO_UID,
 				total, &lastuid);
 
 	  if (parser->number > lastuid)
@@ -572,15 +514,22 @@ parse_range (struct msgset_parser *parser)
 	  if (!lastuid)
 	    {
 	      size_t total;
-	      msgset_last (parser->mbox, &total);
-	      mu_mailbox_translate (parser->mbox, MU_MAILBOX_MSGNO_TO_UID,
+	      msgset_last (parser->msgset->mbox, &total);
+	      mu_mailbox_translate (parser->msgset->mbox,
+				    MU_MAILBOX_MSGNO_TO_UID,
 				    total, &lastuid);
 	    }
 	  if (start > lastuid && !parser->validuid)
 	    emptyrange_abort (parser->argv[-1]);
 	  start = 1;
 	}
-      add_message_range (parser, start, parser->number);
+      rc = mu_msgset_add_range (parser->msgset, start, parser->number,
+				MU_MSGSET_NUM);
+      if (rc)
+	{
+	  mu_diag_funcall (MU_DIAG_ERROR, "mu_msgset_add_range", NULL, rc);
+	  exit (1);
+	}
     }
   else if (!parser->validuid)
     {
@@ -588,13 +537,12 @@ parse_range (struct msgset_parser *parser)
       exit (1);
     }
   else
-    mh_msgset_add (parser->msgset, start);
+    mu_msgset_add_range (parser->msgset, start, start, MU_MSGSET_NUM);
   return 1;
 }
   
   
-/* Parse a message specification. The composed msgset is
-   not sorted nor optimised */
+/* Parse a message specification saved in a configured PARSER. */
 static void
 msgset_parser_run (struct msgset_parser *parser)
 {
@@ -602,11 +550,9 @@ msgset_parser_run (struct msgset_parser *parser)
     ;
 }
 
-/* Parse a message specification from (argc;argv). Returned msgset is
-   sorted and optimised (i.e. it does not contain duplicate message
-   numbers) */
+/* Parse a message specification from (argc;argv).  */
 void
-mh_msgset_parse (mu_mailbox_t mbox, mh_msgset_t *msgset, 
+mh_msgset_parse (mu_msgset_t *msgset, mu_mailbox_t mbox, 
 		 int argc, char **argv, char *def)
 {
   struct msgset_parser parser;
@@ -629,11 +575,25 @@ mh_msgset_parse (mu_mailbox_t mbox, mh_msgset_t *msgset,
       argv[1] = NULL;
     }
   
-  mh_msgset_init (msgset);
-  msgset_parser_init (&parser, mbox, msgset, argc, argv);
+  msgset_parser_init (&parser, mbox, argc, argv);
   msgset_parser_run (&parser);
+  *msgset = parser.msgset;
+}
 
-  mh_msgset_optimize (msgset);
+void
+mh_msgset_parse_string (mu_msgset_t *msgset, mu_mailbox_t mbox, 
+			const char *string, char *def)
+{
+  struct mu_wordsplit ws;
+  
+  if (mu_wordsplit (string, &ws, MU_WRDSF_DEFFLAGS))
+    {
+      mu_error (_("cannot split line `%s': %s"), string,
+		mu_wordsplit_strerror (&ws));
+      exit (1);
+    }
+  mh_msgset_parse (msgset, mbox, ws.ws_wordc, ws.ws_wordv, def);
+  mu_wordsplit_free (&ws);
 }
 
 

@@ -28,4 +28,9 @@ struct _mu_msgset
   int flags;                /* Message set flags */
 };
 
+int _mu_msgset_translate_pair (mu_msgset_t mset, int mode,
+			       size_t *beg, size_t *end);
+int _mu_msgset_translate_range (mu_msgset_t mset, int mode,
+				struct mu_msgrange *r);
+
 #endif

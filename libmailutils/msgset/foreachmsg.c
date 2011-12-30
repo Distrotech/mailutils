@@ -32,49 +32,47 @@ struct action_closure
 };
 
 static int
+call_action (struct action_closure *clos, size_t i)
+{
+  int rc;
+  mu_message_t msg = NULL;
+  size_t n;
+
+  if (clos->msgset->flags == MU_MSGSET_UID)
+    {
+      rc = mu_mailbox_translate (clos->msgset->mbox, MU_MAILBOX_UID_TO_MSGNO,
+				 i, &n);
+      if (rc == MU_ERR_NOENT)
+	return 0;
+      else if (rc)
+	return rc;
+    }
+  else
+    n = i;
+  
+  rc = mu_mailbox_get_message (clos->msgset->mbox, n, &msg);
+  if (rc == MU_ERR_NOENT)
+    return 0;
+  else if (rc == 0)
+    rc = clos->action (i, msg, clos->data);
+  return rc;
+}
+
+static int
 procrange (void *item, void *data)
 {
   struct mu_msgrange *mp = item;
   struct action_closure *clos = data;
   size_t i;
-
+  int rc = 0;
+  
   if (clos->dir)
-    for (i = mp->msg_end; i >= mp->msg_beg; i--)
-      {
-	int rc;
-	mu_message_t msg = NULL;
-	
-	if (clos->msgset->mbox)
-	  {
-	    rc = mu_mailbox_get_message (clos->msgset->mbox, i, &msg);
-	    if (rc == MU_ERR_NOENT)
-	      continue;
-	    else if (rc)
-	    return rc;
-	  }
-	rc = clos->action (i, msg, clos->data);
-	if (rc)
-	  return rc;
-      }
+    for (i = mp->msg_end; rc == 0 && i >= mp->msg_beg; i--)
+      rc = call_action (clos, i);
   else
     for (i = mp->msg_beg; i <= mp->msg_end; i++)
-      {
-	int rc;
-	mu_message_t msg = NULL;
-	
-	if (clos->msgset->mbox)
-	  {
-	    rc = mu_mailbox_get_message (clos->msgset->mbox, i, &msg);
-	    if (rc == MU_ERR_NOENT)
-	      continue;
-	    else if (rc)
-	      return rc;
-	  }
-	rc = clos->action (i, msg, clos->data);
-	if (rc)
-	  return rc;
-      }
-  return 0;
+      rc = call_action (clos, i);
+  return rc;
 }
 
 /* Apply ACTION to each message number from MSGSET. */
@@ -85,7 +83,9 @@ mu_msgset_foreach_dir_message (mu_msgset_t msgset, int dir,
 {
   int rc;
   struct action_closure clos;
-  
+
+  if (!msgset->mbox)
+    return MU_ERR_NOT_OPEN;
   rc = mu_msgset_aggregate (msgset);
   if (rc)
     return rc;

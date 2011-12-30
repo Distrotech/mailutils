@@ -1759,13 +1759,14 @@ fetch_thunk (imap4d_parsebuf_t pb)
   
   mstr = imap4d_parsebuf_next (pb, 1);
 
-  status = mu_msgset_create (&pclos->msgset, mbox,
-			     pclos->isuid ? MU_MSGSET_UID : 0);
+  status = mu_msgset_create (&pclos->msgset, mbox, MU_MSGSET_NUM);
   if (status)
     imap4d_parsebuf_exit (pb, "Software error");
   
   /* Parse sequence numbers. */
-  status = mu_msgset_parse_imap (pclos->msgset, mstr, &end);
+  status = mu_msgset_parse_imap (pclos->msgset,
+				 pclos->isuid ? MU_MSGSET_UID : MU_MSGSET_NUM,
+				 mstr, &end);
   if (status)
     imap4d_parsebuf_exit (pb, "Failed to parse message set");
   

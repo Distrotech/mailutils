@@ -118,13 +118,13 @@ parse_msgset (const char *arg)
   mu_msgset_t msgset;
   char *p;
   
-  status = mu_msgset_create (&msgset, NULL, 0);
+  status = mu_msgset_create (&msgset, NULL, MU_MSGSET_NUM);
   if (status)
     {
       mu_diag_funcall (MU_DIAG_ERROR, "mu_msgset_create", NULL, status);
       return NULL;
     }
-  status = mu_msgset_parse_imap (msgset, arg, &p);
+  status = mu_msgset_parse_imap (msgset, MU_MSGSET_NUM, arg, &p);
   if (status)
     {
       mu_error (_("failed to parse message set near \"%s\": %s"),

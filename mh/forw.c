@@ -116,7 +116,7 @@ static char *draftmessage = "new";
 static const char *draftfolder = NULL;
 static char *input_file;        /* input file name (--file option) */
 
-static mh_msgset_t msgset;
+static mu_msgset_t msgset;
 static mu_mailbox_t mbox;
 
 static int
@@ -331,15 +331,27 @@ format_message (mu_stream_t outstr, mu_message_t msg, int num,
     }
 }
 
-void
-format_message_itr (mu_mailbox_t mbox MU_ARG_UNUSED,
-		    mu_message_t msg, size_t num, void *data)
+int
+format_message_itr (size_t num, mu_message_t msg, void *data)
 {
   struct format_data *fp = data;
 
   format_message (fp->stream, msg, fp->num, fp->format);
   if (fp->num)
     fp->num++;
+  return 0;
+}
+
+static int
+_proc_forwards (size_t n, mu_message_t msg, void *call_data)
+{
+  mu_stream_t stream = call_data;
+  size_t num;
+	      
+  if (annotate)
+    mu_list_append (wh_env.anno_list, msg);
+  mh_message_number (msg, &num);
+  return mu_stream_printf (stream, " %lu", (unsigned long) num);
 }
 
 void
@@ -411,36 +423,22 @@ finish_draft ()
 	{
 	  mu_url_t url;
 	  const char *mbox_path;
-	  const char *p;
-	  size_t i;
       
 	  mu_mailbox_get_url (mbox, &url);
 	  mu_url_sget_path (url, &mbox_path);
 	  mu_asprintf (&str, "#forw [] +%s", mbox_path);
 	  rc = mu_stream_write (stream, str, strlen (str), NULL);
 	  free (str);
-	  for (i = 0; rc == 0 && i < msgset.count; i++)
-	    {
-	      mu_message_t msg;
-	      size_t num;
-	      
-	      mu_mailbox_get_message (mbox, msgset.list[i], &msg);
-	      if (annotate)
-		mu_list_append (wh_env.anno_list, msg);
-	      mh_message_number (msg, &num);
-	      p = mu_umaxtostr (0, num);
-	      rc = mu_stream_write (stream, " ", 1, NULL);
-	      if (rc)
-		break;
-	      rc = mu_stream_write (stream, p, strlen (p), NULL);
-	    }
+	  mu_msgset_foreach_message (msgset, _proc_forwards, stream);
 	}
       else
 	{
+	  int single_message = mh_msgset_single_message (msgset);
+	  
 	  str = "\n------- ";
 	  rc = mu_stream_write (stream, str, strlen (str), NULL);
 	  
-	  if (msgset.count == 1)
+	  if (single_message)
 	    {
 	      fd.num = 0;
 	      str = (char*) _("Forwarded message\n");
@@ -454,12 +452,12 @@ finish_draft ()
 	  rc = mu_stream_write (stream, str, strlen (str), NULL);
 	  fd.stream = stream;
 	  fd.format = format;
-	  rc = mh_iterate (mbox, &msgset, format_message_itr, &fd);
+	  rc = mu_msgset_foreach_message (msgset, format_message_itr, &fd);
       
 	  str = "\n------- ";
 	  rc = mu_stream_write (stream, str, strlen (str), NULL);
 	  
-	  if (msgset.count == 1)
+	  if (single_message)
 	    str = (char*) _("End of Forwarded message");
 	  else
 	    str = (char*) _("End of Forwarded messages");
@@ -504,7 +502,7 @@ main (int argc, char **argv)
   else
     {
       mbox = mh_open_folder (mh_current_folder (), MU_STREAM_RDWR);
-      mh_msgset_parse (mbox, &msgset, argc, argv, "cur");
+      mh_msgset_parse (&msgset, mbox, argc, argv, "cur");
     }
   
   if (build_only || !draftfolder)

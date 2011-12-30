@@ -201,8 +201,8 @@ refile (mu_message_t msg)
   enumerate_folders (refile_folder, msg);
 }
 
-void
-refile_iterator (mu_mailbox_t mbox, mu_message_t msg, size_t num, void *data)
+int
+refile_iterator (size_t num, mu_message_t msg, void *data)
 {
   enumerate_folders (refile_folder, msg);
   if (!link_flag)
@@ -211,13 +211,14 @@ refile_iterator (mu_mailbox_t mbox, mu_message_t msg, size_t num, void *data)
       mu_message_get_attribute (msg, &attr);
       mu_attribute_set_deleted (attr);
     }
+  return 0;
 }
 
 int
 main (int argc, char **argv)
 {
   int index;
-  mh_msgset_t msgset;
+  mu_msgset_t msgset;
   mu_mailbox_t mbox;
   int status, i, j;
 
@@ -262,9 +263,9 @@ main (int argc, char **argv)
   else
     {
       mbox = mh_open_folder (mh_current_folder (), MU_STREAM_RDWR);
-      mh_msgset_parse (mbox, &msgset, argc, argv, "cur");
+      mh_msgset_parse (&msgset, mbox, argc, argv, "cur");
 
-      status = mh_iterate (mbox, &msgset, refile_iterator, NULL);
+      status = mu_msgset_foreach_message (msgset, refile_iterator, NULL);
  
       mu_mailbox_expunge (mbox);
       mu_mailbox_close (mbox);

@@ -69,13 +69,14 @@ store_thunk (imap4d_parsebuf_t p)
 	imap4d_parsebuf_exit (p, "Bogus data suffix");
     }
 
-  status = mu_msgset_create (&pclos->msgset, mbox,
-			     pclos->isuid ? MU_MSGSET_UID : 0);
+  status = mu_msgset_create (&pclos->msgset, mbox, MU_MSGSET_NUM);
   if (status)
     imap4d_parsebuf_exit (p, "Software error");
   
   /* Get the message numbers in set[].  */
-  status = mu_msgset_parse_imap (pclos->msgset, mstr, &end);
+  status = mu_msgset_parse_imap (pclos->msgset,
+				 pclos->isuid ? MU_MSGSET_UID : MU_MSGSET_NUM,
+				 mstr, &end);
   if (status)
     imap4d_parsebuf_exit (p, "Failed to parse message set");
 

@@ -50,13 +50,14 @@ opt_handler (int key, char *arg, struct argp_state *state)
   return 0;
 }
 
-void
-mhpath (mu_mailbox_t mbox, mu_message_t msg, size_t num, void *data)
+static int
+mhpath (size_t num, mu_message_t msg, void *data)
 {
   size_t uid;
-      
+  
   mh_message_number (msg, &uid);
   printf ("%s/%s\n", (char*) data, mu_umaxtostr (0, uid));
+  return 0;
 }
 
 int
@@ -67,7 +68,7 @@ main (int argc, char **argv)
   mu_url_t url = NULL;
   char *mhdir;
   size_t total;
-  mh_msgset_t msgset;
+  mu_msgset_t msgset;
   int status;
   const char *current_folder;
   
@@ -125,9 +126,9 @@ main (int argc, char **argv)
   /* Mhpath  expands  and  sorts  the  message  list `msgs' and
      writes the full pathnames of the messages to the  standard
      output separated by newlines. */
-  mh_msgset_parse (mbox, &msgset, argc - index, argv + index, "cur");
-  status = mh_iterate (mbox, &msgset, mhpath, mhdir);
+  mh_msgset_parse (&msgset, mbox, argc - index, argv + index, "cur");
+  status = mu_msgset_foreach_message (msgset, mhpath, mhdir);
   mu_mailbox_close (mbox);
   mu_mailbox_destroy (&mbox);
-  return status;
+  return status != 0;
 }

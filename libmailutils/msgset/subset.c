@@ -22,34 +22,29 @@
 #include <mailutils/msgset.h>
 #include <mailutils/sys/msgset.h>
 
-int
-mu_msgset_add_range (mu_msgset_t mset, size_t beg, size_t end, int mode)
+struct sub_closure
 {
-  int rc;
-  struct mu_msgrange *range;
-  
-  if (!mset || beg == 0)
+  int mode;
+  mu_msgset_t dest;
+};
+
+static int
+sub_range (void *item, void *data)
+{
+  struct mu_msgrange *r = item;
+  struct sub_closure *clos = data;
+  return mu_msgset_sub_range (clos->dest, r->msg_beg, r->msg_end, clos->mode);
+}
+
+int
+mu_msgset_sub (mu_msgset_t a, mu_msgset_t b)
+{
+  struct sub_closure closure;
+  if (!a)
     return EINVAL;
-  if (end && beg > end)
-    {
-      size_t t = end;
-      end = beg;
-      beg = t;
-    }
-  range = calloc (1, sizeof (*range));
-  if (!range)
-    return ENOMEM;
-  range->msg_beg = beg;
-  range->msg_end = end;
-  rc = _mu_msgset_translate_range (mset, mode, range);
-  if (rc)
-    {
-      free (range);
-      return rc;
-    }
-  rc = mu_list_append (mset->list, range);
-  if (rc)
-    free (range);
-  mset->flags &= ~_MU_MSGSET_AGGREGATED;
-  return rc;
+  if (!b)
+    return 0;
+  closure.mode = b->flags;
+  closure.dest = a;
+  return mu_list_foreach (b->list, sub_range, &closure);
 }

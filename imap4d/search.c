@@ -608,10 +608,11 @@ parse_simple_key (struct parsebuf *pb)
   
   if (!condp->name)
     {
-      mu_msgset_t msgset = parse_msgset_create (pb, mbox,
-						pb->isuid ? MU_MSGSET_UID : 0);
+      mu_msgset_t msgset = parse_msgset_create (pb, mbox, MU_MSGSET_NUM);
       
-      if (mu_msgset_parse_imap (msgset, pb->token, NULL) == 0) 
+      if (mu_msgset_parse_imap (msgset,
+				pb->isuid ? MU_MSGSET_UID : MU_MSGSET_NUM,
+				pb->token, NULL) == 0) 
 	{
 	  struct search_node *np = parse_alloc (pb, sizeof *np);
 	  np->type = node_value;
@@ -696,9 +697,10 @@ parse_simple_key (struct parsebuf *pb)
 	      break;
 	      
 	    case 'u': /* UID message set */
-	      arg->v.value.v.msgset = parse_msgset_create (pb, NULL, 0);
-	      if (mu_msgset_parse_imap (arg->v.value.v.msgset, pb->token,
-					NULL)) 
+	      arg->v.value.v.msgset = parse_msgset_create (pb, NULL,
+							   MU_MSGSET_NUM);
+	      if (mu_msgset_parse_imap (arg->v.value.v.msgset, MU_MSGSET_UID,
+					pb->token, NULL)) 
 		{
 		  mu_msgset_free (arg->v.value.v.msgset);
 		  pb->err_mesg = "Bogus number set";

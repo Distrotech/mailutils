@@ -95,10 +95,11 @@ opt_handler (int key, char *arg, struct argp_state *state)
   return 0;
 }
 
-void
-anno (mu_mailbox_t mbox, mu_message_t msg, size_t num, void *data)
+int
+anno (size_t n, mu_message_t msg, void *call_data)
 {
   mh_annotate (msg, component, anno_text, anno_date);
+  return 0;
 }
 
 int
@@ -107,7 +108,7 @@ main (int argc, char **argv)
   int rc;
   int index;
   mu_mailbox_t mbox;
-  mh_msgset_t msgset;
+  mu_msgset_t msgset;
   size_t len;
 
   MU_APP_INIT_NLS ();
@@ -154,10 +155,16 @@ main (int argc, char **argv)
   argc -= index;
   argv += index;
   
-  mh_msgset_parse (mbox, &msgset, argc, argv, "cur");
-  rc = mh_iterate (mbox, &msgset, anno, NULL);
-
-  mh_msgset_current (mbox, &msgset, 0);
+  mh_msgset_parse (&msgset, mbox, argc, argv, "cur");
+  rc = mu_msgset_foreach_message (msgset, anno, NULL);
+  if (rc)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_msgset_foreach_message", NULL, rc);
+      exit (1);
+    }
+      
+  mh_msgset_first_current (mbox, msgset);
+  mu_msgset_free (msgset);
   mh_global_save_state ();
   mu_mailbox_sync (mbox);
   mu_mailbox_close (mbox);

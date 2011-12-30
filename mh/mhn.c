@@ -158,7 +158,7 @@ static int width = 80;
 static char *charset;  /* Charset for output file names.  NULL means
 			  no recoding is necessary. */
 
-static mh_msgset_t msgset;
+static mu_msgset_t msgset;
 static mu_mailbox_t mbox;
 static mu_message_t message;
 static msg_part_t req_part;
@@ -1369,7 +1369,7 @@ list_handler (mu_message_t msg, msg_part_t part, char *type, char *encoding,
 }
 
 int
-list_message (mu_message_t msg, size_t num)
+list_message (mu_message_t msg)
 {
   size_t uid;
   msg_part_t part;
@@ -1381,10 +1381,10 @@ list_message (mu_message_t msg, size_t num)
   return 0;
 }
 
-void
-list_iterator (mu_mailbox_t mbox, mu_message_t msg, size_t num, void *data)
+int
+list_iterator (size_t num, mu_message_t msg, void *data)
 {
-  list_message (msg, num);
+  return list_message (msg);
 }
 
 int
@@ -1396,9 +1396,9 @@ mhn_list ()
     printf (_(" msg part type/subtype              size  description\n"));
 
   if (message)
-    rc = list_message (message, 0);
+    rc = list_message (message);
   else
-    rc = mh_iterate (mbox, &msgset, list_iterator, NULL);
+    rc = mu_msgset_foreach_message (msgset, list_iterator, NULL);
   return rc;
 }
 
@@ -1609,8 +1609,8 @@ show_message (mu_message_t msg, size_t num, void *data)
   return 0;
 }
 
-void
-show_iterator (mu_mailbox_t mbox, mu_message_t msg, size_t num, void *data)
+int
+show_iterator (size_t num, mu_message_t msg, void *data)
 {
   msg_part_t part;
   
@@ -1618,6 +1618,7 @@ show_iterator (mu_mailbox_t mbox, mu_message_t msg, size_t num, void *data)
   part = msg_part_create (num);
   show_message (msg, num, data);
   msg_part_destroy (part);
+  return 0;
 }
 
 int
@@ -1630,7 +1631,7 @@ mhn_show ()
   if (message)
     rc = show_message (message, 0, mu_strout);
   else
-    rc = mh_iterate (mbox, &msgset, show_iterator, mu_strout);
+    rc = mu_msgset_foreach_message (msgset, show_iterator, mu_strout);
   mu_stream_flush (mu_strout);
   return rc;
 }
@@ -1855,10 +1856,11 @@ store_message (mu_message_t msg, void *data)
   msg_part_destroy (part);
 }
 
-void
-store_iterator (mu_mailbox_t mbox, mu_message_t msg, size_t num, void *data)
+int
+store_iterator (size_t num, mu_message_t msg, void *data)
 {
   store_message (msg, data);
+  return 0;
 }
 
 int
@@ -1876,7 +1878,7 @@ mhn_store ()
       store_message (message, p);
     }
   else
-    rc = mh_iterate (mbox, &msgset, store_iterator, NULL);
+    rc = mu_msgset_foreach_message (msgset, store_iterator, NULL);
   return rc;
 }
 
@@ -2982,7 +2984,7 @@ main (int argc, char **argv)
   else
     {
       mbox = mh_open_folder (mh_current_folder (), MU_STREAM_READ);
-      mh_msgset_parse (mbox, &msgset, argc, argv, "cur");
+      mh_msgset_parse (&msgset, mbox, argc, argv, "cur");
     }
   
   switch (mode)

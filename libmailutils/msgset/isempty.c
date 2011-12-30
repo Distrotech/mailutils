@@ -17,39 +17,12 @@
 #include <config.h>
 #include <stdlib.h>
 #include <mailutils/types.h>
-#include <mailutils/errno.h>
 #include <mailutils/list.h>
 #include <mailutils/msgset.h>
 #include <mailutils/sys/msgset.h>
 
 int
-mu_msgset_add_range (mu_msgset_t mset, size_t beg, size_t end, int mode)
+mu_msgset_is_empty (mu_msgset_t mset)
 {
-  int rc;
-  struct mu_msgrange *range;
-  
-  if (!mset || beg == 0)
-    return EINVAL;
-  if (end && beg > end)
-    {
-      size_t t = end;
-      end = beg;
-      beg = t;
-    }
-  range = calloc (1, sizeof (*range));
-  if (!range)
-    return ENOMEM;
-  range->msg_beg = beg;
-  range->msg_end = end;
-  rc = _mu_msgset_translate_range (mset, mode, range);
-  if (rc)
-    {
-      free (range);
-      return rc;
-    }
-  rc = mu_list_append (mset->list, range);
-  if (rc)
-    free (range);
-  mset->flags &= ~_MU_MSGSET_AGGREGATED;
-  return rc;
+  return mset == NULL || mu_list_is_empty (mset->list);
 }

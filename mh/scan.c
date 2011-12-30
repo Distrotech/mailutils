@@ -75,9 +75,9 @@ static int header;
 
 static mh_format_t format;
 
-static mh_msgset_t msgset;
+static mu_msgset_t msgset;
 
-void list_message (mu_mailbox_t mbox, mu_message_t msg, size_t num, void *data);
+static int list_message (size_t num, mu_message_t msg, void *data);
 void print_header (mu_mailbox_t mbox);
 void clear_screen (void);
 
@@ -153,7 +153,7 @@ action (mu_observer_t o, size_t type, void *data, void *action_data)
       counter++;
       mu_mailbox_get_message (mbox, counter, &msg);
       mh_message_number (msg, &num);
-      list_message (mbox, msg, num, NULL);
+      list_message (num, msg, NULL);
     }
   return 0;
 }
@@ -201,13 +201,11 @@ main (int argc, char **argv)
   else
     {
       mu_mailbox_messages_count (mbox, &total);
-      mh_msgset_parse (mbox, &msgset, argc, argv, "all");
-
-      if (reverse)
-	mh_msgset_reverse (&msgset);
+      mh_msgset_parse (&msgset, mbox, argc, argv, "all");
 
       print_header (mbox);
-      status = mh_iterate (mbox, &msgset, list_message, NULL);
+      status = mu_msgset_foreach_dir_message (msgset, reverse,
+					      list_message, NULL);
     }
 
   if (total == 0)
@@ -282,8 +280,8 @@ clear_screen ()
     }
 }
 
-void
-list_message (mu_mailbox_t mbox, mu_message_t msg, size_t num, void *data)
+static int
+list_message (size_t num, mu_message_t msg, void *data)
 {
   char *buffer;
   int len;
@@ -294,4 +292,5 @@ list_message (mu_mailbox_t mbox, mu_message_t msg, size_t num, void *data)
   if (len > 0 && buffer[len-1] != '\n')
     printf("\n");
   free (buffer);
+  return 0;
 }

@@ -33,6 +33,7 @@ struct parse_msgnum_env
   size_t minval;         /* Min. sequence number or UID */
   size_t maxval;         /* Max. sequence number or UID */
   mu_msgset_t msgset;    /* Message set being built. */
+  int mode;              /* Operation mode (num/uid) */
 };
 
 /* Get a single message number/UID from env->s and store it into *PN.
@@ -95,20 +96,8 @@ parse_msgrange (struct parse_msgnum_env *env)
       msgrange.msg_beg = tmp;
     }
 
-  if ((env->msgset->flags & MU_MSGSET_UID) && env->msgset->mbox)
-    {
-      int rc;
-
-      rc = mu_mailbox_translate (env->msgset->mbox,
-				 MU_MAILBOX_UID_TO_MSGNO,
-				 msgrange.msg_end, &msgrange.msg_end);
-      if (rc == MU_ERR_NOENT)
-	msgrange.msg_end = env->maxval;
-      else if (rc)
-	return rc;
-    }      
-
-  return mu_msgset_add_range (env->msgset, msgrange.msg_beg, msgrange.msg_end);
+  return mu_msgset_add_range (env->msgset, msgrange.msg_beg, msgrange.msg_end,
+			      env->mode);
 }
 
 /* Parse IMAP-style message set specification S.
@@ -117,13 +106,15 @@ parse_msgrange (struct parse_msgnum_env *env)
    On error, return error code and point END to the position in the input
    string where parsing has failed. */
 int
-mu_msgset_parse_imap (mu_msgset_t mset, const char *s, char **end)
+mu_msgset_parse_imap (mu_msgset_t mset, int mode, const char *s, char **end)
 {
   int rc;
   struct parse_msgnum_env env;
   
   if (!s || !mset)
     return EINVAL;
+  if (end)
+    *end = (char*) s;
   if (!*s)
     return MU_ERR_PARSE;
 
@@ -131,9 +122,8 @@ mu_msgset_parse_imap (mu_msgset_t mset, const char *s, char **end)
   env.s = s;
   env.msgset = mset;
   env.minval = 1;
+  env.mode = mode;
   
-  if (end)
-    *end = (char*) s;
   if (mset->mbox)
     {
       size_t lastmsgno;      /* Max. sequence number. */
@@ -141,7 +131,7 @@ mu_msgset_parse_imap (mu_msgset_t mset, const char *s, char **end)
       rc = mu_mailbox_messages_count (mset->mbox, &lastmsgno);
       if (rc == 0)
 	{
-	  if (mset->flags & MU_MSGSET_UID)
+	  if (mode == MU_MSGSET_UID)
 	    {
 	      rc = mu_mailbox_translate (mset->mbox, MU_MAILBOX_MSGNO_TO_UID,
 					 lastmsgno, &env.maxval);

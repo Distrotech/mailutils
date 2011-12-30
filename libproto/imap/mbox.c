@@ -175,7 +175,7 @@ __imap_msg_get_stream (struct _mu_imap_message *imsg, size_t msgno,
       if (rc)
 	return rc;
 
-      rc = mu_msgset_create (&msgset, NULL, 0);
+      rc = mu_msgset_create (&msgset, NULL, MU_MSGSET_NUM);
       if (rc == 0)
 	{
 	  struct save_closure clos;
@@ -183,7 +183,7 @@ __imap_msg_get_stream (struct _mu_imap_message *imsg, size_t msgno,
 	  clos.imsg = imsg;
 	  clos.save_stream = imbx->cache;
 
-	  rc = mu_msgset_add_range (msgset, msgno, msgno);
+	  rc = mu_msgset_add_range (msgset, msgno, msgno, MU_MSGSET_NUM);
 	  if (rc == 0)
 	    {
 	      _imap_mbx_clrerr (imbx);
@@ -370,10 +370,10 @@ _imap_hdr_fill (void *data, char **pbuf, size_t *plen)
   unsigned long msgno = _imap_msg_no (imsg);
   int rc;
 
-  rc = mu_msgset_create (&msgset, NULL, 0);
+  rc = mu_msgset_create (&msgset, NULL, MU_MSGSET_NUM);
   if (rc == 0)
     {
-      rc = mu_msgset_add_range (msgset, msgno, msgno);
+      rc = mu_msgset_add_range (msgset, msgno, msgno, MU_MSGSET_NUM);
       if (rc == 0)
 	{
 	  clos.imsg = imsg;
@@ -619,11 +619,11 @@ _imap_msg_bodystructure (mu_message_t msg, struct mu_bodystructure **pbs)
   int rc;
   mu_msgset_t msgset;
 
-  rc = mu_msgset_create (&msgset, NULL, 0);
+  rc = mu_msgset_create (&msgset, NULL, MU_MSGSET_NUM);
   if (rc == 0)
     {
       size_t msgno = _imap_msg_no (imsg);
-      rc = mu_msgset_add_range (msgset, msgno, msgno);
+      rc = mu_msgset_add_range (msgset, msgno, msgno, MU_MSGSET_NUM);
       if (rc == 0)
 	rc = _imap_fetch_with_callback (imap, msgset, "BODYSTRUCTURE",
 					_imap_bodystructure_callback, pbs);
@@ -949,7 +949,7 @@ _imap_mbx_gensync (mu_mailbox_t mbox, int *pdel)
   struct attr_tab *tab;
   size_t count;
 
-  rc = mu_msgset_create (&msgset, NULL, 0);
+  rc = mu_msgset_create (&msgset, NULL, MU_MSGSET_NUM);
   if (rc)
     return rc;
 
@@ -962,7 +962,7 @@ _imap_mbx_gensync (mu_mailbox_t mbox, int *pdel)
 	  if (imbx->msgs[i].flags & _MU_IMAP_MSG_ATTRCHG)
 	    {
 	      mu_msgset_clear (msgset);
-	      mu_msgset_add_range (msgset, i + 1, i + 1);
+	      mu_msgset_add_range (msgset, i + 1, i + 1, MU_MSGSET_NUM);
 	      if (rc)
 		break;
 	      rc = mu_imap_store_flags (imap, 0, msgset,
@@ -994,12 +994,13 @@ _imap_mbx_gensync (mu_mailbox_t mbox, int *pdel)
 		}
 	    }
 	  if (tab[i].end == tab[i].start)
-	    rc = mu_msgset_add_range (msgset, tab[i].start + 1,
-				      tab[i].start + 1);
+	    rc = mu_msgset_add_range (msgset,
+				      tab[i].start + 1, tab[i].start + 1,
+				      MU_MSGSET_NUM);
 	  else
 	    rc = mu_msgset_add_range (msgset,
-				      tab[i].start + 1,
-				      tab[i].end + 1);
+				      tab[i].start + 1, tab[i].end + 1,
+				      MU_MSGSET_NUM);
 	  if (rc)
 	    break;
 	}
@@ -1192,10 +1193,10 @@ _imap_mbx_scan (mu_mailbox_t mbox, size_t msgno, size_t *pcount)
   
   mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_TRACE1,
 	    (_("scanning mailbox %s"), mu_url_to_string (mbox->url)));
-  rc = mu_msgset_create (&msgset, NULL, 0);
+  rc = mu_msgset_create (&msgset, NULL, MU_MSGSET_NUM);
   if (rc)
     return rc;
-  rc = mu_msgset_add_range (msgset, msgno, MU_MSGNO_LAST);
+  rc = mu_msgset_add_range (msgset, msgno, MU_MSGNO_LAST, MU_MSGSET_NUM);
   if (rc)
     {
       mu_msgset_free (msgset);

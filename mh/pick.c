@@ -21,9 +21,6 @@
 #include <regex.h>
 #include <pick.h>
 #include <pick-gram.h>
-#define obstack_chunk_alloc malloc
-#define obstack_chunk_free free
-#include <obstack.h>
 
 static char doc[] = N_("GNU MH pick")"\v"
 N_("Compatibility syntax for picking a matching component is:\n\
@@ -146,8 +143,7 @@ static mu_list_t seq_list;  /* List of sequence names to operate upon */
 
 static mu_list_t lexlist;   /* List of input tokens */
 
-static struct obstack msgno_stk; /* Stack of selected message numbers */
-static size_t msgno_count;       /* Number of items on the stack */
+static mu_msgset_t picked_message_uids;
 
 static void
 add_sequence (char *name)
@@ -282,34 +278,26 @@ opt_handler (int key, char *arg, struct argp_state *state)
   return 0;
 }
 
-void
-pick_message (mu_mailbox_t mbox, mu_message_t msg, size_t num, void *data)
+static int
+pick_message (size_t num, mu_message_t msg, void *data)
 {
   if (pick_eval (msg))
     {
       mh_message_number (msg, &num);
       if (list)
 	printf ("%s\n", mu_umaxtostr (0, num));
-      if (seq_list)
-	{
-	  obstack_grow (&msgno_stk, &num, sizeof (num));
-	  msgno_count++;
-	}
+      if (picked_message_uids)
+	mu_msgset_add_range (picked_message_uids, num, num, MU_MSGSET_UID);
     }
+  return 0;
 }
 
 
-struct pick_closure
-{
-  mu_mailbox_t mbox;
-  mh_msgset_t *msgset;
-};
-
 static int
 action_add (void *item, void *data)
 {
-  struct pick_closure *clos = data;
-  mh_seq_add (clos->mbox, (char *)item, clos->msgset, seq_flags);
+  mu_mailbox_t mbox = data;
+  mh_seq_add (mbox, (char *)item, picked_message_uids, seq_flags);
   return 0;
 }
 
@@ -356,7 +344,7 @@ main (int argc, char **argv)
   int status;
   int index;
   mu_mailbox_t mbox;
-  mh_msgset_t msgset;
+  mu_msgset_t msgset;
   int interactive = mh_interactive_mode_p ();
 
   MU_APP_INIT_NLS ();
@@ -397,21 +385,13 @@ main (int argc, char **argv)
   argv += index;
 
   if (seq_list)
-    obstack_init (&msgno_stk);
+    mu_msgset_create (&picked_message_uids, NULL, MU_MSGSET_UID);
   
-  mh_msgset_parse (mbox, &msgset, argc, argv, "all");
-  status = mh_iterate (mbox, &msgset, pick_message, NULL);
+  mh_msgset_parse (&msgset, mbox, argc, argv, "all");
+  status = mu_msgset_foreach_message (msgset, pick_message, NULL);
 
-  if (seq_list)
-    {
-      struct pick_closure clos;
-      mh_msgset_t msgset;
-      msgset.count = msgno_count;
-      msgset.list = obstack_finish (&msgno_stk);
-      clos.mbox = mbox;
-      clos.msgset = &msgset;
-      mu_list_foreach (seq_list, action_add, &clos);
-    }
+  if (picked_message_uids)
+    mu_list_foreach (seq_list, action_add, mbox);
 
   mh_global_save_state ();
   mu_mailbox_close (mbox);

@@ -63,13 +63,19 @@ opt_handler (int key, char *arg, struct argp_state *state)
   return 0;
 }
 
+static int
+_print_number (size_t n, void *data)
+{
+  printf ("%lu\n", (unsigned long) n);
+  return 0;
+}
+
 int
 main (int argc, char **argv)
 {
   int index;
   mu_mailbox_t mbox;
-  mh_msgset_t msgset;
-  size_t i;
+  mu_msgset_t msgset;
     
   /* Native Language Support */
   MU_APP_INIT_NLS ();
@@ -82,12 +88,11 @@ main (int argc, char **argv)
   argv += index;
   mbox = mh_open_folder (mh_current_folder (), MU_STREAM_READ);
 
-  mh_msgset_parse (mbox, &msgset, argc, argv, "cur");
+  mh_msgset_parse (&msgset, mbox, argc, argv, "cur");
   if (uid_option)
-    mh_msgset_uids (mbox, &msgset);
-
-  for (i = 0; i < msgset.count; i++)
-    printf ("%lu\n", (unsigned long) msgset.list[i]);
+    mu_msgset_foreach_msguid (msgset, _print_number, NULL);
+  else
+    mu_msgset_foreach_msgno (msgset, _print_number, NULL);
   return 0;
 }
 

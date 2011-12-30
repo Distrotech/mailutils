@@ -17,6 +17,13 @@
 
 #include <mh.h>
 
+static int
+_add_to_list (size_t num, mu_message_t msg, void *data)
+{
+  mu_list_t list = data;
+  return mu_list_append (list, msg);
+}
+
 void
 mh_whatnow_env_from_environ (struct mh_whatnow_env *wh)
 {
@@ -39,38 +46,15 @@ mh_whatnow_env_from_environ (struct mh_whatnow_env *wh)
 	    wh->anno_field = NULL;
 	  else
 	    {
-	      size_t i;
-	      struct mu_wordsplit ws;
-	      mh_msgset_t msgset;
+	      mu_msgset_t msgset;
 	      mu_mailbox_t mbox = mh_open_folder (folder, MU_STREAM_RDWR);
 	      
-	      if (mu_wordsplit (p, &ws,
-				MU_WRDSF_DEFFLAGS & ~MU_WRDSF_CESCAPES))
-		{
-		  mu_error (_("cannot parse mhmessages (%s): %s"), p,
-			    mu_wordsplit_strerror (&ws));
-		  exit (1);
-		}
-	      mh_msgset_parse (mbox, &msgset, ws.ws_wordc, ws.ws_wordv, "cur");
-	      mu_wordsplit_free (&ws);
+	      mh_msgset_parse_string (&msgset, mbox, p, "cur");
 
 	      wh->mbox = mbox;
 	      mu_list_create (&wh->anno_list);
-	      for (i = 0; i < msgset.count; i++)
-		{
-		  mu_message_t msg;
-		  int rc = mu_mailbox_get_message (mbox, msgset.list[i], &msg);
-		  if (rc)
-		    {
-		      mu_error (_("cannot get message %lu from %s: %s"),
-				(unsigned long) msgset.list[i],
-				folder,
-				mu_strerror (rc));
-		      continue;
-		    }
-		  mu_list_append (wh->anno_list, msg);
-		}
-	      mh_msgset_free (&msgset);
+	      mu_msgset_foreach_message (msgset, _add_to_list, wh->anno_list);
+	      mu_msgset_free (msgset);
 	      /* FIXME:
 		 wh->anno_inplace = getenv ("mhinplace");
 	      */

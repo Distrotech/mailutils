@@ -92,7 +92,10 @@ static int limit;
 static int verbose;
 static mu_mailbox_t mbox;
 static const char *mbox_path;
-static mh_msgset_t msgset;
+
+static size_t *msgarr;
+static size_t msgcount;
+
 static size_t current_num;
 
 #define ACTION_REORDER   0
@@ -416,17 +419,17 @@ shell_sort ()
     int h, s, i, j;
     size_t hold;
 
-    for (h = startdst (msgset.count, &s); s > 0; s--, h = prevdst (h))
+    for (h = startdst (msgcount, &s); s > 0; s--, h = prevdst (h))
       {
 	if (verbose > 1)
 	  fprintf (stderr, _("distance %d\n"), h);
-        for (j = h; j < msgset.count; j++)
+        for (j = h; j < msgcount; j++)
 	  {
-            hold = msgset.list[j];
+            hold = msgarr[j];
             for (i = j - h;
-		 i >= 0 && comp0 (hold, msgset.list[i]) < 0; i -= h)
-	      msgset.list[i + h] = msgset.list[i];
-	    msgset.list[i + h] = hold;
+		 i >= 0 && comp0 (hold, msgarr[i]) < 0; i -= h)
+	      msgarr[i + h] = msgarr[i];
+	    msgarr[i + h] = hold;
 	  }
       }
 }
@@ -467,12 +470,12 @@ transpose(size_t i, size_t n)
 {
   size_t j;
 
-  for (j = i+1; j < msgset.count; j++)
-    if (msgset.list[j] == n)
+  for (j = i+1; j < msgcount; j++)
+    if (msgarr[j] == n)
       {
-	size_t t = msgset.list[i];
-	msgset.list[i] = msgset.list[j];
-	msgset.list[j] = t;
+	size_t t = msgarr[i];
+	msgarr[i] = msgarr[j];
+	msgarr[j] = t;
 	break;
       }
 }
@@ -489,26 +492,25 @@ void
 sort ()
 {
   size_t *oldlist, i;
-  oldlist = xmalloc (msgset.count * sizeof (*oldlist));
-  memcpy (oldlist, msgset.list, msgset.count * sizeof (*oldlist));
+  oldlist = xmalloc (msgcount * sizeof (*oldlist));
+  memcpy (oldlist, msgarr, msgcount * sizeof (*oldlist));
 
   switch (algorithm)
     {
     case ARG_QUICKSORT:
-      qsort(msgset.list, msgset.count, sizeof (msgset.list[0]),
-	    comp);
+      qsort (msgarr, msgcount, sizeof (msgarr[0]), comp);
       break;
 
     case ARG_SHELL:
-      shell_sort();
+      shell_sort ();
       break;
     }
 
   switch (action)
     {
     case ACTION_LIST:
-      for (i = 0; i < msgset.count; i++)
-	list_message (msgset.list[i]);
+      for (i = 0; i < msgcount; i++)
+	list_message (msgarr[i]);
       break;
 
     default:
@@ -519,16 +521,16 @@ sort ()
       
       if (verbose)
 	fprintf (stderr, _("Transpositions:\n"));
-      for (i = 0, got_signal = 0; !got_signal && i < msgset.count; i++)
+      for (i = 0, got_signal = 0; !got_signal && i < msgcount; i++)
 	{
-	  if (msgset.list[i] != oldlist[i])
+	  if (msgarr[i] != oldlist[i])
 	    {
 	      size_t old_num, new_num;
 	      mu_message_t msg;
 
 	      mu_mailbox_get_message (mbox, oldlist[i], &msg);
 	      mh_message_number (msg, &old_num);
-	      mu_mailbox_get_message (mbox, msgset.list[i], &msg);
+	      mu_mailbox_get_message (mbox, msgarr[i], &msg);
 	      mh_message_number (msg, &new_num);
 	      transpose (i, oldlist[i]);
 	      if (verbose)
@@ -563,6 +565,38 @@ sort ()
       mh_mailbox_set_cur (mbox, current_num);
     }
 }
+
+static int
+_add_msgno (size_t n, void *data)
+{
+  size_t *pidx = data;
+  msgarr[*pidx] = n;
+  ++*pidx;
+  return 0;
+}
+
+static void
+fill_msgarr (mu_msgset_t msgset)
+{
+  size_t i;
+  int rc;
+  
+  rc = mu_msgset_count (msgset, &msgcount);
+  if (rc)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_msgset_count", NULL, rc);
+      exit (1);
+    }
+      
+  msgarr = xcalloc (msgcount, sizeof (msgarr[0]));
+  i = 0;
+  rc = mu_msgset_foreach_msgno (msgset, _add_msgno, &i);
+  if (rc)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_msgset_foreach_msgno", NULL, rc);
+      exit (1);
+    }
+}
 
 
 /* Main */
@@ -572,6 +606,7 @@ main (int argc, char **argv)
 {
   int index;
   mu_url_t url;
+  mu_msgset_t msgset;
   
   MU_APP_INIT_NLS ();
   mh_argp_init ();
@@ -597,7 +632,9 @@ main (int argc, char **argv)
 
   mh_mailbox_get_cur (mbox, &current_num);
 
-  mh_msgset_parse (mbox, &msgset, argc, argv, "all");
+  mh_msgset_parse (&msgset, mbox, argc, argv, "all");
+  fill_msgarr (msgset);
+  mu_msgset_free (msgset);
   sort ();
   mh_global_save_state ();
   mu_mailbox_destroy (&mbox);

@@ -112,7 +112,7 @@ static int width = 80;
 struct mh_whatnow_env wh_env = { 0 };
 static int initial_edit = 1;
 static const char *whatnowproc;
-static mh_msgset_t msgset;
+static mu_msgset_t msgset;
 static mu_mailbox_t mbox;
 static int build_only = 0; /* --build flag */
 static int query_mode = 0; /* --query flag */
@@ -281,6 +281,7 @@ make_draft (mu_mailbox_t mbox, int disp, struct mh_whatnow_env *wh)
   int rc;
   mu_message_t msg;
   struct stat st;
+  size_t msgno;
   
   /* First check if the draft exists */
   if (!build_only && stat (wh->draftfile, &st) == 0)
@@ -309,12 +310,13 @@ make_draft (mu_mailbox_t mbox, int disp, struct mh_whatnow_env *wh)
       unlink (wh->draftfile);
       break;  
     }
-  
-  rc = mu_mailbox_get_message (mbox, msgset.list[0], &msg);
+
+  msgno = mh_msgset_first (msgset);
+  rc = mu_mailbox_get_message (mbox, msgno, &msg);
   if (rc)
     {
       mu_error (_("cannot read message %s: %s"),
-		mu_umaxtostr (0, msgset.list[0]),
+		mu_umaxtostr (0, msgno),
 		mu_strerror (rc));
       exit (1);
     }
@@ -349,11 +351,11 @@ make_draft (mu_mailbox_t mbox, int disp, struct mh_whatnow_env *wh)
 	  mu_message_get_header (tmp_msg, &hdr);
 	  text = obstack_finish (&fcc_stack);
 	  mu_header_set_value (hdr, MU_HEADER_FCC, text, 0);
-	  mh_format (&format, tmp_msg, msgset.list[0], width, &buf);
+	  mh_format (&format, tmp_msg, msgno, width, &buf);
 	  mu_message_destroy (&tmp_msg, NULL);
 	}
       else
-	mh_format (&format, msg, msgset.list[0], width, &buf);
+	mh_format (&format, msg, msgno, width, &buf);
       
       mu_stream_write (str, buf, strlen (buf), NULL);
 
@@ -409,8 +411,8 @@ main (int argc, char **argv)
     }
 
   mbox = mh_open_folder (mh_current_folder (), MU_STREAM_RDWR);
-  mh_msgset_parse (mbox, &msgset, argc - index, argv + index, "cur");
-  if (msgset.count != 1)
+  mh_msgset_parse (&msgset, mbox, argc - index, argv + index, "cur");
+  if (!mh_msgset_single_message (msgset))
     {
       mu_error (_("only one message at a time!"));
       return 1;

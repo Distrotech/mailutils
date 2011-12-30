@@ -577,32 +577,6 @@ mh_find_file (const char *name, char **resolved_name)
 }
 
 int
-mh_iterate (mu_mailbox_t mbox, mh_msgset_t *msgset,
-	    mh_iterator_fp itr, void *data)
-{
-  int rc;
-  size_t i;
-
-  for (i = 0; i < msgset->count; i++)
-    {
-      mu_message_t msg;
-      size_t num;
-
-      num = msgset->list[i];
-      if ((rc = mu_mailbox_get_message (mbox, num, &msg)) != 0)
-	{
-	  mu_error (_("cannot get message %lu: %s"),
-		    (unsigned long) num, mu_strerror (rc));
-	  return 1;
-	}
-
-      itr (mbox, msg, num, data);
-    }
-
-  return 0;
-}
-
-int
 mh_spawnp (const char *prog, const char *file)
 {
   struct mu_wordsplit ws;
@@ -1039,19 +1013,16 @@ mh_draft_message (const char *name, const char *msgspec, char **pname)
   else
     {
       char *argv[2];
-      mh_msgset_t msgset;
+      mu_msgset_t msgset;
       
       argv[0] = (char*) msgspec;
       argv[1] = NULL;
-      mh_msgset_parse (mbox, &msgset, 1, argv, "cur");
-      if (msgset.count > 1)
+      mh_msgset_parse (&msgset, mbox, 1, argv, "cur");
+      if (!mh_msgset_single_message (msgset))
 	mu_error (_("only one message at a time!"));
       else
-	{
-	  mh_msgset_uids (mbox, &msgset);
-	  uid = msgset.list[0];
-	}
-      mh_msgset_free (&msgset);
+	uid = mh_msgset_first_uid (msgset);
+      mu_msgset_free (msgset);
     }
 
   mu_url_sget_path (url, &path);

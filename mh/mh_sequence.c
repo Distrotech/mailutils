@@ -16,6 +16,7 @@
    along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <mh.h>
+#include <mailutils/sys/msgset.h>
 
 static char *
 private_sequence_name (const char *name)
@@ -62,118 +63,124 @@ delete_sequence (mu_mailbox_t mbox, const char *name, int private)
   write_sequence (mbox, name, NULL, private);
 }
 
-void
-mh_seq_add (mu_mailbox_t mbox, const char *name, mh_msgset_t *mset, int flags)
+struct format_closure
 {
-  const char *value = mh_seq_read (mbox, name, flags);
-  char *new_value, *p;
-  const char *buf;
-  size_t i, len;
-
-  delete_sequence (mbox, name, !(flags & SEQ_PRIVATE));
-
-  if (flags & SEQ_ZERO)
-    value = NULL;
-  
-  if (value)
-    len = strlen (value);
-  else
-    len = 0;
-  len++;
-  for (i = 0; i < mset->count; i++)
-    {
-      buf = mu_umaxtostr (0, mset->list[i]);
-      len += strlen (buf) + 1;
-    }
-
-  new_value = xmalloc (len + 1);
-  if (value)
-    strcpy (new_value, value);
-  else
-    new_value[0] = 0;
-  p = new_value + strlen (new_value);
-  *p++ = ' ';
-  for (i = 0; i < mset->count; i++)
-    {
-      p += sprintf (p, "%s", mu_umaxtostr (0, mset->list[i]));
-      *p++ = ' ';
-    }
-  *p = 0;
-  write_sequence (mbox, name, new_value, flags & SEQ_PRIVATE);
-  /* FIXME
-  if (mu_c_strcasecmp (name, "cur") == 0)
-    current_message = strtoul (new_value, NULL, 0);
-  */
-  free (new_value);
-}
+  mu_stream_t stream;
+  mu_mailbox_t mailbox;
+};
 
 static int
-cmp_msgnum (const void *a, const void *b)
+format_sequence (void *item, void *data)
 {
-  const size_t *as = a;
-  const size_t *bs = b;
+  struct mu_msgrange *r = item;
+  struct format_closure *clos = data;
+  int rc;
+  size_t beg, end;
 
-  if (*as < *bs)
-    return -1;
-  if (*as > *bs)
-    return 1;
-  return 0;
+  if (clos->mailbox)
+    {
+      rc = mu_mailbox_translate (clos->mailbox,
+				 MU_MAILBOX_MSGNO_TO_UID,
+				 r->msg_beg, &beg);
+      if (rc)
+	return rc;
+    }
+  else
+    beg = r->msg_beg;
+  if (r->msg_beg == r->msg_end)
+    rc = mu_stream_printf (clos->stream, " %lu", (unsigned long) beg);
+  else
+    {
+      if (clos->mailbox)
+	{
+	  rc = mu_mailbox_translate (clos->mailbox,
+				     MU_MAILBOX_MSGNO_TO_UID,
+				     r->msg_end, &end);
+	  if (rc)
+	    return rc;
+	}
+      else
+	end = r->msg_end;
+      if (beg + 1 == end)
+	rc = mu_stream_printf (clos->stream, " %lu %lu",
+			       (unsigned long) beg,
+			       (unsigned long) end);
+      else
+	rc = mu_stream_printf (clos->stream, " %lu-%lu",
+			       (unsigned long) beg,
+			       (unsigned long) end);
+    }
+  return rc;
+}
+
+static void
+save_sequence (mu_mailbox_t mbox, const char *name, mu_msgset_t mset,
+	       int flags)
+{
+  mu_list_t list;
+  
+  mu_msgset_get_list (mset, &list);
+  if (mu_list_is_empty (list))
+    write_sequence (mset->mbox, name, NULL, flags & SEQ_PRIVATE);
+  else
+    {
+      struct format_closure clos;
+      int rc;
+      mu_transport_t trans[2];
+      
+      rc = mu_memory_stream_create (&clos.stream, MU_STREAM_RDWR);
+      if (rc)
+	{
+	  mu_diag_funcall (MU_DIAG_ERROR, "mu_memory_stream_create", NULL, rc);
+	  exit (1);
+	}
+      
+      clos.mailbox = mset->mbox;
+      rc = mu_list_foreach (list, format_sequence, &clos);
+      if (rc)
+	{
+	  mu_diag_funcall (MU_DIAG_ERROR, "mu_list_foreach", NULL, rc);
+	  exit (1);
+	}
+      mu_stream_write (clos.stream, "", 1, NULL);
+      mu_stream_ioctl (clos.stream, MU_IOCTL_TRANSPORT, MU_IOCTL_OP_GET,
+		       trans);
+      write_sequence (mbox, name, (char*)trans[0], flags & SEQ_PRIVATE);
+      mu_stream_unref (clos.stream);
+    }
+}
+
+void
+mh_seq_add (mu_mailbox_t mbox, const char *name, mu_msgset_t mset, int flags)
+{
+  const char *value = mh_seq_read (mbox, name, flags);
+  
+  delete_sequence (mbox, name, !(flags & SEQ_PRIVATE));
+  if (value && !(flags & SEQ_ZERO))
+    {
+      mu_msgset_t oldset;
+      mh_msgset_parse_string (&oldset, mbox, value, "cur");
+      mu_msgset_add (oldset, mset);
+      save_sequence (mbox, name, oldset, flags);
+      mu_msgset_free (oldset);
+    }
+  else
+    save_sequence (mbox, name, mset, flags);
 }
 
 int
 mh_seq_delete (mu_mailbox_t mbox, const char *name,
-	       mh_msgset_t *mset, int flags)
+	       mu_msgset_t mset, int flags)
 {
   const char *value = mh_seq_read (mbox, name, flags);
-  char *new_val;
-  char *p;
-  size_t i, count;
-  struct mu_wordsplit ws;
-  
+  mu_msgset_t oldset;
+
   if (!value)
     return 0;
-
-  if (mu_wordsplit (value, &ws, MU_WRDSF_DEFFLAGS))
-    {
-      mu_error (_("cannot split line `%s': %s"), value,
-		mu_wordsplit_strerror (&ws));
-      return 0;
-    }
-
-  for (i = 0; i < ws.ws_wordc; i++)
-    {
-      char *p;
-      size_t num = strtoul (ws.ws_wordv[i], &p, 10);
-
-      if (*p)
-	continue;
-
-      if (bsearch (&num, mset->list, mset->count, sizeof (mset->list[0]),
-		   cmp_msgnum))
-	{
-	  free (ws.ws_wordv[i]);
-	  ws.ws_wordv[i] = NULL;
-	}
-    }
-
-  new_val = xstrdup (value);
-  p = new_val;
-  count = 0;
-  for (i = 0; i < ws.ws_wordc; i++)
-    {
-      if (ws.ws_wordv[i])
-	{
-	  strcpy (p, ws.ws_wordv[i]);
-	  p += strlen (p);
-	  *p++ = ' ';
-	  count++;
-	}
-    }
-  *p = 0;
-  write_sequence (mbox, name, count > 0 ? new_val : NULL, flags & SEQ_PRIVATE);
-  mu_wordsplit_free (&ws);
-  free (new_val);
-  
+  mh_msgset_parse_string (&oldset, mbox, value, "cur");
+  mu_msgset_sub (oldset, mset);
+  save_sequence (mbox, name, oldset, flags);
+  mu_msgset_free (oldset);
   return 0;
 }
 

@@ -19,7 +19,7 @@
 #include <mailutils/mailutils.h>
 
 static void
-parse_msgset (char *arg, struct mu_msgrange *range)
+parse_msgrange (char *arg, struct mu_msgrange *range)
 {
   size_t msgnum;
   char *p;
@@ -52,14 +52,36 @@ parse_msgset (char *arg, struct mu_msgrange *range)
   range->msg_end = msgnum;
 }
 
+mu_msgset_t
+parse_msgset (const char *arg, mu_mailbox_t mbox,
+	      int create_mode, int parse_mode)
+{
+  int rc;
+  mu_msgset_t msgset;
+  char *end;
+  
+  MU_ASSERT (mu_msgset_create (&msgset, mbox, create_mode));
+  if (arg)
+    {
+      rc = mu_msgset_parse_imap (msgset, parse_mode, arg, &end);
+      if (rc)
+        {
+          mu_error ("mu_msgset_parse_imap: %s near %s",
+	  	    mu_strerror (rc), end);
+          exit (1);
+        }
+    }
+  return msgset;
+}
+
 int
 main (int argc, char **argv)
 {
   int i;
   char *msgset_string = NULL;
   mu_msgset_t msgset;
-  int rc;
-  int flags = 0;
+  int create_mode = MU_MSGSET_NUM;
+  int parse_mode = MU_MSGSET_NUM;
   mu_mailbox_t mbox = NULL;
   
   mu_set_program_name (argv[0]);
@@ -70,14 +92,23 @@ main (int argc, char **argv)
 
       if (strcmp (arg, "-h") == 0 || strcmp (arg, "-help") == 0)
 	{
-	  mu_printf ("usage: %s [-msgset=SET] [-add X[:Y]] [-del X:[Y]]...\n",
+	  mu_printf ("usage: %s [-msgset[uid]=SET] [-uid] [-add[uid]=X[:Y]] [-del[uid]=X[:Y]] "
+		     "[-addset[uid]=SET] [-delset[uid]=SET] ...\n",
 		     mu_program_name);
 	  return 0;
 	}
       else if (strncmp (arg, "-msgset=", 8) == 0)
-	msgset_string = arg + 8;
+	{
+	  parse_mode = MU_MSGSET_NUM;
+	  msgset_string = arg + 8;
+	}
+      else if (strncmp (arg, "-msgsetuid=", 11) == 0)
+	{
+	  parse_mode = MU_MSGSET_UID;
+	  msgset_string = arg + 11;
+	}      
       else if (strcmp (arg, "-uid") == 0)
-	flags |= MU_MSGSET_UID;
+	create_mode = MU_MSGSET_UID;
       else if (strncmp (arg, "-mailbox=", 9) == 0)
 	{
 	  MU_ASSERT (mu_mailbox_create (&mbox, arg + 9));
@@ -87,18 +118,7 @@ main (int argc, char **argv)
 	break;
     }
 
-  MU_ASSERT (mu_msgset_create (&msgset, mbox, flags));
-  if (msgset_string)
-    {
-      char *end;
-      rc = mu_msgset_parse_imap (msgset, msgset_string, &end);
-      if (rc)
-	{
-	  mu_error ("mu_msgset_parse_imap: %s near %s",
-		    mu_strerror (rc), end);
-	  return 1;
-	}
-    }
+  msgset = parse_msgset (msgset_string, mbox, create_mode, parse_mode);
   
   for (; i < argc; i++)
     {
@@ -107,15 +127,95 @@ main (int argc, char **argv)
       
       if (strncmp (arg, "-add=", 5) == 0)
 	{
-	  parse_msgset (arg + 5, &range);
-	  MU_ASSERT (mu_msgset_add_range (msgset, range.msg_beg,
-					  range.msg_end));
+	  parse_msgrange (arg + 5, &range);
+	  MU_ASSERT (mu_msgset_add_range (msgset,
+					  range.msg_beg, range.msg_end,
+					  MU_MSGSET_NUM));
 	}
       else if (strncmp (arg, "-sub=", 5) == 0)
 	{
-	  parse_msgset (arg + 5, &range);
-	  MU_ASSERT (mu_msgset_sub_range (msgset, range.msg_beg,
-					  range.msg_end));
+	  parse_msgrange (arg + 5, &range);
+	  MU_ASSERT (mu_msgset_sub_range (msgset,
+					  range.msg_beg, range.msg_end,
+					  MU_MSGSET_NUM));
+	}
+      else if (strncmp (arg, "-adduid=", 8) == 0)
+	{
+	  parse_msgrange (arg + 8, &range);
+	  MU_ASSERT (mu_msgset_add_range (msgset,
+					  range.msg_beg, range.msg_end,
+					  MU_MSGSET_UID));
+	}
+      else if (strncmp (arg, "-subuid=", 8) == 0)
+	{
+	  parse_msgrange (arg + 8, &range);
+	  MU_ASSERT (mu_msgset_sub_range (msgset,
+					  range.msg_beg, range.msg_end,
+					  MU_MSGSET_UID));
+	}
+      else if (strncmp (arg, "-addset", 7) == 0)
+	{
+	  mu_msgset_t tset;
+	  int m;
+
+	  arg += 7;
+	  if (strncmp (arg, "uid", 3) == 0)
+	    {
+	      m = MU_MSGSET_UID;
+	      arg += 3;
+	    }
+	  else
+	    m = MU_MSGSET_NUM;
+	  if (*arg == '=')
+	    arg++;
+	  else
+	    {
+	      mu_error ("unknown option %s", argv[i]);
+	      return 1;
+	    }
+	  
+	  tset = parse_msgset (arg, mbox, m, m);
+	  if (!msgset)
+	    msgset = tset;
+	  else
+	    {
+	      MU_ASSERT (mu_msgset_add (msgset, tset));
+	      mu_msgset_free (tset);
+	    }
+	}
+      else if (strncmp (arg, "-subset=", 8) == 0)
+	{
+	  mu_msgset_t tset;
+	  int m;
+
+	  arg += 7;
+	  if (strncmp (arg, "uid", 3) == 0)
+	    {
+	      m = MU_MSGSET_UID;
+	      arg += 3;
+	    }
+	  else
+	    m = MU_MSGSET_NUM;
+	  if (*arg == '=')
+	    arg++;
+	  else
+	    {
+	      mu_error ("unknown option %s", argv[i]);
+	      return 1;
+	    }
+	  
+	  tset = parse_msgset (arg, mbox, m, m);
+	  
+	  if (!msgset)
+	    {
+	      mu_error ("no initial message set");
+	      exit (1);
+	    }
+	  else
+	    {
+	      MU_ASSERT (mu_msgset_sub (msgset, tset));
+	      mu_msgset_free (tset);
+	    }
 	}
       else if (strcmp (arg, "-neg") == 0)
 	{

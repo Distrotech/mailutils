@@ -246,22 +246,21 @@ main (int argc, char **argv)
 	     `-draftfolder +folder'  treat this arguments  as `msg'. */
 	  if (use_draft || index < argc)
 	    {
-	      mh_msgset_t msgset;
+	      mu_msgset_t msgset;
 	      mu_mailbox_t mbox;
 	      
 	      mbox = mh_open_folder (draftfolder, 
                                      MU_STREAM_RDWR|MU_STREAM_CREAT);
-	      mh_msgset_parse (mbox, &msgset, 
+	      mh_msgset_parse (&msgset, mbox, 
 	                       argc - index, argv + index,
 			       use_draft ? "cur" : "new");
-              mh_msgset_uids (mbox, &msgset);	
-	      if (msgset.count != 1)
+	      if (!mh_msgset_single_message (msgset))
 		{
 		  mu_error (_("only one message at a time!"));
 		  return 1;
 		}
-	      draftmessage = mu_umaxtostr (0, msgset.list[0]);
-	      mh_msgset_free (&msgset);
+	      draftmessage = mu_umaxtostr (0, mh_msgset_first_uid (msgset));
+	      mu_msgset_free (msgset);
 	      mu_mailbox_destroy (&mbox);
 	    }
 	  if (mh_draft_message (draftfolder, draftmessage,
@@ -273,20 +272,20 @@ main (int argc, char **argv)
 
   if (folder_set && index < argc)
     {
-      mh_msgset_t msgset;
+      mu_msgset_t msgset;
       mu_mailbox_t mbox;
       
       mbox = mh_open_folder (mh_current_folder (), MU_STREAM_READ);
-      mh_msgset_parse (mbox, &msgset, argc - index, argv + index, "cur");
-      if (msgset.count != 1)
+      mh_msgset_parse (&msgset, mbox, argc - index, argv + index, "cur");
+      if (!mh_msgset_single_message (msgset))
 	{
 	  mu_error (_("only one message at a time!"));
 	  return 1;
 	}
       unlink (wh_env.file);
-      copy_message (mbox, msgset.list[0], wh_env.file);
+      copy_message (mbox, mh_msgset_first (msgset), wh_env.file);
       mu_mailbox_destroy (&mbox);
-      mh_msgset_free (&msgset);
+      mu_msgset_free (msgset);
     }
   else
     {

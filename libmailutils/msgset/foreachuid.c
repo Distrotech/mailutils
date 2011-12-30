@@ -15,41 +15,23 @@
    along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <config.h>
-#include <stdlib.h>
-#include <mailutils/types.h>
-#include <mailutils/errno.h>
-#include <mailutils/list.h>
 #include <mailutils/msgset.h>
-#include <mailutils/sys/msgset.h>
+
+/* Apply ACTION to each message number from MSGSET. */
+int
+mu_msgset_foreach_dir_msguid (mu_msgset_t msgset, int dir,
+			      mu_msgset_msgno_action_t action,
+			      void *data)
+{
+  return mu_msgset_foreach_num (msgset,
+	    (dir ? MU_MSGSET_FOREACH_BACKWARD : MU_MSGSET_FOREACH_FORWARD) |
+	    MU_MSGSET_UID, action, data);
+}
 
 int
-mu_msgset_add_range (mu_msgset_t mset, size_t beg, size_t end, int mode)
+mu_msgset_foreach_msguid (mu_msgset_t msgset,
+			  mu_msgset_msgno_action_t action,
+			  void *data)
 {
-  int rc;
-  struct mu_msgrange *range;
-  
-  if (!mset || beg == 0)
-    return EINVAL;
-  if (end && beg > end)
-    {
-      size_t t = end;
-      end = beg;
-      beg = t;
-    }
-  range = calloc (1, sizeof (*range));
-  if (!range)
-    return ENOMEM;
-  range->msg_beg = beg;
-  range->msg_end = end;
-  rc = _mu_msgset_translate_range (mset, mode, range);
-  if (rc)
-    {
-      free (range);
-      return rc;
-    }
-  rc = mu_list_append (mset->list, range);
-  if (rc)
-    free (range);
-  mset->flags &= ~_MU_MSGSET_AGGREGATED;
-  return rc;
+  return mu_msgset_foreach_dir_msguid (msgset, 0, action, data);
 }

@@ -773,9 +773,10 @@ pack_xlate (struct pack_tab *pack_tab, size_t count, size_t n)
 static int
 _fixup (const char *name, const char *value, struct fixup_data *fd, int flags)
 {
-  size_t i, j;
+  size_t i;
+  int rc;
   struct mu_wordsplit ws;
-  mh_msgset_t msgset;
+  mu_msgset_t msgset;
 
   if (verbose)
     fprintf (stderr, "Sequence `%s'...\n", name);
@@ -787,20 +788,32 @@ _fixup (const char *name, const char *value, struct fixup_data *fd, int flags)
       return 0;
     }
 
-  msgset.list = xcalloc (ws.ws_wordc, sizeof msgset.list[0]);
-  for (i = j = 0; i < ws.ws_wordc; i++)
+  rc = mu_msgset_create (&msgset, NULL, MU_MSGSET_UID);
+  if (rc)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_msgset_create", NULL, rc);
+      exit (1);
+    }
+  
+  for (i = 0; i < ws.ws_wordc; i++)
     {
       size_t n = pack_xlate (fd->pack_tab, fd->count,
 			     strtoul (ws.ws_wordv[i], NULL, 0));
       if (n)
-	msgset.list[j++] = n;
+	{
+	  rc = mu_msgset_add_range (msgset, n, n, MU_MSGSET_UID);
+	  if (rc)
+	    {
+	      mu_diag_funcall (MU_DIAG_ERROR, "mu_msgset_add_range", NULL, rc);
+	      exit (1);
+	    }
+	}
     }
-  msgset.count = j;
 
   mu_wordsplit_free (&ws);
   
-  mh_seq_add (fd->mbox, name, &msgset, flags | SEQ_ZERO);
-  free (msgset.list);
+  mh_seq_add (fd->mbox, name, msgset, flags | SEQ_ZERO);
+  mu_msgset_free (msgset);
 
   if (verbose)
     {
@@ -944,7 +957,7 @@ int
 main (int argc, char **argv)
 {
   int index = 0;
-  mh_msgset_t msgset;
+  mu_msgset_t msgset;
 
   /* Native Language Support */
   MU_APP_INIT_NLS ();
@@ -971,9 +984,11 @@ main (int argc, char **argv)
     
   if (argc - index == 1)
     {
-      mu_mailbox_t mbox = mh_open_folder (mh_current_folder (), MU_STREAM_RDWR);
-      mh_msgset_parse (mbox, &msgset, argc - index, argv + index, "cur");
-      mh_msgset_current (mbox, &msgset, 0);
+      mu_mailbox_t mbox = mh_open_folder (mh_current_folder (),
+					  MU_STREAM_RDWR);
+      mh_msgset_parse (&msgset, mbox, argc - index, argv + index, "cur");
+      mh_msgset_first_current (mbox, msgset);
+      mu_msgset_free (msgset);
       mh_global_save_state ();
       mu_mailbox_close (mbox);
       mu_mailbox_destroy (&mbox);

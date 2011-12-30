@@ -22,34 +22,27 @@
 #include <mailutils/msgset.h>
 #include <mailutils/sys/msgset.h>
 
+static int
+count_messages (void *item, void *data)
+{
+  struct mu_msgrange *r = item;
+  size_t *count = data;
+  *count += r->msg_end - r->msg_beg + 1;
+  return 0;
+}
+  
 int
-mu_msgset_add_range (mu_msgset_t mset, size_t beg, size_t end, int mode)
+mu_msgset_count (mu_msgset_t mset, size_t *pcount)
 {
   int rc;
-  struct mu_msgrange *range;
-  
-  if (!mset || beg == 0)
+  size_t count = 0;
+
+  if (!mset)
     return EINVAL;
-  if (end && beg > end)
-    {
-      size_t t = end;
-      end = beg;
-      beg = t;
-    }
-  range = calloc (1, sizeof (*range));
-  if (!range)
-    return ENOMEM;
-  range->msg_beg = beg;
-  range->msg_end = end;
-  rc = _mu_msgset_translate_range (mset, mode, range);
-  if (rc)
-    {
-      free (range);
-      return rc;
-    }
-  rc = mu_list_append (mset->list, range);
-  if (rc)
-    free (range);
-  mset->flags &= ~_MU_MSGSET_AGGREGATED;
+  if (!pcount)
+    return MU_ERR_OUT_PTR_NULL;
+  rc = mu_list_foreach (mset->list, count_messages, &count);
+  if (rc == 0)
+    *pcount = count;
   return rc;
 }

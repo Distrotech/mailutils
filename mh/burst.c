@@ -578,8 +578,8 @@ burst_or_copy (mu_message_t msg, int recursive, int copy)
   return 1;
 }
 
-void
-burst (mu_mailbox_t mbox, mu_message_t msg, size_t num, void *data)
+int
+burst (size_t num, mu_message_t msg, void *data)
 {
   memset (&map, 0, sizeof (map));
   mh_message_number (msg, &map.msgno);
@@ -599,36 +599,38 @@ burst (mu_mailbox_t mbox, mu_message_t msg, size_t num, void *data)
     }
   else if (!quiet)
     mu_error (_("message %s not in digest format"), mu_umaxtostr (0, num));
+  return 0;
 }
 
 
 /* Inplace handling */
-
-void
-burst_rename (mh_msgset_t *ms, size_t lastuid)
+struct rename_env
 {
-  size_t i, j;
+  size_t lastuid;
+  size_t idx;
+};
 
-  VERBOSE ((_("Renaming messages")));
-  j = burst_count - 1;
-  for (i = ms->count; i > 0; i--)
+  
+static int
+_rename (size_t msgno, void *data)
+{
+  struct rename_env *rp = data;
+  
+  if (msgno == burst_map[rp->idx].msgno)
+    {
+      rp->lastuid -= burst_map[rp->idx].count;
+      burst_map[rp->idx].msgno = rp->lastuid;
+      rp->idx--;
+    }
+
+  if (msgno != rp->lastuid)
     {
       const char *from;
       const char *to;
 
-      if (ms->list[i-1] == burst_map[j].msgno)
-	{
-	  lastuid -= burst_map[j].count;
-	  burst_map[j].msgno = lastuid;
-	  j--;
-	}
-
-      if (ms->list[i-1] == lastuid)
-	continue;
-      
-      from = mu_umaxtostr (0, ms->list[i-1]);
-      to   = mu_umaxtostr (1, lastuid);
-      --lastuid;
+      from = mu_umaxtostr (0, msgno);
+      to   = mu_umaxtostr (1, rp->lastuid);
+      --rp->lastuid;
 
       VERBOSE((_("message %s becomes message %s"), from, to));
 	       
@@ -639,6 +641,18 @@ burst_rename (mh_msgset_t *ms, size_t lastuid)
 	  exit (1);
 	}
     }
+  return 0;
+}
+
+void
+burst_rename (mu_msgset_t ms, size_t lastuid)
+{
+  struct rename_env renv;
+
+  VERBOSE ((_("Renaming messages")));
+  renv.lastuid = lastuid;
+  renv.idx = burst_count - 1;
+  mu_msgset_foreach_dir_msguid (ms, 1, _rename, &renv);
 }  
 
 void
@@ -705,7 +719,7 @@ main (int argc, char **argv)
 {
   int index, rc;
   mu_mailbox_t mbox;
-  mh_msgset_t msgset;
+  mu_msgset_t msgset;
   const char *tempfolder = mh_global_profile_get ("Temp-Folder", ".temp");
   
   /* Native Language Support */
@@ -720,7 +734,7 @@ main (int argc, char **argv)
 
   VERBOSE ((_("Opening folder `%s'"), mh_current_folder ()));
   mbox = mh_open_folder (mh_current_folder (), MU_STREAM_RDWR);
-  mh_msgset_parse (mbox, &msgset, argc, argv, "cur");
+  mh_msgset_parse (&msgset, mbox, argc, argv, "cur");
 
   if (inplace)
     {
@@ -744,7 +758,7 @@ main (int argc, char **argv)
   else
     tmpbox = mbox;
 
-  rc = mh_iterate (mbox, &msgset, burst, NULL);
+  rc = mu_msgset_foreach_message (msgset, burst, NULL);
   if (rc)
     return rc;
 
@@ -752,8 +766,8 @@ main (int argc, char **argv)
     {
       mu_url_t dst_url = NULL;
       size_t i, next_uid, last_uid;
-      mh_msgset_t ms;
-      char *xargv[2];
+      mu_msgset_t ms;
+      size_t count;
       const char *dir;
       
       burst_map = obstack_finish (&stk);
@@ -763,11 +777,14 @@ main (int argc, char **argv)
 	last_uid += burst_map[i].count;
       VERBOSE ((_("Estimated last UID: %s"), mu_umaxtostr (0, last_uid)));
 
-      mu_asprintf (&xargv[0], "%s-last", mu_umaxtostr (0, burst_map[0].msgno));
-      xargv[1] = NULL;
-      mh_msgset_parse (mbox, &ms, 1, xargv, NULL);
-      free (xargv[0]);
-      mh_msgset_uids (mbox, &ms);
+      rc = mu_msgset_create (&ms, mbox, MU_MSGSET_NUM);
+      if (rc)
+	{
+	  mu_diag_funcall (MU_DIAG_ERROR, "mu_msgset_create", NULL, rc);
+	  exit (1);
+	}
+      mu_mailbox_messages_count (mbox, &count);
+      mu_msgset_add_range (ms, burst_map[0].msgno, count, MU_MSGSET_NUM);
 	
       mu_mailbox_get_url (mbox, &dst_url);
       mu_url_sget_path (dst_url, &dir);
@@ -779,8 +796,8 @@ main (int argc, char **argv)
 	}
       mu_mailbox_close (mbox);
 
-      burst_rename (&ms, last_uid);
-      mh_msgset_free (&ms);
+      burst_rename (ms, last_uid);
+      mu_msgset_free (ms);
 
       finalize_inplace (last_uid);
 
