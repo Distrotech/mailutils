@@ -120,10 +120,16 @@ main (int argc, char **argv)
 	  if (mu_isdigit (arg[0]))
 	    mu_smtp_trace (smtp, atoi (argv[i] + 6) ?
 			   MU_SMTP_TRACE_SET : MU_SMTP_TRACE_CLR);
-	  else if (strcmp (arg, "secure") == 0)
-	    mu_smtp_trace_mask (smtp, MU_SMTP_TRACE_SET, MU_XSCRIPT_SECURE);
-	  else if (strcmp (arg, "payload") == 0)
-	    mu_smtp_trace_mask (smtp, MU_SMTP_TRACE_SET, MU_XSCRIPT_PAYLOAD);
+	  else
+	    {
+	      mu_smtp_trace (smtp, MU_SMTP_TRACE_SET);
+	      if (strcmp (arg, "secure") == 0)
+		mu_smtp_trace_mask (smtp, MU_SMTP_TRACE_SET,
+				    MU_XSCRIPT_SECURE);
+	      else if (strcmp (arg, "payload") == 0)
+		mu_smtp_trace_mask (smtp, MU_SMTP_TRACE_SET,
+				    MU_XSCRIPT_PAYLOAD);
+	    }
 	}
       else if (strncmp (argv[i], "tls=", 4) == 0)
 	tls = atoi (argv[i] + 4);

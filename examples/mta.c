@@ -27,13 +27,21 @@
    recipients.
 
    2. mta -bd [-p port]
-
+      mta -bD [-p port]
+      
    Operates as daemon. If port is given, mta will listen on that port.
    Otherwise, it will use the first free port in the range 1024-65535.
-   In this case, mta prints the port number on the stdout, prior to
-   starting operation. Notice, that in this mode mta does not disconnect
-   itself from the controlling terminal, it always stays on the foreground.
+   If the -bd option is given, mta switches to the background and prints
+   its PID and port number on two separate lines on the stdout.  It then
+   listens for incoming connections for no more than 60 seconds.
 
+   If the -bD option is given, the utility prints the port number and
+   listens for incoming connections not detaching itself from the controlling
+   terminal.
+
+   In any case, at most one connection is served, after which the utility
+   terminates.
+   
    Environment variables:
 
    MTA_DOMAIN   Sets the default domain name for email addresses. Default
@@ -66,12 +74,13 @@
 FILE *diag = NULL;       /* diagnostic output */
 int smtp_mode;           /* Operate in smtp mode */
 int port = 0;            /* Port number (for smtp mode) */
+int foreground = 0;      /* Stay in the foreground (smtp mode) */
 char *from_person = NULL; /* Set the name of the `from' person */
 int read_recipients = 0; /* Read the message for recipients */
 int dot = 1;             /* Message is terminated by a lone dot on a line */
 
 mu_address_t recipients = NULL;
-char *progname;
+
 /* FIXME: If finalize_option is set, mta should try to finalize
    received messages the way sendmail does, i.e. to add To: or
    Cc: headers, if they are missing, etc. The code to do so is
@@ -95,9 +104,7 @@ main (int argc, char **argv)
   int c, status;
   char *domain;
 
-  progname = strrchr (argv[0], '/');
-  if (!progname)
-    progname = argv[0];
+  mu_set_program_name (argv[0]);
   
   while ((c = getopt (argc, argv, "b:f:p:to:")) != EOF)
     {
@@ -110,6 +117,11 @@ main (int argc, char **argv)
 	      smtp_mode = 1;
 	      break;
 
+	    case 'D':
+	      smtp_mode = 1;
+	      foreground = 1;
+	      break;
+	      
 	    default:
 	      /*FIXME*/;
 	    }
@@ -153,13 +165,13 @@ main (int argc, char **argv)
 	  diag = fopen (name, mode);
 	  if (!diag)
 	    {
-	      mu_error ("%s: can't open diagnostic output: %s",
-			progname, name);
+	      mu_error ("can't open diagnostic output %s: %s",
+			name, mu_strerror (errno));
 	      return 1;
 	    }
 	}
       else
-	diag = stdout;
+	diag = stderr;
     }
   
   register_handlers ();
@@ -226,7 +238,7 @@ make_tmp (mu_stream_t in)
       const char *from = from_address ();
       if (!from)
 	{
-	  mu_error ("%s: can't determine sender address", progname);
+	  mu_error ("can't determine sender address");
 	  exit (EX_NOUSER);
 	}
 	  
@@ -301,7 +313,7 @@ address_email_string (mu_address_t addr)
   value = malloc (length + 1);
   if (!value)
     {
-      mu_error ("%s: not enough memory", progname);
+      mu_error ("not enough memory");
       return NULL;
     }
   p = value;
@@ -390,7 +402,7 @@ message_finalize (mu_message_t msg, int warn)
 			   sizeof (SENDER_WARNING));
       if (warn == NULL)
 	{
-	  mu_error ("%s: not enough memory", progname);
+	  mu_error ("not enough memory");
 	  return 1;
 	}
       sprintf (warn, "%s %s", pwd->pw_name, SENDER_WARNING);
@@ -406,7 +418,7 @@ message_finalize (mu_message_t msg, int warn)
 	{
 	  if (add_recipient (value))
 	    {
-	      mu_error ("%s: bad address %s", progname, value);
+	      mu_error ("bad address %s", value);
 	      return 1;
 	    }
 	  free (value);
@@ -416,7 +428,7 @@ message_finalize (mu_message_t msg, int warn)
 	{
 	  if (add_recipient (value))
 	    {
-	      mu_error ("%s: bad address %s", progname, value);
+	      mu_error ("bad address %s", value);
 	      return 1;
 	    }
 	  free (value);
@@ -427,7 +439,7 @@ message_finalize (mu_message_t msg, int warn)
 	{
 	  if (add_recipient (value))
 	    {
-	      mu_error ("%s: bad address %s", progname, value);
+	      mu_error ("bad address %s", value);
 	      return 1;
 	    }
 	  free (value);
@@ -443,8 +455,8 @@ message_finalize (mu_message_t msg, int warn)
       c = mu_address_sget_printable (recipients, &sptr);
       if (c)
 	{
-	  mu_error ("%s: mu_address_sget_printable failure: %s",
-		    progname, mu_strerror (c));
+	  mu_error ("mu_address_sget_printable failure: %s",
+		    mu_strerror (c));
 	  return 1;
 	}
       mu_header_set_value (header, MU_HEADER_TO, sptr, 1);
@@ -463,7 +475,7 @@ mta_stdin (int argc, char **argv)
     {
       if (add_recipient (argv[c]))
 	{
-	  mu_error ("%s: bad address %s", progname, argv[c]);
+	  mu_error ("bad address %s", argv[c]);
 	  return 1;
 	}
     }
@@ -483,7 +495,7 @@ mta_stdin (int argc, char **argv)
   
   if (!recipients)
     {
-      mu_error ("%s: Recipient names must be specified", progname);
+      mu_error ("recipient names must be specified");
       return 1;
     }
 
@@ -501,7 +513,7 @@ smtp_reply (mu_stream_t str, int code, char *fmt, ...)
   va_start (ap, fmt);
   mu_stream_vprintf (str, fmt, ap);
   va_end (ap);
-  mu_stream_printf (str, "\r\n");
+  mu_stream_printf (str, "\n");
 }
 
 #define STATE_INIT   0
@@ -563,14 +575,22 @@ smtp (mu_stream_t str)
   char *rcpt_addr;
   int wsflags = MU_WRDSF_DEFFLAGS;
   struct mu_wordsplit ws;
-  
+
   smtp_reply (str, 220, "Ready");
   for (state = STATE_INIT; state != STATE_QUIT; )
     {
+      int rc;
       int kw;
       size_t len;
+
+      rc = mu_stream_getline (str, &buf, &size, &len);
+      if (rc)
+	{
+	  mu_diag_funcall (MU_DIAG_ERROR, "mu_stream_getline", NULL, rc);
+	  exit (EX_PROTOCOL);
+	}
       
-      if (mu_stream_getline (str, &buf, &size, &len) || len == 0)
+      if (len == 0)
 	exit (EX_PROTOCOL);
 
       if (mu_wordsplit (buf, &ws, wsflags))
@@ -702,8 +722,8 @@ smtp (mu_stream_t str)
 		mu_message_t msg;
 		int rc;
 		
-		rc = mu_filter_create (&flt, str, "CRLFDOT", MU_FILTER_DECODE,
-				       MU_STREAM_READ|MU_STREAM_WRTHRU);
+		rc = mu_filter_create (&flt, str, "DOT", MU_FILTER_DECODE,
+				       MU_STREAM_READ);
 		if (rc)
 		  {
 		    mu_diag_funcall (MU_DIAG_ERROR, "mu_filter_create",
@@ -738,17 +758,22 @@ smtp (mu_stream_t str)
     }
 }
 
+#ifndef INADDR_LOOPBACK
+# define INADDR_LOOPBACK 0x7f000001
+#endif
+
 int
 mta_smtp (int argc, char **argv)
 {
   int on = 1;
   struct sockaddr_in address;
   int fd;
+  pid_t pid;
   
   fd = socket (PF_INET, SOCK_STREAM, 0);
   if (fd < 0)
     {
-      mu_error ("%s: socket: %s", progname, strerror (errno));
+      mu_error ("socket: %s", mu_strerror (errno));
       return 1;
     }
 
@@ -756,7 +781,7 @@ mta_smtp (int argc, char **argv)
 
   memset (&address, 0, sizeof (address));
   address.sin_family = AF_INET;
-  address.sin_addr.s_addr = INADDR_ANY;
+  address.sin_addr.s_addr = htonl (INADDR_LOOPBACK);
 
   if (port)
     {
@@ -764,7 +789,7 @@ mta_smtp (int argc, char **argv)
       if (bind (fd, (struct sockaddr *) &address, sizeof (address)) < 0)
 	{
 	  close (fd);
-	  mu_error ("%s: bind: %s", progname, strerror(errno));
+	  mu_error ("bind: %s", mu_strerror (errno));
 	  return 1;
 	}
     }
@@ -777,8 +802,7 @@ mta_smtp (int argc, char **argv)
 	{
 	  if (++port >= 65535)
 	    {
-	      mu_error ("%s: can't bind socket: all ports in use?",
-			progname);
+	      mu_error ("can't bind socket: all ports in use?");
 	      return 1;
 	    }
 	  address.sin_port = htons (port);
@@ -788,8 +812,30 @@ mta_smtp (int argc, char **argv)
     }
 
   listen (fd, 5);
-  printf ("%d\n", port);
+  if (!foreground)
+    {
+      pid = fork ();
+      if (pid == -1)
+	{
+	  mu_error ("fork: %s", mu_strerror (errno));
+	  return 1;
+	}
+      if (pid)
+	{
+	  /* Master process. */
+	  printf ("%lu\n", (unsigned long) pid);
+	  printf ("%d\n", port);
+	  return 0;
+	}
+    }
+  else
+    printf ("%d\n", port);
+  
+  /* Child */
   fclose (stdout);
+  if (!foreground)
+    alarm (60);
+  
   while (1)
     {
       fd_set rfds;
@@ -797,7 +843,7 @@ mta_smtp (int argc, char **argv)
       int sfd, status;
       socklen_t len;
       int rc;
-      mu_stream_t str;
+      mu_stream_t str, istream, ostream, flt;
       
       FD_ZERO (&rfds);
       FD_SET (fd, &rfds);
@@ -807,22 +853,61 @@ mta_smtp (int argc, char **argv)
 	{
 	  if (errno == EINTR)
 	    continue;
-	  mu_error ("%s: select: %s", progname, strerror (errno));
+	  mu_error ("select: %s", mu_strerror (errno));
 	  return 1;
 	}
 
       len = sizeof (his_addr);
       if ((sfd = accept (fd, (struct sockaddr *)&his_addr, &len)) < 0)
 	{
-	  mu_error ("%s: accept: %s", progname, strerror (errno));
+	  mu_error ("accept: %s", mu_strerror (errno));
 	  return 1;
 	}
 
-      rc = mu_fd_stream_create (&str, NULL, sfd, MU_STREAM_RDWR);
+      rc = mu_stdio_stream_create (&istream, sfd, MU_STREAM_READ);
       if (rc)
 	{
-	  mu_diag_funcall (MU_DIAG_ERROR, "mu_fd_stream_create", NULL, rc);
-	  break;
+	  mu_diag_funcall (MU_DIAG_ERROR, "mu_stdio_stream_create",
+			   "MU_STREAM_READ", rc);
+	  return 1;
+	}
+      mu_stream_set_buffer (istream, mu_buffer_line, 0);
+      rc = mu_filter_create (&flt, istream, "CRLF", MU_FILTER_DECODE,
+			     MU_STREAM_READ);
+      mu_stream_unref (istream);
+      if (rc)
+	{
+	  mu_diag_funcall (MU_DIAG_ERROR, "mu_filter_create",
+			   "CRLF,MU_FILTER_DECODE", rc);
+	  return 1;
+	}
+      mu_stream_set_buffer (flt, mu_buffer_line, 0);
+      istream = flt;
+
+      rc = mu_stdio_stream_create (&ostream, sfd, MU_STREAM_WRITE);
+      if (rc)
+	{
+	  mu_diag_funcall (MU_DIAG_ERROR, "mu_stdio_stream_create",
+			   "MU_STREAM_WRITE", rc);
+	  return 1;
+	}
+      mu_stream_set_buffer (ostream, mu_buffer_line, 0);
+      rc = mu_filter_create (&flt, ostream, "CRLF", MU_FILTER_ENCODE,
+			     MU_STREAM_WRITE);
+      mu_stream_unref (ostream);
+      if (rc)
+	{
+	  mu_diag_funcall (MU_DIAG_ERROR, "mu_filter_create",
+			   "CRLF,MU_FILTER_ENCODE", rc);
+	  return 1;
+	}
+      mu_stream_set_buffer (flt, mu_buffer_line, 0);
+      ostream = flt;
+      rc = mu_iostream_create (&str, istream, ostream);
+      if (rc)
+	{
+	  mu_diag_funcall (MU_DIAG_ERROR, "mu_iostream_create", NULL, rc);
+	  return 1;
 	}
       mu_stream_set_buffer (str, mu_buffer_line, 0);
       smtp (str);

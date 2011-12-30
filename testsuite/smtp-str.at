@@ -1,0 +1,62 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2011 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# GNU Mailutils is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+
+AT_SETUP([smtp send from stream])
+AT_KEYWORDS([smtp-stream smtp-str])
+
+AT_DATA([msg],[dnl
+From: mailutils@localhost
+To: gray@example.org
+Subject: SMTP test
+
+Omnis enim res, quae dando non deficit,
+dum habetur et non datur, nondum habetur,
+quomodo habenda est.
+])
+
+AT_CHECK([
+MTA_DIAG=`pwd`/mta.diag
+export MTA_DIAG
+p=`$abs_top_builddir/examples/mta -bd`
+test $? -eq 0 || AT_SKIP_TEST
+set -- $p
+# $1 - pid, $2 - port
+smtpsend localhost port=$2 \
+         from=mailutils@mailutils.org\
+	 rcpt=gray@example.org\
+	 domain=mailutils.org\
+	 raw=1\
+	 input=msg
+kill $1
+cat mta.diag
+],
+[0],
+[ENVELOPE FROM: <mailutils@mailutils.org>
+ENVELOPE TO: <gray@example.org>
+   0: From: mailutils@localhost
+   1: To: gray@example.org
+   2: Subject: SMTP test
+   3:
+   4: Omnis enim res, quae dando non deficit,
+   5: dum habetur et non datur, nondum habetur,
+   6: quomodo habenda est.
+   7:
+END OF MESSAGE
+])
+
+AT_CLEANUP
+
+	 

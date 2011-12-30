@@ -32,5 +32,9 @@ m4_include([mbdel.at])
 AT_BANNER(Folder mailbox removal)
 m4_include([fldel.at])
 
+AT_BANNER(SMTP)
+m4_include([smtp-msg.at])
+m4_include([smtp-str.at])
+
 AT_BANNER(Various)
 m4_include([ufms.at])
