@@ -74,7 +74,10 @@ new_decode_state (enum dot_decode_state state, int c)
 	{
 	case '.':
 	  return dot_decode_dot;
+	case '\n':
+	  return dot_decode_lf;
 	}
+      break;
       
     case dot_decode_dot:
       switch (c)
