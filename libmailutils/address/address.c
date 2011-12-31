@@ -151,6 +151,18 @@ mu_address_createv (mu_address_t *a, const char *sv[], size_t len)
   return status;
 }
 
+static void
+_address_free (mu_address_t address)
+{
+  free (address->printable);
+  free (address->comments);
+  free (address->personal);
+  free (address->email);
+  free (address->local_part);
+  free (address->domain);
+  free (address->route);
+}
+
 void
 mu_address_destroy (mu_address_t *paddress)
 {
@@ -160,21 +172,8 @@ mu_address_destroy (mu_address_t *paddress)
       mu_address_t current;
       for (; address; address = current)
 	{
-	  if (address->printable)
-	    free (address->printable);
-	  if (address->comments)
-	    free (address->comments);
-	  if (address->personal)
-	    free (address->personal);
-	  if (address->email)
-	    free (address->email);
-	  if (address->local_part)
-	    free (address->local_part);
-	  if (address->domain)
-	    free (address->domain);
-	  if (address->route)
-	    free (address->route);
 	  current = address->next;
+	  _address_free (address);
 	  free (address);
 	}
       *paddress = NULL;
@@ -642,11 +641,15 @@ mu_address_to_string (mu_address_t addr, char *buf, size_t len, size_t *n)
 int
 mu_address_get_count (mu_address_t addr, size_t *pcount)
 {
-  size_t j;
-  for (j = 0; addr; addr = addr->next, j++)
-    ;
+  size_t i, count = 0;
+  for (i = 0; addr; addr = addr->next, i++)
+    {
+      mu_validate_email (addr);
+      if (addr->email)
+	++count;
+    }
   if (pcount)
-    *pcount = j;
+    *pcount = count;
   return 0;
 }
 
@@ -696,10 +699,38 @@ int
 mu_address_contains_email (mu_address_t addr, const char *email)
 {
   for (; addr; addr = addr->next)
-    if (mu_c_strcasecmp (addr->email, email) == 0)
-      return 1;
+    {
+      mu_validate_email (addr);
+      if (!addr->email)
+	break;
+      if (mu_c_strcasecmp (addr->email, email) == 0)
+	return 1;
+    }
   return 0;
 }
+
+static int
+mu_list_copy (mu_address_t dst, mu_address_t src)
+{
+  /* FIXME: How about:
+    if (src->printable)
+      dst->printable = strdup (src->printable);
+    ?
+  */
+  if (src->comments && !(dst->comments = strdup (src->comments)))
+    return ENOMEM;
+  if (src->personal && !(dst->personal = strdup (src->personal)))
+    return ENOMEM;
+  if (src->email && !(dst->email = strdup (src->email)))
+    return ENOMEM;
+  if (src->local_part && !(dst->local_part = strdup (src->local_part)))
+    return ENOMEM;
+  if (src->domain && !(dst->domain = strdup (src->domain)))
+    return ENOMEM;
+  if (src->route && !(dst->route = strdup (src->route)))
+    return ENOMEM;
+  return 0;
+}  
 
 mu_address_t
 mu_address_dup (mu_address_t src)
@@ -708,25 +739,8 @@ mu_address_dup (mu_address_t src)
 
   if (!dst)
     return NULL;
-
-  /* FIXME: How about:
-    if (src->printable)
-      dst->printable = strdup (src->printable);
-    ?
-  */
-  if (src->comments)
-    dst->comments = strdup (src->comments);
-  if (src->personal)
-    dst->personal = strdup (src->personal);
-  if (src->email)
-    dst->email = strdup (src->email);
-  if (src->local_part)
-    dst->local_part = strdup (src->local_part);
-  if (src->domain)
-    dst->domain = strdup (src->domain);
-  if (src->route)
-    dst->route = strdup (src->route);
-
+  if (mu_list_copy (dst, src))
+    mu_address_destroy (&dst);
   return dst;
 }
 
@@ -760,11 +774,24 @@ mu_address_union (mu_address_t *a, mu_address_t b)
   for (; b; b = b->next)
     if (!mu_address_contains_email (*a, b->email))
       {
-	mu_address_t next = mu_address_dup (b);
-	if (!next)
-	  return ENOMEM;
-	last->next = next;
-	last = next;
+	if (last->email)
+	  {
+	    mu_address_t next = mu_address_dup (b);
+	    if (!next)
+	      return ENOMEM;
+	    last->next = next;
+	    last = next;
+	  }
+	else
+	  {
+	    int rc = mu_list_copy (last, b);
+	    if (rc)
+	      {
+		_address_free (last);
+		memset (last, 0, sizeof (last));
+		return rc;
+	      }
+	  }
       }
   return 0;
 }

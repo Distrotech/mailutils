@@ -74,6 +74,10 @@ extern int _folder_path_init      (mu_folder_t);
 # define MU_SMTP_SCHEME_LEN (sizeof (MU_SMTP_SCHEME) - 1)
 # define MU_SMTP_PORT 25
 
+# define MU_SMTPS_SCHEME "smtps"
+# define MU_SMTPS_SCHEME_LEN (sizeof (MU_SMTPS_SCHEME) - 1)
+# define MU_SMTPS_PORT 465
+  
 # define MU_SENDMAIL_SCHEME "sendmail"
 # define MU_SENDMAIL_SCHEME_LEN (sizeof (MU_SENDMAIL_SCHEME) - 1)
 extern int _mu_mailer_sendmail_init (mu_mailer_t mailer);

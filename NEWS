@@ -1,4 +1,4 @@
-GNU mailutils NEWS -- history of user-visible changes. 2011-12-23
+GNU mailutils NEWS -- history of user-visible changes. 2011-12-31
 Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011
 Free Software Foundation, Inc.
 See the end of file for copying conditions.
@@ -90,6 +90,8 @@ See <http://mailutils.org/wiki/debug_level>.
 This feature is useful for those system administrators who don't wish
 to permit simultaneous access to mailboxes, even when the nature of the
 mailbox allows that (e.g. maildir).
+
+** SMTPS support.
 
 ** Sieve: new extensions
 

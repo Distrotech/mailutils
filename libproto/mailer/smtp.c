@@ -86,6 +86,27 @@ static struct _mu_record _smtp_record = {
    the mailbox, via the register entry/record.  */
 mu_record_t     mu_smtp_record = &_smtp_record;
 
+#ifdef WITH_TLS
+static struct _mu_record _smtps_record = {
+  MU_SMTP_PRIO,
+  MU_SMTPS_SCHEME,
+  MU_RECORD_DEFAULT,
+  MU_URL_SCHEME | MU_URL_CRED | MU_URL_INET | MU_URL_PARAM,
+  MU_URL_HOST,
+  _url_smtp_init,		/* url init.  */
+  _mu_mailer_mailbox_init,	/* Mailbox init.  */
+  _mailer_smtp_init,		/* Mailer init.  */
+  _mu_mailer_folder_init,	/* Folder init.  */
+  NULL,				/* No need for a back pointer.  */
+  NULL,				/* _is_scheme method.  */
+  NULL,				/* _get_url method.  */
+  NULL,				/* _get_mailbox method.  */
+  NULL,				/* _get_mailer method.  */
+  NULL				/* _get_folder method.  */
+};
+mu_record_t     mu_smtps_record = &_smtps_record;
+#endif
+
 struct _smtp_mailer
 {
   mu_mailer_t     mailer;
@@ -116,14 +137,19 @@ smtp_mailer_add_auth_mech (struct _smtp_mailer *smtp_mailer, const char *str)
 static int
 smtp_open (mu_mailer_t mailer, int flags)
 {
-  const char *auth;
+  const char *auth, *scheme;
   struct _smtp_mailer *smtp_mailer = mailer->data;
   int rc;
   size_t parmc = 0;
   char **parmv = NULL;
-  int notls = 0;
+  int tls = 0;
+  int nostarttls = 0;
   int noauth = 0;
-  
+
+  rc = mu_url_sget_scheme (mailer->url, &scheme);
+  if (rc == 0) 
+    tls = strcmp (scheme, "smtps") == 0;
+
   rc = mu_smtp_create (&smtp_mailer->smtp);
   if (rc)
     return rc;
@@ -150,7 +176,7 @@ smtp_open (mu_mailer_t mailer, int flags)
       for (i = 0; i < parmc; i++)
 	{
 	  if (strcmp (parmv[i], "notls") == 0)
-	    notls = 1;
+	    nostarttls = 1;
 	  else if (strcmp (parmv[i], "noauth") == 0)
 	    noauth = 1;
 	  else if (strncmp (parmv[i], "auth=", 5) == 0)
@@ -163,23 +189,44 @@ smtp_open (mu_mailer_t mailer, int flags)
     {
       struct mu_sockaddr *sa;
       struct mu_sockaddr_hints hints;
-
+      mu_stream_t transport;
+      
       memset (&hints, 0, sizeof (hints));
       hints.flags = MU_AH_DETECT_FAMILY;
-      hints.port = 25;
+      hints.port = tls ? MU_SMTPS_PORT : MU_SMTP_PORT;
       hints.protocol = IPPROTO_TCP;
       hints.socktype = SOCK_STREAM;
       rc = mu_sockaddr_from_url (&sa, mailer->url, &hints);
       if (rc)
 	return rc;
       
-      rc = mu_tcp_stream_create_from_sa (&mailer->stream, sa, NULL,
-					 mailer->flags);
+      rc = mu_tcp_stream_create_from_sa (&transport, sa, NULL, mailer->flags);
       if (rc)
         {
           mu_sockaddr_free (sa);
 	  return rc;
 	}
+#ifdef WITH_TLS
+      if (tls && mu_tls_enable)
+	{
+	  mu_stream_t tlsstream;
+	  
+	  rc = mu_tls_client_stream_create (&tlsstream, transport, transport,
+					    0);
+	  mu_stream_unref (transport);
+	  if (rc)
+	    {
+	      mu_debug (MU_DEBCAT_MAILER, MU_DEBUG_ERROR,
+			(_("cannot create TLS stream: %s"),
+			 mu_strerror (rc)));
+	      mu_sockaddr_free (sa);
+	      return rc;
+	    }
+	  transport = tlsstream;
+	  nostarttls = 1;
+	}
+#endif
+      mailer->stream = transport;
       mu_stream_set_buffer (mailer->stream, mu_buffer_line, 0);
     }
   mu_smtp_set_carrier (smtp_mailer->smtp, mailer->stream);
@@ -194,7 +241,7 @@ smtp_open (mu_mailer_t mailer, int flags)
     return rc;
 
 #ifdef WITH_TLS
-  if (!notls && mu_tls_enable &&
+  if (!nostarttls && mu_tls_enable &&
       mu_smtp_capa_test (smtp_mailer->smtp, "STARTTLS", NULL) == 0)
     {
       rc = mu_smtp_starttls (smtp_mailer->smtp);

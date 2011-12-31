@@ -51,6 +51,7 @@ MODULES = \
  ldflags.c\
  logger.c\
  $(POP_C)\
+ send.c\
  query.c\
  wicket.c
 

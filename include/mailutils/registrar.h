@@ -122,8 +122,9 @@ extern mu_record_t mu_maildir_record;
 #define MU_SENDMAIL_PRIO    10000
 #define MU_PROG_PRIO        10000
   
-/* SMTP mailer, "smtp://"  */
+/* SMTP mailer, "smtp://" and "smtps://"  */
 extern mu_record_t mu_smtp_record;
+extern mu_record_t mu_smtps_record;
 /* Sendmail, "sendmail:"  */
 extern mu_record_t mu_sendmail_record;
 /* Program mailer, "prog://", "|" */
@@ -158,6 +159,7 @@ extern mu_record_t mu_prog_record;
 #define mu_register_all_mailer_formats() do {\
   mu_registrar_record (mu_sendmail_record);\
   mu_registrar_record (mu_smtp_record);\
+  mu_registrar_record (mu_smtps_record);\
   mu_registrar_record (mu_prog_record);\
 } while (0)
 
