@@ -1,7 +1,6 @@
 /* Returns true if SCHEME represents a local (autodetect) mail folder.  */
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2007, 2008, 2009, 2010, 2011 Free
-   Software Foundation, Inc.
+   Copyright (C) 1999-2001, 2007-2012 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public

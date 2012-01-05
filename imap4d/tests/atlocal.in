@@ -1,6 +1,6 @@
 # @configure_input@                                     -*- shell-script -*-
 # Configurable variable values for Mailutils test suite.
-# Copyright (C) 2011 Free Software Foundation, Inc.
+# Copyright (C) 2011-2012 Free Software Foundation, Inc.
 
 PATH=@abs_builddir@:@abs_top_builddir@/imap4d:$top_srcdir:$srcdir:$PATH
 MU_ULONG_MAX=@MU_ULONG_MAX@

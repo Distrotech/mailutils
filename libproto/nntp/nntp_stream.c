@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2004, 2007, 2010, 2011 Free Software Foundation,
+   Copyright (C) 2003-2004, 2007, 2010-2012 Free Software Foundation,
    Inc.
 
    This library is free software; you can redistribute it and/or
