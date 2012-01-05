@@ -43,7 +43,7 @@ int
 main (int argc, char **argv)
 {
   int i = 1, rc;
-  mu_url_t url;
+  mu_url_t url = NULL;
   const char *arg;
   
   mu_set_program_name (argv[0]);
