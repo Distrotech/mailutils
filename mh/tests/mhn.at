@@ -260,7 +260,9 @@ MUT_MBCHMOD(Mail/inbox, 700)
 
 echo "Current-Folder: inbox" > Mail/context
 echo "mhn-store-text: | $abs_top_srcdir/mh/tests/mhed -" >> $MH
-mhn +inbox -store -part 1 4 | sed "s|$abs_top_srcdir/mh/tests/||;s|(cd \(.*\)\;|(cd home\;|;s|  *$||" || exit $?
+dnl ! Note extra quoting in the sed argument below, necessary because of
+dnl ! unbalanced parentheses.
+mhn +inbox -store -part 1 4 | sed ["s|$abs_top_srcdir/mh/tests/||;s|(cd \(.*\)\;|(cd home\;|;s|  *$||"] || exit $?
 ],
 [0],
 [-- Editor invocation: -
