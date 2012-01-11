@@ -467,10 +467,13 @@ smtp_send_message (mu_mailer_t mailer, mu_message_t msg,
       mu_message_lines (msg, &lines) == 0)
     {
       size_t msgsize = size + lines;
-      size_t maxsize = strtoul (size_str + 5, NULL, 10);
+      if (strncmp (size_str, "SIZE=", 5) == 0)
+	{
+	  size_t maxsize = strtoul (size_str + 5, NULL, 10);
 
-      if (msgsize && msgsize > maxsize)
-	return EFBIG;
+	  if (msgsize && maxsize && msgsize > maxsize)
+	    return EFBIG;
+	}
       status = mu_smtp_mail_basic (smtp, mail_from,
 				   "SIZE=%lu",
 				   (unsigned long) msgsize);

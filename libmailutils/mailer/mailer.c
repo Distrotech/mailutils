@@ -666,7 +666,7 @@ mu_mailer_send_fragments (mu_mailer_t mailer,
   if (sender_addr)
     from = sender_addr;
 
-  status = _set_to (&rcpt_addr, msg, from, mailer);
+  status = _set_to (&rcpt_addr, msg, to, mailer);
   if (status)
     return status;
   if (rcpt_addr)

@@ -81,19 +81,23 @@ mh_alias_expand (const char *str, mu_address_t *paddr, int *incl)
 
       if (mu_address_sget_domain (addr, i, &key) == 0 && key == NULL)
 	{
-	  if (mu_address_sget_local_part (addr, i, &key) == 0
-	      && mh_alias_get_address (key, paddr, incl) == 0)
-	    continue;
+	  if (mu_address_sget_local_part (addr, i, &key) ||
+	      mh_alias_get_address (key, paddr, incl) == 0 ||
+	      /* Recreating address from local part adds the default
+		 domain to it: */
+              mu_address_create (&subaddr, key))
+            continue;
 	}
-
-      status = mu_address_get_nth (addr, i, &subaddr);
-      if (status)
-	{
-	  mu_error (_("%s: cannot get address #%lu: %s"),
-		    str, (unsigned long) i, mu_strerror (status));
-	  continue;
-	}
-
+      else 
+        {
+          status = mu_address_get_nth (addr, i, &subaddr);
+          if (status)
+	    {
+	      mu_error (_("%s: cannot get address #%lu: %s"),
+			str, (unsigned long) i, mu_strerror (status));
+	      continue;
+	    }
+        }   
       mu_address_union (paddr, subaddr);
       mu_address_destroy (&subaddr);
     }
