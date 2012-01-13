@@ -40,7 +40,7 @@ smtpsend localhost port=$2 \
 	 domain=mailutils.org\
 	 raw=1\
 	 input=msg
-kill $1
+kill $1 >/dev/null 2>&1
 cat mta.diag
 ],
 [0],
