@@ -467,7 +467,7 @@ smtp_send_message (mu_mailer_t mailer, mu_message_t msg,
       mu_message_lines (msg, &lines) == 0)
     {
       size_t msgsize = size + lines;
-      if (strncmp (size_str, "SIZE=", 5) == 0)
+      if (strncmp (size_str, "SIZE ", 5) == 0)
 	{
 	  size_t maxsize = strtoul (size_str + 5, NULL, 10);
 
