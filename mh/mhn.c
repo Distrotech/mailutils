@@ -2711,15 +2711,14 @@ mhn_edit (struct compose_env *env, int level)
     }
   free (buf);
 
+  mu_stream_destroy (&output);
   if (msg)
     {
-      mu_stream_close (output);
       if (line_count)
 	finish_text_msg (env, &msg, ascii_buf);
       else
 	mu_message_unref (msg);
     }
-  mu_stream_destroy (&output);
   
   return status;
 }
