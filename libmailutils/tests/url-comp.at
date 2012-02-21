@@ -17,7 +17,7 @@
 AT_BANNER(URL Composition)
 
 dnl ------------------------------------------------------------
-             1   2        3                4
+dnl          1   2        3                4
 dnl URLCOMP(KW, ARGS, [STDOUT = `'], [STDERR = `'])
 dnl
 
