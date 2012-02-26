@@ -220,6 +220,9 @@ _mu_url_ctx_parse_host (struct mu_url_ctx *ctx, int has_host)
   int rc;
   mu_url_t url = ctx->url;
   
+  if (ctx->flags & MU_URL_PARSE_LOCAL)
+    return _mu_url_ctx_parse_path (ctx);
+  
   rc = getkn (ctx, "[:/;?");
   if (rc)
     return rc;
@@ -400,18 +403,16 @@ _mu_url_ctx_parse (struct mu_url_ctx *ctx)
 static int
 _mu_url_create_internal (struct mu_url_ctx *ctx, mu_url_t hint)
 {
-  int rc;
+  int rc = 0;
   mu_url_t url = ctx->url;
-
+  const char *scheme = NULL;
+  
   if ((ctx->flags & MU_URL_PARSE_PIPE) && ctx->input[0] == '|')
     {
       struct mu_wordsplit ws;
       size_t i;
       
-      rc = str_assign (&url->scheme, "prog");
-      if (rc)
-	return rc;
-      url->flags |= MU_URL_SCHEME;
+      scheme = "prog";
       ctx->flags &= ~MU_URL_PARSE_HEXCODE;
       if (mu_wordsplit (ctx->input + 1, &ws, MU_WRDSF_DEFFLAGS))
 	return errno;
@@ -431,12 +432,11 @@ _mu_url_create_internal (struct mu_url_ctx *ctx, mu_url_t hint)
       mu_wordsplit_free (&ws);
       url->flags |= MU_URL_QUERY;
     }
-  else if ((ctx->flags & MU_URL_PARSE_SLASH) && ctx->input[0] == '/')
+  else if ((ctx->flags & MU_URL_PARSE_SLASH) &&
+	   (ctx->input[0] == '/' ||
+	    (ctx->input[0] == '.' && ctx->input[1] == '/')))
     {
-      rc = str_assign (&url->scheme, "file");
-      if (rc)
-	return rc;
-      url->flags |= MU_URL_SCHEME;
+      scheme = "file";
       ctx->flags &= ~MU_URL_PARSE_HEXCODE;
       rc = str_assign (&url->path, ctx->input);
       if (rc == 0)
@@ -457,7 +457,17 @@ _mu_url_create_internal (struct mu_url_ctx *ctx, mu_url_t hint)
     }
 
   if (!(url->flags & MU_URL_SCHEME))
-    return MU_ERR_URL_MISS_PARTS;
+    {
+      if (scheme)
+	{
+	  rc = str_assign (&url->scheme, scheme);
+	  if (rc)
+	    return rc;
+	  url->flags |= MU_URL_SCHEME;
+	}
+      else
+	return MU_ERR_URL_MISS_PARTS;
+    }
   
   /* RFC 1738, section 2.1, lower the scheme case */
   mu_strlower (url->scheme);

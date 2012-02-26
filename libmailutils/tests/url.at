@@ -806,6 +806,44 @@ port 0
 path </var/spool/mail/gray%40gnu.org>
 ])
 
+m4_pushdef([URL_PARSE_OPTIONS],[slash])
+TESTURL([],[],
+[./file.db],
+[scheme <file>
+user <>
+passwd <>
+auth <>
+host <>
+port 0
+path <./file.db>
+])
+
+m4_define([URL_PARSE_OPTIONS],[slash hint=gdbm://])
+TESTURL([(gdbm) ./file.db],[],
+[./file.db],
+[scheme <gdbm>
+user <>
+passwd <>
+auth <>
+host <>
+port 0
+path <./file.db>
+])
+m4_popdef([URL_PARSE_OPTIONS])
+
+m4_pushdef([URL_PARSE_OPTIONS],[local hint=db://])
+TESTURL([],[],
+[local],
+[scheme <db>
+user <>
+passwd <>
+auth <>
+host <>
+port 0
+path <local>
+])
+m4_popdef([URL_PARSE_OPTIONS])
+
 TESTURL([],[],
 [| /bin/mailman request list%40dom],
 [[scheme <prog>
@@ -818,6 +856,21 @@ path </bin/mailman>
 query[0] <request>
 query[1] <list%40dom>
 ]])
+
+m4_pushdef([URL_PARSE_OPTIONS],[pipe hint=ext://])
+TESTURL([(ext) | /bin/mailman request list%40dom],[],
+[| /bin/mailman request list%40dom],
+[[scheme <ext>
+user <>
+passwd <>
+auth <>
+host <>
+port 0
+path </bin/mailman>
+query[0] <request>
+query[1] <list%40dom>
+]])
+m4_popdef([URL_PARSE_OPTIONS])
 
 TESTURL([],[],
 [prog:///bin/mailman?request&list%40dom],

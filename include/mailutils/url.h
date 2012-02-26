@@ -61,6 +61,7 @@ extern "C" {
 					     "file:///..." */
 #define MU_URL_PARSE_DSLASH_OPTIONAL 0x0040 /* Double-slash after scheme:
 					       part is optional */
+#define MU_URL_PARSE_LOCAL        0x0080  /* Local URL: no host part */   
   
 #define MU_URL_PARSE_DEFAULT \
   (MU_URL_PARSE_HEXCODE|MU_URL_PARSE_HIDEPASS|MU_URL_PARSE_PORTSRV|\

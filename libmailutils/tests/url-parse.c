@@ -83,6 +83,7 @@ struct mu_kwd parse_kwtab[] = {
   { "slash", MU_URL_PARSE_SLASH },
   { "dslash_optional", MU_URL_PARSE_DSLASH_OPTIONAL },
   { "default", MU_URL_PARSE_DEFAULT },
+  { "local", MU_URL_PARSE_LOCAL },
   { "all", MU_URL_PARSE_ALL },
   { NULL }
 };
