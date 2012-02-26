@@ -133,6 +133,7 @@ enum mu_locker_mode
                     locking otherwise */
 }; 
 
+extern int mu_locker_lock_mode (mu_locker_t, enum mu_locker_mode);
 extern int mu_locker_lock          (mu_locker_t);
 extern int mu_locker_touchlock     (mu_locker_t);
 extern int mu_locker_unlock        (mu_locker_t);

@@ -26,6 +26,7 @@
 #include <mailutils/errno.h>
 #include <mailutils/error.h>
 #include <mailutils/stream.h>
+#include <mailutils/locker.h>
 #include "mudbm.h"
 
 #if defined(WITH_BDB)
@@ -35,6 +36,7 @@ struct bdb_file
 {
   DB *db;
   DBC *dbc;
+  mu_locker_t locker;
 };
 
 static int
@@ -59,57 +61,71 @@ _bdb_get_fd (mu_dbm_file_t db, int *pag, int *dir)
 }
   
 static int
-_bdb_open (mu_dbm_file_t mdb, int flags, int mode)
-{
-  struct bdb_file *bdb_file;
-  int f, rc;
-  DB *db;
-
+do_bdb_open (mu_dbm_file_t mdb, int flags, int mode)
+{  
+  struct bdb_file *bdb_file = mdb->db_descr;
+  int f, rc, locker_flags;
+  enum mu_locker_mode locker_mode;
+    
   switch (flags)
     {
     case MU_STREAM_CREAT:
       f = DB_CREATE|DB_TRUNCATE;
+      locker_mode = mu_lck_exc;
       break;
       
     case MU_STREAM_READ:
       f = DB_RDONLY;
+      locker_mode = mu_lck_shr;
       break;
       
     case MU_STREAM_RDWR:
       f = DB_CREATE;
+      locker_mode = mu_lck_exc;
       break;
       
     default:
       return EINVAL;
     }
 
-#if WITH_BDB == 2  
-  rc = db_open (db->db_name, DB_HASH, f, mode, NULL, NULL, &db);
+#ifdef DB_FCNTL_LOCKING
+  f |= DB_FCNTL_LOCKING;
+  locker_flags = MU_LOCKER_KERNEL;
 #else
-  rc = db_create (&db, NULL, 0);
-  if (rc != 0 || db == NULL)
+  locker_flags = 0;
+#endif
+  rc = mu_locker_create (&bdb_file->locker, mdb->db_name,
+			 locker_flags|MU_LOCKER_RETRY);
+  if (rc)
+    return rc;
+
+  rc = mu_locker_lock_mode (bdb_file->locker, locker_mode);
+  switch (rc)
+    {
+    case 0:
+      break;
+
+    case EACCES:
+      mu_locker_destroy (&bdb_file->locker);
+      break;
+      
+    default:
+      return rc;
+    }
+  
+  rc = db_create (&bdb_file->db, NULL, 0);
+  if (rc != 0 || bdb_file->db == NULL)
     return MU_ERR_FAILURE;
-# if DB_VERSION_MAJOR == 3
-  rc = db->open (db, mdb->db_name, NULL, DB_HASH, f, mode);
-# else
-  rc = db->open (db, NULL, mdb->db_name, NULL, DB_HASH, f, mode);
-# endif
+#if DB_VERSION_MAJOR == 3
+  rc = bdb_file->db->open (bdb_file->db, mdb->db_name, NULL, DB_HASH, f, mode);
+#else
+  rc = bdb_file->db->open (bdb_file->db, NULL, mdb->db_name, NULL, DB_HASH,
+			   f, mode);
 #endif
   
   if (rc)
     return MU_ERR_FAILURE;
 
-  bdb_file = malloc (sizeof *bdb_file);
-  if (!bdb_file)
-    {
-      db->close (db, 0);
-      return ENOMEM;
-    }
-  bdb_file->db = db;
-  bdb_file->dbc = NULL;
-
-  mdb->db_descr = bdb_file;
-  
   return 0;
 }
 
@@ -119,11 +135,34 @@ _bdb_close (mu_dbm_file_t db)
   if (db->db_descr)
     {
       struct bdb_file *bdb_file = db->db_descr;
-      bdb_file->db->close (bdb_file->db, 0);
+      if (bdb_file->db)
+	bdb_file->db->close (bdb_file->db, 0);
+      if (bdb_file->locker)
+	{
+	  mu_locker_unlock (bdb_file->locker);
+	  mu_locker_destroy (&bdb_file->locker);
+	}
       free (bdb_file);
       db->db_descr = NULL;
     }
   return 0;
+}
+
+static int
+_bdb_open (mu_dbm_file_t mdb, int flags, int mode)
+{
+  int rc;
+  struct bdb_file *bdb_file;
+
+  bdb_file = calloc (1, sizeof *bdb_file);
+  if (!bdb_file)
+    return ENOMEM;
+
+  mdb->db_descr = bdb_file;
+  rc = do_bdb_open (mdb, flags, mode);
+  if (rc)
+    _bdb_close (mdb);
+  return rc;
 }
 
 static int

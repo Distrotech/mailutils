@@ -547,7 +547,7 @@ mu_locker_destroy (mu_locker_t *plocker)
 }
 
 int
-_mu_locker_lock (mu_locker_t lock, enum mu_locker_mode mode)
+mu_locker_lock_mode (mu_locker_t lock, enum mu_locker_mode mode)
 {
   int rc;
   unsigned type;
@@ -598,7 +598,7 @@ _mu_locker_lock (mu_locker_t lock, enum mu_locker_mode mode)
 int
 mu_locker_lock (mu_locker_t lock)
 {
-  return _mu_locker_lock (lock, mu_lck_exc);
+  return mu_locker_lock_mode (lock, mu_lck_exc);
 }
 
 int
