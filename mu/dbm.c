@@ -1862,6 +1862,7 @@ mutool_dbm (int argc, char **argv)
   MU Setup: dbm
   mu-handler: mutool_dbm
   mu-docstring: dbm_docstring
+  mu-cond: ENABLE_DBM
   End MU Setup:
 */
   
