@@ -57,6 +57,9 @@ pop3d_apopuser (const char *user)
 	return NULL;
       }
 
+    if (apop_database_owner_set)
+      mu_dbm_safety_set_owner (db, apop_database_owner);
+    
     rc = mu_dbm_safety_check (db);
     if (rc)
       {
@@ -116,7 +119,7 @@ pop3d_apopuser (const char *user)
     FILE *apop_file;
 
     rc = mu_file_safety_check (apop_database_name, apop_database_safety,
-			       apop_database_uid, NULL);
+			       apop_database_owner, NULL);
     if (rc)
       {
 	mu_diag_output (MU_DIAG_ERROR,

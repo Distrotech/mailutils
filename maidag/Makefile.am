@@ -29,6 +29,10 @@ maidag_SOURCES=\
  script.c\
  util.c
 
+if MU_COND_DBM
+ LIBMU_DBM=../libmu_dbm/libmu_dbm.la
+endif
+
 maidag_LDADD = \
  @LIBMU_SCM@ @GUILE_LIBS@\
  @LIBMU_SCM_DEPS@\
@@ -46,7 +50,7 @@ maidag_LDADD = \
  @MU_AUTHLIBS@\
  ${MU_LIB_MAILUTILS} \
  @MU_COMMON_LIBRARIES@\
- ../libmu_dbm/libmu_dbm.la\
+ $(LIBMU_DBM)\
  @DBMLIBS@\
  @TCPWRAP_LIBRARIES@
 

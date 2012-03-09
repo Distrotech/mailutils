@@ -198,6 +198,8 @@ extern size_t pop3d_output_bufsize;
 extern int pop3d_xlines;
 extern char *apop_database_name;
 extern int apop_database_safety;
+extern uid_t apop_database_owner;
+extern int apop_database_owner_set;
 
 /* Safety checks for group-rw database files, such as stat and bulletin
    databases */

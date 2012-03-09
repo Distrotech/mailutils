@@ -33,6 +33,8 @@ int tls_required;
 int pop3d_xlines;
 char *apop_database_name = APOP_PASSFILE;
 int apop_database_safety = MU_FILE_SAFETY_ALL;
+uid_t apop_database_owner;
+int apop_database_owner_set;
 
 #ifdef WITH_TLS
 int tls_available;
@@ -94,6 +96,33 @@ cb_apop_safety_checks (void *data, mu_config_value_t *arg)
 				 &apop_database_safety);
 }
 
+static int
+cb_apop_database_owner (void *data, mu_config_value_t *val)
+{
+  struct passwd *pw;
+  
+  if (mu_cfg_assert_value_type (val, MU_CFG_STRING))
+    return 1;
+  pw = getpwnam (val->v.string);
+  if (!pw)
+    {
+      char *p;
+      unsigned long n;
+    
+      n = strtoul (val->v.string, &p, 10);
+      if (*p)
+	{
+	  mu_error (_("no such user: %s"), val->v.string);
+	  return 1;
+	}
+      apop_database_owner = n;
+    }
+  else
+    apop_database_owner = pw->pw_uid;
+  apop_database_owner_set = 1;
+  return 0;
+}
+
 #ifdef ENABLE_DBM
 static int
 cb_bulletin_db (void *data, mu_config_value_t *val)
@@ -130,6 +159,8 @@ static struct mu_cfg_param pop3d_cfg_param[] = {
     N_("Output the number of lines in the message in its scan listing.") },
   { "apop-database-file", mu_cfg_string, &apop_database_name, 0, NULL,
     N_("set APOP database file name or URL") },
+  { "apop-database-owner", mu_cfg_callback, NULL, 0, cb_apop_database_owner,
+    N_("Name or UID of the APOP database owner") },
   { "apop-database-safety", mu_cfg_callback, NULL, 0, cb_apop_safety_checks,
     N_("Configure safety checks for APOP database files.  Argument is a list or "
        "sequence of check names optionally prefixed with '+' to enable or "
