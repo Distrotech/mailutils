@@ -36,10 +36,8 @@ extern void setutent (void);
 extern struct utmp *getutent (void);
 #endif
 
-#ifdef UTMPX
-# ifdef HAVE_UTMPX_H
-#  include <utmpx.h>
-# endif
+#ifdef HAVE_UTMPX_H
+# include <utmpx.h>
 typedef struct utmpx UTMP;
 # define SETUTENT() setutxent()
 # define GETUTENT() getutxent()
@@ -49,6 +47,13 @@ typedef struct utmp UTMP;
 # define SETUTENT() setutent()
 # define GETUTENT() getutent()
 # define ENDUTENT() endutent()
+# if !HAVE_STRUCT_UTMP_UT_USER
+#  if HAVE_STRUCT_UTMP_UT_NAME
+#   define ut_user ut_name
+#  else
+#   error "Neither ut_user nor ut_name found in struct utmp. Please report."
+#  endif
+# endif
 #endif
 
 #define MAX_TTY_SIZE (sizeof (PATH_TTY_PFX) + sizeof (((UTMP*)0)->ut_line))
@@ -462,7 +467,7 @@ find_user (const char *name, char *tty)
       if (uptr->ut_type != USER_PROCESS)
 	continue;
 #endif
-      if (!strncmp (uptr->ut_name, name, sizeof(uptr->ut_name)))
+      if (!strncmp (uptr->ut_user, name, sizeof(uptr->ut_user)))
 	{
 	  /* no particular tty was requested */
 	  strncpy (ftty + sizeof(PATH_DEV),
