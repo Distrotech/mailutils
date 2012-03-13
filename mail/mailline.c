@@ -121,7 +121,7 @@ ml_readline_internal ()
   char *buf = NULL;
   size_t size = 0, n;
   int rc;
-  
+
   rc = mu_stream_getline (mu_strin, &buf, &size, &n);
   if (rc)
     {
@@ -200,7 +200,7 @@ ml_command_completion (char *cmd, int start, int end)
   char **ret;
   char *p;
   struct mu_wordsplit ws;
-  
+
   for (p = rl_line_buffer; p < rl_line_buffer + start && mu_isblank (*p); p++)
     ;
 
@@ -211,7 +211,7 @@ ml_command_completion (char *cmd, int start, int end)
       return NULL;
     }
   rl_completion_append_character = ' ';
-  
+
   if (ws.ws_wordc == 0 ||
       (ws.ws_wordc == 1 && strlen (ws.ws_wordv[0]) <= end - start))
     {
@@ -241,7 +241,7 @@ ml_command_generator (const char *text, int state)
   static int i, len;
   const char *name;
   const struct mail_command *cp;
-  
+
   if (!state)
     {
       i = 0;
@@ -291,14 +291,6 @@ msglist_compl (int argc, char **argv, int ws)
 }
 
 char **
-msglist_file_compl (int argc, char **argv, int ws MU_ARG_UNUSED)
-{
-  if (argc == 1)
-    ml_attempted_completion_over ();
-  return NULL;
-}
-
-char **
 command_compl (int argc, char **argv, int ws)
 {
   ml_set_completion_append_character (0);
@@ -313,24 +305,24 @@ command_compl (int argc, char **argv, int ws)
 
    Select only those files that match given FLAGS (MU_FOLDER_ATTRIBUTE_*
    constants).
-   
+
    STATE is 0 for the first call, 1 otherwise.
  */
 static char *
 file_generator (const char *text, int state,
 		char *path, size_t pathlen,
-		char repl, 
+		char repl,
 		int flags)
 {
   static mu_list_t list;
   static mu_iterator_t itr;
-  
+
   if (!state)
     {
       char *wcard;
       mu_folder_t folder;
       size_t count;
-      
+
       wcard = xmalloc (strlen (text) + 2);
       strcat (strcpy (wcard, text), "*");
 
@@ -339,7 +331,7 @@ file_generator (const char *text, int state,
 	  free (wcard);
 	  return NULL;
 	}
-      
+
       mu_folder_list (folder, path, wcard, 1, &list);
       free (wcard);
       mu_folder_destroy (&folder);
@@ -351,7 +343,7 @@ file_generator (const char *text, int state,
 	}
       else if (count == 1)
 	ml_set_completion_append_character (0);
-      
+
       if (mu_list_get_iterator (list, &itr))
 	{
 	  mu_list_destroy (&list);
@@ -372,7 +364,7 @@ file_generator (const char *text, int state,
 	    {
 	      size_t len = strlen (resp->name + pathlen);
 	      char *ptr;
-	      
+
 	      ret = xmalloc (len + (repl ? 1 : 0) + 1);
 	      ptr = ret;
 	      if (repl)
@@ -395,13 +387,13 @@ folder_generator (const char *text, int state)
 {
   char *ret;
   static size_t pathlen;
-  
+
   if (!state)
     {
       char *path = util_folder_path ("");
       if (!path)
 	return NULL;
-      
+
       pathlen = strlen (path);
       ret = file_generator (text, state, path, pathlen, '+',
 			    MU_FOLDER_ATTRIBUTE_ALL);
@@ -413,8 +405,102 @@ folder_generator (const char *text, int state)
   return ret;
 }
 
-char **
-file_compl (int argc, char **argv, int ws)
+static char *
+msgtype_generator (const char *text, int state)
+{
+  static char types[] = "dnorTtu";
+  static int i;
+  char *s;
+
+  if (!state)
+    {
+      if (text[1])
+	return NULL;
+      i = 0;
+    }
+  if (!types[i])
+    return NULL;
+  s = malloc (2);
+  if (s)
+    {
+      s[0] = types[i++];
+      s[1] = 0;
+    }
+  return s;
+}
+
+static char *
+header_generator (const char *text, int state)
+{
+  static int i, len;
+  char *hdr;
+  char *hdrlist[] = {
+    MU_HEADER_RETURN_PATH,
+    MU_HEADER_RECEIVED,
+    MU_HEADER_DATE,
+    MU_HEADER_DCC,
+    MU_HEADER_FROM,
+    MU_HEADER_SENDER,
+    MU_HEADER_RESENT_FROM,
+    MU_HEADER_SUBJECT,
+    MU_HEADER_RESENT_SENDER,
+    MU_HEADER_TO,
+    MU_HEADER_RESENT_TO,
+    MU_HEADER_CC,
+    MU_HEADER_RESENT_CC,
+    MU_HEADER_BCC,
+    MU_HEADER_RESENT_BCC,
+    MU_HEADER_REPLY_TO,
+    MU_HEADER_RESENT_REPLY_TO,
+    MU_HEADER_MESSAGE_ID,
+    MU_HEADER_RESENT_MESSAGE_ID,
+    MU_HEADER_IN_REPLY_TO,
+    MU_HEADER_REFERENCE,
+    MU_HEADER_REFERENCES,
+    MU_HEADER_ENCRYPTED,
+    MU_HEADER_PRECEDENCE,
+    MU_HEADER_STATUS,
+    MU_HEADER_CONTENT_LENGTH,
+    MU_HEADER_CONTENT_LANGUAGE,
+    MU_HEADER_CONTENT_TRANSFER_ENCODING,
+    MU_HEADER_CONTENT_ID,
+    MU_HEADER_CONTENT_TYPE,
+    MU_HEADER_CONTENT_DESCRIPTION,
+    MU_HEADER_CONTENT_DISPOSITION,
+    MU_HEADER_CONTENT_MD5,
+    MU_HEADER_CONTENT_LOCATION,
+    MU_HEADER_MIME_VERSION,
+    MU_HEADER_X_MAILER,
+    MU_HEADER_X_UIDL,
+    MU_HEADER_X_UID,
+    MU_HEADER_X_IMAPBASE,
+    MU_HEADER_ENV_SENDER,
+    MU_HEADER_ENV_DATE,
+    MU_HEADER_FCC,
+    MU_HEADER_DELIVERY_DATE,
+    MU_HEADER_ENVELOPE_TO,
+    MU_HEADER_X_EXPIRE_TIMESTAMP,
+    NULL
+  };
+
+  if (!state)
+    {
+      i = 0;
+      len = strlen (text);
+    }
+
+  while ((hdr = hdrlist[i]))
+    {
+      i++;
+      if (mu_c_strncasecmp (hdr, text, len) == 0)
+	return strdup (hdr);
+    }
+
+  return NULL;
+}
+
+static char **
+file_compl_internal (int argc, char **argv, int ws, int msglist)
 {
   char *text;
 
@@ -424,24 +510,57 @@ file_compl (int argc, char **argv, int ws)
       ml_attempted_completion_over ();
       return NULL;
     }
-  
+
   text = argv[argc-1];
+
+  if (msglist)
+    {
+      if (text[0] == ':')
+	{
+	  ml_set_completion_append_character (' ');
+	  return rl_completion_matches (text, msgtype_generator);
+	}
+      else if (mu_isalpha (text[0]))
+	{
+	  ml_set_completion_append_character (':');
+	  return rl_completion_matches (text, header_generator);
+	}
+      else if (mu_isdigit (text[0]))
+	{
+	  ml_attempted_completion_over ();
+	  return NULL;
+	}
+    }
+
   switch (text[0])
     {
     case '+':
       text++;
       break;
 
+    case '%':
     case '#':
     case '&':
       ml_attempted_completion_over ();
       return NULL;
-      
+
     default:
       return NULL; /* Will be expanded by readline itself */
     }
-  
+
   return rl_completion_matches (text, folder_generator);
+}
+
+char **
+file_compl (int argc, char **argv, int ws)
+{
+  return file_compl_internal (argc, argv, ws, 0);
+}
+
+char **
+msglist_file_compl (int argc, char **argv, int ws)
+{
+  return file_compl_internal (argc, argv, ws, 1);
 }
 
 static char *
@@ -479,13 +598,13 @@ dir_generator (const char *text, int state)
 	  pathlen = 0;
 	  repl = 0;
 	  break;
-	  
+
 	default:
 	  path = strdup ("./");
 	  pathlen = 2;
 	  repl = 0;
 	}
-      
+
       ret = file_generator (text, state, path, pathlen, repl,
 			    MU_FOLDER_ATTRIBUTE_DIRECTORY);
       free (path);
@@ -513,7 +632,7 @@ alias_generator (const char *text, int state)
 {
   static alias_iterator_t itr;
   const char *p;
-  
+
   if (!state)
     p = alias_iterate_first (text, &itr);
   else
@@ -557,7 +676,7 @@ exec_generator (const char *text, int state)
   static size_t dsize;
   static DIR *dp;
   struct dirent *ent;
-  
+
   if (!state)
     {
       var = getenv ("PATH");
@@ -580,13 +699,13 @@ exec_generator (const char *text, int state)
 	    break;
 	  else
 	    var++;
-	  
+
 	  p = strchr (var, ':');
 	  if (!p)
 	    len = strlen (var) + 1;
 	  else
 	    len = p - var + 1;
-	  
+
 	  if (dsize == 0)
 	    {
 	      dir = malloc (len);
@@ -597,13 +716,13 @@ exec_generator (const char *text, int state)
 	      dir = realloc (dir, len);
 	      dsize = len;
 	    }
-	  
+
 	  if (!dir)
 	    return NULL;
 	  memcpy (dir, var, len - 1);
 	  dir[len - 1] = 0;
 	  var += len - 1;
-	  
+
 	  dp = opendir (dir);
 	  if (!dp)
 	    continue;
@@ -614,13 +733,13 @@ exec_generator (const char *text, int state)
 	  char *name = mkfilename (dir, ent->d_name);
 	  if (name)
 	    {
-	      int rc = access (name, X_OK); 
+	      int rc = access (name, X_OK);
 	      if (rc == 0)
 		{
 		  struct stat st;
 		  rc = !(stat (name, &st) == 0 && S_ISREG (st.st_mode));
 		}
-		    
+
 	      free (name);
 	      if (rc == 0
 		  && strlen (ent->d_name) >= prefix_len
@@ -944,4 +1063,3 @@ ml_attempted_completion_over ()
 }
 
 #endif
-
