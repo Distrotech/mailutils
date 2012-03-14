@@ -502,7 +502,8 @@ smtp_send_message (mu_mailer_t mailer, mu_message_t msg,
       return status;
     }
 
-  if (mu_header_sget_value (header, MU_HEADER_BCC, NULL))
+  if (mu_header_sget_value (header, MU_HEADER_BCC, NULL) == 0||
+      mu_header_sget_value (header, MU_HEADER_FCC, NULL) == 0)
     {
       mu_iterator_t itr;
       mu_body_t body;
@@ -523,7 +524,8 @@ smtp_send_message (mu_mailer_t mailer, mu_message_t msg,
 	  void *value;
 
 	  mu_iterator_current_kv (itr, (void*) &name, &value);
-	  if (mu_c_strcasecmp (name, MU_HEADER_BCC) == 0)
+	  if (mu_c_strcasecmp (name, MU_HEADER_BCC) == 0 ||
+	      mu_c_strcasecmp (name, MU_HEADER_FCC) == 0)
 	    continue;
 	  mu_stream_printf (ostr, "%s: %s\n", name, (char*)value);
 	}
