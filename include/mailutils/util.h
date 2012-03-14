@@ -203,6 +203,10 @@ int mu_file_safety_check (const char *filename, int mode,
 int mu_file_safety_name_to_code (const char *name, int *pcode);
 int mu_file_safety_name_to_error (const char *name, int *pcode);  
 int mu_file_safety_compose (int *res, const char *name, int defval);
+
+int mu_file_mode_to_safety_criteria (int mode);
+int mu_safety_criteria_to_file_mode (int crit);
+  
   
 #ifdef __cplusplus
 }

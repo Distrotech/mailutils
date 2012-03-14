@@ -20,6 +20,7 @@
 #endif
 #include <stdlib.h>
 #include <string.h>
+#include <fcntl.h>
 #include <mailutils/types.h>
 #include <mailutils/dbm.h>
 #include <mailutils/util.h>
@@ -28,6 +29,10 @@
 #include <mailutils/stream.h>
 #include <mailutils/locker.h>
 #include "mudbm.h"
+
+#ifndef O_EXCL
+# define O_EXCL 0
+#endif
 
 #if defined(WITH_BDB)
 #include <db.h>
@@ -66,7 +71,8 @@ do_bdb_open (mu_dbm_file_t mdb, int flags, int mode)
   struct bdb_file *bdb_file = mdb->db_descr;
   int f, rc, locker_flags;
   enum mu_locker_mode locker_mode;
-    
+  int tfd = -1;
+  
   switch (flags)
     {
     case MU_STREAM_CREAT:
@@ -99,7 +105,20 @@ do_bdb_open (mu_dbm_file_t mdb, int flags, int mode)
   if (rc)
     return rc;
 
+  if (access (mdb->db_name, R_OK) && errno == ENOENT)
+    {
+      tfd = open (mdb->db_name, O_CREAT|O_RDONLY|O_EXCL,
+                  mu_file_mode_to_safety_criteria (mdb->db_safety_flags));
+      if (tfd == -1)
+        {
+          mu_locker_destroy (&bdb_file->locker);
+          return errno;
+        }
+    }
+  
   rc = mu_locker_lock_mode (bdb_file->locker, locker_mode);
+  if (tfd != -1)
+    close (tfd);
   switch (rc)
     {
     case 0:

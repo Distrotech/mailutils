@@ -91,25 +91,26 @@ struct safety_checker
   char *name;            /* Symbolic name */
   int flag;              /* MU_FILE_SAFETY_ flag that enables this entry */
   int err;               /* Corresponding error code */
+  int mode;              /* Corresponding file mode bit */
   int cdir;              /* True if the function needs dirst member */
   int (*fun) (struct file_check_buffer *fb); /* Checker function */
 };
 
 static struct safety_checker file_safety_check_tab[] = {
   { "grdfil", MU_FILE_SAFETY_GROUP_READABLE, MU_ERR_PERM_GROUP_READABLE,
-    0, _check_grdfil },
+    0040, 0, _check_grdfil },
   { "ardfil", MU_FILE_SAFETY_WORLD_READABLE, MU_ERR_PERM_WORLD_READABLE,
-    0, _check_ardfil },
+    0004, 0, _check_ardfil },
   { "gwrfil", MU_FILE_SAFETY_GROUP_WRITABLE, MU_ERR_PERM_GROUP_WRITABLE,
-    0, _check_gwrfil },
+    0020, 0, _check_gwrfil },
   { "awrfil", MU_FILE_SAFETY_WORLD_WRITABLE, MU_ERR_PERM_WORLD_WRITABLE,
-    0, _check_awrfil },
+    0002, 0, _check_awrfil },
   { "linkwrdir", MU_FILE_SAFETY_LINKED_WRDIR,   MU_ERR_PERM_LINKED_WRDIR,
-    1, _check_linkwrdir },
+    0, 1, _check_linkwrdir },
   { "gwrdir", MU_FILE_SAFETY_DIR_IWGRP,      MU_ERR_PERM_DIR_IWGRP,
-    1, _check_gwrdir },
+    0, 1, _check_gwrdir },
   { "awrdir", MU_FILE_SAFETY_DIR_IWOTH,      MU_ERR_PERM_DIR_IWOTH,
-    1, _check_awrdir },
+    0, 1, _check_awrdir },
   { 0 }
 };
 
@@ -251,4 +252,28 @@ mu_file_safety_check (const char *filename, int mode,
       return 0;
     }
   return errno;
+}
+
+int
+mu_file_mode_to_safety_criteria (int mode)
+{
+  int fl = 0;
+  struct safety_checker *pck;
+
+  for (pck = file_safety_check_tab; pck->name; pck++)
+    if (mode & pck->mode)
+      fl |= pck->flag;
+  return fl;
+}
+
+int
+mu_safety_criteria_to_file_mode (int crit)
+{
+  int mode = 0600;
+  struct safety_checker *pck;
+
+  for (pck = file_safety_check_tab; pck->name; pck++)
+    if (crit & pck->flag)
+      mode |= pck->mode;
+  return mode;
 }
