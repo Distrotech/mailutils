@@ -421,6 +421,32 @@ filter_ctl (struct _mu_stream *stream, int code, int opcode, void *ptr)
 	  return ENOSYS;
 	}
       break;
+
+    case MU_IOCTL_SUBSTREAM:
+      if (!ptr)
+	return EINVAL;
+      else
+	{
+	  mu_stream_t *pstr = ptr;
+	  switch (opcode)
+	    {
+	    case MU_IOCTL_OP_GET:
+	      pstr[0] = fs->transport;
+	      mu_stream_ref (pstr[0]);
+	      pstr[1] = NULL;
+	      break;
+
+	    case MU_IOCTL_OP_SET:
+	      mu_stream_unref (fs->transport);
+	      fs->transport = pstr[0];
+	      mu_stream_ref (fs->transport);
+	      break;
+
+	    default:
+	      return EINVAL;
+	    }
+	}
+      break;
       
     case MU_IOCTL_TRANSPORT:
       switch (opcode)

@@ -133,3 +133,4 @@ int mu_log_facility = LOG_FACILITY;
 char *mu_log_tag = NULL;
 int mu_log_print_severity = 0;
 unsigned mu_log_severity_threshold = MU_LOG_DEBUG;
+int mu_log_session_id;

@@ -29,6 +29,7 @@ extern int mu_log_facility;
 extern char *mu_log_tag;
 extern int mu_log_print_severity;
 extern unsigned mu_log_severity_threshold;
+extern int mu_log_session_id;
 
 #define MU_LOG_TAG() (mu_log_tag ? mu_log_tag : mu_program_name)
   

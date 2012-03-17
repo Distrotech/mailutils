@@ -21,6 +21,8 @@
 #include <mailutils/types.h>
 #include <signal.h>
 
+extern unsigned long mu_session_id;
+
 typedef int (*mu_conn_loop_fp) (int fd, void *conn_data, void *server_data);
 typedef void (*mu_conn_free_fp) (void *conn_data, void *server_data);
 typedef int (*mu_server_idle_fp) (void *server_data);
@@ -124,7 +126,7 @@ const char * mu_m_server_pidfile (mu_m_server_t srv);
 void mu_m_server_get_sigset (mu_m_server_t srv, sigset_t *sigset);
 int mu_m_server_get_srvlist (mu_m_server_t srv, mu_list_t *plist);
 
-void mu_m_server_configured_count (mu_m_server_t msrv, size_t count);
+void mu_m_server_configured_count (mu_m_server_t msrv, size_t *count);
 
 void mu_m_server_begin (mu_m_server_t msrv);
 int mu_m_server_run (mu_m_server_t msrv);

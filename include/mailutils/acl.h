@@ -63,4 +63,8 @@ int mu_acl_check_fd (mu_acl_t acl, int fd, mu_acl_result_t *pres);
 int mu_acl_action_to_string (mu_acl_action_t act, const char **pstr);
 int mu_acl_string_to_action (const char *str, mu_acl_action_t *pres);
 
+int mu_acl_setenv (mu_acl_t acl, const char *name, const char *val);
+const char *mu_acl_getenv (mu_acl_t acl, const char *name);
+int mu_acl_set_session_id (mu_acl_t acl);
+
 #endif

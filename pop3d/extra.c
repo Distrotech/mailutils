@@ -185,6 +185,7 @@ pop3d_setio (int ifd, int ofd, int tls)
       else
 	{
 	  rc = mu_xscript_stream_create (&xstr, iostream, dstr, NULL);
+	  mu_stream_unref (dstr);
 	  if (rc)
 	    mu_error (_("cannot create transcript stream: %s"),
 		      mu_strerror (rc));

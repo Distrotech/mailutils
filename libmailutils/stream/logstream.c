@@ -309,6 +309,32 @@ _log_ctl (struct _mu_stream *str, int code, int opcode, void *arg)
 	}
       break;
 
+    case MU_IOCTL_SUBSTREAM:
+      if (!arg)
+	return EINVAL;
+      else
+	{
+	  mu_stream_t *pstr = arg;
+	  switch (opcode)
+	    {
+	    case MU_IOCTL_OP_GET:
+	      pstr[0] = sp->transport;
+	      mu_stream_ref (pstr[0]);
+	      pstr[1] = NULL;
+	      break;
+
+	    case MU_IOCTL_OP_SET:
+	      mu_stream_unref (sp->transport);
+	      sp->transport = pstr[0];
+	      mu_stream_ref (sp->transport);
+	      break;
+
+	    default:
+	      return EINVAL;
+	    }
+	}
+      break;
+      
     case MU_IOCTL_LOGSTREAM:
       switch (opcode)
 	{

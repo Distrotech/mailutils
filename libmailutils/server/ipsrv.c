@@ -372,7 +372,10 @@ mu_ip_tcp_accept (mu_ip_server_t srv, void *call_data)
   if (srv->acl)
     {
       mu_acl_result_t res;
-      int rc = mu_acl_check_sockaddr (srv->acl, &client.sa, size, &res);
+      int rc;
+      
+      mu_acl_set_session_id (srv->acl);
+      rc = mu_acl_check_sockaddr (srv->acl, &client.sa, size, &res);
       if (rc)
 	mu_debug (MU_DEBCAT_SERVER, MU_DEBUG_ERROR,
 		  ("%s: mu_acl_check_sockaddr: %s",
@@ -453,7 +456,10 @@ mu_ip_udp_accept (mu_ip_server_t srv, void *call_data)
   if (srv->acl)
     {
       mu_acl_result_t res;
-      int rc = mu_acl_check_sockaddr (srv->acl, &client.sa, size, &res);
+      int rc;
+
+      mu_acl_set_session_id (srv->acl);
+      rc = mu_acl_check_sockaddr (srv->acl, &client.sa, size, &res);
       if (rc)
 	mu_debug (MU_DEBCAT_SERVER, MU_DEBUG_ERROR,
 		  ("%s: mu_acl_check_sockaddr: %s\n",

@@ -38,6 +38,8 @@ struct _mu_connection
 
 #define MU_SERVER_TIMEOUT 0x1
 
+unsigned long mu_session_id;
+
 struct _mu_server
 {
   int nfd;
@@ -104,7 +106,10 @@ connection_loop (mu_server_t srv, fd_set *fdset)
       struct _mu_connection *next = conn->next;
       if (FD_ISSET (conn->fd, fdset))
 	{
-	  int rc = conn->f_loop (conn->fd, conn->data, srv->server_data);
+	  int rc;
+
+	  ++mu_session_id;
+	  rc = conn->f_loop (conn->fd, conn->data, srv->server_data);
 	  switch (rc)
 	    {
 	    case 0:
@@ -291,3 +296,12 @@ mu_server_add_connection (mu_server_t srv,
   srv->tail = p;
   return 0;
 }
+
+int
+mu_acl_set_session_id (mu_acl_t acl)
+{
+  char sessidstr[9];
+  snprintf (sessidstr, sizeof sessidstr, "%08lx", mu_session_id);
+  return mu_acl_setenv (acl, "sessid", sessidstr);
+}
+

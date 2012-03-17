@@ -58,6 +58,21 @@ struct _mu_acl_entry
 struct _mu_acl
 {
   mu_list_t aclist;
+  char **envv;
+  size_t envc;
+  size_t envn;
+};
+
+struct run_closure
+{
+  unsigned idx;
+  struct mu_cidr addr;
+
+  char **env;
+  char ipstr[40];
+  char *addrstr;
+  char *numbuf;
+  mu_acl_result_t *result;
 };
 
 
@@ -117,11 +132,16 @@ mu_acl_count (mu_acl_t acl, size_t *pcount)
 int
 mu_acl_destroy (mu_acl_t *pacl)
 {
+  size_t i;
+  
   mu_acl_t acl;
   if (!pacl || !*pacl)
     return EINVAL;
   acl = *pacl;
   mu_list_destroy (&acl->aclist);
+  for (i = 0; i < acl->envc && acl->envv[i]; i++)
+    free (acl->envv[i]);
+  free (acl->envv);
   free (acl);
   *pacl = acl;
   return 0;
@@ -249,17 +269,6 @@ mu_acl_string_to_action (const char *str, mu_acl_action_t *pres)
   return rc;
 }
 
-struct run_closure
-{
-  unsigned idx;
-  struct mu_cidr addr;
-
-  char ipstr[40];
-  char *addrstr;
-  char *numbuf;
-  mu_acl_result_t *result;
-};
-
 int
 _acl_match (struct _mu_acl_entry *ent, struct run_closure *rp)
 {
@@ -297,6 +306,26 @@ acl_getvar (const char *name, size_t nlen, void *data)
 {
   struct run_closure *rp = data;
 
+  if (SEQ ("family", name, nlen))
+    {
+      switch (rp->addr.family)
+	{
+	case AF_INET:
+	  return "AF_INET";
+
+#ifdef MAILUTILS_IPV6
+	case AF_INET6:
+	  return "AF_INET6";
+#endif
+      
+	case AF_UNIX:
+	  return "AF_UNIX";
+
+	default:
+	  return NULL;
+	}
+    }
+  
   if (SEQ ("aclno", name, nlen))
     {
       if (!rp->numbuf && mu_asprintf (&rp->numbuf, "%u", rp->idx))
@@ -330,33 +359,19 @@ expand_arg (const char *cmdline, struct run_closure *rp, char **s)
 {
   int rc;
   struct mu_wordsplit ws;
-  const char *env[3];
+  int envflag = 0;
   
   mu_debug (MU_DEBCAT_ACL, MU_DEBUG_TRACE, ("Expanding \"%s\"", cmdline));
-  env[0] = "family";
-  switch (rp->addr.family)
+  if (rp->env)
     {
-    case AF_INET:
-      env[1] = "AF_INET";
-      break;
-
-#ifdef MAILUTILS_IPV6
-    case AF_INET6:
-      env[1] = "AF_INET6";
-      break;
-#endif
-      
-    case AF_UNIX:
-      env[1] = "AF_UNIX";
-      break;
+      ws.ws_env = (const char **) rp->env;
+      envflag = MU_WRDSF_ENV;
     }
-  env[2] = NULL;
-  ws.ws_env = env;
   ws.ws_getvar = acl_getvar;
   ws.ws_closure = rp;
   rc = mu_wordsplit (cmdline, &ws,
 		     MU_WRDSF_NOSPLIT | MU_WRDSF_NOCMD |
-		     MU_WRDSF_ENV | MU_WRDSF_ENV_KV |
+		     envflag | MU_WRDSF_ENV_KV |
 		     MU_WRDSF_GETVAR | MU_WRDSF_CLOSURE);
 
   if (rc == 0)
@@ -553,6 +568,7 @@ mu_acl_check_sockaddr (mu_acl_t acl, const struct sockaddr *sa, int salen,
 
   r.idx = 0;
   r.result = pres;
+  r.env = acl->envv;
   *r.result = mu_acl_result_undefined;
   r.numbuf = NULL;
   mu_list_foreach (acl->aclist, _run_entry, &r);
@@ -607,3 +623,94 @@ mu_acl_check_fd (mu_acl_t acl, int fd, mu_acl_result_t *pres)
   return mu_acl_check_sockaddr (acl, &addr.sa, len, pres);
 }
 
+static int
+_acl_getenv (mu_acl_t acl, const char *name, size_t *pres)
+{
+  size_t i;
+
+  if (!acl->envv)
+    return MU_ERR_NOENT;
+  for (i = 0; i < acl->envc; i++)
+    if (strcmp (acl->envv[i], name) == 0)
+      {
+	*pres = i;
+	return 0;
+      }
+  return MU_ERR_NOENT;
+}
+
+const char *
+mu_acl_getenv (mu_acl_t acl, const char *name)
+{
+  size_t i;
+  
+  if (_acl_getenv (acl, name, &i) == 0)
+    {
+      return acl->envv[i + 1];
+    }
+  return NULL;
+}
+
+static int
+_acl_env_store (mu_acl_t acl, int i, const char *val)
+{
+  char *copy = strdup (val);
+  if (!copy)
+    return ENOMEM;
+  free (acl->envv[i]);
+  acl->envv[i] = copy;
+  return 0;
+}
+
+int
+mu_acl_setenv (mu_acl_t acl, const char *name, const char *val)
+{
+  size_t i;
+
+  if (_acl_getenv (acl, name, &i) == 0)
+    {
+      if (!val)
+	{
+	  free (acl->envv[i]);
+	  free (acl->envv[i + 1]);
+	  memmove (acl->envv + i, acl->envv + i + 3,
+		   (acl->envn + 1 - (i + 3)) * sizeof (acl->envv[0]));
+	  acl->envn -= 2;
+	  return 0;
+	}
+      return _acl_env_store (acl, i + 1, val);
+    }
+
+  if (!acl->envv || acl->envn + 1 == acl->envc)
+    {
+      char **p;
+
+      if (!val)
+	return 0;
+      
+      if (acl->envv == NULL)
+	p = calloc (3, sizeof (acl->envv[0]));
+      else
+	{
+	  p = realloc (acl->envv, (acl->envc + 3) * sizeof (acl->envv[0]));
+	  if (!p)
+	    return ENOMEM;
+	  p[acl->envc] = NULL;
+	}
+      
+      acl->envv = p;
+      acl->envc += 3;
+    }
+
+  if (_acl_env_store (acl, acl->envn, name))
+    return ENOMEM;
+  if (_acl_env_store (acl, acl->envn + 1, val))
+    {
+      free (acl->envv[acl->envn]);
+      acl->envv[acl->envn] = NULL;
+      return ENOMEM;
+    }
+  acl->envn += 2;
+
+  return 0;
+}

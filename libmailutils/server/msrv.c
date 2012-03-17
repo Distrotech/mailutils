@@ -91,7 +91,7 @@ struct _mu_m_server
   struct mu_sockaddr_hints hints; /* Default address hints. */
   time_t timeout;                /* Default idle timeout. */
   mu_acl_t acl;                  /* Global access control list. */
-
+  
   sigset_t sigmask;              /* A set of signals to handle by the
 				    m-server.  */
   mu_sig_handler_t sigtab[NSIG]; /* Keeps old signal handlers. */
@@ -343,9 +343,12 @@ mu_m_server_set_max_children (mu_m_server_t srv, size_t num)
 int
 mu_m_server_set_pidfile (mu_m_server_t srv, const char *pidfile)
 {
+  char *p = strdup (pidfile);
+  if (!p)
+    return errno;
   free (srv->pidfile);
-  srv->pidfile = strdup (pidfile);
-  return srv->pidfile ? 0 : errno;
+  srv->pidfile = p;
+  return 0;
 }
 
 int
@@ -476,9 +479,9 @@ add_server (mu_m_server_t msrv, struct mu_sockaddr *s, int type)
 }
 
 void
-mu_m_server_configured_count (mu_m_server_t msrv, size_t count)
+mu_m_server_configured_count (mu_m_server_t msrv, size_t *count)
 {
-  mu_list_count (msrv->srvlist, &count);
+  mu_list_count (msrv->srvlist, count);
 }
 
 void
@@ -645,7 +648,10 @@ mu_m_server_check_acl (mu_m_server_t msrv, struct sockaddr *s, int salen)
   if (msrv->acl)
     {
       mu_acl_result_t res;
-      int rc = mu_acl_check_sockaddr (msrv->acl, s, salen, &res);
+      int rc;
+
+      mu_acl_set_session_id (msrv->acl);
+      rc = mu_acl_check_sockaddr (msrv->acl, s, salen, &res);
       if (rc)
 	{
 	  char *p = mu_sockaddr_to_astr (s, salen);
@@ -688,7 +694,7 @@ m_srv_conn (int fd, struct sockaddr *sa, int salen,
 {
   int status;
   struct mu_srv_config *pconf = server_data;
-  
+
   if (mu_m_server_check_acl (pconf->msrv, sa, salen))
     return 0;
 
