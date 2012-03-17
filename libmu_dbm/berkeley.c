@@ -108,7 +108,7 @@ do_bdb_open (mu_dbm_file_t mdb, int flags, int mode)
   if (access (mdb->db_name, R_OK) && errno == ENOENT)
     {
       tfd = open (mdb->db_name, O_CREAT|O_RDONLY|O_EXCL,
-                  mu_file_mode_to_safety_criteria (mdb->db_safety_flags));
+                  mu_safety_criteria_to_file_mode (mdb->db_safety_flags));
       if (tfd == -1)
         {
           mu_locker_destroy (&bdb_file->locker);
