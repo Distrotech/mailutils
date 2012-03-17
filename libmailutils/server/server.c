@@ -23,8 +23,10 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <mailutils/server.h>
 #include <mailutils/errno.h>
+#include <mailutils/acl.h>
 
 
 struct _mu_connection
