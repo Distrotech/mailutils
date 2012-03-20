@@ -12,11 +12,13 @@ decode2047
 encode2047
 fltst
 fsaf
+fsaftomod
 fsfolder
 imapio
 listop
 mailcap
 mimehdr
+modtofsaf
 prop
 scantime
 strftime

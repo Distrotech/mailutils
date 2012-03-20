@@ -1,0 +1,57 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2011-2012 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# GNU Mailutils is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+
+AT_BANNER(File Mode to File Safety)
+
+dnl ------------------------------------------------------------
+dnl MODETOFSAF(MODE, CRITERIA)
+dnl
+
+m4_pushdef([MODETOFSAF],[
+AT_SETUP([$1])
+AT_KEYWORDS([fsaf modtofsaf modetofsaf])
+AT_CHECK([
+modtofsaf $1
+],
+[0],
+[$2])
+AT_CLEANUP
+])
+
+dnl ------------------------------------------------------------
+MODETOFSAF(600,[gwrfil
+awrfil
+grdfil
+ardfil
+])
+
+MODETOFSAF(666)
+
+MODETOFSAF(622,[grdfil
+ardfil
+])
+
+MODETOFSAF(644,[gwrfil
+awrfil
+])
+
+MODETOFSAF(620,[awrfil
+grdfil
+ardfil
+])
+
+dnl ------------------------------------------------------------
+m4_popdef([MODETOFSAF])

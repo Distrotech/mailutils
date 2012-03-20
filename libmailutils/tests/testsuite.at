@@ -96,6 +96,8 @@ m4_include([scantime.at])
 m4_include([strftime.at])
 
 m4_include([fsaf.at])
+m4_include([fsaftomod.at])
+m4_include([modtofsaf.at])
 
 m4_include([mimehdr.at])
 

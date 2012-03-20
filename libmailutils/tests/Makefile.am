@@ -30,7 +30,7 @@ $(srcdir)/package.m4: $(top_srcdir)/configure.ac
 	  echo 'm4_define([AT_PACKAGE_VERSION],   [@PACKAGE_VERSION@])'; \
 	  echo 'm4_define([AT_PACKAGE_STRING],    [@PACKAGE_STRING@])'; \
 	  echo 'm4_define([AT_PACKAGE_BUGREPORT], [@PACKAGE_BUGREPORT@])'; \
-	} >$(srcdir)/package.m4
+        } >$(srcdir)/package.m4
 
 #
 
@@ -47,11 +47,13 @@ noinst_PROGRAMS = \
  encode2047\
  fltst\
  fsaf\
+ fsaftomod\
  fsfolder\
  imapio\
  listop\
  mailcap\
  mimehdr\
+ modtofsaf\
  msgset\
  prop\
  scantime\
@@ -81,6 +83,7 @@ TESTSUITE_AT = \
  encode2047.at\
  fromflt.at\
  fsaf.at\
+ fsaftomod.at\
  fsfolder00.at\
  fsfolder01.at\
  fsfolder02.at\
@@ -91,6 +94,7 @@ TESTSUITE_AT = \
  list.at\
  mailcap.at\
  mimehdr.at\
+ modtofsaf.at\
  msgset.at\
  prop.at\
  scantime.at\

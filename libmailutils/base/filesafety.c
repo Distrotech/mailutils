@@ -42,30 +42,6 @@ struct file_check_buffer
 };
 
 static int
-_check_grdfil (struct file_check_buffer *fb)
-{
-  return fb->filst.st_mode & S_IRGRP;
-}
-
-static int
-_check_ardfil (struct file_check_buffer *fb)
-{
-  return fb->filst.st_mode & S_IROTH;
-}
-
-static int
-_check_gwrfil (struct file_check_buffer *fb)
-{
-  return fb->filst.st_mode & S_IWGRP;
-}
-
-static int
-_check_awrfil (struct file_check_buffer *fb)
-{
-  return fb->filst.st_mode & S_IWOTH;
-}
-
-static int
 _check_linkwrdir (struct file_check_buffer *fb)
 {
   return ((((fb->filst.st_mode & S_IFMT) == S_IFLNK) ||
@@ -98,13 +74,13 @@ struct safety_checker
 
 static struct safety_checker file_safety_check_tab[] = {
   { "grdfil", MU_FILE_SAFETY_GROUP_READABLE, MU_ERR_PERM_GROUP_READABLE,
-    0040, 0, _check_grdfil },
+    S_IRGRP },
   { "ardfil", MU_FILE_SAFETY_WORLD_READABLE, MU_ERR_PERM_WORLD_READABLE,
-    0004, 0, _check_ardfil },
+    S_IROTH },
   { "gwrfil", MU_FILE_SAFETY_GROUP_WRITABLE, MU_ERR_PERM_GROUP_WRITABLE,
-    0020, 0, _check_gwrfil },
+    S_IWGRP },
   { "awrfil", MU_FILE_SAFETY_WORLD_WRITABLE, MU_ERR_PERM_WORLD_WRITABLE,
-    0002, 0, _check_awrfil },
+    S_IWOTH },
   { "linkwrdir", MU_FILE_SAFETY_LINKED_WRDIR,   MU_ERR_PERM_LINKED_WRDIR,
     0, 1, _check_linkwrdir },
   { "gwrdir", MU_FILE_SAFETY_DIR_IWGRP,      MU_ERR_PERM_DIR_IWGRP,
@@ -164,6 +140,18 @@ _find_safety_checker (const char *name)
   for (pck = file_safety_check_tab; pck->flag; pck++)
     if (strcmp (pck->name, name) == 0)
       return pck;
+  return NULL;
+}
+
+const char *
+mu_file_safety_code_to_name (int code)
+{
+  struct safety_checker *pck;
+  for (pck = file_safety_check_tab; pck->flag; pck++)
+    {
+      if (pck->flag == code)
+	return pck->name;
+    }
   return NULL;
 }
 
@@ -244,7 +232,8 @@ mu_file_safety_check (const char *filename, int mode,
 		  return errno;
 		buf.cdir = 1;
 	      }
-	    if (pck->fun (&buf))
+	    if ((pck->fun && pck->fun (&buf)) ||
+		(buf.filst.st_mode & pck->mode))
 	      return pck->err;
 	  }
       if (idlist)
@@ -261,7 +250,7 @@ mu_file_mode_to_safety_criteria (int mode)
   struct safety_checker *pck;
 
   for (pck = file_safety_check_tab; pck->name; pck++)
-    if (mode & pck->mode)
+    if (!(mode & pck->mode))
       fl |= pck->flag;
   return fl;
 }
@@ -269,11 +258,11 @@ mu_file_mode_to_safety_criteria (int mode)
 int
 mu_safety_criteria_to_file_mode (int crit)
 {
-  int mode = 0600;
+  int mode = 0666;
   struct safety_checker *pck;
 
   for (pck = file_safety_check_tab; pck->name; pck++)
-    if (crit & pck->flag)
-      mode |= pck->mode;
+    if (pck->flag && (crit & pck->flag))
+      mode &= ~pck->mode;
   return mode;
 }

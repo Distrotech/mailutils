@@ -200,6 +200,7 @@ int mu_onexit (mu_onexit_t func, void *data);
 int mu_file_safety_check (const char *filename, int mode,
 			  uid_t uid,
 			  mu_list_t idlist);
+const char *mu_file_safety_code_to_name (int code);
 int mu_file_safety_name_to_code (const char *name, int *pcode);
 int mu_file_safety_name_to_error (const char *name, int *pcode);  
 int mu_file_safety_compose (int *res, const char *name, int defval);
