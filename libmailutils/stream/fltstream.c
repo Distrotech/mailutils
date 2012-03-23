@@ -398,7 +398,8 @@ static int
 filter_ctl (struct _mu_stream *stream, int code, int opcode, void *ptr)
 {
   struct _mu_filter_stream *fs = (struct _mu_filter_stream *)stream;
-
+  int status;
+  
   switch (code)
     {
     case MU_IOCTL_FILTER:
@@ -423,6 +424,13 @@ filter_ctl (struct _mu_stream *stream, int code, int opcode, void *ptr)
       break;
 
     case MU_IOCTL_SUBSTREAM:
+      if (fs->transport && 
+          ((status = mu_stream_ioctl (fs->transport, code, opcode, ptr)) == 0
+	   || status != ENOSYS))
+        return status;
+      /* fall through */
+
+    case MU_IOCTL_TOPSTREAM:
       if (!ptr)
 	return EINVAL;
       else

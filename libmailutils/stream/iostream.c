@@ -159,6 +159,7 @@ _iostream_ctl (struct _mu_stream *str, int code, int opcode, void *arg)
       break;
 
     case MU_IOCTL_SUBSTREAM:
+    case MU_IOCTL_TOPSTREAM:
       if (!arg)
 	return EINVAL;
       else

@@ -415,7 +415,7 @@ set_strerr_flt ()
   mu_stream_t flt, trans[2];
   int rc;
   
-  rc = mu_stream_ioctl (mu_strerr, MU_IOCTL_SUBSTREAM, MU_IOCTL_OP_GET, trans);
+  rc = mu_stream_ioctl (mu_strerr, MU_IOCTL_TOPSTREAM, MU_IOCTL_OP_GET, trans);
   if (rc == 0)
     {
       char sessidstr[10];
@@ -432,7 +432,7 @@ set_strerr_flt ()
 	  mu_stream_set_buffer (flt, mu_buffer_line, 0);
 	  trans[0] = flt;
 	  trans[1] = NULL;
-	  rc = mu_stream_ioctl (mu_strerr, MU_IOCTL_SUBSTREAM,
+	  rc = mu_stream_ioctl (mu_strerr, MU_IOCTL_TOPSTREAM,
 				MU_IOCTL_OP_SET, trans);
 	  mu_stream_unref (trans[0]);
 	  if (rc)
@@ -456,16 +456,16 @@ clr_strerr_flt ()
   mu_stream_t flt, trans[2];
   int rc;
 
-  rc = mu_stream_ioctl (mu_strerr, MU_IOCTL_SUBSTREAM, MU_IOCTL_OP_GET, trans);
+  rc = mu_stream_ioctl (mu_strerr, MU_IOCTL_TOPSTREAM, MU_IOCTL_OP_GET, trans);
   if (rc == 0)
     {
       flt = trans[0];
 
-      rc = mu_stream_ioctl (flt, MU_IOCTL_SUBSTREAM, MU_IOCTL_OP_GET, trans);
+      rc = mu_stream_ioctl (flt, MU_IOCTL_TOPSTREAM, MU_IOCTL_OP_GET, trans);
       if (rc == 0)
 	{
 	  mu_stream_unref (trans[0]);
-	  rc = mu_stream_ioctl (mu_strerr, MU_IOCTL_SUBSTREAM,
+	  rc = mu_stream_ioctl (mu_strerr, MU_IOCTL_TOPSTREAM,
 				MU_IOCTL_OP_SET, trans);
 	  if (rc == 0)
 	    mu_stream_unref (flt);
