@@ -134,7 +134,7 @@ struct param_continuation
   const char *param_cset;
 };
 
-static int
+static void
 free_param_continuation (struct param_continuation *p)
 {
   free (p->param_name);

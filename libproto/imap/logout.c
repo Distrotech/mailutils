@@ -32,8 +32,7 @@ mu_imap_logout (mu_imap_t imap)
     return EINVAL;
   if (!imap->io)
     return MU_ERR_NO_TRANSPORT;
-  if (!(imap->session_state == MU_IMAP_SESSION_AUTH ||
-	imap->session_state == MU_IMAP_SESSION_SELECTED))
+  if (imap->session_state == MU_IMAP_SESSION_INIT)
     return MU_ERR_SEQ;
 
   switch (imap->client_state)

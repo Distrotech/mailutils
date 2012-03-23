@@ -23,6 +23,7 @@
 #include <mailutils/mailutils.h>
 #include <mailutils/tls.h>
 #include "mailutils/libargp.h"
+#include "muaux.h"
 #include "mu.h"
 #include "xalloc.h"
 
