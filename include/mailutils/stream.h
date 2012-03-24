@@ -74,8 +74,7 @@ enum mu_buffer_type
 #define MU_IOCTL_SYSLOGSTREAM    10 /* Syslog stream (see below) */
 #define MU_IOCTL_FILTER          11 /* Filter streams (see below) */
 #define MU_IOCTL_TOPSTREAM       12 /* Same as MU_IOCTL_SUBSTREAM, but
-				       always returns the topmost substream,
-				       traversing stream chains if necessary.
+				       always returns the topmost substream.
 				    */
   
   /* Opcodes common for various families */
