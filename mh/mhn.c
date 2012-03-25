@@ -19,7 +19,7 @@
 #include <mh.h>
 #include <signal.h>
 #include <mailutils/mime.h>
-#define obstack_chunk_alloc xmalloc
+#define obstack_chunk_alloc mu_alloc
 #define obstack_chunk_free free
 #include <obstack.h>
 #include <setjmp.h>
@@ -184,17 +184,17 @@ split_content (const char *content, char **type, char **subtype)
   if (p)
     {
       int len = p - content;
-      *type = xmalloc (len + 1);
+      *type = mu_alloc (len + 1);
       memcpy (*type, content, len);
       (*type)[len] = 0;
 
       p++;
-      *subtype = xmalloc (strlen (p) + 1);
+      *subtype = mu_alloc (strlen (p) + 1);
       strcpy (*subtype, p);
     }
   else
     {
-      *type = xmalloc (strlen (content) + 1);
+      *type = mu_alloc (strlen (content) + 1);
       strcpy (*type, content);
       *subtype = NULL;
     }
@@ -234,7 +234,7 @@ _get_content_type (mu_header_t hdr, char **value, char **rest)
     {
       if (type)
 	free (type);
-      type = xstrdup ("text/plain"); /* Default.  */
+      type = mu_strdup ("text/plain"); /* Default.  */
       if (rest)
 	*rest = NULL;
     }
@@ -260,7 +260,7 @@ _get_content_encoding (mu_header_t hdr, char **value)
     {
       if (encoding)
 	free (encoding);
-      encoding = xstrdup ("7bit"); /* Default.  */
+      encoding = mu_strdup ("7bit"); /* Default.  */
     }
   *value = encoding;
   return 0;
@@ -445,9 +445,9 @@ struct _msg_part
 msg_part_t 
 msg_part_create (size_t num)
 {
-  msg_part_t p = xmalloc (sizeof (*p));
+  msg_part_t p = mu_alloc (sizeof (*p));
   p->maxlevel = 16;
-  p->part = xmalloc (sizeof (*p->part) * p->maxlevel);
+  p->part = mu_alloc (sizeof (*p->part) * p->maxlevel);
   p->part[0] = num;
   p->level = 0;
   return p;
@@ -477,7 +477,7 @@ msg_part_incr (msg_part_t p)
   if (p->level == p->maxlevel)
     {
       p->maxlevel += 16;
-      p->part = xrealloc (p->part, sizeof (*p->part) * p->maxlevel);
+      p->part = mu_realloc (p->part, sizeof (*p->part) * p->maxlevel);
     }
   p->level++;
 }
@@ -529,7 +529,7 @@ msg_part_format (msg_part_t p)
       width += strlen (mu_umaxtostr (0, p->part[i]));
     }
 
-  str = s = xmalloc (width + 1);
+  str = s = mu_alloc (width + 1);
   for (i = 1; i <= p->level; i++)
     {
       if (i > 1)
@@ -709,7 +709,7 @@ mhn_compose_command (char *typestr, char *typeargs, int *flags, char *file)
   if (!*p)
     str = NULL;
   else
-    str = xstrdup (p);
+    str = mu_strdup (p);
 
   obstack_free (&stk, NULL);
   return (char*) str;
@@ -920,7 +920,7 @@ mhn_show_command (mu_message_t msg, msg_part_t part, int *flags,
   if (!*p)
     str = NULL;
   else
-    str = xstrdup (p);
+    str = mu_strdup (p);
 
   obstack_free (&stk, NULL);
   return (char*) str;
@@ -957,7 +957,7 @@ mhn_store_command (mu_message_t msg, msg_part_t part, const char *name,
 	  /* If the content is not application/octet-stream, then mhn
 	     will check to see if the content is a message.  If so, mhn
 	     will use the value "+".  */
-	  *return_string = xstrdup (mh_current_folder ());
+	  *return_string = mu_strdup (mh_current_folder ());
 	  return store_to_folder_msg;
 	}
       else if (mu_c_strcasecmp (typestr, "application/octet-stream") == 0 &&
@@ -974,9 +974,9 @@ mhn_store_command (mu_message_t msg, msg_part_t part, const char *name,
     {
     case '+':
       if (str[1])
-	*return_string = xstrdup (str);
+	*return_string = mu_strdup (str);
       else
-	*return_string = xstrdup (mh_current_folder ());
+	*return_string = mu_strdup (mh_current_folder ());
       return store_to_folder;
 
     case '-':
@@ -1060,7 +1060,7 @@ mhn_store_command (mu_message_t msg, msg_part_t part, const char *name,
   if (!*p)
     *return_string = NULL;
   else
-    *return_string = xstrdup (p);
+    *return_string = mu_strdup (p);
   
   obstack_free (&stk, NULL);
   return dest;
@@ -1147,7 +1147,7 @@ get_extbody_params (mu_message_t msg, char **content, char **descr)
 	{
 	  p = mu_str_skip_class (buf + sizeof (MU_HEADER_CONTENT_DESCRIPTION),
 				 MU_CTYPE_SPACE);
-	  *descr = xstrdup (p);
+	  *descr = mu_strdup (p);
 	}
       else if (content
 	       && mu_c_strncasecmp (buf, MU_HEADER_CONTENT_TYPE ":",
@@ -1159,7 +1159,7 @@ get_extbody_params (mu_message_t msg, char **content, char **descr)
 	  q = strchr (p, ';');
 	  if (q)
 	    *q = 0;
-	  *content = xstrdup (p);
+	  *content = mu_strdup (p);
 	}
     }
   mu_stream_destroy (&stream);
@@ -1919,7 +1919,7 @@ parse_brace (char **pval, char **cmd, int c, struct compose_env *env)
       return 1;
     }
   len = sp - rest;
-  val = xmalloc (len + 1);
+  val = mu_alloc (len + 1);
   memcpy (val, rest, len);
   val[len] = 0;
   *cmd = sp + 1;
@@ -2517,11 +2517,11 @@ edit_mime (char *cmd, struct compose_env *env, mu_message_t *msg, int level)
       _get_content_type (hdr, &typestr, NULL);
       split_content (typestr, &type, &subtype);
       if (mu_c_strcasecmp (type, "message") == 0)
-	encoding = xstrdup ("7bit");
+	encoding = mu_strdup ("7bit");
       else if (mu_c_strcasecmp (type, "text") == 0)
-	encoding = xstrdup ("quoted-printable");
+	encoding = mu_strdup ("quoted-printable");
       else
-	encoding = xstrdup ("base64");
+	encoding = mu_strdup ("base64");
       mu_header_set_value (hdr, MU_HEADER_CONTENT_TRANSFER_ENCODING, encoding, 1);
       free (typestr);
       free (type);
@@ -2623,7 +2623,7 @@ mhn_edit (struct compose_env *env, int level)
 		      if (n + n2 > bufsize)
 			{
 			  bufsize += 128;
-			  buf = xrealloc (buf, bufsize);
+			  buf = mu_realloc (buf, bufsize);
 			}
 		      memcpy (buf + n - 2, b2, n2);
 		      n += n2 - 2;
@@ -2736,7 +2736,7 @@ parse_header_directive (const char *val, char **encoding, char **charset,
 
   if (*val != '#')
     {
-      *subject = xstrdup (val);
+      *subject = mu_strdup (val);
       return 1;
     }
   val++;
@@ -2753,7 +2753,7 @@ parse_header_directive (const char *val, char **encoding, char **charset,
 	  int i, argc;
 	  char **argv;
 	    
-	  *subject = xstrdup (p + 1);
+	  *subject = mu_strdup (p + 1);
 	  split_args (val + 1, p - val - 1, &argc, &argv);
 	  for (i = 0; i < argc; i++)
 	    {
@@ -2761,13 +2761,13 @@ parse_header_directive (const char *val, char **encoding, char **charset,
 		  && memcmp (argv[i], "charset=", 8) == 0)
 		{
 		  free (*charset);
-		  *charset = xstrdup (argv[i] + 8);
+		  *charset = mu_strdup (argv[i] + 8);
 		}
 	      else if (strlen (argv[i]) > 9
 		       && memcmp (argv[i], "encoding=", 9) == 0)
 		{
 		  free (*encoding);
-		  *encoding = xstrdup (argv[i] + 9);
+		  *encoding = mu_strdup (argv[i] + 9);
 		}
 	    }
 	  mu_argcv_free (argc, argv);
@@ -2778,7 +2778,7 @@ parse_header_directive (const char *val, char **encoding, char **charset,
     default:
       val--;
     }
-  *subject = xstrdup (val);
+  *subject = mu_strdup (val);
   return 1;
 }
 
@@ -2824,7 +2824,7 @@ mhn_header (mu_message_t msg, mu_message_t omsg)
 			if (strlen (argv[i]) > 8
 			    && memcmp (argv[i], "charset=", 8) == 0)
 			  {
-			    charset = xstrdup (argv[i]+8);
+			    charset = mu_strdup (argv[i]+8);
 			    break;
 			  }
 		      mu_argcv_free (argc, argv);
@@ -2842,7 +2842,7 @@ mhn_header (mu_message_t msg, mu_message_t omsg)
 	  if (!encoding || strcmp (encoding, "7bit") == 0)
 	    {
 	      free (encoding);
-	      encoding = xstrdup ("base64");
+	      encoding = mu_strdup ("base64");
 	    }
  	  rc = mu_rfc2047_encode (charset, encoding, subject, &p);
 	  if (rc)

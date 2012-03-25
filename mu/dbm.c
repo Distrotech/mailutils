@@ -29,7 +29,6 @@
 #include <mailutils/dbm.h>
 #include "argp.h"
 #include "mu.h"
-#include "xalloc.h"
 
 static char dbm_doc[] = N_("mu dbm - DBM management tool\n"
 "Valid COMMANDs are:\n"
@@ -519,7 +518,7 @@ C_read_datum (struct iobuf *inp, struct mu_dbm_datum *datum)
     }
 
   memset (datum, 0, sizeof (*datum));
-  datum->mu_dptr = ptr = xmalloc (length);
+  datum->mu_dptr = ptr = mu_alloc (length);
   base = inp->buffer;
   for (i = 0; i < length; ptr++)
     {
@@ -797,7 +796,7 @@ print_action (struct mu_dbm_datum const *key, void *data)
 	  struct mu_auth_data *ap = mu_get_auth_by_uid (owner_uid);
 	  if (ap)
 	    {
-	      owner_user = xstrdup (ap->name);
+	      owner_user = mu_strdup (ap->name);
 	      known_meta_data |= META_USER;
 	      mu_auth_data_free (ap);
 	    }
@@ -808,7 +807,7 @@ print_action (struct mu_dbm_datum const *key, void *data)
 	  struct group *gr = getgrgid (owner_gid);
 	  if (gr)
 	    {
-	      owner_group = xstrdup (gr->gr_name);
+	      owner_group = mu_strdup (gr->gr_name);
 	      known_meta_data |= META_GROUP;
 	    }
 	}
@@ -858,7 +857,7 @@ iterate_database (mu_dbm_file_t db,
 	  if (key.mu_dsize + 1 > bufsize)
 	    {
 	      bufsize = key.mu_dsize + 1;
-	      buf = xrealloc (buf, bufsize);
+	      buf = mu_realloc (buf, bufsize);
 	    }
 	  memcpy (buf, key.mu_dptr, key.mu_dsize);
 	  buf[key.mu_dsize] = 0;
@@ -924,7 +923,7 @@ match_regex (const char *str, void *data)
 static void
 compile_regexes (int argc, char **argv, struct regmatch *match)
 {
-  regex_t *regs = xcalloc (argc, sizeof (regs[0]));
+  regex_t *regs = mu_calloc (argc, sizeof (regs[0]));
   int i;
   int cflags = (case_sensitive ? 0: REG_ICASE) | REG_EXTENDED | REG_NOSUB;
   int errors = 0;
@@ -1028,7 +1027,7 @@ static int
 _set_file (const char *val)
 {
   if (!db_name)
-    db_name = xstrdup (val);
+    db_name = mu_strdup (val);
   return 0;
 }
 
@@ -1095,7 +1094,7 @@ _set_user (const char *val)
   if (known_meta_data & META_USER)
     return 0;
   free (owner_user);
-  owner_user = xstrdup (val);
+  owner_user = mu_strdup (val);
   known_meta_data |= META_USER;
   return 0;
 }
@@ -1106,7 +1105,7 @@ _set_group (const char *val)
   if (known_meta_data & META_GROUP)
     return 0;
   free (owner_group);
-  owner_group = xstrdup (val);
+  owner_group = mu_strdup (val);
   known_meta_data |= META_GROUP;
   return 0;
 }
@@ -1504,7 +1503,7 @@ store_to_list (struct mu_dbm_datum const *key, void *data)
 {
   int rc;
   mu_list_t list = data;
-  char *p = xmalloc (key->mu_dsize + 1);
+  char *p = mu_alloc (key->mu_dsize + 1);
   memcpy (p, key->mu_dptr, key->mu_dsize);
   p[key->mu_dsize] = 0;
   rc = mu_list_append (list, p);
@@ -1567,7 +1566,7 @@ delete_database (int argc, char **argv)
     case key_literal:
       for (i = 0; i < argc; i++)
 	{
-	  char *p = xstrdup (argv[i]);
+	  char *p = mu_strdup (argv[i]);
 	  rc = mu_list_append (templist, p);
 	  if (rc)
 	    {

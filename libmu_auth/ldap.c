@@ -369,7 +369,11 @@ _construct_attr_array (size_t *pargc, char ***pargv)
     {
       char **str;
       mu_iterator_current (itr, (void**) &str); 
-      argv[i] = strdup (*str);
+      if ((argv[i] = strdup (*str)) == NULL)
+        {
+          mu_argcv_free (i, argv);
+          return ENOMEM;
+        }
     }
   mu_iterator_destroy (&itr);
   argv[i] = NULL;
@@ -418,6 +422,33 @@ _free_partial_auth_data (struct mu_auth_data *d)
 }
 
 static int
+_assign_partial_auth_data (struct mu_auth_data *d, const char *key,
+			   const char *val)
+{
+  int rc = 0;
+  
+  if (strcmp (key, MU_AUTH_NAME) == 0)
+    rc = (d->name = strdup (val)) ? 0 : errno;
+  else if (strcmp (key, MU_AUTH_PASSWD) == 0)
+    rc = (d->passwd = strdup (val)) ? 0 : errno;
+  else if (strcmp (key, MU_AUTH_UID) == 0)
+    d->uid = atoi (val);
+  else if (strcmp (key, MU_AUTH_GID) == 0)
+    d->gid = atoi (val);
+  else if (strcmp (key, MU_AUTH_GECOS) == 0)
+    rc = (d->gecos = strdup (val)) ? 0 : errno;
+  else if (strcmp (key, MU_AUTH_DIR) == 0)
+    rc = (d->dir = strdup (val)) ? 0 : errno;
+  else if (strcmp (key, MU_AUTH_SHELL) == 0)   
+    rc = (d->shell = strdup (val)) ? 0 : errno;
+  else if (strcmp (key, MU_AUTH_MAILBOX) == 0)
+    rc = (d->mailbox = strdup (val)) ? 0 : errno;
+  else if (strcmp (key, MU_AUTH_QUOTA) == 0)   
+    get_quota (&d->quota, val);
+  return rc;
+}
+
+static int
 _mu_entry_to_auth_data (LDAP *ld, LDAPMessage *msg,
 			struct mu_auth_data **return_data)
 {
@@ -456,26 +487,14 @@ _mu_entry_to_auth_data (LDAP *ld, LDAPMessage *msg,
 	  return MU_ERR_READ;
 	}
       
-      if (strcmp (key, MU_AUTH_NAME) == 0)
-	d.name = strdup (values[0]->bv_val);
-      else if (strcmp (key, MU_AUTH_PASSWD) == 0)
-	d.passwd = strdup (values[0]->bv_val);
-      else if (strcmp (key, MU_AUTH_UID) == 0)
-	d.uid = atoi (values[0]->bv_val);
-      else if (strcmp (key, MU_AUTH_GID) == 0)
-	d.gid = atoi (values[0]->bv_val);
-      else if (strcmp (key, MU_AUTH_GECOS) == 0)
-	d.gecos = strdup (values[0]->bv_val);
-      else if (strcmp (key, MU_AUTH_DIR) == 0)
-	d.dir = strdup (values[0]->bv_val);
-      else if (strcmp (key, MU_AUTH_SHELL) == 0)   
-	d.shell = strdup (values[0]->bv_val);
-      else if (strcmp (key, MU_AUTH_MAILBOX) == 0)
-	d.mailbox = strdup (values[0]->bv_val);
-      else if (strcmp (key, MU_AUTH_QUOTA) == 0)   
-	get_quota (&d.quota, values[0]->bv_val);
+      rc = _assign_partial_auth_data (&d, key, values[0]->bv_val);
       
       ldap_value_free_len (values);
+      if (rc)
+	{
+	  _free_partial_auth_data (&d);
+	  return rc;
+	}
     }
   
   rc = mu_auth_data_alloc (return_data,

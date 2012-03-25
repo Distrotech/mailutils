@@ -49,9 +49,7 @@ pop3d_begin_session ()
       return ERR_MBOX_LOCK;
     }
   
-  username = strdup (auth_data->name);
-  if (username == NULL)
-    pop3d_abquit (ERR_NO_MEM);
+  username = mu_strdup (auth_data->name);
   state = TRANSACTION;
 
   pop3d_outf ("+OK opened mailbox for %s\n", username);

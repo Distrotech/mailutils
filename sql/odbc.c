@@ -251,9 +251,9 @@ odbc_get_column (mu_sql_connection_t conn,
       return MU_ERR_SQL;
     }
   
-  *pdata = strdup (buffer);
-  mu_list_append (dp->result, *pdata);
-  return 0;
+  if ((*pdata = strdup (buffer)) == NULL)
+    return ENOMEM;
+  return mu_list_append (dp->result, *pdata);
 }
 
 /* FIXME: untested */

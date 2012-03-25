@@ -86,7 +86,7 @@ get_pathname (const char *dirname, const char *basename)
   
   /* null basename gives dirname.  */
   if (basename == NULL)
-    pathname = (dirname) ? strdup (dirname) : strdup (".");
+    pathname = strdup (dirname ? dirname : ".");
   /* Absolute.  */
   else if (basename[0] == '/')
     pathname = strdup (basename);

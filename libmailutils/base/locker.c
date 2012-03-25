@@ -241,11 +241,15 @@ mu_locker_set_default_expire_timeout (time_t t)
   mu_locker_expire_timeout = t;
 }
 
-void
+int
 mu_locker_set_default_external_program (char *path)
 {
+  char *p = strdup (path);
+  if (!p)
+    return ENOMEM;
   free (mu_locker_external_program);
-  mu_locker_external_program = strdup (path);
+  mu_locker_external_program = p;
+  return 0;
 }
 
 int

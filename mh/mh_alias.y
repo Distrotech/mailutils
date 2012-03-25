@@ -68,7 +68,7 @@ ali_list_to_string (mu_list_t *plist)
 	  length += strlen (s) + 1;
 	}
   
-      string = xmalloc (length + 1);
+      string = mu_alloc (length + 1);
       p = string;
       for (mu_iterator_first (itr); !mu_iterator_is_done (itr); mu_iterator_next(itr))
 	{
@@ -133,7 +133,7 @@ nl           : '\n'
 alias        : STRING ':' { ali_verbatim (1); } address_group
                {
 		 ali_verbatim (0);
-		 $$ = xmalloc (sizeof (*$$));
+		 $$ = mu_alloc (sizeof (*$$));
 		 $$->name = $1;
 		 $$->rcpt_list = $4;
 		 $$->inclusive = 0;
@@ -141,7 +141,7 @@ alias        : STRING ':' { ali_verbatim (1); } address_group
              | STRING ';' { ali_verbatim (1); } address_group
                {
 		 ali_verbatim (0);
-		 $$ = xmalloc (sizeof (*$$));
+		 $$ = mu_alloc (sizeof (*$$));
 		 $$->name = $1;
 		 $$->rcpt_list = $4;
 		 $$->inclusive = 1;
@@ -445,7 +445,7 @@ unix_group_to_list (char *name)
       char **p;
 
       for (p = grp->gr_mem; *p; p++)
-	mu_list_append (lst, strdup (*p));
+	mu_list_append (lst, mu_strdup (*p));
     }      
   
   return lst;
@@ -464,7 +464,7 @@ unix_gid_to_list (char *name)
       while ((pw = getpwent ()))
 	{
 	  if (pw->pw_gid == grp->gr_gid)
-	    mu_list_append (lst, strdup (pw->pw_name));
+	    mu_list_append (lst, mu_strdup (pw->pw_name));
 	}
       endpwent();
     }
@@ -481,7 +481,7 @@ unix_passwd_to_list ()
   while ((pw = getpwent ()))
     {
       if (pw->pw_uid > 200)
-	mu_list_append (lst, strdup (pw->pw_name));
+	mu_list_append (lst, mu_strdup (pw->pw_name));
     }
   endpwent();
   return lst;

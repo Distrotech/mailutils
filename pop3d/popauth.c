@@ -16,7 +16,6 @@
    along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include "pop3d.h"
-#include <xalloc.h>
 #include "mailutils/libargp.h"
 
 int db_list (char *input_name, char *output_name);
@@ -592,7 +591,7 @@ fill_pass (struct action_data *ap)
 	  if (!p)
 	    exit (EX_DATAERR);
 	  
-	  ap->passwd = strdup (p);
+	  ap->passwd = mu_strdup (p);
 	  /* TRANSLATORS: Please try to format this string so that it has
 	     the same length as the translation of 'Password:' above */
 	  rc = mu_getpass (in, out, _("Confirm :"), &p);
@@ -715,7 +714,7 @@ action_chpass (struct action_data *ap)
     {
       char *oldpass, *p;
       
-      oldpass = xmalloc (contents.mu_dsize + 1);
+      oldpass = mu_alloc (contents.mu_dsize + 1);
       memcpy (oldpass, contents.mu_dptr, contents.mu_dsize);
       oldpass[contents.mu_dsize] = 0;
       p = getpass (_("Old Password:"));

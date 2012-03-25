@@ -78,7 +78,7 @@ get_charset ()
 	}
       
       if (!output_charset)
-	output_charset = xstrdup ("ASCII");
+	output_charset = mu_strdup ("ASCII");
     }
   return output_charset;
 }
@@ -109,9 +109,9 @@ size_t logical_size;
 void
 alloc_logical (size_t size)
 {
-  logical = xmalloc (size * sizeof (logical[0]));
+  logical = mu_alloc (size * sizeof (logical[0]));
   logical_size = size;
-  outstring = xmalloc (size);
+  outstring = mu_alloc (size);
 }
 
 void
@@ -144,7 +144,7 @@ puts_bidi (char *string)
       if (len + 1 > visual_size)
 	{
 	  visual_size = len + 1;
-	  visual = xrealloc (visual, visual_size * sizeof *visual);
+	  visual = mu_realloc (visual, visual_size * sizeof *visual);
 	}
       
       /* Create a bidi string. */
@@ -324,7 +324,7 @@ init_output (size_t s)
 	  
   /* Allocate the line buffer */
   linemax = s * MB_LEN_MAX + 1;
-  linebuf = xmalloc (linemax);
+  linebuf = mu_alloc (linemax);
   alloc_logical (s);
 	  
   /* Set up column widths */
@@ -362,7 +362,7 @@ rfc2047_decode_wrapper (const char *buf, size_t buflen)
   const char *charset = get_charset ();
   
   if (strcmp (charset, "ASCII") == 0)
-    return strdup (buf);
+    return mu_strdup (buf);
 
   rc = mu_rfc2047_decode (charset, buf, &tmp);
   if (rc)
@@ -370,7 +370,7 @@ rfc2047_decode_wrapper (const char *buf, size_t buflen)
       if (frm_debug)
 	mu_error (_("cannot decode line `%s': %s"),
 		  buf, mu_strerror (rc));
-      return strdup (buf);
+      return mu_strdup (buf);
     }
 
   return tmp;

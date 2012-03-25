@@ -94,7 +94,7 @@ mh_read_formfile (char *name, char **pformat)
     }
   free (file_name);
   
-  format_str = xmalloc (st.st_size+1);
+  format_str = mu_alloc (st.st_size+1);
   while ((ptr = fgets (format_str + off, st.st_size - off + 1, fp)) != NULL)
     {
       int len = strlen (ptr);
@@ -147,7 +147,7 @@ mh_get_my_name (char *name)
       name = pw->pw_name;
     }
 
-  my_name = strdup (name);
+  my_name = mu_strdup (name);
   my_email = mu_get_user_email (name);
 }
 
@@ -170,7 +170,7 @@ mh_is_my_name (const char *name)
   char *pname, *p;
   int rc = 0;
   
-  pname = strdup (name);
+  pname = mu_strdup (name);
   p = strchr (pname, '@');
   if (p)
     for (p++; *p; p++)
@@ -210,7 +210,7 @@ mh_is_my_name (const char *name)
 	      while (len > 0 && mu_isspace (p[len-1]))
 		len--;
 
-	      pat = xmalloc (len + 1);
+	      pat = mu_alloc (len + 1);
 	      memcpy (pat, p, len);
 	      pat[len] = 0;
 	      rc = emailcmp (pat, pname) == 0;
@@ -234,7 +234,7 @@ static int
 make_dir_hier (const char *p, mode_t perm)
 {
   int rc = 0;
-  char *dir = xstrdup (p);
+  char *dir = mu_strdup (p);
   char *q = dir;
 
   while (!rc && (q = strchr (q + 1, '/')))
@@ -528,7 +528,7 @@ mh_find_file (const char *name, char **resolved_name)
       (name[0] == '.' && name[1] == '/') ||
       (name[0] == '.' && name[1] == '.' && name[2] == '/'))
     {
-      *resolved_name = xstrdup (name);
+      *resolved_name = mu_strdup (name);
       if (access (name, R_OK) == 0)
 	return 0;
       return errno;
@@ -565,7 +565,7 @@ mh_find_file (const char *name, char **resolved_name)
 		    _("cannot access %s: %s"), s, mu_strerror (errno));
   free (s);
 
-  *resolved_name = xstrdup (name);
+  *resolved_name = mu_strdup (name);
   if (access (name, R_OK) == 0)
     return 0;
   rc = errno;
@@ -925,7 +925,7 @@ mh_quote (const char *in, char **out)
         if (*p == '\\' || *p == '"')
 	  len++;
 
-      *out = xmalloc (len + 1);
+      *out = mu_alloc (len + 1);
       q = *out;
       p = in;
       *q++ = *p++;
@@ -939,7 +939,7 @@ mh_quote (const char *in, char **out)
       *q = 0;
     }
   else
-    *out = xstrdup (in);
+    *out = mu_strdup (in);
 }
 
 void

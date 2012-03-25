@@ -33,9 +33,7 @@ imap4d_parsebuf_exit (struct imap4d_parsebuf *p, char *text)
 static char *
 pbcopy (const char *str, size_t len)
 {
-  char *p = malloc (len + 1);
-  if (!p)
-    imap4d_bye (ERR_NO_MEM);
+  char *p = mu_alloc (len + 1);
   memcpy (p, str, len);
   p[len] = 0;
   return p;

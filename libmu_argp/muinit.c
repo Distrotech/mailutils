@@ -21,10 +21,10 @@
 #include "cmdline.h"
 #include <unistd.h>
 #include <stdlib.h>
+#include <mailutils/alloc.h>
 #include <mailutils/stream.h>
 #include <mailutils/io.h>
 #include <mailutils/stdstream.h>
-#include "xalloc.h"
 #include <string.h>
 #ifdef MU_ALPHA_RELEASE
 # include <git-describe.h>
@@ -82,9 +82,7 @@ get_canonical_name ()
       !(p = strchr (argp_program_version, ' ')))
     return strdup (mu_program_name);
   len = p - argp_program_version;
-  name = malloc (len + 1);
-  if (!name)
-    abort ();
+  name = mu_alloc (len + 1);
   memcpy (name, argp_program_version, len);
   name[len] = 0;
   return name;

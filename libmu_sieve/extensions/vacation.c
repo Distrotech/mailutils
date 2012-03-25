@@ -644,6 +644,13 @@ sieve_action_vacation (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
     {
       /* Debugging hook: :sender sets fake reply address */
       from = strdup (val->v.string);
+      if (!from)
+        {
+          mu_sieve_error (mach, "%lu: %s",
+                          (unsigned long) mu_sieve_get_message_num (mach),
+                          mu_strerror (ENOMEM));
+          mu_sieve_abort (mach);
+        }
     }
   else if (mu_sieve_get_message_sender (msg, &from))
     {

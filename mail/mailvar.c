@@ -378,8 +378,8 @@ mailvar_find_variable (const char *name, int create)
 	    return 0;
 	  else
 	    {
-	      p = xmalloc (sizeof *p);
-	      p->name = xstrdup (name);
+	      p = mu_alloc (sizeof *p);
+	      p->name = mu_strdup (name);
 	      mu_list_prepend (mailvar_list, p);
 	    }
 	}
@@ -662,7 +662,7 @@ mailvar_iterate_next (struct mailvar_iterator *itr)
 const char *
 mailvar_iterate_first (int set, const char *prefix, struct mailvar_iterator **pitr)
 {
-  struct mailvar_iterator *itr = xmalloc (sizeof *itr);
+  struct mailvar_iterator *itr = mu_alloc (sizeof *itr);
   itr->prefix = prefix;
   itr->prefixlen = strlen (prefix);
   itr->varlist = mailvar_list_copy (set);

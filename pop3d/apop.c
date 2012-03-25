@@ -150,7 +150,7 @@ pop3d_apopuser (const char *user)
 	  {
 	    p = mu_str_skip_class (p + 1, MU_CTYPE_SPACE);
 	    if (*p)
-	      password = strdup (p);
+	      password = mu_strdup (p);
 	    break;
 	  }
       }

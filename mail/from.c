@@ -45,7 +45,7 @@ header_ensure_space (struct header_call_args *args, size_t size)
 {
   if (size > args->size)
     {
-      args->buf = xrealloc (args->buf, size);
+      args->buf = mu_realloc (args->buf, size);
       args->size = size;
     }
 }
@@ -280,7 +280,7 @@ hdr_from (struct header_call_args *args, void *data)
       
       if (mu_message_get_envelope (args->msg, &env) == 0)
 	mu_envelope_sget_sender (env, &sender);
-      from = strdup (sender);
+      from = mu_strdup (sender);
     }
 
   header_buf_string (args, from);
@@ -387,7 +387,7 @@ new_header_segment (int align, size_t width,
 		    void *data,
 		    char *(*get) (struct header_call_args *, void *))
 {
-  struct header_segm *seg = xmalloc (sizeof (*seg));
+  struct header_segm *seg = mu_alloc (sizeof (*seg));
   seg->next = NULL;
   seg->align = align;
   seg->width = width;
@@ -428,7 +428,7 @@ compile_headline (const char *str)
 	len = p - str;
       if (len)
 	{
-	  text = xmalloc (len + 1);
+	  text = mu_alloc (len + 1);
 	  memcpy (text, str, len);
 	  text[len] = 0;
 	  seg = new_header_segment (ALIGN_LEFT, 0, text, hdr_text);
@@ -460,7 +460,7 @@ compile_headline (const char *str)
       switch (*str++)
 	{
 	case '%':
-	  seg = new_header_segment (ALIGN_LEFT, 0, xstrdup ("%"), hdr_text);
+	  seg = new_header_segment (ALIGN_LEFT, 0, mu_strdup ("%"), hdr_text);
 	  break;
 	  
 	case 'a': /* Message attributes. */
@@ -509,17 +509,19 @@ compile_headline (const char *str)
 	  /* FIXME: %t    The position in threaded/sorted order. */
 	  
 	case '>': /* A `>' for the current message, otherwise ` ' */
-	  seg = new_header_segment (ALIGN_STRING, width, xstrdup (">"), hdr_cur);
+	  seg = new_header_segment (ALIGN_STRING, width, mu_strdup (">"), 
+	                            hdr_cur);
 	  break;
 	  
 	case '<': /* A `<' for the current message, otherwise ` ' */
-	  seg = new_header_segment (ALIGN_STRING, width, xstrdup ("<"), hdr_cur);
+	  seg = new_header_segment (ALIGN_STRING, width, mu_strdup ("<"),
+	                            hdr_cur);
 	  break;
 
 	default:
 	  mu_error (_("unknown escape: %%%c"), str[-1]);
 	  len = str - p;
-	  text = xmalloc (len);
+	  text = mu_alloc (len);
 	  memcpy (text, p, len-1);
 	  text[len-1] = 0;
 	  seg = new_header_segment (ALIGN_STRING, width, text, hdr_text);

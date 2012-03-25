@@ -55,7 +55,7 @@ strobj_create (strobj_t *lvalue, const char *str)
   else
     {
       lvalue->size = strlen (str) + 1;
-      lvalue->ptr = xmalloc (lvalue->size);
+      lvalue->ptr = mu_alloc (lvalue->size);
       memcpy (lvalue->ptr, str, lvalue->size);
     }
 }
@@ -97,14 +97,14 @@ strobj_realloc (strobj_t *obj, size_t length)
   if (strobj_is_static (obj))
     {
       char *value = strobj_ptr (obj);
-      obj->ptr = xmalloc (length);
+      obj->ptr = mu_alloc (length);
       strncpy (obj->ptr, value, length-1);
       obj->ptr[length-1] = 0;
       obj->size = length;
     }
   else
     {
-      obj->ptr = xrealloc (obj->ptr, length);
+      obj->ptr = mu_realloc (obj->ptr, length);
       obj->ptr[length-1] = 0;
       obj->size = length;
     }
@@ -513,7 +513,7 @@ mh_format (mh_format_t *fmt, mu_message_t msg, size_t msgno,
 	 the LC_BASE mh_profile variable to the desired base part.
       */
       const char *lc_base = mh_global_profile_get ("LC_BASE", "en_US");
-      char *locale = xmalloc (strlen (lc_base) + 1 + strlen (charset) + 1);
+      char *locale = mu_alloc (strlen (lc_base) + 1 + strlen (charset) + 1);
       strcpy (locale, lc_base);
       strcat (locale, ".");
       strcat (locale, charset);
@@ -615,7 +615,7 @@ mh_format (mh_format_t *fmt, mu_message_t msg, size_t msgno,
 	    if (size > rest)
 	      size = rest;
 
-	    mach.arg_str.ptr = xmalloc (size+1);
+	    mach.arg_str.ptr = mu_alloc (size+1);
 	    mach.arg_str.size = size;
 	    
 	    str_off = 0;
@@ -679,7 +679,7 @@ mh_format (mh_format_t *fmt, mu_message_t msg, size_t msgno,
   if (pret)
     {
       obstack_1grow (&mach.stk, 0);
-      *pret = strdup (obstack_finish (&mach.stk));
+      *pret = mu_strdup (obstack_finish (&mach.stk));
     }
   obstack_free (&mach.stk, NULL);
   return mach.ind;
@@ -1868,8 +1868,8 @@ builtin_unre (struct mh_machine *mach)
   int rc = mu_unre_subject (strobj_ptr (&mach->arg_str), &p);
   if (rc == 0 && p != strobj_ptr (&mach->arg_str))
     {
-      char *q = strdup (p); /* Create a copy, since strobj_create will
-			       destroy p */
+      char *q = mu_strdup (p); /* Create a copy, since strobj_create will
+			          destroy p */
       strobj_free (&mach->arg_str);
       strobj_create (&mach->arg_str, q);
       free (q);
@@ -1983,7 +1983,7 @@ builtin_printhdr (struct mh_machine *mach)
   if (!strobj_is_null (&mach->arg_str))
     {
       s = strobj_len (&mach->arg_str);
-      tmp = strdup (strobj_ptr (&mach->arg_str));
+      tmp = mu_strdup (strobj_ptr (&mach->arg_str));
     }
   
   if (!strobj_is_null (&mach->reg_str))

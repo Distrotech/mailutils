@@ -50,7 +50,7 @@ prompter_get_value (const char *name)
 
   if (name)
     {
-      prompt = xmalloc (strlen (name) + 3);
+      prompt = mu_alloc (strlen (name) + 3);
       strcpy (prompt, name);
       strcat (prompt, ": ");
     }

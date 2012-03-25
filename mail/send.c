@@ -71,7 +71,7 @@ add_header (char *name, char *value, int mode)
 	}
     }
 
-  hp = xmalloc (sizeof (*hp));
+  hp = mu_alloc (sizeof (*hp));
   hp->mode = mode;
   hp->name = name;
   hp->value = value;
@@ -92,19 +92,19 @@ send_append_header (char *text)
       return;
     }
   len = p - text;
-  name = xmalloc (len + 1);
+  name = mu_alloc (len + 1);
   memcpy (name, text, len);
   name[len] = 0;
   for (p++; *p && mu_isspace (*p); p++)
     ;
 
-  add_header (name, strdup (p), COMPOSE_APPEND);
+  add_header (name, mu_strdup (p), COMPOSE_APPEND);
 }
 
 void
 send_append_header2 (char *name, char *value, int mode)
 {
-  add_header (strdup (name), strdup (value), mode);
+  add_header (mu_strdup (name), mu_strdup (value), mode);
 }
 
 int
@@ -124,7 +124,7 @@ mail_sendheader (int argc, char **argv)
       size_t len = strlen (argv[1]);
       if (len > 0 && argv[1][len - 1] == ':') 
 	argv[1][len - 1] = 0;
-      add_header (strdup (argv[1]), strdup (argv[2]), COMPOSE_APPEND);
+      add_header (mu_strdup (argv[1]), mu_strdup (argv[2]), COMPOSE_APPEND);
     }
   return 0;
 }

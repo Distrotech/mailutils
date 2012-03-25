@@ -247,6 +247,8 @@ decode_tuple_new (mu_sql_connection_t conn, int n,
     {
     case 0:
       mailbox_name = strdup (mailbox_name);
+      if (!mailbox_name)
+        return ENOMEM;
       break;
       
     case MU_ERR_NOENT:

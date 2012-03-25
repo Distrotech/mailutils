@@ -29,7 +29,7 @@ static void
 addrcp (mu_list_t *list, char *addr, int isbcc)
 {
   int rc;
-  struct recipient *p = xmalloc (sizeof (*p));
+  struct recipient *p = mu_alloc (sizeof (*p));
   p->addr = addr;
   p->isbcc = isbcc;
   if (!*list && (rc = mu_list_create (list)))
@@ -227,7 +227,7 @@ read_header (mu_stream_t stream)
       exit (1);
     }
 
-  blurb = xmalloc (size + 1);
+  blurb = mu_alloc (size + 1);
 
   total = 0;
   while (1)

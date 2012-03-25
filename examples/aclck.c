@@ -105,6 +105,7 @@ read_rules (FILE *fp)
 	  continue;
 	}
 
+      rc = 0;
       switch (action)
 	{
 	case mu_acl_accept:
@@ -115,12 +116,20 @@ read_rules (FILE *fp)
 	case mu_acl_exec:
 	case mu_acl_ifexec:
 	  data = strdup (ws.ws_wordv[2]);
+	  if (!data)
+	    {
+              rc = ENOMEM;
+              mu_error ("%d: %s", line, mu_strerror (rc));
+	    }
 	}
 
-      rc = mu_acl_append (acl, action, data, &cidr);
-      if (rc)
-	mu_error ("%d: cannot append acl entry: %s", line,
-		  mu_strerror (rc));
+      if (rc == 0)
+        {
+          rc = mu_acl_append (acl, action, data, &cidr);
+          if (rc)
+            mu_error ("%d: cannot append acl entry: %s", line,
+		      mu_strerror (rc));
+        }
     }
   mu_wordsplit_free (&ws);
 }

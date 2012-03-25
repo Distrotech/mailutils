@@ -27,9 +27,7 @@ make_interdir (const char *name, int delim, int perms)
   size_t namelen = 0;
   char delimbuf[2];
   
-  namebuf = malloc (strlen (name) + 1);
-  if (!namebuf)
-    imap4d_bye (ERR_NO_MEM);
+  namebuf = mu_alloc (strlen (name) + 1);
   if (name[0] == '/')
     namebuf[namelen++] = name[0];
 

@@ -38,13 +38,13 @@
 #endif
 
 #include <mbswidth.h>
-#include <xalloc.h>
 
 #ifdef HAVE_FRIBIDI_FRIBIDI_H
 # include <fribidi/fribidi.h>
 #endif
 
 #include <mailutils/address.h>
+#include <mailutils/alloc.h>
 #include <mailutils/attribute.h>
 #include <mailutils/debug.h>
 #include <mailutils/errno.h>

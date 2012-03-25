@@ -39,6 +39,8 @@ mu_tilde_expansion (const char *ref, int delim, const char *homedir)
   size_t proto_len = 0;
   char *p;
 
+  if (!base)
+    return NULL;
   for (p = base; *p && mu_isascii (*p) && mu_isalnum (*p); p++)
     ;
   

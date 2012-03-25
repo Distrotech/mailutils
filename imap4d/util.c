@@ -26,9 +26,7 @@ util_getfullpath (const char *name)
   if (*exp != MU_HIERARCHY_DELIMITER)
     {
       char *p, *s =
-	malloc (strlen (imap4d_homedir) + 1 + strlen (exp) + 1);
-      if (!s)
-	imap4d_bye (ERR_NO_MEM);
+	mu_alloc (strlen (imap4d_homedir) + 1 + strlen (exp) + 1);
       p = mu_stpcpy (s, imap4d_homedir);
       *p++ = MU_HIERARCHY_DELIMITER;
       strcpy (p, exp);
@@ -244,7 +242,7 @@ util_localname ()
 	  if (hp)
 	    {
 	      free (name);
-	      name = strdup ((char *) hp->h_name);
+	      name = mu_strdup ((char *) hp->h_name);
 	    }
 	}
       localname = name;

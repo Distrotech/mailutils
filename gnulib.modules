@@ -3,7 +3,6 @@
 
 # FIXME: fnmatch, regex and glob are used by libmailutils...
 
-alloca
 autobuild
 argp
 crypto/des
@@ -12,13 +11,10 @@ gettext
 gitlog-to-changelog
 intprops
 inttostr
-malloc
 mbchar
 mbiter
 mbslen
 mbswidth
 obstack
-realloc
 setenv
 stdint
-xalloc

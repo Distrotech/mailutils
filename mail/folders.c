@@ -31,20 +31,15 @@ mail_folders (int argc MU_ARG_UNUSED, char **argv MU_ARG_UNUSED)
 
   if (path[0] != '/' && path[0] != '~')
     {
-      char *tmp = alloca (strlen (path) + 3);
-      if (!tmp)
-	{
-	  mu_error (_("Not enough memory"));
-	  return 1;
-	} 
-
+      char *tmp = mu_alloc (strlen (path) + 3);
       tmp[0] = '~';
       tmp[1] = '/';
       strcpy (tmp + 2, path);
-      path = tmp;
+      path = util_fullpath (tmp);
+      free (tmp);
     }
-  
-  path = util_fullpath (path);
+  else
+    path = util_fullpath (path);
   
   util_do_command("! %s '%s'", getenv ("LISTER"), path);
   free (path);

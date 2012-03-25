@@ -385,7 +385,7 @@ make_draft (mu_mailbox_t mbox, int disp, struct mh_whatnow_env *wh)
       wh->msg = msgname;
     else
       {
-	wh->msg = strdup (p+1);
+	wh->msg = mu_strdup (p+1);
 	free (msgname);
       }
   }

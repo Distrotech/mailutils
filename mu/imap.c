@@ -30,7 +30,6 @@
 #include <mailutils/msgset.h>
 #include "mu.h"
 #include "argp.h"
-#include "xalloc.h"
 
 static char imap_doc[] = N_("mu imap - IMAP4 client shell.");
 char imap_docstring[] = N_("IMAP4 client shell");
@@ -155,7 +154,7 @@ imap_prompt_env ()
 {
   enum mu_imap_session_state state = current_imap_state ();
   if (!mutool_prompt_env)
-    mutool_prompt_env = xcalloc (2*7 + 1, sizeof(mutool_prompt_env[0]));
+    mutool_prompt_env = mu_calloc (2*7 + 1, sizeof(mutool_prompt_env[0]));
 
   mutool_prompt_env[0] = "user";
   mutool_prompt_env[1] = (state >= MU_IMAP_SESSION_AUTH && username) ?
@@ -618,9 +617,9 @@ com_connect (int argc, char **argv)
   if (!status)
     {
       connect_argc = argc;
-      connect_argv = xcalloc (argc, sizeof (*connect_argv));
+      connect_argv = mu_calloc (argc, sizeof (*connect_argv));
       for (i = 0; i < argc; i++)
-	connect_argv[i] = xstrdup (argv[i]);
+	connect_argv[i] = mu_strdup (argv[i]);
       connect_argv[i] = NULL;
     
       imap_prompt_env ();
@@ -1319,7 +1318,7 @@ mutool_imap (int argc, char **argv)
     }
 
   /* Command line prompt */
-  mutool_shell_prompt = xstrdup ("imap> ");
+  mutool_shell_prompt = mu_strdup ("imap> ");
   imap_prompt_env ();
   mutool_shell ("imap", imap_comtab);
   return 0;

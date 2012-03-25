@@ -24,11 +24,11 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <mh_getopt.h>
-#include <xalloc.h>
 #include <mailutils/io.h>
 
 #include <string.h>
 
+#include <mailutils/alloc.h>
 #include <mailutils/cctype.h>
 #include <mailutils/cstr.h>
 #include <mailutils/parse822.h>

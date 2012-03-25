@@ -163,6 +163,11 @@ mu_get_user_email (const char *name)
       name = tmpname = strdup(auth->name);
       if (auth)
 	mu_auth_data_free (auth);
+      if (!name)
+        {
+          errno = ENOMEM;
+          return NULL;
+        }
     }
 
   status = mu_get_user_email_domain (&domainpart);

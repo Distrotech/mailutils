@@ -302,7 +302,7 @@ check_file (char *name)
       mu_error (_("cannot create message list"));
       return 1;
     }
-  elt = xmalloc (sizeof *elt);
+  elt = mu_alloc (sizeof *elt);
   elt->file_name = file_name;
   elt->msg = msg;
   return mu_list_append (mesg_list, elt);
@@ -354,7 +354,7 @@ read_mts_profile ()
     {
       char *newdomain;
 
-      newdomain = xmalloc (strlen (hostname) + 1 + strlen (p) + 1);
+      newdomain = mu_alloc (strlen (hostname) + 1 + strlen (p) + 1);
       strcpy (newdomain, hostname);
       strcat (newdomain, ".");
       strcat (newdomain, p);
@@ -388,7 +388,7 @@ read_mts_profile ()
 	  exit (1);
 	}
       len = strlen (p) + 1 + strlen (domain) + 1;
-      newemail = xmalloc (len);
+      newemail = mu_alloc (len);
       strcpy (newemail, p);
       strcat (newemail, "@");
       strcat (newemail, domain);
@@ -621,7 +621,7 @@ fix_dcc (mu_message_t msg)
 void
 backup_file (const char *file_name)
 {
-  char *new_name = xmalloc (strlen (file_name) + 2);
+  char *new_name = mu_alloc (strlen (file_name) + 2);
   char *p = strrchr (file_name, '/');
   if (p)
     {
@@ -744,7 +744,7 @@ _add_to_mesg_list (size_t num, mu_message_t msg, void *data)
   size_t uid;
   int rc;
   
-  elt = xmalloc (sizeof *elt);
+  elt = mu_alloc (sizeof *elt);
   elt->msg = msg;
   mu_message_get_uid (msg, &uid);
   elt->file_name = mu_make_file_name (path, mu_umaxtostr (0, uid));

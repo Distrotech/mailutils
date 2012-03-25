@@ -25,7 +25,7 @@ static void set_cflags (char *str);
 static regex_t *
 regex_dup (regex_t *re)
 {
-  regex_t *rp = xmalloc (sizeof (*rp));
+  regex_t *rp = mu_alloc (sizeof (*rp));
   *rp = *re;
   return rp;
 }
@@ -245,7 +245,7 @@ pick_add_token (mu_list_t *list, int tok, char *val)
       mu_error(_("cannot create list: %s"), mu_strerror (rc));
       exit (1);
     }
-  tp = xmalloc (sizeof (*tp));
+  tp = mu_alloc (sizeof (*tp));
   tp->tok = tok;
   tp->val = val;
   mu_list_append (*list, tp);
@@ -279,7 +279,7 @@ pick_node_create (node_type type, void *a, void *b)
 {
   node_t *node;
 
-  node = xmalloc (sizeof (*node));
+  node = mu_alloc (sizeof (*node));
   node->type = type;
   node->v.gen.a = a;
   node->v.gen.b = b;

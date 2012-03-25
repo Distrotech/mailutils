@@ -28,8 +28,6 @@
 int
 main (int argc, const char **argv)
 {
-  char *from;
-  char *subject;
   mu_mailbox_t mbox;
   size_t msgno, total = 0;
   int status;
@@ -62,6 +60,8 @@ main (int argc, const char **argv)
     {
       mu_message_t msg;
       mu_header_t hdr;
+      const char *from;
+      const char *subject;
 
       if ((status = mu_mailbox_get_message (mbox, msgno, &msg)) != 0
           || (status = mu_message_get_header (msg, &hdr)) != 0)
@@ -70,15 +70,13 @@ main (int argc, const char **argv)
           exit (EXIT_FAILURE);
         }
 
-      if (mu_header_aget_value (hdr, MU_HEADER_FROM, &from))
-        from = strdup ("(NO FROM)");
+      if (mu_header_sget_value (hdr, MU_HEADER_FROM, &from))
+        from = "(NO FROM)";
 
-      if (mu_header_aget_value (hdr, MU_HEADER_SUBJECT, &subject))
-        subject = strdup ("(NO SUBJECT)");
+      if (mu_header_sget_value (hdr, MU_HEADER_SUBJECT, &subject))
+        subject = "(NO SUBJECT)";
 
       printf ("%s\t%s\n", from, subject);
-      free (from);
-      free (subject);
     }
 
   status = mu_mailbox_close (mbox);

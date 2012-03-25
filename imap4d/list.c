@@ -195,14 +195,14 @@ imap4d_list (struct imap4d_command *command, imap4d_tokbuf_t tok)
 	      }
 	    else
 	      {
-		ref = strdup (wcard);
+		ref = mu_strdup (wcard);
 		wcard += strlen (wcard);
 	      }
 	  }
 	  break;
 
 	default:
-	  ref = strdup (ref);
+	  ref = mu_strdup (ref);
 	}
 
       /* Move any directory not containing a wildcard into the reference

@@ -68,8 +68,6 @@
 #endif
 #include <sysexits.h>
 
-#include "xalloc.h"
-
 #include <mailutils/address.h>
 #include <mailutils/attribute.h>
 #include <mailutils/body.h>

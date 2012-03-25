@@ -482,7 +482,11 @@ _log_ctl (struct _mu_stream *str, int code, int opcode, void *arg)
 	      newp->logmode = sp->logmode;
 	      newp->sevmask = sp->sevmask;
 	      if (sp->locus.mu_file)
-		newp->locus.mu_file = strdup (sp->locus.mu_file);
+                {
+		  newp->locus.mu_file = strdup (sp->locus.mu_file);
+		  if (!newp->locus.mu_file)
+		    return ENOMEM;
+		}
 	      newp->locus.mu_line = sp->locus.mu_line;
 	      newp->locus.mu_col = sp->locus.mu_col;
 	      *(mu_stream_t*) arg = str;

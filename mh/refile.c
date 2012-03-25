@@ -70,7 +70,7 @@ add_folder (const char *folder)
       mu_error (_("cannot create folder list"));
       exit (1);
     }
-  mu_list_append (folder_name_list, strdup (folder));
+  mu_list_append (folder_name_list, mu_strdup (folder));
 }
 
 void

@@ -65,7 +65,7 @@ mail_set_my_name (char *name)
 	}
       name = pw->pw_name;
     }
-  my_name = strdup (name);
+  my_name = mu_strdup (name);
   my_email = mu_get_user_email (name);
   if (!my_email)
     {

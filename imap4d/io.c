@@ -194,7 +194,7 @@ io_send_qstring (const char *buffer)
     {
       char *s;
       int ret;
-      char *b = strdup (buffer);
+      char *b = mu_strdup (buffer);
       while ((s = strchr (b, '\n')) || (s = strchr (b, '\r')))
 	*s = ' ';
       ret = io_send_literal (b);
@@ -390,9 +390,7 @@ struct imap4d_tokbuf
 struct imap4d_tokbuf *
 imap4d_tokbuf_init ()
 {
-  struct imap4d_tokbuf *tok = malloc (sizeof (tok[0]));
-  if (!tok)
-    imap4d_bye (ERR_NO_MEM);
+  struct imap4d_tokbuf *tok = mu_alloc (sizeof (tok[0]));
   memset (tok, 0, sizeof (*tok));
   return tok;
 }
@@ -647,7 +645,7 @@ struct imap4d_tokbuf *
 imap4d_tokbuf_from_string (char *str)
 {
   struct imap4d_tokbuf *tok = imap4d_tokbuf_init ();
-  tok->buffer = strdup (str);
+  tok->buffer = mu_strdup (str);
   if (!tok->buffer)
     imap4d_bye (ERR_NO_MEM);
   tok->level = strlen (str);

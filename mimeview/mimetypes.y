@@ -505,7 +505,7 @@ b_contains (union argument *args)
       return 0;
     }
 
-  buf = xmalloc (args[1].number);
+  buf = mu_alloc (args[1].number);
   rc = mu_stream_read (mimeview_stream, buf, args[1].number, &count);
   if (count != args[1].number)
     {

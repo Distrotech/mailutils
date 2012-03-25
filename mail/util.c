@@ -66,7 +66,7 @@ util_do_command (const char *fmt, ...)
 	     according to the POSIX spec. Note, that this applies
 	     to interactive state only. */
 	  if (interactive)
-	    cmd = strdup ("next");
+	    cmd = mu_strdup ("next");
 	  else
 	    return 0;
 	}
@@ -124,7 +124,7 @@ util_do_command (const char *fmt, ...)
 	  argc++;
 	  argv--;
 	  argv[0] = argv[1];
-	  argv[1] = xstrdup (p);
+	  argv[1] = mu_strdup (p);
 	  *p = 0;
 	  /* Register the new entry in WS */
 	  ws.ws_wordc++;
@@ -495,15 +495,15 @@ util_folder_path (const char *name)
   if (folder[0] != '/' && folder[0] != '~')
     {
       char *home = mu_get_homedir ();
-      tmp  = xmalloc (strlen (home) + 1 +
-		      strlen (folder) + 1 +
-		      strlen (name) + 1);
+      tmp  = mu_alloc (strlen (home) + 1 +
+		       strlen (folder) + 1 +
+		       strlen (name) + 1);
       sprintf (tmp, "%s/%s/%s", home, folder, name);
     }
   else
     {
-      tmp  = xmalloc (strlen (folder) + 1 +
-		      strlen (name) + 1);
+      tmp  = mu_alloc (strlen (folder) + 1 +
+		       strlen (name) + 1);
       sprintf (tmp, "%s/%s", folder, name);
     }
   p = util_fullpath (tmp);
@@ -613,7 +613,7 @@ util_slist_add (mu_list_t *plist, char *value)
     }
   else
     list = *plist;
-  mu_list_append (list, xstrdup (value));
+  mu_list_append (list, mu_strdup (value));
 }
 
 void
@@ -654,7 +654,7 @@ void
 util_strcat (char **dest, const char *str)
 {
   if (!*dest)
-    *dest = strdup (str);
+    *dest = mu_strdup (str);
   else
     {
       int dlen = strlen (*dest) + 1;
@@ -700,7 +700,7 @@ util_outfolder_name (char *str)
 
     }
 
-  return strdup (str);
+  return mu_strdup (str);
 }
 
 /* Save an outgoing message. The SAVEFILE argument overrides the setting
@@ -816,7 +816,7 @@ util_get_content_type (mu_header_t hdr, char **value, char **args)
     {
       if (type)
 	free (type);
-      type = strdup ("text/plain"); /* Default.  */
+      type = mu_strdup ("text/plain"); /* Default.  */
     }
   else
     {

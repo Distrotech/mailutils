@@ -18,7 +18,6 @@
 # include <config.h>
 #endif
 #include <mailutils/mailutils.h>
-#include <xalloc.h>
 #include <fnmatch.h>
 #define obstack_chunk_alloc malloc
 #define obstack_chunk_free free
@@ -87,7 +86,7 @@ mime_context_fill (struct mime_context *ctx, const char *file,
 
   ctx->content_type = ws.ws_wordv[0];
   ws.ws_wordv[0] = NULL;
-  ctx->temp_file = file ? strdup (file) : NULL; 
+  ctx->temp_file = file ? mu_strdup (file) : NULL; 
   ctx->unlink_temp_file = 0;
 
   if (interactive)

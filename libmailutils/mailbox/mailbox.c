@@ -841,7 +841,7 @@ mu_mailbox_get_uidls (mu_mailbox_t mbox, mu_list_t *plist)
 	      break;
 	    }
 	  uidl->msgno = i;
-	  strncpy (uidl->uidl, strdup (buf), MU_UIDL_BUFFER_SIZE);
+	  strncpy (uidl->uidl, buf, MU_UIDL_BUFFER_SIZE);
 	  status = mu_list_append (list, uidl);
 	  if (status)
 	    {

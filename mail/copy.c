@@ -44,7 +44,7 @@ mail_copy0 (int argc, char **argv, int mark)
   else if (argc >= 2)
     filename = mail_expand_name (argv[--argc]);
   else
-    filename = strdup ("mbox");
+    filename = mu_strdup ("mbox");
 
   if (msgset_parse (argc, argv, MSG_NODELETED|MSG_SILENT, &msglist))
     {

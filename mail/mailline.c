@@ -255,7 +255,7 @@ ml_command_generator (const char *text, int state)
 	name = cp->shortname;
       i++;
       if (strncmp (name, text, len) == 0)
-	return strdup (name);
+	return mu_strdup (name);
     }
 
   return NULL;
@@ -323,7 +323,7 @@ file_generator (const char *text, int state,
       mu_folder_t folder;
       size_t count;
 
-      wcard = xmalloc (strlen (text) + 2);
+      wcard = mu_alloc (strlen (text) + 2);
       strcat (strcpy (wcard, text), "*");
 
       if (mu_folder_create (&folder, path))
@@ -365,7 +365,7 @@ file_generator (const char *text, int state,
 	      size_t len = strlen (resp->name + pathlen);
 	      char *ptr;
 
-	      ret = xmalloc (len + (repl ? 1 : 0) + 1);
+	      ret = mu_alloc (len + (repl ? 1 : 0) + 1);
 	      ptr = ret;
 	      if (repl)
 		*ptr++ = repl;
@@ -373,7 +373,7 @@ file_generator (const char *text, int state,
 	      ptr[len] = 0;
 	    }
 	  else
-	    ret = xstrdup (resp->name);
+	    ret = mu_strdup (resp->name);
 	  return ret;
 	}
     }
@@ -493,7 +493,7 @@ header_generator (const char *text, int state)
     {
       i++;
       if (mu_c_strncasecmp (hdr, text, len) == 0)
-	return strdup (hdr);
+	return mu_strdup (hdr);
     }
 
   return NULL;
@@ -594,13 +594,13 @@ dir_generator (const char *text, int state)
 	  /* else FIXME! */
 
 	case '/':
-	  path = strdup (text);
+	  path = mu_strdup (text);
 	  pathlen = 0;
 	  repl = 0;
 	  break;
 
 	default:
-	  path = strdup ("./");
+	  path = mu_strdup ("./");
 	  pathlen = 2;
 	  repl = 0;
 	}
@@ -643,7 +643,7 @@ alias_generator (const char *text, int state)
       alias_iterate_end (&itr);
       return NULL;
     }
-  return strdup (p);
+  return mu_strdup (p);
 }
 
 char **
@@ -744,7 +744,7 @@ exec_generator (const char *text, int state)
 	      if (rc == 0
 		  && strlen (ent->d_name) >= prefix_len
 		  && strncmp (ent->d_name, text, prefix_len) == 0)
-		return strdup (ent->d_name);
+		return mu_strdup (ent->d_name);
 	    }
 	}
 
@@ -889,7 +889,7 @@ ml_reread (const char *prompt, char **text)
       line = strdup (*text);
       if (line)
 	{
-	  pos = strlen(line);
+	  pos = strlen (line);
 	  line_size = pos + 1;
 	}
     }

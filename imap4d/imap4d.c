@@ -208,7 +208,7 @@ cb_preauth (void *data, mu_config_value_t *val)
     return parse_preauth_scheme (val->v.string, NULL);
   else if (val->v.string[0] == '/')
     {
-      preauth_program = xstrdup (val->v.string);
+      preauth_program = mu_strdup (val->v.string);
       preauth_mode = preauth_prog;
     }
   else
@@ -349,7 +349,7 @@ imap4d_session_setup0 ()
 	  mu_error (_("expanding %s yields empty string"), expr);
 	  return 1;
 	}
-      imap4d_homedir = strdup (ws.ws_wordv[0]);
+      imap4d_homedir = mu_strdup (ws.ws_wordv[0]);
       if (!imap4d_homedir)
 	{
 	  mu_error ("%s", mu_strerror (errno));
@@ -357,7 +357,7 @@ imap4d_session_setup0 ()
 	}
     }
   else
-    imap4d_homedir = strdup (real_homedir);
+    imap4d_homedir = mu_strdup (real_homedir);
 
   if (strcmp (imap4d_homedir, real_homedir)
       && imap4d_check_home_dir (imap4d_homedir,
@@ -627,6 +627,12 @@ imap4d_master_signal (int signo)
   longjmp (master_jmp, signo);
 }
 
+static void
+imap4d_alloc_die ()
+{
+  imap4d_bye (ERR_NO_MEM);
+}
+
 
 int
 main (int argc, char **argv)
@@ -673,6 +679,8 @@ main (int argc, char **argv)
   mu_m_server_set_timeout (server, 1800);  /* RFC2060: 30 minutes. */
   mu_m_server_set_strexit (server, mu_strexit);
   
+  mu_alloc_die_hook = imap4d_alloc_die;
+
   mu_log_syslog = 1;
 
   if (mu_app_init (&argp, imap4d_capa, imap4d_cfg_param, 

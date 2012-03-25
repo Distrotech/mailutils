@@ -58,7 +58,7 @@ check_page_map ()
   if (!page_map)
     {
       page_size = util_screen_lines ();
-      page_map = xrealloc (page_map, sizeof (page_map[0]) * page_size);
+      page_map = mu_realloc (page_map, sizeof (page_map[0]) * page_size);
       page_avail = 0;
     }
   if (page_avail == 0)

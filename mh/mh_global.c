@@ -30,7 +30,7 @@ mh_read_property_file (char *name, int ro)
   struct mu_mh_prop *mhprop;
   int rc;
   
-  mhprop = xzalloc (sizeof (mhprop[0]));
+  mhprop = mu_zalloc (sizeof (mhprop[0]));
   mhprop->filename = name;
   mhprop->ro = ro;
   rc = mu_property_create_init (&prop, mu_mh_property_init, mhprop);

@@ -371,7 +371,7 @@ main (int argc, char **argv)
   
   /* Set the default mailer to sendmail.  */
   mailvar_set ("sendmail",
-	       xstrdup ("sendmail:" PATH_SENDMAIL), mailvar_type_string,
+	       mu_strdup ("sendmail:" PATH_SENDMAIL), mailvar_type_string,
 	       MOPTF_OVERWRITE);
 
   args.argc = 0;
@@ -539,7 +539,7 @@ mail_mainloop (char *(*input) (void *, int),
 	      break;
 	    }
 	  command[len-1] = '\0';
-	  buf = xmalloc ((len + strlen (command2)) * sizeof (char));
+	  buf = mu_alloc ((len + strlen (command2)) * sizeof (char));
 	  strcpy (buf, command);
 	  strcat (buf, command2);
 	  free (command);

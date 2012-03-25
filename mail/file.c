@@ -41,7 +41,7 @@ mail_expand_name (const char *name)
 	  return NULL;
 	}
       else
-	name = xstrdup (prev_name);
+	name = mu_strdup (prev_name);
       break;
 	  
     case '&':
@@ -49,7 +49,7 @@ mail_expand_name (const char *name)
       if (!name)
 	mu_error (_("MBOX environment variable not set"));
       else
-	name = xstrdup (name);
+	name = mu_strdup (name);
       break;
 	  
     case '+':
@@ -57,7 +57,7 @@ mail_expand_name (const char *name)
       break;
 
     default:
-      name = xstrdup (name);
+      name = mu_strdup (name);
       break;
     }
   return (char*) name;
@@ -100,7 +100,7 @@ mail_file (int argc, char **argv)
       page_invalidate (1); /* Invalidate current page map */
       
       mu_mailbox_get_url (mbox, &url);
-      pname = strdup (mu_url_to_string (url));
+      pname = mu_strdup (mu_url_to_string (url));
       if (mail_mbox_close ())
 	{
 	  if (pname)

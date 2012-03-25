@@ -298,6 +298,8 @@ _message_open (mu_stream_t stream)
 	  tm = gmtime (&t);
 	  mu_strftime (date, sizeof (date), MU_DATETIME_FROM, tm);
 	  env_date = strdup (date);
+	  if (!env_date)
+	    return ENOMEM;
 	}
       
       str->from = env_from;

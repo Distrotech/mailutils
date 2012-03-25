@@ -192,7 +192,13 @@ mu_pam_module_init (enum mu_gocs_op op, void *data)
   if (op == mu_gocs_op_set && data)
     {
       struct mu_gocs_pam *p = data;
-      mu_pam_service = p->service ? strdup (p->service) : p->service;
+      if (p->service)
+        {
+          if ((mu_pam_service = strdup (p->service)) == NULL)
+            return ENOMEM;
+        }
+      else
+        mu_pam_service = NULL;
     }
   return 0;
 }

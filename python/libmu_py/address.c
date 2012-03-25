@@ -129,7 +129,11 @@ api_address_createv (PyObject *self, PyObject *args)
       for (i = 0; i < len; i++) {
 	py_item = PySequence_GetItem (py_seq, i);
 	if (py_item && PyString_Check (py_item))
-	  sv[i] = strdup (PyString_AsString (py_item));
+	  if ((sv[i] = strdup (PyString_AsString (py_item))) == NULL)
+	    {
+	      PyErr_NoMemory ();
+	      return NULL;
+	    }
 	Py_DECREF (py_item);
       }
       if (PyErr_Occurred ()) {

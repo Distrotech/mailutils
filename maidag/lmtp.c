@@ -464,6 +464,12 @@ cfun_lhlo (mu_stream_t iostr, char *arg)
       return 1;
     }
   lhlo_domain = strdup (arg);
+  if (!lhlo_domain)
+    {
+      lmtp_reply (iostr, "410", "4.0.0",
+                  "Local error; please try again later");
+      return 1;
+    }
   lmtp_reply (iostr, "250", NULL, "Hello\n");
   lmtp_reply (iostr, "250", NULL, capa_str);
   return 0;

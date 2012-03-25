@@ -854,9 +854,7 @@ fetch_io (mu_stream_t stream, size_t start, size_t size, size_t max)
 	  return RESP_BAD;
 	}
       
-      p = buffer = malloc (size + 1);
-      if (!p)
-	imap4d_bye (ERR_NO_MEM);
+      p = buffer = mu_alloc (size + 1);
 
       rc = mu_stream_seek (rfc, start, MU_SEEK_SET, NULL);
       if (rc)
@@ -1298,9 +1296,7 @@ _do_fetch (void *item, void *data)
 static void
 append_ffc (struct fetch_parse_closure *p, struct fetch_function_closure *ffc)
 {
-  struct fetch_function_closure *new_ffc = malloc (sizeof (*new_ffc));
-  if (!new_ffc)
-    imap4d_bye (ERR_NO_MEM);
+  struct fetch_function_closure *new_ffc = mu_alloc (sizeof (*new_ffc));
   *new_ffc = *ffc;
   mu_list_append (p->fnlist, new_ffc);
 }

@@ -278,14 +278,18 @@ _acl_match (struct _mu_acl_entry *ent, struct run_closure *rp)
 							      
   if (mu_debug_level_p (MU_DEBCAT_ACL, MU_DEBUG_TRACE9))
     {
-      char *s;
-
-      if (ent->cidr.len == 0)
-	s = strdup ("any");
-      mu_cidr_format (&ent->cidr, 0, &s);
+      char *s = NULL;
+      int rc;
+      
+      if (ent->cidr.len && (rc = mu_cidr_format (&ent->cidr, 0, &s)))
+        {
+          mu_debug (MU_DEBCAT_ACL, MU_DEBUG_ERROR,
+                    ("mu_cidr_format: %s", mu_strerror (rc)));
+          return 1;
+        }
       if (!rp->addrstr)
-	mu_cidr_format (&rp->addr, MU_CIDR_FMT_ADDRONLY, &rp->addrstr);
-      mu_debug_log_begin ("Does %s match %s? ", s, rp->addrstr);
+        mu_cidr_format (&rp->addr, MU_CIDR_FMT_ADDRONLY, &rp->addrstr);
+      mu_debug_log_begin ("Does %s match %s? ", s ? s : "any", rp->addrstr);
       free (s);
     }
 
@@ -402,8 +406,11 @@ spawn_prog (const char *cmdline, int *pstatus, struct run_closure *rp)
   pid_t pid;
 
   if (expand_arg (cmdline, rp, &s))
-    s = strdup (cmdline);
-
+    {
+      s = strdup (cmdline);
+      if (!s)
+        return ENOMEM;
+    }
   pid = fork ();
   if (pid == 0)
     {

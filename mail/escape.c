@@ -112,8 +112,8 @@ parse_headers (mu_stream_t input, compose_env_t *env)
 		  *p++ = 0;
 		  while (*p && mu_isspace (*p))
 		    p++;
-		  value = strdup (p);
-		  name = strdup (buf);
+		  value = mu_strdup (p);
+		  name = mu_strdup (buf);
 		}
 	      else
 		{
@@ -435,7 +435,7 @@ void
 reread_header (compose_env_t *env, char *hdr, char *prompt)
 {
   char *p;
-  p = strdup (compose_header_get (env, hdr, ""));
+  p = mu_strdup (compose_header_get (env, hdr, ""));
   ml_reread (prompt, &p);
   compose_header_set (env, hdr, p, COMPOSE_REPLACE);
   free (p);

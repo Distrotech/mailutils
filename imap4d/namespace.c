@@ -231,7 +231,7 @@ namespace_getfullpath (const char *name, int *nspace)
   char *ret;
   if (mu_c_strcasecmp (name, "INBOX") == 0 && auth_data->change_uid)
     {
-      ret = strdup (auth_data->mailbox);
+      ret = mu_strdup (auth_data->mailbox);
       if (nspace)
 	*nspace = NS_PRIVATE;
     }

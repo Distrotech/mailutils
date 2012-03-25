@@ -154,12 +154,21 @@ bodystructure_fill (mu_message_t msg, struct mu_bodystructure *bs)
 	return ENOMEM;
       bs->body_subtype = strdup ("PLAIN");
       if (!bs->body_subtype)
-	return ENOMEM;
+        {
+          free (bs->body_type);
+	  return ENOMEM;
+	}
       rc = mu_mime_param_assoc_create (&bs->body_param);
       if (rc)
 	return rc;
       memset (&param, 0, sizeof (param));
       param.value = strdup ("US-ASCII");
+      if (!param.value)
+        {
+          free (bs->body_type);
+          free (bs->body_subtype);
+          return ENOMEM;
+        }
       rc = mu_assoc_install (bs->body_param, "CHARSET", &param);
       if (rc)
 	{

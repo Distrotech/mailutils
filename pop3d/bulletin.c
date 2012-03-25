@@ -22,7 +22,7 @@ static char *bulletin_db_name;
 void
 set_bulletin_db (const char *file)
 {
-  bulletin_db_name = strdup (file);
+  bulletin_db_name = mu_strdup (file);
 }
 
 static void
@@ -65,7 +65,7 @@ open_bulletin_mailbox (mu_mailbox_t *pmbox)
 int
 set_bulletin_source (const char *source)
 {
-  bulletin_mbox_name = strdup (source);
+  bulletin_mbox_name = mu_strdup (source);
   return 0;
 }
 

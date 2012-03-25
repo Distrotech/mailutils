@@ -401,9 +401,7 @@ parse_regmem (struct parsebuf *pb, void *mem, void (*f) (void*))
 {
   struct mem_chain *mp;
 
-  mp = malloc (sizeof(*mp));
-  if (!mp)
-    imap4d_bye (ERR_NO_MEM);
+  mp = mu_alloc (sizeof(*mp));
   mp->next = pb->alloc;
   pb->alloc = mp;
   mp->mem = mem;
@@ -415,9 +413,7 @@ parse_regmem (struct parsebuf *pb, void *mem, void (*f) (void*))
 void *
 parse_alloc (struct parsebuf *pb, size_t size)
 {
-  void *p = malloc (size);
-  if (!p)
-    imap4d_bye (ERR_NO_MEM);
+  void *p = mu_alloc (size);
   return parse_regmem (pb, p, NULL);
 }
 
@@ -425,7 +421,7 @@ parse_alloc (struct parsebuf *pb, size_t size)
 char *
 parse_strdup (struct parsebuf *pb, char *s)
 {
-  s = strdup (s);
+  s = mu_strdup (s);
   if (!s)
     imap4d_bye (ERR_NO_MEM);
   return parse_regmem (pb, s, NULL);

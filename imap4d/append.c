@@ -162,7 +162,7 @@ imap4d_append0 (mu_mailbox_t mbox, int flags, char *date_time, char *text,
 	}
 
       if (!tenv.sender)
-	tenv.sender = strdup ("GNU-imap4d");
+	tenv.sender = mu_strdup ("GNU-imap4d");
     }
       
   imap4d_enter_critical ();

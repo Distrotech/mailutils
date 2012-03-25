@@ -557,8 +557,8 @@ prog_reserve (size_t count)
     {
       size_t inc = (count + 1) / FORMAT_INC + 1;
       format.progsize += inc * FORMAT_INC;
-      format.prog = xrealloc (format.prog,
-			      format.progsize * sizeof format.prog[0]);
+      format.prog = mu_realloc (format.prog,
+			        format.progsize * sizeof format.prog[0]);
     }
 }
 

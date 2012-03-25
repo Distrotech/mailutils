@@ -247,9 +247,9 @@ int name_prefix_len;              /* Length of the mu_path_folder_dir */
 void
 install_folder_info (const char *name, struct folder_info *info)
 {
-  struct folder_info *new_info = xmalloc (sizeof (*new_info));
+  struct folder_info *new_info = mu_alloc (sizeof (*new_info));
   *new_info = *info;
-  new_info->name = strdup (new_info->name + name_prefix_len);
+  new_info->name = mu_strdup (new_info->name + name_prefix_len);
   mu_list_append (folder_info_list, new_info);
   message_count += info->message_count;
 }
@@ -328,7 +328,7 @@ _scan (const char *name, size_t depth)
     }
   
   memset (&info, 0, sizeof (info));
-  info.name = strdup (name);
+  info.name = mu_strdup (name);
   while ((entry = readdir (dir)))
     {
       if (entry->d_name[0] == '.')
@@ -566,14 +566,14 @@ push_val (int *pc, char ***pv, const char *val)
   c++;
   if (c == 1)
     {
-      v = xcalloc (c + 1, sizeof (*v));
+      v = mu_calloc (c + 1, sizeof (*v));
     }
   else
     {
-      v = xrealloc (v, (c + 1) * sizeof (*v));
+      v = mu_realloc (v, (c + 1) * sizeof (*v));
       memmove (&v[1], &v[0], c * sizeof (*v));
     }
-  v[0] = xstrdup (val);
+  v[0] = mu_strdup (val);
 
   *pv = v;
   *pc = c;
@@ -612,7 +612,7 @@ action_push ()
   else 
     {
       char *t = v[0];
-      v[0] = xstrdup (mh_current_folder ());
+      v[0] = mu_strdup (mh_current_folder ());
       mh_set_current_folder (t);
       free (t);
     }
@@ -842,7 +842,7 @@ fixup_private (const char *name, const char *value, void *data)
   if (nlen > 0 && strcmp (name + nlen, fd->folder_dir) == 0)
     {
       int rc;
-      char *s = xmalloc (nlen);
+      char *s = mu_alloc (nlen);
       memcpy (s, name, nlen - 1);
       s[nlen-1] = 0;
       rc = _fixup (s, value, fd, SEQ_PRIVATE);
@@ -867,8 +867,8 @@ action_pack ()
       mu_error (_("cannot read input mailbox: %s"), mu_strerror (errno));
       return 1;
     }
-  pack_tab = xcalloc (count, sizeof pack_tab[0]); /* Never freed. No use to
-						     try to. */
+  pack_tab = mu_calloc (count, sizeof pack_tab[0]); /* Never freed. No use to
+		 				       try to. */
 
   /* Populate it with message numbers */
   if (verbose)

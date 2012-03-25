@@ -21,7 +21,6 @@
 # include <strings.h>
 #endif
 #include <mailutils/mailutils.h>
-#include <xalloc.h>
 #include <fnmatch.h>
 #define obstack_chunk_alloc malloc
 #define obstack_chunk_free free

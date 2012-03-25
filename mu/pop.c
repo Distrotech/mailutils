@@ -27,7 +27,6 @@
 #include <mailutils/mailutils.h>
 #include "mu.h"
 #include "argp.h"
-#include "xalloc.h"
 
 static char pop_doc[] = N_("mu pop - POP3 client shell.");
 char pop_docstring[] = N_("POP3 client shell");
@@ -99,7 +98,7 @@ static void
 pop_prompt_env ()
 {
   if (!mutool_prompt_env)
-    mutool_prompt_env = xcalloc (2*7 + 1, sizeof(mutool_prompt_env[0]));
+    mutool_prompt_env = mu_calloc (2*7 + 1, sizeof(mutool_prompt_env[0]));
 
   mutool_prompt_env[0] = "user";
   mutool_prompt_env[1] = (pop_session_status == pop_session_logged_in) ?
@@ -169,7 +168,7 @@ com_user (int argc, char **argv)
   status = mu_pop3_user (pop3, argv[1]);
   if (status == 0)
     {
-      username = strdup (argv[1]);
+      username = mu_strdup (argv[1]);
       pop_prompt_env ();
     }
   return status;
@@ -199,7 +198,7 @@ com_apop (int argc, char **argv)
   status = mu_pop3_apop (pop3, argv[1], pwd);
   if (status == 0)
     {
-      username = strdup (argv[1]);
+      username = mu_strdup (argv[1]);
       pop_session_status = pop_session_logged_in;
     }
   free (passbuf);
@@ -577,9 +576,9 @@ com_connect (int argc, char **argv)
   else
     {
       connect_argc = argc;
-      connect_argv = xcalloc (argc, sizeof (*connect_argv));
+      connect_argv = mu_calloc (argc, sizeof (*connect_argv));
       for (i = 0; i < argc; i++)
-	connect_argv[i] = xstrdup (argv[i]);
+	connect_argv[i] = mu_strdup (argv[i]);
       connect_argv[i] = NULL;
       port = n;
       pop_session_status = pop_session_connected;
@@ -688,7 +687,7 @@ mutool_pop (int argc, char **argv)
     }
 
   /* Command line prompt */
-  mutool_shell_prompt = xstrdup ("pop> ");
+  mutool_shell_prompt = mu_strdup ("pop> ");
   pop_prompt_env ();
   mutool_shell ("pop", pop_comtab);
   return 0;

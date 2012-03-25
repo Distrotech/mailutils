@@ -27,7 +27,6 @@
 #include <mailutils/libcfg.h>
 #include "argp.h"
 #include "mu.h"
-#include "xalloc.h"
 
 static char acl_doc[] = N_("mu acl - test access control lists.");
 char acl_docstring[] = N_("test access control lists");

@@ -97,23 +97,32 @@ mu_set_mail_directory (const char *p)
 int
 mu_set_mailbox_pattern (const char *pat)
 {
+  char *p;
+
+  if (pat)
+    {
+      p = strdup (pat);
+      if (!p)
+        return ENOMEM;
+    }
+  else
+    p = NULL;
   if (_mu_mailbox_pattern)
     free (_mu_mailbox_pattern);
-  if (!pat)
-    {
-      _mu_mailbox_pattern = NULL;
-      return 0;
-    }
-  _mu_mailbox_pattern = strdup (pat);
-  return _mu_mailbox_pattern ? 0 : ENOMEM;
+  _mu_mailbox_pattern = p;
+  return 0;
 }
 
-void
+int
 mu_set_folder_directory (const char *p)
 {
+  char *fdir = strdup (p);
+  if (!fdir)
+    return ENOMEM;
   if (_mu_folder_dir != _default_folder_dir)
     free (_mu_folder_dir);
-  _mu_folder_dir = strdup (p);
+  _mu_folder_dir = fdir;
+  return 0;
 }
 
 const char *

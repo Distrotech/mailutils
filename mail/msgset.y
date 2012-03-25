@@ -21,8 +21,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <xalloc.h>
-
 /* Defined in <limits.h> on some systems, but redefined in <regex.h>
    if we are using GNU's regex. So, undef it to avoid duplicate definition
    warnings. */
@@ -287,7 +285,7 @@ yylex()
       while (*cur_p && *cur_p != ',' && *cur_p != ':') 
 	cur_p++;
       len = cur_p - p + 1;
-      yylval.string = xmalloc (len);
+      yylval.string = mu_alloc (len);
       memcpy (yylval.string, p, len-1);
       yylval.string[len-1] = 0;
       if (*cur_p == ':')
@@ -307,7 +305,7 @@ yylex()
 	cur_p++;
       len = cur_p - p + 1;
       cur_p++;
-      yylval.string = xmalloc (len);
+      yylval.string = mu_alloc (len);
       memcpy (yylval.string, p, len-1);
       yylval.string[len-1] = 0;
       return REGEXP;
@@ -325,7 +323,7 @@ yylex()
 	    cur_p++;
 	  len = cur_p - p + 1;
 	  cur_p++;
-	  yylval.string = xmalloc (len);
+	  yylval.string = mu_alloc (len);
 	  memcpy (yylval.string, p, len-1);
 	  yylval.string[len-1] = 0;
 	  return BODY;
@@ -395,10 +393,10 @@ msgset_make_1 (size_t number)
 
   if (number == 0)
     return NULL;
-  mp = xmalloc (sizeof (*mp));
+  mp = mu_alloc (sizeof (*mp));
   mp->next = NULL;
   mp->npart = 1;
-  mp->msg_part = xmalloc (sizeof mp->msg_part[0]);
+  mp->msg_part = mu_alloc (sizeof mp->msg_part[0]);
   mp->msg_part[0] = number;
   return mp;
 }
@@ -407,10 +405,10 @@ msgset_t *
 msgset_dup (const msgset_t *set)
 {
   msgset_t *mp;
-  mp = xmalloc (sizeof (*mp));
+  mp = mu_alloc (sizeof (*mp));
   mp->next = NULL;
   mp->npart = set->npart;
-  mp->msg_part = xcalloc (mp->npart, sizeof mp->msg_part[0]);
+  mp->msg_part = mu_calloc (mp->npart, sizeof mp->msg_part[0]);
   memcpy (mp->msg_part, set->msg_part, mp->npart * sizeof mp->msg_part[0]);
   return mp;
 }
@@ -494,10 +492,10 @@ msgset_expand (msgset_t *set, msgset_t *expand_by)
   for (i = set; i; i = i->next)
     for (j = expand_by; j; j = j->next)
       {
-	mp = xmalloc (sizeof *mp);
+	mp = mu_alloc (sizeof *mp);
 	mp->next = NULL;
 	mp->npart = i->npart + j->npart;
-	mp->msg_part = xcalloc (mp->npart, sizeof mp->msg_part[0]);
+	mp->msg_part = mu_calloc (mp->npart, sizeof mp->msg_part[0]);
 	memcpy (mp->msg_part, i->msg_part, i->npart * sizeof i->msg_part[0]);
 	memcpy (mp->msg_part + i->npart, j->msg_part,
 		j->npart * sizeof j->msg_part[0]);

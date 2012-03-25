@@ -183,7 +183,7 @@ mime_descend (struct mime_descend_closure *closure,
   mu_message_get_header (closure->message, &hdr);
   util_get_hdr_value (hdr, MU_HEADER_CONTENT_TYPE, &type);
   if (type == NULL)
-    type = xstrdup ("text/plain");
+    type = mu_strdup ("text/plain");
   get_content_encoding (hdr, &encoding);
 
   closure->type = type;
@@ -346,7 +346,7 @@ get_content_encoding (mu_header_t hdr, char **value)
     {
       if (encoding)
 	free (encoding);
-      encoding = strdup ("7bit"); /* Default.  */
+      encoding = mu_strdup ("7bit"); /* Default.  */
     }
   *value = encoding;
   return 0;

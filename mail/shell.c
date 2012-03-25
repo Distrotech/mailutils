@@ -30,7 +30,7 @@ expand_bang (char **pbuf, const char *arg, const char *last)
 
   if (count == 0)
     {
-      *pbuf = xstrdup (arg);
+      *pbuf = mu_strdup (arg);
       return;
     }
 
@@ -40,7 +40,7 @@ expand_bang (char **pbuf, const char *arg, const char *last)
       return;
     }
 
-  tmp = xmalloc (strlen (arg) + count * (strlen (last) - 1) + 1);
+  tmp = mu_alloc (strlen (arg) + count * (strlen (last) - 1) + 1);
   for (p = arg, q = tmp; *p; )
     {
       if (*p == '!')
@@ -75,7 +75,7 @@ mail_execute (int shell, char *progname, int argc, char **argv)
   xargc = argc;
   if (shell && argc < 3)
     xargc = 3;
-  xargv = xcalloc (xargc + 1, sizeof (xargv[0]));
+  xargv = mu_calloc (xargc + 1, sizeof (xargv[0]));
   
   /* Expand arguments if required */
   if (mailvar_get (NULL, "bang", mailvar_type_boolean, 0) == 0)

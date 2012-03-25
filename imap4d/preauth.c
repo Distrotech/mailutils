@@ -26,7 +26,7 @@ static char *
 do_preauth_stdio ()
 {
   struct passwd *pw = getpwuid (getuid ());
-  return pw ? strdup (pw->pw_name) : NULL;
+  return pw ? mu_strdup (pw->pw_name) : NULL;
 }
 
 
@@ -378,7 +378,7 @@ do_preauth_ident (struct sockaddr *clt_sa, struct sockaddr *srv_sa)
   else
     {
       mu_diag_output (MU_DIAG_INFO, "USERNAME %s", name);
-      name = strdup (name);
+      name = mu_strdup (name);
     }
   
   free (buf);

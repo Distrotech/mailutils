@@ -207,7 +207,7 @@ static mu_list_t oplist;
 static void
 addop (char *field, compfun comp)
 {
-  struct comp_op *op = xmalloc (sizeof (*op));
+  struct comp_op *op = mu_alloc (sizeof (*op));
   
   if (!oplist)
     {
@@ -491,7 +491,7 @@ void
 sort ()
 {
   size_t *oldlist, i;
-  oldlist = xmalloc (msgcount * sizeof (*oldlist));
+  oldlist = mu_alloc (msgcount * sizeof (*oldlist));
   memcpy (oldlist, msgarr, msgcount * sizeof (*oldlist));
 
   switch (algorithm)
@@ -587,7 +587,7 @@ fill_msgarr (mu_msgset_t msgset)
       exit (1);
     }
       
-  msgarr = xcalloc (msgcount, sizeof (msgarr[0]));
+  msgarr = mu_calloc (msgcount, sizeof (msgarr[0]));
   i = 0;
   rc = mu_msgset_foreach_msgno (msgset, _add_msgno, &i);
   if (rc)

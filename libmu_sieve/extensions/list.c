@@ -119,7 +119,8 @@ list_retrieve_header (void *item, void *data, int idx, char **pval)
       else
 	p = hc->valv[hc->vali++];
   
-      *pval = strdup (p);
+      if ((*pval = strdup (p)) == NULL)
+        return 1;
       return 0;
     }
   

@@ -651,7 +651,7 @@ mh_disposition (const char *filename)
   struct mh_whatnow_env wh;
   int rc;
   memset (&wh, 0, sizeof (wh));
-  wh.file = xstrdup (filename);
+  wh.file = mu_strdup (filename);
   wh.prompt = (char*) _("Disposition?");
   rc = _whatnow (&wh, disp_tab);
   free (wh.file);
@@ -704,7 +704,7 @@ mh_usedraft (const char *filename)
   int rc;
   
   memset (&wh, 0, sizeof (wh));
-  wh.file = xstrdup (filename);
+  wh.file = mu_strdup (filename);
   mu_asprintf (&wh.prompt, _("Use \"%s\"?"), filename);
   rc = _whatnow (&wh, usedraft_tab);
   free (wh.prompt);

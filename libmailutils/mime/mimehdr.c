@@ -309,7 +309,7 @@ _mime_header_parse (const char *text, char **pvalue,
     {
       if (!pvalue)
 	return MU_ERR_OUT_PTR_NULL;
-      *pvalue = strdup (ws.ws_wordv[i]);
+      *pvalue = strdup (ws.ws_wordv[0]);
       mu_wordsplit_free (&ws);
       if (!*pvalue)
 	return ENOMEM;

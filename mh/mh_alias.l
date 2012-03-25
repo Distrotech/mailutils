@@ -201,7 +201,7 @@ xunput (int c)
     {
       char *putback;
       current_buffer.pb_size += LEX_PUTBACK_SIZE;
-      putback = xmalloc (current_buffer.pb_size);
+      putback = mu_alloc (current_buffer.pb_size);
       memcpy (putback, current_buffer.putback,
 	      current_buffer.pb_level);
       free (current_buffer.putback);
@@ -283,7 +283,7 @@ push_source (const char *name, int fail)
   /* Push current context */
   if (ali_filename)
     {
-      ctx = xmalloc (sizeof (*ctx));
+      ctx = mu_alloc (sizeof (*ctx));
       ctx->filename = ali_filename;
       ctx->line = ali_line_num;
       ctx->i_node = ali_source_inode;
@@ -354,10 +354,10 @@ SPEC [,:;+=\*]
                    for (p = yytext; p < yytext + yyleng; p++)
 		     if (!mu_isspace (*p))
 		       break;
-		   yylval.string = strdup (p);
+		   yylval.string = mu_strdup (p);
 		   return STRING;}
 {WS}           ;
-{WORD}         { yylval.string = strdup (yytext); return STRING;}
+{WORD}         { yylval.string = mu_strdup (yytext); return STRING;}
 ^{WS}?"<"{WS}?{WORD} {
                  char *p;
                  for (p = yytext; p < yytext + yyleng && mu_isblank(*p); p++)
@@ -368,7 +368,7 @@ SPEC [,:;+=\*]
                  push_source (p, 1); }
 {SPEC}         return yytext[0];
 <VERBATIM>[^ \t\n,:;+=\*][^\n,]* {
-                    yylval.string = xmalloc (yyleng + 1);
+                    yylval.string = mu_alloc (yyleng + 1);
  		    memcpy(yylval.string, yytext, yyleng);
 		    yylval.string[yyleng] = 0;
 		    return STRING;}

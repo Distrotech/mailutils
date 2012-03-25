@@ -332,6 +332,11 @@ url_to_argv (mu_url_t url, mu_message_t msg,
 	argv[i+1] = strdup ("");
       else
 	argv[i+1] = strdup (ws.ws_wordv[0]);
+      if (!argv[i+1])
+        {
+          mu_argcv_free(i, argv);
+          return ENOMEM;
+        }
       wsflags |= MU_WRDSF_REUSE;
     }
   argv[i+1] = NULL;

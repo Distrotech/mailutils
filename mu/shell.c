@@ -25,7 +25,6 @@
 #include "mailutils/libargp.h"
 #include "muaux.h"
 #include "mu.h"
-#include "xalloc.h"
 
 #ifdef WITH_READLINE
 # include <readline/readline.h>
@@ -257,7 +256,7 @@ shell_prompt (int argc, char **argv)
   
   free (mutool_shell_prompt);
   size = strlen (argv[1]);
-  mutool_shell_prompt = xmalloc (size + 1);
+  mutool_shell_prompt = mu_alloc (size + 1);
   mu_wordsplit_c_unquote_copy (mutool_shell_prompt, argv[1], size);
   return 0;
 }
@@ -292,8 +291,8 @@ get_history_file_name ()
     {
       char *hname;
       
-      hname = xmalloc(sizeof HISTFILE_PREFIX + strlen (rl_readline_name) +
-		      sizeof HISTFILE_SUFFIX - 1);
+      hname = mu_alloc (sizeof HISTFILE_PREFIX + strlen (rl_readline_name) +
+		        sizeof HISTFILE_SUFFIX - 1);
       strcpy (hname, "~/.mu_");
       strcat (hname, rl_readline_name);
       strcat (hname, HISTFILE_SUFFIX);
@@ -397,7 +396,7 @@ shell_command_generator (const char *text, int state)
     {
       cmd++;
       if (strncmp (name, text, len) == 0)
-	return xstrdup (name);
+	return mu_strdup (name);
     }
 
   /* If no names matched, then return NULL. */
@@ -653,8 +652,8 @@ mutool_shell (const char *name, struct mutool_command *cmd)
     ;
 
   user_command_count = n;
-  shell_comtab = xcalloc (n + MU_ARRAY_SIZE (default_comtab),
-			  sizeof (shell_comtab[0]));
+  shell_comtab = mu_calloc (n + MU_ARRAY_SIZE (default_comtab),
+			    sizeof (shell_comtab[0]));
   memcpy (shell_comtab, cmd, n * sizeof (shell_comtab[0]));
   memcpy (shell_comtab + n, default_comtab, sizeof (default_comtab));
 

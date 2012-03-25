@@ -225,7 +225,7 @@ retrieve_password (Gsasl *ctx, Gsasl_session *sctx)
   const char *authid = gsasl_property_get (sctx, GSASL_AUTHID);
   
   if (username && *username == 0)
-    *username = strdup (authid);
+    *username = mu_strdup (authid);
 
   if (mu_gsasl_module_data.cram_md5_pwd
       && access (mu_gsasl_module_data.cram_md5_pwd, R_OK) == 0)
@@ -272,7 +272,7 @@ cb_validate (Gsasl *ctx, Gsasl_session *sctx)
   if (!pass)
     return GSASL_NO_PASSWORD;
   
-  *username = strdup (authid);
+  *username = mu_strdup (authid);
   
   auth = mu_get_auth_by_name (*username);
 
@@ -329,7 +329,7 @@ callback (Gsasl *ctx, Gsasl_session *sctx, Gsasl_property prop)
 	  char **username = gsasl_callback_hook_get (ctx);
 	  mu_diag_output (MU_DIAG_INFO, _("anonymous user %s logged in"),
 			  gsasl_property_get (sctx, GSASL_ANONYMOUS_TOKEN));
-	  *username = strdup (mu_gsasl_module_data.anon_user);
+	  *username = mu_strdup (mu_gsasl_module_data.anon_user);
 	}
       else
 	{
@@ -341,7 +341,7 @@ callback (Gsasl *ctx, Gsasl_session *sctx, Gsasl_property prop)
     case GSASL_VALIDATE_GSSAPI:
       {
 	char **username = gsasl_callback_hook_get (ctx);
-	*username = strdup (gsasl_property_get(sctx, GSASL_AUTHZID));
+	*username = mu_strdup (gsasl_property_get(sctx, GSASL_AUTHZID));
 	break;
       }
       

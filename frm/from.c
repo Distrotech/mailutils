@@ -132,7 +132,7 @@ main (int argc, char **argv)
 	  exit (1);
 	}
 
-      mailbox_name = xmalloc (strlen (argv[c]) + 2);
+      mailbox_name = mu_alloc (strlen (argv[c]) + 2);
       mailbox_name[0] = '%';
       strcpy (mailbox_name + 1, argv[c]);
     }

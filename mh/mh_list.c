@@ -89,7 +89,7 @@ static mhl_variable_t *variable_lookup (char *name);
 static mhl_stmt_t *
 stmt_alloc (enum mhl_type type)
 {
-  mhl_stmt_t *p = xmalloc (sizeof (*p));
+  mhl_stmt_t *p = mu_alloc (sizeof (*p));
   p->type = type;
   return p;
 }
@@ -104,7 +104,7 @@ compdecl (char **str, char **compname)
       if (*p == ':')
 	{
 	  int len = p - *str;
-	  *compname = xmalloc (len + 1);
+	  *compname = mu_alloc (len + 1);
 	  memcpy (*compname, *str, len);
 	  (*compname)[len] = 0;
 	  *str = p + 1;
@@ -121,7 +121,7 @@ parse_cleartext (locus_t *loc, mu_list_t formlist, char *str)
 {
   int len;
   mhl_stmt_t *stmt = stmt_alloc (stmt_cleartext);
-  stmt->v.cleartext = strdup (str);
+  stmt->v.cleartext = mu_strdup (str);
   len = strlen (stmt->v.cleartext);
   if (len > 0 && stmt->v.cleartext[len-1] == '\n')
     stmt->v.cleartext[len-1] = 0;
@@ -211,7 +211,7 @@ parse_variable (locus_t *loc, mu_list_t formlist, char *str)
       switch (var->type)
 	{
 	case dt_string:
-	  stmt->v.variable.value.str = strdup (value);
+	  stmt->v.variable.value.str = mu_strdup (value);
 	  break;
 
 	case dt_integer:
@@ -226,7 +226,7 @@ parse_variable (locus_t *loc, mu_list_t formlist, char *str)
 			loc->line);
 	      exit (1);
 	    }
-	  stmt->v.variable.value.fmt = xmalloc (sizeof (mh_format_t));
+	  stmt->v.variable.value.fmt = mu_alloc (sizeof (mh_format_t));
 	  *stmt->v.variable.value.fmt = fmt;
 	  break;
 

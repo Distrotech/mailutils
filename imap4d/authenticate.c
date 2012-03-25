@@ -35,10 +35,7 @@ comp (const void *item, const void *data)
 void
 auth_add (char *name, imap4d_auth_handler_fp handler)
 {
-  struct imap_auth *p = malloc (sizeof (*p));
-
-  if (!p)
-    imap4d_bye (ERR_NO_MEM);
+  struct imap_auth *p = mu_alloc (sizeof (*p));
 
   p->name = name;
   p->handler = handler;

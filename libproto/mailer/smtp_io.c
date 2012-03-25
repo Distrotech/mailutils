@@ -96,6 +96,8 @@ mu_smtp_response (mu_smtp_t smtp)
       MU_SMTP_CHECK_ERROR (smtp, rc);
       do
 	{
+          char *p;
+
 	  rc = mu_stream_getline (smtp->carrier, &smtp->rdbuf, &smtp->rdsize,
 				  &n);
 	  MU_SMTP_CHECK_ERROR (smtp, rc);
@@ -108,7 +110,10 @@ mu_smtp_response (mu_smtp_t smtp)
 			      "received invalid reply from SMTP server");
 	      MU_SMTP_CHECK_ERROR (smtp, MU_ERR_BADREPLY);
 	    }
-	  mu_list_append (smtp->mlrepl, strdup (smtp->rdbuf + 4));
+	  p = strdup (smtp->rdbuf + 4);
+	  if (!p)
+            MU_SMTP_CHECK_ERROR (smtp, ENOMEM);
+	  mu_list_append (smtp->mlrepl, p);
 	}
       while (smtp->rdbuf[3] == '-');
     }

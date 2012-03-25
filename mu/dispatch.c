@@ -19,11 +19,11 @@
 #endif
 #include <stdlib.h>
 #include <string.h>
+#include <mailutils/alloc.h>
 #include <mailutils/stream.h>
 #include <mailutils/nls.h>
 #include "mu.h"
 #include "mu-setup.h"
-#include "xalloc.h"
 
 struct mutool_action_tab
 {
@@ -68,7 +68,7 @@ dispatch_docstring (const char *text)
   mu_stream_printf (str, "%s\n", _("Options are:"));
   mu_stream_flush (str);
   mu_stream_size (str, &size);
-  ret = xmalloc (size + 1);
+  ret = mu_alloc (size + 1);
   mu_stream_seek (str, 0, MU_SEEK_SET, NULL);
   mu_stream_read (str, ret, size, &n);
   ret[n] = 0;

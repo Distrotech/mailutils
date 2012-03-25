@@ -53,7 +53,8 @@ mu_register_argp_capa (const char *name, struct argp_child *child)
   for (i = 0; i < MU_MAX_CAPA; i++)
     if (mu_argp_capa[i].capability == NULL)
       {
-	mu_argp_capa[i].capability = strdup (name);
+        if ((mu_argp_capa[i].capability = strdup (name)) == NULL)
+          return ENOMEM;
 	mu_argp_capa[i].child = child;
 	return 0;
       }

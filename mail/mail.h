@@ -26,9 +26,6 @@
 # include <dmalloc.h>
 #endif
 
-#ifdef HAVE_ALLOCA_H
-# include <alloca.h>
-#endif
 #include <errno.h>
 #include <limits.h>
 #ifndef _GNU_SOURCE
@@ -48,14 +45,13 @@
 
 #include <confpaths.h>
 
-#include <xalloc.h>
-
 #ifdef HAVE_READLINE_READLINE_H
 # include <readline/readline.h>
 # include <readline/history.h>
 #endif
 
 #include <mailutils/address.h>
+#include <mailutils/alloc.h>
 #include <mailutils/assoc.h>
 #include <mailutils/attribute.h>
 #include <mailutils/body.h>

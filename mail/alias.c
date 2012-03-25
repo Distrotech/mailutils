@@ -225,7 +225,7 @@ alias_iterate_first (const char *prefix, alias_iterator_t *pc)
   if (mu_assoc_get_iterator (aliases, &itr))
     return NULL;
   mu_iterator_first (itr);
-  atr = xmalloc (sizeof *atr);
+  atr = mu_alloc (sizeof *atr);
   atr->prefix = prefix;
   atr->prefixlen = strlen (prefix);
   atr->pos = 0;

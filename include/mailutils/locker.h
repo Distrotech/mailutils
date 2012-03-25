@@ -103,7 +103,7 @@ extern int mu_locker_set_default_flags (int flags, enum mu_locker_set_mode mode)
 extern void mu_locker_set_default_retry_timeout (time_t to);
 extern void mu_locker_set_default_retry_count (size_t n);
 extern void mu_locker_set_default_expire_timeout (time_t t);
-extern void mu_locker_set_default_external_program (char *path);
+extern int mu_locker_set_default_external_program (char *path);
 
 /* A flags of 0 means that the default will be used. */
 extern int mu_locker_create (mu_locker_t *, const char *filename, int flags);

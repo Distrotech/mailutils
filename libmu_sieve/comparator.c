@@ -431,6 +431,8 @@ i_ascii_casemap_matches (const char *pattern, const char *text)
 #else
   int rc;
   char *p = strdup (text);
+  if (!p)
+    return 0;
   _pattern_upcase (p, NULL);
   rc = fnmatch (pattern, p, 0) == 0;
   free (p);

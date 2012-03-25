@@ -39,6 +39,7 @@ static int
 _path_append (void *item, void *data)
 {
   mu_list_t *plist = data;
+  char *p;
   if (!*plist)
     {
       int rc = mu_list_create (plist);
@@ -49,7 +50,10 @@ _path_append (void *item, void *data)
 	}
       mu_list_set_destroy_item (*plist, mu_list_free_item);
     }
-  return mu_list_append (*plist, strdup (item));
+  p = strdup (item);
+  if (!p)
+    return ENOMEM;
+  return mu_list_append (*plist, p);
 }
 
 int
