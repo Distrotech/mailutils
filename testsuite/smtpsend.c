@@ -28,7 +28,7 @@
 
 static char usage_text[] =
 "usage: %s hostname [port=N] [trace=N] [tls=N] [from=STRING] [rcpt=STRING]\n"
-"                   [domain=STRING] [user=STRING] [pass=STRING]\n"
+"                   [family=4|6] [domain=STRING] [user=STRING] [pass=STRING]\n"
 "                   [service=STRING] [realm=STRING] [host=STRING]\n"
 "                   [auth=method[,...]] [url=STRING] [input=FILE] [raw=N]\n"
 "                   [skiphdr=name[,...]]\n";
@@ -107,12 +107,34 @@ main (int argc, char **argv)
   if (argc < 2)
     usage ();
 
+  memset (&hints, 0, sizeof (hints)); 
+  hints.flags = MU_AH_DETECT_FAMILY;
+  hints.port = 25;
+  hints.protocol = IPPROTO_TCP;
+  hints.socktype = SOCK_STREAM;
+
   MU_ASSERT (mu_smtp_create (&smtp));
 
   for (i = 1; i < argc; i++)
     {
       if (strncmp (argv[i], "port=", 5) == 0)
 	port = argv[i] + 5;
+      else if (strncmp (argv[i], "family=", 7) == 0)
+	{
+	  hints.flags &= ~MU_AH_DETECT_FAMILY;
+	  switch (argv[i][7])
+	    {
+	    case '4':
+	      hints.family = AF_INET;
+	      break;
+	    case '6':
+	      hints.family = AF_INET6;
+	      break;
+	    default:
+	      mu_error ("invalid family name: %s", argv[i]+7);
+	      exit (1);
+	    }
+	}
       else if (strncmp (argv[i], "trace=", 6) == 0)
 	{
 	  char *arg = argv[i] + 6;
@@ -195,11 +217,6 @@ main (int argc, char **argv)
   
   host = argv[1];
 
-  memset (&hints, 0, sizeof (hints)); 
-  hints.flags = MU_AH_DETECT_FAMILY;
-  hints.port = 25;
-  hints.protocol = IPPROTO_TCP;
-  hints.socktype = SOCK_STREAM;
   MU_ASSERT (mu_sockaddr_from_node (&sa, host, port, &hints));
 
   MU_ASSERT (mu_tcp_stream_create_from_sa (&stream, sa, NULL, MU_STREAM_RDWR));

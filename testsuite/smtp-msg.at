@@ -34,7 +34,7 @@ p=`$abs_top_builddir/examples/mta -bd`
 test $? -eq 0 || AT_SKIP_TEST
 set -- $p
 # $1 - pid, $2 - port
-smtpsend localhost port=$2 \
+smtpsend localhost port=$2 family=4\
          from=mailutils@mailutils.org\
 	 rcpt=gray@example.org\
 	 domain=mailutils.org\
