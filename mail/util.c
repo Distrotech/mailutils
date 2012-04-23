@@ -949,7 +949,9 @@ util_header_expand (mu_header_t *phdr)
 	      if (mailvar_get (NULL, "inplacealiases",
 			       mailvar_type_boolean, 0))
 		exp = alias_expand (p);
-	      rc = mu_address_create (&new_addr, exp ? exp : p);
+	      else
+		exp = p;
+	      rc = mu_address_create (&new_addr, p);
 	      if (rc)
 		{
 		  errcnt++;

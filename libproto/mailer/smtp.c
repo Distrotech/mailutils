@@ -338,7 +338,9 @@ _smtp_set_rcpt (struct _smtp_mailer *smp, mu_message_t msg, mu_address_t to)
 		    ("mu_mailer_send_message(): explicit to not valid"));
 	  return status;
 	}
-      smp->rcpt_to = to;
+      smp->rcpt_to = mu_address_dup (to);
+      if (!smp->rcpt_to)
+        return ENOMEM;
 
       if (status)
 	return status;

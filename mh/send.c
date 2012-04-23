@@ -772,7 +772,9 @@ main (int argc, char **argv)
 		 opt_handler, NULL, &index);
 
   mh_read_aliases ();
-  
+  /* Process the mtstailor file */
+  read_mts_profile ();
+ 
   argc -= index;
   argv += index;
 
@@ -823,10 +825,7 @@ main (int argc, char **argv)
 	  return 1;
     }
 
-  /* Process the mtstailor file and detach from the console if
-     required */
-  read_mts_profile ();
-  
+  /* Detach from the console if required */
   if (background && daemon (0, 0) < 0)
     {
       mu_error (_("cannot switch to background: %s"), mu_strerror (errno));
