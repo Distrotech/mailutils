@@ -29,7 +29,6 @@ lib/argp-parse.c
 lib/getopt.c
 lib/mailcap.c
 lib/tcpwrap.c
-lib/xmalloc.c
 lib/strexit.c
 lib/manlock.c
 
