@@ -643,7 +643,7 @@ AC_CHECK_TYPE(socklen_t, , AC_DEFINE(socklen_t, int, [Define to int if <sys/type
 AC_CHECK_TYPE(long long, , AC_DEFINE(LONG_LONG, long, [Define to long if compiler does not support]))
 AC_CHECK_TYPE(long double, , AC_DEFINE(LONG_DOUBLE, double, [Define to double if compiler does not support]))
 
-AC_SUBST(MU_ULONG_MAX)
+AC_SUBST(MU_ULONG_MAX_1)
 AC_RUN_IFELSE([AC_LANG_PROGRAM(
 [#include <stdio.h>
 #include <stdlib.h>
@@ -652,13 +652,13 @@ AC_RUN_IFELSE([AC_LANG_PROGRAM(
  FILE *f = fopen ("conftest.val", "w");
  if (! f)
     exit (1);
- fprintf(f, "%lu\n", ULONG_MAX);
+ fprintf(f, "%lu\n", ULONG_MAX-1);
  fclose(f);
  return 0;]
 )],
- [MU_ULONG_MAX=`cat conftest.val`],
- [MU_ULONG_MAX=0],
- [MU_ULONG_MAX=0])
+ [MU_ULONG_MAX_1=`cat conftest.val`],
+ [MU_ULONG_MAX_1=0],
+ [MU_ULONG_MAX_1=0])
 
 AC_STRUCT_TM
 AC_CHECK_MEMBERS([struct tm.tm_zone, struct tm.tm_gmtoff, struct tm.tm_isdst],

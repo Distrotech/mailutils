@@ -17,11 +17,11 @@
 AT_SETUP([IDEF0956])
 
 AT_CHECK([
-limit=`expr $MU_ULONG_MAX - 1`
+test $MU_ULONG_MAX_1 -eq 0 && AT_SKIP_TEST
 
 cat > input <<EOT
 1 select INBOX
-2 FETCH 1 BODY[[TEXT]]<0.$limit>
+2 FETCH 1 BODY[[TEXT]]<0.$MU_ULONG_MAX_1>
 X LOGOUT
 EOT
 

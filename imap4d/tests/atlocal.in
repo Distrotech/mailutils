@@ -3,7 +3,7 @@
 # Copyright (C) 2011-2012 Free Software Foundation, Inc.
 
 PATH=@abs_builddir@:@abs_top_builddir@/imap4d:$top_srcdir:$srcdir:$PATH
-MU_ULONG_MAX=@MU_ULONG_MAX@
+MU_ULONG_MAX_1=@MU_ULONG_MAX_1@
 
 remove_untagged() {
   sed '/^\*/d'
