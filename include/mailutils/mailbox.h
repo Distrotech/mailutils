@@ -42,7 +42,7 @@ extern int  mu_mailbox_create_from_url (mu_mailbox_t *, mu_url_t);
 extern int  mu_mailbox_create_from_record (mu_mailbox_t *pmbox,
 					   mu_record_t record,
 					   const char *name);
-extern int  mu_mailbox_create_default  (mu_mailbox_t *, const char *);
+extern int mu_mailbox_create_default  (mu_mailbox_t *, const char *);
 extern int mu_mailbox_create_at (mu_mailbox_t *pmbox, mu_folder_t folder,
 				 const char *name);
 
@@ -119,6 +119,14 @@ extern int mu_mailbox_get_iterator (mu_mailbox_t mbx,
 #define MU_MAILBOX_MSGNO_TO_UID 1
 
 extern int mu_mailbox_translate (mu_mailbox_t, int, size_t, size_t *);  
+
+/* Copy message into a folder */  
+#define MU_MAILBOX_COPY_UID   0x01
+#define MU_MAILBOX_COPY_CREAT 0x02
+  
+extern int mu_mailbox_msgset_copy (mu_mailbox_t, mu_msgset_t, const char *,
+				   int);
+extern int mu_mailbox_message_copy (mu_mailbox_t, size_t, const char *, int);
   
 #ifdef __cplusplus
 }

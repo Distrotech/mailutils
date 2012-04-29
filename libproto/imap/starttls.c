@@ -60,7 +60,7 @@ mu_imap_starttls (mu_imap_t imap)
     case MU_IMAP_CLIENT_STARTTLS_RX:
       status = _mu_imap_response (imap, NULL, NULL);
       MU_IMAP_CHECK_EAGAIN (imap, status);
-      switch (imap->resp_code)
+      switch (imap->response)
 	{
 	case MU_IMAP_OK:
 	  status = mu_imapio_get_streams (imap->io, streams);

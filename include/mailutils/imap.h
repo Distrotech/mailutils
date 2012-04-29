@@ -133,6 +133,9 @@ int mu_imap_get_carrier (mu_imap_t imap, mu_stream_t *pcarrier);
 int mu_imap_trace (mu_imap_t imap, int op);
 int mu_imap_trace_mask (mu_imap_t imap, int op, int lev);
 
+enum mu_imap_response mu_imap_response (mu_imap_t imap);
+int mu_imap_response_code (mu_imap_t imap);
+  
 int mu_imap_strerror (mu_imap_t imap, const char **pstr);
 
 int mu_imap_session_state (mu_imap_t imap);
@@ -178,21 +181,27 @@ extern struct mu_kwd _mu_imap_status_name_table[];
 #define MU_IMAP_CB_UIDNEXT          4 
 #define MU_IMAP_CB_UIDVALIDITY      5
 
-  /* The following callbacks correspond to server responses and take two
-     arguments: a response code (see MU_IMAP_RESPONSE, below) in SDAT, and
-     human-readable text string as returned by the server in PDAT.  The
-     latter can be NULL. */
+  /* The following callbacks correspond to unsolicited server responses and
+     take two arguments: a response code (see MU_IMAP_RESPONSE, below) in
+     SDAT, and human-readable text string as returned by the server in PDAT.
+     The latter can be NULL. */
 #define MU_IMAP_CB_OK               6
 #define MU_IMAP_CB_NO               7
 #define MU_IMAP_CB_BAD              8
 #define MU_IMAP_CB_BYE              9
 #define MU_IMAP_CB_PREAUTH         10
 
+  /* These corresponde to the tagged server responses.  The calling convention
+     is the same as above. */
+#define MU_IMAP_CB_TAGGED_OK       11  
+#define MU_IMAP_CB_TAGGED_NO       12
+#define MU_IMAP_CB_TAGGED_BAD      13
+  
   /* FETCH callback.  Arguments: SDAT - message sequence number, PDAT - a
      list (mu_list_t) of union mu_imap_fetch_response (see below). */
-#define MU_IMAP_CB_FETCH           11
+#define MU_IMAP_CB_FETCH           14
 
-#define _MU_IMAP_CB_MAX            12
+#define _MU_IMAP_CB_MAX            15
 
 typedef void (*mu_imap_callback_t) (void *, int code, size_t sdat, void *pdat);
   
@@ -202,8 +211,6 @@ void mu_imap_register_callback_function (mu_imap_t imap, int code,
 					 mu_imap_callback_t callback,
 					 void *data);
 
-#define MU_IMAP_RESPONSE_TAGGED  	   0x10
-
 #define MU_IMAP_RESPONSE_UNKNOWN           0 
 #define MU_IMAP_RESPONSE_ALERT             1
 #define MU_IMAP_RESPONSE_BADCHARSET        2

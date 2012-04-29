@@ -1,4 +1,4 @@
-GNU mailutils NEWS -- history of user-visible changes. 2012-02-26
+GNU mailutils NEWS -- history of user-visible changes. 2012-04-29
 Copyright (C) 2002-2012 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
@@ -116,6 +116,16 @@ See <http://mailutils.org/wiki/Timestamp_(Sieve_test)>.
 
 ** MH: improved compatibility with other implementations
 
+** MH inc: new option --moveto
+
+This option instructs the utility to move incorporated messages into
+another folder instead of deleting them. It is implemented only for
+input folders of type IMAP or IMAPS. A sample usage is:
+
+ inc -truncate -moveto Read -file imaps://imap.gmail.com
+
+Note the `-truncate' option. 
+
 ** mailutils-config is deprecated.
 
 Use `mu cflags' and `mu ldflags' instead.  The mailutils-config is
@@ -201,6 +211,13 @@ The new library provides a detailed control over the SMTP
 transaction.
 
 ** Support for Maildir and MH formats considerably improved.
+
+** The mailbox object contains a `copy' method.
+
+This method copies the requested set of messages into another
+mailbox. It is accessed using the `mu_mailbox_msgset_copy' or
+`mu_mailbox_message_copy' functions.  So far it is implememented
+only for IMAP and IMAPS mailboxes.
 
 ** MIME support improved.
 

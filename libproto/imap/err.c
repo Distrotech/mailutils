@@ -71,3 +71,21 @@ mu_imap_strerror (mu_imap_t imap, const char **pstr)
   *pstr = "(no recent reply)";
   return MU_ERR_NOENT;
 }
+
+enum mu_imap_response
+mu_imap_response (mu_imap_t imap)
+{
+  if (!imap)
+    return MU_IMAP_BAD;
+  return imap->response;
+}
+
+int
+mu_imap_response_code (mu_imap_t imap)
+{
+  if (!imap)
+    return -1;
+  return imap->response_code;
+}
+
+

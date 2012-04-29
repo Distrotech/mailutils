@@ -42,6 +42,8 @@ static struct argp_option options[] = {
   {"truncate", ARG_TRUNCATE, N_("BOOL"), OPTION_ARG_OPTIONAL,
    N_("truncate source mailbox after incorporating (default)")},
   {"notruncate", ARG_NOTRUNCATE, NULL, OPTION_HIDDEN, ""},
+  {"moveto",  ARG_MOVETO, N_("MAILBOX"), 0,
+   N_("move incorporated messages to MAILBOX instead of deleting them") },
   {"width",   ARG_WIDTH, N_("NUMBER"), 0,
    N_("set output width")},
   {"quiet",   ARG_QUIET, 0,        0,
@@ -58,6 +60,7 @@ struct mh_option mh_option[] = {
   { "form",      MH_OPT_ARG, "format-file" },
   { "format",    MH_OPT_ARG, "string" },
   { "truncate",  MH_OPT_BOOL },
+  { "moveto",    MH_OPT_ARG, "folder" },
   { "width",     MH_OPT_ARG, "number" },
   { "quiet" },
   { NULL }
@@ -72,6 +75,7 @@ static int changecur = -1;
 static int truncate_source = -1;
 static int quiet = 0;
 static const char *append_folder;
+static const char *move_to_mailbox;
 
 static error_t
 opt_handler (int key, char *arg, struct argp_state *state)
@@ -122,6 +126,10 @@ opt_handler (int key, char *arg, struct argp_state *state)
     case ARG_NOTRUNCATE:
       truncate_source = 0;
       break;
+
+    case ARG_MOVETO:
+      move_to_mailbox = arg;
+      break;
       
     case ARG_WIDTH:
       width = strtoul (arg, NULL, 0);
@@ -143,7 +151,8 @@ opt_handler (int key, char *arg, struct argp_state *state)
 }
 
 void
-list_message (mh_format_t *format, mu_mailbox_t mbox, size_t msgno, size_t width)
+list_message (mh_format_t *format, mu_mailbox_t mbox, size_t msgno,
+	      size_t width)
 {
   mu_message_t msg;
   char *buf = NULL;
@@ -275,6 +284,33 @@ main (int argc, char **argv)
 	}
     }
 
+  if (truncate_source && move_to_mailbox)
+    {
+      mu_msgset_t msgset;
+      
+      rc = mu_msgset_create (&msgset, input, MU_MSGSET_NUM);
+      if (rc)
+	mu_diag_funcall (MU_DIAG_ERROR, "mu_msgset_create", NULL, rc);
+      else
+	{
+	  rc = mu_msgset_add_range (msgset, 1, total, MU_MSGSET_NUM);
+	  if (rc)
+	    mu_diag_funcall (MU_DIAG_ERROR, "mu_msgset_add_range", NULL, rc);
+	  else
+	    {
+	      rc = mu_mailbox_msgset_copy (input, msgset, move_to_mailbox,
+					   MU_MAILBOX_COPY_CREAT);
+	      if (rc)
+		{
+		  mu_error (_("failed to move messages to %s: %s"),
+			    move_to_mailbox, mu_strerror (rc));
+		  truncate_source = 0;
+		}
+	    }
+	  mu_msgset_destroy (&msgset);
+	}
+    }
+  
   if (!changecur)
     {
       mu_property_t prop = mh_mailbox_get_property (output);

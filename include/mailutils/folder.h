@@ -61,7 +61,8 @@ extern int  mu_folder_enumerate      (mu_folder_t, const char *,
 extern int  mu_folder_lsub           (mu_folder_t, const char *, const char *,
 				      mu_list_t *);
 
-/* Stream settings.  */
+/* Stream settings. Don't use these functions.
+   FIXME: To be removed. */
 extern int  mu_folder_get_stream     (mu_folder_t, mu_stream_t *)
                                        __attribute__ ((deprecated));
 extern int  mu_folder_get_streamref  (mu_folder_t, mu_stream_t *);

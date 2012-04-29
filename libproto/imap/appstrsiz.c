@@ -121,7 +121,7 @@ mu_imap_append_stream_size (mu_imap_t imap, const char *mailbox, int flags,
     case MU_IMAP_CLIENT_APPEND_RX:
       status = _mu_imap_response (imap, NULL, NULL);
       MU_IMAP_CHECK_EAGAIN (imap, status);
-      switch (imap->resp_code)
+      switch (imap->response)
 	{
 	case MU_IMAP_OK:
 	  status = 0;

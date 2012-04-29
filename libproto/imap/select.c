@@ -113,7 +113,7 @@ mu_imap_select (mu_imap_t imap, const char *mbox, int writable,
       memset (&imap->mbox_stat, 0, sizeof (imap->mbox_stat));
       status = _mu_imap_response (imap, _select_response_action, NULL);
       MU_IMAP_CHECK_EAGAIN (imap, status);
-      switch (imap->resp_code)
+      switch (imap->response)
 	{
 	case MU_IMAP_OK:
 	  imap->session_state = MU_IMAP_SESSION_SELECTED;

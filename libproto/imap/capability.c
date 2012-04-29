@@ -113,7 +113,7 @@ mu_imap_capability (mu_imap_t imap, int reread, mu_iterator_t *piter)
 				  NULL);
       imap->client_state = MU_IMAP_CLIENT_READY;
       MU_IMAP_CHECK_EAGAIN (imap, status);
-      if (imap->resp_code != MU_IMAP_OK)
+      if (imap->response != MU_IMAP_OK)
 	return MU_ERR_REPLY;
       else
 	{

@@ -56,7 +56,7 @@ mu_imap_login (mu_imap_t imap, const char *user, const char *pass)
       status = _mu_imap_response (imap, NULL, NULL);
       imap->client_state = MU_IMAP_CLIENT_READY;
       MU_IMAP_CHECK_EAGAIN (imap, status);
-      switch (imap->resp_code)
+      switch (imap->response)
 	{
 	case MU_IMAP_OK:
 	  imap->session_state = MU_IMAP_SESSION_AUTH;

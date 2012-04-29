@@ -67,7 +67,7 @@ mu_imap_store_flags (mu_imap_t imap, int uid, mu_msgset_t msgset,
       /* FIXME: Handle unsolicited responses */
       status = _mu_imap_response (imap, NULL, NULL);
       MU_IMAP_CHECK_EAGAIN (imap, status);
-      switch (imap->resp_code)
+      switch (imap->response)
 	{
 	case MU_IMAP_OK:
 	  status = 0;

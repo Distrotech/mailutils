@@ -1252,6 +1252,41 @@ _imap_mbx_is_updated (mu_mailbox_t mbox)
   return imbx->flags & _MU_IMAP_MBX_UPTODATE;
 }
 
+static int
+_imap_copy_to_mailbox (mu_mailbox_t mbox, mu_msgset_t msgset,
+		       const char *mailbox, int flags)
+{
+  struct _mu_imap_mailbox *imbx = mbox->data;
+  mu_folder_t folder = mbox->folder;
+  mu_imap_t imap = folder->data;
+  int rc;
+  
+  mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_TRACE1,
+	    (_("copying messages to mailbox %s"), mailbox));
+  _imap_mbx_clrerr (imbx);
+
+  rc = mu_imap_copy (imap, flags & MU_MAILBOX_COPY_UID, msgset, mailbox);
+  if (rc)
+    {
+      mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR,
+		(_("mu_imap_copy: %s"), mu_strerror (rc)));
+      if (rc)
+	{
+	  if (mu_imap_response_code (imap) == MU_IMAP_RESPONSE_TRYCREATE)
+	    {
+	      mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_TRACE1,
+			(_("creating mailbox %s"), mailbox));
+	      rc = mu_imap_mailbox_create (imap, mailbox);
+	      if (rc == 0)
+		rc = mu_imap_copy (imap, flags & MU_MAILBOX_COPY_UID,
+				   msgset, mailbox);
+	    }
+	}
+      imbx->last_error = rc;
+    }
+  return rc;
+}
+
 int
 _mu_imap_mailbox_init (mu_mailbox_t mailbox)
 {
@@ -1279,6 +1314,7 @@ _mu_imap_mailbox_init (mu_mailbox_t mailbox)
   mailbox->_sync = _imap_mbx_sync;
   
   mailbox->_append_message = _imap_mbx_append_message;
+  mailbox->_copy = _imap_copy_to_mailbox;
   
   return 0;
 }

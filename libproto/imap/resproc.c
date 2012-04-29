@@ -72,7 +72,7 @@ parse_response_code (mu_imap_t imap, mu_list_t resp)
       if (mu_kwd_xlat_name (mu_imap_response_codes, arg->v.string, &rcode))
 	return -1;
       
-      arg = _mu_imap_list_at (resp, 4);
+      arg = _mu_imap_list_at (resp, 3);
       if (!arg || !_mu_imap_list_element_is_string (arg, "]"))
 	return -1;
     }
@@ -217,6 +217,7 @@ struct resptab
 {
   char *name;
   mu_imap_response_action_t action;
+  int code;
 };
 
 static struct resptab resptab[] = {
@@ -350,5 +351,75 @@ _mu_imap_process_untagged_response (mu_imap_t imap, mu_list_t list,
     }
   return 0;
 }
+
+static void
+default_tagged_response (mu_imap_t imap, int code, mu_list_t resp, void *data)
+{
+  struct imap_list_element *arg;
 
-			  
+  if (mu_list_tail (resp, (void*) &arg) == 0 &&
+      arg->type == imap_eltype_string)
+    _mu_imap_seterrstrz (imap, arg->v.string);
+  imap->response_code = parse_response_code (imap, resp);
+  mu_imap_callback (imap, code, imap->response_code,
+		    arg ? arg->v.string : NULL);
+}
+
+static void
+ok_tagged_response (mu_imap_t imap, mu_list_t resp, void *data)
+{
+  default_tagged_response (imap, MU_IMAP_CB_TAGGED_OK, resp, data);
+}
+
+static void
+no_tagged_response (mu_imap_t imap, mu_list_t resp, void *data)
+{
+  default_tagged_response (imap, MU_IMAP_CB_TAGGED_NO, resp, data);
+}
+
+static void
+bad_tagged_response (mu_imap_t imap, mu_list_t resp, void *data)
+{
+  default_tagged_response (imap, MU_IMAP_CB_TAGGED_BAD, resp, data);
+}
+
+static struct resptab tagged_resptab[] = {
+  { "OK", ok_tagged_response, MU_IMAP_OK },
+  { "NO", no_tagged_response, MU_IMAP_NO },
+  { "BAD", bad_tagged_response, MU_IMAP_BAD },
+  { NULL }
+};
+
+static int
+_std_tagged_response (mu_imap_t imap, size_t count, mu_list_t resp)
+{
+  struct resptab *rp;
+  struct imap_list_element *arg = _mu_imap_list_at (resp, 0);
+
+  if (!arg)
+    return 1;
+
+  if (arg->type == imap_eltype_string)
+    for (rp = tagged_resptab; rp->name; rp++)
+      {
+	if (mu_c_strcasecmp (rp->name, arg->v.string) == 0)
+	  {
+	    imap->response = rp->code;
+	    rp->action (imap, resp, NULL);
+	    return 0;
+	  }
+      }
+  return 1;
+}
+
+int
+_mu_imap_process_tagged_response (mu_imap_t imap, mu_list_t resp)
+{
+  size_t count;
+  
+  if (mu_list_count (resp, &count))
+    return 1;
+
+  return _std_tagged_response (imap, count, resp);
+}
+

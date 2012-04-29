@@ -25,7 +25,7 @@
 void
 _mu_close_handler (mu_imap_t imap)
 {
-  if (imap->resp_code == MU_IMAP_OK)
+  if (imap->response == MU_IMAP_OK)
     imap->session_state = MU_IMAP_SESSION_AUTH;
 }
 

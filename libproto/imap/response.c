@@ -27,13 +27,6 @@
 #include <mailutils/errno.h>
 #include <mailutils/sys/imap.h>
 
-static void
-response_to_errstr (mu_imap_t imap, size_t argc, char **argv)
-{
-  if (argc && strcmp (argv[argc-1], "]"))
-    _mu_imap_seterrstrz (imap, argv[argc-1]);
-}
-
 int
 _mu_imap_response (mu_imap_t imap, mu_imap_response_action_t fun,
 		   void *data)
@@ -83,29 +76,17 @@ _mu_imap_response (mu_imap_t imap, mu_imap_response_action_t fun,
 		  /*imap->client_state = MU_IMAP_CLIENT_ERROR;*/
 		  status = MU_ERR_BADREPLY;
 		}
-	      else if (strcmp (wv[1], "OK") == 0)
-		{
-		  imap->resp_code = MU_IMAP_OK;
-		  response_to_errstr (imap, wc, wv);
-		}
-	      else if (strcmp (wv[1], "NO") == 0)
-		{
-		  imap->resp_code = MU_IMAP_NO;
-		  response_to_errstr (imap, wc, wv);
-		}
-	      else if (strcmp (wv[1], "BAD") == 0)
-		{
-		  imap->resp_code = MU_IMAP_BAD;
-		  response_to_errstr (imap, wc, wv);
-		  /* This may be so important that CB_BAD callback is
-		   * overloaded to handle this case as well.
-		   */
-		  mu_imap_callback (imap, MU_IMAP_CB_BAD,
-				    MU_IMAP_RESPONSE_TAGGED,
-				    wc >= 1 ? wv[wc-1] : NULL);
-		}
 	      else
-		status = MU_ERR_BADREPLY;
+		{
+		  mu_list_t list;
+		  status = _mu_imap_untagged_response_to_list (imap, &list);
+		  if (status == 0)
+		    {
+		      if (_mu_imap_process_tagged_response (imap, list))
+			status = MU_ERR_BADREPLY;
+		      mu_list_destroy (&list);
+		    }
+		}
 	      MU_IMAP_FSET (imap, MU_IMAP_RESP);
 	    }
 	  else

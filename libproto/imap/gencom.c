@@ -71,7 +71,7 @@ mu_imap_gencom (mu_imap_t imap, struct imap_command *cmd)
       MU_IMAP_CHECK_EAGAIN (imap, status);
       if (cmd->tagged_handler)
 	  cmd->tagged_handler (imap);
-      switch (imap->resp_code)
+      switch (imap->response)
 	{
 	case MU_IMAP_OK:
 	  status = 0;

@@ -126,7 +126,7 @@ mu_imap_id (mu_imap_t imap, char **idenv, mu_assoc_t *passoc)
     case MU_IMAP_CLIENT_ID_RX:
       status = _mu_imap_response (imap, parse_id_reply, passoc);
       MU_IMAP_CHECK_EAGAIN (imap, status);
-      switch (imap->resp_code)
+      switch (imap->response)
 	{
 	case MU_IMAP_OK:
 	  status = 0;

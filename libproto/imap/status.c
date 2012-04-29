@@ -185,7 +185,7 @@ mu_imap_status (mu_imap_t imap, const char *mboxname, struct mu_imap_stat *ps)
 
 	status = _mu_imap_response (imap, _status_response_action, &sd);
 	MU_IMAP_CHECK_EAGAIN (imap, status);
-	switch (imap->resp_code)
+	switch (imap->response)
 	  {
 	  case MU_IMAP_OK:
 	    break;

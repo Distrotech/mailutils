@@ -55,8 +55,8 @@ _mu_imap_response_list_create (mu_imap_t imap, mu_list_t *plist)
   return 0;
 }
 
-#define IS_LBRACE(p) ((p)[0] == '(')
-#define IS_RBRACE(p) ((p)[0] == ')')
+#define IS_LBRACE(p) ((p)[0] == '(' && !(p)[1])
+#define IS_RBRACE(p) ((p)[0] == ')' && !(p)[1])
 #define IS_NIL(p) (strcmp (p, "NIL") == 0)
 
 static struct imap_list_element *

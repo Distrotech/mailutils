@@ -85,8 +85,10 @@ struct _mu_imap
   {
     int flags;
 
-    /* Holds the recect response code */
-    enum mu_imap_response resp_code;
+    /* Holds the recent response */
+    enum mu_imap_response response;
+    /* The recent response code */
+    int response_code;
     
     /* Error string (if any) */
     char *errstr;
@@ -210,6 +212,7 @@ int _mu_imap_untagged_response_to_list (mu_imap_t imap, mu_list_t *plist);
 int _mu_imap_process_untagged_response (mu_imap_t imap, mu_list_t list,
 					mu_imap_response_action_t fun,
 					void *data);
+int _mu_imap_process_tagged_response (mu_imap_t imap, mu_list_t resp);
  
 int _mu_imap_response (mu_imap_t imap, mu_imap_response_action_t fun,
 		       void *data);

@@ -475,12 +475,13 @@ mu_folder_delete (mu_folder_t folder, const char *name)
 	 mailbox and call mailbox delete (remove) method.  This is necessary
 	 because certain types of mailboxes share a common folder (e.g. mbox,
 	 maildir and mh all use filesystem folder), but have a different
-	 internal structure.  Supplying mu_folder_t with a knowledge of mailbox
-	 internals will harm separation of concerns.  On the other hand,
-	 removing something without looking into it may well yield undesired
-	 results.  For example, a MH mailbox can hold another mailboxes, i.e.
-	 be a folder itself.  Removing it blindly would result in removing
-	 these mailboxes as well, which is clearly not indended.
+	 internal structure.  Supplying mu_folder_t with knowledge about
+	 mailbox internals will harm separation of concerns.  On the other 
+	 hand, removing something without looking into it may well yield 
+	 undesired results.  For example, a MH mailbox can hold another
+	 mailboxes, i.e. be a folder itself.  Removing it blindly would 
+	 result in removing these mailboxes as well, which is clearly not 
+	 indended.
 
 	 To solve this folder and mailbox delete methods are tightly paired,
 	 but without looking into each-others internal mechanisms. */

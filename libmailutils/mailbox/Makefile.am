@@ -24,6 +24,7 @@ libmailbox_la_SOURCES =  \
  attribute.c\
  body.c\
  bodystruct.c\
+ copy.c\
  envelope.c\
  folder.c\
  fsfolder.c\
