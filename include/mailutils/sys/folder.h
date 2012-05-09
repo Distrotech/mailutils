@@ -38,7 +38,6 @@ struct _mu_folder
   mu_authority_t authority;
   mu_observable_t observable;
   mu_property_t property;
-  mu_stream_t stream;
   mu_monitor_t monitor;
   mu_url_t url;
   int flags;

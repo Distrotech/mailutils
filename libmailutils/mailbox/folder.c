@@ -31,7 +31,6 @@
 #include <mailutils/monitor.h>
 #include <mailutils/observer.h>
 #include <mailutils/registrar.h>
-#include <mailutils/stream.h>
 #include <mailutils/url.h>
 #include <mailutils/errno.h>
 #include <mailutils/property.h>
@@ -212,8 +211,6 @@ mu_folder_destroy (mu_folder_t *pfolder)
 	  mu_monitor_wrlock (monitor);
 	  if (folder->authority)
 	    mu_authority_destroy (&folder->authority, folder);
-	  if (folder->stream)
-	    mu_stream_destroy (&folder->stream);
 	  if (folder->url)
 	    mu_url_destroy (&folder->url);
 	  if (folder->property)
@@ -271,39 +268,6 @@ mu_folder_close (mu_folder_t folder)
   if (folder->_close == NULL)
     return ENOSYS;
   return folder->_close (folder);
-}
-
-int
-mu_folder_set_stream (mu_folder_t folder, mu_stream_t stream)
-{
-  if (folder == NULL)
-    return EINVAL;
-  if (folder->stream)
-    mu_stream_destroy (&folder->stream);
-  folder->stream = stream;
-  return 0;
-}
-
-int
-mu_folder_get_stream (mu_folder_t folder, mu_stream_t *pstream)
-{
-  /* FIXME: Deprecation warning */
-  if (folder == NULL)
-    return EINVAL;
-  if (pstream == NULL)
-    return MU_ERR_OUT_PTR_NULL;
-  *pstream = folder->stream;
-  return 0;
-}
-
-int
-mu_folder_get_streamref (mu_folder_t folder, mu_stream_t *pstream)
-{
-  if (folder == NULL)
-    return EINVAL;
-  if (pstream == NULL)
-    return MU_ERR_OUT_PTR_NULL;
-  return mu_streamref_create (pstream, folder->stream);
 }
 
 int

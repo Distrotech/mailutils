@@ -129,22 +129,6 @@ api_folder_close (PyObject *self, PyObject *args)
 }
 
 static PyObject *
-api_folder_get_stream (PyObject *self, PyObject *args)
-{
-  int status;
-  PyFolder *py_folder;
-  PyStream *py_stm = PyStream_NEW ();
-
-  if (!PyArg_ParseTuple (args, "O!", &PyFolderType, &py_folder))
-    return NULL;
-
-  Py_INCREF (py_stm);
-
-  status = mu_folder_get_streamref (py_folder->folder, &py_stm->stm);
-  return status_object (status, (PyObject *)py_stm);
-}
-
-static PyObject *
 api_folder_get_authority (PyObject *self, PyObject *args)
 {
   int status;
@@ -251,9 +235,6 @@ static PyMethodDef methods[] = {
     "" },
 
   { "close", (PyCFunction) api_folder_close, METH_VARARGS,
-    "" },
-
-  { "get_stream", (PyCFunction) api_folder_get_stream, METH_VARARGS,
     "" },
 
   { "get_authority", (PyCFunction) api_folder_get_authority, METH_VARARGS,

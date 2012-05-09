@@ -307,35 +307,6 @@ SCM_DEFINE_PUBLIC (scm_mu_mailbox_get_url, "mu-mailbox-get-url", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE_PUBLIC (scm_mu_mailbox_get_port, "mu-mailbox-get-port", 2, 0, 0,
-		   (SCM mbox, SCM mode),
-"Returns a port associated with the contents of the @var{mbox},\n"
-"which is a string defining operation mode of the stream. It may\n"
-"contain any of the two characters: @samp{r} for reading, @samp{w} for\n"
-"writing.\n")
-#define FUNC_NAME s_scm_mu_mailbox_get_port
-{
-  struct mu_mailbox *mum;
-  mu_stream_t stream;
-  int status;
-  char *s;
-  SCM ret;
-  
-  SCM_ASSERT (mu_scm_is_mailbox (mbox), mbox, SCM_ARG1, FUNC_NAME);
-  SCM_ASSERT (scm_is_string (mode), mode, SCM_ARG2, FUNC_NAME);
-  mum = (struct mu_mailbox *) SCM_CDR (mbox);
-  status = mu_mailbox_get_streamref (mum->mbox, &stream);
-  if (status)
-    mu_scm_error (FUNC_NAME, status,
-		  "Cannot get mailbox stream",
-		  scm_list_1 (mbox));
-  s = scm_to_locale_string (mode);
-  ret = mu_port_make_from_stream (mbox, stream, scm_mode_bits (s));
-  free (s);
-  return ret;
-}
-#undef FUNC_NAME
-
 SCM_DEFINE_PUBLIC (scm_mu_mailbox_get_message, "mu-mailbox-get-message", 2, 0, 0,
 		   (SCM mbox, SCM msgno), 
 "Retrieve from message #@var{msgno} from the mailbox @var{mbox}.")

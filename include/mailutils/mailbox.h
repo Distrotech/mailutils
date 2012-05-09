@@ -86,12 +86,6 @@ extern int  mu_mailbox_get_size        (mu_mailbox_t, mu_off_t *size);
 extern int  mu_mailbox_is_updated      (mu_mailbox_t);
 extern int  mu_mailbox_scan            (mu_mailbox_t, size_t no, size_t *count);
 
-/* Mailbox Stream.  */
-extern int  mu_mailbox_set_stream      (mu_mailbox_t, mu_stream_t);
-extern int  mu_mailbox_get_stream      (mu_mailbox_t, mu_stream_t *)
-                                         __attribute__ ((deprecated));
-extern int  mu_mailbox_get_streamref   (mu_mailbox_t, mu_stream_t *);
-
 /* Lock settings.  */
 extern int  mu_mailbox_get_locker      (mu_mailbox_t, mu_locker_t *);
 extern int  mu_mailbox_set_locker      (mu_mailbox_t, mu_locker_t);

@@ -110,26 +110,6 @@ Folder :: enumerate (const std::string& name, void* pattern,
   return *new List (c_list);
 }
 
-Stream&
-Folder :: get_stream ()
-{
-  mu_stream_t c_stream;
-
-  int status = mu_folder_get_stream (folder, &c_stream);
-  if (status)
-    throw Exception ("Folder::get_stream", status);
-
-  return *new Stream (c_stream);
-}
-
-void
-Folder :: set_stream (const Stream& stream)
-{
-  int status = mu_folder_set_stream (folder, stream.stm);
-  if (status)
-    throw Exception ("Folder::set_stream", status);
-}
-
 Url&
 Folder :: get_url ()
 {

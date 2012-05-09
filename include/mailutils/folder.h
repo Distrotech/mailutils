@@ -61,14 +61,6 @@ extern int  mu_folder_enumerate      (mu_folder_t, const char *,
 extern int  mu_folder_lsub           (mu_folder_t, const char *, const char *,
 				      mu_list_t *);
 
-/* Stream settings. Don't use these functions.
-   FIXME: To be removed. */
-extern int  mu_folder_get_stream     (mu_folder_t, mu_stream_t *)
-                                       __attribute__ ((deprecated));
-extern int  mu_folder_get_streamref  (mu_folder_t, mu_stream_t *);
-  
-extern int  mu_folder_set_stream     (mu_folder_t, mu_stream_t);
-
   /* Match function */
 extern int mu_folder_set_match (mu_folder_t folder, mu_folder_match_fp pmatch);
 extern int mu_folder_get_match (mu_folder_t folder,

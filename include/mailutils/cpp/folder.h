@@ -48,9 +48,6 @@ class Folder
 		   int flags, size_t max_level,
 		   mu_folder_enumerate_fp enumfun, void* enumdata);
 
-  Stream& get_stream ();
-  void set_stream (const Stream& stream);
-
   Url& get_url ();
 };
 

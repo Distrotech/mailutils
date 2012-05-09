@@ -648,55 +648,6 @@ mu_mailbox_set_stream (mu_mailbox_t mbox, mu_stream_t stream)
   return 0;
 }
 
-/* FIXME: This is a problem.  We provide a mu_mailbox_get_stream ()
-   and this stream is special: it should, in theory, represent
-   a "view" of a flow of messages.  However, providing this perspective
-   may make sense for local mailboxes, but downright impossible
-   for remote mailboxes, short on downloading entire mailbox
-   locally.
-
-   This function will be removed in the short run.  It is no longer
-   used by MU.  */
-int
-mu_mailbox_get_stream (mu_mailbox_t mbox, mu_stream_t *pstream)
-{
-  /* FIXME: Deprecation warning */
-  if (mbox == NULL)
-    return EINVAL;
-  if (pstream == NULL)
-    return MU_ERR_OUT_PTR_NULL;
-
-  /* If null two cases:
-     - it is no open yet.
-     - it a remote stream and the socket stream is on the folder.  */
-  if (mbox->stream == NULL)
-    {
-      if (mbox->folder)
-	return mu_folder_get_stream (mbox->folder, pstream);
-    }
-  *pstream = mbox->stream;
-  return 0;
-}
-
-int
-mu_mailbox_get_streamref (mu_mailbox_t mbox, mu_stream_t *pstream)
-{
-  if (mbox == NULL)
-    return EINVAL;
-  if (pstream == NULL)
-    return MU_ERR_OUT_PTR_NULL;
-
-  /* If null two cases:
-     - it is no open yet.
-     - it a remote stream and the socket stream is on the folder.  */
-  if (mbox->stream == NULL)
-    {
-      if (mbox->folder)
-	return mu_folder_get_streamref (mbox->folder, pstream);
-    }
-  return mu_streamref_create (pstream, mbox->stream);
-}
-
 int
 mu_mailbox_get_observable (mu_mailbox_t mbox, mu_observable_t *pobservable)
 {

@@ -83,12 +83,6 @@ struct mu_list_response
 @c Stream Settings.
 @c
 
-@deftypefun  int mu_folder_get_stream (mu_folder_t, mu_stream_t *)
-@end deftypefun
-
-@deftypefun  int mu_folder_set_stream (mu_folder_t, mu_stream_t)
-@end deftypefun
-
 @c
 @c Notifications.
 @c
