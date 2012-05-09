@@ -763,8 +763,8 @@ if test "$use_fribidi" = "yes"; then
                   FRIBIDI_LIBS=-lfribidi],
                  [use_fribidi=no])
 
-    AC_RUN_IFELSE(AC_LANG_PROGRAM([#include <fribidi/fribidi.h>],
-                                  [FriBidiCharSet s = FRIBIDI_CHARSET_CAP_RTL;]),
+    AC_RUN_IFELSE([AC_LANG_PROGRAM([#include <fribidi/fribidi.h>],
+                                  [FriBidiCharSet s = FRIBIDI_CHARSET_CAP_RTL;])],
                   [AC_DEFINE(HAVE_FRIBIDI_CHARSET_CAP_RTL)])
                  
   else
