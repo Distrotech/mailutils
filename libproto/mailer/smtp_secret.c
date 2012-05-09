@@ -17,66 +17,36 @@
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
-#include <errno.h>
-#include <stdlib.h>
-#include <mailutils/list.h>
+
+#include <mailutils/errno.h>
 #include <mailutils/secret.h>
 #include <mailutils/smtp.h>
-#include <mailutils/url.h>
-#include <mailutils/stream.h>
 #include <mailutils/sys/smtp.h>
 
 int
-mu_smtp_create (mu_smtp_t *psmtp)
+mu_smtp_set_secret (mu_smtp_t smtp, mu_secret_t secret)
 {
-  struct _mu_smtp *smtp;
-
-  if (!psmtp)
-    return EINVAL;
-  
-  smtp = calloc (1, sizeof (*smtp));
-
   if (!smtp)
-    return ENOMEM;
-  
-  smtp->state = MU_SMTP_INIT;
-  *psmtp = smtp;
-  return 0;
-}
-
-void
-mu_smtp_destroy (mu_smtp_t *psmtp)
-{
-  int i;
-  struct _mu_smtp *smtp;
-
-  if (!psmtp || !*psmtp)
-    return;
-  smtp = *psmtp;
-  mu_stream_destroy (&smtp->carrier);
-  mu_list_destroy (&smtp->capa);
-  mu_list_destroy (&smtp->authimpl);
-  free (smtp->rdbuf);
-  free (smtp->flbuf);
-  mu_list_destroy (&smtp->mlrepl);
-
-  mu_list_destroy (&smtp->authmech);
+    return EINVAL;
   if (smtp->secret)
     {
       if (MU_SMTP_FISSET (smtp, _MU_SMTP_CLNPASS))
 	mu_secret_password_unref (smtp->secret);
       mu_secret_destroy (&smtp->secret);
     }
-  mu_url_destroy (&smtp->url);
-  
-  for (i = 0; i < MU_SMTP_MAX_PARAM; i++)
-    {
-      if (i == MU_SMTP_PARAM_PASSWORD)
-	continue;
-      free (smtp->param[i]);
-    }
-  
-  free (smtp);
-  *psmtp = NULL;
+  if (!secret)
+    return 0;
+  return mu_secret_dup (secret, &smtp->secret);
 }
 
+int
+mu_smtp_get_secret (mu_smtp_t smtp, mu_secret_t *secret)
+{
+  if (!smtp)
+    return EINVAL;
+  if (!smtp->secret)
+    return MU_ERR_NOENT;
+  *secret = smtp->secret;
+  mu_secret_ref (smtp->secret);
+  return 0;
+}

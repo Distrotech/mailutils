@@ -44,11 +44,13 @@ libmu_mailer_la_SOURCES = \
  smtp_mech.c\
  smtp_open.c\
  smtp_param.c\
+ smtp_quit.c\
  smtp_rcpt.c\
  smtp_rset.c\
+ smtp_secret.c\
  smtp_send.c\
  smtp_starttls.c\
  smtp_trace.c\
- smtp_quit.c\
+ smtp_url.c\
  remote.c
 

@@ -55,6 +55,11 @@ int mu_smtp_disconnect (mu_smtp_t smtp);
 int mu_smtp_ehlo (mu_smtp_t smtp);
 int mu_smtp_set_param (mu_smtp_t smtp, int code, const char *val);
 int mu_smtp_get_param (mu_smtp_t smtp, int code, const char **param);
+int mu_smtp_set_url (mu_smtp_t smtp, mu_url_t url);
+int mu_smtp_get_url (mu_smtp_t smtp, mu_url_t *purl);
+int mu_smtp_set_secret (mu_smtp_t smtp, mu_secret_t secret);
+int mu_smtp_get_secret (mu_smtp_t smtp, mu_secret_t *secret);
+
 int mu_smtp_capa_test (mu_smtp_t smtp, const char *capa, const char **pret);
 int mu_smtp_starttls (mu_smtp_t smtp);
 

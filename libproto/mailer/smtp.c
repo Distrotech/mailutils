@@ -162,8 +162,7 @@ smtp_open (mu_mailer_t mailer, int flags)
     mu_smtp_trace_mask (smtp_mailer->smtp, MU_SMTP_TRACE_SET,
 			MU_XSCRIPT_PAYLOAD);
   
-  mu_smtp_set_param (smtp_mailer->smtp, MU_SMTP_PARAM_URL,
-		     mu_url_to_string (mailer->url));
+  mu_smtp_set_url (smtp_mailer->smtp, mailer->url);
 
   if (mu_url_sget_auth (mailer->url, &auth) == 0)
     smtp_mailer_add_auth_mech (smtp_mailer, auth);

@@ -53,7 +53,6 @@ static int
 _mu_smtp_fixup_params (mu_smtp_t smtp)
 {
   const char *str;
-  mu_url_t url;
   mu_ticket_t ticket = NULL;
   int flags = 0;
   int rc;
@@ -67,26 +66,19 @@ _mu_smtp_fixup_params (mu_smtp_t smtp)
   if ((flags & (_HAS_USERNAME|_HAS_PASSWORD)) == (_HAS_USERNAME|_HAS_PASSWORD))
     return 0; /* Nothing to do */
   
-  if (!smtp->param[MU_SMTP_PARAM_URL])
+  if (!smtp->url)
     return 0;
   
-  rc = mu_url_create (&url, smtp->param[MU_SMTP_PARAM_URL]);
-  if (rc)
-    {
-      mu_diag_output (MU_DIAG_ERROR, "cannot create URL: %s",
-		      mu_strerror (rc));
-      return rc;
-    }
-
   if (!(flags & _HAS_USERNAME))
     {
-      rc = mu_url_sget_user (url, &str);
+      rc = mu_url_sget_user (smtp->url, &str);
       if (rc == 0 &&
 	  mu_smtp_set_param (smtp, MU_SMTP_PARAM_USERNAME, str) == 0)
 	flags |= _HAS_USERNAME;
     }
 
-  if (!(flags & _HAS_PASSWORD) && mu_url_get_secret (url, &smtp->secret) == 0)
+  if (!(flags & _HAS_PASSWORD) &&
+      mu_url_get_secret (smtp->url, &smtp->secret) == 0)
     flags |= _HAS_PASSWORD;
 
   if ((!(flags & _HAS_USERNAME) ||
@@ -94,18 +86,17 @@ _mu_smtp_fixup_params (mu_smtp_t smtp)
       get_ticket (&ticket) == 0)
     {
       if (!(flags & _HAS_USERNAME) &&
-	  mu_ticket_get_cred (ticket, url, "SMTP User: ",
+	  mu_ticket_get_cred (ticket, smtp->url, "SMTP User: ",
 			      &smtp->param[MU_SMTP_PARAM_USERNAME],
 			      NULL) == 0)
 	flags |= _HAS_USERNAME;
 
       if (!(flags & _HAS_PASSWORD) && !smtp->secret)
-	mu_ticket_get_cred (ticket, url, "SMTP Passwd: ",
+	mu_ticket_get_cred (ticket, smtp->url, "SMTP Passwd: ",
 			    NULL, &smtp->secret);
       mu_ticket_destroy (&ticket);
     }
 
-  mu_url_destroy (&url);
   return 0;
 }
 

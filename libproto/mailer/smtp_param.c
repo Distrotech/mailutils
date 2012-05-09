@@ -25,6 +25,7 @@
 #include <mailutils/cctype.h>
 #include <mailutils/list.h>
 #include <mailutils/secret.h>
+#include <mailutils/url.h>
 #include <mailutils/smtp.h>
 #include <mailutils/sys/smtp.h>
 
@@ -51,6 +52,18 @@ mu_smtp_set_param (mu_smtp_t smtp, int pcode, const char *newparam)
       MU_SMTP_FCLR (smtp, _MU_SMTP_CLNPASS);
       return mu_secret_create (&smtp->secret, newparam, strlen (newparam));
     }
+  else if (pcode == MU_SMTP_PARAM_URL)
+    {
+      mu_url_t url;
+      int rc;
+	
+      rc = mu_url_create (&url, newparam);
+      if (rc)
+	return rc;
+      mu_url_destroy (&smtp->url);
+      smtp->url = url;
+      return 0;
+    }
   
   param = strdup (newparam);
   if (!param)
@@ -72,6 +85,14 @@ mu_smtp_get_param (mu_smtp_t smtp, int pcode, const char **pparam)
     {
       smtp->param[pcode] = (char*) mu_secret_password (smtp->secret);
       MU_SMTP_FSET (smtp, _MU_SMTP_CLNPASS);
+    }
+  else if (pcode == MU_SMTP_PARAM_URL)
+    {
+      if (smtp->url)
+	{
+	  *pparam = mu_url_to_string (smtp->url);
+	  return 0;
+	}
     }
   
   *pparam = smtp->param[pcode];

@@ -57,6 +57,7 @@ struct _mu_smtp
   
   /* User-supplied data */
   char *param[MU_SMTP_MAX_PARAM];
+  mu_url_t url;
   mu_list_t authmech;          /* List of allowed authentication mechs */
   mu_secret_t secret;
   
