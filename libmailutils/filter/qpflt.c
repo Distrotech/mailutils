@@ -25,7 +25,7 @@
 #define ISWS(c) ((c)==' ' || (c)=='\t')
 
 static enum mu_filter_result
-_qp_decoder (void *xd MU_ARG_UNUSED,
+_qp_decoder (void *xd,
 	     enum mu_filter_command cmd,
 	     struct mu_filter_io *iobuf)
 {
@@ -37,7 +37,8 @@ _qp_decoder (void *xd MU_ARG_UNUSED,
   size_t isize;
   char *optr;
   size_t osize;
-
+  int underscore_special = *(int*)xd;
+  
   switch (cmd)
     {
     case mu_filter_init:
@@ -142,7 +143,7 @@ _qp_decoder (void *xd MU_ARG_UNUSED,
 		  consumed += 2;
 		}
 	    }
-	  else if (c == '_')
+	  else if (underscore_special && c == '_')
 	    {
 	      *optr++ = ' ';
 	      nbytes++;
@@ -162,7 +163,7 @@ _qp_decoder (void *xd MU_ARG_UNUSED,
 }
 
 static enum mu_filter_result
-_qp_encoder (void *xd MU_ARG_UNUSED,
+_qp_encoder (void *xd,
 	     enum mu_filter_command cmd,
 	     struct mu_filter_io *iobuf)
 {
@@ -174,6 +175,7 @@ _qp_encoder (void *xd MU_ARG_UNUSED,
   size_t isize;
   char *optr;
   size_t osize;
+  int underscore_special = *(int*)xd;
 
   switch (cmd)
     {
@@ -201,7 +203,10 @@ _qp_encoder (void *xd MU_ARG_UNUSED,
       
       /* candidate byte to convert */
       c = *(unsigned char*) iptr;
-      simple_char = (c >= 32 && c <= 60)
+      if (underscore_special && c == '_')
+	simple_char = 0;
+      else
+	simple_char = (c >= 32 && c <= 60)
 	               || (c >= 62 && c <= 126)
 	               || c == '\t'
 	               || c == '\n';
@@ -211,8 +216,10 @@ _qp_encoder (void *xd MU_ARG_UNUSED,
 	  /* a non-quoted character uses up one byte */
 	  if (nbytes + 1 > osize) 
 	    break;
-
-	  *optr++ = c;
+	  if (underscore_special && c == ' ')
+	    *optr++ = '_';
+	  else
+	    *optr++ = c;
 	  nbytes++;
 	    
 	  iptr++;
@@ -241,18 +248,40 @@ _qp_encoder (void *xd MU_ARG_UNUSED,
   return mu_filter_ok;
 }
 
+static int
+alloc_qp (void **pret, int mode MU_ARG_UNUSED, int argc, const char **argv)
+{
+  int *x = malloc (sizeof (*x));
+  if (!x)
+    return ENOMEM;
+  *x = 0;
+  *pret = x;
+  return 0;
+}
+
 static struct _mu_filter_record _qp_filter = {
   "quoted-printable",
-  NULL,
+  alloc_qp,
   _qp_encoder,
   _qp_decoder
 };
 
 mu_filter_record_t mu_qp_filter = &_qp_filter;
 
+static int
+alloc_Q (void **pret, int mode MU_ARG_UNUSED, int argc, const char **argv)
+{
+  int *x = malloc (sizeof (*x));
+  if (!x)
+    return ENOMEM;
+  *x = 1;
+  *pret = x;
+  return 0;
+}
+
 static struct _mu_filter_record _Q_filter = {
   "Q",
-  NULL,
+  alloc_Q,
   _qp_encoder,
   _qp_decoder
 };
