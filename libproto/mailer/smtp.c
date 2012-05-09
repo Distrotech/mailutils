@@ -206,7 +206,7 @@ smtp_open (mu_mailer_t mailer, int flags)
 	  return rc;
 	}
 #ifdef WITH_TLS
-      if (tls && mu_tls_enable)
+      if (tls)
 	{
 	  mu_stream_t tlsstream;
 	  
@@ -219,9 +219,11 @@ smtp_open (mu_mailer_t mailer, int flags)
 			(_("cannot create TLS stream: %s"),
 			 mu_strerror (rc)));
 	      mu_sockaddr_free (sa);
-	      return rc;
+	      if (mu_tls_enable)
+		return rc;
 	    }
-	  transport = tlsstream;
+	  else
+	    transport = tlsstream;
 	  nostarttls = 1;
 	}
 #endif
@@ -240,7 +242,7 @@ smtp_open (mu_mailer_t mailer, int flags)
     return rc;
 
 #ifdef WITH_TLS
-  if (!nostarttls && mu_tls_enable &&
+  if (!nostarttls &&
       mu_smtp_capa_test (smtp_mailer->smtp, "STARTTLS", NULL) == 0)
     {
       rc = mu_smtp_starttls (smtp_mailer->smtp);
