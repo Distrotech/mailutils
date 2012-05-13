@@ -17,7 +17,7 @@
 AT_SETUP([IDEF0955])
 
 AT_CHECK([
-test $MU_ULONG_MAX_1 -eq 0 && AT_SKIP_TEST
+test "$MU_ULONG_MAX_1" = 0 && AT_SKIP_TEST
 
 cat > input <<EOT
 1 select INBOX
