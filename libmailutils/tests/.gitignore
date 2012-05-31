@@ -19,11 +19,13 @@ listop
 mailcap
 mimehdr
 modtofsaf
+msgset
 prop
 scantime
 strftime
 strin
 strout
+tempfile
 url-comp
 url-parse
 wicket

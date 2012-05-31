@@ -1,11 +1,14 @@
 atconfig
 atlocal
+bs
 fldel
+lstuid
 package.m4
 testsuite
 testsuite.dir
 testsuite.log
 mbdel
 mimetest
+msgset
 smtpsend
 ufms
