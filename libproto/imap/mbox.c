@@ -269,9 +269,12 @@ _imap_env_date (mu_envelope_t env, char *buf, size_t len,
 			  statbuf);
       rc = mu_c_streamftime (str, MU_DATETIME_FROM,
 			     &imsg->env->date, &imsg->env->tz);
+      if (rc == 0)
+	rc = mu_stream_write (str, "", 1, NULL);
       mu_stream_destroy (&str);
-      if (pnwrite)
-	*pnwrite = statbuf[MU_STREAM_STAT_OUT];
+      if (rc == 0 && pnwrite)
+	/* Do not count terminating null character */
+	*pnwrite = statbuf[MU_STREAM_STAT_OUT] - 1;
     }
   return rc;
 }

@@ -68,7 +68,7 @@ struct mh_option mh_option[] = {
 
 static char *format_str = mh_list_format;
 static int width = 80;
-static char *input_file;
+static mu_list_t input_file_list;
 static char *audit_file; 
 static FILE *audit_fp;
 static int changecur = -1;
@@ -80,6 +80,8 @@ static const char *move_to_mailbox;
 static error_t
 opt_handler (int key, char *arg, struct argp_state *state)
 {
+  int rc;
+  
   switch (key)
     {
     case ARGP_KEY_FINI:
@@ -116,11 +118,26 @@ opt_handler (int key, char *arg, struct argp_state *state)
       break;
       
     case ARG_FILE:
-      input_file = arg;
+      if (!input_file_list)
+	{
+	  rc = mu_list_create (&input_file_list);
+	  if (rc)
+	    {
+	      mu_diag_funcall (MU_DIAG_ERROR,
+			       "mu_list_create", "&input_file_list", rc);
+	      exit (1);
+	    }
+	}
+      rc = mu_list_append (input_file_list, arg);
+      if (rc)
+	{
+	  mu_diag_funcall (MU_DIAG_ERROR, "mu_list_append", arg, rc);
+	  exit (1);
+	}
       break;
 
     case ARG_TRUNCATE:
-      truncate_source = is_true(arg);
+      truncate_source = is_true (arg);
       break;
 
     case ARG_NOTRUNCATE:
@@ -165,33 +182,42 @@ list_message (mh_format_t *format, mu_mailbox_t mbox, size_t msgno,
   free (buf);
 }
 
-int
-main (int argc, char **argv)
+struct incdat
 {
-  mu_mailbox_t input = NULL;
-  mu_mailbox_t output = NULL;
-  size_t total, n;
+  mu_mailbox_t output;
   size_t lastmsg;
-  int f_truncate = 0;
-  int f_changecur = 0;
   mh_format_t format;
-  int rc;
+};
 
-  /* Native Language Support */
-  MU_APP_INIT_NLS ();
-
-  mh_argp_init ();
-  mh_argp_parse (&argc, &argv, 0, options, mh_option, args_doc, doc,
-		 opt_handler, NULL, NULL);
-  /* Inc sets missing cur to 1 */
-  mh_mailbox_cur_default = 1;
-
-  if (!quiet && mh_format_parse (format_str, &format))
+static int
+getparam (mu_url_t url, const char *param, const char **sval)
+{
+  int rc = mu_url_sget_param (url, param, sval);
+  switch (rc)
     {
-      mu_error (_("Bad format string"));
+    case 0:
+    case MU_ERR_NOENT:
+      break;
+	  
+    default:
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_url_sget_param", param, rc);
       exit (1);
     }
+  return rc;
+}
 
+static int
+incmbx (void *item, void *data)
+{
+  char *input_file = item;
+  struct incdat *dp = data;
+  mu_mailbox_t input = NULL;
+  size_t total, n;
+  int rc;
+  int f_truncate = truncate_source;
+  const char *f_move_to_mailbox = move_to_mailbox, *sval;
+  mu_url_t url;
+  
   /* Select and open input mailbox */
   if (input_file == NULL)
     {
@@ -201,8 +227,6 @@ main (int argc, char **argv)
 		    mu_strerror (rc));
 	  exit (1);
 	}
-      f_truncate = 1;
-      f_changecur = 1;
     }
   else if ((rc = mu_mailbox_create_default (&input, input_file)) != 0)
     {
@@ -210,14 +234,14 @@ main (int argc, char **argv)
 		input_file, mu_strerror (rc));
       exit (1);
     }
-
+  
   if ((rc = mu_mailbox_open (input, MU_STREAM_RDWR)) != 0)
     {
       mu_url_t url;
       mu_mailbox_get_url (input, &url);
       mu_error (_("cannot open mailbox %s: %s"),
 		mu_url_to_string (url),
-		mu_strerror (errno));
+		mu_strerror (rc));
       exit (1);
     }
 
@@ -227,24 +251,29 @@ main (int argc, char **argv)
       exit (1);
     }
 
-  output = mh_open_folder (append_folder, MU_STREAM_RDWR|MU_STREAM_CREAT);
-  if ((rc = mu_mailbox_messages_count (output, &lastmsg)) != 0)
+  if ((rc = mu_mailbox_get_url (input, &url)) != 0)
     {
-      mu_error (_("cannot read output mailbox: %s"),
-		mu_strerror (errno));
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_mailbox_get_url", input_file, rc);
       exit (1);
     }
-  
-  /* Fixup options */
-  if (truncate_source == -1)
-    truncate_source = f_truncate;
-  if (changecur == -1)
-    changecur = f_changecur;
 
+  if (getparam (url, "truncate", &sval) == 0)
+    {
+      if (!sval)
+	f_truncate = 1;
+      else
+	f_truncate = is_true (sval);
+    }
+  
+  if (getparam (url, "nomoveto", NULL) == 0)
+    f_move_to_mailbox = NULL;
+  else
+    getparam (url, "nomoveto", &f_move_to_mailbox);
+  
   /* Open audit file, if specified */
   if (audit_file)
     audit_fp = mh_audit_open (audit_file, input);
-  
+
   for (n = 1; n <= total; n++)
     {
       mu_message_t imsg;
@@ -256,27 +285,28 @@ main (int argc, char **argv)
 	  continue;
 	}
 
-      if ((rc = mu_mailbox_append_message (output, imsg)) != 0)
+      if ((rc = mu_mailbox_append_message (dp->output, imsg)) != 0)
 	{
 	  mu_error (_("%lu: error appending message: %s"),
 		    (unsigned long) n, mu_strerror (rc));
 	  continue;
 	}
-
+      
       if (n == 1 && changecur)
 	{
 	  mu_message_t msg = NULL;
 	  size_t cur;
 	  
-	  mu_mailbox_get_message (output, lastmsg + 1, &msg);
+	  mu_mailbox_get_message (dp->output, dp->lastmsg + 1, &msg);
 	  mh_message_number (msg, &cur);
-	  mh_mailbox_set_cur (output, cur);
+	  mh_mailbox_set_cur (dp->output, cur);
 	}
-	  
+
+      ++dp->lastmsg;
       if (!quiet)
-	list_message (&format, output, lastmsg + n, width);
+	list_message (&dp->format, dp->output, dp->lastmsg, width);
       
-      if (truncate_source)
+      if (f_truncate)
 	{
 	  mu_attribute_t attr;
 	  mu_message_get_attribute (imsg, &attr);
@@ -284,50 +314,105 @@ main (int argc, char **argv)
 	}
     }
 
-  if (truncate_source && move_to_mailbox)
+  if (total && f_truncate)
     {
-      mu_msgset_t msgset;
-      
-      rc = mu_msgset_create (&msgset, input, MU_MSGSET_NUM);
-      if (rc)
-	mu_diag_funcall (MU_DIAG_ERROR, "mu_msgset_create", NULL, rc);
-      else
+      if (f_move_to_mailbox)
 	{
-	  rc = mu_msgset_add_range (msgset, 1, total, MU_MSGSET_NUM);
+	  mu_msgset_t msgset;
+      
+	  rc = mu_msgset_create (&msgset, input, MU_MSGSET_NUM);
 	  if (rc)
-	    mu_diag_funcall (MU_DIAG_ERROR, "mu_msgset_add_range", NULL, rc);
+	    mu_diag_funcall (MU_DIAG_ERROR, "mu_msgset_create", NULL, rc);
 	  else
 	    {
-	      rc = mu_mailbox_msgset_copy (input, msgset, move_to_mailbox,
-					   MU_MAILBOX_COPY_CREAT);
+	      rc = mu_msgset_add_range (msgset, 1, total, MU_MSGSET_NUM);
 	      if (rc)
+		mu_diag_funcall (MU_DIAG_ERROR, "mu_msgset_add_range",
+				 NULL, rc);
+	      else
 		{
-		  mu_error (_("failed to move messages to %s: %s"),
-			    move_to_mailbox, mu_strerror (rc));
-		  truncate_source = 0;
+		  rc = mu_mailbox_msgset_copy (input, msgset, move_to_mailbox,
+					       MU_MAILBOX_COPY_CREAT);
+		  if (rc)
+		    {
+		      mu_error (_("failed to move messages to %s: %s"),
+				move_to_mailbox, mu_strerror (rc));
+		      f_truncate = 0;
+		    }
 		}
+	      mu_msgset_destroy (&msgset);
 	    }
-	  mu_msgset_destroy (&msgset);
 	}
+      mu_mailbox_expunge (input);
     }
   
+  if (audit_fp)
+    {
+      mh_audit_close (audit_fp);
+      audit_fp = NULL;
+    }
+  
+  mu_mailbox_close (input);
+  mu_mailbox_destroy (&input);
+
+  return 0;
+}
+
+int
+main (int argc, char **argv)
+{
+  struct incdat incdat;
+  int rc;
+  int f_truncate = 0;
+  int f_changecur = 0;
+
+  /* Native Language Support */
+  MU_APP_INIT_NLS ();
+
+  mh_argp_init ();
+  mh_argp_parse (&argc, &argv, 0, options, mh_option, args_doc, doc,
+		 opt_handler, NULL, NULL);
+  /* Inc sets missing cur to 1 */
+  mh_mailbox_cur_default = 1;
+
+  memset (&incdat, 0, sizeof (incdat));
+  if (!quiet && mh_format_parse (format_str, &incdat.format))
+    {
+      mu_error (_("Bad format string"));
+      exit (1);
+    }
+
+  incdat.output = mh_open_folder (append_folder,
+				  MU_STREAM_RDWR|MU_STREAM_CREAT);
+  if ((rc = mu_mailbox_messages_count (incdat.output, &incdat.lastmsg)) != 0)
+    {
+      mu_error (_("cannot read output mailbox: %s"),
+		mu_strerror (errno));
+      exit (1);
+    }
+  
+  /* Fixup options */
+  if (!input_file_list)
+    f_truncate = f_changecur = 1;
+  if (truncate_source == -1)
+    truncate_source = f_truncate;
+  if (changecur == -1)
+    changecur = f_changecur;
+
+  if (!input_file_list)
+    incmbx (NULL, &incdat);
+  else
+    mu_list_foreach (input_file_list, incmbx, &incdat);
+    
   if (!changecur)
     {
-      mu_property_t prop = mh_mailbox_get_property (output);
+      mu_property_t prop = mh_mailbox_get_property (incdat.output);
       mu_property_invalidate (prop);
     }
   mh_global_save_state ();
   
-  mu_mailbox_close (output);
-  mu_mailbox_destroy (&output);
-
-  if (truncate_source)
-    mu_mailbox_expunge (input);
-  mu_mailbox_close (input);
-  mu_mailbox_destroy (&input);
-
-  if (audit_fp)
-    mh_audit_close (audit_fp);
+  mu_mailbox_close (incdat.output);
+  mu_mailbox_destroy (&incdat.output);
   
   return 0;
 }

@@ -1,4 +1,4 @@
-GNU mailutils NEWS -- history of user-visible changes. 2012-04-29
+GNU mailutils NEWS -- history of user-visible changes. 2012-05-31
 Copyright (C) 2002-2012 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
@@ -125,6 +125,33 @@ input folders of type IMAP or IMAPS. A sample usage is:
  inc -truncate -moveto Read -file imaps://imap.gmail.com
 
 Note the `-truncate' option. 
+
+** MH: multiple sources
+
+The `inc' command is able to incorporate messages from several
+source mailboxes. These are specified via multiple `-file'
+options, e.g.:
+
+  inc  -truncate \
+       -file 'imaps://imap.gmail.com;moveto=archived' \
+       -file pops://mail.gnu.org \
+       -file /var/mail/root
+
+Additional parameters can be used in URLs supplied with the `-file'
+option:
+
+  moveto=FOLDER
+    Moves incorporated messages into FOLDER.  This is similar to the
+    `--moveto' option, but applies only to that particular mailbox.
+    See the example above.
+    
+  nomoveto
+    Disables the previous `--moveto' option.
+
+  truncate[=BOOL]
+    Controls source mailbox truncation.  If BOOL is not given or is
+    "yes", the mailbox will be truncated after successful processing.
+    If BOOL is "no", the source mailbox will not be truncated.
 
 ** mailutils-config is deprecated.
 

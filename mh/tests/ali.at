@@ -98,7 +98,7 @@ ali -list -a ./mh_aliases korzen
 [expout])
 
 MH_CHECK([ali: everybody],[ali06 ali-everybody],[
-cat /etc/passwd | awk -F : '/^#/ { next } $3>200 { print $1 }' > expout
+lu 200 > expout
 test -s expout || AT_SKIP_TEST
 AT_DATA([mh_aliases],[
 everybody: *

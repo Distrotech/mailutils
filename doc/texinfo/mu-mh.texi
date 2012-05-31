@@ -249,6 +249,59 @@ Understands @option{--build} option.
 
 This command is not provided.  Use @option{fmtcheck} instead.
 
+@item inc
+@itemize @bullet
+@item The @option{--moveto} option.
+The @option{--moveto} option instructs @command{inc} to move
+messages into another folder after incorporating them.  This option
+has effect only if the @option{--truncate} option has also been
+specified and the underlying mailbox supports the @samp{move}
+operation.  Currently only @samp{imap} and @samp{imaps} mailboxes
+support it.  For example, the following command moves incorporated
+messages into the @samp{archive} folder:
+
+@example
+inc --file imaps://imap.gmail.com --moveto=archive
+@end example
+
+The @samp{moveto} URL parameter can be used instead of this option,
+e.g.:
+
+@example
+inc --file 'imaps://imap.gmail.com;moveto=archive'
+@end example
+
+@item Multiple sources
+Mailutils @command{inc} is able to incorporate messages from several
+source mailboxes. These are specified via multiple @option{-file}
+options, e.g.:
+
+@example
+inc  -truncate \
+     -file 'imaps://imap.gmail.com;moveto=archived' \
+     -file pops://mail.gnu.org \
+     -file /var/mail/root
+@end example
+
+@item URL parameters
+The following additional parameters can be used in the mailbox
+URLs supplied with the @option{-file} option:
+
+@table @option
+@item moveto=@var{folder}
+Moves incorporated messages into another folder.  This was discussed
+above.
+
+@item nomoveto
+Disables the previous @option{--moveto} option.
+
+@item truncate[=@var{bool}]
+Controls source mailbox truncation.  If @var{bool} is not given or it is
+@samp{yes}, the mailbox will be truncated after successful processing.
+If @var{bool} is @samp{no}, the source mailbox will not be truncated.
+@end table
+@end itemize
+
 @item mhl
 
 The @samp{ignores} keyword can be used in variable list.  In that
