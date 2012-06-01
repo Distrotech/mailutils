@@ -29,6 +29,6 @@ git-describe.h
 gnulib
 libtool
 m4
+mailutils*.tar.*
 pathdefs.h
 stamp-h1
-mailutils*.tar.*
