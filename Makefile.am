@@ -129,11 +129,15 @@ DISTCLEANFILES = pathdefs.h git-describe.h
 
 gen_start_date = "2008-12-08"
 prev_change_log = "doc/ChangeLog.CVS"
+amend_file=ChangeLog.amend
 
 .PHONY: ChangeLog
 ChangeLog:
 	@if test -d .git; then                                             \
-	  cmd=$(top_srcdir)/build-aux/gitlog-to-changelog;                 \
+	  cmd="$(top_srcdir)/build-aux/gitlog-to-changelog";               \
+	  if test -n "$(amend_file)"; then                                 \
+            cmd="$$cmd --amend=$(amend_file)";                             \
+          fi;                                                              \
 	  if test -n "$(gen_start_date)"; then                             \
 	    cmd="$$cmd --since=\"$(gen_start_date)\"";                     \
 	  fi;                                                              \

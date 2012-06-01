@@ -1,0 +1,16 @@
+# Spelling corrections for GNU Mailutils ChangeLog
+
+e02df56cb384465b3238c46c6f214f27ee8431ab
+s/command on 64 boxes/command on 64-bit boxes/
+
+bec7b95e67fa1adcff64372ec05253ca7ed9b54e
+s/Ninor/Minor/
+
+e6ae2852edb142fcf84dc489715f8984843dfe0c
+s/ificated/indicated/
+
+f9a486e8ff07e3f35e250d366e748c7f5e712c13
+s/adresses/addresses/
+
+fb53814d3acb7a08cd849ffbbdbe86d8a374590c
+s/prever/prefer/
