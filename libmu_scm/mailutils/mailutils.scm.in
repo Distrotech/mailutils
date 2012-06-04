@@ -27,10 +27,14 @@ changequote([,])dnl
 (define mu-libs (list (cons "libmailutils"     "libmailutils")
 		      (cons "libmu_auth"       "libmu_auth")
 		      (cons "libproto/mbox"    "libmu_mbox")
-		      (cons "libproto/mh"      "libmu_mh")
-		      (cons "libproto/maildir" "libmu_maildir")
-		      (cons "libproto/pop"     "libmu_pop")
-		      (cons "libproto/imap"    "libmu_imap")))
+ifdef([MU_SUPPORT_MH],dnl
+		      [(cons "libproto/mh"      "libmu_mh")])
+ifdef([MU_SUPPORT_MAILDIR],dnl
+		      [(cons "libproto/maildir" "libmu_maildir")])
+ifdef([MU_SUPPORT_POP],dnl
+		      [(cons "libproto/pop"     "libmu_pop")])
+ifdef([MU_SUPPORT_IMAP],dnl
+		      [(cons "libproto/imap"    "libmu_imap")])))
 
 (cond
  ((getenv "MAILUTILS_SCM_LIBRARY_ROOT") =>

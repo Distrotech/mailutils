@@ -17,15 +17,38 @@
 
 EXTRA_DIST=mailutils.scm.in
 
-DISTCLEANFILES=\
+CLEANFILES=\
  mailutils.scm
 
 sitedir   = @GUILE_SITE@/$(PACKAGE)
 site_DATA = mailutils.scm
 
+MU_FEATURES=\
+ -DVERSION=$(VERSION)\
+ -DLIBDIR=$(libdir)\
+ -DSITEDIR=$(sitedir)\
+ -DBUILDDIR=$(top_builddir)/libmu_scm
+
+if MU_COND_SUPPORT_POP
+  MU_FEATURES += -DMU_SUPPORT_POP
+endif
+
+if MU_COND_SUPPORT_IMAP
+  MU_FEATURES += -DMU_SUPPORT_IMAP
+endif
+
+if MU_COND_SUPPORT_NNTP
+  MU_FEATURES += -DMU_SUPPORT_NNTP
+endif
+
+if MU_COND_SUPPORT_MH
+  MU_FEATURES += -DMU_SUPPORT_MH
+endif
+
+if MU_COND_SUPPORT_MAILDIR
+  MU_FEATURES += -DMU_SUPPORT_MAILDIR
+endif
+
 mailutils.scm: mailutils.scm.in
-	$(AM_V_GEN)m4 -DVERSION=$(VERSION) -DLIBDIR=$(libdir) \
-	   -DSITEDIR=$(sitedir) \
-           -DBUILDDIR=$(top_builddir)/libmu_scm \
-            $(srcdir)/mailutils.scm.in > $@
+	$(AM_V_GEN)m4 $(MU_FEATURES) $(srcdir)/mailutils.scm.in > $@
 
