@@ -37,7 +37,7 @@ mu_readlink (const char *name, char **pbuf, size_t *psize, size_t *plen)
 {
   size_t status = 0;
   char *buf = *pbuf;
-  size_t size = *plen;
+  size_t size = *psize;
   ssize_t linklen;
 
   while (1)
