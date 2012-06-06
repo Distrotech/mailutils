@@ -3,4 +3,6 @@
 # Copyright (C) 2004, 2010-2012 Free Software Foundation, Inc.
 
 PATH=@abs_builddir@:@abs_top_builddir@/comsat:$top_srcdir:$srcdir:$PATH
+@MU_COND_SUPPORT_MH_TRUE@MH_SUPPORT=yes
+@MU_COND_SUPPORT_MAILDIR_TRUE@MAILDIR_SUPPORT=yes
   

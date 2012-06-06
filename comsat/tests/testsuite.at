@@ -103,7 +103,8 @@ EOT
 chmod 600 biff.rc
 > $cwd/output
 ],
-[comsatcmd maildir:$cwd/mailbox new/1284627340.M364969P3770Q81.Trurl
+[test "$MAILDIR_SUPPORT" = yes || AT_SKIP_TEST
+comsatcmd maildir:$cwd/mailbox new/1284627340.M364969P3770Q81.Trurl
 sed '1s/^Mail to .*/Mail to test user/' output
 ],
 [Mail to test user
@@ -127,7 +128,8 @@ EOT
 chmod 600 biff.rc
 > $cwd/output
 ],
-[comsatcmd mh:$cwd/mailbox teaparty/58
+[test "$MH_SUPPORT" = yes || AT_SKIP_TEST
+comsatcmd mh:$cwd/mailbox teaparty/58
 sed '1s/^Mail to .*/Mail to test user/' output
 ],
 [Mail to test user
