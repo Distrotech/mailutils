@@ -15,9 +15,7 @@
    along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include "imap4d.h"
-#ifdef WITH_GSASL
-# include <mailutils/gsasl.h>
-#endif
+#include <mailutils/gsasl.h>
 #include "mailutils/libargp.h"
 #include "tcpwrap.h"
 
