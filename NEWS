@@ -1,11 +1,11 @@
-GNU mailutils NEWS -- history of user-visible changes. 2012-05-31
+GNU mailutils NEWS -- history of user-visible changes. 2012-06-07
 Copyright (C) 2002-2012 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
 Please send mailutils bug reports to <bug-mailutils@gnu.org>.
 
 
-Version 2.99.96 (Git)
+Version 2.99.97 (Git)
 
 This version is a major rewrite of GNU Mailutils.  Quite a few parts
 of the basic framework were rewritten from scratch, while some others
@@ -253,6 +253,24 @@ only for IMAP and IMAPS mailboxes.
 See <http://mailutils.org/wiki/debug_level>.
 
 ** Configuration file support (libmu_cfg) rewritten.
+
+* New Scheme primitives
+
+** mu-mailbox-sync
+
+Synchronizes the changes done to the mailbox with its external
+storage.
+
+** mu-mailbox-expunge
+
+Similar to mu-mailbox-sync, but also permanently removes messages
+marked for deletion.
+
+** mu-mailbox-flush
+
+Marks all messages as seen, and synchronizes the changes with the
+mailbox external storage.  Depending on its second argument, removes
+messages marked for deletion.
 
 
 Version 2.2 - 2010-09-08

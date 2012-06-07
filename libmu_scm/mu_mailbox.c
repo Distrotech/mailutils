@@ -373,6 +373,51 @@ SCM_DEFINE_PUBLIC (scm_mu_mailbox_expunge, "mu-mailbox-expunge", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+SCM_DEFINE_PUBLIC (scm_mu_mailbox_sync, "mu-mailbox-sync", 1, 0, 0,
+		   (SCM mbox), 
+"Synchronize changes to @var{mbox} with its storage.")
+#define FUNC_NAME s_scm_mu_mailbox_sync
+{
+  struct mu_mailbox *mum;
+  int status;
+    
+  SCM_ASSERT (mu_scm_is_mailbox (mbox), mbox, SCM_ARG1, FUNC_NAME);
+  mum = (struct mu_mailbox *) SCM_CDR (mbox);
+  status = mu_mailbox_sync (mum->mbox);
+  if (status)
+    mu_scm_error (FUNC_NAME, status,
+		  "Sync failed for mailbox ~A",
+		  scm_list_1 (mbox));
+  return SCM_BOOL_T;
+}
+#undef FUNC_NAME
+
+SCM_DEFINE_PUBLIC (scm_mu_mailbox_flush, "mu-mailbox-flush", 1, 1, 0,
+		   (SCM mbox, SCM expunge), 
+"Mark all messages in @var{mbox} as seen and synchronize all changes with "
+"its storage.  If @var{expunge} is @samp{#t}, expunge deleted messages "
+"as well.")
+#define FUNC_NAME s_scm_mu_mailbox_flush
+{
+  struct mu_mailbox *mum;
+  int status, do_expunge = 0;
+    
+  SCM_ASSERT (mu_scm_is_mailbox (mbox), mbox, SCM_ARG1, FUNC_NAME);
+  mum = (struct mu_mailbox *) SCM_CDR (mbox);
+  if (!SCM_UNBNDP (expunge))
+    {
+      SCM_ASSERT (scm_is_bool (expunge), expunge, SCM_ARG2, FUNC_NAME);
+      do_expunge = expunge == SCM_BOOL_T;
+    }
+  status = mu_mailbox_flush (mum->mbox, do_expunge);
+  if (status)
+    mu_scm_error (FUNC_NAME, status,
+		  "Flush failed for mailbox ~A",
+		  scm_list_1 (mbox));
+  return SCM_BOOL_T;
+}
+#undef FUNC_NAME
+
 SCM_DEFINE_PUBLIC (scm_mu_mailbox_append_message, "mu-mailbox-append-message", 2, 0, 0,
 		   (SCM mbox, SCM mesg),
 		   "Appends message @var{mesg} to the mailbox @var{mbox}.")
