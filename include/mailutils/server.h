@@ -119,6 +119,11 @@ void mu_m_server_set_strexit (mu_m_server_t srv, const char *(*fun) (int));
 void mu_m_server_set_app_data_size (mu_m_server_t srv, size_t size);
 int mu_m_server_set_config_size (mu_m_server_t srv, size_t size);
 
+struct mu_srv_config *mu_m_server_listen (mu_m_server_t msrv,
+					  struct mu_sockaddr *s, int type);
+int mu_m_server_parse_url (mu_m_server_t msrv, const char *arg,
+			   struct mu_sockaddr **psa);
+
 int mu_m_server_mode (mu_m_server_t srv);
 int mu_m_server_foreground (mu_m_server_t srv);
 time_t mu_m_server_timeout (mu_m_server_t srv);

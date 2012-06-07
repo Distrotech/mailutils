@@ -346,8 +346,7 @@ cfun_data (mu_stream_t iostr, char *arg)
   mu_stream_t flt, tempstr;
   time_t t;
   struct tm *tm;
-  int xlev = MU_XSCRIPT_PAYLOAD, xlev_switch = 0, buf_switch = 0;
-  struct mu_buffer_query oldbuf;
+  int xlev = MU_XSCRIPT_PAYLOAD, xlev_switch = 0;
   
   if (*arg)
     {
@@ -389,19 +388,6 @@ cfun_data (mu_stream_t iostr, char *arg)
 
   lmtp_reply (iostr, "354", NULL, "Go ahead");
 
-  if (mu_stream_ioctl (iostr, MU_IOCTL_TRANSPORT_BUFFER, 
-                       MU_IOCTL_OP_GET, &oldbuf) == 0)
-    {
-      struct mu_buffer_query newbuf;
-
-      newbuf.type = MU_TRANSPORT_OUTPUT;
-      newbuf.buftype = mu_buffer_full;
-      newbuf.bufsize = 64*1024;
-      if (mu_stream_ioctl (iostr, MU_IOCTL_TRANSPORT_BUFFER, MU_IOCTL_OP_SET, 
-                           &newbuf))
-	buf_switch = 1;
-    }
-
   if (mu_stream_ioctl (iostr, MU_IOCTL_XSCRIPTSTREAM,
                        MU_IOCTL_XSCRIPTSTREAM_LEVEL, &xlev) == 0)
     xlev_switch = 1;
@@ -410,9 +396,6 @@ cfun_data (mu_stream_t iostr, char *arg)
   if (xlev_switch)
     mu_stream_ioctl (iostr, MU_IOCTL_XSCRIPTSTREAM,
                      MU_IOCTL_XSCRIPTSTREAM_LEVEL, &xlev);
-  if (buf_switch)
-    mu_stream_ioctl (iostr, MU_IOCTL_TRANSPORT_BUFFER, MU_IOCTL_OP_SET, 
-                     &oldbuf);
   if (rc)
     {
       maidag_error (_("copy error: %s"), mu_strerror (rc));

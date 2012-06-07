@@ -453,8 +453,8 @@ static int m_srv_conn (int fd, struct sockaddr *sa, int salen,
 		       void *server_data, void *call_data,
 		       mu_ip_server_t srv);
 
-static struct mu_srv_config *
-add_server (mu_m_server_t msrv, struct mu_sockaddr *s, int type)
+struct mu_srv_config *
+mu_m_server_listen (mu_m_server_t msrv, struct mu_sockaddr *s, int type)
 {
   mu_ip_server_t tcpsrv;
   struct mu_srv_config *pconf;
@@ -505,7 +505,7 @@ mu_m_server_begin (mu_m_server_t msrv)
 	  {
 	    struct mu_sockaddr *next = ta->next;
 	    ta->next = ta->prev = NULL;
-	    add_server (msrv, ta, msrv->deftype);
+	    mu_m_server_listen (msrv, ta, msrv->deftype);
 	    ta = next;
 	  }
     }
@@ -789,7 +789,7 @@ server_block_begin (const char *arg, mu_m_server_t msrv, void **pdata)
 			"only the first is used"), arg);
       mu_sockaddr_free (s->next);
     }
-  *pdata = add_server (msrv, s, msrv->deftype);
+  *pdata = mu_m_server_listen (msrv, s, msrv->deftype);
   return 0;
 }
 
@@ -858,14 +858,14 @@ get_port (const char *p)
 	      return 1;
 	    }
 	  
-	  return htons (n);
+	  return n;
 	}
       else
 	{
 	  struct servent *sp = getservbyname (p, "tcp");
 	  if (!sp)
 	    return 0;
-	  return sp->s_port;
+	  return ntohs (sp->s_port);
 	}
     }
   return 0;

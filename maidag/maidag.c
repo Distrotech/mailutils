@@ -415,6 +415,19 @@ cb_delivery_mode (void *data, mu_config_value_t *val)
   return 0;
 }
 
+static int
+cb_listen (void *data, mu_config_value_t *val)
+{
+  struct mu_sockaddr *s;
+  
+  if (mu_cfg_assert_value_type (val, MU_CFG_STRING))
+    return 1;
+  if (mu_m_server_parse_url (server, val->v.string, &s))
+    return 1;
+  mu_m_server_listen (server, s, MU_IP_TCP);
+  return 0;
+}
+
 struct mu_cfg_param maidag_cfg_param[] = {
   { "delivery-mode", mu_cfg_callback, NULL, 0, cb_delivery_mode,
     N_("Set delivery mode"),
@@ -458,7 +471,7 @@ struct mu_cfg_param maidag_cfg_param[] = {
   { "group", mu_cfg_callback, &lmtp_groups, 0, cb_group,
     N_("In LMTP mode, retain these supplementary groups."),
     N_("groups: list of string") },
-  { "listen", mu_cfg_string, &lmtp_url_string, 0, NULL,
+  { "listen", mu_cfg_callback, NULL, 0, cb_listen,
     N_("In LMTP mode, listen on the given URL.  Valid URLs are:\n"
        "   tcp://<address: string>:<port: number> (note that port is "
        "mandatory)\n"
