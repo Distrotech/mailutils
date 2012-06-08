@@ -4,7 +4,7 @@
 
 PATH=@abs_builddir@:@abs_top_builddir@/mh:$top_srcdir:$srcdir:$PATH
 remove_curdir() {
-	sed "s|$curdir/*||;s|  *$||" $*
+	sed "s|$HOME/*||;s|  *$||" $*
 }	
 # mimeflt [FILE]
 # Filter out all variable information from a MIME message in FILE.

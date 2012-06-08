@@ -18,15 +18,16 @@ m4_include([testsuite.inc])
 
 m4_define([MH_SETUP],[
 test -d Mail || mkdir Mail
-curdir=`pwd`
-MH=$curdir/mh_profile
+HOME=`pwd`
+export HOME
+MH=$HOME/mh_profile
 export MH
 cat > $MH <<EOT
-Path: $curdir/Mail
+Path: $HOME/Mail
 mhetcdir: $abs_top_srcdir/mh/etc
 moreproc: /bin/cat
 EOT
-MTSTAILOR=$curdir/mtstailor
+MTSTAILOR=$HOME/mtstailor
 export MTSTAILOR
 exec <&-
 ])
@@ -39,7 +40,7 @@ username: mhtester
 url: sendmail://$abs_top_builddir/examples/mta
 EOT
 
-MTA_DIAG=$curdir/mta.diag
+MTA_DIAG=$HOME/mta.diag
 export MTA_DIAG
 MTA_DOMAIN=example.net
 export MTA_DOMAIN
