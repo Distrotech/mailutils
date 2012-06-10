@@ -655,6 +655,8 @@ _mu_cfg_preorder_recursive (void *item, void *cbdata)
 int
 mu_cfg_preorder (mu_list_t nodelist, struct mu_cfg_iter_closure *clos)
 {
+  if (!nodelist)
+    return 0;
   return mu_list_foreach (nodelist, _mu_cfg_preorder_recursive, clos);
 }
 
