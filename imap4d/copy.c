@@ -222,7 +222,7 @@ imap4d_copy0 (imap4d_tokbuf_t tok, int isuid, char **err_text)
   msgset_str = imap4d_tokbuf_getarg (tok, arg);
   name = imap4d_tokbuf_getarg (tok, arg + 1);
   status = mu_msgset_create (&msgset, mbox, MU_MSGSET_NUM);
-  if (!status)
+  if (status)
     {
       *err_text = "Software error";
       return RESP_BAD;
