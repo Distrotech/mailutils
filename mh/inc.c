@@ -268,7 +268,7 @@ incmbx (void *item, void *data)
   if (getparam (url, "nomoveto", NULL) == 0)
     f_move_to_mailbox = NULL;
   else
-    getparam (url, "nomoveto", &f_move_to_mailbox);
+    getparam (url, "moveto", &f_move_to_mailbox);
   
   /* Open audit file, if specified */
   if (audit_file)
@@ -331,12 +331,12 @@ incmbx (void *item, void *data)
 				 NULL, rc);
 	      else
 		{
-		  rc = mu_mailbox_msgset_copy (input, msgset, move_to_mailbox,
+		  rc = mu_mailbox_msgset_copy (input, msgset, f_move_to_mailbox,
 					       MU_MAILBOX_COPY_CREAT);
 		  if (rc)
 		    {
 		      mu_error (_("failed to move messages to %s: %s"),
-				move_to_mailbox, mu_strerror (rc));
+				f_move_to_mailbox, mu_strerror (rc));
 		      f_truncate = 0;
 		    }
 		}
