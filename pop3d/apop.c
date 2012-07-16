@@ -114,9 +114,9 @@ pop3d_apopuser (const char *user)
 #else /* !ENABLE_DBM */
   {
     char *buf = NULL;
-    size_t size = 0;
+    size_t size = 0, n;
     size_t ulen;
-    FILE *apop_file;
+    mu_stream_t apop_stream;
 
     rc = mu_file_safety_check (apop_database_name, apop_database_safety,
 			       apop_database_owner, NULL);
@@ -127,17 +127,19 @@ pop3d_apopuser (const char *user)
 			apop_database_name, mu_strerror (rc));
 	return NULL;
       }
-    apop_file = fopen (apop_database_name, "r");
-    if (apop_file == NULL)
+
+    rc = mu_file_stream_create (&apop_stream, apop_database_name,
+				MU_STREAM_READ);
+    if (rc)
       {
 	mu_diag_output (MU_DIAG_INFO,
 			_("unable to open APOP password file %s: %s"),
-			apop_database_name, mu_strerror (errno));
+			apop_database_name, mu_strerror (rc));
 	return NULL;
       }
-
+    
     ulen = strlen (user);
-    while (getline (&buf, &size, apop_file) > 0)
+    while (mu_stream_getline (apop_stream, &buf, &size, &n) == 0 && n > 0)
       {
 	char *p, *start = mu_str_stripws (buf);
 
@@ -154,8 +156,8 @@ pop3d_apopuser (const char *user)
 	    break;
 	  }
       }
-
-    fclose (apop_file);
+    free (buf);
+    mu_stream_unref (apop_stream);
     return password;
   }
 #endif
