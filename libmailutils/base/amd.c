@@ -695,19 +695,17 @@ static int
 _amd_scan0 (struct _amd_data *amd, size_t msgno, size_t *pcount,
 	    int do_notify)
 {
+  unsigned long uidval;
   int status = amd->scan0 (amd->mailbox, msgno, pcount, do_notify);
   if (status != 0)
     return status;
   /* Reset the uidvalidity.  */
-  if (amd->msg_count > 0)
+  if (amd->msg_count == 0 ||
+      _amd_prop_fetch_ulong (amd, _MU_AMD_PROP_UIDVALIDITY, &uidval) ||
+      !uidval)
     {
-      unsigned long uidval;
-      if (_amd_prop_fetch_ulong (amd, _MU_AMD_PROP_UIDVALIDITY, &uidval) ||
-	  !uidval)
-	{
-	  uidval = (unsigned long)time (NULL);
-	  _amd_prop_store_off (amd, _MU_AMD_PROP_UIDVALIDITY, uidval);
-	}
+      uidval = (unsigned long)time (NULL);
+      _amd_prop_store_off (amd, _MU_AMD_PROP_UIDVALIDITY, uidval);
     }
   return 0;
 }
@@ -1502,7 +1500,7 @@ amd_uidvalidity (mu_mailbox_t mailbox, unsigned long *puidvalidity)
   int status = amd_messages_count (mailbox, NULL);
   if (status != 0)
     return status;
-  /* If we did not start a scanning yet do it now.  */
+  /* If we did not start scanning yet do it now.  */
   if (amd->msg_count == 0)
     {
       status = _amd_scan0 (amd, 1, NULL, 0);
