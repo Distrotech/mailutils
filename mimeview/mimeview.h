@@ -22,9 +22,6 @@
 #endif
 #include <mailutils/mailutils.h>
 #include <fnmatch.h>
-#define obstack_chunk_alloc malloc
-#define obstack_chunk_free free
-#include <obstack.h>  
 
 struct mimetypes_string
 {

@@ -120,7 +120,7 @@ static char *mhl_filter = NULL; /* --filter flag */
 static int annotate;       /* --annotate flag */
 static char *draftmessage = "new";
 static const char *draftfolder = NULL;
-static struct obstack fcc_stack;
+static mu_opool_t fcc_pool;
 static int has_fcc;
 
 static int
@@ -243,12 +243,12 @@ opt_handler (int key, char *arg, struct argp_state *state)
     case ARG_FCC:
       if (!has_fcc)
 	{
-	  obstack_init (&fcc_stack);
+	  mu_opool_create (&fcc_pool, 1);
 	  has_fcc = 1;
 	}
       else
-	obstack_grow (&fcc_stack, ", ", 2);
-      obstack_grow (&fcc_stack, arg, strlen (arg));
+	mu_opool_append (fcc_pool, ", ", 2);
+      mu_opool_appendz (fcc_pool, arg);
       break;
 	  
     case ARG_INPLACE:
@@ -348,7 +348,7 @@ make_draft (mu_mailbox_t mbox, int disp, struct mh_whatnow_env *wh)
 	  
 	  mu_message_create_copy (&tmp_msg, msg);
 	  mu_message_get_header (tmp_msg, &hdr);
-	  text = obstack_finish (&fcc_stack);
+	  text = mu_opool_finish (fcc_pool, NULL);
 	  mu_header_set_value (hdr, MU_HEADER_FCC, text, 0);
 	  mh_format (&format, tmp_msg, msgno, width, &buf);
 	  mu_message_destroy (&tmp_msg, NULL);

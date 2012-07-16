@@ -17,9 +17,6 @@
 /* MH burst command */
 
 #include <mh.h>
-#define obstack_chunk_alloc malloc
-#define obstack_chunk_free free
-#include <obstack.h>
 
 static char doc[] = N_("GNU MH burst")"\v"
 N_("Options marked with `*' are not yet implemented.\n\
@@ -134,7 +131,7 @@ struct burst_map map;        /* Currently built map */
 struct burst_map *burst_map; /* Finished burst map */
 size_t burst_count;          /* Number of items in burst_map */
 mu_mailbox_t tmpbox;         /* Temporary mailbox */
-struct obstack stk;          /* Stack for building burst_map, etc. */
+mu_opool_t pool;             /* Object pool for building burst_map, etc. */
 
 static int burst_or_copy (mu_message_t msg, int recursive, int copy);
 
@@ -592,7 +589,7 @@ burst (size_t num, mu_message_t msg, void *data)
 	       mu_umaxtostr (1, num)));
       if (inplace)
 	{
-	  obstack_grow (&stk, &map, sizeof map);
+	  mu_opool_append (pool, &map, sizeof map);
 	  burst_count++;
 	}
     }
@@ -752,7 +749,7 @@ main (int argc, char **argv)
 	  mu_attribute_set_deleted (attr);
 	}
       mu_mailbox_expunge (tmpbox);
-      obstack_init (&stk);
+      mu_opool_create (&pool, 1);
     }
   else
     tmpbox = mbox;
@@ -769,7 +766,7 @@ main (int argc, char **argv)
       size_t count;
       const char *dir;
       
-      burst_map = obstack_finish (&stk);
+      burst_map = mu_opool_finish (pool, NULL);
 
       mu_mailbox_uidnext (mbox, &next_uid);
       for (i = 0, last_uid = next_uid-1; i < burst_count; i++)

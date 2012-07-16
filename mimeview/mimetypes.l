@@ -32,7 +32,7 @@ static int line_num;
 static char *file_name;
 static int file_name_alloc; 
  
-static struct obstack stack;
+static mu_opool_t pool;
 static int prev_state;
  
 static unsigned 
@@ -56,25 +56,22 @@ WS [ \t]*
 \n                   { line_num++; return EOL; }
 {WS}                 ;
 {IDENT}              {
-  obstack_grow (&stack, yytext, yyleng);
-  yylval.string.len = obstack_object_size (&stack);
-  obstack_1grow (&stack, 0);
-  yylval.string.ptr = obstack_finish (&stack);
+  mu_opool_append (pool, yytext, yyleng);
+  mu_opool_append_char (pool, 0);
+  yylval.string.ptr = mu_opool_finish (pool, &yylval.string.len);
   return IDENT;
 }
 <INITIAL>{IDENT}"("           {
-  obstack_grow (&stack, yytext, yyleng-1);
-  yylval.string.len = obstack_object_size (&stack);
-  obstack_1grow (&stack, 0);
-  yylval.string.ptr = obstack_finish (&stack);
+  mu_opool_append (pool, yytext, yyleng-1);
+  mu_opool_append_char (pool, 0);
+  yylval.string.ptr = mu_opool_finish (pool, &yylval.string.len);
   BEGIN(ARGS);
   return IDENT_L;
 }
 <INITIAL,ARGS>\"[^\\"\n]*\"        {
-  obstack_grow (&stack, yytext+1, yyleng-2);
-  yylval.string.len = obstack_object_size (&stack);
-  obstack_1grow (&stack, 0);
-  yylval.string.ptr = obstack_finish (&stack);
+  mu_opool_append (pool, yytext+1, yyleng-2);
+  mu_opool_append_char (pool, 0);
+  yylval.string.ptr = mu_opool_finish (pool, &yylval.string.len);
   return STRING;
 }
 <INITIAL,ARGS>"<" {
@@ -82,40 +79,36 @@ WS [ \t]*
   BEGIN(HEX);
 }
 <ARGS>[^ \t<\\\n),]+/[),] {
-  obstack_grow (&stack, yytext, yyleng);
-  yylval.string.len = obstack_object_size (&stack);
-  obstack_1grow (&stack, 0);
-  yylval.string.ptr = obstack_finish (&stack);
+  mu_opool_append (pool, yytext, yyleng);
+  mu_opool_append_char (pool, 0);
+  yylval.string.ptr = mu_opool_finish (pool, &yylval.string.len);
   return STRING;
 }
 <ARGS>[^ \t<\\\n),]+< {
-  obstack_grow (&stack, yytext, yyleng);
+  mu_opool_append (pool, yytext, yyleng);
   prev_state = YYSTATE;
   BEGIN(HEX);
 }
 <INITIAL>[^ \t<\\\n)+,&]/[ \t\\\n)+,&] {
-  obstack_grow (&stack, yytext, yyleng);
-  yylval.string.len = obstack_object_size (&stack);
-  obstack_1grow (&stack, 0);
-  yylval.string.ptr = obstack_finish (&stack);
+  mu_opool_append (pool, yytext, yyleng);
+  mu_opool_append_char (pool, 0);
+  yylval.string.ptr = mu_opool_finish (pool, &yylval.string.len);
   return STRING;
 }
 <ARGS>[^ \t<\\\n),]/[ \t\\\n] {
-  obstack_grow (&stack, yytext, yyleng);
-  yylval.string.len = obstack_object_size (&stack);
-  obstack_1grow (&stack, 0);
-  yylval.string.ptr = obstack_finish (&stack);
+  mu_opool_append (pool, yytext, yyleng);
+  mu_opool_append_char (pool, 0);
+  yylval.string.ptr = mu_opool_finish (pool, &yylval.string.len);
   return STRING;
 }
 <HEX>{X}{X} {
   int c = digit_to_number (yytext[0])*16 + digit_to_number (yytext[1]);
-  obstack_1grow (&stack, c);
+  mu_opool_append_char (pool, c);
 }
 <HEX>">"/[ \t\\\n,)] {
   BEGIN(prev_state);
-  yylval.string.len = obstack_object_size (&stack);
-  obstack_1grow (&stack, 0);
-  yylval.string.ptr = obstack_finish (&stack);
+  mu_opool_append_char (pool, 0);
+  yylval.string.ptr = mu_opool_finish (pool, &yylval.string.len);
   return STRING;
 }
 <HEX>">" {
@@ -174,7 +167,7 @@ mimetypes_open (const char *name)
       return -1;
     }
   line_num = 1;
-  obstack_init (&stack);
+  mu_opool_create (&pool, 1);
   return 0;
 }
 
@@ -210,25 +203,26 @@ mimetypes_append_string2 (struct mimetypes_string *s1,
   struct mimetypes_string r;
 
   r.len = s1->len + s2->len + 1;
-  obstack_grow (&stack, s1->ptr, s1->len);
-  obstack_1grow (&stack, c);
-  obstack_grow (&stack, s2->ptr, s2->len);
-  obstack_1grow (&stack, 0);
-  r.ptr = obstack_finish (&stack);
+  mu_opool_append (pool, s1->ptr, s1->len);
+  mu_opool_append_char (pool, c);
+  mu_opool_append (pool, s2->ptr, s2->len);
+  mu_opool_append_char (pool, 0);
+  r.ptr = mu_opool_finish (pool, NULL);
   return r;
 }
 
 struct mimetypes_string *     
 mimetypes_string_dup (struct mimetypes_string *s)
 {
-  obstack_grow (&stack, s, sizeof *s);
-  return obstack_finish (&stack);
+  mu_opool_append (pool, s, sizeof *s);
+  return mu_opool_finish (pool, NULL);
 }
 
 void *
 mimetypes_malloc (size_t size)
 {
-  return obstack_alloc(&stack, size);
+  mu_opool_alloc (pool, size);
+  return mu_opool_finish (pool, NULL);
 }
 
 void

@@ -19,9 +19,7 @@
 #include <mailutils/io.h>
 #include <mailutils/argcv.h>
 #include <mailutils/prog.h>
-#define obstack_chunk_alloc malloc
-#define obstack_chunk_free free
-#include <obstack.h>
+#include <mailutils/opool.h>
 
 /* This module implements user-configurable actions for comsat. The
    actions are kept in file .biffrc in the user's home directory and
@@ -42,7 +40,7 @@
 		 When omitted, they default to 400, 5. */
 
 static int
-expand_escape (char **pp, mu_message_t msg, struct obstack *stk)
+expand_escape (char **pp, mu_message_t msg, mu_opool_t pool)
 {
   char *p = *pp;
   char *start, *sval, *namep;
@@ -56,15 +54,13 @@ expand_escape (char **pp, mu_message_t msg, struct obstack *stk)
   switch (*++p) /* skip past $ */
     {
     case 'u':
-      len = strlen (username);
-      obstack_grow (stk, username, len);
+      mu_opool_appendz (pool, username);
       *pp = p;
       rc = 0;
       break;
 
     case 'h':
-      len = strlen (hostname);
-      obstack_grow (stk, hostname, len);
+      mu_opool_appendz (pool, hostname);
       *pp = p;
       rc = 0;
       break;
@@ -85,10 +81,7 @@ expand_escape (char **pp, mu_message_t msg, struct obstack *stk)
       namep[len] = 0;
       if (mu_message_get_header (msg, &hdr) == 0
 	  && mu_header_aget_value (hdr, namep, &sval) == 0)
-	{
-	  len = strlen (sval);
-	  obstack_grow (stk, sval, len);
-	}
+	mu_opool_appendz (pool, sval);
       free (namep);
       *pp = p;
       rc = 0;
@@ -131,7 +124,7 @@ expand_escape (char **pp, mu_message_t msg, struct obstack *stk)
 		  size += s - q + 1;
 		  q = s + 1;
 		}
-	      obstack_grow (stk, buf, size);
+	      mu_opool_append (pool, buf, size);
 	    }
 	  mu_stream_destroy (&stream);
 	  free (buf);
@@ -147,11 +140,11 @@ expand_line (const char *str, mu_message_t msg)
 {
   const char *p;
   int c = 0;
-  struct obstack stk;
+  mu_opool_t pool;
 
   if (!*str)
     return NULL;
-  obstack_init (&stk);
+  mu_opool_create (&pool, 1);
   for (p = str; *p; p++)
     {
       switch (*p)
@@ -161,22 +154,22 @@ expand_line (const char *str, mu_message_t msg)
 	  if (*p)
 	    {
 	      c = mu_wordsplit_c_unquote_char (*p);
-	      obstack_1grow (&stk, c);
+	      mu_opool_append_char (pool, c);
 	    }
 	  break;
 
 	case '$':
-	  if (expand_escape ((char**)&p, msg, &stk) == 0)
+	  if (expand_escape ((char**)&p, msg, pool) == 0)
 	    break;
 
 	  /*FALLTHRU*/
 	default:
-	  obstack_1grow (&stk, *p);
+	  mu_opool_append_char (pool, *p);
 	}
     }
-  obstack_1grow (&stk, 0);
-  str = strdup (obstack_finish (&stk));
-  obstack_free (&stk, NULL);
+  mu_opool_append_char (pool, 0);
+  str = strdup (mu_opool_finish (pool, NULL));
+  mu_opool_destroy (&pool);
   return (char *)str;
 }
 

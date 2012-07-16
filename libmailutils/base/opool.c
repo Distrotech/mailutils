@@ -168,6 +168,25 @@ mu_opool_destroy (mu_opool_t *popool)
 }
 
 int
+mu_opool_alloc (mu_opool_t opool, size_t size)
+{
+  while (size)
+    {
+      size_t rest;
+
+      if (!opool->head || opool->tail->level == opool->tail->size)
+	if (alloc_pool (opool, opool->bucket_size))
+	  return ENOMEM;
+      rest = opool->tail->size - opool->tail->level;
+      if (size < rest)
+	rest = size;
+      opool->tail->level += rest;
+      size -= rest;
+    }
+  return 0;
+}
+
+int
 mu_opool_append (mu_opool_t opool, const void *str, size_t n)
 {
   const char *ptr = str;
@@ -191,8 +210,7 @@ mu_opool_append_char (mu_opool_t opool, char c)
 int
 mu_opool_appendz (mu_opool_t opool, const char *str)
 {
-  return mu_opool_append (opool, str, strlen (str))
-         || mu_opool_append_char (opool, 0);
+  return mu_opool_append (opool, str, strlen (str));
 }
 
 size_t

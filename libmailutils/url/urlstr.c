@@ -35,27 +35,27 @@ url_reconstruct_to_pool (mu_url_t url, mu_opool_t pool)
     {
       int i;
       
-      mu_opool_append (pool, url->scheme, strlen (url->scheme));
+      mu_opool_appendz (pool, url->scheme);
       mu_opool_append (pool, "://", 3);
 
       if (url->flags & MU_URL_USER)
-	mu_opool_append (pool, url->user, strlen (url->user));
+	mu_opool_appendz (pool, url->user);
       if (url->flags & MU_URL_SECRET)
 	mu_opool_append (pool, ":***", 4); /* FIXME: How about MU_URL_PARSE_HIDEPASS? */
       if (url->flags & MU_URL_AUTH)
 	{
 	  mu_opool_append (pool, AUTH_PFX, sizeof AUTH_PFX - 1);
-	  mu_opool_append (pool, url->auth, strlen (url->auth));
+	  mu_opool_appendz (pool, url->auth);
 	}
       if (url->flags & MU_URL_HOST)
 	{
 	  if (url->flags & (MU_URL_USER|MU_URL_SECRET|MU_URL_AUTH))
 	    mu_opool_append_char (pool, '@');
-	  mu_opool_append (pool, url->host, strlen (url->host));
+	  mu_opool_appendz (pool, url->host);
 	  if (url->flags & MU_URL_PORT)
 	    {
 	      mu_opool_append_char (pool, ':');
-	      mu_opool_append (pool, url->portstr, strlen (url->portstr));
+	      mu_opool_appendz (pool, url->portstr);
 	    }
 	}
       else if (url->flags & (MU_URL_USER|MU_URL_SECRET|MU_URL_AUTH))
@@ -65,7 +65,7 @@ url_reconstruct_to_pool (mu_url_t url, mu_opool_t pool)
 	{
 	  if (url->flags & MU_URL_HOST)
 	    mu_opool_append_char (pool, '/');
-	  mu_opool_append (pool, url->path, strlen (url->path));
+	  mu_opool_appendz (pool, url->path);
 	}
       
       if (url->flags & MU_URL_PARAM)
@@ -93,7 +93,7 @@ url_reconstruct_to_pool (mu_url_t url, mu_opool_t pool)
     }
   else if (url->flags == MU_URL_PATH)
     {
-      mu_opool_append (pool, url->path, strlen (url->path));
+      mu_opool_appendz (pool, url->path);
       return 0;
     }
   return MU_ERR_URL_MISS_PARTS;

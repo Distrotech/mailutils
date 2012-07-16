@@ -17,9 +17,6 @@
    along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <mh.h>
-#define obstack_chunk_alloc malloc
-#define obstack_chunk_free free
-#include <obstack.h>
 
 int yyerror (const char *s);
 int yylex ();
@@ -27,7 +24,7 @@ int yylex ();
 static mh_format_t format;     /* Format structure being built */
 static size_t pc;              /* Program counter. Poins to current
 				  cell in format.prog */
-static struct obstack stack;   /* Temporary token storage */
+static mu_opool_t tokpool;     /* Temporary token storage */
 
 #define FORMAT_INC 64          /* Increase format.prog by that many
 				  cells each time pc reaches
@@ -459,16 +456,16 @@ yylex ()
       if (*curp == '\\')
 	{
 	  int c = backslash (*++curp);
-	  obstack_1grow (&stack, c);
+	  mu_opool_append_char (tokpool, c);
 	}
       else
-	obstack_1grow (&stack, *curp);
+	mu_opool_append_char (tokpool, *curp);
       curp++;
     }
   while (*curp && (expect_arg ? *curp != ')' : !isdelim(*curp)));
 
-  obstack_1grow (&stack, 0);
-  yylval.str = obstack_finish (&stack);
+  mu_opool_append_char (tokpool, 0);
+  yylval.str = mu_opool_finish (tokpool, NULL);
 
   if (want_function)
     {
@@ -502,7 +499,7 @@ mh_format_parse (char *format_str, mh_format_t *fmt)
   if (p)
     yydebug = 1;
   start = curp = format_str;
-  obstack_init (&stack);
+  mu_opool_create (&tokpool, 1);
   format.prog = NULL;
   format.progsize = 0;
   pc = 0;
@@ -513,7 +510,7 @@ mh_format_parse (char *format_str, mh_format_t *fmt)
 
   rc = yyparse ();
   mh_code_op (mhop_stop);
-  obstack_free (&stack, NULL);
+  mu_opool_destroy (&tokpool);
   if (rc)
     {
       mh_format_free (&format);

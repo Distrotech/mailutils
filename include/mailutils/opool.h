@@ -42,6 +42,9 @@ void mu_opool_clear (mu_opool_t opool);
 /* Destroy the pool, reclaim any memory associated with it. */
 void mu_opool_destroy (mu_opool_t *popool);
 
+/* Allocate SIZE bytes in the pool. */
+int mu_opool_alloc (mu_opool_t opool, size_t size);
+
 /* Append to the current object N bytes pointed to by STR. */
 int mu_opool_append (mu_opool_t opool, const void *str, size_t n);
 

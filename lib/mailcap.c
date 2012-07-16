@@ -19,9 +19,6 @@
 #endif
 #include <mailutils/mailutils.h>
 #include <fnmatch.h>
-#define obstack_chunk_alloc malloc
-#define obstack_chunk_free free
-#include <obstack.h>  
 #include <sys/wait.h>
 #include <ctype.h>
 
@@ -241,7 +238,7 @@ mime_context_get_temp_file (struct mime_context *ctx, char **ptr)
 }
 
 
-static struct obstack expand_stack;
+static mu_opool_t expand_pool;
 
 static int
 expand_string (struct mime_context *ct, char **pstr)
@@ -258,14 +255,14 @@ expand_string (struct mime_context *ct, char **pstr)
 	      {
 	      case 's':
 		mime_context_get_temp_file (ct, &s);
-		obstack_grow (&expand_stack, s, strlen (s));
+		mu_opool_appendz (expand_pool, s);
 		rc = 1;
 		p += 2;
 		break;
 		
 	      case 't':
 		mime_context_get_content_type (ct, &s);
-		obstack_grow (&expand_stack, s, strlen (s));
+		mu_opool_appendz (expand_pool, s);
 		p += 2;
 		break;
 		
@@ -281,7 +278,7 @@ expand_string (struct mime_context *ct, char **pstr)
 		  if (mime_context_get_content_type_value (ct,
 							   q, p-q,
 							   &s, &n) == 0)
-		    obstack_grow (&expand_stack, s, n);
+		    mu_opool_append (expand_pool, s, n);
 		  if (*p)
 		    p++;
 		  break;
@@ -293,19 +290,19 @@ expand_string (struct mime_context *ct, char **pstr)
 		break;
 		
 	      default:
-		obstack_1grow (&expand_stack, p[0]);
+		mu_opool_append_char (expand_pool, p[0]);
 	      }
 	    break;
 
 	case '\\':
 	  if (p[1])
 	    {
-	      obstack_1grow (&expand_stack, p[1]);
+	      mu_opool_append_char (expand_pool, p[1]);
 	      p += 2;
 	    }
 	  else
 	    {
-	      obstack_1grow (&expand_stack, p[0]);
+	      mu_opool_append_char (expand_pool, p[0]);
 	      p++;
 	    }
 	  break;
@@ -313,23 +310,23 @@ expand_string (struct mime_context *ct, char **pstr)
 	case '"':
 	  if (p[1] == p[0])
 	    {
-	      obstack_1grow (&expand_stack, '%');
+	      mu_opool_append_char (expand_pool, '%');
 	      p++;
 	    }
 	  else
 	    {
-	      obstack_1grow (&expand_stack, p[0]);
+	      mu_opool_append_char (expand_pool, p[0]);
 	      p++;
 	    }
 	  break;
 
 	default:
-	  obstack_1grow (&expand_stack, p[0]);
+	  mu_opool_append_char (expand_pool, p[0]);
 	  p++;
 	}
     }
-  obstack_1grow (&expand_stack, 0);
-  *pstr = obstack_finish (&expand_stack);
+  mu_opool_append_char (expand_pool, 0);
+  *pstr = mu_opool_finish (expand_pool, NULL);
   return rc;
 }
 
@@ -514,8 +511,8 @@ run_test (mu_mailcap_entry_t entry, struct mime_context *ctx)
       struct mu_wordsplit ws;
       char *str;
 
-      obstack_blank (&expand_stack, size + 1);
-      str = obstack_finish (&expand_stack);
+      mu_opool_alloc (expand_pool, size + 1);
+      str = mu_opool_finish (expand_pool, NULL);
       mu_mailcap_entry_get_test (entry, str, size + 1, NULL);
 
       expand_string (ctx, &str);
@@ -556,8 +553,8 @@ run_mailcap (mu_mailcap_entry_t entry, struct mime_context *ctx)
       if (mu_mailcap_entry_get_viewcommand (entry, NULL, 0, &size))
 	return 1;
       size++;
-      obstack_blank (&expand_stack, size);
-      view_command = obstack_finish (&expand_stack);
+      mu_opool_alloc (expand_pool, size);
+      view_command = mu_opool_finish (expand_pool, NULL);
       mu_mailcap_entry_get_viewcommand (entry, view_command, size, NULL);
     }
   else
@@ -565,8 +562,8 @@ run_mailcap (mu_mailcap_entry_t entry, struct mime_context *ctx)
       if (mu_mailcap_entry_get_value (entry, "print", NULL, 0, &size))
 	return 1;
       size++;
-      obstack_blank (&expand_stack, size);
-      view_command = obstack_finish (&expand_stack);
+      mu_opool_alloc (expand_pool, size);
+      view_command = mu_opool_finish (expand_pool, NULL);
       mu_mailcap_entry_get_value (entry, "print", view_command, size, NULL);
     }
 
@@ -691,7 +688,7 @@ display_stream_mailcap (const char *ident, mu_stream_t stream, mu_header_t hdr,
       mailcap_path = mailcap_path_tmp;
     }
   
-  obstack_init (&expand_stack);
+  mu_opool_create (&expand_pool, 1);
 
   ws.ws_delim = ":";
   if (mu_wordsplit (mailcap_path, &ws,
@@ -712,7 +709,7 @@ display_stream_mailcap (const char *ident, mu_stream_t stream, mu_header_t hdr,
 	}
       mu_wordsplit_free (&ws);
     }
-  obstack_free (&expand_stack, NULL);
+  mu_opool_destroy (&expand_pool);
   free (mailcap_path_tmp);
   mime_context_release (&ctx);
   return rc;

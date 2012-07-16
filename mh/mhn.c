@@ -19,9 +19,6 @@
 #include <mh.h>
 #include <signal.h>
 #include <mailutils/mime.h>
-#define obstack_chunk_alloc mu_alloc
-#define obstack_chunk_free free
-#include <obstack.h>
 #include <setjmp.h>
 
 static char doc[] = N_("GNU MH mhn")"\v"
@@ -541,7 +538,7 @@ msg_part_format (msg_part_t p)
 }
 
 void
-msg_part_format_stk (struct obstack *stk, msg_part_t p)
+msg_part_format_pool (mu_opool_t pool, msg_part_t p)
 {
   int i;
   
@@ -551,11 +548,11 @@ msg_part_format_stk (struct obstack *stk, msg_part_t p)
       const char *buf;
   
       if (i > 1)
-	obstack_1grow (stk, '.');
+	mu_opool_append_char (pool, '.');
 
       buf = mu_umaxtostr (0, p->part[i]);
       len = strlen (buf);
-      obstack_grow (stk, buf, len);
+      mu_opool_append (pool, buf, len);
     }
 }
 
@@ -634,7 +631,7 @@ mhn_compose_command (char *typestr, char *typeargs, int *flags, char *file)
   const char *p, *str;
   char *type, *subtype, **typeargv = NULL;
   int typeargc = 0;
-  struct obstack stk;
+  mu_opool_t pool;
 
   split_content (typestr, &type, &subtype);
   str = _mhn_profile_get ("compose", type, subtype, NULL);
@@ -647,7 +644,8 @@ mhn_compose_command (char *typestr, char *typeargs, int *flags, char *file)
     %F  %f, and stdout is not redirected
     %s  subtype */
 
-  obstack_init (&stk);
+  mu_opool_create (&pool, 1);
+
   p = mu_str_skip_class (str, MU_CTYPE_SPACE);
   
   if (*p == '|')
@@ -671,8 +669,8 @@ mhn_compose_command (char *typestr, char *typeargs, int *flags, char *file)
 		  for (i = 0; i < typeargc; i++)
 		    {
 		      if (i > 0)
-			obstack_1grow (&stk, ' ');
-		      obstack_grow (&stk, typeargv[i], strlen (typeargv[i]));
+			mu_opool_append_char (pool, ' ');
+		      mu_opool_appendz (pool, typeargv[i]);
 		    }
 		}
 	      break;
@@ -682,36 +680,36 @@ mhn_compose_command (char *typestr, char *typeargs, int *flags, char *file)
 	      *flags |= MHN_STDIN;
 	      /*FALLTHRU*/
 	    case 'f':
-	      obstack_grow (&stk, file, strlen (file));
+	      mu_opool_appendz (pool, file);
 	      break;
 	      
 	    case 's':
 	      /* subtype */
-	      obstack_grow (&stk, subtype, strlen (subtype));
+	      mu_opool_appendz (pool, subtype);
 	      break;
 	      
 	    default:
-	      obstack_1grow (&stk, *p);
+	      mu_opool_append_char (pool, *p);
 	      p++;
 	    }
 	}
       else
-	obstack_1grow (&stk, *p);
+	mu_opool_append_char (pool, *p);
     }
-  obstack_1grow (&stk, 0);
+  mu_opool_append_char (pool, 0);
 
   free (type);
   free (subtype);
   mu_argcv_free (typeargc, typeargv);
     
-  str = obstack_finish (&stk);
+  str = mu_opool_finish (pool, NULL);
   p = mu_str_skip_class (str, MU_CTYPE_SPACE);
   if (!*p)
     str = NULL;
   else
     str = mu_strdup (p);
 
-  obstack_free (&stk, NULL);
+  mu_opool_destroy (&pool);
   return (char*) str;
 }
 
@@ -767,7 +765,7 @@ mhn_show_command (mu_message_t msg, msg_part_t part, int *flags,
 {
   const char *p, *str, *tmp;
   char *typestr, *type, *subtype, *typeargs;
-  struct obstack stk;
+  mu_opool_t pool;
   mu_header_t hdr;
   char *temp_cmd = NULL;
   int typeargc = 0;
@@ -827,7 +825,8 @@ mhn_show_command (mu_message_t msg, msg_part_t part, int *flags,
     %s  subtype
     %d  content description */
 
-  obstack_init (&stk);
+  mu_opool_create (&pool, 1);
+
   p = mu_str_skip_class (str, MU_CTYPE_SPACE);
   
   if (*p == '|')
@@ -851,8 +850,8 @@ mhn_show_command (mu_message_t msg, msg_part_t part, int *flags,
 		  for (i = 0; i < typeargc; i++)
 		    {
 		      if (i > 0)
-			obstack_1grow (&stk, ' ');
-		      obstack_grow (&stk, typeargv[i], strlen (typeargv[i]));
+			mu_opool_append_char (pool, ' ');
+		      mu_opool_appendz (pool, typeargv[i]);
 		    }
 		}
 	      break;
@@ -866,7 +865,7 @@ mhn_show_command (mu_message_t msg, msg_part_t part, int *flags,
 	      /* filename containing content */
 	      if (!*tempfile)
 		mhn_tempfile_name (tempfile, type, subtype);
-	      obstack_grow (&stk, *tempfile, strlen (*tempfile));
+	      mu_opool_appendz (pool, *tempfile);
 	      break;
 				     
 	    case 'F':
@@ -874,7 +873,7 @@ mhn_show_command (mu_message_t msg, msg_part_t part, int *flags,
 	      *flags |= MHN_STDIN|MHN_EXCLUSIVE_EXEC;
 	      if (!*tempfile)
 		mhn_tempfile_name (tempfile, type, subtype);
-	      obstack_grow (&stk, *tempfile, strlen (*tempfile));
+	      mu_opool_appendz (pool, *tempfile);
 	      break;
 	      
 	    case 'l':
@@ -889,25 +888,25 @@ mhn_show_command (mu_message_t msg, msg_part_t part, int *flags,
 	      
 	    case 's':
 	      /* subtype */
-	      obstack_grow (&stk, subtype, strlen (subtype));
+	      mu_opool_appendz (pool, subtype);
 	      break;
 	      
 	    case 'd':
 	      /* content description */
 	      if (mu_header_sget_value (hdr, MU_HEADER_CONTENT_DESCRIPTION,
 					&tmp) == 0)
-		obstack_grow (&stk, tmp, strlen (tmp));
+		mu_opool_appendz (pool, tmp);
 	      break;
 	      
 	    default:
-	      obstack_1grow (&stk, *p);
+	      mu_opool_append_char (pool, *p);
 	      p++;
 	    }
 	}
       else
-	obstack_1grow (&stk, *p);
+	mu_opool_append_char (pool, *p);
     }
-  obstack_1grow (&stk, 0);
+  mu_opool_append_char (pool, 0);
 
   free (typestr);
   free (type);
@@ -915,14 +914,14 @@ mhn_show_command (mu_message_t msg, msg_part_t part, int *flags,
   free (temp_cmd);
   mu_argcv_free (typeargc, typeargv);
   
-  str = obstack_finish (&stk);
+  str = mu_opool_finish (pool, NULL);
   p = mu_str_skip_class (str, MU_CTYPE_SPACE);
   if (!*p)
     str = NULL;
   else
     str = mu_strdup (p);
 
-  obstack_free (&stk, NULL);
+  mu_opool_destroy (&pool);
   return (char*) str;
 }
 
@@ -941,7 +940,7 @@ mhn_store_command (mu_message_t msg, msg_part_t part, const char *name,
 {
   const char *p, *str, *tmp;
   char *typestr, *type, *subtype, *typeargs;
-  struct obstack stk;
+  mu_opool_t pool;
   mu_header_t hdr;
   enum store_destination dest;
   
@@ -998,7 +997,8 @@ mhn_store_command (mu_message_t msg, msg_part_t part, const char *name,
      %p  part
      %s  subtype */
 
-  obstack_init (&stk);
+  mu_opool_create (&pool, 1);
+  
   for (p = str; *p; p++)
     {
       if (*p == '%')
@@ -1007,62 +1007,62 @@ mhn_store_command (mu_message_t msg, msg_part_t part, const char *name,
 	    {
 	    case 'a':
 	      /* additional arguments */
-	      obstack_grow (&stk, typeargs, strlen (typeargs));
+	      mu_opool_appendz (pool, typeargs);
 	      break;
 
 	    case 'm':
 	      if (name)
-		obstack_grow (&stk, name, strlen (name));
+		mu_opool_appendz (pool, name);
 	      else
 		{
                   const char *buf = mu_umaxtostr (0, msg_part_subpart (part, 0));
-		  obstack_grow (&stk, buf, strlen (buf));
+		  mu_opool_appendz (pool, buf);
 		}
 	      break;
 
 	    case 'P':
 	      if (msg_part_level (part) >= 1)
-		obstack_1grow (&stk, '.');
+		mu_opool_append_char (pool, '.');
 	      /*FALLTHRU*/
 	    case 'p':
 	      if (msg_part_level (part) >= 1)
-		msg_part_format_stk (&stk, part);
+		msg_part_format_pool (pool, part);
 	      break;
 	      
 	    case 's':
 	      /* subtype */
-	      obstack_grow (&stk, subtype, strlen (subtype));
+	      mu_opool_appendz (pool, subtype);
 	      break;
 	      
 	    case 'd':
 	      /* content description */
 	      if (mu_header_sget_value (hdr, MU_HEADER_CONTENT_DESCRIPTION,
 				        &tmp) == 0)
-		obstack_grow (&stk, tmp, strlen (tmp));
+		mu_opool_appendz (pool, tmp);
 	      break;
 	      
 	    default:
-	      obstack_1grow (&stk, *p);
+	      mu_opool_append_char (pool, *p);
 	      p++;
 	    }
 	}
       else
-	obstack_1grow (&stk, *p);
+	mu_opool_append_char (pool, *p);
     }
-  obstack_1grow (&stk, *p);
+  mu_opool_append_char (pool, *p);
 
   free (typestr);
   free (type);
   free (subtype);
   
-  str = obstack_finish (&stk);
+  str = mu_opool_finish (pool, NULL);
   p = mu_str_skip_class (str, MU_CTYPE_SPACE);
   if (!*p)
     *return_string = NULL;
   else
     *return_string = mu_strdup (p);
   
-  obstack_free (&stk, NULL);
+  mu_opool_destroy (&pool);
   return dest;
 }
 
@@ -1932,7 +1932,7 @@ parse_brace (char **pval, char **cmd, int c, struct compose_env *env)
 
 int
 parse_content_type (struct compose_env *env,
-		    struct obstack *stk, char **prest, char **id, char **descr)
+		    mu_opool_t pool, char **prest, char **id, char **descr)
 {
   int status = 0, stop = 0;
   char *rest = *prest;
@@ -1990,12 +1990,12 @@ parse_content_type (struct compose_env *env,
 	  break;
 
 	case ';':
-	  obstack_1grow (stk, ';');
-	  obstack_1grow (stk, ' ');
+	  mu_opool_append_char (pool, ';');
+	  mu_opool_append_char (pool, ' ');
 	  skipws (rest);
 	  sp = rest;
 	  for (; *rest && !mu_isspace (*rest) && *rest != '='; rest++)
-	    obstack_1grow (stk, *rest);
+	    mu_opool_append_char (pool, *rest);
 	  skipws (rest);
 	  if (*rest != '=')
 	    {
@@ -2006,13 +2006,13 @@ parse_content_type (struct compose_env *env,
 	      break;
 	    }
 	  rest++;
-	  obstack_1grow (stk, '=');
+	  mu_opool_append_char (pool, '=');
 	  skipws (rest);
 	  for (; *rest; rest++)
 	    {
 	      if (isdelim (*rest))
 		break;
-	      obstack_1grow (stk, *rest);
+	      mu_opool_append_char (pool, *rest);
 	    }
 	  break;
 	    
@@ -2025,9 +2025,9 @@ parse_content_type (struct compose_env *env,
 
   if (comment)
     {
-      obstack_grow (stk, " (", 2);
-      obstack_grow (stk, comment, strlen (comment));
-      obstack_1grow (stk, ')');
+      mu_opool_append (pool, " (", 2);
+      mu_opool_appendz (pool, comment);
+      mu_opool_append_char (pool, ')');
       free (comment);
     }
   *prest = rest;
@@ -2048,7 +2048,7 @@ parse_type_command (char **pcmd, struct compose_env *env, mu_header_t hdr)
   char *type = NULL;
   char *subtype = NULL;
   char *descr = NULL, *id = NULL;
-  struct obstack stk;
+  mu_opool_t pool;
   char *rest = *pcmd;
   
   skipws (rest);
@@ -2068,15 +2068,17 @@ parse_type_command (char **pcmd, struct compose_env *env, mu_header_t hdr)
       return 1;
     }
 
-  obstack_init (&stk);
-  obstack_grow (&stk, type, strlen (type));
-  obstack_1grow (&stk, '/');
-  obstack_grow (&stk, subtype, strlen (subtype));
-  status = parse_content_type (env, &stk, &rest, &id, &descr);
-  obstack_1grow (&stk, 0);
+  mu_opool_create (&pool, 1);
+
+  mu_opool_appendz (pool, type);
+  mu_opool_append_char (pool, '/');
+  mu_opool_appendz (pool, subtype);
+  status = parse_content_type (env, pool, &rest, &id, &descr);
+  mu_opool_append_char (pool, 0);
   
-  mu_header_set_value (hdr, MU_HEADER_CONTENT_TYPE, obstack_finish (&stk), 1);
-  obstack_free (&stk, NULL);
+  mu_header_set_value (hdr, MU_HEADER_CONTENT_TYPE,
+		       mu_opool_finish (pool, NULL), 1);
+  mu_opool_destroy (&pool);
 
   if (!id)
     id = mh_create_message_id (env->subpart);
@@ -2217,7 +2219,7 @@ edit_extern (char *cmd, struct compose_env *env, mu_message_t *msg, int level)
   mu_header_t hdr, hdr2;
   mu_body_t body;
   mu_stream_t in, out = NULL;
-  struct obstack stk;
+  mu_opool_t pool;
 
   if (!*msg)
     mu_message_create (msg, NULL);
@@ -2234,13 +2236,14 @@ edit_extern (char *cmd, struct compose_env *env, mu_message_t *msg, int level)
 
   mu_message_get_header (*msg, &hdr);
 
-  obstack_init (&stk);
-  obstack_grow (&stk, EXTCONTENT, sizeof (EXTCONTENT) - 1);
+  mu_opool_create (&pool, 1);
+  mu_opool_append (pool, EXTCONTENT, sizeof (EXTCONTENT) - 1);
   *--rest = ';'; /* FIXME */
-  rc = parse_content_type (env, &stk, &rest, &id, NULL);
-  obstack_1grow (&stk, 0);
-  mu_header_set_value (hdr, MU_HEADER_CONTENT_TYPE, obstack_finish (&stk), 1);
-  obstack_free (&stk, NULL);
+  rc = parse_content_type (env, pool, &rest, &id, NULL);
+  mu_opool_append_char (pool, 0);
+  mu_header_set_value (hdr, MU_HEADER_CONTENT_TYPE,
+		       mu_opool_finish (pool, NULL), 1);
+  mu_opool_destroy (&pool);
   if (rc)
     return 1;
 

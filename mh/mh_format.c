@@ -190,7 +190,7 @@ put_string (struct mh_machine *mach, char *str, int len)
 {
   if (len == 0)
     return;
-  obstack_grow (&mach->stk, str, len);
+  mu_opool_append (mach->pool, str, len);
   len = mbsnwidth (str, len, 0);
   mach->ind += len;
 }
@@ -339,7 +339,7 @@ print_fmt_segment (struct mh_machine *mach, size_t fmtwidth, char *str,
       fmtwidth -= width;
       mach->ind += fmtwidth;
       while (fmtwidth--)
-	obstack_1grow (&mach->stk, ' ');
+	mu_opool_append_char (mach->pool, ' ');
     }
 }
 
@@ -394,7 +394,7 @@ format_num (struct mh_machine *mach, long num)
 	  ptr = buf;
 	  for (i = n; i < fmtwidth && mach->ind < mach->width;
 	       i++, mach->ind++)
-	    obstack_1grow (&mach->stk, padchar);
+	    mu_opool_append_char (mach->pool, padchar);
 	}
     }
   else
@@ -422,7 +422,7 @@ format_str (struct mh_machine *mach, char *str)
 	  n = fmtwidth - len;
 	  for (i = 0; i < n && mach->ind < mach->width;
 	       i++, mach->ind++, fmtwidth--)
-	    obstack_1grow (&mach->stk, padchar);
+	    mu_opool_append_char (mach->pool, padchar);
 	}
 	      
       print_fmt_string (mach, fmtwidth, str);
@@ -491,7 +491,7 @@ mh_format (mh_format_t *fmt, mu_message_t msg, size_t msgno,
   
   mach.width = width - 1; /* Count the newline */
   mach.pc = 1;
-  obstack_init (&mach.stk);
+  mu_opool_create (&mach.pool, 1);
   mu_list_create (&mach.addrlist);
   
   reset_fmt_defaults (&mach);
@@ -678,10 +678,10 @@ mh_format (mh_format_t *fmt, mu_message_t msg, size_t msgno,
   
   if (pret)
     {
-      obstack_1grow (&mach.stk, 0);
-      *pret = mu_strdup (obstack_finish (&mach.stk));
+      mu_opool_append_char (mach.pool, 0);
+      *pret = mu_strdup (mu_opool_finish (mach.pool, NULL));
     }
-  obstack_free (&mach.stk, NULL);
+  mu_opool_destroy (&mach.pool);
   return mach.ind;
 }
 

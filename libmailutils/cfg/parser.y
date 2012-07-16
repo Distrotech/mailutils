@@ -1475,6 +1475,7 @@ mu_cfg_tree_create_node (struct mu_cfg_tree *tree,
     {
       mu_opool_clear (tree->pool);
       mu_opool_appendz (tree->pool, label);
+      mu_opool_append_char (tree->pool, 0);
       val.v.string = mu_opool_finish (tree->pool, NULL);
       np->label = config_value_dup (&val);
     }

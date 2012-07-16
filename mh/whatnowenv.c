@@ -97,7 +97,7 @@ mh_whatnow_env_to_environ (struct mh_whatnow_env *wh)
 	  if (prev_uid == 0)
 	    {
 	      s = mu_umaxtostr (0, uid);
-	      mu_opool_append (opool, s, strlen (s));
+	      mu_opool_appendz (opool, s);
 	      mrange = 0;
 	    }
 	  else if (uid == prev_uid + 1)
@@ -108,11 +108,11 @@ mh_whatnow_env_to_environ (struct mh_whatnow_env *wh)
 		{
 		  mu_opool_append_char (opool, '-');
 		  s = mu_umaxtostr (0, prev_uid);
-		  mu_opool_append (opool, s, strlen (s));
+		  mu_opool_appendz (opool, s);
 		}
 	      mu_opool_append_char (opool, ' ');
 	      s = mu_umaxtostr (0, uid);
-	      mu_opool_append (opool, s, strlen (s));
+	      mu_opool_appendz (opool, s);
 	      mrange = 0;
 	    }
 	}
@@ -121,7 +121,7 @@ mh_whatnow_env_to_environ (struct mh_whatnow_env *wh)
 	{
 	  mu_opool_append_char (opool, '-');
 	  s = mu_umaxtostr (0, prev_uid);
-	  mu_opool_append (opool, s, strlen (s));
+	  mu_opool_appendz (opool, s);
 	}
       mu_opool_append_char (opool, 0);
       s = mu_opool_finish (opool, NULL);

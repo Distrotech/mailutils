@@ -14,10 +14,6 @@
    You should have received a copy of the GNU General Public License
    along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>. */
 
-#define obstack_chunk_alloc malloc
-#define obstack_chunk_free free
-#include <obstack.h>
-
 typedef struct       /* A string object type */
 {
   int size;          /* Allocated size or 0 for static storage */
@@ -43,7 +39,7 @@ struct mh_machine
   mh_instr_t *prog;         /* Program itself */
   int stop;                 /* Stop execution immediately */
 
-  struct obstack stk;       /* Output buffer */
+  mu_opool_t pool;          /* Output buffer */
   size_t width;             /* Output buffer width */
   size_t ind;               /* Output buffer index */
 
