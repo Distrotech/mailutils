@@ -137,7 +137,7 @@ imap4d_select_status ()
   io_untagged_response (RESP_OK, "[UIDNEXT %lu] Predicted next uid",
 	                   (unsigned long) uidnext);
   if (unseen)
-    io_untagged_response (RESP_OK, "[UNSEEN %lu] first unseen messsage",
+    io_untagged_response (RESP_OK, "[UNSEEN %lu] first unseen message",
 	                     (unsigned long) unseen);
   io_untagged_response (RESP_NONE, "FLAGS (%s)", mflags);
   /* FIXME:

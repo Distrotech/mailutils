@@ -28,7 +28,7 @@ X LOGOUT
 * 8 EXISTS
 * 5 RECENT
 * OK [[UIDNEXT 9]] Predicted next uid
-* OK [[UNSEEN 4]] first unseen messsage
+* OK [[UNSEEN 4]] first unseen message
 * FLAGS (\Answered \Flagged \Deleted \Seen \Draft)
 * OK [[PERMANENTFLAGS (\Answered \Flagged \Deleted \Seen \Draft)]] Permanent flags
 1 OK [[READ-WRITE]] SELECT Completed
