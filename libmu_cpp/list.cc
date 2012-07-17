@@ -199,7 +199,7 @@ List :: size ()
 }
 
 void
-List :: apply (mu_list_action_t* action, void* cbdata)
+List :: apply (mu_list_action_t action, void* cbdata)
 {
   int status = mu_list_foreach (mu_list, action, cbdata);
   if (status)

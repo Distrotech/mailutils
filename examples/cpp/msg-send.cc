@@ -95,8 +95,8 @@ main (int argc, char *argv[])
     Mailer mailer (optmailer);
     if (optdebug)
       {
-	Debug debug = mailer.get_debug ();
-	debug.set_level (MU_DEBUG_LEVEL_UPTO (MU_DEBUG_PROT));
+	mu_debug_set_category_level (MU_DEBCAT_MAILER, 
+				     MU_DEBUG_LEVEL_UPTO (MU_DEBUG_PROT));
       }
     mailer.open ();
     mailer.send_message (msg, from, to);

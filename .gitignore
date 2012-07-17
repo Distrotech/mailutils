@@ -3,6 +3,8 @@
 *.la
 *.lo
 *.o
+*.pyc
+*.pyo
 *.so
 *~
 .bootstrap

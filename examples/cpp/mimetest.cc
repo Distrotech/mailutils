@@ -75,8 +75,8 @@ main (int argc, char **argv)
   /* Debugging trace. */
   if (debug)
     {
-      Debug debug = mbox.get_debug ();
-      debug.set_level (MU_DEBUG_LEVEL_UPTO (MU_DEBUG_PROT));
+      mu_debug_set_category_level (MU_DEBCAT_MAILBOX, 
+				   MU_DEBUG_LEVEL_UPTO (MU_DEBUG_PROT));
     }
 
   /* Open the mailbox for reading only. */

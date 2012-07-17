@@ -49,17 +49,6 @@ class Folder:
         if status:
             raise FolderError (status)
 
-    def get_stream (self):
-        status, stream = folder.get_stream (self.folder)
-        if status:
-            raise FolderError (status)
-        return stream.Stream (stm)
-
-    def set_stream (self, stream):
-        status = folder.set_stream (self.folder, stream.stm)
-        if status:
-            raise FolderError (status)
-
     def get_authority (self):
         status, authority = folder.get_authority (self.folder)
         if status:

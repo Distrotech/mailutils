@@ -172,12 +172,13 @@ std::string
 Address :: to_string ()
 {
   size_t n;
-  char buf[1024];
-  int status = mu_address_to_string (addr, buf, sizeof (buf), &n);
+  char const *sptr;
+
+  int status = mu_address_sget_printable (addr, &sptr);
   if (status)
     throw Exception ("Address::to_string", status);
 
-  return std::string (buf);
+  return std::string (sptr);
 }
 
 namespace mailutils

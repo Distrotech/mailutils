@@ -25,7 +25,6 @@
 #include <mailutils/cpp/error.h>
 #include <mailutils/cpp/iterator.h>
 
-typedef int mu_list_action_t (void*, void*);
 typedef int (*mu_list_comparator_t) (const void*, const void*);
 
 namespace mailutils
@@ -64,7 +63,7 @@ class List
   void to_array (void** array, size_t count, size_t* pcount);
   void locate (void* item, void** ret_item);
 
-  void apply (mu_list_action_t* action, void* cbdata);
+  void apply (mu_list_action_t action, void* cbdata);
   mu_list_comparator_t set_comparator (mu_list_comparator_t comp);
   mu_list_destroy_item_t set_destroy_item (mu_list_destroy_item_t mu_destroy_item);
 

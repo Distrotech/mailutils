@@ -19,6 +19,10 @@
 
 #include <stddef.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct mu_wordsplit
 {
   size_t ws_wordc;
@@ -155,5 +159,8 @@ void mu_wordsplit_c_quote_copy (char *dst, const char *src, int quote_hex);
 void mu_wordsplit_perror (struct mu_wordsplit *ws);
 const char *mu_wordsplit_strerror (struct mu_wordsplit *ws);
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif

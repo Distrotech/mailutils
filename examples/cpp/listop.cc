@@ -221,9 +221,10 @@ shell (List& lst)
     {
       char *text;
       char buf[80];
-      int argc;
-      char **argv;
-      
+      int wsflags = MU_WRDSF_DEFFLAGS | MU_WRDSF_COMMENT;
+      struct mu_wordsplit ws;
+      ws.ws_comment = "#";
+
       try {
 	itr[num]->current ((void**) &text);
       }
@@ -235,40 +236,43 @@ shell (List& lst)
       if (cin.getline (buf, sizeof (buf)).eof ())
 	return;
 
-      rc = mu_argcv_get (buf, "", "#", &argc, &argv);
-      if (rc)
-	cerr << "mu_argcv_get: " << rc << endl;
-
-      if (argc > 0)
+      if (mu_wordsplit (buf, &ws, wsflags))
 	{
-	  string cmd (argv[0]);
+	  mu_error ("cannot split line `%s': %s", buf,
+		    mu_wordsplit_strerror (&ws));
+	  continue;
+	}
+
+      if (ws.ws_wordc > 0)
+	{
+	  string cmd (ws.ws_wordv[0]);
 
 	  if (cmd == "next")
-	    next (itr[num], argv[1]);
+	    next (itr[num], ws.ws_wordv[1]);
 	  else if (cmd == "first")
 	    itr[num]->first ();
 	  else if (cmd == "del")
-	    del (lst, argc, argv);
+	    del (lst, ws.ws_wordc, ws.ws_wordv);
 	  else if (cmd == "add")
-	    add (lst, argc, argv);
+	    add (lst, ws.ws_wordc, ws.ws_wordv);
 	  else if (cmd == "prep")
-	    prep (lst, argc, argv);
+	    prep (lst, ws.ws_wordc, ws.ws_wordv);
 	  else if (cmd == "repl")
-	    repl (lst, argc, argv);
+	    repl (lst, ws.ws_wordc, ws.ws_wordv);
 	  else if (cmd == "print")
 	    print (lst);
 	  else if (cmd == "quit")
 	    return;
 	  else if (cmd == "iter")
-	    iter (&num, argc, argv);
+	    iter (&num, ws.ws_wordc, ws.ws_wordv);
 	  else if (cmd == "find")
-	    find (itr[num], argv[1]);
+	    find (itr[num], ws.ws_wordv[1]);
 	  else if (cmd == "help")
 	    help ();
-	  else if (argc == 1)
+	  else if (ws.ws_wordc == 1)
 	    {
 	      char* p;
-	      size_t n = strtoul (argv[0], &p, 0);
+	      size_t n = strtoul (ws.ws_wordv[0], &p, 0);
 	      if (*p != 0)
 		cerr << "?" << endl;
 	      else
@@ -287,7 +291,7 @@ shell (List& lst)
 	  else
 	    cerr << "?" << endl;
 	}
-      mu_argcv_free (argc, argv);
+	mu_wordsplit_free (&ws);
     }
 }
 

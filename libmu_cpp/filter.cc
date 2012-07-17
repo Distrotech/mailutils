@@ -47,10 +47,12 @@ FilterIconvStream :: FilterIconvStream (Stream& transport,
 					int flags,
 					enum mu_iconv_fallback_mode fm)
 {
-  int status = mu_filter_iconv_create (&this->stm, transport.stm,
-				       fromcode.c_str (),
-				       tocode.c_str (),
-				       flags, fm);
+  const char *argv[4] = { "iconv", NULL, NULL, NULL };
+  argv[1] = fromcode.c_str ();
+  argv[2] = tocode.c_str ();
+
+  int status = mu_filter_create_args (&this->stm, transport.stm, argv[0], 3,
+				      argv, MU_FILTER_DECODE, flags);
   if (status)
     throw Exception ("FilterIconvStream::FilterIconvStream", status);
   this->input = new Stream (transport);

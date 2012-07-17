@@ -21,6 +21,10 @@
 #include <sys/resource.h>
 #include <mailutils/types.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define MU_PROG_LIMIT_AS      0
 #define MU_PROG_LIMIT_CPU     1
 #define MU_PROG_LIMIT_DATA    2
@@ -65,6 +69,10 @@ int mu_prog_stream_create (mu_stream_t *pstream,
 			   int flags);
 int mu_command_stream_create (mu_stream_t *pstream, const char *command,
 			      int flags);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 
