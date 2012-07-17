@@ -358,8 +358,19 @@ AC_SUBST(DBMLIBS)
 AC_SUBST(DBMLIB_DEPENDENCY)
 AC_SUBST(DBMINCLUDES)
 
-enable_dbm=no
+enable_dbm=
 disable_dbm=no
+all_dbm="GDBM BDB TC NDBM"
+
+AC_ARG_WITH([dbm],
+            AC_HELP_STRING([--with-dbm],
+	                   [build DBM support (default yes)]),
+	    [		   
+case "${withval}" in
+  yes) enable_dbm="$all_dbm";;
+  no)  enable_dbm=no;;
+  *)   enable_dbm="$withval" ;;
+esac])
 
 AC_ARG_WITH([gdbm],
             AC_HELP_STRING([--with-gdbm],
@@ -570,8 +581,8 @@ check_dbm_impl() {
   esac
 }
 
-if test "$enable_dbm" = no; then
-  enable_dbm="GDBM BDB TC NDBM"
+if test -z "$enable_dbm"; then
+  enable_dbm=$all_dbm
 fi
 
 for impl in $enable_dbm
@@ -1266,7 +1277,14 @@ MU_ENABLE_BUILD(comsat,,,["$mu_build_servers" = yes],,[server_list])
 
 MU_ENABLE_BUILD(frm,,,["$mu_build_clients" = yes],,[client_list])
 MU_ENABLE_BUILD(maidag,,,["$mu_build_clients" = yes],,[client_list])
+
 MU_ENABLE_BUILD(mail,,,["$mu_build_clients" = yes],,[client_list])
+AC_SUBST([MAILBINDIR],'${bindir}')
+AC_ARG_WITH([mailbindir],
+            [AC_HELP_STRING([--with-mailbindir=DIR],
+	                    [install mail to DIR [[BINDIR]]])],
+            [MAILBINDIR=$withval])
+
 MU_ENABLE_BUILD(sieve,,,["$mu_build_clients" = yes],,[client_list])
 MU_ENABLE_BUILD(messages,,,["$mu_build_clients" = yes],,[client_list])
 MU_ENABLE_BUILD(readmsg,,,["$mu_build_clients" = yes],,[client_list])

@@ -59,30 +59,31 @@ AC_DEFUN([MU_ENABLE_BUILD], [
 	pushdef([mu_cache_var],[mu_cv_enable_build_]translit($1,[+-],[x_]))
 	pushdef([mu_cond],[MU_COND_]mu_upcase)
 
-       	ifelse([$4],,,[if test $4; then])
-	  AC_ARG_ENABLE(build-$1, 
-	                AC_HELP_STRING([--disable-build-]$1,
-		                       [do not build ]$1),
+	AC_ARG_ENABLE(build-$1, 
+	              AC_HELP_STRING([--disable-build-]$1,
+	                             [do not build ]$1),
 	                [
   	  case "${enableval}" in
 		yes) mu_cache_var=yes;;
                 no)  mu_cache_var=no;;
 	        *)   AC_MSG_ERROR([bad value ${enableval} for --disable-$1]) ;;
           esac],
-                      [mu_cache_var=ifelse([$5],,yes,[$5])])
+                      [ifelse([$4],,[mu_cache_var=ifelse([$5],,yes,[$5])],
+		              [if test $4; then
+			         mu_cache_var=yes
+			       else
+			         mu_cache_var=no
+			       fi])])
 
-	  if test "[$]mu_cache_var" = "yes"; then
+	if test "[$]mu_cache_var" = "yes"; then
 		  ifelse([$2],,:,[$2])
 		  ifelse([$6],,,[$6="$[]$6 $1"])
-	  ifelse([$3],,,else
-                 [$3])
-	  fi
-	  if test "[$]mu_cache_var" = "yes"; then
-		AC_DEFINE([MU_BUILD_]mu_upcase,1,[Define this if you build $1])
-          fi
-	ifelse([$4],,,[else
-		mu_cache_var=no
-        fi])
+	ifelse([$3],,,else
+               [$3])
+	fi
+	if test "[$]mu_cache_var" = "yes"; then
+	  AC_DEFINE([MU_BUILD_]mu_upcase,1,[Define this if you build $1])
+        fi
 	  
 	AM_CONDITIONAL(mu_cond,
 	               [test "[$]mu_cache_var" = "yes"])
