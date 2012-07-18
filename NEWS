@@ -1,4 +1,4 @@
-GNU mailutils NEWS -- history of user-visible changes. 2012-06-07
+GNU mailutils NEWS -- history of user-visible changes. 2012-07-18
 Copyright (C) 2002-2012 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
@@ -82,7 +82,7 @@ are not used to avoid compromising security.
 
 See <http://mailutils.org/wiki/debug_level>.
 
-** Imap4d undergone a lot of changes to comply to existing RFCs
+** Imap4d underwent a lot of changes to comply to existing RFCs
 
 ** Pop3d and imap4d allow for mailbox-independent compulsory locking
 
@@ -113,6 +113,27 @@ New extension test `timestamp' compares the value of a structured date
 header field with the given date.
 
 See <http://mailutils.org/wiki/Timestamp_(Sieve_test)>.
+
+** mail: sending attachments
+
+The mail[x] utility now allows for sending attachments.  Any number of
+files can be attached to the composed letter by using the `--attach'
+(`-A') options.  The files will be attached in the same order in which
+they appear in the command line.  By default, each attachment is
+assigned the content type "application/octet-stream" and is encoded
+using Base64.  This can be changed using the `--content-type' and
+`--encoding' options.  These options affect all attachments that
+appear after them in the command line, until next occurrence of the
+same option or end of command line, whichever occurs first.  For
+example:
+
+  mail -A prog --encoding quoted-printable --content-type text/c \
+       -A main.c -A ext.h
+
+Here, the file "prog" will be attached witg the content type
+"application/octet-stream" and encoding base64, while the files
+"main.c" and "ext.h" will be marked with content type "text/c" and
+encoded using "quoted-printable" algorithm.
 
 ** MH: improved compatibility with other implementations
 
@@ -181,11 +202,28 @@ imap4d, pop3d, comsat) will be built.  Its counterpart,
 `--enable-build-clients' controls whether client utilities will be
 built.
 
+The effect of both options is overridden by the `--enable-build-*'
+options for particular components.  For example, to build only
+the "mail" utility:
+
+  ./configure --disable-build-clients --enable-build-mail
+
+** The --with-mailbindir option
+
+This option changes installation directory for the "mail" utility.
+  
 ** DBM options
 
 It is normally not needed to specify --with-gdbm, --with-berkeley-db
 or --with-ndbm explicitly.  Configuration will automatically pick up
 all available DBM libraries it can use.
+
+The option `--with-dbm' can be used to enable or disable building of
+all available DBM interfaces.  Its effect is overridden by `--with-*'
+options for particular interfaces.  For example, to build only GDBM
+(even if another databases are supported by the system):
+
+  ./configure --without-dbm --with-gdbm
 
 ** Nntp client is not yet implemented
 

@@ -15,6 +15,7 @@
    along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include "mail.h"
+#include <mailutils/mime.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -128,6 +129,233 @@ mail_sendheader (int argc, char **argv)
     }
   return 0;
 }
+
+/* Attachments */
+struct atchinfo
+{
+  char *encoding;
+  char *content_type;
+  char *filename;
+};
+
+static mu_list_t attlist;
+
+char *default_encoding;
+char *default_content_type;
+
+static void
+atchinfo_free (void *p)
+{
+  struct atchinfo *ap = p;
+  free (ap->encoding);
+  free (ap->content_type);
+  free (ap->filename);
+  free (ap);
+}
+
+int
+send_attach_file (const char *name)
+{
+  int rc;
+  struct stat st;
+  struct atchinfo *aptr;
+  
+  if (stat (name, &st))
+    {
+      if (errno == ENOENT)
+	{
+	  mu_error (_("%s: file does not exist"), name);
+	  return 1;
+	}
+      else
+	{
+	  mu_error (_("%s: cannot stat: %s"), name, mu_strerror (errno));
+	  return 1;
+	}
+    }
+
+  if (!S_ISREG (st.st_mode))
+    {
+      mu_error (_("%s: not a regular file"), name);
+      return 1;
+    }
+
+  if (!attlist)
+    {
+      rc = mu_list_create (&attlist);
+      if (rc)
+	{
+	  mu_diag_funcall (MU_DIAG_ERROR, "mu_list_create", NULL, rc);
+	  exit (1);
+	}
+      mu_list_set_destroy_item (attlist, atchinfo_free);
+    }
+  aptr = mu_alloc (sizeof (*aptr));
+  aptr->encoding = mu_strdup (default_encoding ?
+			      default_encoding : "base64");
+  aptr->content_type = mu_strdup (default_content_type ?
+				  default_content_type :
+				    "application/octet-stream");
+  aptr->filename = mu_strdup (name);
+  rc = mu_list_append (attlist, aptr);
+  if (rc)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_list_append", NULL, rc);
+      exit (1);
+    }
+  return 0;
+}
+
+static int
+saveatt (void *item, void *data)
+{
+  struct atchinfo *aptr = item;
+  mu_mime_t mime = data;
+  mu_message_t part;
+  mu_header_t hdr;
+  int rc;
+  size_t nparts;
+  char *p;
+  
+  rc = mu_message_create_attachment (aptr->content_type, aptr->encoding,
+				     aptr->filename, &part);
+  if (rc)
+    {
+      mu_error (_("cannot attach \"%s\": %s"), aptr->filename,
+		mu_strerror (rc));
+      return 1;
+    }
+
+  mu_mime_get_num_parts	(mime, &nparts);
+  mu_message_get_header (part, &hdr);
+  mu_rfc2822_msg_id (nparts, &p);
+  mu_header_set_value (hdr, MU_HEADER_CONTENT_ID, p, 1);
+  free (p);
+
+  rc = mu_mime_add_part (mime, part);
+  mu_message_unref (part);
+  if (rc)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_mime_add_part", aptr->filename, rc);
+      return 1;
+    }
+
+  return 0;
+}
+
+static int
+add_attachments (mu_message_t *pmsg, mu_mime_t *pmime)
+{
+  mu_message_t inmsg, outmsg, part;
+  mu_body_t body;
+  mu_header_t inhdr, outhdr;
+  mu_iterator_t itr;
+  mu_mime_t mime;
+  mu_stream_t str, output;
+  int rc;
+  char *p;
+  
+  if (mu_list_is_empty (attlist))
+    {
+      *pmime = NULL;
+      return 0;
+    }
+  
+  inmsg = *pmsg;
+
+  /* Create a mime object */
+  rc = mu_mime_create (&mime, NULL, 0);
+  if (rc)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_mime_create", NULL, rc);
+      return 1;
+    }
+
+  /* Add original message as its first part */
+  /* 1. Create the part and obtain a reference to its stream */
+  mu_message_create (&part, NULL);
+  mu_message_get_body (part, &body);
+  mu_body_get_streamref (body, &output);
+
+  /* 2. Get original body stream and copy it out to the part's body */
+  mu_message_get_body (inmsg, &body);
+  mu_body_get_streamref (body, &str);
+  mu_stream_copy (output, str, 0, NULL);
+
+  mu_stream_close (output);
+  mu_stream_destroy (&output);
+
+  mu_message_get_header (inmsg, &inhdr);
+  mu_header_get_iterator (inhdr, &itr);
+
+  /* 3. Copy "Content-*" headers from the original message */
+  mu_message_get_header (part, &outhdr);
+  for (mu_iterator_first (itr); !mu_iterator_is_done (itr);
+       mu_iterator_next (itr))
+    {
+      const char *name, *value;
+      
+      if (mu_iterator_current_kv (itr, (const void **)&name,
+				  (void**)&value) == 0)
+	{
+	  if (mu_c_strncasecmp (name, "Content-", 8) == 0)
+	    mu_header_set_value (outhdr, name, value, 0);
+	}
+    }
+  
+  /* 4. Add the content type and content ID headers. */
+  mu_header_set_value (outhdr, MU_HEADER_CONTENT_TYPE, "text/plain", 0);
+  mu_rfc2822_msg_id (0, &p);
+  mu_header_set_value (outhdr, MU_HEADER_CONTENT_ID, p, 1);
+  free (p);
+
+  /* 5. Add part to the mime object */
+  mu_mime_add_part (mime, part);
+  mu_message_unref (part);
+
+  /* Add the respective attachments */
+  rc = mu_list_foreach (attlist, saveatt, mime);
+  if (rc)
+    {
+      mu_mime_destroy (&mime);
+      return 1;
+    }
+
+  /* Get the resulting message */
+  rc = mu_mime_get_message (mime, &outmsg);
+
+  if (rc)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_mime_get_message", NULL, rc);
+      mu_mime_destroy (&mime);
+      return 1;
+    }
+
+  /* Copy rest of headers from the original message */
+  mu_message_get_header (outmsg, &outhdr);
+  for (mu_iterator_first (itr); !mu_iterator_is_done (itr);
+       mu_iterator_next (itr))
+    {
+      const char *name, *value;
+      
+      if (mu_iterator_current_kv (itr, (const void **)&name,
+				  (void**)&value) == 0)
+	{
+	  if (mu_c_strcasecmp (name, MU_HEADER_MIME_VERSION) == 0 ||
+	      mu_c_strncasecmp (name, "Content-", 8) == 0)
+	    continue;
+	  mu_header_append (outhdr, name, value);
+	}
+    }
+  mu_iterator_destroy (&itr);
+
+  mu_message_unref (outmsg);
+  mu_message_unref (inmsg);
+  *pmsg = outmsg;
+  *pmime = mime;
+  return 0;
+}
+
 
 
 /* Send-related commands */
@@ -342,17 +570,21 @@ fill_body (mu_message_t msg, mu_stream_t instr)
 }
 
 static int
-save_dead_message (compose_env_t *env)
+save_dead_message_env (compose_env_t *env)
 {
   if (mailvar_get (NULL, "save", mailvar_type_boolean, 0) == 0)
     {
-      mu_stream_t dead_letter;
+      mu_stream_t dead_letter, str;
       int rc;
+      time_t t;
+      struct tm *tm;
       const char *name = getenv ("DEAD");
-
+      char *sender;
+      
       /* FIXME: Use MU_STREAM_APPEND if appenddeadletter, instead of the
 	 stream manipulations below */
-      rc = mu_file_stream_create (&dead_letter, name, MU_STREAM_WRITE);
+      rc = mu_file_stream_create (&dead_letter, name,
+				  MU_STREAM_CREAT|MU_STREAM_WRITE);
       if (rc)
 	{
 	  mu_error (_("Cannot open file %s: %s"), name, strerror (rc));
@@ -364,8 +596,73 @@ save_dead_message (compose_env_t *env)
       else
 	mu_stream_truncate (dead_letter, 0);
 
+      time (&t);
+      tm = gmtime (&t);
+      sender = mu_get_user_email (NULL);
+      if (!sender)
+	sender = mu_strdup ("UNKNOWN");
+      mu_stream_printf (dead_letter, "From %s ", sender);
+      free (sender);
+      mu_c_streamftime (dead_letter, "%c%n", tm, NULL);
+
+      if (mu_header_get_streamref (env->header, &str) == 0)
+	{
+	  mu_stream_copy (dead_letter, str, 0, NULL);
+	  mu_stream_unref (str);
+	}
+      else
+	mu_stream_write (dead_letter, "\n", 1, NULL);
+      
       mu_stream_seek (env->compstr, 0, MU_SEEK_SET, NULL);
       mu_stream_copy (dead_letter, env->compstr, 0, NULL);
+      mu_stream_write (dead_letter, "\n", 1, NULL);
+      mu_stream_destroy (&dead_letter);
+    }
+  return 0;
+}
+
+static int
+save_dead_message (mu_message_t msg)
+{
+  if (mailvar_get (NULL, "save", mailvar_type_boolean, 0) == 0)
+    {
+      mu_stream_t dead_letter, str;
+      int rc;
+      time_t t;
+      struct tm *tm;
+      const char *name = getenv ("DEAD");
+      char *sender;
+      
+      /* FIXME: Use MU_STREAM_APPEND if appenddeadletter, instead of the
+	 stream manipulations below */
+      rc = mu_file_stream_create (&dead_letter, name,
+				  MU_STREAM_CREAT|MU_STREAM_WRITE);
+      if (rc)
+	{
+	  mu_error (_("Cannot open file %s: %s"), name, strerror (rc));
+	  return 1;
+	}
+      if (mailvar_get (NULL, "appenddeadletter",
+		       mailvar_type_boolean, 0) == 0)
+	mu_stream_seek (dead_letter, 0, MU_SEEK_END, NULL);
+      else
+	mu_stream_truncate (dead_letter, 0);
+
+      time (&t);
+      tm = gmtime (&t);
+      sender = mu_get_user_email (NULL);
+      if (!sender)
+	sender = mu_strdup ("UNKNOWN");
+      mu_stream_printf (dead_letter, "From %s ", sender);
+      free (sender);
+      mu_c_streamftime (dead_letter, "%c%n", tm, NULL);
+
+      if (mu_message_get_streamref (msg, &str) == 0)
+	{
+	  mu_stream_copy (dead_letter, str, 0, NULL);
+	  mu_stream_unref (str);
+	}
+      mu_stream_write (dead_letter, "\n", 1, NULL);
       mu_stream_destroy (&dead_letter);
     }
   return 0;
@@ -445,6 +742,7 @@ mail_send0 (compose_env_t *env, int save_to)
   if (rc)
     {
       mu_error (_("Cannot open temporary file: %s"), mu_strerror (rc));
+      mu_list_destroy (&attlist);
       return 1;
     }
 
@@ -541,8 +839,9 @@ mail_send0 (compose_env_t *env, int save_to)
   /* If interrupted, dump the file to dead.letter.  */
   if (int_cnt)
     {
-      save_dead_message (env);
+      save_dead_message_env (env);
       mu_stream_destroy (&env->compstr);
+      mu_list_destroy (&attlist);
       return 1;
     }
 
@@ -558,18 +857,30 @@ mail_send0 (compose_env_t *env, int save_to)
 
   if (util_header_expand (&env->header) == 0)
     {
+      mu_mime_t mime = NULL;
       mu_message_t msg = NULL;
-      int rc;
       int status = 0;
-      
-      mu_message_create (&msg, NULL);
-      
-      /* Fill the body.  */
-      mu_stream_seek (env->compstr, 0, MU_SEEK_SET, NULL);
-      rc = fill_body (msg, env->compstr);
-
-      if (rc == 0)
+      int sendit = (compose_header_get (env, MU_HEADER_TO, NULL) ||
+		    compose_header_get (env, MU_HEADER_CC, NULL) ||
+		    compose_header_get (env, MU_HEADER_BCC, NULL));
+      do
 	{
+	  status = mu_message_create (&msg, NULL);
+	  if (status)
+	    break;
+	  /* Fill the body. */
+	  mu_stream_seek (env->compstr, 0, MU_SEEK_SET, NULL);
+	  status = fill_body (msg, env->compstr);
+	  if (status)
+	    break;
+	  
+	  mu_message_set_header (msg, env->header, NULL);
+	  env->header = NULL;
+	  
+	  status = add_attachments (&msg, &mime);
+	  if (status)
+	    break;
+	  
 	  /* Save outgoing message */
 	  if (save_to)
 	    {
@@ -628,30 +939,29 @@ mail_send0 (compose_env_t *env, int save_to)
 	    }
 	  
 	  /* Do we need to Send the message on the wire?  */
-	  if (status == 0 &&
-	      (compose_header_get (env, MU_HEADER_TO, NULL) ||
-	       compose_header_get (env, MU_HEADER_CC, NULL) ||
-	       compose_header_get (env, MU_HEADER_BCC, NULL)))
+	  if (status == 0 && sendit)
 	    {
-	      mu_message_set_header (msg, env->header, NULL);
-	      env->header = NULL;
 	      status = send_message (msg);
 	      if (status)
 		{
 		  mu_error (_("cannot send message: %s"),
 			    mu_strerror (status));
-		  save_dead_message (env);
+		  save_dead_message (msg);
 		}
 	    }
-	}  
+	}
+      while (0);
+
       mu_stream_destroy (&env->compstr);
       mu_message_destroy (&msg, NULL);
+      mu_mime_destroy (&mime);
       return status;
     }
   else
-    save_dead_message (env);
+    save_dead_message_env (env);
   
   mu_stream_destroy (&env->compstr);
+  mu_list_destroy (&attlist);
   return 1;
 }
 

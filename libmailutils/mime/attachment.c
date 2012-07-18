@@ -88,12 +88,15 @@ mu_message_create_attachment (const char *content_type, const char *encoding,
 			     "Content-Transfer-Encoding: %s\n"
 			     "Content-Disposition: attachment; filename=%s\n\n",
 			     content_type, name, encoding, name);
-	  if (ret)
+	  if (ret == 0)
 	    {
 	      if ((ret = mu_header_create (&hdr, header,
 					   strlen (header))) == 0)
 		{
+		  mu_stream_t bstr;
 		  mu_message_get_body (*newmsg, &body);
+		  mu_body_get_streamref (body, &bstr);
+		  
 		  if ((ret = mu_file_stream_create (&fstream, filename,
 						    MU_STREAM_READ)) == 0)
 		    {
@@ -101,10 +104,12 @@ mu_message_create_attachment (const char *content_type, const char *encoding,
 						   MU_FILTER_ENCODE,
 						   MU_STREAM_READ)) == 0)
 			{
-			  mu_body_set_stream (body, tstream, *newmsg);
+			  mu_stream_copy (bstr, tstream, 0, NULL);
+			  mu_stream_unref (tstream);
 			  mu_message_set_header (*newmsg, hdr, NULL);
 			}
 		    }
+		  mu_stream_unref (bstr);
 		  free (header);
 		}
 	    }

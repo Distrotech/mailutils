@@ -171,6 +171,8 @@ extern mu_mailbox_t mbox;
 extern size_t total;
 extern int interactive;
 extern const char *program_version;
+extern char *default_encoding;
+extern char *default_content_type;
 
 /* Functions */
 extern int mail_alias (int argc, char **argv);
@@ -256,6 +258,7 @@ extern char *mail_expand_name (const char *name);
 
 extern void send_append_header (char *text);
 extern void send_append_header2 (char *name, char *value, int mode);
+extern int send_attach_file (const char *name);
 
 extern int escape_shell (int argc, char **argv, compose_env_t *env);
 extern int escape_command (int argc, char **argv, compose_env_t *env);

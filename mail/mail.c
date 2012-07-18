@@ -31,7 +31,9 @@ static char doc[] = N_("GNU mail -- process mail messages.\n"
 "by the first argument, or the user's mbox, if no argument given.\n");
 static char args_doc[] = N_("[address...]\n-f [OPTION...] [file]\n--file [OPTION...] [file]\n--file=file [OPTION...]");
 
-#define F_OPTION 256
+#define F_OPTION       256
+#define F_ENCODING     257
+#define F_CONTENT_TYPE 258
 
 static struct argp_option options[] = {
   { NULL,     'f', NULL,      OPTION_HIDDEN, NULL, 0 },
@@ -57,6 +59,12 @@ static struct argp_option options[] = {
    N_("append given header to the message being sent"), 0},
   {"exec",    'E', N_("COMMAND"), 0,
    N_("execute COMMAND"), 0 },
+  {"encoding", F_ENCODING, N_("NAME"), 0,
+   N_("set encoding for subsequent --attach options"), 0 },
+  {"content-type", F_CONTENT_TYPE, N_("TYPE"), 0,
+   N_("set content type for subsequent --attach options"), 0 },
+  {"attach",  'A', N_("FILE"), 0,
+   N_("attach FILE"), 0 },
   { NULL,      0, NULL, 0, NULL, 0 }
 };
 
@@ -83,6 +91,17 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case 'a':
       args->hint |= HINT_SEND_MODE;
       send_append_header (arg);
+      break;
+
+    case 'A':
+      args->hint |= HINT_SEND_MODE;
+      if (send_attach_file (arg))
+	exit (1);
+      break;
+      
+    case F_CONTENT_TYPE:
+      free (default_content_type);
+      default_content_type = mu_strdup (arg);
       break;
       
     case 'e':
@@ -138,6 +157,11 @@ parse_opt (int key, char *arg, struct argp_state *state)
 
     case 'E':
       util_cache_command (&command_list, "%s", arg);
+      break;
+
+    case F_ENCODING:
+      free (default_encoding);
+      default_encoding = mu_strdup (arg);
       break;
       
     case 'F':
