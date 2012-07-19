@@ -95,7 +95,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
 
     case 'A':
       args->hint |= HINT_SEND_MODE;
-      if (send_attach_file (arg))
+      if (send_attach_file_default (arg))
 	exit (1);
       break;
       

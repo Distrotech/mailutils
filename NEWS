@@ -1,4 +1,4 @@
-GNU mailutils NEWS -- history of user-visible changes. 2012-07-18
+GNU mailutils NEWS -- history of user-visible changes. 2012-07-19
 Copyright (C) 2002-2012 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
@@ -134,6 +134,20 @@ Here, the file "prog" will be attached witg the content type
 "application/octet-stream" and encoding base64, while the files
 "main.c" and "ext.h" will be marked with content type "text/c" and
 encoded using "quoted-printable" algorithm.
+
+The mail shell provides the following new escapes to handle attachments:
+
+ ~l
+    Lists all attachments.  The output is a numbered list of
+    attachments with their corresponding content types and
+    encodings.
+    
+ ~+ filename [content-type [encoding]]
+    Attach the file `filename'.  Optional arguments supply the content
+    type and encoding to use instead of the defaults.
+
+ ~^ N
+    Delete Nth attachment.
 
 ** MH: improved compatibility with other implementations
 

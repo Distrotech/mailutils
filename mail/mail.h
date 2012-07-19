@@ -258,7 +258,9 @@ extern char *mail_expand_name (const char *name);
 
 extern void send_append_header (char *text);
 extern void send_append_header2 (char *name, char *value, int mode);
-extern int send_attach_file (const char *name);
+extern int send_attach_file_default (const char *name);
+
+extern int escape_check_args (int argc, char **argv, int minargs, int maxargs);
 
 extern int escape_shell (int argc, char **argv, compose_env_t *env);
 extern int escape_command (int argc, char **argv, compose_env_t *env);
@@ -280,6 +282,11 @@ extern int escape_visual (int argc, char **argv, compose_env_t *env);
 extern int escape_write (int argc, char **argv, compose_env_t *env);
 extern int escape_exit (int argc, char **argv, compose_env_t *env);
 extern int escape_pipe (int argc, char **argv, compose_env_t *env);
+extern int escape_list_attachments  (int argc, char **argv,
+				     compose_env_t *env);
+extern int escape_attach (int argc, char **argv, compose_env_t *env);
+extern int escape_remove_attachment (int argc, char **argv,
+				     compose_env_t *env);
 
 /* Cursor */
 extern void set_cursor (unsigned value);

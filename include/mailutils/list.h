@@ -118,6 +118,10 @@ int mu_list_remove   (mu_list_t _list, void *_item);
   /* A non-destructive version of mu_list_remove: removes the _item but does
      not deallocate it. */
 int mu_list_remove_nd  (mu_list_t _list, void *_item);
+  /* Remove Nth element from the list. */
+int mu_list_remove_nth (mu_list_t list, size_t n);
+  /* Remove Nth element from the list, non-destructive. */
+int mu_list_remove_nth_nd (mu_list_t list, size_t n);
   /* Find _old_item in _list and if found, replace it with _new_item,
      deallocating the removed item via the `destroy_item' method. */
 int mu_list_replace  (mu_list_t _list, void *_old_item, void *_new_item);

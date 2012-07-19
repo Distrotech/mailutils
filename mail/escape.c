@@ -156,16 +156,29 @@ escape_continue (void)
   mu_printf (_("(continue)\n"));
 }
 
-static int 
-escape_check_args (int argc, char **argv)
+int 
+escape_check_args (int argc, char **argv, int minargs, int maxargs)
 {
-  if (argc == 1)
+  char *escape = "~";
+  if (argc < minargs)
     {
-      char *escape = "~";
+      minargs--;
       mailvar_get (&escape, "escape", mailvar_type_string, 0);
-      mu_error (_("%c%s requires an argument"), escape[0], argv[0]);
+      mu_error (ngettext ("%c%s requires at least %d argument",
+			  "%c%s requires at least %d arguments",
+			  minargs), escape[0], argv[0], minargs);
       return 1;
     }
+  if (maxargs > 1 && argc > maxargs)
+    {
+      maxargs--;
+      mailvar_get (&escape, "escape", mailvar_type_string, 0);
+      mu_error (ngettext ("%c%s accepts at most %d argument",
+			  "%c%s accepts at most %d arguments",
+			  maxargs), escape[0], argv[0], maxargs);
+      return 1;
+    }
+    
   return 0;
 }
 
@@ -184,7 +197,7 @@ escape_command (int argc, char **argv, compose_env_t *env)
   const struct mail_command_entry *entry;
   int status;
   
-  if (escape_check_args (argc, argv))
+  if (escape_check_args (argc, argv, 2, 2))
     return 1;
   if (argv[1][0] == '#')
     return 0;
@@ -416,6 +429,8 @@ escape_editor (int argc, char **argv, compose_env_t *env)
   return escape_run_editor (getenv ("EDITOR"), argc, argv, env);
 }
 
+/* ~l -- escape_list_attachments (send.c) */
+
 /* ~v */
 int
 escape_visual (int argc, char **argv, compose_env_t *env)
@@ -457,7 +472,7 @@ escape_headers (int argc, char **argv, compose_env_t *env)
 int
 escape_insert (int argc, char **argv, compose_env_t *env)
 {
-  if (escape_check_args (argc, argv))
+  if (escape_check_args (argc, argv, 2, 2))
     return 1;
   mailvar_variable_format (env->compstr, mailvar_find_variable (argv[1], 0),
 			   NULL);
@@ -574,7 +589,7 @@ escape_read (int argc, char **argv, compose_env_t *env MU_ARG_UNUSED)
   mu_stream_t instr;
   int rc;
   
-  if (escape_check_args (argc, argv))
+  if (escape_check_args (argc, argv, 2, 2))
     return 1;
   filename = util_fullpath (argv[1]);
 
@@ -597,7 +612,7 @@ int
 escape_subj (int argc, char **argv, compose_env_t *env)
 {
   char *buf;
-  if (escape_check_args (argc, argv))
+  if (escape_check_args (argc, argv, 2, 2))
     return 1;
   mu_argcv_string (argc - 1, argv + 1, &buf);
   compose_header_set (env, MU_HEADER_SUBJECT, buf, COMPOSE_REPLACE);
@@ -623,7 +638,7 @@ escape_write (int argc, char **argv, compose_env_t *env)
   int rc;
   mu_off_t size;
   
-  if (escape_check_args (argc, argv))
+  if (escape_check_args (argc, argv, 2, 2))
     return 1;
   filename = util_fullpath (argv[1]);
   /* FIXME: check for existence first */

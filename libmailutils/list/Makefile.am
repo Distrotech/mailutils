@@ -42,6 +42,7 @@ liblist_la_SOURCES = \
  prepend.c\
  push.c\
  remove.c\
+ removenth.c\
  replace.c\
  rfold.c\
  setcomp.c\

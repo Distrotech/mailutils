@@ -154,11 +154,13 @@ atchinfo_free (void *p)
 }
 
 int
-send_attach_file (const char *name)
+send_attach_file (const char *name,
+		  const char *content_type, const char *encoding)
 {
   int rc;
   struct stat st;
   struct atchinfo *aptr;
+  mu_list_t list;
   
   if (stat (name, &st))
     {
@@ -180,6 +182,16 @@ send_attach_file (const char *name)
       return 1;
     }
 
+  if (!encoding)
+    encoding = "base64";
+  mu_filter_get_list (&list);
+  rc = mu_list_locate (list, encoding, NULL);
+  if (rc)
+    {
+      mu_error (_("unsupported encoding: %s"), encoding);
+      return 1;
+    }
+  
   if (!attlist)
     {
       rc = mu_list_create (&attlist);
@@ -191,10 +203,10 @@ send_attach_file (const char *name)
       mu_list_set_destroy_item (attlist, atchinfo_free);
     }
   aptr = mu_alloc (sizeof (*aptr));
-  aptr->encoding = mu_strdup (default_encoding ?
-			      default_encoding : "base64");
-  aptr->content_type = mu_strdup (default_content_type ?
-				  default_content_type :
+
+  aptr->encoding = mu_strdup (encoding);  
+  aptr->content_type = mu_strdup (content_type ?
+				  content_type :
 				    "application/octet-stream");
   aptr->filename = mu_strdup (name);
   rc = mu_list_append (attlist, aptr);
@@ -204,6 +216,86 @@ send_attach_file (const char *name)
       exit (1);
     }
   return 0;
+}
+
+int
+send_attach_file_default (const char *name)
+{
+  return send_attach_file (name, default_content_type, default_encoding);
+}
+
+int
+escape_list_attachments (int argc, char **argv, compose_env_t *env)
+{
+  mu_iterator_t itr;
+  int i;
+  
+  if (mu_list_is_empty (attlist) ||
+      mu_list_get_iterator (attlist, &itr))
+    {
+      mu_printf ("%s\n", _("No attachments"));
+      return 0;
+    }
+  
+  for (mu_iterator_first (itr), i = 1; !mu_iterator_is_done (itr);
+       mu_iterator_next (itr), i++)
+    {
+      struct atchinfo *aptr;
+      if (mu_iterator_current (itr, (void**)&aptr))
+	continue;
+	  
+      mu_printf ("%3d %-12s %-30s %-s\n",
+		 i, aptr->filename, aptr->content_type, aptr->encoding);
+    }
+  mu_iterator_destroy (&itr);
+
+  return 0;
+}
+
+int
+escape_attach (int argc, char **argv, compose_env_t *env)
+{
+  const char *encoding = default_encoding;
+  const char *content_type = default_content_type;
+  
+  switch (argc)
+    {
+    case 4:
+      encoding = argv[3];
+    case 3:
+      content_type = argv[2];
+    case 2:
+      return send_attach_file (argv[1], content_type, encoding);
+    default:
+      return escape_check_args (argc, argv, 2, 4);
+    }
+  return 1;
+}
+
+int
+escape_remove_attachment (int argc, char **argv, compose_env_t *env)
+{
+  size_t count;
+  unsigned long n;
+  char *p;
+  
+  if (escape_check_args (argc, argv, 2, 2))
+    return 1;
+  n = strtoul (argv[1], &p, 10);
+  if (*p)
+    {
+      mu_error (_("not a valid number: %s"), argv[1]);
+      return 1;
+    }
+  
+  mu_list_count (attlist, &count);
+  if (n == 0 || n > count)
+    {
+      mu_error (_("index out of range"));
+      return 1;
+    }
+
+  return mu_list_remove_nth (attlist, n - 1);
 }
 
 static int
