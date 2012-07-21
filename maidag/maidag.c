@@ -304,7 +304,8 @@ cb_stderr (void *data, mu_config_value_t *val)
     return 1;
   if (mu_cfg_parse_boolean (val->v.string, &res))
     mu_error (_("not a boolean"));
-  mu_log_syslog = !res;
+  else
+    mu_log_syslog = !res;
   return 0;
 }
     
