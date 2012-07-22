@@ -26,7 +26,7 @@
 static void pop3d_fix_mark ();
 
 int
-pop3d_quit (char *arg)
+pop3d_quit (char *arg, struct pop3d_session *sess)
 {
   int err = OK;
   if (strlen (arg) != 0)

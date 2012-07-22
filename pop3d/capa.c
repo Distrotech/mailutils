@@ -26,38 +26,134 @@
 
   Capabilities available in the AUTHORIZATION state MUST be announced
   in both states.  */
+
+static int
+print_capa (void *item, void *data)
+{
+  struct pop3d_capa *cp = item;
+  struct pop3d_session *session = data;
+  if (cp->type == capa_func)
+    {
+      cp->value.func (cp->name, session);
+    }
+  else 
+    {
+      pop3d_outf ("%s", cp->name);
+      if (cp->value.string)
+	pop3d_outf ("%s", cp->value.string);
+      pop3d_outf ("\n");
+    }
+  return 0;
+}
+
 int
-pop3d_capa (char *arg)
+pop3d_capa (char *arg, struct pop3d_session *sess)
 {
   if (strlen (arg) != 0)
     return ERR_BAD_ARGS;
 
   pop3d_outf ("+OK Capability list follows\n");
-  pop3d_outf ("TOP\n");
-  pop3d_outf ("USER\n");
-  pop3d_outf ("UIDL\n");
-  pop3d_outf ("RESP-CODES\n");
-  pop3d_outf ("PIPELINING\n");
-  if (pop3d_xlines)
-    pop3d_outf ("XLINES\n");
-    
-#ifdef WITH_TLS
-  if (tls_available && tls_done == 0)
-    pop3d_outf ("STLS\n");
-#endif /* WITH_TLS */
-
-  login_delay_capa ();
-  /* This can be implemented by setting an header field on the message.  */
-  if (expire == EXPIRE_NEVER)
-    pop3d_outf ("EXPIRE NEVER\n");
-  else 
-    pop3d_outf ("EXPIRE %s\n", mu_umaxtostr (0, expire));
-
-  if (state == INITIAL)
-    pop3d_outf ("XTLSREQUIRED\n");
-  
-  if (state == TRANSACTION)	/* let's not advertise to just anyone */
-    pop3d_outf ("IMPLEMENTATION %s\n", PACKAGE_STRING);
+  mu_list_foreach (sess->capa, print_capa, sess);
   pop3d_outf (".\n");
   return OK;
+}
+
+static void
+pop3d_append_capa_string (struct pop3d_session *sess, const char *name,
+			  const char *value)
+{
+  struct pop3d_capa *cp;
+
+  cp = mu_alloc (sizeof (*cp));
+  cp->type = capa_string;
+  cp->name = name;
+  cp->value.string = value ? mu_strdup (value) : NULL;
+  if (mu_list_append (sess->capa, cp))
+    mu_alloc_die ();
+}
+
+static void
+pop3d_append_capa_func (struct pop3d_session *sess, const char *name,
+			void (*func) (const char *, struct pop3d_session *))
+{
+  struct pop3d_capa *cp;
+
+  if (!func)
+    return;
+  cp = mu_alloc (sizeof (*cp));
+  cp->type = capa_func;
+  cp->name = name;
+  cp->value.func = func;
+  if (mu_list_append (sess->capa, cp))
+    mu_alloc_die ();
+}  
+
+static void
+capa_free (void *p)
+{
+  struct pop3d_capa *cp = p;
+  if (cp->type == capa_string && cp->value.string)
+    free (cp->value.string);
+  free (cp);
+}
+
+static void
+capa_implementation (const char *name, struct pop3d_session *session)
+{
+  if (state == TRANSACTION)	/* let's not advertise to just anyone */
+    pop3d_outf ("%s %s\n", name, PACKAGE_STRING);
+}
+
+#ifdef WITH_TLS
+static void
+capa_stls (const char *name, struct pop3d_session *session)
+{
+  if ((session->tls == tls_ondemand || session->tls == tls_required)
+      && tls_available && tls_done == 0)
+    pop3d_outf ("%s\n", name);
+}
+#else
+# define capa_stls NULL
+#endif /* WITH_TLS */
+
+static void
+capa_user (const char *name, struct pop3d_session *session)
+{
+  if (state == INITIAL)
+    pop3d_outf ("XTLSREQUIRED\n");
+  else
+    pop3d_outf ("USER\n");
+}
+
+void
+pop3d_session_init (struct pop3d_session *session)
+{
+  if (mu_list_create (&session->capa))
+    mu_alloc_die ();
+  mu_list_set_destroy_item (session->capa, capa_free);
+
+  /* Initialize the capability list */
+  pop3d_append_capa_string (session, "TOP", NULL);
+  pop3d_append_capa_string (session, "UIDL", NULL);
+  pop3d_append_capa_string (session, "RESP-CODES", NULL);
+  pop3d_append_capa_string (session, "PIPELINING", NULL);
+  if (pop3d_xlines)
+    pop3d_append_capa_string (session, "XLINES", NULL);
+
+  pop3d_append_capa_func (session, "LOGIN-DELAY", login_delay_capa);
+    
+  /* This can be implemented by setting an header field on the message.  */
+  pop3d_append_capa_string (session, "EXPIRE",
+			    (expire == EXPIRE_NEVER) ?
+			    "NEVER" : mu_umaxtostr (0, expire));
+
+  pop3d_append_capa_func (session, NULL, capa_user);
+  pop3d_append_capa_func (session, "STLS", capa_stls);
+  pop3d_append_capa_func (session, "IMPLEMENTATION", capa_implementation);
+}
+
+void
+pop3d_session_free (struct pop3d_session *session)
+{
+  mu_list_destroy (&session->capa);
 }

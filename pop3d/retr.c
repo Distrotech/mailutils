@@ -64,7 +64,7 @@ pop3d_send_payload (mu_stream_t stream, mu_stream_t linestr, size_t maxlines)
 /* Prints out the specified message */
 
 int
-pop3d_retr (char *arg)
+pop3d_retr (char *arg, struct pop3d_session *sess)
 {
   size_t mesgno;
   mu_message_t msg = NULL;

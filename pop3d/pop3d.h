@@ -42,17 +42,19 @@
 # undef ENABLE_LOGIN_DELAY
 #endif
 
+struct pop3d_session;
+
 #ifdef ENABLE_LOGIN_DELAY
 # define LOGIN_STAT_FILE "/var/run/pop3-login"
 extern time_t login_delay;
 extern char *login_stat_file;
 extern int check_login_delay (char *username);
 extern void update_login_delay (char *username);
-extern void login_delay_capa (void);
+extern void login_delay_capa (const char *, struct pop3d_session *);
 #else
 # define check_login_delay(u) 0
 # define update_login_delay(u)
-# define login_delay_capa()
+# define login_delay_capa NULL
 #endif
 
 /* Minimum advertise retention time for messages.  */
@@ -166,8 +168,44 @@ extern int expire_on_exit;
 #define ERR_LOGIN_DELAY 22
 #define ERR_TERMINATE   23
 
+enum tls_mode
+  {
+    tls_unspecified,
+    tls_no,
+    tls_ondemand,
+    tls_required,
+    tls_connection
+  };
+
+enum pop3d_capa_type
+  {
+    capa_string,
+    capa_func
+  };
+
+struct pop3d_capa
+{
+  enum pop3d_capa_type type;
+  const char *name;
+  union
+  {
+    char *string;
+    void (*func) (const char *, struct pop3d_session *);
+  } value;
+};
+
+struct pop3d_session
+{
+  mu_list_t capa;
+  enum tls_mode tls;
+};
+
+void pop3d_session_init (struct pop3d_session *session);
+void pop3d_session_free (struct pop3d_session *session);
+
+
 typedef struct mu_pop_server *mu_pop_server_t;
-typedef int (*pop3d_command_handler_t) (char *);
+typedef int (*pop3d_command_handler_t) (char *, struct pop3d_session *sess);
 
 struct pop3d_command
 {
@@ -214,19 +252,19 @@ extern int apop_database_owner_set;
 
 extern pop3d_command_handler_t pop3d_find_command (const char *name);
 
-extern int pop3d_stat           (char *);
-extern int pop3d_top            (char *);
-extern int pop3d_uidl           (char *);
-extern int pop3d_user           (char *);
-extern int pop3d_apop           (char *);
-extern int pop3d_auth           (char *);
-extern int pop3d_capa           (char *);
-extern int pop3d_dele           (char *);
-extern int pop3d_list           (char *);
-extern int pop3d_noop           (char *);
-extern int pop3d_quit           (char *);
-extern int pop3d_retr           (char *);
-extern int pop3d_rset           (char *);
+extern int pop3d_stat           (char *, struct pop3d_session *);
+extern int pop3d_top            (char *, struct pop3d_session *);
+extern int pop3d_uidl           (char *, struct pop3d_session *);
+extern int pop3d_user           (char *, struct pop3d_session *);
+extern int pop3d_apop           (char *, struct pop3d_session *);
+extern int pop3d_auth           (char *, struct pop3d_session *);
+extern int pop3d_capa           (char *, struct pop3d_session *);
+extern int pop3d_dele           (char *, struct pop3d_session *);
+extern int pop3d_list           (char *, struct pop3d_session *);
+extern int pop3d_noop           (char *, struct pop3d_session *);
+extern int pop3d_quit           (char *, struct pop3d_session *);
+extern int pop3d_retr           (char *, struct pop3d_session *);
+extern int pop3d_rset           (char *, struct pop3d_session *);
 
 void pop3d_send_payload (mu_stream_t stream, mu_stream_t linestr,
 			 size_t maxlines);
@@ -242,7 +280,7 @@ extern RETSIGTYPE pop3d_master_signal  (int);
 extern RETSIGTYPE pop3d_child_signal  (int);
 
 #ifdef WITH_TLS
-extern int pop3d_stls           (char *);
+extern int pop3d_stls           (char *, struct pop3d_session *);
 extern void enable_stls (void);
 #endif /* WITH_TLS */
 extern void pop3d_outf          (const char *fmt, ...) MU_PRINTFLIKE(1,2);

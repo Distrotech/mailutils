@@ -20,7 +20,7 @@
 /* DELE adds a message number to the list of messages to be deleted on QUIT */
 
 int
-pop3d_dele (char *arg)
+pop3d_dele (char *arg, struct pop3d_session *sess)
 {
   size_t num;
   mu_message_t msg;

@@ -18,7 +18,7 @@
 #include "pop3d.h"
 
 int
-pop3d_uidl (char *arg)
+pop3d_uidl (char *arg, struct pop3d_session *sess)
 {
   size_t mesgno;
   char uidl[128];

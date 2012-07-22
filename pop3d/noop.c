@@ -20,7 +20,7 @@
 /* Does nothing */
 
 int
-pop3d_noop (char *arg)
+pop3d_noop (char *arg, struct pop3d_session *sess)
 {
   if (strlen (arg) != 0)
     return ERR_BAD_ARGS;

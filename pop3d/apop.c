@@ -164,7 +164,7 @@ pop3d_apopuser (const char *user)
 }
 
 int
-pop3d_apop (char *arg)
+pop3d_apop (char *arg, struct pop3d_session *sess)
 {
   char *p, *password, *user_digest, *user;
   struct mu_md5_ctx md5context;

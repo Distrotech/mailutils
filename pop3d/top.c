@@ -20,7 +20,7 @@
 /* Prints the header of a message plus a specified number of lines.  */
 
 int
-pop3d_top (char *arg)
+pop3d_top (char *arg, struct pop3d_session *sess)
 {
   size_t mesgno;
   unsigned long lines;

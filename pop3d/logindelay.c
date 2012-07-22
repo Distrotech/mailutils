@@ -141,13 +141,13 @@ update_login_delay (char *username)
 }
 
 void
-login_delay_capa ()
+login_delay_capa (const char *name, struct pop3d_session *session)
 {
   mu_dbm_file_t db;
-  
+
   if (login_delay && (db = open_stat_db (MU_STREAM_RDWR)) != NULL)
     {
-      pop3d_outf ("LOGIN-DELAY %s\n", mu_umaxtostr (0, login_delay));
+      pop3d_outf ("%lu\n", (unsigned long) login_delay);
       mu_dbm_destroy (&db);
     }
 }

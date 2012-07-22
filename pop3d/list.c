@@ -39,7 +39,7 @@
   XLINES capability.
 */
 int
-pop3d_list (char *arg)
+pop3d_list (char *arg, struct pop3d_session *sess)
 {
   size_t mesgno;
   mu_message_t msg = NULL;

@@ -20,7 +20,7 @@
 /* Prints the number of messages and the total size of all messages */
 
 int
-pop3d_stat (char *arg)
+pop3d_stat (char *arg, struct pop3d_session *sess)
 {
   size_t mesgno;
   size_t size = 0;

@@ -20,7 +20,7 @@
 /* Resets the connection so that no messages are marked as deleted */
 
 int
-pop3d_rset (char *arg)
+pop3d_rset (char *arg, struct pop3d_session *sess)
 {
   size_t i;
   size_t total = 0;

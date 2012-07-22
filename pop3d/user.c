@@ -72,7 +72,7 @@ pop3d_begin_session ()
 }
 
 int
-pop3d_user (char *arg)
+pop3d_user (char *arg, struct pop3d_session *sess)
 {
   char *buf, *pass, *cmd;
   char buffer[512];
@@ -129,7 +129,7 @@ pop3d_user (char *arg)
   else if (mu_c_strcasecmp (cmd, "QUIT") == 0)
     {
       mu_diag_output (MU_DIAG_INFO, _("possible probe of account `%s'"), arg);
-      return pop3d_quit (pass);
+      return pop3d_quit (pass, sess);
     }
   else
     {

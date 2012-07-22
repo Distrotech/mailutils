@@ -21,7 +21,7 @@
 #ifdef WITH_TLS
 
 int
-pop3d_stls (char *arg)
+pop3d_stls (char *arg, struct pop3d_session *session)
 {
   if (strlen (arg) != 0)
     return ERR_BAD_ARGS;
@@ -29,6 +29,15 @@ pop3d_stls (char *arg)
   if (state != initial_state)
     return ERR_WRONG_STATE;
 
+  switch (session->tls)
+    {
+    case tls_ondemand:
+    case tls_required:
+      break;
+    default:
+      return ERR_WRONG_STATE;
+    }
+  
   if (tls_done)
     return ERR_TLS_ACTIVE;
 
@@ -45,7 +54,7 @@ pop3d_stls (char *arg)
     }
 
   state = AUTHORIZATION;  /* Confirm we're in this state. Necessary for
-			     --tls-required to work */
+			     "tls required" to work */
 
   return OK;
 }

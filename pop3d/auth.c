@@ -19,7 +19,7 @@
 /* AUTH is not yet implemented */
 
 int
-pop3d_auth (char *arg MU_ARG_UNUSED)
+pop3d_auth (char *arg MU_ARG_UNUSED, struct pop3d_session *sess MU_ARG_UNUSED)
 {
   if (state != AUTHORIZATION)
     return ERR_WRONG_STATE;
