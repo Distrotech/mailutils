@@ -89,7 +89,8 @@ mu_smtp_response (mu_smtp_t smtp)
 	  smtp->flbuf = p;
 	  smtp->flsize = n;
 	}
-      memcpy (smtp->flbuf, smtp->rdbuf + 4, n - 3);
+      memcpy (smtp->flbuf, smtp->rdbuf + 4, n - 1);
+      smtp->flbuf[n - 1] = 0;
       smtp->replptr = smtp->flbuf;
 
       rc = _mu_smtp_init_mlist (smtp);
@@ -125,6 +126,22 @@ mu_smtp_response (mu_smtp_t smtp)
   return 0;
 }
     
+int
+mu_smtp_replcode (mu_smtp_t smtp, char *buf)
+{
+  if (!smtp || !buf)
+    return EINVAL;
+  strcpy (buf, smtp->replcode);
+  return 0;
+}
 
+int
+mu_smtp_sget_reply (mu_smtp_t smtp, const char **pbuf)
+{
+  if (!smtp || !pbuf)
+    return EINVAL;
+  *pbuf = smtp->replptr;
+  return 0;
+}
   
   

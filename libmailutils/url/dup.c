@@ -34,11 +34,13 @@ int
 mu_url_dup (mu_url_t old_url, mu_url_t *new_url)
 {
   int rc;
+  const char *s;
   mu_url_t url = calloc (1, sizeof (*url));
 
   if (!url)
     return ENOMEM;
-  url->name = strdup (old_url->name);
+  mu_url_sget_name (old_url, &s);
+  url->name = strdup (s);
   if (!url->name)
     {
       free (url);

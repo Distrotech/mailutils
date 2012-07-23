@@ -45,6 +45,10 @@ int mu_smtp_open (mu_smtp_t);
 int mu_smtp_response (mu_smtp_t smtp);
 int mu_smtp_write (mu_smtp_t smtp, const char *fmt, ...) MU_PRINTFLIKE(2,3);
 
+int mu_smtp_replcode (mu_smtp_t smtp, char *buf);
+int mu_smtp_sget_reply (mu_smtp_t smtp, const char **pbuf);
+
+
 #define MU_SMTP_TRACE_CLR 0
 #define MU_SMTP_TRACE_SET 1
 #define MU_SMTP_TRACE_QRY 2
@@ -61,6 +65,7 @@ int mu_smtp_set_secret (mu_smtp_t smtp, mu_secret_t secret);
 int mu_smtp_get_secret (mu_smtp_t smtp, mu_secret_t *secret);
 
 int mu_smtp_capa_test (mu_smtp_t smtp, const char *capa, const char **pret);
+int mu_smtp_capa_iterator (mu_smtp_t smtp, mu_iterator_t *itr);
 int mu_smtp_starttls (mu_smtp_t smtp);
 
 int mu_smtp_mail_basic (mu_smtp_t smtp, const char *email,
