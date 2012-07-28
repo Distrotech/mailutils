@@ -35,9 +35,17 @@ AC_DEFUN([MU_CHECK_GNUTLS],
                      [mu_cv_lib_gnutls=no])
      if test "$mu_cv_lib_gnutls" != "no"; then
        saved_LIBS=$LIBS
-       AC_CHECK_LIB(gcrypt, main,
-                    [TLS_LIBS="-lgcrypt"],
-                    [mu_cv_lib_gnutls=no])
+       AC_PREPROC_IFELSE(
+         [AC_LANG_PROGRAM([#include <gnutls/gnutls.h>
+#include <gnutls/x509.h>
+#if GNUTLS_VERSION_NUMBER <= 0x020b00
+# error "Need gcrypt"
+#endif
+],[])],
+         [],
+	 [AC_CHECK_LIB(gcrypt, main,
+                       [TLS_LIBS="-lgcrypt"],
+                       [mu_cv_lib_gnutls=no])])
        LIBS="$LIBS $TLS_LIBS"
        AC_CHECK_LIB(gnutls, gnutls_global_init,
                     [TLS_LIBS="-lgnutls $TLS_LIBS"],
