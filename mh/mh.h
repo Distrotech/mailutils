@@ -269,6 +269,9 @@ void mh_global_save_state (void);
 int mh_interactive_mode_p (void);
 int mh_getyn (const char *fmt, ...) MU_PRINTFLIKE(1,2);
 int mh_getyn_interactive (const char *fmt, ...) MU_PRINTFLIKE(1,2);
+int mu_vgetans (const char *variants, const char *fmt, va_list ap);
+int mu_getans (const char *variants, const char *fmt, ...)
+  MU_PRINTFLIKE(2,3);
 int mh_check_folder (const char *pathname, int confirm);
 int mh_makedir (const char *p);
 

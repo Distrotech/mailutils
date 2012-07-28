@@ -473,22 +473,6 @@ com_disconnect (int argc MU_ARG_UNUSED, char **argv MU_ARG_UNUSED)
 }
 
 static int
-port_from_sa (struct mu_sockaddr *sa)
-{
-  switch (sa->addr->sa_family)
-    {
-    case AF_INET:
-      return ntohs (((struct sockaddr_in *)sa->addr)->sin_port);
-
-#ifdef MAILUTILS_IPV6
-    case AF_INET6:
-      return ntohs (((struct sockaddr_in6 *)sa->addr)->sin6_port);
-#endif
-    }
-  return 0;
-}
-
-static int
 com_connect (int argc, char **argv)
 {
   int status;

@@ -47,7 +47,9 @@ int mu_smtp_write (mu_smtp_t smtp, const char *fmt, ...) MU_PRINTFLIKE(2,3);
 
 int mu_smtp_replcode (mu_smtp_t smtp, char *buf);
 int mu_smtp_sget_reply (mu_smtp_t smtp, const char **pbuf);
+int mu_smtp_get_reply_iterator (mu_smtp_t smtp, mu_iterator_t *pitr);
 
+int mu_smtp_cmd (mu_smtp_t smtp, int argc, char **argv);
 
 #define MU_SMTP_TRACE_CLR 0
 #define MU_SMTP_TRACE_SET 1
@@ -59,6 +61,7 @@ int mu_smtp_disconnect (mu_smtp_t smtp);
 int mu_smtp_ehlo (mu_smtp_t smtp);
 int mu_smtp_set_param (mu_smtp_t smtp, int code, const char *val);
 int mu_smtp_get_param (mu_smtp_t smtp, int code, const char **param);
+int mu_smtp_test_param (mu_smtp_t smtp, int pcode);
 int mu_smtp_set_url (mu_smtp_t smtp, mu_url_t url);
 int mu_smtp_get_url (mu_smtp_t smtp, mu_url_t *purl);
 int mu_smtp_set_secret (mu_smtp_t smtp, mu_secret_t secret);

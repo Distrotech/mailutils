@@ -42,6 +42,8 @@ int mu_help (void);
 mutool_action_t dispatch_find_action (const char *name);
 char *dispatch_docstring (const char *text);
 
+int port_from_sa (struct mu_sockaddr *sa);
+
 
 #define VERBOSE_MASK(n) (1<<((n)+1))
 #define SET_VERBOSE_MASK(n) (shell_verbose_flags |= VERBOSE_MASK (n))

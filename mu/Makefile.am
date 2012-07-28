@@ -39,6 +39,12 @@ else
  IDLE_MODULES+=dbm.c
 endif
 
+if MU_COND_SUPPORT_SMTP
+ SMTP_C=smtp.c
+else
+ IDLE_MODULES+=smtp.c
+endif
+
 MODULES = \
  acl.c\
  cflags.c\
@@ -51,16 +57,20 @@ MODULES = \
  ldflags.c\
  logger.c\
  $(POP_C)\
- send.c\
  query.c\
+ send.c\
+ $(SMTP_C)\
  wicket.c
 
 mu_SOURCES = \
  dispatch.c\
+ getans.c\
  getarg.c\
+ getyn.c\
  mu.h\
  mu.c\
  shell.c\
+ util.c\
  verbose.c\
  $(MODULES)
 

@@ -144,4 +144,10 @@ mu_smtp_sget_reply (mu_smtp_t smtp, const char **pbuf)
   return 0;
 }
   
-  
+int
+mu_smtp_get_reply_iterator (mu_smtp_t smtp, mu_iterator_t *pitr)
+{
+  if (!smtp || !pitr)
+    return EINVAL;
+  return mu_list_get_iterator (smtp->mlrepl, pitr);
+}

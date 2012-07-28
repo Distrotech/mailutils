@@ -34,6 +34,7 @@ libmu_mailer_la_SOURCES = \
  smtp_capa.c\
  smtp_capa_itr.c\
  smtp_carrier.c\
+ smtp_cmd.c\
  smtp_create.c\
  smtp_data.c\
  smtp_disconnect.c\
