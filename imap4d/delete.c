@@ -28,7 +28,8 @@
                BAD - command unknown or arguments invalid
 */  
 int
-imap4d_delete (struct imap4d_command *command, imap4d_tokbuf_t tok)
+imap4d_delete (struct imap4d_session *session,
+               struct imap4d_command *command, imap4d_tokbuf_t tok)
 {
   int rc = RESP_OK;
   const char *msg = "Completed";

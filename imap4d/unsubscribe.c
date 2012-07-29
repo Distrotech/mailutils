@@ -34,7 +34,8 @@
       only if the unsubscription is successful.
 */
 int
-imap4d_unsubscribe (struct imap4d_command *command, imap4d_tokbuf_t tok)
+imap4d_unsubscribe (struct imap4d_session *session,
+                    struct imap4d_command *command, imap4d_tokbuf_t tok)
 {
   int rc;
   char *name;

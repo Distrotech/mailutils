@@ -195,7 +195,8 @@ imap4d_append0 (mu_mailbox_t mbox, int flags, char *date_time, char *text,
 
 /* APPEND mbox [(flags)] [date_time] message_literal */
 int
-imap4d_append (struct imap4d_command *command, imap4d_tokbuf_t tok)
+imap4d_append (struct imap4d_session *session,
+               struct imap4d_command *command, imap4d_tokbuf_t tok)
 {
   int i;
   char *mboxname;

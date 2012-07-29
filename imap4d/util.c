@@ -37,7 +37,7 @@ util_getfullpath (const char *name)
 }
 
 int
-util_do_command (imap4d_tokbuf_t tok)
+util_do_command (struct imap4d_session *session, imap4d_tokbuf_t tok)
 {
   char *tag, *cmd;
   struct imap4d_command *command;
@@ -73,7 +73,7 @@ util_do_command (imap4d_tokbuf_t tok)
   if (command->states && (command->states & state) == 0)
     return io_completion_response (command, RESP_BAD, "Wrong state");
 
-  return command->func (command, tok);
+  return command->func (session, command, tok);
 }
 
 struct imap4d_command *

@@ -131,7 +131,8 @@ list_fun (mu_folder_t folder, struct mu_list_response *resp, void *data)
   but it does not match the hierarchy delimiter.  */
 
 int
-imap4d_list (struct imap4d_command *command, imap4d_tokbuf_t tok)
+imap4d_list (struct imap4d_session *session,
+             struct imap4d_command *command, imap4d_tokbuf_t tok)
 {
   char *ref;
   char *wcard;

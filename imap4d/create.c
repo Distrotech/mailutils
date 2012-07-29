@@ -33,7 +33,8 @@
    deleted, its unique identifiers MUST be greater than any unique identifiers
    used in the previous incarnation of the mailbox.  */
 int
-imap4d_create (struct imap4d_command *command, imap4d_tokbuf_t tok)
+imap4d_create (struct imap4d_session *session,
+               struct imap4d_command *command, imap4d_tokbuf_t tok)
 {
   char *name;
   int isdir = 0;

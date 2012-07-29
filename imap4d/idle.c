@@ -17,7 +17,8 @@
 #include "imap4d.h"
 
 int
-imap4d_idle (struct imap4d_command *command, imap4d_tokbuf_t tok)
+imap4d_idle (struct imap4d_session *session,
+             struct imap4d_command *command, imap4d_tokbuf_t tok)
 {
   time_t start;
   char *token_str = NULL;

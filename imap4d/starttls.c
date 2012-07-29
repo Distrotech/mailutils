@@ -16,9 +16,10 @@
 
 #include "imap4d.h"
 
+int tls_available;
+
 #ifdef WITH_TLS
 
-static int tls_available;
 static int tls_done;
 
 /*
@@ -32,7 +33,8 @@ static int tls_done;
                BAD - command unknown or arguments invalid
 */
 int
-imap4d_starttls (struct imap4d_command *command, imap4d_tokbuf_t tok)
+imap4d_starttls (struct imap4d_session *session,
+                 struct imap4d_command *command, imap4d_tokbuf_t tok)
 {
   int status;
 
@@ -48,7 +50,7 @@ imap4d_starttls (struct imap4d_command *command, imap4d_tokbuf_t tok)
   io_flush ();
 
   if (imap4d_init_tls_server () == 0)
-    tls_encryption_on ();
+    tls_encryption_on (session);
   else
     {
       mu_diag_output (MU_DIAG_ERROR, _("session terminated"));
@@ -60,7 +62,7 @@ imap4d_starttls (struct imap4d_command *command, imap4d_tokbuf_t tok)
 }
 
 void
-tls_encryption_on ()
+tls_encryption_on (struct imap4d_session *session)
 {
   tls_done = 1;
   imap4d_capability_remove (IMAP_CAPA_STARTTLS);
@@ -68,7 +70,7 @@ tls_encryption_on ()
   login_disabled = 0;
   imap4d_capability_remove (IMAP_CAPA_LOGINDISABLED);
 
-  tls_required = 0;
+  session->tls_mode = tls_no;
   imap4d_capability_remove (IMAP_CAPA_XTLSREQUIRED);
 }
 

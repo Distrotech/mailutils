@@ -17,6 +17,7 @@
 #include "imap4d.h"
 #include <mailutils/gsasl.h>
 #include "mailutils/libargp.h"
+#include "mailutils/kwd.h"
 #include "tcpwrap.h"
 
 mu_m_server_t server;
@@ -30,8 +31,8 @@ char *modify_homedir;           /* Expression to produce imap4d_homedir */
 int state = STATE_NONAUTH;      /* Current IMAP4 state */
 struct mu_auth_data *auth_data; 
 
+enum tls_mode tls_mode;
 int login_disabled;             /* Disable LOGIN command */
-int tls_required;               /* Require STARTTLS */
 int create_home_dir;            /* Create home directory if it does not
 				   exist */
 int home_dir_mode = S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH;
@@ -93,8 +94,6 @@ static const char *imap4d_capa[] = {
   "logging",
   NULL
 };
-
-static int imap4d_mainloop (int, int, int);
 
 static error_t
 imap4d_parse_opt (int key, char *arg, struct argp_state *state)
@@ -251,14 +250,61 @@ cb_mailbox_mode (void *data, mu_config_value_t *val)
 struct imap4d_srv_config
 {
   struct mu_srv_config m_cfg;
-  int tls;
+  enum tls_mode tls_mode;
 };
 
+#ifdef WITH_TLS
+static int
+cb_tls (void *data, mu_config_value_t *val)
+{
+  int *res = data;
+  static struct mu_kwd tls_kwd[] = {
+    { "no", tls_no },
+    { "false", tls_no },
+    { "off", tls_no },
+    { "0", tls_no },
+    { "ondemand", tls_ondemand },
+    { "stls", tls_ondemand },
+    { "required", tls_required },
+    { "connection", tls_connection },
+    /* For compatibility with prior versions: */
+    { "yes", tls_connection }, 
+    { "true", tls_connection },
+    { "on", tls_connection },
+    { "1", tls_connection },
+    { NULL }
+  };
+  
+  if (mu_cfg_assert_value_type (val, MU_CFG_STRING))
+    return 1;
+
+  if (mu_kwd_xlat_name (tls_kwd, val->v.string, res))
+    mu_error (_("not a valid tls keyword: %s"), val->v.string);
+  return 0;
+}
+#endif
+
+static int
+cb_tls_required (void *data, mu_config_value_t *val)
+{
+  int *res = data;
+  int bv;
+  
+  if (mu_cfg_assert_value_type (val, MU_CFG_STRING))
+    return 1;
+  if (mu_cfg_parse_boolean (val->v.string, &bv))
+    mu_error (_("Not a boolean value"));
+  else
+    *res = tls_required;
+  return 0;
+}
+
 static struct mu_cfg_param imap4d_srv_param[] = {
-  { "tls", mu_cfg_bool, NULL, mu_offsetof (struct imap4d_srv_config, tls),
-    NULL,
-    N_("Use TLS encryption for this server")
-  },
+#ifdef WITH_TLS
+  { "tls", mu_cfg_callback,
+    NULL, mu_offsetof (struct imap4d_srv_config, tls_mode), cb_tls,
+    N_("Kind of TLS encryption to use for this server") },
+#endif
   { NULL }
 };
 
@@ -287,8 +333,13 @@ static struct mu_cfg_param imap4d_cfg_param[] = {
   { "home-dir-mode", mu_cfg_callback, NULL, 0, cb_mode,
     N_("File mode for creating user home directories (octal)."),
     N_("mode") },
-  { "tls-required", mu_cfg_bool, &tls_required, 0, NULL,
-    N_("Always require STARTTLS before entering authentication phase.") },
+#ifdef WITH_TLS
+  { "tls", mu_cfg_callback, &tls_mode, 0, cb_tls,
+    N_("Kind of TLS encryption to use") },
+  { "tls-required", mu_cfg_callback, &tls_mode, 0, cb_tls_required,
+    N_("Always require STLS before entering authentication phase.\n"
+       "Deprecated, use \"tls required\" instead.") },
+#endif
   { "preauth", mu_cfg_callback, NULL, 0, cb_preauth,
     N_("Configure PREAUTH mode.  MODE is one of:\n"
        "  prog:///<full-program-name: string>\n"
@@ -480,11 +531,12 @@ imap4d_child_signal_setup (RETSIGTYPE (*handler) (int signo))
 }
 
 static int
-imap4d_mainloop (int ifd, int ofd, int tls)
+imap4d_mainloop (int ifd, int ofd, enum tls_mode tls)
 {
   imap4d_tokbuf_t tokp;
   char *text;
   int signo;
+  struct imap4d_session session;
 
   if (!test_mode)
     test_mode = isatty (ifd);
@@ -521,7 +573,29 @@ imap4d_mainloop (int ifd, int ofd, int tls)
       imap4d_child_signal_setup (imap4d_child_signal);
     }
   
-  io_setio (ifd, ofd, tls);
+  if (tls == tls_unspecified)
+    tls = tls_available ? tls_ondemand : tls_no;
+  else if (tls != tls_no && !tls_available)
+    {
+      mu_error (_("TLS is not configured, but requested in the "
+		  "configuration"));
+      tls = tls_no;
+    }
+
+  switch (tls)
+    {
+    case tls_required:
+      imap4d_capability_add (IMAP_CAPA_XTLSREQUIRED);
+    case tls_no:
+      imap4d_capability_remove (IMAP_CAPA_STARTTLS);
+      tls_available = 0;
+    }
+  
+  session.tls_mode = tls;
+  
+  io_setio (ifd, ofd, tls == tls_connection);
+  if (tls == tls_connection)
+    tls_encryption_on (&session);
 
   if (imap4d_preauth_setup (ifd) == 0)
     {
@@ -555,7 +629,7 @@ imap4d_mainloop (int ifd, int ofd, int tls)
       imap4d_readline (tokp);
       /* check for updates */
       imap4d_sync ();
-      util_do_command (tokp);
+      util_do_command (&session, tokp);
       imap4d_sync ();
       io_flush ();
     }
@@ -578,7 +652,7 @@ imap4d_connection (int fd, struct sockaddr *sa, int salen,
   else
     rc = 1;
   
-  imap4d_mainloop (fd, fd, cfg->tls);
+  imap4d_mainloop (fd, fd, cfg->tls_mode);
 
   if (rc == 0)
     clr_strerr_flt ();
@@ -687,10 +761,6 @@ main (int argc, char **argv)
 
   if (login_disabled)
     imap4d_capability_add (IMAP_CAPA_LOGINDISABLED);
-#ifdef WITH_TLS
-  if (tls_required)
-    imap4d_capability_add (IMAP_CAPA_XTLSREQUIRED);
-#endif
 
   namespace_init ();
 

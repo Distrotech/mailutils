@@ -90,7 +90,8 @@ imap4d_auth_capability ()
 */
 
 int
-imap4d_authenticate (struct imap4d_command *command, imap4d_tokbuf_t tok)
+imap4d_authenticate (struct imap4d_session *session,
+		     struct imap4d_command *command, imap4d_tokbuf_t tok)
 {
   char *auth_type;
   struct imap4d_auth adata;

@@ -1856,7 +1856,8 @@ imap4d_fetch0 (imap4d_tokbuf_t tok, int isuid, char **err_text)
    mailbox.  The data items to be fetched can be either a single atom
    or a parenthesized list.  */
 int
-imap4d_fetch (struct imap4d_command *command, imap4d_tokbuf_t tok)
+imap4d_fetch (struct imap4d_session *session,
+              struct imap4d_command *command, imap4d_tokbuf_t tok)
 {
   int rc;
   char *err_text = "Completed";

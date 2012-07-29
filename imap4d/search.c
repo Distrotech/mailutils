@@ -258,7 +258,8 @@ static void do_search (struct parsebuf *pb);
 */
 
 int
-imap4d_search (struct imap4d_command *command, imap4d_tokbuf_t tok)
+imap4d_search (struct imap4d_session *session,
+               struct imap4d_command *command, imap4d_tokbuf_t tok)
 {
   int rc;
   char *err_text= "";

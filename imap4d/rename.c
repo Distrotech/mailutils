@@ -101,7 +101,8 @@ make_interdir (const char *name, int delim, int perms)
   of the mailbox.  */
 
 int
-imap4d_rename (struct imap4d_command *command, imap4d_tokbuf_t tok)
+imap4d_rename (struct imap4d_session *session,
+               struct imap4d_command *command, imap4d_tokbuf_t tok)
 {
   char *oldname;
   char *newname;

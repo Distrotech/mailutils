@@ -164,7 +164,8 @@ imap4d_store0 (imap4d_tokbuf_t tok, int isuid, char **ptext)
 }
 
 int
-imap4d_store (struct imap4d_command *command, imap4d_tokbuf_t tok)
+imap4d_store (struct imap4d_session *session,
+              struct imap4d_command *command, imap4d_tokbuf_t tok)
 {
   int rc;
   char *err_text = NULL;

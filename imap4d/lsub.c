@@ -30,7 +30,8 @@
                BAD - command unknown or arguments invalid
 */
 int
-imap4d_lsub (struct imap4d_command *command, imap4d_tokbuf_t tok)
+imap4d_lsub (struct imap4d_session *session,
+             struct imap4d_command *command, imap4d_tokbuf_t tok)
 {
   int rc;
   char *ref;

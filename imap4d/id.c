@@ -163,7 +163,8 @@ get_id_value (const char *name)
 }
 
 int
-imap4d_id (struct imap4d_command *command, imap4d_tokbuf_t tok)
+imap4d_id (struct imap4d_session *session,
+           struct imap4d_command *command, imap4d_tokbuf_t tok)
 {
   int rc = eat_args (tok);
   if (rc != RESP_OK)

@@ -77,7 +77,8 @@ imap4d_close0 (struct imap4d_command *command, imap4d_tokbuf_t tok,
       EXPUNGE responses are sent. */
 
 int
-imap4d_close (struct imap4d_command *command, imap4d_tokbuf_t tok)
+imap4d_close (struct imap4d_session *session,
+              struct imap4d_command *command, imap4d_tokbuf_t tok)
 {
   return imap4d_close0 (command, tok, 1);
 }
@@ -101,7 +102,8 @@ imap4d_close (struct imap4d_command *command, imap4d_tokbuf_t tok)
       selected mailbox.
 */
 int
-imap4d_unselect (struct imap4d_command *command, imap4d_tokbuf_t tok)
+imap4d_unselect (struct imap4d_session *session,
+                 struct imap4d_command *command, imap4d_tokbuf_t tok)
 {
   return imap4d_close0 (command, tok, 0);
 }

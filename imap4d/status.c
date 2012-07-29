@@ -65,7 +65,8 @@ status_get_handler (const char *name)
                BAD - command unknown or arguments invalid
 */
 int
-imap4d_status (struct imap4d_command *command, imap4d_tokbuf_t tok)
+imap4d_status (struct imap4d_session *session,
+               struct imap4d_command *command, imap4d_tokbuf_t tok)
 {
   char *name;
   char *mailbox_name;

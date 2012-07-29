@@ -30,12 +30,13 @@
                BAD - command unknown or arguments invalid
 */  
 int
-imap4d_login (struct imap4d_command *command, imap4d_tokbuf_t tok)
+imap4d_login (struct imap4d_session *session,
+              struct imap4d_command *command, imap4d_tokbuf_t tok)
 {
   char *username, *pass;
   int rc;
 
-  if (login_disabled || tls_required)    
+  if (login_disabled || session->tls_mode == tls_required)    
     return io_completion_response (command, RESP_NO, "Command disabled");
 
   if (imap4d_tokbuf_argc (tok) != 4)

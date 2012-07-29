@@ -48,7 +48,6 @@ io_setio (int ifd, int ofd, int tls)
 	  mu_error (_("failed to create TLS stream: %s"), mu_strerror (rc));
 	  imap4d_bye (ERR_STREAM_CREATE);
 	}
-      tls_encryption_on ();
     }
   else
 #endif

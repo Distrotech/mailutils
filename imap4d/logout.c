@@ -29,7 +29,8 @@
 */
 
 int
-imap4d_logout (struct imap4d_command *command, imap4d_tokbuf_t tok)
+imap4d_logout (struct imap4d_session *session,
+               struct imap4d_command *command, imap4d_tokbuf_t tok)
 {
   if (imap4d_tokbuf_argc (tok) != 2)
     return io_completion_response (command, RESP_BAD, "Invalid arguments");

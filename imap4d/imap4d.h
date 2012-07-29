@@ -115,10 +115,13 @@ extern "C" {
 
 typedef struct imap4d_tokbuf *imap4d_tokbuf_t;
 
+struct imap4d_session;
+  
 struct imap4d_command
 {
   const char *name;
-  int (*func) (struct imap4d_command *, imap4d_tokbuf_t);
+  int (*func) (struct imap4d_session *, struct imap4d_command *,
+	       imap4d_tokbuf_t);
   int states;
   int failure;
   int success;
@@ -175,6 +178,20 @@ enum imap4d_preauth
     preauth_prog
   };
 
+  /* TLS modes */
+enum tls_mode
+  {
+    tls_unspecified,
+    tls_no,
+    tls_ondemand,
+    tls_required,
+    tls_connection
+  };
+
+struct imap4d_session
+{
+  enum tls_mode tls_mode;
+};
   
 extern struct imap4d_command imap4d_command_table[];
 extern mu_mailbox_t mbox;
@@ -190,7 +207,6 @@ extern const char *program_version;
 extern int mailbox_mode[NS_MAX];
   
 extern int login_disabled;
-extern int tls_required;
 extern enum imap4d_preauth preauth_mode;
 extern char *preauth_program;
 extern int preauth_only;
@@ -206,6 +222,8 @@ extern jmp_buf child_jmp;
 
 extern int test_mode;
 extern int silent_expunge;
+
+int tls_available;
 
 /* Input functions */
 extern mu_stream_t iostream;
@@ -271,51 +289,81 @@ int imap4d_with_parsebuf (imap4d_tokbuf_t tok, int arg,
 #define imap4d_parsebuf_data(p) ((p)->data)
 
   /* Imap4 commands */
-extern int  imap4d_append (struct imap4d_command *, imap4d_tokbuf_t);
-extern int  imap4d_authenticate (struct imap4d_command *, imap4d_tokbuf_t);
+extern int  imap4d_append (struct imap4d_session *,
+			   struct imap4d_command *, imap4d_tokbuf_t);
+extern int  imap4d_authenticate (struct imap4d_session *,
+				 struct imap4d_command *, imap4d_tokbuf_t);
 extern void imap4d_auth_capability (void);
-extern int  imap4d_capability (struct imap4d_command *, imap4d_tokbuf_t);
-extern int  imap4d_check (struct imap4d_command *, imap4d_tokbuf_t);
-extern int  imap4d_close (struct imap4d_command *, imap4d_tokbuf_t);
-extern int  imap4d_unselect (struct imap4d_command *, imap4d_tokbuf_t);
-extern int  imap4d_copy (struct imap4d_command *, imap4d_tokbuf_t);
+extern int  imap4d_capability (struct imap4d_session *,
+			       struct imap4d_command *, imap4d_tokbuf_t);
+extern int  imap4d_check (struct imap4d_session *,
+			  struct imap4d_command *, imap4d_tokbuf_t);
+extern int  imap4d_close (struct imap4d_session *,
+			  struct imap4d_command *, imap4d_tokbuf_t);
+extern int  imap4d_unselect (struct imap4d_session *,
+			     struct imap4d_command *, imap4d_tokbuf_t);
+extern int  imap4d_copy (struct imap4d_session *,
+			 struct imap4d_command *, imap4d_tokbuf_t);
 extern int  imap4d_copy0 (imap4d_tokbuf_t, int isuid, char **err_text);
-extern int  imap4d_create (struct imap4d_command *, imap4d_tokbuf_t);
-extern int  imap4d_delete (struct imap4d_command *, imap4d_tokbuf_t);
-extern int  imap4d_examine (struct imap4d_command *, imap4d_tokbuf_t);
-extern int  imap4d_expunge (struct imap4d_command *, imap4d_tokbuf_t);
-extern int  imap4d_fetch (struct imap4d_command *, imap4d_tokbuf_t);
+extern int  imap4d_create (struct imap4d_session *,
+			   struct imap4d_command *, imap4d_tokbuf_t);
+extern int  imap4d_delete (struct imap4d_session *,
+			   struct imap4d_command *, imap4d_tokbuf_t);
+extern int  imap4d_examine (struct imap4d_session *,
+			    struct imap4d_command *, imap4d_tokbuf_t);
+extern int  imap4d_expunge (struct imap4d_session *,
+			    struct imap4d_command *, imap4d_tokbuf_t);
+extern int  imap4d_fetch (struct imap4d_session *,
+			  struct imap4d_command *, imap4d_tokbuf_t);
 extern int  imap4d_fetch0 (imap4d_tokbuf_t tok, int isuid, char **err_text);
-extern int  imap4d_list (struct imap4d_command *, imap4d_tokbuf_t);
-extern int  imap4d_login (struct imap4d_command *, imap4d_tokbuf_t);
-extern int  imap4d_logout (struct imap4d_command *, imap4d_tokbuf_t);
-extern int  imap4d_noop (struct imap4d_command *, imap4d_tokbuf_t);
-extern int  imap4d_rename (struct imap4d_command *, imap4d_tokbuf_t);
+extern int  imap4d_list (struct imap4d_session *,
+			 struct imap4d_command *, imap4d_tokbuf_t);
+extern int  imap4d_login (struct imap4d_session *,
+			  struct imap4d_command *, imap4d_tokbuf_t);
+extern int  imap4d_logout (struct imap4d_session *,
+			   struct imap4d_command *, imap4d_tokbuf_t);
+extern int  imap4d_noop (struct imap4d_session *,
+			 struct imap4d_command *, imap4d_tokbuf_t);
+extern int  imap4d_rename (struct imap4d_session *,
+			   struct imap4d_command *, imap4d_tokbuf_t);
 extern int  imap4d_preauth_setup (int fd);
-extern int  imap4d_search (struct imap4d_command *, imap4d_tokbuf_t);
+extern int  imap4d_search (struct imap4d_session *,
+			     struct imap4d_command *, imap4d_tokbuf_t);
 extern int  imap4d_search0 (imap4d_tokbuf_t, int isuid, char **repyptr);
-extern int  imap4d_select (struct imap4d_command *, imap4d_tokbuf_t);
+extern int  imap4d_select (struct imap4d_session *,
+			   struct imap4d_command *, imap4d_tokbuf_t);
 extern int  imap4d_select0 (struct imap4d_command *, const char *, int);
 extern int  imap4d_select_status (void);
 #ifdef WITH_TLS
-extern int  imap4d_starttls (struct imap4d_command *, imap4d_tokbuf_t);
+extern int  imap4d_starttls (struct imap4d_session *,
+			     struct imap4d_command *, imap4d_tokbuf_t);
 extern void starttls_init (void);
-void tls_encryption_on (void);
+void tls_encryption_on (struct imap4d_session *);
 #endif /* WITH_TLS */
-extern int  imap4d_status (struct imap4d_command *, imap4d_tokbuf_t);
-extern int  imap4d_store (struct imap4d_command *, imap4d_tokbuf_t);
+extern int  imap4d_status (struct imap4d_session *,
+			   struct imap4d_command *, imap4d_tokbuf_t);
+extern int  imap4d_store (struct imap4d_session *,
+			  struct imap4d_command *, imap4d_tokbuf_t);
 extern int  imap4d_store0 (imap4d_tokbuf_t, int, char **);
 
 mu_property_t open_subscription (void);
-extern int  imap4d_subscribe (struct imap4d_command *, imap4d_tokbuf_t);
-extern int  imap4d_unsubscribe (struct imap4d_command *, imap4d_tokbuf_t);
-extern int  imap4d_lsub (struct imap4d_command *, imap4d_tokbuf_t);
+extern int  imap4d_subscribe (struct imap4d_session *,
+			      struct imap4d_command *, imap4d_tokbuf_t);
+extern int  imap4d_unsubscribe (struct imap4d_session *,
+				struct imap4d_command *, imap4d_tokbuf_t);
+extern int  imap4d_lsub (struct imap4d_session *,
+			 struct imap4d_command *, imap4d_tokbuf_t);
 
-extern int  imap4d_uid (struct imap4d_command *, imap4d_tokbuf_t);
-extern int  imap4d_namespace (struct imap4d_command *, imap4d_tokbuf_t);
-extern int  imap4d_version (struct imap4d_command *, imap4d_tokbuf_t);
-extern int  imap4d_idle (struct imap4d_command *, imap4d_tokbuf_t);
-extern int  imap4d_id (struct imap4d_command *, imap4d_tokbuf_t);
+extern int  imap4d_uid (struct imap4d_session *,
+			struct imap4d_command *, imap4d_tokbuf_t);
+extern int  imap4d_namespace (struct imap4d_session *,
+			      struct imap4d_command *, imap4d_tokbuf_t);
+extern int  imap4d_version (struct imap4d_session *,
+			    struct imap4d_command *, imap4d_tokbuf_t);
+extern int  imap4d_idle (struct imap4d_session *,
+			 struct imap4d_command *, imap4d_tokbuf_t);
+extern int  imap4d_id (struct imap4d_session *,
+		       struct imap4d_command *, imap4d_tokbuf_t);
   
 extern int imap4d_check_home_dir (const char *dir, uid_t uid, gid_t gid);
 
@@ -364,7 +412,7 @@ extern void imap4d_capability_init (void);
 
 extern int  util_start (char *);
 extern int  util_getstate (void);
-extern int  util_do_command (imap4d_tokbuf_t);
+extern int  util_do_command (struct imap4d_session *, imap4d_tokbuf_t);
 extern char *util_getfullpath (const char *);
 extern struct imap4d_command *util_getcommand (char *, 
                                                struct imap4d_command []);
