@@ -399,6 +399,7 @@ filter_ctl (struct _mu_stream *stream, int code, int opcode, void *ptr)
 {
   struct _mu_filter_stream *fs = (struct _mu_filter_stream *)stream;
   int status;
+  size_t dummy;
   
   switch (code)
     {
@@ -406,6 +407,10 @@ filter_ctl (struct _mu_stream *stream, int code, int opcode, void *ptr)
       switch (opcode)
 	{
 	case MU_IOCTL_FILTER_SET_DISABLED:
+	  status = filter_write_internal (stream, mu_filter_flush,
+					  NULL, 0, &dummy);
+	  if (status)
+	    return status;
 	  if (ptr && *(int*)ptr)
 	    fs->fltflag |= _MU_FILTER_DISABLED;
 	  else
