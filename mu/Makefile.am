@@ -16,7 +16,15 @@
 ## along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
 
 bin_PROGRAMS = mu
-dist_bin_SCRIPTS = mailutils-config
+bin_SCRIPTS = mailutils-config
+
+CLEANFILES=mailutils-config
+mailutils-config: $(top_srcdir)/mu/mailutils-config.in
+	$(AM_V_GEN)muname=`echo mu | \
+              sed -e 's/$(EXEEXT)$$//;$(transform);s/$$/$(EXEEXT)/' | \
+              sed 'N;N;N;s,\n, ,g'`; \
+	sed 's/MUNAME/'$$muname'/g' $(top_srcdir)/mu/mailutils-config.in > mailutils-config
+
 
 IDLE_MODULES=
 
@@ -101,7 +109,7 @@ AM_CPPFLAGS = \
   -DDBMLIBS="\"$(DBMLIBS)\""
 
 BUILT_SOURCES=mu-setup.c mu-setup.h
-EXTRA_DIST=mu-setup.awk mu-setup.c mu-setup.h template.c
+EXTRA_DIST=mu-setup.awk mu-setup.c mu-setup.h template.c mailutils-config.in
 
 mu-setup.h: Makefile.am $(MODULES) $(IDLE_MODULES) 
 	$(AM_V_GEN)$(AWK) -f $(top_srcdir)/mu/mu-setup.awk -v mode=h \
