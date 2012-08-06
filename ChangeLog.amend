@@ -1,5 +1,8 @@
 # Spelling corrections for GNU Mailutils ChangeLog
 
+1cbbd572d56b7a77362992181ef008db8a11688f
+s/consisten/consistent/
+
 e02df56cb384465b3238c46c6f214f27ee8431ab
 s/command on 64 boxes/command on 64-bit boxes/
 
