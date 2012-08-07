@@ -185,7 +185,7 @@ send_attach_file (const char *name,
   if (!encoding)
     encoding = "base64";
   mu_filter_get_list (&list);
-  rc = mu_list_locate (list, encoding, NULL);
+  rc = mu_list_locate (list, (void*) encoding, NULL);
   if (rc)
     {
       mu_error (_("unsupported encoding: %s"), encoding);
@@ -777,24 +777,43 @@ send_message (mu_message_t msg)
 	  status = mu_mailer_create (&mailer, sendmail);
 	  if (status == 0)
 	    {
+	      const char *return_address_str;
+	      mu_address_t return_address = NULL;
+	      
+	      if (mailvar_get (&return_address_str, "return-address",
+			       mailvar_type_string, 0) == 0)
+		{
+		  status = mu_address_create (&return_address,
+					      return_address_str);
+		  if (status)
+		    {
+		      mu_error (_("invalid return address: %s"),
+				mu_strerror (status));
+		      mu_mailer_destroy (&mailer);
+		      return status;
+		    }
+		} 
+
 	      if (mailvar_get (NULL, "verbose", mailvar_type_boolean, 0) == 0)
 		{
 		  mu_debug_set_category_level (MU_DEBCAT_MAILER,
-				      MU_DEBUG_LEVEL_UPTO (MU_DEBUG_PROT));
+					  MU_DEBUG_LEVEL_UPTO (MU_DEBUG_PROT));
 		}
 	      status = mu_mailer_open (mailer, MU_STREAM_RDWR);
 	      if (status == 0)
 		{
-		  status = mu_mailer_send_message (mailer, msg, NULL, NULL);
+		  status = mu_mailer_send_message (mailer, msg,
+						   return_address, NULL);
 		  mu_mailer_close (mailer);
 		}
 	      else
-		mu_error (_("Cannot open mailer: %s"), mu_strerror (status));
+		mu_error (_("Cannot open mailer: %s"),
+			  mu_strerror (status));
 	      mu_mailer_destroy (&mailer);
+	      mu_address_destroy (&return_address);
 	    }
 	  else
-	    mu_error (_("Cannot create mailer: %s"),
-			mu_strerror (status));
+	    mu_error (_("Cannot create mailer: %s"), mu_strerror (status));
 	}
     }
   else

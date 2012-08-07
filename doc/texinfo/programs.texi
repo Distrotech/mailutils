@@ -2489,7 +2489,6 @@ Do not read the system-wide mailrc file.  @xref{Mail Configuration Files}.
 Do not display initial header summary.
 @item -p
 @itemx --print
-@itemx -r
 @itemx --read
 Print all mail to standard output.  It is equivalent to issuing following
 commands after starting @samp{mail -N}:
@@ -2499,6 +2498,9 @@ print *
 quit
 @end group
 @end example
+@item -r @var{address}
+@itemx --return-address=@var{address}
+Sets the return email address for outgoing mail.  @xref{return-address}.
 @item -q
 @itemx --quit
 Cause interrupts to terminate program.
@@ -4370,6 +4372,16 @@ set replyregex="^(re|odp|aw|ang)(\\[[0-9]+\\])?:[[:blank:]]"
 
 @noindent
 (Notice the quoting of backslash characters).
+
+@anchor{return-address}
+@kwindex return-address
+@item return-address
+@*Type: String
+@*Default: unset
+@vrindex return-address, mail variable.
+
+Sets the return email address to use when sending messages.  If unset,
+the address is composed from the current user name and the host name.
 
 @kwindex save
 @item save
