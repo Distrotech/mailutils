@@ -283,8 +283,73 @@ cmd_write (int argc, char **argv)
       mu_error ("%u: cannot get stream: %s", line_num, mu_strerror (status));
       return;
     }
-  printf("[reading headers; end with an empty line]\n");
+  printf ("[reading headers; end with an empty line]\n");
   mu_stream_seek (str, 0, SEEK_SET, NULL);
+  while (prompt (1), fgets(buf, sizeof buf, stdin))
+    {
+      mu_stream_write (str, buf, strlen (buf), NULL);
+      if (buf[0] == '\n')
+	break;
+    }
+  mu_stream_destroy (&str);
+  mu_stream_destroy (&hstream);
+}
+
+void
+cmd_overwrite (int argc, char **argv)
+{
+  char buf[512];
+  mu_stream_t str;
+  int status;
+  mu_off_t off;
+  
+  if (check_args (argv[0], argc, 2, 2))
+    return;
+
+  off = strtoul (argv[1], NULL, 0);
+  
+  status = mu_header_get_streamref (header, &str);
+  if (status)
+    {
+      mu_error ("%u: cannot get stream: %s", line_num, mu_strerror (status));
+      return;
+    }
+  status = mu_stream_seek (str, off, SEEK_SET, NULL);
+  if (status)
+    {
+      mu_error ("seek error: %s", mu_strerror (status));
+      return;
+    }
+
+  printf ("[reading headers; end with an empty line]\n");
+  while (prompt (1), fgets(buf, sizeof buf, stdin))
+    {
+      if (buf[0] == '\n')
+	break;
+      mu_stream_write (str, buf, strlen (buf), NULL);
+    }
+  mu_stream_destroy (&str);
+  mu_stream_destroy (&hstream);
+}
+
+void
+cmd_append (int argc, char **argv)
+{
+  char buf[512];
+  mu_stream_t str;
+  int status;
+  
+  if (check_args (argv[0], argc, 1, 1))
+    return;
+
+  status = mu_header_get_streamref (header, &str);
+  if (status)
+    {
+      mu_error ("%u: cannot get stream: %s", line_num, mu_strerror (status));
+      return;
+    }
+  printf ("[reading headers; end with an empty line]\n");
+  mu_stream_seek (str, 0, SEEK_END, NULL);
   while (prompt (1), fgets(buf, sizeof buf, stdin))
     {
       mu_stream_write (str, buf, strlen (buf), NULL);
@@ -379,7 +444,7 @@ static struct cmdtab cmdtab[] = {
   { "free", cmd_free, NULL, "discard all headers" },
   { "print", cmd_print, "NAME [N]",
     "find and print the Nth (by default, 1st) instance of header named NAME" },
-  { "dump", cmd_dump, NULL, "dump all headers on screen" },
+  { "dump", cmd_dump, "[OFF]", "dump all headers on screen" },
   { "itr", cmd_iterate, "[first|1|next|n]", "iterate over headers" },
   { "readline", cmd_readline, "[SIZE]", "read line" },
   { "remove", cmd_remove, "NAME [N]",
@@ -387,6 +452,8 @@ static struct cmdtab cmdtab[] = {
   { "insert", cmd_insert, "NAME VALUE [REF [NUM] [before|after] [replace]]",
     "insert new header" },
   { "write", cmd_write, NULL, "accept headers from raw stream" },
+  { "overwrite", cmd_overwrite, "OFF", "overwrite raw data from offset OFF" },
+  { "append", cmd_append, NULL, "append raw data" },
   { "help", cmd_help, "[COMMAND]", "print short usage message" },
   { NULL }
 };

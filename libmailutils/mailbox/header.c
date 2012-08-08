@@ -50,6 +50,7 @@
 
 #define HEADER_MODIFIED   0x01
 #define HEADER_INVALIDATE 0x02
+#define HEADER_STREAMMOD  0x04
 
 #define HEADER_SET_MODIFIED(h) \
   ((h)->flags |= (HEADER_MODIFIED|HEADER_INVALIDATE))
@@ -412,6 +413,33 @@ mu_header_fill (mu_header_t header)
   size_t blurb_len = 0;
   char *blurb = NULL;
   
+  if (header->mstream && header->flags & HEADER_STREAMMOD)
+    {
+      mu_off_t end;
+
+      mu_header_invalidate (header);
+      status = mu_stream_size (header->mstream, &end);
+      if (status)
+	return status;
+      status = mu_stream_seek (header->mstream, 0, MU_SEEK_SET, NULL);
+      if (status)
+	return status;      
+      blurb_len = end;
+      blurb = malloc (blurb_len + 1);
+      if (!blurb)
+	return ENOMEM;
+      status = mu_stream_read (header->mstream, blurb, blurb_len, NULL);
+      if (status)
+	{
+	  free (blurb);
+	  return status;
+	}
+      status = header_parse (header, blurb, blurb_len);
+      free (blurb);
+      if (status == 0)
+	header->flags &= ~HEADER_STREAMMOD;
+      return status;
+    }
   if (header->spool_used)
     return 0;
   
@@ -452,6 +480,7 @@ mu_header_destroy (mu_header_t *ph)
     {  
       mu_header_t header = *ph;
 
+      mu_stream_destroy (&header->mstream);
       mu_stream_destroy (&header->stream);
       mu_hdrent_free_list (header);
       free (header->spool);
@@ -1091,68 +1120,50 @@ _header_readline (mu_stream_t is, char *buffer, size_t buflen, size_t *pnread)
 static int
 header_write (mu_stream_t os, const char *buf, size_t buflen, size_t *pnwrite)
 {
-  struct _mu_header_stream *hstr;
+  struct _mu_header_stream *hstr = (struct _mu_header_stream *) os;
   mu_header_t header;
-  int status;
-  mu_off_t mstream_size;
+  int rc;
   
-  if (!os || !buf)
+  if (os == NULL)
     return EINVAL;
-
-  hstr = (struct _mu_header_stream *) os;
   header = hstr->hdr;
-  if (header == NULL)
-    return EINVAL;
-  
-  /* Skip the obvious.  */
-  if (*buf == '\0' || buflen == 0)
+  if (!(header->flags & HEADER_STREAMMOD))
     {
-      if (pnwrite)
-        *pnwrite = 0;
-      return 0;
-    }
+      struct mu_hdrent *ent;
+	
+      rc = mu_header_fill (header);
+      if (rc)
+	return rc;
 
-  if (!header->mstream)
-    {
-      status = mu_memory_stream_create (&header->mstream, MU_STREAM_RDWR);
-      if (status)
-	return status;
-    }
-
-  status = mu_stream_write (header->mstream, buf, buflen, NULL);
-  if (status)
-    {
-      mu_stream_destroy (&header->mstream);
-      return status;
-    }
-
-  status = mu_stream_size (header->mstream, &mstream_size);
-  if (status == 0 && mstream_size > 1)
-    {
-      char nlbuf[2];
-
-      status = mu_stream_seek (header->mstream, -2, MU_SEEK_END, NULL);
-      if (status == 0)
-	status = mu_stream_read (header->mstream, nlbuf, 2, NULL);
-      if (status == 0 && memcmp (nlbuf, "\n\n", 2) == 0)
+      if (!header->mstream)
 	{
-	  char *blurb;
-
-	  blurb = calloc (1, mstream_size + 1);
-	  if (blurb)
-	    {
-	      mu_stream_read (header->mstream, blurb, mstream_size, NULL);
-	      status = header_parse (header, blurb, mstream_size);
-	    }
-	  free (blurb);
-	  mu_stream_destroy (&header->mstream);
+	  rc = mu_memory_stream_create (&header->mstream, MU_STREAM_RDWR);
+	  if (rc)
+	    return rc;
 	}
+      mu_stream_seek (header->mstream, 0, MU_SEEK_SET, NULL);
+      if (header->spool_used)
+	{
+	  for (ent = header->head; ent; ent = ent->next)
+	    mu_hdrent_fixup (header, ent);
+	  rc = mu_stream_write (header->mstream, header->spool,
+				header->spool_used, NULL);
+	  for (ent = header->head; ent; ent = ent->next)
+	    mu_hdrent_unroll_fixup (header, ent);
+	  if (rc)
+	    return rc;
+	  mu_stream_truncate (header->mstream, header->spool_used);
+	  if (hstr->off > header->spool_used)
+	    hstr->off = header->spool_used;
+	}
+      header->flags |= HEADER_STREAMMOD;
     }
+
+  rc = mu_stream_seek (header->mstream, hstr->off, MU_SEEK_SET, NULL);
+  if (rc)
+    return rc;
   
-  if (pnwrite)
-    *pnwrite = buflen;
-  
-  return status;
+  return mu_stream_write (header->mstream, buf, buflen, pnwrite);
 }
 
 static int
