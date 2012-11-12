@@ -572,10 +572,11 @@ finished_p (void *owner)
 }
 
 static int
-curitem_p (void *owner, void *item)
+delitem (void *owner, void *item)
 {
   struct debug_iterator *itr = owner;
-  return mu_c_strcasecmp (cattab[itr->pos].name, (char *) item) == 0;
+  return mu_c_strcasecmp (cattab[itr->pos].name, (char *) item) == 0 ?
+     MU_ITR_DELITEM_NEXT : MU_ITR_DELITEM_NOTHING;
 }
 
 static int
@@ -659,7 +660,7 @@ mu_debug_get_iterator (mu_iterator_t *piterator, int skipunset)
   mu_iterator_set_next (iterator, next);
   mu_iterator_set_getitem (iterator, getitem);
   mu_iterator_set_finished_p (iterator, finished_p);
-  mu_iterator_set_curitem_p (iterator, curitem_p);
+  mu_iterator_set_delitem (iterator, delitem);
   mu_iterator_set_dup (iterator, list_data_dup);
   mu_iterator_set_itrctl (iterator, list_itrctl);
   

@@ -81,12 +81,12 @@ mu_iterator_set_finished_p (mu_iterator_t itr, int (*finished_p) (void *))
 }
 
 int
-mu_iterator_set_curitem_p (mu_iterator_t itr,
-			int (*curitem_p) (void *, void *))
+mu_iterator_set_delitem (mu_iterator_t itr,
+			 int (*delitem) (void *, void *))
 {
   if (!itr)
     return EINVAL;
-  itr->curitem_p = curitem_p;
+  itr->delitem = delitem;
   return 0;
 }
 
@@ -158,7 +158,7 @@ mu_iterator_dup (mu_iterator_t *piterator, mu_iterator_t orig)
   iterator->first = orig->first;
   iterator->next = orig->next;
   iterator->getitem = orig->getitem;
-  iterator->curitem_p = orig->curitem_p;
+  iterator->delitem = orig->delitem;
   iterator->finished_p = orig->finished_p;
   iterator->itrctl = orig->itrctl;
   
@@ -250,14 +250,19 @@ iterator_get_owner (mu_iterator_t iterator, void **powner)
 }
 
 void
-mu_iterator_advance (mu_iterator_t iterator, void *e)
+mu_iterator_delitem (mu_iterator_t iterator, void *itm)
 {
   for (; iterator; iterator = iterator->next_itr)
     {
-      if (iterator->curitem_p (iterator->owner, e))
+      if (iterator->delitem)
 	{
-	  iterator->next (iterator->owner);
-	  iterator->is_advanced++;
+	  switch (iterator->delitem (iterator->owner, itm))
+	    {
+	    case MU_ITR_DELITEM_NEXT:
+	      iterator->next (iterator->owner);
+	    case MU_ITR_DELITEM_ADVANCE:
+	      iterator->is_advanced++;
+	    }
 	}
     }
 }

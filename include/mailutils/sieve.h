@@ -100,6 +100,7 @@ typedef struct
   int required;
   mu_sieve_handler_t handler;
   mu_sieve_data_type *req_args;
+  mu_sieve_data_type *opt_args;
   mu_sieve_tag_group_t *tags;
 } mu_sieve_register_t;
 
@@ -146,10 +147,21 @@ mu_sieve_register_t *mu_sieve_test_lookup (mu_sieve_machine_t mach,
 					   const char *name);
 mu_sieve_register_t *mu_sieve_action_lookup (mu_sieve_machine_t mach,
 					     const char *name);
+int mu_sieve_register_test_ext (mu_sieve_machine_t mach,
+				const char *name, mu_sieve_handler_t handler,
+				mu_sieve_data_type *req_args,
+				mu_sieve_data_type *opt_args,
+				mu_sieve_tag_group_t *tags, int required);
 int mu_sieve_register_test (mu_sieve_machine_t mach,
 			    const char *name, mu_sieve_handler_t handler,
 			    mu_sieve_data_type * arg_types,
 			    mu_sieve_tag_group_t * tags, int required);
+
+int mu_sieve_register_action_ext (mu_sieve_machine_t mach,
+				  const char *name, mu_sieve_handler_t handler,
+				  mu_sieve_data_type *req_args,
+				  mu_sieve_data_type *opt_args,
+				  mu_sieve_tag_group_t *tags, int required);
 int mu_sieve_register_action (mu_sieve_machine_t mach,
 			      const char *name, mu_sieve_handler_t handler,
 			      mu_sieve_data_type * arg_types,

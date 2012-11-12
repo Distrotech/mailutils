@@ -16,6 +16,7 @@
 
 moddir=@MU_SIEVE_MODDIR@
 mod_LTLIBRARIES = \
+ editheader.la\
  list.la\
  moderator.la\
  pipe.la\

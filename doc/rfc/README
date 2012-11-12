@@ -53,3 +53,4 @@ the actual RFC number.
 3501	INTERNET MESSAGE ACCESS PROTOCOL - VERSION 4rev1
 3691	Internet Message Access Protocol (IMAP) UNSELECT command
 4314	IMAP4 Access Control List (ACL) Extension
+5293	Sieve Email Filtering: Editheader Extension

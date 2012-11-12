@@ -169,6 +169,8 @@ extern int mu_header_set_fill (mu_header_t,
 			       int (*_fill) (void *data, char **, size_t *),
 			       void *data);
 
+extern int mu_header_get_itemptr (mu_header_t header, size_t num,
+				  const void **sptr);
   
 #ifdef __cplusplus
 }

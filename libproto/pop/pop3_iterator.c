@@ -35,7 +35,7 @@ static int  pop3_itr_destroy (mu_iterator_t itr, void *owner);
 static int  pop3_itr_first   (void *owner);
 static int  pop3_itr_next    (void *woner);
 static int  pop3_itr_getitem (void *owner, void **pret, const void **pkey);
-static int  pop3_itr_curitem_p (void *owner, void *data);
+static int  pop3_itr_delitem (void *owner, void *data);
 static int  pop3_itr_finished_p (void *owner);
 
 struct pop3_iterator
@@ -81,7 +81,7 @@ mu_pop3_iterator_create (mu_pop3_t pop3, mu_iterator_t *piterator)
   mu_iterator_set_next (iterator, pop3_itr_next);
   mu_iterator_set_getitem (iterator, pop3_itr_getitem);
   mu_iterator_set_finished_p (iterator, pop3_itr_finished_p);
-  mu_iterator_set_curitem_p (iterator, pop3_itr_curitem_p);
+  mu_iterator_set_delitem (iterator, pop3_itr_delitem);
   mu_iterator_set_destroy (iterator, pop3_itr_destroy);
   mu_iterator_set_dup (iterator, pop3_itr_dup);
 
@@ -183,9 +183,10 @@ pop3_itr_finished_p (void *owner)
 }
 
 static int
-pop3_itr_curitem_p (void *owner, void *item)
+pop3_itr_delitem (void *owner, void *item)
 {
   struct pop3_iterator *pop3_iterator = (struct pop3_iterator *)owner;
-  return *((char **)item) == pop3_iterator->item;
+  return *((char **)item) == pop3_iterator->item ? 
+    MU_ITR_DELITEM_NEXT : MU_ITR_DELITEM_NOTHING;
 }
 

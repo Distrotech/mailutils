@@ -50,13 +50,15 @@ reg_lookup (mu_list_t list, const char *name)
 mu_sieve_register_t *
 mu_sieve_test_lookup (mu_sieve_machine_t mach, const char *name)
 {
-  return reg_lookup (mach->test_list, name);
+  mu_sieve_register_t *reg = reg_lookup (mach->test_list, name);
+  return (reg && reg->handler) ? reg : NULL;
 }
 
 mu_sieve_register_t *
 mu_sieve_action_lookup (mu_sieve_machine_t mach, const char *name)
 {
-  return reg_lookup (mach->action_list, name);
+  mu_sieve_register_t *reg = reg_lookup (mach->action_list, name);
+  return (reg && reg->handler) ? reg : NULL;
 }
 
 static int
@@ -90,7 +92,8 @@ static int
 sieve_register (mu_list_t *pool,
 		mu_list_t *list,
 		const char *name, mu_sieve_handler_t handler,
-		mu_sieve_data_type *arg_types,
+		mu_sieve_data_type *req_arg_types,
+		mu_sieve_data_type *opt_arg_types,
 		mu_sieve_tag_group_t *tags, int required)
 {
   mu_sieve_register_t *reg = mu_sieve_palloc (pool, sizeof (*reg));
@@ -100,7 +103,8 @@ sieve_register (mu_list_t *pool,
   reg->name = name;
   reg->handler = handler;
 
-  reg->req_args = arg_types;
+  reg->req_args = req_arg_types;
+  reg->opt_args = opt_arg_types;
   reg->tags = tags;
   reg->required = required;
   
@@ -119,23 +123,49 @@ sieve_register (mu_list_t *pool,
 
 
 int
-mu_sieve_register_test (mu_sieve_machine_t mach,
-		     const char *name, mu_sieve_handler_t handler,
-		     mu_sieve_data_type *arg_types,
-		     mu_sieve_tag_group_t *tags, int required)
+mu_sieve_register_test_ext (mu_sieve_machine_t mach,
+			    const char *name, mu_sieve_handler_t handler,
+			    mu_sieve_data_type *req_args,
+			    mu_sieve_data_type *opt_args,
+			    mu_sieve_tag_group_t *tags, int required)
 {
   return sieve_register (&mach->memory_pool,
 			 &mach->test_list, name, handler,
-			 arg_types, tags, required);
+			 req_args, opt_args, tags, required);
+}
+
+int
+mu_sieve_register_test (mu_sieve_machine_t mach,
+			const char *name, mu_sieve_handler_t handler,
+			mu_sieve_data_type *arg_types,
+			mu_sieve_tag_group_t *tags, int required)
+{
+  return mu_sieve_register_test_ext (mach, name, handler,
+				     arg_types, NULL,
+				     tags,
+				     required);
+}
+
+int
+mu_sieve_register_action_ext (mu_sieve_machine_t mach,
+			      const char *name, mu_sieve_handler_t handler,
+			      mu_sieve_data_type *req_args,
+			      mu_sieve_data_type *opt_args,
+			      mu_sieve_tag_group_t *tags, int required)
+{
+  return sieve_register (&mach->memory_pool,
+			 &mach->action_list, name, handler,
+			 req_args, opt_args, tags, required);
 }
 
 int
 mu_sieve_register_action (mu_sieve_machine_t mach,
-		       const char *name, mu_sieve_handler_t handler,
-		       mu_sieve_data_type *arg_types,
-		       mu_sieve_tag_group_t *tags, int required)
+			  const char *name, mu_sieve_handler_t handler,
+			  mu_sieve_data_type *arg_types,
+			  mu_sieve_tag_group_t *tags, int required)
 {
-  return sieve_register (&mach->memory_pool,
-			 &mach->action_list, name, handler,
-			 arg_types, tags, required);
+  return mu_sieve_register_action_ext (mach, name, handler,
+				       arg_types, NULL,
+				       tags,
+				       required);
 }

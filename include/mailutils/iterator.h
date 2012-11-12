@@ -37,7 +37,7 @@ enum mu_itrctl_req
     mu_itrctl_qry_direction, /* Query iteration direction */
     mu_itrctl_set_direction  /* Set iteration direction */
   };
-  
+
 extern int mu_iterator_create   (mu_iterator_t *, void *);
 extern int mu_iterator_dup      (mu_iterator_t *piterator, mu_iterator_t orig);
 extern void mu_iterator_destroy (mu_iterator_t *);
@@ -53,7 +53,7 @@ extern int mu_iterator_ctl (mu_iterator_t, enum mu_itrctl_req, void *);
   
 extern int mu_iterator_attach (mu_iterator_t *root, mu_iterator_t iterator);
 extern int mu_iterator_detach (mu_iterator_t *root, mu_iterator_t iterator);
-extern void mu_iterator_advance (mu_iterator_t iterator, void *e);
+extern void mu_iterator_delitem (mu_iterator_t iterator, void *e);
   
 extern int mu_iterator_set_first (mu_iterator_t, int (*first) (void *));  
 extern int mu_iterator_set_next (mu_iterator_t, int (*next) (void *));  
@@ -66,8 +66,13 @@ extern int mu_iterator_set_dup (mu_iterator_t itr,
 			     int (*dup) (void **ptr, void *data));
 extern int mu_iterator_set_destroy (mu_iterator_t itr,
 				 int (*destroy) (mu_iterator_t, void *data));
-extern int mu_iterator_set_curitem_p (mu_iterator_t itr,
-				   int (*curitem_p) (void *, void *));
+
+#define MU_ITR_DELITEM_NOTHING 0  
+#define MU_ITR_DELITEM_NEXT    1
+#define MU_ITR_DELITEM_ADVANCE 2  
+  
+extern int mu_iterator_set_delitem (mu_iterator_t itr,
+				    int (*delitem) (void *, void *));
 extern int mu_iterator_set_itrctl (mu_iterator_t itr,
 				   int (*itrctl) (void *,
 						  enum mu_itrctl_req,

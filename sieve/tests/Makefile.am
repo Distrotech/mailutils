@@ -41,9 +41,11 @@ $(srcdir)/package.m4: $(top_srcdir)/configure.ac
 
 TESTSUITE_AT = \
   action.at\
+  addheader.at\
   address.at\
   allof.at\
   anyof.at\
+  delheader.at\
   compile.at\
   envelope.at\
   exists.at\

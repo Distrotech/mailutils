@@ -147,6 +147,7 @@ m4_include([moderator.at])
 m4_include([pipeact.at])
 m4_include([pipetest.at])
 m4_include([list.at])
-
+m4_include([addheader.at])
+m4_include([delheader.at])
 
 

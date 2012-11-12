@@ -35,7 +35,7 @@ mu_list_pop (mu_list_t list, void **item)
 
   last = list->head.prev;
   prev = last->prev;
-  mu_iterator_advance (list->itr, last);
+  mu_iterator_delitem (list->itr, last);
   prev->next = last->next;
   prev->next->prev = prev;
   if (item)

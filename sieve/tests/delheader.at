@@ -1,0 +1,131 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2012 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# GNU Mailutils is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+
+AT_BANNER([deleteheader])
+m4_pushdef([MUT_SIEVE_EXT_NAME],[deleteheader])
+
+m4_define([mkmailbox],[
+AT_DATA([$1],
+[From coyote@desert.example.org Sun May  6 22:16:47 2001
+From: coyote@desert.example.org
+To: roadrunner@acme.example.com
+X-Agent: Agent A
+Received: (from bar@example.org)
+	by example.org id fERKR9N16790
+	for roadrunner@example.com; Fri, 28 Dec 2001 22:18:08 +0200
+X-Agent: Agent 22
+X-Agent: Agent C
+Subject: Ping
+
+Test message, please discard.
+
+])])
+
+
+MUT_SIEVE_EXT_TEST([delete all],[deleteheader delheader delheader00],
+[require "editheader";
+deleteheader "X-Agent";
+],
+[mkmailbox(mailbox)
+sieve MUT_SIEVE_CMDLINE MUT_SIEVE_OPTIONS -f ./mailbox prog
+sed '/^X-IMAPbase:/d;/^Status:/d;/^X-UID:/d;s/ *$//' mailbox
+],
+[From coyote@desert.example.org Sun May  6 22:16:47 2001
+From: coyote@desert.example.org
+To: roadrunner@acme.example.com
+Received: (from bar@example.org)
+	by example.org id fERKR9N16790
+	for roadrunner@example.com; Fri, 28 Dec 2001 22:18:08 +0200
+Subject: Ping
+
+Test message, please discard.
+
+],
+[DELETEHEADER on msg uid 1: X-Agent
+])
+
+MUT_SIEVE_EXT_TEST([delete index],[deleteheader delheader delheader01],
+[require "editheader";
+deleteheader :index 1 "X-Agent";
+],
+[mkmailbox(mailbox)
+sieve MUT_SIEVE_CMDLINE MUT_SIEVE_OPTIONS -f ./mailbox prog
+sed '/^X-IMAPbase:/d;/^Status:/d;/^X-UID:/d;s/ *$//' mailbox
+],
+[From coyote@desert.example.org Sun May  6 22:16:47 2001
+From: coyote@desert.example.org
+To: roadrunner@acme.example.com
+Received: (from bar@example.org)
+	by example.org id fERKR9N16790
+	for roadrunner@example.com; Fri, 28 Dec 2001 22:18:08 +0200
+X-Agent: Agent 22
+X-Agent: Agent C
+Subject: Ping
+
+Test message, please discard.
+
+],
+[DELETEHEADER on msg uid 1: X-Agent
+])
+
+MUT_SIEVE_EXT_TEST([delete index backwards],[deleteheader delheader delheader02],
+[require "editheader";
+deleteheader :index 2 :last "X-Agent";
+],
+[mkmailbox(mailbox)
+sieve MUT_SIEVE_CMDLINE MUT_SIEVE_OPTIONS -f ./mailbox prog
+sed '/^X-IMAPbase:/d;/^Status:/d;/^X-UID:/d;s/ *$//' mailbox
+],
+[From coyote@desert.example.org Sun May  6 22:16:47 2001
+From: coyote@desert.example.org
+To: roadrunner@acme.example.com
+X-Agent: Agent A
+Received: (from bar@example.org)
+	by example.org id fERKR9N16790
+	for roadrunner@example.com; Fri, 28 Dec 2001 22:18:08 +0200
+X-Agent: Agent C
+Subject: Ping
+
+Test message, please discard.
+
+],
+[DELETEHEADER on msg uid 1: X-Agent
+])
+
+MUT_SIEVE_EXT_TEST([delete regex],[deleteheader delheader delheader03],
+[require "editheader";
+deleteheader :regex "X-Agent" "Agent [[A-Z]]";
+],
+[mkmailbox(mailbox)
+sieve MUT_SIEVE_CMDLINE MUT_SIEVE_OPTIONS -f ./mailbox prog
+sed '/^X-IMAPbase:/d;/^Status:/d;/^X-UID:/d;s/ *$//' mailbox
+],
+[From coyote@desert.example.org Sun May  6 22:16:47 2001
+From: coyote@desert.example.org
+To: roadrunner@acme.example.com
+Received: (from bar@example.org)
+	by example.org id fERKR9N16790
+	for roadrunner@example.com; Fri, 28 Dec 2001 22:18:08 +0200
+X-Agent: Agent 22
+Subject: Ping
+
+Test message, please discard.
+
+],
+[DELETEHEADER on msg uid 1: X-Agent: (regexp)
+])
+
+m4_popdef([MUT_SIEVE_EXT_NAME])

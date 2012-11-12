@@ -80,13 +80,15 @@ mu_hdrent_find (struct _mu_header *hdr, const char *name, int pos)
   if (pos > 0)
     {
       for (p = hdr->head; p; p = p->next)
-	if (mu_c_strcasecmp (MU_HDRENT_NAME (hdr,p), name) == 0 && pos-- == 1)
+	if ((!name || mu_c_strcasecmp (MU_HDRENT_NAME (hdr,p), name) == 0) &&
+	    pos-- == 1)
 	  break;
     }
   else if (pos < 0)
     {
       for (p = hdr->tail; p; p = p->prev)
-	if (mu_c_strcasecmp (MU_HDRENT_NAME (hdr,p), name) == 0 && ++pos == 0)
+	if ((!name || mu_c_strcasecmp (MU_HDRENT_NAME (hdr,p), name) == 0) &&
+	    ++pos == 0)
 	  break;
     }
   else
@@ -544,7 +546,7 @@ mu_header_remove (mu_header_t header, const char *fn, int n)
   int status;
   struct mu_hdrent *ent;
   
-  if (header == NULL || fn == NULL)
+  if (header == NULL)
     return EINVAL;
 
   status = mu_header_fill (header);
@@ -555,6 +557,7 @@ mu_header_remove (mu_header_t header, const char *fn, int n)
   if (!ent)
     return MU_ERR_NOENT;
 
+  mu_iterator_delitem (header->itr, ent);
   mu_hdrent_remove (header, ent);
   HEADER_SET_MODIFIED (header);
   free (ent);
@@ -778,6 +781,26 @@ mu_header_get_field_count (mu_header_t header, size_t *pcount)
 	*pcount = count;
     }
   
+  return status;
+}
+
+int
+mu_header_get_itemptr (mu_header_t header, size_t num, const void **sptr)
+{
+  int status;
+  
+  if (header == NULL)
+    return EINVAL;
+
+  status = mu_header_fill (header);
+  if (status == 0)
+    {
+      struct mu_hdrent *ent = mu_hdrent_nth (header, num);
+      if (ent)
+	*sptr = ent;
+      else
+	status = MU_ERR_NOENT;
+    }
   return status;
 }
 

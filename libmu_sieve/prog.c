@@ -139,6 +139,7 @@ mu_sv_code_command (mu_sieve_register_t *reg, mu_list_t arglist)
   mu_list_t tag_list = NULL;
   mu_list_t chk_list = NULL;
   mu_sieve_data_type *exp_arg;
+  int opt_args = 0;
   int rc, err = 0;
   static mu_sieve_data_type empty[] = { SVT_VOID };
   
@@ -237,16 +238,25 @@ mu_sv_code_command (mu_sieve_register_t *reg, mu_list_t arglist)
 		    mu_list_append (chk_list, cf);
 		}
 	    }
-	  else if (*exp_arg == SVT_VOID)
-	    {
-	      mu_sv_compile_error (&mu_sieve_locus, 
-                                   _("too many arguments in call to `%s'"),
- 			           reg->name);
-	      err = 1;
-	      break;
-	    }
 	  else
 	    {
+	      if (*exp_arg == SVT_VOID)
+		{
+		  if (reg->opt_args)
+		    {
+		      exp_arg = reg->opt_args;
+		      opt_args = 1;
+		    }
+		  else
+		    {
+		      mu_sv_compile_error (&mu_sieve_locus, 
+				      _("too many arguments in call to `%s'"),
+					   reg->name);
+		      err = 1;
+		      break;
+		    }
+		}
+	      
 	      if (*exp_arg != val->type)
 		{
 		  if (*exp_arg == SVT_STRING_LIST && val->type == SVT_STRING)
@@ -291,7 +301,7 @@ mu_sv_code_command (mu_sieve_register_t *reg, mu_list_t arglist)
 
   if (!err)
     {
-      if (*exp_arg != SVT_VOID)
+      if (!opt_args && *exp_arg != SVT_VOID)
 	{
 	  mu_sv_compile_error (&mu_sieve_locus, 
                                _("too few arguments in call to `%s'"),

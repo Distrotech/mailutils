@@ -52,7 +52,7 @@ mu_message_get_imapenvelope (mu_message_t msg, struct mu_imapenvelope **pimapenv
   
   if (msg == NULL)
     return EINVAL;
-  if (imapenvelope == NULL)
+  if (pimapenvelope == NULL)
     return MU_ERR_OUT_PTR_NULL;
   if (msg->_imapenvelope)
     return msg->_imapenvelope (msg, pimapenvelope);

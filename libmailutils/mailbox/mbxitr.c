@@ -111,13 +111,14 @@ mbx_destroy (mu_iterator_t iterator, void *data)
 }
 
 static int
-mbx_curitem_p (void *owner, void *item)
+mbx_delitem (void *owner, void *item)
 {
   void *ptr;
 
   if (mbx_getitem (owner, &ptr, NULL))
     return 0;
-  return ptr == item;/* FIXME: Is it ok? */
+  return ptr == item ? MU_ITR_DELITEM_NEXT : MU_ITR_DELITEM_NOTHING;
+  /* FIXME: is it ok? */
 }
 
 static int
@@ -210,7 +211,7 @@ mu_mailbox_get_iterator (mu_mailbox_t mbx, mu_iterator_t *piterator)
   mu_iterator_set_next (iterator, mbx_next);
   mu_iterator_set_getitem (iterator, mbx_getitem);
   mu_iterator_set_finished_p (iterator, mbx_finished_p);
-  mu_iterator_set_curitem_p (iterator, mbx_curitem_p);
+  mu_iterator_set_delitem (iterator, mbx_delitem);
   mu_iterator_set_destroy (iterator, mbx_destroy);
   mu_iterator_set_dup (iterator, mbx_data_dup);
   mu_iterator_set_itrctl (iterator, mbx_itrctl);

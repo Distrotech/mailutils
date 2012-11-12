@@ -36,7 +36,7 @@ struct _mu_iterator
   int (*first) (void *owner);
   int (*next) (void *owner);
   int (*getitem) (void *owner, void **pret, const void **pkey);
-  int (*curitem_p) (void *owner, void *item);
+  int (*delitem) (void *owner, void *item);
   int (*finished_p) (void *owner);
   int (*itrctl) (void *owner, enum mu_itrctl_req req, void *arg);
   void *(*dataptr) (void *);

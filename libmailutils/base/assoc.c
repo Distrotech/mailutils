@@ -452,13 +452,13 @@ destroy (mu_iterator_t iterator, void *data)
 }
 
 static int
-curitem_p (void *owner, void *item)
+delitem (void *owner, void *item)
 {
   struct assoc_iterator *itr = owner;
   mu_assoc_t assoc = itr->assoc;
   struct _mu_assoc_elem *elem = ASSOC_ELEM (assoc, itr->index);
   
-  return elem == item;
+  return elem == item ? MU_ITR_DELITEM_NEXT : MU_ITR_DELITEM_NOTHING;
 }
 
 static int
@@ -498,7 +498,7 @@ mu_assoc_get_iterator (mu_assoc_t assoc, mu_iterator_t *piterator)
   mu_iterator_set_next (iterator, next);
   mu_iterator_set_getitem (iterator, getitem);
   mu_iterator_set_finished_p (iterator, finished_p);
-  mu_iterator_set_curitem_p (iterator, curitem_p);
+  mu_iterator_set_delitem (iterator, delitem);
   mu_iterator_set_destroy (iterator, destroy);
   mu_iterator_set_dup (iterator, assoc_data_dup);
   

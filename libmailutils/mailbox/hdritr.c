@@ -30,13 +30,20 @@ struct header_iterator
 {
   mu_header_t header;
   size_t index;
+  int backwards;
 };
 
 static int
 hdr_first (void *owner)
 {
   struct header_iterator *itr = owner;
-  itr->index = 1;
+  if (itr->backwards)
+    {
+      if (mu_header_get_field_count (itr->header, &itr->index))
+	return 1;
+    }
+  else
+    itr->index = 1;
   return 0;
 }
 
@@ -44,7 +51,13 @@ static int
 hdr_next (void *owner)
 {
   struct header_iterator *itr = owner;
-  itr->index++;
+  if (itr->backwards)
+    {
+      if (itr->index != 0)
+	itr->index--;
+    }
+  else
+    itr->index++;
   return 0;
 }
 
@@ -58,16 +71,16 @@ hdr_getitem (void *owner, void **pret, const void **pkey)
   rc = mu_header_get_field_count (itr->header, &count);
   if (rc)
     return rc;
-  if (itr->index > count)
+  if (itr->index < 1 || itr->index > count)
     return MU_ERR_NOENT;
   
-  rc = mu_header_sget_field_name (itr->header, itr->index,
-				  (const char**) pkey);
+  rc = mu_header_sget_field_value (itr->header, itr->index,
+				   (const char**) pret);
   if (rc == 0)
     {
       if (pkey)
-	rc = mu_header_sget_field_value (itr->header, itr->index,
-					 (const char**) pret);
+	rc = mu_header_sget_field_name (itr->header, itr->index,
+					(const char**) pkey);
     }
   return rc;
 }
@@ -77,6 +90,9 @@ hdr_finished_p (void *owner)
 {
   struct header_iterator *itr = owner;
   size_t count;
+
+  if (itr->backwards)
+    return itr->index < 1;
 
   if (mu_header_get_field_count (itr->header, &count))
     return 1;
@@ -93,13 +109,16 @@ hdr_destroy (mu_iterator_t iterator, void *data)
 }
 
 static int
-hdr_curitem_p (void *owner, void *item)
+hdr_delitem (void *owner, void *item)
 {
-  void *ptr;
+  struct header_iterator *itr = owner;
+  const void *ptr;
 
-  if (hdr_getitem (owner, &ptr, NULL))
-    return 0;
-  return ptr == item;
+  if (mu_header_get_itemptr (itr->header, itr->index, &ptr))
+    return MU_ITR_DELITEM_NOTHING;
+  if (ptr == item && !itr->backwards)
+    return MU_ITR_DELITEM_ADVANCE;
+  return MU_ITR_DELITEM_NOTHING;
 }
 
 static int
@@ -114,6 +133,51 @@ hdr_data_dup (void **ptr, void *owner)
   mu_iterator_attach (&itr->header->itr, *ptr);
   return 0;
 }
+
+static int
+hdr_itrctl (void *owner, enum mu_itrctl_req req, void *arg)
+{
+  struct header_iterator *itr = owner;
+
+  switch (req)
+    {
+    case mu_itrctl_tell:
+      /* Return current position in the object */
+      if (hdr_finished_p (owner))
+	return MU_ERR_NOENT;
+      else
+	*(size_t*)arg = itr->index;
+      return 0;
+      break;
+      
+    case mu_itrctl_delete:
+      /* Delete current element */
+      if (hdr_finished_p (owner))
+	return MU_ERR_NOENT;
+      else
+	return mu_header_remove (itr->header, NULL, itr->index);
+      break;
+      
+    case mu_itrctl_qry_direction:
+      if (!arg)
+	return EINVAL;
+      else
+	*(int*)arg = itr->backwards;
+      break;
+
+    case mu_itrctl_set_direction:
+      if (!arg)
+	return EINVAL;
+      else
+	itr->backwards = !!*(int*)arg;
+      break;
+      
+    default:
+      return ENOSYS;
+    }
+  return 0;
+}
+  
 
 int
 mu_header_get_iterator (mu_header_t hdr, mu_iterator_t *piterator)
@@ -142,9 +206,10 @@ mu_header_get_iterator (mu_header_t hdr, mu_iterator_t *piterator)
   mu_iterator_set_next (iterator, hdr_next);
   mu_iterator_set_getitem (iterator, hdr_getitem);
   mu_iterator_set_finished_p (iterator, hdr_finished_p);
-  mu_iterator_set_curitem_p (iterator, hdr_curitem_p);
+  mu_iterator_set_delitem (iterator, hdr_delitem);
   mu_iterator_set_destroy (iterator, hdr_destroy);
   mu_iterator_set_dup (iterator, hdr_data_dup);
+  mu_iterator_set_itrctl (iterator, hdr_itrctl);
 
   mu_iterator_attach (&hdr->itr, iterator);
 

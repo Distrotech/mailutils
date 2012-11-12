@@ -84,10 +84,10 @@ destroy (mu_iterator_t iterator, void *data)
 }
 
 static int
-curitem_p (void *owner, void *item)
+delitem (void *owner, void *item)
 {
   struct list_iterator *itr = owner;
-  return itr->cur == item;
+  return itr->cur == item ? MU_ITR_DELITEM_NEXT : MU_ITR_DELITEM_NOTHING;
 }
 
 static int
@@ -142,7 +142,7 @@ list_itrctl (void *owner, enum mu_itrctl_req req, void *arg)
 	  ptr = itr->cur;
 	  prev = ptr->prev;
 	
-	  mu_iterator_advance (list->itr, ptr);
+	  mu_iterator_delitem (list->itr, ptr);
 	  prev->next = ptr->next;
 	  ptr->next->prev = prev;
 	  if (req == mu_itrctl_delete)
@@ -238,7 +238,7 @@ mu_list_get_iterator (mu_list_t list, mu_iterator_t *piterator)
   mu_iterator_set_next (iterator, next);
   mu_iterator_set_getitem (iterator, getitem);
   mu_iterator_set_finished_p (iterator, finished_p);
-  mu_iterator_set_curitem_p (iterator, curitem_p);
+  mu_iterator_set_delitem (iterator, delitem);
   mu_iterator_set_destroy (iterator, destroy);
   mu_iterator_set_dup (iterator, list_data_dup);
   mu_iterator_set_itrctl (iterator, list_itrctl);

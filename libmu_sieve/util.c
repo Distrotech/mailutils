@@ -426,8 +426,10 @@ mu_sieve_vlist_do (mu_sieve_value_t *val, mu_list_action_t ac, void *data)
     case SVT_VALUE_LIST:
     case SVT_STRING_LIST:
       return mu_list_foreach (val->v.list, ac, data);
-      
+    case SVT_STRING:
+      return ac (val->v.string, data);
     default:
+      mu_error ("mu_sieve_vlist_do: unexpected list type %d", val->type);
       return EINVAL;
     }
 }

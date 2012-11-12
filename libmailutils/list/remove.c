@@ -41,7 +41,7 @@ mu_list_remove (mu_list_t list, void *item)
 	{
 	  struct list_data *previous = current->prev;
 	  
-	  mu_iterator_advance (list->itr, current);
+	  mu_iterator_delitem (list->itr, current);
 	  previous->next = current->next;
 	  current->next->prev = previous;
 	  DESTROY_ITEM (list, current);

@@ -384,10 +384,11 @@ opitr_finished_p (void *owner)
 }
 
 static int
-opitr_curitem_p (void *owner, void *item)
+opitr_delitem (void *owner, void *item)
 {
   struct opool_iterator *itr = owner;
-  return itr->cur && itr->cur->buf == item;
+  return (itr->cur && itr->cur->buf == item) ? 
+     MU_ITR_DELITEM_NEXT : MU_ITR_DELITEM_NOTHING;
 }
 
 static int
@@ -446,7 +447,7 @@ mu_opool_get_iterator (mu_opool_t opool, mu_iterator_t *piterator)
   mu_iterator_set_next (iterator, opitr_next);
   mu_iterator_set_getitem (iterator, opitr_getitem);
   mu_iterator_set_finished_p (iterator, opitr_finished_p);
-  mu_iterator_set_curitem_p (iterator, opitr_curitem_p);
+  mu_iterator_set_delitem (iterator, opitr_delitem);
   mu_iterator_set_destroy (iterator, opitr_destroy);
   mu_iterator_set_dup (iterator, opitr_data_dup);
 

@@ -26,7 +26,6 @@ int
 mu_list_remove_nth (mu_list_t list, size_t n)
 {
   struct list_data *current;
-  mu_list_comparator_t comp;
   int status = MU_ERR_NOENT;
   size_t i;
     
@@ -42,7 +41,7 @@ mu_list_remove_nth (mu_list_t list, size_t n)
 	{
 	  struct list_data *previous = current->prev;
 	  
-	  mu_iterator_advance (list->itr, current);
+	  mu_iterator_delitem (list->itr, current);
 	  previous->next = current->next;
 	  current->next->prev = previous;
 	  DESTROY_ITEM (list, current);
