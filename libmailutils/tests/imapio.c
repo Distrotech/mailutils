@@ -82,7 +82,7 @@ main (int argc, char **argv)
       if (wc == 0)
 	break;
 
-      mu_stream_printf (mu_strerr, "%d\n", wc);
+      mu_stream_printf (mu_strerr, "%lu\n", (unsigned long) wc);
       for (i = 0; i < wc; i++)
 	{
 	  mu_stream_printf (mu_strerr, "%d: '%s'\n", i, wv[i]);

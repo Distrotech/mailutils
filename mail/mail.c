@@ -47,7 +47,7 @@ static struct argp_option options[] = {
   {"nosum",   'N', NULL,      0,
    N_("do not display initial header summary"), 0},
   {"print",   'p', NULL,      0, N_("print all mail to standard output"), 0},
-  {"read",    NULL, NULL,      OPTION_ALIAS },
+  {"read",    0,   NULL,      OPTION_ALIAS },
   {"return-address", 'r', N_("ADDRESS"), 0,
    N_("use address as the return address when sending mail"), 0},
   {"quit",    'q', NULL,      0,

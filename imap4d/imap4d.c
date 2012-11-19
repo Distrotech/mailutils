@@ -589,6 +589,9 @@ imap4d_mainloop (int ifd, int ofd, enum tls_mode tls)
     case tls_no:
       imap4d_capability_remove (IMAP_CAPA_STARTTLS);
       tls_available = 0;
+      break;
+    default:
+      break;
     }
   
   session.tls_mode = tls;

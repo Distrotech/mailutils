@@ -131,10 +131,10 @@ dbm_retrieve_quota (char *name, mu_off_t *quota)
       unlimited = 1;
   else if (contentd.mu_dsize > sizeof (buffer) - 1)
     {
-      mu_error (ngettext ("mailbox quota for `%s' is too big: %d digit",
-			  "mailbox quota for `%s' is too big: %d digits",
+      mu_error (ngettext ("mailbox quota for `%s' is too big: %lu digit",
+			  "mailbox quota for `%s' is too big: %lu digits",
 			  contentd.mu_dsize),
-		name, contentd.mu_dsize);
+		name, (unsigned long) contentd.mu_dsize);
       *quota = groupquota;
     }
   else

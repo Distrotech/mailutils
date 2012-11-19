@@ -61,3 +61,6 @@ int shell_verbose (int argc, char **argv,
 
 int get_bool (const char *str, int *pb);
 int get_port (const char *port_str, int *pn);
+
+int mu_getans (const char *variants, const char *fmt, ...);
+

@@ -50,10 +50,10 @@ mail_mbox_close ()
   mu_mailbox_get_url (mbox, &url);
   mu_mailbox_messages_count (mbox, &held_count);
   mu_printf (
-           ngettext ("Held %d message in %s\n",
-                     "Held %d messages in %s\n",
+           ngettext ("Held %lu message in %s\n",
+                     "Held %lu messages in %s\n",
                      held_count),
-           held_count, util_url_to_string (url));
+           (unsigned long) held_count, util_url_to_string (url));
   mu_mailbox_close (mbox);
   mu_mailbox_destroy (&mbox);
   return 0;

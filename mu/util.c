@@ -20,6 +20,7 @@
 
 #include <stdlib.h>
 #include <arpa/inet.h>
+#include <netinet/in.h>
 #include <mailutils/mailutils.h>
 #include "mu.h"
 
