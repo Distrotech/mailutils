@@ -787,7 +787,7 @@ _fixup (const char *name, const char *value, struct fixup_data *fd, int flags)
       return 0;
     }
 
-  rc = mu_msgset_create (&msgset, NULL, MU_MSGSET_UID);
+  rc = mu_msgset_create (&msgset, fd->mbox, MU_MSGSET_UID);
   if (rc)
     {
       mu_diag_funcall (MU_DIAG_ERROR, "mu_msgset_create", NULL, rc);
