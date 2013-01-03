@@ -38,7 +38,7 @@ $(srcdir)/package.m4: $(top_srcdir)/configure.ac
 ## Non-installable programs
 ## -------------------------- ##
 
-INCLUDES = @MU_LIB_COMMON_INCLUDES@ 
+AM_CPPFLAGS = @MU_LIB_COMMON_INCLUDES@ 
 noinst_PROGRAMS = \
  addr\
  cidr\
@@ -55,6 +55,7 @@ noinst_PROGRAMS = \
  mimehdr\
  modtofsaf\
  msgset\
+ modmesg\
  prop\
  scantime\
  strftime\
@@ -94,6 +95,10 @@ TESTSUITE_AT = \
  list.at\
  mailcap.at\
  mimehdr.at\
+ modmesg00.at\
+ modmesg01.at\
+ modmesg02.at\
+ modmesg03.at\
  modtofsaf.at\
  msgset.at\
  prop.at\

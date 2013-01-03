@@ -54,29 +54,13 @@ _mu_message_free (mu_message_t msg)
       mu_observable_destroy (&msg->observable, msg);
     }
       
-  /* Envelope.  */
-  if (msg->envelope)
-    mu_envelope_destroy (&msg->envelope, msg);
-      
-  /* Header.  */
-  if (msg->header)
-    mu_header_destroy (&msg->header);
-      
-  /* Body.  */
-  if (msg->body)
-    mu_body_destroy (&msg->body, msg);
-      
-  /* Attribute.  */
-  if (msg->attribute)
-    mu_attribute_destroy (&msg->attribute, msg);
-      
-  /* Stream.  */
-  if (msg->stream)
-    mu_stream_destroy (&msg->stream);
-      
-  /*  Mime.  */
-  if (msg->flags & MESSAGE_MIME_OWNER)
-    mu_mime_destroy (&msg->mime);
+  mu_envelope_destroy (&msg->envelope, msg);
+  mu_header_destroy (&msg->header);
+  mu_body_destroy (&msg->body, msg);
+  mu_attribute_destroy (&msg->attribute, msg);
+  mu_stream_destroy (&msg->rawstream);
+  mu_stream_destroy (&msg->outstream);
+  mu_mime_destroy (&msg->mime);
       
   /* Loose the owner.  */
   msg->owner = NULL;

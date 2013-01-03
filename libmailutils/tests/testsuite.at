@@ -92,6 +92,12 @@ m4_include([debugspec.at])
 AT_BANNER([IMAP IO])
 m4_include([imapio.at])
 
+AT_BANNER(Message modification)
+m4_include([modmesg00.at])
+m4_include([modmesg01.at])
+m4_include([modmesg02.at])
+m4_include([modmesg03.at])
+
 m4_include([scantime.at])
 m4_include([strftime.at])
 

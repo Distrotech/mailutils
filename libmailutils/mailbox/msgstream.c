@@ -283,16 +283,41 @@ mu_message_set_stream (mu_message_t msg, mu_stream_t stream, void *owner)
     return EINVAL;
   if (msg->owner != owner)
     return EACCES;
-  if (msg->stream)
-    mu_stream_destroy (&msg->stream);
-  msg->stream = stream;
+  mu_stream_destroy (&msg->rawstream);
+  mu_stream_destroy (&msg->outstream);
+  msg->rawstream = stream;
   msg->flags |= MESSAGE_MODIFIED;
   msg->flags &= ~MESSAGE_INTERNAL_STREAM;
   return 0;
 }
 
 static int
-_message_get_stream (mu_message_t msg, mu_stream_t *pstream, int ref)
+mkoutstream (mu_message_t msg)
+{
+  int status;
+  mu_header_t hdr;
+  mu_body_t body;
+
+  if (msg->outstream)
+    return 0;
+  /* FIXME: Kind of a kludge: make sure the message has header
+     and body initialized. */
+  status = mu_message_get_header (msg, &hdr);
+  if (status)
+    return status;
+  status = mu_message_get_body (msg, &body);
+  if (status)
+    return status;
+	  
+  status = _message_stream_create (&msg->outstream, msg, MU_STREAM_RDWR);
+  if (status == 0)
+    msg->flags |= MESSAGE_INTERNAL_STREAM;
+  return status;
+}
+
+
+int
+mu_message_get_stream (mu_message_t msg, mu_stream_t *pstream)
 {
   int status;
 
@@ -301,54 +326,67 @@ _message_get_stream (mu_message_t msg, mu_stream_t *pstream, int ref)
   if (pstream == NULL)
     return MU_ERR_OUT_PTR_NULL;
 
-  if (msg->stream == NULL)
+  /* FIXME: Deprecation warning */
+
+  if (msg->rawstream == NULL)
     {
       if (msg->_get_stream)
 	{
-	  status = msg->_get_stream (msg, &msg->stream);
+	  status = msg->_get_stream (msg, &msg->rawstream);
 	  if (status)
 	    return status;
 	}
       else
 	{
-	  mu_header_t hdr;
-	  mu_body_t body;
-
-	  /* FIXME: Kind of a kludge: make sure the message has header
-	     and body initialized. */
-	  status = mu_message_get_header (msg, &hdr);
+	  status = mkoutstream (msg);
 	  if (status)
 	    return status;
-	  status = mu_message_get_body (msg, &body);
-	  if (status)
-	    return status;
-	  
-	  status = _message_stream_create (&msg->stream, msg, MU_STREAM_RDWR);
-	  if (status)
-	    return status;
-	  msg->flags |= MESSAGE_INTERNAL_STREAM;
+	  status = mu_streamref_create (&msg->rawstream, msg->outstream);
 	}
     }
-  
-  if (!ref)
-    {
-      *pstream = msg->stream;
-      return 0;
-    }
-  return mu_streamref_create (pstream, msg->stream);
-}
-
-int
-mu_message_get_stream (mu_message_t msg, mu_stream_t *pstream)
-{
-  /* FIXME: Deprecation warning */
-  return _message_get_stream (msg, pstream, 0);
+  *pstream = msg->rawstream;
+  return 0;
 }
 
 int
 mu_message_get_streamref (mu_message_t msg, mu_stream_t *pstream)
 {
-  return _message_get_stream (msg, pstream, 1);
+  int status = 0;
+
+  if (msg == NULL)
+    return EINVAL;
+  if (pstream == NULL)
+    return MU_ERR_OUT_PTR_NULL;
+  
+  if (!msg->rawstream)
+    {
+      if (msg->_get_stream)
+	{
+	  status = msg->_get_stream (msg, &msg->rawstream);
+	  if (status)
+	    return status;
+	  status = mu_streamref_create (&msg->outstream, msg->rawstream);
+	}
+      else
+	{
+	  status = mkoutstream (msg);
+	  if (status)
+	    return status;
+	  status = mu_streamref_create (&msg->rawstream, msg->outstream);
+	}
+    }
+  
+  if (status)
+    return status;
+
+  if (!msg->outstream ||
+      (!(msg->flags & MESSAGE_INTERNAL_STREAM) &&
+       mu_message_is_modified (msg)))
+    {
+      mu_stream_destroy (&msg->outstream);
+      status = mkoutstream (msg);
+    }
+  return mu_streamref_create (pstream, msg->outstream);
 }
 
 int

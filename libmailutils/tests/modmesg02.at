@@ -1,0 +1,38 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2011-2012 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# GNU Mailutils is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+
+AT_SETUP([modify body])
+AT_KEYWORDS([modmesg02])
+
+AT_CHECK([modmesg -t "word\n"],
+[0],
+[From: root
+
+This is a test message.
+oo
+word
+])
+
+AT_CHECK([modmesg -l 0 -t "That"],
+[0],
+[From: root
+
+That is a test message.
+oo
+])
+
+AT_CLEANUP
+

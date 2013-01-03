@@ -2159,7 +2159,6 @@ finish_msg (struct compose_env *env, mu_message_t *msg)
       free (p);
     }
   mu_mime_add_part (env->mime, *msg);
-  mu_message_unref (*msg);
   *msg = NULL;
 }
 
@@ -2598,6 +2597,7 @@ mhn_edit (struct compose_env *env, int level)
 
 	  mu_message_get_body (msg, &body);
 	  mu_body_get_streamref (body, &output);
+	  mu_message_ref (msg);
 	  line_count = 0;
 	  ascii_buf = 1; /* Suppose it is ascii */
 	  env->subpart++;
@@ -2640,6 +2640,7 @@ mhn_edit (struct compose_env *env, int level)
 		  /* Close and append the previous part */
 		  mu_stream_close (output);
 		  mu_stream_destroy (&output);
+		  mu_message_unref (msg);
 		  finish_text_msg (env, &msg, ascii_buf);
 		}
 	      

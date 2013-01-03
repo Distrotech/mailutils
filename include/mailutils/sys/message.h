@@ -47,7 +47,8 @@ struct _mu_message
   mu_body_t body;
 
   int flags;
-  mu_stream_t stream;
+  mu_stream_t rawstream;
+  mu_stream_t outstream;
   mu_attribute_t attribute;
   mu_monitor_t monitor;
   mu_mime_t mime;

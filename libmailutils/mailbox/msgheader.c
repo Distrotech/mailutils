@@ -109,17 +109,9 @@ _header_fill (mu_stream_t stream, char **pbuf, size_t *plen)
 static int
 message_header_fill (void *data, char **pbuf, size_t *plen)
 {
-  int status = 0;
   mu_message_t msg = data;
-  mu_stream_t stream;
 
-  status = mu_message_get_streamref (msg, &stream);
-  if (status == 0)
-    {
-      status = _header_fill (stream, pbuf, plen);
-      mu_stream_destroy (&stream);
-    }
-  return status;
+  return _header_fill (msg->rawstream, pbuf, plen);
 }
 
 int
@@ -136,7 +128,7 @@ mu_message_get_header (mu_message_t msg, mu_header_t *phdr)
       int status = mu_header_create (&header, NULL, 0);
       if (status != 0)
 	return status;
-      if (msg->stream)
+      if (msg->rawstream)
 	mu_header_set_fill (header, message_header_fill, msg);
       status = mu_header_size (header, &msg->orig_header_size);
       if (status)

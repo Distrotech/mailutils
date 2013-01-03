@@ -33,6 +33,7 @@ struct _mu_body
 {
   void *owner;
   mu_stream_t stream;
+  mu_stream_t rawstream;
   mu_stream_t fstream;
   int flags;
 

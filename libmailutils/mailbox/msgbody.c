@@ -43,8 +43,7 @@ mu_message_get_body (mu_message_t msg, mu_body_t *pbody)
       if (status != 0)
 	return status;
       /* If a stream is already set, use it to create the body stream.  */
-      /* FIXME: I'm not sure if the second condition is really needed */
-      if (msg->stream/* && (msg->flags & MESSAGE_INTERNAL_STREAM)*/)
+      if (msg->rawstream)
 	{
 	  mu_stream_t stream;
 	  int flags = 0;
@@ -52,8 +51,8 @@ mu_message_get_body (mu_message_t msg, mu_body_t *pbody)
 	  /* FIXME: The actual mu_header_size cannot be used as offset,
 	     because the headers might have been modified in between. */
 	  
-	  mu_stream_get_flags (msg->stream, &flags);
-	  status = mu_streamref_create_abridged (&stream, msg->stream,
+	  mu_stream_get_flags (msg->rawstream, &flags);
+	  status = mu_streamref_create_abridged (&stream, msg->rawstream,
 						 msg->orig_header_size, 0);
 	  if (status)
 	    {
