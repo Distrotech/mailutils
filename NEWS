@@ -1,4 +1,4 @@
-GNU mailutils NEWS -- history of user-visible changes. 2012-11-12
+GNU mailutils NEWS -- history of user-visible changes. 2013-02-16
 Copyright (C) 2002-2012 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
@@ -203,6 +203,14 @@ option:
     "yes", the mailbox will be truncated after successful processing.
     If BOOL is "no", the source mailbox will not be truncated.
 
+** MH aliases
+
+The "< FILE" construct has been extended to allow for building the
+list of aliases on the fly.  If FILE is an executable file and its
+first line begins with a shell interpreter magic (#!/ or #! /), then
+instead of being included, such file is run using "/bin/sh -c", its
+output is collected and included in the aliases.
+    
 ** mailutils-config is deprecated.
 
 Use `mu cflags' and `mu ldflags' instead.  The mailutils-config is

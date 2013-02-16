@@ -219,10 +219,12 @@ struct buffer_ctx {
   int line;
   ino_t i_node;
   FILE *yyin;
+  int exec_p;
   LEX_BUFFER_STATE state;
 };
 
 static struct buffer_ctx *context_stack;
+static int exec_p;
 
 static struct buffer_ctx *
 ctx_lookup (ino_t ino)
@@ -242,7 +244,8 @@ push_source (const char *name, int fail)
   struct buffer_ctx *ctx;
   struct stat st;
   char *filename;
-
+  int ex = 0;
+  
   filename = mh_expand_name (NULL, name, 0);
   if (stat (filename, &st))
     {
@@ -251,7 +254,7 @@ push_source (const char *name, int fail)
       free (filename);
       return 1;
     }
-
+    
   if (ali_filename && st.st_ino == ali_source_inode)
     {
       ali_parse_error (_("recursive inclusion"));
@@ -279,12 +282,35 @@ push_source (const char *name, int fail)
       free (filename);
       return 1;
     }
+  if (access (filename, X_OK) == 0)
+    {
+      char sig[4];
+
+      if (fread (sig, sizeof(sig), 1, fp) == 1 &&
+	  (memcmp(sig, "#!/", 3) == 0 ||
+	   memcmp(sig, "#! /", 4) == 0))
+	{
+	  ex = 1;
+	  fclose (fp);
+	  fp = popen (filename, "r");
+	  if (!fp)
+	    {
+	      ali_parse_error (_("can't execute `%s': %s"),
+			       filename, strerror (errno));
+	      free (filename);
+	      return 1;
+	    }
+	}
+      else
+	rewind (fp);
+    }
   
   /* Push current context */
   if (ali_filename)
     {
       ctx = mu_alloc (sizeof (*ctx));
       ctx->filename = ali_filename;
+      ctx->exec_p = exec_p;
       ctx->line = ali_line_num;
       ctx->i_node = ali_source_inode;
       ctx->yyin = yyin;
@@ -307,6 +333,7 @@ push_source (const char *name, int fail)
   ali_filename = filename;
   ali_line_num = 1;
   ali_source_inode = st.st_ino;
+  exec_p = ex;
   return 0;
 }
 
@@ -316,7 +343,7 @@ pop_source ()
   struct buffer_ctx *ctx;
 
   if (yyin)
-    fclose (yyin);
+    (exec_p ? pclose : fclose) (yyin);
 #ifndef FLEX_SCANNER
   lex_delete_buffer (current_buffer);
 #endif
@@ -332,6 +359,7 @@ pop_source ()
   ali_filename = context_stack->filename;
   ali_line_num = context_stack->line + 1; /* < line did not increment it */
   ali_source_inode = context_stack->i_node;
+  exec_p = context_stack->exec_p;
   RESTORE_BUFFER_STATE (context_stack->state);
   ctx = context_stack->prev;
   free (context_stack);

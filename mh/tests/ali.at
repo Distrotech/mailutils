@@ -108,15 +108,19 @@ ali -list -a ./mh_aliases everybody
 [0],
 [expout])
 
-MH_CHECK([ali: simple aliases],[ali00],[
+MH_CHECK([ali: executable file inlcusion],[ali02 ali-xinclude],[
+AT_DATA([Mail/ali.sh],[#! /bin/sh
+echo "admin: gray, jeff"
+])
+chmod +x Mail/ali.sh
 AT_DATA([mh_aliases],[
-devel: gray, polak
-admin: gray, jeff
+devel: gray, polak, admin
+<ali.sh
 ])
 ali -a ./mh_aliases devel
 ],
 [0],
-[gray, polak
+[gray, polak, gray, jeff
 ])
 
 m4_popdef[MH_KEYWORDS])
