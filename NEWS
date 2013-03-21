@@ -1,11 +1,11 @@
-GNU mailutils NEWS -- history of user-visible changes. 2013-02-16
-Copyright (C) 2002-2012 Free Software Foundation, Inc.
+GNU mailutils NEWS -- history of user-visible changes. 2013-03-21
+Copyright (C) 2002-2013 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
 Please send mailutils bug reports to <bug-mailutils@gnu.org>.
 
 
-Version 2.99.97 (Git)
+Version 2.99.98 (Git)
 
 This version is a major rewrite of GNU Mailutils.  Quite a few parts
 of the basic framework were rewritten from scratch, while some others
@@ -1717,8 +1717,7 @@ The first release.
 ----------------------------------------------------------------------
 Copyright information:
 
-Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007,
-2008 Free Software Foundation, Inc.
+Copyright (C) 2002-2012, Free Software Foundation, Inc.
 
    Permission is granted to anyone to make or distribute verbatim copies
    of this document as received, in any medium, provided that the
