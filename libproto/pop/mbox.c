@@ -179,8 +179,15 @@ pop_open (mu_mailbox_t mbox, int flags)
 	break;
 
       status = mu_pop3_capa (mpd->pop3, 1, NULL);
-      if (status)
-	break;
+      if (status == MU_ERR_REPLY) 
+        {
+	  mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR, 
+		    ("server rejected the CAPA command: %s",
+		     mu_pop3_strresp (mpd->pop3)));
+	  /* try to continue anyway */
+        } 
+      else if (status)
+	return status;
 
 #ifdef WITH_TLS      
       if (!mpd->pops &&

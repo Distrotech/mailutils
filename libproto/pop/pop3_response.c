@@ -25,8 +25,7 @@
 #include <mailutils/cctype.h>
 #include <mailutils/cstr.h>
 #include <mailutils/sys/pop3.h>
-
-#define POP3_DEFERR "-ERR POP3 IO ERROR"
+#include <mailutils/util.h>
 
 /* If we did not grap the ack already, call pop3_readline() but handle
    Nonblocking also.  */
@@ -48,21 +47,6 @@ mu_pop3_response (mu_pop3_t pop3, size_t *pnread)
 	  n = mu_rtrim_class (pop3->ackbuf, MU_CTYPE_SPACE);
 	  MU_POP3_FSET (pop3, MU_POP3_ACK); /* Flag that we have the ack.  */
 	}
-      else
-	{
-	  /* Provide them with an error.  */
-	  if (pop3->acksize < sizeof (POP3_DEFERR))
-	    {
-	      char *p = realloc (pop3->ackbuf, sizeof (POP3_DEFERR));
-	      if (p)
-		{
-		  pop3->ackbuf = p;
-		  pop3->acksize = sizeof (POP3_DEFERR);
-		}
-	    }
-	  if (pop3->ackbuf)
-	    strncpy (pop3->ackbuf, POP3_DEFERR, pop3->acksize);
-	}
     }
   else if (pop3->ackbuf)
     n = strlen (pop3->ackbuf);
@@ -77,4 +61,58 @@ mu_pop3_response (mu_pop3_t pop3, size_t *pnread)
   if (pnread)
     *pnread = n;
   return status;
+}
+
+const char *
+mu_pop3_strresp (mu_pop3_t pop3)
+{
+    if (pop3 == NULL)
+      return NULL;
+    if (!MU_POP3_FISSET (pop3, MU_POP3_ACK))
+      return NULL;
+    return pop3->ackbuf;
+}
+
+int
+mu_pop3_sget_response (mu_pop3_t pop3, const char **sptr)
+{
+  if (pop3 == NULL)
+    return EINVAL;
+  if (!MU_POP3_FISSET (pop3, MU_POP3_ACK))
+    return MU_ERR_NOENT;
+  *sptr = pop3->ackbuf;
+  return 0;
+}
+
+int
+mu_pop3_aget_response (mu_pop3_t pop3, char **sptr)
+{
+  char *p;
+  
+  if (pop3 == NULL)
+    return EINVAL;
+  if (!MU_POP3_FISSET (pop3, MU_POP3_ACK))
+    return MU_ERR_NOENT;
+  p = strdup (pop3->ackbuf);
+  if (!p)
+    return ENOMEM;
+  *sptr = p;
+  return 0;
+}
+
+int
+mu_pop3_get_response (mu_pop3_t pop3, char *buf, size_t len, size_t *plen)
+{
+  size_t size;
+  
+  if (pop3 == NULL)
+    return EINVAL;
+  if (!MU_POP3_FISSET (pop3, MU_POP3_ACK))
+    return MU_ERR_NOENT;
+  
+  if (buf)
+    size = mu_cpystr (buf, pop3->ackbuf, len);
+  if (plen)
+    *plen = size;
+  return 0;
 }

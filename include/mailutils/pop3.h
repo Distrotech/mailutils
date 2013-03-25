@@ -55,7 +55,7 @@ int  mu_pop3_apop (mu_pop3_t pop3, const char *name, const char *digest);
 
 int  mu_pop3_stls (mu_pop3_t pop3);
 
-/* It is the responsability of the caller to call mu_iterator_destroy() when
+/* It is the responsibility of the caller to call mu_iterator_destroy() when
    done with the iterator.  The items returned by the iterator are of type
    "const char *", no processing is done on the item except the removal of
    the trailing newline.  */
@@ -82,7 +82,7 @@ int  mu_pop3_pass (mu_pop3_t pop3, const char *pass);
 
 int  mu_pop3_quit (mu_pop3_t pop3);
 
-/* A stream is returned with the multi-line answer.  It is the responsability
+/* A stream is returned with the multi-line answer.  It is the responsibility
    of the caller to call mu_stream_destroy() to dipose of the stream.  */
 int  mu_pop3_retr (mu_pop3_t pop3, unsigned int mesgno,
 		   mu_stream_t *pstream);
@@ -91,12 +91,12 @@ int  mu_pop3_rset (mu_pop3_t pop3);
 
 int  mu_pop3_stat (mu_pop3_t pop3, size_t *count, mu_off_t *octets);
 
-/* A stream is returned with the multi-line answer.  It is the responsability
+/* A stream is returned with the multi-line answer.  It is the responsibility
    of the caller to call mu_stream_destroy() to dipose of the stream.  */
 int  mu_pop3_top (mu_pop3_t pop3, unsigned int mesgno,
 		  unsigned int lines, mu_stream_t *pstream);
 
-/* The uidl is malloc'ed and returned in puidl; it is the responsability of
+/* The uidl is malloc'ed and returned in puidl; it is the responsibility of
    the caller to free() the uild when done.  */
 int  mu_pop3_uidl (mu_pop3_t pop3, unsigned int mesgno, char **puidl);
 
@@ -116,7 +116,11 @@ int mu_pop3_user (mu_pop3_t pop3, const char *user);
    the message could be retrieved, but it is up to the caller to do the
    parsing.  */
 int  mu_pop3_response (mu_pop3_t pop3, size_t *nread);
-
+const char *mu_pop3_strresp (mu_pop3_t pop3);
+int mu_pop3_sget_response (mu_pop3_t pop3, const char **sptr);
+int mu_pop3_aget_response (mu_pop3_t pop3, char **sptr);
+int mu_pop3_get_response (mu_pop3_t pop3, char *buf, size_t len, size_t *plen);
+  
 int  mu_pop3_writeline (mu_pop3_t pop3, const char *format, ...)
                                   MU_PRINTFLIKE(2,3);
 
