@@ -534,7 +534,7 @@ _mu_ldap_search (LDAP *ld, const char *filter_pat, const char *key,
 
   env[0] = "user";
   env[1] = key;
-  env[3] = NULL;
+  env[2] = NULL;
 
   ws.ws_env = env;
   if (mu_wordsplit (filter_pat, &ws,
