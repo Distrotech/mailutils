@@ -112,6 +112,7 @@ mu_smtp_auth (mu_smtp_t smtp)
   if (smtp->state != MU_SMTP_MAIL)
     return MU_ERR_SEQ;
 
+#if defined(WITH_GSASL)
   /* Obtain missing authentication credentials either from the
      URL (when supplied) or from the user ticket file, or by
      asking the user, if anything else fails.
@@ -126,10 +127,11 @@ mu_smtp_auth (mu_smtp_t smtp)
   _mu_smtp_fixup_params (smtp);
   if (!smtp->param[MU_SMTP_PARAM_USERNAME] && !smtp->secret)
     return MU_ERR_AUTH_NO_CRED;
-#if defined(WITH_GSASL)
   return _mu_smtp_gsasl_auth (smtp);
 #else
-  /* FIXME: Provide support for some basic authentication methods */
+  /* FIXME: Provide support for some basic authentication methods.
+     Once done, make sure _mu_smtp_fixup_params is called for this
+     branc as well (though see the fixme above). */
   return ENOSYS;
 #endif
 }

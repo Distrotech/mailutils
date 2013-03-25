@@ -134,6 +134,16 @@ smtp_mailer_add_auth_mech (struct _smtp_mailer *smtp_mailer, const char *str)
     }
 }
 
+/* FIXME: So far, ESMTP AUTH support is available only if MU is compiled
+   with GNU SASL. Should this change, the define below must be changed
+   as well. See also smtp_auth.c.
+ */
+#ifdef WITH_GSASL
+# define DFLNOAUTH 0
+#else
+# define DFLNOAUTH 1
+#endif
+
 static int
 smtp_open (mu_mailer_t mailer, int flags)
 {
@@ -144,7 +154,7 @@ smtp_open (mu_mailer_t mailer, int flags)
   char **parmv = NULL;
   int tls = 0;
   int nostarttls = 0;
-  int noauth = 0;
+  int noauth = DFLNOAUTH;
 
   rc = mu_url_sget_scheme (mailer->url, &scheme);
   if (rc == 0) 
