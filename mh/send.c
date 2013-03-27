@@ -352,24 +352,22 @@ read_mts_profile ()
   rc = mu_property_sget_value (mts_profile, "localdomain", &p);
   if (rc == 0)
     {
-      char *newdomain;
-
-      newdomain = mu_alloc (strlen (hostname) + 1 + strlen (p) + 1);
-      strcpy (newdomain, hostname);
-      strcat (newdomain, ".");
-      strcat (newdomain, p);
-      rc = mu_set_user_email_domain (newdomain);
-      free (newdomain);
-      if (rc)
-	{
-	  mu_error (_("cannot set user mail domain: %s"), mu_strerror (rc));
-	  exit (1);
-	}
+      hostname = mu_realloc (hostname, strlen (hostname) + 1 + strlen (p) + 1);
+      strcat (hostname, ".");
+      strcat (hostname, p);
     }
   else if (rc != MU_ERR_NOENT)
     {
       mu_diag_funcall (MU_DIAG_ERROR, "mu_profile_sget_value",
 		       "localdomain", rc);
+      exit (1);
+    }
+
+  rc = mu_set_user_email_domain (hostname);
+  free (hostname);
+  if (rc)
+    {
+      mu_error (_("cannot set user mail domain: %s"), mu_strerror (rc));
       exit (1);
     }
   
