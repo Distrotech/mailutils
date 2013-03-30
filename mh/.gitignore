@@ -23,6 +23,7 @@ mhn
 mhseq
 mhparam
 mhpath
+msgchk
 pick
 pick-gram.c
 pick-gram.h
