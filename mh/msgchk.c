@@ -295,14 +295,26 @@ checkmail (const char *username, int personal)
       if (notify & NOTIFY_MAIL)
 	{
 	  mu_off_t mbsiz = 0;
+	  int newmail = 0;
 	  
 	  rc = mu_mailbox_message_unseen (mbox, &recent);
-	  if (rc)
+	  switch (rc)
 	    {
+	    case 0:
+	      newmail = 1;
+	      break;
+	      
+	    case MU_ERR_NOENT:
+	      newmail = 0;
+	      break;
+
+	    default:
 	      if (rc != ENOSYS && rc != MU_ERR_INFO_UNAVAILABLE)
 		mu_diag_funcall (MU_DIAG_ERROR, "mu_mailbox_messages_unseen",
 				 mu_url_to_string (url), rc);
 	      rc = mu_mailbox_messages_recent (mbox, &recent);
+	      if (rc == 0)
+		newmail = recent > 0;
 	    }
 
 	  if (rc)
@@ -329,11 +341,11 @@ checkmail (const char *username, int personal)
 	  else
 	    {
 	      if (personal)
-		mu_printf (recent ? _("You have new mail waiting") :
-			            _("You have old mail waiting"));
+		mu_printf (newmail ? _("You have new mail waiting") :
+			             _("You have old mail waiting"));
 	      else
-		mu_printf (recent ? _("%s has new mail waiting") :
-			            _("%s has old mail waiting"), username);
+		mu_printf (newmail ? _("%s has new mail waiting") :
+			             _("%s has old mail waiting"), username);
 	    }
 
 	  if (date_option)
