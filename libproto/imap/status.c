@@ -39,7 +39,7 @@ struct mu_kwd _mu_imap_status_name_table[] = {
   { "RECENT",      MU_IMAP_STAT_RECENT_COUNT  },
   { "UIDNEXT",     MU_IMAP_STAT_UIDNEXT       },
   { "UIDVALIDITY", MU_IMAP_STAT_UIDVALIDITY   },
-  { "UNSEEN",      MU_IMAP_STAT_FIRST_UNSEEN  },
+  /*  { "UNSEEN",      MU_IMAP_STAT_NUM_UNSEEN  }, */
   { NULL }
 };
 

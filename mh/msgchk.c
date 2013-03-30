@@ -18,6 +18,7 @@
 #include "mailutils/kwd.h"
 #include "mailutils/folder.h"
 #include "mailutils/auth.h"
+#include "mailutils/datetime.h"
 #include <pwd.h>
 
 static char doc[] = N_("GNU MH msgchk")"\v"
@@ -295,11 +296,20 @@ checkmail (const char *username, int personal)
 	{
 	  mu_off_t mbsiz = 0;
 	  
-	  rc = mu_mailbox_messages_recent (mbox, &recent);
+	  rc = mu_mailbox_message_unseen (mbox, &recent);
 	  if (rc)
 	    {
-	      mu_diag_funcall (MU_DIAG_ERROR, "mu_mailbox_messages_recent",
-			       mu_url_to_string (url), rc);
+	      if (rc != ENOSYS && rc != MU_ERR_INFO_UNAVAILABLE)
+		mu_diag_funcall (MU_DIAG_ERROR, "mu_mailbox_messages_unseen",
+				 mu_url_to_string (url), rc);
+	      rc = mu_mailbox_messages_recent (mbox, &recent);
+	    }
+
+	  if (rc)
+	    {
+	      if (rc != ENOSYS && rc != MU_ERR_INFO_UNAVAILABLE)
+		mu_diag_funcall (MU_DIAG_ERROR, "mu_mailbox_messages_recent",
+				 mu_url_to_string (url), rc);
 
 	      mu_mailbox_get_size (mbox, &mbsiz);
 	      if (personal)
@@ -327,7 +337,14 @@ checkmail (const char *username, int personal)
 	    }
 
 	  if (date_option)
-	    /*FIXME*/;
+	    {
+	      time_t t;
+
+	      if (mu_mailbox_access_time (mbox, &t) == 0)
+		mu_c_streamftime (mu_strout,
+				  _("; last read on %a, %d %b %Y %H:%M:%S %z"),
+				  localtime (&t), NULL);
+	    }
 	      
 	  mu_printf ("\n");
 	}

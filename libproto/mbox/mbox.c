@@ -1436,6 +1436,20 @@ mbox_expunge0 (mu_mailbox_t mailbox, int remove_deleted)
   return status;
 }
 
+static int
+mbox_get_atime (mu_mailbox_t mailbox, time_t *return_time)
+{
+  mbox_data_t mud = mailbox->data;
+  struct stat st;
+  
+  if (mud == NULL)
+    return EINVAL;
+  if (stat (mud->name, &st))
+    return errno;
+  *return_time = st.st_atime;
+  return 0;
+}
+
 
 /* Allocate the mbox_data_t struct(concrete mailbox), but don't do any
    parsing on the name or even test for existence.  However we do strip any
@@ -1498,6 +1512,8 @@ _mailbox_mbox_init (mu_mailbox_t mailbox)
 
   mailbox->_get_size = mbox_get_size;
 
+  mailbox->_get_atime = mbox_get_atime;
+  
   /* Set our properties.  */
   {
     mu_property_t property = NULL;

@@ -143,6 +143,9 @@ int mu_imap_session_state_str (int state, const char **pstr);
 
 int mu_imap_tag (mu_imap_t imap, const char **pseq);
 
+int mu_imap_search (mu_imap_t imap, int uid, const char *expr,
+		    mu_msgset_t *msgset);
+  
 
 #define MU_IMAP_STAT_DEFINED_FLAGS   0x01
 #define MU_IMAP_STAT_PERMANENT_FLAGS 0x02

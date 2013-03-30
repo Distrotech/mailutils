@@ -55,6 +55,7 @@ libmu_imap_la_SOURCES = \
  resplist.c\
  response.c\
  resproc.c\
+ search.c\
  select.c\
  state.c\
  status.c\

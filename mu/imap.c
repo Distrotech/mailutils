@@ -1122,6 +1122,35 @@ com_copy (int argc, char **argv)
 }
 
 static int
+com_search (int argc, char **argv)
+{
+  mu_msgset_t mset;
+  size_t count;
+  int rc;
+  
+  rc = mu_imap_search (imap, uid_mode, argv[1], &mset);
+  if (rc)
+    {
+      report_failure ("search", rc);
+      return 0;
+    }
+	
+  rc = mu_msgset_count (mset, &count);
+  if (rc == EINVAL || count == 0)
+    {
+      mu_printf (_("no matches"));
+      return 0;
+    }
+  mu_printf ("%lu matches:", (unsigned long) count);
+  mu_msgset_print (mu_strout, mset);
+  mu_printf ("\n");
+  mu_msgset_free (mset);
+  
+  return 0;
+}
+
+
+static int
 print_list_item (void *item, void *data)
 {
   struct mu_list_response *resp = item;
@@ -1293,6 +1322,10 @@ struct mutool_command imap_comtab[] = {
     com_uid,
     N_("[on|off]"),
     N_("control UID mode") },
+  { "search",       2, 2, CMD_COALESCE_EXTRA_ARGS,
+    com_search,
+    N_("args..."),
+    N_("search the mailbox") },
   { "quit",         1, 1, 0,
     com_logout,
     NULL,

@@ -20,7 +20,7 @@
 #define _MAILUTILS_MAILBOX_H
 
 #include <sys/types.h>
-
+#include <time.h>
 #include <mailutils/types.h>
 
 #ifdef __cplusplus
@@ -56,6 +56,7 @@ extern int  mu_mailbox_get_folder      (mu_mailbox_t, mu_folder_t *);
 extern int  mu_mailbox_set_folder      (mu_mailbox_t, mu_folder_t);
 extern int  mu_mailbox_uidvalidity     (mu_mailbox_t, unsigned long *);
 extern int  mu_mailbox_uidnext         (mu_mailbox_t, size_t *);
+extern int  mu_mailbox_access_time (mu_mailbox_t mbox, time_t *return_time);
 
 /* Messages.  */
 extern int  mu_mailbox_get_message     (mu_mailbox_t, size_t msgno,

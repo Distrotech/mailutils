@@ -20,6 +20,7 @@
 # define _MAILUTILS_SYS_MAILBOX_H
 
 # include <sys/types.h>
+# include <time.h>
 # include <stdio.h>
 
 # include <mailutils/monitor.h>
@@ -76,6 +77,7 @@ struct _mu_mailbox
 
   int  (*_translate) (mu_mailbox_t, int cmd, size_t, size_t *);
   int  (*_copy) (mu_mailbox_t, mu_msgset_t, const char *, int);
+  int  (*_get_atime) (mu_mailbox_t, time_t *);
 };
 
 # ifdef __cplusplus

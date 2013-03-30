@@ -918,3 +918,12 @@ mu_mailbox_translate (mu_mailbox_t mbox, int cmd, size_t from, size_t *to)
   return rc;
 }
 
+int
+mu_mailbox_access_time (mu_mailbox_t mbox, time_t *return_time)
+{
+  _MBOX_CHECK_Q (mbox, _get_atime);
+  if (!return_time)
+    return MU_ERR_OUT_PTR_NULL;
+  return mbox->_get_atime (mbox, return_time);
+}
+

@@ -1004,7 +1004,7 @@ _fetch_fold (void *item, void *data)
 
 	if (!mt->name)
 	  {
-	    mu_debug (MU_DEBCAT_MAILER, MU_DEBUG_TRACE9,
+	    mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_TRACE9,
 		      ("ignoring unknown FETCH item '%s'", kw));
 	    env->state = resp_skip;
 	    return 0;
@@ -1112,7 +1112,7 @@ _mu_imap_parse_fetch_response (mu_list_t input, mu_list_t *result_list)
   status = mu_list_create (&result);
   if (status)
     {
-      mu_debug (MU_DEBCAT_MAILER, MU_DEBUG_ERROR,
+      mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR,
 		("mu_list_create: %s", mu_strerror (status)));
       return 1;
     }

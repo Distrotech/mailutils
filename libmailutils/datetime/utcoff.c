@@ -20,13 +20,10 @@
 #endif
 #include <time.h>
 
-/* Convert time 0 at UTC to our localtime, that tells us the offset
-   of our current timezone from UTC. */
+/* Returns the offset of our timezone from UTC, in seconds. */
 int
 mu_utc_offset (void)
 {
-  time_t t = 0;
-  struct tm *tm = gmtime (&t);
-
-  return - mktime (tm);
+  tzset ();
+  return - timezone;
 }

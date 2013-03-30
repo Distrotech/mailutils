@@ -812,7 +812,7 @@ _imap_messages_count (mu_mailbox_t mbox, size_t *pcount)
     return MU_ERR_INFO_UNAVAILABLE;
   return 0;
 }
-  
+
 static int
 _imap_messages_recent (mu_mailbox_t mbox, size_t *pcount)
 {
@@ -820,7 +820,20 @@ _imap_messages_recent (mu_mailbox_t mbox, size_t *pcount)
   if (imbx->stats.flags & MU_IMAP_STAT_RECENT_COUNT)
     *pcount = imbx->stats.recent_count;
   else
-    return MU_ERR_INFO_UNAVAILABLE;
+    {
+      int rc;
+      mu_folder_t folder = mbox->folder;
+      mu_imap_t imap = folder->data;
+      mu_msgset_t msgset;
+  
+      rc = mu_imap_search (imap, 0, "RECENT", &msgset);
+      if (rc)
+	return rc;
+
+      rc = mu_msgset_count (msgset, pcount);
+      mu_msgset_free (msgset);
+      return rc;
+    }
   return 0;
 }
 
@@ -840,9 +853,36 @@ _imap_message_unseen (mu_mailbox_t mbox, size_t *pn)
 {
   struct _mu_imap_mailbox *imbx = mbox->data;
   if (imbx->stats.flags & MU_IMAP_STAT_FIRST_UNSEEN)
-    *pn = imbx->stats.uidnext;
+    *pn = imbx->stats.first_unseen;
   else
-    return MU_ERR_INFO_UNAVAILABLE;
+    {
+      int rc;
+      mu_folder_t folder = mbox->folder;
+      mu_imap_t imap = folder->data;
+      mu_msgset_t msgset;
+      mu_list_t list;
+  
+      rc = mu_imap_search (imap, 0, "UNSEEN", &msgset);
+      if (rc)
+	return rc;
+
+      if (mu_msgset_is_empty (msgset))
+	{
+	  mu_msgset_free (msgset);
+	  return MU_ERR_NOENT;
+	}
+
+      rc = mu_msgset_get_list (msgset, &list);
+      if (rc == 0)
+	{
+	  struct mu_msgrange r;
+	  rc = mu_list_head (list, (void **) &r);
+	  if (rc == 0)
+	    *pn = r.msg_beg;
+	}
+      mu_msgset_free (msgset);
+      return rc;
+    }
   return 0;
 }
 
