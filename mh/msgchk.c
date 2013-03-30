@@ -57,7 +57,7 @@ struct mh_option mh_option[] = {
   { NULL }
 };
 
-int date_option;
+int date_option = 1;
 int apop_option;
 char *remote_host;
 char *remote_user;
