@@ -1288,7 +1288,9 @@ _amd_update_message (struct _amd_data *amd, struct _amd_message *mhm,
     flg = mu_message_is_modified (mhm->message);
   else if (mhm->attr_flags & MU_ATTRIBUTE_MODIFIED)
     flg = MU_MSG_ATTRIBUTE_MODIFIED;
-
+  else
+    return 0;
+  
   if (!flg)
     return 0;
 
