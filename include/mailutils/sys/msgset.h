@@ -20,6 +20,7 @@
 
 #define _MU_MSGSET_AGGREGATED 0x10
 #define _MU_MSGSET_USERFLAG_MASK 0x0f
+#define _MU_MSGSET_MODE(c) ((c) & _MU_MSGSET_USERFLAG_MASK)
 
 struct _mu_msgset
 {

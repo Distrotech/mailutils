@@ -44,7 +44,7 @@ mu_msgset_add (mu_msgset_t a, mu_msgset_t b)
     return EINVAL;
   if (!b)
     return 0;
-  closure.mode = b->flags;
+  closure.mode = _MU_MSGSET_MODE (b->flags);
   closure.dest = a;
   return mu_list_foreach (b->list, add_range, &closure);
 }

@@ -45,7 +45,6 @@ sed '/^$/d' Mail/inbox/.mh_sequences
 [0],
 [Mail/inbox/1
 Mail/inbox/4
-test: 2 3 5 
 cur: 1
 ])
 

@@ -54,7 +54,7 @@ mu_msgset_create (mu_msgset_t *pres, mu_mailbox_t mbox, int flags)
   mu_list_set_destroy_item (msgset->list, mu_list_free_item);
   mu_list_set_comparator (msgset->list, compare_msgnum);
   msgset->mbox = mbox;
-  msgset->flags = flags & _MU_MSGSET_USERFLAG_MASK;
+  msgset->flags = _MU_MSGSET_MODE (flags);
   *pres = msgset;
   return 0;
 }

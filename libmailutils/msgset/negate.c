@@ -40,7 +40,7 @@ _invert_range (void *item, void *data)
     {
       rc = mu_msgset_add_range (clos->nset,
 				clos->next_num, range->msg_beg - 1,
-				clos->nset->flags);
+				_MU_MSGSET_MODE (clos->nset->flags));
       if (rc)
 	return rc;
     }
@@ -68,7 +68,7 @@ mu_msgset_negate (mu_msgset_t msgset, mu_msgset_t *pnset)
   rc = mu_mailbox_messages_count (msgset->mbox, &total);
   if (rc)
     return rc;
-  if (msgset->flags == MU_MSGSET_UID)
+  if (_MU_MSGSET_MODE (msgset->flags))
     {
       rc = mu_mailbox_translate (msgset->mbox,
 				 MU_MAILBOX_MSGNO_TO_UID,
@@ -76,7 +76,8 @@ mu_msgset_negate (mu_msgset_t msgset, mu_msgset_t *pnset)
       if (rc)
 	return rc;
     }
-  rc = mu_msgset_create (&clos.nset, msgset->mbox, msgset->flags);
+  rc = mu_msgset_create (&clos.nset, msgset->mbox,
+			 _MU_MSGSET_MODE (msgset->flags));
   if (rc)
     return rc;
   clos.next_num = 1;
@@ -85,7 +86,7 @@ mu_msgset_negate (mu_msgset_t msgset, mu_msgset_t *pnset)
     {
       if (clos.next_num < total)
 	rc = mu_msgset_add_range (clos.nset, clos.next_num, total,
-				  clos.nset->flags);
+				  _MU_MSGSET_MODE (clos.nset->flags));
     }
   
   if (rc)

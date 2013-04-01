@@ -27,14 +27,14 @@ int
 _mu_msgset_translate_pair (mu_msgset_t mset, int mode,
 			   size_t *pbeg, size_t *pend)
 {
-  if (mode != mset->flags && mset->mbox)
+  if (mode != _MU_MSGSET_MODE (mset->flags) && mset->mbox)
     {
       int cmd, rc;
       size_t n;
       size_t beg = *pbeg;
       size_t end = *pend;
       
-      switch (mset->flags)
+      switch (_MU_MSGSET_MODE (mset->flags))
 	{
 	case MU_MSGSET_NUM:
 	  cmd = MU_MAILBOX_UID_TO_MSGNO;

@@ -37,11 +37,11 @@ call_action (struct action_closure *clos, size_t i)
   size_t n;
   int cmd;
   
-  if (clos->msgset->flags != (clos->flags & MU_MSGSET_MODE_MASK))
+  if (_MU_MSGSET_MODE (clos->msgset->flags) != _MU_MSGSET_MODE (clos->flags))
     {
       int rc;
 
-      switch (clos->flags & MU_MSGSET_MODE_MASK)
+      switch (_MU_MSGSET_MODE (clos->flags))
 	{
 	case MU_MSGSET_NUM:
 	  cmd = MU_MAILBOX_UID_TO_MSGNO;

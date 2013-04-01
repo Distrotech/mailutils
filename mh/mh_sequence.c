@@ -67,6 +67,7 @@ struct format_closure
 {
   mu_stream_t stream;
   mu_mailbox_t mailbox;
+  int delim;
 };
 
 static int
@@ -87,8 +88,10 @@ format_sequence (void *item, void *data)
     }
   else
     beg = r->msg_beg;
+  if (clos->delim)
+    mu_stream_write (clos->stream, " ", 1, NULL);
   if (r->msg_beg == r->msg_end)
-    rc = mu_stream_printf (clos->stream, " %lu", (unsigned long) beg);
+    rc = mu_stream_printf (clos->stream, "%lu", (unsigned long) beg);
   else
     {
       if (clos->mailbox)
@@ -102,14 +105,15 @@ format_sequence (void *item, void *data)
       else
 	end = r->msg_end;
       if (beg + 1 == end)
-	rc = mu_stream_printf (clos->stream, " %lu %lu",
+	rc = mu_stream_printf (clos->stream, "%lu %lu",
 			       (unsigned long) beg,
 			       (unsigned long) end);
       else
-	rc = mu_stream_printf (clos->stream, " %lu-%lu",
+	rc = mu_stream_printf (clos->stream, "%lu-%lu",
 			       (unsigned long) beg,
 			       (unsigned long) end);
     }
+  clos->delim = 1;
   return rc;
 }
 
@@ -136,6 +140,7 @@ save_sequence (mu_mailbox_t mbox, const char *name, mu_msgset_t mset,
 	}
       
       clos.mailbox = mset->mbox;
+      clos.delim = 0;
       rc = mu_list_foreach (list, format_sequence, &clos);
       if (rc)
 	{
@@ -184,3 +189,66 @@ mh_seq_delete (mu_mailbox_t mbox, const char *name,
   return 0;
 }
 
+struct privseq_closure
+{
+  const char *mbox_dir;
+  mu_mhprop_iterator_t fun;
+  void *data;
+  char *namebuf;
+  size_t namelen;
+};
+  
+static int
+privseq_handler (const char *name, const char *value, void *data)
+{
+  struct privseq_closure *pclos = data;
+
+  if (strncmp (name, "atr-", 4) == 0)
+    {
+      char *p = strchr (name + 4, '-');
+      if (p && strcmp (p + 1, pclos->mbox_dir) == 0)
+	{
+	  size_t len = p - name - 4;
+	  if (pclos->namelen < len + 1)
+	    {
+	      pclos->namelen = len + 1;
+	      pclos->namebuf = mu_realloc (pclos->namebuf, pclos->namelen);
+	    }
+	  memcpy (pclos->namebuf, name + 4, len);
+	  pclos->namebuf[len] = 0;
+	}
+	return pclos->fun (pclos->namebuf, value, pclos->data);
+    }
+  return 0;
+}
+
+int
+mh_private_sequences_iterate (mu_mailbox_t mbox,
+			      mu_mhprop_iterator_t fp, void *data)
+{
+  int rc;
+  struct privseq_closure clos;
+  mu_url_t url;
+
+  rc = mu_mailbox_get_url (mbox, &url);
+  if (rc)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_mailbox_get_url", NULL, rc);
+      exit (1);
+    }
+  rc = mu_url_sget_path (url, &clos.mbox_dir);
+  if (rc)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_url_sget_path",
+		       mu_url_to_string (url), rc);
+      exit (1);
+    }
+  
+  clos.fun = fp;
+  clos.data = data;
+  clos.namebuf = NULL;
+  clos.namelen = 0;
+  rc = mu_mhprop_iterate (mu_mh_context, privseq_handler, &clos);
+  free (clos.namebuf);
+  return rc;
+}

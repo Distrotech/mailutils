@@ -266,6 +266,9 @@ void mh_global_sequences_drop (mu_mailbox_t mbox);
 
 void mh_global_save_state (void);
 
+int mh_private_sequences_iterate (mu_mailbox_t mbox, mu_mhprop_iterator_t fp,
+				  void *data);
+
 int mh_interactive_mode_p (void);
 int mh_getyn (const char *fmt, ...) MU_PRINTFLIKE(1,2);
 int mh_getyn_interactive (const char *fmt, ...) MU_PRINTFLIKE(1,2);

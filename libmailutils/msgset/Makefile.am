@@ -26,6 +26,7 @@ libmsgset_la_SOURCES = \
  count.c\
  getitr.c\
  getlist.c\
+ getmbox.c\
  foreachnum.c\
  foreachmsgno.c\
  foreachuid.c\

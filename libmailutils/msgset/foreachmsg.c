@@ -38,7 +38,7 @@ call_action (struct action_closure *clos, size_t i)
   mu_message_t msg = NULL;
   size_t n;
 
-  if (clos->msgset->flags == MU_MSGSET_UID)
+  if (_MU_MSGSET_MODE (clos->msgset->flags) == MU_MSGSET_UID)
     {
       rc = mu_mailbox_translate (clos->msgset->mbox, MU_MAILBOX_UID_TO_MSGNO,
 				 i, &n);

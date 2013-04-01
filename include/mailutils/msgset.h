@@ -43,6 +43,8 @@ int mu_msgset_create (mu_msgset_t *pmsgset, mu_mailbox_t mbox, int mode);
 int mu_msgset_get_list (mu_msgset_t msgset, mu_list_t *plist);
 int mu_msgset_get_iterator (mu_msgset_t msgset, mu_iterator_t *pitr);
 
+int mu_msgset_sget_mailbox (mu_msgset_t mset, mu_mailbox_t *mbox);
+  
 int mu_msgset_add_range (mu_msgset_t set, size_t beg, size_t end, int mode);
 int mu_msgset_sub_range (mu_msgset_t set, size_t beg, size_t end, int mode);
 int mu_msgset_add (mu_msgset_t a, mu_msgset_t b);

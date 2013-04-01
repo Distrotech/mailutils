@@ -58,6 +58,23 @@ rmm (size_t num, mu_message_t msg, void *data)
   return 0;
 }
 
+struct seq_closure
+{
+  mu_msgset_t rmset;
+  int rmflag;
+};
+
+static int
+rmseq (const char *name, const char *value, void *data)
+{
+  struct seq_closure *s = data;
+  mu_mailbox_t mbox;
+
+  mu_msgset_sget_mailbox (s->rmset, &mbox);
+  mh_seq_delete (mbox, name, s->rmset, s->rmflag);
+  return 0;
+}
+
 int
 main (int argc, char **argv)
 {
@@ -65,7 +82,8 @@ main (int argc, char **argv)
   mu_mailbox_t mbox;
   mu_msgset_t msgset;
   int status;
-
+  struct seq_closure clos;
+  
   /* Native Language Support */
   MU_APP_INIT_NLS ();
 
@@ -78,6 +96,12 @@ main (int argc, char **argv)
   mh_msgset_parse (&msgset, mbox, argc - index, argv + index, "cur");
 
   status = mu_msgset_foreach_message (msgset, rmm, NULL);
+  
+  clos.rmset = msgset;
+  clos.rmflag = 0;
+  mh_global_sequences_iterate (mbox, rmseq, &clos);
+  clos.rmflag = SEQ_PRIVATE;
+  mh_private_sequences_iterate (mbox, rmseq, &clos);
 
   mu_mailbox_expunge (mbox);
   mu_mailbox_close (mbox);
