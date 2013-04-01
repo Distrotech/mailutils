@@ -1021,7 +1021,8 @@ Comma-separated list of keywords, describing the spam checks that
 succeeded for this message.
 @end table
 
-@*Example:
+Example:
+
 @smallexample
 request "test-spamd";
 
@@ -1051,7 +1052,8 @@ keywords.  By default, comma is assumed as list separator.  This can be
 overridden by specifying the @code{:delim} tag, whose value is a
 string consisting of valid list delimiter characters.
 
-@*Example:
+Example:
+
 This test can be used in conjunction with the @code{spamd} test
 described above:
 
@@ -1101,7 +1103,8 @@ If no tagged argument is supplied, @code{:after} is assumed.
 Almost any date format is understood.  @xref{Date Input Formats}, for
 a detailed information on date formats.
 
-@*Example:
+Example:
+
 The test below succeeds if the date in @samp{X-Expire-Timestamp}
 header is more than 5 days older than the current date:
 
