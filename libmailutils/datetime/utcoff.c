@@ -20,10 +20,17 @@
 #endif
 #include <time.h>
 
+#define TMSEC(t) (((t)->tm_hour * 60 + (t)->tm_min) * 60 + (t)->tm_sec)
+
 /* Returns the offset of our timezone from UTC, in seconds. */
 int
 mu_utc_offset (void)
 {
-  tzset ();
-  return - timezone;
+  time_t t = time (NULL);
+  struct tm ltm = *localtime (&t);
+  struct tm gtm = *gmtime (&t);
+  int d = TMSEC (&ltm) - TMSEC (&gtm);
+  if (!(ltm.tm_year = gtm.tm_year && ltm.tm_mon == gtm.tm_mon))
+    d += 86400;
+  return d;
 }
