@@ -35,8 +35,8 @@ static struct argp_option options[] = {
    N_("use prepared draft") },
   {"draftfolder",   ARG_DRAFTFOLDER,   N_("FOLDER"), 0,
    N_("specify the folder for message drafts") },
-  {"draftmessage",  ARG_DRAFTMESSAGE,  NULL, 0,
-   N_("treat the arguments as a list of messages from the draftfolder") },
+  {"draftmessage",  ARG_DRAFTMESSAGE,  N_("MSG"), 0,
+   N_("use MSG from the draftfolder as a draft") },
   {"nodraftfolder", ARG_NODRAFTFOLDER, NULL, 0,
    N_("undo the effect of the last --draftfolder option") },
   {"filter",        ARG_FILTER,        N_("FILE"), 0,
@@ -99,9 +99,10 @@ struct mh_option mh_option[] = {
   { NULL }
 };
 
-static int use_draft;            /* Use the prepared draft */
 static const char *draftfolder;  /* Use this draft folder */
-static char *draftmessage = "cur";
+static int use_draftfolder = 1;
+static int use_draft;
+
 static int reformat_recipients;  /* --format option */
 static int forward_notice;       /* Forward the failure notice to the sender,
 				    --forward flag */
@@ -125,6 +126,9 @@ static int keep_files;           /* Keep draft files */
   if (watch)\
     watch_printf c;\
 } while (0)
+
+static int add_file (char *name);
+static void mesg_list_fixup (void);
 
 static error_t
 opt_handler (int key, char *arg, struct argp_state *state)
@@ -152,14 +156,16 @@ opt_handler (int key, char *arg, struct argp_state *state)
 	
     case ARG_DRAFTFOLDER:
       draftfolder = arg;
+      use_draftfolder = 1;
       break;
       
     case ARG_NODRAFTFOLDER:
       draftfolder = NULL;
+      use_draftfolder = 0;
       break;
       
     case ARG_DRAFTMESSAGE:
-      draftmessage = arg;
+      add_file (arg);
       break;
       
     case ARG_FILTER:
@@ -284,29 +290,57 @@ static mu_list_t mesg_list;
 static mu_property_t mts_profile;
 
 int
-check_file (char *name)
+add_file (char *name)
 {
   struct list_elt *elt;
-  mu_message_t msg;
-  char *file_name = mh_expand_name (draftfolder, name, 0);
-  
-  msg = mh_file_to_message (NULL, file_name);
-  if (!msg)
-    {
-      free (file_name);
-      return 1;
-    }
+
   if (!mesg_list && mu_list_create (&mesg_list))
     {
-      free (file_name);
       mu_error (_("cannot create message list"));
       return 1;
     }
+  
   elt = mu_alloc (sizeof *elt);
-  elt->file_name = file_name;
-  elt->msg = msg;
+  elt->file_name = name;
+  elt->msg = NULL;
   return mu_list_append (mesg_list, elt);
 }
+
+int
+checkdraft (const char *name)
+{
+  struct stat st;
+  
+  if (stat (name, &st))
+    {
+      mu_error (_("unable to stat draft file %s: %s"), name,
+		mu_strerror (errno));
+      return 1;
+    }
+  return 0;
+}
+
+int
+elt_fixup (void *item, void *data)
+{
+  struct list_elt *elt = item;
+  
+  elt->file_name = mh_expand_name (draftfolder, elt->file_name, 0);
+  if (checkdraft (elt->file_name))
+    exit (1);
+  elt->msg = mh_file_to_message (NULL, elt->file_name);
+  if (!elt->msg)
+    return 1;
+
+  return 0;
+}
+
+void
+mesg_list_fixup ()
+{
+  if (mesg_list && mu_list_foreach (mesg_list, elt_fixup, NULL))
+    exit (1);
+}  
 
 void
 read_mts_profile ()
@@ -741,11 +775,25 @@ _add_to_mesg_list (size_t num, mu_message_t msg, void *data)
   struct list_elt *elt;
   size_t uid;
   int rc;
+  char *file_name;
+  
+  if (!mesg_list && mu_list_create (&mesg_list))
+    {
+      mu_error (_("cannot create message list"));
+      return 1;
+    }
+
+  mu_message_get_uid (msg, &uid);
+  file_name = mu_make_file_name (path, mu_umaxtostr (0, uid));
+  if (!use_draft)
+    {
+      if (!mh_usedraft (file_name))
+	exit (0);
+    }
   
   elt = mu_alloc (sizeof *elt);
   elt->msg = msg;
-  mu_message_get_uid (msg, &uid);
-  elt->file_name = mu_make_file_name (path, mu_umaxtostr (0, uid));
+  elt->file_name = file_name;
   rc = mu_list_append (mesg_list, elt);
   if (rc)
     {
@@ -754,6 +802,57 @@ _add_to_mesg_list (size_t num, mu_message_t msg, void *data)
     }
   return 0;
 }
+
+static void
+addfolder (const char *folder, int argc, char **argv)
+{
+  mu_url_t url;
+  const char *path;
+  mu_msgset_t msgset;
+  
+  mu_mailbox_t mbox = mh_open_folder (folder, MU_STREAM_READ);
+  if (!mbox)
+    {
+      mu_error (_("cannot open folder %s: %s"), folder,
+		mu_strerror (errno));
+      exit (1);
+    }
+
+  mh_msgset_parse (&msgset, mbox, argc, argv, "cur");
+  if (!use_draft)
+    {
+      size_t count = 0;
+      mu_msgset_count (msgset, &count);
+      if (count > 1)
+	use_draft = 1;
+    }
+
+  mu_mailbox_get_url (mbox, &url);
+  mu_url_sget_path (url, &path);
+  mu_msgset_foreach_message (msgset, _add_to_mesg_list, (void*)path);
+      
+  mu_msgset_free (msgset);
+}
+
+/* Usage cases:
+ *
+ * 1. send
+ *   a) If Draft-Folder is set: ask whether to use "cur" message from that
+ *      folder as a draft;
+ *   b) If Draft-Folder is not set: ask whether to use $(Path)/draft;
+ * 2. send -draft
+ *   Use $(Path)/draft
+ * 3. send MSG
+ *   Use $(Path)/MSG
+ * 4. send -draftmessage MSG
+ *   Same as (3)
+ * 5. send -draftfolder DIR
+ *   Use "cur" from that folder
+ * 6. send -draftfolder DIR MSG
+ *   Use MSG from folder DIR
+ * 7. send -draftfolder DIR -draftmessage MSG
+ *   Same as 6.
+ */
 
 int
 main (int argc, char **argv)
@@ -768,61 +867,52 @@ main (int argc, char **argv)
   mh_argp_init ();
   mh_argp_parse (&argc, &argv, 0, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, &index);
+  argc -= index;
+  argv += index;
 
   mh_read_aliases ();
   /* Process the mtstailor file */
   read_mts_profile ();
  
-  argc -= index;
-  argv += index;
-
-  if (draftfolder)
+  if (!draftfolder)
     {
-      mu_msgset_t msgset;
-      mu_url_t url;
-      const char *path;
-      
-      mbox = mh_open_folder (draftfolder, MU_STREAM_RDWR|MU_STREAM_CREAT);
-      mh_msgset_parse (&msgset, mbox, argc, argv, draftmessage);
-      mu_mailbox_get_url (mbox, &url);
-      mu_url_sget_path (url, &path);
-      if ((rc = mu_list_create (&mesg_list)))
+      if (mu_list_is_empty (mesg_list) && argc == 0)
 	{
-	  mu_error (_("cannot create message list: %s"), mu_strerror (rc));
-	  exit (1);
+	  char *dfolder =
+	    (!use_draft && use_draftfolder) ?
+	       mh_global_profile_get ("Draft-Folder", NULL) : NULL;
+
+	  if (dfolder)
+	    addfolder (dfolder, 0, NULL);
+	  else
+	    {
+	      char *df = mh_expand_name (mu_folder_directory (), "draft", 0);
+	      if (checkdraft (df))
+		exit (1);
+	      if (!use_draft && !mh_usedraft (df))
+		exit (0);
+	      add_file (df);
+	      mesg_list_fixup ();
+	    }
 	}
-      mu_msgset_foreach_message (msgset, _add_to_mesg_list, (void*)path);
-      
-      mu_msgset_free (msgset);
+      else
+	{
+	  while (argc--)
+	    add_file (*argv++);
+	  mesg_list_fixup ();
+	}
     }
   else
     {
-      int i;
-      
-      if (argc == 0)
-	{
-	  char *xargv[2];
-	  struct stat st;
-	  
-	  xargv[0] = mh_draft_name ();
-
-	  if (stat (xargv[0], &st))
-	    {
-	      mu_diag_funcall (MU_DIAG_ERROR, "stat", xargv[0], errno);
-	      return 1;
-	    }
-
-	  if (!use_draft && !mh_usedraft (xargv[0]))
-	    exit (0);
-	  xargv[1] = NULL;
-	  argv = xargv;
-	  argc = 1;
-	}
-      for (i = 0; i < argc; i++)
-	if (check_file (argv[i]))
-	  return 1;
+      /* -draftfolder is supplied */
+      draftfolder = mh_expand_name (mu_folder_directory (),
+				    draftfolder, 0);
+      use_draft = 1;
+      mesg_list_fixup ();
+      if (mu_list_is_empty (mesg_list) || argc != 0)
+	addfolder (draftfolder, argc, argv);
     }
-
+  
   /* Detach from the console if required */
   if (background && daemon (0, 0) < 0)
     {
