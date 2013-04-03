@@ -351,7 +351,7 @@ incmbx (void *item, void *data)
       mh_audit_close (audit_fp);
       audit_fp = NULL;
     }
-  
+
   mu_mailbox_close (input);
   mu_mailbox_destroy (&input);
 
@@ -365,7 +365,9 @@ main (int argc, char **argv)
   int rc;
   int f_truncate = 0;
   int f_changecur = 0;
-
+  size_t lastseen;
+  char *unseen_seq;
+  
   /* Native Language Support */
   MU_APP_INIT_NLS ();
 
@@ -390,6 +392,7 @@ main (int argc, char **argv)
 		mu_strerror (errno));
       exit (1);
     }
+  lastseen = incdat.lastmsg + 1;
   
   /* Fixup options */
   if (!input_file_list)
@@ -403,12 +406,20 @@ main (int argc, char **argv)
     incmbx (NULL, &incdat);
   else
     mu_list_foreach (input_file_list, incmbx, &incdat);
-    
-  if (!changecur)
+
+  unseen_seq = mh_global_profile_get ("Unseen-Sequence", NULL);
+  if (unseen_seq)
     {
-      mu_property_t prop = mh_mailbox_get_property (incdat.output);
-      mu_property_invalidate (prop);
+      mu_msgset_t unseen;
+
+      mu_msgset_create (&unseen, NULL, MU_MSGSET_NUM);
+      mu_msgset_add_range (unseen, lastseen, incdat.lastmsg, MU_MSGSET_NUM);
+      mh_seq_add (incdat.output,
+		  unseen_seq,
+		  unseen, 0);
+      mu_msgset_free (unseen);
     }
+  
   mh_global_save_state ();
   
   mu_mailbox_close (incdat.output);
