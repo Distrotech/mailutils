@@ -98,7 +98,6 @@ mh_msgset_single_message (mu_msgset_t msgset)
     }
   return r->msg_beg == r->msg_end;
 }
-
 
 struct msgset_parser
 {
@@ -466,22 +465,42 @@ parse_range (struct msgset_parser *parser)
 	return 0;
       if (!validuid)
 	{
-	  size_t total, lastuid;
-	  msgset_last (parser->msgset->mbox, &total);
-	  mu_mailbox_translate (parser->msgset->mbox,
-				MU_MAILBOX_MSGNO_TO_UID,
-				total, &lastuid);
-	  if (start > lastuid)
+	  if (parser->sign)
 	    {
-	      if (!parser->sign)
-		emptyrange_abort (parser->argv[-1]);
-	      start = total;
+	      while (1)
+		{
+		  if (--start == 0)
+		    emptyrange_abort (parser->argv[-1]);
+		  if (mu_mailbox_translate (parser->msgset->mbox,
+					    MU_MAILBOX_UID_TO_MSGNO,
+					    start, &start) == 0)
+		    break;
+		}
 	    }
 	  else
 	    {
-	      if (parser->sign)
+	      size_t total, lastuid;
+	  
+	      msgset_last (parser->msgset->mbox, &total);
+	      mu_mailbox_translate (parser->msgset->mbox,
+				    MU_MAILBOX_MSGNO_TO_UID,
+				    total, &lastuid);
+	      if (start > lastuid)
 		emptyrange_abort (parser->argv[-1]);
-	      start = 1;
+	      else
+		while (1)
+		  {
+		    if (start == lastuid)
+		      {
+			start = total;
+			break;
+		      }
+		    ++start;
+		    if (mu_mailbox_translate (parser->msgset->mbox,
+					      MU_MAILBOX_UID_TO_MSGNO,
+					      start, &start) == 0)
+		      break;
+		  }
 	    }
 	}
       add_messages (parser, start, parser->number, parser->sign);
@@ -489,47 +508,92 @@ parse_range (struct msgset_parser *parser)
     }
   else if (*parser->curp == '-')
     {
-      size_t lastuid = 0;
       int validuid = parser->validuid;
       int rc;
       
       parser->curp++;
       if (parse_term (parser, 0) == PARSE_EOF)
 	return 0;
-      if (!parser->validuid)
-	{
-	  size_t total;
 
-	  msgset_last (parser->msgset->mbox, &total);
-	  mu_mailbox_translate (parser->msgset->mbox, MU_MAILBOX_MSGNO_TO_UID,
-				total, &lastuid);
-
-	  if (parser->number > lastuid)
-	    parser->number = total;
-	  else if (!validuid)
-	    emptyrange_abort (parser->argv[-1]);
-	}
-      if (!validuid)
+      /* If any of UIDs does not exist, try to find the nearest
+	 existing one: */
+      if (!validuid || !parser->validuid)
 	{
-	  if (!lastuid)
+	  size_t lastuid, num, maxnum;
+
+	  /* Order the limits */
+	  if (!parser->validuid)
+	    maxnum = parser->number;
+	  else
+	    mu_mailbox_translate (parser->msgset->mbox,
+				  MU_MAILBOX_MSGNO_TO_UID,
+				  parser->number, &maxnum);
+	  if (!validuid)
+	    num = start;
+	  else
+	    mu_mailbox_translate (parser->msgset->mbox,
+				  MU_MAILBOX_MSGNO_TO_UID,
+				  start, &num);
+
+	  if (num > maxnum)
 	    {
-	      size_t total;
-	      msgset_last (parser->msgset->mbox, &total);
-	      mu_mailbox_translate (parser->msgset->mbox,
-				    MU_MAILBOX_MSGNO_TO_UID,
-				    total, &lastuid);
+	      int v;
+	      size_t n;
+
+	      n = parser->number;
+	      v = parser->validuid;
+	      parser->number = start;
+	      parser->validuid = validuid;
+	      start = n;
+	      validuid = v;
 	    }
-	  if (start > lastuid && !parser->validuid)
-	    emptyrange_abort (parser->argv[-1]);
-	  start = 1;
+
+	  /* Adjust upper bound */
+	  msgset_last (parser->msgset->mbox, &num);
+	  mu_mailbox_translate (parser->msgset->mbox, MU_MAILBOX_MSGNO_TO_UID,
+				num, &lastuid);
+
+	  if (!parser->validuid && parser->number > lastuid)
+	    {
+	      parser->number = num;
+	      parser->validuid = 1;
+	    }
+
+	  /* Shift the bounds towards each other until they resolve to
+	     existing UIDs or clash */
+	  do
+	    {
+	      if (!validuid)
+		{
+		  ++start;
+		  if (start > lastuid)
+		    emptyrange_abort (parser->argv[-1]);
+		  rc = mu_mailbox_translate (parser->msgset->mbox,
+					     MU_MAILBOX_UID_TO_MSGNO,
+					     start, &start);
+		  if (rc == 0)
+		    validuid = 1;
+		}
+	      if (!parser->validuid)
+		{
+		  if (parser->number == 1)
+		    emptyrange_abort (parser->argv[-1]);
+		  --parser->number;
+		  rc = mu_mailbox_translate (parser->msgset->mbox,
+					     MU_MAILBOX_UID_TO_MSGNO,
+					     parser->number, &num);
+		  if (rc == 0)
+		    {
+		      lastuid = parser->number;
+		      parser->number = num;
+		      parser->validuid = 1;
+		    }
+		}
+	    }
+	  while (!validuid || !parser->validuid);
 	}
-      rc = mu_msgset_add_range (parser->msgset, start, parser->number,
-				MU_MSGSET_NUM);
-      if (rc)
-	{
-	  mu_diag_funcall (MU_DIAG_ERROR, "mu_msgset_add_range", NULL, rc);
-	  exit (1);
-	}
+      mu_msgset_add_range (parser->msgset, start, parser->number,
+			   MU_MSGSET_NUM);
     }
   else if (!parser->validuid)
     {

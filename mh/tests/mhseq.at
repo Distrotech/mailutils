@@ -406,5 +406,119 @@ mhseq last:2
 5
 ])
 
+MH_CHECK([mhseq: sparse increasing message range (left fixup in the middle)],
+[mhseq34],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
+mv Mail/inbox/5 Mail/inbox/20
+mv Mail/inbox/4 Mail/inbox/15
+mv Mail/inbox/3 Mail/inbox/8
+MUT_MBCHMOD(Mail/inbox, 700)
+mhseq 5-15
+],
+[0],
+[8
+15
+])
+
+MH_CHECK([mhseq: sparse increasing message range (right fixup in the middle)],
+[mhseq35],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
+mv Mail/inbox/5 Mail/inbox/20
+mv Mail/inbox/4 Mail/inbox/15
+mv Mail/inbox/3 Mail/inbox/8
+MUT_MBCHMOD(Mail/inbox, 700)
+mhseq 8-17
+],
+[0],
+[8
+15
+])
+
+MH_CHECK([mhseq: sparse increasing message range (both fixups in the middle)],
+[mhseq36],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
+mv Mail/inbox/5 Mail/inbox/20
+mv Mail/inbox/4 Mail/inbox/15
+mv Mail/inbox/3 Mail/inbox/8
+MUT_MBCHMOD(Mail/inbox, 700)
+mhseq 5-17
+],
+[0],
+[8
+15
+])
+
+MH_CHECK([mhseq: sparse decreasing message range (left fixup in the middle)],
+[mhseq37],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
+mv Mail/inbox/5 Mail/inbox/20
+mv Mail/inbox/4 Mail/inbox/15
+mv Mail/inbox/3 Mail/inbox/8
+MUT_MBCHMOD(Mail/inbox, 700)
+mhseq 15-5
+],
+[0],
+[8
+15
+])
+
+MH_CHECK([mhseq: sparse decreasing message range (right fixup in the middle)],
+[mhseq38],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
+mv Mail/inbox/5 Mail/inbox/20
+mv Mail/inbox/4 Mail/inbox/15
+mv Mail/inbox/3 Mail/inbox/8
+MUT_MBCHMOD(Mail/inbox, 700)
+mhseq 17-8
+],
+[0],
+[8
+15
+])
+
+MH_CHECK([mhseq: sparse decreasing message range (both fixups in the middle)],
+[mhseq39],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
+mv Mail/inbox/5 Mail/inbox/20
+mv Mail/inbox/4 Mail/inbox/15
+mv Mail/inbox/3 Mail/inbox/8
+MUT_MBCHMOD(Mail/inbox, 700)
+mhseq 17-5
+],
+[0],
+[8
+15
+])
+
+MH_CHECK([mhseq: sparse counted range (positive, fixup)],
+[mhseq40],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
+mv Mail/inbox/5 Mail/inbox/20
+mv Mail/inbox/4 Mail/inbox/15
+mv Mail/inbox/3 Mail/inbox/8
+MUT_MBCHMOD(Mail/inbox, 700)
+mhseq 3:2
+],
+[0],
+[8
+15
+])
+
+MH_CHECK([mhseq: sparse counted range (negative, fixup)],
+[mhseq41],[
+MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
+mv Mail/inbox/5 Mail/inbox/20
+mv Mail/inbox/4 Mail/inbox/15
+mv Mail/inbox/3 Mail/inbox/8
+MUT_MBCHMOD(Mail/inbox, 700)
+mhseq 17:-3
+],
+[0],
+[2
+8
+15
+])
+
+
 m4_popdef([MH_KEYWORDS])
 # End of mhseq.at
