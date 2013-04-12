@@ -459,7 +459,7 @@ action_print ()
     }
   else
     {
-      char *p = mh_expand_name (NULL, mh_current_folder (), 0);
+      char *p = mh_expand_name (NULL, mh_current_folder (), NAME_ANY);
       _scan (p, 1);
       free (p);
     }
@@ -854,7 +854,8 @@ fixup_private (const char *name, const char *value, void *data)
 int
 action_pack ()
 {
-  const char *folder_dir = mh_expand_name (NULL, mh_current_folder (), 0);
+  const char *folder_dir = mh_expand_name (NULL, mh_current_folder (), 
+                                           NAME_ANY);
   mu_mailbox_t mbox = mh_open_folder (mh_current_folder (), MU_STREAM_RDWR);
   struct pack_tab *pack_tab;
   size_t i, count, start;

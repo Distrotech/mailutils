@@ -108,7 +108,7 @@ main (int argc, char **argv)
 	return 1;
     }
   else
-    wh_env.draftfile = mh_expand_name (draftfolder, "draft", 0);
+    wh_env.draftfile = mh_expand_name (draftfolder, "draft", NAME_ANY);
   wh_env.draftfile = wh_env.file;
 
   return mh_whatnow (&wh_env, initial_edit);

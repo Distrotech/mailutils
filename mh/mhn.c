@@ -2978,7 +2978,7 @@ main (int argc, char **argv)
 	  return 1;
 	}
       input_file = mh_expand_name (mu_folder_directory (),
-				   argc == 1 ? argv[0] : "draft", 0);
+				   argc == 1 ? argv[0] : "draft", NAME_ANY);
       message = mh_file_to_message (NULL, input_file);
       if (!message)
 	return 1;

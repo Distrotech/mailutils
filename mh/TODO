@@ -42,6 +42,7 @@ State	Nice	Utility		Comments
 +	20	sortm
 +       20      prompter
 *       20      msgchk          --date functionality not implemented
++       20      show            next, prev not implemented
 
 Utilities In Alphabetical Order
 ===============================
@@ -64,6 +65,7 @@ repl
 rmf
 rmm
 send
+show
 sortm
 whatnow
 whom

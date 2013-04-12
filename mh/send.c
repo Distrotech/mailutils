@@ -325,7 +325,7 @@ elt_fixup (void *item, void *data)
 {
   struct list_elt *elt = item;
   
-  elt->file_name = mh_expand_name (draftfolder, elt->file_name, 0);
+  elt->file_name = mh_expand_name (draftfolder, elt->file_name, NAME_ANY);
   if (checkdraft (elt->file_name))
     exit (1);
   elt->msg = mh_file_to_message (NULL, elt->file_name);
@@ -357,7 +357,7 @@ read_mts_profile ()
     {
       mu_property_t local_profile;
 
-      name = mh_expand_name (MHLIBDIR, "mtstailor", 0);
+      name = mh_expand_name (MHLIBDIR, "mtstailor", NAME_ANY);
       mts_profile = mh_read_property_file (name, 1);
 
       name = mu_tilde_expansion ("~/.mtstailor", MU_HIERARCHY_DELIMITER, NULL);
@@ -886,7 +886,8 @@ main (int argc, char **argv)
 	    addfolder (dfolder, 0, NULL);
 	  else
 	    {
-	      char *df = mh_expand_name (mu_folder_directory (), "draft", 0);
+	      char *df = mh_expand_name (mu_folder_directory (), "draft", 
+	                                 NAME_ANY);
 	      if (checkdraft (df))
 		exit (1);
 	      if (!use_draft && !mh_usedraft (df))
@@ -906,7 +907,7 @@ main (int argc, char **argv)
     {
       /* -draftfolder is supplied */
       draftfolder = mh_expand_name (mu_folder_directory (),
-				    draftfolder, 0);
+				    draftfolder, NAME_ANY);
       use_draft = 1;
       mesg_list_fixup ();
       if (mu_list_is_empty (mesg_list) || argc != 0)

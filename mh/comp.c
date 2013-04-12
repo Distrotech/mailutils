@@ -126,7 +126,7 @@ opt_handler (int key, char *arg, struct argp_state *state)
       break;
       
     case ARG_FILE:
-      wh_env.file = mh_expand_name (NULL, arg, 0);
+      wh_env.file = mh_expand_name (NULL, arg, NAME_ANY);
       break;
 	
     case ARG_NODRAFTFOLDER:
@@ -218,7 +218,7 @@ main (int argc, char **argv)
     }
   else if (folder_set)
     {
-      wh_env.file = mh_expand_name (NULL, "draft", 0);
+      wh_env.file = mh_expand_name (NULL, "draft", NAME_ANY);
     }
   else
     {

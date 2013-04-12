@@ -196,7 +196,7 @@ main (int argc, char **argv)
       name = cur_folder_path;
     }
   else
-    name = mh_expand_name (NULL, folder_name, 0);
+    name = mh_expand_name (NULL, folder_name, NAME_ANY);
   if (recursive)
     status = recrmf (name);
   else

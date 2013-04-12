@@ -76,7 +76,7 @@ _mh_init_global_context ()
   p = getenv ("CONTEXT");
   if (!p)
     p = MH_CONTEXT_FILE;
-  ctx_name = mh_expand_name (NULL, p, 0);
+  ctx_name = mh_expand_name (NULL, p, NAME_ANY);
 
   mu_mh_context = mh_read_property_file (ctx_name, 0);
   

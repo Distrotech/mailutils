@@ -246,7 +246,7 @@ push_source (const char *name, int fail)
   char *filename;
   int ex = 0;
   
-  filename = mh_expand_name (NULL, name, 0);
+  filename = mh_expand_name (NULL, name, NAME_ANY);
   if (stat (filename, &st))
     {
       if (fail)

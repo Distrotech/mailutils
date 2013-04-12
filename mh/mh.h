@@ -306,9 +306,13 @@ size_t mh_msgset_first (mu_msgset_t msgset);
 size_t mh_msgset_first_uid (mu_msgset_t msgset);
 int mh_msgset_single_message (mu_msgset_t msgset);
 
+#define NAME_ANY    0
+#define NAME_FOLDER 1
+#define NAME_FILE   2
+char *mh_expand_name (const char *base, const char *name, int what);
+
 char *mh_get_dir (void);
 int mh_find_file (const char *name, char **resolved_name);
-char *mh_expand_name (const char *base, const char *name, int is_folder);
 void mh_quote (const char *in, char **out);
 void mh_expand_aliases (mu_message_t msg, mu_address_t *addr_to,
 			mu_address_t *addr_cc,

@@ -437,7 +437,7 @@ mh_open_folder (const char *folder, int flags)
   mu_mailbox_t mbox = NULL;
   char *name;
   
-  name = mh_expand_name (NULL, folder, 1);
+  name = mh_expand_name (NULL, folder, NAME_FOLDER);
   if ((flags & MU_STREAM_CREAT) && mh_check_folder (name, 1))
     exit (0);
     
@@ -482,7 +482,7 @@ mh_get_dir ()
 }
 
 char *
-mh_expand_name (const char *base, const char *name, int is_folder)
+mh_expand_name (const char *base, const char *name, int what)
 {
   char *p = NULL;
   char *namep = NULL;
@@ -495,11 +495,13 @@ mh_expand_name (const char *base, const char *name, int is_folder)
       char *cwd = mu_getcwd ();
       char *tmp = mh_safe_make_file_name (cwd, namep);
       free (cwd);
+      if (what == NAME_FILE)
+	return tmp;
       free (namep);
       namep = tmp;
     }
   
-  if (is_folder)
+  if (what == NAME_FOLDER)
     {
       if (memcmp (namep, "mh:/", 4) == 0)
 	return namep;
@@ -510,7 +512,17 @@ mh_expand_name (const char *base, const char *name, int is_folder)
                      namep);
     }
   else if (namep[0] != '/')
-    mu_asprintf (&p, "%s/%s", base ? base : mu_folder_directory (), namep);
+    {
+        if (what == NAME_FILE)
+	  {
+	    char *cwd = mu_getcwd ();
+	    p = mh_safe_make_file_name (cwd, namep);
+	    free (cwd);
+	  }
+	else
+	  p = mh_safe_make_file_name (base ? base : mu_folder_directory (),
+				      namep);
+    }
   else
     return namep;
   
@@ -543,7 +555,7 @@ mh_find_file (const char *name, char **resolved_name)
       return errno;
     }
   
-  s = mh_expand_name (NULL, name, 0);
+  s = mh_expand_name (NULL, name, NAME_ANY);
   if (access (s, R_OK) == 0)
     {
       *resolved_name = s;
@@ -554,7 +566,8 @@ mh_find_file (const char *name, char **resolved_name)
 		    _("cannot access %s: %s"), s, mu_strerror (errno));
   free (s);
 
-  s = mh_expand_name (mh_global_profile_get ("mhetcdir", MHLIBDIR), name, 0);
+  s = mh_expand_name (mh_global_profile_get ("mhetcdir", MHLIBDIR), name,
+                      NAME_ANY);
   if (access (s, R_OK) == 0)
     {
       *resolved_name = s;
@@ -690,7 +703,7 @@ mh_file_to_message (const char *folder, const char *file_name)
   
   if (folder)
     {
-      tmp_name = mh_expand_name (folder, file_name, 0);
+      tmp_name = mh_expand_name (folder, file_name, NAME_ANY);
       msg = _file_to_message (tmp_name);
       free (tmp_name);
     }
@@ -850,14 +863,6 @@ mh_annotate (mu_message_t msg, const char *field, const char *text, int date)
     mu_header_set_value (hdr, field, text, 0);
   mu_message_get_attribute (msg, &attr);
   mu_attribute_set_modified (attr);
-}
-
-char *
-mh_draft_name ()
-{
-  return mh_expand_name (mh_global_profile_get ("Draft-Folder",
-						mu_folder_directory ()),
-			 "draft", 0);
 }
 
 char *

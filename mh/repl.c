@@ -418,14 +418,14 @@ main (int argc, char **argv)
     }
   
   if (build_only)
-    wh_env.file = mh_expand_name (draftfolder, "reply", 0);
+    wh_env.file = mh_expand_name (draftfolder, "reply", NAME_ANY);
   else if (draftfolder)
     {
       if (mh_draft_message (draftfolder, draftmessage, &wh_env.file))
 	return 1;
     }
   else
-    wh_env.file = mh_expand_name (draftfolder, "draft", 0);
+    wh_env.file = mh_expand_name (draftfolder, "draft", NAME_ANY);
   wh_env.draftfile = wh_env.file;
 
   make_draft (mbox, DISP_REPLACE, &wh_env);

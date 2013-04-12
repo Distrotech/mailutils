@@ -42,6 +42,7 @@ bin_PROGRAMS = \
  rmf\
  rmm\
  scan\
+ show\
  send\
  sortm\
  whatnow\

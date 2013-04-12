@@ -505,7 +505,7 @@ main (int argc, char **argv)
     }
   
   if (build_only || !draftfolder)
-    wh_env.file = mh_expand_name (NULL, "draft", 0);
+    wh_env.file = mh_expand_name (NULL, "draft", NAME_ANY);
   else if (draftfolder)
     {
       if (mh_draft_message (draftfolder, draftmessage, &wh_env.file))

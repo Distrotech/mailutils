@@ -118,6 +118,6 @@ main (int argc, char **argv)
 					  mu_folder_directory ());
 
   
-  return mh_whom (mh_expand_name (draft_folder, name, 0), check_recipients) ?
-          1 : 0;
+  return mh_whom (mh_expand_name (draft_folder, name, NAME_ANY), 
+                  check_recipients) ? 1 : 0;
 }

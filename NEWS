@@ -1,4 +1,4 @@
-GNU mailutils NEWS -- history of user-visible changes. 2013-03-21
+GNU mailutils NEWS -- history of user-visible changes. 2013-04-12
 Copyright (C) 2002-2013 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
@@ -175,6 +175,10 @@ input folders of type IMAP or IMAPS. A sample usage is:
  inc -truncate -moveto Read -file imaps://imap.gmail.com
 
 Note the `-truncate' option. 
+
+** MH show and msgchk
+
+Implemented two new programs: show and msgchk.
 
 ** MH: multiple sources
 
