@@ -20,9 +20,10 @@ bin_SCRIPTS = mailutils-config
 
 CLEANFILES=mailutils-config
 mailutils-config: $(top_srcdir)/mu/mailutils-config.in
-	$(AM_V_GEN)muname=`echo mu | \
-              sed -e 's/$(EXEEXT)$$//;$(transform);s/$$/$(EXEEXT)/' | \
-              sed 'N;N;N;s,\n, ,g'`; \
+	$(AM_V_GEN)muname=mu; \
+	      test -n "$(transform)" && \
+	        muname=`echo $$muname | \
+                     sed -e 's/$(EXEEXT)$$//;$(transform);s/$$/$(EXEEXT)/'`; \
 	sed 's/MUNAME/'$$muname'/g' $(top_srcdir)/mu/mailutils-config.in > mailutils-config
 
 
