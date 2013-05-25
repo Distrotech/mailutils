@@ -361,10 +361,14 @@ mu_ip_tcp_accept (mu_ip_server_t srv, void *call_data)
   if (connfd == -1)
     {
       int ec = errno;
-      if (ec == EINTR)
-	{
-	  if (srv->f_intr && srv->f_intr (srv->data, call_data))
-	    mu_ip_server_shutdown (srv);
+      switch (ec) 
+        {
+          case EINTR:
+            if (srv->f_intr && srv->f_intr (srv->data, call_data))
+	      break;
+            /* fall through */
+          case EAGAIN:
+            ec = 0;
 	}
       return ec;
     }
@@ -493,7 +497,11 @@ mu_ip_server_accept (mu_ip_server_t srv, void *call_data)
     }
   
   if (rc)
-    mu_ip_server_shutdown (srv);
+    {
+      mu_error (_("socket error on \"%s\": %s"), IDENTSTR (srv),
+                mu_strerror (rc));
+      mu_ip_server_shutdown (srv);
+    }
   return rc;
 }
 

@@ -436,16 +436,17 @@ imap4d_tokbuf_decrlf (struct imap4d_tokbuf *tok, size_t off, size_t *plen)
   size_t len = *plen;
   char *p, *end = buf + len;
 
-  for (p = end - 1; p > buf; p--)
+  for (p = buf; p < end; )
     {
-      if (*p == '\n' && p > buf && p[-1] == '\r')
+      if (*p == '\r' && p + 1 < end && p[1] == '\n')
 	{
-	  memmove (p - 1, p, end - p);
-	  end--;
-	  p--;
+	  p++;
+	  len--;
 	}
+      else
+	*buf++ = *p++;
     }
-  *plen = end - buf;
+  *plen = len;
 }	  
 
 static void
