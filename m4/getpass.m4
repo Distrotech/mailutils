@@ -1,1 +1,0 @@
-../gnulib/m4/getpass.m4

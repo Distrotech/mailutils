@@ -1,1 +1,0 @@
-../gnulib/lib/obstack.c

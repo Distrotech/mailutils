@@ -103,9 +103,9 @@ am__aclocal_m4_deps = $(top_srcdir)/doc/imprimatur/imprimatur.m4 \
 	$(top_srcdir)/m4/include_next.m4 \
 	$(top_srcdir)/m4/intlmacosx.m4 $(top_srcdir)/m4/intmax_t.m4 \
 	$(top_srcdir)/m4/inttostr.m4 $(top_srcdir)/m4/inttypes_h.m4 \
-	$(top_srcdir)/m4/iswblank.m4 $(top_srcdir)/m4/largefile.m4 \
-	$(top_srcdir)/m4/lib-ld.m4 $(top_srcdir)/m4/lib-link.m4 \
-	$(top_srcdir)/m4/lib-prefix.m4 $(top_srcdir)/m4/libtool.m4 \
+	$(top_srcdir)/m4/iswblank.m4 $(top_srcdir)/m4/lib-ld.m4 \
+	$(top_srcdir)/m4/lib-link.m4 $(top_srcdir)/m4/lib-prefix.m4 \
+	$(top_srcdir)/m4/libtool.m4 \
 	$(top_srcdir)/m4/libunistring-base.m4 \
 	$(top_srcdir)/m4/localcharset.m4 $(top_srcdir)/m4/locale-fr.m4 \
 	$(top_srcdir)/m4/locale-ja.m4 $(top_srcdir)/m4/locale-zh.m4 \

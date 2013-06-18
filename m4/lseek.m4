@@ -1,1 +1,0 @@
-../gnulib/m4/lseek.m4

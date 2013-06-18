@@ -1,1 +1,0 @@
-../gnulib/lib/fstat.c

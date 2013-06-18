@@ -1,1 +1,0 @@
-../gnulib/lib/exitfail.h

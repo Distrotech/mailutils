@@ -1,1 +1,0 @@
-../gnulib/lib/stdio-impl.h

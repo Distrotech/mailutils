@@ -1,1 +1,0 @@
-../gnulib/lib/fseek.c

@@ -1,1 +1,0 @@
-../gnulib/lib/strtok_r.c
