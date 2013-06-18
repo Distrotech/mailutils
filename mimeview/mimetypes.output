@@ -1,0 +1,534 @@
+Terminals unused in grammar
+
+   BOGUS
+
+
+State 8 conflicts: 1 shift/reduce
+State 11 conflicts: 1 shift/reduce
+State 31 conflicts: 5 shift/reduce
+State 35 conflicts: 5 shift/reduce
+State 36 conflicts: 5 shift/reduce
+
+
+Grammar
+
+    0 $accept: input $end
+
+    1 input: list
+
+    2 list: rule_line
+    3     | list eol rule_line
+
+    4 rule_line: /* empty */
+    5          | type rule
+    6          | error eol
+
+    7 eol: EOL
+    8    | eol EOL
+
+    9 type: IDENT '/' IDENT
+
+   10 rule: stmt
+   11     | rule rule
+   12     | rule ',' rule
+   13     | rule '+' rule
+
+   14 stmt: '!' stmt
+   15     | '(' rule ')'
+   16     | string
+   17     | function
+
+   18 string: STRING
+   19       | IDENT
+
+   20 function: IDENT_L arglist ')'
+
+   21 arglist: arg
+   22        | arglist ',' arg
+
+   23 arg: string
+
+
+Terminals, with rules where they appear
+
+$end (0) 0
+'!' (33) 14
+'(' (40) 15
+')' (41) 15 20
+'+' (43) 13
+',' (44) 12 22
+'/' (47) 9
+error (256) 6
+IDENT (258) 9 19
+IDENT_L (259) 20
+STRING (260) 18
+EOL (261) 7 8
+BOGUS (262)
+
+
+Nonterminals, with rules where they appear
+
+$accept (14)
+    on left: 0
+input (15)
+    on left: 1, on right: 0
+list (16)
+    on left: 2 3, on right: 1 3
+rule_line (17)
+    on left: 4 5 6, on right: 2 3
+eol (18)
+    on left: 7 8, on right: 3 6 8
+type (19)
+    on left: 9, on right: 5
+rule (20)
+    on left: 10 11 12 13, on right: 5 11 12 13 15
+stmt (21)
+    on left: 14 15 16 17, on right: 10 14
+string (22)
+    on left: 18 19, on right: 16 23
+function (23)
+    on left: 20, on right: 17
+arglist (24)
+    on left: 21 22, on right: 20 22
+arg (25)
+    on left: 23, on right: 21 22
+
+
+State 0
+
+    0 $accept: . input $end
+
+    error  shift, and go to state 1
+    IDENT  shift, and go to state 2
+
+    $end  reduce using rule 4 (rule_line)
+    EOL   reduce using rule 4 (rule_line)
+
+    input      go to state 3
+    list       go to state 4
+    rule_line  go to state 5
+    type       go to state 6
+
+
+State 1
+
+    6 rule_line: error . eol
+
+    EOL  shift, and go to state 7
+
+    eol  go to state 8
+
+
+State 2
+
+    9 type: IDENT . '/' IDENT
+
+    '/'  shift, and go to state 9
+
+
+State 3
+
+    0 $accept: input . $end
+
+    $end  shift, and go to state 10
+
+
+State 4
+
+    1 input: list .
+    3 list: list . eol rule_line
+
+    EOL  shift, and go to state 7
+
+    $default  reduce using rule 1 (input)
+
+    eol  go to state 11
+
+
+State 5
+
+    2 list: rule_line .
+
+    $default  reduce using rule 2 (list)
+
+
+State 6
+
+    5 rule_line: type . rule
+
+    IDENT    shift, and go to state 12
+    IDENT_L  shift, and go to state 13
+    STRING   shift, and go to state 14
+    '!'      shift, and go to state 15
+    '('      shift, and go to state 16
+
+    rule      go to state 17
+    stmt      go to state 18
+    string    go to state 19
+    function  go to state 20
+
+
+State 7
+
+    7 eol: EOL .
+
+    $default  reduce using rule 7 (eol)
+
+
+State 8
+
+    6 rule_line: error eol .
+    8 eol: eol . EOL
+
+    EOL  shift, and go to state 21
+
+    EOL       [reduce using rule 6 (rule_line)]
+    $default  reduce using rule 6 (rule_line)
+
+
+State 9
+
+    9 type: IDENT '/' . IDENT
+
+    IDENT  shift, and go to state 22
+
+
+State 10
+
+    0 $accept: input $end .
+
+    $default  accept
+
+
+State 11
+
+    3 list: list eol . rule_line
+    8 eol: eol . EOL
+
+    error  shift, and go to state 1
+    IDENT  shift, and go to state 2
+    EOL    shift, and go to state 21
+
+    $end  reduce using rule 4 (rule_line)
+    EOL   [reduce using rule 4 (rule_line)]
+
+    rule_line  go to state 23
+    type       go to state 6
+
+
+State 12
+
+   19 string: IDENT .
+
+    $default  reduce using rule 19 (string)
+
+
+State 13
+
+   20 function: IDENT_L . arglist ')'
+
+    IDENT   shift, and go to state 12
+    STRING  shift, and go to state 14
+
+    string   go to state 24
+    arglist  go to state 25
+    arg      go to state 26
+
+
+State 14
+
+   18 string: STRING .
+
+    $default  reduce using rule 18 (string)
+
+
+State 15
+
+   14 stmt: '!' . stmt
+
+    IDENT    shift, and go to state 12
+    IDENT_L  shift, and go to state 13
+    STRING   shift, and go to state 14
+    '!'      shift, and go to state 15
+    '('      shift, and go to state 16
+
+    stmt      go to state 27
+    string    go to state 19
+    function  go to state 20
+
+
+State 16
+
+   15 stmt: '(' . rule ')'
+
+    IDENT    shift, and go to state 12
+    IDENT_L  shift, and go to state 13
+    STRING   shift, and go to state 14
+    '!'      shift, and go to state 15
+    '('      shift, and go to state 16
+
+    rule      go to state 28
+    stmt      go to state 18
+    string    go to state 19
+    function  go to state 20
+
+
+State 17
+
+    5 rule_line: type rule .
+   11 rule: rule . rule
+   12     | rule . ',' rule
+   13     | rule . '+' rule
+
+    IDENT    shift, and go to state 12
+    IDENT_L  shift, and go to state 13
+    STRING   shift, and go to state 14
+    ','      shift, and go to state 29
+    '+'      shift, and go to state 30
+    '!'      shift, and go to state 15
+    '('      shift, and go to state 16
+
+    $default  reduce using rule 5 (rule_line)
+
+    rule      go to state 31
+    stmt      go to state 18
+    string    go to state 19
+    function  go to state 20
+
+
+State 18
+
+   10 rule: stmt .
+
+    $default  reduce using rule 10 (rule)
+
+
+State 19
+
+   16 stmt: string .
+
+    $default  reduce using rule 16 (stmt)
+
+
+State 20
+
+   17 stmt: function .
+
+    $default  reduce using rule 17 (stmt)
+
+
+State 21
+
+    8 eol: eol EOL .
+
+    $default  reduce using rule 8 (eol)
+
+
+State 22
+
+    9 type: IDENT '/' IDENT .
+
+    $default  reduce using rule 9 (type)
+
+
+State 23
+
+    3 list: list eol rule_line .
+
+    $default  reduce using rule 3 (list)
+
+
+State 24
+
+   23 arg: string .
+
+    $default  reduce using rule 23 (arg)
+
+
+State 25
+
+   20 function: IDENT_L arglist . ')'
+   22 arglist: arglist . ',' arg
+
+    ','  shift, and go to state 32
+    ')'  shift, and go to state 33
+
+
+State 26
+
+   21 arglist: arg .
+
+    $default  reduce using rule 21 (arglist)
+
+
+State 27
+
+   14 stmt: '!' stmt .
+
+    $default  reduce using rule 14 (stmt)
+
+
+State 28
+
+   11 rule: rule . rule
+   12     | rule . ',' rule
+   13     | rule . '+' rule
+   15 stmt: '(' rule . ')'
+
+    IDENT    shift, and go to state 12
+    IDENT_L  shift, and go to state 13
+    STRING   shift, and go to state 14
+    ','      shift, and go to state 29
+    '+'      shift, and go to state 30
+    '!'      shift, and go to state 15
+    '('      shift, and go to state 16
+    ')'      shift, and go to state 34
+
+    rule      go to state 31
+    stmt      go to state 18
+    string    go to state 19
+    function  go to state 20
+
+
+State 29
+
+   12 rule: rule ',' . rule
+
+    IDENT    shift, and go to state 12
+    IDENT_L  shift, and go to state 13
+    STRING   shift, and go to state 14
+    '!'      shift, and go to state 15
+    '('      shift, and go to state 16
+
+    rule      go to state 35
+    stmt      go to state 18
+    string    go to state 19
+    function  go to state 20
+
+
+State 30
+
+   13 rule: rule '+' . rule
+
+    IDENT    shift, and go to state 12
+    IDENT_L  shift, and go to state 13
+    STRING   shift, and go to state 14
+    '!'      shift, and go to state 15
+    '('      shift, and go to state 16
+
+    rule      go to state 36
+    stmt      go to state 18
+    string    go to state 19
+    function  go to state 20
+
+
+State 31
+
+   11 rule: rule . rule
+   11     | rule rule .
+   12     | rule . ',' rule
+   13     | rule . '+' rule
+
+    IDENT    shift, and go to state 12
+    IDENT_L  shift, and go to state 13
+    STRING   shift, and go to state 14
+    '+'      shift, and go to state 30
+    '!'      shift, and go to state 15
+    '('      shift, and go to state 16
+
+    IDENT     [reduce using rule 11 (rule)]
+    IDENT_L   [reduce using rule 11 (rule)]
+    STRING    [reduce using rule 11 (rule)]
+    '!'       [reduce using rule 11 (rule)]
+    '('       [reduce using rule 11 (rule)]
+    $default  reduce using rule 11 (rule)
+
+    rule      go to state 31
+    stmt      go to state 18
+    string    go to state 19
+    function  go to state 20
+
+
+State 32
+
+   22 arglist: arglist ',' . arg
+
+    IDENT   shift, and go to state 12
+    STRING  shift, and go to state 14
+
+    string  go to state 24
+    arg     go to state 37
+
+
+State 33
+
+   20 function: IDENT_L arglist ')' .
+
+    $default  reduce using rule 20 (function)
+
+
+State 34
+
+   15 stmt: '(' rule ')' .
+
+    $default  reduce using rule 15 (stmt)
+
+
+State 35
+
+   11 rule: rule . rule
+   12     | rule . ',' rule
+   12     | rule ',' rule .
+   13     | rule . '+' rule
+
+    IDENT    shift, and go to state 12
+    IDENT_L  shift, and go to state 13
+    STRING   shift, and go to state 14
+    '+'      shift, and go to state 30
+    '!'      shift, and go to state 15
+    '('      shift, and go to state 16
+
+    IDENT     [reduce using rule 12 (rule)]
+    IDENT_L   [reduce using rule 12 (rule)]
+    STRING    [reduce using rule 12 (rule)]
+    '!'       [reduce using rule 12 (rule)]
+    '('       [reduce using rule 12 (rule)]
+    $default  reduce using rule 12 (rule)
+
+    rule      go to state 31
+    stmt      go to state 18
+    string    go to state 19
+    function  go to state 20
+
+
+State 36
+
+   11 rule: rule . rule
+   12     | rule . ',' rule
+   13     | rule . '+' rule
+   13     | rule '+' rule .
+
+    IDENT    shift, and go to state 12
+    IDENT_L  shift, and go to state 13
+    STRING   shift, and go to state 14
+    '!'      shift, and go to state 15
+    '('      shift, and go to state 16
+
+    IDENT     [reduce using rule 13 (rule)]
+    IDENT_L   [reduce using rule 13 (rule)]
+    STRING    [reduce using rule 13 (rule)]
+    '!'       [reduce using rule 13 (rule)]
+    '('       [reduce using rule 13 (rule)]
+    $default  reduce using rule 13 (rule)
+
+    rule      go to state 31
+    stmt      go to state 18
+    string    go to state 19
+    function  go to state 20
+
+
+State 37
+
+   22 arglist: arglist ',' arg .
+
+    $default  reduce using rule 22 (arglist)

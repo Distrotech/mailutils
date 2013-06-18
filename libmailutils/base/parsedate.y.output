@@ -1,0 +1,780 @@
+Terminals unused in grammar
+
+   T_ID
+
+
+State 4 conflicts: 1 shift/reduce
+State 13 conflicts: 9 shift/reduce
+State 22 conflicts: 8 shift/reduce
+State 37 conflicts: 2 shift/reduce
+State 54 conflicts: 1 shift/reduce
+State 65 conflicts: 1 shift/reduce
+
+
+Grammar
+
+    0 $accept: input $end
+
+    1 input: spec
+
+    2 spec: /* empty */
+    3     | spec item
+    4     | spec rel
+    5     | spec T_UNUMBER
+
+    6 item: time
+    7     | zone
+    8     | date
+    9     | day
+
+   10 time: T_UNUMBER T_MERIDIAN
+   11     | T_UNUMBER ':' T_UNUMBER o_merid
+   12     | T_UNUMBER ':' T_UNUMBER T_SNUMBER
+   13     | T_UNUMBER ':' T_UNUMBER ':' T_UNUMBER o_merid
+   14     | T_UNUMBER ':' T_UNUMBER ':' T_UNUMBER T_SNUMBER
+
+   15 zone: T_ZONE
+   16     | T_DAYZONE
+   17     | T_ZONE T_DST
+
+   18 day: T_DAY
+   19    | T_DAY ','
+   20    | T_UNUMBER T_DAY
+
+   21 date: T_UNUMBER '/' T_UNUMBER
+   22     | T_UNUMBER '/' T_UNUMBER '/' T_UNUMBER
+   23     | T_UNUMBER T_SNUMBER T_SNUMBER
+   24     | T_UNUMBER T_MONTH T_SNUMBER
+   25     | T_MONTH T_UNUMBER
+   26     | T_MONTH T_UNUMBER ',' T_UNUMBER
+   27     | T_UNUMBER T_MONTH
+   28     | T_UNUMBER T_MONTH T_UNUMBER
+   29     | T_DAY T_MONTH T_UNUMBER time T_UNUMBER
+
+   30 rel: relspec T_AGO
+   31    | relspec
+
+   32 relspec: relunit
+   33        | relspec relunit
+
+   34 relunit: T_UNUMBER T_YEAR_UNIT
+   35        | T_SNUMBER T_YEAR_UNIT
+   36        | T_YEAR_UNIT
+   37        | T_UNUMBER T_MONTH_UNIT
+   38        | T_SNUMBER T_MONTH_UNIT
+   39        | T_MONTH_UNIT
+   40        | T_UNUMBER T_DAY_UNIT
+   41        | T_SNUMBER T_DAY_UNIT
+   42        | T_DAY_UNIT
+   43        | T_UNUMBER T_HOUR_UNIT
+   44        | T_SNUMBER T_HOUR_UNIT
+   45        | T_HOUR_UNIT
+   46        | T_UNUMBER T_MINUTE_UNIT
+   47        | T_SNUMBER T_MINUTE_UNIT
+   48        | T_MINUTE_UNIT
+   49        | T_UNUMBER T_SEC_UNIT
+   50        | T_SNUMBER T_SEC_UNIT
+   51        | T_SEC_UNIT
+
+   52 o_merid: /* empty */
+   53        | T_MERIDIAN
+
+
+Terminals, with rules where they appear
+
+$end (0) 0
+',' (44) 19 26
+'/' (47) 21 22
+':' (58) 11 12 13 14
+error (256)
+T_AGO (258) 30
+T_DST (259) 17
+T_ID (260)
+T_DAY (261) 18 19 20 29
+T_DAY_UNIT (262) 40 41 42
+T_DAYZONE (263) 16
+T_HOUR_UNIT (264) 43 44 45
+T_MINUTE_UNIT (265) 46 47 48
+T_MONTH (266) 24 25 26 27 28 29
+T_MONTH_UNIT (267) 37 38 39
+T_SEC_UNIT (268) 49 50 51
+T_SNUMBER (269) 12 14 23 24 35 38 41 44 47 50
+T_UNUMBER (270) 5 10 11 12 13 14 20 21 22 23 24 25 26 27 28 29 34 37
+    40 43 46 49
+T_YEAR_UNIT (271) 34 35 36
+T_ZONE (272) 15 17
+T_MERIDIAN (273) 10 53
+
+
+Nonterminals, with rules where they appear
+
+$accept (22)
+    on left: 0
+input (23)
+    on left: 1, on right: 0
+spec (24)
+    on left: 2 3 4 5, on right: 1 3 4 5
+item (25)
+    on left: 6 7 8 9, on right: 3
+time (26)
+    on left: 10 11 12 13 14, on right: 6 29
+zone (27)
+    on left: 15 16 17, on right: 7
+day (28)
+    on left: 18 19 20, on right: 9
+date (29)
+    on left: 21 22 23 24 25 26 27 28 29, on right: 8
+rel (30)
+    on left: 30 31, on right: 4
+relspec (31)
+    on left: 32 33, on right: 30 31 33
+relunit (32)
+    on left: 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51,
+    on right: 32 33
+o_merid (33)
+    on left: 52 53, on right: 11 13
+
+
+State 0
+
+    0 $accept: . input $end
+
+    $default  reduce using rule 2 (spec)
+
+    input  go to state 1
+    spec   go to state 2
+
+
+State 1
+
+    0 $accept: input . $end
+
+    $end  shift, and go to state 3
+
+
+State 2
+
+    1 input: spec .
+    3 spec: spec . item
+    4     | spec . rel
+    5     | spec . T_UNUMBER
+
+    T_DAY          shift, and go to state 4
+    T_DAY_UNIT     shift, and go to state 5
+    T_DAYZONE      shift, and go to state 6
+    T_HOUR_UNIT    shift, and go to state 7
+    T_MINUTE_UNIT  shift, and go to state 8
+    T_MONTH        shift, and go to state 9
+    T_MONTH_UNIT   shift, and go to state 10
+    T_SEC_UNIT     shift, and go to state 11
+    T_SNUMBER      shift, and go to state 12
+    T_UNUMBER      shift, and go to state 13
+    T_YEAR_UNIT    shift, and go to state 14
+    T_ZONE         shift, and go to state 15
+
+    $default  reduce using rule 1 (input)
+
+    item     go to state 16
+    time     go to state 17
+    zone     go to state 18
+    day      go to state 19
+    date     go to state 20
+    rel      go to state 21
+    relspec  go to state 22
+    relunit  go to state 23
+
+
+State 3
+
+    0 $accept: input $end .
+
+    $default  accept
+
+
+State 4
+
+   18 day: T_DAY .
+   19    | T_DAY . ','
+   29 date: T_DAY . T_MONTH T_UNUMBER time T_UNUMBER
+
+    T_MONTH  shift, and go to state 24
+    ','      shift, and go to state 25
+
+    T_MONTH   [reduce using rule 18 (day)]
+    $default  reduce using rule 18 (day)
+
+
+State 5
+
+   42 relunit: T_DAY_UNIT .
+
+    $default  reduce using rule 42 (relunit)
+
+
+State 6
+
+   16 zone: T_DAYZONE .
+
+    $default  reduce using rule 16 (zone)
+
+
+State 7
+
+   45 relunit: T_HOUR_UNIT .
+
+    $default  reduce using rule 45 (relunit)
+
+
+State 8
+
+   48 relunit: T_MINUTE_UNIT .
+
+    $default  reduce using rule 48 (relunit)
+
+
+State 9
+
+   25 date: T_MONTH . T_UNUMBER
+   26     | T_MONTH . T_UNUMBER ',' T_UNUMBER
+
+    T_UNUMBER  shift, and go to state 26
+
+
+State 10
+
+   39 relunit: T_MONTH_UNIT .
+
+    $default  reduce using rule 39 (relunit)
+
+
+State 11
+
+   51 relunit: T_SEC_UNIT .
+
+    $default  reduce using rule 51 (relunit)
+
+
+State 12
+
+   35 relunit: T_SNUMBER . T_YEAR_UNIT
+   38        | T_SNUMBER . T_MONTH_UNIT
+   41        | T_SNUMBER . T_DAY_UNIT
+   44        | T_SNUMBER . T_HOUR_UNIT
+   47        | T_SNUMBER . T_MINUTE_UNIT
+   50        | T_SNUMBER . T_SEC_UNIT
+
+    T_DAY_UNIT     shift, and go to state 27
+    T_HOUR_UNIT    shift, and go to state 28
+    T_MINUTE_UNIT  shift, and go to state 29
+    T_MONTH_UNIT   shift, and go to state 30
+    T_SEC_UNIT     shift, and go to state 31
+    T_YEAR_UNIT    shift, and go to state 32
+
+
+State 13
+
+    5 spec: spec T_UNUMBER .
+   10 time: T_UNUMBER . T_MERIDIAN
+   11     | T_UNUMBER . ':' T_UNUMBER o_merid
+   12     | T_UNUMBER . ':' T_UNUMBER T_SNUMBER
+   13     | T_UNUMBER . ':' T_UNUMBER ':' T_UNUMBER o_merid
+   14     | T_UNUMBER . ':' T_UNUMBER ':' T_UNUMBER T_SNUMBER
+   20 day: T_UNUMBER . T_DAY
+   21 date: T_UNUMBER . '/' T_UNUMBER
+   22     | T_UNUMBER . '/' T_UNUMBER '/' T_UNUMBER
+   23     | T_UNUMBER . T_SNUMBER T_SNUMBER
+   24     | T_UNUMBER . T_MONTH T_SNUMBER
+   27     | T_UNUMBER . T_MONTH
+   28     | T_UNUMBER . T_MONTH T_UNUMBER
+   34 relunit: T_UNUMBER . T_YEAR_UNIT
+   37        | T_UNUMBER . T_MONTH_UNIT
+   40        | T_UNUMBER . T_DAY_UNIT
+   43        | T_UNUMBER . T_HOUR_UNIT
+   46        | T_UNUMBER . T_MINUTE_UNIT
+   49        | T_UNUMBER . T_SEC_UNIT
+
+    T_DAY          shift, and go to state 33
+    T_DAY_UNIT     shift, and go to state 34
+    T_HOUR_UNIT    shift, and go to state 35
+    T_MINUTE_UNIT  shift, and go to state 36
+    T_MONTH        shift, and go to state 37
+    T_MONTH_UNIT   shift, and go to state 38
+    T_SEC_UNIT     shift, and go to state 39
+    T_SNUMBER      shift, and go to state 40
+    T_YEAR_UNIT    shift, and go to state 41
+    T_MERIDIAN     shift, and go to state 42
+    ':'            shift, and go to state 43
+    '/'            shift, and go to state 44
+
+    T_DAY          [reduce using rule 5 (spec)]
+    T_DAY_UNIT     [reduce using rule 5 (spec)]
+    T_HOUR_UNIT    [reduce using rule 5 (spec)]
+    T_MINUTE_UNIT  [reduce using rule 5 (spec)]
+    T_MONTH        [reduce using rule 5 (spec)]
+    T_MONTH_UNIT   [reduce using rule 5 (spec)]
+    T_SEC_UNIT     [reduce using rule 5 (spec)]
+    T_SNUMBER      [reduce using rule 5 (spec)]
+    T_YEAR_UNIT    [reduce using rule 5 (spec)]
+    $default       reduce using rule 5 (spec)
+
+
+State 14
+
+   36 relunit: T_YEAR_UNIT .
+
+    $default  reduce using rule 36 (relunit)
+
+
+State 15
+
+   15 zone: T_ZONE .
+   17     | T_ZONE . T_DST
+
+    T_DST  shift, and go to state 45
+
+    $default  reduce using rule 15 (zone)
+
+
+State 16
+
+    3 spec: spec item .
+
+    $default  reduce using rule 3 (spec)
+
+
+State 17
+
+    6 item: time .
+
+    $default  reduce using rule 6 (item)
+
+
+State 18
+
+    7 item: zone .
+
+    $default  reduce using rule 7 (item)
+
+
+State 19
+
+    9 item: day .
+
+    $default  reduce using rule 9 (item)
+
+
+State 20
+
+    8 item: date .
+
+    $default  reduce using rule 8 (item)
+
+
+State 21
+
+    4 spec: spec rel .
+
+    $default  reduce using rule 4 (spec)
+
+
+State 22
+
+   30 rel: relspec . T_AGO
+   31    | relspec .
+   33 relspec: relspec . relunit
+
+    T_AGO          shift, and go to state 46
+    T_DAY_UNIT     shift, and go to state 5
+    T_HOUR_UNIT    shift, and go to state 7
+    T_MINUTE_UNIT  shift, and go to state 8
+    T_MONTH_UNIT   shift, and go to state 10
+    T_SEC_UNIT     shift, and go to state 11
+    T_SNUMBER      shift, and go to state 12
+    T_UNUMBER      shift, and go to state 47
+    T_YEAR_UNIT    shift, and go to state 14
+
+    T_DAY_UNIT     [reduce using rule 31 (rel)]
+    T_HOUR_UNIT    [reduce using rule 31 (rel)]
+    T_MINUTE_UNIT  [reduce using rule 31 (rel)]
+    T_MONTH_UNIT   [reduce using rule 31 (rel)]
+    T_SEC_UNIT     [reduce using rule 31 (rel)]
+    T_SNUMBER      [reduce using rule 31 (rel)]
+    T_UNUMBER      [reduce using rule 31 (rel)]
+    T_YEAR_UNIT    [reduce using rule 31 (rel)]
+    $default       reduce using rule 31 (rel)
+
+    relunit  go to state 48
+
+
+State 23
+
+   32 relspec: relunit .
+
+    $default  reduce using rule 32 (relspec)
+
+
+State 24
+
+   29 date: T_DAY T_MONTH . T_UNUMBER time T_UNUMBER
+
+    T_UNUMBER  shift, and go to state 49
+
+
+State 25
+
+   19 day: T_DAY ',' .
+
+    $default  reduce using rule 19 (day)
+
+
+State 26
+
+   25 date: T_MONTH T_UNUMBER .
+   26     | T_MONTH T_UNUMBER . ',' T_UNUMBER
+
+    ','  shift, and go to state 50
+
+    $default  reduce using rule 25 (date)
+
+
+State 27
+
+   41 relunit: T_SNUMBER T_DAY_UNIT .
+
+    $default  reduce using rule 41 (relunit)
+
+
+State 28
+
+   44 relunit: T_SNUMBER T_HOUR_UNIT .
+
+    $default  reduce using rule 44 (relunit)
+
+
+State 29
+
+   47 relunit: T_SNUMBER T_MINUTE_UNIT .
+
+    $default  reduce using rule 47 (relunit)
+
+
+State 30
+
+   38 relunit: T_SNUMBER T_MONTH_UNIT .
+
+    $default  reduce using rule 38 (relunit)
+
+
+State 31
+
+   50 relunit: T_SNUMBER T_SEC_UNIT .
+
+    $default  reduce using rule 50 (relunit)
+
+
+State 32
+
+   35 relunit: T_SNUMBER T_YEAR_UNIT .
+
+    $default  reduce using rule 35 (relunit)
+
+
+State 33
+
+   20 day: T_UNUMBER T_DAY .
+
+    $default  reduce using rule 20 (day)
+
+
+State 34
+
+   40 relunit: T_UNUMBER T_DAY_UNIT .
+
+    $default  reduce using rule 40 (relunit)
+
+
+State 35
+
+   43 relunit: T_UNUMBER T_HOUR_UNIT .
+
+    $default  reduce using rule 43 (relunit)
+
+
+State 36
+
+   46 relunit: T_UNUMBER T_MINUTE_UNIT .
+
+    $default  reduce using rule 46 (relunit)
+
+
+State 37
+
+   24 date: T_UNUMBER T_MONTH . T_SNUMBER
+   27     | T_UNUMBER T_MONTH .
+   28     | T_UNUMBER T_MONTH . T_UNUMBER
+
+    T_SNUMBER  shift, and go to state 51
+    T_UNUMBER  shift, and go to state 52
+
+    T_SNUMBER  [reduce using rule 27 (date)]
+    T_UNUMBER  [reduce using rule 27 (date)]
+    $default   reduce using rule 27 (date)
+
+
+State 38
+
+   37 relunit: T_UNUMBER T_MONTH_UNIT .
+
+    $default  reduce using rule 37 (relunit)
+
+
+State 39
+
+   49 relunit: T_UNUMBER T_SEC_UNIT .
+
+    $default  reduce using rule 49 (relunit)
+
+
+State 40
+
+   23 date: T_UNUMBER T_SNUMBER . T_SNUMBER
+
+    T_SNUMBER  shift, and go to state 53
+
+
+State 41
+
+   34 relunit: T_UNUMBER T_YEAR_UNIT .
+
+    $default  reduce using rule 34 (relunit)
+
+
+State 42
+
+   10 time: T_UNUMBER T_MERIDIAN .
+
+    $default  reduce using rule 10 (time)
+
+
+State 43
+
+   11 time: T_UNUMBER ':' . T_UNUMBER o_merid
+   12     | T_UNUMBER ':' . T_UNUMBER T_SNUMBER
+   13     | T_UNUMBER ':' . T_UNUMBER ':' T_UNUMBER o_merid
+   14     | T_UNUMBER ':' . T_UNUMBER ':' T_UNUMBER T_SNUMBER
+
+    T_UNUMBER  shift, and go to state 54
+
+
+State 44
+
+   21 date: T_UNUMBER '/' . T_UNUMBER
+   22     | T_UNUMBER '/' . T_UNUMBER '/' T_UNUMBER
+
+    T_UNUMBER  shift, and go to state 55
+
+
+State 45
+
+   17 zone: T_ZONE T_DST .
+
+    $default  reduce using rule 17 (zone)
+
+
+State 46
+
+   30 rel: relspec T_AGO .
+
+    $default  reduce using rule 30 (rel)
+
+
+State 47
+
+   34 relunit: T_UNUMBER . T_YEAR_UNIT
+   37        | T_UNUMBER . T_MONTH_UNIT
+   40        | T_UNUMBER . T_DAY_UNIT
+   43        | T_UNUMBER . T_HOUR_UNIT
+   46        | T_UNUMBER . T_MINUTE_UNIT
+   49        | T_UNUMBER . T_SEC_UNIT
+
+    T_DAY_UNIT     shift, and go to state 34
+    T_HOUR_UNIT    shift, and go to state 35
+    T_MINUTE_UNIT  shift, and go to state 36
+    T_MONTH_UNIT   shift, and go to state 38
+    T_SEC_UNIT     shift, and go to state 39
+    T_YEAR_UNIT    shift, and go to state 41
+
+
+State 48
+
+   33 relspec: relspec relunit .
+
+    $default  reduce using rule 33 (relspec)
+
+
+State 49
+
+   29 date: T_DAY T_MONTH T_UNUMBER . time T_UNUMBER
+
+    T_UNUMBER  shift, and go to state 56
+
+    time  go to state 57
+
+
+State 50
+
+   26 date: T_MONTH T_UNUMBER ',' . T_UNUMBER
+
+    T_UNUMBER  shift, and go to state 58
+
+
+State 51
+
+   24 date: T_UNUMBER T_MONTH T_SNUMBER .
+
+    $default  reduce using rule 24 (date)
+
+
+State 52
+
+   28 date: T_UNUMBER T_MONTH T_UNUMBER .
+
+    $default  reduce using rule 28 (date)
+
+
+State 53
+
+   23 date: T_UNUMBER T_SNUMBER T_SNUMBER .
+
+    $default  reduce using rule 23 (date)
+
+
+State 54
+
+   11 time: T_UNUMBER ':' T_UNUMBER . o_merid
+   12     | T_UNUMBER ':' T_UNUMBER . T_SNUMBER
+   13     | T_UNUMBER ':' T_UNUMBER . ':' T_UNUMBER o_merid
+   14     | T_UNUMBER ':' T_UNUMBER . ':' T_UNUMBER T_SNUMBER
+
+    T_SNUMBER   shift, and go to state 59
+    T_MERIDIAN  shift, and go to state 60
+    ':'         shift, and go to state 61
+
+    T_SNUMBER  [reduce using rule 52 (o_merid)]
+    $default   reduce using rule 52 (o_merid)
+
+    o_merid  go to state 62
+
+
+State 55
+
+   21 date: T_UNUMBER '/' T_UNUMBER .
+   22     | T_UNUMBER '/' T_UNUMBER . '/' T_UNUMBER
+
+    '/'  shift, and go to state 63
+
+    $default  reduce using rule 21 (date)
+
+
+State 56
+
+   10 time: T_UNUMBER . T_MERIDIAN
+   11     | T_UNUMBER . ':' T_UNUMBER o_merid
+   12     | T_UNUMBER . ':' T_UNUMBER T_SNUMBER
+   13     | T_UNUMBER . ':' T_UNUMBER ':' T_UNUMBER o_merid
+   14     | T_UNUMBER . ':' T_UNUMBER ':' T_UNUMBER T_SNUMBER
+
+    T_MERIDIAN  shift, and go to state 42
+    ':'         shift, and go to state 43
+
+
+State 57
+
+   29 date: T_DAY T_MONTH T_UNUMBER time . T_UNUMBER
+
+    T_UNUMBER  shift, and go to state 64
+
+
+State 58
+
+   26 date: T_MONTH T_UNUMBER ',' T_UNUMBER .
+
+    $default  reduce using rule 26 (date)
+
+
+State 59
+
+   12 time: T_UNUMBER ':' T_UNUMBER T_SNUMBER .
+
+    $default  reduce using rule 12 (time)
+
+
+State 60
+
+   53 o_merid: T_MERIDIAN .
+
+    $default  reduce using rule 53 (o_merid)
+
+
+State 61
+
+   13 time: T_UNUMBER ':' T_UNUMBER ':' . T_UNUMBER o_merid
+   14     | T_UNUMBER ':' T_UNUMBER ':' . T_UNUMBER T_SNUMBER
+
+    T_UNUMBER  shift, and go to state 65
+
+
+State 62
+
+   11 time: T_UNUMBER ':' T_UNUMBER o_merid .
+
+    $default  reduce using rule 11 (time)
+
+
+State 63
+
+   22 date: T_UNUMBER '/' T_UNUMBER '/' . T_UNUMBER
+
+    T_UNUMBER  shift, and go to state 66
+
+
+State 64
+
+   29 date: T_DAY T_MONTH T_UNUMBER time T_UNUMBER .
+
+    $default  reduce using rule 29 (date)
+
+
+State 65
+
+   13 time: T_UNUMBER ':' T_UNUMBER ':' T_UNUMBER . o_merid
+   14     | T_UNUMBER ':' T_UNUMBER ':' T_UNUMBER . T_SNUMBER
+
+    T_SNUMBER   shift, and go to state 67
+    T_MERIDIAN  shift, and go to state 60
+
+    T_SNUMBER  [reduce using rule 52 (o_merid)]
+    $default   reduce using rule 52 (o_merid)
+
+    o_merid  go to state 68
+
+
+State 66
+
+   22 date: T_UNUMBER '/' T_UNUMBER '/' T_UNUMBER .
+
+    $default  reduce using rule 22 (date)
+
+
+State 67
+
+   14 time: T_UNUMBER ':' T_UNUMBER ':' T_UNUMBER T_SNUMBER .
+
+    $default  reduce using rule 14 (time)
+
+
+State 68
+
+   13 time: T_UNUMBER ':' T_UNUMBER ':' T_UNUMBER o_merid .
+
+    $default  reduce using rule 13 (time)

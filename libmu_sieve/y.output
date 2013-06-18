@@ -1,0 +1,776 @@
+Grammar
+
+    0 $accept: input $end
+
+    1 input: /* empty */
+    2      | list
+
+    3 list: statement
+    4     | list statement
+
+    5 statement: REQUIRE stringorlist ';'
+    6          | action ';'
+    7          | if cond block else_part
+
+    8 if: IF
+
+    9 else_part: maybe_elsif
+   10          | maybe_elsif else block
+
+   11 maybe_elsif: /* empty */
+   12            | elsif_branch
+
+   13 elsif_branch: elsif begin cond block
+   14             | elsif_branch elsif begin cond block
+
+   15 elsif: ELSIF
+
+   16 else: ELSE
+
+   17 block: '{' list '}'
+
+   18 testlist: cond_expr
+   19         | testlist ',' cond_expr
+
+   20 cond: cond_expr
+
+   21 cond_expr: test
+   22          | ANYOF '(' testlist ')'
+   23          | ALLOF '(' testlist ')'
+   24          | NOT cond_expr
+
+   25 begin: /* empty */
+
+   26 test: command
+
+   27 command: IDENT maybe_arglist
+
+   28 action: command
+
+   29 maybe_arglist: /* empty */
+   30              | arglist
+
+   31 arglist: arg
+   32        | arglist arg
+
+   33 arg: stringlist
+   34    | STRING
+   35    | MULTILINE
+   36    | NUMBER
+   37    | TAG
+
+   38 stringorlist: STRING
+   39             | stringlist
+
+   40 stringlist: '[' slist ']'
+
+   41 slist: STRING
+   42      | slist ',' STRING
+
+
+Terminals, with rules where they appear
+
+$end (0) 0
+'(' (40) 22 23
+')' (41) 22 23
+',' (44) 19 42
+';' (59) 5 6
+'[' (91) 40
+']' (93) 40
+'{' (123) 17
+'}' (125) 17
+error (256)
+IDENT (258) 27
+TAG (259) 37
+NUMBER (260) 36
+STRING (261) 34 38 41 42
+MULTILINE (262) 35
+REQUIRE (263) 5
+IF (264) 8
+ELSIF (265) 15
+ELSE (266) 16
+ANYOF (267) 22
+ALLOF (268) 23
+NOT (269) 24
+
+
+Nonterminals, with rules where they appear
+
+$accept (23)
+    on left: 0
+input (24)
+    on left: 1 2, on right: 0
+list (25)
+    on left: 3 4, on right: 2 4 17
+statement (26)
+    on left: 5 6 7, on right: 3 4
+if (27)
+    on left: 8, on right: 7
+else_part (28)
+    on left: 9 10, on right: 7
+maybe_elsif (29)
+    on left: 11 12, on right: 9 10
+elsif_branch (30)
+    on left: 13 14, on right: 12 14
+elsif (31)
+    on left: 15, on right: 13 14
+else (32)
+    on left: 16, on right: 10
+block (33)
+    on left: 17, on right: 7 10 13 14
+testlist (34)
+    on left: 18 19, on right: 19 22 23
+cond (35)
+    on left: 20, on right: 7 13 14
+cond_expr (36)
+    on left: 21 22 23 24, on right: 18 19 20 24
+begin (37)
+    on left: 25, on right: 13 14
+test (38)
+    on left: 26, on right: 21
+command (39)
+    on left: 27, on right: 26 28
+action (40)
+    on left: 28, on right: 6
+maybe_arglist (41)
+    on left: 29 30, on right: 27
+arglist (42)
+    on left: 31 32, on right: 30 32
+arg (43)
+    on left: 33 34 35 36 37, on right: 31 32
+stringorlist (44)
+    on left: 38 39, on right: 5
+stringlist (45)
+    on left: 40, on right: 33 39
+slist (46)
+    on left: 41 42, on right: 40 42
+
+
+State 0
+
+    0 $accept: . input $end
+
+    IDENT    shift, and go to state 1
+    REQUIRE  shift, and go to state 2
+    IF       shift, and go to state 3
+
+    $default  reduce using rule 1 (input)
+
+    input      go to state 4
+    list       go to state 5
+    statement  go to state 6
+    if         go to state 7
+    command    go to state 8
+    action     go to state 9
+
+
+State 1
+
+   27 command: IDENT . maybe_arglist
+
+    TAG        shift, and go to state 10
+    NUMBER     shift, and go to state 11
+    STRING     shift, and go to state 12
+    MULTILINE  shift, and go to state 13
+    '['        shift, and go to state 14
+
+    $default  reduce using rule 29 (maybe_arglist)
+
+    maybe_arglist  go to state 15
+    arglist        go to state 16
+    arg            go to state 17
+    stringlist     go to state 18
+
+
+State 2
+
+    5 statement: REQUIRE . stringorlist ';'
+
+    STRING  shift, and go to state 19
+    '['     shift, and go to state 14
+
+    stringorlist  go to state 20
+    stringlist    go to state 21
+
+
+State 3
+
+    8 if: IF .
+
+    $default  reduce using rule 8 (if)
+
+
+State 4
+
+    0 $accept: input . $end
+
+    $end  shift, and go to state 22
+
+
+State 5
+
+    2 input: list .
+    4 list: list . statement
+
+    IDENT    shift, and go to state 1
+    REQUIRE  shift, and go to state 2
+    IF       shift, and go to state 3
+
+    $default  reduce using rule 2 (input)
+
+    statement  go to state 23
+    if         go to state 7
+    command    go to state 8
+    action     go to state 9
+
+
+State 6
+
+    3 list: statement .
+
+    $default  reduce using rule 3 (list)
+
+
+State 7
+
+    7 statement: if . cond block else_part
+
+    IDENT  shift, and go to state 1
+    ANYOF  shift, and go to state 24
+    ALLOF  shift, and go to state 25
+    NOT    shift, and go to state 26
+
+    cond       go to state 27
+    cond_expr  go to state 28
+    test       go to state 29
+    command    go to state 30
+
+
+State 8
+
+   28 action: command .
+
+    $default  reduce using rule 28 (action)
+
+
+State 9
+
+    6 statement: action . ';'
+
+    ';'  shift, and go to state 31
+
+
+State 10
+
+   37 arg: TAG .
+
+    $default  reduce using rule 37 (arg)
+
+
+State 11
+
+   36 arg: NUMBER .
+
+    $default  reduce using rule 36 (arg)
+
+
+State 12
+
+   34 arg: STRING .
+
+    $default  reduce using rule 34 (arg)
+
+
+State 13
+
+   35 arg: MULTILINE .
+
+    $default  reduce using rule 35 (arg)
+
+
+State 14
+
+   40 stringlist: '[' . slist ']'
+
+    STRING  shift, and go to state 32
+
+    slist  go to state 33
+
+
+State 15
+
+   27 command: IDENT maybe_arglist .
+
+    $default  reduce using rule 27 (command)
+
+
+State 16
+
+   30 maybe_arglist: arglist .
+   32 arglist: arglist . arg
+
+    TAG        shift, and go to state 10
+    NUMBER     shift, and go to state 11
+    STRING     shift, and go to state 12
+    MULTILINE  shift, and go to state 13
+    '['        shift, and go to state 14
+
+    $default  reduce using rule 30 (maybe_arglist)
+
+    arg         go to state 34
+    stringlist  go to state 18
+
+
+State 17
+
+   31 arglist: arg .
+
+    $default  reduce using rule 31 (arglist)
+
+
+State 18
+
+   33 arg: stringlist .
+
+    $default  reduce using rule 33 (arg)
+
+
+State 19
+
+   38 stringorlist: STRING .
+
+    $default  reduce using rule 38 (stringorlist)
+
+
+State 20
+
+    5 statement: REQUIRE stringorlist . ';'
+
+    ';'  shift, and go to state 35
+
+
+State 21
+
+   39 stringorlist: stringlist .
+
+    $default  reduce using rule 39 (stringorlist)
+
+
+State 22
+
+    0 $accept: input $end .
+
+    $default  accept
+
+
+State 23
+
+    4 list: list statement .
+
+    $default  reduce using rule 4 (list)
+
+
+State 24
+
+   22 cond_expr: ANYOF . '(' testlist ')'
+
+    '('  shift, and go to state 36
+
+
+State 25
+
+   23 cond_expr: ALLOF . '(' testlist ')'
+
+    '('  shift, and go to state 37
+
+
+State 26
+
+   24 cond_expr: NOT . cond_expr
+
+    IDENT  shift, and go to state 1
+    ANYOF  shift, and go to state 24
+    ALLOF  shift, and go to state 25
+    NOT    shift, and go to state 26
+
+    cond_expr  go to state 38
+    test       go to state 29
+    command    go to state 30
+
+
+State 27
+
+    7 statement: if cond . block else_part
+
+    '{'  shift, and go to state 39
+
+    block  go to state 40
+
+
+State 28
+
+   20 cond: cond_expr .
+
+    $default  reduce using rule 20 (cond)
+
+
+State 29
+
+   21 cond_expr: test .
+
+    $default  reduce using rule 21 (cond_expr)
+
+
+State 30
+
+   26 test: command .
+
+    $default  reduce using rule 26 (test)
+
+
+State 31
+
+    6 statement: action ';' .
+
+    $default  reduce using rule 6 (statement)
+
+
+State 32
+
+   41 slist: STRING .
+
+    $default  reduce using rule 41 (slist)
+
+
+State 33
+
+   40 stringlist: '[' slist . ']'
+   42 slist: slist . ',' STRING
+
+    ','  shift, and go to state 41
+    ']'  shift, and go to state 42
+
+
+State 34
+
+   32 arglist: arglist arg .
+
+    $default  reduce using rule 32 (arglist)
+
+
+State 35
+
+    5 statement: REQUIRE stringorlist ';' .
+
+    $default  reduce using rule 5 (statement)
+
+
+State 36
+
+   22 cond_expr: ANYOF '(' . testlist ')'
+
+    IDENT  shift, and go to state 1
+    ANYOF  shift, and go to state 24
+    ALLOF  shift, and go to state 25
+    NOT    shift, and go to state 26
+
+    testlist   go to state 43
+    cond_expr  go to state 44
+    test       go to state 29
+    command    go to state 30
+
+
+State 37
+
+   23 cond_expr: ALLOF '(' . testlist ')'
+
+    IDENT  shift, and go to state 1
+    ANYOF  shift, and go to state 24
+    ALLOF  shift, and go to state 25
+    NOT    shift, and go to state 26
+
+    testlist   go to state 45
+    cond_expr  go to state 44
+    test       go to state 29
+    command    go to state 30
+
+
+State 38
+
+   24 cond_expr: NOT cond_expr .
+
+    $default  reduce using rule 24 (cond_expr)
+
+
+State 39
+
+   17 block: '{' . list '}'
+
+    IDENT    shift, and go to state 1
+    REQUIRE  shift, and go to state 2
+    IF       shift, and go to state 3
+
+    list       go to state 46
+    statement  go to state 6
+    if         go to state 7
+    command    go to state 8
+    action     go to state 9
+
+
+State 40
+
+    7 statement: if cond block . else_part
+
+    ELSIF  shift, and go to state 47
+
+    $default  reduce using rule 11 (maybe_elsif)
+
+    else_part     go to state 48
+    maybe_elsif   go to state 49
+    elsif_branch  go to state 50
+    elsif         go to state 51
+
+
+State 41
+
+   42 slist: slist ',' . STRING
+
+    STRING  shift, and go to state 52
+
+
+State 42
+
+   40 stringlist: '[' slist ']' .
+
+    $default  reduce using rule 40 (stringlist)
+
+
+State 43
+
+   19 testlist: testlist . ',' cond_expr
+   22 cond_expr: ANYOF '(' testlist . ')'
+
+    ','  shift, and go to state 53
+    ')'  shift, and go to state 54
+
+
+State 44
+
+   18 testlist: cond_expr .
+
+    $default  reduce using rule 18 (testlist)
+
+
+State 45
+
+   19 testlist: testlist . ',' cond_expr
+   23 cond_expr: ALLOF '(' testlist . ')'
+
+    ','  shift, and go to state 53
+    ')'  shift, and go to state 55
+
+
+State 46
+
+    4 list: list . statement
+   17 block: '{' list . '}'
+
+    IDENT    shift, and go to state 1
+    REQUIRE  shift, and go to state 2
+    IF       shift, and go to state 3
+    '}'      shift, and go to state 56
+
+    statement  go to state 23
+    if         go to state 7
+    command    go to state 8
+    action     go to state 9
+
+
+State 47
+
+   15 elsif: ELSIF .
+
+    $default  reduce using rule 15 (elsif)
+
+
+State 48
+
+    7 statement: if cond block else_part .
+
+    $default  reduce using rule 7 (statement)
+
+
+State 49
+
+    9 else_part: maybe_elsif .
+   10          | maybe_elsif . else block
+
+    ELSE  shift, and go to state 57
+
+    $default  reduce using rule 9 (else_part)
+
+    else  go to state 58
+
+
+State 50
+
+   12 maybe_elsif: elsif_branch .
+   14 elsif_branch: elsif_branch . elsif begin cond block
+
+    ELSIF  shift, and go to state 47
+
+    $default  reduce using rule 12 (maybe_elsif)
+
+    elsif  go to state 59
+
+
+State 51
+
+   13 elsif_branch: elsif . begin cond block
+
+    $default  reduce using rule 25 (begin)
+
+    begin  go to state 60
+
+
+State 52
+
+   42 slist: slist ',' STRING .
+
+    $default  reduce using rule 42 (slist)
+
+
+State 53
+
+   19 testlist: testlist ',' . cond_expr
+
+    IDENT  shift, and go to state 1
+    ANYOF  shift, and go to state 24
+    ALLOF  shift, and go to state 25
+    NOT    shift, and go to state 26
+
+    cond_expr  go to state 61
+    test       go to state 29
+    command    go to state 30
+
+
+State 54
+
+   22 cond_expr: ANYOF '(' testlist ')' .
+
+    $default  reduce using rule 22 (cond_expr)
+
+
+State 55
+
+   23 cond_expr: ALLOF '(' testlist ')' .
+
+    $default  reduce using rule 23 (cond_expr)
+
+
+State 56
+
+   17 block: '{' list '}' .
+
+    $default  reduce using rule 17 (block)
+
+
+State 57
+
+   16 else: ELSE .
+
+    $default  reduce using rule 16 (else)
+
+
+State 58
+
+   10 else_part: maybe_elsif else . block
+
+    '{'  shift, and go to state 39
+
+    block  go to state 62
+
+
+State 59
+
+   14 elsif_branch: elsif_branch elsif . begin cond block
+
+    $default  reduce using rule 25 (begin)
+
+    begin  go to state 63
+
+
+State 60
+
+   13 elsif_branch: elsif begin . cond block
+
+    IDENT  shift, and go to state 1
+    ANYOF  shift, and go to state 24
+    ALLOF  shift, and go to state 25
+    NOT    shift, and go to state 26
+
+    cond       go to state 64
+    cond_expr  go to state 28
+    test       go to state 29
+    command    go to state 30
+
+
+State 61
+
+   19 testlist: testlist ',' cond_expr .
+
+    $default  reduce using rule 19 (testlist)
+
+
+State 62
+
+   10 else_part: maybe_elsif else block .
+
+    $default  reduce using rule 10 (else_part)
+
+
+State 63
+
+   14 elsif_branch: elsif_branch elsif begin . cond block
+
+    IDENT  shift, and go to state 1
+    ANYOF  shift, and go to state 24
+    ALLOF  shift, and go to state 25
+    NOT    shift, and go to state 26
+
+    cond       go to state 65
+    cond_expr  go to state 28
+    test       go to state 29
+    command    go to state 30
+
+
+State 64
+
+   13 elsif_branch: elsif begin cond . block
+
+    '{'  shift, and go to state 39
+
+    block  go to state 66
+
+
+State 65
+
+   14 elsif_branch: elsif_branch elsif begin cond . block
+
+    '{'  shift, and go to state 39
+
+    block  go to state 67
+
+
+State 66
+
+   13 elsif_branch: elsif begin cond block .
+
+    $default  reduce using rule 13 (elsif_branch)
+
+
+State 67
+
+   14 elsif_branch: elsif_branch elsif begin cond block .
+
+    $default  reduce using rule 14 (elsif_branch)

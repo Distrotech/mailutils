@@ -1,0 +1,8393 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR Free Software Foundation, Inc.
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: GNU mailutils 2.99.98\n"
+"Report-Msgid-Bugs-To: bug-mailutils@gnu.org\n"
+"POT-Creation-Date: 2013-06-18 21:04+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#: comsat/action.c:208
+#, c-format
+msgid "cannot open device %s: %s"
+msgstr ""
+
+#: comsat/action.c:253 mh/mh_init.c:645 mh/mh_whom.c:226 mh/mhn.c:2133
+#: mu/filter.c:166
+#, c-format
+msgid "cannot open filter stream: %s"
+msgstr ""
+
+#: comsat/action.c:279
+#, c-format
+msgid "cannot open null stream: %s"
+msgstr ""
+
+#: comsat/action.c:376
+#, c-format
+msgid "not an absolute pathname: %s"
+msgstr ""
+
+#: comsat/action.c:388
+msgid "will not execute set[ug]id programs"
+msgstr ""
+
+#: comsat/action.c:418
+#, c-format
+msgid "cannot open tty %s"
+msgstr ""
+
+#: comsat/action.c:440
+#, c-format
+msgid "%s's %s is not owned by %s"
+msgstr ""
+
+#: comsat/action.c:447
+msgid "Warning: your .biffrc has wrong permissions"
+msgstr ""
+
+#: comsat/action.c:448
+#, c-format
+msgid "%s's %s has wrong permissions"
+msgstr ""
+
+#: comsat/action.c:458
+#, c-format
+msgid "Cannot open .biffrc file: %s\n"
+msgstr ""
+
+#: comsat/action.c:460
+#, c-format
+msgid "cannot open %s for %s: %s"
+msgstr ""
+
+#: comsat/action.c:475
+#, c-format
+msgid "Cannot create filter for your .biffrc file: %s\n"
+msgstr ""
+
+#: comsat/action.c:478
+#, c-format
+msgid "cannot create filter for file %s of %s: %s"
+msgstr ""
+
+#: comsat/action.c:538
+#, c-format
+msgid "malformed #line directive: %s"
+msgstr ""
+
+#: comsat/action.c:567
+msgid "unknown keyword"
+msgstr ""
+
+#: comsat/action.c:569
+msgid "too few arguments"
+msgstr ""
+
+#: comsat/action.c:571 frm/from.c:124 maidag/maidag.c:581 mh/folder.c:997
+#: mu/help.c:64 mu/pop.c:669 mu/ldflags.c:106
+msgid "too many arguments"
+msgstr ""
+
+#: comsat/action.c:627 mu/logger.c:166
+#, c-format
+msgid "cannot create log stream: %s"
+msgstr ""
+
+#: comsat/action.c:674
+#, c-format
+msgid "Cannot create filter for the default action: %s\n"
+msgstr ""
+
+#: comsat/action.c:677
+#, c-format
+msgid "cannot create default filter for %s: %s"
+msgstr ""
+
+#: comsat/comsat.c:62
+msgid "GNU comsatd -- notify users about incoming mail"
+msgstr ""
+
+#: comsat/comsat.c:63
+msgid ""
+"\n"
+"--test MBOX-URL MSG-QID"
+msgstr ""
+
+#: comsat/comsat.c:69 imap4d/imap4d.c:68
+msgid "run in test mode"
+msgstr ""
+
+#: comsat/comsat.c:70 imap4d/imap4d.c:63 maidag/maidag.c:87 pop3d/pop3d.c:68
+msgid "remain in foreground"
+msgstr ""
+
+#: comsat/comsat.c:71 imap4d/imap4d.c:64 maidag/maidag.c:89 pop3d/pop3d.c:69
+msgid "run in inetd mode"
+msgstr ""
+
+#: comsat/comsat.c:72 imap4d/imap4d.c:65 maidag/maidag.c:90 mh/folder.c:40
+#: mh/forw.c:62 mh/inc.c:47 mh/mhl.c:39 mh/mhl.c:41 mh/repl.c:62 mh/scan.c:45
+#: mh/send.c:66 mh/send.c:74 movemail/movemail.c:61 pop3d/pop3d.c:70
+#: mu/pop.c:609
+msgid "NUMBER"
+msgstr ""
+
+#: comsat/comsat.c:73 imap4d/imap4d.c:66 maidag/maidag.c:91 pop3d/pop3d.c:71
+msgid "runs in daemon mode with a maximum of NUMBER children"
+msgstr ""
+
+#: comsat/comsat.c:74 dotlock/dotlock.c:40 frm/from.c:29
+#: libmu_argp/common.c:61 mail/mail.c:68 mh/fmtcheck.c:26 mh/forw.c:44
+#: mh/forw.c:50 mh/forw.c:52 mh/inc.c:27 mh/inc.c:31 mh/inc.c:38 mh/mhl.c:37
+#: mh/mhn.c:32 mh/mhn.c:65 mh/prompter.c:24 mh/refile.c:45 mh/repl.c:54
+#: mh/scan.c:39 mh/scan.c:50 mh/send.c:32 mh/send.c:42 mh/whom.c:25
+#: mimeview/mimeview.c:51 mimeview/mimeview.c:55 pop3d/popauth.c:79
+#: pop3d/popauth.c:80 mu/acl.c:36 mu/query.c:40 mu/wicket.c:30 mu/logger.c:32
+msgid "FILE"
+msgstr ""
+
+#: comsat/comsat.c:75
+msgid "read FILE instead of .biffrc"
+msgstr ""
+
+#: comsat/comsat.c:131 libmu_cfg/sieve.c:36 libmu_cfg/sieve.c:53
+#: maidag/maidag.c:306 libmailutils/cfg/parser.y:1046
+msgid "not a boolean"
+msgstr ""
+
+#: comsat/comsat.c:153
+msgid "Read .biffrc file from the user home directory."
+msgstr ""
+
+#: comsat/comsat.c:155
+msgid "Notify only if the user is logged on one of the ttys."
+msgstr ""
+
+#: comsat/comsat.c:157
+msgid "Send biffrc errors to user's tty."
+msgstr ""
+
+#: comsat/comsat.c:158 comsat/comsat.c:161
+msgid "arg: bool"
+msgstr ""
+
+#: comsat/comsat.c:160
+msgid "Send biffrc errors to Mailutils error output."
+msgstr ""
+
+#: comsat/comsat.c:163
+msgid "Maximum number of message body lines to be output."
+msgstr ""
+
+#: comsat/comsat.c:165
+msgid "Maximum number of incoming requests per request control interval."
+msgstr ""
+
+#: comsat/comsat.c:168
+msgid "Set control interval."
+msgstr ""
+
+#: comsat/comsat.c:171
+msgid "Set overflow control interval."
+msgstr ""
+
+#: comsat/comsat.c:174
+msgid "Time to sleep after the first overflow occurs."
+msgstr ""
+
+#: comsat/comsat.c:176 imap4d/imap4d.c:360 libmailutils/server/msrv.c:911
+#: pop3d/pop3d.c:255
+msgid "Server configuration."
+msgstr ""
+
+#: comsat/comsat.c:269
+#, c-format
+msgid "malformed input: %s"
+msgstr ""
+
+#: comsat/comsat.c:344
+#, c-format
+msgid "too many requests: pausing for %u second"
+msgid_plural "too many requests: pausing for %u seconds"
+msgstr[0] ""
+msgstr[1] ""
+
+#: comsat/comsat.c:387
+#, c-format
+msgid "received %lu byte from %s"
+msgid_plural "received %lu bytes from %s"
+msgstr[0] ""
+msgstr[1] ""
+
+#: comsat/comsat.c:400
+#, c-format
+msgid "cannot resize buffer: %s"
+msgstr ""
+
+#: comsat/comsat.c:433 maidag/deliver.c:211 maidag/deliver.c:398 mh/inc.c:242
+#: mh/mh_init.c:453 sieve/sieve.c:405
+#, c-format
+msgid "cannot open mailbox %s: %s"
+msgstr ""
+
+#: comsat/comsat.c:441
+#, c-format
+msgid "cannot get message (mailbox %s, qid %s): %s"
+msgstr ""
+
+#: comsat/comsat.c:483
+#, c-format
+msgid "bad line name in utmp record: %s"
+msgstr ""
+
+#: comsat/comsat.c:492
+#, c-format
+msgid "not a character device: %s"
+msgstr ""
+
+#: comsat/comsat.c:525 movemail/movemail.c:623 pop3d/pop3d.c:117
+#: pop3d/popauth.c:411 pop3d/popauth.c:704
+#, c-format
+msgid "no such user: %s"
+msgstr ""
+
+#: comsat/comsat.c:546
+#, c-format
+msgid "user nonexistent: %s"
+msgstr ""
+
+#: comsat/comsat.c:596
+msgid "mailbox URL and message QID are required in test mode"
+msgstr ""
+
+#: comsat/comsat.c:603
+msgid "cannot determine user name"
+msgstr ""
+
+#: comsat/comsat.c:633
+msgid "program name is not absolute; reloading will not be possible"
+msgstr ""
+
+#: comsat/comsat.c:651
+msgid "restarting"
+msgstr ""
+
+#: dotlock/dotlock.c:35
+msgid "GNU dotlock -- lock mail spool files."
+msgstr ""
+
+#: dotlock/dotlock.c:37
+msgid ""
+"Returns 0 on success, 3 if locking the file fails because it's already "
+"locked, and 1 if some other kind of error occurred."
+msgstr ""
+
+#: dotlock/dotlock.c:44
+msgid "unlock"
+msgstr ""
+
+#: dotlock/dotlock.c:46
+msgid "MINUTES"
+msgstr ""
+
+#: dotlock/dotlock.c:47
+msgid "forcibly break an existing lock older than a certain time"
+msgstr ""
+
+#: dotlock/dotlock.c:49
+msgid "RETRIES"
+msgstr ""
+
+#: dotlock/dotlock.c:50
+msgid "retry the lock a few times"
+msgstr ""
+
+#: dotlock/dotlock.c:53
+msgid "print details of failure reasons to stderr"
+msgstr ""
+
+#: dotlock/dotlock.c:100
+#, c-format
+msgid "only one FILE can be specified"
+msgstr ""
+
+#: dotlock/dotlock.c:106
+#, c-format
+msgid "FILE must be specified"
+msgstr ""
+
+#: dotlock/dotlock.c:126
+msgid "Forcibly break an existing lock older than the specified time."
+msgstr ""
+
+#: dotlock/dotlock.c:128
+msgid "Number of times to retry acquiring the lock."
+msgstr ""
+
+#: dotlock/dotlock.c:130
+msgid "Print details of failure reasons to stderr."
+msgstr ""
+
+#: dotlock/dotlock.c:200
+#, c-format
+msgid "unlocking the file %s failed: %s"
+msgstr ""
+
+#: dotlock/dotlock.c:201
+#, c-format
+msgid "locking the file %s failed: %s"
+msgstr ""
+
+#: frm/common.c:124
+#, c-format
+msgid "fribidi failed to recognize charset `%s'"
+msgstr ""
+
+#: frm/common.c:371
+#, c-format
+msgid "cannot decode line `%s': %s"
+msgstr ""
+
+#: frm/common.c:510 frm/common.c:589
+#, c-format
+msgid "could not close mailbox `%s': %s"
+msgstr ""
+
+#: frm/common.c:538 messages/messages.c:140 movemail/movemail.c:490
+#: readmsg/readmsg.c:303 sieve/sieve.c:384
+#, c-format
+msgid "could not create mailbox `%s': %s"
+msgstr ""
+
+#: frm/common.c:541 messages/messages.c:143 movemail/movemail.c:494
+#: readmsg/readmsg.c:307 sieve/sieve.c:387
+#, c-format
+msgid "could not create default mailbox: %s"
+msgstr ""
+
+#: frm/common.c:559 messages/messages.c:154 readmsg/readmsg.c:325
+#, c-format
+msgid "could not open mailbox `%s': %s"
+msgstr ""
+
+#: frm/common.c:579
+#, c-format
+msgid "could not scan mailbox `%s': %s"
+msgstr ""
+
+#: frm/frm.c:31
+msgid "GNU frm -- display From: lines."
+msgstr ""
+
+#: frm/frm.c:106
+#, c-format
+msgid "%s: ambiguous abbreviation"
+msgstr ""
+
+#: frm/frm.c:108
+#, c-format
+msgid "%s: unknown attribute"
+msgstr ""
+
+#: frm/frm.c:115 frm/from.c:31 mimeview/mimeview.c:50
+msgid "enable debugging output"
+msgstr ""
+
+#: frm/frm.c:116 lib/argp-parse.c:83 mail/mail.c:64 mh/mark.c:27 mh/mhn.c:79
+#: mh/pick.c:98 mu/flt2047.c:34 mu/flt2047.c:36 mu/pop.c:647 mu/query.c:46
+msgid "NAME"
+msgstr ""
+
+#: frm/frm.c:116
+msgid "header field to display"
+msgstr ""
+
+#: frm/frm.c:117
+msgid "include the To: information"
+msgstr ""
+
+#: frm/frm.c:118
+msgid "display message numbers"
+msgstr ""
+
+#: frm/frm.c:119
+msgid "do not display headers"
+msgstr ""
+
+#: frm/frm.c:120
+msgid "print a message if the mailbox contains some unread mail"
+msgstr ""
+
+#: frm/frm.c:121
+msgid "print a summary of messages"
+msgstr ""
+
+#: frm/frm.c:122
+msgid "STATUS"
+msgstr ""
+
+#. TRANSLATORS: Please do *not* translate the words "new", "unread",
+#. "old" and "read". They are keywords.
+#: frm/frm.c:125
+msgid ""
+"select messages with the specific attribute: new, unread, old (same as "
+"unread) or read (or any unambiguous abbreviation of these)"
+msgstr ""
+
+#: frm/frm.c:129
+msgid "tidy mode: align subject lines"
+msgstr ""
+
+#: frm/frm.c:196
+msgid "[URL ...]"
+msgstr ""
+
+#: frm/frm.c:268
+msgid "Folder contains no messages."
+msgstr ""
+
+#: frm/frm.c:273
+msgid "Folder contains "
+msgstr ""
+
+#: frm/frm.c:277
+#, c-format
+msgid "%lu new message"
+msgid_plural "%lu new messages"
+msgstr[0] ""
+msgstr[1] ""
+
+#: frm/frm.c:288
+#, c-format
+msgid "%lu unread message"
+msgid_plural "%lu unread messages"
+msgstr[0] ""
+msgstr[1] ""
+
+#: frm/frm.c:299
+#, c-format
+msgid "%lu read message"
+msgid_plural "%lu read messages"
+msgstr[0] ""
+msgstr[1] ""
+
+#. TRANSLATORS: This dot finishes the sentence
+#.
+#. "Folder contains XXX messages."
+#.
+#. Leave it as it is unless your language requires to reorder
+#. the parts of speach in the message
+#.
+#: frm/frm.c:311
+msgid "."
+msgstr ""
+
+#: frm/frm.c:318
+msgid "There are messages in that folder.\n"
+msgstr ""
+
+#: frm/frm.c:320
+msgid "No messages in that folder!\n"
+msgstr ""
+
+#: frm/from.c:23
+msgid "GNU from -- display from and subject."
+msgstr ""
+
+#: frm/from.c:26
+msgid "just print a count of messages and exit"
+msgstr ""
+
+#: frm/from.c:27 mail/mail.c:51 sieve/sieve.c:92
+msgid "ADDRESS"
+msgstr ""
+
+#: frm/from.c:28
+msgid "print only mail from addresses containing the supplied string"
+msgstr ""
+
+#: frm/from.c:30
+msgid "read mail from FILE"
+msgstr ""
+
+#: frm/from.c:65
+msgid "[OPTIONS] [USER]"
+msgstr ""
+
+#: frm/from.c:131
+msgid "both --from option and user name are specified"
+msgstr ""
+
+#: frm/from.c:146
+#, c-format
+msgid "There is %lu message in your incoming mailbox.\n"
+msgid_plural "There are %lu messages in your incoming mailbox.\n"
+msgstr[0] ""
+msgstr[1] ""
+
+#: imap4d/auth_gsasl.c:56
+#, c-format
+msgid "SASL gsasl_server_start: %s"
+msgstr ""
+
+#: imap4d/auth_gsasl.c:73
+#, c-format
+msgid "GSASL error: %s"
+msgstr ""
+
+#: imap4d/auth_gsasl.c:89
+msgid "non-empty client response"
+msgstr ""
+
+#: imap4d/auth_gsasl.c:102
+#, c-format
+msgid "GSASL %s: cannot get username"
+msgstr ""
+
+#: imap4d/auth_gsasl.c:117 imap4d/auth_gsasl.c:126 imap4d/auth_gsasl.c:135
+#: imap4d/imap4d.c:488 imap4d/imap4d.c:496 lib/mailcap.c:442 lib/mailcap.c:521
+#: mail/util.c:78 pop3d/extra.c:211 pop3d/extra.c:228 pop3d/pop3d.c:468
+#: pop3d/pop3d.c:476
+#, c-format
+msgid "%s failed: %s"
+msgstr ""
+
+#: imap4d/auth_gsasl.c:164
+#, c-format
+msgid "%s failed when it should not: %s"
+msgstr ""
+
+#: imap4d/auth_gsasl.c:197 lib/mailcap.c:78 lib/mailcap.c:698
+#: libmu_sieve/extensions/list.c:74 mail/util.c:937
+#: libmailutils/cfg/parser.y:1608 libmailutils/cfg/parser.y:1683
+#: libmailutils/cfg/parser.y:1705 libmailutils/diag/debug.c:284
+#: libmailutils/diag/debug.c:373 libmailutils/server/acl.c:422
+#: libmailutils/stream/prog_stream.c:682 libmailutils/mailer/mailer.c:304
+#: libproto/mailer/smtp.c:126 libproto/mailer/smtp_gsasl.c:56
+#: libmailutils/auth/mu_auth.c:374 libmailutils/base/mutil.c:76
+#: mh/folder.c:531 mh/folder.c:785 mh/mh_argp.c:228 mh/mh_init.c:590
+#: mh/mh_msgset.c:187 mh/mh_msgset.c:591 mh/mh_whatnow.c:348 mh/mhn.c:210
+#: mh/mhn.c:1806 mh/send.c:530
+#, c-format
+msgid "cannot split line `%s': %s"
+msgstr ""
+
+#: imap4d/auth_gsasl.c:330
+#, c-format
+msgid "anonymous user %s logged in"
+msgstr ""
+
+#: imap4d/auth_gsasl.c:337
+msgid "attempt to log in as anonymous user denied"
+msgstr ""
+
+#: imap4d/auth_gsasl.c:350
+#, c-format
+msgid "unsupported callback property %d"
+msgstr ""
+
+#: imap4d/auth_gsasl.c:365
+#, c-format
+msgid "cannot initialize libgsasl: %s"
+msgstr ""
+
+#: imap4d/auth_gss.c:69
+#, c-format
+msgid "GSS-API error %s (%s): %.*s"
+msgstr ""
+
+#: imap4d/auth_gss.c:70
+msgid "major"
+msgstr ""
+
+#: imap4d/auth_gss.c:70
+msgid "minor"
+msgstr ""
+
+#: imap4d/auth_gss.c:261
+#, c-format
+msgid "client requested unsupported protection mechanism (%d)"
+msgstr ""
+
+#: imap4d/auth_gss.c:275 imap4d/bye.c:73 libmu_argp/mu_argp.c:94
+#: libmu_argp/mu_argp.c:129 libmu_sieve/prog.c:38 libmu_sieve/sieve.l:513
+#: libmu_sieve/sieve.l:577 libmu_sieve/sieve.l:632 maidag/lmtp.c:68
+#: maidag/lmtp.c:173 maidag/lmtp.c:615 libmailutils/cfg/parser.y:274
+#: libmailutils/cfg/parser.y:764 libmailutils/cfg/parser.y:1186
+#: mh/mh_init.c:128 mh/mh_init.c:478 mh/send.c:602 pop3d/extra.c:63
+msgid "not enough memory"
+msgstr ""
+
+#: imap4d/auth_gss.c:307
+#, c-format
+msgid "GSSAPI user %s is NOT authorized as %s"
+msgstr ""
+
+#: imap4d/auth_gss.c:318
+#, c-format
+msgid "GSSAPI user %s is authorized as %s"
+msgstr ""
+
+#: imap4d/bye.c:79 pop3d/extra.c:73
+msgid "terminating on request"
+msgstr ""
+
+#: imap4d/bye.c:83 pop3d/extra.c:68
+msgid "quitting on signal"
+msgstr ""
+
+#: imap4d/bye.c:90 pop3d/extra.c:83
+msgid "session timed out for no user"
+msgstr ""
+
+#: imap4d/bye.c:92 pop3d/extra.c:80
+#, c-format
+msgid "session timed out for user: %s"
+msgstr ""
+
+#: imap4d/bye.c:98
+msgid "write error on control stream"
+msgstr ""
+
+#: imap4d/bye.c:103
+msgid "read error on control stream"
+msgstr ""
+
+#: imap4d/bye.c:108
+msgid "mailbox modified by third party"
+msgstr ""
+
+#: imap4d/bye.c:113
+msgid "cannot create transport stream"
+msgstr ""
+
+#: imap4d/bye.c:120
+msgid "session terminating"
+msgstr ""
+
+#: imap4d/bye.c:123
+#, c-format
+msgid "session terminating for user: %s"
+msgstr ""
+
+#: imap4d/bye.c:129 pop3d/extra.c:122
+#, c-format
+msgid "quitting (numeric reason %d)"
+msgstr ""
+
+#: imap4d/imap4d.c:56
+msgid "GNU imap4d -- the IMAP4D daemon."
+msgstr ""
+
+#: imap4d/imap4d.c:70
+msgid "start in preauth mode"
+msgstr ""
+
+#: imap4d/imap4d.c:150
+#, c-format
+msgid "invalid mode specification: %s"
+msgstr ""
+
+#: imap4d/imap4d.c:166
+#, c-format
+msgid "URL error: cannot get path: %s"
+msgstr ""
+
+#: imap4d/imap4d.c:186
+msgid "unknown preauth scheme"
+msgstr ""
+
+#: imap4d/imap4d.c:227
+#, c-format
+msgid "URL error: %s"
+msgstr ""
+
+#: imap4d/imap4d.c:246
+#, c-format
+msgid "invalid mode string near %s"
+msgstr ""
+
+#: imap4d/imap4d.c:282 pop3d/pop3d.c:171
+#, c-format
+msgid "not a valid tls keyword: %s"
+msgstr ""
+
+#: imap4d/imap4d.c:296 pop3d/pop3d.c:185
+msgid "Not a boolean value"
+msgstr ""
+
+#: imap4d/imap4d.c:306 pop3d/pop3d.c:195
+msgid "Kind of TLS encryption to use for this server"
+msgstr ""
+
+#: imap4d/imap4d.c:313
+msgid "Modify home directory."
+msgstr ""
+
+#: imap4d/imap4d.c:316
+msgid "Set personal namespace."
+msgstr ""
+
+#: imap4d/imap4d.c:319
+msgid "Set other users' namespace."
+msgstr ""
+
+#: imap4d/imap4d.c:322
+msgid "Set shared namespace."
+msgstr ""
+
+#: imap4d/imap4d.c:325
+msgid "File mode for mailboxes in other namespace."
+msgstr ""
+
+#: imap4d/imap4d.c:328
+msgid "File mode for mailboxes in shared namespace."
+msgstr ""
+
+#: imap4d/imap4d.c:330
+msgid "Disable LOGIN command."
+msgstr ""
+
+#: imap4d/imap4d.c:332
+msgid "If true, create non-existing user home directories."
+msgstr ""
+
+#: imap4d/imap4d.c:334
+msgid "File mode for creating user home directories (octal)."
+msgstr ""
+
+#: imap4d/imap4d.c:335 imap4d/imap4d.c:348 libmailutils/server/msrv.c:896
+msgid "mode"
+msgstr ""
+
+#: imap4d/imap4d.c:338 pop3d/pop3d.c:232
+msgid "Kind of TLS encryption to use"
+msgstr ""
+
+#: imap4d/imap4d.c:340 pop3d/pop3d.c:234
+msgid ""
+"Always require STLS before entering authentication phase.\n"
+"Deprecated, use \"tls required\" instead."
+msgstr ""
+
+#: imap4d/imap4d.c:344
+msgid ""
+"Configure PREAUTH mode.  MODE is one of:\n"
+"  prog:///<full-program-name: string>\n"
+"  ident[://:<port: string-or-number>]\n"
+"  stdio"
+msgstr ""
+
+#: imap4d/imap4d.c:350
+msgid "Use only preauth mode.  If unable to setup it, disconnect immediately."
+msgstr ""
+
+#: imap4d/imap4d.c:353
+msgid "Name of DES keyfile for decoding ecrypted ident responses."
+msgstr ""
+
+#: imap4d/imap4d.c:355
+msgid "Use only encrypted ident responses."
+msgstr ""
+
+#: imap4d/imap4d.c:357
+msgid "List of fields to return in response to ID command."
+msgstr ""
+
+#: imap4d/imap4d.c:362 pop3d/pop3d.c:257
+msgid "Set global transcript mode."
+msgstr ""
+
+#: imap4d/imap4d.c:392 imap4d/preauth.c:439 libmu_auth/ldap.c:544
+#: libmu_auth/radius.c:261 libmu_auth/sql.c:108
+#: libmailutils/mailbox/mbx_default.c:159 movemail/movemail.c:818
+#, c-format
+msgid "cannot expand line `%s': %s"
+msgstr ""
+
+#: imap4d/imap4d.c:398 libmu_auth/ldap.c:550 libmu_auth/radius.c:267
+#: libmu_auth/sql.c:114
+#, c-format
+msgid "expanding %s yields empty string"
+msgstr ""
+
+#: imap4d/imap4d.c:427
+#, c-format
+msgid "user `%s' logged in (source: %s)"
+msgstr ""
+
+#: imap4d/imap4d.c:442 imap4d/login.c:52 pop3d/user.c:114
+#, c-format
+msgid "user `%s' nonexistent"
+msgstr ""
+
+#: imap4d/imap4d.c:492 pop3d/pop3d.c:472
+#, c-format
+msgid "cannot create log filter stream: %s"
+msgstr ""
+
+#: imap4d/imap4d.c:546 pop3d/signal.c:49
+#, c-format
+msgid "got signal `%s'"
+msgstr ""
+
+#: imap4d/imap4d.c:580 pop3d/pop3d.c:362
+msgid "TLS is not configured, but requested in the configuration"
+msgstr ""
+
+#: imap4d/imap4d.c:607
+msgid "started in test mode"
+msgstr ""
+
+#: imap4d/imap4d.c:791 pop3d/pop3d.c:614
+#, c-format
+msgid "%s: no such group"
+msgstr ""
+
+#: imap4d/imap4d.c:803 pop3d/pop3d.c:626
+#, c-format
+msgid "error setting mail group: %s"
+msgstr ""
+
+#: imap4d/imap4d.c:812 pop3d/signal.c:25
+#, c-format
+msgid "MASTER: exiting on signal (%s)"
+msgstr ""
+
+#: imap4d/imap4d.c:858 pop3d/pop3d.c:666
+#, c-format
+msgid "main loop status: %s"
+msgstr ""
+
+#: imap4d/login.c:61
+#, c-format
+msgid "login failed: %s"
+msgstr ""
+
+#: imap4d/preauth.c:241
+msgid "incorrect length of IDENT DES packet"
+msgstr ""
+
+#: imap4d/preauth.c:250 maidag/mailquota.c:99 mh/mh_init.c:774
+#: pop3d/popauth.c:469
+#, c-format
+msgid "cannot open file %s: %s"
+msgstr ""
+
+#: imap4d/preauth.c:291
+#, c-format
+msgid "no user with UID %u"
+msgstr ""
+
+#: imap4d/preauth.c:297
+msgid "failed to decrypt IDENT reply"
+msgstr ""
+
+#: imap4d/preauth.c:315
+msgid "not enough data for IDENT preauth"
+msgstr ""
+
+#: imap4d/preauth.c:321
+#, c-format
+msgid "invalid address family (%d) for IDENT preauth"
+msgstr ""
+
+#: imap4d/preauth.c:334
+#, c-format
+msgid "cannot create TCP stream: %s"
+msgstr ""
+
+#: imap4d/preauth.c:349
+#, c-format
+msgid "cannot read answer from %s:%d: %s"
+msgstr ""
+
+#: imap4d/preauth.c:357
+#, c-format
+msgid "malformed IDENT response: `%s', from %s:%d"
+msgstr ""
+
+#: imap4d/preauth.c:364
+msgid "keyfile not specified in config; use `ident-keyfile FILE'"
+msgstr ""
+
+#: imap4d/preauth.c:374
+#, c-format
+msgid "refusing unencrypted ident reply from %s:%d"
+msgstr ""
+
+#: imap4d/preauth.c:446
+#, c-format
+msgid "`%s' expands to an empty line"
+msgstr ""
+
+#: imap4d/preauth.c:454
+#, c-format
+msgid "cannot open input pipe from %s"
+msgstr ""
+
+#: imap4d/preauth.c:461
+#, c-format
+msgid "read from `%s' failed"
+msgstr ""
+
+#: imap4d/preauth.c:496 pop3d/pop3d.c:333
+#, c-format
+msgid "cannot obtain IP address of client: %s"
+msgstr ""
+
+#: imap4d/search.c:583 imap4d/search.c:711 imap4d/search.c:787
+#, c-format
+msgid "%s:%d: INTERNAL ERROR (please report)"
+msgstr ""
+
+#: imap4d/starttls.c:56
+msgid "session terminated"
+msgstr ""
+
+#: imap4d/util.c:231
+msgid "cannot find out my own hostname"
+msgstr ""
+
+#: lib/argp-help.c:148
+#, c-format
+msgid "ARGP_HELP_FMT: %s value is less than or equal to %s"
+msgstr ""
+
+#: lib/argp-help.c:221
+#, c-format
+msgid "%.*s: ARGP_HELP_FMT parameter requires a value"
+msgstr ""
+
+#: lib/argp-help.c:227
+#, c-format
+msgid "%.*s: ARGP_HELP_FMT parameter must be positive"
+msgstr ""
+
+#: lib/argp-help.c:236
+#, c-format
+msgid "%.*s: Unknown ARGP_HELP_FMT parameter"
+msgstr ""
+
+#: lib/argp-help.c:248
+#, c-format
+msgid "Garbage in ARGP_HELP_FMT: %s"
+msgstr ""
+
+#: lib/argp-help.c:1248
+msgid ""
+"Mandatory or optional arguments to long options are also mandatory or "
+"optional for any corresponding short options."
+msgstr ""
+
+#: lib/argp-help.c:1641
+msgid "Usage:"
+msgstr ""
+
+#: lib/argp-help.c:1645
+msgid "  or: "
+msgstr ""
+
+#: lib/argp-help.c:1657
+msgid " [OPTION...]"
+msgstr ""
+
+#: lib/argp-help.c:1684
+#, c-format
+msgid "Try '%s --help' or '%s --usage' for more information.\n"
+msgstr ""
+
+#: lib/argp-help.c:1712
+#, c-format
+msgid "Report bugs to %s.\n"
+msgstr ""
+
+#: lib/argp-help.c:1931
+msgid "Unknown system error"
+msgstr ""
+
+#: lib/argp-parse.c:81
+msgid "give this help list"
+msgstr ""
+
+#: lib/argp-parse.c:82
+msgid "give a short usage message"
+msgstr ""
+
+#: lib/argp-parse.c:83
+msgid "set the program name"
+msgstr ""
+
+#: lib/argp-parse.c:84
+msgid "SECS"
+msgstr ""
+
+#: lib/argp-parse.c:85
+msgid "hang for SECS seconds (default 3600)"
+msgstr ""
+
+#: lib/argp-parse.c:142
+msgid "print program version"
+msgstr ""
+
+#: lib/argp-parse.c:159
+msgid "(PROGRAM ERROR) No version known!?"
+msgstr ""
+
+#: lib/argp-parse.c:612
+#, c-format
+msgid "%s: Too many arguments\n"
+msgstr ""
+
+#: lib/argp-parse.c:755
+msgid "(PROGRAM ERROR) Option should have been recognized!?"
+msgstr ""
+
+#: lib/getopt.c:547 lib/getopt.c:576
+#, c-format
+msgid "%s: option '%s' is ambiguous; possibilities:"
+msgstr ""
+
+#: lib/getopt.c:624 lib/getopt.c:628
+#, c-format
+msgid "%s: option '--%s' doesn't allow an argument\n"
+msgstr ""
+
+#: lib/getopt.c:637 lib/getopt.c:642
+#, c-format
+msgid "%s: option '%c%s' doesn't allow an argument\n"
+msgstr ""
+
+#: lib/getopt.c:685 lib/getopt.c:704
+#, c-format
+msgid "%s: option '--%s' requires an argument\n"
+msgstr ""
+
+#: lib/getopt.c:742 lib/getopt.c:745
+#, c-format
+msgid "%s: unrecognized option '--%s'\n"
+msgstr ""
+
+#: lib/getopt.c:753 lib/getopt.c:756
+#, c-format
+msgid "%s: unrecognized option '%c%s'\n"
+msgstr ""
+
+#: lib/getopt.c:805 lib/getopt.c:808
+#, c-format
+msgid "%s: invalid option -- '%c'\n"
+msgstr ""
+
+#: lib/getopt.c:861 lib/getopt.c:878 lib/getopt.c:1088 lib/getopt.c:1106
+#, c-format
+msgid "%s: option requires an argument -- '%c'\n"
+msgstr ""
+
+#: lib/getopt.c:934 lib/getopt.c:950
+#, c-format
+msgid "%s: option '-W %s' is ambiguous\n"
+msgstr ""
+
+#: lib/getopt.c:974 lib/getopt.c:992
+#, c-format
+msgid "%s: option '-W %s' doesn't allow an argument\n"
+msgstr ""
+
+#: lib/getopt.c:1013 lib/getopt.c:1031
+#, c-format
+msgid "%s: option '-W %s' requires an argument\n"
+msgstr ""
+
+#: lib/mailcap.c:344
+#, c-format
+msgid "Run `%s'?"
+msgstr ""
+
+#: lib/mailcap.c:380
+#, c-format
+msgid "cannot retrieve field %lu: %s"
+msgstr ""
+
+#: lib/mailcap.c:462
+#, c-format
+msgid "cannot execute `%s': %s"
+msgstr ""
+
+#: lib/mailcap.c:479
+#, c-format
+msgid "Command exited with status %d\n"
+msgstr ""
+
+#: lib/mailcap.c:481
+#, c-format
+msgid "Command terminated on signal %d\n"
+msgstr ""
+
+#: lib/mailcap.c:483
+#, c-format
+msgid "Command terminated\n"
+msgstr ""
+
+#: lib/mailcap.c:576 mimeview/mimeview.c:239
+#, c-format
+msgid "Executing %s...\n"
+msgstr ""
+
+#: lib/mailcap.c:615
+#, c-format
+msgid "Trying %s...\n"
+msgstr ""
+
+#: lib/mailcap.c:648
+#, c-format
+msgid "Found in %s\n"
+msgstr ""
+
+#: lib/tcpwrap.c:56
+msgid "Enable TCP wrapper access control.  Default is \"yes\"."
+msgstr ""
+
+#: lib/tcpwrap.c:58
+msgid "Set daemon name for TCP wrapper lookups.  Default is program name."
+msgstr ""
+
+#: lib/tcpwrap.c:59 libmu_cfg/gsasl.c:35 libmu_cfg/gsasl.c:38
+#: libmu_cfg/gsasl.c:41 libmu_cfg/gsasl.c:44 libmu_cfg/pam.c:29
+#: maidag/maidag.c:456
+msgid "name"
+msgstr ""
+
+#: lib/tcpwrap.c:62
+msgid ""
+"Use file for positive client address access control (default: /etc/hosts."
+"allow)."
+msgstr ""
+
+#: lib/tcpwrap.c:64 lib/tcpwrap.c:69 libmu_cfg/gsasl.c:32 libmu_cfg/tls.c:83
+#: libmu_cfg/tls.c:86 libmu_cfg/tls.c:89 maidag/maidag.c:445
+#: libmailutils/server/msrv.c:903 mimeview/mimeview.c:168 pop3d/pop3d.c:249
+msgid "file"
+msgstr ""
+
+#: lib/tcpwrap.c:67
+msgid ""
+"Use file for negative client address access control (default: /etc/hosts."
+"deny)."
+msgstr ""
+
+#: lib/tcpwrap.c:106
+#, c-format
+msgid "access from %s blocked by TCP wrappers"
+msgstr ""
+
+#: lib/strexit.c:27
+msgid "Normal termination"
+msgstr ""
+
+#: lib/strexit.c:28
+msgid "Unspecified error"
+msgstr ""
+
+#: lib/strexit.c:29
+msgid "Usage error"
+msgstr ""
+
+#: lib/strexit.c:30
+msgid "Incorrect input data"
+msgstr ""
+
+#: lib/strexit.c:31
+msgid "No input data"
+msgstr ""
+
+#: lib/strexit.c:32
+msgid "User does not exist"
+msgstr ""
+
+#: lib/strexit.c:33
+msgid "Host does not exist"
+msgstr ""
+
+#: lib/strexit.c:34
+msgid "Service unavailable"
+msgstr ""
+
+#: lib/strexit.c:35
+msgid "Software error"
+msgstr ""
+
+#: lib/strexit.c:36
+msgid "Operating system error"
+msgstr ""
+
+#: lib/strexit.c:37
+msgid "Required system file does not exist or cannot be opened"
+msgstr ""
+
+#: lib/strexit.c:38
+msgid "Output file cannot be created"
+msgstr ""
+
+#: lib/strexit.c:39 pop3d/extra.c:107
+msgid "I/O error"
+msgstr ""
+
+#: lib/strexit.c:40
+msgid "Temporary failure"
+msgstr ""
+
+#: lib/strexit.c:41
+msgid "Remote protocol error"
+msgstr ""
+
+#: lib/strexit.c:42
+msgid "Insufficient permissions"
+msgstr ""
+
+#: lib/strexit.c:43
+msgid "Configuration error"
+msgstr ""
+
+#: lib/strexit.c:52
+msgid "Unknown exit code"
+msgstr ""
+
+#: lib/manlock.c:189
+msgid "Enable mandatory locking."
+msgstr ""
+
+#: lib/manlock.c:191
+msgid "Set directory for mandatory lock files."
+msgstr ""
+
+#: lib/manlock.c:223
+#, c-format
+msgid "locking mailbox `%s' failed: %s"
+msgstr ""
+
+#: libmu_argp/cmdline.c:47
+#, c-format
+msgid "INTERNAL ERROR: cannot register argp capability `%s'"
+msgstr ""
+
+#: libmu_argp/common.c:50
+msgid "Common options"
+msgstr ""
+
+#: libmu_argp/common.c:52
+msgid "show compilation options"
+msgstr ""
+
+#: libmu_argp/common.c:54
+msgid "show configuration file summary"
+msgstr ""
+
+#: libmu_argp/common.c:56
+msgid "do not load user configuration file"
+msgstr ""
+
+#: libmu_argp/common.c:59
+msgid "do not load site configuration file"
+msgstr ""
+
+#: libmu_argp/common.c:62
+msgid "load this configuration file"
+msgstr ""
+
+#: libmu_argp/common.c:65
+msgid "verbosely log parsing of the configuration files"
+msgstr ""
+
+#: libmu_argp/common.c:68
+msgid "check configuration file syntax and exit"
+msgstr ""
+
+#: libmu_argp/common.c:70
+msgid "PARAM=VALUE"
+msgstr ""
+
+#: libmu_argp/common.c:71
+msgid "set configuration parameter"
+msgstr ""
+
+#: libmu_argp/common.c:151
+msgid "FACILITY"
+msgstr ""
+
+#: libmu_argp/common.c:152
+msgid "output logs to syslog FACILITY"
+msgstr ""
+
+#: libmu_argp/common.c:205
+msgid "MAILER"
+msgstr ""
+
+#: libmu_argp/common.c:206
+msgid "use specified URL as the default mailer"
+msgstr ""
+
+#: libmu_argp/common.c:255 mh/mh_argp.c:151
+msgid "LEVEL"
+msgstr ""
+
+#: libmu_argp/common.c:256 mh/mh_argp.c:152
+msgid "set Mailutils debugging level"
+msgstr ""
+
+#: libmu_argp/common.c:258 mh/mh_argp.c:154
+msgid "show source info with debugging messages"
+msgstr ""
+
+#: libmu_argp/common.c:300 mh/mh_argp.c:183
+msgid "Global debugging settings"
+msgstr ""
+
+#: libmu_argp/sieve.c:32 libmu_argp/sieve.c:34 libmu_argp/sieve.c:36
+msgid "DIR"
+msgstr ""
+
+#: libmu_argp/sieve.c:33
+msgid "append DIR to the list of directories searched for include files"
+msgstr ""
+
+#: libmu_argp/sieve.c:35
+msgid "append DIR to the list of directories searched for library files"
+msgstr ""
+
+#: libmu_argp/sieve.c:37
+msgid ""
+"add DIR to the beginning of the list of directories searched for library "
+"files"
+msgstr ""
+
+#: libmu_argp/sieve.c:40
+msgid "clear Sieve include path"
+msgstr ""
+
+#: libmu_argp/sieve.c:42
+msgid "clear Sieve library path"
+msgstr ""
+
+#: libmu_argp/sieve.c:96
+msgid "Sieve options"
+msgstr ""
+
+#: libmu_auth/ldap.c:105
+#, c-format
+msgid "cannot set LBER_OPT_DEBUG_LEVEL %d"
+msgstr ""
+
+#: libmu_auth/ldap.c:109
+#, c-format
+msgid "could not set LDAP_OPT_DEBUG_LEVEL %d"
+msgstr ""
+
+#: libmu_auth/ldap.c:118
+#, c-format
+msgid "cannot parse LDAP URL(s)=%s (%d)"
+msgstr ""
+
+#: libmu_auth/ldap.c:139
+#, c-format
+msgid "DNS SRV: cannot convert DN=\"%s\" into a domain"
+msgstr ""
+
+#: libmu_auth/ldap.c:147
+#, c-format
+msgid "DNS SRV: cannot convert domain=%s into a hostlist"
+msgstr ""
+
+#: libmu_auth/ldap.c:154
+#, c-format
+msgid "DNS SRV: could not parse hostlist=\"%s\": %s"
+msgstr ""
+
+#: libmu_auth/ldap.c:239
+#, c-format
+msgid "cannot create LDAP session handle for URI=%s (%d): %s"
+msgstr ""
+
+#: libmu_auth/ldap.c:252
+#, c-format
+msgid "ldap_start_tls failed: %s"
+msgstr ""
+
+#: libmu_auth/ldap.c:409 libmu_auth/sql.c:287
+#, c-format
+msgid "invalid value for quota: %s"
+msgstr ""
+
+#: libmu_auth/radius.c:71
+#, c-format
+msgid "RADIUS attribute %s not defined"
+msgstr ""
+
+#: libmu_auth/radius.c:103
+#, c-format
+msgid "cannot parse input `%s': %s"
+msgstr ""
+
+#: libmu_auth/radius.c:133
+#, c-format
+msgid "cannot create radius A/V pair `%s'"
+msgstr ""
+
+#: libmu_auth/radius.c:143
+#, c-format
+msgid "expected `,' but found `%s'"
+msgstr ""
+
+#: libmu_auth/radius.c:153
+msgid "malformed radius A/V list"
+msgstr ""
+
+#: libmu_auth/radius.c:219
+msgid "cannot read radius dictionaries"
+msgstr ""
+
+#: libmu_auth/radius.c:344
+#, c-format
+msgid "radius server did not return UID for `%s'"
+msgstr ""
+
+#: libmu_auth/radius.c:353
+#, c-format
+msgid "radius server did not return GID for `%s'"
+msgstr ""
+
+#: libmu_auth/radius.c:418
+msgid "radius request for auth is not specified"
+msgstr ""
+
+#: libmu_auth/radius.c:456
+msgid "radius request for getpwnam is not specified"
+msgstr ""
+
+#: libmu_auth/radius.c:463 libmu_auth/radius.c:505
+msgid "radius server did not respond"
+msgstr ""
+
+#: libmu_auth/radius.c:469
+#, c-format
+msgid "%s: server returned %s"
+msgstr ""
+
+#: libmu_auth/radius.c:497
+msgid "radius request for getpwuid is not specified"
+msgstr ""
+
+#: libmu_auth/radius.c:510
+#, c-format
+msgid "uid %s: server returned %s"
+msgstr ""
+
+#: libmu_auth/sql.c:189
+#, c-format
+msgid "cannot get SQL field `%s' (`%s'): %s"
+msgstr ""
+
+#: libmu_auth/sql.c:196
+#, c-format
+msgid "SQL field `%s' (`%s') has NULL value"
+msgstr ""
+
+#: libmu_auth/sql.c:234
+#, c-format
+msgid "invalid value for uid: %s"
+msgstr ""
+
+#: libmu_auth/sql.c:241
+#, c-format
+msgid "invalid value for gid: %s"
+msgstr ""
+
+#: libmu_auth/sql.c:378 libmu_auth/sql.c:472 libmu_auth/sql.c:558
+#: maidag/mailquota.c:217
+#, c-format
+msgid "SQL query failed: %s"
+msgstr ""
+
+#: libmu_auth/sql.c:389 libmu_auth/sql.c:483 libmu_auth/sql.c:569
+#: maidag/mailquota.c:228
+#, c-format
+msgid "cannot store SQL result: %s"
+msgstr ""
+
+#: libmu_auth/sql.c:399 libmu_auth/sql.c:493 libmu_auth/sql.c:579
+#, c-format
+msgid "cannot get number of tuples: %s"
+msgstr ""
+
+#: libmu_auth/sql.c:596
+#, c-format
+msgid "cannot get password from SQL: %s"
+msgstr ""
+
+#: libmu_auth/sql.c:606
+msgid "SQL returned NULL password"
+msgstr ""
+
+#: libmu_auth/sql.c:677
+#, c-format
+msgid "unknown SQL interface `%s'"
+msgstr ""
+
+#: libmu_cfg/acl.c:47 mu/acl.c:98 mu/wicket.c:140
+msgid "not enough arguments"
+msgstr ""
+
+#: libmu_cfg/acl.c:82
+#, c-format
+msgid "invalid source CIDR: %s"
+msgstr ""
+
+#: libmu_cfg/acl.c:124
+msgid "junk after IP address"
+msgstr ""
+
+#: libmu_cfg/acl.c:141 libmu_cfg/acl.c:156 libmu_cfg/acl.c:172
+#: libmu_cfg/acl.c:188 libmu_cfg/acl.c:204
+#, c-format
+msgid "cannot append acl entry: %s"
+msgstr ""
+
+#: libmu_cfg/acl.c:210
+msgid ""
+"Allow connections from this IP address. Optional word `from' is allowed "
+"between it and its argument. The same holds true for other actions below."
+msgstr ""
+
+#: libmu_cfg/acl.c:213 libmu_cfg/acl.c:216 libmu_cfg/acl.c:219
+msgid "addr: IP"
+msgstr ""
+
+#: libmu_cfg/acl.c:215
+msgid "Deny connections from this IP address."
+msgstr ""
+
+#: libmu_cfg/acl.c:218
+msgid "Log connections from this IP address."
+msgstr ""
+
+#: libmu_cfg/acl.c:221
+msgid ""
+"Execute supplied program if a connection from this IP address is requested. "
+"Arguments are:\n"
+"  <addr: IP> <program: string>\n"
+"Following macros are expanded in <program> before executing:\n"
+"  address  -  Source IP address\n"
+"  port     -  Source port number\n"
+msgstr ""
+
+#: libmu_cfg/acl.c:228
+msgid ""
+"If a connection from this IP address is requested, execute supplied program "
+"and allow or deny the connection depending on its exit code. See `exec' for "
+"a description of its arguments."
+msgstr ""
+
+#: libmu_cfg/auth.c:57 libmu_cfg/auth.c:89 libmailutils/cfg/parser.y:1060
+msgid "expected string value"
+msgstr ""
+
+#: libmu_cfg/auth.c:99
+msgid ""
+"Set a list of modules for authentication. Modlist is a colon-separated list "
+"of module names or a word `clear' to clear the previously set up values."
+msgstr ""
+
+#: libmu_cfg/auth.c:102 libmu_cfg/auth.c:107
+msgid "modlist"
+msgstr ""
+
+#: libmu_cfg/auth.c:104
+msgid ""
+"Set a list of modules for authorization. Modlist is a colon-separated list "
+"of module names or a word `clear' to clear the previously set up values."
+msgstr ""
+
+#: libmu_cfg/common.c:53
+msgid "Use specified URL as a mailspool directory."
+msgstr ""
+
+#: libmu_cfg/common.c:54 libmu_cfg/common.c:121 libmu_cfg/ldap.c:50
+#: maidag/maidag.c:481 pop3d/pop3d.c:245 sieve/sieve.c:287
+msgid "url"
+msgstr ""
+
+#: libmu_cfg/common.c:57
+msgid "Create mailbox URL using <pattern>."
+msgstr ""
+
+#: libmu_cfg/common.c:58
+msgid "pattern"
+msgstr ""
+
+#: libmu_cfg/common.c:60
+msgid "Default mailbox type."
+msgstr ""
+
+#: libmu_cfg/common.c:60
+msgid "protocol"
+msgstr ""
+
+#: libmu_cfg/common.c:62
+msgid "Default user mail folder"
+msgstr ""
+
+#: libmu_cfg/common.c:63 libmu_cfg/virtdomain.c:30
+msgid "dir"
+msgstr ""
+
+#: libmu_cfg/common.c:77
+msgid "Default locker flags (E=external, R=retry, T=time, P=pid)."
+msgstr ""
+
+#: libmu_cfg/common.c:80
+msgid "Set timeout for acquiring the lock."
+msgstr ""
+
+#: libmu_cfg/common.c:82
+msgid "Set the maximum number of times to retry acquiring the lock."
+msgstr ""
+
+#: libmu_cfg/common.c:85
+msgid "Expire locks older than this amount of time."
+msgstr ""
+
+#: libmu_cfg/common.c:88
+msgid "Use external locker program."
+msgstr ""
+
+#: libmu_cfg/common.c:89 mimeview/mimeview.c:171
+msgid "prog"
+msgstr ""
+
+#: libmu_cfg/common.c:102
+msgid ""
+"Set the current user email address (default is loginname@defaultdomain)."
+msgstr ""
+
+#: libmu_cfg/common.c:104
+msgid "email"
+msgstr ""
+
+#: libmu_cfg/common.c:106
+msgid "Set e-mail domain for unqualified user names (default is this host)"
+msgstr ""
+
+#: libmu_cfg/common.c:107
+msgid "domain"
+msgstr ""
+
+#: libmu_cfg/common.c:120
+msgid "Use this URL as the default mailer"
+msgstr ""
+
+#: libmu_cfg/common.c:140
+#, c-format
+msgid "unknown syslog facility `%s'"
+msgstr ""
+
+#: libmu_cfg/common.c:155
+#, c-format
+msgid "unknown severity `%s'"
+msgstr ""
+
+#: libmu_cfg/common.c:164
+msgid "Send diagnostics to syslog."
+msgstr ""
+
+#: libmu_cfg/common.c:166
+msgid "Print message severity levels."
+msgstr ""
+
+#: libmu_cfg/common.c:168
+msgid "Output only messages with a severity equal to or greater than this one."
+msgstr ""
+
+#: libmu_cfg/common.c:171
+msgid ""
+"Set syslog facility. Arg is one of the following: user, daemon, auth, "
+"authpriv, mail, cron, local0 through local7 (case-insensitive), or a "
+"facility number."
+msgstr ""
+
+#: libmu_cfg/common.c:175
+msgid "Log session ID"
+msgstr ""
+
+#: libmu_cfg/common.c:177
+msgid "Tag syslog messages with this string."
+msgstr ""
+
+#: libmu_cfg/common.c:204
+msgid ""
+"Set Mailutils debugging level.  Argument is a colon-separated list of "
+"debugging specifications in the form:\n"
+"   <object: string>[[:]=<level: number>]."
+msgstr ""
+
+#: libmu_cfg/common.c:208
+msgid "Prefix debug messages with Mailutils source locations."
+msgstr ""
+
+#: libmu_cfg/gsasl.c:29
+msgid "Enable GSASL (default)"
+msgstr ""
+
+#: libmu_cfg/gsasl.c:31
+msgid "Name of GSASL password file."
+msgstr ""
+
+#: libmu_cfg/gsasl.c:34
+msgid "SASL service name."
+msgstr ""
+
+#: libmu_cfg/gsasl.c:37
+msgid "SASL realm name."
+msgstr ""
+
+#: libmu_cfg/gsasl.c:40
+msgid "SASL host name."
+msgstr ""
+
+#: libmu_cfg/gsasl.c:43
+msgid "Anonymous user name."
+msgstr ""
+
+#: libmu_cfg/init.c:94
+#, c-format
+msgid "unknown configuration group requested `%s'"
+msgstr ""
+
+#: libmu_cfg/init.c:188 libmailutils/cfg/parser.y:1914
+#, c-format
+msgid "errors parsing file %s: %s"
+msgstr ""
+
+#: libmu_cfg/ldap.c:35 libmu_cfg/sql.c:49
+#, c-format
+msgid "error near element %d: %s"
+msgstr ""
+
+#: libmu_cfg/ldap.c:47
+msgid "Enable LDAP lookups."
+msgstr ""
+
+#: libmu_cfg/ldap.c:49
+msgid "Set URL of the LDAP server."
+msgstr ""
+
+#: libmu_cfg/ldap.c:52
+msgid "Base DN for LDAP lookups."
+msgstr ""
+
+#: libmu_cfg/ldap.c:53 libmu_cfg/ldap.c:56
+msgid "dn"
+msgstr ""
+
+#: libmu_cfg/ldap.c:55
+msgid "DN for accessing LDAP database."
+msgstr ""
+
+#: libmu_cfg/ldap.c:58
+msgid "Password for use with binddn."
+msgstr ""
+
+#: libmu_cfg/ldap.c:60
+msgid "Use TLS encryption."
+msgstr ""
+
+#: libmu_cfg/ldap.c:62
+msgid "Set LDAP debugging level."
+msgstr ""
+
+#: libmu_cfg/ldap.c:64
+msgid ""
+"Set a field-map for parsing LDAP replies.  The map is a column-separated "
+"list of definitions.  Each definition has the following form:\n"
+"   <name: string>=<attr: string>\n"
+"where <name> is one of the following: name, passwd, uid, gid, gecos, dir, "
+"shell, mailbox, quota, and <attr> is the name of the corresponding LDAP "
+"attribute."
+msgstr ""
+
+#: libmu_cfg/ldap.c:71 libmu_cfg/sql.c:94
+msgid "map"
+msgstr ""
+
+#: libmu_cfg/ldap.c:73
+msgid "LDAP filter to use for getpwnam requests."
+msgstr ""
+
+#: libmu_cfg/ldap.c:74 libmu_cfg/ldap.c:77
+msgid "filter"
+msgstr ""
+
+#: libmu_cfg/ldap.c:76
+msgid "LDAP filter to use for getpwuid requests."
+msgstr ""
+
+#: libmu_cfg/pam.c:28
+msgid "Set PAM service name."
+msgstr ""
+
+#: libmu_cfg/radius.c:29
+msgid "Radius request for authorization."
+msgstr ""
+
+#: libmu_cfg/radius.c:30 libmu_cfg/radius.c:33 libmu_cfg/radius.c:36
+msgid "request"
+msgstr ""
+
+#: libmu_cfg/radius.c:32
+msgid "Radius request for getpwnam."
+msgstr ""
+
+#: libmu_cfg/radius.c:35
+msgid "Radius request for getpwuid."
+msgstr ""
+
+#: libmu_cfg/radius.c:38
+msgid "Set radius configuration directory."
+msgstr ""
+
+#: libmu_cfg/sieve.c:71 libmu_sieve/conf.c:48 libmailutils/cfg/parser.y:296
+#: mh/mh_whom.c:37
+#, c-format
+msgid "cannot create list: %s"
+msgstr ""
+
+#: libmu_cfg/sieve.c:102
+msgid "Clear library search path."
+msgstr ""
+
+#: libmu_cfg/sieve.c:104
+msgid "Clear include search path."
+msgstr ""
+
+#: libmu_cfg/sieve.c:106
+msgid ""
+"Add directories to the library search path.  Argument is a colon-separated "
+"list of directories."
+msgstr ""
+
+#: libmu_cfg/sieve.c:108 libmu_cfg/sieve.c:112 libmu_cfg/sieve.c:116
+#: readmsg/readmsg.c:134
+msgid "list"
+msgstr ""
+
+#: libmu_cfg/sieve.c:110
+msgid ""
+"Add directories to the beginning of the library search path.  Argument is a "
+"colon-separated list of directories."
+msgstr ""
+
+#: libmu_cfg/sieve.c:114
+msgid ""
+"Add directories to the include search path.  Argument is a colon-separated "
+"list of directories."
+msgstr ""
+
+#: libmu_cfg/sql.c:38
+#, c-format
+msgid "unknown password type `%s'"
+msgstr ""
+
+#: libmu_cfg/sql.c:61
+msgid "Set SQL interface to use (one of: mysql, odbc, or postgres)."
+msgstr ""
+
+#: libmu_cfg/sql.c:63
+msgid "SQL query to use for getpwnam requests."
+msgstr ""
+
+#: libmu_cfg/sql.c:64 libmu_cfg/sql.c:67 libmu_cfg/sql.c:70
+#: maidag/maidag.c:451
+msgid "query"
+msgstr ""
+
+#: libmu_cfg/sql.c:66
+msgid "SQL query to use for getpwuid requests."
+msgstr ""
+
+#: libmu_cfg/sql.c:69
+msgid "SQL query returning the user's password."
+msgstr ""
+
+#: libmu_cfg/sql.c:72
+msgid "SQL server host name."
+msgstr ""
+
+#: libmu_cfg/sql.c:74
+msgid "SQL user name."
+msgstr ""
+
+#: libmu_cfg/sql.c:76
+msgid "Password for the SQL user."
+msgstr ""
+
+#: libmu_cfg/sql.c:78
+msgid "SQL server port."
+msgstr ""
+
+#: libmu_cfg/sql.c:80
+msgid "Database name."
+msgstr ""
+
+#: libmu_cfg/sql.c:82
+msgid ""
+"Type of password returned by getpass query (one of: plain, hash, scrambled)."
+msgstr ""
+
+#: libmu_cfg/sql.c:85
+msgid "Use positional (v1.0 compatible) field interface."
+msgstr ""
+
+#: libmu_cfg/sql.c:87
+msgid ""
+"Set a field-map for parsing SQL replies.  The map is a column-separated list "
+"of definitions.  Each definition has the following form:\n"
+"   <name: string>=<column: string>\n"
+"where <name> is one of the following: name, passwd, uid, gid, gecos, dir, "
+"shell, mailbox, quota, and <column> is the name of the corresponding SQL "
+"column."
+msgstr ""
+
+#: libmu_cfg/tls.c:63
+#, c-format
+msgid "INTERNAL ERROR at %s:%d: unknown default value?"
+msgstr ""
+
+#: libmu_cfg/tls.c:68 maidag/maidag.c:340 movemail/movemail.c:354
+#: pop3d/pop3d.c:90 mu/ldflags.c:188
+#, c-format
+msgid "unknown keyword: %s"
+msgstr ""
+
+#: libmu_cfg/tls.c:80
+msgid "Enable TLS encryption."
+msgstr ""
+
+#: libmu_cfg/tls.c:82
+msgid "Specify SSL certificate file."
+msgstr ""
+
+#: libmu_cfg/tls.c:85
+msgid "Specify SSL certificate key file."
+msgstr ""
+
+#: libmu_cfg/tls.c:88
+msgid "Specify trusted CAs file."
+msgstr ""
+
+#: libmu_cfg/tls.c:93
+msgid ""
+"Configure safety checks for SSL key file.  Argument is a list or sequence of "
+"check names optionally prefixed with '+' to enable or '-' to disable the "
+"corresponding check.  Valid check names are:\n"
+"\n"
+"  none          disable all checks\n"
+"  all           enable all checks\n"
+"  gwrfil        forbid group writable files\n"
+"  awrfil        forbid world writable files\n"
+"  grdfil        forbid group readable files\n"
+"  ardfil        forbid world writable files\n"
+"  linkwrdir     forbid symbolic links in group or world writable "
+"directories\n"
+"  gwrdir        forbid files in group writable directories\n"
+"  awrdir        forbid files in world writable directories\n"
+msgstr ""
+
+#: libmu_cfg/tls.c:106 libmu_cfg/tls.c:111 libmu_cfg/tls.c:116
+#: maidag/maidag.c:470 pop3d/pop3d.c:228
+msgid "arg: list"
+msgstr ""
+
+#: libmu_cfg/tls.c:110
+msgid ""
+"Configure safety checks for SSL certificate.  See above for a description of "
+"<arg>."
+msgstr ""
+
+#: libmu_cfg/tls.c:115
+msgid ""
+"Configure safety checks for SSL certificate authority file.  See above for a "
+"description of <arg>."
+msgstr ""
+
+#: libmu_cfg/virtdomain.c:28
+msgid "Name of the directory where virtual domain password files are located."
+msgstr ""
+
+#: libmu_sieve/actions.c:69
+msgid "marking as deleted"
+msgstr ""
+
+#: libmu_sieve/actions.c:85
+msgid "cannot get filename!"
+msgstr ""
+
+#: libmu_sieve/actions.c:96 libmu_sieve/actions.c:543
+#, c-format
+msgid "invalid permissions (near %s)"
+msgstr ""
+
+#: libmu_sieve/actions.c:102
+#, c-format
+msgid "delivering into %s"
+msgstr ""
+
+#: libmu_sieve/actions.c:108
+#, c-format
+msgid "cannot save to mailbox: %s"
+msgstr ""
+
+#: libmu_sieve/actions.c:299
+msgid "reject: cannot get text!"
+msgstr ""
+
+#: libmu_sieve/actions.c:318 libmu_sieve/extensions/vacation.c:572
+#, c-format
+msgid "%lu: cannot create recipient address <%s>: %s"
+msgstr ""
+
+#: libmu_sieve/actions.c:330 libmu_sieve/actions.c:459
+#, c-format
+msgid "%lu: cannot create sender address <%s>: %s"
+msgstr ""
+
+#: libmu_sieve/actions.c:344 libmu_sieve/actions.c:499 libmu_sieve/sieve.y:485
+#, c-format
+msgid "%lu: cannot open mailer %s: %s"
+msgstr ""
+
+#: libmu_sieve/actions.c:419
+msgid "cannot get address!"
+msgstr ""
+
+#: libmu_sieve/actions.c:427
+#, c-format
+msgid "%lu: parsing recipient address `%s' failed: %s"
+msgstr ""
+
+#: libmu_sieve/actions.c:433
+#, c-format
+msgid "to %s"
+msgstr ""
+
+#: libmu_sieve/actions.c:440
+#, c-format
+msgid "%lu: redirection loop detected"
+msgstr ""
+
+#: libmu_sieve/actions.c:449
+#, c-format
+msgid "%lu: cannot get envelope sender: %s"
+msgstr ""
+
+#: libmu_sieve/actions.c:472
+#, c-format
+msgid "%lu: cannot copy message: %s"
+msgstr ""
+
+#: libmu_sieve/actions.c:487
+#, c-format
+msgid "%lu: cannot get my email address"
+msgstr ""
+
+#: libmu_sieve/comparator.c:171
+#, c-format
+msgid "regex error: %s"
+msgstr ""
+
+#: libmu_sieve/comparator.c:175
+msgid "regex error"
+msgstr ""
+
+#: libmu_sieve/comparator.c:237
+#, c-format
+msgid "match type specified twice in call to `%s'"
+msgstr ""
+
+#. TRANSLATORS: Do not translate ':count'.
+#. It is the name of a Sieve tag
+#: libmu_sieve/comparator.c:275
+#, c-format
+msgid "comparator %s is incompatible with :count in call to `%s'"
+msgstr ""
+
+#: libmu_sieve/comparator.c:292
+msgid "second argument must be a list of one element"
+msgstr ""
+
+#: libmu_sieve/comparator.c:300
+msgid "second argument cannot be converted to number"
+msgstr ""
+
+#: libmu_sieve/comparator.c:310
+#, c-format
+msgid "invalid relational match `%s' in call to `%s'"
+msgstr ""
+
+#: libmu_sieve/comparator.c:324
+#, c-format
+msgid "comparator `%s' is incompatible with match type `%s' in call to `%s'"
+msgstr ""
+
+#: libmu_sieve/prog.c:158 libmu_sieve/require.c:38
+#, c-format
+msgid "cannot create iterator: %s"
+msgstr ""
+
+#: libmu_sieve/prog.c:177
+#, c-format
+msgid "invalid tag name `%s' for `%s'"
+msgstr ""
+
+#: libmu_sieve/prog.c:186
+#, c-format
+msgid "cannot create tag list: %s"
+msgstr ""
+
+#: libmu_sieve/prog.c:199
+#, c-format
+msgid "required argument for tag %s is missing"
+msgstr ""
+
+#: libmu_sieve/prog.c:208
+#, c-format
+msgid "type mismatch in argument to tag `%s'"
+msgstr ""
+
+#: libmu_sieve/prog.c:212 libmu_sieve/prog.c:278
+#, c-format
+msgid "expected %s but passed %s"
+msgstr ""
+
+#: libmu_sieve/prog.c:232
+#, c-format
+msgid "cannot create check list: %s"
+msgstr ""
+
+#: libmu_sieve/prog.c:253 mimeview/mimetypes.y:577
+#, c-format
+msgid "too many arguments in call to `%s'"
+msgstr ""
+
+#: libmu_sieve/prog.c:274
+#, c-format
+msgid "type mismatch in argument %lu to `%s'"
+msgstr ""
+
+#: libmu_sieve/prog.c:289
+#, c-format
+msgid "cannot create arg list: %s"
+msgstr ""
+
+#: libmu_sieve/prog.c:307 mimeview/mimetypes.y:569
+#, c-format
+msgid "too few arguments in call to `%s'"
+msgstr ""
+
+#: libmu_sieve/require.c:56
+msgid "required comparator"
+msgstr ""
+
+#: libmu_sieve/require.c:62
+msgid "required test"
+msgstr ""
+
+#: libmu_sieve/require.c:72
+msgid "required action"
+msgstr ""
+
+#: libmu_sieve/require.c:78
+#, c-format
+msgid "source for the %s %s is not available"
+msgstr ""
+
+#: libmu_sieve/runtime.c:131
+msgid "cannot create stack"
+msgstr ""
+
+#: libmu_sieve/runtime.c:149
+msgid "stack underflow"
+msgstr ""
+
+#: libmu_sieve/runtime.c:351
+#, c-format
+msgid "mu_mailbox_scan: %s"
+msgstr ""
+
+#: libmu_sieve/sieve.l:129 libmailutils/cfg/lexer.l:333
+#: mimeview/mimetypes.l:143 mimeview/mimeview.c:191
+#, c-format
+msgid "cannot stat `%s': %s"
+msgstr ""
+
+#: libmu_sieve/sieve.l:135 libmu_sieve/sieve.l:140
+msgid "recursive inclusion"
+msgstr ""
+
+#: libmu_sieve/sieve.l:143
+#, c-format
+msgid "`%s' already included here"
+msgstr ""
+
+#: libmu_sieve/sieve.l:147
+#, c-format
+msgid "`%s' already included at top level"
+msgstr ""
+
+#: libmu_sieve/sieve.l:156
+#, c-format
+msgid "cannot open file `%s': %s"
+msgstr ""
+
+#: libmu_sieve/sieve.l:327
+msgid "preprocessor syntax"
+msgstr ""
+
+#: libmu_sieve/sieve.l:336
+msgid "missing closing quote in preprocessor statement"
+msgstr ""
+
+#: libmu_sieve/sieve.y:232
+#, c-format
+msgid "unknown test: %s"
+msgstr ""
+
+#: libmu_sieve/sieve.y:236
+#, c-format
+msgid "test `%s' has not been required"
+msgstr ""
+
+#: libmu_sieve/sieve.y:258
+#, c-format
+msgid "unknown action: %s"
+msgstr ""
+
+#: libmu_sieve/sieve.y:262
+#, c-format
+msgid "action `%s' has not been required"
+msgstr ""
+
+#: libmu_sieve/sieve.y:474
+#, c-format
+msgid "%lu: cannot create mailer: %s"
+msgstr ""
+
+#: libmu_sieve/util.c:174
+msgid "invalid data type"
+msgstr ""
+
+#: libmu_sieve/util.c:229
+#, c-format
+msgid "cannot retrieve argument %d"
+msgstr ""
+
+#: libmu_sieve/extensions/moderator.c:89
+#: libmu_sieve/extensions/moderator.c:110 sieve/sieve.c:480
+#, c-format
+msgid "cannot initialize sieve machine: %s"
+msgstr ""
+
+#: libmu_sieve/extensions/moderator.c:101
+#, c-format
+msgid "cannot compile source `%s'"
+msgstr ""
+
+#: libmu_sieve/extensions/moderator.c:119
+msgid "cannot compile subprogram"
+msgstr ""
+
+#: libmu_sieve/extensions/moderator.c:133
+msgid "failed to run inferior sieve machine"
+msgstr ""
+
+#: libmu_sieve/extensions/moderator.c:151
+#, c-format
+msgid "cannot get `%s:' header: %s"
+msgstr ""
+
+#: libmu_sieve/extensions/moderator.c:200
+#, c-format
+msgid "cannot open mailer: %s"
+msgstr ""
+
+#: libmu_sieve/extensions/moderator.c:208 mail/send.c:1058 mh/send.c:725
+#, c-format
+msgid "cannot send message: %s"
+msgstr ""
+
+#: libmu_sieve/extensions/moderator.c:226
+#, c-format
+msgid "cannot get message part #%lu: %s"
+msgstr ""
+
+#: libmu_sieve/extensions/moderator.c:246
+#, c-format
+msgid "cannot convert MIME part stream to message: %s"
+msgstr ""
+
+#: libmu_sieve/extensions/moderator.c:254
+#, c-format
+msgid "expected message type message/rfc822, but found %s"
+msgstr ""
+
+#: libmu_sieve/extensions/moderator.c:260
+msgid "no Content-Type header found"
+msgstr ""
+
+#: libmu_sieve/extensions/moderator.c:286
+msgid "message is not multipart"
+msgstr ""
+
+#: libmu_sieve/extensions/moderator.c:294
+#, c-format
+msgid "expected 3 parts, but found %lu"
+msgstr ""
+
+#: libmu_sieve/extensions/moderator.c:315
+#, c-format
+msgid "cannot get message part #3: %s"
+msgstr ""
+
+#: libmu_sieve/extensions/moderator.c:341
+msgid "discarding message"
+msgstr ""
+
+#: libmu_sieve/extensions/moderator.c:342
+msgid "keeping message"
+msgstr ""
+
+#: libmu_sieve/extensions/spamd.c:279
+#, c-format
+msgid "unsupported SPAMD version: %s"
+msgstr ""
+
+#: libmu_sieve/extensions/spamd.c:286
+#, c-format
+msgid "malformed spamd response: %s"
+msgstr ""
+
+#: libmu_sieve/extensions/spamd.c:293
+#, c-format
+msgid "spamd failure: %lu %s"
+msgstr ""
+
+#: libmu_sieve/extensions/spamd.c:383
+#, c-format
+msgid "cannot get real message size: %s"
+msgstr ""
+
+#: libmu_sieve/extensions/spamd.c:411 maidag/lmtp.c:36 pop3d/extra.c:183
+#, c-format
+msgid "cannot create debug stream; transcript disabled: %s"
+msgstr ""
+
+#: libmu_sieve/extensions/spamd.c:417 maidag/lmtp.c:42 pop3d/extra.c:190
+#, c-format
+msgid "cannot create transcript stream: %s"
+msgstr ""
+
+#: libmu_sieve/extensions/spamd.c:450
+msgid "remote side has closed connection"
+msgstr ""
+
+#: libmu_sieve/extensions/spamd.c:461
+#, c-format
+msgid "spamd responded with bad Spam header '%s'"
+msgstr ""
+
+#: libmu_sieve/extensions/spamd.c:493
+#, c-format
+msgid "cannot get message header: %s"
+msgstr ""
+
+#: libmu_sieve/extensions/timestamp.c:83
+#, c-format
+msgid "cannot parse date specification (%s)"
+msgstr ""
+
+#: libmu_sieve/extensions/vacation.c:65
+#, c-format
+msgid "cannot create temporary stream: %s"
+msgstr ""
+
+#: libmu_sieve/extensions/vacation.c:91
+#, c-format
+msgid "cannot get input body stream: %s"
+msgstr ""
+
+#: libmu_sieve/extensions/vacation.c:103
+#, c-format
+msgid "stream copy failed: %s"
+msgstr ""
+
+#: libmu_sieve/extensions/vacation.c:208
+#, c-format
+msgid "%lu: cannot compile regular expression \"%s\""
+msgstr ""
+
+#: libmu_sieve/extensions/vacation.c:353
+#, c-format
+msgid "%lu: cannot build db file name"
+msgstr ""
+
+#: libmu_sieve/extensions/vacation.c:361
+#, c-format
+msgid "%lu: cannot lock %s: %s"
+msgstr ""
+
+#: libmu_sieve/extensions/vacation.c:435
+#, c-format
+msgid "%lu: not enough memory"
+msgstr ""
+
+#: libmu_sieve/extensions/vacation.c:492
+#, c-format
+msgid "%lu: cannot compile reply prefix regexp: %s: %s"
+msgstr ""
+
+#: libmu_sieve/extensions/vacation.c:541
+#, c-format
+msgid "%lu: cannot open message file %s: %s"
+msgstr ""
+
+#: libmu_sieve/extensions/vacation.c:552
+#, c-format
+msgid "%lu: cannot read message from file %s: %s"
+msgstr ""
+
+#: libmu_sieve/extensions/vacation.c:634
+msgid "cannot get text!"
+msgstr ""
+
+#: libmu_sieve/extensions/vacation.c:658
+#, c-format
+msgid "%lu: cannot get sender address"
+msgstr ""
+
+#: libproto/mbox/mbox.c:229
+msgid "mailbox corrupted, shrank in size"
+msgstr ""
+
+#: libproto/mbox/mbox.c:1139
+#, c-format
+msgid "cannot truncate stream after failed append: %s"
+msgstr ""
+
+#: libproto/mbox/mbox.c:1237 libproto/mbox/mbox.c:1246
+#, c-format
+msgid "%s:%d: error expunging: %s"
+msgstr ""
+
+#: libproto/mbox/mbox.c:1262 libproto/mbox/mbox.c:1293
+#: libproto/mbox/mbox.c:1324 libproto/mbox/mbox.c:1342
+#, c-format
+msgid "%s:%d: seek error: %s"
+msgstr ""
+
+#: libproto/mbox/mbox.c:1271
+#, c-format
+msgid "%s:%d: error copying: %s"
+msgstr ""
+
+#: libproto/mbox/mbox.c:1302
+#, c-format
+msgid "%s:%d: error writing to temporary stream: %s"
+msgstr ""
+
+#: libproto/mbox/mbox.c:1313
+#, c-format
+msgid "%s:%d: mailbox shrunk while expunging"
+msgstr ""
+
+#: libproto/mbox/mbox.c:1333
+#, c-format
+msgid "%s:%d: cannot get size of the temp stream: %s"
+msgstr ""
+
+#: libproto/mbox/mbox.c:1351
+#, c-format
+msgid "%s:%d: copying from the temporary stream: %s"
+msgstr ""
+
+#: libproto/mbox/mbox.c:1360
+#, c-format
+msgid "%s:%d: error truncating stream: %s"
+msgstr ""
+
+#: maidag/maidag.c:62
+msgid "GNU maidag -- the mail delivery agent."
+msgstr ""
+
+#: maidag/maidag.c:64
+msgid ""
+"Debug flags are:\n"
+"  g - guimb stack traces\n"
+"  t - sieve trace (MU_SIEVE_DEBUG_TRACE)\n"
+"  i - sieve instructions trace (MU_SIEVE_DEBUG_INSTR)\n"
+"  l - sieve action logs\n"
+"  0-9 - Set maidag debugging level\n"
+msgstr ""
+
+#: maidag/maidag.c:71
+msgid "[recipient...]"
+msgstr ""
+
+#: maidag/maidag.c:85
+msgid "General options"
+msgstr ""
+
+#: maidag/maidag.c:92
+msgid "deliver to given URLs"
+msgstr ""
+
+#: maidag/maidag.c:93
+msgid "force MDA mode even if not started as root"
+msgstr ""
+
+#: maidag/maidag.c:95
+msgid "EMAIL"
+msgstr ""
+
+#: maidag/maidag.c:96
+msgid "specify the sender's name"
+msgstr ""
+
+#: maidag/maidag.c:98 mu/wicket.c:27
+msgid "URL"
+msgstr ""
+
+#: maidag/maidag.c:99
+msgid "operate in LMTP mode"
+msgstr ""
+
+#: maidag/maidag.c:100 mimeview/mimeview.c:49 sieve/sieve.c:83
+msgid "FLAGS"
+msgstr ""
+
+#: maidag/maidag.c:101
+msgid "enable debugging"
+msgstr ""
+
+#: maidag/maidag.c:103
+msgid "log to standard error"
+msgstr ""
+
+#: maidag/maidag.c:105
+msgid "enable session transcript"
+msgstr ""
+
+#: maidag/maidag.c:110
+msgid "Scripting options"
+msgstr ""
+
+#: maidag/maidag.c:112 maidag/maidag.c:117 mh/anno.c:38 mh/pick.c:49
+#: mh/pick.c:52 mh/pick.c:54 mh/pick.c:56 mh/pick.c:58 mh/pick.c:60
+#: mh/pick.c:62 mh/pick.c:68 mh/whatnow.c:34 pop3d/popauth.c:81 mu/shell.c:75
+msgid "STRING"
+msgstr ""
+
+#: maidag/maidag.c:113
+msgid "define scripting language for the next --script option"
+msgstr ""
+
+#: maidag/maidag.c:115
+msgid "PATTERN"
+msgstr ""
+
+#: maidag/maidag.c:116
+msgid "set name pattern for user-defined mail filter"
+msgstr ""
+
+#: maidag/maidag.c:118
+msgid "use this header to identify messages when logging Sieve actions"
+msgstr ""
+
+#: maidag/maidag.c:179 sieve/sieve.c:161
+#, c-format
+msgid "%c is not a valid debug flag"
+msgstr ""
+
+#: maidag/maidag.c:186
+#, c-format
+msgid "expected comma, but found %c"
+msgstr ""
+
+#: maidag/maidag.c:232
+#, c-format
+msgid "multiple --from options"
+msgstr ""
+
+#: maidag/maidag.c:239
+#, c-format
+msgid "unknown or unsupported language: %s"
+msgstr ""
+
+#: maidag/maidag.c:250 maidag/maidag.c:377
+#, c-format
+msgid "%s has unknown file suffix"
+msgstr ""
+
+#: maidag/maidag.c:254 maidag/maidag.c:381
+#, c-format
+msgid "error registering script"
+msgstr ""
+
+#: maidag/maidag.c:320
+#, c-format
+msgid "unknown group: %s"
+msgstr ""
+
+#: maidag/maidag.c:359
+#, c-format
+msgid "unsupported language: %s"
+msgstr ""
+
+#: maidag/maidag.c:388
+msgid "Set script language."
+msgstr ""
+
+#: maidag/maidag.c:390
+msgid "Set script pattern."
+msgstr ""
+
+#: maidag/maidag.c:415
+#, c-format
+msgid "%s is unknown"
+msgstr ""
+
+#: maidag/maidag.c:434
+msgid "Set delivery mode"
+msgstr ""
+
+#: maidag/maidag.c:435
+msgid "mode: {mda | url | lmtp}"
+msgstr ""
+
+#: maidag/maidag.c:437
+msgid ""
+"In case of multiple delivery, exit with code 0 if at least one delivery "
+"succeeded."
+msgstr ""
+
+#: maidag/maidag.c:440
+msgid "Indicate temporary failure if the recipient is over his mail quota."
+msgstr ""
+
+#: maidag/maidag.c:444
+msgid "Name of DBM quota database file."
+msgstr ""
+
+#: maidag/maidag.c:449
+msgid ""
+"SQL query to retrieve mailbox quota.  This is deprecated, use sql { ... } "
+"instead."
+msgstr ""
+
+#: maidag/maidag.c:454
+msgid ""
+"When logging Sieve actions, identify messages by the value of this header."
+msgstr ""
+
+#: maidag/maidag.c:458
+msgid ""
+"Set maidag debug level.  Debug level consists of one or more of the "
+"following letters:\n"
+"  g - guimb stack traces\n"
+"  t - sieve trace (MU_SIEVE_DEBUG_TRACE)\n"
+"  i - sieve instructions trace (MU_SIEVE_DEBUG_INSTR)\n"
+"  l - sieve action logs\n"
+msgstr ""
+
+#: maidag/maidag.c:465
+msgid "Log to stderr instead of syslog."
+msgstr ""
+
+#: maidag/maidag.c:467
+msgid "Process forward file."
+msgstr ""
+
+#: maidag/maidag.c:469
+msgid "Configure safety checks for the forward file."
+msgstr ""
+
+#: maidag/maidag.c:473
+msgid "In LMTP mode, retain these supplementary groups."
+msgstr ""
+
+#: maidag/maidag.c:474
+msgid "groups: list of string"
+msgstr ""
+
+#: maidag/maidag.c:476
+msgid ""
+"In LMTP mode, listen on the given URL.  Valid URLs are:\n"
+"   tcp://<address: string>:<port: number> (note that port is mandatory)\n"
+"   file://<socket-file-name>\n"
+"or socket://<socket-file-name>"
+msgstr ""
+
+#: maidag/maidag.c:483
+msgid "Reuse existing address (LMTP mode).  Default is \"yes\"."
+msgstr ""
+
+#: maidag/maidag.c:485
+msgid "Add a message filter"
+msgstr ""
+
+#: maidag/maidag.c:487
+msgid "LMTP server configuration."
+msgstr ""
+
+#: maidag/maidag.c:498
+msgid "Add new message filter."
+msgstr ""
+
+#: maidag/maidag.c:594
+msgid "recipients not given"
+msgstr ""
+
+#: maidag/deliver.c:40 maidag/lmtp.c:370
+#, c-format
+msgid "unable to open temporary file: %s"
+msgstr ""
+
+#: maidag/deliver.c:47 mh/mh_whom.c:249
+#, c-format
+msgid "read error: %s"
+msgstr ""
+
+#: maidag/deliver.c:54
+msgid "unexpected EOF on input"
+msgstr ""
+
+#: maidag/deliver.c:81
+msgid "cannot determine sender address"
+msgstr ""
+
+#: maidag/deliver.c:97 maidag/lmtp.c:383 maidag/lmtp.c:401
+#, c-format
+msgid "copy error: %s"
+msgstr ""
+
+#: maidag/deliver.c:106 maidag/lmtp.c:409
+#, c-format
+msgid "error creating temporary message: %s"
+msgstr ""
+
+#: maidag/deliver.c:228
+#, c-format
+msgid "cannot lock mailbox `%s': %s"
+msgstr ""
+
+#: maidag/deliver.c:244
+#, c-format
+msgid "cannot get size of mailbox %s: %s"
+msgstr ""
+
+#: maidag/deliver.c:255
+#, c-format
+msgid "%s: mailbox quota exceeded for this recipient"
+msgstr ""
+
+#: maidag/deliver.c:270
+#, c-format
+msgid "cannot get message size (input message %s): %s"
+msgstr ""
+
+#: maidag/deliver.c:277
+#, c-format
+msgid "%s: message would exceed maximum mailbox size for this recipient"
+msgstr ""
+
+#: maidag/deliver.c:298
+#, c-format
+msgid "error writing to mailbox %s: %s"
+msgstr ""
+
+#: maidag/deliver.c:307
+#, c-format
+msgid "error flushing mailbox %s: %s"
+msgstr ""
+
+#: maidag/deliver.c:344
+#, c-format
+msgid "%s: no such user"
+msgstr ""
+
+#: maidag/deliver.c:388
+#, c-format
+msgid "cannot create URL for %s: %s"
+msgstr ""
+
+#: maidag/deliver.c:433
+#, c-format
+msgid "%s: cannot create url: %s"
+msgstr ""
+
+#: maidag/deliver.c:442
+#, c-format
+msgid "%s: cannot get user name from url: %s"
+msgstr ""
+
+#: maidag/lmtp.c:361
+#, c-format
+msgid "unable to open filter: %s"
+msgstr ""
+
+#: maidag/mailquota.c:63
+msgid "no quota retrieving mechanism"
+msgstr ""
+
+#: maidag/mailquota.c:83
+msgid "unable to create quota db"
+msgstr ""
+
+#: maidag/mailquota.c:90
+#, c-format
+msgid "quota db fails safety check: %s"
+msgstr ""
+
+#: maidag/mailquota.c:124
+#, c-format
+msgid "can't fetch data: %s"
+msgstr ""
+
+#: maidag/mailquota.c:134
+#, c-format
+msgid "mailbox quota for `%s' is too big: %lu digit"
+msgid_plural "mailbox quota for `%s' is too big: %lu digits"
+msgstr[0] ""
+msgstr[1] ""
+
+#: maidag/mailquota.c:149 maidag/mailquota.c:260
+#, c-format
+msgid "bogus mailbox quota for `%s' (near `%s')"
+msgstr ""
+
+#: maidag/mailquota.c:247
+#, c-format
+msgid "cannot retrieve mailbox quota from SQL: %s"
+msgstr ""
+
+#: mail/alias.c:78
+#, c-format
+msgid "\"%s\": not a group"
+msgstr ""
+
+#: mail/alt.c:63
+msgid "Cannot determine my username"
+msgstr ""
+
+#: mail/alt.c:72
+#, c-format
+msgid "Cannot determine my email address: %s"
+msgstr ""
+
+#: mail/copy.c:67 mail/mail.c:474 mail/quit.c:119 mail/send.c:1045
+#, c-format
+msgid "Cannot create mailbox %s: %s"
+msgstr ""
+
+#: mail/copy.c:75 mail/file.c:94 mail/mail.c:486 mail/quit.c:126
+#, c-format
+msgid "Cannot open mailbox %s: %s"
+msgstr ""
+
+#: mail/copy.c:91 mail/quit.c:134 mail/send.c:1038
+#, c-format
+msgid "Cannot append message: %s"
+msgstr ""
+
+#: mail/decode.c:158
+msgid "| Message="
+msgstr ""
+
+#: mail/decode.c:162
+#, c-format
+msgid "| Type=%s\n"
+msgstr ""
+
+#: mail/decode.c:163
+#, c-format
+msgid "| Encoding=%s\n"
+msgstr ""
+
+#: mail/decode.c:331
+msgid ""
+"\n"
+"Interrupt"
+msgstr ""
+
+#: mail/escape.c:58 mail/send.c:545
+#, c-format
+msgid "Cannot create header: %s"
+msgstr ""
+
+#: mail/escape.c:94 mail/escape.c:120
+#, c-format
+msgid "%d: not a header line"
+msgstr ""
+
+#: mail/escape.c:141
+msgid "Edit again?"
+msgstr ""
+
+#: mail/escape.c:156
+msgid "(continue)\n"
+msgstr ""
+
+#: mail/escape.c:167
+#, c-format
+msgid "%c%s requires at least %d argument"
+msgid_plural "%c%s requires at least %d arguments"
+msgstr[0] ""
+msgstr[1] ""
+
+#: mail/escape.c:176
+#, c-format
+msgid "%c%s accepts at most %d argument"
+msgid_plural "%c%s accepts at most %d arguments"
+msgstr[0] ""
+msgstr[1] ""
+
+#: mail/escape.c:207 mail/util.c:146
+#, c-format
+msgid "Unknown command: %s"
+msgstr ""
+
+#: mail/escape.c:212
+msgid "Command not allowed in an escape sequence\n"
+msgstr ""
+
+#: mail/escape.c:253 mail/escape.c:599
+#, c-format
+msgid "Cannot open %s: %s"
+msgstr ""
+
+#: mail/escape.c:256
+#, c-format
+msgid "Reading %s\n"
+msgstr ""
+
+#: mail/escape.c:307
+#, c-format
+msgid "error copying data: %s"
+msgstr ""
+
+#: mail/escape.c:325 mail/send.c:682 mail/send.c:734
+#, c-format
+msgid "Cannot open file %s: %s"
+msgstr ""
+
+#: mail/escape.c:501
+#, c-format
+msgid "Interpolating: %lu\n"
+msgstr ""
+
+#: mail/escape.c:547
+#, c-format
+msgid "get_streamref error: %s"
+msgstr ""
+
+#: mail/escape.c:576
+msgid "Message contains:\n"
+msgstr ""
+
+#: mail/escape.c:649
+#, c-format
+msgid "Cannot open %s for writing: %s"
+msgstr ""
+
+#: mail/escape.c:706
+#, c-format
+msgid "Cannot execute `%s': %s"
+msgstr ""
+
+#: mail/escape.c:727
+#, c-format
+msgid "Child terminated abnormally: %d"
+msgstr ""
+
+#: mail/escape.c:733
+#, c-format
+msgid "Cannot stat output file: %s"
+msgstr ""
+
+#: mail/escape.c:741
+msgid "no lines out\n"
+msgstr ""
+
+#: mail/escape.c:751
+#, c-format
+msgid "Cannot open composition stream: %s"
+msgstr ""
+
+#: mail/file.c:40
+msgid "No previous file"
+msgstr ""
+
+#: mail/file.c:50
+msgid "MBOX environment variable not set"
+msgstr ""
+
+#: mail/file.c:129
+#, c-format
+msgid "%s takes only one argument"
+msgstr ""
+
+#: mail/followup.c:43 mail/next.c:39 mail/next.c:62 mail/next.c:79
+#: mail/previous.c:48 mail/previous.c:65
+msgid "No applicable message"
+msgstr ""
+
+#: mail/if.c:55
+msgid "Not enough memory"
+msgstr ""
+
+#: mail/if.c:66
+msgid "Internal error: condition stack underflow"
+msgstr ""
+
+#. TRANSLATORS: 'if' is the function name. Do not translate it
+#: mail/if.c:89
+msgid "if requires an argument: s | r | t"
+msgstr ""
+
+#: mail/if.c:95 mail/if.c:119
+msgid "Valid if arguments are: s | r | t"
+msgstr ""
+
+#. TRANSLATORS: 'else' and 'if' are function names. Do not translate them
+#: mail/if.c:136
+msgid "else without matching if"
+msgstr ""
+
+#. TRANSLATORS: 'endif' and 'if' are function names. Do not translate them
+#: mail/if.c:152
+msgid "endif without matching if"
+msgstr ""
+
+#: mail/inc.c:30 mail/mail.c:251
+msgid "New mail has arrived.\n"
+msgstr ""
+
+#: mail/inc.c:33
+#, c-format
+msgid "No new mail for %s\n"
+msgstr ""
+
+#: mail/mail.c:29
+msgid ""
+"GNU mail -- process mail messages.\n"
+"If -f or --file is given, mail operates on the mailbox named by the first "
+"argument, or the user's mbox, if no argument given.\n"
+msgstr ""
+
+#: mail/mail.c:32
+msgid ""
+"[address...]\n"
+"-f [OPTION...] [file]\n"
+"--file [OPTION...] [file]\n"
+"--file=file [OPTION...]"
+msgstr ""
+
+#: mail/mail.c:42
+msgid "return true if mail exists"
+msgstr ""
+
+#: mail/mail.c:43
+msgid "save messages according to sender"
+msgstr ""
+
+#: mail/mail.c:44
+msgid "write a header summary and exit"
+msgstr ""
+
+#: mail/mail.c:45
+msgid "ignore interrupts"
+msgstr ""
+
+#: mail/mail.c:46
+msgid "do not read the system mailrc file"
+msgstr ""
+
+#: mail/mail.c:48
+msgid "do not display initial header summary"
+msgstr ""
+
+#: mail/mail.c:49
+msgid "print all mail to standard output"
+msgstr ""
+
+#: mail/mail.c:52
+msgid "use address as the return address when sending mail"
+msgstr ""
+
+#: mail/mail.c:54
+msgid "cause interrupts to terminate program"
+msgstr ""
+
+#: mail/mail.c:55
+msgid "SUBJ"
+msgstr ""
+
+#: mail/mail.c:56
+msgid "send a message with the given SUBJECT"
+msgstr ""
+
+#: mail/mail.c:58
+msgid "precede message by a list of addresses"
+msgstr ""
+
+#: mail/mail.c:59
+msgid "USER"
+msgstr ""
+
+#: mail/mail.c:59
+msgid "operate on USER's mailbox"
+msgstr ""
+
+#: mail/mail.c:60
+msgid "HEADER: VALUE"
+msgstr ""
+
+#: mail/mail.c:61
+msgid "append given header to the message being sent"
+msgstr ""
+
+#: mail/mail.c:62
+msgid "COMMAND"
+msgstr ""
+
+#: mail/mail.c:63
+msgid "execute COMMAND"
+msgstr ""
+
+#: mail/mail.c:65
+msgid "set encoding for subsequent --attach options"
+msgstr ""
+
+#: mail/mail.c:66
+msgid "TYPE"
+msgstr ""
+
+#: mail/mail.c:67
+msgid "set content type for subsequent --attach options"
+msgstr ""
+
+#: mail/mail.c:69
+msgid "attach FILE"
+msgstr ""
+
+#: mail/mail.c:187
+#, c-format
+msgid "conflicting options"
+msgstr ""
+
+#: mail/mail.c:194 mail/mail.c:202
+#, c-format
+msgid "-f requires at most one command line argument"
+msgstr ""
+
+#: mail/mail.c:258
+msgid "Interrupt"
+msgstr ""
+
+#: mail/mail.c:264
+msgid "Use \"quit\" to quit."
+msgstr ""
+
+#: mail/mail.c:332
+msgid "Null message body; hope that's ok"
+msgstr ""
+
+#: mail/mail.c:477
+#, c-format
+msgid "Cannot create mailbox: %s"
+msgstr ""
+
+#: mail/mail.c:499
+#, c-format
+msgid "Cannot read mailbox %s: %s"
+msgstr ""
+
+#: mail/mail.c:515
+#, c-format
+msgid "Unknown mode `%s'"
+msgstr ""
+
+#: mail/mail.c:526
+#, c-format
+msgid "%s: 0 messages\n"
+msgstr ""
+
+#: mail/mail.c:528
+#, c-format
+msgid "No mail for %s\n"
+msgstr ""
+
+#: mail/mail.c:593
+msgid ""
+"GNU Mailutils -- a suite of utilities for electronic mail\n"
+"Copyright (C) 1999-2011 Free Software Foundation, Inc.\n"
+"\n"
+msgstr ""
+
+#: mail/mail.c:596 mh/mh_argp.c:280
+#, c-format
+msgid ""
+"   GNU Mailutils is free software; you can redistribute it and/or modify\n"
+"   it under the terms of the GNU General Public License as published by\n"
+"   the Free Software Foundation; either version 3 of the License, or\n"
+"   (at your option) any later version.\n"
+"\n"
+"   GNU Mailutils is distributed in the hope that it will be useful,\n"
+"   but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+"   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
+"   GNU General Public License for more details.\n"
+"\n"
+"   You should have received a copy of the GNU General Public License along\n"
+"   with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.\n"
+"\n"
+"\n"
+msgstr ""
+
+#: mail/mailline.c:209
+#, c-format
+msgid "mu_wordsplit_len failed: %s"
+msgstr ""
+
+#: mail/mailline.c:905 mail/mailline.c:933 mail/mailline.c:980
+#: mail/mailline.c:1016
+msgid "Not enough memory to edit the line"
+msgstr ""
+
+#: mail/mailvar.c:49
+msgid "messages saved in mbox are appended to the end rather than prepended"
+msgstr ""
+
+#: mail/mailvar.c:52
+msgid "append the contents of canceled letter to dead.letter file"
+msgstr ""
+
+#: mail/mailvar.c:55
+msgid "prompt user for bcc before composing the message"
+msgstr ""
+
+#: mail/mailvar.c:58
+msgid "prompt user for cc before composing the message"
+msgstr ""
+
+#: mail/mailvar.c:61
+msgid "prompt user for subject before composing the message"
+msgstr ""
+
+#: mail/mailvar.c:65
+msgid "automatically incorporate newly arrived messages"
+msgstr ""
+
+#: mail/mailvar.c:68
+msgid "delete command behaves like dp"
+msgstr ""
+
+#: mail/mailvar.c:71
+msgid ""
+"record outgoing messages in a file named after the first recipient; "
+"overrides the `record' variable"
+msgstr ""
+
+#: mail/mailvar.c:75
+msgid ""
+"replace every occurrence of ! in arguments to the shell command with the "
+"last executed command"
+msgstr ""
+
+#: mail/mailvar.c:79
+msgid "output character set for decoded header fields"
+msgstr ""
+
+#: mail/mailvar.c:82
+msgid "default shell command for pipe"
+msgstr ""
+
+#: mail/mailvar.c:85
+msgid "number of columns on terminal screen"
+msgstr ""
+
+#: mail/mailvar.c:89
+msgid ""
+"if numeric, sets the minimum number of output lines needed to engage paging; "
+"if boolean, use the height of the terminal screen to compute the threshold"
+msgstr ""
+
+#: mail/mailvar.c:94
+msgid "get date from the `Date:' header, instead of the envelope"
+msgstr ""
+
+#: mail/mailvar.c:98
+msgid "set Mailutils debug level"
+msgstr ""
+
+#: mail/mailvar.c:102
+msgid ""
+"how to represent characters that cannot be rendered using the current "
+"character set"
+msgstr ""
+
+#: mail/mailvar.c:107
+msgid "input message is terminated with a dot alone on a line"
+msgstr ""
+
+#: mail/mailvar.c:110
+msgid "allow to edit message headers while composing"
+msgstr ""
+
+#: mail/mailvar.c:113
+msgid "start interactive mode if the mailbox is empty"
+msgstr ""
+
+#: mail/mailvar.c:116
+msgid "character denoting escapes"
+msgstr ""
+
+#: mail/mailvar.c:119
+msgid "swap the meaning of reply and Reply commands"
+msgstr ""
+
+#: mail/mailvar.c:122
+msgid "folder directory name"
+msgstr ""
+
+#: mail/mailvar.c:125
+msgid "get sender address from the `From:' header, instead of the envelope"
+msgstr ""
+
+#: mail/mailvar.c:129
+msgid "last executed command line"
+msgstr ""
+
+#: mail/mailvar.c:132
+msgid "run the `headers' command after entering interactive mode"
+msgstr ""
+
+#: mail/mailvar.c:135
+msgid "format string to use for the header summary"
+msgstr ""
+
+#: mail/mailvar.c:139
+msgid "hold the read or saved messages in the system mailbox"
+msgstr ""
+
+#: mail/mailvar.c:142
+msgid "ignore keyboard interrupts when composing messages"
+msgstr ""
+
+#: mail/mailvar.c:145
+msgid "typing the EOF character terminates the letter being composed"
+msgstr ""
+
+#: mail/mailvar.c:148
+msgid "string used by the ~m escape for indenting quoted messages"
+msgstr ""
+
+#: mail/mailvar.c:151
+msgid "expand aliases in the address header field before entering send mode"
+msgstr ""
+
+#: mail/mailvar.c:157
+msgid "truncate the user's system mailbox when it is empty"
+msgstr ""
+
+#: mail/mailvar.c:160
+msgid "keep saved messages in system mailbox too"
+msgstr ""
+
+#: mail/mailvar.c:163
+msgid "enable mailx compatibility mode"
+msgstr ""
+
+#: mail/mailvar.c:166
+msgid ""
+"interpret the content of message parts; if set to a string specifies the "
+"name of the external metamail command"
+msgstr ""
+
+#: mail/mailvar.c:170
+msgid "do not remove sender addresses from the recipient list"
+msgstr ""
+
+#: mail/mailvar.c:173
+msgid ""
+"a comma-separated list of MIME types for which no confirmation is needed "
+"before running metamail interpreter"
+msgstr ""
+
+#: mail/mailvar.c:177
+msgid "the name of current operation mode"
+msgstr ""
+
+#: mail/mailvar.c:180
+msgid "accept messages with an empty body"
+msgstr ""
+
+#: mail/mailvar.c:183
+msgid "display this text when sending a message with empty body"
+msgstr ""
+
+#: mail/mailvar.c:186
+msgid "keep created files in this folder"
+msgstr ""
+
+#: mail/mailvar.c:189
+msgid "pipe command terminates each message with a linefeed"
+msgstr ""
+
+#: mail/mailvar.c:192
+msgid "command prompt sequence"
+msgstr ""
+
+#: mail/mailvar.c:195
+msgid "keyboard interrupts terminate the program"
+msgstr ""
+
+#: mail/mailvar.c:198
+msgid "read the system-wide configuration file upon startup"
+msgstr ""
+
+#: mail/mailvar.c:201
+msgid "mailboxes are opened in readonly mode"
+msgstr ""
+
+#: mail/mailvar.c:204
+msgid "save outgoing messages in this file"
+msgstr ""
+
+#: mail/mailvar.c:207
+msgid "recursively expand aliases"
+msgstr ""
+
+#: mail/mailvar.c:210
+msgid "use regular expressions in message specifications"
+msgstr ""
+
+#: mail/mailvar.c:213
+msgid "prefix for the subject line of a reply message"
+msgstr ""
+
+#: mail/mailvar.c:216
+msgid "regexp for recognizing subject lines of reply messages"
+msgstr ""
+
+#: mail/mailvar.c:220
+msgid "return address for outgoing messages"
+msgstr ""
+
+#: mail/mailvar.c:223
+msgid "store aborted messages in the user's dead.file"
+msgstr ""
+
+#: mail/mailvar.c:226
+msgid "number of lines on terminal screen"
+msgstr ""
+
+#: mail/mailvar.c:230
+msgid "URL of the mail transport agent"
+msgstr ""
+
+#: mail/mailvar.c:236
+msgid "signature for use with the ~a command"
+msgstr ""
+
+#: mail/mailvar.c:239
+msgid "signature for use with the ~A command"
+msgstr ""
+
+#: mail/mailvar.c:242
+msgid "`print' command includes the SMTP envelope in its output"
+msgstr ""
+
+#: mail/mailvar.c:245
+msgid ""
+"if the message was sent by the user, print its recipient address in the "
+"header summary"
+msgstr ""
+
+#: mail/mailvar.c:249
+msgid "number of lines to be displayed by `top' or `Top'"
+msgstr ""
+
+#: mail/mailvar.c:252
+msgid "print variables with short descriptions"
+msgstr ""
+
+#: mail/mailvar.c:256
+msgid "perform strict checking when setting options"
+msgstr ""
+
+#: mail/mailvar.c:260
+msgid "verbosely trace the process of message delivery"
+msgstr ""
+
+#: mail/mailvar.c:263
+msgid "add the `X-Mailer' header to the outgoing messages"
+msgstr ""
+
+#: mail/mailvar.c:422
+#, c-format
+msgid "No value set for \"%s\""
+msgstr ""
+
+#: mail/mailvar.c:491
+#, c-format
+msgid "setting unknown variable %s"
+msgstr ""
+
+#: mail/mailvar.c:495
+#, c-format
+msgid "Cannot set read-only variable %s"
+msgstr ""
+
+#: mail/mailvar.c:502
+#, c-format
+msgid "Wrong type for %s"
+msgstr ""
+
+#: mail/mailvar.c:551
+msgid "Incorrect value for decode-fallback"
+msgstr ""
+
+#: mail/mailvar.c:713
+msgid "Read-only variable"
+msgstr ""
+
+#: mail/mailvar.c:735
+msgid "oops?"
+msgstr ""
+
+#: mail/mailvar.c:791
+msgid "untyped"
+msgstr ""
+
+#: mail/mailvar.c:792
+msgid "numeric"
+msgstr ""
+
+#: mail/mailvar.c:793 libmailutils/cfg/format.c:271
+#: libmailutils/cfg/format.c:292
+msgid "string"
+msgstr ""
+
+#: mail/mailvar.c:794 libmailutils/cfg/format.c:284
+msgid "boolean"
+msgstr ""
+
+#: mail/mailvar.c:821
+msgid "Type: "
+msgstr ""
+
+#: mail/mailvar.c:826
+msgid "or"
+msgstr ""
+
+#: mail/mailvar.c:833
+msgid "Current value: "
+msgstr ""
+
+#: mail/mailvar.c:834
+msgid "[not set]"
+msgstr ""
+
+#: mail/mailvar.c:837
+msgid "read-only"
+msgstr ""
+
+#: mail/mailvar.c:840
+msgid "Not documented"
+msgstr ""
+
+#: mail/msgset.y:160
+msgid "unknown message type"
+msgstr ""
+
+#: mail/msgset.y:245 mail/msgset.y:250
+msgid " near end"
+msgstr ""
+
+#: mail/msgset.y:252 mail/msgset.y:255
+#, c-format
+msgid " near %s"
+msgstr ""
+
+#: mail/msgset.y:470
+msgid "range error"
+msgstr ""
+
+#: mail/msgset.y:728 mail/util.c:215
+#, c-format
+msgid "%lu: Inappropriate message (has been deleted)"
+msgstr ""
+
+#: mail/print.c:96
+#, c-format
+msgid "get_stream error: %s"
+msgstr ""
+
+#: mail/quit.c:53
+#, c-format
+msgid "Held %lu message in %s\n"
+msgid_plural "Held %lu messages in %s\n"
+msgstr[0] ""
+msgstr[1] ""
+
+#: mail/quit.c:157
+#, c-format
+msgid "Saved %d message in %s\n"
+msgid_plural "Saved %d messages in %s\n"
+msgstr[0] ""
+msgstr[1] ""
+
+#: mail/retain.c:54
+msgid "No fields are currently being retained\n"
+msgstr ""
+
+#: mail/retain.c:67
+msgid "No fields are currently being ignored\n"
+msgstr ""
+
+#: mail/retain.c:80 mail/retain.c:92
+msgid "No fields are currently being unfolded\n"
+msgstr ""
+
+#: mail/retain.c:119 mail/retain.c:129
+msgid "Sender address is obtained from the envelope\n"
+msgstr ""
+
+#: mail/send.c:70
+#, c-format
+msgid "Cannot create header list: %s"
+msgstr ""
+
+#: mail/send.c:92
+#, c-format
+msgid "Invalid header: %s"
+msgstr ""
+
+#: mail/send.c:169
+#, c-format
+msgid "%s: file does not exist"
+msgstr ""
+
+#: mail/send.c:174
+#, c-format
+msgid "%s: cannot stat: %s"
+msgstr ""
+
+#: mail/send.c:181 libmailutils/cfg/lexer.l:340
+#, c-format
+msgid "%s: not a regular file"
+msgstr ""
+
+#: mail/send.c:191
+#, c-format
+msgid "unsupported encoding: %s"
+msgstr ""
+
+#: mail/send.c:236
+msgid "No attachments"
+msgstr ""
+
+#: mail/send.c:287
+#, c-format
+msgid "not a valid number: %s"
+msgstr ""
+
+#: mail/send.c:294
+msgid "index out of range"
+msgstr ""
+
+#: mail/send.c:316
+#, c-format
+msgid "cannot attach \"%s\": %s"
+msgstr ""
+
+#: mail/send.c:630
+#, c-format
+msgid "cannot get message body: %s"
+msgstr ""
+
+#: mail/send.c:636
+#, c-format
+msgid "cannot get body: %s"
+msgstr ""
+
+#: mail/send.c:645
+#, c-format
+msgid "cannot copy temporary stream: %s"
+msgstr ""
+
+#: mail/send.c:790
+#, c-format
+msgid "invalid return address: %s"
+msgstr ""
+
+#: mail/send.c:810
+#, c-format
+msgid "Cannot open mailer: %s"
+msgstr ""
+
+#: mail/send.c:816
+#, c-format
+msgid "Cannot create mailer: %s"
+msgstr ""
+
+#: mail/send.c:821
+msgid "Variable sendmail not set: no mailer"
+msgstr ""
+
+#: mail/send.c:855 mh/prompter.c:199
+#, c-format
+msgid "Cannot open temporary file: %s"
+msgstr ""
+
+#: mail/send.c:879
+msgid ""
+"\n"
+"(Interrupt -- one more to kill letter)"
+msgstr ""
+
+#: mail/send.c:890
+msgid "Use \".\" to terminate letter."
+msgstr ""
+
+#: mail/send.c:891
+msgid "Use \"~.\" to terminate letter."
+msgstr ""
+
+#: mail/send.c:931
+#, c-format
+msgid "Unknown escape %s"
+msgstr ""
+
+#: mail/send.c:934
+msgid "Unfinished escape"
+msgstr ""
+
+#: mail/send.c:939
+#, c-format
+msgid "Cannot parse escape sequence: %s"
+msgstr ""
+
+#: mail/send.c:1101
+#, c-format
+msgid "Cannot pipe to %s: %s"
+msgstr ""
+
+#: mail/send.c:1117
+#, c-format
+msgid "Sending data to %s failed: %s"
+msgstr ""
+
+#. TRANSLATORS: 'source' is a command name. Do not translate it!
+#: mail/source.c:58
+msgid "source requires a single argument"
+msgstr ""
+
+#: mail/source.c:66 mimeview/mimetypes.l:161 mimeview/mimeview.c:204
+#, c-format
+msgid "Cannot open `%s': %s"
+msgstr ""
+
+#: mail/summary.c:65
+#, c-format
+msgid "%lu message"
+msgid_plural "%lu messages"
+msgstr[0] ""
+msgstr[1] ""
+
+#: mail/summary.c:68
+#, c-format
+msgid " %lu new"
+msgid_plural " %lu new"
+msgstr[0] ""
+msgstr[1] ""
+
+#: mail/summary.c:70
+#, c-format
+msgid " %lu unread"
+msgid_plural " %lu unread"
+msgstr[0] ""
+msgstr[1] ""
+
+#: mail/summary.c:72
+#, c-format
+msgid " %lu deleted"
+msgid_plural " %lu deleted"
+msgstr[0] ""
+msgstr[1] ""
+
+#. TRANSLATORS: 'unalias' is a command name. Do not translate it!
+#: mail/unalias.c:30
+msgid "unalias requires at least one argument"
+msgstr ""
+
+#: mail/util.c:148
+msgid "Invalid command"
+msgstr ""
+
+#: mail/util.c:301
+#, c-format
+msgid "Unknown command: %s\n"
+msgstr ""
+
+#: mail/util.c:468
+msgid "Cannot get homedir"
+msgstr ""
+
+#: mail/util.c:532 mail/util.c:539
+#, c-format
+msgid "Cannot determine sender name (msg %d)"
+msgstr ""
+
+#: mail/util.c:722
+#, c-format
+msgid "Cannot create output mailbox `%s': %s"
+msgstr ""
+
+#: mail/util.c:730
+#, c-format
+msgid "Cannot open output mailbox `%s': %s"
+msgstr ""
+
+#: mail/util.c:736
+#, c-format
+msgid "Cannot append message to `%s': %s"
+msgstr ""
+
+#: mail/util.c:765
+msgid "Cannot unencapsulate message/part"
+msgstr ""
+
+#: mail/util.c:774
+#, c-format
+msgid "No such (sub)part in the message: %lu"
+msgstr ""
+
+#: mail/util.c:781
+#, c-format
+msgid "Cannot get (sub)part from the message: %lu"
+msgstr ""
+
+#: mail/util.c:905
+#, c-format
+msgid "Cannot create temporary header: %s"
+msgstr ""
+
+#: mail/util.c:959
+#, c-format
+msgid "Cannot parse address `%s' (while expanding `%s'): %s"
+msgstr ""
+
+#: mail/util.c:962
+#, c-format
+msgid "Cannot parse address `%s': %s"
+msgstr ""
+
+#: mail/util.c:1009
+#, c-format
+msgid "Cannot get message %lu: %s"
+msgstr ""
+
+#: mail/util.c:1020
+#, c-format
+msgid "%lu: invalid message number"
+msgstr ""
+
+#: mail/util.c:1027
+msgid "No applicable messages"
+msgstr ""
+
+#: mail/util.c:1102
+#, c-format
+msgid "Cannot decode line `%s': %s"
+msgstr ""
+
+#: mail/z.c:64
+msgid "Bad arguments for the scrolling command"
+msgstr ""
+
+#: mail/z.c:79
+msgid "Too many arguments for the scrolling command"
+msgstr ""
+
+#: mail/z.c:87
+msgid "Argument not applicable for z"
+msgstr ""
+
+#: mail/z.c:93
+msgid "Bad number of pages"
+msgstr ""
+
+#: mail/z.c:123
+msgid "On first screenful of messages\n"
+msgstr ""
+
+#: mail/z.c:131
+msgid "On last screenful of messages\n"
+msgstr ""
+
+#: libmailutils/base/userprivs.c:51
+#, c-format
+msgid "setgroups(1, %lu) failed: %s"
+msgstr ""
+
+#: libmailutils/base/userprivs.c:73
+#, c-format
+msgid "setegid(%lu) failed: %s"
+msgstr ""
+
+#: libmailutils/base/userprivs.c:80
+#, c-format
+msgid "setregid(%lu,%lu) failed: %s"
+msgstr ""
+
+#: libmailutils/base/userprivs.c:88
+#, c-format
+msgid "setresgid(%lu,%lu,%lu) failed: %s"
+msgstr ""
+
+#: libmailutils/base/userprivs.c:101 libmailutils/base/userprivs.c:107
+#, c-format
+msgid "setgid(%lu) failed: %s"
+msgstr ""
+
+#: libmailutils/base/userprivs.c:113
+#, c-format
+msgid "Cannot set effective gid to %lu"
+msgstr ""
+
+#: libmailutils/base/userprivs.c:133
+#, c-format
+msgid "setreuid(%lu,-1) failed: %s"
+msgstr ""
+
+#: libmailutils/base/userprivs.c:140
+#, c-format
+msgid "second setuid(%lu) failed: %s"
+msgstr ""
+
+#: libmailutils/base/userprivs.c:147
+#, c-format
+msgid "setuid(%lu) failed: %s"
+msgstr ""
+
+#: libmailutils/base/userprivs.c:156
+msgid "seteuid(0) succeeded when it should not"
+msgstr ""
+
+#: libmailutils/base/userprivs.c:161
+msgid "Cannot drop non-root setuid privileges"
+msgstr ""
+
+#: libmailutils/cfg/driver.c:260
+#, c-format
+msgid "INTERNAL ERROR: Requested unknown canned section %s"
+msgstr ""
+
+#: libmailutils/cfg/driver.c:545
+msgid "required argument missing"
+msgstr ""
+
+#: libmailutils/cfg/driver.c:564
+#, c-format
+msgid "unexpected value: %s"
+msgstr ""
+
+#: libmailutils/cfg/format.c:164
+msgid "ERROR: undefined statement"
+msgstr ""
+
+#: libmailutils/cfg/format.c:280
+msgid "number"
+msgstr ""
+
+#: libmailutils/cfg/format.c:282
+msgid "time"
+msgstr ""
+
+#: libmailutils/cfg/format.c:286
+msgid "ipv4"
+msgstr ""
+
+#: libmailutils/cfg/format.c:288
+msgid "cidr"
+msgstr ""
+
+#: libmailutils/cfg/format.c:290
+msgid "host"
+msgstr ""
+
+#: libmailutils/cfg/format.c:294
+msgid "section"
+msgstr ""
+
+#: libmailutils/cfg/format.c:296 libmailutils/diag/diag.c:160
+#: pop3d/popauth.c:757
+msgid "unknown"
+msgstr ""
+
+#: libmailutils/cfg/format.c:363 libmailutils/cfg/format.c:369
+msgid "arg"
+msgstr ""
+
+#: libmailutils/cfg/lexer.l:152
+#, c-format
+msgid "stray character %c"
+msgstr ""
+
+#: libmailutils/cfg/lexer.l:155
+#, c-format
+msgid "stray character \\%03o"
+msgstr ""
+
+#: libmailutils/cfg/lexer.l:176
+#, c-format
+msgid "unknown escape sequence '\\%c'"
+msgstr ""
+
+#: libmailutils/cfg/lexer.l:348
+#, c-format
+msgid "cannot open config file `%s': %s"
+msgstr ""
+
+#: libmailutils/cfg/lexer.l:355
+#, c-format
+msgid "parsing file `%s'"
+msgstr ""
+
+#: libmailutils/cfg/lexer.l:374
+#, c-format
+msgid "finished parsing file `%s'"
+msgstr ""
+
+#: libmailutils/cfg/parser.y:125
+msgid "unknown statement type!"
+msgstr ""
+
+#: libmailutils/cfg/parser.y:525
+msgid "include file or directory does not exist"
+msgstr ""
+
+#: libmailutils/cfg/parser.y:531
+#, c-format
+msgid "cannot stat include file or directory: %s"
+msgstr ""
+
+#: libmailutils/cfg/parser.y:583
+msgid "argument to `program' is not a string"
+msgstr ""
+
+#: libmailutils/cfg/parser.y:609
+msgid "argument to `include' is not a string"
+msgstr ""
+
+#: libmailutils/cfg/parser.y:803
+msgid "numeric overflow"
+msgstr ""
+
+#: libmailutils/cfg/parser.y:810
+msgid "value out of allowed range"
+msgstr ""
+
+#: libmailutils/cfg/parser.y:847 libmailutils/cfg/parser.y:879
+#, c-format
+msgid "not a number (stopped near `%s')"
+msgstr ""
+
+#: libmailutils/cfg/parser.y:894
+msgid "not an IPv4"
+msgstr ""
+
+#: libmailutils/cfg/parser.y:916
+#, c-format
+msgid "cannot resolve hostname `%s'"
+msgstr ""
+
+#: libmailutils/cfg/parser.y:942 libmailutils/cfg/parser.y:951
+msgid "not a valid IPv4 address in CIDR"
+msgstr ""
+
+#: libmailutils/cfg/parser.y:966
+msgid "not a valid network in CIDR"
+msgstr ""
+
+#: libmailutils/cfg/parser.y:981
+msgid "not a valid network mask in CIDR"
+msgstr ""
+
+#: libmailutils/cfg/parser.y:1004
+#, c-format
+msgid "not a CIDR (stopped near `%s')"
+msgstr ""
+
+#: libmailutils/cfg/parser.y:1103
+msgid "not implemented yet"
+msgstr ""
+
+#: libmailutils/cfg/parser.y:1177
+#, c-format
+msgid "INTERNAL ERROR at %s:%d: unhandled data type %d"
+msgstr ""
+
+#: libmailutils/cfg/parser.y:1207
+#, c-format
+msgid "unknown keyword `%s'"
+msgstr ""
+
+#: libmailutils/cfg/parser.y:1224
+#, c-format
+msgid "INTERNAL ERROR: cannot determine target offset for %s"
+msgstr ""
+
+#: libmailutils/cfg/parser.y:1252
+msgid "expected list, but found array"
+msgstr ""
+
+#: libmailutils/cfg/parser.y:1266
+#, c-format
+msgid "INTERNAL ERROR: %s: callback not defined"
+msgstr ""
+
+#: libmailutils/cfg/parser.y:1301
+#, c-format
+msgid "unknown section `%s'"
+msgstr ""
+
+#: libmailutils/cfg/gocs.c:68
+#, c-format
+msgid "cannot set mail directory name to `%s': %s"
+msgstr ""
+
+#: libmailutils/cfg/gocs.c:77
+#, c-format
+msgid "cannot set mailbox pattern to `%s': %s"
+msgstr ""
+
+#: libmailutils/cfg/gocs.c:85
+#, c-format
+msgid "invalid mailbox type: %s"
+msgstr ""
+
+#: libmailutils/cfg/gocs.c:127
+#, c-format
+msgid "invalid lock flag `%c'"
+msgstr ""
+
+#: libmailutils/cfg/gocs.c:178
+#, c-format
+msgid "invalid email address `%s': %s"
+msgstr ""
+
+#: libmailutils/cfg/gocs.c:187
+#, c-format
+msgid "invalid email domain `%s': %s"
+msgstr ""
+
+#: libmailutils/cfg/gocs.c:208
+#, c-format
+msgid "invalid mailer URL `%s': %s"
+msgstr ""
+
+#: libmailutils/cfg/gocs.c:257
+msgid "gocs table overflow"
+msgstr ""
+
+#: libmailutils/cfg/gocs.c:305
+#, c-format
+msgid "INTERNAL ERROR at %s:%d: unknown standard capability `%s'"
+msgstr ""
+
+#: libmailutils/cfg/gocs.c:360
+#, c-format
+msgid "INTERNAL ERROR at %s:%d: unknown capability `%s'"
+msgstr ""
+
+#: libmailutils/cfg/gocs.c:367
+#, c-format
+msgid "initialization of GOCS `%s' failed"
+msgstr ""
+
+#: libmailutils/diag/debug.c:73 libmailutils/diag/debug.c:86
+msgid "cannot reallocate debug category table"
+msgstr ""
+
+#: libmailutils/diag/debug.c:143 libmailutils/diag/debug.c:156
+#, c-format
+msgid "unknown category: %.*s"
+msgstr ""
+
+#: libmailutils/diag/debug.c:257
+#, c-format
+msgid "%s: wrong debug spec near %s"
+msgstr ""
+
+#: libmailutils/diag/debug.c:317 libmailutils/diag/debug.c:327
+#, c-format
+msgid "unknown level `%s'"
+msgstr ""
+
+#: libmailutils/diag/debug.c:332 libmailutils/diag/debug.c:342
+#, c-format
+msgid "invalid level: %s"
+msgstr ""
+
+#: libmailutils/diag/diag.c:137
+msgid "emergency"
+msgstr ""
+
+#: libmailutils/diag/diag.c:140 libmailutils/stream/logstream.c:42
+msgid "alert"
+msgstr ""
+
+#: libmailutils/diag/diag.c:143
+msgid "critical"
+msgstr ""
+
+#: libmailutils/diag/diag.c:146 libmailutils/stream/logstream.c:40
+msgid "error"
+msgstr ""
+
+#: libmailutils/diag/diag.c:149 libmailutils/stream/logstream.c:39
+msgid "warning"
+msgstr ""
+
+#: libmailutils/diag/diag.c:152 libmailutils/stream/logstream.c:38
+msgid "notice"
+msgstr ""
+
+#: libmailutils/diag/diag.c:155 libmailutils/stream/logstream.c:37
+msgid "info"
+msgstr ""
+
+#: libmailutils/diag/diag.c:158 libmailutils/stream/logstream.c:36
+msgid "debug"
+msgstr ""
+
+#. TRANSLATORS: First %s stands for function name, second for its
+#. arguments, third one for the actual error message.
+#: libmailutils/diag/diag.c:170
+#, c-format
+msgid "%s(%s) failed: %s"
+msgstr ""
+
+#. TRANSLATORS: First %s stands for function name, second for its
+#. arguments.
+#: libmailutils/diag/diag.c:175
+#, c-format
+msgid "%s(%s) failed"
+msgstr ""
+
+#: libmailutils/diag/errors:17
+msgid "Operation failed"
+msgstr ""
+
+#: libmailutils/diag/errors:18
+msgid "Operation canceled"
+msgstr ""
+
+#: libmailutils/diag/errors:20
+msgid "Empty virtual function"
+msgstr ""
+
+#: libmailutils/diag/errors:25
+msgid "Null output pointer"
+msgstr ""
+
+#: libmailutils/diag/errors:27
+msgid "Mailbox removed"
+msgstr ""
+
+#: libmailutils/diag/errors:29
+msgid "Resource not open"
+msgstr ""
+
+#: libmailutils/diag/errors:30
+msgid "Resource is already open"
+msgstr ""
+
+#: libmailutils/diag/errors:32
+msgid "Malformed email address"
+msgstr ""
+
+#: libmailutils/diag/errors:33
+msgid "Empty address list"
+msgstr ""
+
+#: libmailutils/diag/errors:35
+msgid "Locker null"
+msgstr ""
+
+#: libmailutils/diag/errors:36
+msgid "Conflict with previous locker"
+msgstr ""
+
+#: libmailutils/diag/errors:37
+msgid "Lock file check failed"
+msgstr ""
+
+#: libmailutils/diag/errors:38
+msgid "File check failed"
+msgstr ""
+
+#: libmailutils/diag/errors:39
+msgid "Lock not held on file"
+msgstr ""
+
+#: libmailutils/diag/errors:40
+msgid "Failed to execute external locker"
+msgstr ""
+
+#: libmailutils/diag/errors:41
+msgid "External locker failed"
+msgstr ""
+
+#: libmailutils/diag/errors:42
+msgid "External locker killed"
+msgstr ""
+
+#: libmailutils/diag/errors:44
+msgid "No such user name"
+msgstr ""
+
+#: libmailutils/diag/errors:46
+msgid "DNS name resolution failed"
+msgstr ""
+
+#: libmailutils/diag/errors:47
+msgid "Not a valid sender address"
+msgstr ""
+
+#: libmailutils/diag/errors:48
+msgid "Not a valid recipient address"
+msgstr ""
+
+#: libmailutils/diag/errors:49
+msgid "No recipient addresses found"
+msgstr ""
+
+#: libmailutils/diag/errors:50
+msgid "Malformed or unsupported mailer URL"
+msgstr ""
+
+#: libmailutils/diag/errors:51
+msgid "SMTP RCPT command failed"
+msgstr ""
+
+#: libmailutils/diag/errors:53
+msgid "Required host specification is missing"
+msgstr ""
+
+#: libmailutils/diag/errors:54
+msgid "Invalid port or service specification"
+msgstr ""
+
+#: libmailutils/diag/errors:56
+msgid "Input string is not RFC 2047 encoded"
+msgstr ""
+
+#: libmailutils/diag/errors:57
+msgid "Not a valid RFC 2047 encoding"
+msgstr ""
+
+#: libmailutils/diag/errors:59
+msgid "User name is not supplied"
+msgstr ""
+
+#: libmailutils/diag/errors:60
+msgid "User password is not supplied"
+msgstr ""
+
+#: libmailutils/diag/errors:61
+msgid "Invalid reply from the remote host"
+msgstr ""
+
+#: libmailutils/diag/errors:63
+msgid "Bad command sequence"
+msgstr ""
+
+#: libmailutils/diag/errors:64
+msgid "Operation rejected by remote party"
+msgstr ""
+
+#: libmailutils/diag/errors:66
+msgid "Unsupported authentication scheme"
+msgstr ""
+
+#: libmailutils/diag/errors:67
+msgid "Authentication failed"
+msgstr ""
+
+#: libmailutils/diag/errors:69
+msgid "Cannot execute"
+msgstr ""
+
+#: libmailutils/diag/errors:70
+msgid "Process exited with a non-zero status"
+msgstr ""
+
+#: libmailutils/diag/errors:71
+msgid "Process exited on signal"
+msgstr ""
+
+#: libmailutils/diag/errors:72
+msgid "Unknown failure while executing subprocess"
+msgstr ""
+
+#: libmailutils/diag/errors:73
+msgid "Connection closed by remote host"
+msgstr ""
+
+#: libmailutils/diag/errors:74
+msgid "Parse error"
+msgstr ""
+
+#: libmailutils/diag/errors:75
+msgid "Requested item not found"
+msgstr ""
+
+#: libmailutils/diag/errors:76
+msgid "Item already exists"
+msgstr ""
+
+#: libmailutils/diag/errors:77
+msgid "Not enough buffer space"
+msgstr ""
+
+#: libmailutils/diag/errors:80
+msgid "SQL error"
+msgstr ""
+
+#: libmailutils/diag/errors:81
+msgid "Already connected to the database"
+msgstr ""
+
+#: libmailutils/diag/errors:82
+msgid "Not connected to the database"
+msgstr ""
+
+#: libmailutils/diag/errors:83
+msgid "Result of the previous query is not released"
+msgstr ""
+
+#: libmailutils/diag/errors:84
+msgid "No query was yet executed"
+msgstr ""
+
+#: libmailutils/diag/errors:85
+msgid "Bad column address"
+msgstr ""
+
+#: libmailutils/diag/errors:86
+msgid "No result from the previous query available"
+msgstr ""
+
+#: libmailutils/diag/errors:87
+msgid "No such interface"
+msgstr ""
+
+#: libmailutils/diag/errors:89
+msgid "Inappropriate operation for this mode"
+msgstr ""
+
+#: libmailutils/diag/errors:90
+msgid "Badly formed file or directory name"
+msgstr ""
+
+#: libmailutils/diag/errors:91
+msgid "Read error"
+msgstr ""
+
+#: libmailutils/diag/errors:93
+msgid "Transport stream not set"
+msgstr ""
+
+#: libmailutils/diag/errors:94
+msgid "No credentials supplied"
+msgstr ""
+
+#: libmailutils/diag/errors:97
+msgid "URL missing required parts"
+msgstr ""
+
+#: libmailutils/diag/errors:98
+msgid "URL has parts not allowed by its scheme"
+msgstr ""
+
+#: libmailutils/diag/errors:99
+msgid "Invalid parameter in URL"
+msgstr ""
+
+#: libmailutils/diag/errors:105
+msgid "Information is not yet available"
+msgstr ""
+
+#: libmailutils/diag/errors:108
+msgid "Name or service not known"
+msgstr ""
+
+#: libmailutils/diag/errors:109
+msgid "Bad value for flags"
+msgstr ""
+
+#: libmailutils/diag/errors:110
+msgid "Socket type not supported"
+msgstr ""
+
+#: libmailutils/diag/errors:111
+msgid "Address family not supported"
+msgstr ""
+
+#: libmailutils/diag/errors:112
+msgid "Requested service not supported"
+msgstr ""
+
+#: libmailutils/diag/errors:115
+msgid "File owner mismatch"
+msgstr ""
+
+#: libmailutils/diag/errors:116
+msgid "Group writable file"
+msgstr ""
+
+#: libmailutils/diag/errors:117
+msgid "World writable file"
+msgstr ""
+
+#: libmailutils/diag/errors:118
+msgid "Group readable file"
+msgstr ""
+
+#: libmailutils/diag/errors:119
+msgid "World readable file"
+msgstr ""
+
+#: libmailutils/diag/errors:120
+msgid "Linked file in a writable directory"
+msgstr ""
+
+#: libmailutils/diag/errors:121
+msgid "File in group writable directory"
+msgstr ""
+
+#: libmailutils/diag/errors:122
+msgid "File in world writable directory"
+msgstr ""
+
+#: libmailutils/diag/errors:124
+msgid "Requested feature disabled in configuration"
+msgstr ""
+
+#: libmailutils/diag/errors:126
+msgid "Error in format string"
+msgstr ""
+
+#: libmailutils/stream/prog_stream.c:210
+#, c-format
+msgid "cannot change to %s: %s"
+msgstr ""
+
+#: libmailutils/stream/prog_stream.c:235
+#, c-format
+msgid "error setting limit %d to %lu: %s"
+msgstr ""
+
+#: libmailutils/stream/prog_stream.c:247
+#, c-format
+msgid "error setting priority: %s"
+msgstr ""
+
+#: libmailutils/stream/logstream.c:41
+msgid "crit"
+msgstr ""
+
+#: libmailutils/stream/logstream.c:43
+msgid "emerg"
+msgstr ""
+
+#: libmailutils/server/msrv.c:199
+#, c-format
+msgid "process %lu finished with code %d (%s)"
+msgstr ""
+
+#: libmailutils/server/msrv.c:205
+#, c-format
+msgid "process %lu finished with code %d"
+msgstr ""
+
+#: libmailutils/server/msrv.c:519
+#, c-format
+msgid "failed to become a daemon: %s"
+msgstr ""
+
+#: libmailutils/server/msrv.c:531
+#, c-format
+msgid "%s: invalid name for a pidfile"
+msgstr ""
+
+#: libmailutils/server/msrv.c:535
+#, c-format
+msgid "cannot create pidfile `%s': %s"
+msgstr ""
+
+#: libmailutils/server/msrv.c:601
+#, c-format
+msgid "cannot open connection on %s: %s"
+msgstr ""
+
+#: libmailutils/server/msrv.c:611
+#, c-format
+msgid "cannot add connection %s: %s"
+msgstr ""
+
+#: libmailutils/server/msrv.c:631
+msgid "no servers configured: exiting"
+msgstr ""
+
+#: libmailutils/server/msrv.c:635
+#, c-format
+msgid "%s started"
+msgstr ""
+
+#: libmailutils/server/msrv.c:639
+#, c-format
+msgid "%s terminated"
+msgstr ""
+
+#: libmailutils/server/msrv.c:658
+#, c-format
+msgid "access from %s blocked: cannot check ACLs: %s"
+msgstr ""
+
+#: libmailutils/server/msrv.c:669
+#, c-format
+msgid "%s: undefined ACL result; access allowed"
+msgstr ""
+
+#: libmailutils/server/msrv.c:681
+#, c-format
+msgid "access from %s blocked"
+msgstr ""
+
+#: libmailutils/server/msrv.c:710
+#, c-format
+msgid "too many children (%lu)"
+msgstr ""
+
+#: libmailutils/server/msrv.c:763
+#, c-format
+msgid "cannot parse URL `%s': %s"
+msgstr ""
+
+#: libmailutils/server/msrv.c:770
+#, c-format
+msgid "cannot create sockaddr for URL `%s': %s"
+msgstr ""
+
+#: libmailutils/server/msrv.c:788
+#, c-format
+msgid "%s resolves to several addresses, only the first is used"
+msgstr ""
+
+#: libmailutils/server/msrv.c:840
+msgid "unknown daemon mode"
+msgstr ""
+
+#: libmailutils/server/msrv.c:857
+#, c-format
+msgid "invalid port number: %s"
+msgstr ""
+
+#: libmailutils/server/msrv.c:892
+msgid "Maximum number of children processes to run simultaneously."
+msgstr ""
+
+#: libmailutils/server/msrv.c:895
+msgid "Set daemon mode (either inetd (or interactive) or daemon)."
+msgstr ""
+
+#: libmailutils/server/msrv.c:899
+msgid "Run in foreground."
+msgstr ""
+
+#: libmailutils/server/msrv.c:902
+msgid "Store PID of the master process in this file."
+msgstr ""
+
+#: libmailutils/server/msrv.c:906
+msgid "Default port number."
+msgstr ""
+
+#: libmailutils/server/msrv.c:909 libmailutils/server/msrv.c:926
+msgid "Set idle timeout."
+msgstr ""
+
+#: libmailutils/server/msrv.c:913
+msgid "Per-server access control list"
+msgstr ""
+
+#: libmailutils/server/msrv.c:920
+msgid "Run this server in foreground."
+msgstr ""
+
+#: libmailutils/server/msrv.c:923
+msgid "Log the session transcript."
+msgstr ""
+
+#: libmailutils/server/msrv.c:929
+msgid "Global access control list."
+msgstr ""
+
+#: libmailutils/server/msrv.c:940
+msgid "ipaddr[:port]"
+msgstr ""
+
+#: libproto/mailer/smtp.c:219
+#, c-format
+msgid "cannot create TLS stream: %s"
+msgstr ""
+
+#: libmailutils/auth/mu_auth.c:386
+#, c-format
+msgid "no such module: %s"
+msgstr ""
+
+#: libmailutils/auth/mu_auth.c:388
+#, c-format
+msgid "failed to add module %s: %s"
+msgstr ""
+
+#: libmailutils/base/registrar.c:106
+msgid "program uses mu_registrar_get_list(), which is deprecated"
+msgstr ""
+
+#: libmailutils/base/version.c:35
+msgid "Version of this package"
+msgstr ""
+
+#: libmailutils/base/version.c:36
+msgid "System configuration directory"
+msgstr ""
+
+#: libmailutils/base/version.c:37
+msgid "Default mail spool directory"
+msgstr ""
+
+#: libmailutils/base/version.c:38
+msgid "Default mailbox type"
+msgstr ""
+
+#: libmailutils/base/version.c:39
+msgid "Default syslog facility"
+msgstr ""
+
+#: libmailutils/base/version.c:41
+msgid "IPv6 support"
+msgstr ""
+
+#: libmailutils/base/version.c:44
+msgid "PAM support"
+msgstr ""
+
+#: libmailutils/base/version.c:47
+msgid "a portable `dlopen' wrapper library"
+msgstr ""
+
+#: libmailutils/base/version.c:50
+msgid "Berkeley DB v. 2"
+msgstr ""
+
+#: libmailutils/base/version.c:53
+msgid "Berkeley DB"
+msgstr ""
+
+#: libmailutils/base/version.c:59
+msgid "GNU DBM"
+msgstr ""
+
+#: libmailutils/base/version.c:62
+msgid "Tokyo Cabinet DBM"
+msgstr ""
+
+#: libmailutils/base/version.c:65
+msgid "Kyoto Cabinet DBM"
+msgstr ""
+
+#: libmailutils/base/version.c:68
+msgid "TLS support using GNU TLS"
+msgstr ""
+
+#: libmailutils/base/version.c:71
+msgid "SASL support using GNU SASL"
+msgstr ""
+
+#: libmailutils/base/version.c:74
+msgid "GSSAPI support"
+msgstr ""
+
+#: libmailutils/base/version.c:77
+msgid "Support for Guile as extension language"
+msgstr ""
+
+#: libmailutils/base/version.c:80
+msgid "Support for Python as extension language"
+msgstr ""
+
+#: libmailutils/base/version.c:83
+msgid "Support for POSIX threads"
+msgstr ""
+
+#: libmailutils/base/version.c:86
+msgid "GNU Readline"
+msgstr ""
+
+#: libmailutils/base/version.c:89
+msgid "MySQL"
+msgstr ""
+
+#: libmailutils/base/version.c:92
+msgid "PostgreSQL"
+msgstr ""
+
+#: libmailutils/base/version.c:98
+msgid "Support for TCP wrappers"
+msgstr ""
+
+#: libmailutils/base/version.c:101
+msgid "Support for virtual mail domains"
+msgstr ""
+
+#: libmailutils/base/version.c:104
+msgid "IMAP4 protocol support"
+msgstr ""
+
+#: libmailutils/base/version.c:107
+msgid "POP3 protocol support"
+msgstr ""
+
+#: libmailutils/base/version.c:110
+msgid "MH mail storage support"
+msgstr ""
+
+#: libmailutils/base/version.c:113
+msgid "Maildir mail storage support"
+msgstr ""
+
+#: libmailutils/base/version.c:116
+msgid "SMTP protocol support"
+msgstr ""
+
+#: libmailutils/base/version.c:119
+msgid "Sendmail command line interface support"
+msgstr ""
+
+#: libmailutils/base/version.c:122
+msgid "NNTP protocol support"
+msgstr ""
+
+#: libmailutils/base/version.c:125
+msgid "RADIUS protocol support"
+msgstr ""
+
+#: libmailutils/base/version.c:128
+msgid "GNU libintl compiled in"
+msgstr ""
+
+#. TRANSLATORS: This is a list of characters which start
+#. an affirmative answer. Whenever possible, please preserve
+#. 'yY' in your translation, e.g., for Euskara:
+#.
+#. msgstr "yYbB";
+#.
+#: libmailutils/string/trueans.c:44
+msgid "yY"
+msgstr ""
+
+#. TRANSLATORS: This is a list of characters which start
+#. a negative answer. Whenever possible, please preserve
+#. 'nN' in your translation, e.g., for Euskara:
+#.
+#. msgstr "nNeE";
+#.
+#: libmailutils/string/trueans.c:53
+msgid "nN"
+msgstr ""
+
+#: libmailutils/stdstream/strerr.c:52
+#, c-format
+msgid "%s: cannot open error stream: %s\n"
+msgstr ""
+
+#: libmailutils/stdstream/strerr.c:76
+#, c-format
+msgid "%s: cannot open output filter stream: %s"
+msgstr ""
+
+#: libmailutils/stdstream/strerr.c:90
+#, c-format
+msgid "%s: cannot create syslog stream: %s\n"
+msgstr ""
+
+#: libmailutils/stdstream/strerr.c:97
+#, c-format
+msgid "%s: cannot create error stream: %s\n"
+msgstr ""
+
+#: libmailutils/stdstream/strerr.c:106
+#, c-format
+msgid "%s: cannot open logger stream: %s\n"
+msgstr ""
+
+#: messages/messages.c:31
+msgid "GNU messages -- count the number of messages in a mailbox"
+msgstr ""
+
+#: messages/messages.c:32
+msgid "[mailbox...]"
+msgstr ""
+
+#. TRANSLATORS: 'messages' is a program name. Do not translate it!
+#: messages/messages.c:37
+msgid "messages specific switches:"
+msgstr ""
+
+#: messages/messages.c:38
+msgid "only display number of messages"
+msgstr ""
+
+#: messages/messages.c:162
+#, c-format
+msgid "could not count messages in mailbox `%s': %s"
+msgstr ""
+
+#: messages/messages.c:170
+#, c-format
+msgid "Number of messages in %s: %lu\n"
+msgstr ""
+
+#: messages/messages.c:176
+#, c-format
+msgid "could not close `%s': %s"
+msgstr ""
+
+#: mh/anno.c:21
+msgid "GNU MH anno"
+msgstr ""
+
+#: mh/anno.c:22 mh/forw.c:22 mh/mhn.c:25 mh/refile.c:27 mh/repl.c:25
+#: mh/send.c:26
+msgid ""
+"Options marked with `*' are not yet implemented.\n"
+"Use -help to obtain the list of traditional MH options."
+msgstr ""
+
+#: mh/anno.c:24 mh/forw.c:24 mh/mark.c:21 mh/mhn.c:27 mh/pick.c:36
+msgid "[MSGLIST]"
+msgstr ""
+
+#: mh/anno.c:28 mh/folder.c:42 mh/folder.c:52 mh/forw.c:32 mh/forw.c:38
+#: mh/inc.c:29 mh/mark.c:25 mh/mh_whatnow.c:83 mh/mhl.c:29 mh/mhn.c:30
+#: mh/mhpath.c:27 mh/pick.c:41 mh/refile.c:33 mh/refile.c:42 mh/repl.c:36
+#: mh/repl.c:46 mh/repl.c:51 mh/rmf.c:36 mh/rmm.c:27 mh/scan.c:34 mh/send.c:36
+#: mh/whatnow.c:26 mh/whom.c:29 readmsg/readmsg.c:41
+msgid "FOLDER"
+msgstr ""
+
+#: mh/anno.c:29 mh/folder.c:53 mh/forw.c:39 mh/mark.c:26 mh/mhl.c:30
+#: mh/mhn.c:31 mh/mhpath.c:28 mh/pick.c:42 mh/refile.c:34 mh/repl.c:46
+#: mh/rmm.c:28
+msgid "specify folder to operate upon"
+msgstr ""
+
+#: mh/anno.c:30 mh/anno.c:33 mh/folder.c:56 mh/folder.c:59 mh/folder.c:62
+#: mh/folder.c:65 mh/folder.c:68 mh/forw.c:28 mh/forw.c:46 mh/forw.c:56
+#: mh/forw.c:59 mh/forw.c:67 mh/forw.c:69 mh/inc.c:35 mh/inc.c:42 mh/mark.c:35
+#: mh/mark.c:38 mh/mhl.c:31 mh/mhl.c:34 mh/mhn.c:37 mh/mhn.c:47 mh/mhn.c:50
+#: mh/mhn.c:53 mh/mhn.c:59 mh/mhn.c:62 mh/mhn.c:67 mh/mhn.c:73 mh/mhn.c:76
+#: mh/mhn.c:88 mh/pick.c:95 mh/pick.c:100 mh/pick.c:103 mh/prompter.c:42
+#: mh/prompter.c:46 mh/prompter.c:50 mh/refile.c:37 mh/refile.c:40
+#: mh/repl.c:32 mh/repl.c:47 mh/repl.c:55 mh/repl.c:58 mh/repl.c:60
+#: mh/repl.c:67 mh/rmf.c:38 mh/scan.c:36 mh/scan.c:43 mh/scan.c:47
+#: mh/send.c:46 mh/send.c:49 mh/send.c:52 mh/send.c:55 mh/send.c:58
+#: mh/send.c:61 mh/send.c:68 mh/send.c:71 mh/whom.c:35 sieve/sieve.c:89
+msgid "BOOL"
+msgstr ""
+
+#: mh/anno.c:31 mh/forw.c:57 mh/repl.c:59
+msgid "* annotate the message in place"
+msgstr ""
+
+#: mh/anno.c:34
+msgid "add FIELD: date header"
+msgstr ""
+
+#: mh/anno.c:36 mh/pick.c:47
+msgid "FIELD"
+msgstr ""
+
+#: mh/anno.c:37
+msgid "add this FIELD to the message header"
+msgstr ""
+
+#: mh/anno.c:39
+msgid "field value for the component"
+msgstr ""
+
+#: mh/anno.c:128
+msgid "Component name: "
+msgstr ""
+
+#: mh/anno.c:134
+#, c-format
+msgid "error reading input stream: %s"
+msgstr ""
+
+#: mh/anno.c:140
+msgid "invalid component name"
+msgstr ""
+
+#: mh/fmtcheck.c:21
+msgid "GNU MH fmtcheck"
+msgstr ""
+
+#: mh/fmtcheck.c:22 mh/folder.c:31 mh/inc.c:22 mh/install-mh.c:20 mh/mark.c:20
+#: mh/mhl.c:24 mh/mhpath.c:22 mh/prompter.c:23 mh/rmf.c:31 mh/rmm.c:22
+#: mh/scan.c:29 mh/whom.c:20
+msgid "Use -help to obtain the list of traditional MH options."
+msgstr ""
+
+#: mh/fmtcheck.c:27 mh/forw.c:51 mh/inc.c:39 mh/mhl.c:38 mh/repl.c:54
+#: mh/scan.c:40
+msgid "read format from given file"
+msgstr ""
+
+#: mh/fmtcheck.c:28 mh/inc.c:40 mh/scan.c:41
+msgid "FORMAT"
+msgstr ""
+
+#: mh/fmtcheck.c:29 mh/inc.c:41 mh/scan.c:42
+msgid "use this format string"
+msgstr ""
+
+#: mh/fmtcheck.c:31
+msgid "dump the listing of compiled format code"
+msgstr ""
+
+#: mh/fmtcheck.c:33
+msgid "enable parser debugging output"
+msgstr ""
+
+#: mh/fmtcheck.c:55
+msgid "Format string not specified"
+msgstr ""
+
+#: mh/fmtcheck.c:103 mh/inc.c:381 mh/repl.c:408 mh/scan.c:177
+msgid "Bad format string"
+msgstr ""
+
+#: mh/folder.c:30
+msgid "GNU MH folder"
+msgstr ""
+
+#: mh/folder.c:32
+msgid "[ACTION] [MSG]"
+msgstr ""
+
+#: mh/folder.c:35 pop3d/popauth.c:66
+msgid "Actions are:"
+msgstr ""
+
+#: mh/folder.c:37
+msgid "list the folders (default)"
+msgstr ""
+
+#: mh/folder.c:39
+msgid "list the contents of the folder stack"
+msgstr ""
+
+#: mh/folder.c:41
+msgid ""
+"remove holes in message numbering, begin numbering from NUMBER (default: "
+"first message number)"
+msgstr ""
+
+#: mh/folder.c:43
+msgid ""
+"push the folder on the folder stack. If FOLDER is specified, it is pushed. "
+"Otherwise, if a folder is given in the command line (via + or --folder), it "
+"is pushed on stack. Otherwise, the current folder and the top of the folder "
+"stack are exchanged"
+msgstr ""
+
+#: mh/folder.c:48
+msgid "pop the folder off the folder stack"
+msgstr ""
+
+#: mh/folder.c:50 mh/mh_whatnow.c:152 pop3d/popauth.c:78 mu/dispatch.c:68
+msgid "Options are:"
+msgstr ""
+
+#: mh/folder.c:55
+msgid "list all folders"
+msgstr ""
+
+#: mh/folder.c:57
+msgid "create non-existing folders"
+msgstr ""
+
+#: mh/folder.c:60
+msgid "list only the folder names"
+msgstr ""
+
+#: mh/folder.c:63
+msgid "print the header line"
+msgstr ""
+
+#: mh/folder.c:66
+msgid "scan folders recursively"
+msgstr ""
+
+#: mh/folder.c:69
+msgid "output the total statistics"
+msgstr ""
+
+#: mh/folder.c:72
+msgid "verbosely list actions taken"
+msgstr ""
+
+#: mh/folder.c:74
+msgid "do nothing, print what would be done (with --pack)"
+msgstr ""
+
+#: mh/folder.c:143 mh/send.c:144 mh/send.c:228 mh/send.c:254
+#, c-format
+msgid "invalid number"
+msgstr ""
+
+#: mh/folder.c:308 mh/rmf.c:142
+#, c-format
+msgid "cannot scan folder %s: %s"
+msgstr ""
+
+#: mh/folder.c:397
+#, c-format
+msgid " has %4lu message  (%4lu-%4lu)"
+msgid_plural " has %4lu messages (%4lu-%4lu)"
+msgstr[0] ""
+msgstr[1] ""
+
+#: mh/folder.c:408
+#, c-format
+msgid " has no messages"
+msgstr ""
+
+#: mh/folder.c:417
+#, c-format
+msgid "(others)"
+msgstr ""
+
+#: mh/folder.c:474
+#, c-format
+msgid ""
+"Folder                  # of messages     (  range  )  cur msg   (other "
+"files)\n"
+msgstr ""
+
+#: mh/folder.c:483
+msgid "TOTAL"
+msgstr ""
+
+#: mh/folder.c:484
+#, c-format
+msgid "%4lu message  "
+msgid_plural "%4lu messages "
+msgstr[0] ""
+msgstr[1] ""
+
+#: mh/folder.c:487
+#, c-format
+msgid "in %4lu folder"
+msgid_plural "in %4lu folders"
+msgstr[0] ""
+msgstr[1] ""
+
+#: mh/folder.c:681
+#, c-format
+msgid "Renaming %s to %s\n"
+msgstr ""
+
+#: mh/folder.c:686 mh/send.c:643
+#, c-format
+msgid "cannot rename `%s' to `%s': %s"
+msgstr ""
+
+#: mh/folder.c:723
+msgid "rolling back changes..."
+msgstr ""
+
+#: mh/folder.c:727
+#, c-format
+msgid ""
+"CRITICAL ERROR: Folder `%s' left in an inconsistent state, because an error\n"
+"occurred while trying to roll back the changes.\n"
+"Message range %s-%s has been renamed to %s-%s."
+msgstr ""
+
+#: mh/folder.c:735
+msgid "You will have to fix it manually."
+msgstr ""
+
+#: mh/folder.c:738
+#, c-format
+msgid "folder `%s' restored successfully"
+msgstr ""
+
+#: mh/folder.c:867 mh/inc.c:250
+#, c-format
+msgid "cannot read input mailbox: %s"
+msgstr ""
+
+#: mh/folder.c:875
+#, c-format
+msgid "Getting message numbers.\n"
+msgstr ""
+
+#: mh/folder.c:883 mh/inc.c:283
+#, c-format
+msgid "%lu: cannot get message: %s"
+msgstr ""
+
+#: mh/folder.c:890
+#, c-format
+msgid "%s message number collected.\n"
+msgid_plural "%s message numbers collected.\n"
+msgstr[0] ""
+msgstr[1] ""
+
+#: mh/folder.c:908
+#, c-format
+msgid "Reverting pack table.\n"
+msgstr ""
+
+#: mh/folder.c:916
+#, c-format
+msgid "cannot change to directory `%s': %s"
+msgstr ""
+
+#: mh/folder.c:931
+#, c-format
+msgid "Finished packing messages.\n"
+msgstr ""
+
+#: mh/folder.c:942
+#, c-format
+msgid "Fixing global sequences\n"
+msgstr ""
+
+#: mh/folder.c:945
+#, c-format
+msgid "Fixing private sequences\n"
+msgstr ""
+
+#: mh/forw.c:21
+msgid "GNU MH forw"
+msgstr ""
+
+#: mh/forw.c:29
+msgid "add Forwarded: header to each forwarded message"
+msgstr ""
+
+#: mh/forw.c:31 mh/repl.c:35
+msgid "build the draft and quit immediately"
+msgstr ""
+
+#: mh/forw.c:33 mh/repl.c:37 mh/send.c:37 mh/whatnow.c:27 mh/whom.c:30
+msgid "specify the folder for message drafts"
+msgstr ""
+
+#: mh/forw.c:35 mh/repl.c:39 mh/send.c:41 mh/whatnow.c:29 mh/whom.c:34
+msgid "undo the effect of the last --draftfolder option"
+msgstr ""
+
+#: mh/forw.c:36 mh/repl.c:40 mh/whatnow.c:30
+msgid "MSG"
+msgstr ""
+
+#: mh/forw.c:37 mh/repl.c:41 mh/whatnow.c:31
+msgid "invoke the draftmessage facility"
+msgstr ""
+
+#: mh/forw.c:40 mh/forw.c:63 mh/mhl.c:43 mh/repl.c:49 mh/repl.c:63
+#: mh/whatnow.c:32
+msgid "PROG"
+msgstr ""
+
+#: mh/forw.c:41 mh/repl.c:49 mh/whatnow.c:32
+msgid "set the editor program to use"
+msgstr ""
+
+#: mh/forw.c:43 mh/repl.c:50 mh/whatnow.c:33
+msgid "suppress the initial edit"
+msgstr ""
+
+#: mh/forw.c:45 mu/logger.c:32
+msgid "read message from FILE"
+msgstr ""
+
+#: mh/forw.c:47
+msgid "format messages"
+msgstr ""
+
+#: mh/forw.c:49
+msgid "undo the effect of the last --format option"
+msgstr ""
+
+#: mh/forw.c:53
+msgid "use filter FILE to preprocess the body of the message"
+msgstr ""
+
+#: mh/forw.c:55
+msgid "undo the effect of the last --filter option"
+msgstr ""
+
+#: mh/forw.c:60
+msgid "use MIME encapsulation"
+msgstr ""
+
+#: mh/forw.c:62
+msgid "Set output width"
+msgstr ""
+
+#: mh/forw.c:64 mh/repl.c:64
+msgid "set the replacement for whatnow program"
+msgstr ""
+
+#: mh/forw.c:66
+msgid "ignore whatnowproc variable, use standard `whatnow' shell instead"
+msgstr ""
+
+#: mh/forw.c:68 mh/repl.c:67
+msgid "use draft file preserved after the last session"
+msgstr ""
+
+#: mh/forw.c:167 mh/inc.c:155 mh/mhl.c:108 mh/repl.c:209 mh/scan.c:117
+#, c-format
+msgid "invalid width"
+msgstr ""
+
+#: mh/forw.c:328
+#, c-format
+msgid "cannot copy message: %s"
+msgstr ""
+
+#: mh/forw.c:369 mh/forw.c:385 mh/mh_init.c:634
+#, c-format
+msgid "cannot open output file `%s': %s"
+msgstr ""
+
+#: mh/forw.c:443
+msgid "Forwarded message\n"
+msgstr ""
+
+#: mh/forw.c:448
+msgid "Forwarded messages\n"
+msgstr ""
+
+#: mh/forw.c:460
+msgid "End of Forwarded message"
+msgstr ""
+
+#: mh/forw.c:462
+msgid "End of Forwarded messages"
+msgstr ""
+
+#: mh/forw.c:492
+msgid "--build disables --mime"
+msgstr ""
+
+#: mh/forw.c:497
+msgid "can't mix files and folders/msgs"
+msgstr ""
+
+#: mh/inc.c:21
+msgid "GNU MH inc"
+msgstr ""
+
+#: mh/inc.c:23 mh/rmf.c:32
+msgid "[+FOLDER]"
+msgstr ""
+
+#: mh/inc.c:28
+msgid "incorporate mail from named file"
+msgstr ""
+
+#: mh/inc.c:30
+msgid "specify folder to incorporate mail to"
+msgstr ""
+
+#: mh/inc.c:32
+msgid "enable audit"
+msgstr ""
+
+#: mh/inc.c:34
+msgid "disable audit"
+msgstr ""
+
+#: mh/inc.c:36
+msgid "mark first incorporated message as current (default)"
+msgstr ""
+
+#: mh/inc.c:43
+msgid "truncate source mailbox after incorporating (default)"
+msgstr ""
+
+#: mh/inc.c:45
+msgid "MAILBOX"
+msgstr ""
+
+#: mh/inc.c:46
+msgid "move incorporated messages to MAILBOX instead of deleting them"
+msgstr ""
+
+#: mh/inc.c:48 mh/mhl.c:40 mh/repl.c:62 mh/scan.c:46
+msgid "set output width"
+msgstr ""
+
+#: mh/inc.c:50 mh/mhn.c:92
+msgid "be quiet"
+msgstr ""
+
+#: mh/inc.c:226
+#, c-format
+msgid "cannot create default mailbox: %s"
+msgstr ""
+
+#: mh/inc.c:233 mh/mh_init.c:446 mh/rmf.c:115
+#, c-format
+msgid "cannot create mailbox %s: %s"
+msgstr ""
+
+#: mh/inc.c:290
+#, c-format
+msgid "%lu: error appending message: %s"
+msgstr ""
+
+#: mh/inc.c:338
+#, c-format
+msgid "failed to move messages to %s: %s"
+msgstr ""
+
+#: mh/inc.c:389
+#, c-format
+msgid "cannot read output mailbox: %s"
+msgstr ""
+
+#: mh/install-mh.c:19
+msgid "GNU MH install-mh"
+msgstr ""
+
+#: mh/install-mh.c:24
+msgid "do not ask for anything"
+msgstr ""
+
+#: mh/mark.c:19
+msgid "GNU MH mark"
+msgstr ""
+
+#: mh/mark.c:28
+msgid "specify sequence name to operate upon"
+msgstr ""
+
+#: mh/mark.c:30
+msgid "add messages to the sequence"
+msgstr ""
+
+#: mh/mark.c:32
+msgid "delete messages from the sequence"
+msgstr ""
+
+#: mh/mark.c:34
+msgid "list the sequences"
+msgstr ""
+
+#: mh/mark.c:36 mh/pick.c:101
+msgid "create public sequence"
+msgstr ""
+
+#: mh/mark.c:39 mh/pick.c:104
+msgid "empty the sequence before adding messages"
+msgstr ""
+
+#: mh/mark.c:66 mh/pick.c:152
+msgid "cannot create sequence list"
+msgstr ""
+
+#: mh/mark.c:153 mh/mark.c:170
+msgid "private"
+msgstr ""
+
+#: mh/mark.c:221
+msgid "--add requires at least one --sequence argument"
+msgstr ""
+
+#: mh/mark.c:231
+msgid "--delete requires at least one --sequence argument"
+msgstr ""
+
+#: mh/mboxprop.c:47
+#, c-format
+msgid "invalid \"cur\" value (%s)"
+msgstr ""
+
+#. TRANSLATORS: Translate "(C)" to the copyright symbol
+#. (C-in-a-circle), if this symbol is available in the user's
+#. locale.  Otherwise, do not translate "(C)"; leave it as-is.
+#: mh/mh_argp.c:124
+msgid "(C)"
+msgstr ""
+
+#: mh/mh_argp.c:126
+msgid ""
+"\n"
+"License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl."
+"html>\n"
+"This is free software: you are free to change and redistribute it.\n"
+"There is NO WARRANTY, to the extent permitted by law.\n"
+"\n"
+msgstr ""
+
+#: mh/mh_argp.c:268
+msgid "Extra arguments"
+msgstr ""
+
+#: mh/mh_argp.c:278
+#, c-format
+msgid ""
+"This is %s\n"
+"\n"
+msgstr ""
+
+#: mh/mh_fmtgram.y:98
+msgid "INTERNAL ERROR: unexpected item type (please report)"
+msgstr ""
+
+#: mh/mh_fmtgram.y:204
+msgid "undefined function"
+msgstr ""
+
+#: mh/mh_fmtgram.y:630
+msgid "INTERNAL ERROR: unknown argtype (please report)"
+msgstr ""
+
+#: mh/mh_fmtgram.y:636
+#, c-format
+msgid "missing argument for %s"
+msgstr ""
+
+#: mh/mh_fmtgram.y:645
+#, c-format
+msgid "extra arguments to %s"
+msgstr ""
+
+#: mh/mh_format.c:521
+#, c-format
+msgid "cannot set LC_CTYPE %s"
+msgstr ""
+
+#: mh/mh_format.c:671
+#, c-format
+msgid "INTERNAL ERROR: Unknown opcode: %x"
+msgstr ""
+
+#. TRANSLATORS: Do not translate the word 'format'!
+#: mh/mh_format.c:1025 mh/mh_format.c:1037
+msgid "format: divide by zero"
+msgstr ""
+
+#: mh/mh_format.c:1949
+msgid "invalid recipient mask"
+msgstr ""
+
+#: mh/mh_getopt.c:125
+#, c-format
+msgid "Compatibility syntax:\n"
+msgstr ""
+
+#: mh/mh_getopt.c:126
+#, c-format
+msgid "%s [switches] %s\n"
+msgstr ""
+
+#: mh/mh_getopt.c:127
+#, c-format
+msgid "  switches are:\n"
+msgstr ""
+
+#: mh/mh_getopt.c:151
+#, c-format
+msgid ""
+"\n"
+"Please use GNU long options instead.\n"
+"Run %s --help for more info on these.\n"
+msgstr ""
+
+#: mh/mh_getopt.c:209
+#, c-format
+msgid "option is not yet implemented: %s"
+msgstr ""
+
+#: mh/mh_getopt.c:216
+#, c-format
+msgid "ignoring not implemented option %s"
+msgstr ""
+
+#: mh/mh_init.c:75
+#, c-format
+msgid "cannot access format file %s: %s"
+msgstr ""
+
+#: mh/mh_init.c:81
+#, c-format
+msgid "cannot stat format file %s: %s"
+msgstr ""
+
+#: mh/mh_init.c:90 mh/mh_list.c:277
+#, c-format
+msgid "cannot open format file %s: %s"
+msgstr ""
+
+#: mh/mh_init.c:144
+msgid "cannot determine my username"
+msgstr ""
+
+#: mh/mh_init.c:247
+#, c-format
+msgid "cannot create directory %s: error accessing name component %s: %s"
+msgstr ""
+
+#: mh/mh_init.c:253
+#, c-format
+msgid "cannot create directory %s: error creating name component %s: %s"
+msgstr ""
+
+#: mh/mh_init.c:278
+#, c-format
+msgid "cannot create directory %s: %s"
+msgstr ""
+
+#. TRANSLATORS: This is a question and will be followed
+#. by question mark on output.
+#: mh/mh_init.c:303
+#, c-format
+msgid "Create folder \"%s\""
+msgstr ""
+
+#. TRANSLATORS: See msgids "nN" and "yY".
+#: mh/mh_init.c:352
+#, c-format
+msgid "Please answer yes or no: "
+msgstr ""
+
+#: mh/mh_init.c:404
+#, c-format
+msgid "cannot open audit file %s: %s"
+msgstr ""
+
+#: mh/mh_init.c:554 mh/mh_init.c:565 mh/mh_init.c:574
+#, c-format
+msgid "cannot access %s: %s"
+msgstr ""
+
+#: mh/mh_init.c:627 mh/prompter.c:184
+#, c-format
+msgid "cannot open input file `%s': %s"
+msgstr ""
+
+#: mh/mh_init.c:656
+#, c-format
+msgid "error copying file `%s' to `%s': %s"
+msgstr ""
+
+#: mh/mh_init.c:677 mh/mhn.c:2506
+#, c-format
+msgid "cannot create input stream (file %s): %s"
+msgstr ""
+
+#: mh/mh_init.c:707
+#, c-format
+msgid ""
+"Prior to using MH, it is necessary to have a file in your login\n"
+"directory (%s) named .mh_profile which contains information\n"
+"to direct certain MH operations.  The only item which is required\n"
+"is the path to use for all MH folder operations.  The suggested MH\n"
+"path for you is %s...\n"
+msgstr ""
+
+#. TRANSLATORS: This is a question and will be followed
+#. by question mark on output.
+#: mh/mh_init.c:731
+msgid "Do you need help"
+msgstr ""
+
+#. TRANSLATORS: This is a question and will be followed
+#. by question mark on output.
+#: mh/mh_init.c:736
+#, c-format
+msgid "Do you want the standard MH path \"%s\""
+msgstr ""
+
+#. TRANSLATORS: This is a question and will be followed
+#. by question mark on output.
+#: mh/mh_init.c:744
+msgid "Do you want a path below your login directory"
+msgstr ""
+
+#: mh/mh_init.c:746
+msgid "What is the path? "
+msgstr ""
+
+#: mh/mh_init.c:748
+msgid "What is the full path? "
+msgstr ""
+
+#: mh/mh_init.c:806
+#, c-format
+msgid "I'm going to create the standard MH path for you.\n"
+msgstr ""
+
+#: mh/mh_init.c:817
+msgid "You already have an MH profile, use an editor to modify it"
+msgstr ""
+
+#: mh/mh_init.c:822
+#, c-format
+msgid ""
+"You already have file %s which is not a regular file or a symbolic link."
+msgstr ""
+
+#: mh/mh_init.c:823
+msgid "Please remove it and try again"
+msgstr ""
+
+#: mh/mh_init.c:1006
+#, c-format
+msgid "cannot obtain sequence number for the new message: %s"
+msgstr ""
+
+#: mh/mh_init.c:1022 mh/repl.c:416
+msgid "only one message at a time!"
+msgstr ""
+
+#: mh/mh_list.c:194
+#, c-format
+msgid "%s:%d: unknown variable: %s"
+msgstr ""
+
+#: mh/mh_list.c:204
+#, c-format
+msgid "%s:%d: wrong datatype for %s"
+msgstr ""
+
+#: mh/mh_list.c:224
+#, c-format
+msgid "%s:%d: bad format string"
+msgstr ""
+
+#: mh/mh_list.c:243
+#, c-format
+msgid "%s:%d: syntax error"
+msgstr ""
+
+#: mh/mh_msgset.c:138
+#, c-format
+msgid "bad message list `%s'"
+msgstr ""
+
+#: mh/mh_msgset.c:145
+#, c-format
+msgid "no messages in range %s"
+msgstr ""
+
+#: mh/mh_msgset.c:264
+#, c-format
+msgid "cannot get last message: %s"
+msgstr ""
+
+#: mh/mh_msgset.c:285
+msgid "no prev message"
+msgstr ""
+
+#: mh/mh_msgset.c:300
+msgid "no next message"
+msgstr ""
+
+#: mh/mh_msgset.c:536
+#, c-format
+msgid "message %s does not exist"
+msgstr ""
+
+#: mh/mh_whatnow.c:57
+#, c-format
+msgid "%s is unknown. Hit <CR> for help"
+msgstr ""
+
+#: mh/mh_whatnow.c:91
+msgid "SWITCHES"
+msgstr ""
+
+#: mh/mh_whatnow.c:97
+msgid "EDITOR"
+msgstr ""
+
+#: mh/mh_whatnow.c:218
+#, c-format
+msgid "command `%s' exited with status %d"
+msgstr ""
+
+#: mh/mh_whatnow.c:225
+#, c-format
+msgid "command `%s' terminated on signal %d"
+msgstr ""
+
+#: mh/mh_whatnow.c:228
+#, c-format
+msgid "command `%s' terminated abnormally"
+msgstr ""
+
+#: mh/mh_whatnow.c:337
+#, c-format
+msgid "cannot read input stream: %s"
+msgstr ""
+
+#: mh/mh_whatnow.c:375
+msgid "no alternate message to display"
+msgstr ""
+
+#: mh/mh_whatnow.c:399 mh/mh_whatnow.c:460
+msgid "no draft file to display"
+msgstr ""
+
+#: mh/mh_whatnow.c:426
+#, c-format
+msgid "draft left on \"%s\"."
+msgstr ""
+
+#: mh/mh_whatnow.c:471
+msgid "List the message being distributed/replied-to on the terminal."
+msgstr ""
+
+#: mh/mh_whatnow.c:473
+msgid ""
+"Edit the message. If EDITOR is omitted use the one that was used on the "
+"preceding round unless the profile entry \"LASTEDITOR-next\" names an "
+"alternate editor."
+msgstr ""
+
+#: mh/mh_whatnow.c:477 mh/mh_whatnow.c:507 mh/mh_whatnow.c:667
+msgid "List the draft on the terminal."
+msgstr ""
+
+#: mh/mh_whatnow.c:479
+msgid "Send the message in the background."
+msgstr ""
+
+#: mh/mh_whatnow.c:481
+msgid ""
+"Terminate the session. Preserve the draft, unless -delete flag is given."
+msgstr ""
+
+#: mh/mh_whatnow.c:483 mh/mh_whatnow.c:508
+msgid "Refile the draft into the given FOLDER."
+msgstr ""
+
+#: mh/mh_whatnow.c:485
+msgid ""
+"Send the message. The -watch flag causes the delivery process to be "
+"monitored. SWITCHES are passed to send program verbatim."
+msgstr ""
+
+#: mh/mh_whatnow.c:488
+msgid ""
+"List the addresses and verify that they are acceptable to the transport "
+"service."
+msgstr ""
+
+#: mh/mh_whatnow.c:504
+msgid "Terminate the session. Preserve the draft."
+msgstr ""
+
+#: mh/mh_whatnow.c:505
+msgid "Replace the draft with the newly created one"
+msgstr ""
+
+#: mh/mh_whatnow.c:506
+msgid "Use this draft"
+msgstr ""
+
+#: mh/mh_whatnow.c:575
+msgid "What now?"
+msgstr ""
+
+#: mh/mh_whatnow.c:604
+#, c-format
+msgid "cannot parse command line (%s): %s"
+msgstr ""
+
+#: mh/mh_whatnow.c:655
+msgid "Disposition?"
+msgstr ""
+
+#: mh/mh_whatnow.c:665
+msgid "Don't use the draft."
+msgstr ""
+
+#: mh/mh_whatnow.c:666
+msgid "Use the draft."
+msgstr ""
+
+#: mh/mh_whatnow.c:708
+#, c-format
+msgid "Use \"%s\"?"
+msgstr ""
+
+#: mh/mh_whom.c:72
+#, c-format
+msgid "Bad address `%s': %s"
+msgstr ""
+
+#: mh/mh_whom.c:96
+#, c-format
+msgid "%s: cannot get address #%lu: %s"
+msgstr ""
+
+#: mh/mh_whom.c:174
+#, c-format
+msgid " at %s"
+msgstr ""
+
+#: mh/mh_whom.c:218
+#, c-format
+msgid "cannot get stream size: %s"
+msgstr ""
+
+#: mh/mh_whom.c:302
+msgid "-- Local Recipients --"
+msgstr ""
+
+#: mh/mh_whom.c:308
+msgid "-- Network Recipients --"
+msgstr ""
+
+#: mh/mh_whom.c:314
+msgid "no recipients"
+msgstr ""
+
+#: mh/mhl.c:23
+msgid "GNU MH mhl"
+msgstr ""
+
+#: mh/mhl.c:25
+msgid "[FILE [FILE...]]"
+msgstr ""
+
+#: mh/mhl.c:32
+msgid "ring the bell at the end of each output page"
+msgstr ""
+
+#: mh/mhl.c:35
+msgid "clear the screen after each page of output"
+msgstr ""
+
+#: mh/mhl.c:42
+msgid "set output screen length"
+msgstr ""
+
+#: mh/mhl.c:44
+msgid "use given PROG instead of the default"
+msgstr ""
+
+#: mh/mhl.c:46
+msgid "disable use of moreproc program"
+msgstr ""
+
+#: mh/mhl.c:117
+#, c-format
+msgid "invalid length"
+msgstr ""
+
+#: mh/mhl.c:161
+#, c-format
+msgid "cannot create output stream: %s"
+msgstr ""
+
+#: mh/mhl.c:185
+#, c-format
+msgid "cannot create input stream: %s"
+msgstr ""
+
+#: mh/mhl.c:192 mh/prompter.c:192
+#, c-format
+msgid "input stream %s is not a message (%s)"
+msgstr ""
+
+#: mh/mhn.c:24
+msgid "GNU MH mhn"
+msgstr ""
+
+#: mh/mhn.c:33
+msgid "specify file to operate upon"
+msgstr ""
+
+#: mh/mhn.c:36
+msgid "MIME editing options"
+msgstr ""
+
+#: mh/mhn.c:38
+msgid "compose the MIME message (default)"
+msgstr ""
+
+#: mh/mhn.c:46
+msgid "Listing options"
+msgstr ""
+
+#: mh/mhn.c:48
+msgid "list the table of contents"
+msgstr ""
+
+#: mh/mhn.c:51
+msgid "print the banner above the listing"
+msgstr ""
+
+#: mh/mhn.c:54
+msgid "list the decoded sizes"
+msgstr ""
+
+#: mh/mhn.c:58
+msgid "Display options"
+msgstr ""
+
+#: mh/mhn.c:60
+msgid "display the contents of the messages"
+msgstr ""
+
+#: mh/mhn.c:63
+msgid "* display messages serially"
+msgstr ""
+
+#: mh/mhn.c:66
+msgid "read mhl format from FILE"
+msgstr ""
+
+#: mh/mhn.c:68
+msgid "pause prior to displaying content"
+msgstr ""
+
+#: mh/mhn.c:72
+msgid "Saving options"
+msgstr ""
+
+#: mh/mhn.c:74
+msgid "write extracted message parts to disk"
+msgstr ""
+
+#: mh/mhn.c:77
+msgid "use filenames from the content headers"
+msgstr ""
+
+#: mh/mhn.c:80
+msgid "use this charset to represent attachment file names"
+msgstr ""
+
+#: mh/mhn.c:83
+msgid "Other options"
+msgstr ""
+
+#: mh/mhn.c:84
+msgid "PART"
+msgstr ""
+
+#: mh/mhn.c:85
+msgid "limit the scope of the operation to the given part"
+msgstr ""
+
+#: mh/mhn.c:86
+msgid "CONTENT"
+msgstr ""
+
+#: mh/mhn.c:87
+msgid "operate on message part with given multipart content"
+msgstr ""
+
+#: mh/mhn.c:89
+msgid "print additional information"
+msgstr ""
+
+#: mh/mhn.c:578
+#, c-format
+msgid "malformed part specification (near %s)"
+msgstr ""
+
+#: mh/mhn.c:810
+#, c-format
+msgid "don't know how to display content (content %s in message %lu, part %s)"
+msgstr ""
+
+#: mh/mhn.c:1395
+#, c-format
+msgid " msg part type/subtype              size  description\n"
+msgstr ""
+
+#: mh/mhn.c:1419
+#, c-format
+msgid "%s: cannot get message body: %s"
+msgstr ""
+
+#: mh/mhn.c:1440
+#, c-format
+msgid "cannot create proc stream (command %s): %s"
+msgstr ""
+
+#: mh/mhn.c:1481
+#, c-format
+msgid "cannot parse command line `%s': %s"
+msgstr ""
+
+#: mh/mhn.c:1490
+#, c-format
+msgid "cannot create temporary stream (file %s): %s"
+msgstr ""
+
+#: mh/mhn.c:1521
+#, c-format
+msgid "Press <return> to show content..."
+msgstr ""
+
+#: mh/mhn.c:1574
+#, c-format
+msgid "part %5s %-24.24s %lu"
+msgstr ""
+
+#: mh/mhn.c:1692
+#, c-format
+msgid "%s: cannot decode attachment name: %s"
+msgstr ""
+
+#: mh/mhn.c:1717
+#, c-format
+msgid "storing message %s part %s to folder %s as message %lu\n"
+msgstr ""
+
+#: mh/mhn.c:1775
+#, c-format
+msgid "storing message %s part %s as file %s\n"
+msgstr ""
+
+#: mh/mhn.c:1782
+#, c-format
+msgid "File %s already exists. Rewrite"
+msgstr ""
+
+#: mh/mhn.c:1793 mh/mhn.c:2915
+#, c-format
+msgid "cannot create output stream (file %s): %s"
+msgstr ""
+
+#: mh/mhn.c:1811
+#, c-format
+msgid "storing msg %s part %s using command (cd %s; %s)\n"
+msgstr ""
+
+#: mh/mhn.c:1825
+#, c-format
+msgid "storing msg %s part %s to stdout\n"
+msgstr ""
+
+#: mh/mhn.c:1915
+#, c-format
+msgid "%s:%lu: missing %c"
+msgstr ""
+
+#: mh/mhn.c:1950
+#, c-format
+msgid "%s:%lu: comment redefined"
+msgstr ""
+
+#: mh/mhn.c:1962 mh/mhn.c:2002
+#, c-format
+msgid "%s:%lu: syntax error"
+msgstr ""
+
+#: mh/mhn.c:1971 mh/mhn.c:2289
+#, c-format
+msgid "%s:%lu: description redefined"
+msgstr ""
+
+#: mh/mhn.c:1983 mh/mhn.c:2301
+#, c-format
+msgid "%s:%lu: content id redefined"
+msgstr ""
+
+#: mh/mhn.c:2065
+#, c-format
+msgid "%s:%lu: missing subtype"
+msgstr ""
+
+#: mh/mhn.c:2139
+#, c-format
+msgid "error reading headers: %s"
+msgstr ""
+
+#: mh/mhn.c:2228 mimeview/mimeview.c:254
+#, c-format
+msgid "cannot create header: %s"
+msgstr ""
+
+#: mh/mhn.c:2322
+#, c-format
+msgid "%s:%lu: cannot split line: %s"
+msgstr ""
+
+#: mh/mhn.c:2352
+#, c-format
+msgid "%s:%lu: malformed directive near %s"
+msgstr ""
+
+#: mh/mhn.c:2361
+#, c-format
+msgid "%s:%lu: no such message: %lu"
+msgstr ""
+
+#: mh/mhn.c:2495
+#, c-format
+msgid "%s:%lu: missing filename"
+msgstr ""
+
+#: mh/mhn.c:2694
+#, c-format
+msgid "%s:%lu: unmatched #end"
+msgstr ""
+
+#: mh/mhn.c:2853
+#, c-format
+msgid "cannot encode subject using %s, %s: %s"
+msgstr ""
+
+#: mh/mhn.c:2963 mh/mhn.c:2977
+msgid "extra arguments"
+msgstr ""
+
+#: mh/mhpath.c:21
+msgid "GNU MH mhpath"
+msgstr ""
+
+#: mh/mhpath.c:23 mh/rmm.c:23 mh/scan.c:30
+msgid "[+FOLDER] [MSGLIST]"
+msgstr ""
+
+#: mh/pick.c:24
+msgid "GNU MH pick"
+msgstr ""
+
+#: mh/pick.c:25
+msgid ""
+"Compatibility syntax for picking a matching component is:\n"
+"\n"
+"  --Component pattern\n"
+"\n"
+"where Component is the component name, containing at least one capital\n"
+"letter or followed by a colon, e.g.:\n"
+"\n"
+"  --User-Agent Mailutils\n"
+"  --user-agent: Mailutils\n"
+"\n"
+"Use -help to obtain a list of traditional MH options."
+msgstr ""
+
+#: mh/pick.c:46
+msgid "Search patterns"
+msgstr ""
+
+#: mh/pick.c:48
+msgid "search the named header field"
+msgstr ""
+
+#: mh/pick.c:50
+msgid "set pattern to look for"
+msgstr ""
+
+#: mh/pick.c:53
+msgid ""
+"flags controlling the type of regular expressions. STRING must consist of "
+"one or more of the following letters: B=basic, E=extended, I=ignore case, "
+"C=case sensitive. Default is \"EI\". The flags remain in effect until the "
+"next occurrence of --cflags option. The option must occur right before --"
+"pattern or --component option (or its alias)."
+msgstr ""
+
+#: mh/pick.c:55
+msgid "same as --component cc --pattern STRING"
+msgstr ""
+
+#: mh/pick.c:57
+msgid "same as --component date --pattern STRING"
+msgstr ""
+
+#: mh/pick.c:59
+msgid "same as --component from --pattern STRING"
+msgstr ""
+
+#: mh/pick.c:61
+msgid "same as --component subject --pattern STRING"
+msgstr ""
+
+#: mh/pick.c:63
+msgid "same as --component to --pattern STRING"
+msgstr ""
+
+#: mh/pick.c:67
+msgid "Date constraint operations"
+msgstr ""
+
+#: mh/pick.c:69
+msgid "search in the named date header field (default is `Date:')"
+msgstr ""
+
+#: mh/pick.c:70 mh/pick.c:72
+msgid "DATE"
+msgstr ""
+
+#: mh/pick.c:71
+msgid "match messages after the given date"
+msgstr ""
+
+#: mh/pick.c:73
+msgid "match messages before the given date"
+msgstr ""
+
+#: mh/pick.c:77
+msgid "Logical operations and grouping"
+msgstr ""
+
+#: mh/pick.c:79
+msgid "logical AND (default)"
+msgstr ""
+
+#: mh/pick.c:81
+msgid "logical OR"
+msgstr ""
+
+#: mh/pick.c:83
+msgid "logical NOT"
+msgstr ""
+
+#: mh/pick.c:85
+msgid "open group"
+msgstr ""
+
+#: mh/pick.c:88
+msgid "close group"
+msgstr ""
+
+#: mh/pick.c:93
+msgid "Operations over the selected messages"
+msgstr ""
+
+#: mh/pick.c:96
+msgid "list the numbers of the selected messages (default)"
+msgstr ""
+
+#: mh/pick.c:99
+msgid "add matching messages to the given sequence"
+msgstr ""
+
+#: mh/pick.c:307
+#, c-format
+msgid ""
+"To match another component, use:\n"
+"\n"
+msgstr ""
+
+#: mh/pick.c:308
+#, c-format
+msgid ""
+"  --Component pattern\n"
+"\n"
+msgstr ""
+
+#: mh/pick.c:309
+#, c-format
+msgid ""
+"Note, that the component name must either be capitalized,\n"
+"or followed by a colon.\n"
+msgstr ""
+
+#: mh/prompter.c:22
+msgid "GNU MH prompter"
+msgstr ""
+
+#: mh/prompter.c:38 mh/prompter.c:40
+msgid "CHAR"
+msgstr ""
+
+#: mh/prompter.c:39
+msgid "set erase character"
+msgstr ""
+
+#: mh/prompter.c:41
+msgid "set kill character"
+msgstr ""
+
+#: mh/prompter.c:43
+msgid "prepend user input to the message body"
+msgstr ""
+
+#: mh/prompter.c:47
+msgid "do not display message body"
+msgstr ""
+
+#: mh/prompter.c:51
+msgid "a period on a line marks end-of-file"
+msgstr ""
+
+#: mh/prompter.c:165
+msgid "file name not given"
+msgstr ""
+
+#: mh/prompter.c:178 mh/prompter-tty.c:115
+#, c-format
+msgid "cannot open stdout: %s"
+msgstr ""
+
+#: mh/prompter.c:267
+msgid "Enter initial text"
+msgstr ""
+
+#: mh/prompter.c:290
+msgid "Enter additional text"
+msgstr ""
+
+#: mh/prompter-tty.c:38 mh/prompter-tty.c:78 mh/prompter-tty.c:86
+#: mh/prompter-tty.c:94
+#, c-format
+msgid "invalid keysequence (%s near %d)"
+msgstr ""
+
+#: mh/prompter-tty.c:122
+#, c-format
+msgid "tcgetattr failed: %s"
+msgstr ""
+
+#: mh/prompter-tty.c:139 mh/prompter-tty.c:154 mh/prompter-tty.c:169
+#, c-format
+msgid "tcsetattr failed: %s"
+msgstr ""
+
+#: mh/refile.c:26
+msgid "GNU MH refile"
+msgstr ""
+
+#: mh/refile.c:29
+msgid "MSGLIST FOLDER [FOLDER...]"
+msgstr ""
+
+#: mh/refile.c:36
+msgid "use <mh-dir>/draft as the source message"
+msgstr ""
+
+#: mh/refile.c:38
+msgid "preserve the source folder copy"
+msgstr ""
+
+#: mh/refile.c:41
+msgid "* try to preserve message sequence numbers"
+msgstr ""
+
+#: mh/refile.c:43
+msgid ""
+"specify source folder; it will become the current folder after the program "
+"exits"
+msgstr ""
+
+#: mh/refile.c:45
+msgid "use FILE as the source message"
+msgstr ""
+
+#: mh/refile.c:70
+msgid "cannot create folder list"
+msgstr ""
+
+#: mh/refile.c:84
+msgid "no folder specified"
+msgstr ""
+
+#: mh/refile.c:121
+msgid "cannot create iterator"
+msgstr ""
+
+#: mh/refile.c:192
+#, c-format
+msgid "error appending message: %s"
+msgstr ""
+
+#: mh/refile.c:253
+msgid "both message set and source file given"
+msgstr ""
+
+#: mh/repl.c:24
+msgid "GNU MH repl"
+msgstr ""
+
+#: mh/repl.c:27
+msgid "[+FOLDER] [MESSAGE]"
+msgstr ""
+
+#: mh/repl.c:33
+msgid "add Replied: header to the message being replied to"
+msgstr ""
+
+#: mh/repl.c:43
+msgid "specify whom to place on the Cc: list of the reply"
+msgstr ""
+
+#: mh/repl.c:45
+msgid "specify whom to remove from the Cc: list of the reply"
+msgstr ""
+
+#: mh/repl.c:48
+msgid "construct a group or followup reply"
+msgstr ""
+
+#: mh/repl.c:51
+msgid "set the folder to receive Fcc's"
+msgstr ""
+
+#: mh/repl.c:52
+msgid "MHL-FILTER"
+msgstr ""
+
+#: mh/repl.c:53
+msgid "set the mhl filter to preprocess the body of the message being replied"
+msgstr ""
+
+#: mh/repl.c:56
+msgid ""
+"include a copy of the message being replied; the message will be processed "
+"using either the default filter \"mhl.reply\", or the filter specified by --"
+"filter option"
+msgstr ""
+
+#: mh/repl.c:61
+msgid "* query for addresses to place in To: and Cc: lists"
+msgstr ""
+
+#: mh/repl.c:66
+msgid "ignore whatnowproc variable; use standard `whatnow' shell instead"
+msgstr ""
+
+#: mh/repl.c:132
+#, c-format
+msgid "%s %s is unknown"
+msgstr ""
+
+#: mh/repl.c:292
+#, c-format
+msgid "Draft \"%s\" exists (%s byte).\n"
+msgid_plural "Draft \"%s\" exists (%s bytes).\n"
+msgstr[0] ""
+msgstr[1] ""
+
+#: mh/repl.c:317
+#, c-format
+msgid "cannot read message %s: %s"
+msgstr ""
+
+#: mh/repl.c:338
+#, c-format
+msgid "cannot create draft file stream %s: %s"
+msgstr ""
+
+#: mh/rmf.c:30
+msgid "GNU MH rmf"
+msgstr ""
+
+#: mh/rmf.c:37
+msgid "specify the folder to delete"
+msgstr ""
+
+#: mh/rmf.c:39
+msgid "interactive mode: ask for confirmation before removing each folder"
+msgstr ""
+
+#: mh/rmf.c:42
+msgid "recursively delete all subfolders"
+msgstr ""
+
+#: mh/rmf.c:124
+#, c-format
+msgid "cannot remove %s: %s"
+msgstr ""
+
+#: mh/rmf.c:146 mh/rmf.c:204
+#, c-format
+msgid "Remove folder %s"
+msgstr ""
+
+#: mh/rmm.c:21
+msgid "GNU MH rmm"
+msgstr ""
+
+#: mh/scan.c:28
+msgid "GNU MH scan"
+msgstr ""
+
+#: mh/scan.c:35
+msgid "specify folder to scan"
+msgstr ""
+
+#: mh/scan.c:37
+msgid "clear screen after displaying the list"
+msgstr ""
+
+#: mh/scan.c:44
+msgid "display header"
+msgstr ""
+
+#: mh/scan.c:48
+msgid "list messages in reverse order"
+msgstr ""
+
+#: mh/scan.c:51
+msgid "[not yet implemented]"
+msgstr ""
+
+#: mh/scan.c:215
+#, c-format
+msgid "no messages in %s"
+msgstr ""
+
+#: mh/scan.c:237
+#, c-format
+msgid "Folder %s  %s\n"
+msgstr ""
+
+#: mh/send.c:25
+msgid "GNU MH send"
+msgstr ""
+
+#: mh/send.c:28
+msgid "FILE [FILE...]"
+msgstr ""
+
+#: mh/send.c:33 mh/whom.c:26
+msgid "specify additional alias file"
+msgstr ""
+
+#: mh/send.c:35 mh/whom.c:28
+msgid "use prepared draft"
+msgstr ""
+
+#: mh/send.c:39 mh/whom.c:32
+msgid "treat the arguments as a list of messages from the draftfolder"
+msgstr ""
+
+#: mh/send.c:43
+msgid "* use filter FILE to preprocess the body of the message"
+msgstr ""
+
+#: mh/send.c:45
+msgid "* undo the effect of the last --filter option"
+msgstr ""
+
+#: mh/send.c:47
+msgid "* reformat To: and Cc: addresses"
+msgstr ""
+
+#: mh/send.c:50
+msgid ""
+"* in case of failure forward the draft along with the failure notice to the "
+"sender"
+msgstr ""
+
+#: mh/send.c:53
+msgid "* use MIME encapsulation"
+msgstr ""
+
+#: mh/send.c:56
+msgid "add Message-ID: field"
+msgstr ""
+
+#: mh/send.c:59
+msgid "run in the backround"
+msgstr ""
+
+#: mh/send.c:62
+msgid "keep draft files"
+msgstr ""
+
+#: mh/send.c:64
+msgid "SECONDS"
+msgstr ""
+
+#: mh/send.c:65
+msgid ""
+"split the draft into several partial messages and send them with SECONDS "
+"interval"
+msgstr ""
+
+#: mh/send.c:67
+msgid "set the size of chunk for --split (in bytes)"
+msgstr ""
+
+#: mh/send.c:69
+msgid "print the transcript of interactions with the transport system"
+msgstr ""
+
+#: mh/send.c:72
+msgid "monitor the delivery of mail"
+msgstr ""
+
+#: mh/send.c:75
+msgid "* make header fields no longer than NUMBER columns"
+msgstr ""
+
+#: mh/send.c:302
+msgid "cannot create message list"
+msgstr ""
+
+#: mh/send.c:342
+#, c-format
+msgid "cannot get system host name: %s"
+msgstr ""
+
+#: mh/send.c:365
+#, c-format
+msgid "cannot set user mail domain: %s"
+msgstr ""
+
+#: mh/send.c:387
+#, c-format
+msgid "cannot get user email: %s"
+msgstr ""
+
+#: mh/send.c:399
+#, c-format
+msgid "cannot set user email (%s): %s"
+msgstr ""
+
+#: mh/send.c:424
+#, c-format
+msgid "Creating mailer %s"
+msgstr ""
+
+#: mh/send.c:428
+#, c-format
+msgid "cannot create mailer `%s'"
+msgstr ""
+
+#: mh/send.c:438
+#, c-format
+msgid "Opening mailer %s"
+msgstr ""
+
+#: mh/send.c:442
+#, c-format
+msgid "cannot open mailer `%s'"
+msgstr ""
+
+#: mh/send.c:573
+#, c-format
+msgid "Fixed fcc: %s"
+msgstr ""
+
+#: mh/send.c:615
+#, c-format
+msgid "Fixed bcc: %s"
+msgstr ""
+
+#: mh/send.c:638
+#, c-format
+msgid "Renaming %s to %s"
+msgstr ""
+
+#: mh/send.c:658
+#, c-format
+msgid "Getting message %s"
+msgstr ""
+
+#: mh/send.c:711
+#, c-format
+msgid "Sending message %s"
+msgstr ""
+
+#: mh/send.c:729
+msgid "Destroying the mailer"
+msgstr ""
+
+#: mh/send.c:793
+#, c-format
+msgid "cannot create message list: %s"
+msgstr ""
+
+#: mh/send.c:831
+#, c-format
+msgid "cannot switch to background: %s"
+msgstr ""
+
+#: mh/whatnow.c:22
+msgid "[FILE]"
+msgstr ""
+
+#: mh/whatnow.c:34
+msgid "set the prompt"
+msgstr ""
+
+#: mh/whom.c:19
+msgid "GNU MH whom"
+msgstr ""
+
+#: mh/whom.c:36
+msgid "check if addresses are deliverable"
+msgstr ""
+
+#: mimeview/mimetypes.y:553
+#, c-format
+msgid "%s: unknown function"
+msgstr ""
+
+#: mimeview/mimetypes.y:625
+#, c-format
+msgid "argument %lu has wrong type in call to `%s'"
+msgstr ""
+
+#: mimeview/mimeview.c:33
+msgid "GNU mimeview -- display files, using mailcap mechanism."
+msgstr ""
+
+#: mimeview/mimeview.c:35
+msgid "Default mime.types file is "
+msgstr ""
+
+#: mimeview/mimeview.c:36
+msgid ""
+"\n"
+"\n"
+"Debug flags are:\n"
+"  g - Mime.types parser traces\n"
+"  l - Mime.types lexical analyzer traces\n"
+"  0-9 - Set debugging level\n"
+msgstr ""
+
+#: mimeview/mimeview.c:44
+msgid "TYPE-LIST"
+msgstr ""
+
+#: mimeview/mimeview.c:45
+msgid ""
+"do not ask for confirmation before displaying files, or, if TYPE-LIST is "
+"given, do not ask for confirmation before displaying such files whose MIME "
+"type matches one of the patterns from TYPE-LIST"
+msgstr ""
+
+#: mimeview/mimeview.c:47
+msgid "disable interactive mode"
+msgstr ""
+
+#: mimeview/mimeview.c:52
+msgid "use this mime.types file"
+msgstr ""
+
+#: mimeview/mimeview.c:54
+msgid "do not do anything, just print what whould be done"
+msgstr ""
+
+#: mimeview/mimeview.c:56
+msgid "use metamail to display files"
+msgstr ""
+
+#: mimeview/mimeview.c:146
+msgid "FILE [FILE ...]"
+msgstr ""
+
+#: mimeview/mimeview.c:164 readmsg/readmsg.c:128
+msgid "Set debug verbosity level."
+msgstr ""
+
+#: mimeview/mimeview.c:165
+msgid "flags"
+msgstr ""
+
+#: mimeview/mimeview.c:167
+msgid "Use this mime.types file."
+msgstr ""
+
+#: mimeview/mimeview.c:170
+msgid "Use this program to display files."
+msgstr ""
+
+#: mimeview/mimeview.c:196
+#, c-format
+msgid "not a regular file or symbolic link: `%s'"
+msgstr ""
+
+#: mimeview/mimeview.c:281
+msgid "no files given"
+msgstr ""
+
+#: movemail/movemail.c:32
+msgid "GNU movemail -- move messages across mailboxes."
+msgstr ""
+
+#: movemail/movemail.c:33
+msgid "inbox-url destfile [POP-password]"
+msgstr ""
+
+#: movemail/movemail.c:44
+msgid "preserve the source mailbox"
+msgstr ""
+
+#: movemail/movemail.c:46
+msgid "reverse the sorting order"
+msgstr ""
+
+#: movemail/movemail.c:48
+msgid "output information used by Emacs rmail interface"
+msgstr ""
+
+#: movemail/movemail.c:50
+msgid "use UIDLs to avoid downloading the same message twice"
+msgstr ""
+
+#: movemail/movemail.c:52
+msgid "increase verbosity level"
+msgstr ""
+
+#: movemail/movemail.c:53
+msgid "MODELIST"
+msgstr ""
+
+#: movemail/movemail.c:54
+msgid "control mailbox ownership"
+msgstr ""
+
+#: movemail/movemail.c:56
+msgid "try to continue after errors"
+msgstr ""
+
+#: movemail/movemail.c:57
+msgid "KW[,KW...]"
+msgstr ""
+
+#: movemail/movemail.c:58
+msgid "what to do on errors"
+msgstr ""
+
+#: movemail/movemail.c:59
+msgid "FMT"
+msgstr ""
+
+#: movemail/movemail.c:60
+msgid "set program identifier for diagnostics (default: program name)"
+msgstr ""
+
+#: movemail/movemail.c:62
+msgid "process at most NUMBER messages"
+msgstr ""
+
+#: movemail/movemail.c:119
+msgid "ownership method table overflow"
+msgstr ""
+
+#: movemail/movemail.c:219
+#, c-format
+msgid "invalid ownership method: %s"
+msgstr ""
+
+#: movemail/movemail.c:234 movemail/movemail.c:264
+#, c-format
+msgid "ownership method %s requires value"
+msgstr ""
+
+#: movemail/movemail.c:247
+#, c-format
+msgid "expected gid number, but found %s"
+msgstr ""
+
+#: movemail/movemail.c:253
+#, c-format
+msgid "expected uid number, but found %s"
+msgstr ""
+
+#: movemail/movemail.c:290
+#, c-format
+msgid "cannot parse %s: %s"
+msgstr ""
+
+#: movemail/movemail.c:340
+#, c-format
+msgid "cannot split argument: %s"
+msgstr ""
+
+#: movemail/movemail.c:366
+msgid "Do not remove messages from the source mailbox."
+msgstr ""
+
+#: movemail/movemail.c:368
+msgid "Reverse message sorting order."
+msgstr ""
+
+#: movemail/movemail.c:370
+msgid "Output information used by Emacs rmail interface."
+msgstr ""
+
+#: movemail/movemail.c:372
+msgid "Use UIDLs to avoid downloading the same message twice."
+msgstr ""
+
+#: movemail/movemail.c:374
+msgid "Set verbosity level."
+msgstr ""
+
+#: movemail/movemail.c:376
+msgid "Set program identifier string (default: program name)"
+msgstr ""
+
+#: movemail/movemail.c:379
+msgid ""
+"Define a list of methods for setting mailbox ownership. Valid methods are:\n"
+" copy-id          get owner UID and GID from the source mailbox\n"
+" copy-name        get owner name from the source mailbox URL\n"
+" set-id=UID[:GID] set supplied UID and GID\n"
+" set-name=USER    make destination mailbox owned by USER"
+msgstr ""
+
+#: movemail/movemail.c:385
+msgid "methods: list"
+msgstr ""
+
+#: movemail/movemail.c:387
+msgid "Copy at most <count> messages."
+msgstr ""
+
+#: movemail/movemail.c:388
+msgid "count"
+msgstr ""
+
+#: movemail/movemail.c:390
+msgid "Continue after an error."
+msgstr ""
+
+#: movemail/movemail.c:392
+msgid ""
+"What to do after an error. Argument is a comma-separated list of:\n"
+" skip   -  skip to the next message\n"
+" delete -  delete this one and to the next message\n"
+" count  -  count this message as processed\n"
+"Each keyword can be prefixed with \"no\" to reverse its meaning\n"
+"Setting onerror=abort reverts to the default behavior."
+msgstr ""
+
+#: movemail/movemail.c:418
+#, c-format
+msgid "%s:mailbox `%s': %s: %s"
+msgstr ""
+
+#: movemail/movemail.c:424
+#, c-format
+msgid "mailbox `%s': %s: %s"
+msgstr ""
+
+#: movemail/movemail.c:437
+msgid "cannot retrieve locker"
+msgstr ""
+
+#: movemail/movemail.c:446
+msgid "cannot lock"
+msgstr ""
+
+#: movemail/movemail.c:470
+msgid "mu_mailbox_get_folder failed"
+msgstr ""
+
+#: movemail/movemail.c:473
+msgid "mu_folder_get_authority failed"
+msgstr ""
+
+#: movemail/movemail.c:476
+msgid "mu_authority_set_ticket failed"
+msgstr ""
+
+#: movemail/movemail.c:503
+msgid "cannot open"
+msgstr ""
+
+#: movemail/movemail.c:514 pop3d/bulletin.c:335
+#, c-format
+msgid "cannot append message %lu: %s"
+msgstr ""
+
+#: movemail/movemail.c:566
+msgid "hostname of the POP3 server is unknown"
+msgstr ""
+
+#: movemail/movemail.c:589
+msgid "cannot get scheme"
+msgstr ""
+
+#: movemail/movemail.c:599
+msgid "cannot get path"
+msgstr ""
+
+#: movemail/movemail.c:611
+msgid "ignoring copy-name: not a local mailbox"
+msgstr ""
+
+#: movemail/movemail.c:640
+msgid "cannot get mailbox owner name"
+msgstr ""
+
+#: movemail/movemail.c:684
+#, c-format
+msgid "no user with uid %lu found"
+msgstr ""
+
+#: movemail/movemail.c:714
+msgid "ignoring mailbox-ownership statement"
+msgstr ""
+
+#: movemail/movemail.c:725
+msgid "no suitable method for setting mailbox ownership"
+msgstr ""
+
+#: movemail/movemail.c:804
+#, c-format
+msgid "cannot obtain source mailbox URL: %s"
+msgstr ""
+
+#: movemail/movemail.c:809
+#, c-format
+msgid "cannot obtain destination mailbox URL: %s"
+msgstr ""
+
+#: movemail/movemail.c:867
+msgid "wrong number of arguments"
+msgstr ""
+
+#: movemail/movemail.c:904
+#, c-format
+msgid "cannot count messages: %s"
+msgstr ""
+
+#: movemail/movemail.c:911
+#, c-format
+msgid "number of messages in source mailbox: %lu"
+msgstr ""
+
+#: movemail/movemail.c:916
+#, c-format
+msgid "will process last %lu message"
+msgid_plural "will process last %lu messages"
+msgstr[0] ""
+msgstr[1] ""
+
+#: movemail/movemail.c:919
+#, c-format
+msgid "will process first %lu message"
+msgid_plural "will process first %lu messages"
+msgstr[0] ""
+msgstr[1] ""
+
+#: movemail/movemail.c:931 movemail/movemail.c:934
+msgid "cannot get UIDLs"
+msgstr ""
+
+#: movemail/movemail.c:954 movemail/movemail.c:989
+#, c-format
+msgid "cannot set iteration direction: %s"
+msgstr ""
+
+#: movemail/movemail.c:968 movemail/movemail.c:1011
+#, c-format
+msgid "cannot read message %lu: %s"
+msgstr ""
+
+#: movemail/movemail.c:982
+#, c-format
+msgid "cannot obtain mailbox iterator: %s"
+msgstr ""
+
+#: movemail/movemail.c:1003
+#, c-format
+msgid "cannot get iterator position: %s"
+msgstr ""
+
+#: movemail/movemail.c:1026
+#, c-format
+msgid "number of processed messages: %lu"
+msgstr ""
+
+#: movemail/movemail.c:1029
+#, c-format
+msgid "number of errors: %lu / %lu"
+msgstr ""
+
+#: movemail/movemail.c:1043
+#, c-format
+msgid "cannot close destination mailbox: %s"
+msgstr ""
+
+#: pop3d/apop.c:56
+msgid "unable to create APOP db"
+msgstr ""
+
+#: pop3d/apop.c:67 pop3d/apop.c:126
+#, c-format
+msgid "APOP file %s fails safety check: %s"
+msgstr ""
+
+#: pop3d/apop.c:76
+#, c-format
+msgid "unable to open APOP db: %s"
+msgstr ""
+
+#: pop3d/apop.c:96
+#, c-format
+msgid "cannot fetch APOP data: %s"
+msgstr ""
+
+#: pop3d/apop.c:136
+#, c-format
+msgid "unable to open APOP password file %s: %s"
+msgstr ""
+
+#: pop3d/apop.c:187
+#, c-format
+msgid "password for `%s' not found in the database"
+msgstr ""
+
+#: pop3d/apop.c:204
+#, c-format
+msgid "APOP failed for `%s'"
+msgstr ""
+
+#: pop3d/bulletin.c:46
+#, c-format
+msgid "cannot create bulletin mailbox `%s': %s"
+msgstr ""
+
+#: pop3d/bulletin.c:54
+#, c-format
+msgid "cannot open bulletin mailbox `%s': %s"
+msgstr ""
+
+#: pop3d/bulletin.c:133 pop3d/bulletin.c:225
+msgid "unable to create bulletin db"
+msgstr ""
+
+#: pop3d/bulletin.c:146 pop3d/bulletin.c:233
+#, c-format
+msgid "bulletin db %s fails safety check: %s"
+msgstr ""
+
+#: pop3d/bulletin.c:155
+#, c-format
+msgid "unable to open bulletin db for reading: %s"
+msgstr ""
+
+#: pop3d/bulletin.c:175
+#, c-format
+msgid "cannot fetch bulletin db data: %s"
+msgstr ""
+
+#: pop3d/bulletin.c:206
+#, c-format
+msgid "wrong bulletin database format for `%s'"
+msgstr ""
+
+#: pop3d/bulletin.c:242
+#, c-format
+msgid "unable to open bulletin db for writing: %s"
+msgstr ""
+
+#: pop3d/bulletin.c:259
+#, c-format
+msgid "cannot store datum in bulletin db: %s"
+msgstr ""
+
+#: pop3d/bulletin.c:303
+#, c-format
+msgid "cannot count bulletins: %s"
+msgstr ""
+
+#: pop3d/bulletin.c:316
+#, c-format
+msgid "user %s: delivering %lu pending bulletin"
+msgid_plural "user %s: delivering %lu pending bulletins"
+msgstr[0] ""
+msgstr[1] ""
+
+#: pop3d/bulletin.c:328
+#, c-format
+msgid "cannot read bulletin %lu: %s"
+msgstr ""
+
+#: pop3d/extra.c:88
+msgid "no input stream"
+msgstr ""
+
+#: pop3d/extra.c:93
+msgid "no socket to send to"
+msgstr ""
+
+#: pop3d/extra.c:102
+msgid "remote protocol error"
+msgstr ""
+
+#: pop3d/extra.c:113
+#, c-format
+msgid "mailbox was updated by other party: %s"
+msgstr ""
+
+#: pop3d/extra.c:157
+#, c-format
+msgid "failed to create TLS stream: %s"
+msgstr ""
+
+#: pop3d/extra.c:270
+#, c-format
+msgid "Write failed: %s"
+msgstr ""
+
+#: pop3d/extra.c:289
+#, c-format
+msgid "Read failed: %s"
+msgstr ""
+
+#: pop3d/extra.c:300
+msgid "Unexpected eof on input"
+msgstr ""
+
+#: pop3d/logindelay.c:30
+msgid "unable to create statistics db"
+msgstr ""
+
+#: pop3d/logindelay.c:38
+#, c-format
+msgid "statistics db fails safety check: %s"
+msgstr ""
+
+#: pop3d/logindelay.c:47
+#, c-format
+msgid "unable to open statistics db: %s"
+msgstr ""
+
+#: pop3d/logindelay.c:80
+#, c-format
+msgid "cannot fetch login delay data: %s"
+msgstr ""
+
+#: pop3d/logindelay.c:89
+#, c-format
+msgid "invalid entry for '%s': wrong timestamp size"
+msgstr ""
+
+#: pop3d/logindelay.c:104
+#, c-format
+msgid "malformed timestamp for '%s': %s"
+msgstr ""
+
+#: pop3d/logindelay.c:136
+#, c-format
+msgid "%s: cannot store datum %s/%s: %s"
+msgstr ""
+
+#: pop3d/pop3d.c:62
+msgid "GNU pop3d -- the POP3 daemon."
+msgstr ""
+
+#: pop3d/pop3d.c:202
+msgid "On startup, clear deletion marks from all the messages."
+msgstr ""
+
+#: pop3d/pop3d.c:204
+msgid "Automatically expire read messages after the given number of days."
+msgstr ""
+
+#: pop3d/pop3d.c:205
+msgid "days"
+msgstr ""
+
+#: pop3d/pop3d.c:207
+msgid "Delete expired messages upon closing the mailbox."
+msgstr ""
+
+#: pop3d/pop3d.c:209
+msgid "Output the number of lines in the message in its scan listing."
+msgstr ""
+
+#: pop3d/pop3d.c:211
+msgid "set APOP database file name or URL"
+msgstr ""
+
+#: pop3d/pop3d.c:213
+msgid "Name or UID of the APOP database owner"
+msgstr ""
+
+#: pop3d/pop3d.c:215
+msgid ""
+"Configure safety checks for APOP database files.  Argument is a list or "
+"sequence of check names optionally prefixed with '+' to enable or '-' to "
+"disable the corresponding check.  Valid check names are:\n"
+"\n"
+"  none          disable all checks\n"
+"  all           enable all checks\n"
+"  gwrfil        forbid group writable files\n"
+"  awrfil        forbid world writable files\n"
+"  grdfil        forbid group readable files\n"
+"  ardfil        forbid world writable files\n"
+"  linkwrdir     forbid symbolic links in group or world writable "
+"directories\n"
+"  gwrdir        forbid files in group writable directories\n"
+"  awrdir        forbid files in world writable directories\n"
+msgstr ""
+
+#: pop3d/pop3d.c:239
+msgid "Set the minimal allowed delay between two successive logins."
+msgstr ""
+
+#: pop3d/pop3d.c:241
+msgid "Set the name of login statistics file (for login-delay)."
+msgstr ""
+
+#: pop3d/pop3d.c:244
+msgid "Get bulletins from the specified mailbox."
+msgstr ""
+
+#: pop3d/pop3d.c:248
+msgid "Set the bulletin database file name."
+msgstr ""
+
+#: pop3d/pop3d.c:252
+msgid "Size of the output buffer."
+msgstr ""
+
+#: pop3d/pop3d.c:319
+msgid "incoming connection opened"
+msgstr ""
+
+#: pop3d/pop3d.c:324
+msgid "started in debugging mode"
+msgstr ""
+
+#: pop3d/popauth.c:56
+msgid "GNU popauth -- manage pop3 authentication database"
+msgstr ""
+
+#: pop3d/popauth.c:67
+msgid "add user"
+msgstr ""
+
+#: pop3d/popauth.c:68
+msgid "modify user's record (change password)"
+msgstr ""
+
+#: pop3d/popauth.c:69
+msgid "delete user's record"
+msgstr ""
+
+#: pop3d/popauth.c:70
+msgid "list the contents of DBM file"
+msgstr ""
+
+#: pop3d/popauth.c:71
+msgid "create the DBM from a plaintext file"
+msgstr ""
+
+#: pop3d/popauth.c:74
+msgid ""
+"Default action is:\n"
+"  For root: --list\n"
+"  For a user: --modify --user <username>\n"
+msgstr ""
+
+#: pop3d/popauth.c:79
+msgid "read input from FILE (default stdin)"
+msgstr ""
+
+#: pop3d/popauth.c:80
+msgid "direct output to file"
+msgstr ""
+
+#: pop3d/popauth.c:81
+msgid "specify user's password"
+msgstr ""
+
+#: pop3d/popauth.c:82
+msgid "USERNAME"
+msgstr ""
+
+#: pop3d/popauth.c:82
+msgid "specify user name"
+msgstr ""
+
+#: pop3d/popauth.c:83
+msgid "PERM"
+msgstr ""
+
+#: pop3d/popauth.c:83
+msgid "force given permissions on the database"
+msgstr ""
+
+#: pop3d/popauth.c:85
+msgid "backward compatibility mode"
+msgstr ""
+
+#: pop3d/popauth.c:114
+#, c-format
+msgid "invalid octal number: %s"
+msgstr ""
+
+#: pop3d/popauth.c:220
+msgid "You may not specify more than one `-aldp' option"
+msgstr ""
+
+#: pop3d/popauth.c:288
+#, c-format
+msgid "unable to create database %s: %s"
+msgstr ""
+
+#: pop3d/popauth.c:297
+#, c-format
+msgid "%s fails safety check: %s"
+msgstr ""
+
+#: pop3d/popauth.c:340
+msgid "Only the file owner can use --username"
+msgstr ""
+
+#: pop3d/popauth.c:346
+msgid "Operation not allowed"
+msgstr ""
+
+#: pop3d/popauth.c:390
+#, c-format
+msgid "cannot create file %s: %s"
+msgstr ""
+
+#: pop3d/popauth.c:415 pop3d/popauth.c:439 pop3d/popauth.c:709
+#, c-format
+msgid "database fetch error: %s"
+msgstr ""
+
+#: pop3d/popauth.c:480
+#, c-format
+msgid "cannot open standard input: %s"
+msgstr ""
+
+#: pop3d/popauth.c:504 pop3d/popauth.c:514
+#, c-format
+msgid "%s:%d: malformed line"
+msgstr ""
+
+#: pop3d/popauth.c:527
+#, c-format
+msgid "%s:%d: cannot store datum: %s"
+msgstr ""
+
+#: pop3d/popauth.c:584
+msgid "Password:"
+msgstr ""
+
+#. TRANSLATORS: Please try to format this string so that it has
+#. the same length as the translation of 'Password:' above
+#: pop3d/popauth.c:597
+msgid "Confirm :"
+msgstr ""
+
+#: pop3d/popauth.c:608
+msgid "Passwords differ. Please retry."
+msgstr ""
+
+#: pop3d/popauth.c:624
+msgid "missing username to add"
+msgstr ""
+
+#: pop3d/popauth.c:641
+#, c-format
+msgid "cannot store datum: %s"
+msgstr ""
+
+#: pop3d/popauth.c:658
+msgid "missing username to delete"
+msgstr ""
+
+#: pop3d/popauth.c:670
+#, c-format
+msgid "cannot remove record for %s: %s"
+msgstr ""
+
+#: pop3d/popauth.c:720
+msgid "Old Password:"
+msgstr ""
+
+#: pop3d/popauth.c:725
+msgid "Sorry"
+msgstr ""
+
+#: pop3d/popauth.c:737
+#, c-format
+msgid "cannot replace datum: %s"
+msgstr ""
+
+#: pop3d/popauth.c:752
+#, c-format
+msgid "Database formats: "
+msgstr ""
+
+#: pop3d/popauth.c:776
+#, c-format
+msgid "Default database location: %s\n"
+msgstr ""
+
+#: pop3d/quit.c:45
+#, c-format
+msgid "session ended for user: %s"
+msgstr ""
+
+#: pop3d/quit.c:48
+msgid "session ended for no user"
+msgstr ""
+
+#: pop3d/user.c:28
+#, c-format
+msgid "POP3 login: user `%s', source %s"
+msgstr ""
+
+#: pop3d/user.c:34
+#, c-format
+msgid "user `%s' tried to log in within the minimum allowed delay"
+msgstr ""
+
+#: pop3d/user.c:66
+#, c-format
+msgid "user `%s' logged in with mailbox `%s' (%s message)"
+msgid_plural "user `%s' logged in with mailbox `%s' (%s messages)"
+msgstr[0] ""
+msgstr[1] ""
+
+#: pop3d/user.c:105
+#, c-format
+msgid "APOP user %s tried to log in with USER"
+msgstr ""
+
+#: pop3d/user.c:124
+#, c-format
+msgid "user `%s': authentication failed"
+msgstr ""
+
+#: pop3d/user.c:131
+#, c-format
+msgid "possible probe of account `%s'"
+msgstr ""
+
+#: readmsg/readmsg.c:32
+msgid "GNU readmsg -- print messages."
+msgstr ""
+
+#: readmsg/readmsg.c:37
+msgid "display debugging information"
+msgstr ""
+
+#: readmsg/readmsg.c:38
+msgid "display entire header"
+msgstr ""
+
+#: readmsg/readmsg.c:39
+msgid "LIST"
+msgstr ""
+
+#: readmsg/readmsg.c:40
+msgid "list of header names separated by whitespace or commas"
+msgstr ""
+
+#: readmsg/readmsg.c:41
+msgid "folder to use"
+msgstr ""
+
+#: readmsg/readmsg.c:42
+msgid "exclude all headers"
+msgstr ""
+
+#: readmsg/readmsg.c:43
+msgid "output formfeeds between messages"
+msgstr ""
+
+#: readmsg/readmsg.c:45
+msgid "print all messages matching pattern, not only the first"
+msgstr ""
+
+#: readmsg/readmsg.c:130
+msgid "Display entire headers."
+msgstr ""
+
+#: readmsg/readmsg.c:132
+msgid ""
+"Display only headers from this list.  Argument is a list of header names "
+"separated by whitespace or commas."
+msgstr ""
+
+#: readmsg/readmsg.c:136
+msgid "Read messages from this folder."
+msgstr ""
+
+#: readmsg/readmsg.c:138
+msgid "Exclude all headers."
+msgstr ""
+
+#: readmsg/readmsg.c:140
+msgid "Output formfeed character between messages."
+msgstr ""
+
+#: readmsg/readmsg.c:142
+msgid "Print all messages matching pattern, not only the first."
+msgstr ""
+
+#: readmsg/readmsg.c:220
+#, c-format
+msgid "cannot get number of headers: %s"
+msgstr ""
+
+#: readmsg/readmsg.c:263
+#, c-format
+msgid "cannot get body stream: %s"
+msgstr ""
+
+#: readmsg/readmsg.c:337
+#, c-format
+msgid "cannot parse weedlist: %s"
+msgstr ""
+
+#: sieve/sieve.c:49
+msgid "GNU sieve -- a mail filtering tool."
+msgstr ""
+
+#: sieve/sieve.c:51
+msgid ""
+"Debug flags:\n"
+"  g - main parser traces\n"
+"  T - mailutils traces (same as --debug-level=sieve.trace0-trace1)\n"
+"  P - network protocols (same as --debug-level=sieve.=prot)\n"
+"  t - sieve trace (MU_SIEVE_DEBUG_TRACE)\n"
+"  i - sieve instructions trace (MU_SIEVE_DEBUG_INSTR)\n"
+msgstr ""
+
+#: sieve/sieve.c:66
+msgid "do not execute any actions, just print what would be done"
+msgstr ""
+
+#: sieve/sieve.c:69
+msgid "keep on going if execution fails on a message"
+msgstr ""
+
+#: sieve/sieve.c:72
+msgid "compile script and exit"
+msgstr ""
+
+#: sieve/sieve.c:75
+msgid "compile script, dump disassembled sieve code to terminal and exit"
+msgstr ""
+
+#: sieve/sieve.c:77
+msgid "MBOX"
+msgstr ""
+
+#: sieve/sieve.c:78
+msgid "mailbox to sieve (defaults to user's mail spool)"
+msgstr ""
+
+#: sieve/sieve.c:80
+msgid "TICKET"
+msgstr ""
+
+#: sieve/sieve.c:81
+msgid "ticket file for user authentication"
+msgstr ""
+
+#: sieve/sieve.c:84
+msgid "debug flags (defaults to \""
+msgstr ""
+
+#: sieve/sieve.c:87
+msgid "log all actions"
+msgstr ""
+
+#: sieve/sieve.c:90
+msgid "print source location along with action logs (default)"
+msgstr ""
+
+#: sieve/sieve.c:93
+msgid "override user email address"
+msgstr ""
+
+#: sieve/sieve.c:95
+msgid "treat SCRIPT as Sieve program text"
+msgstr ""
+
+#: sieve/sieve.c:98
+msgid "do not prefix diagnostic messages with the program name"
+msgstr ""
+
+#: sieve/sieve.c:232
+#, c-format
+msgid "Only one SCRIPT can be specified"
+msgstr ""
+
+#: sieve/sieve.c:255
+msgid "SCRIPT"
+msgstr ""
+
+#: sieve/sieve.c:278
+#, c-format
+msgid "invalid email: %s"
+msgstr ""
+
+#: sieve/sieve.c:284
+msgid "Do not abort if execution fails on a message."
+msgstr ""
+
+#: sieve/sieve.c:286
+msgid "Mailbox to sieve (defaults to user's mail spool)."
+msgstr ""
+
+#: sieve/sieve.c:289
+msgid "Ticket file for user authentication."
+msgstr ""
+
+#: sieve/sieve.c:290
+msgid "ticket"
+msgstr ""
+
+#: sieve/sieve.c:292
+msgid ""
+"Debug flags.  Argument consists of one or more of the following flags:\n"
+"   g - main parser traces\n"
+"   T - mailutils traces (sieve.trace9)\n"
+"   P - network protocols (sieve.prot)\n"
+"   t - sieve trace (MU_SIEVE_DEBUG_TRACE)\n"
+"   i - sieve instructions trace (MU_SIEVE_DEBUG_INSTR)."
+msgstr ""
+
+#: sieve/sieve.c:300
+msgid "Log all executed actions."
+msgstr ""
+
+#: sieve/sieve.c:302
+msgid "Print source locations along with action logs (default)."
+msgstr ""
+
+#: sieve/sieve.c:304
+msgid "Set user email address."
+msgstr ""
+
+#: sieve/sieve.c:331
+#, c-format
+msgid "%s on msg uid %lu"
+msgstr ""
+
+#: sieve/sieve.c:353
+#, c-format
+msgid "cannot create stream: %s"
+msgstr ""
+
+#: sieve/sieve.c:360
+#, c-format
+msgid "cannot create message from stream: %s"
+msgstr ""
+
+#: sieve/sieve.c:409
+#, c-format
+msgid "cannot open default mailbox: %s"
+msgstr ""
+
+#: sieve/sieve.c:430
+#, c-format
+msgid "expunge on mailbox `%s' failed: %s"
+msgstr ""
+
+#: sieve/sieve.c:433
+#, c-format
+msgid "expunge on default mailbox failed: %s"
+msgstr ""
+
+#: sieve/sieve.c:472
+msgid "script must be specified"
+msgstr ""
+
+#: mu/acl.c:31
+msgid "mu acl - test access control lists."
+msgstr ""
+
+#: mu/acl.c:32
+msgid "test access control lists"
+msgstr ""
+
+#: mu/acl.c:33
+msgid "ADDRESS [ADDRESS...]"
+msgstr ""
+
+#: mu/acl.c:36
+msgid "read ACLs from FILE"
+msgstr ""
+
+#: mu/acl.c:37
+msgid "PATH"
+msgstr ""
+
+#: mu/acl.c:38
+msgid "path to the ACL in the configuration tree"
+msgstr ""
+
+#: mu/acl.c:117
+#, c-format
+msgid "cannot find node: %s"
+msgstr ""
+
+#: mu/acl.c:128
+msgid "No ACL found in config"
+msgstr ""
+
+#: mu/dispatch.c:61
+msgid "Commands are:"
+msgstr ""
+
+#: mu/dispatch.c:66
+msgid "Try `mu COMMAND --help' to get help on a particular COMMAND."
+msgstr ""
+
+#: mu/filter.c:26
+msgid "mu filter - apply a chain of filters to the input"
+msgstr ""
+
+#: mu/filter.c:27
+msgid "apply a chain of filters to the input"
+msgstr ""
+
+#: mu/filter.c:28
+msgid "[~]NAME [ARGS] [+ [~]NAME [ARGS]...]"
+msgstr ""
+
+#: mu/filter.c:31 mu/flt2047.c:31
+msgid "encode the input (default)"
+msgstr ""
+
+#: mu/filter.c:32 mu/flt2047.c:32
+msgid "decode the input"
+msgstr ""
+
+#: mu/filter.c:33 mu/flt2047.c:33
+msgid "print additional newline"
+msgstr ""
+
+#: mu/filter.c:34
+msgid "list supported filters"
+msgstr ""
+
+#: mu/filter.c:129
+msgid "excess arguments"
+msgstr ""
+
+#: mu/filter.c:137
+msgid "what filter do you want?"
+msgstr ""
+
+#: mu/flt2047.c:26
+msgid "mu 2047 - decode/encode message headers."
+msgstr ""
+
+#: mu/flt2047.c:27
+msgid "decode/encode email message headers"
+msgstr ""
+
+#: mu/flt2047.c:28
+msgid "[text]"
+msgstr ""
+
+#: mu/flt2047.c:35
+msgid "set charset (default: iso-8859-1)"
+msgstr ""
+
+#: mu/flt2047.c:37
+msgid "set encoding (default: quoted-printable)"
+msgstr ""
+
+#: mu/help.c:28
+msgid "mu help - display a terse help summary"
+msgstr ""
+
+#: mu/help.c:29
+msgid "display a terse help summary"
+msgstr ""
+
+#: mu/help.c:30 mu/shell.c:79 mu/shell.c:82
+msgid "[COMMAND]"
+msgstr ""
+
+#: mu/help.c:55 mu/mu.c:131
+#, c-format
+msgid "don't know what %s is"
+msgstr ""
+
+#: mu/info.c:26
+msgid ""
+"mu info - print a list of configuration options used to build mailutils; "
+"optional arguments are interpreted as a list of configuration options to "
+"check for."
+msgstr ""
+
+#: mu/info.c:29
+msgid "show Mailutils configuration"
+msgstr ""
+
+#: mu/info.c:30
+msgid "[capa...]"
+msgstr ""
+
+#: mu/info.c:34 mu/query.c:52 mu/wicket.c:31
+msgid "increase output verbosity"
+msgstr ""
+
+#: mu/mu.c:27
+msgid "COMMAND [CMDOPTS]"
+msgstr ""
+
+#: mu/mu.c:28
+msgid "mu -- GNU Mailutils multi-purpose tool."
+msgstr ""
+
+#: mu/mu.c:124
+msgid "what do you want me to do?"
+msgstr ""
+
+#: mu/pop.c:31
+msgid "mu pop - POP3 client shell."
+msgstr ""
+
+#: mu/pop.c:32
+msgid "POP3 client shell"
+msgstr ""
+
+#: mu/pop.c:187
+msgid "apop: password required"
+msgstr ""
+
+#: mu/pop.c:358
+msgid "pass: password required"
+msgstr ""
+
+#: mu/pop.c:598
+msgid "USER [PASS]"
+msgstr ""
+
+#: mu/pop.c:599
+msgid "authenticate with APOP"
+msgstr ""
+
+#. TRANSLATORS: -reread is a keyword; do not translate.
+#: mu/pop.c:602
+msgid "[-reread] [NAME...]"
+msgstr ""
+
+#: mu/pop.c:603
+msgid "list server capabilities"
+msgstr ""
+
+#: mu/pop.c:607
+msgid "close connection"
+msgstr ""
+
+#: mu/pop.c:610
+msgid "mark message for deletion"
+msgstr ""
+
+#: mu/pop.c:612 mu/pop.c:644
+msgid "[NUMBER]"
+msgstr ""
+
+#: mu/pop.c:613
+msgid "list messages"
+msgstr ""
+
+#: mu/pop.c:616
+msgid "send a \"no operation\""
+msgstr ""
+
+#: mu/pop.c:618
+msgid "[PASSWORD]"
+msgstr ""
+
+#: mu/pop.c:619
+msgid "send password"
+msgstr ""
+
+#. TRANSLATORS: --tls is a keyword.
+#: mu/pop.c:622
+msgid "[-tls] HOSTNAME [PORT]"
+msgstr ""
+
+#: mu/pop.c:623
+msgid "open connection"
+msgstr ""
+
+#: mu/pop.c:626
+msgid "quit pop3 session"
+msgstr ""
+
+#: mu/pop.c:629
+msgid "retrieve a message"
+msgstr ""
+
+#: mu/pop.c:632
+msgid "remove deletion marks"
+msgstr ""
+
+#: mu/pop.c:635
+msgid "get the mailbox size and number of messages in it"
+msgstr ""
+
+#: mu/pop.c:638
+msgid "start TLS negotiation"
+msgstr ""
+
+#: mu/pop.c:641
+msgid "display message headers and first NUMBER (default 5) lines of its body"
+msgstr ""
+
+#: mu/pop.c:645
+msgid "show unique message identifiers"
+msgstr ""
+
+#: mu/pop.c:648
+msgid "send login"
+msgstr ""
+
+#: mu/pop.c:651
+msgid "control the protocol tracing"
+msgstr ""
+
+#: mu/query.c:27
+msgid "mu query - query configuration values."
+msgstr ""
+
+#: mu/query.c:28
+msgid "query configuration values"
+msgstr ""
+
+#: mu/query.c:29
+msgid "path [path...]"
+msgstr ""
+
+#: mu/query.c:41
+msgid "query configuration values from FILE (default mailutils.rc)"
+msgstr ""
+
+#: mu/query.c:44
+msgid "display parameter values only"
+msgstr ""
+
+#: mu/query.c:47
+msgid "set program name for configuration lookup"
+msgstr ""
+
+#: mu/query.c:50
+msgid "display parameters as paths"
+msgstr ""
+
+#: mu/query.c:112
+msgid "query what?"
+msgstr ""
+
+#: mu/shell.c:58
+msgid "Interrupt\n"
+msgstr ""
+
+#: mu/shell.c:76
+msgid "set command prompt"
+msgstr ""
+
+#: mu/shell.c:77
+msgid "exit program"
+msgstr ""
+
+#: mu/shell.c:80
+msgid "display this text"
+msgstr ""
+
+#: mu/shell.c:83
+msgid "synonym for `help'"
+msgstr ""
+
+#: mu/shell.c:87
+msgid "show command history"
+msgstr ""
+
+#: mu/shell.c:274
+#, c-format
+msgid "cannot start pager: %s"
+msgstr ""
+
+#: mu/cflags.c:25
+msgid "mu cflags - show compiler options"
+msgstr ""
+
+#: mu/cflags.c:26
+msgid "show compiler options"
+msgstr ""
+
+#: mu/ldflags.c:25
+msgid "mu ldflags - list libraries required to link"
+msgstr ""
+
+#: mu/ldflags.c:26
+msgid "list libraries required to link"
+msgstr ""
+
+#: mu/ldflags.c:27
+msgid "KEYWORD [KEYWORD...]"
+msgstr ""
+
+#: mu/wicket.c:25
+msgid "mu wicket - find matching URL in wicket"
+msgstr ""
+
+#: mu/wicket.c:26
+msgid "scan wickets for matching URLs"
+msgstr ""
+
+#: mu/wicket.c:30
+msgid "use FILE instead of ~/.mu-tickets"
+msgstr ""
+
+#: mu/wicket.c:32
+msgid "suppress any output"
+msgstr ""
+
+#: mu/wicket.c:115
+msgid "not found"
+msgstr ""
+
+#: mu/wicket.c:155
+#, c-format
+msgid "cannot open input file %s: %s"
+msgstr ""
+
+#: mu/logger.c:24
+msgid "mu logger - log data using Mailutils log facility"
+msgstr ""
+
+#: mu/logger.c:25
+msgid "log data using Mailutils log facility"
+msgstr ""
+
+#: mu/logger.c:26
+msgid "[TEXT]"
+msgstr ""
+
+#: mu/logger.c:33
+msgid "FACILITY[.LEVEL]"
+msgstr ""
+
+#: mu/logger.c:34
+msgid "log at the specified syslog priority (implies --syslog)"
+msgstr ""
+
+#: mu/logger.c:35
+msgid "log via syslog"
+msgstr ""
+
+#: mu/logger.c:36
+msgid "log to the standard error"
+msgstr ""
+
+#: mu/logger.c:37
+msgid "SEV"
+msgstr ""
+
+#: mu/logger.c:38
+msgid "log at Mailutils severity level SEV"
+msgstr ""
+
+#: mu/logger.c:39
+msgid "FILE:LINE[:COL]"
+msgstr ""
+
+#: mu/logger.c:40
+msgid "set locus for logging"
+msgstr ""
+
+#: mu/logger.c:41
+msgid "syslog tag"
+msgstr ""
+
+#: mu/logger.c:42
+msgid "set syslog tag"
+msgstr ""
+
+#: mu/logger.c:81
+#, c-format
+msgid "unknown severity: %s"
+msgstr ""
+
+#: mu/logger.c:95
+#, c-format
+msgid "unknown facility: %s"
+msgstr ""
+
+#: mu/logger.c:98
+#, c-format
+msgid "unknown priority: %s"
+msgstr ""
+
+#: mu/logger.c:117
+#, c-format
+msgid "bad column number: %s"
+msgstr ""
+
+#: mu/logger.c:120
+#, c-format
+msgid "bad line number: %s"
+msgstr ""
+
+#: mu/logger.c:155
+msgid "both input file and message text given"
+msgstr ""
+
+#: mu/logger.c:203
+#, c-format
+msgid "cannot open input stream %s: %s"
+msgstr ""

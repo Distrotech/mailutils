@@ -1,0 +1,481 @@
+State 21 conflicts: 1 shift/reduce
+
+
+Grammar
+
+    0 $accept: input $end
+
+    1 input: stmtlist
+
+    2 stmtlist: stmt
+    3         | stmtlist stmt
+
+    4 stmt: simple
+    5     | block
+
+    6 simple: ident vallist ';'
+
+    7 block: ident tag '{' '}' opt_sc
+    8      | ident tag '{' stmtlist '}' opt_sc
+
+    9 ident: MU_TOK_IDENT
+
+   10 tag: /* empty */
+   11    | vallist
+
+   12 vallist: vlist
+
+   13 vlist: value
+   14      | vlist value
+
+   15 value: string
+   16      | list
+   17      | MU_TOK_MSTRING
+
+   18 string: MU_TOK_STRING
+   19       | MU_TOK_IDENT
+   20       | slist
+
+   21 slist: slist0
+
+   22 slist0: MU_TOK_QSTRING
+   23       | slist0 MU_TOK_QSTRING
+
+   24 list: '(' values ')'
+   25     | '(' values ',' ')'
+
+   26 values: value
+   27       | values ',' value
+
+   28 opt_sc: /* empty */
+   29       | ';'
+
+
+Terminals, with rules where they appear
+
+$end (0) 0
+'(' (40) 24 25
+')' (41) 24 25
+',' (44) 25 27
+';' (59) 6 29
+'{' (123) 7 8
+'}' (125) 7 8
+error (256)
+MU_TOK_IDENT (258) 9 19
+MU_TOK_STRING (259) 18
+MU_TOK_QSTRING (260) 22 23
+MU_TOK_MSTRING (261) 17
+
+
+Nonterminals, with rules where they appear
+
+$accept (13)
+    on left: 0
+input (14)
+    on left: 1, on right: 0
+stmtlist (15)
+    on left: 2 3, on right: 1 3 8
+stmt (16)
+    on left: 4 5, on right: 2 3
+simple (17)
+    on left: 6, on right: 4
+block (18)
+    on left: 7 8, on right: 5
+ident (19)
+    on left: 9, on right: 6 7 8
+tag (20)
+    on left: 10 11, on right: 7 8
+vallist (21)
+    on left: 12, on right: 6 11
+vlist (22)
+    on left: 13 14, on right: 12 14
+value (23)
+    on left: 15 16 17, on right: 13 14 26 27
+string (24)
+    on left: 18 19 20, on right: 15
+slist (25)
+    on left: 21, on right: 20
+slist0 (26)
+    on left: 22 23, on right: 21 23
+list (27)
+    on left: 24 25, on right: 16
+values (28)
+    on left: 26 27, on right: 24 25 27
+opt_sc (29)
+    on left: 28 29, on right: 7 8
+
+
+State 0
+
+    0 $accept: . input $end
+
+    MU_TOK_IDENT  shift, and go to state 1
+
+    input     go to state 2
+    stmtlist  go to state 3
+    stmt      go to state 4
+    simple    go to state 5
+    block     go to state 6
+    ident     go to state 7
+
+
+State 1
+
+    9 ident: MU_TOK_IDENT .
+
+    $default  reduce using rule 9 (ident)
+
+
+State 2
+
+    0 $accept: input . $end
+
+    $end  shift, and go to state 8
+
+
+State 3
+
+    1 input: stmtlist .
+    3 stmtlist: stmtlist . stmt
+
+    MU_TOK_IDENT  shift, and go to state 1
+
+    $default  reduce using rule 1 (input)
+
+    stmt    go to state 9
+    simple  go to state 5
+    block   go to state 6
+    ident   go to state 7
+
+
+State 4
+
+    2 stmtlist: stmt .
+
+    $default  reduce using rule 2 (stmtlist)
+
+
+State 5
+
+    4 stmt: simple .
+
+    $default  reduce using rule 4 (stmt)
+
+
+State 6
+
+    5 stmt: block .
+
+    $default  reduce using rule 5 (stmt)
+
+
+State 7
+
+    6 simple: ident . vallist ';'
+    7 block: ident . tag '{' '}' opt_sc
+    8      | ident . tag '{' stmtlist '}' opt_sc
+
+    MU_TOK_IDENT    shift, and go to state 10
+    MU_TOK_STRING   shift, and go to state 11
+    MU_TOK_QSTRING  shift, and go to state 12
+    MU_TOK_MSTRING  shift, and go to state 13
+    '('             shift, and go to state 14
+
+    $default  reduce using rule 10 (tag)
+
+    tag      go to state 15
+    vallist  go to state 16
+    vlist    go to state 17
+    value    go to state 18
+    string   go to state 19
+    slist    go to state 20
+    slist0   go to state 21
+    list     go to state 22
+
+
+State 8
+
+    0 $accept: input $end .
+
+    $default  accept
+
+
+State 9
+
+    3 stmtlist: stmtlist stmt .
+
+    $default  reduce using rule 3 (stmtlist)
+
+
+State 10
+
+   19 string: MU_TOK_IDENT .
+
+    $default  reduce using rule 19 (string)
+
+
+State 11
+
+   18 string: MU_TOK_STRING .
+
+    $default  reduce using rule 18 (string)
+
+
+State 12
+
+   22 slist0: MU_TOK_QSTRING .
+
+    $default  reduce using rule 22 (slist0)
+
+
+State 13
+
+   17 value: MU_TOK_MSTRING .
+
+    $default  reduce using rule 17 (value)
+
+
+State 14
+
+   24 list: '(' . values ')'
+   25     | '(' . values ',' ')'
+
+    MU_TOK_IDENT    shift, and go to state 10
+    MU_TOK_STRING   shift, and go to state 11
+    MU_TOK_QSTRING  shift, and go to state 12
+    MU_TOK_MSTRING  shift, and go to state 13
+    '('             shift, and go to state 14
+
+    value   go to state 23
+    string  go to state 19
+    slist   go to state 20
+    slist0  go to state 21
+    list    go to state 22
+    values  go to state 24
+
+
+State 15
+
+    7 block: ident tag . '{' '}' opt_sc
+    8      | ident tag . '{' stmtlist '}' opt_sc
+
+    '{'  shift, and go to state 25
+
+
+State 16
+
+    6 simple: ident vallist . ';'
+   11 tag: vallist .
+
+    ';'  shift, and go to state 26
+
+    $default  reduce using rule 11 (tag)
+
+
+State 17
+
+   12 vallist: vlist .
+   14 vlist: vlist . value
+
+    MU_TOK_IDENT    shift, and go to state 10
+    MU_TOK_STRING   shift, and go to state 11
+    MU_TOK_QSTRING  shift, and go to state 12
+    MU_TOK_MSTRING  shift, and go to state 13
+    '('             shift, and go to state 14
+
+    $default  reduce using rule 12 (vallist)
+
+    value   go to state 27
+    string  go to state 19
+    slist   go to state 20
+    slist0  go to state 21
+    list    go to state 22
+
+
+State 18
+
+   13 vlist: value .
+
+    $default  reduce using rule 13 (vlist)
+
+
+State 19
+
+   15 value: string .
+
+    $default  reduce using rule 15 (value)
+
+
+State 20
+
+   20 string: slist .
+
+    $default  reduce using rule 20 (string)
+
+
+State 21
+
+   21 slist: slist0 .
+   23 slist0: slist0 . MU_TOK_QSTRING
+
+    MU_TOK_QSTRING  shift, and go to state 28
+
+    MU_TOK_QSTRING  [reduce using rule 21 (slist)]
+    $default        reduce using rule 21 (slist)
+
+
+State 22
+
+   16 value: list .
+
+    $default  reduce using rule 16 (value)
+
+
+State 23
+
+   26 values: value .
+
+    $default  reduce using rule 26 (values)
+
+
+State 24
+
+   24 list: '(' values . ')'
+   25     | '(' values . ',' ')'
+   27 values: values . ',' value
+
+    ')'  shift, and go to state 29
+    ','  shift, and go to state 30
+
+
+State 25
+
+    7 block: ident tag '{' . '}' opt_sc
+    8      | ident tag '{' . stmtlist '}' opt_sc
+
+    MU_TOK_IDENT  shift, and go to state 1
+    '}'           shift, and go to state 31
+
+    stmtlist  go to state 32
+    stmt      go to state 4
+    simple    go to state 5
+    block     go to state 6
+    ident     go to state 7
+
+
+State 26
+
+    6 simple: ident vallist ';' .
+
+    $default  reduce using rule 6 (simple)
+
+
+State 27
+
+   14 vlist: vlist value .
+
+    $default  reduce using rule 14 (vlist)
+
+
+State 28
+
+   23 slist0: slist0 MU_TOK_QSTRING .
+
+    $default  reduce using rule 23 (slist0)
+
+
+State 29
+
+   24 list: '(' values ')' .
+
+    $default  reduce using rule 24 (list)
+
+
+State 30
+
+   25 list: '(' values ',' . ')'
+   27 values: values ',' . value
+
+    MU_TOK_IDENT    shift, and go to state 10
+    MU_TOK_STRING   shift, and go to state 11
+    MU_TOK_QSTRING  shift, and go to state 12
+    MU_TOK_MSTRING  shift, and go to state 13
+    '('             shift, and go to state 14
+    ')'             shift, and go to state 33
+
+    value   go to state 34
+    string  go to state 19
+    slist   go to state 20
+    slist0  go to state 21
+    list    go to state 22
+
+
+State 31
+
+    7 block: ident tag '{' '}' . opt_sc
+
+    ';'  shift, and go to state 35
+
+    $default  reduce using rule 28 (opt_sc)
+
+    opt_sc  go to state 36
+
+
+State 32
+
+    3 stmtlist: stmtlist . stmt
+    8 block: ident tag '{' stmtlist . '}' opt_sc
+
+    MU_TOK_IDENT  shift, and go to state 1
+    '}'           shift, and go to state 37
+
+    stmt    go to state 9
+    simple  go to state 5
+    block   go to state 6
+    ident   go to state 7
+
+
+State 33
+
+   25 list: '(' values ',' ')' .
+
+    $default  reduce using rule 25 (list)
+
+
+State 34
+
+   27 values: values ',' value .
+
+    $default  reduce using rule 27 (values)
+
+
+State 35
+
+   29 opt_sc: ';' .
+
+    $default  reduce using rule 29 (opt_sc)
+
+
+State 36
+
+    7 block: ident tag '{' '}' opt_sc .
+
+    $default  reduce using rule 7 (block)
+
+
+State 37
+
+    8 block: ident tag '{' stmtlist '}' . opt_sc
+
+    ';'  shift, and go to state 35
+
+    $default  reduce using rule 28 (opt_sc)
+
+    opt_sc  go to state 38
+
+
+State 38
+
+    8 block: ident tag '{' stmtlist '}' opt_sc .
+
+    $default  reduce using rule 8 (block)

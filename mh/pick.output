@@ -1,0 +1,386 @@
+Grammar
+
+    0 $accept: input $end
+
+    1 input: /* empty */
+    2      | exprlist
+
+    3 exprlist: expr
+    4         | exprlist expr
+
+    5 cflags: /* empty */
+    6       | T_CFLAGS
+
+    7 regex: cflags T_STRING
+
+    8 expr: lbrace exprlist rbrace
+    9     | cflags T_COMP regex
+   10     | regex
+   11     | T_DATEFIELD
+   12     | T_BEFORE T_STRING
+   13     | T_AFTER T_STRING
+   14     | expr T_AND expr
+   15     | expr T_OR expr
+   16     | T_NOT expr
+
+   17 lbrace: T_LBRACE
+
+   18 rbrace: T_RBRACE
+
+
+Terminals, with rules where they appear
+
+$end (0) 0
+error (256)
+T_COMP (258) 9
+T_DATEFIELD (259) 11
+T_STRING (260) 7 12 13
+T_CFLAGS (261) 6
+T_LBRACE (262) 17
+T_RBRACE (263) 18
+T_BEFORE (264) 12
+T_AFTER (265) 13
+T_OR (266) 15
+T_AND (267) 14
+T_NOT (268) 16
+
+
+Nonterminals, with rules where they appear
+
+$accept (14)
+    on left: 0
+input (15)
+    on left: 1 2, on right: 0
+exprlist (16)
+    on left: 3 4, on right: 2 4 8
+cflags (17)
+    on left: 5 6, on right: 7 9
+regex (18)
+    on left: 7, on right: 9 10
+expr (19)
+    on left: 8 9 10 11 12 13 14 15 16, on right: 3 4 14 15 16
+lbrace (20)
+    on left: 17, on right: 8
+rbrace (21)
+    on left: 18, on right: 8
+
+
+State 0
+
+    0 $accept: . input $end
+
+    T_DATEFIELD  shift, and go to state 1
+    T_CFLAGS     shift, and go to state 2
+    T_LBRACE     shift, and go to state 3
+    T_BEFORE     shift, and go to state 4
+    T_AFTER      shift, and go to state 5
+    T_NOT        shift, and go to state 6
+
+    $end      reduce using rule 1 (input)
+    $default  reduce using rule 5 (cflags)
+
+    input     go to state 7
+    exprlist  go to state 8
+    cflags    go to state 9
+    regex     go to state 10
+    expr      go to state 11
+    lbrace    go to state 12
+
+
+State 1
+
+   11 expr: T_DATEFIELD .
+
+    $default  reduce using rule 11 (expr)
+
+
+State 2
+
+    6 cflags: T_CFLAGS .
+
+    $default  reduce using rule 6 (cflags)
+
+
+State 3
+
+   17 lbrace: T_LBRACE .
+
+    $default  reduce using rule 17 (lbrace)
+
+
+State 4
+
+   12 expr: T_BEFORE . T_STRING
+
+    T_STRING  shift, and go to state 13
+
+
+State 5
+
+   13 expr: T_AFTER . T_STRING
+
+    T_STRING  shift, and go to state 14
+
+
+State 6
+
+   16 expr: T_NOT . expr
+
+    T_DATEFIELD  shift, and go to state 1
+    T_CFLAGS     shift, and go to state 2
+    T_LBRACE     shift, and go to state 3
+    T_BEFORE     shift, and go to state 4
+    T_AFTER      shift, and go to state 5
+    T_NOT        shift, and go to state 6
+
+    $default  reduce using rule 5 (cflags)
+
+    cflags  go to state 9
+    regex   go to state 10
+    expr    go to state 15
+    lbrace  go to state 12
+
+
+State 7
+
+    0 $accept: input . $end
+
+    $end  shift, and go to state 16
+
+
+State 8
+
+    2 input: exprlist .
+    4 exprlist: exprlist . expr
+
+    T_DATEFIELD  shift, and go to state 1
+    T_CFLAGS     shift, and go to state 2
+    T_LBRACE     shift, and go to state 3
+    T_BEFORE     shift, and go to state 4
+    T_AFTER      shift, and go to state 5
+    T_NOT        shift, and go to state 6
+
+    $end      reduce using rule 2 (input)
+    $default  reduce using rule 5 (cflags)
+
+    cflags  go to state 9
+    regex   go to state 10
+    expr    go to state 17
+    lbrace  go to state 12
+
+
+State 9
+
+    7 regex: cflags . T_STRING
+    9 expr: cflags . T_COMP regex
+
+    T_COMP    shift, and go to state 18
+    T_STRING  shift, and go to state 19
+
+
+State 10
+
+   10 expr: regex .
+
+    $default  reduce using rule 10 (expr)
+
+
+State 11
+
+    3 exprlist: expr .
+   14 expr: expr . T_AND expr
+   15     | expr . T_OR expr
+
+    T_OR   shift, and go to state 20
+    T_AND  shift, and go to state 21
+
+    $default  reduce using rule 3 (exprlist)
+
+
+State 12
+
+    8 expr: lbrace . exprlist rbrace
+
+    T_DATEFIELD  shift, and go to state 1
+    T_CFLAGS     shift, and go to state 2
+    T_LBRACE     shift, and go to state 3
+    T_BEFORE     shift, and go to state 4
+    T_AFTER      shift, and go to state 5
+    T_NOT        shift, and go to state 6
+
+    $default  reduce using rule 5 (cflags)
+
+    exprlist  go to state 22
+    cflags    go to state 9
+    regex     go to state 10
+    expr      go to state 11
+    lbrace    go to state 12
+
+
+State 13
+
+   12 expr: T_BEFORE T_STRING .
+
+    $default  reduce using rule 12 (expr)
+
+
+State 14
+
+   13 expr: T_AFTER T_STRING .
+
+    $default  reduce using rule 13 (expr)
+
+
+State 15
+
+   14 expr: expr . T_AND expr
+   15     | expr . T_OR expr
+   16     | T_NOT expr .
+
+    $default  reduce using rule 16 (expr)
+
+
+State 16
+
+    0 $accept: input $end .
+
+    $default  accept
+
+
+State 17
+
+    4 exprlist: exprlist expr .
+   14 expr: expr . T_AND expr
+   15     | expr . T_OR expr
+
+    T_OR   shift, and go to state 20
+    T_AND  shift, and go to state 21
+
+    $default  reduce using rule 4 (exprlist)
+
+
+State 18
+
+    9 expr: cflags T_COMP . regex
+
+    T_CFLAGS  shift, and go to state 2
+
+    $default  reduce using rule 5 (cflags)
+
+    cflags  go to state 23
+    regex   go to state 24
+
+
+State 19
+
+    7 regex: cflags T_STRING .
+
+    $default  reduce using rule 7 (regex)
+
+
+State 20
+
+   15 expr: expr T_OR . expr
+
+    T_DATEFIELD  shift, and go to state 1
+    T_CFLAGS     shift, and go to state 2
+    T_LBRACE     shift, and go to state 3
+    T_BEFORE     shift, and go to state 4
+    T_AFTER      shift, and go to state 5
+    T_NOT        shift, and go to state 6
+
+    $default  reduce using rule 5 (cflags)
+
+    cflags  go to state 9
+    regex   go to state 10
+    expr    go to state 25
+    lbrace  go to state 12
+
+
+State 21
+
+   14 expr: expr T_AND . expr
+
+    T_DATEFIELD  shift, and go to state 1
+    T_CFLAGS     shift, and go to state 2
+    T_LBRACE     shift, and go to state 3
+    T_BEFORE     shift, and go to state 4
+    T_AFTER      shift, and go to state 5
+    T_NOT        shift, and go to state 6
+
+    $default  reduce using rule 5 (cflags)
+
+    cflags  go to state 9
+    regex   go to state 10
+    expr    go to state 26
+    lbrace  go to state 12
+
+
+State 22
+
+    4 exprlist: exprlist . expr
+    8 expr: lbrace exprlist . rbrace
+
+    T_DATEFIELD  shift, and go to state 1
+    T_CFLAGS     shift, and go to state 2
+    T_LBRACE     shift, and go to state 3
+    T_RBRACE     shift, and go to state 27
+    T_BEFORE     shift, and go to state 4
+    T_AFTER      shift, and go to state 5
+    T_NOT        shift, and go to state 6
+
+    $default  reduce using rule 5 (cflags)
+
+    cflags  go to state 9
+    regex   go to state 10
+    expr    go to state 17
+    lbrace  go to state 12
+    rbrace  go to state 28
+
+
+State 23
+
+    7 regex: cflags . T_STRING
+
+    T_STRING  shift, and go to state 19
+
+
+State 24
+
+    9 expr: cflags T_COMP regex .
+
+    $default  reduce using rule 9 (expr)
+
+
+State 25
+
+   14 expr: expr . T_AND expr
+   15     | expr . T_OR expr
+   15     | expr T_OR expr .
+
+    T_AND  shift, and go to state 21
+
+    $default  reduce using rule 15 (expr)
+
+
+State 26
+
+   14 expr: expr . T_AND expr
+   14     | expr T_AND expr .
+   15     | expr . T_OR expr
+
+    $default  reduce using rule 14 (expr)
+
+
+State 27
+
+   18 rbrace: T_RBRACE .
+
+    $default  reduce using rule 18 (rbrace)
+
+
+State 28
+
+    8 expr: lbrace exprlist rbrace .
+
+    $default  reduce using rule 8 (expr)

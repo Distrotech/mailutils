@@ -1,0 +1,764 @@
+Terminals unused in grammar
+
+   BOGUS
+
+
+Grammar
+
+    0 $accept: input $end
+
+    1 input: list
+
+    2 list: pitem
+    3     | list pitem
+
+    4 pitem: item
+
+    5 item: literal
+    6     | escape
+
+    7 literal: STRING
+    8        | NUMBER
+
+    9 escape: component
+   10       | funcall
+   11       | cntl
+
+   12 component: fmtspec OCURLY STRING CCURLY
+
+   13 obrace: OBRACE
+
+   14 cbrace: CBRACE
+
+   15 $@1: /* empty */
+
+   16 $@2: /* empty */
+
+   17 funcall: fmtspec obrace $@1 function $@2 argument cbrace
+
+   18 fmtspec: /* empty */
+   19        | FMTSPEC
+
+   20 function: FUNCTION
+   21         | STRING
+
+   22 argument: /* empty */
+   23         | literal
+   24         | escape
+
+   25 cntl: if cond zlist end elif_part else_part fi
+
+   26 zlist: /* empty */
+   27      | list
+
+   28 if: IF
+
+   29 fi: FI
+
+   30 elif: ELIF
+
+   31 end: /* empty */
+
+   32 cond: cond_expr
+
+   33 cond_expr: component
+   34          | funcall
+
+   35 elif_part: /* empty */
+   36          | elif_list end
+
+   37 elif_list: elif cond zlist
+   38          | elif_list end elif cond zlist
+
+   39 else_part: /* empty */
+   40          | else list
+
+   41 else: ELSE
+
+
+Terminals, with rules where they appear
+
+$end (0) 0
+error (256)
+NUMBER (258) 8
+STRING (259) 7 12 21
+FUNCTION (260) 20
+IF (261) 28
+ELIF (262) 30
+ELSE (263) 41
+FI (264) 29
+OBRACE (265) 13
+CBRACE (266) 14
+OCURLY (267) 12
+CCURLY (268) 12
+FMTSPEC (269) 19
+BOGUS (270)
+
+
+Nonterminals, with rules where they appear
+
+$accept (16)
+    on left: 0
+input (17)
+    on left: 1, on right: 0
+list (18)
+    on left: 2 3, on right: 1 3 27 40
+pitem (19)
+    on left: 4, on right: 2 3
+item (20)
+    on left: 5 6, on right: 4
+literal (21)
+    on left: 7 8, on right: 5 23
+escape (22)
+    on left: 9 10 11, on right: 6 24
+component (23)
+    on left: 12, on right: 9 33
+obrace (24)
+    on left: 13, on right: 17
+cbrace (25)
+    on left: 14, on right: 17
+funcall (26)
+    on left: 17, on right: 10 34
+$@1 (27)
+    on left: 15, on right: 17
+$@2 (28)
+    on left: 16, on right: 17
+fmtspec (29)
+    on left: 18 19, on right: 12 17
+function (30)
+    on left: 20 21, on right: 17
+argument (31)
+    on left: 22 23 24, on right: 17
+cntl (32)
+    on left: 25, on right: 11
+zlist (33)
+    on left: 26 27, on right: 25 37 38
+if (34)
+    on left: 28, on right: 25
+fi (35)
+    on left: 29, on right: 25
+elif (36)
+    on left: 30, on right: 37 38
+end (37)
+    on left: 31, on right: 25 36 38
+cond (38)
+    on left: 32, on right: 25 37 38
+cond_expr (39)
+    on left: 33 34, on right: 32
+elif_part (40)
+    on left: 35 36, on right: 25
+elif_list (41)
+    on left: 37 38, on right: 36 38
+else_part (42)
+    on left: 39 40, on right: 25
+else (43)
+    on left: 41, on right: 40
+
+
+State 0
+
+    0 $accept: . input $end
+
+    NUMBER   shift, and go to state 1
+    STRING   shift, and go to state 2
+    IF       shift, and go to state 3
+    FMTSPEC  shift, and go to state 4
+
+    $default  reduce using rule 18 (fmtspec)
+
+    input      go to state 5
+    list       go to state 6
+    pitem      go to state 7
+    item       go to state 8
+    literal    go to state 9
+    escape     go to state 10
+    component  go to state 11
+    funcall    go to state 12
+    fmtspec    go to state 13
+    cntl       go to state 14
+    if         go to state 15
+
+
+State 1
+
+    8 literal: NUMBER .
+
+    $default  reduce using rule 8 (literal)
+
+
+State 2
+
+    7 literal: STRING .
+
+    $default  reduce using rule 7 (literal)
+
+
+State 3
+
+   28 if: IF .
+
+    $default  reduce using rule 28 (if)
+
+
+State 4
+
+   19 fmtspec: FMTSPEC .
+
+    $default  reduce using rule 19 (fmtspec)
+
+
+State 5
+
+    0 $accept: input . $end
+
+    $end  shift, and go to state 16
+
+
+State 6
+
+    1 input: list .
+    3 list: list . pitem
+
+    NUMBER   shift, and go to state 1
+    STRING   shift, and go to state 2
+    IF       shift, and go to state 3
+    FMTSPEC  shift, and go to state 4
+
+    $end      reduce using rule 1 (input)
+    $default  reduce using rule 18 (fmtspec)
+
+    pitem      go to state 17
+    item       go to state 8
+    literal    go to state 9
+    escape     go to state 10
+    component  go to state 11
+    funcall    go to state 12
+    fmtspec    go to state 13
+    cntl       go to state 14
+    if         go to state 15
+
+
+State 7
+
+    2 list: pitem .
+
+    $default  reduce using rule 2 (list)
+
+
+State 8
+
+    4 pitem: item .
+
+    $default  reduce using rule 4 (pitem)
+
+
+State 9
+
+    5 item: literal .
+
+    $default  reduce using rule 5 (item)
+
+
+State 10
+
+    6 item: escape .
+
+    $default  reduce using rule 6 (item)
+
+
+State 11
+
+    9 escape: component .
+
+    $default  reduce using rule 9 (escape)
+
+
+State 12
+
+   10 escape: funcall .
+
+    $default  reduce using rule 10 (escape)
+
+
+State 13
+
+   12 component: fmtspec . OCURLY STRING CCURLY
+   17 funcall: fmtspec . obrace $@1 function $@2 argument cbrace
+
+    OBRACE  shift, and go to state 18
+    OCURLY  shift, and go to state 19
+
+    obrace  go to state 20
+
+
+State 14
+
+   11 escape: cntl .
+
+    $default  reduce using rule 11 (escape)
+
+
+State 15
+
+   25 cntl: if . cond zlist end elif_part else_part fi
+
+    FMTSPEC  shift, and go to state 4
+
+    $default  reduce using rule 18 (fmtspec)
+
+    component  go to state 21
+    funcall    go to state 22
+    fmtspec    go to state 13
+    cond       go to state 23
+    cond_expr  go to state 24
+
+
+State 16
+
+    0 $accept: input $end .
+
+    $default  accept
+
+
+State 17
+
+    3 list: list pitem .
+
+    $default  reduce using rule 3 (list)
+
+
+State 18
+
+   13 obrace: OBRACE .
+
+    $default  reduce using rule 13 (obrace)
+
+
+State 19
+
+   12 component: fmtspec OCURLY . STRING CCURLY
+
+    STRING  shift, and go to state 25
+
+
+State 20
+
+   17 funcall: fmtspec obrace . $@1 function $@2 argument cbrace
+
+    $default  reduce using rule 15 ($@1)
+
+    $@1  go to state 26
+
+
+State 21
+
+   33 cond_expr: component .
+
+    $default  reduce using rule 33 (cond_expr)
+
+
+State 22
+
+   34 cond_expr: funcall .
+
+    $default  reduce using rule 34 (cond_expr)
+
+
+State 23
+
+   25 cntl: if cond . zlist end elif_part else_part fi
+
+    NUMBER   shift, and go to state 1
+    STRING   shift, and go to state 2
+    IF       shift, and go to state 3
+    FMTSPEC  shift, and go to state 4
+
+    OBRACE    reduce using rule 18 (fmtspec)
+    OCURLY    reduce using rule 18 (fmtspec)
+    $default  reduce using rule 26 (zlist)
+
+    list       go to state 27
+    pitem      go to state 7
+    item       go to state 8
+    literal    go to state 9
+    escape     go to state 10
+    component  go to state 11
+    funcall    go to state 12
+    fmtspec    go to state 13
+    cntl       go to state 14
+    zlist      go to state 28
+    if         go to state 15
+
+
+State 24
+
+   32 cond: cond_expr .
+
+    $default  reduce using rule 32 (cond)
+
+
+State 25
+
+   12 component: fmtspec OCURLY STRING . CCURLY
+
+    CCURLY  shift, and go to state 29
+
+
+State 26
+
+   17 funcall: fmtspec obrace $@1 . function $@2 argument cbrace
+
+    STRING    shift, and go to state 30
+    FUNCTION  shift, and go to state 31
+
+    function  go to state 32
+
+
+State 27
+
+    3 list: list . pitem
+   27 zlist: list .
+
+    NUMBER   shift, and go to state 1
+    STRING   shift, and go to state 2
+    IF       shift, and go to state 3
+    FMTSPEC  shift, and go to state 4
+
+    OBRACE    reduce using rule 18 (fmtspec)
+    OCURLY    reduce using rule 18 (fmtspec)
+    $default  reduce using rule 27 (zlist)
+
+    pitem      go to state 17
+    item       go to state 8
+    literal    go to state 9
+    escape     go to state 10
+    component  go to state 11
+    funcall    go to state 12
+    fmtspec    go to state 13
+    cntl       go to state 14
+    if         go to state 15
+
+
+State 28
+
+   25 cntl: if cond zlist . end elif_part else_part fi
+
+    $default  reduce using rule 31 (end)
+
+    end  go to state 33
+
+
+State 29
+
+   12 component: fmtspec OCURLY STRING CCURLY .
+
+    $default  reduce using rule 12 (component)
+
+
+State 30
+
+   21 function: STRING .
+
+    $default  reduce using rule 21 (function)
+
+
+State 31
+
+   20 function: FUNCTION .
+
+    $default  reduce using rule 20 (function)
+
+
+State 32
+
+   17 funcall: fmtspec obrace $@1 function . $@2 argument cbrace
+
+    $default  reduce using rule 16 ($@2)
+
+    $@2  go to state 34
+
+
+State 33
+
+   25 cntl: if cond zlist end . elif_part else_part fi
+
+    ELIF  shift, and go to state 35
+
+    $default  reduce using rule 35 (elif_part)
+
+    elif       go to state 36
+    elif_part  go to state 37
+    elif_list  go to state 38
+
+
+State 34
+
+   17 funcall: fmtspec obrace $@1 function $@2 . argument cbrace
+
+    NUMBER   shift, and go to state 1
+    STRING   shift, and go to state 2
+    IF       shift, and go to state 3
+    FMTSPEC  shift, and go to state 4
+
+    CBRACE    reduce using rule 22 (argument)
+    $default  reduce using rule 18 (fmtspec)
+
+    literal    go to state 39
+    escape     go to state 40
+    component  go to state 11
+    funcall    go to state 12
+    fmtspec    go to state 13
+    argument   go to state 41
+    cntl       go to state 14
+    if         go to state 15
+
+
+State 35
+
+   30 elif: ELIF .
+
+    $default  reduce using rule 30 (elif)
+
+
+State 36
+
+   37 elif_list: elif . cond zlist
+
+    FMTSPEC  shift, and go to state 4
+
+    $default  reduce using rule 18 (fmtspec)
+
+    component  go to state 21
+    funcall    go to state 22
+    fmtspec    go to state 13
+    cond       go to state 42
+    cond_expr  go to state 24
+
+
+State 37
+
+   25 cntl: if cond zlist end elif_part . else_part fi
+
+    ELSE  shift, and go to state 43
+
+    $default  reduce using rule 39 (else_part)
+
+    else_part  go to state 44
+    else       go to state 45
+
+
+State 38
+
+   36 elif_part: elif_list . end
+   38 elif_list: elif_list . end elif cond zlist
+
+    $default  reduce using rule 31 (end)
+
+    end  go to state 46
+
+
+State 39
+
+   23 argument: literal .
+
+    $default  reduce using rule 23 (argument)
+
+
+State 40
+
+   24 argument: escape .
+
+    $default  reduce using rule 24 (argument)
+
+
+State 41
+
+   17 funcall: fmtspec obrace $@1 function $@2 argument . cbrace
+
+    CBRACE  shift, and go to state 47
+
+    cbrace  go to state 48
+
+
+State 42
+
+   37 elif_list: elif cond . zlist
+
+    NUMBER   shift, and go to state 1
+    STRING   shift, and go to state 2
+    IF       shift, and go to state 3
+    FMTSPEC  shift, and go to state 4
+
+    OBRACE    reduce using rule 18 (fmtspec)
+    OCURLY    reduce using rule 18 (fmtspec)
+    $default  reduce using rule 26 (zlist)
+
+    list       go to state 27
+    pitem      go to state 7
+    item       go to state 8
+    literal    go to state 9
+    escape     go to state 10
+    component  go to state 11
+    funcall    go to state 12
+    fmtspec    go to state 13
+    cntl       go to state 14
+    zlist      go to state 49
+    if         go to state 15
+
+
+State 43
+
+   41 else: ELSE .
+
+    $default  reduce using rule 41 (else)
+
+
+State 44
+
+   25 cntl: if cond zlist end elif_part else_part . fi
+
+    FI  shift, and go to state 50
+
+    fi  go to state 51
+
+
+State 45
+
+   40 else_part: else . list
+
+    NUMBER   shift, and go to state 1
+    STRING   shift, and go to state 2
+    IF       shift, and go to state 3
+    FMTSPEC  shift, and go to state 4
+
+    $default  reduce using rule 18 (fmtspec)
+
+    list       go to state 52
+    pitem      go to state 7
+    item       go to state 8
+    literal    go to state 9
+    escape     go to state 10
+    component  go to state 11
+    funcall    go to state 12
+    fmtspec    go to state 13
+    cntl       go to state 14
+    if         go to state 15
+
+
+State 46
+
+   36 elif_part: elif_list end .
+   38 elif_list: elif_list end . elif cond zlist
+
+    ELIF  shift, and go to state 35
+
+    $default  reduce using rule 36 (elif_part)
+
+    elif  go to state 53
+
+
+State 47
+
+   14 cbrace: CBRACE .
+
+    $default  reduce using rule 14 (cbrace)
+
+
+State 48
+
+   17 funcall: fmtspec obrace $@1 function $@2 argument cbrace .
+
+    $default  reduce using rule 17 (funcall)
+
+
+State 49
+
+   37 elif_list: elif cond zlist .
+
+    $default  reduce using rule 37 (elif_list)
+
+
+State 50
+
+   29 fi: FI .
+
+    $default  reduce using rule 29 (fi)
+
+
+State 51
+
+   25 cntl: if cond zlist end elif_part else_part fi .
+
+    $default  reduce using rule 25 (cntl)
+
+
+State 52
+
+    3 list: list . pitem
+   40 else_part: else list .
+
+    NUMBER   shift, and go to state 1
+    STRING   shift, and go to state 2
+    IF       shift, and go to state 3
+    FMTSPEC  shift, and go to state 4
+
+    FI        reduce using rule 40 (else_part)
+    $default  reduce using rule 18 (fmtspec)
+
+    pitem      go to state 17
+    item       go to state 8
+    literal    go to state 9
+    escape     go to state 10
+    component  go to state 11
+    funcall    go to state 12
+    fmtspec    go to state 13
+    cntl       go to state 14
+    if         go to state 15
+
+
+State 53
+
+   38 elif_list: elif_list end elif . cond zlist
+
+    FMTSPEC  shift, and go to state 4
+
+    $default  reduce using rule 18 (fmtspec)
+
+    component  go to state 21
+    funcall    go to state 22
+    fmtspec    go to state 13
+    cond       go to state 54
+    cond_expr  go to state 24
+
+
+State 54
+
+   38 elif_list: elif_list end elif cond . zlist
+
+    NUMBER   shift, and go to state 1
+    STRING   shift, and go to state 2
+    IF       shift, and go to state 3
+    FMTSPEC  shift, and go to state 4
+
+    OBRACE    reduce using rule 18 (fmtspec)
+    OCURLY    reduce using rule 18 (fmtspec)
+    $default  reduce using rule 26 (zlist)
+
+    list       go to state 27
+    pitem      go to state 7
+    item       go to state 8
+    literal    go to state 9
+    escape     go to state 10
+    component  go to state 11
+    funcall    go to state 12
+    fmtspec    go to state 13
+    cntl       go to state 14
+    zlist      go to state 55
+    if         go to state 15
+
+
+State 55
+
+   38 elif_list: elif_list end elif cond zlist .
+
+    $default  reduce using rule 38 (elif_list)

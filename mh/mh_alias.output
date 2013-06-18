@@ -1,0 +1,364 @@
+Grammar
+
+    0 $accept: input $end
+
+    1 input: /* empty */
+    2      | alias_list
+    3      | alias_list nl
+    4      | nl alias_list
+    5      | nl alias_list nl
+
+    6 alias_list: alias
+    7           | alias_list nl alias
+
+    8 nl: '\n'
+    9   | nl '\n'
+
+   10 $@1: /* empty */
+
+   11 alias: STRING ':' $@1 address_group
+
+   12 $@2: /* empty */
+
+   13 alias: STRING ';' $@2 address_group
+
+   14 address_group: address_list
+   15              | '=' STRING
+   16              | '+' STRING
+   17              | '*'
+
+   18 address_list: address
+   19             | address_list ',' address
+
+   20 address: string_list
+
+   21 string_list: STRING
+   22            | string_list STRING
+
+
+Terminals, with rules where they appear
+
+$end (0) 0
+'\n' (10) 8 9
+'*' (42) 17
+'+' (43) 16
+',' (44) 19
+':' (58) 11
+';' (59) 13
+'=' (61) 15
+error (256)
+STRING (258) 11 13 15 16 21 22
+
+
+Nonterminals, with rules where they appear
+
+$accept (11)
+    on left: 0
+input (12)
+    on left: 1 2 3 4 5, on right: 0
+alias_list (13)
+    on left: 6 7, on right: 2 3 4 5 7
+nl (14)
+    on left: 8 9, on right: 3 4 5 7 9
+alias (15)
+    on left: 11 13, on right: 6 7
+$@1 (16)
+    on left: 10, on right: 11
+$@2 (17)
+    on left: 12, on right: 13
+address_group (18)
+    on left: 14 15 16 17, on right: 11 13
+address_list (19)
+    on left: 18 19, on right: 14 19
+address (20)
+    on left: 20, on right: 18 19
+string_list (21)
+    on left: 21 22, on right: 20 22
+
+
+State 0
+
+    0 $accept: . input $end
+
+    STRING  shift, and go to state 1
+    '\n'    shift, and go to state 2
+
+    $default  reduce using rule 1 (input)
+
+    input       go to state 3
+    alias_list  go to state 4
+    nl          go to state 5
+    alias       go to state 6
+
+
+State 1
+
+   11 alias: STRING . ':' $@1 address_group
+   13      | STRING . ';' $@2 address_group
+
+    ':'  shift, and go to state 7
+    ';'  shift, and go to state 8
+
+
+State 2
+
+    8 nl: '\n' .
+
+    $default  reduce using rule 8 (nl)
+
+
+State 3
+
+    0 $accept: input . $end
+
+    $end  shift, and go to state 9
+
+
+State 4
+
+    2 input: alias_list .
+    3      | alias_list . nl
+    7 alias_list: alias_list . nl alias
+
+    '\n'  shift, and go to state 2
+
+    $default  reduce using rule 2 (input)
+
+    nl  go to state 10
+
+
+State 5
+
+    4 input: nl . alias_list
+    5      | nl . alias_list nl
+    9 nl: nl . '\n'
+
+    STRING  shift, and go to state 1
+    '\n'    shift, and go to state 11
+
+    alias_list  go to state 12
+    alias       go to state 6
+
+
+State 6
+
+    6 alias_list: alias .
+
+    $default  reduce using rule 6 (alias_list)
+
+
+State 7
+
+   11 alias: STRING ':' . $@1 address_group
+
+    $default  reduce using rule 10 ($@1)
+
+    $@1  go to state 13
+
+
+State 8
+
+   13 alias: STRING ';' . $@2 address_group
+
+    $default  reduce using rule 12 ($@2)
+
+    $@2  go to state 14
+
+
+State 9
+
+    0 $accept: input $end .
+
+    $default  accept
+
+
+State 10
+
+    3 input: alias_list nl .
+    7 alias_list: alias_list nl . alias
+    9 nl: nl . '\n'
+
+    STRING  shift, and go to state 1
+    '\n'    shift, and go to state 11
+
+    $default  reduce using rule 3 (input)
+
+    alias  go to state 15
+
+
+State 11
+
+    9 nl: nl '\n' .
+
+    $default  reduce using rule 9 (nl)
+
+
+State 12
+
+    4 input: nl alias_list .
+    5      | nl alias_list . nl
+    7 alias_list: alias_list . nl alias
+
+    '\n'  shift, and go to state 2
+
+    $default  reduce using rule 4 (input)
+
+    nl  go to state 16
+
+
+State 13
+
+   11 alias: STRING ':' $@1 . address_group
+
+    STRING  shift, and go to state 17
+    '='     shift, and go to state 18
+    '+'     shift, and go to state 19
+    '*'     shift, and go to state 20
+
+    address_group  go to state 21
+    address_list   go to state 22
+    address        go to state 23
+    string_list    go to state 24
+
+
+State 14
+
+   13 alias: STRING ';' $@2 . address_group
+
+    STRING  shift, and go to state 17
+    '='     shift, and go to state 18
+    '+'     shift, and go to state 19
+    '*'     shift, and go to state 20
+
+    address_group  go to state 25
+    address_list   go to state 22
+    address        go to state 23
+    string_list    go to state 24
+
+
+State 15
+
+    7 alias_list: alias_list nl alias .
+
+    $default  reduce using rule 7 (alias_list)
+
+
+State 16
+
+    5 input: nl alias_list nl .
+    7 alias_list: alias_list nl . alias
+    9 nl: nl . '\n'
+
+    STRING  shift, and go to state 1
+    '\n'    shift, and go to state 11
+
+    $default  reduce using rule 5 (input)
+
+    alias  go to state 15
+
+
+State 17
+
+   21 string_list: STRING .
+
+    $default  reduce using rule 21 (string_list)
+
+
+State 18
+
+   15 address_group: '=' . STRING
+
+    STRING  shift, and go to state 26
+
+
+State 19
+
+   16 address_group: '+' . STRING
+
+    STRING  shift, and go to state 27
+
+
+State 20
+
+   17 address_group: '*' .
+
+    $default  reduce using rule 17 (address_group)
+
+
+State 21
+
+   11 alias: STRING ':' $@1 address_group .
+
+    $default  reduce using rule 11 (alias)
+
+
+State 22
+
+   14 address_group: address_list .
+   19 address_list: address_list . ',' address
+
+    ','  shift, and go to state 28
+
+    $default  reduce using rule 14 (address_group)
+
+
+State 23
+
+   18 address_list: address .
+
+    $default  reduce using rule 18 (address_list)
+
+
+State 24
+
+   20 address: string_list .
+   22 string_list: string_list . STRING
+
+    STRING  shift, and go to state 29
+
+    $default  reduce using rule 20 (address)
+
+
+State 25
+
+   13 alias: STRING ';' $@2 address_group .
+
+    $default  reduce using rule 13 (alias)
+
+
+State 26
+
+   15 address_group: '=' STRING .
+
+    $default  reduce using rule 15 (address_group)
+
+
+State 27
+
+   16 address_group: '+' STRING .
+
+    $default  reduce using rule 16 (address_group)
+
+
+State 28
+
+   19 address_list: address_list ',' . address
+
+    STRING  shift, and go to state 17
+
+    address      go to state 30
+    string_list  go to state 24
+
+
+State 29
+
+   22 string_list: string_list STRING .
+
+    $default  reduce using rule 22 (string_list)
+
+
+State 30
+
+   19 address_list: address_list ',' address .
+
+    $default  reduce using rule 19 (address_list)
