@@ -363,12 +363,13 @@ mu_ip_tcp_accept (mu_ip_server_t srv, void *call_data)
       int ec = errno;
       switch (ec) 
         {
-          case EINTR:
-            if (srv->f_intr && srv->f_intr (srv->data, call_data))
-	      break;
-            /* fall through */
-          case EAGAIN:
-            ec = 0;
+	case EINTR:
+	  if (srv->f_intr && srv->f_intr (srv->data, call_data))
+	    break;
+	  /* fall through */
+	case EAGAIN:
+	case ECONNABORTED:
+	  ec = 0;
 	}
       return ec;
     }
