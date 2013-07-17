@@ -71,7 +71,7 @@ struct error_table
 static struct error_table error_table[] = {
   { ERR_WRONG_STATE, "Incorrect state" },
   { ERR_BAD_ARGS, "Invalid arguments" },
-  { ERR_BAD_LOGIN, "Bad login" },
+  { ERR_BAD_LOGIN, "[AUTH] Bad login" },
   { ERR_NO_MESG, "No such message" },
   { ERR_MESG_DELE, "Message has been deleted" },
   { ERR_NOT_IMPL, "Not implemented" },
@@ -95,6 +95,7 @@ static struct error_table error_table[] = {
   { ERR_LOGIN_DELAY,
     "[LOGIN-DELAY] Attempt to log in within the minimum login delay interval" },
   { ERR_TERMINATE, "Terminating on request" },
+  { ERR_SYS_LOGIN, "[SYS/PERM] Cannot authenticate" },
   { 0 }
 };
 

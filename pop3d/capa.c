@@ -137,6 +137,7 @@ pop3d_session_init (struct pop3d_session *session)
   pop3d_append_capa_string (session, "UIDL", NULL);
   pop3d_append_capa_string (session, "RESP-CODES", NULL);
   pop3d_append_capa_string (session, "PIPELINING", NULL);
+  pop3d_append_capa_string (session, "AUTH-RESP-CODE", NULL);
   if (pop3d_xlines)
     pop3d_append_capa_string (session, "XLINES", NULL);
 

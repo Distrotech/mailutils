@@ -167,6 +167,7 @@ extern int expire_on_exit;
 #define ERR_TLS_IO      21
 #define ERR_LOGIN_DELAY 22
 #define ERR_TERMINATE   23
+#define ERR_SYS_LOGIN   24
 
 enum tls_mode
   {

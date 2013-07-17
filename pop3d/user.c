@@ -107,23 +107,37 @@ pop3d_user (char *arg, struct pop3d_session *sess)
 	}
 #endif
 
-      auth_data = mu_get_auth_by_name (arg);
-
-      if (auth_data == NULL)
+      rc = mu_get_auth (&auth_data, mu_auth_key_name, arg);
+      switch (rc)
 	{
+	case 0:
+	  break;
+	case MU_ERR_AUTH_FAILURE:
+	case MU_ERR_NOENT:
 	  mu_diag_output (MU_DIAG_INFO, _("user `%s' nonexistent"), arg);
 	  return ERR_BAD_LOGIN;
+	default:
+	  mu_error (_("error getting identity info for user `%s': %s"),
+		    arg, mu_strerror (rc));
+	  return ERR_SYS_LOGIN;
 	}
 
       rc = mu_authenticate (auth_data, pass);
       openlog (MU_LOG_TAG (), LOG_PID, mu_log_facility);
 
-      if (rc)
+      switch (rc)
 	{
+	case 0:
+	  break;
+	case MU_ERR_AUTH_FAILURE:
 	  mu_diag_output (MU_DIAG_INFO,
 			  _("user `%s': authentication failed"), arg);
 	  mu_auth_data_destroy (&auth_data);
 	  return ERR_BAD_LOGIN;
+	default:
+	  mu_error (_("error authenticating user `%s': %s"),
+		    arg, mu_strerror (rc));
+	  return ERR_SYS_LOGIN;
 	}
     }
   else if (mu_c_strcasecmp (cmd, "QUIT") == 0)
