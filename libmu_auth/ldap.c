@@ -244,17 +244,27 @@ _mu_conn_setup (LDAP **pld)
     }
   free (ldapuri);
   
+  ldap_set_option (ld, LDAP_OPT_PROTOCOL_VERSION, &protocol);
+
   if (ldap_param.tls)
     {
       rc = ldap_start_tls_s (ld, NULL, NULL);
       if (rc != LDAP_SUCCESS)
 	{
+	  char *msg = NULL;
+	  ldap_get_option (ld,
+			   LDAP_OPT_DIAGNOSTIC_MESSAGE,
+			   (void*)&msg);
+	  
 	  mu_error (_("ldap_start_tls failed: %s"), ldap_err2string (rc));
+	  mu_error (_("TLS diagnostics: %s"), msg);
+	  ldap_memfree (msg);
+
+	  ldap_unbind_ext (ld, NULL, NULL);
+	  
 	  return 1;
 	}
     }
-
-  ldap_set_option (ld, LDAP_OPT_PROTOCOL_VERSION, &protocol);
 
   /* FIXME: Timeouts, SASL, etc. */
   *pld = ld;
