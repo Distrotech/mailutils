@@ -520,7 +520,7 @@ _stream_skip_input_bytes (mu_stream_t stream, mu_off_t count, mu_off_t *pres)
 	{
 	  for (pos = 0;;)
 	    {
-	      if (stream->pos == stream->level)
+	      if (pos || stream->level == 0)
 		{
 		  if ((rc = _stream_flush_buffer (stream, _MU_STR_FLUSH_ALL)))
 		    return rc;

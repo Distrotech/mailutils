@@ -159,7 +159,26 @@ sc2string (int rc)
 int
 io_copy_out (mu_stream_t str, size_t size)
 {
-  return mu_stream_copy (iostream, str, size, NULL);
+  int rc;
+  struct mu_buffer_query oldbuf, newbuf;
+  
+  oldbuf.type = MU_TRANSPORT_OUTPUT;
+  if (mu_stream_ioctl (iostream, MU_IOCTL_TRANSPORT_BUFFER,
+		       MU_IOCTL_OP_GET, &oldbuf) == 0)
+    {
+      newbuf.type = MU_TRANSPORT_OUTPUT;
+      newbuf.buftype = mu_buffer_full;
+      newbuf.bufsize = 64*1024;
+      mu_stream_ioctl (iostream, MU_IOCTL_TRANSPORT_BUFFER,
+		       MU_IOCTL_OP_SET, &newbuf);
+    }
+
+  rc = mu_stream_copy (iostream, str, size, NULL);
+
+  mu_stream_ioctl (iostream, MU_IOCTL_TRANSPORT_BUFFER,
+		   MU_IOCTL_OP_SET, &oldbuf);
+
+  return rc;
 }
 
 int
