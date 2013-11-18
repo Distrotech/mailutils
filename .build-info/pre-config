@@ -1,0 +1,3 @@
+#!/bin/bash
+
+sed -i -e "s/\(cross_compiling=\)yes/\1no/" ../configure
