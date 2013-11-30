@@ -36,7 +36,7 @@ mu_imap_append_message (mu_imap_t imap, const char *mailbox, int flags,
   int rc;
 
   rc = mu_message_get_streamref (msg, &str);
-  if (rc)
+  if (rc == 0)
     {
       rc = mu_imap_append_stream (imap, mailbox, flags, tm, tz, str);
       mu_stream_unref (str);

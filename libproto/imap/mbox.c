@@ -1106,6 +1106,8 @@ _imap_mbx_append_message (mu_mailbox_t mbox, mu_message_t msg)
   if (rc)
     return rc;
   rc = mu_url_sget_path (url, &mbox_name);
+  if (rc)
+    return rc;
   return mu_imap_append_message (imap, mbox_name, 0, NULL, NULL, msg);
 }
 

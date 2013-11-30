@@ -29,12 +29,23 @@
 #include <mailutils/sys/registrar.h>
 #include <mailutils/sys/url.h>
 #include <mailutils/sys/imap.h>
+#include <mailutils/util.h>
 
 static void url_imap_destroy (mu_url_t url);
 
 static void
 url_imap_destroy (mu_url_t url MU_ARG_UNUSED)
 {
+}
+
+static int
+url_imap_get_path (const mu_url_t url, char *bufptr, size_t bufsize,
+		   size_t *rsize)
+{
+  bufsize = mu_cpystr (bufptr, "INBOX", bufsize);
+  if (rsize)
+    *rsize = bufsize;
+  return 0;
 }
 
 /*
@@ -50,7 +61,8 @@ _mu_imap_url_init (mu_url_t url)
     url->port = MU_IMAP_PORT;
   
   url->_destroy = url_imap_destroy;
-
+  url->_get_path = url_imap_get_path;
+    
   if (!url->host || url->qargc)
     return EINVAL;
 
@@ -81,6 +93,7 @@ _mu_imaps_url_init (mu_url_t url)
     url->port = MU_IMAPS_PORT;
   
   url->_destroy = url_imap_destroy;
+  url->_get_path = url_imap_get_path;
 
   if (!url->host || url->qargc)
     return EINVAL;
