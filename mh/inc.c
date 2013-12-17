@@ -366,7 +366,7 @@ main (int argc, char **argv)
   int f_truncate = 0;
   int f_changecur = 0;
   size_t lastseen;
-  char *unseen_seq;
+  const char *unseen_seq;
   
   /* Native Language Support */
   MU_APP_INIT_NLS ();
@@ -408,7 +408,7 @@ main (int argc, char **argv)
     mu_list_foreach (input_file_list, incmbx, &incdat);
 
   unseen_seq = mh_global_profile_get ("Unseen-Sequence", NULL);
-  if (unseen_seq)
+  if (unseen_seq && lastseen < incdat.lastmsg)
     {
       mu_msgset_t unseen;
 
