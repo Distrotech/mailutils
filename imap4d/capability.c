@@ -78,7 +78,7 @@ imap4d_capability (struct imap4d_session *session,
 
   mu_list_foreach (capa_list, print_capa, NULL);
   
-  imap4d_auth_capability ();
+  imap4d_auth_capability (session);
   io_sendf ("\n");
 
   return io_completion_response (command, RESP_OK, "Completed");

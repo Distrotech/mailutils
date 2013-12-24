@@ -287,16 +287,50 @@ cb_tls (void *data, mu_config_value_t *val)
 static int
 cb_tls_required (void *data, mu_config_value_t *val)
 {
-  int *res = data;
   int bv;
   
   if (mu_cfg_assert_value_type (val, MU_CFG_STRING))
     return 1;
   if (mu_cfg_parse_boolean (val->v.string, &bv))
     mu_error (_("Not a boolean value"));
-  else
-    *res = tls_required;
+  else if (bv)
+    tls_mode = tls_required;
   return 0;
+}
+
+static mu_list_t auth_deny_user_list, auth_allow_user_list;
+static mu_list_t auth_deny_group_list, auth_allow_group_list;
+
+static int
+check_user_groups (void *item, void *data)
+{
+  char *gname = item;
+  struct group *gp;
+  char **p;
+  
+  gp = getgrnam (gname);
+  if (!gp)
+    return 0;
+
+  if (gp->gr_gid == auth_data->gid)
+    return MU_ERR_EXISTS;
+
+  for (p = gp->gr_mem; *p; p++)
+    if (strcmp (*p, auth_data->name) == 0)
+      return MU_ERR_EXISTS;
+
+  return 0;
+}
+
+static int
+imap_check_group_list (mu_list_t l)
+{
+  int rc = mu_list_foreach (l, check_user_groups, NULL);
+  if (rc == MU_ERR_EXISTS) 
+    return 0;
+  else if (rc == 0)
+    return MU_ERR_NOENT;
+  return rc;
 }
 
 static struct mu_cfg_param imap4d_srv_param[] = {
@@ -309,6 +343,19 @@ static struct mu_cfg_param imap4d_srv_param[] = {
 };
 
 static struct mu_cfg_param imap4d_cfg_param[] = {
+  { "allow-users", MU_CFG_LIST_OF(mu_cfg_string), &auth_allow_user_list,
+    0, NULL, 
+    N_("Allow access to users from this list.") },
+  { "deny-users", MU_CFG_LIST_OF(mu_cfg_string), &auth_deny_user_list,
+    0, NULL, 
+    N_("Deny access to users from this list.") },
+  { "allow-groups", MU_CFG_LIST_OF(mu_cfg_string), &auth_allow_group_list,
+    0, NULL, 
+    N_("Allow access if the user group is in this list.") },
+  { "deny-groups", MU_CFG_LIST_OF(mu_cfg_string), &auth_deny_group_list,
+    0, NULL, 
+    N_("Deny access if the user group is in this list.") },
+  
   { "homedir", mu_cfg_string, &modify_homedir, 0, NULL,
     N_("Modify home directory.") },
   { "personal-namespace", MU_CFG_LIST_OF(mu_cfg_string), &namespace[NS_PRIVATE],
@@ -367,6 +414,31 @@ static struct mu_cfg_param imap4d_cfg_param[] = {
 int
 imap4d_session_setup0 ()
 {
+  if (auth_deny_user_list &&
+      mu_list_locate (auth_deny_user_list, auth_data->name, NULL) == 0)
+    {
+      mu_error (_("%s is in deny-users, rejecting"), auth_data->name);
+      return 1;
+    }
+  if (auth_allow_user_list &&
+      mu_list_locate (auth_allow_user_list, auth_data->name, NULL))
+    {
+      mu_error (_("%s is not in allow-users, rejecting"), auth_data->name);
+      return 1;
+    }
+  if (auth_deny_group_list &&
+      imap_check_group_list (auth_deny_group_list) == 0)
+    {
+      mu_error (_("%s is in deny-groups, rejecting"), auth_data->name);
+      return 1;
+    }
+  if (auth_allow_group_list &&
+      imap_check_group_list (auth_allow_group_list))
+    {
+      mu_error (_("%s is not in allow-groups, rejecting"), auth_data->name);
+      return 1;
+    }
+
   real_homedir = mu_normalize_path (mu_strdup (auth_data->dir));
   if (imap4d_check_home_dir (real_homedir, auth_data->uid, auth_data->gid))
     return 1;

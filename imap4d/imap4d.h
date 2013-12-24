@@ -293,7 +293,7 @@ extern int  imap4d_append (struct imap4d_session *,
 			   struct imap4d_command *, imap4d_tokbuf_t);
 extern int  imap4d_authenticate (struct imap4d_session *,
 				 struct imap4d_command *, imap4d_tokbuf_t);
-extern void imap4d_auth_capability (void);
+extern void imap4d_auth_capability (struct imap4d_session *);
 extern int  imap4d_capability (struct imap4d_session *,
 			       struct imap4d_command *, imap4d_tokbuf_t);
 extern int  imap4d_check (struct imap4d_session *,

@@ -78,9 +78,10 @@ _auth_try (void *item, void *data)
 }
 
 void
-imap4d_auth_capability ()
+imap4d_auth_capability (struct imap4d_session *session)
 {
-  mu_list_foreach (imap_auth_list, _auth_capa, NULL);
+  if (session->tls_mode != tls_required)
+    mu_list_foreach (imap_auth_list, _auth_capa, NULL);
 }
 
 /*
@@ -102,7 +103,7 @@ imap4d_authenticate (struct imap4d_session *session,
   
   auth_type = imap4d_tokbuf_getarg (tok, IMAP4_ARG_1);
 
-  if (tls_required)
+  if (session->tls_mode == tls_required)
     return io_completion_response (command, RESP_NO,
 			           "Command disabled: Use STARTTLS first");
   
