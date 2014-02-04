@@ -100,12 +100,14 @@ mu_authenticate_generic (struct mu_auth_data **return_data MU_ARG_UNUSED,
 {
   const struct mu_auth_data *auth_data = key;
   char *pass = call_data;
+  char *crypt_pass;
 
   if (!auth_data || !pass)
     return EINVAL;
   
-  return auth_data->passwd
-         && strcmp (auth_data->passwd, crypt (pass, auth_data->passwd)) == 0 ?
+  return auth_data->passwd &&
+         (crypt_pass = crypt (pass, auth_data->passwd)) != NULL &&
+         strcmp (auth_data->passwd, crypt_pass) == 0 ? 
           0 : MU_ERR_AUTH_FAILURE;
 }
 
@@ -124,10 +126,13 @@ mu_authenticate_system (struct mu_auth_data **return_data MU_ARG_UNUSED,
   if (auth_data)
     {
       struct spwd *spw;
+      char *crypt_pass;
+
       spw = getspnam (auth_data->name);
       if (spw)
-	return strcmp (spw->sp_pwdp, crypt (pass, spw->sp_pwdp)) == 0 ?
-	        0 : MU_ERR_AUTH_FAILURE;
+	return (crypt_pass = crypt (pass, spw->sp_pwdp)) != NULL &&
+               strcmp (spw->sp_pwdp, crypt_pass) == 0 ?
+	       0 : MU_ERR_AUTH_FAILURE;
     }
 #endif
   return MU_ERR_AUTH_FAILURE;

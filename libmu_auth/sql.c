@@ -627,7 +627,7 @@ mu_sql_authenticate (struct mu_auth_data **return_data MU_ARG_UNUSED,
 {
   const struct mu_auth_data *auth_data = key;
   char *pass = call_data;
-  char *sql_pass;
+  char *sql_pass, *crypt_pass;
   int rc;
   
   if (!auth_data)
@@ -639,7 +639,11 @@ mu_sql_authenticate (struct mu_auth_data **return_data MU_ARG_UNUSED,
   switch (mu_sql_module_config.password_type)
     {
     case password_hash:
-      rc = strcmp (sql_pass, crypt (pass, sql_pass));
+      crypt_pass = crypt (pass, sql_pass);
+      if (!crypt_pass)
+        rc = 1;
+      else
+        rc = strcmp (sql_pass, crypt_pass);
       break;
 
     case password_scrambled:
