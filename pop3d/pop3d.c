@@ -183,7 +183,17 @@ cb_tls_required (void *data, mu_config_value_t *val)
   if (mu_cfg_parse_boolean (val->v.string, &bv))
     mu_error (_("Not a boolean value"));
   else if (bv)
-    tls_mode = tls_required;
+    {
+      tls_mode = tls_required;
+      mu_diag_output (MU_DIAG_WARNING,
+		      "the \"tls-required\" statement is deprecated, "
+		      "use \"tls required\" instead");
+    }
+  else
+    mu_diag_output (MU_DIAG_WARNING,
+		    "the \"tls-required\" statement is deprecated, "
+		    "use \"tls\" instead");
+
   return 0;
 }
 
