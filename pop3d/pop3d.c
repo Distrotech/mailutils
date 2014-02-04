@@ -668,7 +668,7 @@ main (int argc, char **argv)
     {
       /* Make sure we are in the root directory.  */
       chdir ("/");
-      status = pop3d_mainloop (MU_STDIN_FD, MU_STDOUT_FD, tls_no);
+      status = pop3d_mainloop (MU_STDIN_FD, MU_STDOUT_FD, tls_mode);
     }
   
   if (status)

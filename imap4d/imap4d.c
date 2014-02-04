@@ -738,7 +738,8 @@ imap4d_connection (int fd, struct sockaddr *sa, int salen,
   else
     rc = 1;
   
-  imap4d_mainloop (fd, fd, cfg->tls_mode);
+  imap4d_mainloop (fd, fd, 
+                   cfg->tls_mode == tls_unspecified ? tls_mode : cfg->tls_mode);
 
   if (rc == 0)
     clr_strerr_flt ();
@@ -934,7 +935,7 @@ main (int argc, char **argv)
     {
       /* Make sure we are in the root directory.  */
       chdir ("/");
-      status = imap4d_mainloop (MU_STDIN_FD, MU_STDOUT_FD, 0);
+      status = imap4d_mainloop (MU_STDIN_FD, MU_STDOUT_FD, tls_mode);
     }
 
   if (status)
