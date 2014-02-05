@@ -1,5 +1,5 @@
 /* Join strings from an array into a single string.
-   Copyright (C) 1999-2001, 2003-2006, 2010-2012 Free Software
+   Copyright (C) 1999-2001, 2003-2006, 2010-2012, 2014 Free Software
    Foundation, Inc.
 
    This library is free software; you can redistribute it and/or

@@ -1,6 +1,7 @@
 ;;; mastermenu.el --- Redefinition of texinfo-master-menu-list
 
-;; Copyright (C) 2006-2007, 2010-2012 Free Software Foundation, Inc.
+;; Copyright (C) 2006-2007, 2010-2012, 2014 Free Software Foundation,
+;; Inc.
 
 ;; Author: Sergey Poznyakoff
 ;; Maintainer: bug-tar@gnu.org
