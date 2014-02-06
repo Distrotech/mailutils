@@ -87,6 +87,9 @@ fd_open (struct _mu_stream *str)
   /* Map the flags to the system equivalent.  */
   if ((fstr->stream.flags & MU_STREAM_RDWR) == MU_STREAM_RDWR)
     oflg = O_RDWR;
+  else if ((fstr->stream.flags & (MU_STREAM_READ|MU_STREAM_APPEND)) ==
+	   (MU_STREAM_READ|MU_STREAM_APPEND))
+    oflg = O_RDWR;
   else if (fstr->stream.flags & (MU_STREAM_WRITE|MU_STREAM_APPEND))
     oflg = O_WRONLY;
   else /* default */

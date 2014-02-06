@@ -22,6 +22,7 @@ libmailbox_la_SOURCES =  \
  mbx_default.c\
  mbxitr.c\
  attribute.c\
+ biffnotify.c\
  body.c\
  bodystruct.c\
  copy.c\

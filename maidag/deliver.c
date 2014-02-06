@@ -128,69 +128,6 @@ maidag_stdio_delivery (maidag_delivery_fn delivery_fun, int argc, char **argv)
   return exit_code;
 }
 
-static int biff_fd = -1;
-static struct sockaddr_in biff_in;
-static const char *biff_user_name;
-
-static int
-notify_action (mu_observer_t obs, size_t type, void *data, void *action_data)
-{
-  if (type == MU_EVT_MAILBOX_MESSAGE_APPEND && biff_user_name)
-    {
-      mu_message_qid_t qid = data;
-      mu_mailbox_t mbox = mu_observer_get_owner (obs);
-      mu_url_t url;
-      char *buf;
-      
-      mu_mailbox_get_url (mbox, &url);
-      mu_asprintf (&buf, "%s@%s:%s", biff_user_name,
-		   qid, mu_url_to_string (url));
-      if (buf)
-	{
-	  sendto (biff_fd, buf, strlen (buf), 0,
-		  (struct sockaddr *)&biff_in, sizeof biff_in);
-	  free (buf);
-	}
-    }
-  return 0;
-}
-
-static void
-attach_notify (mu_mailbox_t mbox)
-{
-  struct servent *sp;
-  mu_observer_t observer;
-  mu_observable_t observable;
-
-  if (biff_fd == -1)
-    {
-      if ((sp = getservbyname ("biff", "udp")) == NULL)
-	{
-	  biff_fd = -2;
-	  return;
-	}
-      biff_in.sin_family = AF_INET;
-      biff_in.sin_addr.s_addr = htonl (INADDR_LOOPBACK);
-      biff_in.sin_port = sp->s_port;
-      
-      biff_fd = socket (PF_INET, SOCK_DGRAM, 0);
-      if (biff_fd < 0)
-	{
-	  biff_fd = -2;
-	  return;
-	}
-    }
-
-  if (biff_fd)
-    {
-      mu_observer_create (&observer, mbox);
-      mu_observer_set_action (observer, notify_action, mbox);
-      mu_mailbox_get_observable (mbox, &observable);
-      mu_observable_attach (observable, MU_EVT_MAILBOX_MESSAGE_APPEND, 
-                            observer);
-    }
-}  
-
 int
 deliver_to_mailbox (mu_mailbox_t mbox, mu_message_t msg,
 		    struct mu_auth_data *auth,
@@ -213,8 +150,6 @@ deliver_to_mailbox (mu_mailbox_t mbox, mu_message_t msg,
       return EX_TEMPFAIL;
     }
 
-  attach_notify (mbox);
-  
   /* FIXME: This is superfluous, as mu_mailbox_append_message takes care
      of locking anyway. But I leave it here for the time being. */
   mu_mailbox_get_locker (mbox, &lock);
@@ -403,7 +338,11 @@ do_delivery (mu_url_t url, mu_message_t msg, const char *name, char **errp)
       return EX_TEMPFAIL;
     }
 
-  biff_user_name = name;
+  status = mu_mailbox_set_notify (mbox, name);
+  if (status)
+    mu_error (_("failed to set notification on %s: %s"),
+	      mu_url_to_string (url),
+	      mu_strerror (status));
   
   /* Actually open the mailbox. Switch to the user's euid to make
      sure the maildrop file will have right privileges, in case it

@@ -1379,9 +1379,23 @@ mbox_expunge0 (mu_mailbox_t mailbox, int remove_deleted)
   mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_TRACE1,
 	    ("mbox_expunge (%s)", mud->name));
 
-  /* Noop.  */
   if (mud->messages_count == 0)
-    return 0;
+    {
+      int status;
+
+      /* If mailbox is open for appending only, we'll not be able to
+	 scan it, so just flush the stream on disk and return. */
+      if ((mailbox->flags & MU_STREAM_APPEND) &&
+	  !(mailbox->flags & MU_STREAM_READ))
+	return mu_stream_flush (mailbox->stream);
+	  
+      status = mbox_scan0 (mailbox, 1, NULL, 0);
+      if (status != 0)
+	return status;
+      /* Noop.  */
+      if (mud->messages_count == 0)
+	return 0;
+    }
 
   /* Find first dirty (modified) message. */
   for (dirty = 0; dirty < mud->messages_count; dirty++)
@@ -1398,6 +1412,9 @@ mbox_expunge0 (mu_mailbox_t mailbox, int remove_deleted)
   if (dirty == mud->messages_count)
     return 0; /* Nothing changed.  */
 
+  if (mailbox->flags & MU_STREAM_APPEND)
+    return mu_stream_flush (mailbox->stream);
+	
   /* Lock the mailbox */
   if (mailbox->locker &&
       (status = mu_locker_lock (mailbox->locker)) != 0)

@@ -49,6 +49,8 @@ static struct argp_option options[] = {
    N_("set output width")},
   {"quiet",   ARG_QUIET, 0,        0,
    N_("be quiet")},
+  {"notify",  ARG_NOTIFY,N_("BOOL"),   OPTION_ARG_OPTIONAL,
+   N_("enable biff notification"), },
   { 0 }
 };
 
@@ -75,6 +77,7 @@ static FILE *audit_fp;
 static int changecur = -1;
 static int truncate_source = -1;
 static int quiet = 0;
+static int notify = 0;
 static const char *append_folder;
 static const char *move_to_mailbox;
 
@@ -99,7 +102,7 @@ opt_handler (int key, char *arg, struct argp_state *state)
       break;
       
     case ARG_CHANGECUR:
-      changecur = is_true(arg);
+      changecur = is_true (arg);
       break;
 
     case ARG_NOCHANGECUR:
@@ -162,6 +165,10 @@ opt_handler (int key, char *arg, struct argp_state *state)
       quiet = 1;
       break;
 
+    case ARG_NOTIFY:
+      notify = is_true (arg);;
+      break;
+      
     default:
       return ARGP_ERR_UNKNOWN;
     }
@@ -386,7 +393,15 @@ main (int argc, char **argv)
     }
 
   incdat.output = mh_open_folder (append_folder,
-				  MU_STREAM_RDWR|MU_STREAM_CREAT);
+				  MU_STREAM_READ|MU_STREAM_APPEND|MU_STREAM_CREAT);
+  if (notify)
+    {
+      rc = mu_mailbox_set_notify (incdat.output, NULL);
+      if (rc)
+	mu_error (_("failed to set up notification: %s"),
+		  mu_strerror (rc));
+    }
+  
   if ((rc = mu_mailbox_messages_count (incdat.output, &incdat.lastmsg)) != 0)
     {
       mu_error (_("cannot read output mailbox: %s"),

@@ -31,6 +31,13 @@
 extern "C" {
 # endif
 
+/* Mailbox-specific flags */
+#define _MU_MAILBOX_OPEN    0x10000000
+#define _MU_MAILBOX_REMOVED 0x20000000
+#define _MU_MAILBOX_NOTIFY  0x40000000
+  
+#define _MU_MAILBOX_MASK    0xF0000000
+
 struct _mu_mailbox
 {
   /* Data */
@@ -43,6 +50,11 @@ struct _mu_mailbox
   mu_folder_t folder;
   mu_monitor_t monitor;
   mu_iterator_t iterator;
+
+  /* Biff notification */
+  char *notify_user;                   /* User name */
+  int notify_fd;                       /* Socket descriptor */
+  struct sockaddr *notify_sa;          /* Source sockaddr */
   
   /* Back pointer to the specific mailbox */
   void *data;

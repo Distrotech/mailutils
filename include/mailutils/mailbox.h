@@ -109,6 +109,10 @@ extern int mu_mailbox_unlock (mu_mailbox_t mbox);
 extern int mu_mailbox_get_iterator (mu_mailbox_t mbx,
 				    mu_iterator_t *piterator);
 
+/* Biff notifications */
+extern int mu_mailbox_set_notify   (mu_mailbox_t mbox, const char *user);
+extern int mu_mailbox_unset_notify (mu_mailbox_t mbox);
+  
 /* ID translation */
 #define MU_MAILBOX_UID_TO_MSGNO 0
 #define MU_MAILBOX_MSGNO_TO_UID 1

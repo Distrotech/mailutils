@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
+#include <unistd.h>
 
 #include <mailutils/debug.h>
 #include <mailutils/errno.h>
@@ -43,11 +44,6 @@
 #include <mailutils/sys/mailbox.h>
 #include <mailutils/sys/folder.h>
 #include <mailutils/sys/url.h>
-
-/* Mailbox-specific flags */
-#define _MU_MAILBOX_OPEN    0x10000000
-#define _MU_MAILBOX_REMOVED 0x20000000
-#define _MU_MAILBOX_MASK    0xF0000000
 
 static int
 mailbox_folder_create (mu_mailbox_t mbox, const char *name,
@@ -94,6 +90,7 @@ _mailbox_create_from_record (mu_mailbox_t *pmbox,
       mbox = calloc (1, sizeof (*mbox));
       if (mbox == NULL)
 	return ENOMEM;
+      mbox->notify_fd = -1;
       
       /* Initialize the internal lock now, so the concrete mailbox
 	 could use it. */
@@ -313,18 +310,13 @@ mu_mailbox_destroy (mu_mailbox_t *pmbox)
 	  mu_stream_destroy (&mbox->stream);
 	}
 
-      if (mbox->url)
-        mu_url_destroy (&mbox->url);
-
-      if (mbox->locker)
-	mu_locker_destroy (&mbox->locker);
-
-      if (mbox->folder)
-	mu_folder_destroy (&mbox->folder);
-
-      if (mbox->property)
-	mu_property_destroy (&mbox->property);
-
+      mu_url_destroy (&mbox->url);
+      mu_locker_destroy (&mbox->locker);
+      mu_folder_destroy (&mbox->folder);
+      mu_property_destroy (&mbox->property);
+      free (mbox->notify_user);
+      free (mbox->notify_sa);
+      
       free (mbox);
       *pmbox = NULL;
       mu_monitor_unlock (monitor);
@@ -373,7 +365,11 @@ mu_mailbox_close (mu_mailbox_t mbox)
 
   rc = mbox->_close (mbox);
   if (rc == 0)
-    mbox->flags &= ~_MU_MAILBOX_OPEN;
+    {
+      if (mbox->notify_fd >= 0)
+	close (mbox->notify_fd);
+      mbox->flags &= ~_MU_MAILBOX_OPEN;
+    }
   return rc;
 }
 
@@ -411,9 +407,6 @@ mu_mailbox_remove (mu_mailbox_t mbox)
 int
 mu_mailbox_flush (mu_mailbox_t mbox, int expunge)
 {
-  size_t i, total = 0;
-  int status = 0;
-  
   if (!mbox)
     return EINVAL;
   if (mbox->flags & _MU_MAILBOX_REMOVED)
@@ -423,23 +416,23 @@ mu_mailbox_flush (mu_mailbox_t mbox, int expunge)
   if (!(mbox->flags & (MU_STREAM_WRITE|MU_STREAM_APPEND)))
     return 0;
 
-  mu_mailbox_messages_count (mbox, &total);
   if (!(mbox->flags & MU_STREAM_APPEND))
-    for (i = 1; i <= total; i++)
-      {
-	mu_message_t msg = NULL;
-	mu_attribute_t attr = NULL;
-	mu_mailbox_get_message (mbox, i, &msg);
-	mu_message_get_attribute (msg, &attr);
-	mu_attribute_set_seen (attr);
-      }
-
-  if (expunge)
-    status = mu_mailbox_expunge (mbox);
-  else
-    status = mu_mailbox_sync (mbox);
-
-  return status;
+    {
+      size_t i, total = 0;
+  
+      mu_mailbox_messages_count (mbox, &total);
+      for (i = 1; i <= total; i++)
+	{
+	  mu_message_t msg = NULL;
+	  mu_attribute_t attr = NULL;
+	  mu_mailbox_get_message (mbox, i, &msg);
+	  mu_message_get_attribute (msg, &attr);
+	  mu_attribute_set_seen (attr);
+	}
+      if (expunge)
+	return mu_mailbox_expunge (mbox);
+    }
+  return mu_mailbox_sync (mbox);
 }
 
 #define _MBOX_CHECK_FLAGS(mbox)			\

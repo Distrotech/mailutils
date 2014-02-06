@@ -917,7 +917,7 @@ static struct mu_cfg_param dot_server_cfg_param[] = {
 static struct mu_cfg_param server_cfg_param[] = {
   { "single-process", mu_cfg_bool, 
     NULL, mu_offsetof (struct mu_srv_config, single_process), NULL,
-    N_("Run this server in foreground.") },
+    N_("Do not spawn sub-process to handle requests in this server.") },
   { "transcript", mu_cfg_bool,
     NULL, mu_offsetof (struct mu_srv_config, transcript), NULL,
     N_("Log the session transcript.") },

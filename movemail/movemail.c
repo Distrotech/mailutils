@@ -37,7 +37,8 @@ enum {
   IGNORE_ERRORS_OPTION,
   PROGRAM_ID_OPTION,
   MAX_MESSAGES_OPTION,
-  ONERROR_OPTION
+  ONERROR_OPTION,
+  NOTIFY_OPTION
 };
 
 static struct argp_option options[] = {
@@ -60,6 +61,8 @@ static struct argp_option options[] = {
     N_("set program identifier for diagnostics (default: program name)") },
   { "max-messages", MAX_MESSAGES_OPTION, N_("NUMBER"), 0,
     N_("process at most NUMBER messages") },
+  { "notify",  NOTIFY_OPTION, NULL,   0,
+    N_("enable biff notification") },  
   { NULL,      0, NULL, 0, NULL, 0 }
 };
 
@@ -71,6 +74,7 @@ static int verbose_option;
 static int ignore_errors;
 static char *program_id_option;
 static size_t max_messages_option;
+static int notify;
 
   /* These bits tell what to do when an error occurs: */
 #define ONERROR_SKIP     0x01  /* Skip to the next message */
@@ -166,6 +170,10 @@ parse_opt (int key, char *arg, struct argp_state *state)
       mu_argp_node_list_new (lst, "ignore-errors", "yes");
       break;
 
+    case NOTIFY_OPTION:
+      notify = 1;
+      break;
+      
     case ONERROR_OPTION:
       mu_argp_node_list_new (lst, "onerror", arg);
       break;
@@ -893,11 +901,20 @@ main (int argc, char **argv)
 
   switch_owner (source);
   
-  open_mailbox (&dest, dest_name, MU_STREAM_RDWR | MU_STREAM_CREAT, NULL);
+  open_mailbox (&dest, dest_name,
+		MU_STREAM_APPEND | MU_STREAM_READ | MU_STREAM_CREAT, NULL);
 
   if (program_id_option)
     set_program_id (source_name, dest_name);
 
+  if (notify)
+    {
+      rc = mu_mailbox_set_notify (dest, NULL);
+      if (rc)
+	mu_error (_("failed to set up notification: %s"),
+		  mu_strerror (rc));
+    }
+  
   rc = mu_mailbox_messages_count (source, &total);
   if (rc)
     {
