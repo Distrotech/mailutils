@@ -65,6 +65,7 @@ struct mh_option mh_option[] = {
   { "truncate",  MH_OPT_BOOL },
   { "moveto",    MH_OPT_ARG, "folder" },
   { "width",     MH_OPT_ARG, "number" },
+  { "notify",    MH_OPT_BOOL },
   { "quiet" },
   { NULL }
 };

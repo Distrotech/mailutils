@@ -60,17 +60,23 @@ mh_getopt (int argc, char **argv, struct mh_option *mh_opt, const char *doc)
     mu_asprintf (&argv[mh_optind], "--version");
   else
     {
+      int negation = 0;
+      
       optlen = strlen (mh_optptr+1);
       for (p = mh_opt; p->opt; p++)
 	{
-	  if ((p->match_len <= optlen
-	       && memcmp (mh_optptr+1, p->opt, optlen) == 0)
-	      || (p->flags == MH_OPT_BOOL
-		  && optlen > 2
-		  && memcmp (mh_optptr+1, "no", 2) == 0
-		  && strlen (p->opt) >= optlen-2
-		  && memcmp (mh_optptr+3, p->opt, optlen-2) == 0))
+	  if (p->match_len <= optlen
+	      && memcmp (mh_optptr+1, p->opt, optlen) == 0)
 	    break;
+	  if (p->flags == MH_OPT_BOOL
+	      && optlen > 2
+	      && memcmp (mh_optptr+1, "no", 2) == 0
+	      && strlen (p->opt) >= optlen-2
+	      && memcmp (mh_optptr+3, p->opt, optlen-2) == 0)
+	    {
+	      negation = 1;
+	      break;
+	    }
 	}
       
       if (p->opt)
@@ -79,10 +85,7 @@ mh_getopt (int argc, char **argv, struct mh_option *mh_opt, const char *doc)
 	  switch (p->flags)
 	    {
 	    case MH_OPT_BOOL:
-	      if (memcmp (mh_optptr+1, "no", 2) == 0)
-		mh_optarg = "no";
-	      else
-		mh_optarg = "yes";
+	      mh_optarg = negation ? "no" : "yes";
 	      mu_asprintf (&argv[mh_optind], "--%s=%s", longopt, mh_optarg);
 	      break;
 	      
