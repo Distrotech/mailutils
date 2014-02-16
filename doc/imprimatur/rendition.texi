@@ -89,9 +89,9 @@
 @c Texi2html (at least up to v. 1.78 mishandles unmacro directive, so
 @c it is disabled for html output.
 @c ------------------------------------------------------------------
-@ifnothtml
-@unmacro Empty-node-in-publish-rendition!
-@end ifnothtml
+@c @ifnothtml
+@c @unmacro Empty-node-in-publish-rendition!
+@c @end ifnothtml
 
 @macro WRITEME
 @ifset PUBLISH
@@ -123,9 +123,9 @@
 @c self-explaining name ``Unrevised-node-in-publish-rendition!'' is
 @c used.
 @c ------------------------------------------------------------------
-@ifnothtml
-@unmacro Unrevised-node-in-publish-rendition!
-@end ifnothtml
+@c @ifnothtml
+@c @unmacro Unrevised-node-in-publish-rendition!
+@c @end ifnothtml
 
 @macro UNREVISED
 @ifset PUBLISH

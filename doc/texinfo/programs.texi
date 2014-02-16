@@ -120,8 +120,8 @@ equal sign.
 
 @table @option
 @xopindex{help, described}
-@item --help
-@itemx -?
+@item -?
+@itemx --help
   Display a short summary of the command line options understood by
 this utilities, along with a terse description of each.
 
@@ -183,8 +183,8 @@ configurable.  @xref{Usage Vars}, for a detailed descriptions of it.
 
 @table @option
 @xopindex{version, described}
-@item --version 
-@itemx -V
+@item -V
+@itemx --version
 Print program version and exit.
 
 @xopindex{show-config-options, described}
@@ -2524,7 +2524,7 @@ with @var{spool_path} being the full path to your mailspool directory
 @item -?
 @itemx --help
 Display a help message.
-@itemx --usage
+@item --usage
 Display a short usage summary.
 @item -V
 @itemx --version
@@ -2860,8 +2860,8 @@ from that user's @file{mbox}.
 @item mail -f @var{path_to_mailbox}
 @itemx mail --file @var{path_to_mailbox}
 To read messages from the specified mailbox.
-@itemx mail -u @var{user}
-@item mail --user=@var{user}
+@item mail -u @var{user}
+@itemx mail --user=@var{user}
 To read messages from the system mailbox belonging to @var{user}.
 @end table
 
@@ -5038,7 +5038,7 @@ Keep on going if execution fails on a message.  See also
 @ref{Sieve Configuration, keep-going}.
 
 @item -L @var{dir}
-@item --libdir=@var{dir}
+@itemx --libdir=@var{dir}
 Append directory @var{dir} to the list of directories searched for
 library files.  See also @ref{Sieve Configuration, library-path}.
 
