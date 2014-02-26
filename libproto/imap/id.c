@@ -48,10 +48,20 @@ _id_mapper (void **itmv, size_t itmc, void *call_data)
   return rc;
 }
 
+static mu_assoc_t
+create_id_assoc (void)
+{
+  mu_assoc_t assoc;
+  int rc = mu_assoc_create (&assoc, sizeof (char**), MU_ASSOC_ICASE);
+  if (rc)
+    return NULL;
+  mu_assoc_set_free (assoc, _id_free);
+  return assoc;
+}
+
 static void
 parse_id_reply (mu_imap_t imap, mu_list_t resp, void *data)
 {
-  int rc;
   mu_assoc_t *passoc = data;
   struct imap_list_element *elt;
 
@@ -63,14 +73,12 @@ parse_id_reply (mu_imap_t imap, mu_list_t resp, void *data)
       elt = _mu_imap_list_at (resp, 1);
       if (elt->type == imap_eltype_list)
 	{
-	  mu_assoc_t assoc;
-
-	  rc = mu_assoc_create (&assoc, sizeof (char**), MU_ASSOC_ICASE);
-	  if (rc)
-	    return;
-	  mu_assoc_set_free (assoc, _id_free);
-	  mu_list_gmap (elt->v.list, _id_mapper, 2, assoc);
-	  *passoc = assoc;
+	  mu_assoc_t assoc = create_id_assoc ();
+	  if (assoc)
+	    {
+	      mu_list_gmap (elt->v.list, _id_mapper, 2, assoc);
+	      *passoc = assoc;
+	    }
 	}
     }
 }
@@ -79,6 +87,7 @@ int
 mu_imap_id (mu_imap_t imap, char **idenv, mu_assoc_t *passoc)
 {
   int status;
+  mu_assoc_t assoc = NULL;
   
   if (imap == NULL)
     return EINVAL;
@@ -124,12 +133,13 @@ mu_imap_id (mu_imap_t imap, char **idenv, mu_assoc_t *passoc)
       imap->client_state = MU_IMAP_CLIENT_ID_RX;
 
     case MU_IMAP_CLIENT_ID_RX:
-      status = _mu_imap_response (imap, parse_id_reply, passoc);
+      status = _mu_imap_response (imap, parse_id_reply, &assoc);
       MU_IMAP_CHECK_EAGAIN (imap, status);
       switch (imap->response)
 	{
 	case MU_IMAP_OK:
 	  status = 0;
+	  *passoc = assoc ? assoc : create_id_assoc ();
 	  break;
 
 	case MU_IMAP_NO:
