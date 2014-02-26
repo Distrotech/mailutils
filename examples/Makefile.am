@@ -55,7 +55,7 @@ EXTRA_PROGRAMS = nntpclient
 moddir=@MU_SIEVE_MODDIR@
 mod_LTLIBRARIES = numaddr.la
 
-INCLUDES = @MU_LIB_COMMON_INCLUDES@ 
+AM_CPPFLAGS = @MU_LIB_COMMON_INCLUDES@ 
 
 LDADD = \
  ../lib/libmuaux.a\
@@ -72,7 +72,7 @@ msg_send_LDADD =\
  @MU_AUTHLIBS@\
  ${MU_LIB_MAILUTILS}
 
-mta_CPPFLAGS=-I${top_srcdir}/lib -I${top_builddir}/lib
+mta_CPPFLAGS=@MU_LIB_COMMON_INCLUDES@ -I${top_srcdir}/lib -I${top_builddir}/lib
 mta_LDADD =\
  ../lib/libmuaux.a\
  ${MU_LIB_MBOX}\

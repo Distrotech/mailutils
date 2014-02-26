@@ -22,5 +22,5 @@ libmu_compat_la_SOURCES = \
  filter_iconv.c\
  vartab.c
 
-INCLUDES = @MU_LIB_COMMON_INCLUDES@ -I/libmailutils
+AM_CPPFLAGS = @MU_LIB_COMMON_INCLUDES@ -I/libmailutils
 

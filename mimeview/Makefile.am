@@ -15,9 +15,10 @@
 ## You should have received a copy of the GNU General Public License
 ## along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>. 
 
-INCLUDES = @MU_APP_COMMON_INCLUDES@ 
-
-AM_CFLAGS = -DDEFAULT_CUPS_CONFDIR=\"@DEFAULT_CUPS_CONFDIR@\"
+AM_CPPFLAGS = \
+ @MU_APP_COMMON_INCLUDES@\
+ -D_GNU_SOURCE=1\
+ -DDEFAULT_CUPS_CONFDIR=\"@DEFAULT_CUPS_CONFDIR@\"
 
 bin_PROGRAMS = mimeview
 mimeview_SOURCES = \
@@ -30,7 +31,6 @@ mimeview_SOURCES = \
 YLWRAP = $(SHELL) $(mu_aux_dir)/gylwrap
 AM_YFLAGS=-vt
 AM_LEXFLAGS=-d
-AM_CPPFLAGS=-D_GNU_SOURCE=1
 EXTRA_DIST = mimetypes.y mimetypes.l
 
 mimetypes-gram.c mimetypes-decl.h: $(srcdir)/mimetypes.y

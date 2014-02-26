@@ -30,4 +30,4 @@ libdatetime_la_SOURCES = \
  utcoff.c\
  yd.c
 
-INCLUDES = @MU_LIB_COMMON_INCLUDES@ -I/libmailutils
+AM_CPPFLAGS = @MU_LIB_COMMON_INCLUDES@ -I/libmailutils

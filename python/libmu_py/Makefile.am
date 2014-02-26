@@ -14,7 +14,7 @@
 ## You should have received a copy of the GNU General Public License
 ## along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>. 
 
-INCLUDES = @MU_LIB_COMMON_INCLUDES@ $(PYTHON_INCLUDES)
+AM_CPPFLAGS = @MU_LIB_COMMON_INCLUDES@ $(PYTHON_INCLUDES)
 
 lib_LTLIBRARIES=libmu_py.la
 libmu_py_la_SOURCES = \

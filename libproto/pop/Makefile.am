@@ -15,7 +15,7 @@
 ## You should have received a copy of the GNU General Public License
 ## along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
 
-INCLUDES = @MU_LIB_COMMON_INCLUDES@
+AM_CPPFLAGS = @MU_LIB_COMMON_INCLUDES@
 
 lib_LTLIBRARIES = libmu_pop.la
 libmu_pop_la_LDFLAGS=-version-info @VI_CURRENT@:@VI_REVISION@:@VI_AGE@

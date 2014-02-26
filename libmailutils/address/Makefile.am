@@ -22,4 +22,4 @@ libaddress_la_SOURCES = \
  addrstream.c\
  parse822.c
 
-INCLUDES = @MU_LIB_COMMON_INCLUDES@ -I/libmailutils
+AM_CPPFLAGS = @MU_LIB_COMMON_INCLUDES@ -I/libmailutils

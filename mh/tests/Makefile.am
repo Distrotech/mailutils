@@ -38,7 +38,7 @@ $(srcdir)/package.m4: $(top_srcdir)/configure.ac
 ## Non-installable programs   ##
 ## -------------------------- ##
 
-INCLUDES = @MU_LIB_COMMON_INCLUDES@
+AM_CPPFLAGS = @MU_LIB_COMMON_INCLUDES@
 noinst_PROGRAMS = lu
 
 ## ------------ ##

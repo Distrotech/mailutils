@@ -14,7 +14,7 @@
 ## You should have received a copy of the GNU General Public License
 ## along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
 
-INCLUDES = @MU_LIB_COMMON_INCLUDES@ @DBMINCLUDES@
+AM_CPPFLAGS = @MU_LIB_COMMON_INCLUDES@ @DBMINCLUDES@
 
 lib_LTLIBRARIES = libmu_dbm.la
 

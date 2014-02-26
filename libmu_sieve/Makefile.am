@@ -15,11 +15,11 @@
 ## You should have received a copy of the GNU General Public License
 ## along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>. 
 
-INCLUDES = @MU_LIB_COMMON_INCLUDES@ 
-
 YLWRAP = $(SHELL) $(mu_aux_dir)/gylwrap
 AM_YFLAGS = -dtv
-AM_CPPFLAGS = -DMU_SIEVE_MODDIR=\"@MU_SIEVE_MODDIR@\"
+AM_CPPFLAGS =\
+ @MU_LIB_COMMON_INCLUDES@\
+ -DMU_SIEVE_MODDIR=\"@MU_SIEVE_MODDIR@\"
 
 SUBDIRS = . extensions
 

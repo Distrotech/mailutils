@@ -52,5 +52,5 @@ liblist_la_SOURCES = \
  sort.c\
  tail.c
 
-INCLUDES = @MU_LIB_COMMON_INCLUDES@ -I/libmailutils
+AM_CPPFLAGS = @MU_LIB_COMMON_INCLUDES@ -I/libmailutils
 

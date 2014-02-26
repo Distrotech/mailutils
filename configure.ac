@@ -308,6 +308,8 @@ MU_CHECK_GNUTLS([1.2.1],[
   AC_DEFINE(WITH_GNUTLS,1,[Define if mailutils is using GNU TLS])
   AC_DEFINE(WITH_TLS,1,[Define if mailutils is using TLS])
   status_gnutls=yes
+],[
+  status_gnutls=no
 ])
 
 AC_SUBST(SITE_MAIL_RC)

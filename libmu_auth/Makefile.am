@@ -15,9 +15,10 @@
 ## You should have received a copy of the GNU General Public License
 ## along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
 
-INCLUDES = @MU_LIB_COMMON_INCLUDES@ 
-AM_CFLAGS = -DSITE_VIRTUAL_PWDDIR=\"@SITE_VIRTUAL_PWDDIR@\" \
-            -DSITE_CRAM_MD5_PWD=\"@SITE_CRAM_MD5_PWD@\"
+AM_CPPFLAGS = \
+ @MU_LIB_COMMON_INCLUDES@\
+ -DSITE_VIRTUAL_PWDDIR=\"@SITE_VIRTUAL_PWDDIR@\" \
+ -DSITE_CRAM_MD5_PWD=\"@SITE_CRAM_MD5_PWD@\"
 
 lib_LTLIBRARIES = libmu_auth.la
 

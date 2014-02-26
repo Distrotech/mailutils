@@ -40,4 +40,5 @@ libimapio_la_SOURCES = \
  words.c\
  xscript.c
 
-INCLUDES = @MU_LIB_COMMON_INCLUDES@ -I/libmailutils
+AM_CPPFLAGS = @MU_LIB_COMMON_INCLUDES@ -I/libmailutils
+

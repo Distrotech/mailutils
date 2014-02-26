@@ -15,12 +15,13 @@
 ## You should have received a copy of the GNU General Public License
 ## along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
 
-INCLUDES = @MU_APP_COMMON_INCLUDES@ 
 SUBDIRS = . tests
 sbin_PROGRAMS = comsatd
 
 comsatd_SOURCES = action.c comsat.c comsat.h biff.rc.h
-AM_CPPFLAGS = -DSYSCONFDIR=\"$(sysconfdir)\"
+AM_CPPFLAGS = \
+ @MU_APP_COMMON_INCLUDES@\
+ -DSYSCONFDIR=\"$(sysconfdir)\"
 
 BUILT_SOURCES=biff.rc.h
 EXTRA_DIST=biffrc.sed biff.rc

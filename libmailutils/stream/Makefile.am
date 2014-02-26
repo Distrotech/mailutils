@@ -40,4 +40,4 @@ libstream_la_SOURCES = \
  temp_file_stream.c\
  xscript-stream.c
 
-INCLUDES = @MU_LIB_COMMON_INCLUDES@ -I/libmailutils
+AM_CPPFLAGS = @MU_LIB_COMMON_INCLUDES@ -I/libmailutils

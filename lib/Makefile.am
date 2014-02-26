@@ -17,7 +17,7 @@
 
 include gnulib.mk
 
-INCLUDES = @MU_LIB_COMMON_INCLUDES@ 
+AM_CPPFLAGS += @MU_LIB_COMMON_INCLUDES@ 
 
 libmuaux_a_SOURCES += \
  argp_base.c\

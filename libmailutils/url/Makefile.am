@@ -55,5 +55,5 @@ liburl_la_SOURCES = \
  urlinv.c\
  urlstr.c
 
-INCLUDES = @MU_LIB_COMMON_INCLUDES@ -I/libmailutils
+AM_CPPFLAGS = @MU_LIB_COMMON_INCLUDES@ -I/libmailutils
 

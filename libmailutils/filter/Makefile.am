@@ -35,5 +35,5 @@ libfilter_la_SOURCES =\
  linelenflt.c\
  qpflt.c
 
-INCLUDES = @MU_LIB_COMMON_INCLUDES@ -I${top_srcdir}/libmailutils
+AM_CPPFLAGS = @MU_LIB_COMMON_INCLUDES@ -I${top_srcdir}/libmailutils
 

@@ -56,4 +56,4 @@ libmailbox_la_SOURCES =  \
  msguid.c\
  msguidl.c
 
-INCLUDES = @MU_LIB_COMMON_INCLUDES@ -I/libmailutils
+AM_CPPFLAGS = @MU_LIB_COMMON_INCLUDES@ -I/libmailutils

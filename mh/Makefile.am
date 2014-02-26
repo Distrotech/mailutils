@@ -99,8 +99,11 @@ EXTRA_DIST = mh_fmtgram.y pick.y mh_alias.y mh_alias.l
 
 mhlibdir = $(pkgdatadir)/mh
 
-INCLUDES = @MU_APP_COMMON_INCLUDES@ 
-AM_CPPFLAGS = -D_GNU_SOURCE -DMHLIBDIR=\"$(mhlibdir)\" -DMHBINDIR=\"$(bindir)\"
+AM_CPPFLAGS =\
+ @MU_APP_COMMON_INCLUDES@\
+ -D_GNU_SOURCE -DMHLIBDIR=\"$(mhlibdir)\"\
+ -DMHBINDIR=\"$(bindir)\"
+
 mh_LIBS = \
  ./libmh.a\
  ../lib/libmuaux.a\

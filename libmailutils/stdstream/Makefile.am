@@ -22,4 +22,4 @@ libstdstream_la_SOURCES = \
  dbgstream.c\
  strerr.c
 
-INCLUDES = @MU_LIB_COMMON_INCLUDES@ -I/libmailutils
+AM_CPPFLAGS = @MU_LIB_COMMON_INCLUDES@ -I/libmailutils

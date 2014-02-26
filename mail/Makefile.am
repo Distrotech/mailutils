@@ -16,8 +16,9 @@
 ## along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>. 
 
 AM_YFLAGS=-vt
-INCLUDES = @MU_APP_COMMON_INCLUDES@ @MU_AUTHINCS@ 
-AM_CFLAGS = -DSITE_MAIL_RC=\"@SITE_MAIL_RC@\"
+AM_CPPFLAGS = \
+ @MU_APP_COMMON_INCLUDES@ @MU_AUTHINCS@\
+ -DSITE_MAIL_RC=\"@SITE_MAIL_RC@\"
 
 mailbindir=@MAILBINDIR@
 

@@ -26,7 +26,7 @@ libdiag_la_SOURCES = \
  syslog.c\
  wd.c
 
-INCLUDES = @MU_LIB_COMMON_INCLUDES@ -I/libmailutils
+AM_CPPFLAGS = @MU_LIB_COMMON_INCLUDES@ -I/libmailutils
 
 EXTRA_DIST = \
  debcat\

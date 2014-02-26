@@ -26,10 +26,10 @@ libcfg_la_SOURCES = \
 
 localedir = $(datadir)/locale
 AM_CPPFLAGS = \
+ @MU_LIB_COMMON_INCLUDES@ -I/libmailutils\
  -DSYSCONFDIR=\"$(sysconfdir)\"\
  -DLOCALEDIR=\"$(localedir)\"
 
-INCLUDES = @MU_LIB_COMMON_INCLUDES@ -I/libmailutils
 
 EXTRA_DIST = \
  lexer.l\

@@ -16,8 +16,8 @@
 
 # This library uses gnulib calls and is always linked with gnulib, therefore
 # we use application includes here.
-INCLUDES = @MU_APP_COMMON_INCLUDES@ 
 AM_CPPFLAGS = \
+ @MU_APP_COMMON_INCLUDES@\
  -DSYSCONFDIR=\"$(sysconfdir)\"\
  -DSITE_VIRTUAL_PWDDIR=\"@SITE_VIRTUAL_PWDDIR@\"\
  -DSITE_CRAM_MD5_PWD=\"@SITE_CRAM_MD5_PWD@\"

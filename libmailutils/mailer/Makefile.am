@@ -21,4 +21,4 @@ libmailer_la_SOURCES = \
  mailer.c\
  progmailer.c
 
-INCLUDES = @MU_LIB_COMMON_INCLUDES@ -I/libmailutils
+AM_CPPFLAGS = @MU_LIB_COMMON_INCLUDES@ -I/libmailutils

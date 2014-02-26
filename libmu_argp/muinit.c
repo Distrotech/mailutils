@@ -35,7 +35,7 @@ const char version_etc_copyright[] =
   /* Do *not* mark this string for translation.  %s is a copyright
      symbol suitable for this locale, and %d is the copyright
      year.  */
-  "Copyright %s 2010 Free Software Foundation, inc.";
+  "Copyright %s 2007-2014 Free Software Foundation, inc.";
 
 void
 mu_program_version_hook (FILE *stream, struct argp_state *state)
