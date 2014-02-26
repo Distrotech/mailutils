@@ -88,6 +88,10 @@ static struct mu_cfg_param mu_tls_param[] = {
   { "ssl-cafile", mu_cfg_string, &tls_settings.ssl_cafile, 0, NULL,
     N_("Specify trusted CAs file."),
     N_("file") },
+  { "ssl-priorities", mu_cfg_string, &tls_settings.priorities, 0, NULL,
+    N_("Set the priorities to use on the ciphers, key exchange methods, "
+       "macs and compression methods."),
+    NULL },
   { "key-file-safety-checks", mu_cfg_callback,
     &tls_settings.ssl_key_safety_checks, 0,
     cb_safety_checks,

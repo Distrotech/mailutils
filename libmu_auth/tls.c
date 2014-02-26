@@ -173,13 +173,19 @@ mu_deinit_tls_libs (void)
   mu_tls_enable = 0;
 }
 
-static gnutls_session
+static char default_priority_string[] = "NORMAL";
+
+static gnutls_session_t
 initialize_tls_session (void)
 {
-  gnutls_session session = 0;
+  gnutls_session_t session = 0;
 
   gnutls_init (&session, GNUTLS_SERVER);
-  gnutls_set_default_priority (session);
+  gnutls_priority_set_direct (session,
+			      mu_tls_module_config.priorities
+			        ? mu_tls_module_config.priorities
+			        : default_priority_string,
+			      NULL);
   gnutls_credentials_set (session, GNUTLS_CRD_CERTIFICATE, x509_cred);
   gnutls_certificate_server_set_request (session, GNUTLS_CERT_REQUEST);
 
@@ -357,7 +363,7 @@ _mu_tls_io_stream_create (mu_stream_t *pstream,
 
 
 static ssize_t
-_tls_stream_pull (gnutls_transport_ptr fd, void *buf, size_t size)
+_tls_stream_pull (gnutls_transport_ptr_t fd, void *buf, size_t size)
 {
   mu_stream_t stream = fd;
   int rc;
@@ -372,7 +378,7 @@ _tls_stream_pull (gnutls_transport_ptr fd, void *buf, size_t size)
 }
 
 static ssize_t
-_tls_stream_push (gnutls_transport_ptr fd, const void *buf, size_t size)
+_tls_stream_push (gnutls_transport_ptr_t fd, const void *buf, size_t size)
 {
   mu_stream_t stream = fd;
   int rc;
@@ -407,8 +413,8 @@ _tls_server_open (mu_stream_t stream)
   sp->session = initialize_tls_session ();
   mu_stream_ioctl (stream, MU_IOCTL_TRANSPORT, MU_IOCTL_OP_GET, transport);
   gnutls_transport_set_ptr2 (sp->session,
-			     (gnutls_transport_ptr) transport[0],
-			     (gnutls_transport_ptr) transport[1]);
+			     (gnutls_transport_ptr_t) transport[0],
+			     (gnutls_transport_ptr_t) transport[1]);
   gnutls_transport_set_pull_function (sp->session, _tls_stream_pull);
   gnutls_transport_set_push_function (sp->session, _tls_stream_push);
   
@@ -429,21 +435,13 @@ prepare_client_session (mu_stream_t stream)
   struct _mu_tls_stream *sp = (struct _mu_tls_stream *) stream;
   int rc;
   mu_transport_t transport[2];
-  static int protocol_priority[] = {GNUTLS_TLS1, GNUTLS_SSL3, 0};
-  static int kx_priority[] = {GNUTLS_KX_RSA, 0};
-  static int cipher_priority[] = {GNUTLS_CIPHER_3DES_CBC,
-				  GNUTLS_CIPHER_ARCFOUR_128,
-				  0};
-  static int comp_priority[] = {GNUTLS_COMP_NULL, 0};
-  static int mac_priority[] = {GNUTLS_MAC_SHA, GNUTLS_MAC_MD5, 0};
 
   gnutls_init (&sp->session, GNUTLS_CLIENT);
-  gnutls_protocol_set_priority (sp->session, protocol_priority);
-  gnutls_cipher_set_priority (sp->session, cipher_priority);
-  gnutls_compression_set_priority (sp->session, comp_priority);
-  gnutls_kx_set_priority (sp->session, kx_priority);
-  gnutls_mac_set_priority (sp->session, mac_priority);
-
+  gnutls_priority_set_direct (sp->session,
+			      mu_tls_module_config.priorities
+			        ? mu_tls_module_config.priorities
+			        : default_priority_string,
+			      NULL);
   gnutls_certificate_allocate_credentials (&x509_cred);
   if (mu_tls_module_config.ssl_cafile)
     {
@@ -461,8 +459,8 @@ prepare_client_session (mu_stream_t stream)
 
   mu_stream_ioctl (stream, MU_IOCTL_TRANSPORT, MU_IOCTL_OP_GET, transport);
   gnutls_transport_set_ptr2 (sp->session,
-			     (gnutls_transport_ptr) transport[0],
-			     (gnutls_transport_ptr) transport[1]);
+			     (gnutls_transport_ptr_t) transport[0],
+			     (gnutls_transport_ptr_t) transport[1]);
   gnutls_transport_set_pull_function (sp->session, _tls_stream_pull);
   gnutls_transport_set_push_function (sp->session, _tls_stream_push);
       

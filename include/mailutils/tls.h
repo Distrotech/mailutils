@@ -37,6 +37,8 @@ struct mu_tls_module_config
   
   char *ssl_cafile;
   int ssl_cafile_safety_checks;
+
+  char *priorities;
 };
 
 extern int mu_tls_module_init (enum mu_gocs_op, void *);
