@@ -95,7 +95,7 @@ biff_notify (mu_observer_t obs, size_t type, void *data, void *action_data)
 	{
 	  sendto (fd, buf, strlen (buf), 0,
 		  mbox->notify_sa, sizeof (struct sockaddr_in));
-	  //FIXME: on error?
+	  /*FIXME: on error?*/
 	  free (buf);
 	}
     }
@@ -110,8 +110,6 @@ mu_mailbox_set_notify (mu_mailbox_t mbox, const char *user)
 
   if (!mbox)
     return EINVAL;
-  //  if (!(mbox->flags & MU_STREAM_APPEND))
-  //    return EACCES;
 
   if (user)
     user = strdup (user);

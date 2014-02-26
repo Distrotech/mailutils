@@ -339,6 +339,8 @@ extern int  imap4d_starttls (struct imap4d_session *,
 			     struct imap4d_command *, imap4d_tokbuf_t);
 extern void starttls_init (void);
 void tls_encryption_on (struct imap4d_session *);
+#else
+# define tls_encryption_on(s)
 #endif /* WITH_TLS */
 extern int  imap4d_status (struct imap4d_session *,
 			   struct imap4d_command *, imap4d_tokbuf_t);

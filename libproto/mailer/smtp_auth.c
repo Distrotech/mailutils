@@ -131,7 +131,7 @@ mu_smtp_auth (mu_smtp_t smtp)
 #else
   /* FIXME: Provide support for some basic authentication methods.
      Once done, make sure _mu_smtp_fixup_params is called for this
-     branc as well (though see the fixme above). */
+     branch as well (though see the fixme above). */
   return ENOSYS;
 #endif
 }

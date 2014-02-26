@@ -42,6 +42,8 @@ enum tls_mode tls_mode;
 #ifdef WITH_TLS
 int tls_available;
 int tls_done;
+#else
+# define tls_available 0
 #endif /* WITH_TLS */
 
 int initial_state = AUTHORIZATION; 
@@ -172,7 +174,6 @@ cb_tls (void *data, mu_config_value_t *val)
     mu_error (_("not a valid tls keyword: %s"), val->v.string);
   return 0;
 }
-#endif
 
 static int
 cb_tls_required (void *data, mu_config_value_t *val)
@@ -197,6 +198,7 @@ cb_tls_required (void *data, mu_config_value_t *val)
 
   return 0;
 }
+#endif
 
 static struct mu_cfg_param pop3d_srv_param[] = {
 #ifdef WITH_TLS

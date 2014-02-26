@@ -284,6 +284,7 @@ cb_tls (void *data, mu_config_value_t *val)
 }
 #endif
 
+#ifdef WITH_TLS
 static int
 cb_tls_required (void *data, mu_config_value_t *val)
 {
@@ -307,6 +308,7 @@ cb_tls_required (void *data, mu_config_value_t *val)
     
   return 0;
 }
+#endif
 
 static mu_list_t auth_deny_user_list, auth_allow_user_list;
 static mu_list_t auth_deny_group_list, auth_allow_group_list;
