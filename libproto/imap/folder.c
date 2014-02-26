@@ -64,9 +64,11 @@ _mu_folder_preauth_callback (void *data, int code, size_t sdat, void *pdat)
 static void
 _mu_folder_bye_callback (void *data, int code, size_t sdat, void *pdat)
 {
+#if 0
   mu_folder_t folder = data;
-  const char *text = pdat;
   mu_imap_t imap = folder->data;
+#endif
+  const char *text = pdat;
   mu_debug (MU_DEBCAT_FOLDER, MU_DEBUG_TRACE1,
 	    (_("IMAP server closing connection: %s"), text));
   /*FIXME:  mu_imap_disconnect (imap);*/

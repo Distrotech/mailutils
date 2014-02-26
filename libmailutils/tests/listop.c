@@ -332,6 +332,8 @@ ictl_ins (mu_iterator_t itr, int argc, char **argv)
       rc = mu_iterator_ctl (itr, mu_itrctl_insert_list, tmp);
       mu_list_destroy (&tmp);
     }
+  if (rc)
+    printf ("%s\n", mu_strerror (rc));
 }
 
 void

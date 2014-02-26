@@ -79,7 +79,7 @@ AM_CPPFLAGS = \
 
 YLWRAP = $(SHELL) $(mu_aux_dir)/gylwrap
 AM_YFLAGS=-vt
-AM_LFLAGS=-dvp
+AM_LFLAGS=-dp
 
 EXTRA_DIST = parsedate.y
 

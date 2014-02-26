@@ -915,7 +915,6 @@ mail_send0 (compose_env_t *env, int save_to)
 	  else
 	    {
 	      struct mu_wordsplit ws;
-	      int status;
 
 	      if (mu_wordsplit (buf + 1, &ws, MU_WRDSF_DEFFLAGS) == 0)
 		{
@@ -925,8 +924,7 @@ mail_send0 (compose_env_t *env, int save_to)
 			mail_find_escape (ws.ws_wordv[0]);
 
 		      if (entry)
-			status = (*entry->escfunc) (ws.ws_wordc, ws.ws_wordv,
-						    env);
+			(*entry->escfunc) (ws.ws_wordc, ws.ws_wordv, env);
 		      else
 			mu_error (_("Unknown escape %s"), ws.ws_wordv[0]);
 		    }

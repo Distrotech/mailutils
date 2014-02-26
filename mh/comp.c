@@ -258,7 +258,7 @@ main (int argc, char **argv)
 		  mu_error (_("only one message at a time!"));
 		  return 1;
 		}
-	      draftmessage = mu_umaxtostr (0, mh_msgset_first_uid (msgset));
+	      draftmessage = (char*) mu_umaxtostr (0, mh_msgset_first_uid (msgset));
 	      mu_msgset_free (msgset);
 	      mu_mailbox_destroy (&mbox);
 	    }

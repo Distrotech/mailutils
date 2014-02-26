@@ -1216,7 +1216,7 @@ _compute_mailbox_size_recursive (struct _amd_data *amd, const char *name,
   free (buf);
   
   closedir (dir);
-  return 0;
+  return status;
 }
 
 static int

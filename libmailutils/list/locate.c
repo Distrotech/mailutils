@@ -32,7 +32,7 @@ _mu_list_ptr_comparator (const void *item, const void *value)
 int
 mu_list_locate (mu_list_t list, void *item, void **ret_item)
 {
-  struct list_data *current, *previous;
+  struct list_data *current;
   mu_list_comparator_t comp;
   int status = MU_ERR_NOENT;
 
@@ -40,8 +40,8 @@ mu_list_locate (mu_list_t list, void *item, void **ret_item)
     return EINVAL;
   comp = list->comp ? list->comp : _mu_list_ptr_comparator;
   mu_monitor_wrlock (list->monitor);
-  for (previous = &list->head, current = list->head.next;
-       current != &list->head; previous = current, current = current->next)
+  for (current = list->head.next; current != &list->head;
+       current = current->next)
     {
       if (comp (current->item, item) == 0)
 	{

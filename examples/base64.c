@@ -56,16 +56,14 @@ c_copy (mu_stream_t out, mu_stream_t in)
       
       while (mu_stream_read (in, &c, 1, &size) == 0 && size > 0)
 	{
-	  int rc;
-	  
 	  if (printable && !ISPRINT (c))
 	    {
 	      char outbuf[24];
 	      sprintf (outbuf, "\\%03o", (unsigned char) c);
-	      rc = mu_stream_write (out, outbuf, strlen (outbuf), NULL);
+	      MU_ASSERT (mu_stream_write (out, outbuf, strlen (outbuf), NULL));
 	    }
 	  else
-	    rc = mu_stream_write (out, &c, 1, NULL);
+	    MU_ASSERT (mu_stream_write (out, &c, 1, NULL));
 	}
     }
   else

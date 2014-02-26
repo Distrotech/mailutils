@@ -71,6 +71,8 @@ mu_imapio_send_qstring_unfold (struct _mu_imapio *io, const char *buffer,
       int rc;
       
       rc = mu_stream_write (io->_imap_stream, "\"", 1, NULL);
+      if (rc)
+	return rc;
       while (1)
 	{
 	  mu_stream_write (io->_imap_stream, buffer, len, NULL);

@@ -69,6 +69,9 @@ static mu_opool_t pool;
 
 %}
 
+%option nounput
+%option noinput
+
 %x COMMENT ML STR
 
 WS [ \t\f][ \t\f]*

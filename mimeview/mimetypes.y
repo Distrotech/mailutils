@@ -231,7 +231,7 @@ mimetypes_parse (const char *name)
     return 1;
   rc = yyparse ();
   mimetypes_close ();
-  return rule_list == NULL;
+  return rc || rule_list == NULL;
 }
   
 void

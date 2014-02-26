@@ -654,18 +654,18 @@ int
 maidag_lmtp_server ()
 {
   int rc = lmtp_set_privs ();
+
   if (rc)
     return rc;
 
   if (mu_m_server_mode (server) == MODE_DAEMON)
     {
-      int status;
       mu_m_server_begin (server);
-      status = mu_m_server_run (server);
+      rc = mu_m_server_run (server);
+      if (rc)
+	rc = EX_CONFIG;
       mu_m_server_end (server);
       mu_m_server_destroy (&server);
-      if (status)
-	return EX_CONFIG;
     }
   else
     {
@@ -701,6 +701,6 @@ maidag_lmtp_server ()
 
       rc = lmtp_loop (str, 0);
       mu_stream_destroy (&str);
-      return rc;
     }
+  return rc;
 }

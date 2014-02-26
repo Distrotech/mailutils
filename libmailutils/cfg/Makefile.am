@@ -40,7 +40,7 @@ BUILT_SOURCES = parser.c parser.h lexer.c
 
 YLWRAP = $(SHELL) $(mu_aux_dir)/gylwrap
 AM_YFLAGS=-vt
-AM_LFLAGS=-dvp
+AM_LFLAGS=-dp
 
 parser.c parser.h: $(srcdir)/parser.y
 	$(YLWRAP) "$(YACC) $(AM_YFLAGS) -d" $< \

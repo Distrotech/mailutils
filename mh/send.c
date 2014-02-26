@@ -879,8 +879,9 @@ main (int argc, char **argv)
       if (mu_list_is_empty (mesg_list) && argc == 0)
 	{
 	  char *dfolder =
-	    (!use_draft && use_draftfolder) ?
-	       mh_global_profile_get ("Draft-Folder", NULL) : NULL;
+	    (!use_draft && use_draftfolder)
+	                ? (char*) mh_global_profile_get ("Draft-Folder", NULL)
+	                : NULL;
 
 	  if (dfolder)
 	    addfolder (dfolder, 0, NULL);

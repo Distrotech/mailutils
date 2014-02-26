@@ -246,7 +246,7 @@ size_t message_count;             /* Total number of messages */
 int name_prefix_len;              /* Length of the mu_path_folder_dir */
 
 void
-install_folder_info (const char *name, struct folder_info *info)
+install_folder_info (const char *name, struct folder_info const *info)
 {
   struct folder_info *new_info = mu_alloc (sizeof (*new_info));
   *new_info = *info;
@@ -315,7 +315,7 @@ _scan (const char *name, size_t depth)
       if (fast_mode && depth > 0)
 	{
 	  memset (&info, 0, sizeof (info));
-	  info.name = name;
+	  info.name = (char*) name;
 	  install_folder_info (name, &info);
 	  closedir (dir);
 	  return;
@@ -770,7 +770,7 @@ pack_xlate (struct pack_tab *pack_tab, size_t count, size_t n)
   return p ? p->new : 0;
 }
 
-static int
+static void
 _fixup (const char *name, const char *value, struct fixup_data *fd, int flags)
 {
   size_t i;
@@ -785,7 +785,7 @@ _fixup (const char *name, const char *value, struct fixup_data *fd, int flags)
     {
       mu_error (_("cannot split line `%s': %s"), value,
 		mu_wordsplit_strerror (&ws));
-      return 0;
+      return;
     }
 
   rc = mu_msgset_create (&msgset, fd->mbox, MU_MSGSET_UID);
@@ -820,14 +820,13 @@ _fixup (const char *name, const char *value, struct fixup_data *fd, int flags)
       const char *p = mh_seq_read (fd->mbox, name, flags);
       fprintf (stderr, "Sequence %s: %s\n", name, p);
     }
-  
-  return 0;
 }
 
 static int
 fixup_global (const char *name, const char *value, void *data)
 {
-  return _fixup (name, value, data, 0);
+  _fixup (name, value, data, 0);
+  return 0;
 }
 
 static int
@@ -842,11 +841,10 @@ fixup_private (const char *name, const char *value, void *data)
   nlen = strlen (name) - strlen (fd->folder_dir);
   if (nlen > 0 && strcmp (name + nlen, fd->folder_dir) == 0)
     {
-      int rc;
       char *s = mu_alloc (nlen);
       memcpy (s, name, nlen - 1);
       s[nlen-1] = 0;
-      rc = _fixup (s, value, fd, SEQ_PRIVATE);
+      _fixup (s, value, fd, SEQ_PRIVATE);
       free (s);
     }
   return 0;

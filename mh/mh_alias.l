@@ -370,6 +370,9 @@ pop_source ()
 extern int yyparse (void);
 
 %}
+%option nounput
+%option noinput
+
 WS [ \t]+
 WORD [^ \t\n,:;<+=\*]+
 SPEC [,:;+=\*]

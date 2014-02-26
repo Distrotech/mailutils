@@ -423,13 +423,11 @@ create_filter (char *cmd, int outfd, int *infd)
     {
       /* Child process */
       struct mu_wordsplit ws;
-      int argc;
       char **argv;
       
       if (need_shell_p (cmd))
 	{
 	  char *x_argv[4];
-	  argc = 3;
 	  argv = x_argv;
 	  argv[0] = getenv ("SHELL");
 	  argv[1] = "-c";
@@ -444,7 +442,6 @@ create_filter (char *cmd, int outfd, int *infd)
 			mu_wordsplit_strerror (&ws));
 	      _exit (127);
 	    }
-	  argc = ws.ws_wordc;
 	  argv = ws.ws_wordv;
 	}      
       /* Create input channel: */
@@ -541,7 +538,7 @@ run_mailcap (mu_mailcap_entry_t entry, struct mime_context *ctx)
   int fd;                
   int *pfd = NULL;      
   int outfd = -1;       
-  pid_t pid, pager_pid;
+  pid_t pid;
   
   if (ctx->debug_level > 1)
     dump_mailcap_entry (entry);
@@ -582,7 +579,7 @@ run_mailcap (mu_mailcap_entry_t entry, struct mime_context *ctx)
   flag = 0;
   if (interactive_p (ctx)
       && mu_mailcap_entry_copiousoutput (entry, &flag) == 0 && flag)
-    pager_pid = create_filter (get_pager (), -1, &outfd);
+    create_filter (get_pager (), -1, &outfd);
   
   pid = create_filter (view_command, outfd, pfd);
   if (pid > 0)

@@ -213,6 +213,10 @@ pop_source ()
   return 0;
 }
 %}
+
+%option nounput
+%option noinput
+
 %x COMMENT ML STR
 
 WS [ \t][ \t]*

@@ -1936,7 +1936,6 @@ parse_content_type (struct compose_env *env,
 {
   int status = 0, stop = 0;
   char *rest = *prest;
-  char *sp;
   char *comment = NULL;
 
   while (stop == 0 && status == 0 && *rest)
@@ -1993,7 +1992,6 @@ parse_content_type (struct compose_env *env,
 	  mu_opool_append_char (pool, ';');
 	  mu_opool_append_char (pool, ' ');
 	  skipws (rest);
-	  sp = rest;
 	  for (; *rest && !mu_isspace (*rest) && *rest != '='; rest++)
 	    mu_opool_append_char (pool, *rest);
 	  skipws (rest);

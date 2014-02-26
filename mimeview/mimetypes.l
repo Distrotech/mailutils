@@ -44,6 +44,10 @@ digit_to_number (char c)
                      c-'a'+10);
 }
 %}
+
+%option nounput
+%option noinput
+	  
 %x ARGS HEX
 X [0-9a-fA-F]
 IDENT [a-zA-Z_\.][a-zA-Z0-9_\.-]*

@@ -177,28 +177,30 @@ file_ticket_get_cred (mu_ticket_t ticket, mu_url_t url, const char *challenge,
 		      char **pplain, mu_secret_t *psec)
 {
   struct file_ticket *ft = mu_ticket_get_data (ticket);
-
+  int rc = 0;
+  
   if (!ft->tickurl)
     {
-      int rc = mu_wicket_file_match_url (ft->filename, url,
-					 MU_URL_PARSE_ALL,
-					 &ft->tickurl);
+      rc = mu_wicket_file_match_url (ft->filename, url,
+				     MU_URL_PARSE_ALL,
+				     &ft->tickurl);
       if (rc)
 	return rc;
-    }
+     }
   if (pplain)
     {
       if (ft->user)
 	{
 	  *pplain = strdup (ft->user);
 	  if (!*pplain)
-	    return ENOMEM;
+	    rc = ENOMEM;
 	}
       else
-	return mu_url_aget_user (ft->tickurl, pplain);
+	rc = mu_url_aget_user (ft->tickurl, pplain);
     }
   else
-    return mu_url_get_secret (ft->tickurl, psec);
+    rc = mu_url_get_secret (ft->tickurl, psec);
+  return rc;
 }
 
 static int

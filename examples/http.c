@@ -72,7 +72,7 @@ main (int argc, char **argv)
 {
   int ret;
   mu_stream_t stream;
-  size_t nb, size;
+  size_t nb;
   size_t attempt;
   char *url = "www.gnu.org";
 
@@ -110,7 +110,7 @@ main (int argc, char **argv)
       exit (EXIT_FAILURE);
     }
 
-  for (attempt = 0, size = strlen (wbuf);; )
+  for (attempt = 0;; )
     {
       ret = mu_stream_write (stream, wbuf, strlen (wbuf), NULL);
       if (ret == 0)
