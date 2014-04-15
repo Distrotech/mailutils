@@ -261,6 +261,7 @@ frm (char *mailbox_name)
   int status;
 
   selected = 0;
+  counter.new = counter.read = counter.unread = 0;
   frm_scan (mailbox_name, frm_select, &total);
   
   if (show_summary)

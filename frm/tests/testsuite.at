@@ -107,3 +107,19 @@ FRMTEST([frm -l on long headers],[frm07],
 ])
 m4_popdef([FRM_MAILBOX])
 
+
+AT_SETUP([multiple mailboxes])
+AT_KEYWORDS([frm08])
+AT_CHECK([
+cp $abs_top_srcdir/testsuite/spool/mbox $abs_top_srcdir/testsuite/spool/mbox1 .
+frm FRM_OPTIONS -qS mbox mbox1],
+[1],
+[mbox:
+Folder contains 1 new message.
+mbox1:
+Folder contains 5 new messages.
+])
+
+AT_CLEANUP])
+
+
