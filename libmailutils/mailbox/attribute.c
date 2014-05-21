@@ -368,7 +368,7 @@ mu_attribute_is_equal (mu_attribute_t attr, mu_attribute_t attr2)
   int flags2 = 0, flags = 0;
   mu_attribute_get_flags (attr, &flags);
   mu_attribute_get_flags (attr2, &flags2);
-  return flags == flags;
+  return flags == flags2;
 }
 
 /*   Miscellaneous.  */
