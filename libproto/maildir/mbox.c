@@ -278,10 +278,7 @@ mk_info_filename (char *directory, char *suffix, char *name, int flags)
   size += 3 + strlen (fbuf);
 
   tmp = malloc (size);
-  if (!fbuf[0])
-    sprintf (tmp, "%s/%s/%*.*s:2", directory, suffix, namelen, namelen, name);
-  else
-    sprintf (tmp, "%s/%s/%*.*s:2,%s", directory, suffix, namelen, namelen, name, fbuf);
+  sprintf (tmp, "%s/%s/%*.*s:2,%s", directory, suffix, namelen, namelen, name, fbuf);
   return tmp;
 }
 
