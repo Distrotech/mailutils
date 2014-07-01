@@ -29,6 +29,7 @@ libfilter_la_SOURCES =\
  fltchain.c\
  fromflt.c\
  header.c\
+ htmlent.c\
  iconvflt.c\
  inline-comment.c\
  linecon.c\

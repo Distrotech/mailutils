@@ -1,0 +1,73 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2014 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# GNU Mailutils is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+
+AT_SETUP([htmlent filter])
+
+AT_KEYWORDS([filter decode encode htmlent])
+
+AT_CHECK([fltst htmlent encode read <<EOT
+<html>
+<head>
+ <title>Foo</title>
+</head>
+<body>
+  Text & more text
+</body>
+</html>
+EOT
+],
+[0],
+[&lt;html&gt;
+&lt;head&gt;
+ &lt;title&gt;Foo&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  Text &amp; more text
+&lt;/body&gt;
+&lt;/html&gt;
+])
+
+AT_CHECK([fltst htmlent decode read <<EOT
+&lt;html&gt;
+&lt;head&gt;
+ &lt;title&gt;Foo&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  Text &amp; more text
+&lt;/body&gt;
+&lt;/html&gt;
+EOT
+],
+[0],
+[<html>
+<head>
+ <title>Foo</title>
+</head>
+<body>
+  Text & more text
+</body>
+</html>
+])
+
+AT_CHECK([fltst htmlent decode read <<EOT
+&lt;&gt;&ampersand&amp;&gter
+EOT
+],
+[0],
+[<>&ampersand&&gter
+])
+
+AT_CLEANUP

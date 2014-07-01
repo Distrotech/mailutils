@@ -85,6 +85,7 @@ m4_include([fromflt.at])
 m4_include([inline-comment.at])
 m4_include([hdrflt.at])
 m4_include([linecon.at])
+m4_include([htmlent.at])
 
 AT_BANNER(Debug Specification)
 m4_include([debugspec.at])

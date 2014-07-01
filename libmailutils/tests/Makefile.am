@@ -89,6 +89,7 @@ TESTSUITE_AT = \
  fsfolder01.at\
  fsfolder02.at\
  hdrflt.at\
+ htmlent.at\
  imapio.at\
  inline-comment.at\
  linecon.at\
