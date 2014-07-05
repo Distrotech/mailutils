@@ -34,7 +34,8 @@ libfilter_la_SOURCES =\
  inline-comment.c\
  linecon.c\
  linelenflt.c\
- qpflt.c
+ qpflt.c\
+ xml.c
 
 AM_CPPFLAGS = @MU_LIB_COMMON_INCLUDES@ -I${top_srcdir}/libmailutils
 

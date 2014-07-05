@@ -86,6 +86,7 @@ m4_include([inline-comment.at])
 m4_include([hdrflt.at])
 m4_include([linecon.at])
 m4_include([htmlent.at])
+m4_include([xml.at])
 
 AT_BANNER(Debug Specification)
 m4_include([debugspec.at])

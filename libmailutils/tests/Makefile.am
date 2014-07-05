@@ -111,6 +111,7 @@ TESTSUITE_AT = \
  testsuite.at\
  url.at\
  url-comp.at\
+ xml.at\
  wicket.at\
  wordsplit.at
 

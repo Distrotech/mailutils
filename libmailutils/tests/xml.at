@@ -1,0 +1,41 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2014 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# GNU Mailutils is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+
+AT_SETUP([xml filter])
+
+AT_KEYWORDS([filter decode encode xml])
+
+AT_CHECK([fltst xml encode read <<EOT
+<body>
+  Text & moretext
+</body>
+EOT
+],
+[0],
+[&lt;body&gt;
+  Text &amp; more&#xc;text
+&lt;/body&gt;
+])
+
+AT_CHECK([fltst xml decode read <<EOT
+&lt;foo&#62;text+&#x34567eadfeefbce;&#x3c;/foo&#x3e;
+EOT
+],
+[0],
+[<foo>text+&#x34567eadfeefbce;</foo>
+])
+
+AT_CLEANUP
