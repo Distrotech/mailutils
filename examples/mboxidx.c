@@ -57,7 +57,7 @@ char *docstr[] = {
   "    -L TAG             set syslog tag",
   "    -N                 no output if nothing to index",
   "    -S N               skip first N messages",
-  "    -s FILE            save and read status of the prior run from FILE\n",
+  "    -s FILE            save and read status of the prior run from FILE",
   "    -t GLOB            index message body if its content type matches GLOB",
   "    -h                 display this help summary",
   NULL
