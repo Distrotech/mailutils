@@ -27,8 +27,8 @@
 /* In the "encode" mode, the "xml" filter takes a stream of UTF-8
    characters as its input, converts the three XML entities as per
    table below and replaces invalid characters (see
-   http://www.w3.org/TR/xml/#dt-charref) with their numeric character
-   reference representation as per http://www.w3.org/TR/xml/#charencoding.
+   http://www.w3.org/TR/xml/#charsets) with their numeric character
+   reference representation as per http://www.w3.org/TR/xml/#dt-charref.
 
    In decode mode, the filter does the reverse.
    

@@ -76,6 +76,19 @@ struct _icvt_filter
   iconv_t cd;           /* Conversion descriptor */
 };
 
+static void
+format_octal (char *op, unsigned char n)
+{
+  op += 4;
+  *--op = n % 8;
+  n >> 3;
+  *--op = n % 8;
+  n >> 3;
+  *--op = n % 8;
+  n >> 3;
+  *--op = '\\';
+}
+
 static enum mu_filter_result
 _icvt_decoder (void *xd,
 	       enum mu_filter_command cmd,
@@ -169,10 +182,10 @@ _icvt_decoder (void *xd,
 		{
 		  if (olen < 4)
 		    {
-		      iobuf->osize = 4;
+		      iobuf->osize += 4;
 		      return mu_filter_moreoutput;
 		    }
-		  sprintf (op, "\\%03o", *(unsigned char*)ip);
+		  format_octal (op, *(unsigned char*)ip);
 		  op += 4;
 		  olen -= 4;
 		  ip++;
