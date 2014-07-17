@@ -140,7 +140,7 @@ create_server (char *arg)
       exit (1);
     }
 
-  memset (&hints, sizeof(hints), 0);
+  memset (&hints, 0, sizeof(hints));
   hints.flags = MU_AH_PASSIVE;
   hints.socktype = SOCK_STREAM;
   hints.protocol = IPPROTO_TCP;

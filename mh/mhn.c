@@ -2808,7 +2808,7 @@ mhn_header (mu_message_t msg, mu_message_t omsg)
 		mu_message_get_part (omsg, 1, &part);
 	      else
 		part = omsg;
-	      if (part);
+	      if (part)
 		{
 		  mu_header_t parthdr = NULL;
 		  char *typestr, *typeargs;

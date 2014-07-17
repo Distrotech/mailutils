@@ -720,9 +720,9 @@ roll_back (const char *folder_name, struct pack_tab *pack_tab, size_t i)
   if (i == 0)
     return;
   
-  start = i - 1;
+  start = --i;
   mu_error (_("rolling back changes..."));
-  while (--i >= 0)
+  do
     if (pack_rename (pack_tab + i, 1))
       {
 	mu_error (_("CRITICAL ERROR: Folder `%s' left in an inconsistent state, because an error\n"
@@ -736,6 +736,7 @@ roll_back (const char *folder_name, struct pack_tab *pack_tab, size_t i)
 	mu_error (_("You will have to fix it manually."));
 	exit (1);
       }
+  while (i-- > 0);
   mu_error (_("folder `%s' restored successfully"), folder_name);
 }
 

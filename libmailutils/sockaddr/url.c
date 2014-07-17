@@ -62,7 +62,7 @@ mu_sockaddr_from_url (struct mu_sockaddr **retval, mu_url_t url,
     memcpy (&hints, mh, sizeof (hints));
   else
     {
-      memset (&hints, sizeof(hints), 0);
+      memset (&hints, 0, sizeof(hints));
       hints.family = AF_UNSPEC;
       hints.socktype = SOCK_STREAM;
       hints.protocol = IPPROTO_TCP;
