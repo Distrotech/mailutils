@@ -80,12 +80,12 @@ static void
 format_octal (char *op, unsigned char n)
 {
   op += 4;
-  *--op = n % 8;
-  n >> 3;
-  *--op = n % 8;
-  n >> 3;
-  *--op = n % 8;
-  n >> 3;
+  *--op = n % 8 + '0';
+  n >>= 3;
+  *--op = n % 8 + '0';
+  n >>= 3;
+  *--op = n % 8 + '0';
+  n >>= 3;
   *--op = '\\';
 }
 
