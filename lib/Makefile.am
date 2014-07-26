@@ -15,11 +15,11 @@
 ## You should have received a copy of the GNU General Public License
 ## along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>. 
 
-include gnulib.mk
+SUBDIRS = gnu .
 
-AM_CPPFLAGS += @MU_LIB_COMMON_INCLUDES@ 
-
-libmuaux_a_SOURCES += \
+AM_CPPFLAGS = @MU_LIB_COMMON_INCLUDES@ -I${top_srcdir}/lib/gnu -I${top_builddir}/lib/gnu
+noinst_LIBRARIES = libmuaux.a
+libmuaux_a_SOURCES = \
  argp_base.c\
  daemon.c\
  mailcap.c\
@@ -29,14 +29,14 @@ libmuaux_a_SOURCES += \
  tcpwrap.c\
  mu_umaxtostr.c\
  mu_umaxtostr.h
+libmuaux_a_LIBADD=gnu/*.o
+#libmuaux_a_LIBADD=`$(AR) t gnu/libgnu.a | sed s.^.gnu/.`
 
-noinst_HEADERS +=\
+noinst_HEADERS =\
  mailcap.h\
  muaux.h\
  tcpwrap.h
 
-EXTRA_DIST += utmp.c
-gl_LIBOBJS += @LIBOBJS@
-gl_LTLIBOBJS += @LTLIBOBJS@
+EXTRA_DIST = utmp.c
 
 

@@ -69,7 +69,7 @@ AC_SUBST(MU_APP_LIBRARIES,'../libmu_argp/libmu_argp.a ../libmu_cfg/libmu_cfg.la 
 
 AC_SUBST(MU_LIB_COMMON_INCLUDES,'-I${top_builddir} -I${top_srcdir}/include  -I${top_builddir}/include')
 
-AC_SUBST(MU_APP_COMMON_INCLUDES,'-I${srcdir} -I${top_srcdir}/include -I${top_srcdir}/lib -I${top_builddir}/lib -I${top_builddir} -I${top_builddir}/include -I${top_srcdir}/libmu_argp -I${top_srcdir}/libmu_cfg')
+AC_SUBST(MU_APP_COMMON_INCLUDES,'-I${srcdir} -I${top_srcdir}/include -I${top_srcdir}/lib -I${top_srcdir}/lib/gnu -I${top_builddir}/lib/gnu -I${top_builddir} -I${top_builddir}/include -I${top_srcdir}/libmu_argp -I${top_srcdir}/libmu_cfg')
 
 dnl Check for programs
 AC_PROG_CC
@@ -116,8 +116,8 @@ AC_CHECK_TYPE(iconv_t,:,
 # To make these two headers accessible for the libraries, they are linked
 # to include/.
 #
-AC_CONFIG_LINKS(include/gettext.h:lib/gettext.h)
-AC_CONFIG_LINKS(include/intprops.h:lib/intprops.h)
+AC_CONFIG_LINKS(include/gettext.h:lib/gnu/gettext.h)
+AC_CONFIG_LINKS(include/intprops.h:lib/gnu/intprops.h)
 
 AH_BOTTOM([
 #define DEFAULT_TEXT_DOMAIN PACKAGE
@@ -1462,6 +1462,7 @@ AC_CONFIG_FILES([
  include/mailutils/sys/Makefile
  include/mailutils/cpp/Makefile
  lib/Makefile
+ lib/gnu/Makefile
  libmu_argp/Makefile
  libmu_auth/Makefile
  libmu_cfg/Makefile

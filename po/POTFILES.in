@@ -25,9 +25,9 @@ imap4d/signal.c
 imap4d/starttls.c
 imap4d/util.c
 
-lib/argp-help.c
-lib/argp-parse.c
-lib/getopt.c
+lib/gnu/argp-help.c
+lib/gnu/argp-parse.c
+lib/gnu/getopt.c
 lib/mailcap.c
 lib/tcpwrap.c
 lib/strexit.c
