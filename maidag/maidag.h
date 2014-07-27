@@ -94,6 +94,7 @@
 #include "mailutils/libargp.h"
 
 #include "tcpwrap.h"
+#include "muscript.h"
 
 /* Debug */
 extern int debug_level;
@@ -177,12 +178,12 @@ typedef int (*maidag_script_fun) (mu_message_t msg,
 				  struct mu_auth_data *auth,
 				  const char *prog);
 
-extern maidag_script_fun script_handler;
+extern mu_script_t script_handler;
 
 struct maidag_script
 {
-  maidag_script_fun fun;   /* Handler function */
-  const char *pat;         /* Script name pattern */
+  mu_script_t scr;   /* Handler script */
+  const char *pat;   /* Script name pattern */
 };
 
 maidag_script_fun script_lang_handler (const char *lang);

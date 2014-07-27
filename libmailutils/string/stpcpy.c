@@ -23,7 +23,7 @@
 #include <mailutils/util.h>
 
 char *
-mu_stpcpy (char *p, char *q)
+mu_stpcpy (char *p, const char *q)
 {
   if (q)
     while ((*p = *q++))

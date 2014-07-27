@@ -15,21 +15,18 @@
    You should have received a copy of the GNU General Public License
    along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>. */
 
-#include "maidag.h"
-
-#ifdef WITH_GUILE
+#include "muscript.h"
+#include "muscript_priv.h"
 #include <mailutils/guile.h>
 
-int debug_guile;
 static int initialized;
 
-int
-scheme_check_msg (mu_message_t msg, struct mu_auth_data *auth,
-		  const char *prog)
+static int
+scheme_init (const char *prog, mu_script_descr_t *pdescr)
 {
   if (!initialized)
     {
-      mu_guile_init (debug_guile);
+      mu_guile_init (mu_script_debug_guile);
       if (mu_log_syslog)
 	{
 	  SCM port;
@@ -42,9 +39,21 @@ scheme_check_msg (mu_message_t msg, struct mu_auth_data *auth,
       initialized = 1;
     }
   mu_guile_load (prog, 0, NULL);
+  return 0;
+}
+
+static int
+scheme_proc (mu_script_descr_t descr, mu_message_t msg)
+{
   mu_guile_message_apply (msg, "mailutils-check-message");
   return 0;
 }
 
-#endif
-
+struct mu_script_fun mu_script_scheme = {
+  "scheme",
+  "scm\0",
+  scheme_init,
+  NULL,
+  scheme_proc,
+  NULL
+};

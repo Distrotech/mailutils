@@ -30,7 +30,7 @@ char *quota_query = NULL;  /* SQL query to retrieve mailbox quota */
 
 char *sender_address = NULL;       
 
-maidag_script_fun script_handler;
+mu_script_t script_handler;
 
 mu_list_t script_list;
 
@@ -62,7 +62,7 @@ static char doc[] =
 N_("GNU maidag -- the mail delivery agent.")
 "\v"
 N_("Debug flags are:\n\
-  g - guimb stack traces\n\
+  g - guile stack traces\n\
   t - sieve trace (MU_SIEVE_DEBUG_TRACE)\n\
   i - sieve instructions trace (MU_SIEVE_DEBUG_INSTR)\n\
   l - sieve action logs\n\
@@ -143,47 +143,28 @@ static const char *maidag_argp_capa[] = {
   NULL
 };
 
-#define D_DEFAULT "9,s"
-
 static void
 set_debug_flags (const char *arg)
 {
   while (*arg)
     {
-      if (mu_isdigit (*arg))
+      if (mu_script_debug_flags (arg, (char**)&arg) == 0)
+	break;
+      else if (mu_isdigit (*arg))
 	debug_level = strtoul (arg, (char**)&arg, 10);
       else
-	for (; *arg && *arg != ','; arg++)
-	  {
-	    switch (*arg)
-	      {
-	      case 'g':
-#ifdef WITH_GUILE
-		debug_guile = 1;
-#endif
-		break;
+	{
+	  mu_error (_("%c is not a valid debug flag"), *arg);
+	  break;
+	}
 
-	      case 't':
-		sieve_debug_flags |= MU_SIEVE_DEBUG_TRACE;
-		break;
-	  
-	      case 'i':
-		sieve_debug_flags |= MU_SIEVE_DEBUG_INSTR;
-		break;
-	  
-	      case 'l':
-		sieve_enable_log = 1;
-		break;
-	  
-	      default:
-		mu_error (_("%c is not a valid debug flag"), *arg);
-		break;
-	      }
-	  }
       if (*arg == ',')
 	arg++;
       else if (*arg)
-	mu_error (_("expected comma, but found %c"), *arg);
+	{
+	  mu_error (_("expected comma, but found %c"), *arg);
+	  exit (1);
+	}
     }
 }
 
@@ -234,7 +215,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
       break;
       
     case 'l':
-      script_handler = script_lang_handler (arg);
+      script_handler = mu_script_lang_handler (arg);
       if (!script_handler)
 	argp_error (state, _("unknown or unsupported language: %s"),
 		    arg);
@@ -256,7 +237,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
       break;
       
     case 'x':
-      mu_argp_node_list_new (lst, "debug", arg ? arg : D_DEFAULT);
+      mu_argp_node_list_new (lst, "debug", arg);
       break;
 
     case STDERR_OPTION:
@@ -353,7 +334,7 @@ cb_script_language (void *data, mu_config_value_t *val)
 {
   if (mu_cfg_assert_value_type (val, MU_CFG_STRING))
     return 1;
-  script_handler = script_lang_handler (val->v.string);
+  script_handler = mu_script_lang_handler (val->v.string);
   if (!script_handler)
     {
       mu_error (_("unsupported language: %s"), val->v.string);
@@ -457,7 +438,7 @@ struct mu_cfg_param maidag_cfg_param[] = {
   { "debug", mu_cfg_callback, NULL, 0, cb_debug,
     N_("Set maidag debug level.  Debug level consists of one or more "
        "of the following letters:\n"
-       "  g - guimb stack traces\n"
+       "  g - guile stack traces\n"
        "  t - sieve trace (MU_SIEVE_DEBUG_TRACE)\n"
        "  i - sieve instructions trace (MU_SIEVE_DEBUG_INSTR)\n"
        "  l - sieve action logs\n") },

@@ -14,26 +14,37 @@
    You should have received a copy of the GNU General Public License
    along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>. */
 
-#include "maidag.h"
-
-#ifdef WITH_PYTHON
+#include "muscript.h"
+#include "muscript_priv.h"
 #include <mailutils/python.h>
+#include <string.h>
 
-int
-python_check_msg (mu_message_t msg, struct mu_auth_data *auth,
-		  const char *prog)
+static int
+python_init (const char *prog, mu_script_descr_t *pdescr)
+{
+  *pdescr = (mu_script_descr_t) strdup (prog);
+  if (!*pdescr)
+    return errno;
+  return 0;
+}
+
+static int
+python_done (mu_script_descr_t descr)
+{
+  free (descr);
+}
+
+static int
+python_proc (mu_script_descr_t descr, mu_message_t msg)
 {
   PyMessage *py_msg;
   mu_py_dict dict[2];
   mu_py_script_data data[1];
-  char *argv[] = { "maidag", NULL };
+  char *argv[] = { NULL, NULL };
 
+  argv[0] = mu_program_name;
+  
   mu_py_script_init (1, argv);
-
-  if (!log_to_stderr)
-    {
-      /* FIXME */
-    }
 
   py_msg = PyMessage_NEW ();
   py_msg->msg = msg;
@@ -41,14 +52,21 @@ python_check_msg (mu_message_t msg, struct mu_auth_data *auth,
 
   dict[0].name = "message";
   dict[0].obj  = (PyObject *)py_msg;
-  dict[1].name = NULL;
-  data[0].module_name = "maidag";
+  data[0].module_name = mu_program_name;
   data[0].attrs = dict;
+  dict[1].name = NULL;
 
-  mu_py_script_run (prog, data);
+mu_py_script_run ((char*)descr, data);
   mu_py_script_finish ();
   return 0;
 }
 
-#endif /* WITH_PYTHON */
+struct mu_script_fun mu_script_python = {
+  "python",
+  "py\0pyc\0",
+  python_init,
+  python_done,
+  python_proc,
+  NULL
+};
 

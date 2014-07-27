@@ -17,8 +17,14 @@
 
 SUBDIRS = gnu .
 
-AM_CPPFLAGS = @MU_LIB_COMMON_INCLUDES@ -I${top_srcdir}/lib/gnu -I${top_builddir}/lib/gnu
-noinst_LIBRARIES = libmuaux.a
+AM_CPPFLAGS = \
+ @MU_LIB_COMMON_INCLUDES@\
+ -I${top_srcdir}/lib/gnu\
+ -I${top_builddir}/lib/gnu\
+ @GUILE_INCLUDES@\
+ @PYTHON_INCLUDES@
+
+noinst_LIBRARIES = libmuaux.a libmuscript.a
 libmuaux_a_SOURCES = \
  argp_base.c\
  daemon.c\
@@ -35,8 +41,21 @@ libmuaux_a_LIBADD=gnu/*.o
 noinst_HEADERS =\
  mailcap.h\
  muaux.h\
+ muscript.h\
+ muscript_priv.h\
  tcpwrap.h
 
 EXTRA_DIST = utmp.c
 
+libmuscript_a_SOURCES = \
+ script.c\
+ sieve.c
+
+if MU_COND_LIBMU_SCM
+ libmuscript_a_SOURCES += guile.c
+endif
+
+if MU_COND_PYTHON
+ libmuscript_a_SOURCES += python.c
+endif
 

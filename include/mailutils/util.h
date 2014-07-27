@@ -34,7 +34,7 @@ extern "C" {
 unsigned long mu_hex2ul (char hex);
 size_t mu_hexstr2ul (unsigned long* ul, const char* hex, size_t len);
 size_t mu_cpystr (char *dst, const char *src, size_t size);
-char *mu_stpcpy (char *p, char *q);
+char *mu_stpcpy (char *p, const char *q);
 int mu_string_unfold (char *text, size_t *plen);
 int mu_true_answer_p (const char *p);
 int mu_unre_set_regex (const char *str, int caseflag, char **errp);

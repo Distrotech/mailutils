@@ -19,13 +19,10 @@ sbin_PROGRAMS=maidag
 maidag_SOURCES=\
  deliver.c\
  forward.c\
- guile.c\
  lmtp.c\
  maidag.c\
  maidag.h\
  mailquota.c\
- python.c\
- sieve.c\
  script.c\
  util.c
 
@@ -34,6 +31,7 @@ if MU_COND_DBM
 endif
 
 maidag_LDADD = \
+ ../lib/libmuscript.a\
  @LIBMU_SCM@ @GUILE_LIBS@\
  @LIBMU_SCM_DEPS@\
  @MU_LIB_PY@ @PYTHON_LIBS@\

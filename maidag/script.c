@@ -17,80 +17,27 @@
 
 #include "maidag.h"
 
-struct script_tab
-{
-  char *lang;
-  char *suf;
-  maidag_script_fun fun;
-};
-
-struct script_tab script_tab[] = {
-#ifdef WITH_PYTHON
-  { "python", "py\0pyc\0", python_check_msg },
-#endif
-  { "sieve",  "sv\0siv\0sieve\0", sieve_check_msg },
-#ifdef WITH_GUILE
-  { "scheme", "scm\0", scheme_check_msg },
-#endif
-  { NULL }
-};
-
-maidag_script_fun
-script_lang_handler (const char *lang)
-{
-  struct script_tab *p;
-
-  for (p = script_tab; p->lang; p++)
-    if (strcmp (p->lang, lang) == 0)
-      return p->fun;
-  return NULL;
-}
-
-maidag_script_fun
-script_suffix_handler (const char *name)
-{
-  struct script_tab *p;
-  char *suf;
-  
-  suf = strrchr (name, '.');
-  if (!suf)
-    return NULL;
-  suf++;
-  
-  for (p = script_tab; p->lang; p++)
-    {
-      char *s;
-
-      for (s = p->suf; *s; s += strlen (s) + 1)
-	if (strcmp (s, suf) == 0)
-	  return p->fun;
-    }
-  return NULL;
-}
-
-
-
 int
 script_register (const char *pattern)
 {
-  maidag_script_fun fun;
-  struct maidag_script *scr;
+  mu_script_t scr;
+  struct maidag_script *p;
   
   if (script_handler)
-    fun = script_handler;
+    scr = script_handler;
   else
     {
-      fun = script_suffix_handler (pattern);
-      if (!fun)
+      scr = mu_script_suffix_handler (pattern);
+      if (!scr)
 	return EINVAL;
     }
 
-  scr = malloc (sizeof (*scr));
-  if (!scr)
+  p = malloc (sizeof (*p));
+  if (!p)
     return MU_ERR_FAILURE;
   
-  scr->fun = fun;
-  scr->pat = pattern;
+  p->scr = scr;
+  p->pat = pattern;
 
   if (!script_list)
     {
@@ -98,7 +45,7 @@ script_register (const char *pattern)
 	return MU_ERR_FAILURE;
     }
 
-  if (mu_list_append (script_list, scr))
+  if (mu_list_append (script_list, p))
     return MU_ERR_FAILURE;
 
   return 0;
@@ -119,6 +66,7 @@ apply_script (void *item, void *data)
   char *progfile;
   int rc;
   struct stat st;
+  mu_script_descr_t sd;
   
   progfile = mu_expand_path_pattern (scr->pat, clos->auth->name);
   if (stat (progfile, &st))
@@ -131,7 +79,21 @@ apply_script (void *item, void *data)
       return 0;
     }
 
-  rc = scr->fun (clos->msg, clos->auth, progfile);
+  rc = mu_script_init (scr->scr, progfile, &sd);
+  if (rc)
+    mu_error (_("initialization of script %s failed: %s"),
+	      progfile, mu_strerror (rc));
+  else
+    {
+      if (sieve_enable_log)
+	mu_script_log_enable (scr->scr, sd, clos->auth->name,
+			      message_id_header);
+      rc = mu_script_process_msg (scr->scr, sd, clos->msg);
+      if (rc)
+	mu_error (_("script %s failed: %s"), progfile, mu_strerror (rc));
+      mu_script_done (scr->scr, sd);
+    }
+
   free (progfile);
 
   if (rc == 0)

@@ -18,9 +18,15 @@
 /* MH inc command */
 
 #include <mh.h>
+#include "muscript.h"
 
 static char doc[] = N_("GNU MH inc")"\v"
-N_("Use -help to obtain the list of traditional MH options.");
+N_("Debug flags are:\n\
+  g - guile stack traces\n\
+  t - sieve trace (MU_SIEVE_DEBUG_TRACE)\n\
+  i - sieve instructions trace (MU_SIEVE_DEBUG_INSTR)\n\
+  l - sieve action logs\n\n\
+Use -help to obtain the list of traditional MH options.");
 static char args_doc[] = N_("[+FOLDER]");
 
 /* GNU options */
@@ -51,6 +57,12 @@ static struct argp_option options[] = {
    N_("be quiet")},
   {"notify",  ARG_NOTIFY,N_("BOOL"),   OPTION_ARG_OPTIONAL,
    N_("enable biff notification"), },
+  {"language",ARG_LANG,  N_("LANG"), 0,
+   N_("set language for the --script option") },
+  {"script",  ARG_SCRIPT,N_("FILE"), 0,
+   N_("filter incoming messages using script FILE") },
+  {"debug",   ARG_DEBUG, N_("FLAGS"), 0,
+   N_("enable debugging") },   
   { 0 }
 };
 
@@ -67,6 +79,9 @@ struct mh_option mh_option[] = {
   { "width",     MH_OPT_ARG, "number" },
   { "notify",    MH_OPT_BOOL },
   { "quiet" },
+  { "language",  MH_OPT_ARG, "lang" },
+  { "script",    MH_OPT_ARG, "file" },
+  { "debug",     MH_OPT_ARG, "flags" },
   { NULL }
 };
 
@@ -81,11 +96,14 @@ static int quiet = 0;
 static int notify = 0;
 static const char *append_folder;
 static const char *move_to_mailbox;
+static const char *script_file;
+static const char *script_lang;
 
 static error_t
 opt_handler (int key, char *arg, struct argp_state *state)
 {
   int rc;
+  char *p;
   
   switch (key)
     {
@@ -104,6 +122,11 @@ opt_handler (int key, char *arg, struct argp_state *state)
       
     case ARG_CHANGECUR:
       changecur = is_true (arg);
+      break;
+
+    case ARG_DEBUG:
+      if (mu_script_debug_flags (arg, &p))
+	argp_error (state, _("invalid debug flag near %s"), p);
       break;
 
     case ARG_NOCHANGECUR:
@@ -169,6 +192,14 @@ opt_handler (int key, char *arg, struct argp_state *state)
     case ARG_NOTIFY:
       notify = is_true (arg);;
       break;
+
+    case ARG_LANG:
+      script_lang = arg;
+      break;
+
+    case ARG_SCRIPT:
+      script_file = arg;
+      break;
       
     default:
       return ARGP_ERR_UNKNOWN;
@@ -196,6 +227,8 @@ struct incdat
   mu_mailbox_t output;
   size_t lastmsg;
   mh_format_t format;
+  mu_script_t handler;
+  mu_script_descr_t descr;
 };
 
 static int
@@ -294,6 +327,23 @@ incmbx (void *item, void *data)
 	  continue;
 	}
 
+      if (dp->handler)
+	{
+	  mu_attribute_t attr;
+
+	  if (mu_script_process_msg (dp->handler, dp->descr, imsg))
+	    {
+	      mu_error (_("%lu: filter failed: %s"),
+		    (unsigned long) n, mu_strerror (rc));
+	      continue;
+	    }
+
+	  mu_message_get_attribute (imsg, &attr);
+	  if (mu_attribute_is_deleted (attr))
+	    continue;
+	}
+
+      
       if ((rc = mu_mailbox_append_message (dp->output, imsg)) != 0)
 	{
 	  mu_error (_("%lu: error appending message: %s"),
@@ -379,10 +429,12 @@ main (int argc, char **argv)
   
   /* Native Language Support */
   MU_APP_INIT_NLS ();
-
+  
   mh_argp_init ();
   mh_argp_parse (&argc, &argv, 0, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, NULL);
+  mu_registrar_set_default_scheme ("mh");
+
   /* Inc sets missing cur to 1 */
   mh_mailbox_cur_default = 1;
 
@@ -395,6 +447,38 @@ main (int argc, char **argv)
 
   incdat.output = mh_open_folder (append_folder,
 				  MU_STREAM_READ|MU_STREAM_APPEND|MU_STREAM_CREAT);
+
+  if (script_file)
+    {
+      if (script_lang)
+	{
+	  incdat.handler = mu_script_lang_handler (script_lang);
+	  if (!incdat.handler)
+	    {
+	      mu_error (_("unknown or unsupported language: %s"),
+			script_lang);
+	      exit (1);
+	    }
+	}
+      else
+	{
+	  incdat.handler = mu_script_suffix_handler (script_file);
+	  if (!incdat.handler)
+	    {
+	      mu_error (_("unknown or unsupported language: %s"),
+			script_file);
+	      exit (1);
+	    }
+	}
+      rc = mu_script_init (incdat.handler, script_file, &incdat.descr);
+      if (rc)
+	{
+	  mu_error (_("script initialization failed: %s"),
+		    mu_strerror (rc));
+	  exit (1);
+	}
+    }
+  
   if (notify)
     {
       rc = mu_mailbox_set_notify (incdat.output, NULL);
@@ -424,6 +508,9 @@ main (int argc, char **argv)
   else
     mu_list_foreach (input_file_list, incmbx, &incdat);
 
+  if (script_file)
+    mu_script_done (incdat.handler, incdat.descr);
+  
   unseen_seq = mh_global_profile_get ("Unseen-Sequence", NULL);
   if (unseen_seq && lastseen < incdat.lastmsg)
     {
