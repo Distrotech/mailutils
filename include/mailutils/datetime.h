@@ -79,7 +79,7 @@ int mu_scan_datetime (const char *input, const char *fmt, struct tm *tm,
 #define MU_DATETIME_FROM_LENGTH 24
 
 #define MU_DATETIME_IMAP         "%d-%b-%Y %H:%M:%S %z"
-#define MU_DATETIME_INTERNALDATE "%d-%b-%Y%$ %H:%M:%S %z"
+#define MU_DATETIME_INTERNALDATE "%e-%b-%Y%$ %H:%M:%S %z"
 
   /* RFC2822 date.  Scan format contains considerable allowances which would
      stun formatting functions, therefore two distinct formats are provided:

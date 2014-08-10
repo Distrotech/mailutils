@@ -1138,7 +1138,7 @@ com_search (int argc, char **argv)
   rc = mu_msgset_count (mset, &count);
   if (rc == EINVAL || count == 0)
     {
-      mu_printf (_("no matches"));
+      mu_printf ("%s\n", _("no matches"));
       return 0;
     }
   mu_printf ("%lu matches:", (unsigned long) count);

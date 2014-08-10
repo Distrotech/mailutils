@@ -424,7 +424,9 @@ mu_scan_datetime (const char *input, const char *fmt,
 		 leading zero is replaced by a space. */
 	      {
 		int ndig;
-		
+
+		if (*input == ' ')
+		  ++input;
 		n = get_num (input, &p, 2, 1, 31, &ndig);
 		if (n == -1)
 		  rc = MU_ERR_PARSE;

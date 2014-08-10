@@ -313,8 +313,8 @@ imap4d_search0 (imap4d_tokbuf_t tok, int isuid, char **err_text)
   parsebuf.tree = parse_search_key_list (&parsebuf);
   if (!parsebuf.tree)
     {
+      *err_text = parsebuf.err_mesg ? parsebuf.err_mesg : "Parse error";
       parse_free_mem (&parsebuf);
-      *err_text = "Parse error";
       return RESP_BAD;
     }
 
