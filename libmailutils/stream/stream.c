@@ -371,6 +371,8 @@ mu_stream_strerror (mu_stream_t stream, int rc)
 {
   const char *str;
 
+  if (!stream)
+    return mu_strerror (rc);
   if (stream->error_string)
     str = stream->error_string (stream, rc);
   else
