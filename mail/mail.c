@@ -558,7 +558,7 @@ mail_mainloop (char *(*input) (void *, int),
   while ((command = (*input) (closure, 0)) != NULL)
     {
       int len = strlen (command);
-      while (command[len-1] == '\\')
+      while (len > 0 && command[len-1] == '\\')
 	{
 	  char *buf;
 	  char *command2 = (*input) (closure, 1);
