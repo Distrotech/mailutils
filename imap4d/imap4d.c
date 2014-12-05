@@ -35,6 +35,8 @@ enum tls_mode tls_mode;
 int login_disabled;             /* Disable LOGIN command */
 int create_home_dir;            /* Create home directory if it does not
 				   exist */
+mu_list_t user_retain_groups;
+
 int home_dir_mode = S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH;
 
 int mailbox_mode[NS_MAX];
@@ -246,7 +248,32 @@ cb_mailbox_mode (void *data, mu_config_value_t *val)
     mu_error (_("invalid mode string near %s"), p);
   return 0;
 }
+
+static int
+cb2_group (const char *gname, void *data)
+{
+  mu_list_t list = data;
+  struct group *group;
+  
+  group = getgrnam (gname);
+  if (!group)
+    mu_error (_("unknown group: %s"), gname);
+  else
+    mu_list_append (list, (void*)group->gr_gid);
+  return 0;
+}
+  
+static int
+cb_group (void *data, mu_config_value_t *arg)
+{
+  mu_list_t *plist = data;
 
+  if (!*plist)
+    mu_list_create (plist);
+  return mu_cfg_string_value_cb (arg, cb2_group, *plist);
+}
+
+
 struct imap4d_srv_config
 {
   struct mu_srv_config m_cfg;
@@ -392,6 +419,9 @@ static struct mu_cfg_param imap4d_cfg_param[] = {
   { "home-dir-mode", mu_cfg_callback, NULL, 0, cb_mode,
     N_("File mode for creating user home directories (octal)."),
     N_("mode") },
+  { "retain-groups", mu_cfg_callback, &user_retain_groups, 0, cb_group,
+    N_("Retain these supplementary groups when switching to user privileges"),
+    N_("groups: list of string") },
 #ifdef WITH_TLS
   { "tls", mu_cfg_callback, &tls_mode, 0, cb_tls,
     N_("Kind of TLS encryption to use") },
@@ -422,6 +452,48 @@ static struct mu_cfg_param imap4d_cfg_param[] = {
   TCP_WRAPPERS_CONFIG
   { NULL }
 };
+
+int
+mu_get_user_groups (const char *user, mu_list_t retain, mu_list_t *pgrouplist)
+{
+  int rc;
+  struct group *gr;
+  mu_list_t list;
+	
+  if (!*pgrouplist)
+    {
+      rc = mu_list_create (pgrouplist);
+      if (rc)
+	{
+	  mu_error(_("%s: cannot create list: %s"),
+		   "mu_get_user_groups", mu_strerror (rc));
+	  return rc;
+	}
+    }
+
+  list = *pgrouplist;
+  setgrent ();
+  for (rc = 0; rc == 0 && (gr = getgrent ()); )
+    {
+      char **p;
+      for (p = gr->gr_mem; *p; p++)
+	if (strcmp (*p, user) == 0)
+	  {
+	    if (retain && mu_list_locate (retain, (void*)gr->gr_gid, NULL))
+	      continue;
+	      
+	    /* FIXME: Avoid duplicating gids */
+	    rc = mu_list_append (list, (void*)gr->gr_gid);
+	    if (rc) 
+	      mu_error(_("%s: cannot append to list: %s"),
+		       "mu_get_user_groups",
+		       mu_strerror (rc));
+	    break;
+	  }
+    }
+  endgrent ();
+  return rc;
+}
 
 int
 imap4d_session_setup0 ()
@@ -502,7 +574,48 @@ imap4d_session_setup0 ()
     }
   
   if (auth_data->change_uid)
-    setuid (auth_data->uid);
+    {
+      struct group *gr;
+      mu_list_t groups = NULL;
+      int rc;
+      uid_t uid;
+
+      uid = getuid ();
+      if (uid != auth_data->uid)
+	{
+	  rc = mu_list_create (&groups);
+	  if (rc)
+	    {
+	      mu_error(_("cannot create list: %s"), mu_strerror (rc));
+	      free (imap4d_homedir);
+	      free (real_homedir);
+	      return 1;
+	    }
+	  mu_list_append (groups, (void*)auth_data->gid);
+
+	  rc = mu_get_user_groups (auth_data->name, user_retain_groups,
+				   &groups);
+	  if (rc)
+	    {
+	      /* FIXME: When mu_get_user_groups goes to the library, add a
+		 diag message here */
+	      free (imap4d_homedir);
+	      free (real_homedir);
+	      return 1;
+	    }
+	  gr = getgrnam ("mail");
+	  rc = mu_switch_to_privs (auth_data->uid, gr->gr_gid, groups);
+	  mu_list_destroy (&groups);
+	  if (rc)
+	    {
+	      mu_error (_("can't switch to user %s privileges: %s"),
+			auth_data->name, mu_strerror (rc));
+	      free (imap4d_homedir);
+	      free (real_homedir);
+	      return 1;
+	    }
+	}
+    }
 
   util_chdir (imap4d_homedir);
   namespace_init_session (imap4d_homedir);

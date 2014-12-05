@@ -40,8 +40,13 @@ static int
 dir_exists (const char *name, const char *suf)
 {
   struct stat st;
-  char *s = maildir_mkfilename (name, suf, NULL);
-      
+  int rc;
+  char *s;
+
+  rc = maildir_mkfilename (name, suf, NULL, &s);
+  if (rc)
+    return 0;/* FIXME: error message */
+  
   if (stat (s, &st) < 0)
     return 0;
 

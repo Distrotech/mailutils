@@ -157,9 +157,10 @@ imap4d_list (struct imap4d_session *session,
 			      "LIST (\\NoSelect) \"%c\" \"\"",
 			      MU_HIERARCHY_DELIMITER);
     }
+  
   /* There is only one mailbox in the "INBOX" hierarchy ... INBOX.  */
   else if (mu_c_strcasecmp (ref, "INBOX") == 0
-	   || (ref[0] == 0 && mu_c_strcasecmp (wcard, "INBOX") == 0))
+      || (ref[0] == 0 && mu_c_strcasecmp (wcard, "INBOX") == 0))
     {
       io_untagged_response (RESP_NONE, "LIST (\\NoInferiors) NIL INBOX");
     }
@@ -168,8 +169,8 @@ imap4d_list (struct imap4d_session *session,
       int status;
       mu_folder_t folder;
       char *cwd;
-      char *p, *q;
       struct refinfo refinfo;
+      size_t seglen;
       
       switch (*wcard)
 	{
@@ -209,12 +210,10 @@ imap4d_list (struct imap4d_session *session,
       /* Move any directory not containing a wildcard into the reference
 	 So (ref = ~guest, wcard = Mail/folder1/%.vf) -->
 	 (ref = ~guest/Mail/folder1, wcard = %.vf).  */
-      for (p = wcard; (q = strpbrk (p, "/%*")) && *q == '/'; p = q + 1)
-	;
+      seglen = strcspn (wcard, "%*");
 
-      if (p > wcard)
+      if (seglen)
 	{
-	  size_t seglen = p - wcard;
 	  size_t reflen = strlen (ref);
 	  int addslash = (reflen > 0 && ref[reflen-1] != '/'); 
 	  size_t len = seglen + reflen + addslash + 1;
@@ -235,6 +234,21 @@ imap4d_list (struct imap4d_session *session,
 	  return io_completion_response (command, RESP_NO,
 			              "The requested item could not be found.");
 	}
+
+      /* FIXME */
+      if (wcard[0] == 0)
+	{
+	  char *p = strrchr (ref, '/');
+	  if (p && p[1])
+	    {
+	      *p++ = 0;
+	      wcard = p;
+
+	      p = strrchr (cwd, '/');
+	      *p = 0;
+	    }
+	}
+
       status = mu_folder_create (&folder, cwd);
       if (status)
 	{

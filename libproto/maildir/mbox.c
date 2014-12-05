@@ -68,6 +68,7 @@
 #include <mailutils/sys/mailbox.h>
 #include <mailutils/sys/registrar.h>
 #include <mailutils/sys/amd.h>
+#include <mailutils/io.h>
 #include <maildir.h>
 
 #ifndef PATH_MAX 
@@ -237,8 +238,9 @@ read_random (void *buf, size_t size)
   return rc != size;
 }
 
-char *
-maildir_mkfilename (const char *directory, const char *suffix, const char *name)
+int
+maildir_mkfilename (const char *directory, const char *suffix, const char *name,
+		    char **ret_name)
 {
   size_t size = strlen (directory) + 1 + strlen (suffix) + 1;
   char *tmp;
@@ -247,22 +249,25 @@ maildir_mkfilename (const char *directory, const char *suffix, const char *name)
     size += 1 + strlen (name);
   
   tmp = malloc (size);
+  if (!tmp)
+    return errno;
   sprintf (tmp, "%s/%s", directory, suffix);
   if (name)
     {
       strcat (tmp, "/");
       strcat (tmp, name);
     }
-  return tmp;
+  *ret_name = tmp;
+  return 0;
 }
 
-static char *
-mk_info_filename (char *directory, char *suffix, char *name, int flags)
+static int
+mk_info_filename (char *directory, char *suffix, char *name, int flags,
+		  char **ret_name)
 {
   char fbuf[info_map_size + 1];
   char *tmp;
   int namelen;
-  size_t size;
 
   tmp = strchr (name, ':');
   if (!tmp)
@@ -270,16 +275,10 @@ mk_info_filename (char *directory, char *suffix, char *name, int flags)
   else
     namelen = tmp - name;
 
-  size = strlen (directory)
-          + 1 + strlen (suffix)
-          + 1 + namelen + 1;
-
   flags_to_info (flags, fbuf);
-  size += 3 + strlen (fbuf);
 
-  tmp = malloc (size);
-  sprintf (tmp, "%s/%s/%*.*s:2,%s", directory, suffix, namelen, namelen, name, fbuf);
-  return tmp;
+  return mu_asprintf (ret_name, "%s/%s/%*.*s:2,%s",
+		      directory, suffix, namelen, namelen, name, fbuf);
 }
 
 char *
@@ -335,8 +334,7 @@ static int
 maildir_cur_message_name (struct _amd_message *amsg, char **pname)
 {
   struct _maildir_message *msg = (struct _maildir_message *) amsg;
-  *pname = maildir_mkfilename (amsg->amd->name, msg->dir, msg->file_name);
-  return 0;
+  return maildir_mkfilename (amsg->amd->name, msg->dir, msg->file_name, pname);
 }
 
 static int
@@ -350,9 +348,11 @@ maildir_new_message_name (struct _amd_message *amsg, int flags, int expunge,
       *pname = NULL;
     }
   else if (strcmp (msg->dir, CURSUF) == 0)
-    *pname = mk_info_filename (amsg->amd->name, CURSUF, msg->file_name, flags);
+    return mk_info_filename (amsg->amd->name, CURSUF, msg->file_name, flags,
+			     pname);
   else
-    *pname = maildir_mkfilename (amsg->amd->name, msg->dir, msg->file_name);
+    return maildir_mkfilename (amsg->amd->name, msg->dir, msg->file_name,
+			       pname);
   return 0;
 }
 
@@ -388,7 +388,16 @@ static void
 maildir_delete_file (char *dirname, char *filename)
 {
   struct stat st;
-  char *name = maildir_mkfilename (dirname, filename, NULL);
+  char *name;
+  int rc;
+  
+  rc = maildir_mkfilename (dirname, filename, NULL, &name);
+  if (rc)
+    {
+      mu_error ("maildir: failed to create file name: %s",
+		mu_strerror (errno));
+      return;
+    }
 
   if (stat (name, &st) == 0)
     {
@@ -429,15 +438,21 @@ maildir_create (struct _amd_data *amd, int flags)
   for (i = 0; i < 3; i++)
     {
       DIR *dir;
-      char *tmpname = maildir_mkfilename (amd->name, dirs[i], NULL);
-      int rc = maildir_opendir (&dir, tmpname,
-				PERMS |
-				mu_stream_flags_to_mode (amd->mailbox->flags,
-							 1));
+      int rc;
+      char *tmpname;
+
+      rc = maildir_mkfilename (amd->name, dirs[i], NULL, &tmpname);
+      if (rc)
+	return rc;
+      
+      rc = maildir_opendir (&dir, tmpname,
+			    PERMS |
+			    mu_stream_flags_to_mode (amd->mailbox->flags,
+						     1));
+      free (tmpname);
       if (rc)
 	return rc;
       closedir (dir);
-      free (tmpname);
     }
   return 0;
 }
@@ -454,10 +469,16 @@ maildir_msg_init (struct _amd_data *amd, struct _amd_message *amm)
   char *name, *fname;
   struct stat st;
   int i;
+  int rc;
   
   name = maildir_uniq (amd, -1);
-  fname = maildir_mkfilename (amd->name, NEWSUF, name);
-
+  rc = maildir_mkfilename (amd->name, NEWSUF, name, &fname);
+  if (rc)
+    {
+      free (name);
+      return rc;
+    }
+  
   msg->dir = TMPSUF;
   
   for (i = 0; i < NTRIES; i++)
@@ -483,35 +504,41 @@ maildir_msg_finish_delivery (struct _amd_data *amd, struct _amd_message *amm,
 			     const mu_message_t orig_msg)
 {
   struct _maildir_message *msg = (struct _maildir_message *) amm;
-  char *oldname = maildir_mkfilename (amd->name, TMPSUF, msg->file_name);
-  char *newname;
+  char *oldname, *newname;
   mu_attribute_t attr;
   int flags;
+  int rc;
+  
+  rc = maildir_mkfilename (amd->name, TMPSUF, msg->file_name, &oldname);
+  if (rc)
+    return rc;
   
   if (mu_message_get_attribute (orig_msg, &attr) == 0
       && mu_attribute_is_read (attr)
       && mu_attribute_get_flags (attr, &flags) == 0)
     {
       msg->dir = CURSUF;
-      newname = mk_info_filename (amd->name, CURSUF, msg->file_name, flags);
+      rc = mk_info_filename (amd->name, CURSUF, msg->file_name, flags,
+			     &newname);
     }
   else
     {
       msg->dir = NEWSUF;
-      newname = maildir_mkfilename (amd->name, NEWSUF, msg->file_name);
-    }
-    
-  unlink (newname);
-  if (link (oldname, newname) == 0)
-    unlink (oldname);
-  else
-    {
-      return errno; /* FIXME? */
+      rc = maildir_mkfilename (amd->name, NEWSUF, msg->file_name, &newname);
     }
 
+  if (rc == 0)
+    {
+      unlink (newname);
+      if (link (oldname, newname) == 0)
+	unlink (oldname);
+      else
+	rc = errno; /* FIXME? */
+    }
+  
   free (oldname);
   free (newname);
-  return 0;
+  return rc;
 }
 
 
@@ -523,7 +550,11 @@ maildir_flush (struct _amd_data *amd)
   int rc;
   DIR *dir;
   struct dirent *entry;
-  char *tmpname = maildir_mkfilename (amd->name, TMPSUF, NULL);
+  char *tmpname;
+
+  rc = maildir_mkfilename (amd->name, TMPSUF, NULL, &tmpname);
+  if (rc)
+    return rc;
 
   rc = maildir_opendir (&dir, tmpname,
 			PERMS |
@@ -561,16 +592,24 @@ maildir_deliver_new (struct _amd_data *amd, DIR *dir)
   while ((entry = readdir (dir)))
     {
       char *oldname, *newname;
-	
+      int rc;
+      
       switch (entry->d_name[0])
 	{
 	case '.':
 	  break;
 
 	default:
-	  oldname = maildir_mkfilename (amd->name, NEWSUF, entry->d_name);
-	  newname = mk_info_filename (amd->name, CURSUF, entry->d_name, 0);
-	  rename (oldname, newname);
+	  rc = maildir_mkfilename (amd->name, NEWSUF, entry->d_name, &oldname);
+	  if (rc)
+	    return rc;
+	  rc = mk_info_filename (amd->name, CURSUF, entry->d_name, 0, &newname);
+	  if (rc)
+	    {
+	      free (oldname);
+	      return rc;
+	    }
+	  rename (oldname, newname); /* FIXME: Error code? */
 	  free (oldname);
 	  free (newname);
 	}
@@ -654,19 +693,27 @@ maildir_scan0 (mu_mailbox_t mailbox, size_t msgno MU_ARG_UNUSED,
   maildir_flush (amd);
 
   /* 2nd phase: Scan and deliver messages from new */
-  name = maildir_mkfilename (amd->name, NEWSUF, NULL);
-
+  status = maildir_mkfilename (amd->name, NEWSUF, NULL, &name);
+  if (status)
+    return status;
+  
   status = maildir_opendir (&dir, name,
 			    PERMS |
 			    mu_stream_flags_to_mode (mailbox->flags, 1));
   if (status == 0)
     {
-      maildir_deliver_new (amd, dir);
+      if (mailbox->flags & MU_STREAM_WRITE)
+	maildir_deliver_new (amd, dir);
+      else
+	status = maildir_scan_dir (amd, dir, NEWSUF);
       closedir (dir);
     }
   free (name);
 
-  name = maildir_mkfilename (amd->name, CURSUF, NULL);
+  status = maildir_mkfilename (amd->name, CURSUF, NULL, &name);
+  if (status)
+    return status;
+  
   /* 3rd phase: Scan cur/ */
   status = maildir_opendir (&dir, name,
 			    PERMS |
@@ -746,7 +793,11 @@ maildir_remove (struct _amd_data *amd)
 
   for (i = 0; rc == 0 && i < 3; i++)
     {
-      char *name = maildir_mkfilename (amd->name, suf[i], NULL);
+      char *name;
+
+      rc = maildir_mkfilename (amd->name, suf[i], NULL, &name);
+      if (rc)
+	return rc;
       rc = amd_remove_dir (name);
       if (rc)
 	mu_diag_output (MU_DIAG_WARNING,

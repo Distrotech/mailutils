@@ -21,5 +21,5 @@
 #define CURSUF "cur"
 #define NEWSUF "new"
 
-extern char *maildir_mkfilename (const char *dir, const char *suffix,
-				 const char *name);
+int maildir_mkfilename (const char *dir, const char *suffix,
+			const char *name, char **retname);

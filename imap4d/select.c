@@ -64,13 +64,17 @@ imap4d_select0 (struct imap4d_command *command, const char *mboxname,
   if (!mailbox_name)
     return io_completion_response (command, RESP_NO, "Couldn't open mailbox");
 
-  if (flags & MU_STREAM_RDWR)
+  if (flags & MU_STREAM_WRITE)
     {
       status = manlock_open_mailbox (&mbox, mailbox_name, 1, flags);
+      if (status)
+	flags &= ~MU_STREAM_WRITE;
     }
-  else
+
+  if (!(flags & MU_STREAM_WRITE))
     {
       status = mu_mailbox_create_default (&mbox, mailbox_name);
+
       if (status)
 	mu_diag_funcall (MU_DIAG_ERROR, "mu_mailbox_create_default",
 			 mailbox_name,
