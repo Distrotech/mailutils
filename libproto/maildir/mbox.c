@@ -390,7 +390,7 @@ maildir_delete_file (char *dirname, char *filename)
   struct stat st;
   char *name;
   int rc;
-  
+
   rc = maildir_mkfilename (dirname, filename, NULL, &name);
   if (rc)
     {
@@ -412,21 +412,32 @@ maildir_delete_file (char *dirname, char *filename)
 static int
 maildir_opendir (DIR **dir, char *name, int permissions)
 {
+  int rc = 0;
+      
   *dir = opendir (name);
   if (!*dir)
     {
       if (errno == ENOENT)
 	{
 	  if (mkdir (name, permissions))
-	    return errno;
+	    {
+	      rc = errno;
+	      mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR,
+			("can't create directory %s: %s",
+			 name, mu_strerror (rc)));
+	      return rc;
+	    }
+	  
 	  *dir = opendir (name);
-	  if (!*dir)
-	    return errno;
+	  if (*dir)
+	    return 0;
 	}
-      else
-	return errno;
+      rc = errno;
+      mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR,
+		("can't open directory %s: %s",
+		 name, mu_strerror (rc)));
     }
-  return 0;
+  return rc;
 }
 
 static int
@@ -529,11 +540,28 @@ maildir_msg_finish_delivery (struct _amd_data *amd, struct _amd_message *amm,
 
   if (rc == 0)
     {
-      unlink (newname);
-      if (link (oldname, newname) == 0)
-	unlink (oldname);
+      if (unlink (newname))
+	{
+	  rc = errno;
+	  mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR,
+		    ("can't unlink %s: %s",
+		     newname, mu_strerror (errno)));
+	}
+      else if (link (oldname, newname) == 0)
+	{
+	  if (unlink (oldname))
+	    mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR,
+		      ("can't unlink %s: %s",
+		       oldname, mu_strerror (errno)));
+	}
       else
-	rc = errno; /* FIXME? */
+	{
+	  rc = errno;
+	  mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR,
+		    ("renaming %s to %s failed: %s",
+		     oldname, newname, mu_strerror (rc)));
+	}
+
     }
   
   free (oldname);
@@ -551,6 +579,9 @@ maildir_flush (struct _amd_data *amd)
   DIR *dir;
   struct dirent *entry;
   char *tmpname;
+
+  if (!(amd->mailbox->flags & MU_STREAM_WRITE))
+    return EACCES;
 
   rc = maildir_mkfilename (amd->name, TMPSUF, NULL, &tmpname);
   if (rc)
@@ -588,7 +619,10 @@ int
 maildir_deliver_new (struct _amd_data *amd, DIR *dir)
 {
   struct dirent *entry;
+  int err = 0;
 
+  if (!(amd->mailbox->flags & MU_STREAM_WRITE))
+    return EACCES;
   while ((entry = readdir (dir)))
     {
       char *oldname, *newname;
@@ -609,12 +643,18 @@ maildir_deliver_new (struct _amd_data *amd, DIR *dir)
 	      free (oldname);
 	      return rc;
 	    }
-	  rename (oldname, newname); /* FIXME: Error code? */
+	  if (rename (oldname, newname))
+	    {
+	      err = MU_ERR_FAILURE;
+	      mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR,
+			("renaming %s to %s failed: %s",
+			 oldname, newname, mu_strerror (errno)));
+	    }
 	  free (oldname);
 	  free (newname);
 	}
     }
-  return 0;
+  return err;
 }
 
 static int
@@ -635,8 +675,8 @@ maildir_scan_dir (struct _amd_data *amd, DIR *dir, char *dirname)
 	  break;
 
 	default:
-	      /* Message not found. Index pointd to the array cell where it
-		 would be placed */
+	  /* Message not found. Index points to the array cell where it
+	     would be placed */
 	  msg = calloc (1, sizeof (*msg));
 	  if (!msg)
 	    {
@@ -702,9 +742,7 @@ maildir_scan0 (mu_mailbox_t mailbox, size_t msgno MU_ARG_UNUSED,
 			    mu_stream_flags_to_mode (mailbox->flags, 1));
   if (status == 0)
     {
-      if (mailbox->flags & MU_STREAM_WRITE)
-	maildir_deliver_new (amd, dir);
-      else
+      if (maildir_deliver_new (amd, dir))
 	status = maildir_scan_dir (amd, dir, NEWSUF);
       closedir (dir);
     }
@@ -824,7 +862,12 @@ maildir_chattr_msg (struct _amd_message *amsg, int expunge)
   if (!new_name)
     {
       if (unlink (mp->file_name))
-	rc = errno;
+	{
+	  rc = errno;
+	  mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR,
+		    ("can't unlink %s: %s",
+		     mp->file_name, mu_strerror (rc)));
+	}
     }
   else
     {

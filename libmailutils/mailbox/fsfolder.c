@@ -222,7 +222,7 @@ list_helper (struct search_data *data, mu_record_t record,
   dirp = opendir (dirname);
   if (dirp == NULL)
     {
-      mu_debug (MU_DEBCAT_MAILER, MU_DEBUG_ERROR,
+      mu_debug (MU_DEBCAT_FOLDER, MU_DEBUG_ERROR,
 		("list_helper cannot open directory %s: %s",
 		 dirname, mu_strerror (errno)));
       data->errcnt++;
@@ -276,7 +276,7 @@ list_helper (struct search_data *data, mu_record_t record,
 		  resp = malloc (sizeof (*resp));
 		  if (resp == NULL)
 		    {
-		      mu_debug (MU_DEBCAT_MAILER, MU_DEBUG_ERROR,
+		      mu_debug (MU_DEBCAT_FOLDER, MU_DEBUG_ERROR,
 				("list_helper: %s", mu_strerror (ENOMEM)));
 		      data->errcnt++;
 		      free (fname);
@@ -343,7 +343,7 @@ list_helper (struct search_data *data, mu_record_t record,
 	}
       else
 	{
-	  mu_debug (MU_DEBCAT_MAILER, MU_DEBUG_ERROR,
+	  mu_debug (MU_DEBCAT_FOLDER, MU_DEBUG_ERROR,
 		    ("list_helper cannot stat %s: %s",
 		     fname, mu_strerror (errno)));
 	}
