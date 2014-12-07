@@ -1,5 +1,8 @@
 # Spelling corrections for GNU Mailutils ChangeLog
 
+89d93a75c4abec10b9cfe0041eaf654d00f0a0ee
+s/erad-only/read-only/
+
 1cbbd572d56b7a77362992181ef008db8a11688f
 s/consisten/consistent/
 

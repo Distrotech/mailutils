@@ -24,126 +24,165 @@
 #include <pwd.h>
 #include <string.h>
 #include <stdlib.h>
+#include <errno.h>
 
-/*
-  Written by Alain Magloire.
-  Simple replacement for fgetpwent(), it is not :
-  - thread safe;
-  - static buffer was not use since it will limit the size
-    of the entry.  But rather memory is allocated and __never__
-    release.  The memory will grow if need be.
-  - no support for shadow
-  - no support for NIS(+)
+/* Assuming FP refers to an open file in format of /etc/passwd, read the next
+   line and store a pointer to a structure containing the broken-out
+   fields of the record in the location pointed to by RESULT.  Use *BUFP
+   (of size *BUFS) to store the data, reallocating it if necessary.  If
+   *BUFP is NULL or *BUFS is 0, allocate new memory.  The caller should
+   free *BUFP when no longer needed.  Do not try to free *RESULT!
+
+   Input lines not conforming to the /etc/passwd format are silently
+   ignored.
+   
+   Return value:
+    0      - success
+    ENOMEM - not enough memory
+    ENOENT - no more entries.
 */
 
-static char *buffer;
-static size_t buflen;
-static struct passwd pw;
-
-static char *
-parse_line (char *s, char **p)
+int
+mu_fgetpwent_r (FILE *fp, char **bufp, size_t *bufs, struct passwd **result)
 {
-  if (*s)
+  char *buffer = *bufp;
+  size_t buflen = *bufs;
+  struct passwd *pwbuf;
+  size_t pos = 0;
+  int c;
+  size_t off[6];
+  int i = 0;
+
+  if (!buffer)
+    buflen = 0;
+  
+  while ((c = fgetc(fp)) != EOF)
     {
-      char *sep = strchr (s, ':');
-      if (sep)
+      if (pos == buflen)
 	{
-	  *sep++ = '\0';
-	  *p = sep;
+	  char *nb;
+	  size_t ns;
+	  
+	  if (buflen == 0)
+	    ns = 128;
+	  else
+	    {
+	      ns = ns * 2;
+	      if (ns < buflen)
+		return ENOMEM;
+	    }
+	  nb = realloc(buffer, ns);
+	  if (!nb)
+	    return ENOMEM;
+	  buffer = nb;
+	  buflen = ns;
+	}
+      if (c == '\n')
+	{
+	  buffer[pos++] = 0;
+	  if (i != sizeof(off)/sizeof(off[0]))
+	    continue;
+	  break;
+	}
+      if (c == ':')
+	{
+	  buffer[pos++] = 0;
+	  if (i < sizeof(off)/sizeof(off[0]))
+	    off[i++] = pos;
 	}
       else
-	*p = s + strlen (s);
+	buffer[pos++] = c;
     }
-  else
-    *p = s;
-  return s;
+
+  if (pos == 0)
+    return ENOENT;
+
+  if (pos + sizeof(struct passwd) > buflen)
+    {
+      char *nb;
+      size_t ns;
+	  
+      ns = pos + sizeof(struct passwd);
+      if (ns < buflen)
+	return ENOMEM;
+    
+      nb = realloc(buffer, ns);
+      if (!nb)
+	return ENOMEM;
+      buffer = nb;
+      buflen = ns;
+    }
+  pwbuf = (struct passwd*)((char*) buffer + pos);
+  
+  pwbuf->pw_name   = buffer;
+  pwbuf->pw_passwd = buffer + off[0];
+  pwbuf->pw_uid    = strtoul(buffer + off[1], NULL, 10);
+  pwbuf->pw_gid    = strtoul(buffer + off[2], NULL, 10);
+  pwbuf->pw_gecos  = buffer + off[3];
+  pwbuf->pw_dir    = buffer + off[4];
+  pwbuf->pw_shell  = buffer + off[5];
+
+  *bufp   = buffer;
+  *bufs   = buflen;
+  *result = pwbuf;
+  return 0;
 }
 
-static struct passwd *
-getentry (char *s)
-{
-  char *p;
-  pw.pw_name = parse_line (s, &p);
-  s = p;
-  pw.pw_passwd = parse_line (s, &p);
-  s = p;
-  pw.pw_uid = strtoul (parse_line (s, &p), NULL, 10);
-  s = p;
-  pw.pw_gid = strtoul (parse_line (s, &p), NULL, 10);
-  s = p;
-  pw.pw_gecos = parse_line (s, &p);
-  s = p;
-  pw.pw_dir = parse_line (s, &p);
-  s = p;
-  pw.pw_shell = parse_line (s, &p);
-  return &pw;
-}
+/* A simple replacement for fgetpwent().
+   Note:
+    - it is not thread safe (neither is the original fgetpwent)
+    - uses dynamically allocated buffer that is __never__ freed.
+    - no support for shadow nor BSD-style pwddb (neither has the original
+    fgetpwent).
+    - no support for NIS(+).
 
+   Initial implementation by Alain Magloire.
+   Rewritten from scratch by Sergey Poznyakoff.
+*/
 struct passwd *
 mu_fgetpwent (FILE *fp)
 {
-  size_t pos = 0;
-  int done = 0;
-  struct passwd *pw = NULL;
-
-  /* Allocate buffer if not yet available.  */
-  /* This buffer will be never free().  */
-  if (buffer == NULL)
+  static char *buffer;
+  static size_t bufsize;
+  static struct passwd *pwbuf;
+  int rc = mu_fgetpwent_r (fp, &buffer, &bufsize, &pwbuf);
+  if (rc)
     {
-      buflen = 1024;
-      buffer = malloc (buflen);
-      if (buffer == NULL)
-	return NULL;
+      errno = rc;
+      return NULL;
     }
-
-  do
-    {
-      if (fgets (buffer + pos, buflen, fp) != NULL)
-	{
-	  /* Need a full line.  */
-	  if (buffer[strlen (buffer) - 1] == '\n')
-	    {
-	      /* reset marker position.  */
-	      pos = 0;
-	      /* Nuke trailing newline.  */
-	      buffer[strlen (buffer) - 1] = '\0';
-
-	      /* Skip comments.  */
-	      if (buffer[0] != '#')
-		{
-		  done = 1;
-		  pw = getentry (buffer);
-		}
-	    }
-	  else
-	    {
-	      /* Line is too long reallocate the buffer.  */
-	      char *tmp;
-	      pos = strlen (buffer);
-	      buflen *= 2;
-	      tmp = realloc (buffer, buflen);
-	      if (tmp)
-		buffer = tmp;
-	      else
-		done = 1;
-	    }
-	}
-      else
-	done = 1;
-    } while (!done);
-
-  return pw;
-
+  return pwbuf;
 }
 
 #ifdef STANDALONE
+# include <assert.h>
+
 int
-main ()
+main (int argc, char **argv)
 {
-  FILE *fp = fopen ("/etc/passwd", "r");
-  if (fp)
+  FILE *fp;
+  
+  if (argc == 1)
+    {
+      char *a[3];
+      a[0] = argv[0];
+      a[1] = "/etc/passwd";
+      a[2] = NULL;
+      argv = a;
+      argc = 2;
+    }
+  while (--argc)
     {
       struct passwd *pwd;
+      char *file = *++argv;
+
+      fp = fopen (file, "r");
+      if (!fp)
+	{
+	  perror (file);
+	  continue;
+	}
+      printf ("Reading %s\n", file);
       while ((pwd = fgetpwent (fp)))
         {
           printf ("--------------------------------------\n");
@@ -155,6 +194,9 @@ main ()
           printf ("dir %s\n", pwd->pw_dir);
           printf ("shell %s\n", pwd->pw_shell);
         }
+      printf ("======================================\n");
+      printf ("End of %s\n", file);
+      close (fp);
     }
   return 0;
 }
