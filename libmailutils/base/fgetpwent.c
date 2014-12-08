@@ -41,14 +41,17 @@
     ENOMEM - not enough memory
     ENOENT - no more entries.
 */
+#define SPWDSIZ (sizeof (struct passwd))
 
 int
 mu_fgetpwent_r (FILE *fp, char **bufp, size_t *bufs, struct passwd **result)
 {
   char *buffer = *bufp;
   size_t buflen = *bufs;
+  char *nb;
+  size_t ns;
   struct passwd *pwbuf;
-  size_t pos = 0;
+  size_t pos = SPWDSIZ;
   int c;
   size_t off[6];
   int i = 0;
@@ -56,22 +59,19 @@ mu_fgetpwent_r (FILE *fp, char **bufp, size_t *bufs, struct passwd **result)
   if (!buffer)
     buflen = 0;
   
-  while ((c = fgetc(fp)) != EOF)
+  while ((c = fgetc (fp)) != EOF)
     {
-      if (pos == buflen)
+      if (pos >= buflen)
 	{
-	  char *nb;
-	  size_t ns;
-	  
 	  if (buflen == 0)
-	    ns = 128;
+	    ns = SPWDSIZ + 128;
 	  else
 	    {
 	      ns = ns * 2;
 	      if (ns < buflen)
 		return ENOMEM;
 	    }
-	  nb = realloc(buffer, ns);
+	  nb = realloc (buffer, ns);
 	  if (!nb)
 	    return ENOMEM;
 	  buffer = nb;
@@ -80,44 +80,47 @@ mu_fgetpwent_r (FILE *fp, char **bufp, size_t *bufs, struct passwd **result)
       if (c == '\n')
 	{
 	  buffer[pos++] = 0;
-	  if (i != sizeof(off)/sizeof(off[0]))
-	    continue;
+	  if (i != sizeof (off) / sizeof (off[0]))
+	    {
+	      pos = SPWDSIZ;
+	      continue;
+	    }
 	  break;
 	}
       if (c == ':')
 	{
 	  buffer[pos++] = 0;
-	  if (i < sizeof(off)/sizeof(off[0]))
+	  if (i < sizeof (off) / sizeof (off[0]))
 	    off[i++] = pos;
 	}
       else
 	buffer[pos++] = c;
     }
 
-  if (pos == 0)
+  if (pos == SPWDSIZ)
     return ENOENT;
 
-  if (pos + sizeof(struct passwd) > buflen)
+  if (c == EOF)
     {
-      char *nb;
-      size_t ns;
-	  
-      ns = pos + sizeof(struct passwd);
-      if (ns < buflen)
-	return ENOMEM;
-    
-      nb = realloc(buffer, ns);
-      if (!nb)
-	return ENOMEM;
-      buffer = nb;
-      buflen = ns;
+      if (i != sizeof (off) / sizeof (off[0]))
+	return ENOENT;
+      if (pos == buflen)
+	{
+	  nb = realloc (buffer, buflen + 1);
+	  if (!nb)
+	    return ENOMEM;
+	  buffer = nb;
+	  buflen = ns;
+	}
+      buffer[pos++] = 0;
     }
-  pwbuf = (struct passwd*)((char*) buffer + pos);
   
-  pwbuf->pw_name   = buffer;
+  pwbuf = (struct passwd*) buffer;
+  
+  pwbuf->pw_name   = buffer + SPWDSIZ;
   pwbuf->pw_passwd = buffer + off[0];
-  pwbuf->pw_uid    = strtoul(buffer + off[1], NULL, 10);
-  pwbuf->pw_gid    = strtoul(buffer + off[2], NULL, 10);
+  pwbuf->pw_uid    = strtoul (buffer + off[1], NULL, 10);
+  pwbuf->pw_gid    = strtoul (buffer + off[2], NULL, 10);
   pwbuf->pw_gecos  = buffer + off[3];
   pwbuf->pw_dir    = buffer + off[4];
   pwbuf->pw_shell  = buffer + off[5];
@@ -196,7 +199,7 @@ main (int argc, char **argv)
         }
       printf ("======================================\n");
       printf ("End of %s\n", file);
-      close (fp);
+      fclose (fp);
     }
   return 0;
 }
