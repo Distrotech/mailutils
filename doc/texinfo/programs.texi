@@ -307,14 +307,14 @@ be described later in this chapter):
 
 @example
 imap4d: Info: parsing file `/etc/mailutils.rc'
-# 1 "/etc/mailutils.rc"
+@hashchar{} 1 "/etc/mailutils.rc"
 mailbox @{
-# 2 "/etc/mailutils.rc"
+@hashchar{} 2 "/etc/mailutils.rc"
   mailbox-pattern maildir:/var/spool/mail;type=index;param=2;user=$@{user@};
-# 3 "/etc/mailutils.rc"
+@hashchar{} 3 "/etc/mailutils.rc"
   mailbox-type maildir;
 @};
-# 6 "/etc/mailutils.rc"
+@hashchar{} 6 "/etc/mailutils.rc"
 include /etc/mailutils.d;
 imap4d: Info: parsing file `/etc/mailutils.d/imap4d'
 ...
@@ -2524,7 +2524,7 @@ with @var{spool_path} being the full path to your mailspool directory
 @item -?
 @itemx --help
 Display a help message.
-@itemx --usage
+@item --usage
 Display a short usage summary.
 @item -V
 @itemx --version
@@ -2860,8 +2860,8 @@ from that user's @file{mbox}.
 @item mail -f @var{path_to_mailbox}
 @itemx mail --file @var{path_to_mailbox}
 To read messages from the specified mailbox.
-@itemx mail -u @var{user}
-@item mail --user=@var{user}
+@item mail -u @var{user}
+@itemx mail --user=@var{user}
 To read messages from the system mailbox belonging to @var{user}.
 @end table
 
@@ -7867,7 +7867,7 @@ use UNIX globbing or extended regular expression matching,
 correspondingly.  These were described in detail above. 
 
 @node Dump the Database
-@subsubsection
+@subsubsection Dump the Database
 
 The @option{dump} subcommand dumps the database to the standard output
 in a format suitable for backup or sending over the network (a

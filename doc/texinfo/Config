@@ -1,42 +1,39 @@
-# Texi2html configuration for GNU Mailutils documentation. -*- perl -*-
-# Copyright (C) 2009, 2010, 2011 Sergey Poznyakoff
+# Texi2any configuration for rush documentation. -*- perl -*-
+# Copyright (C) 2009-2010, 2014, 2015 Sergey Poznyakoff
 #
-# GNU Mailutils is free software; you can redistribute it and/or modify
+# GNU Rush is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 3, or (at your option)
 # any later version.
 #
-# GNU Mailutils is distributed in the hope that it will be useful,
+# GNU Rush is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+# along with GNU Rush.  If not, see <http://www.gnu.org/licenses/>.
+use strict;
 
-$top_html_dir="";
-$graphics_dir="$top_html_dir/graphics";
-
-## texi2html configuration
-
+my $top_html_dir="";
+my $graphics_dir="$top_html_dir/graphics";
+    
 # Show TOC in place of the @contents directive.
-$INLINE_CONTENTS = 1;
+set_from_init_file('INLINE_CONTENTS', 1);
 # Do not show Texinfo menus.
-$SHOW_MENU = 0;
+set_from_init_file('SHOW_MENU', 0);
 # Inhibit output of CSS lines in page headers.
-$CSS_LINES='';
-# Print footnotes at the end of each file (if the document is split).
-$SEPARATED_FOOTNOTES = 0;
+set_from_init_file('CSS_LINES', '');
 
-$BODYTEXT = "";
+set_from_init_file('BODYTEXT', "");
 
-$EXTRA_HEAD="\
-  <link rev=\"made\" href=\"mailto:gray@gnu.org.ua\">\
+set_from_init_file('EXTRA_HEAD', "\
+  <link rev=\"made\" href=\"mailto:gray\@gnu.org.ua\">\
   <link rel=\"stylesheet\" type=\"text/css\" href=\"${top_html_dir}/gray.css\">\
   <link rel=\"stylesheet\" type=\"text/css\" href=\"${top_html_dir}/texi.css\">\
-  <link rel=\"icon\" type=\"image/png\" href=\"${top_html_dir}/graphics/mustamp.png\">";
+  <link rel=\"icon\" type=\"image/png\" href=\"${top_html_dir}/graphics/mustamp.png\">");
 
-$AFTER_BODY_OPEN=qq{
+set_from_init_file('AFTER_BODY_OPEN', qq{
 <!--#include virtual=\"${top_html_dir}/inc/header.html\" -->
 <ul class='tabs'>
   <li><a href="${top_html_dir}/">Main</a></li>
@@ -44,322 +41,124 @@ $AFTER_BODY_OPEN=qq{
   <li><a class="active" href="${top_html_dir}/manual.html">Documentation</a></li>
   <li><a href="${top_html_dir}/wiki">Wiki</a></li>
 </ul>
-};
+});
 
-$PRE_BODY_CLOSE="Verbatim copying and distribution of this entire article is permitted in any medium, provided this notice is preserved.";
+sub gray_end_file($)
+{
+    my $self = shift;
+    my $program_text = '';
+    if ($self->get_conf('PROGRAM_NAME_IN_FOOTER')) {
+	my $program_string = &{$self->{'format_program_string'}}($self);
+	$program_text = "<p>
+  $program_string
+</p>";
+  }
+  my $pre_body_close = $self->get_conf('PRE_BODY_CLOSE');
+  $pre_body_close = '' if (!defined($pre_body_close));
+  return "</div>
+<div class=\"copyright\">
+$program_text
 
-$format_map{'multitable'}='table class="multitable"';
+$pre_body_close
+</div>
+</div>
+</body>
+</html>
+";
+}
 
-$SMALL_RULE = '';
-$DEFAULT_RULE = '';
-$MIDDLE_RULE = '';
-# This is output at the end of a section.
-$BIG_RULE = '';
+texinfo_register_formatting_function('end_file', \&gray_end_file);
 
+set_from_init_file('PRE_BODY_CLOSE',
+		   'Verbatim copying and distribution of this entire article is permitted in any medium, provided this notice is preserved.');
+
+# Print generating program name at the bottom of a page.
+set_from_init_file('PROGRAM_NAME_IN_FOOTER',1);
+
+# Disable horizontal bars
+set_from_init_file('DEFAULT_RULE', '');
+set_from_init_file('BIG_RULE', '');
+
+# Turn off footer buttons in section split
+set_from_init_file('SECTION_FOOTER_BUTTONS', undef);
+#set_from_init_file('SECTION_BUTTONS', undef);
+# Turn off navigation bars at the bottom of each section in chapter split mode
+set_from_init_file('HEADERS', undef)
+    if (get_conf('SPLIT') and (get_conf('SPLIT') eq 'chapter'));
 # Use navigation icons
-$ICONS = 1;
-%ACTIVE_ICONS =
-    (
-     'Top',         "$graphics_dir/top.png",
-     'Contents',    "$graphics_dir/ctx.png",
-     'Overview',    '',
-     'Index',       "$graphics_dir/idx.png",
-     'This',        '',
-     'Back',        "$graphics_dir/left.png",
-     'FastBack',    "$graphics_dir/bwd.png",
-     'Prev',        "",
-     'Up',          "$graphics_dir/up.png",
-     'Next',        "$graphics_dir/right.png",
-     'NodeUp',      "$graphics_dir/left.png",
-     'NodeNext',    "$graphics_dir/up.png",
-     'NodePrev',    "$graphics_dir/right.png",
-     'Following',   "$graphics_dir/right.png",
-     'Forward',     "$graphics_dir/right.png",
-     'FastForward', "$graphics_dir/fwd.png",
-     'About' ,      '',
-     'First',       '',
-     'Last',        '',
-     ' ',           ''
-    );
 
-@SECTION_BUTTONS =
-    (
-     \&gray_document_title,
-     \&gray_sec_ref,
-     'Back', 'Forward',
-     \&gray_chap_ref, 'FastBack', 'Up', 'FastForward',
-     \&gray_doc_ref,
-     'Contents', 'Index',
-     ' ','About',
-    );
+set_from_init_file('ICONS', 1);
 
-@SECTION_FOOTER_BUTTONS = @SECTION_BUTTONS;
-@NODE_FOOTER_BUTTONS = @SECTION_BUTTONS;
-
-# buttons for misc stuff
-@MISC_BUTTONS = (
-    \&gray_document_title,
-    'Contents',
-    'Index',
-    ' ',
-    'About'
-    );
-
-
-$print_section = \&gray_print_section;
-$print_navigation = \&gray_print_navigation;
-$print_head_navigation = \&gray_print_head_navigation;
-$print_foot_navigation = \&gray_print_foot_navigation;
-$print_About	      = \&gray_print_About;
-$cell = \&gray_multitable_cell;
-$print_page_foot = \&gray_print_page_foot;
-
-sub gray_multitable_cell($$)
-{
-    my $text = shift;
-    my $row_macro = shift;
-
-    $text =~ s/<p>//;
-    $text =~ s/<\/p>//;
-    if ($row_macro eq 'headitem')
+set_from_init_file('ACTIVE_ICONS',
     {
-	return '<th>' . $text . '</th>';
-    }
-    return '<td>' . $text . '</td>';
-}
-
-sub gray_print_About
-{
-    return &$print_misc(@_) if (!($SPLIT eq '') or $SECTION_NAVIGATION);
-}
+     'Top'         =>    "$graphics_dir/top.png",
+     'Contents'    =>    "$graphics_dir/ctx.png",
+     'Overview'    =>    '',
+     'Index'       =>    "$graphics_dir/idx.png",
+     'This'        =>    '',
+     'Back'        =>    "$graphics_dir/left.png",
+     'FastBack'    =>    "$graphics_dir/bwd.png",
+     'Prev'        =>    "",
+     'Up'          =>    "$graphics_dir/up.png",
+     'Next'        =>    "$graphics_dir/right.png",
+     'NodeUp'      =>    "$graphics_dir/left.png",
+     'NodeNext'    =>    "$graphics_dir/up.png",
+     'NodePrev'    =>    "$graphics_dir/right.png",
+     'Following'   =>    "$graphics_dir/right.png",
+     'Forward'     =>    "$graphics_dir/right.png",
+     'FastForward' =>    "$graphics_dir/fwd.png",
+     'About'       =>    '',
+     'First'       =>    '',
+     'Last'        =>    '',
+     ' '           =>    ''
+    });
 
 sub gray_split_status()
 {
-    if ($SPLIT eq '') {
+    my $split = get_conf('SPLIT');
+    if ($split eq '') {
 	return '';
-    } elsif ($SPLIT eq 'node') {
+    } elsif ($split eq 'node') {
 	return ' <span class="splitstatus">(split by node)</span>';
-    } elsif ($SPLIT eq 'section') {
+    } elsif ($split eq 'section') {
 	return ' <span class="splitstatus">(split by section)</span>';
-    } elsif ($SPLIT eq 'chapter') {
+    } elsif ($split eq 'chapter') {
 	return ' <span class="splitstatus">(split by chapter)</span>';
     }
 }
 
 sub gray_document_title($$)
 {
-    my $fh = shift;
-    my $vertical = shift;
+    my $self = shift;
+    my $direction = shift;
     my $status = gray_split_status();
-    print $fh qq{<td class="title">} . $Texi2HTML::THISDOC{title} . $status . ":</td>\n";
-}
 
-sub gray_node_ref($$)
-{
-    my $fh = shift;
-    my $vertical = shift;
-    print $fh qq{<span class="navtext">Node:</span>};
+    return q{<span class="title">} . $self->{title_string} . '</span>' .$status . q{<span class="title">:</span>};
 }
 
 sub gray_sec_ref($$)
 {
-    my $fh = shift;
-    my $vertical = shift;
-    print $fh qq{<span class="navtext">Section:</span>};
+    return q{<span class="navtext">Section:</span>};
 }
 
 sub gray_chap_ref($$)
 {
-    my $fh = shift;
-    my $vertical = shift;
-    print $fh qq{<span class="navtext">Chapter:</span>};
+    return q{<span class="navtext">Chapter:</span>};
 }
 
-sub gray_doc_ref($$)
-{
-    my $fh = shift;
-    my $vertical = shift;
-    print $fh qq{<span class="navtext">Doc:</span>};
-}
 
-sub gray_print_navigation
-{
-    my $fh = shift;
-    my $buttons = shift;
-    my $vertical = shift;
-    my $spacing = 1;
-    my $class="nav";
+my @gray_buttons = (\&gray_document_title, ' ',
+		    \&gray_sec_ref, 'Back', 'Forward', ' ',
+		    \&gray_chap_ref,
+		    'FastBack', ' ', 'Up', ' ', 'FastForward', ' ',
+		    'Contents', 'Index' );
 
-    print $fh qq{<table class="nav">\n};
-
-    print $fh "<tr>" unless $vertical;
-    for my $button (@$buttons)
-    {
-	if ($button =~ /^\@class=(.*)/) {
-	    $class = "$class $1";
-	    next;
-	}
-	print $fh "<tr>\n" if $vertical;
-	print $fh qq{<td class="$class">};
-
-	if (ref($button) eq 'CODE')
-	{
-	    &$button($fh, $vertical);
-	}
-	elsif (ref($button) eq 'SCALAR')
-	{
-	    print $fh "$$button" if defined($$button);
-	}
-	elsif (ref($button) eq 'ARRAY')
-	{
-	    my $text = $button->[1];
-	    my $button_href = $button->[0];
-	    # verify that $button_href is simple text and text is a reference
-	    if (defined($button_href) and !ref($button_href)
-	       and defined($text) and (ref($text) eq 'SCALAR') and defined($$text))
-	    {             # use given text
-		if ($Texi2HTML::HREF{$button_href})
-		{
-		  print $fh "" .
-			&$anchor('',
-				    $Texi2HTML::HREF{$button_href},
-				    $$text
-				   )
-				    ;
-		}
-		else
-		{
-		  print $fh $$text;
-		}
-	    }
-	}
-	elsif ($button eq ' ')
-	{                       # handle space button
-	    print $fh
-		($ICONS && $ACTIVE_ICONS{' '}) ?
-		    &$button_icon_img($BUTTONS_NAME{$button}, $ACTIVE_ICONS{' '}) :
-			$NAVIGATION_TEXT{' '};
-	    #next;
-	}
-	elsif ($Texi2HTML::HREF{$button})
-	{                       # button is active
-	    my $btitle = $BUTTONS_GOTO{$button} ?
-		'title="' . $BUTTONS_GOTO{$button} . '"' : '';
-	    if ($ICONS && $ACTIVE_ICONS{$button})
-	    {                   # use icon
-		print $fh '' .
-		    &$anchor('',
-			$Texi2HTML::HREF{$button},
-			&$button_icon_img($BUTTONS_NAME{$button},
-				   $ACTIVE_ICONS{$button},
-				   $Texi2HTML::SIMPLE_TEXT{$button}),
-			$btitle
-		      );
-	    }
-	    else
-	    {                   # use text
-		print $fh
-		    '' .
-			&$anchor('',
-				    $Texi2HTML::HREF{$button},
-				    $NAVIGATION_TEXT{$button},
-				    $btitle
-				   );
-	    }
-	}
-	else {                       # button is passive
-	    print $fh '<span class="passive">' .
-		($ICONS && $PASSIVE_ICONS{$button} ?
-		    &$button_icon_img($BUTTONS_NAME{$button},
-					  $PASSIVE_ICONS{$button},
-					  $Texi2HTML::SIMPLE_TEXT{$button}) :
-
-					  $NAVIGATION_TEXT{$button}) . '</span>';
-	}
-	print $fh "</td>\n";
-	print $fh "</tr>\n" if $vertical;
-	$class = "nav";
-    }
-    print $fh "</tr>" unless $vertical;
-    print $fh "</table>\n";
-}
-
-sub gray_print_head_navigation($$)
-{
-    my $fh = shift;
-    my $buttons = shift;
-
-    return if ($SPLIT eq '');
-    if ($VERTICAL_HEAD_NAVIGATION)
-    {
-	print $fh <<EOT;
-<table class='nav'>
-<tr>
-<td>
-EOT
-    }
-    main::print_lines($fh, $Texi2HTML::THIS_HEADER);
-    &$print_navigation($fh, $buttons, $VERTICAL_HEAD_NAVIGATION);
-    if ($VERTICAL_HEAD_NAVIGATION)
-    {
-	print $fh <<EOT;
-</td>
-<td>
-EOT
-    }
-}
-
-sub gray_print_foot_navigation
-{
-    my $fh = shift;
-
-    return if ($SPLIT eq '');
-    if ($VERTICAL_HEAD_NAVIGATION)
-    {
-	print $fh <<EOT;
-</td>
-</tr>
-</table>
-EOT
-    }
-}
-
-sub gray_print_page_foot($)
-{
-    my $fh = shift;
-    my $program_string = program_string();
-    print $fh <<EOT;
-<div class="copyright">
-$program_string
-EOT
-    if (defined($PRE_BODY_CLOSE) && $PRE_BODY_CLOSE) {
-	print $fh "<p>$PRE_BODY_CLOSE</p>";
-    }
-    print $fh <<EOT;
-</div>
-</body>
-</html>
-EOT
-}
-
-sub gray_print_section
-{
-    my $fh = shift;
-    my $first_in_page = shift;
-    my $previous_is_top = shift;
-    my $buttons = \@SECTION_BUTTONS;
-
-    if ($first_in_page) {
-	&$print_head_navigation($fh, $buttons)
-    } else {
-	main::print_lines($fh, $Texi2HTML::THIS_HEADER);
-    }
-    my $nw = main::print_lines($fh);
-    if (defined $SPLIT
-	and ($SPLIT eq 'node')) {
-	&$print_foot_navigation($fh);
-	print $fh "$SMALL_RULE\n";
-	&$print_navigation($fh, \@NODE_FOOTER_BUTTONS) if (!defined($WORDS_IN_PAGE) or (defined ($nw)
-				    and $nw >= $WORDS_IN_PAGE));
-    }
-}
+set_from_init_file('SECTION_BUTTONS', \@gray_buttons);
+set_from_init_file('CHAPTER_BUTTONS', \@gray_buttons);
+set_from_init_file('MISC_BUTTONS',
+		   [\&gray_document_title,
+		    'Contents',
+		    'Index',
+		    ' ',
+		    'About'
+		   ]);
