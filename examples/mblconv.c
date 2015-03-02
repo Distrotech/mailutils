@@ -1,5 +1,5 @@
 /* Conversion from "dot mailboxlist" format to Mailutils-3 subscription format.
-   Copyright (C) 2010-2012, 2014 Free Software Foundation, Inc.
+   Copyright (C) 2010-2012, 2014-2015 Free Software Foundation, Inc.
 
    This file is free software; as a special exception the author gives
    unlimited permission to copy and/or distribute it, with or without

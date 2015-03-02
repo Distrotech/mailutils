@@ -2,7 +2,7 @@
 @center Version 1.2, November 2002
 
 @display
-Copyright @copyright{} 2000-2002, 2010-2012, 2014 Free Software
+Copyright @copyright{} 2000-2002, 2010-2012, 2014-2015 Free Software
 Foundation, Inc.
 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 

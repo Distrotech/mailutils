@@ -1,6 +1,6 @@
 @c This file is part of GNU Mailutils.
-@c Copyright (C) 2001-2004, 2006-2007, 2009-2012, 2014 Free Software
-@c Foundation, Inc.
+@c Copyright (C) 2001-2004, 2006-2007, 2009-2012, 2014-2015 Free
+@c Software Foundation, Inc.
 @c
 @c GNU Mailutils is free software; you can redistribute it and/or
 @c modify it under the terms of the GNU General Public License as

@@ -1,4 +1,4 @@
-# Copyright (C) 2002-2003, 2007, 2010-2012, 2014 Free Software
+# Copyright (C) 2002-2003, 2007, 2010-2012, 2014-2015 Free Software
 # Foundation, Inc.
 #
 # GNU Mailutils is free software; you can redistribute it and/or

@@ -1,5 +1,5 @@
 # This file is part of GNU Mailutils.
-# Copyright (C) 2009-2012, 2014 Free Software Foundation, Inc.
+# Copyright (C) 2009-2012, 2014-2015 Free Software Foundation, Inc.
 #
 # Written by Sergey Poznyakoff
 #

@@ -1,6 +1,6 @@
 /* Operations on RFC-2231-compliant mail headers fields.
    GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999-2001, 2004-2005, 2007, 2009-2012, 2014 Free
+   Copyright (C) 1999-2001, 2004-2005, 2007, 2009-2012, 2014-2015 Free
    Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or

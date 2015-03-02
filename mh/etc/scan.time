@@ -1,7 +1,8 @@
 %; "Time"-format for GNU MH scan.
 %;
 %; GNU Mailutils -- a suite of utilities for electronic mail
-%; Copyright (C) 2003, 2010-2012, 2014 Free Software Foundation, Inc.
+%; Copyright (C) 2003, 2010-2012, 2014-2015 Free Software Foundation,
+%; Inc.
 %; Distributed under GPLv3+.  See <http://gnu.org/licenses/gpl.html>.
 %;
 %; This format is similar to scan.default, except that it prints the
