@@ -79,8 +79,7 @@ mu_list_map (mu_list_t list, mu_list_mapper_t map, void *data, size_t nelem,
 
   rc = mu_list_gmap (list, _list_mapper, nelem, &cl);
 
-  if (cl.list)
-    *res = cl.list;
+  *res = cl.list;
   if (rc == MU_ERR_FAILURE)
     return cl.status;
   return 0;

@@ -38,6 +38,7 @@ mu_list_gmap (mu_list_t list, mu_list_mapper_t map, size_t nelem, void *data)
     return ENOMEM;
 
   i = 0;
+  rc = 0;
   for (current = list->head.next; current != &list->head;
        current = current->next)
     {

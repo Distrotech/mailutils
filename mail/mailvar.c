@@ -624,11 +624,11 @@ _mailvar_symbol_to_list (int set, mu_list_t list)
 mu_list_t
 mailvar_list_copy (int set)
 {
-  mu_list_t list;
+  mu_list_t list = NULL;
   
   if (mailvar_list)
     mu_list_map (mailvar_list, mailvar_mapper, NULL, 1, &list);
-  else
+  if (!list)
     mu_list_create (&list);
   _mailvar_symbol_to_list (set, list);
   mu_list_sort (list, mailvar_varptr_comp);
@@ -649,7 +649,7 @@ mailvar_iterate_next (struct mailvar_iterator *itr)
 {
   struct mailvar_variable *vp;
 
-  do
+  while (!mu_iterator_is_done (itr->varitr))
     {
       mu_iterator_current (itr->varitr, (void**) &vp);
       mu_iterator_next (itr->varitr);
@@ -658,7 +658,6 @@ mailvar_iterate_next (struct mailvar_iterator *itr)
 	  && strncmp (vp->name, itr->prefix, itr->prefixlen) == 0)
 	return vp->name;
     }
-  while (!mu_iterator_is_done (itr->varitr));
   return NULL;
 }
 
