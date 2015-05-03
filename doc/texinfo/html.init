@@ -1,18 +1,18 @@
 # Texi2any configuration for rush documentation. -*- perl -*-
 # Copyright (C) 2009-2010, 2014, 2015 Sergey Poznyakoff
 #
-# GNU Rush is free software; you can redistribute it and/or modify
+# GNU Mailutils is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 3, or (at your option)
 # any later version.
 #
-# GNU Rush is distributed in the hope that it will be useful,
+# GNU Mailutils is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with GNU Rush.  If not, see <http://www.gnu.org/licenses/>.
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
 use strict;
 
 my $top_html_dir="";
@@ -79,12 +79,10 @@ set_from_init_file('PROGRAM_NAME_IN_FOOTER',1);
 set_from_init_file('DEFAULT_RULE', '');
 set_from_init_file('BIG_RULE', '');
 
-# Turn off footer buttons in section split
-set_from_init_file('SECTION_FOOTER_BUTTONS', undef);
-#set_from_init_file('SECTION_BUTTONS', undef);
 # Turn off navigation bars at the bottom of each section in chapter split mode
+# or subsection in section split mode.
 set_from_init_file('HEADERS', undef)
-    if (get_conf('SPLIT') and (get_conf('SPLIT') eq 'chapter'));
+    if ((get_conf('SPLIT') eq 'chapter') or (get_conf('SPLIT') eq 'section'));
 # Use navigation icons
 
 set_from_init_file('ICONS', 1);
@@ -153,8 +151,11 @@ my @gray_buttons = (\&gray_document_title, ' ',
 		    'FastBack', ' ', 'Up', ' ', 'FastForward', ' ',
 		    'Contents', 'Index' );
 
+set_from_init_file('TOP_BUTTONS', undef);
 set_from_init_file('SECTION_BUTTONS', \@gray_buttons);
 set_from_init_file('CHAPTER_BUTTONS', \@gray_buttons);
+set_from_init_file('NODE_FOOTER_BUTTONS', \@gray_buttons);
+set_from_init_file('SECTION_FOOTER_BUTTONS', \@gray_buttons);
 set_from_init_file('MISC_BUTTONS',
 		   [\&gray_document_title,
 		    'Contents',

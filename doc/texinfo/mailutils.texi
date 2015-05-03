@@ -530,6 +530,21 @@ if a new format is added at a later date, your program will support
 that new format automatically as soon as it is compiled against the
 new library. 
 
+@node Programs
+@chapter Mailutils Programs
+@cindex Programs
+@include programs.texi
+
+@node Libraries
+@chapter Mailutils Libraries
+@cindex Libraries
+@WRITEME
+
+@node Sieve Language
+@chapter Sieve Language
+@cindex Sieve Language
+@include sieve.texi
+
 @node Reporting Bugs
 @chapter Reporting Bugs
 
@@ -547,21 +562,6 @@ needed is:
 
 The archives of bug-mailutils mailing list are available from
 @url{http://mail.gnu.org/@/mailman/@/listinfo/@/bug-mailutils}.
-
-@node Programs
-@chapter Mailutils Programs
-@cindex Programs
-@include programs.texi
-
-@node Libraries
-@chapter Mailutils Libraries
-@cindex Libraries
-@WRITEME
-
-@node Sieve Language
-@chapter Sieve Language
-@cindex Sieve Language
-@include sieve.texi
 
 @node News
 @chapter Getting News About GNU Mailutils

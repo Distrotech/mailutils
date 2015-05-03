@@ -52,7 +52,7 @@ final: imprimatur-final
 #EXTRA_DIST = \
 # gendocs_template
 
-GENDOCS=$(srcdir)/gendocs.sh
+GENDOCS=$(srcdir)/gendocs.sh --no-copy-images --html '--init-file=$(abs_srcdir)/html.init'
 TEXI2DVI=texi2dvi -t '@set $(RENDITION)' -E
 
 .PHONY: manual
@@ -60,7 +60,7 @@ manual:
 	TEXINPUTS=$(srcdir):$(top_srcdir)/build-aux:$(TEXINPUTS) \
 	 MAKEINFO="$(MAKEINFO) $(MAKEINFOFLAGS) $(AM_MAKEINFOFLAGS)" \
 	 TEXI2DVI="$(TEXI2DVI)" \
-	$(GENDOCS) --no-copy-images $(PACKAGE) '$(PACKAGE_NAME) manual'
+	$(GENDOCS) $(PACKAGE) '$(PACKAGE_NAME) manual'
 
 manual.tar.bz2: manual
 	tar cfj manual.tar.bz2 manual

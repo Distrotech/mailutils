@@ -1294,7 +1294,7 @@ tcp-wrappers @{
 @}
 @end example
 
-@subsection Description
+@subheading Description
 The @code{tcp-wrappers} statements provides an alternative way to
 control accesses to the resources served by GNU Mailutils.  This
 statement is enabled if Mailutils is compiled with TCP wrappers
@@ -1937,7 +1937,7 @@ sql @{
   getpwuid @var{query};
 @}
 @end example
-@subsection Description
+@subheading Description
 
 The @code{sql} statement configures access credentials to
 @acronym{SQL} database and the queries for authentication and
