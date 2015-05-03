@@ -2498,6 +2498,8 @@ print *
 quit
 @end group
 @end example
+@noindent
+except that @command{mail --print} does not change status of the messages.
 @item -r @var{address}
 @itemx --return-address=@var{address}
 Sets the return email address for outgoing mail.  @xref{return-address}.
