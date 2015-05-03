@@ -45,7 +45,7 @@ mail_print_msg (msgset_t *mspec, mu_message_t mesg, void *data)
     {
       if (pagelines)
 	{
-	  size_t col = (size_t)util_getcols ();
+	  size_t col = (size_t) util_screen_columns ();
 	  if (col)
 	    {
 	      size_t size = 0;

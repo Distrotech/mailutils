@@ -376,10 +376,7 @@ main (int argc, char **argv)
 
   /* set up the default environment */
   if (!getenv ("HOME"))
-    {
-      char *p = util_get_homedir ();
-      setenv ("HOME", p, 0);
-    }
+    setenv ("HOME", util_get_homedir (), 0);
 
   /* Set up the default environment */
   setenv ("DEAD", util_fullpath ("~/dead.letter"), 0);
@@ -390,14 +387,22 @@ main (int argc, char **argv)
   setenv ("PAGER", "more", 0);
   setenv ("SHELL", "sh", 0);
   setenv ("VISUAL", "vi", 0);
-  setenv ("COLUMNS", "80", 0);
-  setenv ("LINES", "24", 0);
 
   /* set defaults for execution */
   for (i = 0; i < sizeof (default_setup)/sizeof (default_setup[0]); i++)
     util_do_command ("%s", default_setup[i]);
-  util_do_command ("set screen=%d", util_getlines ());
-  util_do_command ("set columns=%d", util_getcols ());
+
+  p = getenv ("LINES");
+  if (p && p[strspn (p, "0123456789")] == 0)
+    util_do_command ("set screen=%s", p);
+  else
+    util_do_command ("set screen=%d", util_getlines ());
+  
+  p = getenv ("COLUMNS");
+  if (p && p[strspn (p, "0123456789")] == 0)
+    util_do_command ("set columns=%s", p);
+  else
+    util_do_command ("set columns=%d", util_getcols ());
   
   /* Set the default mailer to sendmail.  */
   mailvar_set ("sendmail",

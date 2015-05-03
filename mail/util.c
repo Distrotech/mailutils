@@ -311,7 +311,7 @@ util_command_list (void *table, size_t nmemb, size_t size)
 {
   int i;
   char *p;
-  int cols = util_getcols ();
+  int cols = util_screen_columns ();
   int pos;
   
   for (p = table, i = 0; i < nmemb; i++, p += size)
@@ -349,16 +349,9 @@ int
 util_getcols (void)
 {
   struct winsize ws;
-
   ws.ws_col = ws.ws_row = 0;
-  if ((ioctl(1, TIOCGWINSZ, (char *) &ws) < 0) || ws.ws_row == 0)
-    {
-      const char *columns = getenv ("COLUMNS");
-      if (columns)
-	ws.ws_col = strtol (columns, NULL, 10);
-    }
-
-  /* FIXME: Should we exit()/abort() if col <= 0 ?  */
+  if ((ioctl(1, TIOCGWINSZ, (char *) &ws) < 0) || ws.ws_col == 0)
+    return 80;  /* FIXME: Should we exit()/abort() if col <= 0 ?  */
   return ws.ws_col;
 }
 
@@ -370,17 +363,9 @@ int
 util_getlines (void)
 {
   struct winsize ws;
-
   ws.ws_col = ws.ws_row = 0;
-  if ((ioctl(1, TIOCGWINSZ, (char *) &ws) < 0) || ws.ws_row == 0)
-    {
-      const char *lines = getenv ("LINES");
-      if (lines)
-	ws.ws_row = strtol (lines, NULL, 10);
-    }
-
-  /* FIXME: Should we exit()/abort() if row <= 0 ?  */
-
+  if ((ioctl(1, TIOCGWINSZ, (char *) &ws) < 0) || ws.ws_row <= 2)
+    ws.ws_row = 24;  /* FIXME: Should we exit()/abort() if row <= 2 ?  */
   /* Reserve at least 2 line for the prompt.  */
   return ws.ws_row - 2;
 }

@@ -749,7 +749,7 @@ mailvar_print (int set)
   clos.out = open_pager (count);
   clos.prettyprint = mailvar_get (NULL, "variable-pretty-print",
 				  mailvar_type_boolean, 0) == 0;
-  clos.width = util_getcols ();
+  clos.width = util_screen_columns ();
 
   mu_list_foreach (varlist, mailvar_printer, &clos);
   mu_list_destroy (&varlist);
@@ -845,7 +845,7 @@ int
 mail_variable (int argc, char **argv)
 {
   int pagelines = util_get_crt ();
-  int width = util_getcols ();
+  int width = util_screen_columns ();
   mu_stream_t out = open_pager (pagelines + 1);
   
   if (argc == 1)

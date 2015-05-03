@@ -39,8 +39,8 @@ sig_handler (int signo)
       break;
 #if defined (SIGWINCH)
     case SIGWINCH:
-      util_do_command ("set screen=%d", util_getlines());
-      util_do_command ("set columns=%d", util_getcols());
+      util_do_command ("set screen=%d", util_getlines ());
+      util_do_command ("set columns=%d", util_getcols ());
       page_invalidate (1);
       break;
 #endif

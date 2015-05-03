@@ -78,7 +78,7 @@ format_pad (size_t n)
 static void
 format_headline (struct header_segm *seg, msgset_t *mspec, mu_message_t msg)
 {
-  int screen_cols = util_getcols () - 2;
+  int screen_cols = util_screen_columns () - 2;
   int out_cols = 0;
   struct header_call_args args;
 
