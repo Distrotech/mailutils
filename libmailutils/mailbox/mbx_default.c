@@ -49,12 +49,12 @@ static char *_mu_mailbox_pattern;
 static char *_default_folder_dir = "Mail";
 static char *_mu_folder_dir;
 
+#define USERSUFFIX "${user}"
+
 static int
 mu_normalize_mailbox_url (char **pout, const char *dir)
 {
   int len;
-  int addslash = 0;
-#define USERSUFFIX "${user}"
   
   if (!pout)
     return MU_ERR_OUT_PTR_NULL;
@@ -67,18 +67,12 @@ mu_normalize_mailbox_url (char **pout, const char *dir)
       else
 	return MU_ERR_BAD_FILENAME;
     }
-  else if (dir[len-1] != '/')
-    addslash = 1;
+  else
+    *pout = mu_make_file_name (dir, USERSUFFIX);
 
-  *pout = malloc (strlen (dir) + (addslash ? 1 : 0) + sizeof USERSUFFIX);
   if (!*pout)
-    return ENOMEM;
+    return errno;
 
-  strcpy (*pout, dir);
-  if (addslash)
-    strcat (*pout, "/");
-  strcat (*pout, USERSUFFIX);
-#undef USERSUFFIX
   return 0;
 }
 
@@ -129,9 +123,9 @@ mu_set_folder_directory (const char *p)
 const char *
 mu_mailbox_url ()
 {
-  if (!_mu_mailbox_pattern)
-    mu_set_mail_directory (MU_PATH_MAILDIR);
-  return _mu_mailbox_pattern;
+  if (_mu_mailbox_pattern)
+    return _mu_mailbox_pattern;
+  return MU_PATH_MAILDIR "/" USERSUFFIX;
 }
 
 const char *
@@ -145,6 +139,7 @@ mu_folder_directory ()
 int
 mu_construct_user_mailbox_url (char **pout, const char *name)
 {
+  int rc;
   const char *pat = mu_mailbox_url ();
   const char *env[3];
   struct mu_wordsplit ws;
@@ -153,13 +148,15 @@ mu_construct_user_mailbox_url (char **pout, const char *name)
   env[1] = (char*) name;
   env[2] = NULL;
   ws.ws_env = env;
-  if (mu_wordsplit (pat, &ws,
-		    MU_WRDSF_NOSPLIT | MU_WRDSF_NOCMD |
-		    MU_WRDSF_ENV | MU_WRDSF_ENV_KV))
+  rc = mu_wordsplit (pat, &ws,
+		     MU_WRDSF_NOSPLIT | MU_WRDSF_NOCMD |
+		     MU_WRDSF_ENV | MU_WRDSF_ENV_KV);
+    
+  if (rc)
     {
       mu_error (_("cannot expand line `%s': %s"), pat,
 		mu_wordsplit_strerror (&ws));
-      return errno;
+      return rc;
     }
 
   if (ws.ws_wordc == 0)
@@ -172,9 +169,6 @@ mu_construct_user_mailbox_url (char **pout, const char *name)
     return ENOMEM;
   return 0;
 }
-
-/* Is this a security risk?  */
-#define USE_ENVIRON 1
 
 static int
 split_shortcut (const char *file, const char pfx[], char **user, char **rest)
@@ -239,7 +233,6 @@ get_homedir (const char *user)
     }
   else
     {
-#ifdef USE_ENVIRON
       /* NOTE: Should we honor ${HOME}?  */
       homedir = getenv ("HOME");
       if (homedir == NULL)
@@ -248,11 +241,6 @@ get_homedir (const char *user)
 	  if (auth)
 	    homedir = auth->dir;
         }
-#else
-      auth = mu_get_auth_by_name (user);
-      if (auth)
-	homedir = auth->dir;
-#endif
     }
 
   if (homedir)
@@ -264,10 +252,8 @@ get_homedir (const char *user)
 static int
 user_mailbox_name (const char *user, char **mailbox_name)
 {
-#ifdef USE_ENVIRON
   if (!user)
     user = (getenv ("LOGNAME")) ? getenv ("LOGNAME") : getenv ("USER");
-#endif
 
   if (user)
     {
@@ -416,10 +402,8 @@ mu_mailbox_create_default (mu_mailbox_t *pmbox, const char *mail)
 	     use FOLDER instead, to not confuse others by using MAIL.  */
 	  mail = getenv ("FOLDER");
 	  if (!mail)
-	    {
-	      /* Fallback to well-known environment.  */
-	      mail = getenv ("MAIL");
-	    }
+	    /* Fallback to well-known environment.  */
+	    mail = getenv ("MAIL");
 	}
 
       if (!mail)
@@ -429,7 +413,7 @@ mu_mailbox_create_default (mu_mailbox_t *pmbox, const char *mail)
 	  mail = tmp_mbox;
 	}
     }
-
+  
   p = mu_tilde_expansion (mail, MU_HIERARCHY_DELIMITER, NULL);
   if (tmp_mbox)
     free (tmp_mbox);

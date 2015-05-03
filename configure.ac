@@ -350,7 +350,7 @@ AH_BOTTOM(
 #ifdef MU_CONF_MAILDIR
 # define MU_PATH_MAILDIR MU_CONF_MAILDIR
 #else
-# define MU_PATH_MAILDIR PATH_MAILDIR "/"
+# define MU_PATH_MAILDIR PATH_MAILDIR 
 #endif])
 
 ##################################
