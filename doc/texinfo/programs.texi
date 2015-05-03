@@ -4853,6 +4853,11 @@ Note that it will not match a message containing @samp{Staff Meeting}
 which matches the pattern is printed.
 @end enumerate
 
+Unless one of the informational options is used, at least one command
+line argument must be present.  Informational options are:
+@option{--help} (@option{-?}), @option{--usage}, and
+@option{--version} (@option{-V}).
+
 @menu
 * Opt-readmsg::   Invocation of @command{readmsg}.
 * Conf-readmsg::  Configuration of @command{readmsg}.

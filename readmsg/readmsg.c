@@ -297,6 +297,14 @@ main (int argc, char **argv)
 		   argc, argv, 0, &index, NULL))
     exit (1);
 
+  argc -= index;
+
+  if (argc == 0)
+    {
+      mu_error (_("not enough arguments"));
+      exit (1);
+    }
+
   status = mu_mailbox_create_default (&mbox, mailbox_name);
   if (status != 0)
     {
@@ -367,9 +375,7 @@ main (int argc, char **argv)
     }
 
   /* Build an array containing the message number.  */
-  argc -= index;
-  if (argc > 0)
-    msglist (mbox, show_all, argc, &argv[index], &set, &n);
+  msglist (mbox, show_all, argc, &argv[index], &set, &n);
 
   for (i = 0; i < n; ++i)
     {
