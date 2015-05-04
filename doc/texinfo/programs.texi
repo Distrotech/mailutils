@@ -3236,11 +3236,18 @@ prints the message, immediately following last deleted one.
 @table @samp
 @item save [[@var{msglist}] @var{file}]
 @itemx s [[@var{msglist}] @var{file}]
-Takes a message list and a file name and appends each message in turn to
-the end of the file.  The name of file and number of characters appended
-to it is echoed on the terminal.  Each saved message is marked for
-deletion as if with @code{delete} command, unless the variable
-@code{keepsave} is set.
+Takes a message list and a file name or mailbox URL and appends each
+message in turn to the end of that file or mailbox.  Mailbox URLs
+begin with mailbox type specifier, such as @samp{mbox://},
+@samp{maildir://}, etc.  The name of file or mailbox and number of
+lines and characters appended to it is echoed on the terminal.  When
+writing to file, the numbers represent exact number of lines and
+characters appended to the file.  When @var{file} specifies a mailbox,
+these numbers may differ by the amount of lines/characters needed to
+represent message envelope for that specific mailbox type.
+
+Each saved message is marked for deletion as if with @code{delete}
+command, unless the variable @code{keepsave} is set.
 @item Save [@var{msglist}]
 @itemx S [@var{msglist}]
 Like @code{save}, but the file to append messages to is named after the

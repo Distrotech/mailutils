@@ -66,7 +66,7 @@ mail_test "headers" \
 # Save messages to the third mailbox
 mail_command "set folder=\"$MU_FOLDER_DIR\""
 mail_test "save 1 2 +three" \
-	"\"$MU_FOLDER_DIR/three\"  28/968"
+	"\"$MU_FOLDER_DIR/three\"  32/1067"
 
 mail_test "headers" \
 	">*   1 Sergey Poznyakoff  Tue Jul 16 12:11  12/390   MBOX"\
@@ -84,7 +84,7 @@ mail_test "headers" \
 # Test uppercase commands (Save and Copy)
 mail_command "set outfolder=\"$MU_FOLDER_DIR\""
 mail_test "Save" \
-	"\"$MU_FOLDER_DIR/gray\"  12/390"
+	"\"$MU_FOLDER_DIR/gray\"  14/438"
 
 mail_test "file \"$MU_FOLDER_DIR/gray\"" \
 	"Held 2 messages in $MU_FOLDER_DIR/three"
