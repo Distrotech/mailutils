@@ -23,9 +23,10 @@ AT_KEYWORDS([columns cols01])
 #   http://lists.gnu.org/archive/html/bug-mailutils/2015-04/msg00000.html
 
 AT_CHECK([
+MUT_MBCOPY($abs_top_srcdir/testsuite/spool/mbox)
 unset MAILRC
-mail -nH -E 'set columns=26' -f $testsuitedir/spool/mbox
-mail -nH -E 'set columns=31' -f $testsuitedir/spool/mbox
+mail -nH -E 'set columns=26' -f ./mbox
+mail -nH -E 'set columns=31' -f ./mbox
 ],
 [0],
 [>N   1 Sergey Poznyakoff
