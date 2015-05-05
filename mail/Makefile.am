@@ -100,5 +100,5 @@ mail_SOURCES = \
  write.c\
  z.c
 
-SUBDIRS = testsuite
+SUBDIRS = testsuite tests
 

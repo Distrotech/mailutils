@@ -1,0 +1,37 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2015 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# GNU Mailutils is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+
+AT_SETUP([setting columns])
+AT_KEYWORDS([columns cols01])
+
+# Description: Mailutils 2.99.98 ignored columns setting
+# Reported-By: Dan Jacobson <jidanni@jidanni.org>
+# References: <87pp6rumzl.fsf@jidanni.org>,
+#   http://lists.gnu.org/archive/html/bug-mailutils/2015-04/msg00000.html
+
+AT_CHECK([
+unset MAILRC
+mail -nH -E 'set columns=26' -f $testsuitedir/spool/mbox
+mail -nH -E 'set columns=31' -f $testsuitedir/spool/mbox
+],
+[0],
+[>N   1 Sergey Poznyakoff
+>N   1 Sergey Poznyakoff  Tue
+])
+
+AT_CLEANUP
+
+

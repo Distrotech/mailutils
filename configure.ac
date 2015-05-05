@@ -1316,6 +1316,7 @@ AC_CONFIG_TESTDIR(testsuite)
 AC_CONFIG_TESTDIR(libmu_compat/tests)
 AC_CONFIG_TESTDIR(frm/tests)
 AC_CONFIG_TESTDIR(maidag/tests)
+AC_CONFIG_TESTDIR(mail/tests)
 AC_CONFIG_TESTDIR(messages/tests)
 AC_CONFIG_TESTDIR(readmsg/tests)
 AC_CONFIG_TESTDIR(sieve/tests)
@@ -1337,6 +1338,8 @@ AC_CONFIG_FILES([libmailutils/tests/Makefile
                  imap4d/tests/atlocal
 		 maidag/tests/Makefile
 		 maidag/tests/atlocal
+		 mail/tests/Makefile
+		 mail/tests/atlocal
 		 messages/tests/Makefile
 		 messages/tests/atlocal
 		 readmsg/tests/Makefile
