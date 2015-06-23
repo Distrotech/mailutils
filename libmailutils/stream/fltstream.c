@@ -149,7 +149,7 @@ filter_read (mu_stream_t stream, char *buf, size_t size, size_t *pret)
 	      if (rdsize == 0 &&
 		  MFB_RDBYTES (fs->outbuf) == 0 &&
 		  MFB_RDBYTES (fs->inbuf) == 0)
-		cmd = mu_filter_lastbuf;
+		break;
 	      
 	      MFB_advance_level (&fs->inbuf, rdsize);
 	    }

@@ -232,6 +232,13 @@ _base64_encoder (void *xd,
     default:
       break;
     }
+
+  if (iobuf->isize == 0)
+    {
+      iobuf->osize = 0;
+      iobuf->eof = 1;
+      return mu_filter_ok;
+    }
   
   if (iobuf->isize <= 3)
     {
