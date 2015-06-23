@@ -31,7 +31,7 @@ sieve2scm: sieve2scm.scmi package.sed
 
 guimb: guimb.scmi package.sed
 	$(AM_V_GEN)sed -f package.sed $(srcdir)/guimb.scmi > guimb
-	$(AM_V_at)chmod +w guimb
+	$(AM_V_at)chmod +x guimb
 
 package.sed: Makefile
 	$(AM_V_GEN)echo 's,%GUILE_BINDIR%,@GUILE_BINDIR@,g' > package.sed
@@ -59,3 +59,17 @@ EXTRA_DIST=\
  sieve2scm.scmi\
  guimb.scmi
 
+installcheck-binSCRIPTS: $(bin_SCRIPTS)
+	bad=0; pid=$$$$; list="$(bin_SCRIPTS)"; for p in $$list; do \
+	  case ' $(AM_INSTALLCHECK_STD_OPTIONS_EXEMPT) ' in \
+	   *" $$p "* | *" $(srcdir)/$$p "*) continue;; \
+	  esac; \
+	  f=`echo "$$p" | sed 's,^.*/,,;$(transform)'`; \
+	  for opt in --help --version; do \
+	    if GUILE_AUTO_COMPILE=0 "$(DESTDIR)$(bindir)/$$f" $$opt >c$${pid}_.out \
+	         2>c$${pid}_.err </dev/null \
+		 && test -n "`cat c$${pid}_.out`" \
+		 && test -z "`cat c$${pid}_.err`"; then :; \
+	    else echo "$$f does not support $$opt" 1>&2; bad=1; fi; \
+	  done; \
+	done; rm -f c$${pid}_.???; exit $$bad

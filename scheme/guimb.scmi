@@ -272,17 +272,11 @@ for any corresponding short options.
   (if (bound? guimb-end)
       (guimb-end)))
 
-(debug-enable 'debug)
 (debug-options '(show-file-name #t
 		 stack 20000
-		 debug
 		 backtrace
 		 depth 20
-		 maxdepth 1000
-		 frames 3
-		 indent 10
-		 width 79
-		 procnames))
+		 width 79))
 
 (define main guimb)
 
