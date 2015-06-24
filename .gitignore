@@ -28,7 +28,6 @@ configure
 core
 git-describe
 git-describe.h
-gnulib
 libtool
 m4
 mailutils*.tar.*

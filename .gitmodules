@@ -4,3 +4,6 @@
 [submodule "doc/imprimatur"]
 	path = doc/imprimatur
 	url = git://git.gnu.org.ua/imprimatur.git
+[submodule "gnulib"]
+	path = gnulib
+	url = git://git.sv.gnu.org/gnulib.git

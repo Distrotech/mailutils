@@ -15,7 +15,6 @@ version.
 - M4 <http://www.gnu.org/software/m4/>
 - Texinfo <http://www.gnu.org/software/texinfo>
 - Wget <http://www.gnu.org/software/wget/>
-- Gnulib <http://www.gnu.org/software/gnulib> 
 - Git <http://git.or.cz>
 
 * Bootstrapping
