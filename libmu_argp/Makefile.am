@@ -23,9 +23,9 @@ AM_CPPFLAGS = \
  -DSITE_VIRTUAL_PWDDIR=\"@SITE_VIRTUAL_PWDDIR@\"\
  -DSITE_CRAM_MD5_PWD=\"@SITE_CRAM_MD5_PWD@\"
 
-lib_LIBRARIES = libmu_argp.a
+lib_LTLIBRARIES = libmu_argp.la
 
-libmu_argp_a_SOURCES =\
+libmu_argp_la_SOURCES =\
  cmdline.c\
  cmdline.h\
  common.c\
@@ -33,3 +33,4 @@ libmu_argp_a_SOURCES =\
  muinit.c\
  sieve.c
 
+libmu_argp_la_LDFLAGS=-L${top_builddir}/lib -lmuaux

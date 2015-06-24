@@ -56,7 +56,7 @@ AC_SUBST(mu_aux_dir,'$(top_srcdir)/mu-aux')
 AC_SUBST(MU_SIEVE_MODDIR,'$(libdir)/$(PACKAGE)')
 
 AC_SUBST(MU_COMMON_LIBRARIES,'$(LTLIBINTL) $(LTLIBICONV)')
-AC_SUBST(MU_APP_LIBRARIES,'../libmu_argp/libmu_argp.a ../libmu_cfg/libmu_cfg.la ../lib/libmuaux.a')
+AC_SUBST(MU_APP_LIBRARIES,'${top_builddir}/libmu_argp/libmu_argp.la ${top_builddir}/libmu_cfg/libmu_cfg.la')
 
 # There are two sets of include directories: MU_LIB_COMMON_INCLUDES, used
 # by the libraries, and MU_APP_COMMON_INCLUDES, which is used by applications.
@@ -220,7 +220,7 @@ esac
 LIBS=$saved_LIBS
 
 if test "$status_tcpwrap" = "yes"; then
-  AC_SUBST(TCPWRAP_LIBRARIES, "$TCPWRAP_LIBRARIES -lwrap")
+  AC_SUBST(TCPWRAP_LIBRARIES, "\${top_builddir}/lib/libmutcpwrap.a $TCPWRAP_LIBRARIES -lwrap")
   AC_DEFINE_UNQUOTED(WITH_LIBWRAP, 1,
                      [Define to 1 to use tcp wrappers.])
 fi
@@ -1157,7 +1157,6 @@ GINT_INIT([gint],[1.8 with-guile],
            LIBMU_SCM_DEPS='${MU_LIB_MBOX} ${MU_LIB_IMAP} ${MU_LIB_POP} ${MU_LIB_MH} ${MU_LIB_MAILDIR} ${MU_LIB_MAILER}'
            MU_GUILE_SIEVE_MOD_DIR='$(GUILE_SITE)/$(PACKAGE)/sieve-modules'
            GINT_INCLUDES='${MU_APP_COMMON_INCLUDES}'
-           GINT_LDADD=../lib/libmuaux.a
           ],[useguile=no])
 
 AM_CONDITIONAL([MU_COND_LIBMU_SCM],[test "$useguile" = "yes"])

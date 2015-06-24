@@ -24,19 +24,21 @@ AM_CPPFLAGS = \
  @GUILE_INCLUDES@\
  @PYTHON_INCLUDES@
 
-noinst_LIBRARIES = libmuaux.a libmuscript.a
-libmuaux_a_SOURCES = \
+lib_LTLIBRARIES = libmuaux.la
+noinst_LIBRARIES = libmuscript.a libmutcpwrap.a
+
+libmuaux_la_SOURCES = \
  argp_base.c\
  daemon.c\
  mailcap.c\
  manlock.c\
  signal.c\
  strexit.c\
- tcpwrap.c\
  mu_umaxtostr.c\
  mu_umaxtostr.h
-libmuaux_a_LIBADD=gnu/*.o
-#libmuaux_a_LIBADD=`$(AR) t gnu/libgnu.a | sed s.^.gnu/.`
+libmuaux_la_LIBADD=gnu/libgnu.la
+
+libmutcpwrap_a_SOURCES = tcpwrap.c
 
 noinst_HEADERS =\
  mailcap.h\

@@ -59,7 +59,7 @@ mod_LTLIBRARIES = numaddr.la
 AM_CPPFLAGS = @MU_LIB_COMMON_INCLUDES@ 
 
 LDADD = \
- ../lib/libmuaux.a\
+ ../lib/libmuaux.la\
  ${MU_LIB_MAILUTILS}\
  @MU_COMMON_LIBRARIES@
 
@@ -68,20 +68,20 @@ numaddr_la_LIBADD = ${MU_LIB_SIEVE}
 numaddr_la_LDFLAGS = -module -avoid-version -no-undefined -rpath '$(moddir)'
 
 msg_send_LDADD =\
- ../lib/libmuaux.a\
+ ../lib/libmuaux.la\
  ${MU_LIB_MAILER}\
  @MU_AUTHLIBS@\
  ${MU_LIB_MAILUTILS}
 
 mta_CPPFLAGS=@MU_LIB_COMMON_INCLUDES@ -I${top_srcdir}/lib -I${top_builddir}/lib
 mta_LDADD =\
- ../lib/libmuaux.a\
+ ../lib/libmuaux.la\
  ${MU_LIB_MBOX}\
  ${MU_LIB_MAILER}\
  ${MU_LIB_MAILUTILS}
 
 sfrom_LDADD =\
- ../lib/libmuaux.a\
+ ../lib/libmuaux.la\
  ${MU_LIB_MBOX}\
  ${MU_LIB_IMAP}\
  ${MU_LIB_POP}\
@@ -93,7 +93,7 @@ sfrom_LDADD =\
  ${MU_LIB_MAILUTILS}
 
 nntpclient_LDADD = \
- ../lib/libmuaux.a\
+ ../lib/libmuaux.la\
  ${MU_LIB_NNTP}\
  ${MU_LIB_AUTH}\
  @MU_AUTHLIBS@\
@@ -125,7 +125,7 @@ muemail_LDADD = \
 
 mboxidx_CPPFLAGS = @MU_APP_COMMON_INCLUDES@
 mboxidx_LDADD=\
- ../lib/libmuaux.a\
+ ../lib/libmuaux.la\
  ${MU_LIB_MBOX}\
  ${MU_LIB_IMAP}\
  ${MU_LIB_POP}\

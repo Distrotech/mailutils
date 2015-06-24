@@ -1,0 +1,14 @@
+Description:
+This file provides additional Makefile statements for building gnulib as part
+of libmuaux.
+
+Files:
+
+Makefile.am:
+AM_CPPFLAGS += @MU_LIB_COMMON_INCLUDES@ -I${top_srcdir}/lib/gnu -I${top_builddir}/lib/gnu
+
+License:
+LGPL
+
+Maintainer:
+Sergey Poznyakoff

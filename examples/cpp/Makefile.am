@@ -34,7 +34,7 @@ noinst_PROGRAMS = @MU_CXX_EXAMPLES_BUILD@
 AM_CPPFLAGS = @MU_LIB_COMMON_INCLUDES@ 
 
 AM_LDFLAGS = \
- ../../lib/libmuaux.a\
+ ../../lib/libmuaux.la\
  ../../libmu_cpp/libmu_cpp.la\
  ${MU_LIB_MAILUTILS}\
  @MU_COMMON_LIBRARIES@
@@ -52,7 +52,7 @@ sfrom_SOURCES = sfrom.cc
 url_parse_SOURCES = url-parse.cc
 
 LDADD =\
- ../../lib/libmuaux.a\
+ ../../lib/libmuaux.la\
  ../../libmu_cpp/libmu_cpp.la\
  ${MU_LIB_MBOX}\
  ${MU_LIB_IMAP}\

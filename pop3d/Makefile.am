@@ -73,7 +73,7 @@ popauth_LDADD = \
 
 pop3d_DEPENDENCIES = \
  @MU_AUTHLIBS_DEPENDENCY@ \
- ../lib/libmuaux.a \
+ ../lib/libmuaux.la \
  ${MU_LIB_MBOX}\
  ${MU_LIB_MH}\
  ${MU_LIB_MAILDIR}\

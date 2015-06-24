@@ -87,6 +87,6 @@ imap4d_LDADD = \
 ## Think about better approach         --gray
 imap4d_DEPENDENCIES = \
  @MU_AUTHLIBS_DEPENDENCY@\
- ../lib/libmuaux.a\
+ ../lib/libmuaux.la\
  ${MU_LIB_MBOX}\
  ${MU_LIB_MAILUTILS}
