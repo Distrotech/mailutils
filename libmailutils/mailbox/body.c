@@ -116,20 +116,31 @@ body_stream_transport (mu_stream_t stream, int mode, mu_stream_t *pstr)
 static int
 bstr_close (struct _mu_stream *stream)
 {
+  /* FIXME: While technically correct, the code below can result is
+     segmentation violations under some conditions, because reference
+     counters are not yet implemented for mu_body_t objects and so
+     str->body can be destroyed prior to calling that function.
+     See also bstr_done.
+  */
+#if 0
   struct _mu_body_stream *str = (struct _mu_body_stream*) stream;
   mu_body_t body = str->body;
   mu_stream_close (body->rawstream);
   mu_stream_close (body->fstream);
+#endif
   return 0;
 }
 
 void
 bstr_done (struct _mu_stream *stream)
 {
+#if 0
+  /* FIXME: See comment above */
   struct _mu_body_stream *str = (struct _mu_body_stream*) stream;
   mu_body_t body = str->body;
   mu_stream_destroy (&body->rawstream);
   mu_stream_destroy (&body->fstream);  
+#endif
 }
 
 static int
