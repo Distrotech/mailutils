@@ -1170,7 +1170,7 @@ _set_fun (void *item, void *data)
   void *tgt;
   size_t size;
   
-  if (clos->type >= MU_ARRAY_SIZE(config_type_size)
+  if ((size_t) clos->type >= MU_ARRAY_SIZE(config_type_size)
       || (size = config_type_size[clos->type]) == 0)
     {
       mu_diag_at_locus (MU_LOG_EMERG, clos->locus,

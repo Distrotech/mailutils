@@ -164,7 +164,7 @@ main (int argc, char **argv)
 	  mu_error ("cannot get %s: %s", "port", mu_strerror (rc));	
 	  exit (1);					
         }                                               
-      printf ("port %hu\n", port);
+      printf ("port %u\n", port);
       
       GET_AND_PRINT (path, u, buf, rc);
       print_fvpairs (u);

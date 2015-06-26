@@ -124,7 +124,7 @@ static int
 set_charset_filter (mu_stream_t * str, char *input_charset)
 {
   int rc;
-  char const *args[4];
+  char const *args[5];
 
   mu_stream_t b_stream = *str;
 

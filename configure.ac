@@ -93,6 +93,7 @@ status_mysql=no
 status_pgsql=no
 status_ldap=no
 status_tcpwrap=maybe
+status_readline=probe
 
 dnl Internationalization macros.
 AM_GNU_GETTEXT([external], [need-ngettext])
@@ -240,10 +241,10 @@ AC_ARG_WITH([readline],
                            [do not use readline]),
             [
 case "${withval}" in
-  yes) usereadline=yes ;;
-  no)  usereadline=no ;;
+  yes) status_readline=yes ;;
+  no)  status_readline=no ;;
   *)   AC_MSG_ERROR(bad value ${withval} for --without-readline) ;;
-esac],[usereadline=yes])
+esac],[status_readline=probe])
 
 AC_SUBST(SERV_AUTHLIBS)
 AC_SUBST(SERV_AUTHINCS)
@@ -560,6 +561,10 @@ check_dbm_impl() {
 	  if test $has_ndbm = yes; then
 	    AC_DEFINE(WITH_NDBM,1,[Enable use of NDBM])
             status_dbm="$status_dbm,NDBM"
+	    save_LIBS=$LIBS
+	    LIBS="$LIBS $DBMLIBS"
+	    AC_CHECK_FUNCS(dbm_dirfno dbm_pagfno)
+	    LIBS=$save_LIBS
 	  fi
 	  ;;
 
@@ -1107,17 +1112,24 @@ AC_SUBST(CURSES_LIBS)
 dnl Check for GNU Readline
 AC_SUBST(READLINE_LIBS)
 
-if test "$usereadline" = "yes"; then
+if test "$status_readline" != "no"; then
 
 	dnl FIXME This should only link in the curses libraries if it's
 	dnl really needed!
 
 	saved_LIBS=$LIBS
 	LIBS="$LIBS $CURSES_LIBS"
-	AC_CHECK_LIB(readline, readline, mu_have_readline=yes)
+	AC_CHECK_LIB(readline, readline,
+	             [status_readline=yes],
+		     [if test "$status_readline" = "yes"; then
+			AC_MSG_ERROR(readline requested but does not seem to be installed)
+	              else
+		        status_readline=no
+	              fi
+		     ])
 	LIBS=$saved_LIBS
 
-	if test "$mu_have_readline" = "yes"; then
+	if test "$status_readline" = "yes"; then
 		AC_CHECK_HEADERS(readline/readline.h,
 			AC_DEFINE(WITH_READLINE,1,[Enable use of readline]))
 			READLINE_LIBS="-lreadline $CURSES_LIBS"
@@ -1125,13 +1137,12 @@ if test "$usereadline" = "yes"; then
 			LIBS="$LIBS $READLINE_LIBS"
 			AC_CHECK_FUNCS(rl_completion_matches)
 			LIBS=$saved_LIBS
-	else
-		AC_MSG_WARN(readline requested but does not seem to be installed)
 	fi
-
+else
+	status_readline=no
 fi
 
-AM_CONDITIONAL([MU_COND_READLINE], [test "$usereadline" = "yes"])
+AM_CONDITIONAL([MU_COND_READLINE], [test "$status_readline" = "yes"])
 
 AH_BOTTOM([
 /* Newer versions of readline have rl_completion_matches */
@@ -1424,7 +1435,7 @@ status_python=$status_python
 status_cxx=$mu_cv_enable_cxx
 status_tcpwrap=$status_tcpwrap
 status_pthread=$usepthread
-status_readline=$usereadline
+status_readline=$status_readline
 status_mysql=$status_mysql
 status_pgsql=$status_pgsql
 status_radius=$mu_cv_enable_radius
@@ -1528,3 +1539,6 @@ AC_CONFIG_FILES([
  ])
 AC_OUTPUT
 
+dnl Local Variables:
+dnl mode: autoconf
+dnl End:

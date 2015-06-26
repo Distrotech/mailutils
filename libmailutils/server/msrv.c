@@ -391,7 +391,7 @@ mu_m_server_get_hints (mu_m_server_t srv, struct mu_sockaddr_hints *hints)
 {
   if (!hints)
     return EINVAL;
-  memcpy (hints, &srv->hints, sizeof (hints));
+  memcpy (hints, &srv->hints, sizeof (*hints));
   return 0;
 }
 

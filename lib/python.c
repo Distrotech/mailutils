@@ -32,6 +32,7 @@ static int
 python_done (mu_script_descr_t descr)
 {
   free (descr);
+  return 0;
 }
 
 static int
@@ -56,7 +57,7 @@ python_proc (mu_script_descr_t descr, mu_message_t msg)
   data[0].attrs = dict;
   dict[1].name = NULL;
 
-mu_py_script_run ((char*)descr, data);
+  mu_py_script_run ((char*)descr, data);
   mu_py_script_finish ();
   return 0;
 }

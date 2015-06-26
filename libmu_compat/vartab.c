@@ -75,7 +75,7 @@ vardefn_free (struct vardefn *vd)
       else if (!(vd->flags & MU_VARDEFN_STATIC))
 	free (vd->value);
     }
-  memset (vd, 0, sizeof vd);
+  memset (vd, 0, sizeof *vd);
 }
 
 int

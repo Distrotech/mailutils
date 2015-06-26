@@ -343,15 +343,6 @@ mailvar_variable_comp (const void *a, const void *b)
   return strcmp (v1->name, v2->name);
 }
 
-static int
-mailvar_varptr_comp (const void *a, const void *b)
-{
-  const struct mailvar_variable const * v1 = a;
-  const struct mailvar_variable const *v2 = b;
-
-  return strcmp (v1->name, v2->name);
-}
-
 /* Find mailvar_list entry VAR. If not found and CREATE is not NULL, then
    create the (unset and untyped) variable */
 struct mailvar_variable *
@@ -631,7 +622,7 @@ mailvar_list_copy (int set)
   if (!list)
     mu_list_create (&list);
   _mailvar_symbol_to_list (set, list);
-  mu_list_sort (list, mailvar_varptr_comp);
+  mu_list_sort (list, mailvar_variable_comp);
   return list;
 }
   

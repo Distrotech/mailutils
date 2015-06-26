@@ -788,7 +788,7 @@ mu_address_union (mu_address_t *a, mu_address_t b)
 	    if (rc)
 	      {
 		_address_free (last);
-		memset (last, 0, sizeof (last));
+		memset (last, 0, sizeof (*last));
 		return rc;
 	      }
 	  }

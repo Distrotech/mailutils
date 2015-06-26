@@ -49,7 +49,7 @@ mu_wd (unsigned to)
   if (to)
     {
       _count_down = to;
-      while (_count_down--);
+      while (_count_down--)
 	{
 	  sleep (1);
 	}

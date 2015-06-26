@@ -55,6 +55,24 @@ _ndbm_file_safety (mu_dbm_file_t db, int mode, uid_t owner)
   return rc;
 }
 
+#ifndef HAVE_DBM_PAGFNO
+# ifdef HAVE_DBM_DIRFNO
+#  undef dbm_pagfno
+#  define dbm_pagfno dbm_dirfno
+# else
+#  error "neither dbm_pagfno nor dbm_dirfno available"
+# endif
+#endif
+
+#ifndef HAVE_DBM_DIRFNO
+# ifdef HAVE_DBM_PAGFNO
+#  undef dbm_dirfno
+#  define dbm_dirfno dbm_pagfno
+# else
+#  error "neither dbm_pagfno nor dbm_dirfno available"
+# endif
+#endif
+
 int
 _ndbm_get_fd (mu_dbm_file_t db, int *pag, int *dir)
 {
