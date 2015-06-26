@@ -19,6 +19,7 @@
 #include <mh.h>
 #include "prompter.h"
 #include "muaux.h"
+#include <signal.h>
 #if HAVE_TERMIOS_H
 # include <termios.h>
 #endif
