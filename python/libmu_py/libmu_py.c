@@ -17,7 +17,7 @@
 
 #include "libmu_py.h"
 
-inline PyObject *
+PyObject *
 _ro (PyObject *obj)
 {
   Py_INCREF (obj);

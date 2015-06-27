@@ -63,7 +63,7 @@
     }									 \
   while (0)
 
-extern inline PyObject * _ro (PyObject *obj);
+extern PyObject * _ro (PyObject *obj);
 extern void _py_dealloc (PyObject *self);
 extern PyObject * status_object (int status, PyObject *py_obj);
 extern PyObject * _mu_py_attach_module (const char *name, PyMethodDef *methods);
