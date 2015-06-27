@@ -160,11 +160,14 @@ api_address_destroy (PyObject *self, PyObject *args)
 static PyObject *
 api_address_is_group (PyObject *self, PyObject *args)
 {
-  int status, n, isgroup;
+  int status, isgroup;
+  Py_ssize_t n;
   PyAddress *py_addr;
 
-  if (!PyArg_ParseTuple (args, "O!i", &PyAddressType, &py_addr, &n))
+  if (!PyArg_ParseTuple (args, "O!n", &PyAddressType, &py_addr, &n))
     return NULL;
+
+  ASSERT_INDEX_RANGE (n, "address");
 
   status = mu_address_is_group (py_addr->addr, n, &isgroup);
   return status_object (status, PyBool_FromLong (isgroup));
@@ -186,13 +189,16 @@ api_address_get_count (PyObject *self, PyObject *args)
 static PyObject *
 api_address_get_email (PyObject *self, PyObject *args)
 {
-  int status, n;
+  int status;
+  Py_ssize_t n;
   const char *buf = NULL;
   PyAddress *py_addr;
 
-  if (!PyArg_ParseTuple (args, "O!i", &PyAddressType, &py_addr, &n))
+  if (!PyArg_ParseTuple (args, "O!n", &PyAddressType, &py_addr, &n))
     return NULL;
 
+  ASSERT_INDEX_RANGE (n, "address");
+  
   status = mu_address_sget_email (py_addr->addr, n, &buf);
   return status_object (status, PyString_FromString (buf ? buf : ""));
 }
@@ -200,12 +206,15 @@ api_address_get_email (PyObject *self, PyObject *args)
 static PyObject *
 api_address_get_local_part (PyObject *self, PyObject *args)
 {
-  int status, n;
+  int status;
+  Py_ssize_t n;
   const char *buf = NULL;
   PyAddress *py_addr;
 
-  if (!PyArg_ParseTuple (args, "O!i", &PyAddressType, &py_addr, &n))
+  if (!PyArg_ParseTuple (args, "O!n", &PyAddressType, &py_addr, &n))
     return NULL;
+
+  ASSERT_INDEX_RANGE (n, "address part");
 
   status = mu_address_sget_local_part (py_addr->addr, n, &buf);
   return status_object (status, PyString_FromString (buf ? buf : ""));
@@ -214,13 +223,14 @@ api_address_get_local_part (PyObject *self, PyObject *args)
 static PyObject *
 api_address_get_domain (PyObject *self, PyObject *args)
 {
-  int status, n;
+  int status;
+  Py_ssize_t n;
   const char *buf = NULL;
   PyAddress *py_addr;
 
-  if (!PyArg_ParseTuple (args, "O!i", &PyAddressType, &py_addr, &n))
+  if (!PyArg_ParseTuple (args, "O!n", &PyAddressType, &py_addr, &n))
     return NULL;
-
+  ASSERT_INDEX_RANGE (n, "address part");
   status = mu_address_sget_domain (py_addr->addr, n, &buf);
   return status_object (status, PyString_FromString (buf ? buf : ""));
 }
@@ -228,13 +238,14 @@ api_address_get_domain (PyObject *self, PyObject *args)
 static PyObject *
 api_address_get_personal (PyObject *self, PyObject *args)
 {
-  int status, n;
+  int status;
+  Py_ssize_t n;
   const char *buf = NULL;
   PyAddress *py_addr;
 
-  if (!PyArg_ParseTuple (args, "O!i", &PyAddressType, &py_addr, &n))
+  if (!PyArg_ParseTuple (args, "O!n", &PyAddressType, &py_addr, &n))
     return NULL;
-
+  ASSERT_INDEX_RANGE (n,  "address part");
   status = mu_address_sget_personal (py_addr->addr, n, &buf);
   return status_object (status, PyString_FromString (buf ? buf : ""));
 }
@@ -242,13 +253,14 @@ api_address_get_personal (PyObject *self, PyObject *args)
 static PyObject *
 api_address_get_comments (PyObject *self, PyObject *args)
 {
-  int status, n;
+  int status;
+  Py_ssize_t n;
   const char *buf = NULL;
   PyAddress *py_addr;
 
-  if (!PyArg_ParseTuple (args, "O!i", &PyAddressType, &py_addr, &n))
+  if (!PyArg_ParseTuple (args, "O!n", &PyAddressType, &py_addr, &n))
     return NULL;
-
+  ASSERT_INDEX_RANGE (n, "address part");
   status = mu_address_sget_comments (py_addr->addr, n, &buf);
   return status_object (status, PyString_FromString (buf ? buf : ""));
 }
@@ -256,13 +268,14 @@ api_address_get_comments (PyObject *self, PyObject *args)
 static PyObject *
 api_address_get_route (PyObject *self, PyObject *args)
 {
-  int status, n;
+  int status;
+  Py_ssize_t n;
   const char *buf = NULL;
   PyAddress *py_addr;
 
-  if (!PyArg_ParseTuple (args, "O!i", &PyAddressType, &py_addr, &n))
+  if (!PyArg_ParseTuple (args, "O!n", &PyAddressType, &py_addr, &n))
     return NULL;
-
+  ASSERT_INDEX_RANGE (n, "address part");
   status = mu_address_sget_route (py_addr->addr, n, &buf);
   return status_object (status, PyString_FromString (buf ? buf : ""));
 }

@@ -184,13 +184,14 @@ api_mailcap_entries_count (PyObject *self, PyObject *args)
 static PyObject *
 api_mailcap_get_entry (PyObject *self, PyObject *args)
 {
-  int status, i;
+  int status;
+  Py_ssize_t i;
   PyMailcap *py_mc;
   PyMailcapEntry *py_entry = PyMailcapEntry_NEW ();
 
-  if (!PyArg_ParseTuple (args, "O!i", &PyMailcapType, &py_mc, &i))
+  if (!PyArg_ParseTuple (args, "O!n", &PyMailcapType, &py_mc, &i))
     return NULL;
-
+  ASSERT_INDEX_RANGE (i, "mailcap");
   status = mu_mailcap_get_entry (py_mc->mc, i, &py_entry->entry);
 
   Py_INCREF (py_entry);
@@ -214,14 +215,14 @@ api_mailcap_entry_fields_count (PyObject *self, PyObject *args)
 static PyObject *
 api_mailcap_entry_get_field (PyObject *self, PyObject *args)
 {
-  int status, i;
+  int status;
+  Py_ssize_t i;
   char buf[256];
   PyMailcapEntry *py_entry;
 
-  if (!PyArg_ParseTuple (args, "O!i", &PyMailcapEntryType, &py_entry,
-			 &i))
+  if (!PyArg_ParseTuple (args, "O!n", &PyMailcapEntryType, &py_entry, &i))
     return NULL;
-
+  ASSERT_INDEX_RANGE (i, "mailcap");
   status = mu_mailcap_entry_get_field (py_entry->entry, i, buf,
 				       sizeof (buf), NULL);
   return status_object (status, PyString_FromString (buf));

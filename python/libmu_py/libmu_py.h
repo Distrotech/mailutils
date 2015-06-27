@@ -52,6 +52,17 @@
 #define PY_ROOT_NAME "c_api"
 #define PY_PACKAGE_VERSION PACKAGE_VERSION
 
+#define ASSERT_INDEX_RANGE(n, t)					 \
+  do									 \
+    {									 \
+      if ((n) <= 0)							 \
+	{								 \
+          PyErr_SetString (PyExc_RuntimeError, t " index out of range"); \
+          return NULL;					   	         \
+	}								 \
+    }									 \
+  while (0)
+
 extern inline PyObject * _ro (PyObject *obj);
 extern void _py_dealloc (PyObject *self);
 extern PyObject * status_object (int status, PyObject *py_obj);

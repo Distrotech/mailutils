@@ -230,13 +230,13 @@ static PyObject *
 api_message_get_part (PyObject *self, PyObject *args)
 {
   int status;
-  size_t npart;
+  Py_ssize_t npart;
   PyMessage *py_msg;
   PyMessage *py_part = PyMessage_NEW ();
 
-  if (!PyArg_ParseTuple (args, "O!i", &PyMessageType, &py_msg, &npart))
+  if (!PyArg_ParseTuple (args, "O!n", &PyMessageType, &py_msg, &npart))
     return NULL;
-
+  ASSERT_INDEX_RANGE (npart, "message part");
   status = mu_message_get_part (py_msg->msg, npart, &py_part->msg);
 
   Py_INCREF (py_part);

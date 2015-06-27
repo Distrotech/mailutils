@@ -45,8 +45,9 @@ python_proc (mu_script_descr_t descr, mu_message_t msg)
   mu_py_dict dict[2];
   mu_py_script_data data[1];
   char *argv[] = { NULL, NULL };
-
-  argv[0] = mu_program_name;
+  char *argv0 = mu_strdup (mu_program_name);
+  
+  argv[0] = argv0;
   
   mu_py_script_init (1, argv);
 
@@ -62,6 +63,9 @@ python_proc (mu_script_descr_t descr, mu_message_t msg)
 
   mu_py_script_run ((char*)descr, data);
   mu_py_script_finish ();
+
+  free (argv0);
+  
   return 0;
 }
 

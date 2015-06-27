@@ -131,7 +131,8 @@ api_mailbox_open (PyObject *self, PyObject *args)
 
   if (!PyArg_ParseTuple (args, "O!i", &PyMailboxType, &py_mbox, &flag))
     return NULL;
-
+  if (!flag)
+    flag = MU_STREAM_READ;
   status = mu_mailbox_open (py_mbox->mbox, flag);
   return _ro (PyInt_FromLong (status));
 }
@@ -208,13 +209,15 @@ static PyObject *
 api_mailbox_get_message (PyObject *self, PyObject *args)
 {
   int status;
-  size_t msgno;
+  Py_ssize_t msgno;
   PyMailbox *py_mbox;
   PyMessage *py_msg = PyMessage_NEW ();
 
-  if (!PyArg_ParseTuple (args, "O!i", &PyMailboxType, &py_mbox, &msgno))
+  if (!PyArg_ParseTuple (args, "O!n", &PyMailboxType, &py_mbox, &msgno))
     return NULL;
 
+  ASSERT_INDEX_RANGE (msgno, "message");
+  
   status = mu_mailbox_get_message (py_mbox->mbox, msgno, &py_msg->msg);
 
   Py_INCREF (py_msg);

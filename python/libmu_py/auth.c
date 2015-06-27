@@ -591,11 +591,12 @@ static PyObject *
 api_get_auth_by_uid (PyObject *self, PyObject *args)
 {
   uid_t uid;
+  Py_ssize_t n;
   PyAuthData *py_ad = PyAuthData_NEW ();
 
-  if (!PyArg_ParseTuple (args, "i", &uid))
+  if (!PyArg_ParseTuple (args, "n", &n))
     return NULL;
-
+  uid = (uid_t) n;
   Py_INCREF (py_ad);
 
   py_ad->auth_data = mu_get_auth_by_uid (uid);

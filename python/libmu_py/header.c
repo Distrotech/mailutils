@@ -122,14 +122,15 @@ api_header_get_value (PyObject *self, PyObject *args)
 static PyObject *
 api_header_get_value_n (PyObject *self, PyObject *args)
 {
-  int status, n;
+  int status;
+  Py_ssize_t n;
   char *name;
   const char *value = NULL;
   PyHeader *py_hdr;
 
-  if (!PyArg_ParseTuple (args, "O!si", &PyHeaderType, &py_hdr, &name, &n))
+  if (!PyArg_ParseTuple (args, "O!sn", &PyHeaderType, &py_hdr, &name, &n))
     return NULL;
-
+  ASSERT_INDEX_RANGE (n, "header");
   status = mu_header_sget_value_n (py_hdr->hdr, name, n, &value);
   return status_object (status, PyString_FromString (value ? value : ""));
 }
@@ -167,13 +168,13 @@ static PyObject *
 api_header_get_field_name (PyObject *self, PyObject *args)
 {
   int status;
-  size_t idx;
+  Py_ssize_t idx;
   const char *name = NULL;
   PyHeader *py_hdr;
 
-  if (!PyArg_ParseTuple (args, "O!i", &PyHeaderType, &py_hdr, &idx))
+  if (!PyArg_ParseTuple (args, "O!n", &PyHeaderType, &py_hdr, &idx))
     return NULL;
-
+  ASSERT_INDEX_RANGE (idx, "header");
   status = mu_header_sget_field_name (py_hdr->hdr, idx, &name);
   return status_object (status, PyString_FromString (name ? name : ""));
 }
@@ -182,13 +183,13 @@ static PyObject *
 api_header_get_field_value (PyObject *self, PyObject *args)
 {
   int status;
-  size_t idx;
+  Py_ssize_t idx;
   const char *value = NULL;
   PyHeader *py_hdr;
 
-  if (!PyArg_ParseTuple (args, "O!i", &PyHeaderType, &py_hdr, &idx))
+  if (!PyArg_ParseTuple (args, "O!n", &PyHeaderType, &py_hdr, &idx))
     return NULL;
-
+  ASSERT_INDEX_RANGE (idx, "header");
   status = mu_header_sget_field_value (py_hdr->hdr, idx, &value);
   return status_object (status, PyString_FromString (value ? value : ""));
 }

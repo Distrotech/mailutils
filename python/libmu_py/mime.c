@@ -140,13 +140,13 @@ static PyObject *
 api_mime_get_part (PyObject *self, PyObject *args)
 {
   int status;
-  size_t npart;
+  Py_ssize_t npart;
   PyMime *py_mime;
   PyMessage *py_part = PyMessage_NEW ();
 
-  if (!PyArg_ParseTuple (args, "O!i", &PyMimeType, &py_mime, &npart))
+  if (!PyArg_ParseTuple (args, "O!n", &PyMimeType, &py_mime, &npart))
     return NULL;
-
+  ASSERT_INDEX_RANGE (npart, "mime part");
   status = mu_mime_get_part (py_mime->mime, npart, &py_part->msg);
 
   Py_INCREF (py_part);

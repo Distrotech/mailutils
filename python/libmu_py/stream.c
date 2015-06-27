@@ -303,12 +303,17 @@ api_stream_write (PyObject *self, PyObject *args)
 {
   int status;
   char *wbuf;
-  size_t size, write_count;
+  Py_ssize_t size;
+  size_t write_count;
   PyStream *py_stm;
 
-  if (!PyArg_ParseTuple (args, "O!si", &PyStreamType, &py_stm, &wbuf, &size))
+  if (!PyArg_ParseTuple (args, "O!sn", &PyStreamType, &py_stm, &wbuf, &size))
     return NULL;
-
+  if (size < 0)
+    {
+      PyErr_SetString (PyExc_RuntimeError, "negative size");
+      return NULL;
+    }
   status = mu_stream_write (py_stm->stm, wbuf, size, &write_count);
   return status_object (status, PyInt_FromLong (write_count));
 }

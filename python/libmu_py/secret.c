@@ -87,13 +87,17 @@ api_secret_create (PyObject *self, PyObject *args)
 {
   int status;
   char *str;
-  size_t len;
+  Py_ssize_t len;
   PySecret *py_secret;
 
-  if (!PyArg_ParseTuple (args, "O!si", &PySecretType, &py_secret,
+  if (!PyArg_ParseTuple (args, "O!sn", &PySecretType, &py_secret,
 			 &str, &len))
     return NULL;
-
+  if (len <= 0)
+    {
+      PyErr_SetString (PyExc_RuntimeError, "secret length out of range");
+      return NULL;
+    }
   status = mu_secret_create (&py_secret->secret, str, len);
   return _ro (PyInt_FromLong (status));
 }
