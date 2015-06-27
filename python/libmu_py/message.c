@@ -131,7 +131,7 @@ api_message_size (PyObject *self, PyObject *args)
     return NULL;
 
   status = mu_message_size (py_msg->msg, &size);
-  return status_object (status, PyInt_FromLong (size));
+  return status_object (status, PyInt_FromSize_t (size));
 }
 
 static PyObject *
@@ -145,7 +145,7 @@ api_message_lines (PyObject *self, PyObject *args)
     return NULL;
 
   status = mu_message_lines (py_msg->msg, &lines);
-  return status_object (status, PyInt_FromLong (lines));
+  return status_object (status, PyInt_FromSize_t (lines));
 }
 
 static PyObject *
@@ -223,7 +223,7 @@ api_message_get_num_parts (PyObject *self, PyObject *args)
     return NULL;
 
   status = mu_message_get_num_parts (py_msg->msg, &parts);
-  return status_object (status, PyInt_FromLong (parts));
+  return status_object (status, PyInt_FromSize_t (parts));
 }
 
 static PyObject *
@@ -254,7 +254,7 @@ api_message_get_uid (PyObject *self, PyObject *args)
     return NULL;
 
   status = mu_message_get_uid (py_msg->msg, &uid);
-  return status_object (status, PyInt_FromLong (uid));
+  return status_object (status, PyInt_FromSize_t (uid));
 }
 
 static PyObject *

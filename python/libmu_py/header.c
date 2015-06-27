@@ -87,7 +87,7 @@ api_header_size (PyObject *self, PyObject *args)
     return NULL;
 
   status = mu_header_size (py_hdr->hdr, &size);
-  return status_object (status, PyInt_FromLong (size));
+  return status_object (status, PyInt_FromSize_t (size));
 }
 
 static PyObject *
@@ -101,7 +101,7 @@ api_header_lines (PyObject *self, PyObject *args)
     return NULL;
 
   status = mu_header_lines (py_hdr->hdr, &lines);
-  return status_object (status, PyInt_FromLong (lines));
+  return status_object (status, PyInt_FromSize_t (lines));
 }
 
 static PyObject *
@@ -161,7 +161,7 @@ api_header_get_field_count (PyObject *self, PyObject *args)
     return NULL;
 
   status = mu_header_get_field_count (py_hdr->hdr, &count);
-  return status_object (status, PyInt_FromLong (count));
+  return status_object (status, PyInt_FromSize_t (count));
 }
 
 static PyObject *

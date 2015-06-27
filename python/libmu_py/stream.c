@@ -294,7 +294,7 @@ api_stream_read (PyObject *self, PyObject *args)
   py_ret = PyTuple_New (3);
   PyTuple_SetItem (py_ret, 0, PyInt_FromLong (status));
   PyTuple_SetItem (py_ret, 1, PyString_FromString (rbuf));
-  PyTuple_SetItem (py_ret, 2, PyInt_FromLong (read_count));
+  PyTuple_SetItem (py_ret, 2, PyInt_FromSize_t (read_count));
   return _ro (py_ret);
 }
 
@@ -315,7 +315,7 @@ api_stream_write (PyObject *self, PyObject *args)
       return NULL;
     }
   status = mu_stream_write (py_stm->stm, wbuf, size, &write_count);
-  return status_object (status, PyInt_FromLong (write_count));
+  return status_object (status, PyInt_FromSize_t (write_count));
 }
 
 static PyObject *
@@ -337,7 +337,7 @@ api_stream_readline (PyObject *self, PyObject *args)
   py_ret = PyTuple_New (3);
   PyTuple_SetItem (py_ret, 0, PyInt_FromLong (status));
   PyTuple_SetItem (py_ret, 1, PyString_FromString (rbuf));
-  PyTuple_SetItem (py_ret, 2, PyInt_FromLong (read_count));
+  PyTuple_SetItem (py_ret, 2, PyInt_FromSize_t (read_count));
   return _ro (py_ret);
 }
 

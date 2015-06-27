@@ -201,42 +201,36 @@ _getattr4 (PyObject *self, char *name)
   if (!ad)
     return NULL;
 
-  if (strcmp (name, "name") == 0) {
+  if (strcmp (name, "name") == 0)
     return PyString_FromString (ad->name);
-  }
-  else if (strcmp (name, "passwd") == 0) {
+  else if (strcmp (name, "passwd") == 0)
     return PyString_FromString (ad->passwd);
-  }
-  else if (strcmp (name, "uid") == 0) {
-    return PyInt_FromLong (ad->uid);
-  }
-  else if (strcmp (name, "gid") == 0) {
-    return PyInt_FromLong (ad->gid);
-  }
-  else if (strcmp (name, "gecos") == 0) {
+
+  /* FIXME: The use of PyInt_FromSize_t to convert uid_t and gid_t is
+     a bit dubious, but so far there's no other feasible way in Python,
+     save for converting uid (gid) to string and using PyInt_FromString. */
+  else if (strcmp (name, "uid") == 0)
+    return PyInt_FromSize_t (ad->uid);
+  else if (strcmp (name, "gid") == 0)
+    return PyInt_FromSize_t (ad->gid);
+  else if (strcmp (name, "gecos") == 0)
     return PyString_FromString (ad->gecos);
-  }
-  else if (strcmp (name, "dir") == 0) {
+  else if (strcmp (name, "dir") == 0)
     return PyString_FromString (ad->dir);
-  }
-  else if (strcmp (name, "shell") == 0) {
+  else if (strcmp (name, "shell") == 0)
     return PyString_FromString (ad->shell);
-  }
-  else if (strcmp (name, "mailbox") == 0) {
+  else if (strcmp (name, "mailbox") == 0)
     return PyString_FromString (ad->mailbox);
-  }
-  else if (strcmp (name, "source") == 0) {
+  else if (strcmp (name, "source") == 0)
     return PyString_FromString (ad->source);
-  }
-  else if (strcmp (name, "quota") == 0) {
-    return PyInt_FromLong (ad->quota);
-  }
-  else if (strcmp (name, "flags") == 0) {
+  else if (strcmp (name, "quota") == 0)
+    /* FIXME: quota is mu_off_t rather than size_t.  See comment for uid
+       above */
+    return PyInt_FromSize_t (ad->quota);
+  else if (strcmp (name, "flags") == 0)
     return PyInt_FromLong (ad->flags);
-  }
-  else if (strcmp (name, "change_uid") == 0) {
+  else if (strcmp (name, "change_uid") == 0)
     return PyInt_FromLong (ad->change_uid);
-  }
   return NULL;
 }
 

@@ -133,7 +133,7 @@ api_mime_get_num_parts (PyObject *self, PyObject *args)
     return NULL;
 
   status = mu_mime_get_num_parts (py_mime->mime, &nparts);
-  return status_object (status, PyInt_FromLong (nparts));
+  return status_object (status, PyInt_FromSize_t (nparts));
 }
 
 static PyObject *

@@ -263,7 +263,7 @@ _sieve_action_printer (void *data, mu_stream_t stream,
 	      Py_INCREF (py_msg);
 
 	      PyDict_SetItemString (py_dict, "msgno",
-				    PyInt_FromLong (msgno));
+				    PyInt_FromSize_t (msgno));
 	      PyDict_SetItemString (py_dict, "msg", (PyObject *)py_msg);
 	      PyDict_SetItemString (py_dict, "action",
 				    PyString_FromString (action ? action : ""));

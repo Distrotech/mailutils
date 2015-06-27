@@ -178,7 +178,7 @@ api_mailcap_entries_count (PyObject *self, PyObject *args)
     return NULL;
 
   status = mu_mailcap_entries_count (py_mc->mc, &count);
-  return status_object (status, PyInt_FromLong (count));
+  return status_object (status, PyInt_FromSize_t (count));
 }
 
 static PyObject *
@@ -209,7 +209,7 @@ api_mailcap_entry_fields_count (PyObject *self, PyObject *args)
     return NULL;
 
   status = mu_mailcap_entry_fields_count (py_entry->entry, &count);
-  return status_object (status, PyInt_FromLong (count));
+  return status_object (status, PyInt_FromSize_t (count));
 }
 
 static PyObject *

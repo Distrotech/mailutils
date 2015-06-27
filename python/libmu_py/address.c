@@ -183,7 +183,7 @@ api_address_get_count (PyObject *self, PyObject *args)
     return NULL;
 
   mu_address_get_count (py_addr->addr, &count);
-  return _ro (PyInt_FromLong (count));
+  return _ro (PyInt_FromSize_t (count));
 }
 
 static PyObject *

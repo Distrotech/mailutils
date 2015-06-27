@@ -87,7 +87,7 @@ api_body_size (PyObject *self, PyObject *args)
     return NULL;
 
   status = mu_body_size (py_body->body, &size);
-  return status_object (status, PyInt_FromLong (size));
+  return status_object (status, PyInt_FromSize_t (size));
 }
 
 static PyObject *
@@ -101,7 +101,7 @@ api_body_lines (PyObject *self, PyObject *args)
     return NULL;
 
   status = mu_body_lines (py_body->body, &lines);
-  return status_object (status, PyInt_FromLong (lines));
+  return status_object (status, PyInt_FromSize_t (lines));
 }
 
 static PyObject *

@@ -174,7 +174,7 @@ api_mailbox_messages_count (PyObject *self, PyObject *args)
     return NULL;
 
   status = mu_mailbox_messages_count (py_mbox->mbox, &total);
-  return status_object (status, PyInt_FromLong (total));
+  return status_object (status, PyInt_FromSize_t (total));
 }
 
 static PyObject *
@@ -188,7 +188,7 @@ api_mailbox_messages_recent (PyObject *self, PyObject *args)
     return NULL;
 
   status = mu_mailbox_messages_recent (py_mbox->mbox, &recent);
-  return status_object (status, PyInt_FromLong (recent));
+  return status_object (status, PyInt_FromSize_t (recent));
 }
 
 static PyObject *
@@ -202,7 +202,7 @@ api_mailbox_message_unseen (PyObject *self, PyObject *args)
     return NULL;
 
   status = mu_mailbox_message_unseen (py_mbox->mbox, &unseen);
-  return status_object (status, PyInt_FromLong (unseen));
+  return status_object (status, PyInt_FromSize_t (unseen));
 }
 
 static PyObject *
@@ -276,7 +276,7 @@ uidls_extractor (void *data, PyObject **dst)
   struct mu_uidl *uidl = (struct mu_uidl *)data;
 
   *dst = PyTuple_New (2);
-  PyTuple_SetItem (*dst, 0, PyInt_FromLong (uidl->msgno));
+  PyTuple_SetItem (*dst, 0, PyInt_FromSize_t (uidl->msgno));
   PyTuple_SetItem (*dst, 1, PyString_FromString (uidl->uidl));
   return 0;
 }
@@ -339,7 +339,9 @@ api_mailbox_get_size (PyObject *self, PyObject *args)
     return NULL;
 
   status = mu_mailbox_get_size (py_mbox->mbox, &size);
-  return status_object (status, PyInt_FromLong (size));
+  /* FIXME: Using PyInt_FromSize_t to convert mu_off_t can cause truncation
+     for very large mailboxes. */
+  return status_object (status, PyInt_FromSize_t (size));
 }
 
 static PyObject *
