@@ -15,9 +15,6 @@
    You should have received a copy of the GNU General Public License
    along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>. */
 
-#if defined(HAVE_CONFIG_H)
-# include <config.h>
-#endif
 #include <mailutils/sieve.h>
 #include <mailutils/diag.h>
 #include <mailutils/errno.h>
