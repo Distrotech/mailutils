@@ -540,7 +540,7 @@ maildir_msg_finish_delivery (struct _amd_data *amd, struct _amd_message *amm,
 
   if (rc == 0)
     {
-      if (unlink (newname))
+      if (unlink (newname) && errno != ENOENT)
 	{
 	  rc = errno;
 	  mu_debug (MU_DEBCAT_MAILBOX, MU_DEBUG_ERROR,
