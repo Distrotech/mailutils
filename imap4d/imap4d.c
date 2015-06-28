@@ -260,7 +260,7 @@ cb2_group (const char *gname, void *data)
   if (!group)
     mu_error (_("unknown group: %s"), gname);
   else
-    mu_list_append (list, (void*)group->gr_gid);
+    mu_list_append (list, (void*) (intptr_t) group->gr_gid);
   return 0;
 }
   
@@ -480,11 +480,13 @@ mu_get_user_groups (const char *user, mu_list_t retain, mu_list_t *pgrouplist)
       for (p = gr->gr_mem; *p; p++)
 	if (strcmp (*p, user) == 0)
 	  {
-	    if (retain && mu_list_locate (retain, (void*)gr->gr_gid, NULL))
+	    if (retain
+		&& mu_list_locate (retain, (void*) (intptr_t) gr->gr_gid,
+				   NULL))
 	      continue;
 	      
 	    /* FIXME: Avoid duplicating gids */
-	    rc = mu_list_append (list, (void*)gr->gr_gid);
+	    rc = mu_list_append (list, (void*) (intptr_t) gr->gr_gid);
 	    if (rc) 
 	      mu_error(_("%s: cannot append to list: %s"),
 		       "mu_get_user_groups",
@@ -592,7 +594,7 @@ imap4d_session_setup0 ()
 	      free (real_homedir);
 	      return 1;
 	    }
-	  mu_list_append (groups, (void*)auth_data->gid);
+	  mu_list_append (groups, (void*) (intptr_t) auth_data->gid);
 
 	  rc = mu_get_user_groups (auth_data->name, user_retain_groups,
 				   &groups);

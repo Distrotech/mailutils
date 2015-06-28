@@ -181,13 +181,13 @@ fd_ioctl (struct _mu_stream *str, int code, int opcode, void *ptr)
 	{
 	case MU_IOCTL_OP_GET:
 	  ptrans = ptr;
-	  ptrans[0] = (mu_transport_t) fstr->fd;
+	  ptrans[0] = (mu_transport_t) (intptr_t) fstr->fd;
 	  ptrans[1] = NULL;
 	  break;
 
 	case MU_IOCTL_OP_SET:
 	  ptrans = ptr;
-	  fstr->fd = (int) ptrans[0];
+	  fstr->fd = (int) (intptr_t) ptrans[0];
 	  break;
 	}
       break;

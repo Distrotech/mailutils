@@ -18,6 +18,7 @@
 #ifndef _MAILUTILS_CFG_H
 #define _MAILUTILS_CFG_H
 
+#include <mailutils/types.h>
 #include <mailutils/list.h>
 #include <mailutils/debug.h>
 #include <mailutils/opool.h>
@@ -263,7 +264,7 @@ int mu_config_register_plain_section (const char *parent_path,
 #ifdef MU_CFG_COMPATIBILITY
 # define MU_CFG_DEPRECATED
 #else
-# define MU_CFG_DEPRECATED __attribute__ ((deprecated))
+# define MU_CFG_DEPRECATED MU_DEPRECATED
 #endif
 
 int mu_parse_config (const char *file, const char *progname,

@@ -31,8 +31,7 @@ extern void * mu_body_get_owner   (mu_body_t);
 extern int mu_body_is_modified    (mu_body_t);
 extern int mu_body_clear_modified (mu_body_t);
 
-extern int mu_body_get_stream     (mu_body_t, mu_stream_t *)
-                                      __attribute__ ((deprecated));
+extern int mu_body_get_stream     (mu_body_t, mu_stream_t *) MU_DEPRECATED;
 extern int mu_body_get_streamref  (mu_body_t body, mu_stream_t *pstream);
 extern int mu_body_set_stream     (mu_body_t, mu_stream_t, void *owner);
 extern int mu_body_set_get_stream (mu_body_t,

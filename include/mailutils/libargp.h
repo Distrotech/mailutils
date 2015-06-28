@@ -78,7 +78,7 @@ error_t mu_argp_parse (const struct argp *myargp,
 		       unsigned flags,
 		       const char *capa[],
 		       int *arg_index,     
-		       void *input) __attribute__ ((deprecated));
+		       void *input) MU_DEPRECATED;
 
 void mu_argp_node_list_init (mu_list_t *);
 void mu_argp_node_list_add (mu_list_t, mu_cfg_node_t *);

@@ -186,7 +186,7 @@ need_crlf (mu_stream_t str)
 
   if (mu_stream_ioctl (str, MU_IOCTL_TRANSPORT, MU_IOCTL_OP_GET, trans))
     return 1; /* suppose we do need it */
-  if (tcgetattr ((int)trans[0], &tbuf) == 0 &&
+  if (tcgetattr ((int) (intptr_t) trans[0], &tbuf) == 0 &&
       (tbuf.c_oflag & OPOST) && (tbuf.c_oflag & ONLCR))
     return 0;
   else

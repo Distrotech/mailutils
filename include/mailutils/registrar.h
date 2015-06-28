@@ -64,7 +64,7 @@ void mu_registrar_set_default_record (mu_record_t record);
   
 /* Registration.  */
 int mu_registrar_get_iterator (mu_iterator_t *);
-int mu_registrar_get_list (mu_list_t *) __attribute__ ((deprecated));
+int mu_registrar_get_list (mu_list_t *) MU_DEPRECATED;
 
 int mu_registrar_lookup_scheme (const char *scheme,
 				       mu_record_t *precord);

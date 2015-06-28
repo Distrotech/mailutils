@@ -300,7 +300,7 @@ cb2_group (const char *gname, void *data)
   if (!group)
     mu_error (_("unknown group: %s"), gname);
   else
-    mu_list_append (list, (void*)group->gr_gid);
+    mu_list_append (list, (void*) (intptr_t) group->gr_gid);
   return 0;
 }
   

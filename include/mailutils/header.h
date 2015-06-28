@@ -152,8 +152,7 @@ extern int mu_header_get_field_value_unfold (mu_header_t header, size_t num,
 extern int mu_header_aget_field_value_unfold (mu_header_t header, size_t num,
 					      char **pvalue);
 
-extern int mu_header_get_stream (mu_header_t, mu_stream_t *)
-                                  __attribute__ ((deprecated));
+extern int mu_header_get_stream (mu_header_t, mu_stream_t *) MU_DEPRECATED;
 extern int mu_header_get_streamref (mu_header_t, mu_stream_t *);
   
 /* FIXME: This function does not exist:

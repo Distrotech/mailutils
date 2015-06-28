@@ -131,7 +131,7 @@ puts_bidi (char *string)
   else
     {
       FriBidiStrIndex len;
-      FriBidiCharType base = FRIBIDI_TYPE_ON;
+      FriBidiParType base = FRIBIDI_TYPE_ON;
       fribidi_boolean log2vis;
       
       static FriBidiChar *visual;
@@ -156,7 +156,6 @@ puts_bidi (char *string)
       if (log2vis)
 	{
 	  FriBidiStrIndex idx, st;
-	  FriBidiStrIndex new_len;
 	  
 	  for (idx = 0; idx < len;)
 	    {
@@ -183,9 +182,9 @@ puts_bidi (char *string)
 		idx--;
 	      inlen = idx - st;
 
-	      new_len = fribidi_unicode_to_charset (fb_charset_num,
-						    visual + st, inlen,
-						    outstring);
+	      fribidi_unicode_to_charset (fb_charset_num,
+					  visual + st, inlen,
+					  outstring);
 	      mu_printf ("%s", outstring);
 	    }
 	  mu_printf ("\n");

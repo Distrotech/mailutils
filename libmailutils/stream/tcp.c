@@ -167,7 +167,7 @@ _tcp_ioctl (mu_stream_t stream, int code, int opcode, void *ptr)
 	  switch (opcode)
 	    {
 	    case MU_IOCTL_OP_GET:
-	      ptrans[0] = (mu_transport_t) tcp->fd;
+	      ptrans[0] = (mu_transport_t) (intptr_t) tcp->fd;
 	      ptrans[1] = NULL;
 	      break;
 	    case MU_IOCTL_OP_SET:

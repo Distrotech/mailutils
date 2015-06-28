@@ -69,8 +69,7 @@ extern int  mu_mailbox_messages_recent (mu_mailbox_t, size_t *);
 extern int  mu_mailbox_message_unseen  (mu_mailbox_t, size_t *);
 extern int  mu_mailbox_expunge         (mu_mailbox_t);
 extern int  mu_mailbox_sync            (mu_mailbox_t);  
-extern int  mu_mailbox_save_attributes (mu_mailbox_t)
-                                       __attribute__ ((deprecated));
+extern int  mu_mailbox_save_attributes (mu_mailbox_t) MU_DEPRECATED;
 
 #define MU_UIDL_LENGTH 70
 #define MU_UIDL_BUFFER_SIZE (MU_UIDL_LENGTH+1)

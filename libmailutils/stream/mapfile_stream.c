@@ -222,7 +222,7 @@ _mapfile_ioctl (struct _mu_stream *str, int code, int opcode, void *ptr)
 	  switch (opcode)
 	    {
 	    case MU_IOCTL_OP_GET:
-	      ptrans[0] = (mu_transport_t) mfs->fd;
+	      ptrans[0] = (mu_transport_t) (intptr_t) mfs->fd;
 	      ptrans[1] = NULL;
 	      break;
 	    case MU_IOCTL_OP_SET:
