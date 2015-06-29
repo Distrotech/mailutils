@@ -15,17 +15,8 @@
 ## You should have received a copy of the GNU General Public License
 ## along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
 
-bin_PROGRAMS = mu
+bin_PROGRAMS = mailutils
 bin_SCRIPTS = mailutils-config
-
-CLEANFILES=mailutils-config
-mailutils-config: $(top_srcdir)/mu/mailutils-config.in
-	$(AM_V_GEN)muname=mu; \
-	      test -n "$(transform)" && \
-	        muname=`echo $$muname | \
-                     sed -e 's/$(EXEEXT)$$//;$(transform);s/$$/$(EXEEXT)/'`; \
-	sed 's/MUNAME/'$$muname'/g' $(top_srcdir)/mu/mailutils-config.in > mailutils-config
-
 
 IDLE_MODULES=
 
@@ -71,7 +62,7 @@ MODULES = \
  $(SMTP_C)\
  wicket.c
 
-mu_SOURCES = \
+mailutils_SOURCES = \
  dispatch.c\
  getans.c\
  getarg.c\
@@ -83,7 +74,7 @@ mu_SOURCES = \
  verbose.c\
  $(MODULES)
 
-mu_LDADD = \
+mailutils_LDADD = \
  ${MU_APP_LIBRARIES}\
  ${MU_LIB_MBOX}\
  ${MU_LIB_IMAP}\
@@ -110,12 +101,12 @@ AM_CPPFLAGS = \
   -DDBMLIBS="\"$(DBMLIBS)\""
 
 BUILT_SOURCES=mu-setup.c mu-setup.h
-EXTRA_DIST=mu-setup.awk mu-setup.c mu-setup.h template.c mailutils-config.in
+EXTRA_DIST=mu-setup.awk mu-setup.c mu-setup.h template.c mailutils-config
 
 mu-setup.h: Makefile.am $(MODULES) $(IDLE_MODULES) 
-	$(AM_V_GEN)$(AWK) -f $(top_srcdir)/mu/mu-setup.awk -v mode=h \
+	$(AM_V_GEN)$(AWK) -f $(srcdir)/mu-setup.awk -v mode=h \
            $(MODULES) $(IDLE_MODULES) > mu-setup.h
 
 mu-setup.c: Makefile.am $(MODULES)
-	$(AM_V_GEN)$(AWK) -f $(top_srcdir)/mu/mu-setup.awk -v mode=c \
+	$(AM_V_GEN)$(AWK) -f $(srcdir)/mu-setup.awk -v mode=c \
            $(MODULES) $(IDLE_MODULES) > mu-setup.c

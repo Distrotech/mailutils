@@ -68,6 +68,7 @@ static struct argp argp = {
 };
 
 static const char *capa[] = {
+  "mailutils",
   "common",
   "debug",
   "mailbox",

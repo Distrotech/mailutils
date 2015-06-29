@@ -96,6 +96,7 @@ static struct argp argp = {
 };
 
 static const char *popauth_argp_capa[] = {
+  "mailutils",
   "common",
   NULL
 };

@@ -133,6 +133,7 @@ static struct argp argp = {
 };
 
 static const char *maidag_argp_capa[] = {
+  "mailutils",
   "auth",
   "common",
   "debug",

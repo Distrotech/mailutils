@@ -29,6 +29,7 @@ libmu_argp_la_SOURCES =\
  cmdline.c\
  cmdline.h\
  common.c\
+ mailutils.c\
  mu_argp.c\
  muinit.c\
  sieve.c

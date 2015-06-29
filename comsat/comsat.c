@@ -89,6 +89,7 @@ static struct argp argp = {
 };
 
 static const char *comsat_argp_capa[] = {
+  "mailutils",
   "common",
   "debug",
   "logging",

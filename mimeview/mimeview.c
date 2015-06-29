@@ -176,6 +176,7 @@ struct mu_cfg_param mimeview_cfg_param[] = {
 
 
 static const char *capa[] = {
+  "mailutils",
   "common",
   "debug",
   NULL

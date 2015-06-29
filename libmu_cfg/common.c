@@ -210,3 +210,4 @@ static struct mu_cfg_param mu_debug_param[] = {
 };
 
 DCL_CFG_CAPA (debug);
+

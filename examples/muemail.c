@@ -24,6 +24,7 @@
 #include "mailutils/libargp.h"
 
 const char *capa[] = {
+  "mailutils",
   "address",
   NULL
 };

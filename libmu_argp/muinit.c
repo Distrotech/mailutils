@@ -35,7 +35,7 @@ const char version_etc_copyright[] =
   /* Do *not* mark this string for translation.  %s is a copyright
      symbol suitable for this locale, and %d is the copyright
      year.  */
-  "Copyright %s 2007-2014 Free Software Foundation, inc.";
+  "Copyright %s 2007-2015 Free Software Foundation, inc.";
 
 void
 mu_program_version_hook (FILE *stream, struct argp_state *state)
@@ -116,7 +116,7 @@ mu_app_init (struct argp *myargp, const char **capa,
       mu_gocs_register_std (capa[i]); /*FIXME*/
   if (!myargp)
     myargp = &argpnull;
-  argp = mu_argp_build (myargp, &excapa);
+  argp = mu_argp_build (myargp, &excapa, &flags);
 
   mu_cfg_tree_create (&mu_argp_tree);
   rc = argp_parse (argp, argc, argv, flags, pindex, data);

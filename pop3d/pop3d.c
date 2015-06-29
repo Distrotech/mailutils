@@ -281,6 +281,7 @@ static struct argp argp = {
 };
 
 static const char *pop3d_argp_capa[] = {
+  "mailutils",
   "auth",
   "common",
   "debug",

@@ -134,6 +134,7 @@ struct mu_cfg_param dotlock_cfg_param[] = {
 
 
 const char *dotlock_capa[] = {
+  "mailutils",
   "common",
   "debug",
   NULL

@@ -1,11 +1,11 @@
-GNU mailutils NEWS -- history of user-visible changes. 2013-04-12
+GNU mailutils NEWS -- history of user-visible changes. 2015-07-02
 Copyright (C) 2002-2015 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
 Please send mailutils bug reports to <bug-mailutils@gnu.org>.
 
 
-Version 2.99.98 (Git)
+Version 2.99.99 (Git)
 
 This version is a major rewrite of GNU Mailutils.  Quite a few parts
 of the basic framework were rewritten from scratch, while some others
@@ -60,9 +60,9 @@ example, "gdbm:///etc/mail/aliases.db" refers to a GDBM database.
 
 See <http://mailutils.org/wiki/libmu_dbm>.
 
-** New utility `mu'
+** New utility `mailutils'
 
-`Mu' is a multi-purpose tool which can be of use to users, programmers
+Multi-purpose tool which can be of use to users, programmers
 and system administrators.  It allows you to retrieve information
 about Mailutils configuration, check ACLs and authentication tickets,
 list, create or modify DBM files, construct filters of arbitrary
@@ -100,7 +100,7 @@ pipes the message (or any part thereof) to it.
 See <http://mailutils.org/wiki/Pipe>.
 
 A similar test uses the program exit code to decide what to do with
-the message
+the message.
 
 See <http://mailutils.org/wiki/Pipe_test>.
 
@@ -252,7 +252,32 @@ the "mail" utility:
 ** The --with-mailbindir option
 
 This option changes installation directory for the "mail" utility.
-  
+
+The following command will configure Mailutils to build only a
+statically-linked copy of the "mail" utility and install it to
+/bin:
+
+ ./configure \
+   LDFLAGS=-static\
+   --enable-build-mail\
+   --with-mailbindir='/bin'\
+   --disable-shared\
+   --disable-virtual-domains\
+   --disable-python\
+   --disable-pam\
+   --disable-cxx\
+   --disable-build-servers\
+   --disable-build-clients\
+   --without-gsasl\
+   --without-tcp-wrappers\
+   --without-fribidi\
+   --without-mysql\
+   --without-postgres\
+   --without-odbc\
+   --without-ldap\
+   --without-guile\
+   --without-dbm
+
 ** DBM options
 
 It is normally not needed to specify --with-gdbm, --with-berkeley-db

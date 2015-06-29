@@ -21,6 +21,7 @@
 #include <string.h>
 #include <mailutils/alloc.h>
 #include <mailutils/stream.h>
+#include <mailutils/stdstream.h>
 #include <mailutils/nls.h>
 #include "mu.h"
 #include "mu-setup.h"
@@ -60,11 +61,13 @@ dispatch_docstring (const char *text)
   mu_memory_stream_create (&str, MU_STREAM_RDWR);
   mu_stream_printf (str, "%s\n%s\n\n", text, _("Commands are:"));
   for (p = mutool_action_tab; p->name; p++)
-    mu_stream_printf (str, "  mu %-16s - %s\n",
+    mu_stream_printf (str, "  %s %-16s - %s\n",
+		      mu_program_name,
 		      p->name, gettext (p->docstring));
-  mu_stream_printf (str, "\n%s\n\n",
-		    _("Try `mu COMMAND --help' to get help on a particular "
-		      "COMMAND."));
+  mu_stream_printf (str,
+		      _("\nTry `%s COMMAND --help' to get help on a particular "
+		      "COMMAND.\n\n"),
+		      mu_program_name);
   mu_stream_printf (str, "%s\n", _("Options are:"));
   mu_stream_flush (str);
   mu_stream_size (str, &size);

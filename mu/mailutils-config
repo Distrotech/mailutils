@@ -23,7 +23,7 @@
 mode=
 file=
 dir=`expr "$0" : '\(.*\)/.*'`
-muname=MUNAME
+muname=mailutils
 
 test -n "$dir" && PATH=$PATH:$dir
 
@@ -94,7 +94,7 @@ do
     usage
     ;;
   -V|--version|--versio|--versi|--vers|--ver|--ve|--v)
-    $muname --version | sed -n '1{s/^MUNAME/mailutils-config/;s/(\(GNU Mailutils\)) \([0-9][0-9.]*\).*/(\1 \2)/;p}'
+    $muname --version | sed -n '1{s/^mailutils/mailutils-config/;s/(\(GNU Mailutils\)) \([0-9][0-9.]*\).*/(\1 \2)/;p}'
     exit 0
     ;;
   *)

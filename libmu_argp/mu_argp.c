@@ -41,12 +41,14 @@
 struct argp_capa {
   char *capability;
   struct argp_child *child;
+  void (*modflags)(int*);
 } mu_argp_capa[MU_MAX_CAPA] = {
   {NULL,}
 };
 
 int
-mu_register_argp_capa (const char *name, struct argp_child *child)
+mu_register_argp_capa (const char *name, struct argp_child *child,
+		       void (*modflags)(int*))
 {
   int i;
   
@@ -56,6 +58,7 @@ mu_register_argp_capa (const char *name, struct argp_child *child)
         if ((mu_argp_capa[i].capability = strdup (name)) == NULL)
           return ENOMEM;
 	mu_argp_capa[i].child = child;
+	mu_argp_capa[i].modflags = modflags;
 	return 0;
       }
   return 1;
@@ -72,7 +75,7 @@ find_capa (const char *name)
 }
 
 static struct argp *
-mu_build_argp (const struct argp *template, char **capa)
+mu_build_argp (const struct argp *template, char **capa, int *flags)
 {
   int n;
   int nchild;
@@ -115,9 +118,17 @@ mu_build_argp (const struct argp *template, char **capa)
       struct argp_capa *cp = find_capa (capa[n]);
       if (cp)
 	{
-	  ap[nchild] = *cp->child;
-	  ap[nchild].group = group++;
-	  nchild++;
+	  if (cp->modflags)
+	    cp->modflags (flags);
+	  if (cp->child)
+	    {
+	      ap[nchild] = *cp->child;
+	      if (ap[nchild].group < 0)
+		ap[nchild].group = 0;
+	      else
+		ap[nchild].group = group++;
+	      nchild++;
+	    }
 	}
     }
   ap[nchild].argp = NULL;
@@ -191,7 +202,7 @@ argp_reg_action (void *item, void *data)
 }
 
 struct argp *
-mu_argp_build (const struct argp *init_argp, char ***pcapa)
+mu_argp_build (const struct argp *init_argp, char ***pcapa, int *flags)
 {
   struct cap_buf cb;
   struct argp *argp;
@@ -200,7 +211,7 @@ mu_argp_build (const struct argp *init_argp, char ***pcapa)
   mu_gocs_enumerate (argp_reg_action, &cb);
   cap_buf_add (&cb, NULL);
   mu_libargp_init ();
-  argp = mu_build_argp (init_argp, cb.capa);
+  argp = mu_build_argp (init_argp, cb.capa, flags);
   if (pcapa)
     *pcapa = cb.capa;
   else

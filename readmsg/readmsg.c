@@ -57,6 +57,7 @@ static struct argp argp = {
 };
 
 static const char *readmsg_argp_capa[] = {
+  "mailutils",
   "common",
   "debug",
   "mailbox",

@@ -25,7 +25,7 @@
 #include "mu.h"
 
 static char args_doc[] = N_("COMMAND [CMDOPTS]");
-static char doc[] = N_("mu -- GNU Mailutils multi-purpose tool.");
+static char doc[] = N_("GNU Mailutils multi-purpose tool.");
 
 static struct argp_option options[] = {
   { NULL }
@@ -52,7 +52,7 @@ mu_help_filter (int key, const char *text, void *input)
     case ARGP_KEY_HELP_PRE_DOC:
       s = dispatch_docstring (text);
       break;
-      
+
     default:
       s = (char*) text;
     }
@@ -71,6 +71,7 @@ static struct argp argp = {
 };
 
 static const char *mu_tool_capa[] = {
+  "mailutils",
   "common",
   "debug",
   "locking",

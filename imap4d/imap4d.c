@@ -89,6 +89,7 @@ static struct argp argp = {
 };
 
 static const char *imap4d_capa[] = {
+  "mailutils",
   "auth",
   "common",
   "debug",

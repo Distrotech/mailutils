@@ -39,12 +39,14 @@ struct mu_cmdline_capa
 {
   char *name;
   struct argp_child *child;
+  void (*modflags) (int *);
 };
 
 extern int mu_help_config_mode;
 extern int mu_rcfile_lint;
 extern int (*mu_app_cfg_verifier) (void);
-  
+
+extern struct mu_cmdline_capa mu_mailutils_cmdline;
 extern struct mu_cmdline_capa mu_common_cmdline;
 extern struct mu_cmdline_capa mu_logging_cmdline;
 extern struct mu_cmdline_capa mu_mailbox_cmdline;
@@ -62,10 +64,12 @@ extern struct mu_cmdline_capa mu_virtdomain_cmdline;
 
 extern void mu_libargp_init (void);
   
-extern struct argp *mu_argp_build (const struct argp *argp, char ***pcapa);
+extern struct argp *mu_argp_build (const struct argp *argp, char ***pcapa,
+				   int *flags);
 extern void mu_argp_done (struct argp *argp);
   
-extern int mu_register_argp_capa (const char *name, struct argp_child *child);
+extern int mu_register_argp_capa (const char *name, struct argp_child *child,
+				  void (*modflags) (int*));
 
 void mu_argp_init (const char *vers, const char *bugaddr);
 int mu_app_init (struct argp *myargp, const char **capa,

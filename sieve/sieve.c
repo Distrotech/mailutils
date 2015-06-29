@@ -309,6 +309,7 @@ static struct mu_cfg_param sieve_cfg_param[] = {
 
 static const char *sieve_argp_capa[] =
 {
+  "mailutils",
   "common",
   "debug",
   "mailbox",

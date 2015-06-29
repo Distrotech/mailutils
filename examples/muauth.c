@@ -31,6 +31,7 @@ static char doc[] =
 static char args_doc[] = "key";
 
 static const char *capa[] = {
+  "mailutils",
   "auth",
   "common",
   "debug",

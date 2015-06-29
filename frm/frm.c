@@ -201,6 +201,7 @@ static struct argp argp = {
 };
 
 static const char *frm_argp_capa[] = {
+  "mailutils",
   "common",
   "debug",
   "mailbox",

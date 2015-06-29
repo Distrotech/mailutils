@@ -22,6 +22,7 @@
 #include "cmdline.h"
 
 static struct mu_cmdline_capa *all_cmdline_capa[] = {
+  &mu_mailutils_cmdline,
   &mu_common_cmdline,
   &mu_logging_cmdline,
   &mu_mailer_cmdline,
@@ -42,7 +43,7 @@ mu_libargp_init ()
   for (cpp = all_cmdline_capa; *cpp; cpp++)
     {
       struct mu_cmdline_capa *cp = *cpp;
-      if (mu_register_argp_capa (cp->name, cp->child))
+      if (mu_register_argp_capa (cp->name, cp->child, cp->modflags))
 	{
 	  mu_error (_("INTERNAL ERROR: cannot register argp capability `%s'"),
 		    cp->name);

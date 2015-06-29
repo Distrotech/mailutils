@@ -90,12 +90,14 @@ mu_libcfg_init (char **cnames)
       if (!reserved_name (cnames[i]))
 	{
 	  struct mu_cfg_capa *cp = find_cfg_capa (cnames[i]);
-	  if (!cp)
-	    mu_error (_("unknown configuration group requested `%s'"),
-		      cnames[i]);
-	  else
+	  if (cp)
 	    mu_config_root_register_section (NULL, cp->name, NULL,
 					     cp->parser, cp->cfgparam);
+#if 0
+	  else
+	    mu_error (_("unknown configuration group requested `%s'"),
+		      cnames[i]);
+#endif
 	}
     }
 }
