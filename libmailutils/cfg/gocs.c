@@ -252,11 +252,15 @@ mu_gocs_register (const char *capa, mu_gocs_init_fp init)
 {
   int i;
   for (i = 0; _gocs_table[i].name; i++)
-    if (i == MAX_GOCS-1)
-      {
-	mu_error (_("gocs table overflow"));
-	abort ();
-      }
+    {
+      if (i == MAX_GOCS-1)
+	{
+	  mu_error (_("gocs table overflow"));
+	  abort ();
+	}
+      else if (strcmp (_gocs_table[i].name, capa) == 0)
+	return;
+    }
   _gocs_table[i].name = capa;
   _gocs_table[i].init = init;
 }
