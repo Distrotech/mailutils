@@ -34,3 +34,5 @@ libmu_cfg_la_SOURCES=\
  sql.c\
  tls.c\
  virtdomain.c
+
+libmu_cfg_la_LDFLAGS=-version-info @VI_CURRENT@:@VI_REVISION@:@VI_AGE@

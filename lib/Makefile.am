@@ -37,6 +37,7 @@ libmuaux_la_SOURCES = \
  mu_umaxtostr.c\
  mu_umaxtostr.h
 libmuaux_la_LIBADD=gnu/libgnu.la
+libmuaux_la_LDFLAGS = -version-info @VI_CURRENT@:@VI_REVISION@:@VI_AGE@
 
 libmutcpwrap_a_SOURCES = tcpwrap.c
 
