@@ -16,6 +16,8 @@
 
 m4_include([testsuite.inc])
 
+m4_define([MUT_MAIL_CMD],[mail MUT_DEFAULT_OPTIONS])
+
 AT_INIT
 AT_TESTED([mail])
 

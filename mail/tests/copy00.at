@@ -26,7 +26,7 @@ AT_CHECK([
 test -f /dev/stdout || AT_SKIP_TEST
 MUT_MBCOPY($abs_top_srcdir/testsuite/spool/mbox)
 unset MAILRC
-echo 'copy 1 /dev/stdout' | mail -N -E 'set readonly' -f ./mbox | sed 's/  *$//;/^Held 1 message/d';
+echo 'copy 1 /dev/stdout' | MUT_MAIL_CMD -N -E 'set readonly' -f ./mbox | sed 's/  *$//;/^Held 1 message/d';
 ],
 [0],
 [From gray@example.net Tue Jul 16 12:11:35 2002

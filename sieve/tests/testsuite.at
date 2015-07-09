@@ -27,10 +27,7 @@ AT_CLEANUP
 ])
 
 dnl ------------------------------------------------------------
-m4_define([MUT_SIEVE_DEFAULT_OPTIONS],[dnl
- --no-site-config dnl
- --no-user-config dnl
-])
+m4_define([MUT_SIEVE_DEFAULT_OPTIONS],MUT_DEFAULT_OPTIONS)
 
 dnl ------------------------------------------------------------
 dnl MUT_SIEVE_OPTIONS  -- additional command line options for Sieve

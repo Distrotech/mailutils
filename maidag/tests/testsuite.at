@@ -17,8 +17,7 @@
 m4_include([testsuite.inc])
 
 m4_define([MAIDAG_OPTIONS],[dnl
---no-site-config dnl
---no-user-config dnl
+MUT_DEFAULT_OPTIONS dnl
 --set '|mailbox|mailbox-pattern='`pwd`/spool/'${user}' dnl
 --set .auth.authorization=system dnl
 --stderr])

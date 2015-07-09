@@ -26,7 +26,7 @@ AT_CHECK([
 MUT_MBCOPY($abs_top_srcdir/testsuite/spool/mbox)
 unset MAILRC
 unset HOME
-MAIL=./mbox mail -nH
+MAIL=./mbox MUT_MAIL_CMD -nH
 ],
 [0],
 [>N   1 Sergey Poznyakoff  Tue Jul 16 12:11  12/390   MBOX

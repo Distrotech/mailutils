@@ -21,6 +21,15 @@ m4_version_prereq([2.52g])
 m4_define([AT_SKIP_TEST],[exit 77])
 
 dnl ------------------------------------------------------------
+dnl MUT_DEFAULT_OPTIONS -- produce default command line options
+dnl ------------------------------------------------------------
+m4_define([MUT_DEFAULT_OPTIONS],[dnl
+ --no-site-config dnl
+ --no-user-config dnl
+ --set '.mailbox.mailbox-type=mbox' dnl
+])
+
+dnl ------------------------------------------------------------
 dnl MUT_VERSION(TOOL)  -- checks the version output from TOOL
 dnl
 m4_define([MUT_VERSION],[

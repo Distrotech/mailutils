@@ -25,8 +25,8 @@ AT_KEYWORDS([columns cols00])
 AT_CHECK([
 MUT_MBCOPY($abs_top_srcdir/testsuite/spool/mbox)
 unset MAILRC
-COLUMNS=26 mail -nH -E 'set columns=26' -f ./mbox
-COLUMNS=31 mail -nH -f ./mbox
+COLUMNS=26 MUT_MAIL_CMD -nH -E 'set columns=26' -f ./mbox
+COLUMNS=31 MUT_MAIL_CMD -nH -f ./mbox
 ],
 [0],
 [>N   1 Sergey Poznyakoff
