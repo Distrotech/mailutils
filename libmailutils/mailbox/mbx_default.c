@@ -62,9 +62,7 @@ mu_normalize_mailbox_url (char **pout, const char *dir)
   len = strlen (dir);
   if (dir[len-1] == '=')
     {
-      if (len > 5 && strcmp (dir + len - 5, "user=") == 0)
-	*pout = strdup (dir);
-      else
+      if (!(len > 5 && strcmp (dir + len - 5, "user=") == 0))
 	return MU_ERR_BAD_FILENAME;
     }
   else
