@@ -43,6 +43,7 @@
 #include <mailutils/acl.h>
 #include <mailutils/sockaddr.h>
 #include <mailutils/url.h>
+#include <mailutils/util.h>
 
 typedef RETSIGTYPE (*mu_sig_handler_t) (int);
 
@@ -519,6 +520,7 @@ mu_m_server_begin (mu_m_server_t msrv)
 	  mu_error (_("failed to become a daemon: %s"), mu_strerror (errno));
 	  exit (EXIT_FAILURE);
 	}
+      mu_onexit_reset ();
     }
 
   if (msrv->pidfile)

@@ -28,9 +28,9 @@ static Gsasl_session *sess_ctx;
 static void auth_gsasl_capa_init (int disable);
 
 static void
-finish_session (void)
+finish_session (void *ptr)
 {
-  gsasl_finish (sess_ctx);
+  gsasl_finish ((Gsasl_session *)ptr);
 }
 
 static int
@@ -171,7 +171,7 @@ auth_gsasl (struct imap4d_auth *ap)
       mu_stream_unref (newstream[0]);
       mu_stream_unref (newstream[1]);
       
-      util_atexit (finish_session);
+      mu_onexit (finish_session, sess_ctx);
       return imap4d_auth_ok;
     }
   

@@ -273,29 +273,11 @@ util_uidvalidity (mu_mailbox_t smbox, unsigned long *uidvp)
   return mu_mailbox_uidvalidity (smbox, uidvp);
 }
 
-static mu_list_t atexit_list;
-
-void
-util_atexit (void (*fp) (void))
-{
-  if (!atexit_list)
-    mu_list_create (&atexit_list);
-  mu_list_append (atexit_list, (void*)fp);
-}
-
-static int
-atexit_run (void *item, void *data)
-{
-  ((void (*) (void)) item) ();
-  return 0;
-}
-
 void
 util_bye ()
 {
   mu_stream_close (iostream);
   mu_stream_destroy (&iostream);
-  mu_list_foreach (atexit_list, atexit_run, 0);
 }
 
 void

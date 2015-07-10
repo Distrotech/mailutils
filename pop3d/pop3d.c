@@ -653,11 +653,7 @@ main (int argc, char **argv)
 #ifdef WITH_TLS
   tls_available = mu_check_tls_environment ();
   if (tls_available)
-    {
-      tls_available = mu_init_tls_libs (1);
-      if (tls_available)
-	enable_stls ();
-    }
+    enable_stls ();
 #endif /* WITH_TLS */
 
   /* Actually run the daemon.  */

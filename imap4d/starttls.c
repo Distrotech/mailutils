@@ -45,8 +45,6 @@ imap4d_starttls (struct imap4d_session *session,
   if (imap4d_tokbuf_argc (tok) != 2)
     return io_completion_response (command, RESP_BAD, "Invalid arguments");
 
-  util_atexit (mu_deinit_tls_libs);
-
   status = io_completion_response (command, RESP_OK, "Begin TLS negotiation");
   io_flush ();
 
@@ -73,14 +71,13 @@ tls_encryption_on (struct imap4d_session *session)
 
   session->tls_mode = tls_no;
   imap4d_capability_remove (IMAP_CAPA_XTLSREQUIRED);
+  mu_diag_output (MU_DIAG_INFO, _("TLS established"));
 }
 
 void
 starttls_init ()
 {
   tls_available = mu_check_tls_environment ();
-  if (tls_available)
-    tls_available = mu_init_tls_libs (1);
   if (tls_available)
     imap4d_capability_add (IMAP_CAPA_STARTTLS);
 }

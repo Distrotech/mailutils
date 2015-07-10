@@ -54,9 +54,6 @@ mu_tls_module_init (enum mu_gocs_op op, void *data)
       break;
       
     case mu_gocs_op_flush:
-#ifdef WITH_TLS
-      mu_init_tls_libs (0);
-#endif    
       break;
     }
   return 0;
@@ -125,6 +122,24 @@ _mu_gtls_logger(int level, const char *text)
 }
 #endif
 
+void
+mu_deinit_tls_libs (void)
+{
+  if (mu_tls_enable)
+    {
+      if (x509_cred)
+	gnutls_certificate_free_credentials (x509_cred);
+      gnutls_global_deinit ();
+    }
+  mu_tls_enable = 0;
+}
+
+static void
+_onexit_deinit (void *ptr MU_ARG_UNUSED)
+{
+  mu_deinit_tls_libs ();
+}
+
 int
 mu_init_tls_libs (int x509_setup)
 {
@@ -138,6 +153,7 @@ mu_init_tls_libs (int x509_setup)
 	  mu_error ("gnutls_global_init: %s", gnutls_strerror (rc));
 	  return 0;
 	}
+      mu_onexit (_onexit_deinit, NULL);
     }
 
   if (x509_setup && !x509_cred)
@@ -159,18 +175,6 @@ mu_init_tls_libs (int x509_setup)
   gnutls_global_set_log_level (110);
 #endif
   return mu_tls_enable;
-}
-
-void
-mu_deinit_tls_libs (void)
-{
-  if (mu_tls_enable)
-    {
-      if (x509_cred)
-	gnutls_certificate_free_credentials (x509_cred);
-      gnutls_global_deinit ();
-    }
-  mu_tls_enable = 0;
 }
 
 static char default_priority_string[] = "NORMAL";
@@ -408,7 +412,8 @@ _tls_server_open (mu_stream_t stream)
   if (!stream || sp->state != state_init)
     return EINVAL;
 
-  mu_init_tls_libs (1);
+  if (!mu_init_tls_libs (1))
+    return MU_ERR_FAILURE;
   
   sp->session = initialize_tls_session ();
   mu_stream_ioctl (stream, MU_IOCTL_TRANSPORT, MU_IOCTL_OP_GET, transport);
@@ -481,7 +486,8 @@ _tls_client_open (mu_stream_t stream)
       /* FALLTHROUGH */
       
     case state_init:
-      mu_init_tls_libs (0);
+      if (!mu_init_tls_libs (0))
+	return MU_ERR_FAILURE;
       prepare_client_session (stream);
       rc = gnutls_handshake (sp->session);
       if (rc < 0)

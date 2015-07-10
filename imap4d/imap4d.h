@@ -443,7 +443,6 @@ int util_uidvalidity (mu_mailbox_t smbox, unsigned long *uidvp);
   
 int util_is_master (void);
 void util_bye (void);  
-void util_atexit (void (*fp) (void));
 void util_chdir (const char *homedir);
 int is_atom (const char *s);
 int util_isdelim (const char *str);

@@ -158,6 +158,7 @@ pop3d_setio (int ifd, int ofd, int tls)
 	  pop3d_abquit (ERR_FILE);
 	}
       tls_done = 1;
+      mu_diag_output (MU_DIAG_INFO, _("TLS established"));
     }
   else
 #endif
@@ -238,10 +239,6 @@ pop3d_bye ()
 {
   mu_stream_close (iostream);
   mu_stream_destroy (&iostream);
-#ifdef WITH_TLS
-  if (tls_available)
-    mu_deinit_tls_libs ();
-#endif /* WITH_TLS */
 }
 
 void
