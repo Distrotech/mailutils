@@ -1,4 +1,4 @@
-GNU mailutils NEWS -- history of user-visible changes. 2015-07-02
+GNU mailutils NEWS -- history of user-visible changes. 2015-07-11
 Copyright (C) 2002-2015 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
@@ -9,8 +9,8 @@ Version 2.99.99 (Git)
 
 This version is a major rewrite of GNU Mailutils.  Quite a few parts
 of the basic framework were rewritten from scratch, while some others
-undergone a considerable revamping.  The user documentation, at the
-moment, is insufficient, and in some aspects even scarce.  It is being
+undergone a considerable revamping.  The user documentation at the
+moment is insufficient, and in some aspects even scarce.  It is being
 worked upon.  However, most of the utilities self-document themselves.  
 To obtain a summary of available configuration statements for a given
 program, run `program --config-help'.  For additional documentation,
@@ -217,8 +217,8 @@ output is collected and included in the aliases.
     
 ** mailutils-config is deprecated.
 
-Use `mu cflags' and `mu ldflags' instead.  The mailutils-config is
-rewritten as a wrapper over these commands.
+Use `mailutils cflags' and `mailutils ldflags' instead.  The
+mailutils-config is rewritten as a wrapper over these commands.
 
 See <http://mailutils.org/wiki/mu> for more information.
 
