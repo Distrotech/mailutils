@@ -145,7 +145,7 @@ _assoc_prop_fill (struct _mu_property *prop)
   size_t size[2] = { 0, 0 }, n;
   
   if (!str)
-    return EINVAL;
+    return 0;
   mu_stream_seek (str, 0, MU_SEEK_SET, NULL);
   while ((rc = mu_stream_getdelim (str, &buf[state], &size[state],
 				   0, &n)) == 0 &&
@@ -169,7 +169,7 @@ _assoc_prop_save (struct _mu_property *prop)
   mu_off_t off;
   
   if (!str)
-    return EINVAL;
+    return 0;
   rc = mu_property_get_iterator (prop, &itr);
   if (rc)
     return rc;

@@ -34,6 +34,7 @@
 #include <mailutils/stream.h>
 #include <mailutils/errno.h>
 #include <mailutils/util.h>
+#include <mailutils/property.h>
 
 struct mu_tls_module_config mu_tls_module_config = {
 #ifdef WITH_TLS
@@ -295,6 +296,34 @@ _tls_wr_wait (struct _mu_stream *stream, int *pflags, struct timeval *tvp)
 }
 
 static int
+get_cipher_info (gnutls_session_t session, mu_property_t *pprop)
+{
+  mu_property_t prop;
+  const char *s;
+  int rc;
+
+  if (!pprop)
+    return EINVAL;
+
+  rc = mu_property_create_init (&prop, mu_assoc_property_init, NULL);
+  if (rc)
+    return rc;
+
+  s = gnutls_protocol_get_name (gnutls_protocol_get_version (session));
+  mu_property_set_value (prop, "protocol", s, 1);
+
+  s = gnutls_cipher_get_name (gnutls_cipher_get (session));
+  mu_property_set_value (prop, "cipher", s, 1);
+
+  s = gnutls_mac_get_name (gnutls_mac_get (session));
+  mu_property_set_value (prop, "mac", s, 1);
+
+  *pprop = prop;
+
+  return 0;
+}
+
+static int
 _tls_io_ioctl (struct _mu_stream *stream, int code, int opcode, void *arg)
 {
   struct _mu_tls_io_stream *sp = (struct _mu_tls_io_stream *) stream;
@@ -323,6 +352,17 @@ _tls_io_ioctl (struct _mu_stream *stream, int code, int opcode, void *arg)
 	}
       break;
 
+    case MU_IOCTL_TLSSTREAM:
+      switch (opcode)
+	{
+	case MU_IOCTL_TLS_GET_CIPHER_INFO:
+	  return get_cipher_info (sp->up->session, arg);
+
+	default:
+	  return EINVAL;
+	}
+      break;
+      
     default:
       return ENOSYS;
     }
@@ -583,6 +623,17 @@ _tls_ioctl (struct _mu_stream *stream, int code, int opcode, void *arg)
 	    default:
 	      return EINVAL;
 	    }
+	}
+      break;
+      
+    case MU_IOCTL_TLSSTREAM:
+      switch (opcode)
+	{
+	case MU_IOCTL_TLS_GET_CIPHER_INFO:
+	  return get_cipher_info (sp->session, arg);
+
+	default:
+	  return EINVAL;
 	}
       break;
       

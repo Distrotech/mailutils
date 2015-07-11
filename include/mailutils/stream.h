@@ -77,7 +77,8 @@ enum mu_buffer_type
 #define MU_IOCTL_TOPSTREAM       12 /* Same as MU_IOCTL_SUBSTREAM, but
 				       always returns the topmost substream.
 				    */
-  
+#define MU_IOCTL_TLSSTREAM       13 /* TLS stream */
+
   /* Opcodes common for various families */
 #define MU_IOCTL_OP_GET 0
 #define MU_IOCTL_OP_SET 1  
@@ -192,6 +193,13 @@ enum mu_buffer_type
   */
 #define MU_IOCTL_FILTER_GET_DISABLED 0
 #define MU_IOCTL_FILTER_SET_DISABLED 1  
+
+  /* TLS transport streams */
+  /* Get cipher info.
+     Arg: mu_property_t *
+     On success, the following keys are defined: "protocol", "cipher", "mac"
+  */
+#define MU_IOCTL_TLS_GET_CIPHER_INFO 0
   
 #define MU_TRANSPORT_INPUT  0
 #define MU_TRANSPORT_OUTPUT 1

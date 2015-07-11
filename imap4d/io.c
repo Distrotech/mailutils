@@ -16,8 +16,38 @@
    along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include "imap4d.h"
+#include <mailutils/property.h>
 
 mu_stream_t iostream;
+
+static void
+log_cipher (mu_stream_t stream)
+{
+  mu_property_t prop;
+  int rc = mu_stream_ioctl (stream, MU_IOCTL_TLSSTREAM,
+			    MU_IOCTL_TLS_GET_CIPHER_INFO, &prop);
+  if (rc)
+    {
+      mu_diag_output (MU_DIAG_INFO, _("TLS established"));
+      mu_diag_output (MU_DIAG_ERROR, _("can't get TLS details: %s"),
+		      mu_strerror (rc));
+    }
+  else
+    {
+      char const *cipher, *mac, *proto;
+      if (mu_property_sget_value (prop, "cipher", &cipher))
+	cipher = "UNKNOWN";	
+      if (mu_property_sget_value (prop, "mac", &mac))
+	mac = "UNKNOWN";
+      if (mu_property_sget_value (prop, "protocol", &proto))
+	proto = "UNKNOWN";
+      
+      mu_diag_output (MU_DIAG_INFO, _("TLS established using %s-%s (%s)"),
+		      cipher, mac, proto);
+      
+      mu_property_destroy (&prop);
+    }
+}
 
 void
 io_setio (int ifd, int ofd, int tls)
@@ -49,6 +79,7 @@ io_setio (int ifd, int ofd, int tls)
 	  mu_error (_("failed to create TLS stream: %s"), mu_strerror (rc));
 	  imap4d_bye (ERR_STREAM_CREATE);
 	}
+      log_cipher (str);
     }
   else
 #endif
@@ -111,6 +142,8 @@ imap4d_init_tls_server ()
 		      mu_stream_strerror (tlsstream, rc));
       return 1;
     }
+
+  log_cipher (tlsstream);
 
   mu_stream_unref (stream[0]);
   mu_stream_unref (stream[1]);

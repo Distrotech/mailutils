@@ -71,7 +71,6 @@ tls_encryption_on (struct imap4d_session *session)
 
   session->tls_mode = tls_no;
   imap4d_capability_remove (IMAP_CAPA_XTLSREQUIRED);
-  mu_diag_output (MU_DIAG_INFO, _("TLS established"));
 }
 
 void
