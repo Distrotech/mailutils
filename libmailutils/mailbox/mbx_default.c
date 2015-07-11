@@ -64,13 +64,20 @@ mu_normalize_mailbox_url (char **pout, const char *dir)
     {
       if (!(len > 5 && strcmp (dir + len - 5, "user=") == 0))
 	return MU_ERR_BAD_FILENAME;
+      else
+	{
+	  int rc = mu_asprintf (pout, "%s%s", dir, USERSUFFIX);
+	  if (rc)
+	    return rc;
+	}
     }
   else
-    *pout = mu_make_file_name (dir, USERSUFFIX);
-
-  if (!*pout)
-    return errno;
-
+    {
+      *pout = mu_make_file_name (dir, USERSUFFIX);
+      if (!*pout)
+	return errno;
+    }
+  
   return 0;
 }
 
@@ -280,7 +287,6 @@ plus_expand (const char *file, char **buf)
 {
   char *home;
   const char *folder_dir = mu_folder_directory ();
-  int len;
 
   home = get_homedir (NULL);
   if (!home)
@@ -290,17 +296,16 @@ plus_expand (const char *file, char **buf)
   
   if (folder_dir[0] == '/' || mu_is_proto (folder_dir))
     {
-      len = strlen (folder_dir) + strlen (file) + 2;
-      *buf = malloc (len);
-      sprintf (*buf, "%s/%s", folder_dir, file);
+      *buf = mu_make_file_name (folder_dir, file);
+      if (!*buf)
+	return errno;
     }
   else
     {
-      len = strlen (home) + strlen (folder_dir) + strlen (file) + 3;
-      *buf = malloc (len);
-      sprintf (*buf, "%s/%s/%s", home, folder_dir, file);
+      int rc = mu_asprintf (buf, "%s/%s/%s", home, folder_dir, file);
+      if (rc)
+	return rc;
     }
-  (*buf)[len-1] = 0;
   
   free (home);
   return 0;
@@ -419,7 +424,7 @@ mu_mailbox_create_default (mu_mailbox_t *pmbox, const char *mail)
   mail = tmp_mbox;
   if (!mail)
     return ENOMEM;
-  
+
   switch (mail[0])
     {
     case '%':
@@ -433,18 +438,25 @@ mu_mailbox_create_default (mu_mailbox_t *pmbox, const char *mail)
 
     case '/':
       mbox = strdup (mail);
+      if (!mbox)
+	status = errno;
       break;
       
     default:
       if (!mu_is_proto (mail))
 	{
 	  p = mu_getcwd();
-	  mbox = malloc (strlen (p) + strlen (mail) + 2);
-	  sprintf (mbox, "%s/%s", p, mail);
+	  mbox = mu_make_file_name (p, mail);
+	  if (!mbox)
+	    status = errno;
 	  free (p);  
 	}
       else
-	mbox = strdup (mail);
+	{
+	  mbox = strdup (mail);
+	  if (!mbox)
+	    status = errno;
+	}
       break;
     }
 
