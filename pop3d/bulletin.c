@@ -137,6 +137,7 @@ read_bulletin_db (size_t *pnum)
   rc = mu_dbm_safety_check (db);
   if (rc)
     {
+      mu_dbm_destroy (&db);
       if (rc == ENOENT)
 	{
 	  *pnum = 0;
@@ -145,7 +146,6 @@ read_bulletin_db (size_t *pnum)
       mu_diag_output (MU_DIAG_ERROR,
 		      _("bulletin db %s fails safety check: %s"),
 		      bulletin_db_name, mu_strerror (rc));
-      mu_dbm_destroy (&db);
       return 1;
     }
   
@@ -167,6 +167,7 @@ read_bulletin_db (size_t *pnum)
 
   if (rc == MU_ERR_NOENT)
     {
+      mu_dbm_destroy (&db);
       *pnum = 0;
       return 0;
     }
