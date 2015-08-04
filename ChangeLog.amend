@@ -20,3 +20,12 @@ s/adresses/addresses/
 
 fb53814d3acb7a08cd849ffbbdbe86d8a374590c
 s/prever/prefer/
+
+2c419ba0d194b5b00e6c2e3deae15cb593c8569d
+s/ends with user=\$user/ends with "user="/
+
+4c698e8d63d1348803c076f992b9fe82f978cb34
+s/instead of\\\n/instead of/ 
+
+84c79341d577d5574d3eb450007219322e87fd7d
+s/in fgetpwent_r/in mu_fgetpwent_r/
