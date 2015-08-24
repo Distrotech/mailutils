@@ -441,7 +441,7 @@ static struct mu_cfg_param imap4d_cfg_param[] = {
     N_("Use only preauth mode.  If unable to setup it, disconnect "
        "immediately.") },
   { "ident-keyfile", mu_cfg_string, &ident_keyfile, 0, NULL,
-    N_("Name of DES keyfile for decoding ecrypted ident responses.") },
+    N_("Name of DES keyfile for decoding encrypted ident responses.") },
   { "ident-encrypt-only", mu_cfg_bool, &ident_encrypt_only, 0, NULL,
     N_("Use only encrypted ident responses.") },
   { "id-fields", MU_CFG_LIST_OF(mu_cfg_string), &imap4d_id_list, 0, NULL,

@@ -57,7 +57,7 @@ static struct argp_option options[] = {
    N_("add Message-ID: field") },
   {"nomsgid",       ARG_NOMSGID,       NULL, OPTION_HIDDEN, ""},
   {"push",          ARG_PUSH,          N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("run in the backround") },
+   N_("run in the background") },
   {"nopush",        ARG_NOPUSH,        NULL, OPTION_HIDDEN, "" },
   {"preserve",      ARG_PRESERVE,      N_("BOOL"), OPTION_ARG_OPTIONAL,
    N_("keep draft files") },

@@ -52,7 +52,7 @@ static struct argp_option options[] = {
   {"mimetypes", 't', N_("FILE"), 0,
    N_("use this mime.types file"), 0},
   {"dry-run", 'n', NULL, 0,
-   N_("do not do anything, just print what whould be done"), 0},
+   N_("do nothing, just print what would have been done"), 0},
   {"metamail", OPT_METAMAIL, N_("FILE"), OPTION_ARG_OPTIONAL,
    N_("use metamail to display files"), 0},
   {0, 0, 0, 0}
