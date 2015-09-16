@@ -32,7 +32,6 @@ main (int argc, char **argv)
   mu_stream_t stream = NULL;
   mu_header_t hdr;
   mu_body_t body;
-  char *buf = NULL;
   
   mu_set_program_name (argv[0]);
 
@@ -78,15 +77,20 @@ main (int argc, char **argv)
 	}
       else if (strcmp (argv[i], "-t") == 0)
 	{
-	  size_t len;
+	  mu_wordsplit_t ws;
 	  i++;
 	  assert (argv[i] != NULL);
-	  len = strlen (argv[i]);
-	  buf = realloc (buf, len + 1);
-	  mu_wordsplit_c_unquote_copy (buf, argv[i], len);
-	  assert (buf != NULL);
-	  assert (mu_stream_write (stream, buf,
-				   strlen (buf), NULL) == 0);
+
+	  if (mu_wordsplit (argv[i], &ws,
+			    MU_WRDSF_NOSPLIT | MU_WRDSF_DEFFLAGS))
+	    {
+	      mu_error ("mu_wordsplit: %s", mu_wordsplit_strerror (&ws));
+	      exit (1);
+	    }
+	  else
+	    assert (mu_stream_write (stream, ws.ws_wordv[0],
+				     strlen (ws.ws_wordv[0]), NULL) == 0);
+	  mu_wordsplit_free (&ws);
 	}
       else
 	mu_error ("ignoring unknown argument %s", argv[i]);

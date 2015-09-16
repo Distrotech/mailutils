@@ -252,12 +252,16 @@ shell_help (int argc, char **argv)
 static int
 shell_prompt (int argc, char **argv)
 {
-  size_t size;
+  mu_wordsplit_t ws;
   
-  free (mutool_shell_prompt);
-  size = strlen (argv[1]);
-  mutool_shell_prompt = mu_alloc (size + 1);
-  mu_wordsplit_c_unquote_copy (mutool_shell_prompt, argv[1], size);
+  if (mu_wordsplit (argv[1], &ws, MU_WRDSF_NOSPLIT | MU_WRDSF_DEFFLAGS))
+    mu_error ("mu_wordsplit: %s", mu_wordsplit_strerror (&ws));
+  else
+    {
+      free (mutool_shell_prompt);
+      mutool_shell_prompt = mu_strdup (ws.ws_wordv[0]);
+    }
+  mu_wordsplit_free (&ws);
   return 0;
 }
 
@@ -521,7 +525,7 @@ execute_line (char *line)
   int status = 0;
   
   ws.ws_comment = "#";
-  ws.ws_escape = "\\\"";
+  ws.ws_escape[0] = ws.ws_escape[1] = "\\\\\"\"";
   rc = mu_wordsplit (line, &ws,
 		     MU_WRDSF_DEFFLAGS|MU_WRDSF_COMMENT|MU_WRDSF_ESCAPE|
 		     MU_WRDSF_INCREMENTAL|MU_WRDSF_APPEND);

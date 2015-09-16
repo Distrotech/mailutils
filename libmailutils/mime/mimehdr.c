@@ -293,12 +293,14 @@ _mime_header_parse (const char *text, char **pvalue,
   size_t i;
 
   ws.ws_delim = " \t\r\n;";
-  ws.ws_escape = "\\\"";
+  ws.ws_escape[0] = ws.ws_escape[1] = "\\\\\"\"";
+  MU_WRDSO_ESC_SET (&ws, 0, MU_WRDSO_BSKEEP);
+  MU_WRDSO_ESC_SET (&ws, 1, MU_WRDSO_BSKEEP);
   if (mu_wordsplit (text, &ws,
 		    MU_WRDSF_DELIM | MU_WRDSF_ESCAPE |
 		    MU_WRDSF_NOVAR | MU_WRDSF_NOCMD |
 		    MU_WRDSF_DQUOTE | MU_WRDSF_SQUEEZE_DELIMS |
-		    MU_WRDSF_RETURN_DELIMS | MU_WRDSF_WS))
+		    MU_WRDSF_RETURN_DELIMS | MU_WRDSF_WS | MU_WRDSF_OPTIONS))
     {
       mu_debug (MU_DEBCAT_MIME, MU_DEBUG_ERROR,
 		(_("wordsplit: %s"), mu_wordsplit_strerror (&ws)));

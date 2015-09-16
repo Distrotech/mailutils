@@ -29,7 +29,10 @@ mu_imapio_create (mu_imapio_t *iop, mu_stream_t str, int server)
   io->_imap_stream = str;
   mu_stream_ref (str);
   io->_imap_ws.ws_delim = " \t()[]";
-  io->_imap_ws.ws_escape = "\\\"";
+  io->_imap_ws.ws_escape[0] = NULL;
+  io->_imap_ws.ws_escape[1] = "\\\\\"\"";
+  MU_WRDSO_ESC_SET (&io->_imap_ws, 0, MU_WRDSO_BSKEEP);
+  MU_WRDSO_ESC_SET (&io->_imap_ws, 1, MU_WRDSO_BSKEEP);
   io->_imap_ws_flags = MU_WRDSF_DELIM |
                        MU_WRDSF_ESCAPE |
                        MU_WRDSF_NOVAR |
@@ -37,7 +40,8 @@ mu_imapio_create (mu_imapio_t *iop, mu_stream_t str, int server)
                        MU_WRDSF_DQUOTE |
                        MU_WRDSF_RETURN_DELIMS |
                        MU_WRDSF_WS |
-                       MU_WRDSF_APPEND;
+                       MU_WRDSF_APPEND |
+                       MU_WRDSF_OPTIONS;
   io->_imap_server = server;
   *iop = io;
   return 0;

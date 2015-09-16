@@ -347,7 +347,7 @@ TESTWSP([suppress ws trimming within quotes],[],
 4: "formatfield=In message %{text}, "
 ])
 
-TESTWSP([unescape],[],[-default novar nocmd quote escape '\"'],
+TESTWSP([unescape],[],[-default novar nocmd quote escape :+:'\\""'],
 [\Seen "quote \"" "bs \\"],
 [NF: 3
 0: \\Seen
