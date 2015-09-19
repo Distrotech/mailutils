@@ -199,7 +199,7 @@ split_content (const char *content, char **type, char **subtype)
 }
 
 static void
-split_args (const char *argstr, size_t len, int *pargc, char ***pargv)
+split_args (const char *argstr, size_t len, size_t *pargc, char ***pargv)
 {
   struct mu_wordsplit ws;
 
@@ -215,10 +215,7 @@ split_args (const char *argstr, size_t len, int *pargc, char ***pargv)
     }
   else
     {
-      *pargc = ws.ws_wordc;
-      *pargv = ws.ws_wordv;
-      ws.ws_wordc = 0;
-      ws.ws_wordv = NULL;
+      mu_wordsplit_get_words (&ws, pargc, pargv);
       mu_wordsplit_free (&ws);
     }
 }
@@ -631,7 +628,7 @@ mhn_compose_command (char *typestr, char *typeargs, int *flags, char *file)
 {
   const char *p, *str;
   char *type, *subtype, **typeargv = NULL;
-  int typeargc = 0;
+  size_t typeargc = 0;
   mu_opool_t pool;
 
   split_content (typestr, &type, &subtype);
@@ -662,7 +659,7 @@ mhn_compose_command (char *typestr, char *typeargs, int *flags, char *file)
 	      /* additional arguments */
 	      if (typeargs)
 		{
-		  int i;
+		  size_t i;
 		  
 		  if (!typeargv)
 		    split_args (typeargs, strlen (typeargs),
@@ -741,7 +738,7 @@ check_type (const char *typeargs, const char *typeval)
   
   if (typeargs)
     {
-      int i, argc;
+      size_t i, argc;
       char **argv;
 		      
       split_args (typeargs, strlen (typeargs), &argc, &argv);
@@ -769,7 +766,7 @@ mhn_show_command (mu_message_t msg, msg_part_t part, int *flags,
   mu_opool_t pool;
   mu_header_t hdr;
   char *temp_cmd = NULL;
-  int typeargc = 0;
+  size_t typeargc = 0;
   char **typeargv = NULL;
   
   mu_message_get_header (msg, &hdr);
@@ -1084,7 +1081,7 @@ _message_is_external_body (mu_message_t msg, char ***env)
   rc = subtype && strcmp (subtype, "external-body") == 0;
   if (rc && env)
     {
-      int c;
+      size_t c;
       split_args (argstr, strlen (argstr), &c, env);
     }
 
@@ -2753,7 +2750,7 @@ parse_header_directive (const char *val, char **encoding, char **charset,
       p = strchr (val, '>');
       if (p)
 	{
-	  int i, argc;
+	  size_t i, argc;
 	  char **argv;
 	    
 	  *subject = mu_strdup (p + 1);
@@ -2819,7 +2816,7 @@ mhn_header (mu_message_t msg, mu_message_t omsg)
 		  _get_content_encoding (parthdr, &encoding);
 		  if (typeargs)
 		    {
-		      int i, argc;
+		      size_t i, argc;
 		      char **argv;
 		      
 		      split_args (typeargs, strlen (typeargs), &argc, &argv);

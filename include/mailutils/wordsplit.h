@@ -70,9 +70,9 @@ struct mu_wordsplit
   int (*ws_getvar) (char **ret, const char *var, size_t len, void *clos);
                             /* [Input] (MU_WRDSF_GETVAR, !MU_WRDSF_NOVAR) Looks up
 			       the name VAR (LEN bytes long) in the table of
-			       variables and if found returns in memory
-			       location pointed to by RET the value of that
-			       variable.  Returns WRDSE_OK (0) on success,
+			       variables and, if found returns the value of
+			       that variable in memory location pointed to
+			       by RET .  Returns WRDSE_OK (0) on success,
 			       and an error code (see WRDSE_* defines below)
 			       on error.  User-specific errors can be returned
 			       by storing the error diagnostic string in RET
@@ -213,6 +213,10 @@ struct mu_wordsplit
 #define MU_WRDSO_OESC            MU_WRDSO_OESC_WORD       
 #define MU_WRDSO_XESC            MU_WRDSO_XESC_WORD       
 
+/* Indices into ws_escape */
+#define MU_WRDSX_WORD  0
+#define MU_WRDSX_QUOTE 1    
+  
 /* Set escape option F in WS for words (Q==0) or quoted strings (Q==1) */
 #define MU_WRDSO_ESC_SET(ws,q,f) ((ws)->ws_options |= ((f) << 4*(q)))
 /* Test WS for escape option F for words (Q==0) or quoted strings (Q==1) */
@@ -235,7 +239,8 @@ int mu_wordsplit_len (const char *s, size_t len, mu_wordsplit_t *ws, int flags);
 void mu_wordsplit_free (mu_wordsplit_t *ws);
 void mu_wordsplit_free_words (mu_wordsplit_t *ws);
 void mu_wordsplit_free_envbuf (mu_wordsplit_t *ws);
-void mu_wordsplit_getwords (mu_wordsplit_t *ws, int *wordc, char ***wordv);
+
+int mu_wordsplit_get_words (mu_wordsplit_t *ws, size_t *wordc, char ***wordv);
 
 int mu_wordsplit_c_unquote_char (int c);
 int mu_wordsplit_c_quote_char (int c);

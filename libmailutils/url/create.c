@@ -416,7 +416,12 @@ _mu_url_create_internal (struct mu_url_ctx *ctx, mu_url_t hint)
       ctx->flags &= ~MU_URL_PARSE_HEXCODE;
       if (mu_wordsplit (ctx->input + 1, &ws, MU_WRDSF_DEFFLAGS))
 	return errno;
-      url->path = ws.ws_wordv[0];
+      url->path = strdup (ws.ws_wordv[0]);
+      if (!url->path)
+	{
+	  mu_wordsplit_free (&ws);
+	  return ENOMEM;
+	}
       url->flags |= MU_URL_PATH;
       
       url->qargc = ws.ws_wordc - 1;

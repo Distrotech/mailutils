@@ -81,12 +81,9 @@ retrieve_next_header (struct header_closure *hc, char *name, char **pval)
 	      mu_wordsplit_free (&ws);
 	      return 1;
 	    }
-	  hc->valv = ws.ws_wordv;
-	  hc->valc = ws.ws_wordc;
-	  hc->vali = 0;
-	  ws.ws_wordv = NULL;
-	  ws.ws_wordc = 0;
+	  mu_wordsplit_get_words (&ws, &hc->valc, &hc->valv);
 	  mu_wordsplit_free (&ws);
+	  hc->vali = 0;
 	  *pval = hc->valv[hc->vali++];
 	  return 0;
 	}

@@ -395,26 +395,41 @@ struct preauth_closure
   struct sockaddr_in *s_clt, *s_srv;
 };
 
-static const char *
-preauth_getvar (const char *name, size_t nlen, void *data)
+static int
+preauth_getvar (char **ret, const char *name, size_t nlen, void *data)
 {
   struct preauth_closure *clos = data;
+  const char *s = NULL;
   
-  if (clos->s_clt && clos->s_clt->sin_family == AF_INET)
+  if (SEQ ("client_address", name, nlen))
     {
-      if (SEQ ("client_address", name, nlen))
-        return inet_ntoa (clos->s_clt->sin_addr);
-      if (SEQ ("client_prot", name, nlen))
-        return mu_umaxtostr (0, ntohs (clos->s_clt->sin_port));
+      if (clos->s_clt && clos->s_clt->sin_family == AF_INET)
+        s = inet_ntoa (clos->s_clt->sin_addr);
     }
-  if (clos->s_srv && clos->s_srv->sin_family == AF_INET)
+  else if (SEQ ("client_port", name, nlen))
     {
-      if (SEQ ("server_address", name, nlen))
-        return inet_ntoa (clos->s_srv->sin_addr);
-      if (SEQ ("server_port", name, nlen))
-        return mu_umaxtostr (0, ntohs (clos->s_srv->sin_port));
+      if (clos->s_clt && clos->s_clt->sin_family == AF_INET)
+        s = mu_umaxtostr (0, ntohs (clos->s_clt->sin_port));
     }
-  return NULL;
+  else if (SEQ ("server_address", name, nlen))
+    {
+      if (clos->s_srv && clos->s_srv->sin_family == AF_INET)
+        s = inet_ntoa (clos->s_srv->sin_addr);
+    }
+  else if (SEQ ("server_port", name, nlen))
+    {
+      if (clos->s_srv && clos->s_srv->sin_family == AF_INET)
+        s = mu_umaxtostr (0, ntohs (clos->s_srv->sin_port));
+    }
+  
+  if (s)
+    {
+      *ret = strdup (s);
+      if (!*ret)
+	return MU_WRDSE_NOSPACE;
+      return MU_WRDSE_OK;
+    }
+  return MU_WRDSE_UNDEF;
 }
   
 /* External (program) preauth */

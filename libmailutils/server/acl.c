@@ -71,7 +71,6 @@ struct run_closure
   char **env;
   char ipstr[40];
   char *addrstr;
-  char *numbuf;
   mu_acl_result_t *result;
 };
 
@@ -305,57 +304,54 @@ _acl_match (struct _mu_acl_entry *ent, struct run_closure *rp)
 #define SEQ(s, n, l) \
   (((l) == (sizeof(s) - 1)) && memcmp (s, n, l) == 0)
 
-static const char *
-acl_getvar (const char *name, size_t nlen, void *data)
+static int
+acl_getvar (char **ret, const char *name, size_t nlen, void *data)
 {
   struct run_closure *rp = data;
 
-  if (SEQ ("family", name, nlen))
+  if (SEQ ("aclno", name, nlen))
     {
+      if (mu_asprintf (ret, "%u", rp->idx))
+	return MU_WRDSE_NOSPACE;
+      return MU_WRDSE_OK;
+    }
+  else if (SEQ ("address", name, nlen))
+    {
+      if (mu_cidr_format (&rp->addr, MU_CIDR_FMT_ADDRONLY, ret))
+	return MU_WRDSE_NOSPACE;
+      return MU_WRDSE_OK;
+    }
+  else if (SEQ ("family", name, nlen))
+    {
+      char *s;
+      
       switch (rp->addr.family)
 	{
 	case AF_INET:
-	  return "AF_INET";
+	  s = "AF_INET";
+	  break;
 
 #ifdef MAILUTILS_IPV6
 	case AF_INET6:
-	  return "AF_INET6";
+	  s = "AF_INET6";
+	  break;
 #endif
       
 	case AF_UNIX:
-	  return "AF_UNIX";
+	  s = "AF_UNIX";
+	  break;
 
 	default:
-	  return NULL;
+	  return MU_WRDSE_UNDEF;
 	}
+
+      *ret = strdup (s);
+      if (!*ret)
+	return MU_WRDSE_NOSPACE;
+      return MU_WRDSE_OK;
     }
   
-  if (SEQ ("aclno", name, nlen))
-    {
-      if (!rp->numbuf && mu_asprintf (&rp->numbuf, "%u", rp->idx))
-	return NULL;
-      return rp->numbuf;
-    }
-  
-  if (SEQ ("address", name, nlen))
-    {
-      if (!rp->addrstr)
-	mu_cidr_format (&rp->addr, MU_CIDR_FMT_ADDRONLY, &rp->addrstr);
-      return rp->addrstr;
-    }
-
-#if 0
-  /* FIXME?: */
-  if (SEQ ("port", name, nlen))
-    {
-      if (!rp->portbuf &&
-	  mu_asprintf (&rp->portbuf, "%hu", ntohs (s_in->sin_port)))
-	return NULL;
-      return rp->portbuf;
-    }
-#endif
-
-  return NULL;
+  return MU_WRDSE_UNDEF;
 }
 
 static int
@@ -577,9 +573,7 @@ mu_acl_check_sockaddr (mu_acl_t acl, const struct sockaddr *sa, int salen,
   r.result = pres;
   r.env = acl->envv;
   *r.result = mu_acl_result_undefined;
-  r.numbuf = NULL;
   mu_list_foreach (acl->aclist, _run_entry, &r);
-  free (r.numbuf);
   free (r.addrstr);
   return 0;
 }

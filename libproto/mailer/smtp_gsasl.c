@@ -69,7 +69,6 @@ get_implemented_mechs (Gsasl *ctx, mu_list_t *plist)
 	    mu_list_append (supp, ws.ws_wordv[i]);
 	}
       ws.ws_wordc = 0;
-      ws.ws_wordv = NULL;
       mu_wordsplit_free (&ws);
     }
   free (listmech);

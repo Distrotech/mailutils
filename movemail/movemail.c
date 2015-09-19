@@ -757,46 +757,66 @@ struct movemail_getvar_closure
 #define SEQ(s, n, l) \
   (((l) == (sizeof(s) - 1)) && memcmp (s, n, l) == 0)
 
-static const char *
-get_url_part (mu_url_t url, const char *name, size_t nlen)
+static int
+get_url_part (mu_url_t url, const char *name, size_t nlen, char **ret)
 {
-  int rc = MU_ERR_NOENT;
-  const char *s;
+  int rc;
   
   if (!url)
-    return NULL;
+    return MU_WRDSE_UNDEF;
   if (SEQ ("user", name, nlen))
-    rc = mu_url_sget_user (url, &s);
+    rc = mu_url_aget_user (url, ret);
   else if (SEQ ("host", name, nlen))
-    rc = mu_url_sget_host (url, &s);
+    rc = mu_url_aget_host (url, ret);
   else if (SEQ ("port", name, nlen))
-    rc = mu_url_sget_portstr (url, &s);
+    rc = mu_url_aget_portstr (url, ret);
   else if (SEQ ("path", name, nlen))
-    rc = mu_url_sget_path (url, &s);
+    rc = mu_url_aget_path (url, ret);
+  else
+    return MU_WRDSE_UNDEF;
 
-  if (rc)
-    return NULL;
-  return s;
+  switch (rc)
+    {
+    case 0:
+      break;
+      
+    case MU_ERR_NOENT:
+      return MU_WRDSE_UNDEF;
+
+    default:
+      if (mu_asprintf (ret, "%s", mu_strerror (rc)))
+	return MU_WRDSE_NOSPACE;
+      return MU_WRDSE_USERERR;
+    }
+  
+  return MU_WRDSE_OK;
 }
     
-static const char *
-movemail_getvar (const char *name, size_t nlen, void *data)
+static int
+movemail_getvar (char **ret, const char *name, size_t nlen, void *data)
 {
   struct movemail_getvar_closure *pc = data;
-  
-  if (SEQ ("progname", name, nlen))
-    return mu_program_name;
-  if (SEQ ("source", name, nlen))
-    return pc->source_name;
-  if (SEQ ("dest", name, nlen))
-    return pc->dest_name;
+  const char *s;
 
   if (nlen > 7 && memcmp ("source_", name, 7) == 0)
-    return get_url_part (pc->source_url, name + 7, nlen - 7);
+    return get_url_part (pc->source_url, name + 7, nlen - 7, ret);
+
   if (nlen > 5 && memcmp ("dest_", name, 5) == 0)
-    return get_url_part (pc->dest_url, name + 5, nlen - 5);
+    return get_url_part (pc->dest_url, name + 5, nlen - 5, ret);
   
-  return NULL;
+  if (SEQ ("progname", name, nlen))
+    s = mu_program_name;
+  else if (SEQ ("source", name, nlen))
+    s = pc->source_name;
+  else if (SEQ ("dest", name, nlen))
+    s = pc->dest_name;
+  else
+    return MU_WRDSE_UNDEF;
+    
+  *ret = strdup (s);
+  if (!*ret)
+    return MU_WRDSE_NOSPACE;
+  return MU_WRDSE_OK;
 }
 
 static void
@@ -834,7 +854,6 @@ set_program_id (const char *source_name, const char *dest_name)
      plays wise with its argument. We need a mu_set_diag_prefix
      function. */
   mu_program_name = ws.ws_wordv[0];
-  ws.ws_wordv[0] = NULL;
   ws.ws_wordc = 0;
   mu_wordsplit_free (&ws);
   mu_stdstream_strerr_setup (MU_STRERR_STDERR);

@@ -558,7 +558,7 @@ main (int argc, char **argv)
   int c;
   char buf[512];
   char **prevv = NULL;
-  int prevc = 0;
+  size_t prevc = 0;
 
   interactive = isatty (0);
   while ((c = getopt (argc, argv, "f:h")) != EOF)
@@ -615,10 +615,7 @@ main (int argc, char **argv)
 	{
 	  docmd (ws.ws_wordc, ws.ws_wordv);
 	  mu_argcv_free (prevc, prevv);
-	  prevc = ws.ws_wordc;
-	  prevv = ws.ws_wordv;
-	  ws.ws_wordc = 0;
-	  ws.ws_wordv = NULL;
+	  mu_wordsplit_get_words (&ws, &prevc, &prevv);
 	}
       mu_wordsplit_free (&ws);
     }

@@ -2282,16 +2282,21 @@ mu_wordsplit_free (struct mu_wordsplit *ws)
   mu_wordsplit_free_envbuf (ws);
 }
 
-void
-mu_wordsplit_getwords (struct mu_wordsplit *ws, int *wordc, char ***wordv)
+int
+mu_wordsplit_get_words (struct mu_wordsplit *ws, size_t *wordc, char ***wordv)
 {
   char **p = realloc (ws->ws_wordv,
 		      (ws->ws_wordc + 1) * sizeof (ws->ws_wordv[0]));
-  *wordv = p ? p : ws->ws_wordv;
+  if (!p)
+    return -1;
+  *wordv = p;
   *wordc = ws->ws_wordc;
+
   ws->ws_wordv = NULL;
   ws->ws_wordc = 0;
   ws->ws_wordn = 0;
+
+  return 0;
 }
 
 const char *_mu_wordsplit_errstr[] = {

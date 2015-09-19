@@ -518,7 +518,7 @@ action_list ()
 /* Push & pop */
 
 static void
-get_stack (int *pc, char ***pv)
+get_stack (size_t *pc, char ***pv)
 {
   struct mu_wordsplit ws;
   const char *stack = mh_global_context_get ("Folder-Stack", NULL);
@@ -535,10 +535,7 @@ get_stack (int *pc, char ***pv)
     }
   else
     {
-      *pc = ws.ws_wordc;
-      *pv = ws.ws_wordv;
-      ws.ws_wordc = 0;
-      ws.ws_wordv = NULL;
+      mu_wordsplit_get_words (&ws, pc, pv);
       mu_wordsplit_free (&ws);
     }
 }
@@ -559,9 +556,9 @@ set_stack (int c, char **v)
 }
 
 static void
-push_val (int *pc, char ***pv, const char *val)
+push_val (size_t *pc, char ***pv, const char *val)
 {
-  int c = *pc;
+  size_t c = *pc;
   char **v = *pv;
 
   c++;
@@ -581,10 +578,10 @@ push_val (int *pc, char ***pv, const char *val)
 }
 
 static char *
-pop_val (int *pc, char ***pv)
+pop_val (size_t *pc, char ***pv)
 {
   char *val;
-  int c;
+  size_t c;
   char **v;
   
   if (*pc == 0)
@@ -603,7 +600,7 @@ pop_val (int *pc, char ***pv)
 static int
 action_push ()
 {
-  int c;
+  size_t c;
   char **v;
 
   get_stack (&c, &v);
@@ -628,7 +625,7 @@ action_push ()
 static int
 action_pop ()
 {
-  int c;
+  size_t c;
   char **v;
 
   get_stack (&c, &v);

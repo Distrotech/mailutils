@@ -27,6 +27,7 @@
 #include <mailutils/errno.h>
 #include <mailutils/error.h>
 #include <mailutils/cstr.h>
+#include <mailutils/io.h>
 
 extern char **environ;
 
@@ -199,13 +200,11 @@ wsp_runcmd (char **ret, const char *str, size_t len, char **argv, void *closure)
   memcpy (cmd, str, len);
   cmd[len] = 0;
 
-  fp = popen(cmd, "r");
+  fp = popen (cmd, "r");
   if (!fp)
     {
-      size_t size = 0;
       ret = NULL;
-      if (mu_asprintf (ret, &size, "can't run %s: %s",
-		       cmd, strerror (errno)))
+      if (mu_asprintf (ret, "can't run %s: %s", cmd, mu_strerror (errno)))
 	return MU_WRDSE_NOSPACE;
       else
 	return MU_WRDSE_USERERR;

@@ -33,6 +33,7 @@
 #include <mailutils/observer.h>
 #include <mailutils/progmailer.h>
 #include <mailutils/wordsplit.h>
+#include <mailutils/io.h>
 
 #include <mailutils/sys/url.h>
 #include <mailutils/sys/mailer.h>
@@ -143,18 +144,30 @@ struct prog_exp
 {
   mu_message_t msg;
   mu_address_t sender_addr;
-  char *sender_str;
   mu_address_t rcpt_addr;
-  char *rcpt_str;
 };
 
-static const char *
-_expand_sender (struct prog_exp *pe)
+static int
+_expand_err (char **ret, const char *prefix, int status)
 {
-  if (!pe->sender_str &&
-      mu_address_aget_email (pe->sender_addr, 1, &pe->sender_str))
-    return NULL;
-  return pe->sender_str;
+  if (mu_asprintf (ret, "%s: %s", prefix, mu_strerror (status)))
+    return MU_WRDSE_NOSPACE;
+  return MU_WRDSE_USERERR;
+}
+
+static int
+_expand_sender (struct prog_exp *pe, char **ret)
+{
+  int status = mu_address_aget_email (pe->sender_addr, 1, ret);
+  switch (status)
+    {
+    case 0:
+      return MU_WRDSE_OK;
+
+    case ENOMEM:
+      return MU_WRDSE_NOSPACE;
+    }
+  return _expand_err (ret, "getting email", status);
 }
 
 static int
@@ -203,82 +216,79 @@ message_read_rcpt (mu_message_t msg, mu_address_t *paddr)
   return 0;
 }
 
-static const char *
-_expand_rcpt (struct prog_exp *pe)
+static int
+_expand_rcpt (struct prog_exp *pe, char **ret)
 {
   int status;
-
-  if (!pe->rcpt_str)
-    {
-      size_t i, count = 0;
-      size_t len = 0;
-      char *str;
-      mu_address_t tmp_addr = NULL, addr;
+  size_t i, count = 0;
+  size_t len = 0;
+  char *str;
+  mu_address_t tmp_addr = NULL, addr;
       
-      if (pe->rcpt_addr)
-	addr = pe->rcpt_addr;
-      else
-	{
-	  status = message_read_rcpt (pe->msg, &tmp_addr);
-	  if (status)
-	    {
-	      mu_address_destroy (&tmp_addr);
-	      return NULL;
-	    }
-	  addr = tmp_addr;
-	}
-	    
-      mu_address_get_count (addr, &count);
-      for (i = 1; i <= count; i++)
-	{
-	  const char *email;
-	  if (i > 1)
-	    len++;
-	  if ((status = mu_address_sget_email (addr, i, &email)) != 0)
-	    {
-	      mu_address_destroy (&tmp_addr);
-	      return NULL;
-	    }
-	  len += strlen (email);
-	}
-
-      str = malloc (len + 1);
-      if (!str)
+  if (pe->rcpt_addr)
+    addr = pe->rcpt_addr;
+  else
+    {
+      status = message_read_rcpt (pe->msg, &tmp_addr);
+      if (status)
 	{
 	  mu_address_destroy (&tmp_addr);
-	  return NULL;
+	  return _expand_err (ret, "reading recipients", status);
 	}
-      pe->rcpt_str = str;
-      
-      for (i = 1; i <= count; i++)
+      addr = tmp_addr;
+    }
+	    
+  mu_address_get_count (addr, &count);
+  for (i = 1; i <= count; i++)
+    {
+      const char *email;
+      if (i > 1)
+	len++;
+      if ((status = mu_address_sget_email (addr, i, &email)) != 0)
 	{
-	  const char *email;
-	  if (i > 1)
-	    *str++ = ' ';
-	  if (mu_address_sget_email (addr, i, &email))
-	    continue;
-	  strcpy (str, email);
-	  str += strlen (email);
+	  mu_address_destroy (&tmp_addr);
+	  return _expand_err (ret, "reading email", status);
 	}
-      *str = 0;
+      len += strlen (email);
+    }
+
+  str = malloc (len + 1);
+  if (!str)
+    {
       mu_address_destroy (&tmp_addr);
-    }  
-  return pe->rcpt_str;
+      return MU_WRDSE_NOSPACE;
+    }
+  *ret = str;
+      
+  for (i = 1; i <= count; i++)
+    {
+      const char *email;
+      if (i > 1)
+	*str++ = ' ';
+      if (mu_address_sget_email (addr, i, &email))
+	continue;
+      strcpy (str, email);
+      str += strlen (email);
+    }
+  *str = 0;
+  mu_address_destroy (&tmp_addr);
+  
+  return MU_WRDSE_OK;
 }
 
 #define SEQ(s, n, l) \
   (((l) == (sizeof(s) - 1)) && memcmp (s, n, l) == 0)
 
-static const char *
-prog_getvar (const char *name, size_t nlen, void *data)
+static int
+prog_getvar (char **ret, const char *name, size_t nlen, void *data)
 {
   struct prog_exp *pe = data;
   
   if (SEQ ("sender", name, nlen))
-    return _expand_sender (pe);
+    return _expand_sender (pe, ret);
   if (SEQ ("rcpt", name, nlen))
-    return _expand_rcpt (pe);
-  return NULL;
+    return _expand_rcpt (pe, ret);
+  return MU_WRDSE_UNDEF;
 }
 
 static int
@@ -298,7 +308,6 @@ url_to_argv (mu_url_t url, mu_message_t msg,
   pe.msg = msg;
   pe.rcpt_addr = to;
   pe.sender_addr = from;
-  pe.sender_str = pe.rcpt_str = NULL;
 
   ws.ws_getvar = prog_getvar;
   ws.ws_closure = &pe;
@@ -341,8 +350,6 @@ url_to_argv (mu_url_t url, mu_message_t msg,
     }
   argv[i+1] = NULL;
   mu_wordsplit_free (&ws);
-  free (pe.sender_str);
-  free (pe.rcpt_str);
   
   *pargc = argc;
   *pargv = argv;

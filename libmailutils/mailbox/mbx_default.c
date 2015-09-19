@@ -39,6 +39,7 @@
 #include <mailutils/folder.h>
 #include <mailutils/auth.h>
 #include <mailutils/wordsplit.h>
+#include <mailutils/io.h>
 
 #include <mailutils/sys/mailbox.h>
 

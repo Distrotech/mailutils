@@ -180,7 +180,7 @@ mu_switch_to_privs (uid_t uid, gid_t gid, mu_list_t retain_groups)
   /* Create a list of supplementary groups */
   mu_list_count (retain_groups, &size);
   size++;
-  emptygidset = malloc (size * sizeof emptygidset[0]);
+  emptygidset = calloc (size, sizeof emptygidset[0]);
   if (!emptygidset)
     return ENOMEM;
   emptygidset[0] = gid ? gid : getegid ();
@@ -188,9 +188,12 @@ mu_switch_to_privs (uid_t uid, gid_t gid, mu_list_t retain_groups)
   if (mu_list_get_iterator (retain_groups, &itr) == 0)
     {
       for (mu_iterator_first (itr);
-	   !mu_iterator_is_done (itr); mu_iterator_next (itr)) 
-	mu_iterator_current (itr,
-			     (void **)(emptygidset + j++));
+	   !mu_iterator_is_done (itr); mu_iterator_next (itr))
+	{
+	  void *p;
+	  mu_iterator_current (itr, &p);
+	  emptygidset[j++] = (gid_t) (intptr_t) p;
+	}
       mu_iterator_destroy (&itr);
     }
   rc = mu_set_user_privileges (uid, emptygidset, j);

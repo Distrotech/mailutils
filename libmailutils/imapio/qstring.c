@@ -66,7 +66,8 @@ mu_imapio_send_qstring_unfold (struct _mu_imapio *io, const char *buffer,
       else
 	mu_imapio_send_literal_string (io, buffer);
     }
-  else if (buffer[len = strcspn (buffer, io->_imap_ws.ws_escape)])
+  else if (io->_imap_ws.ws_escape[MU_WRDSX_QUOTE]
+	   && buffer[len = strcspn (buffer, io->_imap_ws.ws_escape[MU_WRDSX_QUOTE])])
     {
       int rc;
       
@@ -82,7 +83,7 @@ mu_imapio_send_qstring_unfold (struct _mu_imapio *io, const char *buffer,
 	      mu_stream_write (io->_imap_stream, "\\", 1, NULL);
 	      mu_stream_write (io->_imap_stream, buffer, 1, NULL);
 	      buffer++;
-	      len = strcspn (buffer, io->_imap_ws.ws_escape);
+	      len = strcspn (buffer, io->_imap_ws.ws_escape[MU_WRDSX_QUOTE]);
 	    }
 	  else
 	    break;
