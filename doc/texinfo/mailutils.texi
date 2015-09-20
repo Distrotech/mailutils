@@ -29,19 +29,19 @@
 @end direntry
 @dircategory Individual utilities
 @direntry
-* comsatd: (mailutils)comsatd.          Comsat Daemon.
-* frm: (mailutils)frm.                  List Headers from a Mailbox.
-* guimb: (mailutils)guimb.              Mailbox Processing Language.
-* imap4d: (mailutils)imap4d.            IMAP4 Daemon.
-* mail: (mailutils)mail.                Send and Receive Mail.
-* maidag: (mailutils)maidag.            A General-Purpose Mail Delivery Agent.
-* messages: (mailutils)messages.        Count Messages in a Mailbox.
-* movemail: (mailutils)movemail.        Move Mail between Mailboxes.
-* pop3d: (mailutils)pop3d.              POP3 Daemon.
-* readmsg: (mailutils)readmsg.          Extract Messages from a Folder.
-* sieve: (mailutils)sieve.              Mail Filtering Utility.
-* mimeview: (mailutils)mimeview.        View MIME Messages.
-* mu: (mailutils)mu.                    Mailutils Multi-Purpose Tool
+* comsatd: (mailutils) comsatd.          Comsat Daemon.
+* frm: (mailutils) frm.                  List Headers from a Mailbox.
+* guimb: (mailutils) guimb.              Mailbox Processing Language.
+* imap4d: (mailutils) imap4d.            IMAP4 Daemon.
+* mail: (mailutils) mail.                Send and Receive Mail.
+* maidag: (mailutils) maidag.            A General-Purpose Mail Delivery Agent.
+* messages: (mailutils) messages.        Count Messages in a Mailbox.
+* movemail: (mailutils) movemail.        Move Mail between Mailboxes.
+* pop3d: (mailutils) pop3d.              POP3 Daemon.
+* readmsg: (mailutils) readmsg.          Extract Messages from a Folder.
+* sieve: (mailutils) sieve.              Mail Filtering Utility.
+* mimeview: (mailutils) mimeview.        View MIME Messages.
+* mailutils: (mailutils) mailutils.      Mailutils Multi-Purpose Tool
 @end direntry
 @end ifinfo
 
@@ -87,6 +87,7 @@ This edition of the @cite{GNU Mailutils Manual}, last updated on
 
 @menu
 * Introduction::            Preliminary Information.
+* Mailbox::                 Mailboxes and URLs.
 * Programs::                Mailutils Programs.
 * Libraries::               Mailutils Libraries.
 * Sieve Language::          The Sieve Language.
@@ -143,7 +144,7 @@ Mailutils Programs
 
 * mh::                The MH Message Handling System.
 
-* mu::                Mailutils Multi-Purpose Tool.
+* mailutils::         The Mailutils Multi-Purpose Tool.
 
 Command Line
 
@@ -329,22 +330,24 @@ Major differences between Mailutils MH and other MH implementations
 
 MU
 
-* mu invocation syntax::
-* mu help::
-* mu info::
-* mu cflags::
-* mu ldflags::
-* mu query::
-* mu 2047::
-* mu filter::
-* mu acl::
-* mu wicket::
-* mu dbm::
-* mu logger::
-* mu pop::
-* mu imap::
+* mailutils invocation syntax::
+* mailutils help::
+* mailutils info::
+* mailutils cflags::
+* mailutils ldflags::
+* mailutils query::
+* mailutils 2047::
+* mailutils filter::
+* mailutils acl::
+* mailutils wicket::
+* mailutils dbm::
+* mailutils logger::
+* mailutils pop::
+* mailutils imap::
+* mailutils send::
+* mailutils smtp::
 
-mu dbm
+mailutils dbm
 
 * Create a Database::
 * Add Records to a Database::
@@ -529,6 +532,344 @@ different mailbox formats without any real effort on your part. Also,
 if a new format is added at a later date, your program will support
 that new format automatically as soon as it is compiled against the
 new library. 
+
+@node Mailbox
+@chapter Mailbox
+@cindex mailbox URL
+@cindex URL, mailbox
+
+The principal object Mailutils operates on is @dfn{mailbox} --
+a collection of mail messages.  The two main characteristics of a
+mailbox are its type and path.  The @dfn{type} defines how the
+messages are stored within a mailbox.  The @dfn{path} specifies
+the location of the mailbox.  The two characteristics are usually
+combined within a @dfn{Uniform Resource Locator} (@acronym{URL}),
+which uniquely identifies the mailbox.  The syntax for @acronym{URL}
+is:
+
+@example
+@var{type}:[//[@var{user}:@var{password}@@]@var{host}[:@var{port}]]@var{path}[?@var{query}][;@var{params}]
+@end example
+
+The square brackets do not appear in a @acronym{URL}, instead they are
+used to denote optional parts.
+
+Not all parts are meaningful for all types.  Their usage and purpose
+are described in the sections that follow.
+
+@menu
+* Local Mailboxes::      Mailboxes stored on the local file system.
+* Remote Mailboxes::     Mailboxes stored on remote hosts.
+* SMTP Mailboxes::       Mailboxes that send mail.
+* Program Mailboxes::
+@end menu
+
+@node Local Mailboxes
+@section Local Mailboxes
+@cindex local mailbox
+@cindex mailbox, local
+@cindex URL, local
+
+@dfn{Local mailboxes} store mail in files on the local file system.  A
+local mailbox URL is:
+
+@example
+@var{type}://@var{path}[;@var{params}]
+@end example
+
+The @var{path} defines its location in the file system.  For example:
+
+@example
+mbox:///var/spool/mail/gray
+@end example
+
+Optional @var{params} is a semicolon-separated list of optional
+arguments that configures indexed directory structure.  @xref{local
+URL parameters}, for a detailed description.
+
+The local mailbox types are:
+
+@table @asis
+@anchor{mbox}
+@cindex mbox
+@item mbox
+A traditional UNIX mailbox format.  Messages are stored sequentially
+in a single file.  Each message begins with a @samp{From} line,
+identifying its sender and date when it was received.  A single empty
+line separates two adjacent messages.
+
+This is the default format.
+
+@cindex maildir
+@item maildir
+The @dfn{Maildir} mailbox format.  Each message is kept in a separate
+file with a unique name.  Each mailbox is therefore a directory.  This
+mailbox format eliminates file locking and makes message access much
+faster.
+
+@cindex Bernstein, D. J. 
+This format was originally described by D.@: J.@: Bernstein in
+@url{http://cr.yp.to/proto/maildir.html}.
+
+@cindex mh
+@item mh
+MH Message Handling System format.  Each message is kept in a separate
+file named after its sequential numeric identifier within the mailbox.
+Deleted messages are not removed, but instead the corresponding file
+is renamed by prepending a comma to its original name.  Each mailbox
+is a directory.  Mailboxes can be nested.
+
+@cindex RAND Corporation
+This format was originally developed by RAND Corporation.  Mailutils
+implementation is compatible both with the original implementation and
+with its descendant @dfn{nmh}.
+
+@cindex file, mailbox type
+@item file
+This type can be used when accessing an existing mailbox of any of the
+formats defined above.  The actual mailbox format is determined
+automatically.  This type is assumed when a mailbox is referred to by
+its full pathname.
+@end table
+
+@node Remote Mailboxes
+@section Remote Mailboxes
+@cindex remote mailbox
+@cindex mailbox, remote
+@cindex URL, remote
+
+@dfn{Remote mailboxes} are accessed via one of the remote message
+protocols. 
+
+The basic remote mailbox types are:
+
+@table @asis
+@cindex pop, mailbox
+@item pop
+Remote mailbox accessed using the @dfn{Post Office Protocol}
+(@acronym{POP3}).  Default port number 110.
+
+The URL is:
+
+@example
+pop://[@var{user}[:@var{pass}][;auth=+APOP]@@]@var{host}[:@var{port}][;notls]
+@end example
+
+The @var{host} gives the name or IP address of the host running a POP3
+server. Optional @var{port} can be used to connect to a port other than
+the default 110.
+
+The @var{user} and @var{pass} supply authentication credentials. If any
+of them is missing, Mailtils will first try to obtain it from the ticket
+file.  If that fails, the behavior depends on the type of the controlling
+terminal. If the terminal is a tty device (i.e. the program accessing
+the mailbox was started from the command line), it will ask the user
+to supply the missing credentials.  Otherwise it will issue an
+appropriate error message and refuse to access the mailbox.
+
+By default, the usual POP3 authentication is used. The @samp{auth=+APOP}
+authentication parameter instructs Mailutils to use APOP authentication
+instead.
+
+If the server offers the STLS capability, Mailutils will attempt to
+establish encrypted TLS connection.  The @samp{notls} parameter
+disables this behavior.
+
+@cindex pops, mailbox
+@item pops
+Remote mailbox accessed using the @dfn{Post Office Protocol}
+(@acronym{POP3}).  The transmission channel is encrypted using the
+@dfn{transport layer security} (@acronym{TLS}).  The default port is 995.
+
+The URL is:
+
+@example
+pops://[@var{user}[:@var{pass}][;auth=+APOP]@@]@var{host}[:@var{port}]
+@end example
+
+The meaning of its components is the same as for @samp{pop} type.
+
+@cindex imap, mailbox
+@item imap
+Remote mailbox accessed via the @dfn{Internet Message Access
+Protocol}.  Default port number is 143.
+
+The URL is:
+
+@example
+imap://[@var{user}[:@var{pass}]@var{host}[:@var{port}][;notls]
+@end example
+
+The @var{host} gives the name or IP address of the host running a IMAP4
+server. Optional @var{port} can be used to connect to a port other than
+the default 143.
+
+The @var{user} and @var{pass} supply authentication credentials. If any
+of them is missing, Mailtils will first try to obtain it from the ticket
+file.  If that fails, the behavior depends on the type of the controlling
+terminal. If the terminal is a tty device (i.e. the program accessing
+the mailbox was started from the command line), it will ask the user
+to supply the missing credentials.  Otherwise it will issue an
+appropriate error message and refuse to access the mailbox.
+
+If the server offers the STARTTLS capability, Mailutils will attempt to
+establish encrypted TLS connection.  The @samp{notls} parameter
+disables this behavior.
+
+@cindex imaps, mailbox
+@item imaps
+
+The @samp{imaps} type differs in that its transmission channel is
+encrypted using the @dfn{transport layer security} (@acronym{TLS}).
+The default port is 993.
+
+The URL is:
+
+@example
+imaps://[@var{user}[:@var{pass}]@@]@var{host}[:@var{port}]
+@end example
+
+The meaning of its components is the same as for @samp{imap} type.
+@end table
+
+@node SMTP Mailboxes
+@section SMTP Mailboxes
+@cindex mailbox, SMTP
+@cindex URL, SMTP
+
+SMTP mailboxes types are special remote mailboxes that allow only
+append operation.  Appending a message is equivalent to sending it to
+the given recipient or recipients. 
+
+@table @asis
+@cindex smtp, mailbox
+@item smtp
+A remote mailbox accessed using the Simple Message Transfer Protocol.
+
+The SMTP URL syntax is:
+
+@example
+smtp://[@var{user}[:@var{pass}][;auth=@var{mech},...]@@]@var{host}[:@var{port}][;@var{params}]
+@end example
+
+The @var{host} gives the name or IP address of the host running SMTP
+server. Optional @var{port} can be used to connect to a port other than
+the default 25.
+
+The @var{user}, @var{pass}, and @samp{auth=} elements supply
+credentials for ESMTP authentication, if the server supports it.
+
+If the ESMTP authentication is used, Mailutils will select the best
+authentication mechanism from the list offered by the server. To force
+it to use a particular authentication mechanism, use the @samp{auth}
+authentication parameter. Its value is a comma-separated list of
+authentication mechanisms, in the order from the most to the least
+preferred one, e.g.:
+
+@example
+smtp://smith:guessme;auth=cram-md5,digest-md5@@localhost
+@end example
+
+Optional @var{params} is a semicolon-separated list of additional
+parameters.  Valid parameters are:
+
+@table @asis
+@kwindex domain
+@item domain=@var{string}
+Append @samp{@@@var{string}} to those recipient addresses that lack
+the domain part.
+
+@kwindex from
+@item from=@var{addr}
+Use @var{addr} as sender address.
+
+@kwindex noauth
+@item noauth
+Disable ESMTP authentication.
+
+@kwindex notls
+@item notls
+Disable TLS.
+
+@item recipient-headers[=@var{name}[,@var{name}...]]
+Use the supplied header names to determine recipient addresses.
+When no values are supplied, disables header scanning.
+
+@kwindex strip-domain
+@item strip-domain
+Strip domain part from all recipient addresses.
+
+@kwindex to
+@item to=@var{addr}[,@var{addr}...]
+Deliver messages to the supplied email addresses.
+@end table
+
+@cindex smtps, mailbox
+@item smtps
+A remote mailbox accessed using the Simple Message Transfer Protocol, with
+the transmission channel encrypted using the @dfn{transport layer
+security} (@acronym{TLS}).  The default port is 465.
+
+The URL is
+
+@example
+smtps://[@var{user}[:@var{pass}][;auth=@var{mech},...]@@]@var{host}[:@var{port}][;@var{params}]
+@end example
+
+See the @samp{smtp} type for a detailed description of its types.
+The only difference from @samp{smtp} is that the @samp{notls}
+parameter is not used.
+@end table
+
+@node Program Mailboxes
+@section Program Mailboxes
+@cindex mailbox, program
+@cindex program mailbox
+
+Program mailboxes support only append operation.  Appending a message
+is performed by invoking the specified program and passing the message
+to its standard input stream.
+
+@cindex URL, sendmail
+@cindex sendmail, URL
+A @samp{sendmail} mailbox is identified by the following URL:
+
+@example
+sendmail[://@var{path}]
+@end example
+
+The messages are sent by invoking @command{sendmail} binary with the
+@option{-oi -t} options.  If the message being appended has the
+@samp{From:} header, its value is passed to @command{sendmail} using
+the @option{-f} option.
+
+The default path to the sendmail binary is system-dependent.  The
+@var{path} part can be used to specify it explicitly.
+
+@cindex URL, prog
+@cindex prog, URL
+The @samp{prog} mailbox URL is:
+
+@example
+prog://@var{pathname}[?@var{query}]
+@end example
+
+Messages are appended by invoking the program @var{pathname} with the
+arguments supplied by @var{query}.  The latter is a list of words
+delimited by @samp{&} characters.
+
+Arguments can contain the following variables (@pxref{Variables}):
+
+@table @asis
+@kwindex sender
+@item sender
+Expands to the sender email address.
+
+@kwindex rcpt
+@item rcpt
+Expands to comma-separated list of email addresses obtained from
+@samp{To:}, @samp{Cc:} and @samp{Bcc:} headers of the message.
+@end table
 
 @node Programs
 @chapter Mailutils Programs

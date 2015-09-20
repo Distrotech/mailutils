@@ -42,7 +42,7 @@ syntax.
 
 * mh::                The MH Message Handling System.
 
-* mu::                Mailutils Multi-Purpose Tool.
+* mailutils::         The Mailutils Multi-Purpose Tool.
 @end menu
 
 @node command line
@@ -226,7 +226,7 @@ Do not load site-wide configuration file.
 Do not load user configuration file.
 
 @xopindex{set, introduced}
-@item --set=@var{path}
+@item --set=@var{path}=@var{value}
 Set configuration variable.
 @end table
 
@@ -247,7 +247,7 @@ for the system configuration directory set when compiling the package.
 You can obtain the value of @var{sysconfdir} by running
 
 @example
-$ mailutils-config --info sysconfdir
+$ mailutils info sysconfdir
 @end example
 
 @noindent
@@ -281,7 +281,7 @@ command line option was given.
 @end enumerate
 
 The order in which configuration files are loaded defines the
-precedence of their settings.  Thus, the settings from additional
+precedence of their settings.  Thus, settings from additional
 configuration file override those set in per-user configuration file.
 The latter, in their turn, take precedence over the settings from the
 site-wide configuration file.
@@ -345,9 +345,10 @@ and to edit the @file{imap4d.rc} file with your editor of choice.
 @xopindex{set, described}
   It is also possible to set or override arbitrary configuration
 variables in the command line.  It can be done via the @option{--set}
-option.  Its argument is a @dfn{pathname} of the variable to be set.
-For example, to define the variable @samp{syslog} in section
-@samp{logging} to @samp{no}, do the following:
+option.  Its argument is a @dfn{pathname} of the variable to be set,
+followed by an equals sign and value.  For example, to define the
+variable @samp{syslog} in section @samp{logging} to @samp{no}, do the
+following: 
 
 @example
 $ imap4d --set .logging.syslog=no
@@ -357,6 +358,7 @@ Configuration pathnames are discussed in detail in @ref{Paths}.
 
 @menu
 * conf-syntax::         Configuration File Syntax
+* Variables::           Variable Expansion
 * Include::             Include Statement
 * Logging Statement::
 * Debug Statement::
@@ -674,6 +676,52 @@ component separator, e.g.:
 .program="a.out".bar.baz
 @end example
 
+@node Variables
+@subsection Configuration Variables
+@cindex variable expansion
+@cindex macro variable
+  Certain configuration statements allow for the use of variable
+references in their values.  A variable reference has the form
+@samp{$@var{variable}} or @samp{$@{@var{variable}@}}, where
+@var{variable} is the variable name.  It is expanded to the actual
+value of @var{variable} when Mailutils consults the configuration
+statement in question.  
+
+The two forms are entirely equivalent.  The form with curly braces is
+normally used if the variable name is immediately followed by an
+alphanumeric symbol, which will otherwise be considered part of it.
+This form also allows for specifying the action to take if the
+variable is undefined or expands to an empty value. 
+
+During variable expansion, the forms below cause Mailutils to test
+for a variable that is unset or null.  Omitting the colon results
+in a test only for a variable that is unset.
+
+@table @asis
+@item $@{@var{variable}:-@var{word}@}
+@dfn{Use Default Values}.  If @var{variable} is unset or null, the expansion
+of @var{word} is  substituted.   Otherwise, the value of @var{variable} is
+substituted.
+
+@item $@{@var{variable}:=@var{word}@}
+@dfn{Assign Default Values}.  If @var{variable} is unset or null, the
+expansion  of @var{word} is assigned to variable.  The value of 
+@var{variable} is then substituted.
+                            
+@item $@{@var{variable}:?@var{word}@}
+@dfn{Display Error if Null or Unset}.  If @var{variable} is null or unset,
+the expansion of @var{word} (or a message to that effect if @var{word} is
+not present) is output to the current logging channel.  Otherwise, the
+value of @var{variable} is substituted.
+
+@item $@{@var{variable}:+@var{word}@}
+@dfn{Use Alternate Value}.  If @var{variable} is null or unset, nothing is
+substituted, otherwise the expansion of @var{word} is substituted.
+@end table
+
+The subsections below define variable names that are valid for use in
+each configuration statement.
+
 @node Include
 @subsection Include Statement 
 @cindex include statement, configuration file
@@ -710,13 +758,20 @@ file.  Thus.  @command{imap4d} will read
 logging @{
   # @r{Send diagnostics to syslog.}
   syslog @var{boolean};
+  
   # @r{Print message severity levels.}
   print-severity @var{boolean};
+  
   # @r{Output only messages with a severity equal to or}
   # @r{greater than this one.}
   severity @var{string};
+  
   # @r{Set syslog facility.}
   facility @var{name};
+
+  # Log session ID
+  session-id @var{boolean};
+    
   # @r{Tag syslog messages with this string.}
   tag @var{text};
 @}
@@ -732,10 +787,10 @@ syslog.  Otherwise, it goes to the standard error.
 @end deffn
 
 The default syslog facility is determined at compile time, it can be inspected
-using the following command (@pxref{mu info}):
+using the following command (@pxref{mailutils info}):
 
 @example
-$ mu info log_facility
+$ mailutils info log_facility
 @end example
 
 @anchor{syslog facility}
@@ -761,6 +816,12 @@ one.  Valid arguments are: @samp{debug}, @samp{info}, @samp{notice},
 @samp{warning}, @samp{error}, @samp{crit}, @samp{alert}, @samp{emerg},
 @end deffn
 
+@deffn {Configuration} session-id bool
+Print session ID with each diagnostic message.  This is useful for
+programs that handle multiple user sessions simultaneously, such as
+@command{pop3d} and @command{imap4d}.
+@end deffn
+
 @node Debug Statement
 @subsection Debug Statement
 @kwindex debug
@@ -769,18 +830,21 @@ one.  Valid arguments are: @samp{debug}, @samp{info}, @samp{notice},
 debug @{
   # @r{Set Mailutils debugging level.}
   level @var{spec};
+  
   # @r{Prefix debug messages with Mailutils source locations.}
   line-info @var{bool};
 @}
 @end example
 
 @subheading Description
+@kwindex level
 The @samp{debug} statement controls the amount of additional debugging
 information output by Mailutils programs.  The @samp{level} statement
 enables additional debugging information.  Its argument (@var{spec})
 is a Mailutils debugging specification as described in
 @ref{debugging}.
 
+@kwindex line-info
 The @samp{line-info} statement, when set to @samp{true} causes
 debugging messages to be prefixed with locations in Mailutils source
 files where they appear.  Normally, only Mailutils developers need
@@ -794,10 +858,13 @@ this option.
 mailbox @{
   # @r{Use specified @var{url} as a mailspool.}
   mail-spool @var{url};
+  
   # @r{Create mailbox @var{url} using @var{pattern}.}
   mailbox-pattern @var{pattern};
+  
   # @r{Default mailbox type.}
   mailbox-type @var{type};
+  
   # @r{Default user mail folder.}
   folder @var{dir};
 @}
@@ -821,34 +888,18 @@ Historically, @var{path} can contain mailbox type prefix, e.g.:
 favor of @code{mailbox-pattern} statement.
 @end deffn
 
-@deffn {Configuration} mailbox-pattern @var{pattern}
-The @code{mailbox-pattern} statement is a modern way of configuring
+@deffn {Configuration} mailbox-pattern @var{url}
+The @code{mailbox-pattern} statement is a preferred way of configuring
 mailbox locations.  It supersedes @code{mail-spool} statement.
 
-The @var{pattern} is valid @dfn{mailbox URL}, which 
-may contain references to @samp{user} macro-variable
-(@FIXME-pxref{macro-variables}).  This macro-variable will be expanded
-to the actual user name.  The full syntax for @var{pattern} is:
+The @var{url} is valid mailbox URL (@pxref{Mailbox}), which 
+may contain references to the @samp{user} variable
+(@pxref{Variables}).  This variable will be expanded to the actual
+user name.
 
-@example
-  [@var{type}://]@var{path}[;@var{args}]
-@end example
-
-@noindent
-where:
-
-@table @var
-@item type
-Specifies the mailbox type.  It must be one of mailbox types,
-supported by Mailutils.  @FIXME-xref{Mailbox URLs}.  By default,
-@samp{local} is assumed.  @FIXME{Verify this}.
-
-@item path
-The path pattern.
-
-@item args
-A semicolon-separated list of optional arguments, configuring
-indexed directory structure.
+@anchor{local URL parameters}
+Optional URL parameters can be used to configure indexed directory
+structure.
 
 @cindex directory indexing
 An @dfn{indexed directory structure} is a special way of storing
@@ -930,8 +981,9 @@ Specifies indexing key.  The only meaningful value, as of Mailutils
 version @value{VERSION} is @samp{user=$@{user@}}.
 @end table
 
-Let's assume the traditional mail layout, in which user incoming
-mails are stored in UNIX mailbox format in @file{/var/mail} directory.
+Let's assume the traditional mail layout, in which incoming
+mails are stored in a UNIX mailbox named after the recipient user name
+and located in @file{/var/mail} directory.
 The @code{mailbox-pattern} for this case is:
 
 @example
@@ -948,12 +1000,11 @@ Now, if the layout is the same, but mailboxes are kept in
 @end example
 
 Finally, if the mailboxes are stored in a directly-indexed directory with
-two levels of indexing, than:
+two levels of indexing, the URL is:
 
 @example
   mailbox-pattern "maildir:///var/mail;type=index;param=2;user=$@{user@}";
 @end example
-@end table
 @end deffn
 
 If neither @code{mailbox-pattern} nor @code{mail-spool} are given, the
@@ -978,12 +1029,12 @@ time, using @samp{_PATH_MAILDIR} define from the include file
 Specifies type of mailboxes.  By default, @samp{mbox} (UNIX mailbox)
 is assumed.  This can be changed while configuring the package by
 setting @code{MU_DEFAULT_SCHEME} configuration variable.  The default
-value can be verified by running @command{mailutils-config --info scheme}.
+value can be verified by running @command{mailutils info scheme}.
 @end deffn
 
 @deffn {Configuration} folder @var{dir}
 @cindex plus expansion
-Sets user mail folder directory.  Its value is using when expanding
+Sets user mail folder directory.  Its value is used when expanding
 @samp{plus-notation}, i.e. such mailbox names as @file{+inbox}.  The
 @samp{+} sign is replaced by @var{dir}, followed by a directory
 separator (@samp{/}).
@@ -1002,12 +1053,16 @@ The default folder name is @samp{Mail/}.
 locking @{
   # @r{Default locker flags.}
   flags @var{arg};
+  
   # @r{Set timeout for acquiring the lock.}
   retry-timeout @var{arg};
+  
   # @r{Set the maximum number of times to retry acquiring the lock.}
   retry-count @var{number};
+  
   # @r{Expire locks older than this amount of time.}
   expire-timeout @var{number};
+  
   # @r{Use @var{prog} as external locker program.}
   external-locker @var{prog};
 @}
@@ -1017,8 +1072,9 @@ locking @{
 This block statement configures various parameters used when locking
 UNIX mailboxes in order to prevent simultaneous writes.
 
-It is important to note, that locking applies only to maildrops in
-UNIX mailbox format.  All other mailbox types do not require locking.
+It is important to note, that locking applies only to traditional
+UNIX mailboxes (@pxref{mbox}).  All other
+mailbox types don't require locking.
 
 @deffn {Configuration} flags @var{string}
 Set locking flags.  Argument is a string consisting of one or more of
@@ -1086,19 +1142,16 @@ The mailer statement contains a single sub-statement:
 Set the mailer @acronym{URL}.
 @end deffn
 
-GNU Mailutils supports two types of mailer @acronym{URL}s, described
-in the table below.  As usual, square brackets indicate optional parts:
+GNU Mailutils supports three types of mailer @acronym{URL}s, described
+in the table below:
 
 @table @asis
-@item smtp://@var{host}[:@var{port}]
-Use an SMTP server @var{host} to send messages.  Optional @var{port}
-specifies port number or symbolic name (as defined in
-@file{/etc/services}).  It defaults to 25.  The @var{host} can be
-specified as either an IP address in dotted-quad notation or as a
-symbolic host name.  In the latter case, DNS system will be used to
-resolve it.
+@item smtp://[@var{user}[:@var{pass}][;auth=@var{mech},...]@@]@var{host}[:@var{port}][;@var{params}]
+@itemx smtps://[@var{user}[:@var{pass}][;auth=@var{mech},...]@@]@var{host}[:@var{port}][;@var{params}] 
+Send messages using SMTP protocol.  @xref{SMTP Mailboxes}, for a
+detailed description of the URL and its parts.
 
-@item sendmail://@var{progname}
+@item sendmail[://@var{progname}]
 Use sendmail-compatible program
 @var{progname}.  @dfn{Sendmail-compatible} means that the program must
 support following command line options:
@@ -1114,30 +1167,13 @@ Use @var{addr} as the sender address.
 Get recipient addresses from the message.
 @end table
 
-@item sendmail:
-This is a special form of the @samp{sendmail} mailer.  It uses the
-@command{sendmail} binary from the @code{_PATH_SENDMAIL} macro in your
-@file{/usr/include/paths.h}.  It is the default mailer.
+@xref{Program Mailboxes,,sendmail}, for details.
 
 @item prog://@var{progname}?@var{query}
 A @dfn{prog} mailer.  This is a generalization of @samp{sendmail}
 mailer that allows to use arbitrary external programs as mailers.
 
-The @var{progname} must be a full pathname of the binary file.  When
-sending message, Mailutils will invoke this file with the arguments
-specified by @var{query} and will pipe the message to be sent to its
-standard input.
-
-The @var{query} part is a list of arguments, separated by @samp{&}
-signs.  Arguments may contain the following macro-substitutions:
-
-@table @samp
-@item $@{sender@}
-Expands to the sender email address.
-
-@item $@{rcpt@}
-Expands to the recipient email addresses.
-@end table
+It is described in detain in @ref{Program Mailboxes,,prog}.
 @end table
 
 @node ACL Statement
@@ -1148,13 +1184,17 @@ Expands to the recipient email addresses.
 acl @{
   # @r{Allow connections from this IP address.}
   allow [from] @var{ip};
+  
   # @r{Deny connections from this IP address.}
   deny [from] @var{ip};
+  
   # @r{Log connections from this IP address.}
   log [from] @var{ip} [@var{string}];
+  
   /* @r{Execute supplied program if a connection from this
      IP address is requested.} */
   exec [from] @var{ip} @var{program};
+  
   /* Use @var{program} to decide whether to allow connection
      from @var{ip}. */
   ifexec [from] @var{ip} @var{program};
@@ -1175,10 +1215,10 @@ know}, then the next control is tried.  It is unclear whether to allow
 access if the last control in list returned @samp{Don't know}.  GNU
 Mailutils @value{VERSION} issues a warning message and allows access.
 This default may change in future versions.  Users are advised to
-write their ACLs so that the last control returns a definitive answer
+write their ACLs so that the last control returns a definite answer
 (either @code{True} or @code{False}).
 
-In the discussion below, wherever @var{ip} appears as an argument, it
+In the discussion below, wherever @var{cidr} appears as an argument, it
 can be replaced by any of: 
 
 @itemize @bullet
@@ -1205,6 +1245,34 @@ Deny connections from IP addresses matching this @var{cidr} block.
 When a connection from the @var{cidr} block is requested, execute
 the program @var{program}.  If its exit code is @samp{0}, then allow
 connection.  Otherwise, deny it.
+
+The @var{program} argument undergoes variable expansion and word
+splitting.  The following variables are defined:
+
+@table @code
+@item aclno
+Ordinal number of the control in the ACL.  Numbers begin from
+@samp{1}.
+
+@item family
+Connection family.  Mailutils version @value{VERSION} supports the following
+families: @samp{AF_INET}, @samp{AF_INET6} and @samp{AF_UNIX}.
+
+@item address
+Remote IP address (for @samp{AF_INET} and @samp{AF_INET6}) or socket name (for
+@samp{AF_UNIX}).  Notice that most Unixes return empty string instead
+of the @samp{AF_UNIX} socket name, so do not rely on it.
+
+@item port
+Remote port number (for @samp{AF_INET} and @samp{AF_INET6}).
+@end table
+@end deffn
+
+@deffn {Configuration} exec [from] @var{cidr} @var{program}
+If a connection from the @var{cidr} block is requested, execute the given
+@var{program}.  Do not wait for it to terminate, and ignore its exit
+code.  The @var{program} is subject for variable expansion as in
+@samp{ifexec}.
 @end deffn
 
 The following two controls are provided for logging purposes and as a
@@ -1229,27 +1297,8 @@ For connections over UNIX sockets.  The socket name, if available, may
 be printed before the closing curly brace.
 @end table
 
-If the @var{string} is specified, it undergoes macro expansion and the
-result of it is used as the log entry.  The following macro variables
-are expanded:
-
-@table @code
-@item aclno
-Ordinal number of the control in the ACL.  Numbers begin from
-@samp{0}.
-
-@item family
-Connection family.  Mailutils version @value{VERSION} supports two
-families: @samp{AF_INET} and @samp{AF_UNIX}.
-
-@item address
-Remote IP address (for @samp{AF_INET}) or socket name (for
-@samp{AF_UNIX}).  Notice that most Unixes return empty string instead
-of the @samp{AF_UNIX} socket name, so do not rely on it.
-
-@item port
-Remote port number (for @samp{AF_INET}).
-@end table
+If @var{string} is supplied, it undergoes variable expansions as
+described for the @samp{ifexec}.
 
 For example, the following ACL makes a Mailutils server log every
 incoming connection:
@@ -1274,23 +1323,21 @@ its exit code.
 
 @node Tcp-wrappers Statement
 @subsection Tcp-wrappers Statement
-@UNREVISED
 @kwindex tcp-wrappers
 @subheading Syntax
 @example
 tcp-wrappers @{
   # @r{Enable TCP wrapper access control.}
   enable @var{bool};
+  
   # @r{Set daemon name for TCP wrapper lookups.}
   daemon @var{name};
+  
   # @r{Use @var{file} for positive client address access control.}
   allow-table @var{file};
+  
   # @r{Use file for negative client address access control.}
   deny-table @var{file};
-  # @r{Log allowed accesses at this syslog priority.}
-  allow-syslog-priority @var{prio};
-  # @r{Log denied accesses at this syslog priority.}
-  deny-syslog-priority @var{prio};
 @}
 @end example
 
@@ -1336,32 +1383,23 @@ Use @var{file} as negative table.  By default, @file{/etc/hosts.deny}
 is used.
 @end deffn
 
-@deffn {Configuration} allow-syslog-priority @var{prio};
-Log allowed accesses using syslog priority @var{prio}.
-@end deffn
-
-@deffn {Configuration} deny-syslog-priority @var{prio};
-Log denied accesses using syslog priority @var{prio}.
-@end deffn
-
 @node Server Settings
 @subsection Server Settings
-@UNREVISED
 @cindex server settings, configuration
 @cindex configuring servers
   GNU Mailutils offers several server applications: @command{pop3d},
 @command{imap4d}, @command{comsatd}, to name a few.  Being quite
 different in their purpose, they are very similar in some aspects of
 their architecture.  First of all, they all support two operating
-mode: a @dfn{daemon} mode, where a program disconnects from the controlling
-terminal and works in background, and an @dfn{inetd} mode, where it
+modes: @dfn{daemon}, where a program disconnects from the controlling
+terminal and works in background, and @dfn{inetd}, where it
 remains in foreground and communicates with the remote party via
 standard input and output streams.  Secondly, when operating as
 daemons, they listen to a preconfigured set of IP addresses and
 ports, reacting to requests that arrive.
 
   To configure these aspects of functionality, GNU Mailutils provides
-@dfn{Server Configuration Settings}, which we will describe in this
+@dfn{Server Configuration Settings}, which is describes in this
 subsection. 
 
 @menu
@@ -1371,20 +1409,24 @@ subsection.
 
 @node General Server Configuration
 @subsubsection General Server Configuration
-@UNREVISED
 @cindex server configuration, general
 @* Syntax:
 @example
 # @r{Set daemon mode.}
 mode @samp{inetd|daemon};
+
 # @r{Run in foreground.}
 foreground @var{bool};
+
 # @r{Maximum number of children processes to run simultaneously.}
 max-children @var{number};
+
 # @r{Store PID of the master process in @var{file}.}
 pidfile @var{file};
+
 # @r{Default port number.}
 port @var{portspec};
+
 # @r{Set idle timeout.}
 timeout @var{time};
 @end example
@@ -1414,7 +1456,7 @@ Operate as a subprocess of UNIX internet super-server program,
 @command{inetd}.  @xref{Internet super-server,,,inetd(8), inetd(8) man
 page}, for a detailed description of the operation of @command{inetd}
 and its configuration.  In this case it is @command{inetd} that
-controls all major connectivity aspects, the Mailutils server itself
+controls all major connectivity aspects.  The Mailutils server program
 communicates with it via standard input and output streams.
 
 For historical reasons, this mode is the default, if no @code{mode}
@@ -1454,7 +1496,7 @@ services(5), services(5) man page}).
 @end deffn
 
 @deffn {Configuration} timeout @var{time};
-Set maximum idle time out in seconds.  If a client does not send any
+Sets maximum idle time out in seconds.  If a client does not send any
 requests during @var{time} seconds, the child process terminates.
 @end deffn
 
@@ -1468,31 +1510,38 @@ requests during @var{time} seconds, the child process terminates.
 server @var{ipaddr}[:@var{port}] @{
   # @r{Run this server as a single process.}
   single-process @var{bool};
+  
   # @r{Log the session transcript.}
   transcript @var{bool};
+
   # @r{Set idle timeout.}
   timeout @var{time};
+
+  # @r{Kind of TLS encryption to use for this server.}
+  tls @samp{no}|@samp{ondemand}|@samp{required}|@samp{connection};
+    
   # @r{Set server specific ACLs.}
   acl @{ /* @xref{ACL Statement}. */ @};
 @}
 @end example
 
 @* Description:
+
 The @code{server} block statement configures a single TCP or UDP
 server.  It takes effect only in daemon mode (@pxref{server mode}).
 The argument to this statement specifies the IP address, and,
 optionally, the port, to listen on for requests.  The @var{ipaddr}
-part is either an IPv4 address in dotted-quad form, or a symbolic host
-name which can be resolved to such an address via DNS.  Specifying
-@samp{0.0.0.0} as the @var{ipaddr} means listen on all available
-network interfaces.  The @var{port} argument is either a port number
-in decimal, or a symbolic service name, as listed in
-@file{/etc/services} (@pxref{Internet network services
-list,,,services(5), services(5) man page}).  If @var{port} is omitted,
-Mailutils uses the port set by @code{port} statement (@pxref{General
-Server Configuration, port}), or, in its absence, the default port
-number, which depends on a server being used (e.g. 110, for
-@command{pop3d}, 143, for @command{imap4d}, etc.).   
+part is either an IPv4 address in dotted-quad form, or a IPv6 address
+enclosed in square brackets, or a symbolic host name which can be
+resolved to such an address.  Specifying @samp{0.0.0.0} as the
+@var{ipaddr} means listen on all available network interfaces.  The
+@var{port} argument is either a port number in decimal, or a symbolic
+service name, as listed in @file{/etc/services} (@pxref{Internet
+network services list,,,services(5), services(5) man page}).  If
+@var{port} is omitted, Mailutils uses the port set by @code{port}
+statement (@pxref{General Server Configuration, port}), or, in its
+absence, the default port number, which depends on a server being used
+(e.g. 110, for @command{pop3d}, 143, for @command{imap4d}, etc.).  
 
 Any number of @code{server} statements may be specified in a single
 configuration file, allowing to set up the same service on several IP
@@ -1519,6 +1568,31 @@ in debugging.  They should be turned off on most production servers.
 @deffn {Configuration} timeout @var{time};
 Set idle timeout for this server.  This overrides global timeout
 settings (@pxref{General Server Configuration, timeout}).
+@end deffn
+
+@deffn {Configuration} tls @var{mode};
+Configure the use of TLS encryption.  The @var{mode} argument is one
+of the following:
+
+@table @asis
+@item no
+TLS is not used.  The corresponding command (@command{STLS}, for POP3,
+@command{STARTTLS}, for @command{IMAP4}) won't be available even if
+the TLS configuration is otherwise complete.
+
+@item ondemand
+TLS is initiated when the user issues the appropriate command.
+This is the default when TLS is configured.
+
+@item required
+Same as above, but the use of TLS is mandatory.  The authentication
+state is entered only after TLS negotiation has succeeded.
+
+@item connection
+TLS is always forced when the connection is established.  For
+@command{pop3d} this means using POP3S protocol (or IMAP4S, for
+@command{imap4d}).
+@end table
 @end deffn
 
 @deffn {Configuration} acl
@@ -1831,8 +1905,8 @@ assignment.  For example:
 "Service-Type = Authenticate-Only, NAS-Identifier = \"mail\""
 @end example
 
-An assignment may contain references to the following macro-variables
-(@FIXME-pxref{macro-variables}):
+The assignment may contain references to the following variables
+(@pxref{Variables}):
 
 @table @asis
 @item user
@@ -4660,7 +4734,7 @@ diagnostic messages issued by the program.  By default, program
 name is used.
 
 The @var{fmt} is a format string that may contain references to the
-following macro variables (@FIXME-pxref{macro-variables}):
+following variables (@pxref{Variables}):
 
 @table @code
 @item progname
@@ -4669,25 +4743,25 @@ The program name.
 @item source
 URL of the source mailbox.
 
-@item source:user
+@item source_user
 User part of the source mailbox URL.
 
-@item source:host
+@item source_host
 Host part of the source mailbox URL.
 
-@item source:path
+@item source_path
 Path part of the source mailbox URL.
 
 @item dest
 URL of the destination mailbox
 
-@item dest:user
+@item dest_user
 User part of the destination mailbox URL.
 
-@item dest:host
+@item dest_host
 Host part of the destination mailbox URL.
 
-@item dest:path
+@item dest_path
 Path part of the destination mailbox URL.
 @end table
 
@@ -7167,41 +7241,43 @@ $B(,5)\
 @include mu-mh.texi
 
 @page
-@node mu
-@section MU
-@pindex mu
-The @command{mu} utility is a multi-purpose tool shipped with
-Mailutils.  It can be used for various mail- and database-related
+@node mailutils
+@section mailutils
+@pindex mailutils
+The @command{mailutils} utility is a multi-purpose tool shipped with
+Mailutils.  It can be used for various mail and database-related
 tasks, as well as an auxiliary tool for compiling and linking programs
 with Mailutils. 
 
 @menu
-* mu invocation syntax::
-* mu help::
-* mu info::
-* mu cflags::
-* mu ldflags::
-* mu query::
-* mu 2047::
-* mu filter::
-* mu acl::
-* mu wicket::
-* mu dbm::
-* mu logger::
-* mu pop::
-* mu imap::
+* mailutils invocation syntax::
+* mailutils help::                Display a terse help summary.
+* mailutils info::                Show Mailutils configuration.
+* mailutils cflags::              Show compiler options.
+* mailutils ldflags::             List libraries required to link.
+* mailutils query::               Query configuration values.
+* mailutils 2047::                Decode/encode email message headers.
+* mailutils filter::              Apply a chain of filters to the input.
+* mailutils acl::                 Test access control lists.
+* mailutils wicket::              Scan wickets for matching URLs.
+* mailutils dbm::                 DBM management tool.
+* mailutils logger::              Log data using Mailutils log facility.
+* mailutils pop::                 POP3 client shell.
+* mailutils imap::                IMAP4 client shell.
+* mailutils send::                Send a message.
+* mailutils smtp::                Run a SMTP session.
 @end menu
 
-@node mu invocation syntax
+@node mailutils invocation syntax
 @subsection Invocation Syntax
-@command{Mu} is a command line tool.  Its invocation syntax is:
+@command{Mailutils} is a command line tool.  Its invocation syntax is:
 
 @example
-mu [@var{options}] @var{command} [@var{args}]
+mailutils [@var{options}] @var{command} [@var{args}]
 @end example
 
 where @var{options} are options that affect the behavior of
-@command{mu} as a whole, @var{command} instructs it what it is to do
+@command{mailutils} as a whole, @var{command} instructs it what it is to do
 and @var{args} are any arguments the @var{command} needs in order to be
 executed. 
 
@@ -7236,32 +7312,32 @@ Queries configuration values.
 Scans wicket for matching URLs
 @end table
 
-@node mu help
-@subsection mu help
-The @command{mu help} command lists all available options and command
+@node mailutils help
+@subsection mailutils help
+The @command{mailutils help} command lists all available options and command
 names along with short descriptions of what each of them does.  It is
-similar to the @command{mu --help} option. 
+similar to the @command{mailutils --help} option. 
 
 A command name can be supplied as an argument to
 @command{help}, in which case it will display a help page for that
 particular command, e.g.: 
 
 @example
-mu help ldflags
+mailutils help ldflags
 @end example
 
 will output help for the @command{ldflags} command.  It is synonymous
 to the @option{--help} option used with that particular command, e.g.:
-@command{mu ldflags --help}.
+@command{mailutils ldflags --help}.
 
-@node mu info
-@subsection mu info
-The @command{mu info} command displays information about Mailutils
+@node mailutils info
+@subsection mailutils info
+The @command{mailutils info} command displays information about Mailutils
 compile-time configuration.  In normal form its output lists a single
 configuration flag per line, e.g.: 
 
 @example
-$ mu info
+$ mailutils info
 VERSION=2.99.93
 SYSCONFDIR=/etc
 MAILSPOOLDIR=/var/mail/
@@ -7283,13 +7359,13 @@ particular value used by default for that feature.  For example,
 whereas @samp{SYSCONFDIR=/etc} means that the default place for
 configuration files is in @file{/etc} directory. 
 
-Such short output is convenient for using @command{mu info} in scripts
+Such short output is convenient for using @command{mailutils info} in scripts
 to decide whether it is possible to use a given feature.  To assist
 human users, the @option{--verbose} (@option{-v}) option is provided.
 It prints a short description next to each flag: 
 
 @example
-$ mu info --verbose
+$ mailutils info --verbose
 VERSION=2.99.93           - Version of this package
 SYSCONFDIR=/etc           - System configuration directory
 MAILSPOOLDIR=/var/mail/   - Default mail spool directory
@@ -7303,19 +7379,19 @@ WITH_GNUTLS               - TLS support using GNU TLS
 WITH_GSASL                - SASL support using GNU SASL
 @end example
 
-@node mu cflags
-@subsection mu cflags
-The @command{mu cflags} command shows compiler options needed to
+@node mailutils cflags
+@subsection mailutils cflags
+The @command{mailutils cflags} command shows compiler options needed to
 compile a C source with Mailutils.  It is intended for use in
 configuration scripts and Makefiles, e.g.:
 
 @example
-CFLAGS=-g -O2 `mu cflags`
+CFLAGS=-g -O2 `mailutils cflags`
 @end example
 
-@node mu ldflags
-@subsection mu ldflags
-The @command{mu ldflags} command is a counterpart of @command{cflags}
+@node mailutils ldflags
+@subsection mailutils ldflags
+The @command{mailutils ldflags} command is a counterpart of @command{cflags}
 which is used for linking.  It constructs a @command{ld} command line
 for linking a program with Mailutils.
 
@@ -7323,7 +7399,7 @@ When used without arguments, it outputs @command{ld} arguments which
 would link only with the core Mailutils library @file{libmailutils}, e.g.: 
 
 @example
-$ mu ldflags
+$ mailutils ldflags
 -L/usr/local/lib -lmailutils 
 @end example
 
@@ -7332,7 +7408,7 @@ particular subset of Mailutils libraries to link with.  In particular,
 the argument @samp{all} instructs it to link in all available libraries: 
 
 @example
-$ mu ldflags all
+$ mailutils ldflags all
 -L/usr/local/lib -lmu_mbox -lmu_mh -lmu_maildir -lmu_imap -lmu_pop \
 -lmu_mailer -lmu_compat -lmailutils -lmu_auth -lgsasl -lgnutls -lgcrypt \
 -lldap -lgnuradius -lpam -ldl 
@@ -7373,9 +7449,9 @@ Link in the Mailutils configuration library.
 Link in the library for command line parsing.
 @end table
 
-@node mu query
-@subsection mu query
-The @command{mu query} command queries values from Mailutils
+@node mailutils query
+@subsection mailutils query
+The @command{mailutils query} command queries values from Mailutils
 configuration files.  It takes one or more configuration paths
 (@pxref{Paths}) as its arguments.  On output, it displays the values
 it found, each value on a separate line.  If the requested value is a
@@ -7392,12 +7468,12 @@ logging @{
 Then:
 
 @example
-$ mu query .logging.syslog
+$ mailutils query .logging.syslog
 syslog yes;
-$ mu query .logging.syslog .logging.facility
+$ mailutils query .logging.syslog .logging.facility
 syslog yes;
 facility mail;
-$ mu query .logging
+$ mailutils query .logging
 logging @{
   syslog yes;
   facility mail;
@@ -7408,7 +7484,7 @@ Several command line options allow to modify output format.  The
 @option{--value} option instructs the command to output only values:
 
 @example
-$ mu query --value .logging.syslog
+$ mailutils query --value .logging.syslog
 yes
 @end example
 
@@ -7416,32 +7492,32 @@ The @option{--path} option instructs it to print full pathnames for
 each value: 
 
 @example
-$ mu query --path .logging.syslog
+$ mailutils query --path .logging.syslog
 logging.syslog: yes
 @end example
 
-The @option{--program} option instructs @command{mu} to behave as if
+The @option{--program} option instructs @command{mailutils} to behave as if
 it was called under another program name.  For example, the following
 command:
 
 @example
-$ mu query --program=pop3d .server.transcript
+$ mailutils query --program=pop3d .server.transcript
 @end example
 
 will return the value of the @samp{.server.transcript} statement which
 the @command{pop3d} utility would see.
 
-By default, @command{mu query} operates on the main configuration
+By default, @command{mailutils query} operates on the main configuration
 file.  Another configuration file can be supplied using the
 @option{--file} (@option{-f}) option:
 
 @example
-$ mu query --file /usr/local/etc/file.conf .pidfile
+$ mailutils query --file /usr/local/etc/file.conf .pidfile
 @end example
 
-@node mu 2047
-@subsection mu 2047
-The @command{mu 2047} command is a filter for decoding or encoding
+@node mailutils 2047
+@subsection mailutils 2047
+The @command{mailutils 2047} command is a filter for decoding or encoding
 email message headers formatted in accordance with RFC 2047 (see
 @uref{http://www.faqs.org/rfcs/rfc2047.html}.  By default, it operates
 in encode mode and assumes the @samp{iso-8859-1} encoding.  If
@@ -7453,7 +7529,7 @@ standard output.
 For example:
 
 @example
-$ mu 2047 'Keld J@o{}rn Simonsen <keld@@dkuug.dk>'
+$ mailutils 2047 'Keld J@o{}rn Simonsen <keld@@dkuug.dk>'
 =?ISO-8859-1?Q?Keld_J=F8rn_Simonsen?= <keld@@dkuug.dk>
 @end example
 
@@ -7461,7 +7537,7 @@ The decode mode can be requested via the @option{--decode}
 (@option{-d}) option:
 
 @example
-$ mu 2047 --decode '=?ISO-8859-1?Q?Keld_J=F8rn_Simonsen?= \
+$ mailutils 2047 --decode '=?ISO-8859-1?Q?Keld_J=F8rn_Simonsen?= \
  <keld@@dkuug.dk>'
 Keld J@o{}rn Simonsen <keld@@dkuug.dk>
 @end example
@@ -7473,7 +7549,7 @@ given character set.  In encode mode it indicates the encoding of the
 input data, which will be reflected in the resulting string:
 
 @example
-$ mu 2047 --charset=utf-8 'Keld J@o{}rn Simonsen <keld@@dkuug.dk>'
+$ mailutils 2047 --charset=utf-8 'Keld J@o{}rn Simonsen <keld@@dkuug.dk>'
 =?utf-8?Q?Keld J=C3=B8rn Simonsen <keld@@dkuug.dk>?=
 @end example
 
@@ -7484,14 +7560,14 @@ are: @samp{quoted-printable} (the default) or @samp{base64}.
 The @option{--newline} (@option{-n}) option prints an additional
 newline character after each line of output.
 
-@node mu filter
-@subsection mu filter
-The @command{mu filter} command applies a chain of filters to the
+@node mailutils filter
+@subsection mailutils filter
+The @command{mailutils filter} command applies a chain of filters to the
 input.  The filters to apply and their arguments are given  
 in the command line.  The full invocation syntax is:
 
 @example
- mu filter [@var{option}] @var{filter-chain}
+ mailutils filter [@var{option}] @var{filter-chain}
 @end example
 
 The syntax for @var{filter-chain} in Backus-Naur form follows:
@@ -7508,7 +7584,7 @@ represents filter arguments.  To obtain a list of known filter names,
 run:
 
 @example
-mu filter --list
+mailutils filter --list
 @end example
 
 Filters are applied in the order of their appearence, from left to
@@ -7522,25 +7598,25 @@ For example, to encode the contents of file @file{file.txt} in Base64
 run:
 
 @example
-mu filter base64 < file.txt
+mailutils filter base64 < file.txt
 @end example
 
 To convert it to base64 and use CRLF as line delimiters, run:
 
 @example
-mu filter base64 + crlf < file.txt
+mailutils filter base64 + crlf < file.txt
 @end example
 
 The following command will decode the produced output:
 
 @example
-mu filter --decode crlf + base64
+mailutils filter --decode crlf + base64
 @end example
 
 It can also be written as
 
 @example
-mu filter ~crlf + ~base64
+mailutils filter ~crlf + ~base64
 @end example
 
 The following example converts the input from ISO-8859-2 to UTF-8,
@@ -7548,22 +7624,22 @@ quotes eventual @samp{From} occurring at the beginning of a line,
 encodes the result in Base64 and changes line delimiters to CRLF:
 
 @example
-mu filter iconv iso-8859-2 utf-8 + from + base64 + crlf
+mailutils filter iconv iso-8859-2 utf-8 + from + base64 + crlf
 @end example
 
 This final example removes UNIX-style comments from the input and
 joins continuation lines:
 
 @example
-mu filter --decode inline-comment -S '#' + linecon 
+mailutils filter --decode inline-comment -S '#' + linecon 
 @end example
 
 Such invocation can be useful in shell scripts to facilitate
 configuration file processing.
 
-@node mu acl
-@subsection mu acl
-The @command{mu acl} command tests Mailutils Access Control Lists.  By
+@node mailutils acl
+@subsection mailutils acl
+The @command{mailutils acl} command tests Mailutils Access Control Lists.  By
 default it reads ACL from the Mailutils configiration file section
 @samp{acl}.  The command takes a list of IP addresses as its
 arguments, applies the ACL to each of them in turn and prints the result.
@@ -7575,7 +7651,7 @@ configuration file to read instead of the default one.  The
 (@pxref{Paths}) of the ACL section to use instead of the default @samp{.acl}.  For example, to test ACL in section @samp{server 213.130.1.232} of file @file{/etc/pop3d.conf} use:
 
 @example
-mu acl --file=/etc/pop3d.conf \
+mailutils acl --file=/etc/pop3d.conf \
        --path=/server="213.130.1.232"/acl @var{address}
 @end example
 
@@ -7593,61 +7669,61 @@ acl @{
 @}
 @end example 
 
-Then, running @command{mu acl --file=test.conf 127.0.0.1} you will get:
+Then, running @command{mailutils acl --file=test.conf 127.0.0.1} you will get:
 
 @example
 Testing 127.0.0.1:
-mu: Connect from 127.0.0.1
+mailutils: Connect from 127.0.0.1
 127.0.0.1: deny
 @end example
 
 More examples:
 
 @example
-$ mu acl --file=test.conf 127.0.0.1 10.10.10.1 \
+$ mailutils acl --file=test.conf 127.0.0.1 10.10.10.1 \
          10.10.1.3 10.5.3.1 192.168.1.0 192.168.2.0
 Testing 127.0.0.1:
-mu: Connect from 127.0.0.1
+mailutils: Connect from 127.0.0.1
 127.0.0.1: deny
 Testing 10.10.10.1:
 10.10.10.1: deny
 Testing 10.10.1.3:
 10.10.1.3: deny
 Testing 10.5.3.1:
-mu: Connect from 10.5.3.1
+mailutils: Connect from 10.5.3.1
 10.5.3.1: accept
 Testing 192.168.1.0:
-mu: Connect from 192.168.1.0
+mailutils: Connect from 192.168.1.0
 192.168.1.0: accept
 Testing 192.168.2.0:
-mu: Connect from 192.168.2.0
+mailutils: Connect from 192.168.2.0
 192.168.2.0: accept
 @end example
 
-The @command{mu} option @option{--debug-level} will give you a deeper
+The @command{mailutils} option @option{--debug-level} will give you a deeper
 insight into the address matching algorithm:
 
 @example
-$ mu --debug-level=acl.trace9 acl --file test.conf 127.0.0.1
+$ mailutils --debug-level=acl.trace9 acl --file test.conf 127.0.0.1
 Testing 127.0.0.1:
-mu: Checking sockaddr 127.0.0.1
-mu: 1:deny: Does 10.10.10.1/255.255.255.255 match 127.0.0.1? no; 
-mu: 2:deny: Does 10.10.1.0/255.255.255.0 match 127.0.0.1? no; 
-mu: 3:log: Does any match 127.0.0.1? yes; 
-mu: Expanding "Connect from $@{address@}";
-mu: Expansion: "Connect from 127.0.0.1";. 
-mu: Connect from 127.0.0.1
-mu: 4:accept: Does 10.0.0.0/255.0.0.0 match 127.0.0.1? no; 
-mu: 5:accept: Does 192.168.0.0/255.255.0.0 match 127.0.0.1? no; 
-mu: 6:deny: Does any match 127.0.0.1? yes; 
+mailutils: Checking sockaddr 127.0.0.1
+mailutils: 1:deny: Does 10.10.10.1/255.255.255.255 match 127.0.0.1? no; 
+mailutils: 2:deny: Does 10.10.1.0/255.255.255.0 match 127.0.0.1? no; 
+mailutils: 3:log: Does any match 127.0.0.1? yes; 
+mailutils: Expanding "Connect from $@{address@}";
+mailutils: Expansion: "Connect from 127.0.0.1";. 
+mailutils: Connect from 127.0.0.1
+mailutils: 4:accept: Does 10.0.0.0/255.0.0.0 match 127.0.0.1? no; 
+mailutils: 5:accept: Does 192.168.0.0/255.255.0.0 match 127.0.0.1? no; 
+mailutils: 6:deny: Does any match 127.0.0.1? yes; 
 127.0.0.1: deny
 @end example
 
 @xref{Debugging Categories,acl}.
 
-@node mu wicket
-@subsection mu wicket
-The @command{mu wicket} command looks up matching URLs in the
+@node mailutils wicket
+@subsection mailutils wicket
+The @command{mailutils wicket} command looks up matching URLs in the
 Mailutils ticket file (by default, @file{~/.mu-tickets}) and prints
 them.  The URLs to look for are supplied in the command line.
 
@@ -7660,22 +7736,22 @@ smtp://bar:baz@@gnu.org
 *://quux:bar@@gnu.org
 @end example
 
-Now, running @command{mu wicket smtp://bar@@gnu.org} will show:
+Now, running @command{mailutils wicket smtp://bar@@gnu.org} will show:
 
 @example
-smtp://bar@@gnu.org: /home/@var{user}/.mu-tickets:2
+smtp://bar@@gnu.org: /home/@var{user}/.mailutils-tickets:2
 @end example
 
 @noindent
 (where @var{user} is your login name).  This means that this URL
-matches the line 2 in your @file{.mu-tickets} file.  The
+matches the line 2 in your @file{.mailutils-tickets} file.  The
 @command{wicket} command does not show the actual matching line to
 avoid revealing eventual security-sensitive information.  You can
 instruct it to do so using the @option{--verbose} (@option{-v})
 option:
 
 @example
-$ mu wicket -v smtp://bar@@gnu.org
+$ mailutils wicket -v smtp://bar@@gnu.org
 smtp://bar@@gnu.org: /home/@var{user}/.mu-tickets:2: smtp://bar:***@@gnu.org
 @end example
 
@@ -7687,24 +7763,24 @@ well, by supplying the @option{-v} option twice.
 A counterpart of @option{--verbose} is the @option{--quite}
 (@option{-q}) option, which instructs @command{wicket} to suppress any
 output, excepting error messages.  This can be used in scripts, which
-analyze the @command{mu wicket} exit code to alter the control flow.
+analyze the @command{mailutils wicket} exit code to alter the control flow.
 
-The @command{mu wicket} tool exits with code 0 if all URLs were
+The @command{mailutils wicket} tool exits with code 0 if all URLs were
 matched and with code 1 if some of them were not matched in the ticket
 file.  If an error occurred, the code 2 is returned.
 
-@node mu dbm
-@subsection mu dbm
-The @command{mu dbm} tool manages DBM files using @file{libmu_dbm}
+@node mailutils dbm
+@subsection mailutils dbm
+The @command{mailutils dbm} tool manages DBM files using @file{libmu_dbm}
 The invocation syntax is:
 
 @example
-mu dbm @var{subcommand} [@var{options}] @var{file} [@var{keys}]
+mailutils dbm @var{subcommand} [@var{options}] @var{file} [@var{keys}]
 @end example
 @noindent
 or
 @example
-mu dbm [@var{options}] @var{subcommand} @var{file} [@var{keys}]
+mailutils dbm [@var{options}] @var{subcommand} @var{file} [@var{keys}]
 @end example
 
 @noindent
@@ -7731,14 +7807,14 @@ The @option{create} subcommand and its synonym @option{load} instruct
 the tool to create a new database: 
 
 @example
-mu dbm create file.db
+mailutils dbm create file.db
 @end example
 
 If the argument file already exists, it will be truncated prior to
 adding new records to it.
 
 The data to populate the database with are read from the standard
-input.  The @command{mu dbm} command supports several formats for
+input.  The @command{mailutils dbm} command supports several formats for
 these data, which are discussed later.  In the simplest case (a so
 called @samp{format 0.0}) each input line must consist of two fields
 separated by any amount of whitespace.  The first field is treated as
@@ -7748,7 +7824,7 @@ The usual way to read data from a file is, of course, by redirecting
 the file to the standard input as in: 
 
 @example
-mu dbm create file.db < input.txt
+mailutils dbm create file.db < input.txt
 @end example
 
 There is also a special option for that purpose: @option{--file}
@@ -7756,7 +7832,7 @@ There is also a special option for that purpose: @option{--file}
 above:
 
 @example
-mu dbm create --file input.txt file.db 
+mailutils dbm create --file input.txt file.db 
 @end example
 
 The @option{--file} option has the advantage that it allows, in
@@ -7766,7 +7842,7 @@ the following command ensures that the created database file will have
 the same metadata as the input file: 
 
 @example
-mu dbm create --file input.txt --copy-permissions file.db
+mailutils dbm create --file input.txt --copy-permissions file.db
 @end example
 
 The @option{--copy-permissions} (@option{-P}) option is the one that
@@ -7785,7 +7861,7 @@ suffices to restore the original filename, ownership, mode and, of
 course, data:
 
 @example
-mu dbm create --file users.dump
+mailutils dbm create --file users.dump
 @end example
 
 @node Add Records to a Database
@@ -7795,7 +7871,7 @@ read from the standard input and must be formatted as for
 @option{create}:
 
 @example
-mu dbm add file.db
+mailutils dbm add file.db
 @end example
 
 If the argument file does not exist, it will be created.  
@@ -7808,7 +7884,7 @@ The same options that affect the behavior of @option{create} apply to
 @option{add} and @samp{replace} as well, e.g.:
 
 @example
-mu dbm replace --file input.txt --copy-permissions file.db
+mailutils dbm replace --file input.txt --copy-permissions file.db
 @end example
 
 @node Delete Records
@@ -7818,7 +7894,7 @@ list of keys to delete to be specified as arguments in the command
 line: 
 
 @example
-mu dbm delete file.db foo bar
+mailutils dbm delete file.db foo bar
 @end example
 
 The command above will delete from @file{file.db} records with keys
@@ -7834,18 +7910,18 @@ specified.
 The @option{--glob} (@option{-G}) option instructs the tool to use UNIX globbing pattern matching.  For example, the command below will delete all keys starting with @samp{foo} and ending with a decimal digit:
 
 @example
-mu dbm delete file.db 'foo*[0-9]'
+mailutils dbm delete file.db 'foo*[0-9]'
 @end example
 
 @noindent
 (note the quoting necessary to prevent shell from interpreting the
 metacharacters itself).
 
-Another option, @option{--regex} (@option{-R}) instructs @command{mu}
+Another option, @option{--regex} (@option{-R}) instructs @command{mailutils}
 to treat supplied keys as extended regular expressions: 
 
 @example
-mu dbm delete --regex file.db 'foo.*[0-9]@{1,3@}'
+mailutils dbm delete --regex file.db 'foo.*[0-9]@{1,3@}'
 @end example
 
 Both options are affected by the @option{--ignore-case} (@option{-i})
@@ -7861,7 +7937,7 @@ the patterns match the right keys.
 The @option{list} command lists the content of the database:
 
 @example
-mu dbm list file.db
+mailutils dbm list file.db
 @end example
 
 By default, entire content is listed on the standard output.
@@ -7871,7 +7947,7 @@ rest of arguments after the database file name as the keys to look for
 and lists only records with these keys:
 
 @example
-$ mu dbm list file.db foo bar
+$ mailutils dbm list file.db foo bar
 foo 1
 bar 56
 @end example
@@ -7888,13 +7964,13 @@ in a format suitable for backup or sending over the network (a
 version 1.0 format). 
 
 @example
-mu dbm dump file.db < file.dump
+mailutils dbm dump file.db < file.dump
 @end example
 
 The produced file is suitable for input to the @option{create} (@option{load}) command.  Among other uses, it provides an easy way to convert databases between various formats supported by Mailutils.  For example this is how to convert the database file @file{file.db} to the GDBM database @file{new.db}:
 
 @example
-mu dbm dump file.db | mu dbm create gdbm://new.db
+mailutils dbm dump file.db | mailutils dbm create gdbm://new.db
 @end example
 
 Both @option{list} and @option{dump} subcommands share the same set of
@@ -7905,7 +7981,7 @@ backup purposes.
 
 @node Dump Formats
 @subsubsection Dump Formats
-As of version @value{VERSION}, @command{mu dbm} supports two formats
+As of version @value{VERSION}, @command{mailutils dbm} supports two formats
 for dumping DBM databases.  Both formats are line-oriented.  Comments
 are introduced with a sharp (@samp{#}) sign in the column 0 of a line,
 followed by at least one white space character (space or tab).  Sharp
@@ -7919,7 +7995,7 @@ separate line, which consists of the key and value separated by a
 single @sc{tab} character.  Empty lines are ignored.  For example: 
 
 @example
-$ mu list /etc/mail/users.db
+$ mailutils list /etc/mail/users.db
 root    guessme
 smith   pAssword
 qed     fooBar
@@ -7936,7 +8012,7 @@ format is free from these drawbacks.
 The @dfn{version 1.0} dump format begins with a @dfn{header}
 containing important information about the file, such as its file
 name, ownership and file mode.  This information is stored in
-pragmatic comments and allows @command{mu dbm load} to easily recreate
+pragmatic comments and allows @command{mailutils dbm load} to easily recreate
 an exact copy of the file.  The following comments are defined:
 
 @table @asis
@@ -7986,7 +8062,7 @@ Zm9vQmFyAA==
 
 @node Dbm Exit Codes
 @subsubsection Dbm Exit Codes
-The table below summarizes exit codes used by @command{mu dbm}:
+The table below summarizes exit codes used by @command{mailutils dbm}:
 
 @multitable @columnfractions 0.2 0.3 0.5
 @headitem Code  @tab Symbolic name @tab Meaning
@@ -8004,43 +8080,43 @@ some kind of problem (e.g. access to the file denied, etc.)
 @item 74 @tab EX_IOERR @tab Input/output error
 @end multitable
 
-@node mu logger
-@subsection mu logger
-The @command{mu logger} tool logs information using Mailutils log facility.  
+@node mailutils logger
+@subsection mailutils logger
+The @command{mailutils logger} tool logs information using Mailutils log facility.  
 
 Syntax:
 
 @example
-mu logger [@var{options}] [@var{message}]
+mailutils logger [@var{options}] [@var{message}]
 @end example
 
 The @var{message} argument, if supplied, gives the text to log.  If not supplied, the utility reads lines of text from standard input or a file (if the @option{--file} option is given) and sends them to log:
 
 @example
 # Send text to log
-$ mu logger I am here
+$ mailutils logger I am here
 # Log each line from file.txt
-$ mu logger --file file.txt
+$ mailutils logger --file file.txt
 # Read stdin and log it:
-$ mu logger
+$ mailutils logger
 @end example
 
 The default logging channel is bound to standard error.  To bind it to
 syslog, use the @option{--syslog} command line option.  In that case
-@command{mu} uses facility @samp{user} and priority @samp{err}.  You
+@command{mailutils} uses facility @samp{user} and priority @samp{err}.  You
 can change this by using the @option{--priority} (@option{-p}) option.
 Its argument is either a syslog facility name or facility and severity
 names separated by a dot.  For example, the following invocation will use
 facility @samp{auth}, severity @samp{info}: 
 
 @example
-mu logger --priority auth.info
+mailutils logger --priority auth.info
 @end example
 
 The syslog tag can be set using the @option{--tag} (@option{-t}) option:
 
 @example
-mu logger --tag myprog
+mailutils logger --tag myprog
 @end example
 
 The default tag is @samp{mu-logger}.
@@ -8064,7 +8140,7 @@ optional @var{col} is the column number in that file.
 For example, the following invocation:
 
 @example
-mu logger --locus mailutils.rc:34 Suspicious statement
+mailutils logger --locus mailutils.rc:34 Suspicious statement
 @end example
 
 will send the following to the log:
@@ -8073,15 +8149,15 @@ will send the following to the log:
 mu-logger: mailutils.rc:34: Suspicious statement
 @end example
 
-@node mu pop
-@subsection mu pop
-The @command{mu pop} command invokes an interactive POP3 client shell.
+@node mailutils pop
+@subsection mailutils pop
+The @command{mailutils pop} command invokes an interactive POP3 client shell.
 It reads commands from the standard input, executes them and displays
 the results on the standard output.  If the standard input is
 connected to a terminal, the readline and history facilities are
 enabled (provided that Mailutils is configured with GNU Readline). 
 
-The @command{mu pop} commands form two major groups.  POP3 protocol
+The @command{mailutils pop} commands form two major groups.  POP3 protocol
 commands interact with the remote POP3 server and display responses
 obtained from it.  These commands are named after their POP3
 equivalents.  Another group, @dfn{internal commands}, are used to
@@ -8205,7 +8281,7 @@ following variables are defined:
 connection is established. 
 @item program-name @tab Name of the program, as typed on the command
 line to invoke it. 
-@item canonical-program-name @tab @samp{mu}
+@item canonical-program-name @tab @samp{mailutils}
 @item package @tab @samp{Mailutils}
 @item version @tab Mailutils version number (@value{VERSION})
 @item status @tab Session status.  One of: @samp{disconnected},
@@ -8234,8 +8310,16 @@ With one argument, displays a terse description for the given @var{command}.
 Shows command history.
 @end table
 
-@node mu imap
-@subsection mu imap
-The @command{mu imap} command is reserved for an interactive IMAP4
+@node mailutils imap
+@subsection mailutils imap
+The @command{mailutils imap} command is reserved for an interactive IMAP4
 client shell.  It does not do much now (as of version @value{VERSION}.
+
+@node mailutils send
+@subsection mailutils send
+@WRITEME
+
+@node mailutils smtp
+@subsection mailutils smtp
+@WRITEME
 
