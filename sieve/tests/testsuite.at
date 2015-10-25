@@ -146,5 +146,5 @@ m4_include([pipetest.at])
 m4_include([list.at])
 m4_include([addheader.at])
 m4_include([delheader.at])
-
+m4_include([vacation.at])
 

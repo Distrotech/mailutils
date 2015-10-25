@@ -1502,7 +1502,6 @@ requests during @var{time} seconds, the child process terminates.
 
 @node Server Statement
 @subsubsection Server Statement
-@UNREVISED
 @cindex server statement
 @kwindex server
 @* Syntax:
@@ -1614,6 +1613,7 @@ and is denied if any one of them denies it.
 auth @{
   # @r{Set a list of modules for authentication.}
   authentication @var{module-list};
+  
   # @r{Set a list of modules for authorization.}
   authorization @var{module-list};
 @}

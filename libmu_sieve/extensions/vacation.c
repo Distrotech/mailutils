@@ -19,10 +19,14 @@
 /* Syntax: vacation [:days <ndays: number>]
                     [:subject <subject: string>]
 		    [:aliases <address-list: list>]
-		    [:addresses <noreply-address-list: list>]
+		    [:noreply <noreply-address-list: list>]
 		    [:reply_regex <expr: string>]
 		    [:reply_prefix <prefix: string>]
-		    <reply text: string>
+		    [:sender <email: string>]
+		    [:database <path: string>]
+		    [:file]
+		    [:mime]
+		    <reply: string>
 */
 
 #ifdef HAVE_CONFIG_H
@@ -98,6 +102,9 @@ build_mime (mu_sieve_machine_t mach, mu_list_t tags, mu_mime_t *pmime,
     }
 
   rc = mu_stream_copy (stream, input, 0, NULL);
+  mu_stream_destroy (&input);
+  mu_stream_destroy (&stream);
+  
   if (rc)
     {
       mu_sieve_error (mach,
@@ -105,13 +112,9 @@ build_mime (mu_sieve_machine_t mach, mu_list_t tags, mu_mime_t *pmime,
 		      mu_strerror (rc));
       mu_mime_destroy (&mime);
       mu_message_destroy (&newmsg, NULL);
-      mu_stream_destroy (&input);
-      mu_stream_destroy (&stream);
       return 1;
     }
 
-  mu_stream_destroy (&input);
-  
   mu_header_create (&hdr, header, strlen (header));
   mu_message_set_header (newmsg, hdr, NULL);
 
@@ -157,7 +160,7 @@ _compare (void *item, void *data)
 
 /* Check whether an alias from ADDRESSES is part of To: or Cc: headers
    of the originating mail. Return non-zero if so and store a pointer
-   to the matching address to *MY_ADDRESS. */
+   to the matching address in *MY_ADDRESS. */
 static int
 match_addresses (mu_header_t hdr, mu_sieve_value_t *addresses,
 		 char **my_address)
@@ -241,7 +244,7 @@ noreply_address_p (mu_sieve_machine_t mach, mu_list_t tags, char *email)
   for (i = 0; rc == 0 && noreply_sender[i]; i++)
     rc = regex_comparator (noreply_sender[i], &rd);
 
-  if (!rc && mu_sieve_tag_lookup (tags, "addresses", &arg))
+  if (!rc && mu_sieve_tag_lookup (tags, "noreply", &arg))
     rc = mu_sieve_vlist_do (arg, regex_comparator, &rd);
   
   return rc;
@@ -338,6 +341,7 @@ check_db (mu_sieve_machine_t mach, mu_list_t tags, char *from)
   int rc;
   mu_stream_t str;
   mu_locker_t locker;
+  const char *dbfile = "~/.vacation";
   
   if (mu_sieve_tag_lookup (tags, "days", &arg))
     {
@@ -348,7 +352,10 @@ check_db (mu_sieve_machine_t mach, mu_list_t tags, char *from)
   else
     days = DAYS_DEFAULT;
 
-  file = mu_tilde_expansion ("~/.vacation", MU_HIERARCHY_DELIMITER, NULL);
+  if (mu_sieve_tag_lookup (tags, "database", &arg))
+    dbfile = arg->v.string;
+  
+  file = mu_tilde_expansion (dbfile, MU_HIERARCHY_DELIMITER, NULL);
   if (!file)
     {
       mu_sieve_error (mach, _("%lu: cannot build db file name"),
@@ -563,8 +570,9 @@ vacation_reply (mu_sieve_machine_t mach, mu_list_t tags, mu_message_t msg,
 	return -1;
       mu_mime_get_message (mime, &newmsg);
       mu_message_unref (newmsg);
-      mu_message_get_header (newmsg, &newhdr);
     }
+  
+  mu_message_get_header (newmsg, &newhdr);
   
   rc = mu_address_create (&to_addr, to);
   if (rc)
@@ -685,10 +693,11 @@ static mu_sieve_tag_def_t vacation_tags[] = {
   {"days", SVT_NUMBER},
   {"subject", SVT_STRING},
   {"aliases", SVT_STRING_LIST},
-  {"addresses", SVT_STRING_LIST},
+  {"noreply", SVT_STRING_LIST},
   {"reply_regex", SVT_STRING},
   {"reply_prefix", SVT_STRING},
   {"sender", SVT_STRING},
+  {"database", SVT_STRING},
   {"mime", SVT_VOID},
   {"file", SVT_VOID},
   {NULL}
