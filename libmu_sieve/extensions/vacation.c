@@ -26,6 +26,8 @@
 		    [:database <path: string>]
 		    [:file]
 		    [:mime]
+		    [:always_reply]
+		    [:return_address <email: string>]
 		    <reply: string>
 */
 
@@ -162,8 +164,8 @@ _compare (void *item, void *data)
    of the originating mail. Return non-zero if so and store a pointer
    to the matching address in *MY_ADDRESS. */
 static int
-match_addresses (mu_header_t hdr, mu_sieve_value_t *addresses,
-		 char **my_address)
+match_addresses (mu_header_t hdr, char *email, mu_sieve_value_t *addresses,
+		 char const **my_address)
 {
   int match = 0;
   const char *str;
@@ -174,7 +176,10 @@ match_addresses (mu_header_t hdr, mu_sieve_value_t *addresses,
     {
       if (!mu_address_create (&ad.addr, str))
 	{
-	  match += mu_sieve_vlist_do (addresses, _compare, &ad);
+	  if (_compare (email, &ad))
+	    match = 1;
+	  else if (addresses)
+	    match += mu_sieve_vlist_do (addresses, _compare, &ad);
 	  mu_address_destroy (&ad.addr);
 	}
     }
@@ -183,7 +188,10 @@ match_addresses (mu_header_t hdr, mu_sieve_value_t *addresses,
     {
       if (!mu_address_create (&ad.addr, str))
 	{
-	  match += mu_sieve_vlist_do (addresses, _compare, &ad);
+	  if (_compare (email, &ad))
+	    match = 1;
+	  else if (addresses)
+	    match += mu_sieve_vlist_do (addresses, _compare, &ad);
 	  mu_address_destroy (&ad.addr);
 	}
     }
@@ -528,7 +536,7 @@ vacation_subject (mu_sieve_machine_t mach, mu_list_t tags,
 /* Generate and send the reply message */
 static int
 vacation_reply (mu_sieve_machine_t mach, mu_list_t tags, mu_message_t msg,
-		char *text, char *to, char *from)
+		char const *text, char const *to, char const *from)
 {
   mu_mime_t mime = NULL;
   mu_message_t newmsg;
@@ -629,10 +637,11 @@ sieve_action_vacation (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
 {
   int rc;
   char *text, *from;
+  char const *return_address;
   mu_sieve_value_t *val;
   mu_message_t msg;
   mu_header_t hdr;
-  char *my_address = mu_sieve_get_daemon_email (mach);
+  char *my_address;
   
   if (diag (mach))
     return 0;
@@ -669,20 +678,35 @@ sieve_action_vacation (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
       mu_sieve_abort (mach);
     }
 
-  if (mu_sieve_tag_lookup (tags, "aliases", &val)
-      && match_addresses (hdr, val, &my_address) == 0)
-    return 0;
+  my_address = mu_get_user_email (NULL);
+  if (mu_sieve_tag_lookup (tags, "always_reply", NULL))
+    return_address = my_address;
+  else
+    {
+      val = NULL;
+      mu_sieve_tag_lookup (tags, "aliases", &val);
+      if (match_addresses (hdr, my_address, val, &return_address) == 0)
+	{
+	  free (my_address);
+	  return 0;
+	}
+    }
 
   if (noreply_address_p (mach, tags, from)
       || bulk_precedence_p (hdr)
       || check_db (mach, tags, from))
     {
       free (from);
+      free (my_address);
       return 0;
     }
 
-  rc = vacation_reply (mach, tags, msg, text, from, my_address);
+  if (mu_sieve_tag_lookup (tags, "return_address", &val))
+    return_address = val->v.string;
+
+  rc = vacation_reply (mach, tags, msg, text, from, return_address);
   free (from);
+  free (my_address);
   if (rc == -1)
     mu_sieve_abort (mach);
   return rc;
@@ -700,6 +724,8 @@ static mu_sieve_tag_def_t vacation_tags[] = {
   {"database", SVT_STRING},
   {"mime", SVT_VOID},
   {"file", SVT_VOID},
+  {"always_reply", SVT_VOID},
+  {"return_address", SVT_STRING},
   {NULL}
 };
 
