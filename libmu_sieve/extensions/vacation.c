@@ -24,6 +24,7 @@
 		    [:reply_prefix <prefix: string>]
 		    [:sender <email: string>]
 		    [:database <path: string>]
+		    [:rfc2822]
 		    [:file]
 		    [:mime]
 		    [:always_reply]
@@ -637,17 +638,72 @@ vacation_reply (mu_sieve_machine_t mach, mu_list_t tags, mu_message_t msg,
 			  mu_strerror (rc));
 	  return -1;
 	}
-      rc = mu_stream_to_message (instr, &newmsg);
-      mu_stream_unref (instr);
-      if (rc)
+      
+      if (mu_sieve_tag_lookup (tags, "rfc2822", NULL))
 	{
-	  mu_sieve_error (mach,
-			  _("%lu: cannot read message from file %s: %s"),
-			  (unsigned long) mu_sieve_get_message_num (mach),
-			  text,
-			  mu_strerror (rc));
-	  return -1;
-	} 
+	  rc = mu_stream_to_message (instr, &newmsg);
+	  mu_stream_unref (instr);
+	  if (rc)
+	    {
+	      mu_sieve_error (mach,
+			      _("%lu: cannot read message from file %s: %s"),
+			      (unsigned long) mu_sieve_get_message_num (mach),
+			      text,
+			      mu_strerror (rc));
+	      return -1;
+	    }
+	}
+      else
+	{
+	  mu_stream_t text_stream;
+	  mu_transport_t trans[2];
+
+	  rc = mu_memory_stream_create (&text_stream, MU_STREAM_RDWR);
+	  if (rc)
+	    {
+	      mu_stream_unref (instr);
+	      mu_sieve_error (mach,
+			      _("%lu: cannot create memory stream: %s"),
+			      (unsigned long) mu_sieve_get_message_num (mach),
+			      mu_strerror (rc));
+	      return -1;
+	    }
+
+	  rc = mu_stream_copy (text_stream, instr, 0, NULL);
+	  mu_stream_unref (instr);
+	  if (rc == 0)
+	    rc = mu_stream_write (text_stream, "", 1, NULL);
+	  if (rc)
+	    {
+	      mu_sieve_error (mach,
+			      _("%lu: failed reading from %s: %s"),
+			      (unsigned long) mu_sieve_get_message_num (mach),
+			      text,
+			      mu_strerror (rc));
+	      return -1;
+	    }
+
+	  rc = mu_stream_ioctl (text_stream, MU_IOCTL_TRANSPORT,
+				MU_IOCTL_OP_GET, trans);
+	  if (rc)
+	    {
+	      mu_stream_unref (text_stream);
+	      mu_sieve_error (mach,
+			      "%lu: mu_stream_ioctl: %s",
+			      (unsigned long) mu_sieve_get_message_num (mach),
+			      mu_strerror (rc));
+	      return -1;
+	    }
+
+	  if (build_mime (mach, tags, &mime, msg, (char const *) trans[0]))
+	    {
+	      mu_stream_unref (text_stream);
+	      return -1;
+	    }
+	  mu_mime_get_message (mime, &newmsg);
+	  mu_message_unref (newmsg);
+	  mu_stream_unref (text_stream);
+	}
     }
   else
     {
@@ -814,6 +870,7 @@ static mu_sieve_tag_def_t vacation_tags[] = {
   {"always_reply", SVT_VOID},
   {"return_address", SVT_STRING},
   {"header", SVT_STRING_LIST},
+  {"rfc2822", SVT_VOID},
   {NULL}
 };
 

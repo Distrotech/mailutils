@@ -93,7 +93,7 @@ enum mu_buffer_type
      If pat==NULL, any reads from that stream will return EOF. */
 #define MU_IOCTL_NULLSTREAM_SET_PATTERN 0
   /* Set pattern class for reads:  Argument int *pclass (a class mask
-     from mailutils/cctype.h */
+     from mailutils/cctype.h) */
 #define MU_IOCTL_NULLSTREAM_SET_PATCLASS 1
   /* Limit stream size.  Argument: mu_off_t *psize; */
 #define MU_IOCTL_NULLSTREAM_SETSIZE 2

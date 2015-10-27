@@ -1453,19 +1453,34 @@ pipe "/usr/sbin/maidag --url smtp://gray@@mail.gnu.org"
 @deftypefn Action {} vacation [:days @var{ndays}(number)] @
                           [:subject @var{subject}(string)] @
                           [:aliases @var{addrlist}(string-list)] @
-                          [:addresses @var{noreply-address}(string-list)] @
+                          [:noreply @var{noreply-address}(string-list)] @
                           [:reply_regex @var{expr}(string)] @
                           [:reply_prefix @var{prefix}(string)] @
-                          @var{reply-text}(string)
+ 		          [:sender @var{email}(string)] @
+		          [:database @var{path}(string)] @
+		          [:return_address @var{email}(string)] @
+                          [:header @var{headers}(string-list)] @
+		          [:mime] @
+		          [:always_reply] @
+                          [:rfc2822] @
+		          [:file] @
+                          @var{text}(string)
 @*Syntax:
 @smallexample
 require "vacation";
 vacation @var{args};
 @end smallexample
 @*Description:
-The @code{vacation} action returns a message with @var{reply-text} to
+The @code{vacation} action returns a message with @var{text} to
 the sender.  It is intended to inform the sender that the recipient is
 not currently reading his mail.
+
+If the @code{:file} tag is present, @var{text} is treated as the name
+of the file to read the body of the reply message from.  When used together
+with tag @code{:rfc2822}, the file should be formatted as a valid RFC
+2822 message, i.e. headers followed by empty line and body.  Headers
+must not contain @samp{To}, @samp{From}, and @samp{Subject}, as these
+will be generated automatically.
 
 If the @code{:subject} tag is given, its argument sets the subject of
 the message.  Otherwise, the subject is formed by prefixing original
@@ -1474,6 +1489,11 @@ subject with @samp{Re:}, or @var{prefix}, given with the
 matching extended regular expression @var{expr} (@code{:reply_regex}
 tag) are stripped from the subject line.  If @code{:reply_regex} is not
 specified, the default regexp is @samp{^re: *}. 
+
+Another headers can be added using the @code{:header} tag.  Its
+argument is a list of header strings, each one having the form
+@samp{"@var{name}:@var{value}"}.  Additional whitespace is allowed on
+both sides of the colon.
 
 The @code{:aliases} tag instructs @code{vacation} to handle messages
 for any address in @var{addrlist} in the same manner as those received
@@ -1496,13 +1516,17 @@ exclusion list is:
     ^MAILER-DAEMON@@.*
 @end smallexample
 
-New entries can be added to this list using @code{:addresses} tag.
+New entries can be added to this list using @code{:noreply} tag.
 
 The @code{:days} tag sets the @dfn{reply interval}.  A reply is sent to
 each sender once in @var{ndays} days.  GNU Sieve keeps track of
-sender addresses and dates in a DBM file @file{.vacation} stored in
-the user's home directory.  This tag is available only if Mailutils is
-compiled with DBM support.
+sender addresses and dates in file @file{.vacation} stored in
+the user's home directory.  The file name can be changed using the
+@code{:database} tag.
+
+The tag @code{:always_reply} instructs vacation to respond to the
+message regardless of whether the user email is listed as a recipient
+for the message.
 @end deftypefn
 
 @node GNU Extensions
