@@ -28,6 +28,7 @@
 		    [:mime]
 		    [:always_reply]
 		    [:return_address <email: string>]
+		    [:header <header-list: list>]
 		    <reply: string>
 */
 
@@ -477,7 +478,7 @@ vacation_subject (mu_sieve_machine_t mach, mu_list_t tags,
   mu_header_t hdr;
   
   if (mu_sieve_tag_lookup (tags, "subject", &arg))
-    subject =  arg->v.string;
+    subject = arg->v.string;
   else if (mu_message_get_header (msg, &hdr) == 0
 	   && mu_header_aget_value_unfold (hdr, MU_HEADER_SUBJECT,
 					   &value) == 0)
@@ -533,6 +534,81 @@ vacation_subject (mu_sieve_machine_t mach, mu_list_t tags,
     free (subject);
 }
 
+static int
+header_split (const char *str, char **hname, char **hval)
+{
+  char *p, *q, *fn, *fv;
+  size_t n;
+  
+  q = strchr (str, ':');
+  if (!q)
+    return MU_ERR_FORMAT;
+
+  for (p = q; p > str && mu_isspace (p[-1]); --p)
+    ;
+  if (p == str)
+    return MU_ERR_FORMAT;
+  
+  n = p - str;
+  fn = malloc (n + 1);
+  if (!fn)
+    return ENOMEM;
+
+  memcpy (fn, str, n);
+  fn[n] = 0;
+
+  for (++q; *q && mu_isspace (*q); ++q)
+    ;
+
+  fv = strdup (q);
+  if (!fv)
+    {
+      free (fn);
+      return ENOMEM;
+    }
+
+  *hname = fn;
+  *hval = fv;
+
+  return 0;
+}
+
+struct header_closure
+{
+  mu_sieve_machine_t mach;  
+  mu_header_t hdr;
+};
+
+static int
+add_header (void *item, void *data)
+{
+  char const *str = item;
+  struct header_closure *hc = data;
+  char *fn, *fv;
+  int rc;
+
+  rc = header_split (str, &fn, &fv);
+  if (rc)
+    {
+      mu_sieve_error (hc->mach,
+		      _("%lu: can't add header \"%s\": %s"),
+		      (unsigned long) mu_sieve_get_message_num (hc->mach),
+		      str, mu_strerror (rc));
+      return 0;
+    }
+
+  rc = mu_header_append (hc->hdr, fn, fv);
+  free (fn);
+  free (fv);
+  
+  if (rc)
+    mu_sieve_error (hc->mach,
+		    _("%lu: can't add header \"%s\": %s"),
+		    (unsigned long) mu_sieve_get_message_num (hc->mach),
+		    str, mu_strerror (rc));
+  return 0;
+}
+
 /* Generate and send the reply message */
 static int
 vacation_reply (mu_sieve_machine_t mach, mu_list_t tags, mu_message_t msg,
@@ -545,6 +621,7 @@ vacation_reply (mu_sieve_machine_t mach, mu_list_t tags, mu_message_t msg,
   char *value;
   mu_mailer_t mailer;
   int rc;
+  mu_sieve_value_t *val;
 
   if (mu_sieve_tag_lookup (tags, "file", NULL))
     {
@@ -593,6 +670,14 @@ vacation_reply (mu_sieve_machine_t mach, mu_list_t tags, mu_message_t msg,
   else
     {
       mu_header_set_value (newhdr, MU_HEADER_TO, to, 0);
+
+      if (mu_sieve_tag_lookup (tags, "header", &val))
+	{
+	  struct header_closure hc;
+	  hc.mach = mach;
+	  hc.hdr = newhdr;
+	  mu_sieve_vlist_do (val, add_header, &hc);
+	}
       
       vacation_subject (mach, tags, msg, newhdr);
       
@@ -636,7 +721,7 @@ int
 sieve_action_vacation (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
 {
   int rc;
-  char *text, *from;
+  char *text, *from = NULL;
   char const *return_address;
   mu_sieve_value_t *val;
   mu_message_t msg;
@@ -670,15 +755,17 @@ sieve_action_vacation (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
           mu_sieve_abort (mach);
         }
     }
-  else if (mu_sieve_get_message_sender (msg, &from))
+  else if ((rc = mu_sieve_get_message_sender (msg, &from)) != 0)
     {
       mu_sieve_error (mach,
-		      _("%lu: cannot get sender address"),
-		      (unsigned long) mu_sieve_get_message_num (mach));
+		      _("%lu: cannot get sender address: %s"),
+		      (unsigned long) mu_sieve_get_message_num (mach),
+		      mu_strerror (rc));
       mu_sieve_abort (mach);
     }
 
   my_address = mu_get_user_email (NULL);
+
   if (mu_sieve_tag_lookup (tags, "always_reply", NULL))
     return_address = my_address;
   else
@@ -726,6 +813,7 @@ static mu_sieve_tag_def_t vacation_tags[] = {
   {"file", SVT_VOID},
   {"always_reply", SVT_VOID},
   {"return_address", SVT_STRING},
+  {"header", SVT_STRING_LIST},
   {NULL}
 };
 
