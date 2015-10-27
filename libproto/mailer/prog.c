@@ -349,7 +349,8 @@ url_to_argv (mu_url_t url, mu_message_t msg,
       wsflags |= MU_WRDSF_REUSE;
     }
   argv[i+1] = NULL;
-  mu_wordsplit_free (&ws);
+  if (wsflags & MU_WRDSF_REUSE)
+    mu_wordsplit_free (&ws);
   
   *pargc = argc;
   *pargv = argv;
