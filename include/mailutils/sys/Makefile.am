@@ -66,5 +66,5 @@ sysinclude_HEADERS = \
 BUILT_SOURCES = debcat.h
 
 debcat.h: $(top_srcdir)/libmailutils/diag/debcat
-	$(AM_V_GEN)$(AWK) -f $(mu_aux_dir)/debcat.awk $^ > $@
+	$(AM_V_GEN)$(AWK) -f $(mu_aux_dir)/debcat.awk $(top_srcdir)/libmailutils/diag/debcat > debcat.h
 

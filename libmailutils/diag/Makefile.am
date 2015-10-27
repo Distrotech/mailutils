@@ -36,7 +36,7 @@ EXTRA_DIST = \
 BUILT_SOURCES = muerrno.c
 
 muerrno.c: errors muerrno.cin
-	$(AWK) -f $(mu_aux_dir)/generr.awk $^ > $@
+	$(AWK) -f $(mu_aux_dir)/generr.awk errors muerrno.cin > muerrno.c
 
 
 

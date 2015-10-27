@@ -34,8 +34,6 @@ libmu_argp_la_SOURCES =\
  muinit.c\
  sieve.c
 
-libmu_argp_la_LIBADD=\
- -L${top_builddir}/lib\
- -lmuaux
+libmu_argp_la_LIBADD=../lib/libmuaux.la
 
 libmu_argp_la_LDFLAGS=-version-info @VI_CURRENT@:@VI_REVISION@:@VI_AGE@
