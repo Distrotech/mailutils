@@ -34,6 +34,7 @@
 #include <mailutils/stdstream.h>
 #include <mailutils/iterator.h>
 #include <mailutils/cstr.h>
+#include <mailutils/io.h>
 
 int mu_debug_line_info;          /* Debug messages include source locations */
 
@@ -675,13 +676,30 @@ void
 mu_debug_log (const char *fmt, ...)
 {
   va_list ap;
+  char *buf = NULL;
+  size_t buflen = 0;
+  size_t n;
+  int rc;
 
   mu_diag_init ();
   va_start (ap, fmt);
-  mu_stream_printf (mu_strerr, "\033s<%d>", MU_LOG_DEBUG);
-  mu_stream_vprintf (mu_strerr, fmt, ap);
-  mu_stream_write (mu_strerr, "\n", 1, NULL);
+  rc = mu_vasnprintf (&buf, &buflen, fmt, ap);
   va_end (ap);
+  if (rc == 0)
+    {
+      size_t i;
+      int nl = 0;
+      for (i = 0; buf[i]; i += n)
+	{
+	  n = strcspn (buf + i, "\n");
+	  if ((nl = buf[i + n]))
+	    ++n;
+	  mu_stream_printf (mu_strerr, "\033s<%d>", MU_LOG_DEBUG);
+	  mu_stream_write (mu_strerr, buf + i, n, NULL);
+	}
+      if (!nl)
+	mu_stream_write (mu_strerr, "\n", 1, NULL);
+    }
 }
 
 void
