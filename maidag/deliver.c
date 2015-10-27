@@ -271,6 +271,8 @@ do_delivery (mu_url_t url, mu_message_t msg, const char *name, char **errp)
   mu_mailbox_t mbox;
   int status;
 
+  mu_set_user_email_domain (default_domain);
+  
   if (name && !is_remote_url (url))
     {
       auth = mu_get_auth_by_name (name);
@@ -283,6 +285,10 @@ do_delivery (mu_url_t url, mu_message_t msg, const char *name, char **errp)
 	  return EX_NOUSER;
 	}
 
+      status = mu_set_user_email (name);
+      if (status)
+	mu_error (_("%s: invalid email: %s"), name, mu_strerror (status));
+      
       if (current_uid)
 	auth->change_uid = 0;
 
@@ -314,6 +320,8 @@ do_delivery (mu_url_t url, mu_message_t msg, const char *name, char **errp)
 	    return exit_code = EX_TEMPFAIL;
 	  }
     }
+  else
+    mu_set_user_email (NULL);
   
   if (!url)
     {

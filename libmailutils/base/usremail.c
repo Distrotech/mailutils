@@ -46,6 +46,13 @@ mu_set_user_email (const char *candidate)
   size_t emailno = 0;
   char *email = NULL;
   const char *domain = NULL;
+
+  if (!candidate)
+    {
+      free (mu_user_email);
+      mu_user_email = NULL;
+      return 0;
+    }
   
   if ((err = mu_address_create (&addr, candidate)) != 0)
     return err;
@@ -62,8 +69,7 @@ mu_set_user_email (const char *candidate)
   if ((err = mu_address_aget_email (addr, 1, &email)) != 0)
     goto cleanup;
 
-  if (mu_user_email)
-    free (mu_user_email);
+  free (mu_user_email);
 
   mu_user_email = email;
 
@@ -81,16 +87,18 @@ static char *mu_user_email_domain = 0;
 int
 mu_set_user_email_domain (const char *domain)
 {
-  char *d = NULL;
+  char *d;
   
-  if (!domain)
-    return EINVAL;
+  if (domain)
+    {
+      d = strdup (domain);
+
+      if (!d)
+	return ENOMEM;
+    }
+  else
+    d = NULL;
   
-  d = strdup (domain);
-
-  if (!d)
-    return ENOMEM;
-
   if (mu_user_email_domain)
     free (mu_user_email_domain);
 
@@ -154,7 +162,7 @@ mu_get_user_email (const char *name)
 
   if (!name)
     {
-      struct mu_auth_data *auth = mu_get_auth_by_uid (getuid ());
+      struct mu_auth_data *auth = mu_get_auth_by_uid (geteuid ());
       if (!auth)
 	{
 	  errno = EINVAL;

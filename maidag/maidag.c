@@ -29,7 +29,7 @@ char *quotadbname = NULL;  /* Name of mailbox quota database */
 char *quota_query = NULL;  /* SQL query to retrieve mailbox quota */
 
 char *sender_address = NULL;       
-
+char *default_domain;
 mu_script_t script_handler;
 
 mu_list_t script_list;
@@ -450,6 +450,8 @@ struct mu_cfg_param maidag_cfg_param[] = {
   { "forward-file-checks", mu_cfg_callback, NULL, 0, cb_forward_file_checks,
     N_("Configure safety checks for the forward file."),
     N_("arg: list") },
+  { "domain", mu_cfg_string, &default_domain, 0, NULL,
+    N_("Default email domain") },
 /* LMTP support */
   { "group", mu_cfg_callback, &lmtp_groups, 0, cb_group,
     N_("In LMTP mode, retain these supplementary groups."),

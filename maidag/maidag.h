@@ -127,7 +127,8 @@ extern char *quota_query;
 extern char *forward_file;
 extern int forward_file_checks;
 
-extern char *sender_address;       
+extern char *sender_address;
+extern char *default_domain;
 extern mu_list_t script_list;
 extern char *message_id_header;
 extern int sieve_debug_flags; 
