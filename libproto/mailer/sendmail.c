@@ -110,7 +110,7 @@ sendmail_open (mu_mailer_t mailer, int flags)
   if (access (path, X_OK) == -1)
     return errno;
   status = mu_progmailer_set_command (pm, path);
-  mu_debug (MU_DEBCAT_MAILER, MU_DEBUG_TRACE, ("sendmail (%sn", path));
+  mu_debug (MU_DEBCAT_MAILER, MU_DEBUG_TRACE, ("sendmail binary: %s", path));
   return status;
 }
 
