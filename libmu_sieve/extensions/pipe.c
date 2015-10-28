@@ -16,12 +16,37 @@
    Public License along with this library.  If not, see
    <http://www.gnu.org/licenses/>. */
 
-/* Syntax: pipe [:envelope] <program: string>
+/* The "pipe" action
+   
+   Syntax: pipe [:envelope] [:header] [:body]
+                <command: string>
 
    The pipe action executes a shell command specified by its
-   argument and pipes the entire message to its standard input.
-   The envelope of the message is included, if the :envelope tag is given.
+   argument and pipes the entire message (including envelope) to its
+   standard input.  When given, tags :envelope, :header, and :body
+   control what parts of the message to pipe to the command.
+   
+   The "pipe" test
+   
+   Syntax: pipe [:envelope] [:header] [:body]
+                [:exit <code: number>]
+  	        [:signal <code: number>]
+                <command: string>
 
+   The pipe test executes a shell command specified by its
+   argument and pipes the entire message (including envelope) to its
+   standard input.  When given, tags :envelope, :header, and :body
+   control what parts of the message to pipe to the command.
+
+   In the absence of :exit and :signal tags, the test returns true if
+   the command exits with code 0.  If :exit is given, the test returns
+   true if the command exits with code equal to its argument.
+
+   The :signal tag determines the result in case if the program
+   exits on signal.  By default, the test returns false.  If :signal
+   is given and the number of signal which caused the program to terminate
+   matches its argument, the test returns true.
+		
    Notes/FIXME: 1. it would be nice to implement meta-variables in
 		<program call> which would expand to various
 		items from the message being handled.

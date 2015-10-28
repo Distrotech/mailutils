@@ -968,6 +968,35 @@ less than @var{count}, the test is true; otherwise, it is false.
 If the tagged argument is not given, @samp{:over} is assumed. 
 @end deftypefn
 
+@deftypefn Test {} pipe [:envelope] [:header] [:body] @
+                        [:exit @var{code}(number)] @
+  	                [:signal @var{code}(number)] @
+                        @var{command}(string)
+@*Synopsis:
+@smallexample
+require "test-pipe";
+
+if pipe @var{command}
+  @{
+    @dots{}
+  @}
+@end smallexample
+@*Description: 
+The @code{pipe} test executes a shell command specified by its
+argument and pipes the entire message (including envelope) to its
+standard input.  When given, tags @code{:envelope}, @code{:header},
+and @code{:body} control what parts of the message to pipe to the command.
+
+In the absence of the @code{:exit} tag, the test returns true if
+the command exits with code 0.  If @code{:exit} is given, the test returns
+true if the command exits with code equal to its argument.
+
+The @code{:signal} tag determines the result of the test in case if the program
+exits on signal.  By default, the test returns false.  If @code{:signal}
+is given and the number of signal which caused the program to terminate
+matches its argument, the test returns true.
+@end deftypefn
+
 @deftypefn Test {} spamd [:host @var{tcp-host}(string)] @
                          [:port @var{tcp-port}(number)] @
                          [:socket @var{unix-socket}(string)] @
@@ -1046,7 +1075,7 @@ if list @var{args}
   @}
 @end smallexample  
 @*Description:  
-The @code{list} test evaluates to true if any of @var{headers} match any
+The @code{list} test evaluates to true if any of @var{headers} matches any
 key from @var{keys}.  Each header is regarded as containing a list of
 keywords.  By default, comma is assumed as list separator.  This can be
 overridden by specifying the @code{:delim} tag, whose value is a
@@ -1362,13 +1391,13 @@ the old message in a new one.
 
 @node External Actions
 @subsection External Actions
-@UNREVISED
   GNU Mailutils is shipped with a set of external Sieve
 actions.  These actions are compiled as loadable modules and must be
 required prior to use (@pxref{Require Statement}).
 
 @deftypefn Action {}  moderator [:keep] [:address @var{address}(string)] @
-                                [:source @var{sieve-file}(string)]
+                                [:source @var{sieve-file}(string)] @
+                                [:program @var{sieve-text}(string)]
 @*Synopsis:
 @smallexample
 require "moderator"
@@ -1401,9 +1430,16 @@ control message, thereby causing the submission to be discarded.  The
 @code{:address} tag.  After discarding the message, @code{moderator}
 marks it as deleted, unless it is given @code{:keep} tag. 
 
-The argument of @code{:source} tag, if given, specifies the Sieve
-source file to be used on the message.  If @code{:tag} is not present,
-@code{moderator} will create and use a copy of the existing Sieve machine.
+If the @code{:source} tag is given, its argument specifies a Sieve
+source file to be used on the message.  Otherwise, if @code{:program}
+is given, its argument supplies a Sieve program to be used on this
+message.  At most one of these tags may be specified.  Supplying them
+both, or supplying several instances of the same tag, is an error. The
+behavior of the action in this case is undefined.
+   
+If neither @code{:program} nor @code{:source} is given,
+@code{moderator} will create a copy of the existing Sieve machine and
+use it on the message.
 
 The action checks the message structure: it will bail out if the message
 does not have exactly 3 MIME parts, or if parts 2 and 3 are not of
@@ -1421,22 +1457,19 @@ if allof(header :is "Sender" "mailman-bounces@@gnu.org",
 @end smallexample
 @end deftypefn
 
-@deftypefn Action {} pipe [:envelope] @var{command}(string)
+@deftypefn Action {} pipe [:envelope] [:header] [:body] @var{command}(string)
 @*Synopsis:
 @smallexample
 require "pipe";
-if pipe @var{args}
-  @{
-     @dots{}
-  @}
+
+pipe @var{command}
 @end smallexample
 @*Description:
-The @code{pipe} action sends executes a command specified by its
-argument and sends the entire message to its standard input.  The
-@var{command} argument supplies the command line.
-
-The envelope of the message is included, if the @code{:envelope} tag
-is given. 
+The @code{pipe} action executes a shell command specified by its
+argument and pipes the entire message (including envelope) to its
+standard input.  When given, tags @code{:envelope}, @code{:header},
+and @code{:body} control what parts of the message to pipe to the
+command.
 
 @*Example:
 The example below uses the @command{maidag} utility
@@ -1479,12 +1512,12 @@ If the @code{:file} tag is present, @var{text} is treated as the name
 of the file to read the body of the reply message from.  When used together
 with tag @code{:rfc2822}, the file should be formatted as a valid RFC
 2822 message, i.e. headers followed by empty line and body.  Headers
-must not contain @samp{To}, @samp{From}, and @samp{Subject}, as these
+may not contain @samp{To}, @samp{From}, and @samp{Subject}, as these
 will be generated automatically.
 
 If the @code{:subject} tag is given, its argument sets the subject of
 the message.  Otherwise, the subject is formed by prefixing original
-subject with @samp{Re:}, or @var{prefix}, given with the
+subject with @samp{Re:}, or the @var{prefix} given with the
 @code{:reply_prefix} tag.  Before prefixing, any original prefixes
 matching extended regular expression @var{expr} (@code{:reply_regex}
 tag) are stripped from the subject line.  If @code{:reply_regex} is not
@@ -1586,11 +1619,11 @@ may disappear from the subsequent releases.
 @item @code{fileinto} action
 
 The @code{fileinto} action allows to specify permissions on the mailbox,
-in case it is created (@pxref{fileinto}).
+in case it will be created (@pxref{fileinto}).
 
 @item Match type optional argument.
 
-Along with the usual @code{:is}, @code{:matches} and @code{contains}
+Along with the usual @code{:is}, @code{:matches} and @code{:contains}
 matching type, GNU sieve library understands @code{:regex} type.  This
 matching type toggles POSIX Extended Regular Expression matching.
 @end enumerate
