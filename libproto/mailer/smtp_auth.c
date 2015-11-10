@@ -29,6 +29,7 @@
 #include <mailutils/auth.h>
 #include <mailutils/url.h>
 
+#if defined(WITH_GSASL)
 static int
 get_ticket (mu_ticket_t *pticket)
 {
@@ -99,6 +100,7 @@ _mu_smtp_fixup_params (mu_smtp_t smtp)
 
   return 0;
 }
+#endif
 
 int
 mu_smtp_auth (mu_smtp_t smtp)

@@ -21,6 +21,8 @@
 #include "cmdline.h"
 #include <unistd.h>
 #include <stdlib.h>
+/* Provide declaration of __argp_base_name: */
+#include <argp-namefrob.h> 
 
 
 /* ************************************************************************* */
