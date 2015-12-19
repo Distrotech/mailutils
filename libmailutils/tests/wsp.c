@@ -146,7 +146,7 @@ make_env_kv ()
   for (i = 0; environ[i]; i++)
     ;
 
-  size = (i - 1) * 2 + 1;
+  size = i * 2 + 1;
   newenv = mu_calloc (size, sizeof (newenv[0]));
 
   for (i = j = 0; environ[i]; i++)
