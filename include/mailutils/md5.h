@@ -1,6 +1,6 @@
 /* Declaration of functions and data types used for MD5 sum computing
    library functions.
-   Copyright (C) 1995-1997, 1999-2001, 2004-2006, 2010-2012, 2014-2015
+   Copyright (C) 1995-1997, 1999-2001, 2004-2006, 2010-2012, 2014-2016
    Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 

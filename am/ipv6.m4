@@ -1,5 +1,5 @@
 dnl This file is part of GNU Mailutils.  -*- autoconf -*-
-dnl Copyright (C) 2011-2012, 2014-2015 Free Software Foundation, Inc.
+dnl Copyright (C) 2011-2012, 2014-2016 Free Software Foundation, Inc.
 dnl
 dnl GNU Mailutils is free software; you can redistribute it and/or modify
 dnl it under the terms of the GNU General Public License as published by

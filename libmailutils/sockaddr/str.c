@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2011-2012, 2014-2015 Free Software Foundation, Inc.
+   Copyright (C) 2011-2012, 2014-2016 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -33,7 +33,7 @@
 static char *default_sockaddr_text = "[not enogh memory]";
 
 #define S_UN_NAME(sa, salen) \
-	((salen < mu_offsetof(struct sockaddr_un,sun_path)) ?	\
+	((salen <= mu_offsetof(struct sockaddr_un,sun_path)) ?	\
 	  "" : (sa)->sun_path)
 
 int

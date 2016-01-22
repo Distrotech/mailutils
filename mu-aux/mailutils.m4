@@ -1,4 +1,4 @@
-dnl Copyright (C) 2006-2007, 2010-2012, 2014-2015 Free Software
+dnl Copyright (C) 2006-2007, 2010-2012, 2014-2016 Free Software
 dnl Foundation, Inc.
 dnl
 dnl GNU Mailutils is free software; you can redistribute it and/or

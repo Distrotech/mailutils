@@ -1,5 +1,5 @@
 @c This is part of the GNU Mailutils manual.
-@c Copyright (C) 2006-2008, 2010-2012, 2014-2015 Free Software
+@c Copyright (C) 2006-2008, 2010-2012, 2014-2016 Free Software
 @c Foundation, Inc.
 @c See file mailutils.texi for copying conditions.
 @comment *******************************************************************

@@ -1,5 +1,5 @@
 /* This file is part of GNU Mailutils test suite.
-   Copyright (C) 2012, 2014-2015 Free Software Foundation, Inc.
+   Copyright (C) 2012, 2014-2016 Free Software Foundation, Inc.
 
    This file is free software; as a special exception the author gives
    unlimited permission to copy and/or distribute it, with or without

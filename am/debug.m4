@@ -1,5 +1,5 @@
 dnl This file is part of GNU mailutils.
-dnl Copyright (C) 2001, 2010-2012, 2014-2015 Free Software Foundation,
+dnl Copyright (C) 2001, 2010-2012, 2014-2016 Free Software Foundation,
 dnl Inc.
 dnl
 dnl This file is free software; as a special exception the author gives
