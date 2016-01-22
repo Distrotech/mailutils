@@ -222,10 +222,14 @@ esac
 LIBS=$saved_LIBS
 
 if test "$status_tcpwrap" = "yes"; then
-  AC_SUBST(TCPWRAP_LIBRARIES, "\${top_builddir}/lib/libmutcpwrap.a $TCPWRAP_LIBRARIES -lwrap")
+  TCPWRAP_LIBRARIES="$TCPWRAP_LIBRARIES -lwrap"
   AC_DEFINE_UNQUOTED(WITH_LIBWRAP, 1,
                      [Define to 1 to use tcp wrappers.])
+else
+  # Provide placeholder functions only
+  TCPWRAP_LIBRARIES=
 fi
+AC_SUBST([MU_TCPWRAP_LIBRARIES], "\${top_builddir}/lib/libmutcpwrap.a $TCPWRAP_LIBRARIES")
 
 AC_ARG_ENABLE([pthread],
               AC_HELP_STRING([--disable-pthread],

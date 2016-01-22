@@ -61,7 +61,7 @@ pop3d_LDADD = \
  @MU_COMMON_LIBRARIES@\
  ${LIBMU_DBM}\
  @DBMLIBS@\
- @TCPWRAP_LIBRARIES@
+ @MU_TCPWRAP_LIBRARIES@
 
 popauth_SOURCES = popauth.c
 popauth_LDADD = \
