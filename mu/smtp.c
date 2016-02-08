@@ -821,6 +821,12 @@ com_list_param (int argc, char **argv)
 {
   int param, i, rc;
   const char *value;
+
+  if (!smtp)
+    {
+      mu_printf ("%s\n", _("no connection yet"));
+      return 0;
+    }
   
   if (argc > 1)
     {
@@ -833,7 +839,7 @@ com_list_param (int argc, char **argv)
 	    }
 	  rc = mu_smtp_get_param (smtp, param, &value);
 	  if (rc)
-	    mu_diag_funcall (MU_DIAG_ERROR, "mu_smtp_set_param", argv[i], rc);
+	    mu_diag_funcall (MU_DIAG_ERROR, "mu_smtp_get_param", argv[i], rc);
 	  else if (value)
 	    mu_printf ("%s = %s\n", argv[i], value);
 	  else
@@ -846,7 +852,7 @@ com_list_param (int argc, char **argv)
 	{
 	  rc = mu_smtp_get_param (smtp, paramtab[i].tok, &value);
 	  if (rc)
-	    mu_diag_funcall (MU_DIAG_ERROR, "mu_smtp_set_param",
+	    mu_diag_funcall (MU_DIAG_ERROR, "mu_smtp_get_param",
 			     paramtab[i].name, rc);
 	  else if (value)
 	    mu_printf ("%s = %s\n", paramtab[i].name, value);
