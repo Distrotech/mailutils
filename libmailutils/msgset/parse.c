@@ -26,6 +26,9 @@
 #include <mailutils/msgset.h>
 #include <mailutils/sys/msgset.h>
 
+/* Special translation mode, indicating that the mailbox is empty */
+#define MU_MSGSET_EMPTY -1
+
 /* This structure keeps parser state while parsing message set. */
 struct parse_msgnum_env
 {
@@ -33,7 +36,7 @@ struct parse_msgnum_env
   size_t minval;         /* Min. sequence number or UID */
   size_t maxval;         /* Max. sequence number or UID */
   mu_msgset_t msgset;    /* Message set being built. */
-  int mode;              /* Operation mode (num/uid) */
+  int mode;              /* Operation mode (num/uid/dry_run) */
 };
 
 /* Get a single message number/UID from env->s and store it into *PN.
@@ -96,6 +99,8 @@ parse_msgrange (struct parse_msgnum_env *env)
       msgrange.msg_beg = tmp;
     }
 
+  if (env->mode == MU_MSGSET_EMPTY)
+    return 0;
   return mu_msgset_add_range (env->msgset, msgrange.msg_beg, msgrange.msg_end,
 			      env->mode);
 }
@@ -131,7 +136,11 @@ mu_msgset_parse_imap (mu_msgset_t mset, int mode, const char *s, char **end)
       rc = mu_mailbox_messages_count (mset->mbox, &lastmsgno);
       if (rc == 0)
 	{
-	  if (mode == MU_MSGSET_UID)
+	  if (lastmsgno == 0)
+	    {
+	      env.mode = MU_MSGSET_EMPTY;
+	    }
+	  else if (mode == MU_MSGSET_UID)
 	    {
 	      rc = mu_mailbox_translate (mset->mbox, MU_MAILBOX_MSGNO_TO_UID,
 					 lastmsgno, &env.maxval);

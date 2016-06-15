@@ -64,7 +64,7 @@ mu_msgset_print (mu_stream_t str, mu_msgset_t mset)
   int rc;
   
   if (mu_list_is_empty (mset->list))
-    return MU_ERR_NOENT;
+    return mu_stream_printf (str, "%s", "nil");
   rc = mu_msgset_aggregate (mset);
   if (rc)
     return rc;

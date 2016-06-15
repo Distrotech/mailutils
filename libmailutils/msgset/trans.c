@@ -30,7 +30,7 @@ _mu_msgset_translate_pair (mu_msgset_t mset, int mode,
   if (mode != _MU_MSGSET_MODE (mset->flags) && mset->mbox)
     {
       int cmd, rc;
-      size_t n;
+      size_t n = 1;
       size_t beg = *pbeg;
       size_t end = *pend;
       
