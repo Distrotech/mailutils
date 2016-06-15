@@ -69,12 +69,6 @@ noinst_PROGRAMS = \
 
 LDADD = ${MU_LIB_MAILUTILS}
 
-msgset_LDADD = \
- ${MU_LIB_MBOX}\
- ${MU_LIB_MH}\
- ${MU_LIB_MAILDIR}\
- ${MU_LIB_MAILUTILS}
-
 EXTRA_DIST += Encode Decode Wicketfile
 
 ## ------------ ##

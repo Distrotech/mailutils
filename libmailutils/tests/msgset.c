@@ -53,16 +53,16 @@ parse_msgrange (char *arg, struct mu_msgrange *range)
 }
 
 mu_msgset_t
-parse_msgset (mu_mailbox_t mbox, const char *arg)
+parse_msgset (const char *arg)
 {
   int rc;
   mu_msgset_t msgset;
   char *end;
 
-  MU_ASSERT (mu_msgset_create (&msgset, mbox, MU_MSGSET_NUM));
+  MU_ASSERT (mu_msgset_create (&msgset, NULL, MU_MSGSET_NUM));
   if (arg)
     {
-      rc = mu_msgset_parse_imap (msgset, MU_MSGSET_UID, arg, &end);
+      rc = mu_msgset_parse_imap (msgset, MU_MSGSET_NUM, arg, &end);
       if (rc)
 	{
 	  mu_error ("mu_msgset_parse_imap: %s near %s",
@@ -79,33 +79,26 @@ main (int argc, char **argv)
   int i;
   char *msgset_string = NULL;
   mu_msgset_t msgset;
-  mu_mailbox_t mbox = NULL;
   
   mu_set_program_name (argv[0]);
-  mu_register_local_mbox_formats ();
   for (i = 1; i < argc; i++)
     {
       char *arg = argv[i];
 
       if (strcmp (arg, "-h") == 0 || strcmp (arg, "-help") == 0)
 	{
-	  mu_printf ("usage: %s [-mailbox=PATH] [-msgset=SET] [-add=X[:Y]] [-del=X[:Y]] "
+	  mu_printf ("usage: %s [-msgset=SET] [-add=X[:Y]] [-del=X[:Y]] "
 		     "[-addset=SET] [-delset=SET] ...\n",
 		     mu_program_name);
 	  return 0;
 	}
       else if (strncmp (arg, "-msgset=", 8) == 0)
 	msgset_string = arg + 8;
-      else if (strncmp (arg, "-mailbox=", 9) == 0)
-	{
-	  MU_ASSERT (mu_mailbox_create_default (&mbox, arg + 9));
-	  MU_ASSERT (mu_mailbox_open (mbox, MU_STREAM_READ));
-	}
       else
 	break;
     }
 
-  msgset = parse_msgset (mbox, msgset_string);
+  msgset = parse_msgset (msgset_string);
   
   for (; i < argc; i++)
     {
@@ -126,7 +119,7 @@ main (int argc, char **argv)
 	}
       else if (strncmp (arg, "-addset=", 8) == 0)
 	{
-	  mu_msgset_t tset = parse_msgset (mbox, arg + 8);
+	  mu_msgset_t tset = parse_msgset (arg + 8);
 	  if (!msgset)
 	    msgset = tset;
 	  else
@@ -137,7 +130,7 @@ main (int argc, char **argv)
 	}
       else if (strncmp (arg, "-subset=", 8) == 0)
 	{
-	  mu_msgset_t tset = parse_msgset (mbox, arg + 8);
+	  mu_msgset_t tset = parse_msgset (arg + 8);
 	  if (!msgset)
 	    {
 	      mu_error ("no initial message set");
