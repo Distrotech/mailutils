@@ -35,11 +35,13 @@ _mu_imap_tag_incr (mu_imap_t imap)
       if (++i == imap->tag_len)
 	{
 	  char *sp;
-	  int *np = realloc (imap->tag_buf, imap->tag_len + 1);
+	  int *np = realloc (imap->tag_buf,
+			     (imap->tag_len + 1) * sizeof imap->tag_buf[0]);
 	  if (!np)
 	    return ENOMEM;
 	  imap->tag_buf = np;
-	  sp = realloc (imap->tag_str, imap->tag_len + 2);
+	  sp = realloc (imap->tag_str,
+			(imap->tag_len + 2) * sizeof imap->tag_str[0]);
 	  if (!sp)
 	    return ENOMEM;
 	  imap->tag_str = sp;
@@ -69,11 +71,16 @@ _mu_imap_tag_clr (mu_imap_t imap)
       imap->tag_len = 2;
       imap->tag_buf = calloc (imap->tag_len, sizeof (imap->tag_buf[0]));
       if (!imap->tag_buf)
-	return ENOMEM;
+	{
+	  imap->tag_len = 0;
+	  return ENOMEM;
+	}
       imap->tag_str = calloc (imap->tag_len + 1, sizeof (imap->tag_str[0]));
       if (!imap->tag_str)
 	{
 	  free (imap->tag_buf);
+	  imap->tag_buf = NULL;
+	  imap->tag_len = 0;
 	  return ENOMEM;
 	}
     }
