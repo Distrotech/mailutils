@@ -226,7 +226,7 @@ mh_global_save_state ()
   rc = mu_property_save (mu_mh_context);
   if (rc)
     {
-      mu_diag_funcall (MU_DIAG_ERROR, "mu_profile_save", "context", rc);
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_property_save", "context", rc);
       exit (1);
     }
 }

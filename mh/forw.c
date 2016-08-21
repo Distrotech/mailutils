@@ -107,6 +107,7 @@ static const char *whatnowproc;
 static char *mhl_filter_file = NULL; /* --filter flag */
 
 static int build_only = 0;      /* --build flag */
+static int nowhatnowproc = 0;   /* --nowhatnowproc */
 static int annotate = 0;        /* --annotate flag */
 static enum encap_type encap = encap_clear; /* controlled by --format, --form
 					       and --mime flags */
@@ -222,7 +223,7 @@ opt_handler (int key, char *arg, struct argp_state *state)
       break;
 
     case ARG_NOWHATNOWPROC:
-      whatnowproc = NULL;
+      nowhatnowproc = 1;
       break;
 
     case ARGP_KEY_FINI:
@@ -530,7 +531,7 @@ main (int argc, char **argv)
     }
   
   /* Exit immediately if --build is given */
-  if (build_only)
+  if (build_only || nowhatnowproc)
     {
       if (strcmp (wh_env.file, wh_env.draftfile))
 	rename (wh_env.file, wh_env.draftfile);

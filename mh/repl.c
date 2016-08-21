@@ -115,6 +115,7 @@ static const char *whatnowproc;
 static mu_msgset_t msgset;
 static mu_mailbox_t mbox;
 static int build_only = 0; /* --build flag */
+static int nowhatnowproc = 0; /* --nowhatnowproc */
 static int query_mode = 0; /* --query flag */
 static int use_draft = 0;  /* --use flag */
 static char *mhl_filter = NULL; /* --filter flag */
@@ -261,7 +262,7 @@ opt_handler (int key, char *arg, struct argp_state *state)
       break;
 
     case ARG_NOWHATNOWPROC:
-      whatnowproc = NULL;
+      nowhatnowproc = 1;
       break;
 
     case ARGP_KEY_FINI:
@@ -432,7 +433,7 @@ main (int argc, char **argv)
   make_draft (mbox, DISP_REPLACE, &wh_env);
 
   /* Exit immediately if --build is given */
-  if (build_only)
+  if (build_only || nowhatnowproc)
     return 0;
 
   rc = mh_whatnowproc (&wh_env, initial_edit, whatnowproc);

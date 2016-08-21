@@ -75,6 +75,7 @@ struct mh_option mh_option[] = {
 struct mh_whatnow_env wh_env = { 0 };
 static int initial_edit = 1;
 static const char *whatnowproc;
+static int nowhatnowproc;
 char *formfile;
 static int build_only = 0; /* --build flag */
 static int use_draft = 0;  /* --use flag */
@@ -143,7 +144,7 @@ opt_handler (int key, char *arg, struct argp_state *state)
       break;
 
     case ARG_NOWHATNOWPROC:
-      whatnowproc = NULL;
+      nowhatnowproc = 1;
       break;
 
     case ARGP_KEY_FINI:
@@ -304,7 +305,7 @@ main (int argc, char **argv)
     }
   
   /* Exit immediately if --build is given */
-  if (build_only)
+  if (build_only || nowhatnowproc)
     return 0;
 
   return mh_whatnowproc (&wh_env, initial_edit, whatnowproc);
