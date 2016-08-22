@@ -19,5 +19,7 @@
 (setq mh-progs "BINDIR")
 (setq mh-lib "MHLIBDIR")
 (setq mh-lib-progs mh-progs)
+(load "mh-e")
+(setq mh-variant 'gnu-mh)
 
 ;;;; End of mailutils-mh.el
