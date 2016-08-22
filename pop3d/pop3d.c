@@ -575,7 +575,6 @@ main (int argc, char **argv)
   mu_tcpwrapper_cfg_init ();
   manlock_cfg_init ();
   mu_acl_cfg_init ();
-  mu_m_server_cfg_init (pop3d_srv_param);
   
   mu_argp_init (NULL, NULL);
   	
@@ -589,6 +588,7 @@ main (int argc, char **argv)
   mu_m_server_set_default_port (server, 110);
   mu_m_server_set_timeout (server, 600);
   mu_m_server_set_strexit (server, mu_strexit);
+  mu_m_server_cfg_init (server, pop3d_srv_param);
 
   mu_alloc_die_hook = pop3d_alloc_die;
 

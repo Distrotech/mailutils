@@ -566,7 +566,6 @@ main (int argc, char **argv)
   mu_argp_init (NULL, NULL);
   comsat_init ();
   mu_acl_cfg_init ();
-  mu_m_server_cfg_init (NULL);
   mu_m_server_create (&server, program_version);
   mu_m_server_set_type (server, MU_IP_UDP);
   mu_m_server_set_conn (server, comsat_connection);
@@ -575,6 +574,8 @@ main (int argc, char **argv)
   mu_m_server_set_max_children (server, 20);
   /* FIXME mu_m_server_set_pidfile (); */
   mu_m_server_set_default_port (server, 512);
+  mu_m_server_cfg_init (server, NULL);
+  
   /* FIXME: timeout is not needed. How to disable it? */
   mu_log_syslog = 1;
   

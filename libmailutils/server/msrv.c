@@ -24,6 +24,7 @@
 #endif
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -932,8 +933,32 @@ static struct mu_cfg_param server_cfg_param[] = {
   { NULL }
 };
 
+static int
+_cb_backlog (void *data, mu_config_value_t *val)
+{
+  mu_ip_server_t *psrv = data;
+  int backlog;
+  
+  if (mu_cfg_assert_value_type (val, MU_CFG_STRING))
+    return 1;
+  if (sscanf (val->v.string, "%d", &backlog) != 1 || backlog <= 0
+      || mu_tcp_server_set_backlog (*psrv, backlog))
+    {
+      mu_error (_("invalid argument"));
+      return 1;
+    }
+  return 0;
+}
+
+static struct mu_cfg_param server_tcp_param[] = {
+  { "backlog", mu_cfg_callback,
+    NULL, mu_offsetof (struct mu_srv_config, tcpsrv), _cb_backlog,
+    N_("Size of the queue of pending connections") },
+  { NULL }
+};
+
 void
-mu_m_server_cfg_init (struct mu_cfg_param *app_param)
+mu_m_server_cfg_init (mu_m_server_t srv, struct mu_cfg_param *app_param)
 {
   struct mu_cfg_section *section;
   if (mu_create_canned_section ("server", &section) == 0)
@@ -941,6 +966,8 @@ mu_m_server_cfg_init (struct mu_cfg_param *app_param)
       section->parser = server_section_parser;
       section->label = N_("ipaddr[:port]");
       mu_cfg_section_add_params (section, server_cfg_param);
+      if (srv->deftype == MU_IP_TCP)
+	mu_cfg_section_add_params (section, server_tcp_param);
       if (app_param)
 	mu_cfg_section_add_params (section, app_param);
     }

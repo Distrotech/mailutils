@@ -522,7 +522,6 @@ main (int argc, char *argv[])
 
   mu_tcpwrapper_cfg_init ();
   mu_acl_cfg_init ();
-  mu_m_server_cfg_init (NULL);
   maidag_cfg_init ();
   
   /* Parse command line */
@@ -537,6 +536,7 @@ main (int argc, char *argv[])
   mu_m_server_set_mode (server, MODE_INTERACTIVE);
   mu_m_server_set_max_children (server, 20);
   mu_m_server_set_timeout (server, 600);
+  mu_m_server_cfg_init (server, NULL);
 
   mu_log_syslog = -1;
   mu_log_print_severity = 1;

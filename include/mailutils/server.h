@@ -142,7 +142,7 @@ void mu_m_server_stop (int code);
 int mu_m_server_check_acl (mu_m_server_t msrv, struct sockaddr *s, int salen);
 
 struct mu_cfg_param;
-void mu_m_server_cfg_init (struct mu_cfg_param *app_param);
+void mu_m_server_cfg_init (mu_m_server_t msrv, struct mu_cfg_param *app_param);
 
 
 #endif
