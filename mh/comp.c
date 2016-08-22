@@ -49,7 +49,7 @@ static struct argp_option options[] = {
   {"whatnowproc",   ARG_WHATNOWPROC, N_("PROG"), 0,
    N_("set the replacement for whatnow program")},
   {"nowhatnowproc", ARG_NOWHATNOWPROC, NULL, 0,
-   N_("ignore whatnowproc variable. Use standard `whatnow' shell instead.")},
+   N_("don't run whatnowproc")},
   {"use",           ARG_USE, N_("BOOL"), OPTION_ARG_OPTIONAL,
    N_("use draft file preserved after the last session") },
   {"nouse",         ARG_NOUSE, NULL, OPTION_HIDDEN, ""},
