@@ -297,11 +297,11 @@ get_history_file_name ()
       
       hname = mu_alloc (sizeof HISTFILE_PREFIX + strlen (rl_readline_name) +
 		        sizeof HISTFILE_SUFFIX - 1);
-      strcpy (hname, "~/.mu_");
+      strcpy (hname, HISTFILE_PREFIX);
       strcat (hname, rl_readline_name);
       strcat (hname, HISTFILE_SUFFIX);
       filename = mu_tilde_expansion (hname, MU_HIERARCHY_DELIMITER, NULL);
-      free(hname);
+      free (hname);
     }
   return filename;
 }
@@ -348,7 +348,7 @@ mutool_initialize_readline (const char *name)
 static void
 finish_readline ()
 {
-  write_history (get_history_file_name());
+  write_history (get_history_file_name ());
 }
 
 /* Attempt to complete on the contents of TEXT.  START and END bound the

@@ -51,7 +51,6 @@ main (int argc, char **argv)
 	  const char *s = mu_file_safety_code_to_name (i);
 	  printf ("%s\n", s ? s : "UNKNOWN");
 	}
-      crit &= ~i;
     }
   return 0;
 }
