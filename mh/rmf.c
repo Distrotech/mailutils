@@ -92,7 +92,7 @@ opt_handler (int key, char *arg, struct argp_state *state)
 }
 
 static char *
-current_folder_path ()
+current_folder_path (void)
 {
   mu_mailbox_t mbox = mh_open_folder (mh_current_folder (), MU_STREAM_RDWR);
   mu_url_t url;
@@ -197,7 +197,7 @@ main (int argc, char **argv)
       name = cur_folder_path;
     }
   else
-    name = mh_expand_name (NULL, folder_name, NAME_ANY);
+    name = mh_expand_name (NULL, folder_name, NAME_FOLDER);
   if (recursive)
     status = recrmf (name);
   else
