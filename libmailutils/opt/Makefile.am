@@ -1,5 +1,5 @@
 # GNU Mailutils -- a suite of utilities for electronic mail
-# Copyright (C) 2010-2012, 2014-2016 Free Software Foundation, Inc.
+# Copyright (C) 2016 Free Software Foundation, Inc.
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -15,32 +15,12 @@
 # Public License along with this library.  If not, see
 # <http://www.gnu.org/licenses/>.
 
-noinst_LTLIBRARIES = libstring.la
+noinst_LTLIBRARIES = libopt.la
 
-libstring_la_SOURCES = \
- cpystr.c\
- cstrcasecmp.c\
- cstrcasestr.c\
- cstrlower.c\
- cstrupper.c\
- hexstr.c\
- stpcpy.c\
- str_to_c.c\
- strltrim.c\
- strskip.c\
- stripws.c\
- strlst.c\
- strrtrim.c\
- trueans.c\
- unfold.c\
- asnprintf.c\
- asprintf.c\
- muctype.c\
- vasnprintf.c\
- mkfilename.c\
- wordsplit.c\
- xdecode.c
+libopt_la_SOURCES = \
+ opt.c\
+ help.c\
+ progname.c
 
-EXTRA_DIST=to_sn.c to_un.c
-
-AM_CPPFLAGS = @MU_LIB_COMMON_INCLUDES@ -I/libmailutils -I${srcdir}
+AM_CPPFLAGS = \
+  @MU_LIB_COMMON_INCLUDES@ -I/libmailutils

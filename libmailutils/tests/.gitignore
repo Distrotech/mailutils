@@ -20,6 +20,7 @@ mailcap
 mimehdr
 modtofsaf
 msgset
+parseopt
 prop
 scantime
 strftime

@@ -79,6 +79,7 @@ pkginclude_HEADERS = \
  nntp.h\
  observer.h\
  opool.h\
+ opt.h\
  pam.h\
  parse822.h\
  pop3.h\

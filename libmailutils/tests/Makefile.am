@@ -56,6 +56,7 @@ noinst_PROGRAMS = \
  modtofsaf\
  msgset\
  modmesg\
+ parseopt\
  prop\
  scantime\
  strftime\

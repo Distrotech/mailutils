@@ -152,6 +152,35 @@ int mu_getpass (mu_stream_t in, mu_stream_t out, const char *prompt,
 		char **passptr);
 
   /* ----------------------- */
+  /* String conversions.     */
+  /* ----------------------- */
+
+enum mu_c_type
+  {
+    mu_c_string,
+    mu_c_short,
+    mu_c_ushort,
+    mu_c_int,
+    mu_c_uint,
+    mu_c_long,
+    mu_c_ulong,
+    mu_c_size,
+    mu_c_off,
+    mu_c_time,
+    mu_c_bool,
+    mu_c_ipv4,
+    mu_c_cidr,
+    mu_c_host,
+    mu_c_incr,        /* C int value, incremented each time mu_str_to_c is
+			 invoked */
+  };
+
+typedef enum mu_c_type mu_c_type_t;
+
+int mu_str_to_c (char const *string, mu_c_type_t type, void *tgt,
+		 char **errmsg);
+  
+  /* ----------------------- */
   /* Assorted functions.     */
   /* ----------------------- */
 int mu_getmaxfd (void);
@@ -207,7 +236,6 @@ int mu_file_safety_compose (int *res, const char *name, int defval);
 
 int mu_file_mode_to_safety_criteria (int mode);
 int mu_safety_criteria_to_file_mode (int crit);
-  
   
 #ifdef __cplusplus
 }
