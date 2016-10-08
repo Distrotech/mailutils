@@ -148,7 +148,8 @@ struct mu_parseopt
   */
   int po_arg_start;
   int po_arg_count;
-  
+
+  unsigned po_permuted:1;           /* Whether the arguments were permuted */
 };
 
 int mu_parseopt (struct mu_parseopt *p,

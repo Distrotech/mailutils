@@ -104,6 +104,29 @@ TESTSUITE_AT = \
  modmesg03.at\
  modtofsaf.at\
  msgset.at\
+ parseopt00.at\
+ parseopt01.at\
+ parseopt02.at\
+ parseopt03.at\
+ parseopt04.at\
+ parseopt05.at\
+ parseopt06.at\
+ parseopt07.at\
+ parseopt08.at\
+ parseopt09.at\
+ parseopt10.at\
+ parseopt11.at\
+ parseopt12.at\
+ parseopt13.at\
+ parseopt14.at\
+ parseopt15.at\
+ parseopt16.at\
+ parseopt17.at\
+ parseopt18.at\
+ parseopt19.at\
+ parseopt20.at\
+ parseopt21.at\
+ parseopt22.at\
  prop.at\
  scantime.at\
  strftime.at\

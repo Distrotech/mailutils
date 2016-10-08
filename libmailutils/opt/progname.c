@@ -38,6 +38,8 @@ mu_set_progname (char const *arg)
     ++p;
   else
     p = (char*) arg;
+  if (strlen (p) > 3 && memcmp (p, "lt-", 3) == 0)
+    p += 3;
   free (mu_progname);
   mu_progname = mu_strdup (p);
 }

@@ -132,7 +132,15 @@ print_option (struct mu_option **optbuf, size_t optcnt, size_t num,
   if (opt->opt_arg)
     {
       *argsused = 1;
-      w += printf ("%c%s", delim, gettext (opt->opt_arg));
+      if (opt->opt_flags & MU_OPTION_ARG_OPTIONAL)
+	{
+	  if (delim == '=')
+	    w += printf ("[=%s]", gettext (opt->opt_arg));
+	  else
+	    w += printf ("[%s]", gettext (opt->opt_arg));
+	}
+      else
+	w += printf ("%c%s", delim, gettext (opt->opt_arg));
     }
   if (w >= DESCRCOLUMN)
     {

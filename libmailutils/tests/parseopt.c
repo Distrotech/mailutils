@@ -21,8 +21,8 @@
 #include <mailutils/opt.h>
 
 char *file_name;
-char *find_value;
 char *opt_value = "initial";
+char *find_value;
 int jobs = 0;
 int x_option;
 int a_option;
@@ -34,9 +34,6 @@ struct mu_option group_a[] = {
     "set file name",
     mu_c_string, &file_name
   },
-  { "find", 'F', "VALUE", MU_OPTION_DEFAULT,
-    "find VALUE",
-    mu_c_string, &find_value },
   { "optional", 'o', "FILE", MU_OPTION_ARG_OPTIONAL,
     "optional argument",
     mu_c_string, &opt_value },
@@ -55,6 +52,9 @@ struct mu_option group_b[] = {
     "another option",
     mu_c_incr, &d_option },
   { "verbose", 'v', NULL, MU_OPTION_ALIAS },
+  { "find", 'F', "VALUE", MU_OPTION_DEFAULT,
+    "find VALUE",
+    mu_c_string, &find_value },
   { "jobs", 'j', "N", MU_OPTION_DEFAULT,
     "sets numeric value",
     mu_c_int, &jobs },
@@ -71,23 +71,40 @@ main (int argc, char *argv[])
   struct mu_parseopt po;
   int rc;
   int i;
-
-  mu_stdstream_setup (MU_STDSTREAM_RESET_NONE);
+  int flags = MU_PARSEOPT_DEFAULT;
   
-  rc = mu_parseopt (&po, argc, argv, optv, MU_PARSEOPT_DEFAULT);
+  mu_stdstream_setup (MU_STDSTREAM_RESET_NONE);
+
+  if (getenv ("MU_PARSEOPT_DEFAULT"))
+    flags = MU_PARSEOPT_DEFAULT;
+  else
+    {
+      if (getenv ("MU_PARSEOPT_IN_ORDER"))
+	flags |= MU_PARSEOPT_IN_ORDER;
+      if (getenv ("MU_PARSEOPT_IGNORE_ERRORS"))
+	flags |= MU_PARSEOPT_IGNORE_ERRORS;
+      if (getenv ("MU_PARSEOPT_IN_ORDER"))
+	flags |= MU_PARSEOPT_IN_ORDER;
+      if (getenv ("MU_PARSEOPT_NO_ERREXIT"))
+	flags |= MU_PARSEOPT_NO_ERREXIT;
+      if (getenv ("MU_PARSEOPT_NO_STDOPT"))
+	flags |= MU_PARSEOPT_NO_STDOPT;
+    }
+  
+  rc = mu_parseopt (&po, argc, argv, optv, flags);
   printf ("rc=%d\n", rc);
   mu_parseopt_apply (&po);
 
-  argc -= po.po_ind;
-  argv += po.po_ind;
+  argc -= po.po_arg_start;
+  argv += po.po_arg_start;
 
   mu_parseopt_free (&po);
 
   printf ("file_name=%s\n", S(file_name));
-  printf ("find_value=%s\n", S(find_value));
   printf ("opt_value=%s\n", S(opt_value));
   printf ("x_option=%d\n", x_option);
   printf ("a_option=%d\n", a_option);
+  printf ("find_value=%s\n", S(find_value));
   printf ("d_option=%d\n", d_option);
   printf ("jobs=%d\n", jobs);
   

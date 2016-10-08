@@ -228,6 +228,39 @@ find_long_option (struct mu_parseopt *po, char const *optstr,
   return NULL;  
 }
 
+static void
+permute (struct mu_parseopt *po)
+{
+  if (!(po->po_flags & MU_PARSEOPT_IN_ORDER) && po->po_arg_count)
+    {
+      /* Array to save arguments in */
+      char *save[2];
+      /* Number of arguments processed (at most two) */
+      int n = po->po_ind - (po->po_arg_start + po->po_arg_count);
+      
+      if (n > 2)
+	abort ();
+      
+      /* Store the processed elements away */
+      save[0] = po->po_argv[po->po_arg_start + po->po_arg_count];
+      if (n == 2)
+	save[1] = po->po_argv[po->po_arg_start + po->po_arg_count + 1];
+
+      /* Shift the array */
+      memmove (po->po_argv + po->po_arg_start + n,
+	       po->po_argv + po->po_arg_start,
+	       po->po_arg_count * sizeof (po->po_argv[0]));
+      
+      /* Place stored elements in the vacating slots */
+      po->po_argv[po->po_arg_start] = save[0];
+      if (n == 2)
+	po->po_argv[po->po_arg_start + 1] = save[1];
+      
+      /* Fix up start index */
+      po->po_arg_start += n;
+      po->po_permuted = 1;
+    }
+}
 
 /* Consume next option from PO.  On success, update PO members as
    described below and return 0.  On end of options, return 1.
@@ -247,38 +280,8 @@ next_opt (struct mu_parseopt *po)
 {
   if (!*po->po_cur)
     {
-      if (!(po->po_flags & MU_PARSEOPT_IN_ORDER) && po->po_arg_count)
-	{
-	  /* Array to save arguments in */
-	  char *save[2];
-	  /* Number of arguments processed (at most two) */
-	  int n = po->po_ind - (po->po_arg_start + po->po_arg_count);
-
-	  if (n > 2)
-	    abort ();
-
-	  /* Store the processed elements away */
-	  save[0] = po->po_argv[po->po_arg_start + po->po_arg_count];
-	  if (n == 2)
-	    save[1] = po->po_argv[po->po_arg_start + po->po_arg_count + 1];
-
-	  /* Shift the array */
-	  memmove (po->po_argv + po->po_arg_start + n,
-		   po->po_argv + po->po_arg_start,
-		   po->po_arg_count * sizeof (po->po_argv[0]));
-
-	  /* Place stored elements in the vacating slots */
-	  po->po_argv[po->po_arg_start] = save[0];
-	  if (n == 2)
-	    po->po_argv[po->po_arg_start + 1] = save[1];
-
-	  /* Fix up start index */
-	  po->po_arg_start += n;
-	}
+      permute (po);
       
-      if (po->po_ind == po->po_argc)
-	return 1;
-
       while (1)
 	{
 	  po->po_cur = po->po_argv[po->po_ind++];
@@ -288,6 +291,8 @@ next_opt (struct mu_parseopt *po)
 	    break;
 	  if (!(po->po_flags & MU_PARSEOPT_IN_ORDER))
 	    {
+	      if (!po->po_permuted)
+		po->po_arg_start = po->po_ind - 1;
 	      po->po_arg_count++;
 	      continue;
 	    }
@@ -298,8 +303,12 @@ next_opt (struct mu_parseopt *po)
       if (*++po->po_cur == '-')
 	{
 	  if (*++po->po_cur == 0)
-	    /* End of options */
-	    return 1;
+	    {
+	      /* End of options */
+	      permute (po);
+	      ++po->po_ind;
+	      return 1;
+	    }
 
 	  /* It's a long option */
 	  po->po_chr = 0;
@@ -331,9 +340,12 @@ parse (struct mu_parseopt *po)
 	{
 	  char *p = strrchr (po->po_argv[0], '/');
 	  if (p)
-	    po->po_prog_name = p + 1;
+	    p++;
 	  else
-	    po->po_prog_name = (char*) po->po_argv[0];
+	    p = (char*) po->po_argv[0];
+	  if (strlen (p) > 3 && memcmp (p, "lt-", 3) == 0)
+	    p += 3;
+	  po->po_prog_name = p;
 	}
     }
   else if (!(po->po_flags & MU_PARSEOPT_PROG_NAME))
@@ -341,6 +353,7 @@ parse (struct mu_parseopt *po)
 
   po->po_arg_start = po->po_ind;
   po->po_arg_count = 0;
+  po->po_permuted = 0;
   
   po->po_cur = "";
 
@@ -433,8 +446,8 @@ parse (struct mu_parseopt *po)
 	}
     }
 
-  if (po->po_arg_count)
-    po->po_ind = po->po_arg_start;
+  if (!po->po_permuted)
+    po->po_arg_start = po->po_ind - 1 - po->po_arg_count;
   return 0;
 }
 
