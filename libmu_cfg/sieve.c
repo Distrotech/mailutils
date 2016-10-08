@@ -32,7 +32,7 @@ cb_clear_library_path (void *data, mu_config_value_t *val)
 
   if (mu_cfg_assert_value_type (val, MU_CFG_STRING))
     return 1;
-  if (mu_cfg_parse_boolean (val->v.string, &flag))
+  if (mu_str_to_c (val->v.string, mu_c_bool, &flag, NULL))
     {
       mu_error (_("not a boolean"));
       return 1;
@@ -49,7 +49,7 @@ cb_clear_include_path (void *data, mu_config_value_t *val)
   
   if (mu_cfg_assert_value_type (val, MU_CFG_STRING))
     return 1;
-  if (mu_cfg_parse_boolean (val->v.string, &flag))
+  if (mu_str_to_c (val->v.string, mu_c_bool, &flag, NULL))
     {
       mu_error (_("not a boolean"));
       return 1;

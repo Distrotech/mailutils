@@ -43,22 +43,22 @@ cb_field_map (void *data, mu_config_value_t *val)
 }
 
 static struct mu_cfg_param mu_ldap_param[] = {
-  { "enable", mu_cfg_bool, &ldap_settings.enable, 0, NULL,
+  { "enable", mu_c_bool, &ldap_settings.enable, 0, NULL,
     N_("Enable LDAP lookups.") },
-  { "url", mu_cfg_string, &ldap_settings.url, 0, NULL,
+  { "url", mu_c_string, &ldap_settings.url, 0, NULL,
     N_("Set URL of the LDAP server."),
     N_("url") },
-  { "base", mu_cfg_string, &ldap_settings.base, 0, NULL,
+  { "base", mu_c_string, &ldap_settings.base, 0, NULL,
     N_("Base DN for LDAP lookups."),
     N_("dn") },
-  { "binddn", mu_cfg_string, &ldap_settings.binddn, 0, NULL,
+  { "binddn", mu_c_string, &ldap_settings.binddn, 0, NULL,
     N_("DN for accessing LDAP database."),
     N_("dn") },
-  { "passwd", mu_cfg_string, &ldap_settings.passwd, 0, NULL,
+  { "passwd", mu_c_string, &ldap_settings.passwd, 0, NULL,
     N_("Password for use with binddn.") },
-  { "tls", mu_cfg_bool, &ldap_settings.tls, 0, NULL,
+  { "tls", mu_c_bool, &ldap_settings.tls, 0, NULL,
     N_("Use TLS encryption.") },
-  { "debug", mu_cfg_int, &ldap_settings.debug, 0, NULL,
+  { "debug", mu_c_int, &ldap_settings.debug, 0, NULL,
     N_("Set LDAP debugging level.") },
   { "field-map", mu_cfg_callback, NULL, 0, cb_field_map,
     N_("Set a field-map for parsing LDAP replies.  The map is a "
@@ -69,10 +69,10 @@ static struct mu_cfg_param mu_ldap_param[] = {
        "gecos, dir, shell, mailbox, quota, and <attr> is the name of "
        "the corresponding LDAP attribute."),
     N_("map") },
-  { "getpwnam", mu_cfg_string, &ldap_settings.getpwnam_filter, 0, NULL,
+  { "getpwnam", mu_c_string, &ldap_settings.getpwnam_filter, 0, NULL,
     N_("LDAP filter to use for getpwnam requests."),
     N_("filter") },
-  { "getpwuid", mu_cfg_string, &ldap_settings.getpwuid_filter, 0, NULL,
+  { "getpwuid", mu_c_string, &ldap_settings.getpwuid_filter, 0, NULL,
     N_("LDAP filter to use for getpwuid requests."),
     N_("filter") },
   { NULL }

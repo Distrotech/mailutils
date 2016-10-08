@@ -182,7 +182,7 @@ cb_tls_required (void *data, mu_config_value_t *val)
   
   if (mu_cfg_assert_value_type (val, MU_CFG_STRING))
     return 1;
-  if (mu_cfg_parse_boolean (val->v.string, &bv))
+  if (mu_str_to_c (val->v.string, mu_c_bool, &bv, NULL))
     mu_error (_("Not a boolean value"));
   else if (bv)
     {
@@ -210,16 +210,16 @@ static struct mu_cfg_param pop3d_srv_param[] = {
 };
     
 static struct mu_cfg_param pop3d_cfg_param[] = {
-  { "undelete", mu_cfg_bool, &undelete_on_startup, 0, NULL,
+  { "undelete", mu_c_bool, &undelete_on_startup, 0, NULL,
     N_("On startup, clear deletion marks from all the messages.") },
-  { "expire", mu_cfg_uint, &expire, 0, NULL,
+  { "expire", mu_c_uint, &expire, 0, NULL,
     N_("Automatically expire read messages after the given number of days."),
     N_("days") },
-  { "delete-expired", mu_cfg_bool, &expire_on_exit, 0, NULL,
+  { "delete-expired", mu_c_bool, &expire_on_exit, 0, NULL,
     N_("Delete expired messages upon closing the mailbox.") },
-  { "scan-lines", mu_cfg_bool, &pop3d_xlines, 0, NULL,
+  { "scan-lines", mu_c_bool, &pop3d_xlines, 0, NULL,
     N_("Output the number of lines in the message in its scan listing.") },
-  { "apop-database-file", mu_cfg_string, &apop_database_name, 0, NULL,
+  { "apop-database-file", mu_c_string, &apop_database_name, 0, NULL,
     N_("set APOP database file name or URL") },
   { "apop-database-owner", mu_cfg_callback, NULL, 0, cb_apop_database_owner,
     N_("Name or UID of the APOP database owner") },
@@ -247,9 +247,9 @@ static struct mu_cfg_param pop3d_cfg_param[] = {
        "Deprecated, use \"tls required\" instead.") },
 #endif
 #ifdef ENABLE_LOGIN_DELAY
-  { "login-delay", mu_cfg_time, &login_delay, 0, NULL,
+  { "login-delay", mu_c_time, &login_delay, 0, NULL,
     N_("Set the minimal allowed delay between two successive logins.") },
-  { "stat-file", mu_cfg_string, &login_stat_file, 0, NULL,
+  { "stat-file", mu_c_string, &login_stat_file, 0, NULL,
     N_("Set the name of login statistics file (for login-delay).") },
 #endif
   { "bulletin-source", mu_cfg_callback, NULL, 0, cb_bulletin_source,
@@ -260,12 +260,12 @@ static struct mu_cfg_param pop3d_cfg_param[] = {
     N_("Set the bulletin database file name."),
     N_("file") },
 #endif
-  { "output-buffer-size", mu_cfg_size, &pop3d_output_bufsize, 0, NULL,
+  { "output-buffer-size", mu_c_size, &pop3d_output_bufsize, 0, NULL,
     N_("Size of the output buffer.") },
   { "mandatory-locking", mu_cfg_section },
   { ".server", mu_cfg_section, NULL, 0, NULL,
     N_("Server configuration.") },
-  { "transcript", mu_cfg_bool, &pop3d_transcript, 0, NULL,
+  { "transcript", mu_c_bool, &pop3d_transcript, 0, NULL,
     N_("Set global transcript mode.") },
   TCP_WRAPPERS_CONFIG
   { NULL }

@@ -173,10 +173,11 @@ enum mu_c_type
     mu_c_host,
     mu_c_incr,        /* C int value, incremented each time mu_str_to_c is
 			 invoked */
+    mu_c_void         /* No type.  Keep it the last */
   };
 
 typedef enum mu_c_type mu_c_type_t;
-
+extern char const *mu_c_type_str[];
 int mu_str_to_c (char const *string, mu_c_type_t type, void *tgt,
 		 char **errmsg);
   

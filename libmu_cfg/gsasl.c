@@ -26,21 +26,21 @@
 static struct mu_gsasl_module_data gsasl_settings;
 
 static struct mu_cfg_param mu_gsasl_param[] = {
-  { "enable", mu_cfg_bool, &gsasl_settings.enable, 0, NULL,
+  { "enable", mu_c_bool, &gsasl_settings.enable, 0, NULL,
     N_("Enable GSASL (default)") },
-  { "cram-passwd", mu_cfg_string, &gsasl_settings.cram_md5_pwd, 0, NULL,
+  { "cram-passwd", mu_c_string, &gsasl_settings.cram_md5_pwd, 0, NULL,
     N_("Name of GSASL password file."),
     N_("file") },
-  { "service", mu_cfg_string, &gsasl_settings.service, 0, NULL,
+  { "service", mu_c_string, &gsasl_settings.service, 0, NULL,
     N_("SASL service name."),
     N_("name") },
-  { "realm", mu_cfg_string, &gsasl_settings.realm, 0, NULL,
+  { "realm", mu_c_string, &gsasl_settings.realm, 0, NULL,
     N_("SASL realm name."),
     N_("name") },
-  { "hostname", mu_cfg_string, &gsasl_settings.hostname, 0, NULL,
+  { "hostname", mu_c_string, &gsasl_settings.hostname, 0, NULL,
     N_("SASL host name."),
     N_("name") },
-  { "anonymous-user", mu_cfg_string, &gsasl_settings.anon_user, 0, NULL,
+  { "anonymous-user", mu_c_string, &gsasl_settings.anon_user, 0, NULL,
     N_("Anonymous user name."),
     N_("name") },
 

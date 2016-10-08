@@ -26,6 +26,7 @@ scantime
 strftime
 strin
 strout
+strtoc
 tempfile
 url-comp
 url-parse

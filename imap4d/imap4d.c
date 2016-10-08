@@ -321,7 +321,7 @@ cb_tls_required (void *data, mu_config_value_t *val)
 
   if (mu_cfg_assert_value_type (val, MU_CFG_STRING))
     return 1;
-  if (mu_cfg_parse_boolean (val->v.string, &bv))
+  if (mu_str_to_c (val->v.string, mu_c_bool, &bv, NULL))
     mu_error (_("Not a boolean value"));
   else if (bv)
     {
@@ -384,28 +384,28 @@ static struct mu_cfg_param imap4d_srv_param[] = {
 };
 
 static struct mu_cfg_param imap4d_cfg_param[] = {
-  { "allow-users", MU_CFG_LIST_OF(mu_cfg_string), &auth_allow_user_list,
+  { "allow-users", MU_CFG_LIST_OF(mu_c_string), &auth_allow_user_list,
     0, NULL, 
     N_("Allow access to users from this list.") },
-  { "deny-users", MU_CFG_LIST_OF(mu_cfg_string), &auth_deny_user_list,
+  { "deny-users", MU_CFG_LIST_OF(mu_c_string), &auth_deny_user_list,
     0, NULL, 
     N_("Deny access to users from this list.") },
-  { "allow-groups", MU_CFG_LIST_OF(mu_cfg_string), &auth_allow_group_list,
+  { "allow-groups", MU_CFG_LIST_OF(mu_c_string), &auth_allow_group_list,
     0, NULL, 
     N_("Allow access if the user group is in this list.") },
-  { "deny-groups", MU_CFG_LIST_OF(mu_cfg_string), &auth_deny_group_list,
+  { "deny-groups", MU_CFG_LIST_OF(mu_c_string), &auth_deny_group_list,
     0, NULL, 
     N_("Deny access if the user group is in this list.") },
   
-  { "homedir", mu_cfg_string, &modify_homedir, 0, NULL,
+  { "homedir", mu_c_string, &modify_homedir, 0, NULL,
     N_("Modify home directory.") },
-  { "personal-namespace", MU_CFG_LIST_OF(mu_cfg_string), &namespace[NS_PRIVATE],
+  { "personal-namespace", MU_CFG_LIST_OF(mu_c_string), &namespace[NS_PRIVATE],
     0, NULL, 
     N_("Set personal namespace.") },
-  { "other-namespace", MU_CFG_LIST_OF(mu_cfg_string), &namespace[NS_OTHER],
+  { "other-namespace", MU_CFG_LIST_OF(mu_c_string), &namespace[NS_OTHER],
     0, NULL, 
     N_("Set other users' namespace.") },
-  { "shared-namespace", MU_CFG_LIST_OF(mu_cfg_string), &namespace[NS_SHARED],
+  { "shared-namespace", MU_CFG_LIST_OF(mu_c_string), &namespace[NS_SHARED],
     0, NULL,
     N_("Set shared namespace.") },
   { "other-mailbox-mode", mu_cfg_callback, &mailbox_mode[NS_OTHER], 0,
@@ -414,9 +414,9 @@ static struct mu_cfg_param imap4d_cfg_param[] = {
   { "shared-mailbox-mode", mu_cfg_callback, &mailbox_mode[NS_SHARED], 0,
     cb_mailbox_mode,
     N_("File mode for mailboxes in shared namespace.") },
-  { "login-disabled", mu_cfg_bool, &login_disabled, 0, NULL,
+  { "login-disabled", mu_c_bool, &login_disabled, 0, NULL,
     N_("Disable LOGIN command.") },
-  { "create-home-dir", mu_cfg_bool, &create_home_dir, 0, NULL,
+  { "create-home-dir", mu_c_bool, &create_home_dir, 0, NULL,
     N_("If true, create non-existing user home directories.") },
   { "home-dir-mode", mu_cfg_callback, NULL, 0, cb_mode,
     N_("File mode for creating user home directories (octal)."),
@@ -437,19 +437,19 @@ static struct mu_cfg_param imap4d_cfg_param[] = {
        "  ident[://:<port: string-or-number>]\n"
        "  stdio"),
     N_("mode") },
-  { "preauth-only", mu_cfg_bool, &preauth_only, 0, NULL,
+  { "preauth-only", mu_c_bool, &preauth_only, 0, NULL,
     N_("Use only preauth mode.  If unable to setup it, disconnect "
        "immediately.") },
-  { "ident-keyfile", mu_cfg_string, &ident_keyfile, 0, NULL,
+  { "ident-keyfile", mu_c_string, &ident_keyfile, 0, NULL,
     N_("Name of DES keyfile for decoding encrypted ident responses.") },
-  { "ident-encrypt-only", mu_cfg_bool, &ident_encrypt_only, 0, NULL,
+  { "ident-encrypt-only", mu_c_bool, &ident_encrypt_only, 0, NULL,
     N_("Use only encrypted ident responses.") },
-  { "id-fields", MU_CFG_LIST_OF(mu_cfg_string), &imap4d_id_list, 0, NULL,
+  { "id-fields", MU_CFG_LIST_OF(mu_c_string), &imap4d_id_list, 0, NULL,
     N_("List of fields to return in response to ID command.") },
   { "mandatory-locking", mu_cfg_section },
   { ".server", mu_cfg_section, NULL, 0, NULL,
     N_("Server configuration.") },
-  { "transcript", mu_cfg_bool, &imap4d_transcript, 0, NULL,
+  { "transcript", mu_c_bool, &imap4d_transcript, 0, NULL,
     N_("Set global transcript mode.") },
   TCP_WRAPPERS_CONFIG
   { NULL }

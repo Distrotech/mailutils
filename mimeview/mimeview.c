@@ -164,10 +164,10 @@ struct mu_cfg_param mimeview_cfg_param[] = {
   { "debug", mu_cfg_callback, NULL, 0, cb_debug,
     N_("Set debug verbosity level."),
     N_("flags") },
-  { "mimetypes", mu_cfg_string, &mimetypes_config, 0, NULL,
+  { "mimetypes", mu_c_string, &mimetypes_config, 0, NULL,
     N_("Use this mime.types file."),
     N_("file") },
-  { "metamail", mu_cfg_string, &metamail, 0, NULL,
+  { "metamail", mu_c_string, &metamail, 0, NULL,
     N_("Use this program to display files."),
     N_("prog") },
   { NULL }

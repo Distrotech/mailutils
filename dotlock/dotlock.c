@@ -122,11 +122,11 @@ parse_opt (int key, char *arg, struct argp_state *state)
 
 
 struct mu_cfg_param dotlock_cfg_param[] = {
-  { "force", mu_cfg_time, &force, 0, NULL,
+  { "force", mu_c_time, &force, 0, NULL,
     N_("Forcibly break an existing lock older than the specified time.") },
-  { "retry", mu_cfg_int, &retries, 0, NULL,
+  { "retry", mu_c_int, &retries, 0, NULL,
     N_("Number of times to retry acquiring the lock.") },
-  { "debug", mu_cfg_bool, &debug, 0, NULL,
+  { "debug", mu_c_bool, &debug, 0, NULL,
     N_("Print details of failure reasons to stderr.") },
   { NULL }
 };

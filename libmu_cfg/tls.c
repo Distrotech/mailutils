@@ -77,18 +77,18 @@ cb_safety_checks (void *data, mu_config_value_t *arg)
 }
 
 static struct mu_cfg_param mu_tls_param[] = {
-  { "enable", mu_cfg_bool, &tls_settings.enable, 0, NULL,
+  { "enable", mu_c_bool, &tls_settings.enable, 0, NULL,
     N_("Enable TLS encryption.") },
-  { "ssl-cert", mu_cfg_string, &tls_settings.ssl_cert, 0, NULL,
+  { "ssl-cert", mu_c_string, &tls_settings.ssl_cert, 0, NULL,
     N_("Specify SSL certificate file."),
     N_("file") },
-  { "ssl-key", mu_cfg_string, &tls_settings.ssl_key, 0, NULL,
+  { "ssl-key", mu_c_string, &tls_settings.ssl_key, 0, NULL,
     N_("Specify SSL certificate key file."),
     N_("file") },
-  { "ssl-cafile", mu_cfg_string, &tls_settings.ssl_cafile, 0, NULL,
+  { "ssl-cafile", mu_c_string, &tls_settings.ssl_cafile, 0, NULL,
     N_("Specify trusted CAs file."),
     N_("file") },
-  { "ssl-priorities", mu_cfg_string, &tls_settings.priorities, 0, NULL,
+  { "ssl-priorities", mu_c_string, &tls_settings.priorities, 0, NULL,
     N_("Set the priorities to use on the ciphers, key exchange methods, "
        "macs and compression methods."),
     NULL },

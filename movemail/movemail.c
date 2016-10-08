@@ -371,17 +371,17 @@ cb_onerror (void *data, mu_config_value_t *val)
 }
   
 struct mu_cfg_param movemail_cfg_param[] = {
-  { "preserve", mu_cfg_bool, &preserve_mail, 0, NULL,
+  { "preserve", mu_c_bool, &preserve_mail, 0, NULL,
     N_("Do not remove messages from the source mailbox.") },
-  { "reverse",  mu_cfg_bool, &reverse_order, 0, NULL,
+  { "reverse",  mu_c_bool, &reverse_order, 0, NULL,
     N_("Reverse message sorting order.") },
-  { "emacs", mu_cfg_bool, &emacs_mode, 0, NULL,
+  { "emacs", mu_c_bool, &emacs_mode, 0, NULL,
     N_("Output information used by Emacs rmail interface.") },
-  { "uidl", mu_cfg_bool, &uidl_option, 0, NULL,
+  { "uidl", mu_c_bool, &uidl_option, 0, NULL,
     N_("Use UIDLs to avoid downloading the same message twice.") },
-  { "verbose", mu_cfg_int, &verbose_option, 0, NULL,
+  { "verbose", mu_c_int, &verbose_option, 0, NULL,
     N_("Set verbosity level.") },
-  { "program-id", mu_cfg_string, &program_id_option, 0, NULL,
+  { "program-id", mu_c_string, &program_id_option, 0, NULL,
     N_("Set program identifier string (default: program name)") },
   { "mailbox-ownership", mu_cfg_callback, NULL, 0,
     cb_mailbox_ownership,
@@ -392,10 +392,10 @@ struct mu_cfg_param movemail_cfg_param[] = {
        " set-id=UID[:GID] set supplied UID and GID\n"
        " set-name=USER    make destination mailbox owned by USER"),
     N_("methods: list") },
-  { "max-messages", mu_cfg_size, &max_messages_option, 0, NULL,
+  { "max-messages", mu_c_size, &max_messages_option, 0, NULL,
     N_("Copy at most <count> messages."),
     N_("count") },
-  { "ignore-errors", mu_cfg_bool, &ignore_errors, 0, NULL,
+  { "ignore-errors", mu_c_bool, &ignore_errors, 0, NULL,
     N_("Continue after an error.") },
   { "onerror", mu_cfg_callback, NULL, 0, cb_onerror,
     N_("What to do after an error. Argument is a comma-separated list of:\n"

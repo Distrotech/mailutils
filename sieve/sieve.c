@@ -281,12 +281,12 @@ cb_email (void *data, mu_config_value_t *val)
 }
 
 static struct mu_cfg_param sieve_cfg_param[] = {
-  { "keep-going", mu_cfg_bool, &keep_going, 0, NULL,
+  { "keep-going", mu_c_bool, &keep_going, 0, NULL,
     N_("Do not abort if execution fails on a message.") },
-  { "mbox-url", mu_cfg_string, &mbox_url, 0, NULL,
+  { "mbox-url", mu_c_string, &mbox_url, 0, NULL,
     N_("Mailbox to sieve (defaults to user's mail spool)."),
     N_("url") },
-  { "ticket", mu_cfg_string, &mu_ticket_file, 0, NULL,
+  { "ticket", mu_c_string, &mu_ticket_file, 0, NULL,
     N_("Ticket file for user authentication."),
     N_("ticket") },
   { "debug", mu_cfg_callback, NULL, 0, cb_debug,
@@ -297,9 +297,9 @@ static struct mu_cfg_param sieve_cfg_param[] = {
        "   P - network protocols (sieve.prot)\n"
        "   t - sieve trace (MU_SIEVE_DEBUG_TRACE)\n"
        "   i - sieve instructions trace (MU_SIEVE_DEBUG_INSTR).") },
-  { "verbose", mu_cfg_bool, &verbose, 0, NULL,
+  { "verbose", mu_c_bool, &verbose, 0, NULL,
     N_("Log all executed actions.") },
-  { "line-info", mu_cfg_bool, &sieve_print_locus, 0, NULL,
+  { "line-info", mu_c_bool, &sieve_print_locus, 0, NULL,
     N_("Print source locations along with action logs (default).") },
   { "email", mu_cfg_callback, NULL, 0, cb_email,
     N_("Set user email address.") },

@@ -22,6 +22,7 @@
 #include <mailutils/list.h>
 #include <mailutils/debug.h>
 #include <mailutils/opool.h>
+#include <mailutils/util.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -113,27 +114,6 @@ void mu_cfg_destroy_tree (mu_cfg_tree_t **tree);
 int mu_cfg_preorder (mu_list_t nodelist, struct mu_cfg_iter_closure *);
 
 
-/* Table-driven parsing */
-enum mu_cfg_param_data_type
-  {
-    mu_cfg_string,
-    mu_cfg_short,
-    mu_cfg_ushort,
-    mu_cfg_int,
-    mu_cfg_uint,
-    mu_cfg_long,
-    mu_cfg_ulong,
-    mu_cfg_size,
-    mu_cfg_off,
-    mu_cfg_time,
-    mu_cfg_bool,
-    mu_cfg_ipv4,
-    mu_cfg_cidr,
-    mu_cfg_host,
-    mu_cfg_callback,
-    mu_cfg_section
-  };
-
 #define MU_CFG_LIST_MASK 0x8000
 #define MU_CFG_LIST_OF(t) ((t) | MU_CFG_LIST_MASK)
 #define MU_CFG_TYPE(t) ((t) & ~MU_CFG_LIST_MASK)
@@ -141,10 +121,16 @@ enum mu_cfg_param_data_type
   
 typedef int (*mu_cfg_callback_t) (void *, mu_config_value_t *);
 
+enum mu_cfg_param_type
+  {
+    mu_cfg_section = mu_c_void + 1,
+    mu_cfg_callback
+  };
+  
 struct mu_cfg_param
 {
   const char *ident;
-  enum mu_cfg_param_data_type type;
+  int type;       /* One of enum mu_c_type or mu_cfg_param_type values */
   void *data;
   size_t offset;
   mu_cfg_callback_t callback;
@@ -195,14 +181,6 @@ struct mu_cfg_cont
     struct mu_cfg_section section;
     struct mu_cfg_param param;
   } v;
-};
-
-typedef struct mu_cfg_cidr mu_cfg_cidr_t;
-
-struct mu_cfg_cidr
-{
-  struct in_addr addr;
-  unsigned long mask;
 };
 
 #define MU_CFG_PATH_DELIM '.'
@@ -270,8 +248,6 @@ int mu_config_register_plain_section (const char *parent_path,
 int mu_parse_config (const char *file, const char *progname,
 		     struct mu_cfg_param *progparam, int flags,
 		     void *target_ptr) MU_CFG_DEPRECATED;
-
-int mu_cfg_parse_boolean (const char *str, int *res);
 
 extern int mu_cfg_parser_verbose;
 extern size_t mu_cfg_error_count;

@@ -126,21 +126,21 @@ readmsg_parse_opt (int key, char *arg, struct argp_state *astate)
 
 
 struct mu_cfg_param readmsg_cfg_param[] = {
-  { "debug", mu_cfg_int, &dbug, 0, NULL,
+  { "debug", mu_c_int, &dbug, 0, NULL,
     N_("Set debug verbosity level.") },
-  { "header", mu_cfg_bool, &all_header, 0, NULL,
+  { "header", mu_c_bool, &all_header, 0, NULL,
     N_("Display entire headers.") },
-  { "weedlist", mu_cfg_string, &weedlist, 0, NULL,
+  { "weedlist", mu_c_string, &weedlist, 0, NULL,
     N_("Display only headers from this list.  Argument is a list of header "
        "names separated by whitespace or commas."),
     N_("list") },
-  { "folder", mu_cfg_string, &mailbox_name, 0, NULL,
+  { "folder", mu_c_string, &mailbox_name, 0, NULL,
     N_("Read messages from this folder.") },
-  { "no-header", mu_cfg_bool, &no_header, 0, NULL,
+  { "no-header", mu_c_bool, &no_header, 0, NULL,
     N_("Exclude all headers.") }, 
-  { "form-feeds", mu_cfg_bool, &form_feed, 0, NULL,
+  { "form-feeds", mu_c_bool, &form_feed, 0, NULL,
     N_("Output formfeed character between messages.") },
-  { "show-all-match", mu_cfg_bool, &show_all, 0, NULL,
+  { "show-all-match", mu_c_bool, &show_all, 0, NULL,
     N_("Print all messages matching pattern, not only the first.") },
   { NULL }
 };

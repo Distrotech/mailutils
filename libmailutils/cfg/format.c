@@ -263,35 +263,38 @@ mu_cfg_format_node (mu_stream_t stream, const mu_cfg_node_t *node, int flags)
 
 
 const char *
-mu_cfg_data_type_string (enum mu_cfg_param_data_type type)
+mu_c_type_string (int type)
 {
   switch (type)
     {
-    case mu_cfg_string:
+    case mu_c_string:
       return N_("string");
-    case mu_cfg_short:
-    case mu_cfg_ushort:
-    case mu_cfg_int:
-    case mu_cfg_uint:
-    case mu_cfg_long:
-    case mu_cfg_ulong:
-    case mu_cfg_size:
-    case mu_cfg_off:
+    case mu_c_short:
+    case mu_c_ushort:
+    case mu_c_int:
+    case mu_c_uint:
+    case mu_c_long:
+    case mu_c_ulong:
+    case mu_c_size:
+    case mu_c_off:
+    case mu_c_incr:
       return N_("number");
-    case mu_cfg_time:
+    case mu_c_time:
       return N_("time");
-    case mu_cfg_bool:
+    case mu_c_bool:
       return N_("boolean");
-    case mu_cfg_ipv4:
+    case mu_c_ipv4:
       return N_("ipv4");
-    case mu_cfg_cidr:
+    case mu_c_cidr:
       return N_("cidr");
-    case mu_cfg_host:
+    case mu_c_host:
       return N_("host");
-    case mu_cfg_callback:
-      return N_("string");
     case mu_cfg_section:
       return N_("section");
+    case mu_cfg_callback:
+      return N_("callback");
+    default:
+      break;
     }
   return N_("unknown");
 }
@@ -361,13 +364,13 @@ format_param (mu_stream_t stream, struct mu_cfg_param *param, int level)
 		      param->ident,
 		      gettext (param->argname ?
 			       param->argname : N_("arg")),
-	gettext (mu_cfg_data_type_string (MU_CFG_TYPE (param->type))));
+	gettext (mu_c_type_string (MU_CFG_TYPE (param->type))));
   else
     mu_stream_printf (stream, "%s <%s: %s>;\n",
 		      param->ident,
 		      gettext (param->argname ?
 			       param->argname : N_("arg")),
-		      gettext (mu_cfg_data_type_string (param->type)));
+		      gettext (mu_c_type_string (param->type)));
 }
 
 static void format_container (mu_stream_t stream, struct mu_cfg_cont *cont,

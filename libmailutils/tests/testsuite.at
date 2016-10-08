@@ -53,6 +53,9 @@ AT_CLEANUP
 
 AT_INIT
 
+AT_BANNER([Conversions])
+m4_include([strtoc.at])
+
 AT_BANNER([Standard streams])
 m4_include([strin.at])
 m4_include([strout.at])

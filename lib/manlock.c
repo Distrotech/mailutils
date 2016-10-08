@@ -185,9 +185,9 @@ manlock_open_mailbox (mu_mailbox_t *pmbox, const char *mailbox_name, int def,
 
 
 struct mu_cfg_param manlock_param[] = {
-  { "enable", mu_cfg_bool, &manlock_mandatory_locking, 0, NULL,
+  { "enable", mu_c_bool, &manlock_mandatory_locking, 0, NULL,
     N_("Enable mandatory locking.") },
-  { "lock-directory", mu_cfg_string, &manlock_lock_dir, 0, NULL,
+  { "lock-directory", mu_c_string, &manlock_lock_dir, 0, NULL,
     N_("Set directory for mandatory lock files.") },
   { NULL }
 };

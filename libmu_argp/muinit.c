@@ -138,7 +138,7 @@ mu_app_init (struct argp *myargp, const char **capa,
       mu_stream_t stream;
       struct mu_cfg_cont *cont;
       static struct mu_cfg_param dummy_include_param[] = {
-	{ "include", mu_cfg_string, NULL, 0, NULL,
+	{ "include", mu_c_string, NULL, 0, NULL,
 	  N_("Include contents of the given file.  If a directory is given, "
 	     "include contents of the file <file>/<program>, where "
 	     "<program> is the name of the program.  This latter form is "

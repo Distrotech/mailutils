@@ -284,7 +284,7 @@ cb_stderr (void *data, mu_config_value_t *val)
   
   if (mu_cfg_assert_value_type (val, MU_CFG_STRING))
     return 1;
-  if (mu_cfg_parse_boolean (val->v.string, &res))
+  if (mu_str_to_c (val->v.string, mu_c_bool, &res, NULL))
     mu_error (_("not a boolean"));
   else
     mu_log_syslog = !res;
@@ -415,24 +415,24 @@ struct mu_cfg_param maidag_cfg_param[] = {
   { "delivery-mode", mu_cfg_callback, NULL, 0, cb_delivery_mode,
     N_("Set delivery mode"),
     N_("mode: {mda | url | lmtp}") },
-  { "exit-multiple-delivery-success", mu_cfg_bool, &multiple_delivery, 0, NULL,
+  { "exit-multiple-delivery-success", mu_c_bool, &multiple_delivery, 0, NULL,
     N_("In case of multiple delivery, exit with code 0 if at least one "
        "delivery succeeded.") },
-  { "exit-quota-tempfail", mu_cfg_bool, &ex_quota_tempfail, 0, NULL,
+  { "exit-quota-tempfail", mu_c_bool, &ex_quota_tempfail, 0, NULL,
     N_("Indicate temporary failure if the recipient is over his mail quota.")
   },
 #ifdef ENABLE_DBM
-  { "quota-db", mu_cfg_string, &quotadbname, 0, NULL,
+  { "quota-db", mu_c_string, &quotadbname, 0, NULL,
     N_("Name of DBM quota database file."),
     N_("file") },
 #endif
 #ifdef USE_SQL
-  { "quota-query", mu_cfg_string, &quota_query, 0, NULL,
+  { "quota-query", mu_c_string, &quota_query, 0, NULL,
     N_("SQL query to retrieve mailbox quota.  This is deprecated, use "
        "sql { ... } instead."),
     N_("query") },
 #endif
-  { "message-id-header", mu_cfg_string, &message_id_header, 0, NULL,
+  { "message-id-header", mu_c_string, &message_id_header, 0, NULL,
     N_("When logging Sieve actions, identify messages by the value of "
        "this header."),
     N_("name") },
@@ -445,12 +445,12 @@ struct mu_cfg_param maidag_cfg_param[] = {
        "  l - sieve action logs\n") },
   { "stderr", mu_cfg_callback, NULL, 0, cb_stderr,
     N_("Log to stderr instead of syslog.") },
-  { "forward-file", mu_cfg_string, &forward_file, 0, NULL,
+  { "forward-file", mu_c_string, &forward_file, 0, NULL,
     N_("Process forward file.") },
   { "forward-file-checks", mu_cfg_callback, NULL, 0, cb_forward_file_checks,
     N_("Configure safety checks for the forward file."),
     N_("arg: list") },
-  { "domain", mu_cfg_string, &default_domain, 0, NULL,
+  { "domain", mu_c_string, &default_domain, 0, NULL,
     N_("Default email domain") },
 /* LMTP support */
   { "group", mu_cfg_callback, &lmtp_groups, 0, cb_group,
@@ -463,7 +463,7 @@ struct mu_cfg_param maidag_cfg_param[] = {
        "   file://<socket-file-name>\n"
        "or socket://<socket-file-name>"),
     N_("url") },
-  { "reuse-address", mu_cfg_bool, &reuse_lmtp_address, 0, NULL,
+  { "reuse-address", mu_c_bool, &reuse_lmtp_address, 0, NULL,
     N_("Reuse existing address (LMTP mode).  Default is \"yes\".") },
   { "filter", mu_cfg_section, NULL, 0, NULL,
     N_("Add a message filter") },

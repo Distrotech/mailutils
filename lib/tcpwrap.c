@@ -53,17 +53,17 @@ mu_tcpwrapper_access (int fd)
 }
 
 struct mu_cfg_param tcpwrapper_param[] = {
-  { "enable", mu_cfg_bool, &mu_tcp_wrapper_enable, 0, NULL,	      
+  { "enable", mu_c_bool, &mu_tcp_wrapper_enable, 0, NULL,	      
     N_("Enable TCP wrapper access control.  Default is \"yes\".") },	      
-  { "daemon", mu_cfg_string, &mu_tcp_wrapper_daemon, 0, NULL,     
+  { "daemon", mu_c_string, &mu_tcp_wrapper_daemon, 0, NULL,     
     N_("Set daemon name for TCP wrapper lookups.  Default is program name."), 
     N_("name") },							      
-  { "allow-table", mu_cfg_string, &hosts_allow_table,
+  { "allow-table", mu_c_string, &hosts_allow_table,
     0, NULL,
     N_("Use file for positive client address access control "		      
        "(default: /etc/hosts.allow)."),					      
     N_("file") },							      
-  { "deny-table", mu_cfg_string, &hosts_deny_table,
+  { "deny-table", mu_c_string, &hosts_deny_table,
     0, NULL,                                             
     N_("Use file for negative client address access control "		      
        "(default: /etc/hosts.deny)."),					      

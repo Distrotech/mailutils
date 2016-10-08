@@ -128,7 +128,7 @@ biffrc_error_ctl (mu_config_value_t *val, int flag)
   
   if (mu_cfg_assert_value_type (val, MU_CFG_STRING))
     return 1;
-  if (mu_cfg_parse_boolean (val->v.string, &res))
+  if (mu_str_to_c (val->v.string, mu_c_bool, &res, NULL))
     mu_diag_output (MU_LOG_ERROR, _("not a boolean"));
   else if (res)
     biffrc_errors |= flag;
@@ -150,9 +150,9 @@ cb_biffrc_errors_to_err (void *data, mu_config_value_t *val)
 }
 
 struct mu_cfg_param comsat_cfg_param[] = {
-  { "allow-biffrc", mu_cfg_bool, &allow_biffrc, 0, NULL,
+  { "allow-biffrc", mu_c_bool, &allow_biffrc, 0, NULL,
     N_("Read .biffrc file from the user home directory.") },
-  { "require-tty", mu_cfg_bool, &require_tty, 0, NULL,
+  { "require-tty", mu_c_bool, &require_tty, 0, NULL,
     N_("Notify only if the user is logged on one of the ttys.") },
   { "biffrc-errors-to-tty", mu_cfg_callback, NULL, 0, cb_biffrc_errors_to_tty,
     N_("Send biffrc errors to user's tty."),
@@ -160,17 +160,17 @@ struct mu_cfg_param comsat_cfg_param[] = {
   { "biffrc-errors-to-err", mu_cfg_callback, NULL, 0, cb_biffrc_errors_to_err,
     N_("Send biffrc errors to Mailutils error output."),
     N_("arg: bool") },
-  { "max-lines", mu_cfg_int, &maxlines, 0, NULL,
+  { "max-lines", mu_c_int, &maxlines, 0, NULL,
     N_("Maximum number of message body lines to be output.") },
-  { "max-requests", mu_cfg_uint, &maxrequests, 0, NULL,
+  { "max-requests", mu_c_uint, &maxrequests, 0, NULL,
     N_("Maximum number of incoming requests per request control interval.") },
-  { "request-control-interval", mu_cfg_time, &request_control_interval,
+  { "request-control-interval", mu_c_time, &request_control_interval,
     0, NULL,
     N_("Set control interval.") },
-  { "overflow-control-interval", mu_cfg_time, &overflow_control_interval,
+  { "overflow-control-interval", mu_c_time, &overflow_control_interval,
     0, NULL,
     N_("Set overflow control interval.") },
-  { "overflow-delay-time", mu_cfg_time, &overflow_delay_time,
+  { "overflow-delay-time", mu_c_time, &overflow_delay_time,
     0, NULL,
     N_("Time to sleep after the first overflow occurs.") },
   { ".server", mu_cfg_section, NULL, 0, NULL,

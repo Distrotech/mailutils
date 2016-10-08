@@ -62,6 +62,7 @@ noinst_PROGRAMS = \
  strftime\
  strin\
  strout\
+ strtoc\
  tempfile\
  url-comp\
  url-parse\
@@ -109,6 +110,7 @@ TESTSUITE_AT = \
  strerr.at\
  strin.at\
  strout.at\
+ strtoc.at\
  testsuite.at\
  url.at\
  url-comp.at\

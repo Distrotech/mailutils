@@ -40,6 +40,7 @@
 #include <mailutils/cctype.h>
 #include <mailutils/stream.h>
 #include <mailutils/stdstream.h>
+#include <mailutils/cidr.h>
 
 int mu_cfg_parser_verbose;
 static mu_list_t /* of mu_cfg_node_t */ parse_node_list; 
@@ -781,385 +782,52 @@ pop_section (struct scan_tree_data *dat)
   return sec;
 }
 
-#define STRTONUM(s, type, base, res, limit, loc)			\
-  {									\
-    type sum = 0;							\
-    									\
-    for (; *s; s++)							\
-      {									\
-	type x;								\
-									\
-	if ('0' <= *s && *s <= '9')					\
-	  x = sum * base + *s - '0';					\
-	else if (base == 16 && 'a' <= *s && *s <= 'f')			\
-	  x = sum * base + *s - 'a';					\
-	else if (base == 16 && 'A' <= *s && *s <= 'F')			\
-	  x = sum * base + *s - 'A';					\
-	else								\
-	  break;							\
-	if (x <= sum)							\
-	  {								\
-	    mu_diag_at_locus (MU_LOG_ERROR, loc,			\
-			      _("numeric overflow"));		        \
-	    mu_cfg_error_count++;					\
-	    return 1;							\
-	  }								\
-	else if (limit && x > limit)					\
-	  {								\
-	    mu_diag_at_locus (MU_LOG_ERROR, loc,			\
-			      _("value out of allowed range"));		\
-	    mu_cfg_error_count++;					\
-	    return 1;							\
-	  }								\
-	sum = x;							\
-      }									\
-    res = sum;								\
-  }
-
-#define STRxTONUM(s, type, res, limit, loc)				\
-  {									\
-    int base;								\
-    if (*s == '0')							\
-      {									\
-	s++;								\
-	if (*s == 0)							\
-	  base = 10;							\
-	else if (*s == 'x' || *s == 'X')				\
-	  {								\
-	    s++;							\
-	    base = 16;							\
-	  }								\
-	else								\
-	  base = 8;							\
-      } else								\
-      base = 10;							\
-    STRTONUM (s, type, base, res, limit, loc);				\
-  }
-
-#define GETUNUM(str, type, res, loc)					\
-  {									\
-    type tmpres;							\
-    const char *s = str;						\
-    STRxTONUM (s, type, tmpres, 0, loc);				\
-    if (*s)								\
-      {									\
-	mu_diag_at_locus (MU_LOG_ERROR, loc,			        \
-			  _("not a number (stopped near `%s')"),	\
-			  s);						\
-	mu_cfg_error_count++;						\
-	return 1;							\
-      }									\
-    res = tmpres;							\
-  }
-
-#define GETSNUM(str, type, res, loc)					\
-  {									\
-    unsigned type tmpres;						\
-    const char *s = str;						\
-    int sign;							        \
-    unsigned type limit;						\
-    									\
-    if (*s == '-')							\
-      {									\
-	sign = 1;							\
-	s++;								\
-	limit = TYPE_MINIMUM (type);					\
-	limit = - limit;						\
-      }									\
-    else								\
-      {									\
-	sign = 0;							\
-	limit = TYPE_MAXIMUM (type);					\
-      }									\
-    									\
-    STRxTONUM (s, unsigned type, tmpres, limit, loc);			\
-    if (*s)								\
-      {									\
-	mu_diag_at_locus (MU_LOG_ERROR, loc,			        \
-			  _("not a number (stopped near `%s')"),	\
-			  s);						\
-	mu_cfg_error_count++;						\
-	return 1;							\
-      }									\
-    res = sign ? - tmpres : tmpres;					\
-  }
-
 static int
-parse_ipv4 (struct scan_tree_data *sdata, const struct mu_locus *locus,
-	    const char *str, struct in_addr *res)
+valcvt (const struct mu_locus *locus,
+	void *tgt, mu_c_type_t type, mu_config_value_t *val)
 {
-  struct in_addr addr;
-  if (inet_aton (str, &addr) == 0)
-    {
-      mu_diag_at_locus (MU_LOG_ERROR, &mu_cfg_locus, _("not an IPv4"));
-      mu_cfg_error_count++;
-      return 1;
-    }
-  addr.s_addr = ntohl (addr.s_addr);
-  *res = addr;
-  return 0;
-}
-
-static int
-parse_host (struct scan_tree_data *sdata, const struct mu_locus *locus,
-	    const char *str, struct in_addr *res)
-{
-  struct in_addr addr;
-  struct hostent *hp = gethostbyname (str);
-  if (hp)
-    {
-      addr.s_addr = *(unsigned long *)hp->h_addr;
-    }
-  else if (inet_aton (str, &addr) == 0)
-    {
-      mu_diag_at_locus (MU_LOG_ERROR, &mu_cfg_locus,
-			_("cannot resolve hostname `%s'"),
-			str);
-      mu_cfg_error_count++;
-      return 1;
-    }
-  addr.s_addr = ntohl (addr.s_addr);
-  *res = addr;
-  return 0;
-}
-
-static int
-parse_cidr (struct scan_tree_data *sdata, const struct mu_locus *locus,
-	    const char *str, mu_cfg_cidr_t *res)
-{
-  struct in_addr addr;
-  unsigned long mask;
-  char astr[16];
-  const char *p, *s;
+  int rc;
+  char *errmsg;
   
-  p = strchr (str, '/');
-  if (p)
-    {
-      int len = p - str;
-      if (len > sizeof astr - 1)
-	{
-	  mu_diag_at_locus (MU_LOG_ERROR, &mu_cfg_locus,
-			    _("not a valid IPv4 address in CIDR"));
-	  mu_cfg_error_count++;
-	  return 1;
-	}
-      memcpy (astr, str, len);
-      astr[len] = 0;
-      if (inet_aton (astr, &addr) == 0)
-	{
-	  mu_diag_at_locus (MU_LOG_ERROR, &mu_cfg_locus,
-			    _("not a valid IPv4 address in CIDR"));
-	  mu_cfg_error_count++;
-	  return 1;
-	}
-      addr.s_addr = ntohl (addr.s_addr);
-      
-      p++;
-      s = p;
-      STRxTONUM (s, unsigned long, mask, 0, locus);
-      if (*s == '.')
-	{
-	  struct in_addr a;
-	  if (inet_aton (p, &a) == 0)
-	    {
-	      mu_diag_at_locus (MU_LOG_ERROR, &mu_cfg_locus,
-				_("not a valid network in CIDR"));
-	      mu_cfg_error_count++;
-	      return 1;
-	    }
-	  a.s_addr = ntohl (a.s_addr);
-	  for (mask = 0; (a.s_addr & 1) == 0 && mask < 32; )
-	    {
-	      mask++;
-	      a.s_addr >>= 1;
-	    }
-	  mask = 32 - mask;
-	}
-      else if (mask > 32)
-	{
-	  mu_diag_at_locus (MU_LOG_ERROR, &mu_cfg_locus,
-			    _("not a valid network mask in CIDR"));
-	  mu_cfg_error_count++;
-	  return 1;
-	}
-    }
-  else
-    {
-      int i;
-      unsigned short x;
-      addr.s_addr = 0;
-      
-      p = str;
-      for (i = 0; i < 3; i++)
-	{
-	  STRxTONUM (p, unsigned short, x, 255, locus);
-	  if (*p != '.')
-	    break;
-	  addr.s_addr = (addr.s_addr << 8) + x;
-	}
-      
-      if (*p)
-	{
-	  mu_diag_at_locus (MU_LOG_ERROR, &mu_cfg_locus,
-			    _("not a CIDR (stopped near `%s')"),
-			    p);
-	  mu_cfg_error_count++;
-	  return 1;
-	}
-      
-      mask = i * 8;
-      
-      addr.s_addr <<= (4 - i) * 8;
-    }
-  
-  res->addr = addr;
-  res->mask = mask;
-  return 0;
-}
-
-int
-mu_cfg_parse_boolean (const char *str, int *res)
-{
-  if (strcmp (str, "yes") == 0
-      || strcmp (str, "on") == 0
-      || strcmp (str, "t") == 0
-      || strcmp (str, "true") == 0
-      || strcmp (str, "1") == 0)
-    *res = 1;
-  else if (strcmp (str, "no") == 0
-	   || strcmp (str, "off") == 0
-	   || strcmp (str, "nil") == 0
-	   || strcmp (str, "false") == 0
-	   || strcmp (str, "0") == 0)
-    *res = 0;
-  else
-    return 1;
-  return 0;
-}
-
-static int
-parse_bool (struct scan_tree_data *sdata, const struct mu_locus *locus,
-	    const char *str, int *res)
-{
-  if (mu_cfg_parse_boolean (str, res))
-    {
-      mu_diag_at_locus (MU_LOG_ERROR, locus, _("not a boolean"));
-      mu_cfg_error_count++;
-      return 1;
-    }
-  return 0;
-}
-
-static int
-valcvt (struct scan_tree_data *sdata, const struct mu_locus *locus,
-	void *tgt,
-	enum mu_cfg_param_data_type type, mu_config_value_t *val)
-{
   if (val->type != MU_CFG_STRING)
     {
       mu_diag_at_locus (MU_LOG_ERROR, locus, _("expected string value"));
       mu_cfg_error_count++;
       return 1;
     }
-  switch (type)
+
+  rc = mu_str_to_c (val->v.string, type, tgt, &errmsg);
+  if (rc)
     {
-    case mu_cfg_string:
-      {
-	char *s = mu_strdup (val->v.string);
-	/* FIXME: free tgt? */
-	*(char**)tgt = s;
-	break;
-      }
-      
-    case mu_cfg_short:
-      GETUNUM (val->v.string, short, *(short*)tgt, locus);
-      break;
-      
-    case mu_cfg_ushort:
-      GETUNUM (val->v.string, unsigned short, *(unsigned short*)tgt, locus);
-      break;
-      
-    case mu_cfg_int:
-      GETSNUM (val->v.string, int, *(int*)tgt, locus);
-      break;
-      
-    case mu_cfg_uint:
-      GETUNUM (val->v.string, unsigned int, *(unsigned int*)tgt, locus);
-      break;
-      
-    case mu_cfg_long:
-      GETSNUM (val->v.string, long, *(long*)tgt, locus);
-      break;
-      
-    case mu_cfg_ulong:
-      GETUNUM (val->v.string, unsigned long, *(unsigned long*)tgt, locus);
-      break;
-      
-    case mu_cfg_size:
-      GETUNUM (val->v.string, size_t, *(size_t*)tgt, locus);
-      break;
-      
-    case mu_cfg_off:
-      mu_diag_at_locus (MU_LOG_ERROR, locus, _("not implemented yet"));
-      mu_cfg_error_count++;
-      /* GETSNUM(node->tag_label, off_t, *(off_t*)tgt); */
-      return 1;
-      
-    case mu_cfg_time:
-      GETUNUM (val->v.string, time_t, *(time_t*)tgt, locus);
-      break;
-      
-    case mu_cfg_bool:
-      if (parse_bool (sdata, locus, val->v.string, (int*) tgt))
-	return 1;
-      break;
-      
-    case mu_cfg_ipv4:
-      if (parse_ipv4 (sdata, locus, val->v.string, (struct in_addr *)tgt))
-	return 1;
-      break;
-      
-    case mu_cfg_cidr:
-      if (parse_cidr (sdata, locus, val->v.string, (mu_cfg_cidr_t *)tgt))
-	return 1;
-      break;
-      
-    case mu_cfg_host:
-      if (parse_host (sdata, locus, val->v.string, (struct in_addr *)tgt))
-	return 1;
-      break;
-      
-    default:
-      return 1;
+      mu_diag_at_locus (MU_LOG_ERROR, locus, "%s",
+			errmsg ? errmsg : mu_strerror (rc));
+      free (errmsg);
     }
-  return 0;
+  return rc;
 }
 
 struct set_closure
 {
   mu_list_t list;
-  enum mu_cfg_param_data_type type;
+  int type;
   struct scan_tree_data *sdata;
   const struct mu_locus *locus;
 };
 
 static size_t config_type_size[] = {
-  sizeof (char*),          /* mu_cfg_string */
-  sizeof (short),          /* mu_cfg_short */
-  sizeof (unsigned short), /* mu_cfg_ushort */
-  sizeof (int),            /* mu_cfg_int */
-  sizeof (unsigned),       /* mu_cfg_uint */
-  sizeof (long),           /* mu_cfg_long */
-  sizeof (unsigned long),  /* mu_cfg_ulong */
-  sizeof (size_t),         /* mu_cfg_size */
-  sizeof (mu_off_t),       /* mu_cfg_off */
-  sizeof (time_t),         /* mu_cfg_time */
-  sizeof (int),            /* mu_cfg_bool */
-  sizeof (struct in_addr), /* mu_cfg_ipv4 */
-  sizeof (mu_cfg_cidr_t),  /* mu_cfg_cidr */
-  sizeof (struct in_addr), /* mu_cfg_host */
-  0,                       /* mu_cfg_callback */
-  0,                       /* mu_cfg_section */
+  [mu_c_string] = sizeof (char*),          
+  [mu_c_short]  = sizeof (short),          
+  [mu_c_ushort] = sizeof (unsigned short), 
+  [mu_c_int]    = sizeof (int),            
+  [mu_c_uint]   = sizeof (unsigned),       
+  [mu_c_long]   = sizeof (long),           
+  [mu_c_ulong]  = sizeof (unsigned long),  
+  [mu_c_size]   = sizeof (size_t),         
+  [mu_c_time]   = sizeof (time_t),         
+  [mu_c_bool]   = sizeof (int),            
+  [mu_c_ipv4]   = sizeof (struct in_addr), 
+  [mu_c_cidr]   = sizeof (struct mu_cidr), 
+  [mu_c_host]   = sizeof (struct in_addr), 
 };
 
 static int
@@ -1188,7 +856,7 @@ _set_fun (void *item, void *data)
       return 1;
     }
   
-  if (valcvt (clos->sdata, clos->locus, &tgt, clos->type, val) == 0)
+  if (valcvt (clos->locus, &tgt, clos->type, val) == 0)
     mu_list_append (clos->list, tgt);
   return 0;
 }
@@ -1274,7 +942,7 @@ parse_param (struct scan_tree_data *sdata, const mu_cfg_node_t *node)
 	return 1;
     }
   else
-    return valcvt (sdata, &node->locus, tgt, clos.type, node->label);
+    return valcvt (&node->locus, tgt, clos.type, node->label);
   
   return 0;
 }
