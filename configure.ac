@@ -31,7 +31,7 @@ dnl Autobuild stuff
 AB_INIT
 
 dnl Library versioning
-AC_SUBST(VI_CURRENT,  4)
+AC_SUBST(VI_CURRENT,  5)
 AC_SUBST(VI_REVISION, 0)
 AC_SUBST(VI_AGE,      0)
 
@@ -111,15 +111,12 @@ AC_CHECK_TYPE(iconv_t,:,
 ])
 
 # NOTE: Generally speaking, Mailutils libraries are not allowed to include
-# gnulib headers.  The only exceptions are: gettext.h, which is needed for
-# proper i18n, and intprops.h, which is used in libmailutils/cfg_parser.y.
-# This latter will probably be rewritten to remove the need for intprops.h.
+# gnulib headers.  The only exception is gettext.h, which is needed for
+# proper i18n.
 #
-# To make these two headers accessible for the libraries, they are linked
-# to include/.
+# To make it accessible for the libraries, it is linked to include/.
 #
 AC_CONFIG_LINKS(include/gettext.h:lib/gnu/gettext.h)
-AC_CONFIG_LINKS(include/intprops.h:lib/gnu/intprops.h)
 
 AH_BOTTOM([
 #define DEFAULT_TEXT_DOMAIN PACKAGE

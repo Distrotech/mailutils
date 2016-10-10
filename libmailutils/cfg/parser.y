@@ -25,7 +25,6 @@
 #include <stdarg.h>
 #include <string.h>
 #include <netdb.h>
-#include "intprops.h"
 #include <mailutils/argcv.h>
 #include <mailutils/wordsplit.h>
 #include <mailutils/nls.h>

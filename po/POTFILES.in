@@ -123,6 +123,9 @@ libmailutils/diag/debug.c
 libmailutils/diag/diag.c
 libmailutils/diag/errors
 
+libmailutils/opt/opt.c
+libmailutils/opt/help.c
+
 libmailutils/server/acl.c
 
 libmailutils/stream/file_stream.c
@@ -147,6 +150,7 @@ libmailutils/base/version.c
 libmailutils/base/tempfile.c
 
 libmailutils/string/trueans.c
+libmailutils/string/str_to_c.c
 
 libmailutils/stdstream/basestr.c
 libmailutils/stdstream/strerr.c
