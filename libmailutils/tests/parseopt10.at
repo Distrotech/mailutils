@@ -17,7 +17,7 @@
 AT_SETUP([long option with optional argument])
 AT_KEYWORDS([parseopt parseopt_long parseopt_long_opt_arg parseopt10])
 AT_CHECK([
-MU_PARSEOPT_DEFAULT=1
+PARSEOPT_DEFAULT
 parseopt --optional=file command line arguments
 ],
 [0],

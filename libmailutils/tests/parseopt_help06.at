@@ -1,0 +1,47 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2016 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# GNU Mailutils is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+
+AT_SETUP([MU_PARSEOPT_PACKAGE_NAME and MU_PARSEOPT_PACKAGE_URL])
+AT_KEYWORDS([parseopt parseopt_help parseopt_help06])
+AT_CHECK([
+PARSEOPT_DEFAULT
+MU_PARSEOPT_PACKAGE_NAME='GNU Mailutils' MU_PARSEOPT_PACKAGE_URL='http://mailutils.org' parseopt --help
+],
+[0],
+[[Usage: parseopt [OPTION]...
+
+ Group A
+  -a, --all                  no arguments to this one
+  -f, --file=FILE            set file name
+  -o, --optional[=FILE]      optional argument
+  -x                         short-only option
+
+ Group B
+  -F, --find=VALUE           find VALUE
+  -d, -v, --debug, --verbose another option
+  -j, --jobs=N               sets numeric value
+
+  -?, --help                 give this help list
+      --usage                give a short usage message
+
+Mandatory or optional arguments to long options are also mandatory or optional
+for any corresponding short options.
+
+GNU Mailutils home page: <http://mailutils.org>
+]])
+AT_CLEANUP
+
+

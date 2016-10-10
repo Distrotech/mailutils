@@ -63,7 +63,50 @@ struct mu_option group_b[] = {
 
 struct mu_option *optv[] = { group_a, group_b, NULL };
 
+static void
+version_func (FILE *fp)
+{
+  fputs ("version hook called\n", fp);
+}
+
 #define S(s) ((s)?(s):"(null)")
+
+struct parseopt_param
+{
+  char *name;
+  int flag;
+  mu_c_type_t type;
+  size_t off;
+};
+
+static struct parseopt_param parseopt_param[] = {
+  { "MU_PARSEOPT_ARGV0", MU_PARSEOPT_ARGV0, mu_c_void },
+  { "MU_PARSEOPT_IGNORE_ERRORS", MU_PARSEOPT_IGNORE_ERRORS, mu_c_void },
+  { "MU_PARSEOPT_IN_ORDER", MU_PARSEOPT_IN_ORDER, mu_c_void },
+  { "MU_PARSEOPT_NO_STDOPT", MU_PARSEOPT_NO_STDOPT, mu_c_void },
+  { "MU_PARSEOPT_NO_ERREXIT", MU_PARSEOPT_NO_ERREXIT, mu_c_void },
+  { "MU_PARSEOPT_IMMEDIATE", MU_PARSEOPT_IMMEDIATE, mu_c_void },
+  { "MU_PARSEOPT_NO_SORT", MU_PARSEOPT_NO_SORT, mu_c_void },
+
+  { "MU_PARSEOPT_PROG_NAME", MU_PARSEOPT_PROG_NAME,
+    mu_c_string, mu_offsetof(struct mu_parseopt, po_prog_name) },
+  { "MU_PARSEOPT_PROG_DOC", MU_PARSEOPT_PROG_DOC,
+    mu_c_string, mu_offsetof(struct mu_parseopt, po_prog_doc) },
+  { "MU_PARSEOPT_PROG_ARGS", MU_PARSEOPT_PROG_ARGS,
+    mu_c_string, mu_offsetof(struct mu_parseopt, po_prog_args) },
+  { "MU_PARSEOPT_BUG_ADDRESS", MU_PARSEOPT_BUG_ADDRESS,
+    mu_c_string, mu_offsetof(struct mu_parseopt, po_bug_address) },
+  { "MU_PARSEOPT_PACKAGE_NAME", MU_PARSEOPT_PACKAGE_NAME,
+    mu_c_string, mu_offsetof(struct mu_parseopt, po_package_name) },
+  { "MU_PARSEOPT_PACKAGE_URL", MU_PARSEOPT_PACKAGE_URL,
+    mu_c_string, mu_offsetof(struct mu_parseopt, po_package_url) },
+  { "MU_PARSEOPT_EXTRA_INFO", MU_PARSEOPT_EXTRA_INFO,
+    mu_c_string, mu_offsetof(struct mu_parseopt, po_extra_info) },
+  { "MU_PARSEOPT_EXIT_ERROR", MU_PARSEOPT_EXIT_ERROR,
+    mu_c_int, mu_offsetof(struct mu_parseopt, po_exit_error) },
+  { "MU_PARSEOPT_VERSION_HOOK", MU_PARSEOPT_VERSION_HOOK, mu_c_void },
+  { NULL }
+};
 
 int
 main (int argc, char *argv[])
@@ -79,16 +122,29 @@ main (int argc, char *argv[])
     flags = MU_PARSEOPT_DEFAULT;
   else
     {
-      if (getenv ("MU_PARSEOPT_IN_ORDER"))
-	flags |= MU_PARSEOPT_IN_ORDER;
-      if (getenv ("MU_PARSEOPT_IGNORE_ERRORS"))
-	flags |= MU_PARSEOPT_IGNORE_ERRORS;
-      if (getenv ("MU_PARSEOPT_IN_ORDER"))
-	flags |= MU_PARSEOPT_IN_ORDER;
-      if (getenv ("MU_PARSEOPT_NO_ERREXIT"))
-	flags |= MU_PARSEOPT_NO_ERREXIT;
-      if (getenv ("MU_PARSEOPT_NO_STDOPT"))
-	flags |= MU_PARSEOPT_NO_STDOPT;
+      struct parseopt_param *param;
+      for (param = parseopt_param; param->name; param++)
+	{
+	  char *val = getenv (param->name);
+	  if (val)
+	    {
+	      flags |= param->flag;
+	      if (param->type != mu_c_void)
+		{
+		  char *errmsg;
+		  int rc = mu_str_to_c (val, param->type,
+					((char*)&po + param->off),
+					&errmsg);
+		  if (rc)
+		    {
+		      fprintf (stderr, "envvar %s: %s\n",
+			       param->name, errmsg ? errmsg : mu_strerror (rc));
+		    }
+		}
+	    }
+	}
+      if (flags & MU_PARSEOPT_VERSION_HOOK)
+	po.po_version_hook = version_func;
     }
   
   rc = mu_parseopt (&po, argc, argv, optv, flags);

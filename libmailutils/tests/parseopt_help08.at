@@ -14,25 +14,31 @@
 # You should have received a copy of the GNU General Public License
 # along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
 
-AT_SETUP([double-dash])
-AT_KEYWORDS([parseopt parseopt_long parseopt_short parseopt_double_dash parseopt18.at])
+AT_SETUP([ARGP_HELP_FMT compatibility])
+AT_KEYWORDS([parseopt parseopt_help ARGP_HELP_FMT parseopt_help08])
 AT_CHECK([
 PARSEOPT_DEFAULT
-parseopt -x --file=foobar -- -a --optional arg
+ARGP_HELP_FMT=dup-args,no-dup-args-note,short-opt-col=1,opt-doc-col=32,header-col=10\
+ parseopt --help
 ],
 [0],
-[rc=0
-file_name=foobar
-opt_value=initial
-x_option=1
-a_option=0
-find_value=(null)
-d_option=0
-jobs=0
-argv:
-0: -a
-1: --optional
-2: arg
-])
+[[Usage: parseopt [OPTION]...
+
+          Group A
+ -a,  --all                     no arguments to this one
+ -f FILE, --file=FILE           set file name
+ -o[FILE], --optional[=FILE]    optional argument
+ -x                             short-only option
+
+          Group B
+ -F VALUE, --find=VALUE         find VALUE
+ -d, -v, --debug, --verbose     another option
+ -j N, --jobs=N                 sets numeric value
+
+ -?,  --help                    give this help list
+      --usage                   give a short usage message
+
+]])
 AT_CLEANUP
+
 

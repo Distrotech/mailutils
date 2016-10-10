@@ -17,6 +17,7 @@
 AT_SETUP([short option without required argument])
 AT_KEYWORDS([parseopt parseopt_short parseopt_short_noarg parseopt20])
 AT_CHECK([
+PARSEOPT_DEFAULT
 parseopt -f
 ],
 [1],

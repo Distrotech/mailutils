@@ -15,8 +15,9 @@
 # along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
 
 AT_SETUP([option aliases])
-AT_KEYWORDS([parseopt parseopt_long parseopt_short parseopt16.at])
+AT_KEYWORDS([parseopt parseopt_long parseopt_short parseopt_alias parseopt16.at])
 AT_CHECK([
+PARSEOPT_DEFAULT
 parseopt -vvv
 ],
 [0],

@@ -17,6 +17,7 @@
 AT_SETUP([unrecognized option])
 AT_KEYWORDS([parseopt parseopt_short parseopt_short_unrecognized parseopt22])
 AT_CHECK([
+PARSEOPT_DEFAULT
 parseopt -X
 ],
 [1],

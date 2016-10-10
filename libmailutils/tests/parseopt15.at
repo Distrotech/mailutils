@@ -17,7 +17,7 @@
 AT_SETUP([mixed long and short options])
 AT_KEYWORDS([parseopt parseopt_long parseopt_short parseopt15.at])
 AT_CHECK([
-MU_PARSEOPT_DEFAULT=1
+PARSEOPT_DEFAULT
 parseopt --file=filename -o -xa --find word -j10 command line arguments
 ],
 [0],

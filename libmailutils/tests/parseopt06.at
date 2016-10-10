@@ -17,7 +17,7 @@
 AT_SETUP([incremental short option])
 AT_KEYWORDS([parseopt parseopt_short parseopt_short_incr parseopt06])
 AT_CHECK([
-MU_PARSEOPT_DEFAULT=1
+PARSEOPT_DEFAULT
 parseopt -d -d command line arguments
 ],
 [0],

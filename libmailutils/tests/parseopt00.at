@@ -17,7 +17,7 @@
 AT_SETUP([empty command line])
 AT_KEYWORDS([parseopt parseopt00])
 AT_CHECK([
-MU_PARSEOPT_DEFAULT=1
+PARSEOPT_DEFAULT
 parseopt
 ],
 [0],

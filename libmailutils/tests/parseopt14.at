@@ -17,7 +17,7 @@
 AT_SETUP([ambiguous abbreviated long options])
 AT_KEYWORDS([parseopt parseopt_long parseopt_long_abbr parseopt_long_ambig parseopt14])
 AT_CHECK([
-MU_PARSEOPT_DEFAULT=1
+PARSEOPT_DEFAULT
 parseopt --fi=file --fi=Word command line arguments
 ],
 [1],

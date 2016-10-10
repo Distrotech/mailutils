@@ -127,6 +127,21 @@ TESTSUITE_AT = \
  parseopt20.at\
  parseopt21.at\
  parseopt22.at\
+ parseopt23.at\
+ parseopt24.at\
+ parseopt25.at\
+ parseopt_help00.at\
+ parseopt_help01.at\
+ parseopt_help02.at\
+ parseopt_help03.at\
+ parseopt_help04.at\
+ parseopt_help05.at\
+ parseopt_help06.at\
+ parseopt_help07.at\
+ parseopt_help08.at\
+ parseopt_help09.at\
+ parseopt_help10.at\
+ parseopt_help11.at\
  prop.at\
  scantime.at\
  strftime.at\

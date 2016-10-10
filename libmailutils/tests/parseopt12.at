@@ -17,7 +17,7 @@
 AT_SETUP([incremental long option])
 AT_KEYWORDS([parseopt parseopt_long parseopt_long_incr parseopt12])
 AT_CHECK([
-MU_PARSEOPT_DEFAULT=1
+PARSEOPT_DEFAULT
 parseopt --debug --debug command line arguments
 ],
 [0],

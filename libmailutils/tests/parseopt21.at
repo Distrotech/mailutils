@@ -17,6 +17,7 @@
 AT_SETUP([long option without required argument])
 AT_KEYWORDS([parseopt parseopt_long parseopt_long_noarg parseopt21])
 AT_CHECK([
+PARSEOPT_DEFAULT
 parseopt --file
 ],
 [1],

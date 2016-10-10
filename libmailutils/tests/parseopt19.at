@@ -17,6 +17,7 @@
 AT_SETUP([double-dash with permutation])
 AT_KEYWORDS([parseopt parseopt_long parseopt_short parseopt_double_dash parseopt19.at])
 AT_CHECK([
+PARSEOPT_DEFAULT
 parseopt -x more --file=foobar -- -a --optional arg
 ],
 [0],

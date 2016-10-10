@@ -82,16 +82,27 @@ fn_usage (struct mu_parseopt *po, struct mu_option *opt, char const *unused)
   exit (EXIT_SUCCESS);
 }
 
+static void
+fn_version (struct mu_parseopt *po, struct mu_option *opt, char const *unused)
+{
+  po->po_version_hook (stdout);
+  exit (EXIT_SUCCESS);
+}
+
 /* Default options */
 struct mu_option mu_default_options[] = {
   MU_OPTION_GROUP(""),
-  { "help",    'h', NULL, MU_OPTION_IMMEDIATE, N_("give this help list"),
+  { "help",    '?', NULL, MU_OPTION_IMMEDIATE, N_("give this help list"),
     mu_c_string, NULL, fn_help },
-  { "version", 'V', NULL, MU_OPTION_IMMEDIATE, N_("print program version"),
-    mu_c_string, NULL, /* FIXME: fn_version */ },
   { "usage",   0,   NULL, MU_OPTION_IMMEDIATE, N_("give a short usage message"),
     mu_c_string, NULL, fn_usage
   },
+  MU_OPTION_END
+};
+
+struct mu_option mu_version_options[] = {
+  { "version", 'V', NULL, MU_OPTION_IMMEDIATE, N_("print program version"),
+    mu_c_string, NULL, fn_version },
   MU_OPTION_END
 };
 
@@ -132,7 +143,8 @@ add_option_cache (struct mu_parseopt *po, struct mu_option *opt,
   cache->cache_opt = opt;
   cache->cache_arg = arg ? mu_strdup (arg) : NULL;
 
-  if (opt->opt_flags & MU_OPTION_IMMEDIATE)
+  if ((po->po_flags & MU_PARSEOPT_IMMEDIATE)
+       || (opt->opt_flags & MU_OPTION_IMMEDIATE))
     {
       parseopt_apply (cache, po);
       mu_option_cache_destroy (cache);
@@ -407,7 +419,7 @@ parse (struct mu_parseopt *po)
 			po->po_arg_count++;
 		      continue;
 		    }
-		  exit (EXIT_ERROR);
+		  exit (po->po_exit_error);
 		}	
 	    }
 	  else
@@ -426,7 +438,7 @@ parse (struct mu_parseopt *po)
 			po->po_arg_count++;
 		      continue;
 		    }
-		  exit (EXIT_ERROR);
+		  exit (po->po_exit_error);
 		}
 	      arg = NULL;
 	    }
@@ -442,7 +454,7 @@ parse (struct mu_parseopt *po)
 		po->po_arg_count++;
 	      continue;
 	    }
-	  exit (EXIT_ERROR);
+	  exit (po->po_exit_error);
 	}
     }
 
@@ -459,7 +471,6 @@ parseopt_init (struct mu_parseopt *po, struct mu_option **options,
   struct mu_option *opt;
   size_t i, j;
 
-  memset (po, 0, sizeof *po);
   po->po_argc = 0;
   po->po_argv = NULL;
   po->po_optc = 0;
@@ -481,8 +492,14 @@ parseopt_init (struct mu_parseopt *po, struct mu_option **options,
     po->po_package_url = NULL;
   if (!(flags & MU_PARSEOPT_PACKAGE_URL))
     po->po_data = NULL;
+  if (!(flags & MU_PARSEOPT_EXTRA_INFO))
+    po->po_extra_info = NULL;
   if (!(flags & MU_PARSEOPT_HELP_HOOK))
     po->po_help_hook = NULL;
+  if (!(flags & MU_PARSEOPT_EXIT_ERROR))
+    po->po_exit_error = EXIT_ERROR;
+  if (!(flags & MU_PARSEOPT_VERSION_HOOK))
+    po->po_version_hook = NULL;
   
   /* Count the options */
   po->po_optc = 0;
@@ -492,6 +509,10 @@ parseopt_init (struct mu_parseopt *po, struct mu_option **options,
 
   if (!(flags & MU_PARSEOPT_NO_STDOPT))
     for (i = 0; !MU_OPTION_IS_END (&mu_default_options[i]); i++)
+      ++po->po_optc;
+
+  if (flags & MU_PARSEOPT_VERSION_HOOK)
+    for (i = 0; !MU_OPTION_IS_END (&mu_version_options[i]); i++)
       ++po->po_optc;
   
   /* Allocate the working buffer of option pointers */
@@ -512,6 +533,10 @@ parseopt_init (struct mu_parseopt *po, struct mu_option **options,
   if (!(flags & MU_PARSEOPT_NO_STDOPT))
     for (i = 0; !MU_OPTION_IS_END (&mu_default_options[i]); i++, j++)
       po->po_optv[j] = &mu_default_options[i];
+
+  if (flags & MU_PARSEOPT_VERSION_HOOK)
+    for (i = 0; !MU_OPTION_IS_END (&mu_version_options[i]); i++, j++)
+      po->po_optv[j] = &mu_version_options[i];
   
   po->po_optv[j] = NULL;
 
@@ -532,6 +557,16 @@ parseopt_init (struct mu_parseopt *po, struct mu_option **options,
 	    start = sort_group (po->po_optv, start);
 	}
     }
+
+  po->po_ind = 0;
+  po->po_opterr = 0;
+  po->po_optlist = NULL;
+  po->po_cur = NULL;
+  po->po_chr = 0;
+  po->po_arg_start = 0;
+  po->po_arg_count = 0;
+  po->po_permuted = 0;
+  
   return 0;
 }
 

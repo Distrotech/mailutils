@@ -17,6 +17,7 @@
 AT_SETUP([argument permutation])
 AT_KEYWORDS([parseopt parseopt_long parseopt_short parseopt17.at])
 AT_CHECK([
+PARSEOPT_DEFAULT
 parseopt more --file=file arguments follow -x -o options
 ],
 [0],

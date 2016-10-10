@@ -17,7 +17,7 @@
 AT_SETUP([short option clustering])
 AT_KEYWORDS([parseopt parseopt_short parseopt_short_cluster parseopt07])
 AT_CHECK([
-MU_PARSEOPT_DEFAULT=1
+PARSEOPT_DEFAULT
 parseopt -xffile -dado10 command line arguments
 ],
 [0],

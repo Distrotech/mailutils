@@ -61,7 +61,7 @@ struct mu_option
   (!MU_OPTION_IS_OPTION(opt) && (opt)->opt_doc)
 #define MU_OPTION_IS_VALID_SHORT_OPTION(opt) \
   ((opt)->opt_short > 0 && (opt)->opt_short < 127 && \
-   mu_isalnum ((opt)->opt_short))
+   (mu_isalnum ((opt)->opt_short) || ((opt)->opt_short == '?')))
 #define MU_OPTION_IS_VALID_LONG_OPTION(opt) \
   ((opt)->opt_long != NULL)
 
@@ -97,8 +97,11 @@ struct mu_option_cache
 #define MU_PARSEOPT_BUG_ADDRESS    0x00010000
 #define MU_PARSEOPT_PACKAGE_NAME   0x00020000
 #define MU_PARSEOPT_PACKAGE_URL    0x00040000
-#define MU_PARSEOPT_DATA           0x00080000
-#define MU_PARSEOPT_HELP_HOOK      0x00100000
+#define MU_PARSEOPT_EXTRA_INFO     0x00080000
+#define MU_PARSEOPT_EXIT_ERROR     0x00100000
+#define MU_PARSEOPT_HELP_HOOK      0x00200000
+#define MU_PARSEOPT_DATA           0x00400000
+#define MU_PARSEOPT_VERSION_HOOK   0x00800000
 
 /* Reuse mu_parseopt struct initialized previously */
 #define MU_PARSEOPT_REUSE          0x80000000
@@ -116,6 +119,8 @@ struct mu_parseopt
   int po_flags;                        
 
   char *po_data;                   /* Call-specific data */
+
+  int po_exit_error;               /* Exit on error with this code */
   
   /* Informational: */
   char const *po_prog_name;
@@ -124,8 +129,10 @@ struct mu_parseopt
   char const *po_bug_address;
   char const *po_package_name;
   char const *po_package_url;
-
-  void (*po_help_hook) (FILE *stream); /* FIXME: should take mu_Stream_t ?*/
+  char const *po_extra_info;
+  
+  void (*po_help_hook) (FILE *stream); /* FIXME: should take mu_stream_t ?*/
+  void (*po_version_hook) (FILE *stream);
   
   /* Output data */
   int po_ind;                      /* Index of the next option */

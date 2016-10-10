@@ -17,7 +17,7 @@
 AT_SETUP([short options])
 AT_KEYWORDS([parseopt parseopt_short parseopt02])
 AT_CHECK([
-MU_PARSEOPT_DEFAULT=1
+PARSEOPT_DEFAULT
 parseopt -f file -x -a -d command line arguments
 ],
 [0],
