@@ -207,6 +207,8 @@ find_long_option (struct mu_parseopt *po, char const *optstr,
 	      break;
 
 	    case 1:
+	      if (option_unalias (po, i) == option_unalias (po, ind))
+		continue;
 	      if (po->po_flags & MU_PARSEOPT_IGNORE_ERRORS)
 		return NULL;
 	      mu_parseopt_error (po,
