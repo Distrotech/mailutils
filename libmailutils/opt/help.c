@@ -155,7 +155,7 @@ init_usage_vars (struct mu_parseopt *po)
   fmt = getenv ("ARGP_HELP_FMT");
   if (!fmt)
     return;
-  ws.ws_delim=",";
+  ws.ws_delim = ",";
   if (mu_wordsplit (fmt, &ws, 
 		    MU_WRDSF_DELIM | MU_WRDSF_NOVAR | MU_WRDSF_NOCMD
 		    | MU_WRDSF_WS | MU_WRDSF_SHOWERR))
@@ -346,20 +346,20 @@ mu_program_help (struct mu_parseopt *po)
   mu_option_describe_options (po->po_optv, po->po_optc);
 
   if (po->po_help_hook)
-    po->po_help_hook (stdout);
+    po->po_help_hook (po, stdout);
 
   if (po->po_bug_address)
     /* TRANSLATORS: The placeholder indicates the bug-reporting address
        for this package.  Please add _another line_ saying
        "Report translation bugs to <...>\n" with the address for translation
        bugs (typically your translation team's web or email address).  */
-    printf (_("Report bugs to %s.\n"), po->po_bug_address);
+    printf (_("Report bugs to <%s>.\n"), po->po_bug_address);
 
   if (po->po_package_name && po->po_package_url)
     printf (_("%s home page: <%s>\n"),
 	    po->po_package_name, po->po_package_url);
   if (po->po_flags & MU_PARSEOPT_EXTRA_INFO)
-    print_option_descr (po->po_extra_info, 0, rmargin);
+    print_option_descr (_(po->po_extra_info), 0, rmargin);
 }
 
 static struct mu_option **option_tab;

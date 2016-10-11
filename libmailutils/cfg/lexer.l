@@ -330,10 +330,16 @@ mu_cfg_parse_file (mu_cfg_tree_t **return_tree, const char *file, int flags)
   int rc;
   char *full_name = mu_tilde_expansion (file, MU_HIERARCHY_DELIMITER, NULL);
 
+  if (flags & MU_PARSE_CONFIG_VERBOSE)
+    mu_diag_output (MU_DIAG_INFO, _("opening configuration file %s"),
+		    full_name);
   if (stat (full_name, &st))
     {
       if (errno != ENOENT)
 	mu_error (_("cannot stat `%s': %s"), full_name, mu_strerror (errno));
+      else if (flags & MU_PARSE_CONFIG_VERBOSE)
+	mu_diag_output (MU_DIAG_INFO, _("configuration file %s doesn't exist"),
+			full_name);
       free (full_name);
       return ENOENT;
     }

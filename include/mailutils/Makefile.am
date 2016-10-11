@@ -36,6 +36,7 @@ pkginclude_HEADERS = \
  cctype.h\
  cfg.h\
  cidr.h\
+ cli.h\
  cstr.h\
  datetime.h\
  daemon.h\

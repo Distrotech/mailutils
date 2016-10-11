@@ -17,7 +17,7 @@
 # <http://www.gnu.org/licenses/>.
 
 SUBDIRS = \
- auth base address list sockaddr cidr cfg diag\
+ auth base address list sockaddr cidr cfg cli diag\
  filter mailbox mailer mime msgset opt server string stream stdstream\
  property url imapio datetime . tests 
 
@@ -33,6 +33,7 @@ libmailutils_la_LIBADD = \
  sockaddr/libsockaddr.la\
  cidr/libcidr.la\
  cfg/libcfg.la\
+ cli/libcli.la\
  datetime/libdatetime.la\
  diag/libdiag.la\
  filter/libfilter.la\

@@ -1506,6 +1506,7 @@ AC_CONFIG_FILES([
  libmailutils/address/Makefile
  libmailutils/sockaddr/Makefile
  libmailutils/cidr/Makefile
+ libmailutils/cli/Makefile
  libmailutils/cfg/Makefile
  libmailutils/datetime/Makefile
  libmailutils/diag/Makefile

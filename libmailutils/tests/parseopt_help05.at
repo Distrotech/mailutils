@@ -18,7 +18,7 @@ AT_SETUP([MU_PARSEOPT_BUG_ADDRESS])
 AT_KEYWORDS([parseopt parseopt_help parseopt_help05])
 AT_CHECK([
 PARSEOPT_DEFAULT
-MU_PARSEOPT_BUG_ADDRESS='<gray@gnu.org>' parseopt --help
+MU_PARSEOPT_BUG_ADDRESS='gray@gnu.org' parseopt --help
 ],
 [0],
 [Usage: parseopt [[OPTION]]...

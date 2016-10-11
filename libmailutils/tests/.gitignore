@@ -27,6 +27,7 @@ strftime
 strin
 strout
 strtoc
+tcli
 tempfile
 url-comp
 url-parse

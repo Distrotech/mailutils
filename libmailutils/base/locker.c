@@ -242,7 +242,7 @@ mu_locker_set_default_expire_timeout (time_t t)
 }
 
 int
-mu_locker_set_default_external_program (char *path)
+mu_locker_set_default_external_program (char const *path)
 {
   char *p = strdup (path);
   if (!p)

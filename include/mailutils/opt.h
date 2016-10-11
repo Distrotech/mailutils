@@ -23,10 +23,10 @@
 #include <mailutils/util.h>
 #include <mailutils/cctype.h>
 
-extern char *mu_progname;
-extern char *mu_absprogname;
+extern char *mu_program_name;
+extern char *mu_full_program_name;
 
-void mu_set_progname (char const *arg);
+void mu_set_program_name (char const *arg);
 
 #define MU_OPTION_DEFAULT        0
 #define MU_OPTION_ARG_OPTIONAL   0x01
@@ -118,7 +118,7 @@ struct mu_parseopt
   struct mu_option **po_optv;      /* Array of ptrs to option structures */ 
   int po_flags;                        
 
-  char *po_data;                   /* Call-specific data */
+  void *po_data;                   /* Call-specific data */
 
   int po_exit_error;               /* Exit on error with this code */
   
@@ -130,9 +130,10 @@ struct mu_parseopt
   char const *po_package_name;
   char const *po_package_url;
   char const *po_extra_info;
-  
-  void (*po_help_hook) (FILE *stream); /* FIXME: should take mu_stream_t ?*/
-  void (*po_version_hook) (FILE *stream);
+
+  /* FIXME: should these take mu_stream_t ?*/
+  void (*po_help_hook) (struct mu_parseopt *po, FILE *stream); 
+  void (*po_version_hook) (struct mu_parseopt *po, FILE *stream);
   
   /* Output data */
   int po_ind;                      /* Index of the next option */
@@ -162,6 +163,7 @@ struct mu_parseopt
 int mu_parseopt (struct mu_parseopt *p,
 		 int argc, char **argv, struct mu_option **optv,
 		 int flags);
+void mu_parseopt_error (struct mu_parseopt *po, char const *fmt, ...);
 
 int mu_parseopt_apply (struct mu_parseopt *p);
 void mu_parseopt_free (struct mu_parseopt *p);

@@ -64,6 +64,7 @@ noinst_PROGRAMS = \
  strout\
  strtoc\
  tempfile\
+ tcli\
  url-comp\
  url-parse\
  wicket\

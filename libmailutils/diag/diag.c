@@ -30,32 +30,6 @@
 #include <mailutils/stdstream.h>
 #include <mailutils/stream.h>
 
-const char *mu_program_name;
-const char *mu_full_program_name;
-
-void
-mu_set_program_name (const char *name)
-{
-  const char *progname;
-
-  mu_full_program_name = name;
-  if (!name)
-    progname = name;
-  else
-    {
-      progname = strrchr (name, '/');
-      if (progname)
-	progname++;
-      else
-	progname = name;
-      
-      if (strlen (progname) > 3 && memcmp (progname, "lt-", 3) == 0)
-	progname += 3;
-    }
-  
-  mu_program_name = progname;
-}
-
 void
 mu_diag_init ()
 {

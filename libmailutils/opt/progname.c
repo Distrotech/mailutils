@@ -22,16 +22,16 @@
 #include <mailutils/alloc.h>
 #include <mailutils/opt.h>
 
-char *mu_progname;
-char *mu_absprogname;
+char *mu_program_name;
+char *mu_full_program_name;
 
 void
-mu_set_progname (char const *arg)
+mu_set_program_name (const char *arg)
 {
   char *p;
 
-  free (mu_absprogname);
-  mu_absprogname = mu_strdup (arg);
+  free (mu_full_program_name);
+  mu_full_program_name = mu_strdup (arg);
   
   p = strrchr (arg, '/');
   if (p)
@@ -40,6 +40,6 @@ mu_set_progname (char const *arg)
     p = (char*) arg;
   if (strlen (p) > 3 && memcmp (p, "lt-", 3) == 0)
     p += 3;
-  free (mu_progname);
-  mu_progname = mu_strdup (p);
+  free (mu_program_name);
+  mu_program_name = mu_strdup (p);
 }

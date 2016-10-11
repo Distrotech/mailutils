@@ -35,4 +35,24 @@ argv:
 2: follow
 3: options
 ])
+
+AT_CHECK([
+PARSEOPT_DEFAULT
+parseopt --file=file more arguments follow -x -o options
+],
+[0],
+[rc=0
+file_name=file
+opt_value=(null)
+x_option=1
+a_option=0
+find_value=(null)
+d_option=0
+jobs=0
+argv:
+0: more
+1: arguments
+2: follow
+3: options
+])
 AT_CLEANUP

@@ -64,7 +64,7 @@ struct mu_option group_b[] = {
 struct mu_option *optv[] = { group_a, group_b, NULL };
 
 static void
-version_func (FILE *fp)
+version_hook (struct mu_parseopt *po, FILE *fp)
 {
   fputs ("version hook called\n", fp);
 }
@@ -144,7 +144,7 @@ main (int argc, char *argv[])
 	    }
 	}
       if (flags & MU_PARSEOPT_VERSION_HOOK)
-	po.po_version_hook = version_func;
+	po.po_version_hook = version_hook;
     }
   
   rc = mu_parseopt (&po, argc, argv, optv, flags);

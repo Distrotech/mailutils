@@ -20,7 +20,7 @@ AT_CHECK([
 PARSEOPT_DEFAULT
 MU_PARSEOPT_PROG_DOC="Tests option parsing"\
  MU_PARSEOPT_PROG_ARGS="SOME MORE ARGS"\ 
- MU_PARSEOPT_BUG_ADDRESS='<gray@gnu.org>'\
+ MU_PARSEOPT_BUG_ADDRESS='gray@gnu.org'\
  MU_PARSEOPT_PACKAGE_NAME='GNU Mailutils'\
  MU_PARSEOPT_PACKAGE_URL='http://mailutils.org'\
  MU_PARSEOPT_EXTRA_INFO='General help using GNU software: <http://www.gnu.org/gethelp/>'\

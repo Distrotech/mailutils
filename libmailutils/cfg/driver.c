@@ -463,7 +463,7 @@ mu_cfg_tree_reduce (mu_cfg_tree_t *parse_tree,
 		    void *target_ptr)
 {
   int rc = 0;
-
+  struct mu_cfg_cont *cont;
   if (!parse_tree)
     return 0;
   if (hints && (hints->flags & MU_PARSE_CONFIG_DUMP))
@@ -477,13 +477,9 @@ mu_cfg_tree_reduce (mu_cfg_tree_t *parse_tree,
       mu_stream_destroy (&stream);
     }
 
-  if (root_container)
-    {
-      struct mu_cfg_cont *cont = mu_build_container (progparam);
-      rc = mu_cfg_scan_tree (parse_tree, &cont->v.section, target_ptr,
-			     NULL);
-      mu_config_destroy_container (&cont);
-    }
+  cont = mu_build_container (progparam);
+  rc = mu_cfg_scan_tree (parse_tree, &cont->v.section, target_ptr, NULL);
+  mu_config_destroy_container (&cont);
 
   return rc;
 }

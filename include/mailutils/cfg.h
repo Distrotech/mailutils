@@ -79,6 +79,8 @@ struct mu_cfg_parse_hints
   char *site_rcfile;
   char *custom_rcfile;
   char *program;
+  struct mu_cfg_tree *append_tree;
+  void *data;
 };
 
 struct mu_cfg_tree
@@ -238,7 +240,8 @@ int mu_config_register_plain_section (const char *parent_path,
 #define MU_CFG_FMT_LOCUS           0x080
 #define MU_CFG_FMT_VALUE_ONLY      0x100
 #define MU_CFG_FMT_PARAM_PATH      0x200
-
+#define MU_PARSE_CONFIG_LINT       0x400
+  
 #ifdef MU_CFG_COMPATIBILITY
 # define MU_CFG_DEPRECATED
 #else

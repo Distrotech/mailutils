@@ -28,7 +28,7 @@ extern mu_stream_t mu_strin;
 extern mu_stream_t mu_strout;
 extern mu_stream_t mu_strerr;
 
-extern const char *mu_program_name;
+extern char *mu_program_name;
   
 #define MU_STRERR_STDERR  0
 #define MU_STRERR_SYSLOG  1
