@@ -63,6 +63,23 @@ static struct usage_var
   { NULL }
 };
 
+unsigned
+mu_parseopt_getcolumn (const char *name)
+{
+  struct usage_var *p;
+  unsigned retval = 0;
+  for (p = usage_var; p->name; p++)
+    {
+      if (strcmp (p->name, name) == 0)
+	{
+	  if (p->valptr)
+	    retval = *p->valptr;
+	  break;
+	}
+    }
+  return retval;
+}
+
 static void
 set_usage_var (struct mu_parseopt *po, char const *id)
 {
@@ -195,6 +212,11 @@ print_option_descr (const char *descr, size_t lmargin, size_t rmargin)
 	      if (descr[i] == 0)
 		break;
 	    }
+	  else if (descr[i] == '\n')
+	    {
+	      s = i;
+	      break;
+	    }
 	}
       fwrite (descr, 1, s, stdout);
       fputc ('\n', stdout);
@@ -205,6 +227,12 @@ print_option_descr (const char *descr, size_t lmargin, size_t rmargin)
 	  descr++;
 	}
     }
+}
+
+void
+mu_parseopt_fmt_text (const char *text, size_t col)
+{
+  print_option_descr (text, col, rmargin);
 }
 
 

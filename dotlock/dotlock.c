@@ -31,8 +31,32 @@ static const char *file;
 static int unlock;
 static int flags;
 static int retries;
-static time_t force;
+static unsigned force;
 static int debug;
+
+static void
+cli_force (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
+{
+  if (arg)
+    {
+      int rc;
+      char *errmsg;
+      rc = mu_str_to_c (arg, opt->opt_type, opt->opt_ptr, &errmsg);
+      if (rc)
+	{
+	  if (opt->opt_long)
+	    mu_parseopt_error (po, "--%s: %s", opt->opt_long,
+			       errmsg ? errmsg : mu_strerror (rc));
+	  else
+	    mu_parseopt_error (po, "-%c: %s", opt->opt_short,
+			       errmsg ? errmsg : mu_strerror (rc));
+	  free (errmsg);
+	  exit (po->po_exit_error);
+	}
+    }
+  else
+    *(unsigned*)opt->opt_ptr = 1;
+}
 
 static struct mu_option dotlock_options[] = {
   { "unlock", 'u', NULL, MU_OPTION_DEFAULT,
@@ -41,7 +65,7 @@ static struct mu_option dotlock_options[] = {
 
   { "force",  'f', N_("MINUTES"), MU_OPTION_ARG_OPTIONAL,
     N_("forcibly break an existing lock older than a certain time"),
-    mu_c_time, &force },//FIXME: Default value
+    mu_c_uint, &force, cli_force },
  
   { "retry",  'r', N_("RETRIES"), MU_OPTION_ARG_OPTIONAL,
     N_("retry the lock a few times"),
@@ -68,12 +92,11 @@ static struct mu_cli_setup cli = {
   options,
   dotlock_cfg_param,
   N_("GNU dotlock -- lock mail spool files."),
-  //FIXME:
-  /*
+  N_("FILE"),
   N_("Returns 0 on success, 3 if locking the file fails because\
- it's already locked, and 1 if some other kind of error occurred.");
-  */
-  N_("FILE")
+ it's already locked, and 1 if some other kind of error occurred."),
+  MU_DL_EX_ERROR,
+  MU_DL_EX_ERROR
 };
 
 
@@ -98,8 +121,6 @@ main (int argc, char *argv[])
 
   if (setegid (usergid) < 0)
     return MU_DL_EX_ERROR;
-
-  /* FIXME: Force mu_cli to exit with MU_DL_EX_ERROR on errors? */
 
   mu_cli (argc, argv, &cli, capa, NULL, &argc, &argv);
 

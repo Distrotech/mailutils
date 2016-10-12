@@ -247,7 +247,13 @@ static struct mu_cli_setup cli = {
   options,
   sieve_cfg_param,
   N_("GNU sieve -- a mail filtering tool."),
-  "SCRIPT"
+  "SCRIPT",
+  N_("Debug flags:\n\
+  g - main parser traces\n\
+  T - mailutils traces (same as --debug-level=sieve.trace0-trace1)\n\
+  P - network protocols (same as --debug-level=sieve.=prot)\n\
+  t - sieve trace (MU_SIEVE_DEBUG_TRACE)\n\
+  i - sieve instructions trace (MU_SIEVE_DEBUG_INSTR)\n")
 };
 
 static void

@@ -144,15 +144,11 @@ struct mu_cli_setup cli = {
   options,
   mimeview_cfg_param,
   N_("GNU mimeview -- display files, using mailcap mechanism."),
-  //FIXME:
-  /*
-  N_("Default mime.types file is ") DEFAULT_CUPS_CONFDIR "/mime.types"
-N_("\n\nDebug flags are:\n\
+  N_("FILE [FILE ...]"),
+  N_("Debug flags are:\n\
   g - Mime.types parser traces\n\
   l - Mime.types lexical analyzer traces\n\
-  0-9 - Set debugging level\n");
-  */
-  N_("FILE [FILE ...]")
+  0-9 - Set debugging level\n")
 };
 
 static char *capa[] = {

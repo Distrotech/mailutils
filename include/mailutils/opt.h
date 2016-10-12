@@ -168,6 +168,9 @@ void mu_parseopt_error (struct mu_parseopt *po, char const *fmt, ...);
 int mu_parseopt_apply (struct mu_parseopt *p);
 void mu_parseopt_free (struct mu_parseopt *p);
 
+unsigned mu_parseopt_getcolumn (const char *name);
+void mu_parseopt_fmt_text (const char *text, size_t col);
+
 void mu_option_describe_options (struct mu_option **optbuf, size_t optcnt);
 void mu_program_help (struct mu_parseopt *p);
 void mu_program_usage (struct mu_parseopt *p);

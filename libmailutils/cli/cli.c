@@ -77,7 +77,17 @@ There is NO WARRANTY, to the extent permitted by law.\n\
 
 static char gnu_general_help_url[] =
   N_("General help using GNU software: <http://www.gnu.org/gethelp/>");
-
+
+static void
+extra_help_hook (struct mu_parseopt *po, FILE *stream)
+{
+  struct mu_cfg_parse_hints *hints = po->po_data;
+  struct mu_cli_setup *setup = hints->data;
+  char *extra_doc = _(setup->prog_extra_doc);
+  /* FIXME: mu_parseopt help output should get FILE * argument */
+  mu_parseopt_fmt_text (extra_doc, 0);
+  fputc ('\n', stdout);
+}
 
 static void
 change_progname (struct mu_parseopt *po, struct mu_option *opt,
@@ -235,8 +245,12 @@ show_config_help (struct mu_parseopt *po, struct mu_option *opt,
   mu_config_container_register_section (&cont, NULL, NULL, NULL, NULL,
 					dummy_include_param, NULL);
   if (hints->data)
-    mu_config_container_register_section (&cont, NULL, NULL, NULL, NULL,
-					  hints->data, NULL);
+    {
+      struct mu_cli_setup *setup = hints->data;
+      mu_config_container_register_section (&cont, NULL, NULL, NULL, NULL,
+					    setup->cfg, NULL);
+    }
+  
   mu_cfg_format_container (stream, cont);
   mu_config_destroy_container (&cont);
       
@@ -325,6 +339,12 @@ mu_cli (int argc, char **argv, struct mu_cli_setup *setup, char **capa,
   struct mu_cfg_parse_hints hints;
   struct mu_option **optv;
   mu_list_t com_list;
+
+  /* Set up defaults */
+  if (setup->ex_usage == 0)
+    setup->ex_usage = EX_USAGE;
+  if (setup->ex_config == 0)
+    setup->ex_config = EX_CONFIG;
   
   /* Set program name */
   mu_set_program_name (argv[0]);
@@ -346,7 +366,7 @@ mu_cli (int argc, char **argv, struct mu_cli_setup *setup, char **capa,
   hints.flags |= MU_CFG_PARSE_PROGRAM;
   hints.program = (char*) mu_program_name;
 
-  hints.data = setup->cfg;
+  hints.data = setup;
   
   /* Initialize po */
   if (setup->prog_doc)
@@ -376,10 +396,16 @@ mu_cli (int argc, char **argv, struct mu_cli_setup *setup, char **capa,
   po.po_version_hook = mu_version_func;
   flags |= MU_PARSEOPT_VERSION_HOOK;
 
+  if (setup->prog_extra_doc)
+    {
+      po.po_help_hook = extra_help_hook;
+      flags |= MU_PARSEOPT_HELP_HOOK;
+    }
+  
   po.po_data = &hints;
   flags |= MU_PARSEOPT_DATA;
 
-  po.po_exit_error = EX_USAGE;
+  po.po_exit_error = setup->ex_usage;
 
   optv = init_options (capa, setup, &com_list);
 
@@ -398,13 +424,13 @@ mu_cli (int argc, char **argv, struct mu_cli_setup *setup, char **capa,
     mu_parseopt_error (&po, "%s", _("unexpected arguments"));
 
   if (mu_cfg_parse_config (&parse_tree, &hints))
-    exit (EX_CONFIG);
+    exit (setup->ex_config);
 
   if (mu_cfg_tree_reduce (parse_tree, &hints, setup->cfg, data))
-    exit (EX_CONFIG);
+    exit (setup->ex_config);
 
-  if (mu_cfg_error_count) //FIXME
-    exit (EX_CONFIG);
+  if (mu_cfg_error_count)
+    exit (setup->ex_config);
   
   mu_parseopt_apply (&po);
 

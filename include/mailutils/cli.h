@@ -39,10 +39,15 @@ void mu_cli_capa_apply (char const *name, mu_list_t opts, mu_list_t commits);
 
 struct mu_cli_setup
 {
-  struct mu_option **optv;
-  struct mu_cfg_param *cfg;
-  char *prog_doc;
-  char *prog_args;
+  struct mu_option **optv;     /* Command-line options */
+  struct mu_cfg_param *cfg;    /* Configuration parameters */
+  char *prog_doc;              /* Program documentation string */
+  char *prog_args;             /* Program arguments string */
+  char *prog_extra_doc;        /* Extra documentation.  This will be
+				  displayed after options. */
+  int ex_usage;                /* If not 0, exit code on usage errors */
+  int ex_config;               /* If not 0, exit code on configuration
+				  errors */
 };
 
 void mu_version_func (struct mu_parseopt *po, FILE *stream);
