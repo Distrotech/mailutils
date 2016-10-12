@@ -20,49 +20,12 @@
 #endif
 
 #include <stdlib.h>
-#ifdef __EXT_QNX
-# undef __EXT_QNX
-#endif
 #include <unistd.h>
 
 #include <mailutils/errno.h>
 #include <mailutils/locker.h>
 #include <mailutils/nls.h>
-
-#include "mailutils/libargp.h"
-
-static char doc[] =
-N_("GNU dotlock -- lock mail spool files.")
-"\v"
-N_("Returns 0 on success, 3 if locking the file fails because\
- it's already locked, and 1 if some other kind of error occurred.");
-
-static char args_doc[] = N_("FILE");
-
-static struct argp_option options[] = {
-  {"unlock", 'u', NULL, 0,
-   N_("unlock"), 0},
-
-  {"force", 'f', N_("MINUTES"), OPTION_ARG_OPTIONAL,
-   N_("forcibly break an existing lock older than a certain time"), 0},
-
-  {"retry", 'r', N_("RETRIES"), OPTION_ARG_OPTIONAL,
-   N_("retry the lock a few times"), 0},
-
-  {"debug", 'd', NULL, 0,
-   N_("print details of failure reasons to stderr"), 0},
-
-  {NULL, 0, NULL, 0, NULL, 0}
-};
-
-static error_t parse_opt (int key, char *arg, struct argp_state *state);
-
-static struct argp argp = {
-  options,
-  parse_opt,
-  args_doc,
-  doc,
-};
+#include "mailutils/cli.h"
 
 static const char *file;
 static int unlock;
@@ -71,55 +34,25 @@ static int retries;
 static time_t force;
 static int debug;
 
-static error_t
-parse_opt (int key, char *arg, struct argp_state *state)
-{
-  static mu_list_t lst;
+static struct mu_option dotlock_options[] = {
+  { "unlock", 'u', NULL, MU_OPTION_DEFAULT,
+    N_("unlock"),
+    mu_c_bool, &unlock },
 
-  switch (key)
-    {
-    case 'd':
-      mu_argp_node_list_new (lst, "debug", "yes");
-      break;
+  { "force",  'f', N_("MINUTES"), MU_OPTION_ARG_OPTIONAL,
+    N_("forcibly break an existing lock older than a certain time"),
+    mu_c_time, &force },//FIXME: Default value
+ 
+  { "retry",  'r', N_("RETRIES"), MU_OPTION_ARG_OPTIONAL,
+    N_("retry the lock a few times"),
+    mu_c_int, &retries },
 
-    case 'u':
-      unlock = 1;
-      break;
+  { "debug",  'd', NULL, MU_OPTION_DEFAULT,
+    N_("print details of failure reasons to stderr"), 
+    mu_c_bool, &debug },
 
-    case 'r':
-      if (arg)
-	mu_argp_node_list_new (lst, "retry", arg);
-      break;
-
-    case 'f':
-      mu_argp_node_list_new (lst, "force", arg ? arg : "0");
-      break;
-
-    case ARGP_KEY_ARG:
-      if (file)
-	argp_error (state, _("only one FILE can be specified"));
-      file = arg;
-      break;
-
-    case ARGP_KEY_NO_ARGS:
-      if (!mu_help_config_mode)
-	argp_error (state, _("FILE must be specified"));
-      return ARGP_ERR_UNKNOWN;
-      
-    case ARGP_KEY_INIT:
-      mu_argp_node_list_init (&lst);
-      break;
-      
-    case ARGP_KEY_FINI:
-      mu_argp_node_list_finish (lst, NULL, NULL);
-      break;
-      
-    default:
-      return ARGP_ERR_UNKNOWN;
-    }
-  return 0;
-}
-
+  MU_OPTION_END
+}, *options[] = { dotlock_options, NULL };
 
 struct mu_cfg_param dotlock_cfg_param[] = {
   { "force", mu_c_time, &force, 0, NULL,
@@ -130,12 +63,22 @@ struct mu_cfg_param dotlock_cfg_param[] = {
     N_("Print details of failure reasons to stderr.") },
   { NULL }
 };
+
+static struct mu_cli_setup cli = {
+  options,
+  dotlock_cfg_param,
+  N_("GNU dotlock -- lock mail spool files."),
+  //FIXME:
+  /*
+  N_("Returns 0 on success, 3 if locking the file fails because\
+ it's already locked, and 1 if some other kind of error occurred.");
+  */
+  N_("FILE")
+};
 
 
 
-const char *dotlock_capa[] = {
-  "mailutils",
-  "common",
+char *capa[] = {
   "debug",
   NULL
 };
@@ -156,13 +99,24 @@ main (int argc, char *argv[])
   if (setegid (usergid) < 0)
     return MU_DL_EX_ERROR;
 
-  argp_err_exit_status = MU_DL_EX_ERROR;
-  
-  mu_argp_init (NULL, NULL);
-  if (mu_app_init (&argp, dotlock_capa, dotlock_cfg_param, 
-		   argc, argv, 0, NULL, NULL))
-    exit (1);
+  /* FIXME: Force mu_cli to exit with MU_DL_EX_ERROR on errors? */
 
+  mu_cli (argc, argv, &cli, capa, NULL, &argc, &argv);
+
+  switch (argc)
+    {
+    case 0:
+      mu_error (_("FILE must be specified"));
+      exit (MU_DL_EX_ERROR);
+
+    case 1:
+      file = argv[0];
+      break;
+
+    default:
+      mu_error (_("only one FILE can be specified"));
+    }
+  
   if (force)
     {
       force *= 60;

@@ -35,15 +35,36 @@
 #include <mailutils/errno.h>
 #include <mailutils/util.h>
 #include <mailutils/property.h>
+#include <mailutils/cli.h>
+
+#define SSL_CERT_FILE_CHECKS  (MU_FILE_SAFETY_GROUP_WRITABLE |		\
+			       MU_FILE_SAFETY_GROUP_WRITABLE |		\
+			       MU_FILE_SAFETY_LINKED_WRDIR)
+
+#define SSL_KEY_FILE_CHECKS   (MU_FILE_SAFETY_ALL & \
+			       ~MU_FILE_SAFETY_OWNER_MISMATCH)
+
+#define SSL_CA_FILE_CHECKS    (MU_FILE_SAFETY_GROUP_WRITABLE |		\
+			       MU_FILE_SAFETY_GROUP_WRITABLE |		\
+			       MU_FILE_SAFETY_LINKED_WRDIR)
 
 struct mu_tls_module_config mu_tls_module_config = {
 #ifdef WITH_TLS
-  1 /* enable by default */
+    1, /* enable by default */
+      
+    NULL,                /* Certificate file */
+    SSL_CERT_FILE_CHECKS,
+
+    NULL,                /* Key file */ 
+    SSL_KEY_FILE_CHECKS, /* Stringent safety checks for keys */
+
+    NULL,                /* CA file */
+    SSL_CA_FILE_CHECKS
 #else
   0
 #endif
 };
-  
+//FIXME: REMOVE  
 int
 mu_tls_module_init (enum mu_gocs_op op, void *data)
 {
@@ -774,8 +795,92 @@ mu_tls_client_stream_create (mu_stream_t *pstream,
 				_tls_client_open,
 				strin, strout, flags);
 }
+
+static int
+cb2_safety_checks (const char *name, void *data)
+{
+  int defval;
+  
+  if (data == &mu_tls_module_config.ssl_key_safety_checks)
+    defval = SSL_KEY_FILE_CHECKS;
+  else if (data == &mu_tls_module_config.ssl_cert_safety_checks)
+    defval = SSL_CERT_FILE_CHECKS;
+  else if (data == &mu_tls_module_config.ssl_cafile_safety_checks)
+    defval = SSL_CA_FILE_CHECKS;
+  else
+    {
+      mu_error (_("INTERNAL ERROR at %s:%d: unknown default value?"),
+		__FILE__, __LINE__);
+      defval = MU_FILE_SAFETY_ALL;
+    }
+  if (mu_file_safety_compose (data, name, defval))
+    mu_error (_("unknown keyword: %s"), name);
+  return 0;
+}
 
+static int
+cb_safety_checks (void *data, mu_config_value_t *arg)
+{
+  return mu_cfg_string_value_cb (arg, cb2_safety_checks, data);
+}
 
+static struct mu_cfg_param mu_tls_param[] = {
+  { "enable", mu_c_bool, &mu_tls_module_config.enable, 0, NULL,
+    N_("Enable TLS encryption.") },
+  { "ssl-cert", mu_c_string, &mu_tls_module_config.ssl_cert, 0, NULL,
+    N_("Specify SSL certificate file."),
+    N_("file") },
+  { "ssl-key", mu_c_string, &mu_tls_module_config.ssl_key, 0, NULL,
+    N_("Specify SSL certificate key file."),
+    N_("file") },
+  { "ssl-cafile", mu_c_string, &mu_tls_module_config.ssl_cafile, 0, NULL,
+    N_("Specify trusted CAs file."),
+    N_("file") },
+  { "ssl-priorities", mu_c_string, &mu_tls_module_config.priorities, 0, NULL,
+    N_("Set the priorities to use on the ciphers, key exchange methods, "
+       "macs and compression methods."),
+    NULL },
+  { "key-file-safety-checks", mu_cfg_callback,
+    &mu_tls_module_config.ssl_key_safety_checks, 0,
+    cb_safety_checks,
+    N_("Configure safety checks for SSL key file.  Argument is a list or "
+       "sequence of check names optionally prefixed with '+' to enable or "
+       "'-' to disable the corresponding check.  Valid check names are:\n"
+       "\n"
+       "  none          disable all checks\n"
+       "  all           enable all checks\n"
+       "  gwrfil        forbid group writable files\n"
+       "  awrfil        forbid world writable files\n"
+       "  grdfil        forbid group readable files\n"
+       "  ardfil        forbid world writable files\n"
+       "  linkwrdir     forbid symbolic links in group or world writable directories\n"
+       "  gwrdir        forbid files in group writable directories\n"
+       "  awrdir        forbid files in world writable directories\n"),
+    N_("arg: list") },  
+  { "cert-file-safety-checks", mu_cfg_callback,
+    &mu_tls_module_config.ssl_cert_safety_checks, 0,
+    cb_safety_checks,
+    N_("Configure safety checks for SSL certificate.  See above for a description of <arg>."),
+    N_("arg: list") },  
+  { "ca-file-safety-checks", mu_cfg_callback,
+    &mu_tls_module_config.ssl_cafile_safety_checks, 0,
+    cb_safety_checks,
+    N_("Configure safety checks for SSL certificate authority file.  See above for a description of <arg>."),
+    N_("arg: list") },  
+  { NULL }
+}; 
+
+struct mu_cli_capa mu_cli_capa_tls = {
+  "tls",
+  NULL,
+  mu_tls_param,
+  NULL, NULL
+};
+#else
+struct mu_cli_capa mu_cli_capa_tls = {
+  "tls",
+  NULL
+};
 #endif /* WITH_TLS */
 
 /* EOF */

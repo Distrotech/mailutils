@@ -22,6 +22,7 @@
 #include <sys/types.h>
 #include <stdarg.h>
 #include <mailutils/mailutils.h>
+#include <mailutils/cli.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -282,6 +283,8 @@ struct mu_gocs_sieve
 
 int mu_sieve_module_init (enum mu_gocs_op, void *);
 
+extern struct mu_cli_capa mu_cli_capa_sieve;
+  
 #ifdef __cplusplus
 }
 #endif

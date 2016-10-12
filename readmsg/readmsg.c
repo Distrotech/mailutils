@@ -20,7 +20,7 @@
 #endif
 
 #include "readmsg.h"
-#include "mailutils/libargp.h"
+#include "mailutils/cli.h"
 #include "mu_umaxtostr.h"
 
 #define WEEDLIST_SEPARATOR " :,"
@@ -30,41 +30,6 @@ static void print_header (mu_message_t, int, int, char **);
 static void print_body (mu_message_t);
 static int  string_starts_with (const char * s1, const char *s2);
 
-static char doc[] = N_("GNU readmsg -- print messages.");
-static error_t readmsg_parse_opt  (int key, char *arg, struct argp_state *astate);
-
-static struct argp_option options[] = 
-{
-  { "debug", 'd', 0, 0, N_("display debugging information"), 1 },
-  { "header", 'h', 0, 0, N_("display entire header"), 1 },
-  { "weedlist", 'w', N_("LIST"), 0,
-    N_("list of header names separated by whitespace or commas"), 1 },
-  { "folder", 'f', N_("FOLDER"), 0, N_("folder to use"), 1 },
-  { "no-header", 'n', 0, 0, N_("exclude all headers"), 1 },
-  { "form-feeds", 'p', 0, 0, N_("output formfeeds between messages"), 1 },
-  { "show-all-match", 'a', NULL, 0,
-    N_("print all messages matching pattern, not only the first"), 1 },
-  {0, 0, 0, 0}
-};
-
-static struct argp argp = {
-  options,
-  readmsg_parse_opt,
-  NULL,
-  doc,
-  NULL,
-  NULL, NULL
-};
-
-static const char *readmsg_argp_capa[] = {
-  "mailutils",
-  "common",
-  "debug",
-  "mailbox",
-  "locking",
-  NULL
-};
-
 int dbug = 0;
 const char *mailbox_name = NULL;
 const char *weedlist = NULL;
@@ -73,57 +38,30 @@ int all_header = 0;
 int form_feed = 0;
 int show_all = 0;
 
-static error_t
-readmsg_parse_opt (int key, char *arg, struct argp_state *astate)
+static struct mu_option readmsg_options[] = 
 {
-  static mu_list_t lst;
-
-  switch (key)
-    {
-    case 'd':
-      dbug++;
-      break;
-
-    case 'h':
-      mu_argp_node_list_new (lst, "header", "yes");
-      break;
-
-    case 'f':
-      mu_argp_node_list_new (lst, "folder", arg);
-      break;
-
-    case 'w':
-      mu_argp_node_list_new (lst, "weedlist", arg);
-      break;
-
-    case 'n':
-      mu_argp_node_list_new (lst, "no-header", "yes");
-      break;
-
-    case 'p':
-      mu_argp_node_list_new (lst, "form-feeds", "yes");
-      break;
-	  
-    case 'a':
-      mu_argp_node_list_new (lst, "show-all-match", "yes");
-      break;
-
-    case ARGP_KEY_INIT:
-      mu_argp_node_list_init (&lst);
-      break;
-      
-    case ARGP_KEY_FINI:
-      if (dbug)
-	mu_argp_node_list_new (lst, "debug", mu_umaxtostr (0, dbug));
-      mu_argp_node_list_finish (lst, NULL, NULL);
-      break;
-      
-    default:
-      return ARGP_ERR_UNKNOWN;
-    }
-  return 0;
-}
-
+  { "debug", 'd', NULL, MU_OPTION_DEFAULT,
+    N_("display debugging information"),
+    mu_c_incr, &dbug },
+  { "header", 'h', NULL, MU_OPTION_DEFAULT,
+    N_("display entire headers"),
+    mu_c_bool, &all_header },
+  { "weedlist", 'w', N_("LIST"), MU_OPTION_DEFAULT,
+    N_("list of header names separated by whitespace or commas"),
+    mu_c_string, &weedlist },
+  { "folder", 'f', N_("FOLDER"), MU_OPTION_DEFAULT,
+    N_("folder to use"), mu_c_string, &mailbox_name },
+  { "no-header", 'n', NULL, MU_OPTION_DEFAULT,
+    N_("exclude all headers"),
+    mu_c_bool, &no_header },
+  { "form-feeds", 'p', NULL, MU_OPTION_DEFAULT,
+    N_("output formfeeds between messages"),
+    mu_c_bool, &form_feed },
+  { "show-all-match", 'a', NULL, MU_OPTION_DEFAULT,
+    N_("print all messages matching pattern, not only the first"),
+    mu_c_bool, &show_all },
+  MU_OPTION_END
+}, *options[] = { readmsg_options, NULL };
 
 struct mu_cfg_param readmsg_cfg_param[] = {
   { "debug", mu_c_int, &dbug, 0, NULL,
@@ -145,6 +83,21 @@ struct mu_cfg_param readmsg_cfg_param[] = {
   { NULL }
 };
 
+struct mu_cli_setup cli = {
+  options,
+  readmsg_cfg_param,
+  N_("GNU readmsg -- print messages."),
+  NULL
+};
+
+static char *readmsg_argp_capa[] = {
+  "debug",
+  "mailbox",
+  "locking",
+  "tls",
+  NULL
+};
+
 static int
 string_starts_with (const char * s1, const char *s2)
 {
@@ -158,7 +111,7 @@ string_starts_with (const char * s1, const char *s2)
 
   while (*p1 && *p2)
     {
-      if ((n = toupper (*p1++) - toupper (*p2++)) != 0)
+      if ((n = mu_toupper (*p1++) - mu_toupper (*p2++)) != 0)
 	break;
     }
   return (n == 0);
@@ -276,7 +229,6 @@ main (int argc, char **argv)
   int *set = NULL;
   int n = 0;
   int i;
-  int index;
   mu_mailbox_t mbox = NULL;
   struct mu_wordsplit ws;
   char **weedv;
@@ -290,15 +242,9 @@ main (int argc, char **argv)
   mu_register_all_mbox_formats ();
   mu_register_extra_formats ();
 
-#ifdef WITH_TLS
-  mu_gocs_register ("tls", mu_tls_module_init);
-#endif
-  mu_argp_init (NULL, NULL);
-  if (mu_app_init (&argp, readmsg_argp_capa, readmsg_cfg_param, 
-		   argc, argv, 0, &index, NULL))
-    exit (1);
+  mu_cli_capa_register (&mu_cli_capa_tls);
 
-  argc -= index;
+  mu_cli (argc, argv, &cli, readmsg_argp_capa, NULL, &argc, &argv);
 
   if (argc == 0)
     {
@@ -376,7 +322,7 @@ main (int argc, char **argv)
     }
 
   /* Build an array containing the message number.  */
-  msglist (mbox, show_all, argc, &argv[index], &set, &n);
+  msglist (mbox, show_all, argc, argv, &set, &n);
 
   for (i = 0; i < n; ++i)
     {

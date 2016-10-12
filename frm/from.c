@@ -21,58 +21,34 @@ int count_only;
 char *sender_option;
 char *mailbox_name;
 
-static char doc[] = N_("GNU from -- display from and subject.");
+static struct mu_option from_options[] = {
+  { "count",  'c', NULL,   MU_OPTION_DEFAULT,
+    N_("just print a count of messages and exit"),
+    mu_c_bool, &count_only },
+  { "sender", 's', N_("ADDRESS"), MU_OPTION_DEFAULT,
+    N_("print only mail from addresses containing the supplied string"),
+    mu_c_string, &sender_option },
+  { "file",   'f', N_("FILE"), MU_OPTION_DEFAULT,
+    N_("read mail from FILE"), 
+    mu_c_string, &mailbox_name },
+  { "debug",  'd', NULL,   MU_OPTION_DEFAULT,
+    N_("enable debugging output"),
+    mu_c_incr, &frm_debug },
+  MU_OPTION_END
+}, *options[] = { from_options, NULL };
 
-static struct argp_option options[] = {
-  {"count",  'c', NULL,   0, N_("just print a count of messages and exit")},
-  {"sender", 's', N_("ADDRESS"), 0,
-   N_("print only mail from addresses containing the supplied string") },
-  {"file",   'f', N_("FILE"), 0,
-   N_("read mail from FILE") },
-  {"debug",  'd', NULL,   0, N_("enable debugging output"), 0},
-  {0, 0, 0, 0}
-};
-
-static error_t
-parse_opt (int key, char *arg, struct argp_state *state)
-{
-  switch (key)
-    {
-    case 'c':
-      count_only = 1;
-      break;
-      
-    case 's':
-      sender_option = arg;
-      break;
-      
-    case 'f':
-      mailbox_name = arg;
-      break;
-      
-    case 'd':
-      frm_debug++;
-      break;
-
-    default: 
-      return ARGP_ERR_UNKNOWN;
-    }
-  return 0;
-}
-
-static struct argp argp = {
+static struct mu_cli_setup cli = {
   options,
-  parse_opt,
+  NULL,
+  N_("GNU from -- display from and subject."),
   N_("[OPTIONS] [USER]"),
-  doc,
 };
 
-static const char *capa[] = {
-  "mailutils",
-  "common",
+static char *capa[] = {
   "debug",
   "mailbox",
   "locking",
+  "tls",
   NULL
 };
 
@@ -105,7 +81,6 @@ from_select (size_t index, mu_message_t msg)
 int
 main (int argc, char **argv)
 {
-  int c;
   size_t total;
   
   /* Native Language Support */
@@ -113,20 +88,16 @@ main (int argc, char **argv)
 
   /* register the formats.  */
   mu_register_all_mbox_formats ();
-#ifdef WITH_TLS
-  mu_gocs_register ("tls", mu_tls_module_init);
-#endif
 
-  mu_argp_init (NULL, NULL);
-  if (mu_app_init (&argp, capa, NULL, argc, argv, 0, &c, NULL))
-    exit (1);
+  mu_cli_capa_register (&mu_cli_capa_tls);
+  mu_cli (argc, argv, &cli, capa, NULL, &argc, &argv);
 
-  if (argc - c > 1)
+  if (argc > 1)
     {
       mu_error (_("too many arguments"));
       exit (1);
     }
-  else if (argc - c > 0)
+  else if (argc > 0)
     {
       if (mailbox_name)
 	{
@@ -134,9 +105,9 @@ main (int argc, char **argv)
 	  exit (1);
 	}
 
-      mailbox_name = mu_alloc (strlen (argv[c]) + 2);
+      mailbox_name = mu_alloc (strlen (argv[0]) + 2);
       mailbox_name[0] = '%';
-      strcpy (mailbox_name + 1, argv[c]);
+      strcpy (mailbox_name + 1, argv[0]);
     }
 
   init_output (0);

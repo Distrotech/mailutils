@@ -43,63 +43,9 @@
 #include <mailutils/stream.h>
 #include <mailutils/nls.h>
 #include <mailutils/tls.h>
-
-#include "mailutils/libargp.h"
-
-static char doc[] =
-N_("GNU sieve -- a mail filtering tool.")
-"\v"
-N_("Debug flags:\n\
-  g - main parser traces\n\
-  T - mailutils traces (same as --debug-level=sieve.trace0-trace1)\n\
-  P - network protocols (same as --debug-level=sieve.=prot)\n\
-  t - sieve trace (MU_SIEVE_DEBUG_TRACE)\n\
-  i - sieve instructions trace (MU_SIEVE_DEBUG_INSTR)\n");
+#include <mailutils/cli.h>
 
 #define D_DEFAULT "TPt"
-
-#define ARG_LINE_INFO 257
-#define ARG_NO_PROGRAM_NAME 258
-
-static struct argp_option options[] =
-{
-  {"no-actions", 'n', 0, 0,
-   N_("do not execute any actions, just print what would be done"), 0},
-  {"dry-run", 0, NULL, OPTION_ALIAS, NULL },
-  {"keep-going", 'k', 0, 0,
-   N_("keep on going if execution fails on a message"), 0},
-
-  {"compile-only", 'c', 0, 0,
-   N_("compile script and exit"), 0},
-
-  {"dump", 'D', 0, 0,
-   N_("compile script, dump disassembled sieve code to terminal and exit"), 0 },
-  
-  {"mbox-url", 'f', N_("MBOX"), 0,
-   N_("mailbox to sieve (defaults to user's mail spool)"), 0},
-
-  {"ticket", 't', N_("TICKET"), 0,
-   N_("ticket file for user authentication"), 0},
-
-  {"debug", 'd', N_("FLAGS"), OPTION_ARG_OPTIONAL,
-   N_("debug flags (defaults to \"" D_DEFAULT "\")"), 0},
-
-  {"verbose", 'v', NULL, 0,
-   N_("log all actions"), 0},
-
-  {"line-info", ARG_LINE_INFO, N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("print source location along with action logs (default)") },
-   
-  {"email", 'e', N_("ADDRESS"), 0,
-   N_("override user email address"), 0},
-  {"expression", 'E', NULL, 0,
-   N_("treat SCRIPT as Sieve program text"), 0},
-  
-  {"no-program-name", ARG_NO_PROGRAM_NAME, NULL, 0,
-   N_("do not prefix diagnostic messages with the program name"), 0},
-  
-  {0}
-};
 
 int keep_going;
 int compile_only;
@@ -111,17 +57,6 @@ int expression_option;
 
 static int sieve_print_locus = 1; /* Should the log messages include the
 				     locus */
-
-static int
-is_true_p (char *p)
-{
-  int rc;
-  if (!p)
-    return 1;
-  if ((rc = mu_true_answer_p (p)) == -1)
-    return 0;
-  return rc;
-}
 
 static void
 set_debug_level (const char *arg)
@@ -164,98 +99,88 @@ set_debug_level (const char *arg)
     }
 }
 
+static void
+cli_dry_run (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
+{
+  sieve_debug |= MU_SIEVE_DRY_RUN;
+  verbose = 1;
+}
+
+static void
+cli_compile_and_dump (struct mu_parseopt *po, struct mu_option *opt,
+		      char const *arg)
+{
+  compile_only = 2;
+}
+
+static void
+cli_debug (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
+{
+  set_debug_level (arg);
+}
+
+static void
+cli_email (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
+{
+  int rc = mu_set_user_email (arg);
+  if (rc)
+    mu_parseopt_error (po, _("invalid email: %s"), mu_strerror (rc));
+}
+
+static void
+cli_no_program_name (struct mu_parseopt *po, struct mu_option *opt,
+		     char const *arg)
+{
+  mu_log_tag = NULL;
+}
+
+static struct mu_option sieve_options[] = {
+  { "no-actions", 'n', NULL, MU_OPTION_DEFAULT,
+    N_("do not execute any actions, just print what would be done"),
+    mu_c_string, NULL, cli_dry_run },
+  { "dry-run", 0, NULL, MU_OPTION_ALIAS },
+  { "keep-going", 'k', NULL, MU_OPTION_DEFAULT,
+    N_("keep on going if execution fails on a message"),
+    mu_c_bool, &keep_going },
+  { "compile-only", 'c', NULL, MU_OPTION_DEFAULT,
+    N_("compile script and exit"),
+    mu_c_bool, &compile_only },
+  { "dump", 'D', NULL, MU_OPTION_DEFAULT,
+    N_("compile script, dump disassembled sieve code to terminal and exit"),
+    mu_c_string, NULL, cli_compile_and_dump },  
+  { "mbox-url", 'f', N_("MBOX"), MU_OPTION_DEFAULT,
+    N_("mailbox to sieve (defaults to user's mail spool)"),
+    mu_c_string, &mbox_url },
+  { "ticket", 't', N_("TICKET"), MU_OPTION_DEFAULT,
+    N_("ticket file for user authentication"),
+    mu_c_string, &mu_ticket_file },
+  { "debug", 'd', N_("FLAGS"), MU_OPTION_ARG_OPTIONAL,
+    N_("debug flags (defaults to \"" D_DEFAULT "\")"),
+    mu_c_string, NULL, cli_debug },
+  { "verbose", 'v', NULL, MU_OPTION_DEFAULT,
+    N_("log all actions"), 
+    mu_c_bool, &verbose },
+  { "line-info", 0, N_("BOOL"), MU_OPTION_DEFAULT,
+    N_("print source location along with action logs (default)"),
+    mu_c_bool, &sieve_print_locus },
+  { "email", 'e', N_("ADDRESS"), MU_OPTION_DEFAULT,
+    N_("override user email address"),
+    mu_c_string, NULL, cli_email }, 
+  { "expression", 'E', NULL, MU_OPTION_DEFAULT,
+    N_("treat SCRIPT as Sieve program text"), 
+    mu_c_bool, &expression_option },
+  { "no-program-name", 0, NULL, MU_OPTION_DEFAULT,
+    N_("do not prefix diagnostic messages with the program name"),
+    mu_c_string, NULL, cli_no_program_name },
+  MU_OPTION_END
+}, *options[] = { sieve_options, NULL };
+
 int
 mu_compat_printer (void *data, mu_log_level_t level, const char *buf)
 {
   fputs (buf, stderr);
   return 0;
 }
-
-static error_t
-parser (int key, char *arg, struct argp_state *state)
-{
-  static mu_list_t lst;
-  
-  switch (key)
-    {
-    case 'E':
-      expression_option = 1;
-      break;
-      
-    case 'e':
-      mu_argp_node_list_new (lst, "email", arg);
-      break;
-      
-    case 'n':
-      sieve_debug |= MU_SIEVE_DRY_RUN;
-      mu_argp_node_list_new (lst, "verbose", "yes");
-      break;
-
-    case 'k':
-      mu_argp_node_list_new (lst, "keep-going", "yes");
-      break;
-
-    case 'c':
-      compile_only = 1;
-      break;
-
-    case 'D':
-      compile_only = 2;
-      break;
-      
-    case 'f':
-      mu_argp_node_list_new (lst, "mbox-url", arg);
-      break;
-      
-    case 't':
-      mu_argp_node_list_new (lst, "ticket", arg);
-      break;
-      
-    case 'd':
-      mu_argp_node_list_new (lst, "debug", arg ? arg : D_DEFAULT);
-      break;
-
-    case 'v':
-      mu_argp_node_list_new (lst, "verbose", "yes");
-      break;
-
-    case ARG_LINE_INFO:
-      mu_argp_node_list_new (lst, "line-info",
-			     is_true_p (arg) ? "yes" : "no");
-      break;
-
-    case ARG_NO_PROGRAM_NAME:
-      mu_log_tag = NULL;
-      break;
-      
-    case ARGP_KEY_ARG:
-      if (script)
-	argp_error (state, _("Only one SCRIPT can be specified"));
-      script = mu_tilde_expansion (arg, MU_HIERARCHY_DELIMITER, NULL);
-      break;
-
-    case ARGP_KEY_INIT:
-      mu_argp_node_list_init (&lst);
-      break;
-      
-    case ARGP_KEY_FINI:
-      mu_argp_node_list_finish (lst, NULL, NULL);
-      break;
-      
-    default:
-      return ARGP_ERR_UNKNOWN;
-    }
-
-  return 0;
-}
-
-static struct argp argp =
-{
-  options,
-  parser,
-  N_("SCRIPT"),
-  doc
-};
 
 
 static int 
@@ -307,16 +232,22 @@ static struct mu_cfg_param sieve_cfg_param[] = {
 };
 
 
-static const char *sieve_argp_capa[] =
-{
-  "mailutils",
-  "common",
+static char *sieve_argp_capa[] = {
   "debug",
   "mailbox",
   "locking",
   "logging",
   "mailer",
+  "tls",
+  "sieve",
   NULL
+};
+
+static struct mu_cli_setup cli = {
+  options,
+  sieve_cfg_param,
+  N_("GNU sieve -- a mail filtering tool."),
+  "SCRIPT"
 };
 
 static void
@@ -456,25 +387,29 @@ main (int argc, char *argv[])
   /* Native Language Support */
   MU_APP_INIT_NLS ();
 
-  mu_argp_init (NULL, NULL);
-#ifdef WITH_TLS
-  mu_gocs_register ("tls", mu_tls_module_init);
-#endif
-  mu_gocs_register ("sieve", mu_sieve_module_init);
+  mu_cli_capa_register (&mu_cli_capa_tls);
+  mu_cli_capa_register (&mu_cli_capa_sieve);
   mu_sieve_debug_init ();
   
   mu_register_all_formats ();
 
-  if (mu_app_init (&argp, sieve_argp_capa, sieve_cfg_param, 
-		   argc, argv, ARGP_IN_ORDER, NULL, NULL))
-    exit (EX_USAGE);
-  
-  if (!script)
+  mu_cli (argc, argv, &cli, sieve_argp_capa, NULL, &argc, &argv);
+
+  if (argc == 0)
     {
       mu_error (_("script must be specified"));
       exit (EX_USAGE);
     }
-  
+  else if (argc == 1)
+    {
+      script = mu_tilde_expansion (argv[0], MU_HIERARCHY_DELIMITER, NULL);
+    }
+  else
+    {
+      mu_error (_("only one SCRIPT can be specified"));
+      exit (EX_USAGE);
+    }
+
   /* Sieve interpreter setup. */
   rc = mu_sieve_machine_init (&mach);
   if (rc)

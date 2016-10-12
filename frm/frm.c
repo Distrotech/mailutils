@@ -29,8 +29,6 @@ static int align = 0;      /* Tidy mode. -t option. */
 #define IS_NEW  0x100
 static int select_attribute;
 
-static char doc[] = N_("GNU frm -- display From: lines.");
-
 static struct attr_tab {
   char *name;      /* Attribute name */
   int code;        /* Corresponding IS_.* flag */
@@ -84,7 +82,7 @@ prepare_attrs (void)
 /* Translates the textual status representation to the corresponding
    IS_.* flag */
 static int
-decode_attr (char *arg)
+decode_attr (char const *arg)
 {
   struct attr_tab *p;
   int len = strlen (arg);
@@ -111,105 +109,82 @@ decode_attr (char *arg)
 }
 
 
-
-static struct argp_option options[] = {
-  {"debug",  'd', NULL,   0, N_("enable debugging output"), 0},
-  {"field",  'f', N_("NAME"), 0, N_("header field to display"), 0},
-  {"to",     'l', NULL,   0, N_("include the To: information"), 0},
-  {"number", 'n', NULL,   0, N_("display message numbers"), 0},
-  {"Quiet",  'Q', NULL,   0, N_("do not display headers"), 0},
-  {"query",  'q', NULL,   0, N_("print a message if the mailbox contains some unread mail"), 0},
-  {"summary",'S', NULL,   0, N_("print a summary of messages"), 0},
-  {"status", 's', N_("STATUS"), 0,
-   /* TRANSLATORS: Please do *not* translate the words "new", "unread",
-      "old" and "read". They are keywords. */
-   N_("select messages with the specific attribute:"
-      " new, unread, old (same as unread) or read (or any unambiguous"
-      " abbreviation of these)"),
-   0},
-  {"align",  't', NULL,   0, N_("tidy mode: align subject lines"), 0},
-  {0, 0, 0, 0}
-};
-
-static error_t
-parse_opt (int key, char *arg, struct argp_state *state)
+static void
+cli_show_field (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
 {
-  switch (key)
-    {
-    case 'd':
-      frm_debug++;
-      break;
-
-    case 'f':
-      show_field = arg;
-      align = 0;
-      break;
-
-    case 'l':
-      show_to = 1;
-      break;
-
-    case 'n':
-      show_number = 1;
-      break;
-
-    case 'Q':
-      /* Very silent.  */
-      be_quiet += 2;
-      break;
-
-    case 'q':
-      be_quiet++;
-      show_query = 1;
-      break;
-
-    case 'S':
-      show_summary = 1;
-      break;
-
-    case 's':
-      select_attribute = decode_attr (arg);
-      break;
-      
-    case 't':
-      align = 1;
-      break;
-
-    case ARGP_KEY_FINI:
-      {
-	size_t s;
-	if (align && (s = util_getcols ()))
-	  init_output (s);
-	else
-	  init_output (0);
-      }
-      break;
-      
-    default: 
-      return ARGP_ERR_UNKNOWN;
-    }
-  return 0;
+  show_field = mu_strdup (arg);
+  align = 0;
 }
 
-static struct argp argp = {
+static void
+cli_Quiet (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
+{
+  be_quiet += 2;
+}
+
+static void
+cli_query (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
+{
+  be_quiet++;
+  show_query = 1;
+}
+
+static void
+cli_status (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
+{
+  select_attribute = decode_attr (arg);
+}
+
+static struct mu_option frm_options[] = {
+  { "debug",  'd', NULL,   MU_OPTION_DEFAULT,
+    N_("enable debugging output"),
+    mu_c_incr, &frm_debug },
+  { "field",  'f', N_("NAME"), MU_OPTION_DEFAULT,
+    N_("header field to display"),
+    mu_c_string, &show_field, cli_show_field },
+  { "to",     'l', NULL,   MU_OPTION_DEFAULT,
+    N_("include the To: information"),
+    mu_c_bool, &show_to },
+  { "number", 'n', NULL,   MU_OPTION_DEFAULT,
+    N_("display message numbers"),
+    mu_c_bool, &show_number },
+  { "Quiet",  'Q', NULL,   MU_OPTION_DEFAULT,
+    N_("do not display headers"),
+    mu_c_int, &be_quiet, cli_Quiet },
+  { "query",  'q', NULL,   MU_OPTION_DEFAULT,
+    N_("print a message if the mailbox contains some unread mail"),
+    mu_c_int, &be_quiet, cli_query },
+  { "summary",'S', NULL,   MU_OPTION_DEFAULT,
+    N_("print a summary of messages"), 
+    mu_c_bool, &show_summary },
+  { "status", 's', N_("STATUS"), 0,
+    /* TRANSLATORS: Please do *not* translate the words "new", "unread",
+       "old" and "read". They are keywords. */
+    N_("select messages with the specific attribute:"
+       " new, unread, old (same as unread) or read (or any unambiguous"
+       " abbreviation of these)"),
+    mu_c_string, NULL, cli_status},
+  { "align",  't', NULL,   MU_OPTION_DEFAULT,
+    N_("tidy mode: align subject lines"),
+    mu_c_bool, &align },
+  MU_OPTION_END
+}, *options[] = { frm_options, NULL };
+
+static struct mu_cli_setup cli = {
   options,
-  parse_opt,
-  N_("[URL ...]"),
-  doc,
   NULL,
-  NULL, NULL
+  N_("GNU frm -- display From: lines."),
+  N_("[URL ...]"),
 };
 
-static const char *frm_argp_capa[] = {
-  "mailutils",
-  "common",
+static char *frm_argp_capa[] = {
   "debug",
   "mailbox",
   "locking",
+  "tls",
   NULL
 };
-
-
+
 static struct
 {
   size_t new;
@@ -342,8 +317,8 @@ frm (char *mailbox_name)
 int
 main (int argc, char **argv)
 {
-  int c;
   int status = 0;
+  size_t s;
 
   /* Native Language Support */
   MU_APP_INIT_NLS ();
@@ -352,25 +327,30 @@ main (int argc, char **argv)
   
   /* register the formats.  */
   mu_register_all_mbox_formats ();
-#ifdef WITH_TLS
-  mu_gocs_register ("tls", mu_tls_module_init);
-#endif
-  
-  mu_argp_init (NULL, NULL);
-  if (mu_app_init (&argp, frm_argp_capa, NULL, argc, argv, 0, &c, NULL))
-    exit (1);
 
-  /* have an argument */
-  if (c == argc)
-    status = frm (NULL);
-  else if (c + 1 == argc)
-    status = frm (argv[c]);
+  mu_cli_capa_register (&mu_cli_capa_tls);
+  mu_cli (argc, argv, &cli, frm_argp_capa, NULL, &argc, &argv);
+
+  if (align && (s = util_getcols ()))
+    init_output (s);
   else
-    for (; c < argc; c++)
-      {
-	mu_printf ("%s:\n", argv[c]);
-	status = frm (argv[c]);
-      }
-
+    init_output (0);
+  
+  /* have an argument */
+  if (argc == 0)
+    status = frm (NULL);
+  else if (argc == 1)
+    status = frm (argv[0]);
+  else
+    {
+      int i;
+      
+      for (i = 0; i < argc; i++)
+	{
+	  mu_printf ("%s:\n", argv[i]);
+	  status = frm (argv[i]);
+	}
+    }
+  
   return status;
 }

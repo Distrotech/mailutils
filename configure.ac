@@ -58,6 +58,7 @@ AC_SUBST(MU_SIEVE_MODDIR,'$(libdir)/$(PACKAGE)')
 
 AC_SUBST(MU_COMMON_LIBRARIES,'$(LTLIBINTL) $(LTLIBICONV)')
 AC_SUBST(MU_APP_LIBRARIES,'${top_builddir}/libmu_argp/libmu_argp.la ${top_builddir}/libmu_cfg/libmu_cfg.la ${top_builddir}/lib/libmuaux.la')
+AC_SUBST(MU_APP_NEW_LIBRARIES,'${top_builddir}/lib/libmuaux.la')
 
 # There are two sets of include directories: MU_LIB_COMMON_INCLUDES, used
 # by the libraries, and MU_APP_COMMON_INCLUDES, which is used by applications.

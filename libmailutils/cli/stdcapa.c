@@ -28,6 +28,7 @@
 #include <mailutils/mailbox.h>
 #include <mailutils/registrar.h>
 #include <mailutils/locker.h>
+#include <mailutils/mu_auth.h>
 
 /* ************************************************************************* 
  * Logging section
@@ -440,7 +441,106 @@ static struct mu_cfg_param address_cfg[] = {
     N_("domain: string") },
   { NULL }
 };
+
+/* ************************************************************************* *
+ * Authentication & Authorization                                            *
+ * ************************************************************************* */
+static int
+cb_authentication (void *data, mu_config_value_t *val)
+{
+  if (val->type == MU_CFG_STRING)
+    {
+      if (strcmp (val->v.string, "clear") == 0)
+	mu_authentication_clear_list ();
+      else
+	/*FIXME: use err for error reporting*/
+	mu_authentication_add_module_list (val->v.string);
+    }
+  else if (val->type == MU_CFG_LIST)
+    {
+      int i;
+      for (i = 0; i < val->v.arg.c; i++)
+	{
+	  if (mu_cfg_assert_value_type (&val->v.arg.v[i], MU_CFG_STRING))
+	    return 1;
+	  if (strcmp (val->v.arg.v[i].v.string, "clear") == 0)
+	    mu_authentication_clear_list ();
+	  else
+	    mu_authentication_add_module (val->v.arg.v[i].v.string);
+	}
+    }
+  else
+    {
+      mu_error (_("expected string value"));
+      return 1;
+    }
+  return 0;
+}
 
+static int
+cb_authorization (void *data, mu_config_value_t *val)
+{
+  if (val->type == MU_CFG_STRING)
+    {
+      if (strcmp (val->v.string, "clear") == 0)
+	mu_authorization_clear_list ();
+      else
+	/*FIXME: use err for error reporting*/
+	mu_authorization_add_module_list (val->v.string);
+    }
+  else if (val->type == MU_CFG_LIST)
+    {
+      int i;
+      for (i = 0; i < val->v.arg.c; i++)
+	{
+	  if (mu_cfg_assert_value_type (&val->v.arg.v[i], MU_CFG_STRING))
+	    return 1;
+	  if (strcmp (val->v.arg.v[i].v.string, "clear") == 0)
+	    mu_authorization_clear_list ();
+	  else
+	    mu_authorization_add_module (val->v.arg.v[i].v.string);
+	}
+    }
+  else
+    {
+      mu_error (_("expected string value"));
+      return 1;
+    }
+  return 0;
+}
+
+static struct mu_cfg_param mu_auth_param[] = {
+  { "authentication", mu_cfg_callback, NULL, 0, cb_authentication,
+    /* FIXME: The description is incomplete. MU-list is also allowed as
+       argument */
+    N_("Set a list of modules for authentication. Modlist is a "
+       "colon-separated list of module names or a word `clear' to "
+       "clear the previously set up values."),
+    N_("modlist") },
+  { "authorization", mu_cfg_callback, NULL, 0, cb_authorization,
+    N_("Set a list of modules for authorization. Modlist is a "
+       "colon-separated list of module names or a word `clear' to "
+       "clear the previously set up values."),
+    N_("modlist") },
+  { NULL }
+};
+
+int
+mu_auth_section_parser
+   (enum mu_cfg_section_stage stage, const mu_cfg_node_t *node,
+    const char *section_label, void **section_data, void *call_data,
+    mu_cfg_tree_t *tree)
+{
+  switch (stage)
+    {
+    case mu_cfg_section_start:
+      break;
+
+    case mu_cfg_section_end:
+      mu_auth_finish_setup ();
+    }
+  return 0;
+}
 
 /* ************************************************************************* *
  * Registry of standard mailutils' capabilities                              *
@@ -453,6 +553,8 @@ struct mu_cli_capa mu_cli_std_capa[] = {
   { "mailbox", NULL, mailbox_cfg, NULL, NULL },
   { "locking", NULL, locking_cfg, NULL, NULL },
   { "address", NULL, address_cfg, NULL, NULL },
+  { "auth",    NULL, mu_auth_param, mu_auth_section_parser },
+
   { NULL }
 };
 

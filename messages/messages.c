@@ -20,85 +20,44 @@
 #endif
 
 #include <stdio.h>
-#ifdef HAVE_MALLOC_H
-# include <malloc.h>
-#endif
 
 #include <mailutils/mailutils.h>
-#include "mailutils/libargp.h"
+#include <mailutils/cli.h>
 
 static int messages_count (const char *);
-
-static char doc[] = N_("GNU messages -- count the number of messages in a mailbox");
-static char args_doc[] = N_("[mailbox...]");
-
-static struct argp_option options[] = {
-  { NULL,         0, NULL,  0,
-    /* TRANSLATORS: 'messages' is a program name. Do not translate it! */
-    N_("messages specific switches:"), 0},
-  {"quiet",	'q',	NULL,	0,	N_("only display number of messages")},
-  {"silent",	's',	NULL,	OPTION_ALIAS, NULL },
-  { 0 }
-};
-
-static const char *argp_capa[] = {
-  "mailutils",
-  "common",
-  "debug",
-  "mailbox",
-  "locking",
-  NULL
-};
-
-struct arguments
-{
-  int argc;
-  char **argv;
-};
 
 /* are we loud or quiet? */
 static int silent = 0;
 
-static error_t
-parse_opt (int key, char *arg, struct argp_state *state)
-{
-  struct arguments *args = state->input;
-  switch (key)
-    {
-    case 'q':
-    case 's':
-      silent = 1;
-      break;
-      
-    case ARGP_KEY_ARG:
-      args->argv = realloc (args->argv,
-			    sizeof (char *) * (state->arg_num + 2));
-      args->argv[state->arg_num] = arg;
-      args->argv[state->arg_num + 1] = NULL;
-      args->argc++;
-      break;
-      
-    default:
-      return ARGP_ERR_UNKNOWN;
-    }
-  return 0;
-}
+static struct mu_option messages_options[] = {
+  { "quiet",	'q',	NULL,	MU_OPTION_DEFAULT,
+    N_("only display number of messages"),
+    mu_c_bool, &silent },
+  {"silent",	's',	NULL,	MU_OPTION_ALIAS },
+  MU_OPTION_END
+};
 
-static struct argp argp = {
+static char *capa[] = {
+  "debug",
+  "mailbox",
+  "locking",
+  "tls",
+  NULL
+};
+
+static struct mu_option *options[] = { messages_options, NULL };
+
+struct mu_cli_setup cli = {
   options,
-  parse_opt,
-  args_doc,
-  doc,
   NULL,
-  NULL, NULL
+  N_("GNU messages -- count the number of messages in a mailbox"),
+  N_("[mailbox...]")
 };
 
 int
 main (int argc, char **argv)
 {
-  int i = 1;
   int err = 0;
-  struct arguments args = {0, NULL};
 
   /* Native Language Support */
   MU_APP_INIT_NLS ();
@@ -106,20 +65,18 @@ main (int argc, char **argv)
   /* register the formats.  */
   mu_register_all_mbox_formats ();
 
-#ifdef WITH_TLS
-  mu_gocs_register ("tls", mu_tls_module_init);
-#endif
-  mu_argp_init (NULL, NULL);
-  if (mu_app_init (&argp, argp_capa, NULL, argc, argv, 0, NULL, &args))
-    exit (1);
+  mu_cli_capa_register (&mu_cli_capa_tls);
+  mu_cli (argc, argv, &cli, capa, NULL, &argc, &argv);
 
-  if (args.argc < 1 && messages_count (NULL) < 0)
+  if (argc == 0 && messages_count (NULL) < 0)
     err = 1;
-  else if (args.argc >= 1)
+  else if (argc >= 1)
     {
-      for (i = 0; i < args.argc; i++)
+      size_t i;
+      
+      for (i = 0; i < argc; i++)
 	{
-	  if (messages_count (args.argv[i]) < 0)
+	  if (messages_count (argv[i]) < 0)
 	    err = 1;
 	}
     }

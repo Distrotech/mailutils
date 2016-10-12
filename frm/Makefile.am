@@ -27,7 +27,7 @@ frm_LDADD =  $(common_ldadd)
 from_LDADD = $(common_ldadd)
 
 common_ldadd = \
- ${MU_APP_LIBRARIES}\
+ ${MU_APP_NEW_LIBRARIES}\
  ${MU_LIB_MBOX}\
  ${MU_LIB_IMAP}\
  ${MU_LIB_POP}\

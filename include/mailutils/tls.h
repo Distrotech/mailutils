@@ -20,6 +20,7 @@
 #define _MAILUTILS_TLS_H
 
 #include <mailutils/types.h>
+#include <mailutils/cli.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -55,6 +56,8 @@ extern int mu_init_tls_libs (int x509);
 extern void mu_deinit_tls_libs (void);
 
 extern int mu_tls_enable;
+
+extern struct mu_cli_capa mu_cli_capa_tls;
   
 #ifdef __cplusplus
 }

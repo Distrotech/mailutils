@@ -26,37 +26,10 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-#include "mailutils/libargp.h"
+#include "mailutils/cli.h"
 #include "mailutils/argcv.h"
 
 #include "mailcap.h"
-
-static char doc[] = N_("GNU mimeview -- display files, using mailcap mechanism.")
-"\v"     
-N_("Default mime.types file is ") DEFAULT_CUPS_CONFDIR "/mime.types"
-N_("\n\nDebug flags are:\n\
-  g - Mime.types parser traces\n\
-  l - Mime.types lexical analyzer traces\n\
-  0-9 - Set debugging level\n");
-
-#define OPT_METAMAIL 256
-
-static struct argp_option options[] = {
-  {"no-ask", 'a', N_("TYPE-LIST"), OPTION_ARG_OPTIONAL,
-   N_("do not ask for confirmation before displaying files, or, if TYPE-LIST is given, do not ask for confirmation before displaying such files whose MIME type matches one of the patterns from TYPE-LIST"), 0},
-  {"no-interactive", 'h', NULL, 0,
-   N_("disable interactive mode"), 0 },
-  {"print", 0, NULL, OPTION_ALIAS, NULL, 0 },
-  {"debug",  'd', N_("FLAGS"),  OPTION_ARG_OPTIONAL,
-   N_("enable debugging output"), 0},
-  {"mimetypes", 't', N_("FILE"), 0,
-   N_("use this mime.types file"), 0},
-  {"dry-run", 'n', NULL, 0,
-   N_("do nothing, just print what would have been done"), 0},
-  {"metamail", OPT_METAMAIL, N_("FILE"), OPTION_ARG_OPTIONAL,
-   N_("use metamail to display files"), 0},
-  {0, 0, 0, 0}
-};
 
 int debug_level;       /* Debugging level set by --debug option */
 static int dry_run;    /* Dry run mode */
@@ -88,68 +61,62 @@ set_debug_flags (const char *arg)
 	}
     }
 }  
-
-static error_t
-parse_opt (int key, char *arg, struct argp_state *state)
+
+static void
+cli_no_ask (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
 {
-  static mu_list_t lst;
-
-  switch (key)
-    {
-    case ARGP_KEY_INIT:
-      mimetypes_lex_debug (0);
-      mimetypes_gram_debug (0);
-      if (interactive == -1)
-	interactive = isatty (fileno (stdin));
-      mu_argp_node_list_init (&lst);
-      break;
-
-    case ARGP_KEY_FINI:
-      if (dry_run && !debug_level)
-	debug_level = 1;
-      mu_argp_node_list_finish (lst, NULL, NULL);
-      break;
-
-    case 'a':
-      no_ask_types = arg ? arg : "*";
-      setenv ("MM_NOASK", arg, 1); /* In case we are given --metamail option */
-      break;
-      
-    case 'd':
-      mu_argp_node_list_new (lst, "debug", arg ? arg : "9");
-      break;
-
-    case 'h':
-      interactive = 0;
-      break;
-      
-    case 'n':
-      dry_run = 1;
-      break;
-      
-    case 't':
-      mu_argp_node_list_new (lst, "mimetypes", arg);
-      break;
-
-    case OPT_METAMAIL:
-      mu_argp_node_list_new (lst, "metamail", arg ? arg : "metamail");
-      break;
-      
-    default: 
-      return ARGP_ERR_UNKNOWN;
-    }
-  return 0;
+  no_ask_types = mu_strdup (arg ? arg : "*");
+  setenv ("MM_NOASK", arg, 1); /* In case we are given --metamail option */
 }
 
-static struct argp argp = {
-  options,
-  parse_opt,
-  N_("FILE [FILE ...]"),
-  doc,
-  NULL,
-  NULL, NULL
-};
+static void
+cli_no_interactive (struct mu_parseopt *po, struct mu_option *opt,
+		    char const *arg)
+{
+  interactive = 0;
+}
 
+static void
+cli_debug (struct mu_parseopt *po, struct mu_option *opt,
+	   char const *arg)
+{
+  set_debug_flags (arg);
+}
+
+static void
+cli_metamail (struct mu_parseopt *po, struct mu_option *opt,
+	      char const *arg)
+{
+  if (!arg)
+    arg = "metamail";
+  metamail = mu_strdup (arg);
+}
+
+static struct mu_option mimeview_options[] = {
+  { "no-ask", 'a', N_("TYPE-LIST"), MU_OPTION_ARG_OPTIONAL,
+    N_("do not ask for confirmation before displaying files, or, if TYPE-LIST is given, do not ask for confirmation before displaying such files whose MIME type matches one of the patterns from TYPE-LIST"),
+    mu_c_string, NULL, cli_no_ask },
+  { "no-interactive", 'h', NULL, MU_OPTION_DEFAULT,
+   N_("disable interactive mode"),
+    mu_c_string, NULL, cli_no_interactive },
+  { "print",  0, NULL, MU_OPTION_ALIAS },
+  { "debug", 'd', N_("FLAGS"),  MU_OPTION_ARG_OPTIONAL,
+    N_("enable debugging output"),
+    mu_c_string, NULL, cli_debug },
+  { "mimetypes", 't', N_("FILE"), MU_OPTION_DEFAULT,
+    N_("use this mime.types file"),
+    mu_c_string, &mimetypes_config },
+  
+  { "dry-run",   'n', NULL, MU_OPTION_DEFAULT,
+    N_("do nothing, just print what would have been done"),
+    mu_c_bool, &dry_run },
+  
+  { "metamail",    0, N_("FILE"), MU_OPTION_ARG_OPTIONAL,
+    N_("use metamail to display files"),
+    mu_c_string, NULL, cli_metamail },
+
+  MU_OPTION_END
+}, *options[] = { mimeview_options, NULL };
 
 static int
 cb_debug (void *data, mu_config_value_t *val)
@@ -172,12 +139,23 @@ struct mu_cfg_param mimeview_cfg_param[] = {
     N_("prog") },
   { NULL }
 };
-
 
-
-static const char *capa[] = {
-  "mailutils",
-  "common",
+struct mu_cli_setup cli = {
+  options,
+  mimeview_cfg_param,
+  N_("GNU mimeview -- display files, using mailcap mechanism."),
+  //FIXME:
+  /*
+  N_("Default mime.types file is ") DEFAULT_CUPS_CONFDIR "/mime.types"
+N_("\n\nDebug flags are:\n\
+  g - Mime.types parser traces\n\
+  l - Mime.types lexical analyzer traces\n\
+  0-9 - Set debugging level\n");
+  */
+  N_("FILE [FILE ...]")
+};
+
+static char *capa[] = {
   "debug",
   NULL
 };
@@ -267,16 +245,15 @@ display_file (const char *type)
 int
 main (int argc, char **argv)
 {
-  int index;
-  
   MU_APP_INIT_NLS ();
-  mu_argp_init (NULL, NULL);
-  if (mu_app_init (&argp, capa, mimeview_cfg_param, 
-		   argc, argv, 0, &index, NULL))
-    exit (1);
 
-  argc -= index;
-  argv += index;
+  mimetypes_lex_debug (0);
+  mimetypes_gram_debug (0);
+  interactive = isatty (fileno (stdin));
+  
+  mu_cli (argc, argv, &cli, capa, NULL, &argc, &argv);
+  if (dry_run && !debug_level)
+    debug_level = 1;
 
   if (argc == 0)
     {

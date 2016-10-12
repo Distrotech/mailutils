@@ -64,7 +64,7 @@
 #include <mailutils/util.h>
 #include <mailutils/mime.h>
 
-#include "mailutils/libargp.h"
+#include "mailutils/cli.h"
 
 typedef int (*frm_select_t) (size_t index, mu_message_t msg);
 

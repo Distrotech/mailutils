@@ -27,45 +27,8 @@
 #include <unistd.h>
 #include <mailutils/mailutils.h>
 #include <mailutils/tls.h>
-#include "mailutils/libargp.h"
+#include "mailutils/cli.h"
 #include <muaux.h>
-
-static char doc[] = N_("GNU movemail -- move messages across mailboxes.");
-static char args_doc[] = N_("inbox-url destfile [POP-password]");
-
-enum {
-  EMACS_OPTION=256,
-  IGNORE_ERRORS_OPTION,
-  PROGRAM_ID_OPTION,
-  MAX_MESSAGES_OPTION,
-  ONERROR_OPTION,
-  NOTIFY_OPTION
-};
-
-static struct argp_option options[] = {
-  { "preserve", 'p', NULL, 0, N_("preserve the source mailbox") },
-  { "keep-messages", 0, NULL, OPTION_ALIAS, NULL },
-  { "reverse",  'r', NULL, 0, N_("reverse the sorting order") },
-  { "emacs", EMACS_OPTION, NULL, 0,
-    N_("output information used by Emacs rmail interface") },
-  { "uidl", 'u', NULL, 0,
-    N_("use UIDLs to avoid downloading the same message twice") },
-  { "verbose", 'v', NULL, 0,
-    N_("increase verbosity level") },
-  { "owner", 'P', N_("MODELIST"), 0,
-    N_("control mailbox ownership") },
-  { "ignore-errors", IGNORE_ERRORS_OPTION, NULL, 0,
-    N_("try to continue after errors") },
-  { "onerror", ONERROR_OPTION, N_("KW[,KW...]"), 0,
-    N_("what to do on errors") },
-  { "program-id", PROGRAM_ID_OPTION, N_("FMT"), 0,
-    N_("set program identifier for diagnostics (default: program name)") },
-  { "max-messages", MAX_MESSAGES_OPTION, N_("NUMBER"), 0,
-    N_("process at most NUMBER messages") },
-  { "notify",  NOTIFY_OPTION, NULL,   0,
-    N_("enable biff notification") },  
-  { NULL,      0, NULL, 0, NULL, 0 }
-};
 
 static int reverse_order;
 static int preserve_mail; 
@@ -135,84 +98,9 @@ mu_kwd_t method_kwd[] = {
   { "set-id", set_owner_id },
   { NULL }
 };
-
-static error_t
-parse_opt (int key, char *arg, struct argp_state *state)
-{
-  static mu_list_t lst;
-
-  switch (key)
-    {
-    case 'r':
-      mu_argp_node_list_new (lst, "reverse", "yes");
-      break;
-
-    case 'p':
-      mu_argp_node_list_new (lst, "preserve", "yes");
-      break;
-
-    case 'P':
-      mu_argp_node_list_new (lst, "mailbox-ownership", arg);
-      break;
-
-    case 'u':
-      mu_argp_node_list_new (lst, "uidl", "yes");
-      break;
-
-    case 'v':
-      verbose_option++;
-      break;
-      
-    case EMACS_OPTION:
-      mu_argp_node_list_new (lst, "emacs", "yes");
-      break;
-
-    case IGNORE_ERRORS_OPTION:
-      mu_argp_node_list_new (lst, "ignore-errors", "yes");
-      break;
-
-    case NOTIFY_OPTION:
-      notify = 1;
-      break;
-      
-    case ONERROR_OPTION:
-      mu_argp_node_list_new (lst, "onerror", arg);
-      break;
-      
-    case MAX_MESSAGES_OPTION:
-      mu_argp_node_list_new (lst, "max-messages", arg);
-      break;
-      
-    case PROGRAM_ID_OPTION:
-      mu_argp_node_list_new (lst, "program-id", arg);
-      break;
-      
-    case ARGP_KEY_INIT:
-      mu_argp_node_list_init (&lst);
-      break;
-      
-    case ARGP_KEY_FINI:
-      mu_argp_node_list_finish (lst, NULL, NULL);
-      break;
-      
-    default:
-      return ARGP_ERR_UNKNOWN;
-    }
-  return 0;
-}
-
-static struct argp argp = {
-  options,
-  parse_opt,
-  args_doc,
-  doc,
-  NULL,
-  NULL, NULL
-};
-
 
 static int
-_cb_mailbox_ownership (const char *str)
+set_mailbox_ownership (const char *str)
 {
   if (strcmp (str, "clear") == 0)
     so_method_num = 0;
@@ -280,50 +168,33 @@ _cb_mailbox_ownership (const char *str)
 }
 
 static int
-cb_mailbox_ownership (void *data, mu_config_value_t *val)
+set_mailbox_ownership_list (char const *str)
 {
-  int i;
-  
-  if (val->type == MU_CFG_STRING)
+  if (!strchr (str, ','))
+    return set_mailbox_ownership (str);
+  else
     {
-      const char *str = val->v.string;
-      if (!strchr (str, ','))
-	return _cb_mailbox_ownership (str);
-      else
+      struct mu_wordsplit ws;
+      size_t i;
+      
+      ws.ws_delim = ",";
+      if (mu_wordsplit (str, &ws, MU_WRDSF_DEFFLAGS|MU_WRDSF_DELIM))
 	{
-	  struct mu_wordsplit ws;
-
-	  ws.ws_delim = ",";
-	  if (mu_wordsplit (str, &ws, MU_WRDSF_DEFFLAGS|MU_WRDSF_DELIM))
-	    {
-	      mu_error (_("cannot parse %s: %s"),
-			str, mu_wordsplit_strerror (&ws));
-	      return 1;
-	    }
-
-	  for (i = 0; i < ws.ws_wordc; i++)
-	    if (_cb_mailbox_ownership (ws.ws_wordv[i]))
-	      return 1;
-	  mu_wordsplit_free (&ws);
-	  return 0;
+	  mu_error (_("cannot parse %s: %s"),
+		    str, mu_wordsplit_strerror (&ws));
+	  return 1;
 	}
-    }
-		
-  if (mu_cfg_assert_value_type (val, MU_CFG_LIST))
-    return 1;
 
-  for (i = 0; i < val->v.arg.c; i++)
-    {
-      if (mu_cfg_assert_value_type (&val->v.arg.v[i], MU_CFG_STRING))
-	return 1;
-      if (_cb_mailbox_ownership (val->v.arg.v[i].v.string))
-	return 1;
+      for (i = 0; i < ws.ws_wordc; i++)
+	if (set_mailbox_ownership (ws.ws_wordv[i]))
+	  return 1;
+      mu_wordsplit_free (&ws);
+      return 0;
     }
-  return 0;
 }
 
 static int
-cb_onerror (void *data, mu_config_value_t *val)
+set_onerror_action (char const *str)
 {
   struct mu_wordsplit ws;
   static struct mu_kwd onerror_kw[] = {
@@ -334,15 +205,13 @@ cb_onerror (void *data, mu_config_value_t *val)
   };
   int i, flag;
   
-  if (mu_cfg_assert_value_type (val, MU_CFG_STRING))
-    return 1;
-  if (strcmp (val->v.string, "abort") == 0)
+  if (strcmp (str, "abort") == 0)
     {
       onerror_flags = 0;
       return 0;
     }
   ws.ws_delim = ",";
-  if (mu_wordsplit (val->v.string, &ws,
+  if (mu_wordsplit (str, &ws,
 		    MU_WRDSF_NOVAR | MU_WRDSF_NOCMD |
 		    MU_WRDSF_DELIM | MU_WRDSF_WS))
     {
@@ -368,6 +237,99 @@ cb_onerror (void *data, mu_config_value_t *val)
     }
   mu_wordsplit_free (&ws);
   return 0;
+}
+
+static void
+cli_mailbox_ownership (struct mu_parseopt *po, struct mu_option *opt,
+		       char const *arg)
+{
+  if (set_mailbox_ownership_list (arg))
+    exit (po->po_exit_error);
+}
+
+static void
+cli_onerror (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
+{
+  if (set_onerror_action (arg))
+    exit (po->po_exit_error);
+}
+
+static struct mu_option movemail_options[] = {
+  { "preserve", 'p', NULL, MU_OPTION_DEFAULT,
+    N_("preserve the source mailbox"),
+    mu_c_bool, &preserve_mail },
+  { "keep-messages", 0, NULL, MU_OPTION_ALIAS },
+  
+  { "reverse",  'r', NULL, MU_OPTION_DEFAULT,
+    N_("reverse the sorting order"),
+    mu_c_bool, &reverse_order },
+  
+  { "emacs",      0, NULL, MU_OPTION_DEFAULT,
+    N_("output information used by Emacs rmail interface"),
+    mu_c_bool, &emacs_mode },
+  
+  { "uidl",     'u', NULL, MU_OPTION_DEFAULT,
+    N_("use UIDLs to avoid downloading the same message twice"),
+    mu_c_bool, &uidl_option },
+  
+  { "verbose",  'v', NULL, MU_OPTION_DEFAULT,
+    N_("increase verbosity level"),
+    mu_c_incr, &verbose_option },
+  
+  { "owner",    'P', N_("MODELIST"), MU_OPTION_DEFAULT,
+    N_("control mailbox ownership"),
+    mu_c_string, cli_mailbox_ownership },
+  
+  { "ignore-errors", 0, NULL, MU_OPTION_DEFAULT,
+    N_("try to continue after errors"),
+    mu_c_bool, &ignore_errors },
+  
+  { "onerror",       0, N_("KW[,KW...]"), MU_OPTION_DEFAULT,
+    N_("what to do on errors"),
+    mu_c_string, NULL, cli_onerror },
+  
+  { "program-id",    0, N_("FMT"), MU_OPTION_DEFAULT,
+    N_("set program identifier for diagnostics (default: program name)"),
+    mu_c_string, &program_id_option },
+  
+  { "max-messages",  0, N_("NUMBER"), MU_OPTION_DEFAULT,
+    N_("process at most NUMBER messages"),
+    mu_c_size, &max_messages_option },
+  
+  { "notify",        0, NULL,   MU_OPTION_DEFAULT,
+    N_("enable biff notification"),
+    mu_c_bool, &notify },
+
+  MU_OPTION_END
+}, *options[] = { movemail_options, NULL };
+
+static int
+cb_mailbox_ownership (void *data, mu_config_value_t *val)
+{
+  int i;
+  
+  if (val->type == MU_CFG_STRING)
+    set_mailbox_ownership_list (val->v.string);
+		
+  if (mu_cfg_assert_value_type (val, MU_CFG_LIST))
+    return 1;
+
+  for (i = 0; i < val->v.arg.c; i++)
+    {
+      if (mu_cfg_assert_value_type (&val->v.arg.v[i], MU_CFG_STRING))
+	return 1;
+      if (set_mailbox_ownership (val->v.arg.v[i].v.string))
+	return 1;
+    }
+  return 0;
+}
+
+static int
+cb_onerror (void *data, mu_config_value_t *val)
+{
+  if (mu_cfg_assert_value_type (val, MU_CFG_STRING))
+    return 1;
+  return set_onerror_action (val->v.string);
 }
   
 struct mu_cfg_param movemail_cfg_param[] = {
@@ -406,15 +368,20 @@ struct mu_cfg_param movemail_cfg_param[] = {
        "Setting onerror=abort reverts to the default behavior.") },
   { NULL }
 };
-
 
-static const char *movemail_capa[] = {
-  "mailutils",
-  "common",
+struct mu_cli_setup cli = {
+  options,
+  movemail_cfg_param,
+  N_("GNU movemail -- move messages across mailboxes."),
+  N_("inbox-url destfile [POP-password]")
+};
+
+static char *movemail_capa[] = {
   "debug",
   "locking",
   "mailbox",
   "auth",
+  "tls",
   NULL 
 };
 
@@ -863,7 +830,6 @@ set_program_id (const char *source_name, const char *dest_name)
 int
 main (int argc, char **argv)
 {
-  int index;
   size_t total;
   int rc = 0;
   char *source_name, *dest_name;
@@ -880,16 +846,8 @@ main (int argc, char **argv)
 
   /* argument parsing */
   
-#ifdef WITH_TLS
-  mu_gocs_register ("tls", mu_tls_module_init);
-#endif
-  mu_argp_init (NULL, NULL);
-  if (mu_app_init (&argp, movemail_capa, movemail_cfg_param, 
-		   argc, argv, 0, &index, NULL))
-    exit (1);
-
-  argc -= index;
-  argv += index;
+  mu_cli_capa_register (&mu_cli_capa_tls);
+  mu_cli (argc, argv, &cli, movemail_capa, NULL, &argc, &argv);
 
   if (argc < 2 || argc > 3)
     {

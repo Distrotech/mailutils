@@ -384,7 +384,7 @@ mu_cli (int argc, char **argv, struct mu_cli_setup *setup, char **capa,
   optv = init_options (capa, setup, &com_list);
 
   if (mu_parseopt (&po, argc, argv, optv, flags))
-    exit (EX_USAGE);
+    exit (po.po_exit_error);
 
   argc -= po.po_arg_start;
   argv += po.po_arg_start;
