@@ -34,21 +34,29 @@ optcmp (const void *a, const void *b)
 {
   struct mu_option const *ap = *(struct mu_option const **)a;
   struct mu_option const *bp = *(struct mu_option const **)b;
-
+  
   while (ap->opt_flags & MU_OPTION_ALIAS)
     ap--;
   while (bp->opt_flags & MU_OPTION_ALIAS)
     bp--;
-  
-  if (MU_OPTION_IS_VALID_SHORT_OPTION (ap)
-      && MU_OPTION_IS_VALID_SHORT_OPTION (bp))
-    return ap->opt_short - bp->opt_short;
-  if (MU_OPTION_IS_VALID_LONG_OPTION (ap)
+
+  if (!MU_OPTION_IS_VALID_SHORT_OPTION (ap)
+      && MU_OPTION_IS_VALID_LONG_OPTION (ap)
+      && !MU_OPTION_IS_VALID_SHORT_OPTION (bp)
       && MU_OPTION_IS_VALID_LONG_OPTION (bp))
-    return strcmp (ap->opt_long, bp->opt_long);
-  if (MU_OPTION_IS_VALID_LONG_OPTION (ap))
-    return 1;
-  return -1;
+    return strcasecmp (ap->opt_long, bp->opt_long);
+  else
+    {
+      char afirst, bfirst;
+      int res;
+
+      afirst = ap->opt_short ? ap->opt_short : ap->opt_long ? *ap->opt_long : 0;
+      bfirst = bp->opt_short ? bp->opt_short : bp->opt_long ? *bp->opt_long : 0;
+
+      res = mu_tolower (afirst) - mu_tolower (bfirst);
+      
+      return res ? res : afirst - bfirst;
+    }
 }
 
 /* Sort a group of options in OPTBUF, starting at index START (first
@@ -545,7 +553,7 @@ parseopt_init (struct mu_parseopt *po, struct mu_option **options,
   /* Ensure sane start of options.  This is necessary, in particular,
      because optcmp backs up until it finds an element with cleared
      MU_OPTION_ALIAS bit. */
-  po->po_optv[0]->opt_flags &= MU_OPTION_ALIAS;
+  po->po_optv[0]->opt_flags &= ~MU_OPTION_ALIAS;
   if (!(flags & MU_PARSEOPT_NO_SORT))
     {
       /* Sort the options */
