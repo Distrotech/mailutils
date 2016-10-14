@@ -56,6 +56,12 @@ AT_INIT
 AT_BANNER([Conversions])
 m4_include([strtoc.at])
 
+AT_BANNER([Word wrapper])
+m4_include([wordwrap00.at])
+m4_include([wordwrap01.at])
+m4_include([wordwrap02.at])
+m4_include([wordwrap03.at])
+
 AT_BANNER([Command line parser])
 m4_define([PARSEOPT_DEFAULT],[
 unset ARGP_HELP_FMT

@@ -78,7 +78,8 @@ enum mu_buffer_type
 				       always returns the topmost substream.
 				    */
 #define MU_IOCTL_TLSSTREAM       13 /* TLS stream */
-
+#define MU_IOCTL_WORDWRAPSTREAM  14 /* Word-wrapper stream */
+  
   /* Opcodes common for various families */
 #define MU_IOCTL_OP_GET 0
 #define MU_IOCTL_OP_SET 1  
@@ -206,6 +207,11 @@ enum mu_buffer_type
 #define MU_TRANSPORT_VALID_TYPE(n) \
   ((n) == MU_TRANSPORT_INPUT || (n) == MU_TRANSPORT_OUTPUT)
 
+/* Word wrapper streams */
+#define MU_IOCTL_WORDWRAP_GET_MARGIN  0
+#define MU_IOCTL_WORDWRAP_SET_MARGIN  1   
+#define MU_IOCTL_WORDWRAP_MOVE_MARGIN 2
+  
 struct mu_nullstream_pattern
 {
   char *pattern;
@@ -360,6 +366,9 @@ int mu_rdcache_stream_create (mu_stream_t *pstream, mu_stream_t transport,
 			      int flags);
 
 int mu_nullstream_create (mu_stream_t *pref, int flags);
+
+int mu_wordwrap_stream_create (mu_stream_t *pstream, mu_stream_t transport,
+			       size_t left_margin, size_t right_margin);
   
 #ifdef __cplusplus
 }

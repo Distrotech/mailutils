@@ -38,6 +38,7 @@ libstream_la_SOURCES = \
  syslogstream.c\
  tcp.c\
  temp_file_stream.c\
+ wordwrap.c\
  xscript-stream.c
 
 AM_CPPFLAGS = @MU_LIB_COMMON_INCLUDES@ -I/libmailutils

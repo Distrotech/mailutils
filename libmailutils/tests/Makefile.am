@@ -68,6 +68,7 @@ noinst_PROGRAMS = \
  url-comp\
  url-parse\
  wicket\
+ wordwrap\
  wsp
 
 LDADD = ${MU_LIB_MAILUTILS}
@@ -155,7 +156,11 @@ TESTSUITE_AT = \
  url-comp.at\
  xml.at\
  wicket.at\
- wordsplit.at
+ wordsplit.at\
+ wordwrap00.at\
+ wordwrap01.at\
+ wordwrap02.at\
+ wordwrap03.at
 
 TESTSUITE = $(srcdir)/testsuite
 M4=m4

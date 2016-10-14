@@ -1,0 +1,45 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2016 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# GNU Mailutils is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+
+AT_SETUP([Fixed margins])
+AT_KEYWORDS([wordwrap wordwrap00])
+AT_DATA([input],[My Father had a small Estate in Nottinghamshire; I was the Third of five Sons. He sent me to Emanuel-College in Cambridge, at Fourteen Years old, where I resided three Years, and applyed my self close to my Studies: But the Charge of maintaining me (although I had a very scanty Allowance) being too great for a narrow Fortune; I was bound Apprentice to Mr. James Bates, an eminent Surgeon in London, with whom I continued four Years; and my Father now and then sending me small Sums of Money,  I laid them out in learning Navigation, and other parts of the Mathematicks, useful to those who intend to travel, as I always believed it would be some time or other my Fortune to do. When I left Mr. Bates, I went down to my Father; where, by the Assistance of him and my Uncle John, and some other Relations, I got Forty Pounds, and a Promise of Thirty Pounds a Year to maintain me at Leyden: There I studied Physick two Years and seven Months, knowing it would be useful in long Voyages.
+])
+AT_CHECK([wordwrap -l 20 -r 70 input],
+[0],
+[                    My Father had a small Estate in Nottinghamshire; I
+                    was the Third of five Sons. He sent me to 
+                    Emanuel-College in Cambridge, at Fourteen Years 
+                    old, where I resided three Years, and applyed my 
+                    self close to my Studies: But the Charge of 
+                    maintaining me (although I had a very scanty 
+                    Allowance) being too great for a narrow Fortune; I
+                    was bound Apprentice to Mr. James Bates, an 
+                    eminent Surgeon in London, with whom I continued 
+                    four Years; and my Father now and then sending me 
+                    small Sums of Money,  I laid them out in learning 
+                    Navigation, and other parts of the Mathematicks, 
+                    useful to those who intend to travel, as I always 
+                    believed it would be some time or other my Fortune
+                    to do. When I left Mr. Bates, I went down to my 
+                    Father; where, by the Assistance of him and my 
+                    Uncle John, and some other Relations, I got Forty 
+                    Pounds, and a Promise of Thirty Pounds a Year to 
+                    maintain me at Leyden: There I studied Physick two
+                    Years and seven Months, knowing it would be useful
+                    in long Voyages.
+])
+AT_CLEANUP
