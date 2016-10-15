@@ -24,89 +24,74 @@
 #include <ctype.h>
 #include <string.h>
 #include <mailutils/mailutils.h>
-#include "mailutils/libargp.h"
-
-static char doc[] =
-"muauth -- test mailutils authentication and authorization schemes";
-static char args_doc[] = "key";
-
-static const char *capa[] = {
-  "mailutils",
-  "auth",
-  "common",
-  "debug",
-  NULL
-};
-
-static struct argp_option options[] = {
-  { "password", 'p', "STRING", 0, "user password", 0 },
-  { "uid", 'u', NULL, 0, "test getpwuid functions", 0 },
-  { "name", 'n', NULL, 0, "test getpwnam functions", 0 },
-  { NULL },
-};
 
 enum mu_auth_key_type key_type = mu_auth_key_name;
 char *password;
 
-static error_t
-parse_opt (int key, char *arg, struct argp_state *state)
+static void
+use_uid (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
 {
-  switch (key)
-    {
-    case 'p':
-      password = arg;
-      break;
-
-    case 'u':
-      key_type = mu_auth_key_uid;
-      break;
-
-    case 'n':
-      key_type = mu_auth_key_name;
-      break;
-
-    default:
-      return ARGP_ERR_UNKNOWN;
-    }
-  return 0;
+  key_type = mu_auth_key_uid;
 }
 
-static struct argp argp = {
+static void
+use_name (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
+{
+  key_type = mu_auth_key_name;
+}
+
+static struct mu_option muauth_options[] = {
+  { "password", 'p', "STRING", MU_OPTION_DEFAULT,
+    "user password",
+    mu_c_string, &password },
+  { "uid", 'u', NULL, MU_OPTION_DEFAULT,
+    "test getpwuid functions",
+    mu_c_string, NULL, use_uid },
+  { "name", 'n', NULL, MU_OPTION_DEFAULT,
+    "test getpwnam functions",
+    mu_c_string, NULL, use_name },
+  MU_OPTION_END
+}, *options[] = { muauth_options, NULL };
+
+static char *capa[] = {
+  "auth",
+  "debug",
+  NULL
+};
+
+static struct mu_cli_setup cli = {
   options,
-  parse_opt,
-  args_doc,
-  doc,
   NULL,
-  NULL, NULL
+  "muauth -- test mailutils authentication and authorization schemes",
+  "key"
 };
            
 int
 main (int argc, char * argv [])
 {
-  int rc, index;
+  int rc;
   struct mu_auth_data *auth;
   void *key;
   uid_t uid;
   
   MU_AUTH_REGISTER_ALL_MODULES ();
-  mu_argp_init (NULL, NULL);
-  if (mu_app_init (&argp, capa, NULL, argc, argv, 0, &index, NULL))
-    exit (1);
 
-  if (index == argc)
+  mu_cli (argc, argv, &cli, capa, NULL, &argc, &argv);
+
+  if (argc == 0)
     {
       mu_error ("not enough arguments, try `%s --help' for more info",
-		argv[0]);
+		mu_program_name);
       return 1;
     }
 
   if (key_type == mu_auth_key_uid)
     {
-      uid = strtoul (argv[index], NULL, 0);
+      uid = strtoul (argv[0], NULL, 0);
       key = &uid;
     }
   else
-    key = argv[index];
+    key = argv[0];
   
   rc = mu_get_auth (&auth, key_type, key);
   printf ("mu_get_auth => %d, %s\n", rc, mu_strerror (rc));

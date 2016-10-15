@@ -21,28 +21,28 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <mailutils/util.h>
-#include "mailutils/libargp.h"
+#include <mailutils/cli.h>
 
-const char *capa[] = {
-  "mailutils",
+char *capa[] = {
   "address",
   NULL
 };
 
+static struct mu_cli_setup cli = { NULL };
+  
+
 int
 main (int argc, char *argv[])
 {
-  int arg = 1;
+  mu_cli (argc, argv, &cli, capa, NULL, &argc, &argv);
 
-  if (mu_app_init (NULL, capa, NULL, argc, argv, 0, &arg, NULL))
-    exit (1);
-
-  if (!argv[arg])
+  if (argc == 0)
     printf ("current user -> %s\n", mu_get_user_email (0));
   else
     {
-      for (; argv[arg]; arg++)
-        printf ("%s -> %s\n", argv[arg], mu_get_user_email (argv[arg]));
+      int i;
+      for (i = 0; i < argc; i++)
+        printf ("%s -> %s\n", argv[i], mu_get_user_email (argv[i]));
     }
 
   return 0;
