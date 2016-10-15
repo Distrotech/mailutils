@@ -64,9 +64,9 @@ struct mu_option group_b[] = {
 struct mu_option *optv[] = { group_a, group_b, NULL };
 
 static void
-version_hook (struct mu_parseopt *po, FILE *fp)
+version_hook (struct mu_parseopt *po, mu_stream_t str)
 {
-  fputs ("version hook called\n", fp);
+  mu_stream_printf (str, "version hook called\n");
 }
 
 #define S(s) ((s)?(s):"(null)")

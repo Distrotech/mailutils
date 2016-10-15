@@ -27,6 +27,7 @@
 #include <mailutils/cctype.h>
 #include <mailutils/nls.h>
 #include <mailutils/wordsplit.h>
+#include <mailutils/stream.h>
 
 unsigned short_opt_col = 2;
 unsigned long_opt_col = 6;
@@ -184,91 +185,69 @@ init_usage_vars (struct mu_parseopt *po)
 
   mu_wordsplit_free (&ws);
 }
-
-static int
-indent (int start, int col)
-{
-  for (; start < col; start++)
-    putchar (' ');
-  return start;
-}
-
-static void
-print_option_descr (const char *descr, size_t lmargin, size_t rmargin)
-{
-  while (*descr)
-    {
-      size_t s = 0;
-      size_t i;
-      size_t width = rmargin - lmargin;
-      
-      for (i = 0; ; i++)
-	{
-	  if (descr[i] == 0 || descr[i] == ' ' || descr[i] == '\t')
-	    {
-	      if (i > width)
-		break;
-	      s = i;
-	      if (descr[i] == 0)
-		break;
-	    }
-	  else if (descr[i] == '\n')
-	    {
-	      s = i;
-	      break;
-	    }
-	}
-      fwrite (descr, 1, s, stdout);
-      fputc ('\n', stdout);
-      descr += s;
-      if (*descr)
-	{
-	  indent (0, lmargin);
-	  descr++;
-	}
-    }
-}
-
-void
-mu_parseopt_fmt_text (const char *text, size_t col)
-{
-  print_option_descr (text, col, rmargin);
-}
-
 
-static size_t
-print_opt_arg (struct mu_option *opt, int delim)
+static void
+set_margin (mu_stream_t str, unsigned margin)
 {
-  int w = 0;
+  mu_stream_ioctl (str, MU_IOCTL_WORDWRAPSTREAM,
+		   MU_IOCTL_WORDWRAP_SET_MARGIN,
+		   &margin);
+}
+static void
+set_next_margin (mu_stream_t str, unsigned margin)
+{
+  mu_stream_ioctl (str, MU_IOCTL_WORDWRAPSTREAM,
+		   MU_IOCTL_WORDWRAP_SET_NEXT_MARGIN,
+		   &margin);
+}
+static void
+get_offset (mu_stream_t str, unsigned *offset)
+{
+  mu_stream_ioctl (str, MU_IOCTL_WORDWRAPSTREAM,
+		   MU_IOCTL_WORDWRAP_GET_OFFSET,
+		   offset);
+}
+static void
+move_margin (mu_stream_t str, int margin)
+{
+  mu_stream_ioctl (str, MU_IOCTL_WORDWRAPSTREAM,
+		   MU_IOCTL_WORDWRAP_MOVE_MARGIN,
+		   &margin);
+}
+
+static void
+print_opt_arg (mu_stream_t str, struct mu_option *opt, int delim)
+{
   if (opt->opt_flags & MU_OPTION_ARG_OPTIONAL)
     {
       if (delim == '=')
-	w = printf ("[=%s]", gettext (opt->opt_arg));
+	mu_stream_printf (str, "[=%s]", gettext (opt->opt_arg));
       else
-	w = printf ("[%s]", gettext (opt->opt_arg));
+	mu_stream_printf (str, "[%s]", gettext (opt->opt_arg));
     }
   else
-    w = printf ("%c%s", delim, gettext (opt->opt_arg));
-  return w;
+    mu_stream_printf (str, "%c%s", delim, gettext (opt->opt_arg));
 }
 
 static size_t
-print_option (struct mu_option **optbuf, size_t optcnt, size_t num,
+print_option (mu_stream_t str,
+	      struct mu_option **optbuf, size_t optcnt, size_t num,
 	      int *argsused)
 {
   struct mu_option *opt = optbuf[num];
   size_t next, i;
   int delim;
-  int w;
+  int first_option = 1;
+  int first_long_option = 1;
   
   if (MU_OPTION_IS_GROUP_HEADER (opt))
     {
       if (num)
-	putchar ('\n');
+	mu_stream_printf (str, "\n");
       if (opt->opt_doc[0])
 	{
-	  indent (0, header_col);
-	  print_option_descr (gettext (opt->opt_doc), header_col, rmargin);
+	  set_margin (str, header_col);
+	  mu_stream_printf (str, "%s", gettext (opt->opt_doc));
 	}
       return num + 1;
     }
@@ -281,22 +260,19 @@ print_option (struct mu_option **optbuf, size_t optcnt, size_t num,
   if (opt->opt_flags & MU_OPTION_HIDDEN)
     return next;
 
-  w = 0;
+  set_margin (str, short_opt_col); 
   for (i = num; i < next; i++)
     {
       if (MU_OPTION_IS_VALID_SHORT_OPTION (optbuf[i]))
 	{
-	  if (w == 0)
-	    {
-	      indent (0, short_opt_col);
-	      w = short_opt_col;
-	    }
+	  if (first_option)
+	    first_option = 0;
 	  else
-	    w += printf (", ");
-	  w += printf ("-%c", optbuf[i]->opt_short);
+	    mu_stream_printf (str, ", ");
+	  mu_stream_printf (str, "-%c", optbuf[i]->opt_short);
 	  delim = ' ';
 	  if (opt->opt_arg && dup_args)
-	    w += print_opt_arg (opt, delim);
+	    print_opt_arg (str, opt, delim);
 	}
     }
 
@@ -304,19 +280,24 @@ print_option (struct mu_option **optbuf, size_t optcnt, size_t num,
     {
       if (MU_OPTION_IS_VALID_LONG_OPTION (optbuf[i]))
 	{
-	  if (w == 0)
-	    {
-	      indent (0, short_opt_col);
-	      w = short_opt_col;
-	    }
+	  if (first_option)
+	    first_option = 0;
 	  else
-	    w += printf (", ");
-	  if (i == num)
-	    w = indent (w, long_opt_col);
-  	  w += printf ("--%s", optbuf[i]->opt_long);
+	    mu_stream_printf (str, ", ");
+
+	  if (first_long_option)
+	    {
+	      unsigned off;
+	      get_offset (str, &off);
+	      if (off < long_opt_col)
+		set_margin (str, long_opt_col);
+	      first_long_option = 0;
+	    }
+	  
+  	  mu_stream_printf (str, "--%s", optbuf[i]->opt_long);
 	  delim = '=';
 	  if (opt->opt_arg && dup_args)
-	    w += print_opt_arg (opt, delim);
+	    print_opt_arg (str, opt, delim);
 	}
     }
   
@@ -324,70 +305,87 @@ print_option (struct mu_option **optbuf, size_t optcnt, size_t num,
     {
       *argsused = 1;
       if (!dup_args)
-	w += print_opt_arg (opt, delim);
+	print_opt_arg (str, opt, delim);
     }
-  if (w >= opt_doc_col)
-    {
-      putchar ('\n');
-      w = 0;
-    }
-  indent (w, opt_doc_col);
-  print_option_descr (gettext (opt->opt_doc), opt_doc_col, rmargin);
+
+  set_margin (str, opt_doc_col);
+  mu_stream_printf (str, "%s\n", gettext (opt->opt_doc));
 
   return next;
 }
 
 void
-mu_option_describe_options (struct mu_option **optbuf, size_t optcnt)
+mu_option_describe_options (mu_stream_t str,
+			    struct mu_option **optbuf, size_t optcnt)
 {
   unsigned i;
   int argsused = 0;
 
   for (i = 0; i < optcnt; )
-    i = print_option (optbuf, optcnt, i, &argsused);
-  putchar ('\n');
+    i = print_option (str, optbuf, optcnt, i, &argsused);
+  mu_stream_printf (str, "\n");
 
   if (argsused && dup_args_note)
     {
-      print_option_descr (_("Mandatory or optional arguments to long options are also mandatory or optional for any corresponding short options."), 0, rmargin);
-      putchar ('\n');
+      set_margin (str, 0);
+      mu_stream_printf (str, "%s\n\n",
+			_("Mandatory or optional arguments to long options are also mandatory or optional for any corresponding short options."));
     }
 }
 
 void
-mu_program_help (struct mu_parseopt *po)
+mu_program_help (struct mu_parseopt *po, mu_stream_t outstr)
 {
+  mu_stream_t str;
+  int rc;
+  
   init_usage_vars (po);
 
-  printf ("%s", _("Usage:"));
+  rc = mu_wordwrap_stream_create (&str, outstr, 0, rmargin);
+  if (rc)
+    {
+      abort ();//FIXME
+    }
+  
+  mu_stream_printf (str, "%s", _("Usage:"));
   if (po->po_prog_name)
-    printf (" %s", po->po_prog_name);
-  printf (" [%s]...", _("OPTION"));
+    mu_stream_printf (str, " %s ", po->po_prog_name);
+  move_margin (str, 0);
+  mu_stream_printf (str, "[%s]...", _("OPTION"));
   if (po->po_prog_args)
-    printf (" %s", gettext (po->po_prog_args));
-  putchar ('\n');
+    mu_stream_printf (str, " %s", gettext (po->po_prog_args));
+  mu_stream_printf (str, "\n");
   
   if (po->po_prog_doc)
-    print_option_descr (gettext (po->po_prog_doc), 0, rmargin);
-  putchar ('\n');
-
-  mu_option_describe_options (po->po_optv, po->po_optc);
+    {
+      set_margin (str, 0);
+      mu_stream_printf (str, "%s\n", gettext (po->po_prog_doc));
+    }
+  mu_stream_printf (str, "\n");
+  
+  mu_option_describe_options (str, po->po_optv, po->po_optc);
 
   if (po->po_help_hook)
-    po->po_help_hook (po, stdout);
-
+    {
+      po->po_help_hook (po, str);
+      mu_stream_printf (str, "\n");
+    }
+  
+  set_margin (str, 0);
   if (po->po_bug_address)
     /* TRANSLATORS: The placeholder indicates the bug-reporting address
        for this package.  Please add _another line_ saying
        "Report translation bugs to <...>\n" with the address for translation
        bugs (typically your translation team's web or email address).  */
-    printf (_("Report bugs to <%s>.\n"), po->po_bug_address);
+    mu_stream_printf (str, _("Report bugs to <%s>.\n"), po->po_bug_address);
 
   if (po->po_package_name && po->po_package_url)
-    printf (_("%s home page: <%s>\n"),
-	    po->po_package_name, po->po_package_url);
+    mu_stream_printf (str, _("%s home page: <%s>\n"),
+		      po->po_package_name, po->po_package_url);
   if (po->po_flags & MU_PARSEOPT_EXTRA_INFO)
-    print_option_descr (_(po->po_extra_info), 0, rmargin);
+    mu_stream_printf (str, "%s\n", _(po->po_extra_info));
+
+  mu_stream_destroy (&str);
 }
 
 static struct mu_option **option_tab;
@@ -426,41 +424,32 @@ cmpidx_long (const void *a, const void *b)
 }
 
 void
-mu_program_usage (struct mu_parseopt *po)
+mu_program_usage (struct mu_parseopt *po, mu_stream_t outstr)
 {
+  int rc;
   unsigned i;
-  unsigned n;
-  char buf[rmargin+1];
   unsigned *idxbuf;
   unsigned nidx;
 
   struct mu_option **optbuf = po->po_optv;
   size_t optcnt = po->po_optc;
-  
-#define FLUSH								\
-  do									\
-    {									\
-      buf[n] = 0;							\
-      printf ("%s\n", buf);						\
-      n = usage_indent;						\
-      if (n) memset (buf, ' ', n);					\
-    }									\
-  while (0)
-#define ADDC(c)							        \
-  do									\
-    {									\
-      if (n == rmargin) FLUSH;						\
-      buf[n++] = c;							\
-    }									\
-  while (0)
+
+  mu_stream_t str;
 
   init_usage_vars (po);
 
+  rc = mu_wordwrap_stream_create (&str, outstr, 0, rmargin);
+  if (rc)
+    {
+      abort ();//FIXME
+    }  
+  
   option_tab = optbuf;
   
   idxbuf = mu_calloc (optcnt, sizeof (idxbuf[0]));
 
-  n = snprintf (buf, sizeof buf, "%s %s ", _("Usage:"),	po->po_prog_name);
+  mu_stream_printf (str, "%s %s ", _("Usage:"),	po->po_prog_name);
+  set_next_margin (str, usage_indent);
   
   /* Print a list of short options without arguments. */
   for (i = nidx = 0; i < optcnt; i++)
@@ -470,14 +459,12 @@ mu_program_usage (struct mu_parseopt *po)
   if (nidx)
     {
       qsort (idxbuf, nidx, sizeof (idxbuf[0]), cmpidx_short);
-
-      ADDC ('[');
-      ADDC ('-');
+      mu_stream_printf (str, "[-");
       for (i = 0; i < nidx; i++)
 	{
-	  ADDC (optbuf[idxbuf[i]]->opt_short);
+	  mu_stream_printf (str, "%c", optbuf[idxbuf[i]]->opt_short);
 	}
-      ADDC (']');
+      mu_stream_printf (str, "%c", ']');
     }
 
   /* Print a list of short options with arguments. */
@@ -495,19 +482,10 @@ mu_program_usage (struct mu_parseopt *po)
 	{
 	  struct mu_option *opt = optbuf[idxbuf[i]];
 	  const char *arg = gettext (opt->opt_arg);
-	  size_t len = 5 + strlen (arg) + 1;
-	  
-	  if (n + len >= rmargin)
-	    FLUSH;
+	  if (opt->opt_flags & MU_OPTION_ARG_OPTIONAL)
+	    mu_stream_printf (str, " [-%c[%s]]", opt->opt_short, arg);
 	  else
-	    buf[n++] = ' ';
-	  buf[n++] = '[';
-	  buf[n++] = '-';
-	  buf[n++] = opt->opt_short;
-	  buf[n++] = ' ';
-	  strcpy (&buf[n], arg);
-	  n += strlen (arg);
-	  buf[n++] = ']';
+	    mu_stream_printf (str, " [-%c %s]", opt->opt_short, arg);
 	}
     }
   
@@ -526,52 +504,41 @@ mu_program_usage (struct mu_parseopt *po)
 	{
 	  struct mu_option *opt = optbuf[idxbuf[i]];
 	  const char *arg = opt->opt_arg ? gettext (opt->opt_arg) : NULL;
-	  size_t len = 5 + strlen (opt->opt_long)
-	                 + (arg ? 1 + strlen (arg) : 0);
-	  if (n + len >= rmargin)
-	    FLUSH;
-	  else
-	    buf[n++] = ' ';
-	  buf[n++] = '[';
-	  buf[n++] = '-';
-	  buf[n++] = '-';
-	  strcpy (&buf[n], opt->opt_long);
-	  n += strlen (opt->opt_long);
+
+	  mu_stream_printf (str, " [--%s", opt->opt_long);
 	  if (opt->opt_arg)
 	    {
-	      buf[n++] = '=';
-	      strcpy (&buf[n], arg);
-	      n += strlen (arg);
+	      if (opt->opt_flags & MU_OPTION_ARG_OPTIONAL)
+		mu_stream_printf (str, "[=%s]", arg);
+	      else
+		mu_stream_printf (str, "=%s", arg);
 	    }
-	  buf[n++] = ']';
+	  mu_stream_printf (str, "%c", ']');
 	}
     }
 
   if (po->po_flags & MU_PARSEOPT_PROG_ARGS)
-    {
-      char const *p = po->po_prog_args;
+    mu_stream_printf (str, " %s", _(po->po_prog_args));
 
-      if (n + 1 >= rmargin)
-	FLUSH;
-      buf[n++] = ' ';
-      
-      while (*p)
-	{
-	  size_t len = strcspn (p, "  \t\n");
-	  if (len == 0)
-	    len = 1;
-	  if (n + len >= rmargin)
-	    FLUSH;
-	  else
-	    {
-	      memcpy (buf + n, p, len);
-	      p += len;
-	      n += len;
-	    }
-	}
-    }
-
-  FLUSH;
+  mu_stream_destroy (&str);
+  
   free (idxbuf);
 }
 
+void
+mu_program_version (struct mu_parseopt *po, mu_stream_t outstr)
+{
+  int rc;
+  mu_stream_t str;
+  
+  init_usage_vars (po);
+
+  rc = mu_wordwrap_stream_create (&str, outstr, 0, rmargin);
+  if (rc)
+    {
+      abort ();//FIXME
+    }  
+  po->po_version_hook (po, str);
+
+  mu_stream_destroy (&str);
+}

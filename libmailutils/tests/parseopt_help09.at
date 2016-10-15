@@ -23,7 +23,7 @@ ARGP_HELP_FMT=rmargin=62,usage-indent=1\
 ],
 [0],
 [[Usage: parseopt [-advx?] [-f FILE] [-F VALUE] [-j N]
- [-o FILE] [--all] [--debug] [--file=FILE] [--find=VALUE]
- [--help] [--jobs=N] [--optional=FILE] [--usage] [--verbose]
+ [-o[FILE]] [--all] [--debug] [--file=FILE] [--find=VALUE]
+ [--help] [--jobs=N] [--optional[=FILE]] [--usage] [--verbose]
 ]])
 AT_CLEANUP

@@ -53,40 +53,37 @@ const char mu_version_copyright[] =
   "Copyright %s 2007-2016 Free Software Foundation, inc.";
 
 void
-mu_version_func (struct mu_parseopt *po, FILE *stream)
+mu_version_func (struct mu_parseopt *po, mu_stream_t stream)
 {
 #ifdef GIT_DESCRIBE
-  fprintf (stream, "%s (%s) %s [%s]\n",
-	   mu_program_name, PACKAGE_NAME, PACKAGE_VERSION, GIT_DESCRIBE);
+  mu_stream_printf (stream, "%s (%s) %s [%s]\n",
+		    mu_program_name, PACKAGE_NAME, PACKAGE_VERSION,
+		    GIT_DESCRIBE);
 #else
-  fprintf (stream, "%s (%s) %s\n", mu_program_name,
-	   PACKAGE_NAME, PACKAGE_VERSION);
+  mu_stream_printf (stream, "%s (%s) %s\n", mu_program_name,
+		    PACKAGE_NAME, PACKAGE_VERSION);
 #endif
   /* TRANSLATORS: Translate "(C)" to the copyright symbol
      (C-in-a-circle), if this symbol is available in the user's
      locale.  Otherwise, do not translate "(C)"; leave it as-is.  */
-  fprintf (stream, mu_version_copyright, _("(C)"));
-  fputs (_("\
+  mu_stream_printf (stream, mu_version_copyright, _("(C)"));
+  mu_stream_printf (stream, _("\
 \n\
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\nThis is free software: you are free to change and redistribute it.\n\
 There is NO WARRANTY, to the extent permitted by law.\n\
 \n\
-"),
-	 stream);
+"));
 }
 
 static char gnu_general_help_url[] =
   N_("General help using GNU software: <http://www.gnu.org/gethelp/>");
 
 static void
-extra_help_hook (struct mu_parseopt *po, FILE *stream)
+extra_help_hook (struct mu_parseopt *po, mu_stream_t stream)
 {
   struct mu_cfg_parse_hints *hints = po->po_data;
   struct mu_cli_setup *setup = hints->data;
-  char *extra_doc = _(setup->prog_extra_doc);
-  /* FIXME: mu_parseopt help output should get FILE * argument */
-  mu_parseopt_fmt_text (extra_doc, 0);
-  fputc ('\n', stdout);
+  mu_stream_printf (stream, "%s\n", _(setup->prog_extra_doc));
 }
 
 static void

@@ -30,8 +30,8 @@ MU_PARSEOPT_PROG_ARGS="SOME MORE ARGS" parseopt --help
   -x                         short-only option
 
  Group B
-  -F, --find=VALUE           find VALUE
   -d, -v, --debug, --verbose another option
+  -F, --find=VALUE           find VALUE
   -j, --jobs=N               sets numeric value
 
   -?, --help                 give this help list

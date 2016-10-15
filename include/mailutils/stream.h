@@ -208,10 +208,12 @@ enum mu_buffer_type
   ((n) == MU_TRANSPORT_INPUT || (n) == MU_TRANSPORT_OUTPUT)
 
 /* Word wrapper streams */
-#define MU_IOCTL_WORDWRAP_GET_MARGIN  0
-#define MU_IOCTL_WORDWRAP_SET_MARGIN  1   
-#define MU_IOCTL_WORDWRAP_MOVE_MARGIN 2
-  
+#define MU_IOCTL_WORDWRAP_GET_MARGIN      0
+#define MU_IOCTL_WORDWRAP_SET_MARGIN      1  
+#define MU_IOCTL_WORDWRAP_MOVE_MARGIN     2
+#define MU_IOCTL_WORDWRAP_SET_NEXT_MARGIN 3
+#define MU_IOCTL_WORDWRAP_GET_OFFSET      4
+
 struct mu_nullstream_pattern
 {
   char *pattern;

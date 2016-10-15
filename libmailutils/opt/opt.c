@@ -24,6 +24,7 @@
 #include <mailutils/opt.h>
 #include <mailutils/nls.h>
 #include <mailutils/errno.h>
+#include <mailutils/stdstream.h>
 
 #define EXIT_SUCCESS 0
 #define EXIT_ERROR   1
@@ -78,7 +79,7 @@ sort_group (struct mu_option **optbuf, size_t start)
 static void
 fn_help (struct mu_parseopt *po, struct mu_option *opt, char const *unused)
 {
-  mu_program_help (po);
+  mu_program_help (po, mu_strout);
   exit (EXIT_SUCCESS);
 }
 
@@ -86,14 +87,14 @@ fn_help (struct mu_parseopt *po, struct mu_option *opt, char const *unused)
 static void
 fn_usage (struct mu_parseopt *po, struct mu_option *opt, char const *unused)
 {
-  mu_program_usage (po);
+  mu_program_usage (po, mu_strout);
   exit (EXIT_SUCCESS);
 }
 
 static void
 fn_version (struct mu_parseopt *po, struct mu_option *opt, char const *unused)
 {
-  po->po_version_hook (po, stdout);
+  mu_program_version (po, mu_strout);
   exit (EXIT_SUCCESS);
 }
 

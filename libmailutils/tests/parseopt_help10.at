@@ -21,8 +21,8 @@ PARSEOPT_DEFAULT
 MU_PARSEOPT_VERSION_HOOK=1 parseopt --usage
 ],
 [0],
-[[Usage: parseopt [-advVx?] [-f FILE] [-F VALUE] [-j N] [-o FILE] [--all]
+[[Usage: parseopt [-advVx?] [-f FILE] [-F VALUE] [-j N] [-o[FILE]] [--all]
             [--debug] [--file=FILE] [--find=VALUE] [--help] [--jobs=N]
-            [--optional=FILE] [--usage] [--verbose] [--version]
+            [--optional[=FILE]] [--usage] [--verbose] [--version]
 ]])
 AT_CLEANUP

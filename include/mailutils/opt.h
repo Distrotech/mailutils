@@ -131,9 +131,8 @@ struct mu_parseopt
   char const *po_package_url;
   char const *po_extra_info;
 
-  /* FIXME: should these take mu_stream_t ?*/
-  void (*po_help_hook) (struct mu_parseopt *po, FILE *stream); 
-  void (*po_version_hook) (struct mu_parseopt *po, FILE *stream);
+  void (*po_help_hook) (struct mu_parseopt *po, mu_stream_t stream); 
+  void (*po_version_hook) (struct mu_parseopt *po, mu_stream_t stream);
   
   /* Output data */
   int po_ind;                      /* Index of the next option */
@@ -169,11 +168,12 @@ int mu_parseopt_apply (struct mu_parseopt *p);
 void mu_parseopt_free (struct mu_parseopt *p);
 
 unsigned mu_parseopt_getcolumn (const char *name);
-void mu_parseopt_fmt_text (const char *text, size_t col);
 
-void mu_option_describe_options (struct mu_option **optbuf, size_t optcnt);
-void mu_program_help (struct mu_parseopt *p);
-void mu_program_usage (struct mu_parseopt *p);
+void mu_option_describe_options (mu_stream_t str,
+				 struct mu_option **optbuf, size_t optcnt);
+void mu_program_help (struct mu_parseopt *p, mu_stream_t str);
+void mu_program_usage (struct mu_parseopt *p, mu_stream_t str);
+void mu_program_version (struct mu_parseopt *po, mu_stream_t str);
 
 void mu_option_set_value (struct mu_parseopt *po, struct mu_option *opt,
 			  char const *arg);

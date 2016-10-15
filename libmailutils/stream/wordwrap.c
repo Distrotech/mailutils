@@ -88,7 +88,7 @@ _wordwrap_flush_line (struct mu_wordwrap_stream *str, int lookahead)
 	}
     }
 
-  while (length > 0 && mu_isblank (str->buffer[length - 1]))
+  while (length > 0 && mu_isspace (str->buffer[length - 1]))
     length--;
   
   if (length == 0 || str->buffer[length - 1] != '\n')
@@ -147,7 +147,7 @@ static int
 _wordwrap_flush (mu_stream_t stream)
 {
   struct mu_wordwrap_stream *str = (struct mu_wordwrap_stream *)stream;
-  if (str->offset)
+  if (str->offset > str->left_margin)
     _wordwrap_flush_line (str, 0);
   return mu_stream_flush (str->transport);
 }
@@ -177,18 +177,19 @@ set_margin (mu_stream_t stream, unsigned lmargin, int off)
   
   if (lmargin >= str->right_margin)
     return EINVAL;
-  if (lmargin < str->offset)
+
+  str->left_margin = lmargin;
+  if (lmargin < str->offset ||
+      (str->offset > 0 && str->buffer[str->offset - 1] == '\n'))
     {
-      str->left_margin = lmargin;
       _wordwrap_flush (stream);
     }
   else if (lmargin > str->offset)
     {
-      memset (str->buffer + str->offset, ' ',
-	      lmargin - str->offset);
-      str->left_margin = lmargin;
+      memset (str->buffer + str->offset, ' ', lmargin - str->offset);
       str->offset = lmargin;
     }
+      
   return 0;
 }
 
@@ -217,12 +218,30 @@ _wordwrap_ctl (mu_stream_t stream, int code, int opcode, void *arg)
 	  else
 	    return set_margin (stream, *(unsigned*)arg, 0);
 
+	case MU_IOCTL_WORDWRAP_SET_NEXT_MARGIN:
+	  if (!arg)
+	    return EINVAL;
+	  else
+	    {
+	      unsigned marg = *(unsigned*)arg;
+	      if (marg >= str->right_margin)
+		return EINVAL;
+	      str->left_margin = marg;
+	    }
+	  break;
+	  
 	case MU_IOCTL_WORDWRAP_MOVE_MARGIN:
 	  if (!arg)
 	    return EINVAL;
 	  else
 	    return set_margin (stream, str->offset, *(int*)arg);
-	  
+
+	case MU_IOCTL_WORDWRAP_GET_OFFSET:
+	  if (!arg)
+	    return EINVAL;
+	  *(unsigned*)arg = str->offset;
+	  break;
+
 	default:
 	  return EINVAL;
 	}

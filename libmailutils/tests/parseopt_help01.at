@@ -21,8 +21,8 @@ PARSEOPT_DEFAULT
 parseopt --usage
 ],
 [0],
-[[Usage: parseopt [-advx?] [-f FILE] [-F VALUE] [-j N] [-o FILE] [--all]
+[[Usage: parseopt [-advx?] [-f FILE] [-F VALUE] [-j N] [-o[FILE]] [--all]
             [--debug] [--file=FILE] [--find=VALUE] [--help] [--jobs=N]
-            [--optional=FILE] [--usage] [--verbose]
+            [--optional[=FILE]] [--usage] [--verbose]
 ]])
 AT_CLEANUP

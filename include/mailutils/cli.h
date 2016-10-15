@@ -50,7 +50,7 @@ struct mu_cli_setup
 				  errors */
 };
 
-void mu_version_func (struct mu_parseopt *po, FILE *stream);
+void mu_version_func (struct mu_parseopt *po, mu_stream_t stream);
 void mu_cli (int argc, char **argv, struct mu_cli_setup *setup,
 	     char **capa, void *data,
 	     int *ret_argc, char ***ret_argv);

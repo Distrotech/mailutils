@@ -31,8 +31,8 @@ ARGP_HELP_FMT=dup-args,no-dup-args-note,short-opt-col=1,opt-doc-col=32,header-co
  -x                             short-only option
 
           Group B
- -F VALUE, --find=VALUE         find VALUE
  -d, -v, --debug, --verbose     another option
+ -F VALUE, --find=VALUE         find VALUE
  -j N, --jobs=N                 sets numeric value
 
  -?,  --help                    give this help list
