@@ -21,7 +21,7 @@ unset ARGP_HELP_FMT
 MU_PARSEOPT_PROG_DOC="Tests option parsing" parseopt --help
 ],
 [0],
-[[Usage: parseopt [OPTION]...
+[[Usage: parseopt [OPTION...]
 Tests option parsing
 
  Group A

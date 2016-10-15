@@ -27,7 +27,7 @@ MU_PARSEOPT_PROG_DOC="Tests option parsing"\
  parseopt --help
 ],
 [0],
-[[Usage: parseopt [OPTION]... SOME MORE ARGS
+[[Usage: parseopt [OPTION...] SOME MORE ARGS
 Tests option parsing
 
  Group A

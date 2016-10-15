@@ -21,9 +21,9 @@ PARSEOPT_DEFAULT
 MU_PARSEOPT_PROG_ARGS="SOME MORE ARGS|ALTERNATIVE ARGS|ANOTHER ARGS" parseopt --help
 ],
 [0],
-[Usage: parseopt [[OPTION]]... SOME MORE ARGS
-  or:  parseopt [[OPTION]]... ALTERNATIVE ARGS
-  or:  parseopt [[OPTION]]... ANOTHER ARGS
+[Usage: parseopt [[OPTION...]] SOME MORE ARGS
+  or:  parseopt [[OPTION...]] ALTERNATIVE ARGS
+  or:  parseopt [[OPTION...]] ANOTHER ARGS
   
  Group A
   -a, --all                  no arguments to this one

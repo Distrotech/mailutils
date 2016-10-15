@@ -21,7 +21,7 @@ PARSEOPT_DEFAULT
 MU_PARSEOPT_PACKAGE_NAME='GNU Mailutils' MU_PARSEOPT_PACKAGE_URL='http://mailutils.org' parseopt --help
 ],
 [0],
-[[Usage: parseopt [OPTION]...
+[[Usage: parseopt [OPTION...]
 
  Group A
   -a, --all                  no arguments to this one

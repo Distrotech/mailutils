@@ -22,7 +22,7 @@ ARGP_HELP_FMT=dup-args,no-dup-args-note,short-opt-col=1,opt-doc-col=32,header-co
  parseopt --help
 ],
 [0],
-[[Usage: parseopt [OPTION]...
+[[Usage: parseopt [OPTION...]
 
           Group A
  -a,  --all                     no arguments to this one

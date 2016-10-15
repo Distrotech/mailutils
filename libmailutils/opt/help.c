@@ -521,7 +521,7 @@ print_program_usage (struct mu_parseopt *po, int optsum, mu_stream_t str)
 	  optsum = 0;
 	}
       else
-	mu_stream_printf (str, "[%s]...", _("OPTION"));
+	mu_stream_printf (str, "[%s...]", _("OPTION"));
 
       if (arg_text)
 	{

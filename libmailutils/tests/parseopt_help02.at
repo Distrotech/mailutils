@@ -21,7 +21,7 @@ PARSEOPT_DEFAULT
 MU_PARSEOPT_PROG_NAME=newname parseopt --help
 ],
 [0],
-[[Usage: newname [OPTION]...
+[[Usage: newname [OPTION...]
 
  Group A
   -a, --all                  no arguments to this one

@@ -21,7 +21,7 @@ PARSEOPT_DEFAULT
 MU_PARSEOPT_VERSION_HOOK=1 parseopt --help
 ],
 [0],
-[[Usage: parseopt [OPTION]...
+[[Usage: parseopt [OPTION...]
 
  Group A
   -a, --all                  no arguments to this one
