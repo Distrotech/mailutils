@@ -16,107 +16,46 @@
    along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include "mail.h"
-#include "mailutils/libargp.h"
+#include "mailutils/cli.h"
 
 /* Global variables and constants*/
 mu_mailbox_t mbox;            /* Mailbox being operated upon */
 size_t total;                 /* Total number of messages in the mailbox */
 int interactive;              /* Is the session interactive */  
 
-static mu_list_t command_list;   /* List of commands to be executed after parsing
+static mu_list_t command_list;/* List of commands to be executed after parsing
 				 command line */
-
 const char *program_version = "mail (" PACKAGE_STRING ")";
-static char doc[] = N_("GNU mail -- process mail messages.\n"
-"If -f or --file is given, mail operates on the mailbox named "
-"by the first argument, or the user's mbox, if no argument given.\n");
-static char args_doc[] = N_("[address...]\n-f [OPTION...] [file]\n--file [OPTION...] [file]\n--file=file [OPTION...]");
 
-#define F_OPTION       256
-#define F_ENCODING     257
-#define F_CONTENT_TYPE 258
-
-static struct argp_option options[] = {
-  { NULL,     'f', NULL,      OPTION_HIDDEN, NULL, 0 },
-  {"file",    F_OPTION, "FILE",   OPTION_ARG_OPTIONAL|OPTION_HIDDEN, 0},
-
-  {"exist",   'e', NULL,      0, N_("return true if mail exists"), 0},
-  {"byname",  'F', NULL,      0, N_("save messages according to sender"), 0},
-  {"headers", 'H', NULL,      0, N_("write a header summary and exit"), 0},
-  {"ignore",  'i', NULL,      0, N_("ignore interrupts"), 0},
-  {"norc",    'n', NULL,      0, N_("do not read the system mailrc file"), 0},
-  {"nosum",   'N', NULL,      0,
-   N_("do not display initial header summary"), 0},
-  {"print",   'p', NULL,      0, N_("print all mail to standard output"), 0},
-  {"read",    0,   NULL,      OPTION_ALIAS },
-  {"return-address", 'r', N_("ADDRESS"), 0,
-   N_("use address as the return address when sending mail"), 0},
-  {"quit",    'q', NULL,      0,
-   N_("cause interrupts to terminate program"), 0},
-  {"subject", 's', N_("SUBJ"), 0,
-   N_("send a message with the given SUBJECT"), 0},
-  {"to",      't', NULL,      0,
-   N_("precede message by a list of addresses"), 0},
-  {"user",    'u', N_("USER"), 0, N_("operate on USER's mailbox"), 0},
-  {"append",  'a', N_("HEADER: VALUE"), 0,
-   N_("append given header to the message being sent"), 0},
-  {"exec",    'E', N_("COMMAND"), 0,
-   N_("execute COMMAND"), 0 },
-  {"encoding", F_ENCODING, N_("NAME"), 0,
-   N_("set encoding for subsequent --attach options"), 0 },
-  {"content-type", F_CONTENT_TYPE, N_("TYPE"), 0,
-   N_("set content type for subsequent --attach options"), 0 },
-  {"attach",  'A', N_("FILE"), 0,
-   N_("attach FILE"), 0 },
-  { NULL,      0, NULL, 0, NULL, 0 }
-};
-
-
+
 #define HINT_SEND_MODE   0x1
 #define HINT_FILE_OPTION 0x2
-
-struct arguments
+int hint;
+char *file;
+char *user;
+
+static void
+cli_f_option (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
 {
-  int argc;
-  char **argv;
-  char *file;
-  char *user;
-  int hint;
-};
+  hint |= HINT_FILE_OPTION;
+}
 
-static error_t
-parse_opt (int key, char *arg, struct argp_state *state)
+static void
+cli_file_option (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
 {
-  struct arguments *args = state->input;
+  if (arg)
+    file = mu_strdup (arg);  
+  hint |= HINT_FILE_OPTION;
+}
 
-  switch (key)
+static void
+cli_command_option (struct mu_parseopt *po, struct mu_option *opt,
+		    char const *arg)
+{
+  switch (opt->opt_short)
     {
-    case 'a':
-      args->hint |= HINT_SEND_MODE;
-      send_append_header (arg);
-      break;
-
-    case 'A':
-      args->hint |= HINT_SEND_MODE;
-      if (send_attach_file_default (arg))
-	exit (1);
-      break;
-      
-    case F_CONTENT_TYPE:
-      free (default_content_type);
-      default_content_type = mu_strdup (arg);
-      break;
-      
     case 'e':
       util_cache_command (&command_list, "setq mode=exist");
-      break;
-
-    case F_OPTION:
-      if (arg)
-	args->file = arg;
-      /* fall through */
-    case 'f':
-      args->hint |= HINT_FILE_OPTION;
       break;
       
     case 'p':
@@ -151,90 +90,157 @@ parse_opt (int key, char *arg, struct argp_state *state)
       util_cache_command (&command_list, "set noheader");
       break;
       
-    case 's':
-      args->hint |= HINT_SEND_MODE;
-      send_append_header2 (MU_HEADER_SUBJECT, arg, COMPOSE_REPLACE);
-      util_cache_command (&command_list, "set noasksub");
-      break;
-      
-    case 'u':
-      args->user = arg;
-      break;
-
     case 'E':
       util_cache_command (&command_list, "%s", arg);
       break;
 
-    case F_ENCODING:
-      free (default_encoding);
-      default_encoding = mu_strdup (arg);
-      break;
-      
     case 'F':
       util_cache_command (&command_list, "set byname");
       break;
 
-    case ARGP_KEY_ARG:
-      args->argv = realloc (args->argv,
-			    sizeof (char *) * (state->arg_num + 2));
-      args->argv[state->arg_num] = arg;
-      args->argv[state->arg_num + 1] = NULL;
-      args->argc = state->arg_num + 1;
-      break;
-
-    case ARGP_KEY_FINI:
-      if ((args->hint & (HINT_SEND_MODE|HINT_FILE_OPTION)) ==
-	  (HINT_SEND_MODE|HINT_FILE_OPTION))
-	argp_error (state, _("conflicting options"));
-      else if (args->hint & HINT_FILE_OPTION)
-	{
-	  if (args->file)
-	    {
-	      if (args->argc > 1)
-		argp_error (state,
-			    _("-f requires at most one command line argument"));
-	    }
-	  else if (args->argc)
-	    {
-	      args->file = args->argv[0];
-	  
-	      if (args->argc > 1)
-		argp_error (state,
-			    _("-f requires at most one command line argument"));
-	    }
-	  else if (args->user)
-	    mu_asprintf (&args->file, "~/%s/mbox", args->user);
-	  else
-	    args->file = "~/mbox";
-	}
-      else if (args->argc || (args->hint & HINT_SEND_MODE))
-	util_cache_command (&command_list, "setq mode=send");
-      else if (args->user)
-	mu_asprintf (&args->file, "%%%s", args->user);
-      break;
+    case 0:
+      mu_parseopt_error (po,
+			 _("--%s: option should have been recognized"),
+			 opt->opt_long);
+      exit (po->po_exit_error);
       
     default:
-      return ARGP_ERR_UNKNOWN;
-    }
-  return 0;
+      mu_parseopt_error (po,
+			 _("-%c: option should have been recognized"),
+			 opt->opt_short);
+      exit (po->po_exit_error);
+    }      
 }
 
-static struct argp argp = {
-  options,
-  parse_opt,
-  args_doc,
-  doc,
-  NULL,
-  NULL, NULL
+static void
+cli_subject (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
+{
+  hint |= HINT_SEND_MODE;
+  send_append_header2 (MU_HEADER_SUBJECT, arg, COMPOSE_REPLACE);
+  util_cache_command (&command_list, "set noasksub");
+}
+
+static void
+cli_append (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
+{
+  hint |= HINT_SEND_MODE;
+  send_append_header (arg);
+}
+
+static void
+cli_attach (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
+{
+  hint |= HINT_SEND_MODE;
+  if (send_attach_file_default (arg))
+    exit (1);
+}
+
+static struct mu_option mail_options[] = {
+  { NULL,     'f', NULL,      MU_OPTION_HIDDEN,
+    NULL,
+    mu_c_string, NULL, cli_f_option },
+  { "file",   0,  N_("FILE"), MU_OPTION_ARG_OPTIONAL|MU_OPTION_HIDDEN,
+    NULL,
+    mu_c_string, NULL, cli_file_option },
+
+  { "exist",  'e', NULL,      MU_OPTION_DEFAULT,
+    N_("return true if mail exists"),
+    mu_c_string, NULL, cli_command_option },
+  
+  { "byname", 'F', NULL,      MU_OPTION_DEFAULT,
+    N_("save messages according to sender"),
+    mu_c_string, NULL, cli_command_option },
+    
+  { "headers", 'H', NULL,     MU_OPTION_DEFAULT,
+    N_("write a header summary and exit"),
+    mu_c_string, NULL, cli_command_option },
+  
+  { "ignore",  'i', NULL,     MU_OPTION_DEFAULT,
+    N_("ignore interrupts"),
+    mu_c_string, NULL, cli_command_option },
+    
+  { "norc",    'n', NULL,     MU_OPTION_DEFAULT,
+    N_("do not read the system mailrc file"),
+    mu_c_string, NULL, cli_command_option },
+    
+  { "nosum",   'N', NULL,     MU_OPTION_DEFAULT,
+    N_("do not display initial header summary"),
+    mu_c_string, NULL, cli_command_option },
+    
+  { "print",   'p', NULL,     MU_OPTION_DEFAULT,
+    N_("print all mail to standard output"),
+    mu_c_string, NULL, cli_command_option },    
+  { "read",    0,   NULL,     MU_OPTION_ALIAS },
+  
+  { "return-address", 'r', N_("ADDRESS"), MU_OPTION_DEFAULT,
+    N_("use address as the return address when sending mail"),
+    mu_c_string, NULL, cli_command_option },
+    
+  { "quit",    'q', NULL,     MU_OPTION_DEFAULT,
+    N_("cause interrupts to terminate program"),
+    mu_c_string, NULL, cli_command_option },
+    
+  { "subject", 's', N_("SUBJ"), MU_OPTION_DEFAULT,
+    N_("send a message with the given SUBJECT"),
+    mu_c_string, NULL, cli_subject },
+  
+  { "to",      't', NULL,       MU_OPTION_DEFAULT,
+    N_("precede message by a list of addresses"),
+    mu_c_string, NULL, cli_command_option },
+    
+  { "user",    'u', N_("USER"), MU_OPTION_DEFAULT,
+    N_("operate on USER's mailbox"),
+    mu_c_string, &user },
+  
+  { "append",   'a', N_("HEADER: VALUE"), MU_OPTION_DEFAULT,
+    N_("append given header to the message being sent"),
+    mu_c_string, NULL, cli_append },
+    
+  { "exec" ,    'E', N_("COMMAND"), MU_OPTION_DEFAULT,
+    N_("execute COMMAND"),
+    mu_c_string, NULL, cli_command_option },
+  
+  { "encoding",  0, N_("NAME"), MU_OPTION_DEFAULT,
+    N_("set encoding for subsequent --attach options"),
+    mu_c_string, &default_encoding },
+  
+  { "content-type", 0, N_("TYPE"), MU_OPTION_DEFAULT,
+    N_("set content type for subsequent --attach options"),
+    mu_c_string, &default_content_type },
+  
+  { "attach",  'A', N_("FILE"), MU_OPTION_DEFAULT,
+    N_("attach FILE"),
+    mu_c_string, NULL, cli_attach },
+
+  MU_OPTION_END
+}, *options[] = { mail_options, NULL };
+
+static const char *alt_args[] = {
+  N_("[OPTION...] [file]"),
+  N_("--file [OPTION...] [file]"),
+  N_("--file=file [OPTION...]"),
+  NULL
 };
 
-static const char *mail_capa[] = {
-  "mailutils",
-  "common",
+static struct mu_cli_setup cli = {
+  options,
+  NULL,
+  N_("GNU mail -- process mail messages.\n"
+"If -f or --file is given, mail operates on the mailbox named "
+     "by the first argument, or the user's mbox, if no argument given."),
+  N_("[address...]"),
+  alt_args,
+  NULL,
+  1,
+  1
+};
+
+static char *mail_capa[] = {
   "address",
   "debug",
   "mailbox",
   "locking",
+  "tls",
   NULL 
 };
 			     
@@ -351,7 +357,6 @@ int
 main (int argc, char **argv)
 {
   char *mode = NULL, *prompt = NULL, *p;
-  struct arguments args;
   int i, rc;
   
   mu_stdstream_setup (MU_STDSTREAM_RESET_NONE);
@@ -411,19 +416,45 @@ main (int argc, char **argv)
 	       mu_strdup ("sendmail:" PATH_SENDMAIL), mailvar_type_string,
 	       MOPTF_OVERWRITE);
 
-  args.argc = 0;
-  args.argv = NULL;
-  args.file = NULL;
-  args.user = NULL;
-  args.hint = 0;
-  
   /* argument parsing */
-#ifdef WITH_TLS
-  mu_gocs_register ("tls", mu_tls_module_init);
-#endif
-  mu_argp_init (NULL, NULL);
-  if (mu_app_init (&argp, mail_capa, NULL, argc, argv, 0, NULL, &args))
-    exit (1);
+  mu_cli_capa_register (&mu_cli_capa_tls);
+  mu_cli (argc, argv, &cli, mail_capa, NULL, &argc, &argv);
+
+  if ((hint & (HINT_SEND_MODE|HINT_FILE_OPTION)) ==
+      (HINT_SEND_MODE|HINT_FILE_OPTION))
+    {
+      mu_error (_("conflicting options"));
+      exit (1);
+    }
+  else if (hint & HINT_FILE_OPTION)
+    {
+      if (file)
+	{
+	  if (argc)
+	    {
+	      mu_error (_("-f requires at most one command line argument"));
+	      exit (1);
+	    }
+	}
+      else if (argc)
+	{
+	  if (argc > 1)
+	    {
+	      mu_error (_("-f requires at most one command line argument"));
+	      exit (1);
+	    }
+	  file = argv[0];
+	}
+      else if (user)
+	mu_asprintf (&file, "~/%s/mbox", user);
+      else
+	file = "~/mbox";
+    }
+  else if (argc || (hint & HINT_SEND_MODE))
+    util_cache_command (&command_list, "setq mode=send");
+  else if (user)
+    mu_asprintf (&file, "%%%s", user);
+
   
   /* read system-wide mail.rc and user's .mailrc */
   if (mailvar_get (NULL, "rc", mailvar_type_boolean, 0) == 0)
@@ -461,7 +492,7 @@ main (int argc, char **argv)
   /* Interactive mode */
 
   ml_readline_init ();
-  mail_set_my_name (args.user);
+  mail_set_my_name (user);
 
   /* Mode is just sending */
   if (strcmp (mode, "send") == 0)
@@ -469,17 +500,17 @@ main (int argc, char **argv)
       char *buf = NULL;
       int rc;
 
-      mu_argcv_string (args.argc, args.argv, &buf);
+      mu_argcv_string (argc, argv, &buf);
       rc = util_do_command ("mail %s", buf);
       return mailvar_get (NULL, "mailx", mailvar_type_boolean, 0) ? rc : 0;
     }
   /* Or acting as a normal reader */
   else 
     {
-      if ((rc = mu_mailbox_create_default (&mbox, args.file)) != 0)
+      if ((rc = mu_mailbox_create_default (&mbox, file)) != 0)
 	{
-	  if (args.file)
-	    mu_error (_("Cannot create mailbox %s: %s"), args.file,
+	  if (file)
+	    mu_error (_("Cannot create mailbox %s: %s"), file,
 			mu_strerror (rc));
 	  else
 	    mu_error (_("Cannot create mailbox: %s"),
@@ -530,11 +561,10 @@ main (int argc, char **argv)
 	  && (strcmp (mode, "read")
 	      || mailvar_get (NULL, "emptystart", mailvar_type_boolean, 0)))
         {
-	  if (args.file)
-	    mu_printf (_("%s: 0 messages\n"), args.file);
+	  if (file)
+	    mu_printf (_("%s: 0 messages\n"), file);
 	  else
-	    mu_printf (_("No mail for %s\n"),
-			      args.user ? args.user : mail_whoami ());
+	    mu_printf (_("No mail for %s\n"), user ? user : mail_whoami ());
           return 1;
         }
 

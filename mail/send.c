@@ -81,7 +81,7 @@ add_header (char *name, char *value, int mode)
 }
 
 void
-send_append_header (char *text)
+send_append_header (char const *text)
 {
   char *p;
   size_t len;
@@ -104,7 +104,7 @@ send_append_header (char *text)
 }
 
 void
-send_append_header2 (char *name, char *value, int mode)
+send_append_header2 (char const *name, char const *value, int mode)
 {
   add_header (mu_strdup (name), mu_strdup (value), mode);
 }

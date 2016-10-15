@@ -256,8 +256,8 @@ extern int mail_header_is_unfoldable (const char *str);
 extern int mail_mbox_close (void);
 extern char *mail_expand_name (const char *name);
 
-extern void send_append_header (char *text);
-extern void send_append_header2 (char *name, char *value, int mode);
+extern void send_append_header (char const *text);
+extern void send_append_header2 (char const *name, char const *value, int mode);
 extern int send_attach_file_default (const char *name);
 
 extern int escape_check_args (int argc, char **argv, int minargs, int maxargs);

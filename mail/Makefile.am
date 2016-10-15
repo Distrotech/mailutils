@@ -25,7 +25,7 @@ mailbindir=@MAILBINDIR@
 mailbin_PROGRAMS = mail
 
 mail_LDADD = \
- ${MU_APP_LIBRARIES}\
+ ${MU_APP_NEW_LIBRARIES}\
  ${MU_LIB_MBOX}\
  ${MU_LIB_IMAP}\
  ${MU_LIB_POP}\
