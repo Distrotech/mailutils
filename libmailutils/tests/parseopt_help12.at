@@ -14,15 +14,17 @@
 # You should have received a copy of the GNU General Public License
 # along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
 
-AT_SETUP([MU_PARSEOPT_PROG_ARGS])
-AT_KEYWORDS([parseopt parseopt_help MU_PARSEOPT_PROG_ARGS parseopt_help04])
+AT_SETUP([MU_PARSEOPT_PROG_ARGS (alternative)])
+AT_KEYWORDS([parseopt parseopt_help MU_PARSEOPT_PROG_ARGS parseopt_help12])
 AT_CHECK([
 PARSEOPT_DEFAULT
-MU_PARSEOPT_PROG_ARGS="SOME MORE ARGS" parseopt --help
+MU_PARSEOPT_PROG_ARGS="SOME MORE ARGS|ALTERNATIVE ARGS|ANOTHER ARGS" parseopt --help
 ],
 [0],
 [Usage: parseopt [[OPTION]]... SOME MORE ARGS
-
+  or:  parseopt [[OPTION]]... ALTERNATIVE ARGS
+  or:  parseopt [[OPTION]]... ANOTHER ARGS
+  
  Group A
   -a, --all                  no arguments to this one
   -f, --file=FILE            set file name

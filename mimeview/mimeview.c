@@ -145,6 +145,7 @@ struct mu_cli_setup cli = {
   mimeview_cfg_param,
   N_("GNU mimeview -- display files, using mailcap mechanism."),
   N_("FILE [FILE ...]"),
+  NULL,
   N_("Debug flags are:\n\
   g - Mime.types parser traces\n\
   l - Mime.types lexical analyzer traces\n\

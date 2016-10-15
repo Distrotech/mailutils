@@ -37,11 +37,14 @@ static struct mu_cfg_param config[] = {
   { NULL }
 };
 
+char const *alt_args[] = { "ALT ARGUMENTS 1", "ALT ARGUMENTS 2", NULL };
+
 struct mu_cli_setup cli = {
   options,
   config,
   "Tests standard command line interface",
-  "ARGUMENTS"
+  "ARGUMENTS",
+  alt_args
 };
 
 static char **

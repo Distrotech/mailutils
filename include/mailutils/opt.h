@@ -125,7 +125,7 @@ struct mu_parseopt
   /* Informational: */
   char const *po_prog_name;
   char const *po_prog_doc;	
-  char const *po_prog_args;
+  char const **po_prog_args;
   char const *po_bug_address;
   char const *po_package_name;
   char const *po_package_url;
@@ -172,7 +172,7 @@ unsigned mu_parseopt_getcolumn (const char *name);
 void mu_option_describe_options (mu_stream_t str,
 				 struct mu_option **optbuf, size_t optcnt);
 void mu_program_help (struct mu_parseopt *p, mu_stream_t str);
-void mu_program_usage (struct mu_parseopt *p, mu_stream_t str);
+void mu_program_usage (struct mu_parseopt *p, int optsummary, mu_stream_t str);
 void mu_program_version (struct mu_parseopt *po, mu_stream_t str);
 
 void mu_option_set_value (struct mu_parseopt *po, struct mu_option *opt,

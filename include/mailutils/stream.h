@@ -208,11 +208,16 @@ enum mu_buffer_type
   ((n) == MU_TRANSPORT_INPUT || (n) == MU_TRANSPORT_OUTPUT)
 
 /* Word wrapper streams */
+/* Get left margin. */
 #define MU_IOCTL_WORDWRAP_GET_MARGIN      0
-#define MU_IOCTL_WORDWRAP_SET_MARGIN      1  
+/* Set left margin */  
+#define MU_IOCTL_WORDWRAP_SET_MARGIN      1
+/* Shift left margin relative to current position */ 
 #define MU_IOCTL_WORDWRAP_MOVE_MARGIN     2
+/* Set left margin for the next line */
 #define MU_IOCTL_WORDWRAP_SET_NEXT_MARGIN 3
-#define MU_IOCTL_WORDWRAP_GET_OFFSET      4
+/* Get current column */
+#define MU_IOCTL_WORDWRAP_GET_COLUMN      4
 
 struct mu_nullstream_pattern
 {

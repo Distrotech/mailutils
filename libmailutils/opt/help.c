@@ -204,15 +204,8 @@ static void
 get_offset (mu_stream_t str, unsigned *offset)
 {
   mu_stream_ioctl (str, MU_IOCTL_WORDWRAPSTREAM,
-		   MU_IOCTL_WORDWRAP_GET_OFFSET,
+		   MU_IOCTL_WORDWRAP_GET_COLUMN,
 		   offset);
-}
-static void
-move_margin (mu_stream_t str, int margin)
-{
-  mu_stream_ioctl (str, MU_IOCTL_WORDWRAPSTREAM,
-		   MU_IOCTL_WORDWRAP_MOVE_MARGIN,
-		   &margin);
 }
 
 static void
@@ -333,6 +326,9 @@ mu_option_describe_options (mu_stream_t str,
     }
 }
 
+static void print_program_usage (struct mu_parseopt *po, int optsum,
+				 mu_stream_t str);
+
 void
 mu_program_help (struct mu_parseopt *po, mu_stream_t outstr)
 {
@@ -346,15 +342,8 @@ mu_program_help (struct mu_parseopt *po, mu_stream_t outstr)
     {
       abort ();//FIXME
     }
-  
-  mu_stream_printf (str, "%s", _("Usage:"));
-  if (po->po_prog_name)
-    mu_stream_printf (str, " %s ", po->po_prog_name);
-  move_margin (str, 0);
-  mu_stream_printf (str, "[%s]...", _("OPTION"));
-  if (po->po_prog_args)
-    mu_stream_printf (str, " %s", gettext (po->po_prog_args));
-  mu_stream_printf (str, "\n");
+
+  print_program_usage (po, 0, str);
   
   if (po->po_prog_doc)
     {
@@ -423,34 +412,20 @@ cmpidx_long (const void *a, const void *b)
   return strcmp (ap->opt_long, bp->opt_long);
 }
 
-void
-mu_program_usage (struct mu_parseopt *po, mu_stream_t outstr)
+static void
+option_summary (struct mu_parseopt *po, mu_stream_t str)
 {
-  int rc;
   unsigned i;
   unsigned *idxbuf;
   unsigned nidx;
 
   struct mu_option **optbuf = po->po_optv;
   size_t optcnt = po->po_optc;
-
-  mu_stream_t str;
-
-  init_usage_vars (po);
-
-  rc = mu_wordwrap_stream_create (&str, outstr, 0, rmargin);
-  if (rc)
-    {
-      abort ();//FIXME
-    }  
   
   option_tab = optbuf;
   
   idxbuf = mu_calloc (optcnt, sizeof (idxbuf[0]));
 
-  mu_stream_printf (str, "%s %s ", _("Usage:"),	po->po_prog_name);
-  set_next_margin (str, usage_indent);
-  
   /* Print a list of short options without arguments. */
   for (i = nidx = 0; i < optcnt; i++)
     if (MU_OPTION_IS_VALID_SHORT_OPTION (optbuf[i]) && !optbuf[i]->opt_arg)
@@ -517,12 +492,66 @@ mu_program_usage (struct mu_parseopt *po, mu_stream_t outstr)
 	}
     }
 
-  if (po->po_flags & MU_PARSEOPT_PROG_ARGS)
-    mu_stream_printf (str, " %s", _(po->po_prog_args));
-
-  mu_stream_destroy (&str);
-  
   free (idxbuf);
+}  
+
+static void
+print_program_usage (struct mu_parseopt *po, int optsum, mu_stream_t str)
+{
+  char const *usage_text;
+  char const **arg_text;
+  size_t i;
+  
+  usage_text = _("Usage:");
+
+  if (po->po_flags & MU_PARSEOPT_PROG_ARGS)
+    arg_text = po->po_prog_args;
+  else
+    arg_text = NULL;
+  i = 0;
+  
+  do
+    {
+      mu_stream_printf (str, "%s %s ", usage_text, po->po_prog_name);
+      set_next_margin (str, usage_indent);
+
+      if (optsum)
+	{
+	  option_summary (po, str);
+	  optsum = 0;
+	}
+      else
+	mu_stream_printf (str, "[%s]...", _("OPTION"));
+
+      if (arg_text)
+	{
+	  mu_stream_printf (str, " %s\n", gettext (arg_text[i]));
+	  if (i == 0)
+	    usage_text = _("or: ");
+	  set_margin (str, 2);
+	  i++;
+	}
+      else
+	mu_stream_flush (str);
+    }
+  while (arg_text && arg_text[i]);
+}
+
+void
+mu_program_usage (struct mu_parseopt *po, int optsum, mu_stream_t outstr)
+{
+  int rc;
+  mu_stream_t str;
+  
+  init_usage_vars (po);
+
+  rc = mu_wordwrap_stream_create (&str, outstr, 0, rmargin);
+  if (rc)
+    {
+      abort ();//FIXME
+    }  
+  print_program_usage (po, optsum, str);
+  mu_stream_destroy (&str);
 }
 
 void

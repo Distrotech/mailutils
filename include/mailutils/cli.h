@@ -43,6 +43,7 @@ struct mu_cli_setup
   struct mu_cfg_param *cfg;    /* Configuration parameters */
   char *prog_doc;              /* Program documentation string */
   char *prog_args;             /* Program arguments string */
+  char const **prog_alt_args;  /* Alternative arguments string */
   char *prog_extra_doc;        /* Extra documentation.  This will be
 				  displayed after options. */
   int ex_usage;                /* If not 0, exit code on usage errors */

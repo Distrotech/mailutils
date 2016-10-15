@@ -336,7 +336,11 @@ mu_cli (int argc, char **argv, struct mu_cli_setup *setup, char **capa,
   struct mu_cfg_parse_hints hints;
   struct mu_option **optv;
   mu_list_t com_list;
-
+#define DFLARGC 2
+  char const *dfl_args[DFLARGC];
+  char **args = NULL;
+  size_t argcnt;
+  
   /* Set up defaults */
   if (setup->ex_usage == 0)
     setup->ex_usage = EX_USAGE;
@@ -374,7 +378,28 @@ mu_cli (int argc, char **argv, struct mu_cli_setup *setup, char **capa,
 
   if (setup->prog_args)
     {
-      po.po_prog_args = setup->prog_args;
+      size_t i;
+      argcnt = 1;
+
+      if (setup->prog_alt_args)
+	{
+	  for (i = 0; setup->prog_alt_args[i]; i++)
+	    argcnt++;
+	}
+
+      if (argcnt < DFLARGC)
+	po.po_prog_args = dfl_args;
+      else
+	{
+	  args = mu_calloc (argcnt + 1, sizeof (args[0]));
+	  po.po_prog_args = (char const **) args;
+	}
+      
+      po.po_prog_args[0] = setup->prog_args;
+      for (i = 1; i < argcnt; i++)
+	po.po_prog_args[i] = setup->prog_alt_args[i-1];
+      po.po_prog_args[i] = NULL;
+
       flags |= MU_PARSEOPT_PROG_ARGS;
     }
   
@@ -439,5 +464,8 @@ mu_cli (int argc, char **argv, struct mu_cli_setup *setup, char **capa,
 
   mu_cfg_destroy_tree (&parse_tree);
   free (optv);
+  
+  free (args);
+
   mu_parseopt_free (&po);  
 }

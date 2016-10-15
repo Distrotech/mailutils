@@ -87,7 +87,7 @@ fn_help (struct mu_parseopt *po, struct mu_option *opt, char const *unused)
 static void
 fn_usage (struct mu_parseopt *po, struct mu_option *opt, char const *unused)
 {
-  mu_program_usage (po, mu_strout);
+  mu_program_usage (po, 1, mu_strout);
   exit (EXIT_SUCCESS);
 }
 

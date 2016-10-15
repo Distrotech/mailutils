@@ -121,6 +121,7 @@ m4_include([parseopt_help08.at])
 m4_include([parseopt_help09.at])
 m4_include([parseopt_help10.at])
 m4_include([parseopt_help11.at])
+m4_include([parseopt_help12.at])
 
 AT_BANNER([Standard streams])
 m4_include([strin.at])

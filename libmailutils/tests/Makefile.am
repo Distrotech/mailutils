@@ -144,6 +144,7 @@ TESTSUITE_AT = \
  parseopt_help09.at\
  parseopt_help10.at\
  parseopt_help11.at\
+ parseopt_help12.at\
  prop.at\
  scantime.at\
  strftime.at\

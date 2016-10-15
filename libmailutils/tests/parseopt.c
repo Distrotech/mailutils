@@ -77,8 +77,43 @@ struct parseopt_param
   int flag;
   mu_c_type_t type;
   size_t off;
+  void (*setfn) (struct parseopt_param *param, char const *val, void *target);
 };
 
+static void
+set_prog_args (struct parseopt_param *param, char const *str, void *target)
+{
+  char ***args_ptr = target;
+  char **args;
+  char *p;
+  size_t size, i;
+
+  size = 1;
+  for (i = 0; str[i]; i++)
+    if (str[i] == '\n')
+      size++;
+
+  args = mu_calloc (size + 1, sizeof (args[0]));
+
+  i = 0;
+  while (1)
+    {
+      size_t len = strcspn (str, "|");
+      p = mu_alloc (len + 1);
+      memcpy (p, str, len);
+      p[len] = 0;
+      args[i++] = p;
+      str += len;
+      if (str[0])
+	++str;
+      else
+	break;
+    }
+  args[i] = NULL;
+  
+  *args_ptr = args;
+}
+  
 static struct parseopt_param parseopt_param[] = {
   { "MU_PARSEOPT_ARGV0", MU_PARSEOPT_ARGV0, mu_c_void },
   { "MU_PARSEOPT_IGNORE_ERRORS", MU_PARSEOPT_IGNORE_ERRORS, mu_c_void },
@@ -93,7 +128,8 @@ static struct parseopt_param parseopt_param[] = {
   { "MU_PARSEOPT_PROG_DOC", MU_PARSEOPT_PROG_DOC,
     mu_c_string, mu_offsetof(struct mu_parseopt, po_prog_doc) },
   { "MU_PARSEOPT_PROG_ARGS", MU_PARSEOPT_PROG_ARGS,
-    mu_c_string, mu_offsetof(struct mu_parseopt, po_prog_args) },
+    mu_c_string, mu_offsetof(struct mu_parseopt, po_prog_args),
+    set_prog_args },
   { "MU_PARSEOPT_BUG_ADDRESS", MU_PARSEOPT_BUG_ADDRESS,
     mu_c_string, mu_offsetof(struct mu_parseopt, po_bug_address) },
   { "MU_PARSEOPT_PACKAGE_NAME", MU_PARSEOPT_PACKAGE_NAME,
@@ -129,7 +165,11 @@ main (int argc, char *argv[])
 	  if (val)
 	    {
 	      flags |= param->flag;
-	      if (param->type != mu_c_void)
+	      if (param->setfn)
+		{
+		  param->setfn (param, val, ((char*)&po + param->off));
+		}
+	      else if (param->type != mu_c_void)
 		{
 		  char *errmsg;
 		  int rc = mu_str_to_c (val, param->type,

@@ -93,6 +93,7 @@ static struct mu_cli_setup cli = {
   dotlock_cfg_param,
   N_("GNU dotlock -- lock mail spool files."),
   N_("FILE"),
+  NULL,
   N_("Returns 0 on success, 3 if locking the file fails because\
  it's already locked, and 1 if some other kind of error occurred."),
   MU_DL_EX_ERROR,

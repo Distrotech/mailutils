@@ -18,6 +18,7 @@ imapio
 listop
 mailcap
 mimehdr
+modmesg
 modtofsaf
 msgset
 parseopt
@@ -32,4 +33,5 @@ tempfile
 url-comp
 url-parse
 wicket
+wordwrap
 wsp

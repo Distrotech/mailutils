@@ -178,18 +178,20 @@ set_margin (mu_stream_t stream, unsigned lmargin, int off)
   if (lmargin >= str->right_margin)
     return EINVAL;
 
-  str->left_margin = lmargin;
-  if (lmargin < str->offset ||
-      (str->offset > 0 && str->buffer[str->offset - 1] == '\n'))
+  if (str->offset > str->left_margin
+      && (lmargin < str->offset || str->buffer[str->offset - 1] == '\n'))
     {
+      str->left_margin = lmargin;
       _wordwrap_flush (stream);
     }
-  else if (lmargin > str->offset)
+  else
     {
-      memset (str->buffer + str->offset, ' ', lmargin - str->offset);
+      if (lmargin > str->offset)
+	memset (str->buffer + str->offset, ' ', lmargin - str->offset);
+      str->left_margin = lmargin;
       str->offset = lmargin;
     }
-      
+
   return 0;
 }
 
@@ -236,7 +238,7 @@ _wordwrap_ctl (mu_stream_t stream, int code, int opcode, void *arg)
 	  else
 	    return set_margin (stream, str->offset, *(int*)arg);
 
-	case MU_IOCTL_WORDWRAP_GET_OFFSET:
+	case MU_IOCTL_WORDWRAP_GET_COLUMN:
 	  if (!arg)
 	    return EINVAL;
 	  *(unsigned*)arg = str->offset;
