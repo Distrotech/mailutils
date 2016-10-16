@@ -16,11 +16,12 @@
    along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include "pop3d.h"
-#include "mailutils/libargp.h"
+#include "mailutils/opt.h"
 
 int db_list (char *input_name, char *output_name);
 int db_make (char *input_name, char *output_name);
 
+#define ACT_DEFAULT -1
 #define ACT_CREATE  0
 #define ACT_ADD     1
 #define ACT_DELETE  2
@@ -29,23 +30,19 @@ int db_make (char *input_name, char *output_name);
 
 static int permissions = 0600;
 static int compatibility_option = 0;
+static int action = ACT_DEFAULT;
+static char *input_name;
+static char *output_name;
+static char *user_name;
+static char *user_password;
 
-struct action_data {
-  int action;
-  char *input_name;
-  char *output_name;
-  char *username;
-  char *passwd;
-};
+int action_create (void);
+int action_add (void);
+int action_delete (void);
+int action_list (void);
+int action_chpass (void);
 
-void check_action(int action);
-int action_create (struct action_data *ap);
-int action_add (struct action_data *ap);
-int action_delete (struct action_data *ap);
-int action_list (struct action_data *ap);
-int action_chpass (struct action_data *ap);
-
-int (*ftab[]) (struct action_data *) = {
+int (*ftab[]) (void) = {
   action_create,
   action_add,
   action_delete,
@@ -53,178 +50,200 @@ int (*ftab[]) (struct action_data *) = {
   action_chpass
 };
 
-static char doc[] = N_("GNU popauth -- manage pop3 authentication database");
-static error_t popauth_parse_opt  (int key, char *arg,
-				   struct argp_state *astate);
-
-void popauth_version (FILE *stream, struct argp_state *state);
-
-#define COMPATIBILITY_OPTION 256
-
-static struct argp_option options[] = 
-{
-  { NULL, 0, NULL, 0, N_("Actions are:"), 1 },
-  { "add", 'a', 0, 0, N_("add user"), 1 },
-  { "modify", 'm', 0, 0, N_("modify user's record (change password)"), 1 },
-  { "delete", 'd', 0, 0, N_("delete user's record"), 1 },
-  { "list", 'l', 0, 0, N_("list the contents of DBM file"), 1 },
-  { "create", 'c', 0, 0, N_("create the DBM from a plaintext file"), 1 },
-
-  { NULL, 0, NULL, 0,
-    N_("Default action is:\n"
-    "  For root: --list\n"
-    "  For a user: --modify --user <username>\n"), 2 },
-  
-  { NULL, 0, NULL, 0, N_("Options are:"), 3 },
-  { "file", 'f', N_("FILE"), 0, N_("read input from FILE (default stdin)"), 3 },
-  { "output", 'o', N_("FILE"), 0, N_("direct output to file"), 3 },
-  { "password", 'p', N_("STRING"), 0, N_("specify user's password"), 3 },
-  { "user", 'u', N_("USERNAME"), 0, N_("specify user name"), 3 },
-  { "permissions", 'P', N_("PERM"), 0, N_("force given permissions on the database"), 3 },
-  { "compatibility", COMPATIBILITY_OPTION, NULL, 0,
-    N_("backward compatibility mode") },
-  { NULL, }
-};
-
-static struct argp argp = {
-  options,
-  popauth_parse_opt,
-  NULL,
-  doc,
-  NULL,
-  NULL, NULL
-};
-
-static const char *popauth_argp_capa[] = {
-  "mailutils",
-  "common",
-  NULL
-};
-
 static void
-set_db_perms (struct argp_state *astate, char *opt, int *pperm)
-{
-  int perm = 0;
-   
-  if (mu_isdigit (opt[0]))
-    {
-      char *p;
-      perm = strtoul (opt, &p, 8);
-      if (*p)
-	{
-	  argp_error (astate, _("invalid octal number: %s"), opt);
-	  exit (EX_USAGE);
-	}
-    }
-  *pperm = perm;
-}
-
-static error_t
-popauth_parse_opt (int key, char *arg, struct argp_state *astate)
-{
-  struct action_data *ap = astate->input;
-  switch (key)
-    {
-    case ARGP_KEY_INIT:
-      memset (ap, 0, sizeof(*ap));
-      ap->action = -1;
-      break;
-      
-    case 'a':
-      check_action (ap->action);
-      ap->action = ACT_ADD;
-      break;
-
-    case 'c':
-      check_action (ap->action);
-      ap->action = ACT_CREATE;
-      break;
-      
-    case 'l':
-      check_action (ap->action);
-      ap->action = ACT_LIST;
-      break;
-	
-    case 'd':
-      check_action (ap->action);
-      ap->action = ACT_DELETE;
-      break;
-	  
-    case 'p':
-      ap->passwd = arg;
-      break;
-      
-    case 'm':
-      check_action (ap->action);
-      ap->action = ACT_CHPASS;
-      break;
-	
-    case 'f':
-      ap->input_name = arg;
-      break;
-	  
-    case 'o':
-      ap->output_name = arg;
-      break;
-	
-    case 'u':
-      ap->username = arg;
-      break;
-	
-    case 'P':
-      set_db_perms (astate, arg, &permissions);
-      break;
-
-    case COMPATIBILITY_OPTION:
-      compatibility_option = 1;
-      break;
-	
-    case ARGP_KEY_FINI:
-      if (ap->action == -1)
-	{
-	  /* Deduce the default action */
-	  if (getuid () == 0)
-	    ap->action = ACT_LIST;
-	  else
-	    ap->action = ACT_CHPASS;
-	}
-      break;
-
-    default:
-      return ARGP_ERR_UNKNOWN;
-    }
-  return 0;
-}
-
-int
-main (int argc, char **argv)
-{
-  struct action_data adata;
-
-  /* Native Language Support */
-  MU_APP_INIT_NLS ();
-
-  mu_argp_init (NULL, NULL);
-  argp_program_version_hook = popauth_version;
-  if (mu_app_init (&argp, popauth_argp_capa, NULL,
-		   argc, argv, 0, NULL, &adata))
-    exit (EX_USAGE);
-
-  return (*ftab[adata.action]) (&adata);
-}
-
-void
-check_action (int action)
+set_action (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
 {
   if (action != -1)
     {
-      mu_error (_("You may not specify more than one `-aldp' option"));
-      exit (EX_USAGE);
+      mu_parseopt_error (po,
+			 _("You may not specify more than one `-aldp' option"));
+      exit (po->po_exit_error);
     }
+  
+  switch (opt->opt_short)
+    {
+    case 'a':
+      action = ACT_ADD;
+      break;
+
+    case 'c':
+      action = ACT_CREATE;
+      break;
+      
+    case 'l':
+      action = ACT_LIST;
+      break;
+	
+    case 'd':
+      action = ACT_DELETE;
+      break;
+
+    case 'm':
+      action = ACT_CHPASS;
+      break;
+
+    default:
+      abort ();
+    }
+}      
+
+static void
+set_permissions (struct mu_parseopt *po, struct mu_option *opt,
+		 char const *arg)
+{
+  if (mu_isdigit (arg[0]))
+    {
+      char *p;
+      permissions = strtoul (arg, &p, 8);
+      if (*p == 0)
+	return;
+    }
+
+  mu_parseopt_error (po, _("invalid octal number: %s"), arg);
+  exit (EX_USAGE);
+}
+
+static struct mu_option popauth_options[] = {
+  MU_OPTION_GROUP (N_("Actions are:")),
+  { "add", 'a', NULL, MU_OPTION_DEFAULT,
+    N_("add user"),
+    mu_c_string, NULL, set_action },
+  { "modify", 'm', NULL, MU_OPTION_DEFAULT,
+    N_("modify user's record (change password)"),
+    mu_c_string, NULL, set_action },
+  { "delete", 'd', NULL, MU_OPTION_DEFAULT,
+    N_("delete user's record"),
+    mu_c_string, NULL, set_action },
+  { "list", 'l', NULL, MU_OPTION_DEFAULT,
+    N_("list the contents of DBM file"),
+    mu_c_string, NULL, set_action },
+  { "create", 'c', NULL, MU_OPTION_DEFAULT,
+    N_("create the DBM from a plaintext file"),
+    mu_c_string, NULL, set_action },
+
+  MU_OPTION_GROUP (N_("Options are:")),
+  { "file", 'f', N_("FILE"), MU_OPTION_DEFAULT,
+    N_("read input from FILE (default stdin)"),
+    mu_c_string, &input_name },
+  { "output", 'o', N_("FILE"), MU_OPTION_DEFAULT,
+    N_("direct output to file"),
+    mu_c_string, &output_name },
+  { "password", 'p', N_("STRING"), MU_OPTION_DEFAULT,
+    N_("specify user's password"),
+    mu_c_string, &user_password },
+  { "user", 'u', N_("USERNAME"), MU_OPTION_DEFAULT,
+    N_("specify user name"),
+    mu_c_string, &user_name },
+  { "permissions", 'P', N_("PERM"), MU_OPTION_DEFAULT,
+    N_("force given permissions on the database"),
+    mu_c_string, NULL, set_permissions },
+  { "compatibility", 0, NULL, MU_OPTION_DEFAULT,
+    N_("compatibility mode"),
+    mu_c_bool, &compatibility_option },
+  MU_OPTION_END
+}, *options[] = { popauth_options, NULL };
+
+void
+popauth_version (struct mu_parseopt *po, mu_stream_t stream)
+{
+  mu_iterator_t itr;
+  int rc;
+
+  mu_version_func (po, stream);
+  mu_stream_printf (stream, _("Database formats: "));
+
+  rc = mu_dbm_impl_iterator (&itr);
+  if (rc)
+    {
+      mu_stream_printf (stream, "%s\n", _("unknown"));
+      mu_error ("%s", mu_strerror (rc));
+    }
+  else
+    {
+      int i;
+      for (mu_iterator_first (itr), i = 0; !mu_iterator_is_done (itr);
+	   mu_iterator_next (itr), i++)
+	{
+	  struct mu_dbm_impl *impl;
+
+	  mu_iterator_current (itr, (void**)&impl);
+	  if (i)
+	    mu_stream_printf (stream, ", ");
+	  mu_stream_printf (stream, "%s", impl->_dbm_name);
+	}
+      mu_stream_printf (stream, "\n");
+      mu_iterator_destroy (&itr);
+    }
+  mu_stream_printf (stream, _("Default database location: %s\n"),
+		    APOP_PASSFILE);
+  exit (EX_OK);
+}
+
+void
+popauth_help_hook (struct mu_parseopt *po, mu_stream_t stream)
+{
+  unsigned margin = 2;
+  
+  mu_stream_printf (stream, "%s", _("Default action is:\n"));
+  mu_stream_ioctl (stream, MU_IOCTL_WORDWRAPSTREAM,
+		   MU_IOCTL_WORDWRAP_SET_MARGIN, &margin);
+  mu_stream_printf (stream, "%s\n", _("For root: --list"));
+  mu_stream_printf (stream, "%s\n",
+		    _("For a user: --modify --user <username>"));
+}
+
+int
+main (int argc, char **argv)
+{
+  struct mu_parseopt po;
+  int flags;
+  
+  /* Native Language Support */
+  MU_APP_INIT_NLS ();
+
+  mu_set_program_name (argv[0]);
+
+  po.po_prog_doc = N_("GNU popauth -- manage pop3 authentication database");
+  po.po_package_name = PACKAGE_NAME;
+  po.po_package_url = PACKAGE_URL;
+  po.po_bug_address = PACKAGE_BUGREPORT;
+  po.po_extra_info =
+    N_("General help using GNU software: <http://www.gnu.org/gethelp/>");
+  po.po_version_hook = popauth_version;
+  po.po_help_hook = popauth_help_hook;
+  
+  flags = MU_PARSEOPT_IMMEDIATE
+    | MU_PARSEOPT_DATA
+    | MU_PARSEOPT_PROG_DOC
+    | MU_PARSEOPT_PACKAGE_NAME
+    | MU_PARSEOPT_PACKAGE_URL
+    | MU_PARSEOPT_BUG_ADDRESS
+    | MU_PARSEOPT_EXTRA_INFO
+    | MU_PARSEOPT_VERSION_HOOK
+    | MU_PARSEOPT_HELP_HOOK;
+
+  if (mu_parseopt (&po, argc, argv, options, flags))
+    exit (po.po_exit_error);
+
+  if (argc > po.po_arg_start)
+    {
+      mu_parseopt_error (&po, _("too many arguments"));
+      exit (po.po_exit_error);
+    }
+  mu_parseopt_free (&po);
+
+  if (action == ACT_DEFAULT)
+    {
+      if (getuid () == 0)
+	action = ACT_LIST;
+      else
+	action = ACT_CHPASS;
+    }
+  return (*ftab[action]) ();
 }
 
 mu_dbm_file_t
-open_db_file (int action, struct action_data *ap, int *my_file)
+open_db_file (int action, int *my_file)
 {
   mu_dbm_file_t db;
   struct passwd *pw;
@@ -241,30 +260,30 @@ open_db_file (int action, struct action_data *ap, int *my_file)
     case ACT_CREATE:
       flags = MU_STREAM_CREAT;
       safety_flags = MU_FILE_SAFETY_NONE;
-      db_name = ap->output_name;
+      db_name = output_name;
       break;
 
     case ACT_ADD:
     case ACT_DELETE:
-      if (!ap->input_name)
-	ap->input_name = APOP_PASSFILE;
+      if (!input_name)
+	input_name = APOP_PASSFILE;
       flags = MU_STREAM_RDWR;
-      db_name = ap->input_name;
+      db_name = input_name;
       break;
       
     case ACT_LIST:
-      if (!ap->input_name)
-	ap->input_name = APOP_PASSFILE;
+      if (!input_name)
+	input_name = APOP_PASSFILE;
       flags = MU_STREAM_READ;
       safety_flags = MU_FILE_SAFETY_NONE;
-      db_name = ap->input_name;
+      db_name = input_name;
       break;
 
     case ACT_CHPASS:
-      if (!ap->input_name)
-	ap->input_name = APOP_PASSFILE;
+      if (!input_name)
+	input_name = APOP_PASSFILE;
       flags = MU_STREAM_RDWR;
-      db_name = ap->input_name;
+      db_name = input_name;
       break;
       
     default:
@@ -336,7 +355,7 @@ open_db_file (int action, struct action_data *ap, int *my_file)
   if (my_file)
     *my_file = 0;
     
-  if (ap->username)
+  if (user_name)
     {
       mu_error (_("Only the file owner can use --username"));
       exit (EX_USAGE);
@@ -350,7 +369,7 @@ open_db_file (int action, struct action_data *ap, int *my_file)
   pw = getpwuid (uid);
   if (!pw)
     exit (EX_OSERR);
-  ap->username = pw->pw_name;
+  user_name = pw->pw_name;
   return db;
 }
 
@@ -373,23 +392,23 @@ print_entry (mu_stream_t str, struct mu_dbm_datum const *key,
 }
 
 int
-action_list (struct action_data *ap)
+action_list (void)
 {
   mu_stream_t str;
   mu_dbm_file_t db;
   struct mu_dbm_datum key, contents;
   int rc;
   
-  db = open_db_file (ACT_LIST, ap, NULL);
+  db = open_db_file (ACT_LIST, NULL);
   
-  if (ap->output_name)
+  if (output_name)
     {
-      int rc = mu_file_stream_create (&str, ap->output_name,
+      int rc = mu_file_stream_create (&str, output_name,
 				      MU_STREAM_WRITE|MU_STREAM_CREAT);
       if (rc)
 	{
 	  mu_error (_("cannot create file %s: %s"),
-		    ap->output_name, mu_strerror (rc));
+		    output_name, mu_strerror (rc));
 	  return 1;
 	}
       mu_stream_truncate (str, 0);
@@ -400,16 +419,16 @@ action_list (struct action_data *ap)
       mu_stream_ref (str);
     }
 
-  if (ap->username)
+  if (user_name)
     {
       memset (&key, 0, sizeof key);
       memset (&contents, 0, sizeof contents);
-      key.mu_dptr = ap->username;
-      key.mu_dsize = strlen (ap->username);
+      key.mu_dptr = user_name;
+      key.mu_dsize = strlen (user_name);
       rc = mu_dbm_fetch (db, &key, &contents);
       if (rc == MU_ERR_NOENT)
 	{
-	  mu_error (_("no such user: %s"), ap->username);
+	  mu_error (_("no such user: %s"), user_name);
 	}
       else if (rc)
 	{
@@ -449,7 +468,7 @@ action_list (struct action_data *ap)
 }
 
 int
-action_create (struct action_data *ap)
+action_create (void)
 {
   int rc;
   mu_stream_t in;
@@ -462,19 +481,19 @@ action_create (struct action_data *ap)
   /* Make sure we have proper privileges if popauth is setuid */
   setuid (getuid ());
   
-  if (ap->input_name)
+  if (input_name)
     {
-      rc = mu_file_stream_create (&in, ap->input_name, MU_STREAM_READ);
+      rc = mu_file_stream_create (&in, input_name, MU_STREAM_READ);
       if (rc)
 	{
 	  mu_error (_("cannot open file %s: %s"),
-		    ap->input_name, mu_strerror (rc));
+		    input_name, mu_strerror (rc));
 	  return 1;
 	}
     }
   else
     {
-      ap->input_name = "";
+      input_name = "";
       rc = mu_stdio_stream_create (&in, MU_STDIN_FD, MU_STREAM_READ);
       if (rc)
 	{
@@ -484,10 +503,10 @@ action_create (struct action_data *ap)
 	}
     }
   
-  if (!ap->output_name)
-    ap->output_name = APOP_PASSFILE;
+  if (!output_name)
+    output_name = APOP_PASSFILE;
 
-  db = open_db_file (ACT_CREATE, ap, NULL);
+  db = open_db_file (ACT_CREATE, NULL);
 
   line = 0;
   while ((rc = mu_stream_getline (in, &buf, &size, &len)) == 0
@@ -502,7 +521,7 @@ action_create (struct action_data *ap)
       pass = mu_str_skip_class_comp (str, MU_CTYPE_SPACE);
       if (*pass == 0)
 	{
-	  mu_error (_("%s:%d: malformed line"), ap->input_name, line);
+	  mu_error (_("%s:%d: malformed line"), input_name, line);
 	  continue;
 	}
       /* Strip trailing semicolon, when in compatibility mode. */
@@ -512,7 +531,7 @@ action_create (struct action_data *ap)
       pass = mu_str_skip_class (pass, MU_CTYPE_SPACE);
       if (*pass == 0)
 	{
-	  mu_error (_("%s:%d: malformed line"), ap->input_name, line);
+	  mu_error (_("%s:%d: malformed line"), input_name, line);
 	  continue;
 	}
       
@@ -526,7 +545,7 @@ action_create (struct action_data *ap)
       rc = mu_dbm_store (db, &key, &contents, 1);
       if (rc)
 	mu_error (_("%s:%d: cannot store datum: %s"),
-		  ap->input_name, line,
+		  input_name, line,
 		  rc == MU_ERR_FAILURE ?
 		     mu_dbm_strerror (db) : mu_strerror (rc));
     }
@@ -543,10 +562,10 @@ open_io (int action, struct action_data *ap, DBM_FILE *db, int *not_owner)
   int rc = check_user_perm (action, ap);
   if (not_owner)
     *not_owner = rc;
-  if (mu_dbm_open (ap->input_name, db, MU_STREAM_RDWR, permissions))
+  if (mu_dbm_open (input_name, db, MU_STREAM_RDWR, permissions))
     {
       mu_error (_("cannot open file %s: %s"),
-		ap->input_name, mu_strerror (errno));
+		input_name, mu_strerror (errno));
       return 1;
     }
   return 0;
@@ -554,9 +573,9 @@ open_io (int action, struct action_data *ap, DBM_FILE *db, int *not_owner)
 */
 
 void
-fill_pass (struct action_data *ap)
+fill_pass (void)
 {
-  if (!ap->passwd)
+  if (!user_password)
     {
       char *p;
       mu_stream_t in, out;
@@ -580,8 +599,8 @@ fill_pass (struct action_data *ap)
 
       while (1)
 	{
-	  if (ap->passwd)
-	    free (ap->passwd);
+	  if (user_password)
+	    free (user_password);
 	  rc = mu_getpass (in, out, _("Password:"), &p);
 	  if (rc)
 	    {
@@ -592,7 +611,7 @@ fill_pass (struct action_data *ap)
 	  if (!p)
 	    exit (EX_DATAERR);
 	  
-	  ap->passwd = mu_strdup (p);
+	  user_password = mu_strdup (p);
 	  /* TRANSLATORS: Please try to format this string so that it has
 	     the same length as the translation of 'Password:' above */
 	  rc = mu_getpass (in, out, _("Confirm :"), &p);
@@ -604,7 +623,7 @@ fill_pass (struct action_data *ap)
 	  
 	  if (!p)
 	    exit (EX_DATAERR);
-	  if (strcmp (ap->passwd, p) == 0)
+	  if (strcmp (user_password, p) == 0)
 	    break;
 	  mu_error (_("Passwords differ. Please retry."));
 	}
@@ -614,28 +633,28 @@ fill_pass (struct action_data *ap)
 }
 
 int
-action_add (struct action_data *ap)
+action_add (void)
 {
   mu_dbm_file_t db;
   struct mu_dbm_datum key, contents;
   int rc;
   
-  if (!ap->username)
+  if (!user_name)
     {
-      mu_error (_("missing username to add"));
+      mu_error (_("missing user name to add"));
       return 1;
     }
 
-  db = open_db_file (ACT_ADD, ap, NULL);
+  db = open_db_file (ACT_ADD, NULL);
 
-  fill_pass (ap);
+  fill_pass ();
   
   memset (&key, 0, sizeof key);
   memset (&contents, 0, sizeof contents);
-  key.mu_dptr = ap->username;
-  key.mu_dsize = strlen (ap->username);
-  contents.mu_dptr = ap->passwd;
-  contents.mu_dsize = strlen (ap->passwd);
+  key.mu_dptr = user_name;
+  key.mu_dsize = strlen (user_name);
+  contents.mu_dptr = user_password;
+  contents.mu_dsize = strlen (user_password);
 
   rc = mu_dbm_store (db, &key, &contents, 1);
   if (rc)
@@ -648,28 +667,28 @@ action_add (struct action_data *ap)
 }
 
 int
-action_delete (struct action_data *ap)
+action_delete (void)
 {
   mu_dbm_file_t db;
   struct mu_dbm_datum key;
   int rc;
   
-  if (!ap->username)
+  if (!user_name)
     {
       mu_error (_("missing username to delete"));
       return 1;
     }
 
-  db = open_db_file (ACT_DELETE, ap, NULL);
+  db = open_db_file (ACT_DELETE, NULL);
 
   memset (&key, 0, sizeof key);
-  key.mu_dptr = ap->username;
-  key.mu_dsize = strlen (ap->username);
+  key.mu_dptr = user_name;
+  key.mu_dsize = strlen (user_name);
 
   rc = mu_dbm_delete (db, &key);
   if (rc)
     mu_error (_("cannot remove record for %s: %s"),
-	      ap->username,
+	      user_name,
 	      rc == MU_ERR_FAILURE ?
 		     mu_dbm_strerror (db) : mu_strerror (rc));
 
@@ -678,31 +697,31 @@ action_delete (struct action_data *ap)
 }
 
 int
-action_chpass (struct action_data *ap)
+action_chpass (void)
 {
   mu_dbm_file_t db;
   struct mu_dbm_datum key, contents;
   int rc;
   int my_file;
   
-  db = open_db_file (ACT_CHPASS, ap, &my_file);
+  db = open_db_file (ACT_CHPASS, &my_file);
 
-  if (!ap->username)
+  if (!user_name)
     {
       struct passwd *pw = getpwuid (getuid ());
-      ap->username = pw->pw_name;
-      printf ("Changing password for %s\n", ap->username);
+      user_name = pw->pw_name;
+      printf ("Changing password for %s\n", user_name);
     }
 
   memset (&key, 0, sizeof key);
   memset (&contents, 0, sizeof contents);
 
-  key.mu_dptr = ap->username;
-  key.mu_dsize = strlen (ap->username);
+  key.mu_dptr = user_name;
+  key.mu_dsize = strlen (user_name);
   rc = mu_dbm_fetch (db, &key, &contents);
   if (rc == MU_ERR_NOENT)
     {
-      mu_error (_("no such user: %s"), ap->username);
+      mu_error (_("no such user: %s"), user_name);
       return 1;
     }
   else if (rc)
@@ -728,11 +747,11 @@ action_chpass (struct action_data *ap)
 	}
     }
 
-  fill_pass (ap);
+  fill_pass ();
   
   mu_dbm_datum_free (&contents);
-  contents.mu_dptr = ap->passwd;
-  contents.mu_dsize = strlen (ap->passwd);
+  contents.mu_dptr = user_password;
+  contents.mu_dsize = strlen (user_password);
   rc = mu_dbm_store (db, &key, &contents, 1);
   if (rc)
     mu_error (_("cannot replace datum: %s"),
@@ -743,37 +762,3 @@ action_chpass (struct action_data *ap)
   return rc;
 }
 
-void
-popauth_version (FILE *stream, struct argp_state *state)
-{
-  mu_iterator_t itr;
-  int rc;
-
-  mu_program_version_hook (stream, state);
-  fprintf (stream, _("Database formats: "));
-
-  rc = mu_dbm_impl_iterator (&itr);
-  if (rc)
-    {
-      fprintf (stream, "%s\n", _("unknown"));
-      mu_error ("%s", mu_strerror (rc));
-    }
-  else
-    {
-      int i;
-      for (mu_iterator_first (itr), i = 0; !mu_iterator_is_done (itr);
-	   mu_iterator_next (itr), i++)
-	{
-	  struct mu_dbm_impl *impl;
-
-	  mu_iterator_current (itr, (void**)&impl);
-	  if (i)
-	    fprintf (stream, ", ");
-	  fprintf (stream, "%s", impl->_dbm_name);
-	}
-      fputc ('\n', stream);
-      mu_iterator_destroy (&itr);
-    }
-  fprintf (stream, _("Default database location: %s\n"), APOP_PASSFILE);
-  exit (EX_OK);
-}
