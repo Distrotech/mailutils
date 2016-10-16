@@ -91,8 +91,6 @@
 # define USE_MAILBOX_QUOTAS 1
 #endif
 
-#include "mailutils/libargp.h"
-
 #include "tcpwrap.h"
 #include "muscript.h"
 

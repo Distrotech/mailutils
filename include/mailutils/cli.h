@@ -58,4 +58,6 @@ void mu_cli (int argc, char **argv, struct mu_cli_setup *setup,
 
 char *mu_site_config_file (void);
 
+void mu_acl_cfg_init (void);
+
 #endif

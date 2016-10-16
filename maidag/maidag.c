@@ -15,6 +15,7 @@
    along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include "maidag.h"
+#include "mailutils/cli.h"
 
 enum maidag_mode maidag_mode = mode_mda;
 int multiple_delivery;     /* Don't return errors when delivering to multiple
@@ -35,11 +36,11 @@ mu_script_t script_handler;
 mu_list_t script_list;
 
 char *forward_file = NULL;
-#define FORWARD_FILE_PERM_CHECK (					\
+#define FORWARD_FILE_PERM_CHECK (				\
 			   MU_FILE_SAFETY_OWNER_MISMATCH |	\
 			   MU_FILE_SAFETY_GROUP_WRITABLE |	\
 			   MU_FILE_SAFETY_WORLD_WRITABLE |	\
-			   MU_FILE_SAFETY_LINKED_WRDIR |		\
+			   MU_FILE_SAFETY_LINKED_WRDIR |	\
 			   MU_FILE_SAFETY_DIR_IWGRP |		\
 			   MU_FILE_SAFETY_DIR_IWOTH )
 int forward_file_checks = FORWARD_FILE_PERM_CHECK;
@@ -58,92 +59,7 @@ int reuse_lmtp_address = 1;
 int maidag_transcript;
 
 const char *program_version = "maidag (" PACKAGE_STRING ")";
-static char doc[] =
-N_("GNU maidag -- the mail delivery agent.")
-"\v"
-N_("Debug flags are:\n\
-  g - guile stack traces\n\
-  t - sieve trace (MU_SIEVE_DEBUG_TRACE)\n\
-  i - sieve instructions trace (MU_SIEVE_DEBUG_INSTR)\n\
-  l - sieve action logs\n\
-  0-9 - Set maidag debugging level\n");
-
-static char args_doc[] = N_("[recipient...]");
-
-#define STDERR_OPTION 256
-#define MESSAGE_ID_HEADER_OPTION 257
-#define LMTP_OPTION 258
-#define FOREGROUND_OPTION 260
-#define URL_OPTION 261
-#define TRANSCRIPT_OPTION 262
-#define MDA_OPTION 263
-
-static struct argp_option options[] = 
-{
-#define GRID 0
- { NULL, 0, NULL, 0,
-   N_("General options"), GRID },
-      
- { "foreground", FOREGROUND_OPTION, 0, 0, N_("remain in foreground"),
-   GRID + 1 },
- { "inetd",  'i', 0, 0, N_("run in inetd mode"), GRID + 1 },
- { "daemon", 'd', N_("NUMBER"), OPTION_ARG_OPTIONAL,
-   N_("runs in daemon mode with a maximum of NUMBER children"), GRID + 1 },
- { "url", URL_OPTION, 0, 0, N_("deliver to given URLs"), GRID + 1 },
- { "mda", MDA_OPTION, 0, 0, N_("force MDA mode even if not started as root"),
-   GRID + 1 },
- { "from", 'f', N_("EMAIL"), 0,
-   N_("specify the sender's name"), GRID + 1 },
- { NULL, 'r', NULL, OPTION_ALIAS, NULL },
- { "lmtp", LMTP_OPTION, N_("URL"), OPTION_ARG_OPTIONAL,
-   N_("operate in LMTP mode"), GRID + 1 },
- { "debug", 'x', N_("FLAGS"), 0,
-   N_("enable debugging"), GRID + 1 },
- { "stderr", STDERR_OPTION, NULL, 0,
-   N_("log to standard error"), GRID + 1 },
- { "transcript", TRANSCRIPT_OPTION, NULL, 0,
-   N_("enable session transcript"), GRID + 1 },
-#undef GRID
-
-#define GRID 2
- { NULL, 0, NULL, 0,
-   N_("Scripting options"), GRID },
- 
-  { "language", 'l', N_("STRING"), 0,
-    N_("define scripting language for the next --script option"),
-    GRID + 1 },
-  { "script", 's', N_("PATTERN"), 0,
-    N_("set name pattern for user-defined mail filter"), GRID + 1 },
-  { "message-id-header", MESSAGE_ID_HEADER_OPTION, N_("STRING"), 0,
-    N_("use this header to identify messages when logging Sieve actions"),
-    GRID + 1 },
-#undef GRID
-  { NULL,      0, NULL, 0, NULL, 0 }
-};
-
-static error_t parse_opt (int key, char *arg, struct argp_state *state);
-
-static struct argp argp = {
-  options,
-  parse_opt,
-  args_doc, 
-  doc,
-  NULL,
-  NULL, NULL
-};
-
-static const char *maidag_argp_capa[] = {
-  "mailutils",
-  "auth",
-  "common",
-  "debug",
-  "logging",
-  "mailbox",
-  "locking",
-  "mailer",
-  NULL
-};
-
+
 static void
 set_debug_flags (const char *arg)
 {
@@ -168,106 +84,196 @@ set_debug_flags (const char *arg)
 	}
     }
 }
-
-static error_t
-parse_opt (int key, char *arg, struct argp_state *state)
+
+static void
+set_inetd_mode (struct mu_parseopt *po, struct mu_option *opt,
+		char const *arg)
 {
-  static mu_list_t lst;
-
-  switch (key)
+  mu_m_server_set_mode (server, MODE_INTERACTIVE);
+}
+  
+static void
+set_daemon_mode (struct mu_parseopt *po, struct mu_option *opt,
+		 char const *arg)
+{
+  mu_m_server_set_mode (server, MODE_DAEMON);
+  if (arg)
     {
-    case 'd':
-      mu_argp_node_list_new (lst, "mode", "daemon");
-      if (arg)
-	mu_argp_node_list_new (lst, "max-children", arg);
-      break;
-
-    case 'i':
-      mu_argp_node_list_new (lst, "mode", "inetd");
-      break;
-
-    case FOREGROUND_OPTION:
-      mu_argp_node_list_new (lst, "foreground", "yes");
-      break;
-      
-    case MESSAGE_ID_HEADER_OPTION:
-      mu_argp_node_list_new (lst, "message-id-header", arg);
-      break;
-
-    case LMTP_OPTION:
-      mu_argp_node_list_new (lst, "delivery-mode", "lmtp");
-      if (arg)
-	mu_argp_node_list_new (lst, "listen", arg);
-      break;
-
-    case MDA_OPTION:
-      mu_argp_node_list_new (lst, "delivery-mode", "mda");
-      break;
-      
-    case TRANSCRIPT_OPTION:
-      maidag_transcript = 1;
-      break;
-      
-    case 'r':
-    case 'f':
-      if (sender_address != NULL)
-	argp_error (state, _("multiple --from options"));
-      sender_address = arg;
-      break;
-      
-    case 'l':
-      script_handler = mu_script_lang_handler (arg);
-      if (!script_handler)
-	argp_error (state, _("unknown or unsupported language: %s"),
-		    arg);
-      break;
-      
-    case 's':
-      switch (script_register (arg))
+      size_t max_children;
+      char *errmsg;
+      int rc = mu_str_to_c (arg, mu_c_size, &max_children, &errmsg);
+      if (rc)
 	{
-	case 0:
-	  break;
-
-	case EINVAL:
-	  argp_error (state, _("%s has unknown file suffix"), arg);
-	  break;
-
-	default:
-	  argp_error (state, _("error registering script"));
+	  mu_parseopt_error (po, _("%s: bad argument"), arg);
+	  exit (po->po_exit_error);
 	}
-      break;
-      
-    case 'x':
-      mu_argp_node_list_new (lst, "debug", arg);
-      break;
-
-    case STDERR_OPTION:
-      mu_argp_node_list_new (lst, "stderr", "yes");
-      break;
-
-    case URL_OPTION:
-      mu_argp_node_list_new (lst, "delivery-mode", "url");
-      break;
-      
-    case ARGP_KEY_INIT:
-      mu_argp_node_list_init (&lst);
-      break;
-      
-    case ARGP_KEY_FINI:
-      mu_argp_node_list_finish (lst, NULL, NULL);
-      break;
-      
-    case ARGP_KEY_ERROR:
-      exit (EX_USAGE);
-
-    default:
-      return ARGP_ERR_UNKNOWN;
+      mu_m_server_set_max_children (server, max_children);
     }
-  return 0;
 }
 
-
+static void
+set_foreground (struct mu_parseopt *po, struct mu_option *opt,
+		char const *arg)
+{
+  mu_m_server_set_foreground (server, 1);
+}
 
+static void
+set_delivery_url (struct mu_parseopt *po, struct mu_option *opt,
+		  char const *arg)
+{
+  maidag_mode = mode_url;
+  mu_log_syslog = 0;
+}
+
+static void
+set_delivery_mda (struct mu_parseopt *po, struct mu_option *opt,
+		  char const *arg)
+{
+  maidag_mode = mode_mda;
+}
+
+static void
+set_sender_address (struct mu_parseopt *po, struct mu_option *opt,
+		    char const *arg)
+{
+  if (sender_address != NULL)
+    {
+      mu_parseopt_error (po, _("multiple --from options"));
+      exit (po->po_exit_error);
+    }
+  else
+    {
+      char *errmsg;
+      int rc = mu_str_to_c (arg, opt->opt_type, opt->opt_ptr, &errmsg);
+      if (rc)
+	{
+	  mu_parseopt_error (po, _("can't set sender address: %s"),
+			     errmsg ? errmsg : mu_strerror (rc));
+	  exit (po->po_exit_error);
+	}
+    }
+}
+
+static void
+set_lmtp_mode (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
+{
+  maidag_mode = mode_lmtp;
+  if (arg)
+    {
+      struct mu_sockaddr *s;
+      
+      if (mu_m_server_parse_url (server, arg, &s))
+	{
+	  mu_parseopt_error (po, _("%s: invalid URL"), arg);
+	  exit (po->po_exit_error);
+	}
+      mu_m_server_listen (server, s, MU_IP_TCP);
+    }
+}
+
+static void
+set_debug (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
+{
+  set_debug_flags (arg);
+}
+
+static void
+set_stderr (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
+{
+  mu_log_syslog = 0;
+}
+
+static void
+set_script_lang (struct mu_parseopt *po, struct mu_option *opt,
+		 char const *arg)
+{
+  script_handler = mu_script_lang_handler (arg);
+  if (!script_handler)
+    {
+      mu_parseopt_error (po, _("unknown or unsupported language: %s"), arg);
+      exit (po->po_exit_error);
+    }
+}
+
+static void
+set_script_pattern (struct mu_parseopt *po, struct mu_option *opt,
+		    char const *arg)
+{
+  switch (script_register (arg))
+    {
+    case 0:
+      return;
+
+    case EINVAL:
+      mu_parseopt_error (po, _("%s has unknown file suffix"), arg);
+      break;
+
+    default:
+      mu_parseopt_error (po, _("error registering script"));
+    }
+  exit (po->po_exit_error);
+}
+
+static struct mu_option maidag_options[] = {
+  MU_OPTION_GROUP (N_("General options")),
+  { "foreground",  0, NULL, MU_OPTION_DEFAULT,
+    N_("remain in foreground"),
+    mu_c_bool, NULL, set_foreground },
+  { "inetd",  'i', NULL, MU_OPTION_DEFAULT,
+    N_("run in inetd mode"),
+    mu_c_bool, NULL, set_inetd_mode },
+  { "daemon", 'd', N_("NUMBER"), MU_OPTION_ARG_OPTIONAL,
+    N_("runs in daemon mode with a maximum of NUMBER children"),
+    mu_c_string, NULL, set_daemon_mode },
+  { "url", 0, NULL, MU_OPTION_DEFAULT,
+    N_("deliver to given URLs"),
+    mu_c_string, NULL, set_delivery_url },
+  { "mda", 0, NULL, MU_OPTION_DEFAULT,
+    N_("force MDA mode even if not started as root"),
+    mu_c_string, NULL, set_delivery_mda },
+  { "from", 'f', N_("EMAIL"), MU_OPTION_DEFAULT,
+    N_("specify the sender's name"),
+    mu_c_string, &sender_address, set_sender_address },
+  { NULL,   'r', NULL, MU_OPTION_ALIAS },
+  { "lmtp", 0, N_("URL"), MU_OPTION_ARG_OPTIONAL,
+    N_("operate in LMTP mode"),
+    mu_c_string, NULL, set_lmtp_mode },
+  { "debug", 'x', N_("FLAGS"), MU_OPTION_DEFAULT,
+    N_("enable debugging"),
+    mu_c_string, NULL, set_debug },
+  { "stderr", 0, NULL, MU_OPTION_DEFAULT,
+    N_("log to standard error"),
+    mu_c_string, NULL, set_stderr },
+  { "transcript", 0, NULL, MU_OPTION_DEFAULT,
+    N_("enable session transcript"),
+    mu_c_bool, &maidag_transcript },
+  
+  MU_OPTION_GROUP (N_("Scripting options")),
+  { "language", 'l', N_("STRING"), MU_OPTION_DEFAULT,
+    N_("define scripting language for the next --script option"),
+    mu_c_string, NULL, set_script_lang },
+  { "script", 's', N_("PATTERN"), MU_OPTION_DEFAULT,
+    N_("set name pattern for user-defined mail filter"),
+    mu_c_string, NULL, set_script_pattern },
+  { "message-id-header", 0, N_("STRING"), MU_OPTION_DEFAULT,
+    N_("use this header to identify messages when logging Sieve actions"),
+    mu_c_string, &message_id_header },
+  MU_OPTION_END
+}, *options[] = { maidag_options, NULL };
+
+static char *capa[] = {
+  "auth",
+  "debug",
+  "logging",
+  "mailbox",
+  "locking",
+  "mailer",
+  "sieve",
+  "tls",
+  NULL
+};
+
 static int
 cb_debug (void *data, mu_config_value_t *val)
 {
@@ -483,6 +489,20 @@ maidag_cfg_init ()
       mu_cfg_section_add_params (section, filter_cfg_param);
     }
 }
+
+struct mu_cli_setup cli = {
+  options,
+  maidag_cfg_param,
+  N_("GNU maidag -- the mail delivery agent."),
+  N_("[recipient...]"),
+  NULL,
+  N_("Debug flags are:\n\
+  g - guile stack traces\n\
+  t - sieve trace (MU_SIEVE_DEBUG_TRACE)\n\
+  i - sieve instructions trace (MU_SIEVE_DEBUG_INSTR)\n\
+  l - sieve action logs\n\
+  0-9 - Set maidag debugging level\n")
+};
 
 /* FIXME: These are for compatibility with MU 2.0.
    Remove in 2.2 */
@@ -494,7 +514,6 @@ extern mu_record_t mu_remote_prog_record;
 int
 main (int argc, char *argv[])
 {
-  int arg_index;
   maidag_delivery_fn delivery_fun = NULL;
   
   /* Preparative work: close inherited fds, force a reasonable umask
@@ -518,18 +537,10 @@ main (int argc, char *argv[])
   mu_register_all_formats ();
   mu_registrar_record (mu_smtp_record);
   
-  mu_gocs_register ("sieve", mu_sieve_module_init);
-
   mu_tcpwrapper_cfg_init ();
   mu_acl_cfg_init ();
   maidag_cfg_init ();
   
-  /* Parse command line */
-#ifdef WITH_TLS
-  mu_gocs_register ("tls", mu_tls_module_init);
-#endif
-  mu_argp_init (NULL, NULL);
-
   mu_m_server_create (&server, program_version);
   mu_m_server_set_conn (server, lmtp_connection);
   mu_m_server_set_prefork (server, mu_tcp_wrapper_prefork);
@@ -541,9 +552,10 @@ main (int argc, char *argv[])
   mu_log_syslog = -1;
   mu_log_print_severity = 1;
   
-  if (mu_app_init (&argp, maidag_argp_capa, maidag_cfg_param, 
-		   argc, argv, 0, &arg_index, server))
-    exit (EX_CONFIG);
+  /* Parse command line */
+  mu_cli_capa_register (&mu_cli_capa_tls);
+  mu_cli_capa_register (&mu_cli_capa_sieve);
+  mu_cli (argc, argv, &cli, capa, NULL, &argc, &argv);
 
   current_uid = getuid ();
 
@@ -554,9 +566,6 @@ main (int argc, char *argv[])
 				 MU_STRERR_SYSLOG : MU_STRERR_STDERR);
     }
   
-  argc -= arg_index;
-  argv += arg_index;
-
   switch (maidag_mode)
     {
     case mode_lmtp:
