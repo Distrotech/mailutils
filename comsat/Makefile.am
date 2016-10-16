@@ -31,7 +31,7 @@ biff.rc.h: $(top_srcdir)/comsat/biff.rc
 	  $(top_srcdir)/comsat/biff.rc > biff.rc.h
 
 comsatd_LDADD = \
- ${MU_APP_LIBRARIES}\
+ ${MU_APP_NEW_LIBRARIES}\
  ${MU_LIB_MBOX}\
  ${MU_LIB_IMAP}\
  ${MU_LIB_POP}\

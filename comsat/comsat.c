@@ -18,7 +18,7 @@
 #include "comsat.h"
 #define MU_CFG_COMPATIBILITY /* This source uses deprecated cfg interfaces */
 #include "mailutils/libcfg.h"
-#include "mailutils/libargp.h"
+#include "mailutils/cli.h"
 
 #ifndef PATH_DEV
 # define PATH_DEV "/dev"
@@ -59,44 +59,62 @@ typedef struct utmp UTMP;
 #define MAX_TTY_SIZE (sizeof (PATH_TTY_PFX) + sizeof (((UTMP*)0)->ut_line))
 
 const char *program_version = "comsatd (" PACKAGE_STRING ")";
-static char doc[] = N_("GNU comsatd -- notify users about incoming mail");
-static char args_doc[] = N_("\n--test MBOX-URL MSG-QID");
 
-#define OPT_FOREGROUND 256
+int test_mode;
+char *biffrc = BIFF_RC;
+mu_m_server_t server;
 
-static struct argp_option options[] = 
+static void
+set_inetd_mode (struct mu_parseopt *po, struct mu_option *opt,
+		char const *arg)
 {
-  { "test", 't', NULL, 0, N_("run in test mode"), 0 },
-  { "foreground", OPT_FOREGROUND, 0, 0, N_("remain in foreground"), 0},
-  { "inetd",  'i', 0, 0, N_("run in inetd mode"), 0 },
-  { "daemon", 'd', N_("NUMBER"), OPTION_ARG_OPTIONAL,
-    N_("runs in daemon mode with a maximum of NUMBER children"), 0 },
-  { "file", 'f', N_("FILE"), 0,
-    N_("read FILE instead of .biffrc"), 0 },
-  { NULL, 0, NULL, 0, NULL, 0 }
-};
+  mu_m_server_set_mode (server, MODE_INTERACTIVE);
+}
+  
+static void
+set_daemon_mode (struct mu_parseopt *po, struct mu_option *opt,
+		 char const *arg)
+{
+  mu_m_server_set_mode (server, MODE_DAEMON);
+  if (arg)
+    {
+      size_t max_children;
+      char *errmsg;
+      int rc = mu_str_to_c (arg, mu_c_size, &max_children, &errmsg);
+      if (rc)
+	{
+	  mu_parseopt_error (po, _("%s: bad argument"), arg);
+	  exit (po->po_exit_error);
+	}
+      mu_m_server_set_max_children (server, max_children);
+    }
+}
 
-static error_t comsatd_parse_opt (int key, char *arg,
-				  struct argp_state *state);
+static void
+set_foreground (struct mu_parseopt *po, struct mu_option *opt,
+		char const *arg)
+{
+  mu_m_server_set_foreground (server, 1);
+}
 
-static struct argp argp = {
-  options,
-  comsatd_parse_opt,
-  args_doc, 
-  doc,
-  NULL,
-  NULL, NULL
-};
-
-static const char *comsat_argp_capa[] = {
-  "mailutils",
-  "common",
-  "debug",
-  "logging",
-  "mailbox",
-  "locking",
-  NULL
-};
+static struct mu_option comsat_options[] = {
+  { "test", 't', NULL, MU_OPTION_DEFAULT,
+    N_("run in test mode"),
+    mu_c_bool, &test_mode },
+  { "foreground",  0, NULL, MU_OPTION_DEFAULT,
+    N_("remain in foreground"),
+    mu_c_bool, NULL, set_foreground },
+  { "inetd",  'i', NULL, MU_OPTION_DEFAULT,
+    N_("run in inetd mode"),
+    mu_c_bool, NULL, set_inetd_mode },
+  { "daemon", 'd', N_("NUMBER"), MU_OPTION_ARG_OPTIONAL,
+    N_("runs in daemon mode with a maximum of NUMBER children"),
+    mu_c_string, NULL, set_daemon_mode },
+  { "file", 'f', N_("FILE"), MU_OPTION_DEFAULT,
+    N_("read FILE instead of .biffrc"),
+    mu_c_string, &biffrc },
+  MU_OPTION_END
+}, *options[] = { comsat_options, NULL };
 
 #define SUCCESS 0
 #define NOT_HERE 1
@@ -107,7 +125,6 @@ char *hostname;
 const char *username;
 int require_tty;
 int biffrc_errors = BIFFRC_ERRORS_TO_TTY | BIFFRC_ERRORS_TO_ERR;
-mu_m_server_t server;
 
 static void comsat_init (void);
 static int comsat_main (int fd);
@@ -118,9 +135,6 @@ static char *mailbox_path (const char *user);
 static int change_user (const char *user);
 
 static int reload = 0;
-int test_mode;
-char *biffrc = BIFF_RC;
-
 static int
 biffrc_error_ctl (mu_config_value_t *val, int flag)
 {
@@ -171,55 +185,30 @@ struct mu_cfg_param comsat_cfg_param[] = {
     0, NULL,
     N_("Set overflow control interval.") },
   { "overflow-delay-time", mu_c_time, &overflow_delay_time,
-    0, NULL,
+   0, NULL,
     N_("Time to sleep after the first overflow occurs.") },
   { ".server", mu_cfg_section, NULL, 0, NULL,
     N_("Server configuration.") },
   { NULL }
 };
 
-static error_t
-comsatd_parse_opt (int key, char *arg, struct argp_state *state)
-{
-  static mu_list_t lst;
+static char const *alt_args[] = { N_("--test MBOX-URL MSG-QID"), NULL };
 
-  switch (key)
-    {
-    case 'd':
-      mu_argp_node_list_new (lst, "mode", "daemon");
-      if (arg)
-	mu_argp_node_list_new (lst, "max-children", arg);
-      break;
+static struct mu_cli_setup cli = {
+  options,
+  comsat_cfg_param,
+  N_("GNU comsatd -- notify users about incoming mail"),
+  "",
+  alt_args,
+};
 
-    case 'f':
-      biffrc = arg;
-      break;
-      
-    case 'i':
-      mu_argp_node_list_new (lst, "mode", "inetd");
-      break;
-
-    case OPT_FOREGROUND:
-      mu_argp_node_list_new (lst, "foreground", "yes");
-      break;
-
-    case 't':
-      test_mode = 1;
-      break;
-      
-    case ARGP_KEY_INIT:
-      mu_argp_node_list_init (&lst);
-      break;
-      
-    case ARGP_KEY_FINI:
-      mu_argp_node_list_finish (lst, NULL, NULL);
-      break;
-
-    default:
-      return ARGP_ERR_UNKNOWN;
-    }
-  return 0;
-}
+static char *capa[] = {
+  "debug",
+  "logging",
+  "mailbox",
+  "locking",
+  NULL
+};
 
 static RETSIGTYPE
 sig_hup (int sig)
@@ -558,12 +547,11 @@ int
 main (int argc, char **argv)
 {
   int c;
-  int ind;
-
+  char **save_argv;
+  
   /* Native Language Support */
   MU_APP_INIT_NLS ();
 
-  mu_argp_init (NULL, NULL);
   comsat_init ();
   mu_acl_cfg_init ();
   mu_m_server_create (&server, program_version);
@@ -578,19 +566,16 @@ main (int argc, char **argv)
   
   /* FIXME: timeout is not needed. How to disable it? */
   mu_log_syslog = 1;
+
+  save_argv = argv;
   
-  if (mu_app_init (&argp, comsat_argp_capa, comsat_cfg_param, argc, argv, 0,
-		   &ind, server))
-    exit (EXIT_FAILURE);
+  mu_cli (argc, argv, &cli, capa, NULL, &argc, &argv);
 
   if (test_mode)
     {
       struct passwd *pw;
       char *user;
       
-      argc -= ind;
-      argv += ind;
-  
       mu_stdstream_strerr_setup (MU_STRERR_STDERR);
       biffrc_errors = BIFFRC_ERRORS_TO_ERR;
       if (argc < 2 || argc > 2)
@@ -630,7 +615,7 @@ main (int argc, char **argv)
 
   if (mu_m_server_mode (server) == MODE_DAEMON)
     {
-      if (argv[0][0] != '/')
+      if (save_argv[0][0] != '/')
 	mu_diag_output (MU_DIAG_NOTICE,
 			_("program name is not absolute; reloading will not "
 			  "be possible"));
@@ -651,7 +636,7 @@ main (int argc, char **argv)
       if (reload)
 	{
 	  mu_diag_output (MU_DIAG_NOTICE, _("restarting"));
-	  execvp (argv[0], argv);
+	  execvp (save_argv[0], save_argv);
 	}
     }
   else

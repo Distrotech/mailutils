@@ -18,6 +18,7 @@
 noinst_LTLIBRARIES = libcli.la
 
 libcli_la_SOURCES = \
+ acl.c\
  capa.c\
  cli.c\
  stdcapa.c
