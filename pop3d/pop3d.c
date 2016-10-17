@@ -17,7 +17,7 @@
 
 #include "pop3d.h"
 #include "mailutils/pam.h"
-#include "mailutils/libargp.h"
+#include "mailutils/cli.h"
 #include "mailutils/pop3.h"
 #include "mailutils/kwd.h"
 #include "tcpwrap.h"
@@ -59,24 +59,55 @@ char *login_stat_file = LOGIN_STAT_FILE;
 unsigned expire = EXPIRE_NEVER; /* Expire messages after this number of days */
 int expire_on_exit = 0;         /* Delete expired messages on exit */
 
-static error_t pop3d_parse_opt  (int key, char *arg, struct argp_state *astate);
-
 const char *program_version = "pop3d (" PACKAGE_STRING ")";
-static char doc[] = N_("GNU pop3d -- the POP3 daemon.");
+
+static void
+set_foreground (struct mu_parseopt *po, struct mu_option *opt,
+		char const *arg)
+{
+  mu_m_server_set_foreground (server, 1);
+}
 
-#define OPT_FOREGROUND      256
+static void
+set_inetd_mode (struct mu_parseopt *po, struct mu_option *opt,
+		char const *arg)
+{
+  mu_m_server_set_mode (server, MODE_INTERACTIVE);
+}
+  
+static void
+set_daemon_mode (struct mu_parseopt *po, struct mu_option *opt,
+		 char const *arg)
+{
+  mu_m_server_set_mode (server, MODE_DAEMON);
+  if (arg)
+    {
+      size_t max_children;
+      char *errmsg;
+      int rc = mu_str_to_c (arg, mu_c_size, &max_children, &errmsg);
+      if (rc)
+	{
+	  mu_parseopt_error (po, _("%s: bad argument"), arg);
+	  exit (po->po_exit_error);
+	}
+      mu_m_server_set_max_children (server, max_children);
+    }
+}
 
-static struct argp_option options[] = {
-#define GRP 0
-  { "foreground", OPT_FOREGROUND, 0, 0, N_("remain in foreground"), GRP+1},
-  { "inetd",  'i', 0, 0, N_("run in inetd mode"), GRP+1},
-  { "daemon", 'd', N_("NUMBER"), OPTION_ARG_OPTIONAL,
-    N_("runs in daemon mode with a maximum of NUMBER children"), GRP+1 },
-#undef GRP
+static struct mu_option pop3d_options[] = {
+  { "foreground",  0, NULL, MU_OPTION_DEFAULT,
+    N_("remain in foreground"),
+    mu_c_bool, NULL, set_foreground },
+  { "inetd",  'i', NULL, MU_OPTION_DEFAULT,
+    N_("run in inetd mode"),
+    mu_c_bool, NULL, set_inetd_mode },
+  { "daemon", 'd', N_("NUMBER"), MU_OPTION_ARG_OPTIONAL,
+    N_("runs in daemon mode with a maximum of NUMBER children"),
+    mu_c_string, NULL, set_daemon_mode },
 
   {NULL, 0, NULL, 0, NULL, 0}
-};
-
+}, *options[] = { pop3d_options, NULL };
+
 static int
 cb_bulletin_source (void *data, mu_config_value_t *val)
 {
@@ -271,61 +302,22 @@ static struct mu_cfg_param pop3d_cfg_param[] = {
   { NULL }
 };
     
-static struct argp argp = {
-  options,
-  pop3d_parse_opt,
-  NULL,
-  doc,
-  NULL,
-  NULL, NULL
-};
-
-static const char *pop3d_argp_capa[] = {
-  "mailutils",
+static char *capa[] = {
   "auth",
-  "common",
   "debug",
   "mailbox",
   "locking",
   "logging",
+  "tls",
   NULL
 };
 
-static error_t
-pop3d_parse_opt (int key, char *arg, struct argp_state *astate)
-{
-  static mu_list_t lst;
-  
-  switch (key)
-    {
-    case 'd':
-      mu_argp_node_list_new (lst, "mode", "daemon");
-      if (arg)
-	mu_argp_node_list_new (lst, "max-children", arg);
-      break;
-
-    case 'i':
-      mu_argp_node_list_new (lst, "mode", "inetd");
-      break;
-
-    case OPT_FOREGROUND:
-      mu_argp_node_list_new (lst, "foreground", "yes");
-      break;
-      
-    case ARGP_KEY_INIT:
-      mu_argp_node_list_init (&lst);
-      break;
-      
-    case ARGP_KEY_FINI:
-      mu_argp_node_list_finish (lst, NULL, NULL);
-      break;
-      
-    default:
-      return ARGP_ERR_UNKNOWN;
-    }
-  return 0;
-}
-
+struct mu_cli_setup cli = {
+  options,
+  pop3d_cfg_param,
+  N_("GNU pop3d -- the POP3 daemon."),
+};
+
 int
 pop3d_get_client_address (int fd, struct sockaddr_in *pcs)
 {
@@ -569,15 +561,10 @@ main (int argc, char **argv)
   /* Register the desired formats.  */
   mu_register_local_mbox_formats ();
 
-#ifdef WITH_TLS
-  mu_gocs_register ("tls", mu_tls_module_init);
-#endif /* WITH_TLS */
   mu_tcpwrapper_cfg_init ();
   manlock_cfg_init ();
   mu_acl_cfg_init ();
   
-  mu_argp_init (NULL, NULL);
-  	
   mu_m_server_create (&server, program_version);
   mu_m_server_set_config_size (server, sizeof (struct pop3d_srv_config));
   mu_m_server_set_conn (server, pop3d_connection);
@@ -598,10 +585,14 @@ main (int argc, char **argv)
 #ifdef ENABLE_DBM
   set_dbm_safety ();
 #endif
-  
-  if (mu_app_init (&argp, pop3d_argp_capa, pop3d_cfg_param, 
-		   argc, argv, 0, NULL, server))
-    exit (EX_CONFIG); /* FIXME: No way to discern from EX_USAGE? */
+  mu_cli_capa_register (&mu_cli_capa_tls);
+
+  mu_cli (argc, argv, &cli, capa, server, &argc, &argv);
+  if (argc)
+    {
+      mu_error (_("too many arguments"));
+      exit (EX_USAGE);
+    }
 
   if (expire == 0)
     expire_on_exit = 1;
