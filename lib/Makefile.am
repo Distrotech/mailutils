@@ -28,7 +28,6 @@ lib_LTLIBRARIES = libmuaux.la
 noinst_LIBRARIES = libmuscript.a libmutcpwrap.a
 
 libmuaux_la_SOURCES = \
- argp_base.c\
  daemon.c\
  mailcap.c\
  manlock.c\

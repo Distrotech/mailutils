@@ -381,7 +381,6 @@ static char *movemail_capa[] = {
   "locking",
   "mailbox",
   "auth",
-  "tls",
   NULL 
 };
 

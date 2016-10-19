@@ -4,7 +4,6 @@
 # FIXME: fnmatch, regex and glob are used by libmailutils...
 
 autobuild
-argp
 crypto/des
 gettext
 gitlog-to-changelog

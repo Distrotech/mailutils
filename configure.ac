@@ -16,7 +16,7 @@ dnl You should have received a copy of the GNU General Public License along
 dnl with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
 
 AC_PREREQ(2.63)
-AC_INIT([GNU Mailutils], [2.99.99], [bug-mailutils@gnu.org], [mailutils],
+AC_INIT([GNU Mailutils], [2.99.991], [bug-mailutils@gnu.org], [mailutils],
         [http://mailutils.org])
 AC_CONFIG_SRCDIR([libmailutils/mailbox/mailbox.c])
 AC_CONFIG_AUX_DIR([build-aux])
@@ -57,8 +57,7 @@ AC_SUBST(mu_aux_dir,'$(top_srcdir)/mu-aux')
 AC_SUBST(MU_SIEVE_MODDIR,'$(libdir)/$(PACKAGE)')
 
 AC_SUBST(MU_COMMON_LIBRARIES,'$(LTLIBINTL) $(LTLIBICONV)')
-AC_SUBST(MU_APP_LIBRARIES,'${top_builddir}/libmu_argp/libmu_argp.la ${top_builddir}/libmu_cfg/libmu_cfg.la ${top_builddir}/lib/libmuaux.la')
-AC_SUBST(MU_APP_NEW_LIBRARIES,'${top_builddir}/lib/libmuaux.la')
+AC_SUBST(MU_APP_LIBRARIES,'${top_builddir}/lib/libmuaux.la')
 
 # There are two sets of include directories: MU_LIB_COMMON_INCLUDES, used
 # by the libraries, and MU_APP_COMMON_INCLUDES, which is used by applications.

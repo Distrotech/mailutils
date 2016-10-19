@@ -23,7 +23,7 @@ bin_PROGRAMS = readmsg
 readmsg_SOURCES = readmsg.c msglist.c readmsg.h
 
 readmsg_LDADD =\
- ${MU_APP_NEW_LIBRARIES}\
+ ${MU_APP_LIBRARIES}\
  ${MU_LIB_MBOX}\
  ${MU_LIB_IMAP}\
  ${MU_LIB_POP}\

@@ -22,7 +22,7 @@ EXTRA_DIST = examples
 bin_PROGRAMS = sieve
 sieve_SOURCES = sieve.c
 sieve_LDADD =\
- ${MU_APP_NEW_LIBRARIES}\
+ ${MU_APP_LIBRARIES}\
  ${MU_LIB_SIEVE}\
  ${MU_LIB_MBOX}\
  ${MU_LIB_IMAP}\
