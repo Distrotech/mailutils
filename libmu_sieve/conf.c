@@ -29,15 +29,21 @@ mu_list_t mu_sieve_library_path = NULL;
 mu_list_t mu_sieve_library_path_prefix = NULL;
 mu_debug_handle_t mu_sieve_debug_handle;
 
-//FIXME: provide definition (from gocs.h)
-static struct mu_gocs_sieve sieve_settings;
-
 void
 mu_sieve_debug_init (void)
 {
   if (!mu_sieve_debug_handle)
     mu_sieve_debug_handle = mu_debug_register_category ("sieve");
 }
+
+struct sieve_settings
+{
+  int clearflags;
+  mu_list_t include_path;
+  mu_list_t library_path_prefix;
+  mu_list_t library_path;
+};
+static struct sieve_settings sieve_settings;
 
 /*FIXME: REMOVE BEGIN */
 static int
@@ -60,33 +66,6 @@ _path_append (void *item, void *data)
     return ENOMEM;
   return mu_list_append (*plist, p);
 }
-
-int
-mu_sieve_module_init (enum mu_gocs_op op, void *data)
-{
-  struct mu_gocs_sieve *p;
-  if (!(op == mu_gocs_op_set && data))
-    return 0;
-  p = data;
-
-  if (p->clearflags & MU_SIEVE_CLEAR_INCLUDE_PATH)
-    mu_list_destroy (&mu_sieve_include_path);
-  mu_list_foreach (p->include_path, _path_append, &mu_sieve_include_path);
-  if (p->clearflags & MU_SIEVE_CLEAR_LIBRARY_PATH)
-    {
-      mu_list_destroy (&mu_sieve_library_path);
-      mu_list_destroy (&mu_sieve_library_path_prefix);
-    }
-  mu_list_foreach (p->library_path_prefix, _path_append,
-		   &mu_sieve_library_path_prefix);
-  mu_list_foreach (p->library_path, _path_append, &mu_sieve_library_path);
-  mu_list_destroy (&p->library_path);
-  mu_list_destroy (&p->library_path_prefix);
-  mu_list_destroy (&p->include_path);
-  mu_sieve_debug_init ();
-  return 0;
-}
-/* FIXME: REMOVE END */
 
 static int
 cb_clear_library_path (void *data, mu_config_value_t *val)
@@ -238,9 +217,30 @@ static struct mu_option sieve_option[] = {
   MU_OPTION_END
 };
 
+static void
+sieve_commit (void *ptr)
+{
+  if (sieve_settings.clearflags & MU_SIEVE_CLEAR_INCLUDE_PATH)
+    mu_list_destroy (&mu_sieve_include_path);
+  mu_list_foreach (sieve_settings.include_path, _path_append, &mu_sieve_include_path);
+  if (sieve_settings.clearflags & MU_SIEVE_CLEAR_LIBRARY_PATH)
+    {
+      mu_list_destroy (&mu_sieve_library_path);
+      mu_list_destroy (&mu_sieve_library_path_prefix);
+    }
+  mu_list_foreach (sieve_settings.library_path_prefix, _path_append,
+		   &mu_sieve_library_path_prefix);
+  mu_list_foreach (sieve_settings.library_path, _path_append, &mu_sieve_library_path);
+  mu_list_destroy (&sieve_settings.library_path);
+  mu_list_destroy (&sieve_settings.library_path_prefix);
+  mu_list_destroy (&sieve_settings.include_path);
+  mu_sieve_debug_init ();
+}
+
 struct mu_cli_capa mu_cli_capa_sieve = {
   "sieve",
   sieve_option,
   mu_sieve_param,
-  NULL, NULL
+  NULL,
+  sieve_commit
 };

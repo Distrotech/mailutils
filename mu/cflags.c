@@ -14,32 +14,19 @@
    You should have received a copy of the GNU General Public License
    along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>. */
 
-#if defined(HAVE_CONFIG_H)
-# include <config.h>
-#endif
-#include <stdlib.h>
-#include <mailutils/mailutils.h>
-#include <mailutils/libcfg.h>
-#include <argp.h>
+#include "mu.h"
 
-static char cflags_doc[] = N_("mu cflags - show compiler options");
 char cflags_docstring[] = N_("show compiler options");
-
-static struct argp cflags_argp = {
-  NULL,
-  NULL,
-  NULL,
-  cflags_doc,
-  NULL,
-  NULL,
-  NULL
-};
 
 int
 mutool_cflags (int argc, char **argv)
 {
-  if (argp_parse (&cflags_argp, argc, argv, ARGP_IN_ORDER, NULL, NULL))
-    return 1;
+  mu_action_getopt (&argc, &argv, NULL, cflags_docstring, NULL);
+  if (argc)
+    {
+      mu_error (_("too many arguments"));
+      return EX_USAGE;
+    }
   mu_printf ("%s\n", COMPILE_FLAGS);
   return 0;
 }

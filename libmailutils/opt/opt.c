@@ -213,6 +213,8 @@ find_long_option (struct mu_parseopt *po, char const *optstr,
 	    case 0:
 	      ind = i;
 	      found++;
+	      if (optlen == strlen (po->po_optv[i]->opt_long))
+		i = po->po_optc - 1; /* exact match: break the loop */
 	      break;
 
 	    case 1:
@@ -511,6 +513,8 @@ parseopt_init (struct mu_parseopt *po, struct mu_option **options,
     po->po_exit_error = EXIT_ERROR;
   if (!(flags & MU_PARSEOPT_VERSION_HOOK))
     po->po_version_hook = NULL;
+  if (!(flags & MU_PARSEOPT_PROG_DOC_HOOK))
+    po->po_prog_doc_hook = NULL;
   
   /* Count the options */
   po->po_optc = 0;

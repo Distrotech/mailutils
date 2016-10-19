@@ -151,12 +151,6 @@ struct mu_locus
   unsigned mu_col;
 };
   
-enum mu_gocs_op
-  {
-    mu_gocs_op_set,
-    mu_gocs_op_flush
-  };
-
 #ifdef __cplusplus
 }
 #endif

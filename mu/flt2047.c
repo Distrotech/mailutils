@@ -14,87 +14,50 @@
    You should have received a copy of the GNU General Public License
    along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>. */
 
-#if defined(HAVE_CONFIG_H)
-# include <config.h>
-#endif
-#include <stdlib.h>
-#include <string.h>
-#include <mailutils/mailutils.h>
-#include "argp.h"
 #include "mu.h"
 
-static char flt2047_doc[] = N_("mu 2047 - decode/encode message headers.");
 char flt2047_docstring[] = N_("decode/encode email message headers");
 static char flt2047_args_doc[] = N_("[text]");
 
-static struct argp_option flt2047_options[] = {
-  { "encode", 'e', NULL, 0, N_("encode the input (default)") },
-  { "decode", 'd', NULL, 0, N_("decode the input") },
-  { "newline", 'n', NULL, 0, N_("print additional newline") },
-  { "charset", 'c', N_("NAME"), 0,
-    N_("set charset (default: iso-8859-1)") },
-  { "encoding", 'E', N_("NAME"), 0,
-    N_("set encoding (default: quoted-printable)") },
-  { NULL }
-};
-  
 static int decode_mode = 0;
 static int newline_option = 0;
 static const char *charset = "iso-8859-1";
 static const char *encoding = "quoted-printable";
 
-static error_t
-flt2047_parse_opt (int key, char *arg, struct argp_state *state)
+static void
+set_encode_mode (struct mu_parseopt *po, struct mu_option *opt,
+		 char const *arg)
 {
-  switch (key)
-    {
-    case 'c':
-      charset = arg;
-      break;
-      
-    case 'e':
-      decode_mode = 0;
-      break;
-
-    case 'E':
-      encoding = arg;
-      break;
-
-    case 'd':
-      decode_mode = 1;
-      break;
-
-    case 'n':
-      newline_option = 0;
-      break;
-
-    default:
-      return ARGP_ERR_UNKNOWN;
-    }
-  return 0;
+  decode_mode = 0;
 }
 
-static struct argp flt2047_argp = {
-  flt2047_options,
-  flt2047_parse_opt,
-  flt2047_args_doc,
-  flt2047_doc,
-  NULL,
-  NULL,
-  NULL
+static struct mu_option flt2047_options[] = {
+  { "encode", 'e', NULL, MU_OPTION_DEFAULT,
+    N_("encode the input (default)"),
+    mu_c_string, NULL, set_encode_mode },
+  { "decode", 'd', NULL, MU_OPTION_DEFAULT,
+    N_("decode the input"),
+    mu_c_bool, &decode_mode },
+  { "newline", 'n', NULL, MU_OPTION_DEFAULT,
+    N_("print additional newline"),
+    mu_c_bool, &newline_option },  
+  { "charset", 'c', N_("NAME"), MU_OPTION_DEFAULT,
+    N_("set charset (default: iso-8859-1)"),
+    mu_c_string, &charset },
+  { "encoding", 'E', N_("NAME"), MU_OPTION_DEFAULT,
+    N_("set encoding (default: quoted-printable)"),
+    mu_c_string, &encoding },
+  MU_OPTION_END
 };
-
+  
 int
 mutool_flt2047 (int argc, char **argv)
 {
-  int rc, index;
+  int rc;
   char *p;
-  
-  if (argp_parse (&flt2047_argp, argc, argv, ARGP_IN_ORDER, &index, NULL))
-    return 1;
 
-  argc -= index;
-  argv += index;
+  mu_action_getopt (&argc, &argv, flt2047_options, flt2047_docstring,
+		    flt2047_args_doc);
 
   if (argc)
     {

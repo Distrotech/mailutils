@@ -14,48 +14,9 @@
    You should have received a copy of the GNU General Public License
    along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>. */
 
-#if defined(HAVE_CONFIG_H)
-# include <config.h>
-#endif
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/time.h>
-#include <netinet/in.h>
-#include <netdb.h>
-#include <mailutils/mailutils.h>
 #include "mu.h"
-#include "argp.h"
 
-static char pop_doc[] = N_("mu pop - POP3 client shell.");
 char pop_docstring[] = N_("POP3 client shell");
-static char pop_args_doc[] = "";
-
-static struct argp_option pop_options[] = {
-  { NULL }
-};
-
-static error_t
-pop_parse_opt (int key, char *arg, struct argp_state *state)
-{
-  switch (key)
-    {
-    default:
-      return ARGP_ERR_UNKNOWN;
-    }
-  return 0;
-}
-
-static struct argp pop_argp = {
-  pop_options,
-  pop_parse_opt,
-  pop_args_doc,
-  pop_doc,
-  NULL,
-  NULL,
-  NULL
-};
 
 /* Global handle for pop3.  */
 static mu_pop3_t pop3;
@@ -656,13 +617,7 @@ struct mutool_command pop_comtab[] = {
 int
 mutool_pop (int argc, char **argv)
 {
-  int index;
-
-  if (argp_parse (&pop_argp, argc, argv, ARGP_IN_ORDER, &index, NULL))
-    return 1;
-  
-  argc -= index;
-  argv += index;
+  mu_action_getopt (&argc, &argv, NULL, pop_docstring, NULL);
 
   if (argc)
     {

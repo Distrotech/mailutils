@@ -35,7 +35,8 @@ struct mu_cli_capa
 
 void mu_cli_capa_init (void);
 void mu_cli_capa_register (struct mu_cli_capa *capa);
-void mu_cli_capa_apply (char const *name, mu_list_t opts, mu_list_t commits);
+void mu_cli_capa_extend_settings (char const *name, mu_list_t opts,
+				  mu_list_t commits);
 
 struct mu_cli_setup
 {
@@ -49,6 +50,8 @@ struct mu_cli_setup
   int ex_usage;                /* If not 0, exit code on usage errors */
   int ex_config;               /* If not 0, exit code on configuration
 				  errors */
+  int inorder;
+  void (*prog_doc_hook) (mu_stream_t);
 };
 
 void mu_version_func (struct mu_parseopt *po, mu_stream_t stream);

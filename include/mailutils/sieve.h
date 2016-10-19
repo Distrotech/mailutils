@@ -272,17 +272,6 @@ int mu_sieve_disass (mu_sieve_machine_t mach);
 #define MU_SIEVE_CLEAR_INCLUDE_PATH 0x1
 #define MU_SIEVE_CLEAR_LIBRARY_PATH 0x2
 
-struct mu_gocs_sieve
-{
-  int clearflags;
-  /*  mu_list_t include_path_prefix;*/
-  mu_list_t include_path;
-  mu_list_t library_path_prefix;
-  mu_list_t library_path;
-};
-
-int mu_sieve_module_init (enum mu_gocs_op, void *);
-
 extern struct mu_cli_capa mu_cli_capa_sieve;
   
 #ifdef __cplusplus

@@ -29,24 +29,6 @@ enum mu_password_type
 
 struct mu_sql_module_config
 {
-  char *interface;
-  char *getpwnam_query;
-  char *getpass_query;
-  char *getpwuid_query;
-  char *host;
-  char *user;
-  char *passwd;
-  char *db;
-  int port;
-  enum mu_password_type password_type;
-  int positional;
-  mu_assoc_t field_map;
-};
-
-/* FIXME: Should not be here, but needed for several other sources
-   (imap4d/auth_gsasl.c, for instance) */
-struct mu_internal_sql_config
-{
   int interface;
   char *getpwnam_query;
   char *getpass_query;
@@ -61,7 +43,7 @@ struct mu_internal_sql_config
   mu_assoc_t field_map;
 };
 
-extern struct mu_internal_sql_config mu_sql_module_config;
+extern struct mu_sql_module_config mu_sql_module_config;
 
 /* Loadable Modules Support */
 #define __s_cat2__(a,b) a ## b
@@ -131,7 +113,7 @@ struct mu_sql_dispatch
 };
 
 /* Public interfaces */
-int mu_sql_interface_index (char *name);
+int mu_sql_interface_index (char const *name);
 
 int mu_sql_connection_init (mu_sql_connection_t *conn, int interface,
 			    char *server, int  port, char *login,

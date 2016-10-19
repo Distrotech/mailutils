@@ -14,63 +14,24 @@
    You should have received a copy of the GNU General Public License
    along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>. */
 
-#if defined(HAVE_CONFIG_H)
-# include <config.h>
-#endif
-#include <stdlib.h>
-#include <string.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <sys/un.h>
-#include <arpa/inet.h>
-#include <mailutils/mailutils.h>
-#include <mailutils/libcfg.h>
-#include "argp.h"
 #include "mu.h"
 
-static char acl_doc[] = N_("mu acl - test access control lists.");
 char acl_docstring[] = N_("test access control lists");
 static char acl_args_doc[] = N_("ADDRESS [ADDRESS...]");
-
-static struct argp_option acl_options[] = {
-  { "file", 'f', N_("FILE"), 0, N_("read ACLs from FILE") },
-  { "path", 'p', N_("PATH"), 0,
-    N_("path to the ACL in the configuration tree") },
-  { NULL }
-};
 
 static char *input_file_name;
 static struct mu_sockaddr *target_sa;
 static mu_acl_t acl;
 static const char *path = "acl";
 
-static error_t
-acl_parse_opt (int key, char *arg, struct argp_state *state)
-{
-  switch (key)
-    {
-    case 'f':
-      input_file_name = arg;
-      break;
-
-    case 'p':
-      path = arg;
-      break;
-      
-    default:
-      return ARGP_ERR_UNKNOWN;
-    }
-  return 0;
-}
-
-static struct argp acl_argp = {
-  acl_options,
-  acl_parse_opt,
-  acl_args_doc,
-  acl_doc,
-  NULL,
-  NULL,
-  NULL
+static struct mu_option acl_options[] = {
+  { "file", 'f', N_("FILE"), MU_OPTION_DEFAULT,
+    N_("read ACLs from FILE"),
+    mu_c_string, &input_file_name },
+  { "path", 'p', N_("PATH"), MU_OPTION_DEFAULT,
+    N_("path to the ACL in the configuration tree"),
+    mu_c_string, &path },
+  { NULL }
 };
 
 
@@ -82,16 +43,13 @@ static struct mu_cfg_param acl_cfg_param[] = {
 int
 mutool_acl (int argc, char **argv)
 {
-  int rc, index;
+  int rc;
   mu_acl_result_t result;
   mu_cfg_tree_t *tree = NULL, *temp_tree = NULL;
   mu_cfg_node_t *node;
-  
-  if (argp_parse (&acl_argp, argc, argv, ARGP_IN_ORDER, &index, NULL))
-    return 1;
+  struct mu_cfg_parse_hints hints;
 
-  argc -= index;
-  argv += index;
+  mu_action_getopt (&argc, &argv, acl_options, acl_docstring, acl_args_doc);
 
   if (argc == 0)
     {
@@ -99,16 +57,13 @@ mutool_acl (int argc, char **argv)
       return 1;
     }
 
-  if (input_file_name)
-    {
-      mu_load_site_rcfile = 0;
-      mu_load_user_rcfile = 0;
-      mu_load_rcfile = input_file_name;
-    }
+  memset (&hints, 0, sizeof (hints));
+  hints.flags = MU_CFG_PARSE_CUSTOM_RCFILE;
+  hints.custom_rcfile = input_file_name;
 
   mu_acl_cfg_init ();
-  if (mu_libcfg_parse_config (&tree))
-    return 1;
+  if (mu_cfg_parse_config (&tree, &hints))
+    exit (EX_CONFIG);
   if (!tree)
     return 0;
   

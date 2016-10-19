@@ -14,13 +14,6 @@
    You should have received a copy of the GNU General Public License
    along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>. */
 
-#if defined(HAVE_CONFIG_H)
-# include <config.h>
-#endif
-#include <stdlib.h>
-#include <string.h>
-#include <mailutils/mailutils.h>
-#include "argp.h"
 #include "mu.h"
 
 static char info_doc[] = N_("mu info - print a list of configuration\
@@ -29,49 +22,19 @@ static char info_doc[] = N_("mu info - print a list of configuration\
 char info_docstring[] = N_("show Mailutils configuration");
 static char info_args_doc[] = N_("[capa...]");
 
-static struct argp_option info_options[] = {
-  { "verbose", 'v', NULL, 0,
-    N_("increase output verbosity"), 0},
-  { NULL }
-};
-
 static int verbose;
 
-static error_t
-info_parse_opt (int key, char *arg, struct argp_state *state)
-{
-  switch (key)
-    {
-    case 'v':
-      verbose++;
-      break;
-      
-    default:
-      return ARGP_ERR_UNKNOWN;
-    }
-  return 0;
-}
-
-static struct argp info_argp = {
-  info_options,
-  info_parse_opt,
-  info_args_doc,
-  info_doc,
-  NULL,
-  NULL,
-  NULL
+static struct mu_option info_options[] = {
+  { "verbose", 'v', NULL, MU_OPTION_DEFAULT,
+    N_("increase output verbosity"),
+    mu_c_bool, &verbose },
+  MU_OPTION_END
 };
 
 int
 mutool_info (int argc, char **argv)
 {
-  int index;
-  
-  if (argp_parse (&info_argp, argc, argv, ARGP_IN_ORDER, &index, NULL))
-    return 1;
-
-  argc -= index;
-  argv += index;
+  mu_action_getopt (&argc, &argv, info_options, info_doc, info_args_doc);
 
   if (argc == 0)
     mu_format_options (mu_strout, verbose);

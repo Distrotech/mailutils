@@ -270,7 +270,6 @@ static char *capa[] = {
   "locking",
   "mailer",
   "sieve",
-  "tls",
   NULL
 };
 
@@ -553,7 +552,7 @@ main (int argc, char *argv[])
   mu_log_print_severity = 1;
   
   /* Parse command line */
-  mu_cli_capa_register (&mu_cli_capa_tls);
+
   mu_cli_capa_register (&mu_cli_capa_sieve);
   mu_cli (argc, argv, &cli, capa, NULL, &argc, &argv);
 

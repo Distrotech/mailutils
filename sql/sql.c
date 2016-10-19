@@ -69,7 +69,7 @@ add_disptab (mu_sql_dispatch_t *tab)
 #endif
 
 int
-mu_sql_interface_index (char *name)
+mu_sql_interface_index (char const *name)
 {
   int i;
   //mu_sql_dispatch_t *tab;

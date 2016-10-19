@@ -72,7 +72,7 @@ imap4d_SOURCES = \
  util.c
 
 imap4d_LDADD = \
- ${MU_APP_LIBRARIES}\
+ ${MU_APP_NEW_LIBRARIES}\
  ${MU_LIB_MBOX}\
  ${MU_LIB_MH}\
  ${MU_LIB_MAILDIR}\

@@ -18,6 +18,7 @@
 
 #ifndef _MAILUTILS_GSASL_H
 #define _MAILUTILS_GSASL_H
+#include <mailutils/cli.h>
 
 struct mu_gsasl_module_data
 {
@@ -28,15 +29,12 @@ struct mu_gsasl_module_data
   char *anon_user;
   char *cram_md5_pwd;
 };
+extern struct mu_gsasl_module_data mu_gsasl_module_data;
 
 int mu_gsasl_enabled (void);
 
 #ifdef WITH_GSASL
 #include <gsasl.h>
-
-int mu_gsasl_module_init (enum mu_gocs_op, void *);
-extern struct mu_gsasl_module_data mu_gsasl_module_data;
-
 
 int gsasl_encoder_stream (mu_stream_t *pstr, mu_stream_t transport,
 			  Gsasl_session *ctx, int flags);

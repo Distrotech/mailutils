@@ -843,10 +843,10 @@ main (int argc, char **argv)
   
   /* Register the desired "mailbox" formats.  */
   mu_register_all_formats ();
-
-  /* argument parsing */
+  /* Register authentication modules */
+  mu_auth_register_module (&mu_auth_tls_module);
   
-  mu_cli_capa_register (&mu_cli_capa_tls);
+  /* argument parsing */
   mu_cli (argc, argv, &cli, movemail_capa, NULL, &argc, &argv);
 
   if (argc < 2 || argc > 3)

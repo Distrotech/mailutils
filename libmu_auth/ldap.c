@@ -61,17 +61,82 @@ const char *default_field_map =
 
 static struct mu_ldap_module_config ldap_param;
 
-int
-mu_ldap_module_init (enum mu_gocs_op op, void *data)
+
+
+static int
+_cb2_field_map (const char *arg, void *data)
 {
-  struct mu_ldap_module_config *cfg = data;
+  int err;
+  int rc = mutil_parse_field_map (arg, &ldap_param.field_map, &err);
+  if (rc)
+    /* FIXME: this message can be misleading */
+    mu_error (_("error near element %d: %s"), err, mu_strerror (rc));
+  return 0;
+}
 
-  if (op != mu_gocs_op_set)
-    return 0;
-  
-  if (cfg)
-    ldap_param = *cfg;
+static int
+cb_field_map (void *data, mu_config_value_t *val)
+{
+  return mu_cfg_string_value_cb (val, _cb2_field_map, NULL);
+}
 
+static struct mu_cfg_param mu_ldap_param[] = {
+  { "enable", mu_c_bool, &ldap_param.enable, 0, NULL,
+    N_("Enable LDAP lookups.") },
+  { "url", mu_c_string, &ldap_param.url, 0, NULL,
+    N_("Set URL of the LDAP server."),
+    N_("url") },
+  { "base", mu_c_string, &ldap_param.base, 0, NULL,
+    N_("Base DN for LDAP lookups."),
+    N_("dn") },
+  { "binddn", mu_c_string, &ldap_param.binddn, 0, NULL,
+    N_("DN for accessing LDAP database."),
+    N_("dn") },
+  { "passwd", mu_c_string, &ldap_param.passwd, 0, NULL,
+    N_("Password for use with binddn.") },
+  { "tls", mu_c_bool, &ldap_param.tls, 0, NULL,
+    N_("Use TLS encryption.") },
+  { "debug", mu_c_int, &ldap_param.debug, 0, NULL,
+    N_("Set LDAP debugging level.") },
+  { "field-map", mu_cfg_callback, NULL, 0, cb_field_map,
+    N_("Set a field-map for parsing LDAP replies.  The map is a "
+       "column-separated list of definitions.  Each definition has the "
+       "following form:\n"
+       "   <name: string>=<attr: string>\n"
+       "where <name> is one of the following: name, passwd, uid, gid, "
+       "gecos, dir, shell, mailbox, quota, and <attr> is the name of "
+       "the corresponding LDAP attribute."),
+    N_("map") },
+  { "getpwnam", mu_c_string, &ldap_param.getpwnam_filter, 0, NULL,
+    N_("LDAP filter to use for getpwnam requests."),
+    N_("filter") },
+  { "getpwuid", mu_c_string, &ldap_param.getpwuid_filter, 0, NULL,
+    N_("LDAP filter to use for getpwuid requests."),
+    N_("filter") },
+  { NULL }
+};
+
+int									      
+mu_ldap_section_parser
+   (enum mu_cfg_section_stage stage, const mu_cfg_node_t *node,	      
+    const char *section_label, void **section_data,
+    void *call_data, mu_cfg_tree_t *tree)
+{									      
+  switch (stage)							      
+    {									      
+    case mu_cfg_section_start:
+      ldap_param.enable = 1;
+      break;
+    default:
+      break;
+    }									      
+  return 0;								      
+}
+
+
+static void
+module_init (void *ptr)
+{
   if (ldap_param.enable)
     {
       if (!ldap_param.getpwnam_filter)
@@ -85,7 +150,6 @@ mu_ldap_module_init (enum mu_gocs_op op, void *data)
 	  mutil_parse_field_map (default_field_map, &ldap_param.field_map, &d);
 	}
     }
-  return 0;
 }
 
 static int
@@ -271,8 +335,6 @@ _mu_conn_setup (LDAP **pld)
   *pld = ld;
   return 0;
 }
-  
-     
 
 static int
 _mu_ldap_bind (LDAP *ld)
@@ -862,15 +924,16 @@ mu_auth_ldap_user_by_uid (struct mu_auth_data **return_data,
 # define mu_ldap_authenticate mu_auth_nosupport
 # define mu_auth_ldap_user_by_name mu_auth_nosupport 
 # define mu_auth_ldap_user_by_uid mu_auth_nosupport
+
 #endif
 
 struct mu_auth_module mu_auth_ldap_module = {
-  "ldap",
-  mu_ldap_module_init,
-  mu_ldap_authenticate,
-  NULL,
-  mu_auth_ldap_user_by_name,
-  NULL,
-  mu_auth_ldap_user_by_uid,
-  NULL
+  .name = "ldap",
+  .commit = module_init,
+  .handler = {
+    [mu_auth_authenticate] = mu_ldap_authenticate,
+    [mu_auth_getpwnam]     = mu_auth_ldap_user_by_name,
+    [mu_auth_getpwuid]     = mu_auth_ldap_user_by_uid
+  },
+  .cfg = mu_ldap_param
 };

@@ -44,6 +44,7 @@
 #include <mailutils/nls.h>
 #include <mailutils/tls.h>
 #include <mailutils/cli.h>
+#include <mailutils/mu_auth.h>
 
 #define D_DEFAULT "TPt"
 
@@ -238,7 +239,6 @@ static char *sieve_argp_capa[] = {
   "locking",
   "logging",
   "mailer",
-  "tls",
   "sieve",
   NULL
 };
@@ -394,7 +394,7 @@ main (int argc, char *argv[])
   /* Native Language Support */
   MU_APP_INIT_NLS ();
 
-  mu_cli_capa_register (&mu_cli_capa_tls);
+  mu_auth_register_module (&mu_auth_tls_module);
   mu_cli_capa_register (&mu_cli_capa_sieve);
   mu_sieve_debug_init ();
   

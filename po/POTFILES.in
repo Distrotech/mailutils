@@ -33,28 +33,10 @@ lib/tcpwrap.c
 lib/strexit.c
 lib/manlock.c
 
-libmu_argp/cmdline.c
-libmu_argp/common.c
-libmu_argp/mu_argp.c
-libmu_argp/sieve.c
-
 libmu_auth/ldap.c
 libmu_auth/radius.c
 libmu_auth/sql.c
 libmu_auth/tls.c
-
-libmu_cfg/acl.c
-libmu_cfg/auth.c
-libmu_cfg/common.c
-libmu_cfg/gsasl.c
-libmu_cfg/init.c
-libmu_cfg/ldap.c
-libmu_cfg/pam.c
-libmu_cfg/radius.c
-libmu_cfg/sieve.c
-libmu_cfg/sql.c
-libmu_cfg/tls.c
-libmu_cfg/virtdomain.c
 
 libmu_sieve/actions.c
 libmu_sieve/comparator.c
@@ -117,7 +99,6 @@ libmailutils/cfg/driver.c
 libmailutils/cfg/format.c
 libmailutils/cfg/lexer.l
 libmailutils/cfg/parser.y
-libmailutils/cfg/gocs.c
 
 libmailutils/diag/debug.c
 libmailutils/diag/diag.c

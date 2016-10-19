@@ -97,8 +97,6 @@ SUBDIRS = . \
  libmu_compat\
  testsuite\
  lib\
- libmu_argp\
- libmu_cfg\
  $(LIBMU_CPP_DIR)\
  $(GINT_DIR)\
  $(LIBMU_SCM_DIR)\

@@ -20,8 +20,8 @@
 #define _MAILUTILS_MU_AUTH_H
 
 #include <mailutils/types.h>
-#include <mailutils/gocs.h>
 #include <mailutils/debug.h>
+#include <mailutils/cli.h>
 
 #define MU_AUTH_NAME    "name"
 #define MU_AUTH_PASSWD  "passwd"
@@ -64,30 +64,41 @@ typedef int (*mu_auth_fp) (struct mu_auth_data **data,
 			   void *func_data,
 			   void *call_data);
 
+enum mu_auth_mode
+  {
+    mu_auth_authenticate,
+    mu_auth_getpwnam,
+    mu_auth_getpwuid
+  };
+
+#define MU_AUTH_MODE_COUNT 3
+
 struct mu_auth_module
 {
   char            *name;
-  mu_gocs_init_fp init;
-  mu_auth_fp      authenticate;
-  void            *authenticate_data;
-  mu_auth_fp      auth_by_name;
-  void            *auth_by_name_data;
-  mu_auth_fp      auth_by_uid;
-  void            *auth_by_uid_data;
+  mu_auth_fp      handler[MU_AUTH_MODE_COUNT];
+  void            *data[MU_AUTH_MODE_COUNT];
+
+  struct mu_option *opt;
+  struct mu_cfg_param *cfg;
+  mu_cfg_section_fp parser;
+  mu_cli_capa_commit_fp commit;
 };
 
 enum mu_auth_key_type
   {
-    mu_auth_key_name,
-    mu_auth_key_uid
+    mu_auth_key_name = mu_auth_getpwnam,
+    mu_auth_key_uid = mu_auth_getpwuid
   };
 
 void mu_auth_begin_setup (void);
 void mu_auth_finish_setup (void);
+void mu_auth_extend_settings (mu_list_t opts, mu_list_t commits);
 
-extern int mu_auth_runlist (mu_list_t flist,
-			    struct mu_auth_data **return_data,
-			    const void *key, void *data);
+int mu_auth_runlist (mu_list_t flist,
+		     enum mu_auth_mode mode,
+		     const void *key, void *data,
+		     struct mu_auth_data **return_data);
 
 extern int mu_get_auth (struct mu_auth_data **auth, enum mu_auth_key_type type,
 			const void *key);
@@ -116,7 +127,6 @@ extern void mu_authentication_add_module_list (const char *modlist);
 extern void mu_authentication_clear_list (void);
 extern void mu_authorization_clear_list (void);
 
-extern void mu_auth_init (void);
 extern int mu_auth_data_alloc (struct mu_auth_data **ptr,
 			       const char *name,
 			       const char *passwd,
@@ -138,6 +148,8 @@ extern struct mu_auth_module mu_auth_sql_module;
 extern struct mu_auth_module mu_auth_virtual_module;
 extern struct mu_auth_module mu_auth_radius_module;
 extern struct mu_auth_module mu_auth_ldap_module;
+extern struct mu_auth_module mu_auth_gsasl_module;
+extern struct mu_auth_module mu_auth_tls_module;
 
 #define MU_AUTH_REGISTER_ALL_MODULES() do {\
   mu_auth_register_module (&mu_auth_generic_module); \
@@ -147,6 +159,8 @@ extern struct mu_auth_module mu_auth_ldap_module;
   mu_auth_register_module (&mu_auth_virtual_module);\
   mu_auth_register_module (&mu_auth_radius_module);\
   mu_auth_register_module (&mu_auth_ldap_module);\
+  mu_auth_register_module (&mu_auth_gsasl_module);\
+  mu_auth_register_module (&mu_auth_tls_module);\
   } while (0)
 
 #endif

@@ -104,8 +104,7 @@ static struct mu_option pop3d_options[] = {
   { "daemon", 'd', N_("NUMBER"), MU_OPTION_ARG_OPTIONAL,
     N_("runs in daemon mode with a maximum of NUMBER children"),
     mu_c_string, NULL, set_daemon_mode },
-
-  {NULL, 0, NULL, 0, NULL, 0}
+  MU_OPTION_END
 }, *options[] = { pop3d_options, NULL };
 
 static int
@@ -308,7 +307,6 @@ static char *capa[] = {
   "mailbox",
   "locking",
   "logging",
-  "tls",
   NULL
 };
 
@@ -585,7 +583,6 @@ main (int argc, char **argv)
 #ifdef ENABLE_DBM
   set_dbm_safety ();
 #endif
-  mu_cli_capa_register (&mu_cli_capa_tls);
 
   mu_cli (argc, argv, &cli, capa, server, &argc, &argv);
   if (argc)

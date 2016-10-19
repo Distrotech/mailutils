@@ -102,6 +102,7 @@ struct mu_option_cache
 #define MU_PARSEOPT_HELP_HOOK      0x00200000
 #define MU_PARSEOPT_DATA           0x00400000
 #define MU_PARSEOPT_VERSION_HOOK   0x00800000
+#define MU_PARSEOPT_PROG_DOC_HOOK  0x01000000
 
 /* Reuse mu_parseopt struct initialized previously */
 #define MU_PARSEOPT_REUSE          0x80000000
@@ -131,6 +132,7 @@ struct mu_parseopt
   char const *po_package_url;
   char const *po_extra_info;
 
+  void (*po_prog_doc_hook) (struct mu_parseopt *po, mu_stream_t stream);
   void (*po_help_hook) (struct mu_parseopt *po, mu_stream_t stream); 
   void (*po_version_hook) (struct mu_parseopt *po, mu_stream_t stream);
   

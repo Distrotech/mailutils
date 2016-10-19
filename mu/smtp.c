@@ -28,34 +28,7 @@
 #include <argp.h>
 #include "mu.h"
 
-static char smtp_doc[] = N_("mu smtp - run a SMTP session.");
 char smtp_docstring[] = N_("run a SMTP session");
-static char smtp_args_doc[] = "";
-
-static struct argp_option smtp_options[] = {
-  { NULL }
-};
-
-static error_t
-smtp_parse_opt (int key, char *arg, struct argp_state *state)
-{
-  switch (key)
-    {
-    default:
-      return ARGP_ERR_UNKNOWN;
-    }
-  return 0;
-}
-
-static struct argp smtp_argp = {
-  smtp_options,
-  smtp_parse_opt,
-  smtp_args_doc,
-  smtp_doc,
-  NULL,
-  NULL,
-  NULL
-};
 
 enum smtp_session_status
   {
@@ -958,16 +931,10 @@ struct mutool_command smtp_comtab[] = {
 int
 mutool_smtp (int argc, char **argv)
 {
-  int index;
-  
   mu_registrar_record (mu_smtp_record);
   mu_registrar_record (mu_smtps_record);
-  
-  if (argp_parse (&smtp_argp, argc, argv, 0, &index, NULL))
-    return 1;
 
-  argc -= index;
-
+  mu_action_getopt (&argc, &argv, NULL, smtp_docstring, NULL);
   if (argc)
     {
       mu_error (_("bad arguments"));

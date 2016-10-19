@@ -20,7 +20,6 @@
 #define _MAILUTILS_DAEMON_H
 
 #include <mailutils/types.h>
-#include <mailutils/gocs.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -32,8 +31,6 @@ extern "C" {
 
 extern int  mu_daemon_create_pidfile  (const char *);
 extern void mu_daemon_remove_pidfile  (void);
-
-extern struct mu_gocs_daemon mu_gocs_daemon;  
 
 #ifdef __cplusplus
 }

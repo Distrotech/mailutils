@@ -161,23 +161,19 @@ mu_auth_data_destroy (struct mu_auth_data **pptr)
 
 /* Generic functions */
 
-struct auth_stack_entry {
-  char *name;        /* for diagnostics purposes */
-  mu_auth_fp fun;
-  void *func_data;
-};
-
-void
-mu_insert_stack_entry (mu_list_t *pflist, struct auth_stack_entry *entry)
+static void
+append_auth_module (mu_list_t *pflist, struct mu_auth_module *mod)
 {
   if (!*pflist && mu_list_create (pflist))
     return;
-  mu_list_append (*pflist, entry);
+  mu_list_append (*pflist, mod);
 }
 
 int
-mu_auth_runlist (mu_list_t flist, struct mu_auth_data **return_data,
-                 const void *key, void *data)
+mu_auth_runlist (mu_list_t flist,
+		 enum mu_auth_mode mode,
+                 const void *key, void *data,
+		 struct mu_auth_data **return_data)
 {
   int status = MU_ERR_AUTH_FAILURE;
   int rc;
@@ -185,15 +181,17 @@ mu_auth_runlist (mu_list_t flist, struct mu_auth_data **return_data,
 
   if (mu_list_get_iterator (flist, &itr) == 0)
     {
-      struct auth_stack_entry *ep;
+      struct mu_auth_module *ep;
       
       for (mu_iterator_first (itr); !mu_iterator_is_done (itr);
            mu_iterator_next (itr))
         {
           mu_iterator_current (itr, (void **)&ep);
+	  if (!ep->handler[mode])
+	    continue;
           mu_debug (MU_DEBCAT_AUTH, MU_DEBUG_TRACE2,
 		    ("Trying %s...", ep->name));
-          rc = ep->fun (return_data, key, ep->func_data, data);
+          rc = ep->handler[mode] (return_data, key, ep->data[mode], data);
 	  mu_debug (MU_DEBCAT_AUTH, MU_DEBUG_TRACE2, 
 		    ("%s yields %d=%s", ep->name, rc, mu_strerror (rc)));
           if (rc == 0)
@@ -230,30 +228,25 @@ mu_auth_nosupport (struct mu_auth_data **return_data MU_ARG_UNUSED,
 
 /* II. Authorization: retrieving information about user */
 
-static mu_list_t mu_auth_by_name_list, _tmp_auth_by_name_list;
-static mu_list_t mu_auth_by_uid_list, _tmp_auth_by_uid_list;
+static mu_list_t mu_getpw_modules, selected_getpw_modules;
 
 int
 mu_get_auth (struct mu_auth_data **auth, enum mu_auth_key_type type,
              const void *key)
 {
-  mu_list_t list;
-  
-  if (!mu_auth_by_name_list)
+  if (!mu_getpw_modules)
     mu_auth_begin_setup ();
   switch (type)
     {
     case mu_auth_key_name:
       mu_debug (MU_DEBCAT_AUTH, MU_DEBUG_TRACE1,
                 ("Getting auth info for user %s", (char*) key));
-      list = mu_auth_by_name_list;
       break;
 
     case mu_auth_key_uid:
       mu_debug (MU_DEBCAT_AUTH, MU_DEBUG_TRACE1, 
                 ("Getting auth info for UID %lu",
 		 (unsigned long) *(uid_t*) key));
-      list = mu_auth_by_uid_list;
       break;
 
     default:
@@ -261,7 +254,7 @@ mu_get_auth (struct mu_auth_data **auth, enum mu_auth_key_type type,
                 ("Unknown mu_auth_key_type: %d", type));
       return EINVAL;
     }
-  return mu_auth_runlist (list, auth, key, NULL);
+  return mu_auth_runlist (mu_getpw_modules, type, key, NULL, auth);
 }
 
 struct mu_auth_data *
@@ -282,7 +275,7 @@ mu_get_auth_by_uid (uid_t uid)
 
 /* III. Authentication: determining the authenticity of a user */
 
-static mu_list_t mu_authenticate_list, _tmp_authenticate_list;
+static mu_list_t mu_auth_modules, selected_auth_modules;
 
 int
 mu_authenticate (struct mu_auth_data *auth_data, const char *pass)
@@ -292,68 +285,52 @@ mu_authenticate (struct mu_auth_data *auth_data, const char *pass)
   mu_debug (MU_DEBCAT_AUTH, MU_DEBUG_TRACE1, 
             ("mu_authenticate, user %s, source %s", 
              auth_data->name, auth_data->source));
-  if (!mu_authenticate_list)
+  if (!mu_auth_modules)
     mu_auth_begin_setup ();
-  return mu_auth_runlist (mu_authenticate_list, NULL, auth_data, (void*) pass);
+  return mu_auth_runlist (mu_auth_modules,
+			  mu_auth_authenticate,
+			  auth_data, pass, NULL);
 }
 
 
 /* ************************************************************************* */
 
-struct _module_handler {
-  struct auth_stack_entry authenticate;
-  struct auth_stack_entry auth_by_name;
-  struct auth_stack_entry auth_by_uid;
-};
+static mu_list_t module_list;
 
-static mu_list_t module_handler_list;
+static void
+module_list_init (void)
+{
+  if (!module_list)
+    {
+      if (mu_list_create (&module_list))
+	abort ();
+      mu_list_append (module_list, &mu_auth_generic_module); 
+      mu_list_append (module_list, &mu_auth_system_module);
+    }
+}
 
 void
 mu_auth_register_module (struct mu_auth_module *mod)
 {
-  struct _module_handler *entry;
-  
-  if (mod->init)
-    mu_gocs_register (mod->name, mod->init);
-  
-  if (!module_handler_list && mu_list_create (&module_handler_list))
-    abort ();
-
-  entry = malloc (sizeof (*entry));
-  if (!entry)
-    {
-      mu_error ("not enough memory");
-      exit (1);
-    }
-  entry->authenticate.name = mod->name;
-  entry->authenticate.fun  = mod->authenticate;
-  entry->authenticate.func_data = mod->authenticate_data;
-  entry->auth_by_name.name = mod->name;
-  entry->auth_by_name.fun = mod->auth_by_name;
-  entry->auth_by_name.func_data = mod->auth_by_name_data;
-  entry->auth_by_uid.name = mod->name;
-  entry->auth_by_uid.fun = mod->auth_by_uid;
-  entry->auth_by_uid.func_data = mod->auth_by_uid_data;
-    
-  mu_list_append (module_handler_list, entry);
-  
+  module_list_init ();
+  mu_list_append (module_list, mod);  
 }
 
-static struct _module_handler *
+static struct mu_auth_module *
 _locate (const char *name)
 {
-  struct _module_handler *rp = NULL;
+  struct mu_auth_module *rp = NULL;
   mu_iterator_t itr;
 
-  if (mu_list_get_iterator (module_handler_list, &itr) == 0)
+  if (mu_list_get_iterator (module_list, &itr) == 0)
     {
-      struct _module_handler *p;
+      struct mu_auth_module *p;
       
       for (mu_iterator_first (itr); !rp && !mu_iterator_is_done (itr);
            mu_iterator_next (itr))
         {
           mu_iterator_current (itr, (void **)&p);
-          if (strcmp (p->authenticate.name, name) == 0)
+          if (strcmp (p->name, name) == 0)
             rp = p;
         }
 
@@ -397,15 +374,14 @@ _add_module_list (const char *modlist, int (*fun)(const char *name))
 int
 mu_authorization_add_module (const char *name)
 {
-  struct _module_handler *mod = _locate (name);
+  struct mu_auth_module *mod = _locate (name);
   
   if (!mod)
     {
       errno = MU_ERR_NOENT;
       return 1;
     }
-  mu_insert_stack_entry (&_tmp_auth_by_name_list, &mod->auth_by_name);
-  mu_insert_stack_entry (&_tmp_auth_by_uid_list, &mod->auth_by_uid);
+  append_auth_module (&selected_getpw_modules, mod);
   return 0;
 }
 
@@ -418,22 +394,21 @@ mu_authorization_add_module_list (const char *modlist)
 void
 mu_authorization_clear_list ()
 {
-  mu_list_destroy (&_tmp_auth_by_name_list);
-  mu_list_destroy (&_tmp_auth_by_uid_list);
+  mu_list_destroy (&selected_getpw_modules);
 }
 
 
 int
 mu_authentication_add_module (const char *name)
 {
-  struct _module_handler *mod = _locate (name);
+  struct mu_auth_module *mod = _locate (name);
 
   if (!mod)
     {
       errno = MU_ERR_NOENT;
       return 1;
     }
-  mu_insert_stack_entry (&_tmp_authenticate_list, &mod->authenticate);
+  append_auth_module (&selected_auth_modules, mod);
   return 0;
 }
 
@@ -446,7 +421,7 @@ mu_authentication_add_module_list (const char *modlist)
 void
 mu_authentication_clear_list ()
 {
-  mu_list_destroy (&_tmp_authenticate_list);
+  mu_list_destroy (&selected_auth_modules);
 }
 
 
@@ -462,45 +437,39 @@ mu_authentication_clear_list ()
       argp_parse() exits. */
    
 void
-mu_auth_begin_setup ()
+mu_auth_begin_setup (void)
 {
   mu_iterator_t itr;
 
-  if (!module_handler_list)
+  module_list_init ();
+
+  if (!mu_auth_modules)
     {
-      mu_auth_register_module (&mu_auth_generic_module); 
-      mu_auth_register_module (&mu_auth_system_module);
-    }
-  
-  if (!mu_authenticate_list)
-    {
-      if (mu_list_get_iterator (module_handler_list, &itr) == 0)
+      if (mu_list_get_iterator (module_list, &itr) == 0)
         {
-          struct _module_handler *mod;
+          struct mu_auth_module *mod;
           
           for (mu_iterator_first (itr); !mu_iterator_is_done (itr);
                mu_iterator_next (itr))
             {
               mu_iterator_current (itr, (void **)&mod);
-              mu_insert_stack_entry (&mu_authenticate_list,
-                                     &mod->authenticate);
+	      append_auth_module (&mu_auth_modules, mod);
             }
           mu_iterator_destroy (&itr);
         }
     }
 
-  if (!mu_auth_by_name_list)
+  if (!mu_getpw_modules)
     {
-      if (mu_list_get_iterator (module_handler_list, &itr) == 0)
+      if (mu_list_get_iterator (module_list, &itr) == 0)
         {
-          struct _module_handler *mod;
+          struct mu_auth_module *mod;
           
           for (mu_iterator_first (itr); !mu_iterator_is_done (itr);
                mu_iterator_next (itr))
             {
               mu_iterator_current (itr, (void **)&mod);
-              mu_insert_stack_entry (&mu_auth_by_name_list, &mod->auth_by_name);
-              mu_insert_stack_entry (&mu_auth_by_uid_list, &mod->auth_by_uid);
+              append_auth_module (&mu_getpw_modules, mod);
             }
           mu_iterator_destroy (&itr);
         }
@@ -508,20 +477,48 @@ mu_auth_begin_setup ()
 }
 
 void
-mu_auth_finish_setup ()
+mu_auth_finish_setup (void)
 {
-  mu_list_destroy (&mu_authenticate_list);
-  mu_list_destroy (&mu_auth_by_name_list);
-  mu_list_destroy (&mu_auth_by_uid_list);
-  
-  mu_authenticate_list = _tmp_authenticate_list;
-  _tmp_authenticate_list = NULL;
-  mu_auth_by_name_list = _tmp_auth_by_name_list;
-  _tmp_auth_by_name_list = NULL;
-  mu_auth_by_uid_list = _tmp_auth_by_uid_list;
-  _tmp_auth_by_uid_list = NULL;
+  mu_list_destroy (&mu_auth_modules);
+  mu_auth_modules = selected_auth_modules;
+  selected_auth_modules = NULL;
+
+  mu_list_destroy (&mu_getpw_modules);
+  mu_getpw_modules = selected_getpw_modules;
+  selected_getpw_modules = NULL;
   
   mu_auth_begin_setup ();
+}
+
+struct settings
+{
+  mu_list_t opts;
+  mu_list_t commits;
+};
+  
+static int
+do_extend (void *item, void *data)
+{
+  struct mu_auth_module *mod = item;
+  struct settings *set = data;
+  
+  if (mod->opt)
+    mu_list_append (set->opts, mod->opt);
+  if (mod->commit)
+    mu_list_append (set->commits, mod->commit);
+  if (mod->parser || mod->cfg)
+    mu_config_root_register_section (NULL, mod->name, NULL,
+				     mod->parser, mod->cfg);
+  return 0;
+}
+
+void
+mu_auth_extend_settings (mu_list_t opts, mu_list_t commits)
+{
+  struct settings s;
+  s.opts = opts;
+  s.commits = commits;
+  mu_list_foreach (module_list, do_extend, &s);
 }
 
 

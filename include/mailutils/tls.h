@@ -42,8 +42,6 @@ struct mu_tls_module_config
   char *priorities;
 };
 
-extern int mu_tls_module_init (enum mu_gocs_op, void *);
-
 extern int mu_tls_server_stream_create (mu_stream_t *stream, 
 			 	        mu_stream_t strin, mu_stream_t strout,
 				        int flags);

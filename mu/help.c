@@ -29,37 +29,24 @@ static char help_doc[] = N_("mu help - display a terse help summary");
 char help_docstring[] = N_("display a terse help summary");
 static char help_args_doc[] = N_("[COMMAND]");
 
-static struct argp help_argp = {
-  NULL,
-  NULL,
-  help_args_doc,
-  help_doc,
-  NULL,
-  NULL,
-  NULL
-};
-
 int
 mutool_help (int argc, char **argv)
 {
-  int index;
+  mu_action_getopt (&argc, &argv, NULL, help_doc, help_args_doc);
 
-  if (argp_parse (&help_argp, argc, argv, ARGP_IN_ORDER, &index, NULL))
-    return 1;
-
-  if (index == argc - 1)
+  if (argc == 1)
     {
-      mutool_action_t action = dispatch_find_action (argv[index]);
+      mutool_action_t action = dispatch_find_action (argv[0]);
       if (!action)
 	{
-	  mu_error (_("don't know what %s is"), argv[index]);
+	  mu_error (_("don't know what %s is"), argv[0]);
 	  exit (1);
 	}
-      mu_asprintf (&argv[0], "%s %s", mu_program_name, argv[index]);
+      mu_asprintf (&argv[0], "%s %s", mu_program_name, argv[0]);
       argv[1] = "--help";
       return action (2, argv);
     }
-  else if (argc != index)
+  else if (argc > 1)
     {
       mu_error (_("too many arguments"));
       exit (1);

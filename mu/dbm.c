@@ -14,21 +14,12 @@
    You should have received a copy of the GNU General Public License
    along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>. */
 
-#if defined(HAVE_CONFIG_H)
-# include <config.h>
-#endif
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <stdlib.h>
-#include <string.h>
-#include <grp.h>
-#include <sysexits.h>
+#include "mu.h"
+#include <mailutils/dbm.h>
 #include <fnmatch.h>
 #include <regex.h>
-#include <mailutils/mailutils.h>
-#include <mailutils/dbm.h>
-#include "argp.h"
-#include "mu.h"
+#include <sys/stat.h>
+#include <grp.h>
 
 static char dbm_doc[] = N_("mu dbm - DBM management tool\n"
 "Valid COMMANDs are:\n"
@@ -39,6 +30,7 @@ static char dbm_doc[] = N_("mu dbm - DBM management tool\n"
 "  delete         - delete specified keys from the database\n"
 "  add            - add records to the database\n"
 "  replace        - add records replacing ones with matching keys\n");
+
 char dbm_docstring[] = N_("DBM management tool");
 static char dbm_args_doc[] = N_("COMMAND FILE [KEY...]");
 
@@ -1603,154 +1595,161 @@ delete_database (int argc, char **argv)
   mu dbm --replace a.db < input
  */
 
-static struct argp_option dbm_options[] = {
-  { NULL, 0, NULL, 0, N_("Create Options"), 0},
-  { "file",   'f', N_("FILE"), 0,
-    N_("read input from FILE (with create, delete, add and replace)") },
-  { "permissions", 'p', N_("NUM"), 0,
-    N_("set permissions on the created database") },
-  { "user",        'u', N_("USER"), 0,
-    N_("set database owner name") },
-  { "group",       'g', N_("GROUP"), 0,
-    N_("set database owner group") },
-  { "copy-permissions", 'P', NULL, 0,
-    N_("copy database permissions and ownership from the input file") },
-  { "ignore-meta",      'm', NULL, 0,
-    N_("ignore meta-information from input file headers") },
-  { "ignore-directives", 'I', N_("NAMES"), 0,
-    N_("ignore the listed directives") },
-  { NULL, 0, NULL, 0, N_("List and Dump Options"), 0},
-  { "format",           'H', N_("TYPE"), 0,
-    N_("select output format") },
-  { "no-header",        'q', NULL, 0,
-    N_("suppress format header") },
-  { NULL, 0, NULL, 0, N_("List, Dump and Delete Options"), 0},
-  { "glob",        'G', NULL, 0,
-    N_("treat keys as globbing patterns") },
-  { "regex",       'R', NULL, 0,
-    N_("treat keys as regular expressions") },
-  { "ignore-case", 'i', NULL, 0,
-    N_("case-insensitive matches") },
-  { NULL, 0, NULL, 0, N_("Options for Use with Format 0.0"), 0 },
-  { "count-null",  'N', NULL, 0,
-    N_("data length accounts for terminating zero") },
-  { "no-count-null", 'n', NULL, 0,
-    N_("data length does not account for terminating zero") },
-  { NULL }
-};
-
-static error_t
-dbm_parse_opt (int key, char *arg, struct argp_state *state)
+static void
+set_permissions (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
 {
-  switch (key)
+  char *p;
+  unsigned long d = strtoul (arg, &p, 8);
+  if (*p || (d & ~0777))
     {
-    case 'f':
-      input_file = arg;
-      break;
-
-    case 'H':
-      select_format (arg);
-      break;
-      
-    case 'p':
-      {
-	char *p;
-	unsigned long d = strtoul (arg, &p, 8);
-	if (*p || (d & ~0777))
-	  argp_error (state, _("invalid file mode: %s"), arg);
-	file_mode = d;
-	known_meta_data |= META_FILE_MODE;
-      }
-      break;
-
-    case 'P':
-      copy_permissions = 1;
-      break;
-
-    case 'q':
-      suppress_header = 1;
-      break;
-      
-    case 'u':
-      auth = mu_get_auth_by_name (arg);
-      if (auth)
-	known_meta_data |= META_AUTH;
-      else
-	{
-	  char *p;
-	  unsigned long n = strtoul (arg, &p, 0);
-	  if (*p == 0)
-	    {
-	      owner_uid = n;
-	      known_meta_data |= META_UID;
-	    }
-	  else
-	    argp_error (state, _("no such user: %s"), arg);
-	}
-      ignore_directives ("user,uid");
-      break;
-
-    case 'g':
-      {
-	struct group *gr = getgrnam (arg);
-	if (!gr)
-	  {
-	    char *p;
-	    unsigned long n = strtoul (arg, &p, 0);
-	    if (*p == 0)
-	      owner_gid = n;
-	    else
-	      argp_error (state, _("no such group: %s"), arg);
-	  }
-	else
-	  owner_gid = gr->gr_gid;
-	known_meta_data |= META_GID;
-	ignore_directives ("group,gid");
-      }
-      break;
-
-    case 'G':
-      key_type = key_glob;
-      break;
-
-    case 'R':
-      key_type = key_regex;
-      break;
-
-    case 'm':/* FIXME: Why m? */
-      ignore_flagged_directives (DF_META);
-      break;
-
-    case 'I':
-      ignore_directives (arg);
-      break;
-      
-    case 'i':
-      case_sensitive = 0;
-      break;
-
-    case 'N':
-      include_zero = 1;
-      break;
-
-    case 'n':
-      include_zero = 0;
-      break;
-      
-    default:
-      return ARGP_ERR_UNKNOWN;
+      mu_parseopt_error (po, _("invalid file mode: %s"), arg);
+      exit (po->po_exit_error);
     }
-  return 0;
+  file_mode = d;
+  known_meta_data |= META_FILE_MODE;
 }
 
-static struct argp dbm_argp = {
-  dbm_options,
-  dbm_parse_opt,
-  dbm_args_doc,
-  dbm_doc,
-  NULL,
-  NULL,
-  NULL
+static void
+set_user (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
+{
+  auth = mu_get_auth_by_name (arg);
+  if (auth)
+    known_meta_data |= META_AUTH;
+  else
+    {
+      char *p;
+      unsigned long n = strtoul (arg, &p, 0);
+      if (*p == 0)
+	{
+	  owner_uid = n;
+	  known_meta_data |= META_UID;
+	}
+      else
+	{
+	  mu_parseopt_error (po, _("no such user: %s"), arg);
+	  exit (po->po_exit_error);
+	}
+    }
+  ignore_directives ("user,uid");
+}
+
+static void
+set_group (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
+{
+  struct group *gr = getgrnam (arg);
+  if (!gr)
+    {
+      char *p;
+      unsigned long n = strtoul (arg, &p, 0);
+      if (*p == 0)
+	owner_gid = n;
+      else
+	{
+	  mu_parseopt_error (po, _("no such group: %s"), arg);
+	  exit (po->po_exit_error);
+	}
+    }
+  else
+    owner_gid = gr->gr_gid;
+  known_meta_data |= META_GID;
+  ignore_directives ("group,gid");
+}
+
+static void
+set_ignore_meta (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
+{
+  ignore_flagged_directives (DF_META);
+}
+
+static void
+set_ignore_directives (struct mu_parseopt *po, struct mu_option *opt,
+		       char const *arg)
+{
+  ignore_directives (arg);
+}
+
+static void
+set_format (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
+{
+  select_format (arg);
+}
+
+static void
+set_glob (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
+{
+  key_type = key_glob;
+}
+
+static void
+set_regex (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
+{
+  key_type = key_regex;
+}
+
+static void
+set_ignore_case (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
+{
+  case_sensitive = 0;
+}
+
+static void
+clear_include_zero (struct mu_parseopt *po, struct mu_option *opt,
+		    char const *arg)
+{
+  include_zero = 0;
+}
+
+static struct mu_option dbm_options[] = {
+  MU_OPTION_GROUP (N_("Create Options")),
+  { "file",   'f', N_("FILE"), MU_OPTION_DEFAULT,
+    N_("read input from FILE (with create, delete, add and replace)"),
+    mu_c_string, &input_file },
+  { "permissions", 'p', N_("NUM"), MU_OPTION_DEFAULT,
+    N_("set permissions on the created database"),
+    mu_c_string, NULL, set_permissions },
+  { "user",        'u', N_("USER"), MU_OPTION_DEFAULT,
+    N_("set database owner name"),
+    mu_c_string, NULL, set_user },
+  { "group",       'g', N_("GROUP"), MU_OPTION_DEFAULT,
+    N_("set database owner group"),
+    mu_c_string, NULL, set_group },
+  { "copy-permissions", 'P', NULL, MU_OPTION_DEFAULT,
+    N_("copy database permissions and ownership from the input file"),
+    mu_c_bool, &copy_permissions },
+  { "ignore-meta",      'm', NULL, MU_OPTION_DEFAULT,
+    N_("ignore meta-information from input file headers"),
+    mu_c_string, NULL, set_ignore_meta },
+  { "ignore-directives", 'I', N_("NAMES"), MU_OPTION_DEFAULT,
+    N_("ignore the listed directives"),
+    mu_c_string, NULL, set_ignore_directives },
+  
+  MU_OPTION_GROUP (N_("List and Dump Options")),
+  { "format",           'H', N_("TYPE"), MU_OPTION_DEFAULT,
+    N_("select output format"),
+    mu_c_string, NULL, set_format },
+  { "no-header",        'q', NULL, MU_OPTION_DEFAULT,
+    N_("suppress format header"),
+    mu_c_bool, &suppress_header },
+  
+  MU_OPTION_GROUP (N_("List, Dump and Delete Options")),
+  { "glob",        'G', NULL, MU_OPTION_DEFAULT,
+    N_("treat keys as globbing patterns"),
+    mu_c_string, NULL, set_glob },
+  { "regex",       'R', NULL, MU_OPTION_DEFAULT,
+    N_("treat keys as regular expressions"),
+    mu_c_string, NULL, set_regex },
+  { "ignore-case", 'i', NULL, MU_OPTION_DEFAULT,
+    N_("case-insensitive matches"),
+    mu_c_string, NULL, set_ignore_case },
+  
+  MU_OPTION_GROUP (N_("Options for Use with Format 0.0")),
+  { "count-null",  'N', NULL, MU_OPTION_DEFAULT,
+    N_("data length accounts for terminating zero"),
+    mu_c_bool, &include_zero },
+  { "no-count-null", 'n', NULL, MU_OPTION_DEFAULT,
+    N_("data length does not account for terminating zero"),
+    mu_c_string, NULL, clear_include_zero },
+  MU_OPTION_END
 };
 
 struct mu_kwd mode_tab[] =
@@ -1769,12 +1768,8 @@ int
 mutool_dbm (int argc, char **argv)
 {
   int index;
-
-  if (argp_parse (&dbm_argp, argc, argv, 0, &index, NULL))
-    return 1;
-
-  argc -= index;
-  argv += index;
+    
+  mu_action_getopt (&argc, &argv, dbm_options, dbm_doc, dbm_args_doc);
 
   if (argc == 0)
     {

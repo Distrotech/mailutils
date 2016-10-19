@@ -42,6 +42,9 @@
 #include <mailutils/nls.h>
 #include <mailutils/io.h>
 #include <mailutils/cctype.h>
+#include <mailutils/cli.h>
+#include <mailutils/stream.h>
+#include <mailutils/stdstream.h>
 
 #ifdef ENABLE_RADIUS
 
@@ -61,7 +64,6 @@ static int MU_Mailbox;
 static grad_avp_t *auth_request;
 static grad_avp_t *getpwnam_request;
 static grad_avp_t *getpwuid_request;
-
 
 int
 get_attribute (int *pattr, char *name)
@@ -84,30 +86,41 @@ enum parse_state
     state_delim
   };
 
-int
-parse_pairlist (grad_avp_t **plist, char *input)
+static int
+cb_request (void *data, mu_config_value_t *val)
 {
+  grad_avp_t **plist = data;
   size_t i;
   struct mu_wordsplit ws;
   enum parse_state state;
   grad_locus_t loc;
   char *name;
-  char *op; /* FIXME: It is actually ignored. Should it be? */
-
-  if (!input)
+  struct mu_locus locus;
+  
+  if (mu_cfg_assert_value_type (val, MU_CFG_STRING))
     return 1;
 
   ws.ws_delim = ",";
-  if (mu_wordsplit (input, &ws,
+  if (mu_wordsplit (val->v.string, &ws,
 		    MU_WRDSF_DEFFLAGS|MU_WRDSF_DELIM|MU_WRDSF_RETURN_DELIMS))
     {
-      mu_error (_("cannot parse input `%s': %s"), input,
+      mu_error (_("cannot parse input `%s': %s"), val->v.string,
 		mu_wordsplit_strerror (&ws));
       return 1;
     }
 
-  loc.file = "<configuration>"; /*FIXME*/
-  loc.line = 0;
+  if (mu_stream_ioctl (mu_strerr, MU_IOCTL_LOGSTREAM, 
+		       MU_IOCTL_LOGSTREAM_GET_LOCUS,
+		       &locus) == 0)
+    {
+      loc.file = locus.mu_file;
+      loc.line = locus.mu_line;
+    }
+  else
+    {
+      loc.file = "<unknown>";
+      loc.line = 0;
+    }
 
   for (i = 0, state = state_lhs; i < ws.ws_wordc; i++)
     {
@@ -121,7 +134,7 @@ parse_pairlist (grad_avp_t **plist, char *input)
 	  break;
 
 	case state_op:
-	  op = ws.ws_wordv[i];
+	  //op = ws.ws_wordv[i];
 	  state = state_rhs;
 	  break;
 
@@ -155,16 +168,45 @@ parse_pairlist (grad_avp_t **plist, char *input)
       return 1;
     }
 
+  return 0;  
+}
+
+static int
+cb_config_dir (void *data, mu_config_value_t *val)
+{
+  if (mu_cfg_assert_value_type (val, MU_CFG_STRING))
+    return 1;
+  grad_config_dir = grad_estrdup (val->v.string);
   return 0;
 }
 
+static struct mu_cfg_param mu_radius_param[] = {
+  { "auth", mu_cfg_callback, &auth_request, 0, cb_request,
+    N_("Radius request for authorization."),
+    N_("request: string") },
+  { "getpwnam", mu_cfg_callback, &getpwnam_request, 0, cb_request,
+    N_("Radius request for getpwnam."),
+    N_("request: string") },
+  { "getpwuid", mu_cfg_callback, &getpwuid_request, 0, cb_request,
+    N_("Radius request for getpwuid."),
+    N_("request: string") },
+  { "directory", mu_cfg_callback, NULL, 0, cb_config_dir,
+    N_("Set radius configuration directory.") },
+  { NULL }
+};
+
+struct mu_cli_capa mu_cli_capa_radius = {
+  "radius",
+  NULL,
+  mu_radius_param
+};
+
 /* Assume radius support is needed if any of the above requests is
    defined. Actually, all of them should be, but it is the responsibility
    of init to check for consistency of the configuration */
 
-#define NEED_RADIUS_P(cfg) \
-  ((cfg) && \
-   ((cfg)->auth_request || (cfg)->getpwnam_request || (cfg)->getpwuid_request))
+#define NEED_RADIUS_P() \
+  (auth_request || getpwnam_request || getpwuid_request)
 
 static void
 mu_grad_logger(int level,
@@ -196,21 +238,16 @@ mu_grad_logger(int level,
     }
   mu_diag_voutput (mlevel[level & GRAD_LOG_PRIMASK], pfx ? pfx : fmt, ap);
   if (pfx)
-    free(pfx);
+    free (pfx);
 }
 
-int
-mu_radius_module_init (enum mu_gocs_op op, void *data)
+static void
+module_init (void *ptr)
 {
-  struct mu_radius_module_data *cfg = data;
-
-  if (op != mu_gocs_op_set)
-    return 0;
-  if (!NEED_RADIUS_P (cfg))
-    return 0;
+  if (!NEED_RADIUS_P ())
+    return;
 
   grad_set_logger (mu_grad_logger);
-  grad_config_dir = grad_estrdup (cfg->config_dir);
 
   grad_path_init ();
   srand (time (NULL) + getpid ());
@@ -218,7 +255,7 @@ mu_radius_module_init (enum mu_gocs_op op, void *data)
   if (grad_dict_init ())
     {
       mu_error (_("cannot read radius dictionaries"));
-      return 1;
+      return;
     }
 
   /* Check whether mailutils attributes are defined */
@@ -229,16 +266,9 @@ mu_radius_module_init (enum mu_gocs_op op, void *data)
       || get_attribute (&MU_Dir, "MU-Dir")
       || get_attribute (&MU_Shell, "MU-Shell")
       || get_attribute (&MU_Mailbox, "MU-Mailbox"))
-    return 1;
-
-  /* Parse saved requests */
-  if (parse_pairlist (&auth_request, cfg->auth_request)
-      || parse_pairlist (&getpwnam_request, cfg->getpwnam_request)
-      || parse_pairlist (&getpwuid_request, cfg->getpwuid_request))
-    return 1;
+    return;
 
   radius_auth_enabled = 1;
-  return 0;
 }
 
 static char *
@@ -518,44 +548,19 @@ mu_auth_radius_user_by_uid (struct mu_auth_data **return_data,
   return rc;
 }
 
-#else
-static int
-mu_radius_authenticate (struct mu_auth_data **return_data MU_ARG_UNUSED,
-			const void *key,
-			void *func_data MU_ARG_UNUSED, void *call_data)
-{
-  return ENOSYS;
-}
-
-static int
-mu_auth_radius_user_by_name (struct mu_auth_data **return_data MU_ARG_UNUSED,
-			     const void *key MU_ARG_UNUSED,
-			     void *func_data MU_ARG_UNUSED,
-			     void *call_data MU_ARG_UNUSED)
-{
-  return ENOSYS;
-}
-
-static int
-mu_auth_radius_user_by_uid (struct mu_auth_data **return_data,
-			    const void *key,
-			    void *func_data, void *call_data)
-{
-  return ENOSYS;
-}
-#endif
-
 struct mu_auth_module mu_auth_radius_module = {
-  "radius",
-#ifdef ENABLE_RADIUS
-  mu_radius_module_init,
-#else
-  NULL,
-#endif
-  mu_radius_authenticate,
-  NULL,
-  mu_auth_radius_user_by_name,
-  NULL,
-  mu_auth_radius_user_by_uid,
-  NULL
+  .name = "radius",
+  .cfg  = mu_radius_param,
+  .commit = module_init,
+  .handler = {
+    [mu_auth_authenticate] = mu_radius_authenticate,
+    [mu_auth_getpwnam] = mu_auth_radius_user_by_name,
+    [mu_auth_getpwuid] = mu_auth_radius_user_by_uid
+  }
 };
+#else
+struct mu_auth_module mu_auth_radius_module = {
+  .name = "radius"
+};
+#endif
+

@@ -14,27 +14,10 @@
    You should have received a copy of the GNU General Public License
    along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>. */
 
-#if defined(HAVE_CONFIG_H)
-# include <config.h>
-#endif
-#include <stdlib.h>
-#include <mailutils/mailutils.h>
-#include <mailutils/libcfg.h>
-#include <argp.h>
+#include "mu.h"
 
-static char ldflags_doc[] = N_("mu ldflags - list libraries required to link");
 char ldflags_docstring[] = N_("list libraries required to link");
 static char ldflags_args_doc[] = N_("KEYWORD [KEYWORD...]");
-
-static struct argp ldflags_argp = {
-  NULL,
-  NULL,
-  ldflags_args_doc,
-  ldflags_doc,
-  NULL,
-  NULL,
-  NULL
-};
 
 
 #ifdef WITH_TLS
@@ -140,13 +123,9 @@ sort_entries ()
 int
 mutool_ldflags (int argc, char **argv)
 {
-  int i, j;
-  
-  if (argp_parse (&ldflags_argp, argc, argv, ARGP_IN_ORDER, &i, NULL))
-    return 1;
+  int j;
 
-  argc -= i;
-  argv += i;
+  mu_action_getopt (&argc, &argv, NULL, ldflags_docstring, ldflags_args_doc);
   
   add_entry (-100, LINK_FLAGS);
   add_entry (100, LINK_POSTFLAGS);

@@ -141,25 +141,19 @@ mu_authenticate_system (struct mu_auth_data **return_data MU_ARG_UNUSED,
 
 
 struct mu_auth_module mu_auth_system_module = {
-  "system",
-  NULL,
-  mu_authenticate_system,
-  NULL,
-  mu_auth_system_by_name,
-  NULL,
-  mu_auth_system_by_uid,
-  NULL
+  .name = "system",
+  .handler = {
+    [mu_auth_authenticate] = mu_authenticate_system,
+    [mu_auth_getpwnam]     = mu_auth_system_by_name,
+    [mu_auth_getpwuid]     = mu_auth_system_by_uid
+  }
 };
 
 
 struct mu_auth_module mu_auth_generic_module = {
-  "generic",
-  NULL,
-  mu_authenticate_generic,
-  NULL,
-  mu_auth_nosupport,
-  NULL,
-  mu_auth_nosupport,
-  NULL
+  .name = "generic",
+  .handler = {
+    [mu_auth_authenticate] = mu_authenticate_generic
+  }
 };
 

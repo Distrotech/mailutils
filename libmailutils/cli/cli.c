@@ -31,6 +31,7 @@
 #include <mailutils/stdstream.h>
 #include <mailutils/io.h>
 #include <mailutils/syslog.h>
+#include <mailutils/mu_auth.h>
 
 #ifndef MU_SITE_CONFIG_FILE
 # define MU_SITE_CONFIG_FILE SYSCONFDIR "/mailutils.rc"
@@ -84,6 +85,14 @@ extra_help_hook (struct mu_parseopt *po, mu_stream_t stream)
   struct mu_cfg_parse_hints *hints = po->po_data;
   struct mu_cli_setup *setup = hints->data;
   mu_stream_printf (stream, "%s\n", _(setup->prog_extra_doc));
+}
+
+static void
+prog_doc_hook (struct mu_parseopt *po, mu_stream_t stream)
+{
+  struct mu_cfg_parse_hints *hints = po->po_data;
+  struct mu_cli_setup *setup = hints->data;
+  setup->prog_doc_hook (stream);
 }
 
 static void
@@ -283,6 +292,7 @@ init_options (char **capa, struct mu_cli_setup *setup,
 {
   size_t i, s;
   mu_list_t oplist;
+  mu_list_t comlist;
   struct mu_parseopt po;
   
   mu_list_create (&oplist);
@@ -291,16 +301,16 @@ init_options (char **capa, struct mu_cli_setup *setup,
       for (i = 0; setup->optv[i]; i++)
 	mu_list_append (oplist, setup->optv[i]);
     }
+
+  mu_list_create (&comlist);
+  mu_auth_extend_settings (oplist, comlist);
   if (capa)
     {
-      mu_list_t comlist;
-      mu_list_create (&comlist);
       for (i = 0; capa[i]; i++)
-	mu_cli_capa_apply (capa[i], oplist, comlist);
-      *ret_comlist = comlist;
+	mu_cli_capa_extend_settings (capa[i], oplist, comlist);
     }
-  else
-    *ret_comlist = NULL;
+
+  *ret_comlist = comlist;
   
   mu_list_append (oplist, mu_common_options);
   mu_list_append (oplist, mu_extra_help_options);
@@ -346,7 +356,9 @@ mu_cli (int argc, char **argv, struct mu_cli_setup *setup, char **capa,
     setup->ex_usage = EX_USAGE;
   if (setup->ex_config == 0)
     setup->ex_config = EX_CONFIG;
-  
+  if (setup->inorder)
+    flags |= MU_PARSEOPT_IN_ORDER;
+    
   /* Set program name */
   mu_set_program_name (argv[0]);
 
@@ -358,7 +370,7 @@ mu_cli (int argc, char **argv, struct mu_cli_setup *setup, char **capa,
 
   /* Initialize standard capabilities */
   mu_cli_capa_init ();
-  
+
   /* Initialize hints */
   memset (&hints, 0, sizeof (hints));
   hints.flags |= MU_CFG_PARSE_SITE_RCFILE;
@@ -370,6 +382,7 @@ mu_cli (int argc, char **argv, struct mu_cli_setup *setup, char **capa,
   hints.data = setup;
   
   /* Initialize po */
+  
   if (setup->prog_doc)
     {
       po.po_prog_doc = setup->prog_doc;
@@ -423,6 +436,12 @@ mu_cli (int argc, char **argv, struct mu_cli_setup *setup, char **capa,
       po.po_help_hook = extra_help_hook;
       flags |= MU_PARSEOPT_HELP_HOOK;
     }
+
+  if (setup->prog_doc_hook)
+    {
+      po.po_prog_doc_hook = prog_doc_hook;
+      flags |= MU_PARSEOPT_PROG_DOC_HOOK;
+    }
   
   po.po_data = &hints;
   flags |= MU_PARSEOPT_DATA;
@@ -458,7 +477,7 @@ mu_cli (int argc, char **argv, struct mu_cli_setup *setup, char **capa,
 
   mu_list_foreach (com_list, run_commit, NULL);
   mu_list_destroy (&com_list);
-  
+
   if (hints.flags & MU_PARSE_CONFIG_LINT)
     exit (0);
 

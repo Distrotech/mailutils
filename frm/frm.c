@@ -181,7 +181,6 @@ static char *frm_argp_capa[] = {
   "debug",
   "mailbox",
   "locking",
-  "tls",
   NULL
 };
 
@@ -328,7 +327,7 @@ main (int argc, char **argv)
   /* register the formats.  */
   mu_register_all_mbox_formats ();
 
-  mu_cli_capa_register (&mu_cli_capa_tls);
+  mu_auth_register_module (&mu_auth_tls_module);
   mu_cli (argc, argv, &cli, frm_argp_capa, NULL, &argc, &argv);
 
   if (align && (s = util_getcols ()))

@@ -17,7 +17,7 @@
 
 #include "imap4d.h"
 #include <mailutils/gsasl.h>
-#include "mailutils/libargp.h"
+#include "mailutils/cli.h"
 #include "mailutils/kwd.h"
 #include "tcpwrap.h"
 
@@ -56,93 +56,79 @@ int ident_encrypt_only;
 int test_mode;
 
 const char *program_version = "imap4d (" PACKAGE_STRING ")";
-static char doc[] = N_("GNU imap4d -- the IMAP4D daemon.");
 
-#define OPT_PREAUTH         259
-#define OPT_FOREGROUND      260
-#define OPT_TEST_MODE       261
+
+static void
+set_foreground (struct mu_parseopt *po, struct mu_option *opt,
+		char const *arg)
+{
+  mu_m_server_set_foreground (server, 1);
+}
 
-static struct argp_option options[] = {
-  { "foreground", OPT_FOREGROUND, 0, 0, N_("remain in foreground"), 0},
-  { "inetd",  'i', 0, 0, N_("run in inetd mode"), 0},
-  { "daemon", 'd', N_("NUMBER"), OPTION_ARG_OPTIONAL,
-    N_("runs in daemon mode with a maximum of NUMBER children"), 0 },
-  { "test", OPT_TEST_MODE, 0, 0,
-    N_("run in test mode"), 0 },
-  { "preauth", OPT_PREAUTH, NULL, 0,
-    N_("start in preauth mode") },
+static void
+set_inetd_mode (struct mu_parseopt *po, struct mu_option *opt,
+		char const *arg)
+{
+  mu_m_server_set_mode (server, MODE_INTERACTIVE);
+}
   
-  {NULL, 0, NULL, 0, NULL, 0}
-};
+static void
+set_daemon_mode (struct mu_parseopt *po, struct mu_option *opt,
+		 char const *arg)
+{
+  mu_m_server_set_mode (server, MODE_DAEMON);
+  if (arg)
+    {
+      size_t max_children;
+      char *errmsg;
+      int rc = mu_str_to_c (arg, mu_c_size, &max_children, &errmsg);
+      if (rc)
+	{
+	  mu_parseopt_error (po, _("%s: bad argument"), arg);
+	  exit (po->po_exit_error);
+	}
+      mu_m_server_set_max_children (server, max_children);
+    }
+}
+
+static void
+set_preauth (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
+{
+  preauth_mode = preauth_stdio;
+}
+
+static struct mu_option imap4d_options[] = {
+  { "foreground",  0, NULL, MU_OPTION_DEFAULT,
+    N_("remain in foreground"),
+    mu_c_bool, NULL, set_foreground },
+  { "inetd",  'i', NULL, MU_OPTION_DEFAULT,
+    N_("run in inetd mode"),
+    mu_c_bool, NULL, set_inetd_mode },
+  { "daemon", 'd', N_("NUMBER"), MU_OPTION_ARG_OPTIONAL,
+    N_("runs in daemon mode with a maximum of NUMBER children"),
+    mu_c_string, NULL, set_daemon_mode },
+
+  { "test", 0, NULL, MU_OPTION_DEFAULT,
+    N_("run in test mode"),
+    mu_c_bool, &test_mode },
+
+  { "preauth", 0, NULL, MU_OPTION_DEFAULT,
+    N_("start in preauth mode"),
+    mu_c_string, NULL, set_preauth },
+
+  MU_OPTION_END
+}, *options[] = { imap4d_options, NULL };
 
 
-static error_t imap4d_parse_opt (int key, char *arg,
-				 struct argp_state *state);
-
-static struct argp argp = {
-  options,
-  imap4d_parse_opt,
-  NULL,
-  doc,
-  NULL,
-  NULL, NULL
-};
-
-static const char *imap4d_capa[] = {
-  "mailutils",
+static char *capa[] = {
   "auth",
-  "common",
   "debug",
   "mailbox",
   "locking",
   "logging",
   NULL
 };
-
-static error_t
-imap4d_parse_opt (int key, char *arg, struct argp_state *state)
-{
-  static mu_list_t lst;
-
-  switch (key)
-    {
-    case 'd':
-      mu_argp_node_list_new (lst, "mode", "daemon");
-      if (arg)
-	mu_argp_node_list_new (lst, "max-children", arg);
-      break;
-
-    case 'i':
-      mu_argp_node_list_new (lst, "mode", "inetd");
-      break;
-
-    case OPT_FOREGROUND:
-      mu_argp_node_list_new (lst, "foreground", "yes");
-      break;
-      
-    case OPT_PREAUTH:
-      preauth_mode = preauth_stdio;
-      break;
-
-    case OPT_TEST_MODE:
-      mu_argp_node_list_new (lst, "mode", "inetd");
-      test_mode = 1;
-      break;
-      
-    case ARGP_KEY_INIT:
-      mu_argp_node_list_init (&lst);
-      break;
-      
-    case ARGP_KEY_FINI:
-      mu_argp_node_list_finish (lst, NULL, NULL);
-      break;
-      
-    default:
-      return ARGP_ERR_UNKNOWN;
-    }
-  return 0;
-}
-
+
 static int
 cb_mode (void *data, mu_config_value_t *val)
 {
@@ -455,6 +441,12 @@ static struct mu_cfg_param imap4d_cfg_param[] = {
   { NULL }
 };
 
+struct mu_cli_setup cli = {
+  options,
+  imap4d_cfg_param,
+  N_("GNU imap4d -- the IMAP4D daemon.")
+};
+
 int
 mu_get_user_groups (const char *user, mu_list_t retain, mu_list_t *pgrouplist)
 {
@@ -933,18 +925,10 @@ main (int argc, char **argv)
   mu_register_local_mbox_formats ();
   
   imap4d_capability_init ();
-#ifdef WITH_TLS
-  mu_gocs_register ("tls", mu_tls_module_init);
-#endif /* WITH_TLS */
-#ifdef WITH_GSASL
-  mu_gocs_register ("gsasl", mu_gsasl_module_init);
-#endif
   mu_tcpwrapper_cfg_init ();
   manlock_cfg_init ();
   mu_acl_cfg_init ();
   
-  mu_argp_init (NULL, NULL);
-
   mu_m_server_create (&server, program_version);
   mu_m_server_set_config_size (server, sizeof (struct imap4d_srv_config));
   mu_m_server_set_conn (server, imap4d_connection);
@@ -961,10 +945,16 @@ main (int argc, char **argv)
 
   mu_log_syslog = 1;
 
-  if (mu_app_init (&argp, imap4d_capa, imap4d_cfg_param, 
-		   argc, argv, 0, NULL, server))
-    exit (EX_CONFIG); /* FIXME: No way to discern from EX_USAGE? */
-
+  mu_cli (argc, argv, &cli, capa, server, &argc, &argv);
+  if (argc)
+    {
+      mu_error (_("too many arguments"));
+      exit (EX_USAGE);
+    }
+  
+  if (test_mode)
+    mu_m_server_set_mode (server, MODE_INTERACTIVE);
+  
   if (login_disabled)
     imap4d_capability_add (IMAP_CAPA_LOGINDISABLED);
 

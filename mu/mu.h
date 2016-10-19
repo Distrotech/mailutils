@@ -14,7 +14,17 @@
    You should have received a copy of the GNU General Public License
    along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>. */
 
-#include <mailutils/types.h>
+#if defined(HAVE_CONFIG_H)
+# include <config.h>
+#endif
+#include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <sys/un.h>
+#include <arpa/inet.h>
+#include <sysexits.h>
+#include <mailutils/mailutils.h>
 
 typedef int (*mutool_action_t) (int argc, char **argv);
 
@@ -40,7 +50,7 @@ mu_stream_t mutool_open_pager (void);
 
 int mu_help (void);
 mutool_action_t dispatch_find_action (const char *name);
-char *dispatch_docstring (const char *text);
+void subcommand_help (mu_stream_t str);
 
 int port_from_sa (struct mu_sockaddr *sa);
 
@@ -63,4 +73,7 @@ int get_bool (const char *str, int *pb);
 int get_port (const char *port_str, int *pn);
 
 int mu_getans (const char *variants, const char *fmt, ...);
+
+void mu_action_getopt (int *pargc, char ***pargv, struct mu_option *opt,
+		       char const *docstring, char const *argdoc);
 

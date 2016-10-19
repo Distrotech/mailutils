@@ -352,6 +352,12 @@ mu_program_help (struct mu_parseopt *po, mu_stream_t outstr)
     }
   mu_stream_printf (str, "\n");
   
+  if (po->po_prog_doc_hook)
+    {
+      po->po_prog_doc_hook (po, str);
+      mu_stream_printf (str, "\n");
+    }
+  
   mu_option_describe_options (str, po->po_optv, po->po_optc);
 
   if (po->po_help_hook)

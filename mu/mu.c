@@ -21,58 +21,17 @@
 #include <string.h>
 #include <mailutils/mailutils.h>
 #include <mailutils/tls.h>
-#include "mailutils/libargp.h"
+#include "mailutils/cli.h"
 #include "mu.h"
 
-static char args_doc[] = N_("COMMAND [CMDOPTS]");
-static char doc[] = N_("GNU Mailutils multi-purpose tool.");
-
-static struct argp_option options[] = {
-  { NULL }
+struct mu_cli_setup cli = {
+  .prog_doc = N_("GNU Mailutils multi-purpose tool."),
+  .prog_args = N_("COMMAND [CMDOPTS]"),
+  .inorder = 1,
+  .prog_doc_hook = subcommand_help
 };
 
-static error_t
-parse_opt (int key, char *arg, struct argp_state *state)
-{
-  switch (key)
-    {
-    default:
-      return ARGP_ERR_UNKNOWN;
-    }
-  return 0;
-}
-
-static char *
-mu_help_filter (int key, const char *text, void *input)
-{
-  char *s;
-  
-  switch (key)
-    {
-    case ARGP_KEY_HELP_PRE_DOC:
-      s = dispatch_docstring (text);
-      break;
-
-    default:
-      s = (char*) text;
-    }
-  return s;
-}
-
-
-static struct argp argp = {
-  options,
-  parse_opt,
-  args_doc,
-  doc,
-  NULL,
-  mu_help_filter,
-  NULL
-};
-
-static const char *mu_tool_capa[] = {
-  "mailutils",
-  "common",
+static char *capa[] = {
   "debug",
   "locking",
   "mailbox",
@@ -80,26 +39,9 @@ static const char *mu_tool_capa[] = {
   NULL 
 };
 
-struct mu_cfg_param mu_tool_param[] = {
-  { NULL }
-};
-
-int
-mu_help ()
-{
-  char *x_argv[3];
-    
-  x_argv[0] = (char*) mu_program_name;
-  x_argv[1] = "--help";
-  x_argv[2] = NULL;
-  return mu_app_init (&argp, mu_tool_capa, mu_tool_param, 
-		      2, x_argv, 0, NULL, NULL);
-}
-
 int
 main (int argc, char **argv)
 {
-  int index;
   mutool_action_t action;
   
   /* Native Language Support */
@@ -109,16 +51,7 @@ main (int argc, char **argv)
   /* Register the desired mailbox formats.  */
   mu_register_all_mbox_formats ();
 
-#ifdef WITH_TLS
-  mu_gocs_register ("tls", mu_tls_module_init);
-#endif
-  mu_argp_init (NULL, NULL);
-  if (mu_app_init (&argp, mu_tool_capa, mu_tool_param, 
-		   argc, argv, ARGP_IN_ORDER, &index, NULL))
-    exit (1);
-
-  argc -= index;
-  argv += index;
+  mu_cli (argc, argv, &cli, capa, NULL, &argc, &argv);
 
   if (argc < 1)
     {
@@ -133,15 +66,59 @@ main (int argc, char **argv)
       exit (1);
     }
 
-  /* Disable --version option in action. */
-  argp_program_version = NULL;
-  argp_program_version_hook = NULL;
-
-  /* Reset argv[0] for diagnostic purposes */
-  mu_asprintf (&argv[0], "%s %s", mu_program_name, argv[0]);
-  
   /* Run the action. */
   exit (action (argc, argv));
+}
+
+int
+mu_help (void)
+{
+  char *argv[3];
+  argv[0] = mu_full_program_name;
+  argv[1] = "--help";
+  argv[2] = NULL;
+  mu_cli (2, argv, &cli, capa, NULL, NULL, NULL);
+  return 0;
+} 
+
+void
+mu_action_getopt (int *pargc, char ***pargv, struct mu_option *opt,
+		  char const *docstring, char const *argdoc)
+{
+  struct mu_parseopt po;
+  int flags = MU_PARSEOPT_IMMEDIATE;
+  struct mu_option *options[2];
+  char const *prog_args[2];
+  char *progname;
+  
+  options[0] = opt;
+  options[1] = NULL;
+
+  mu_asprintf (&progname, "%s %s", mu_program_name, (*pargv)[0]);
+  po.po_prog_name = progname;
+  flags |= MU_PARSEOPT_PROG_NAME;
+  
+  po.po_prog_doc = docstring;
+  flags |= MU_PARSEOPT_PROG_DOC;
+
+  if (argdoc)
+    {
+      prog_args[0] = argdoc;
+      prog_args[1] = NULL;
+      po.po_prog_args = prog_args;
+      flags |= MU_PARSEOPT_PROG_ARGS;
+    }
+  
+  po.po_bug_address = PACKAGE_BUGREPORT;
+  flags |= MU_PARSEOPT_BUG_ADDRESS;
+
+  if (mu_parseopt (&po, *pargc, *pargv, options, flags))
+    exit (po.po_exit_error);
+
+  *pargc -= po.po_arg_start;
+  *pargv += po.po_arg_start;
+  
+  mu_parseopt_free (&po);  
 }
 
   

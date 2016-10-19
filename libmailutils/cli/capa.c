@@ -60,7 +60,7 @@ struct capa_apply
 };
 
 static int
-capa_apply (void *item, void *data)
+capa_extend (void *item, void *data)
 {
   struct mu_cli_capa *cp = item;
   struct capa_apply *ap = data;
@@ -80,14 +80,15 @@ capa_apply (void *item, void *data)
 }
 
 void
-mu_cli_capa_apply (char const *name, mu_list_t opts, mu_list_t commits)
+mu_cli_capa_extend_settings (char const *name, mu_list_t opts,
+			     mu_list_t commits)
 {
   struct capa_apply app;
   app.name = name;
   app.opts = opts;
   app.commits = commits;
   app.found = 0;
-  mu_list_foreach (capa_list, capa_apply, &app);
+  mu_list_foreach (capa_list, capa_extend, &app);
   if (!app.found)
     mu_error (_("INTERNAL ERROR at %s:%d: unknown standard capability `%s'"),
 	      __FILE__, __LINE__, name);

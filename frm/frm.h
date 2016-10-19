@@ -63,6 +63,7 @@
 #include <mailutils/error.h>
 #include <mailutils/util.h>
 #include <mailutils/mime.h>
+#include <mailutils/mu_auth.h>
 
 #include "mailutils/cli.h"
 

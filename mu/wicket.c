@@ -14,59 +14,32 @@
    You should have received a copy of the GNU General Public License
    along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>. */
 
-#if defined(HAVE_CONFIG_H)
-# include <config.h>
-#endif
-#include <stdlib.h>
-#include <mailutils/mailutils.h>
-#include <mailutils/libcfg.h>
-#include <argp.h>
+#include "mu.h"
 
-static char wicket_doc[] = N_("mu wicket - find matching URL in wicket");
 char wicket_docstring[] = N_("scan wickets for matching URLs");
 static char wicket_args_doc[] = N_("URL");
-
-static struct argp_option wicket_options[] = {
-  { "file",    'f', N_("FILE"), 0, N_("use FILE instead of ~/.mu-tickets") },
-  { "verbose", 'v', NULL,       0, N_("increase output verbosity") },
-  { "quiet",   'q', NULL,       0, N_("suppress any output") },
-  { NULL }
-};
 
 static char *wicket_file = "~/.mu-tickets";
 static int wicket_verbose = 1;
 
-static error_t
-wicket_parse_opt (int key, char *arg, struct argp_state *state)
+static void
+clear_wicket_verbose (struct mu_parseopt *po, struct mu_option *opt,
+		      char const *arg)
 {
-  switch (key)
-    {
-    case 'f':
-      wicket_file = arg;
-      break;
-
-    case 'v':
-      wicket_verbose++;
-      break;
-
-    case 'q':
-      wicket_verbose = 0;
-      break;
-      
-    default:
-      return ARGP_ERR_UNKNOWN;
-    }
-  return 0;
+  wicket_verbose = 0;
 }
 
-static struct argp wicket_argp = {
-  wicket_options,
-  wicket_parse_opt,
-  wicket_args_doc,
-  wicket_doc,
-  NULL,
-  NULL,
-  NULL
+static struct mu_option wicket_options[] = {
+  { "file",    'f', N_("FILE"), MU_OPTION_DEFAULT,
+    N_("use FILE instead of ~/.mu-tickets"),
+    mu_c_string, &wicket_file },
+  { "verbose", 'v', NULL,       MU_OPTION_DEFAULT,
+    N_("increase output verbosity"),
+    mu_c_string, &wicket_verbose },
+  { "quiet",   'q', NULL,       MU_OPTION_DEFAULT,
+    N_("suppress any output"),
+    mu_c_string, NULL, clear_wicket_verbose },
+  { NULL }
 };
 
 
@@ -129,12 +102,8 @@ mutool_wicket (int argc, char **argv)
   mu_stream_t stream;
   int rc, i, exit_code;
   
-  if (argp_parse (&wicket_argp, argc, argv, ARGP_IN_ORDER, &i, NULL))
-    return 1;
-
-  argc -= i;
-  argv += i;
-
+  mu_action_getopt (&argc, &argv, wicket_options, wicket_docstring,
+		    wicket_args_doc);
   if (argc == 0)
     {
       mu_error (_("not enough arguments"));

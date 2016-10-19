@@ -64,22 +64,6 @@ struct mu_tls_module_config mu_tls_module_config = {
   0
 #endif
 };
-//FIXME: REMOVE  
-int
-mu_tls_module_init (enum mu_gocs_op op, void *data)
-{
-  switch (op)
-    {
-    case mu_gocs_op_set:
-      if (data)
-	memcpy (&mu_tls_module_config, data, sizeof mu_tls_module_config);
-      break;
-      
-    case mu_gocs_op_flush:
-      break;
-    }
-  return 0;
-}
 
 #ifdef WITH_TLS
 
@@ -870,16 +854,14 @@ static struct mu_cfg_param mu_tls_param[] = {
   { NULL }
 }; 
 
-struct mu_cli_capa mu_cli_capa_tls = {
-  "tls",
-  NULL,
-  mu_tls_param,
-  NULL, NULL
+struct mu_auth_module mu_auth_tls_module = {
+  .name = "tls",
+  .cfg = mu_tls_param
 };
+
 #else
-struct mu_cli_capa mu_cli_capa_tls = {
-  "tls",
-  NULL
+struct mu_auth_module mu_auth_tls_module = {
+  .name = "tls"
 };
 #endif /* WITH_TLS */
 

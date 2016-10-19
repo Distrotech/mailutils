@@ -14,17 +14,9 @@
    You should have received a copy of the GNU General Public License
    along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>. */
 
-#if defined(HAVE_CONFIG_H)
-# include <config.h>
-#endif
-#include <stdlib.h>
-#include <string.h>
-#include <signal.h>
-#include <mailutils/mailutils.h>
-#include <mailutils/tls.h>
-#include "mailutils/libargp.h"
-#include "muaux.h"
 #include "mu.h"
+#include <signal.h>
+#include "muaux.h"
 
 #ifdef WITH_READLINE
 # include <readline/readline.h>

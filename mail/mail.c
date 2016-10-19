@@ -17,6 +17,7 @@
 
 #include "mail.h"
 #include "mailutils/cli.h"
+#include "mailutils/mu_auth.h"
 
 /* Global variables and constants*/
 mu_mailbox_t mbox;            /* Mailbox being operated upon */
@@ -240,7 +241,6 @@ static char *mail_capa[] = {
   "debug",
   "mailbox",
   "locking",
-  "tls",
   NULL 
 };
 			     
@@ -368,6 +368,8 @@ main (int argc, char **argv)
   /* Register the desired formats.  */
   mu_register_all_formats ();
 
+  mu_auth_register_module (&mu_auth_tls_module);  
+  
   interactive = isatty (fileno (stdin));
 #ifdef HAVE_SIGACTION
   {
@@ -417,7 +419,6 @@ main (int argc, char **argv)
 	       MOPTF_OVERWRITE);
 
   /* argument parsing */
-  mu_cli_capa_register (&mu_cli_capa_tls);
   mu_cli (argc, argv, &cli, mail_capa, NULL, &argc, &argv);
 
   if ((hint & (HINT_SEND_MODE|HINT_FILE_OPTION)) ==

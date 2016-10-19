@@ -19,6 +19,7 @@
 #if HAVE_CONFIG_H
 # include <config.h>
 #endif
+#include <mailutils/cli.h>
 
 #ifdef WITH_GSASL
 
@@ -45,14 +46,28 @@ struct mu_gsasl_module_data mu_gsasl_module_data = {
   NULL,
   SITE_CRAM_MD5_PWD
 };
+
+static struct mu_cfg_param mu_gsasl_param[] = {
+  { "enable", mu_c_bool, &mu_gsasl_module_data.enable, 0, NULL,
+    N_("Enable GSASL (default)") },
+  { "cram-passwd", mu_c_string, &mu_gsasl_module_data.cram_md5_pwd, 0, NULL,
+    N_("Name of GSASL password file."),
+    N_("file") },
+  { "service", mu_c_string, &mu_gsasl_module_data.service, 0, NULL,
+    N_("SASL service name."),
+    N_("name") },
+  { "realm", mu_c_string, &mu_gsasl_module_data.realm, 0, NULL,
+    N_("SASL realm name."),
+    N_("name") },
+  { "hostname", mu_c_string, &mu_gsasl_module_data.hostname, 0, NULL,
+    N_("SASL host name."),
+    N_("name") },
+  { "anonymous-user", mu_c_string, &mu_gsasl_module_data.anon_user, 0, NULL,
+    N_("Anonymous user name."),
+    N_("name") },
 
-int
-mu_gsasl_module_init (enum mu_gocs_op op, void *data)
-{
-  if (op == mu_gocs_op_set && data)
-    memcpy (&mu_gsasl_module_data, data, sizeof (mu_gsasl_module_data));
-  return 0;
-}
+  { NULL }
+};
 
 int
 mu_gsasl_enabled (void)
@@ -231,4 +246,10 @@ mu_gsasl_enabled (void)
 {
   return 0;
 }
+#define mu_gsasl_param NULL
 #endif
+
+struct mu_auth_module mu_auth_gsasl_module = {
+  .name = "gsasl",
+  .cfg = mu_gsasl_param
+};

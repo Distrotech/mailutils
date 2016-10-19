@@ -65,7 +65,7 @@ pop3d_LDADD = \
 
 popauth_SOURCES = popauth.c
 popauth_LDADD = \
- ${MU_APP_LIBRARIES}\
+ ${MU_APP_NEW_LIBRARIES}\
  ${MU_LIB_MAILUTILS}\
  @MU_COMMON_LIBRARIES@\
  ${LIBMU_DBM}\

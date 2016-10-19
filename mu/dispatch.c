@@ -49,33 +49,34 @@ dispatch_find_action (const char *name)
   return NULL;
 }
 
-char *
-dispatch_docstring (const char *text)
+void
+subcommand_help (mu_stream_t str)
 {
-  mu_stream_t str;
   struct mutool_action_tab *p;
-  mu_off_t size;
-  size_t n;
-  char *ret;
+  unsigned margin;
   
-  mu_memory_stream_create (&str, MU_STREAM_RDWR);
-  mu_stream_printf (str, "%s\n%s\n\n", text, _("Commands are:"));
+  mu_stream_printf (str, "%s\n\n", _("Commands are:"));
   for (p = mutool_action_tab; p->name; p++)
-    mu_stream_printf (str, "  %s %-16s - %s\n",
-		      mu_program_name,
-		      p->name, gettext (p->docstring));
+    {
+      margin = 2;
+      mu_stream_ioctl (str, MU_IOCTL_WORDWRAPSTREAM,
+		       MU_IOCTL_WORDWRAP_SET_MARGIN,
+		       &margin);
+      mu_stream_printf (str, "%s %s",  mu_program_name, p->name);
+      margin = 29;
+      mu_stream_ioctl (str, MU_IOCTL_WORDWRAPSTREAM,
+		       MU_IOCTL_WORDWRAP_SET_MARGIN,
+		       &margin);
+      mu_stream_printf (str, "%s", gettext (p->docstring));
+    }
+  margin = 0;
+  mu_stream_ioctl (str, MU_IOCTL_WORDWRAPSTREAM,
+		   MU_IOCTL_WORDWRAP_SET_MARGIN,
+		   &margin);
   mu_stream_printf (str,
 		      _("\nTry `%s COMMAND --help' to get help on a particular "
 		      "COMMAND.\n\n"),
 		      mu_program_name);
-  mu_stream_printf (str, "%s\n", _("Options are:"));
-  mu_stream_flush (str);
-  mu_stream_size (str, &size);
-  ret = mu_alloc (size + 1);
-  mu_stream_seek (str, 0, MU_SEEK_SET, NULL);
-  mu_stream_read (str, ret, size, &n);
-  ret[n] = 0;
-  mu_stream_destroy (&str);
-  return ret;
+  mu_stream_printf (str, "%s\n", _("OPTIONs are:"));
 }
     

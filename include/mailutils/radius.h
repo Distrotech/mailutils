@@ -28,6 +28,4 @@ struct mu_radius_module_data
   char *getpwuid_request;
 };
 
-extern int mu_radius_module_init (enum mu_gocs_op, void *data);
-
 #endif

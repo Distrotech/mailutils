@@ -58,7 +58,6 @@
 #include <mailutils/stream.h>
 #include <mailutils/tls.h>
 #include <mailutils/url.h>
-#include <mailutils/gocs.h>
 #include <mailutils/version.h>
 #include <mailutils/io.h>
 #include <mailutils/secret.h>
@@ -66,6 +65,7 @@
 #include <mailutils/cstr.h>
 #include <mailutils/wordsplit.h>
 #include <mailutils/log.h>
+#include <mailutils/syslog.h>
 #include <mailutils/stdstream.h>
 #include <mailutils/prog.h>
 #include <mailutils/sockaddr.h>

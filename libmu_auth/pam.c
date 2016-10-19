@@ -49,6 +49,14 @@
 char *mu_pam_service = PACKAGE;
 
 #ifdef USE_LIBPAM
+static struct mu_cfg_param mu_pam_param[] = {
+  { "service", mu_c_string, &mu_pam_service, 0, NULL,
+    N_("Set PAM service name."),
+    N_("name") },
+  { NULL }
+};
+
+
 #define COPY_STRING(s) (s) ? strdup(s) : NULL
 
 static char *_pwd;
@@ -175,43 +183,13 @@ mu_authenticate_pam (struct mu_auth_data **return_data MU_ARG_UNUSED,
 }
 
 #else
-
-int
-mu_authenticate_pam (struct mu_auth_data **return_data MU_ARG_UNUSED,
-		     const void *key MU_ARG_UNUSED,
-		     void *func_data MU_ARG_UNUSED,
-		     void *call_data MU_ARG_UNUSED)
-{
-  return ENOSYS;
-}
-
+# define mu_pam_param NULL
+# define mu_authenticate_pam NULL
 #endif
 
-int
-mu_pam_module_init (enum mu_gocs_op op, void *data)
-{
-  if (op == mu_gocs_op_set && data)
-    {
-      struct mu_gocs_pam *p = data;
-      if (p->service)
-        {
-          if ((mu_pam_service = strdup (p->service)) == NULL)
-            return ENOMEM;
-        }
-      else
-        mu_pam_service = NULL;
-    }
-  return 0;
-}
-
 struct mu_auth_module mu_auth_pam_module = {
-  "pam",
-  mu_pam_module_init,
-  mu_authenticate_pam,
-  NULL,
-  mu_auth_nosupport,
-  NULL,
-  mu_auth_nosupport,
-  NULL
+  .name = "pam",
+  .handler = { [mu_auth_authenticate] = mu_authenticate_pam },
+  .cfg = mu_pam_param
 };
 

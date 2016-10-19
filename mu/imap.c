@@ -31,35 +31,7 @@
 #include "mu.h"
 #include "argp.h"
 
-static char imap_doc[] = N_("mu imap - IMAP4 client shell.");
 char imap_docstring[] = N_("IMAP4 client shell");
-static char imap_args_doc[] = "";
-
-static struct argp_option imap_options[] = {
-  { NULL }
-};
-
-static error_t
-imap_parse_opt (int key, char *arg, struct argp_state *state)
-{
-  switch (key)
-    {
-    default:
-      return ARGP_ERR_UNKNOWN;
-    }
-  return 0;
-}
-
-static struct argp imap_argp = {
-  imap_options,
-  imap_parse_opt,
-  imap_args_doc,
-  imap_doc,
-  NULL,
-  NULL,
-  NULL
-};
-
 
 static mu_imap_t imap;
 static int uid_mode;
@@ -1336,13 +1308,7 @@ struct mutool_command imap_comtab[] = {
 int
 mutool_imap (int argc, char **argv)
 {
-  int index;
-
-  if (argp_parse (&imap_argp, argc, argv, ARGP_IN_ORDER, &index, NULL))
-    return 1;
-
-  argc -= index;
-  argv += index;
+  mu_action_getopt (&argc, &argv, NULL, imap_docstring, NULL);
 
   if (argc)
     {

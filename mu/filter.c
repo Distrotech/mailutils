@@ -23,57 +23,41 @@
 #include "argp.h"
 #include "mu.h"
 
-static char filter_doc[] = N_("mu filter - apply a chain of filters to the input");
 char filter_docstring[] = N_("apply a chain of filters to the input");
 static char filter_args_doc[] = N_("[~]NAME [ARGS] [+ [~]NAME [ARGS]...]");
-
-static struct argp_option filter_options[] = {
-  { "encode", 'e', NULL, 0, N_("encode the input (default)") },
-  { "decode", 'd', NULL, 0, N_("decode the input") },
-  { "newline", 'n', NULL, 0, N_("print additional newline") },
-  { "list", 'L', NULL, 0, N_("list supported filters") },
-  { NULL }
-};
 
 static int filter_mode = MU_FILTER_ENCODE;
 static int newline_option = 0;
 static int list_option;
 
-static error_t
-filter_parse_opt (int key, char *arg, struct argp_state *state)
+static void
+set_encode_mode (struct mu_parseopt *po, struct mu_option *opt,
+		 char const *arg)
 {
-  switch (key)
-    {
-    case 'e':
-      filter_mode = MU_FILTER_ENCODE;
-      break;
-
-    case 'd':
-      filter_mode = MU_FILTER_DECODE;
-      break;
-
-    case 'n':
-      newline_option = 1;
-      break;
-
-    case 'L':
-      list_option = 1;
-      break;
-      
-    default:
-      return ARGP_ERR_UNKNOWN;
-    }
-  return 0;
+  filter_mode = MU_FILTER_ENCODE;
 }
 
-static struct argp filter_argp = {
-  filter_options,
-  filter_parse_opt,
-  filter_args_doc,
-  filter_doc,
-  NULL,
-  NULL,
-  NULL
+static void
+set_decode_mode (struct mu_parseopt *po, struct mu_option *opt,
+		 char const *arg)
+{
+  filter_mode = MU_FILTER_DECODE;
+}
+
+static struct mu_option filter_options[] = {
+  { "encode", 'e', NULL, MU_OPTION_DEFAULT,
+    N_("encode the input (default)"),
+    mu_c_string, NULL, set_encode_mode },
+  { "decode", 'd', NULL, MU_OPTION_DEFAULT,
+    N_("decode the input"),
+    mu_c_string, NULL, set_decode_mode },
+  { "newline", 'n', NULL, MU_OPTION_DEFAULT,
+    N_("print additional newline"),
+    mu_c_bool, &newline_option },
+  { "list", 'L', NULL, MU_OPTION_DEFAULT,
+    N_("list supported filters"),
+    mu_c_bool, &list_option },
+  MU_OPTION_END
 };
 
 static int
@@ -85,7 +69,7 @@ filter_printer (void *item, void *data)
 }
 
 static int
-list_filters ()
+list_filters (void)
 {
   mu_list_t list;
   int rc = mu_filter_get_list (&list);
@@ -111,17 +95,14 @@ negate_filter_mode (int mode)
 int
 mutool_filter (int argc, char **argv)
 {
-  int rc, index;
+  int rc;
   mu_stream_t flt, prev_stream;
   const char *fltname;
   int mode;
+
+  mu_action_getopt (&argc, &argv, filter_options, filter_docstring,
+		    filter_args_doc);
   
-  if (argp_parse (&filter_argp, argc, argv, ARGP_IN_ORDER, &index, NULL))
-    return 1;
-
-  argc -= index;
-  argv += index;
-
   if (list_option)
     {
       if (argc)

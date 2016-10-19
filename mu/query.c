@@ -14,98 +14,44 @@
    You should have received a copy of the GNU General Public License
    along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>. */
 
-#if defined(HAVE_CONFIG_H)
-# include <config.h>
-#endif
-#include <stdlib.h>
-#include <string.h>
-#include <mailutils/mailutils.h>
-#include <mailutils/libcfg.h>
-#include "argp.h"
 #include "mu.h"
 
-static char query_doc[] = N_("mu query - query configuration values.");
 char query_docstring[] = N_("query configuration values");
 static char query_args_doc[] = N_("path [path...]");
 
 static char *file_name;
-static struct mu_cfg_parse_hints hints;
+int value_option;
+int path_option;
+int verbose_option;
+char *progname;
 
-enum {
-  VALUE_OPTION = 256,
-  PATH_OPTION
-};
-
-static struct argp_option query_options[] = {
-  { "file", 'f', N_("FILE"), 0,
+static struct mu_option query_options[] = {
+  { "file", 'f', N_("FILE"), MU_OPTION_DEFAULT,
     N_("query configuration values from FILE (default mailutils.rc)"),
-    0 },
-  { "value", VALUE_OPTION, NULL, 0,
+    mu_c_string, &file_name },
+  { "value", 0, NULL, MU_OPTION_DEFAULT,
     N_("display parameter values only"),
-    0 },
-  { "program", 'p', N_("NAME"), 0,
+    mu_c_bool, &value_option },
+  { "program", 'p', N_("NAME"), MU_OPTION_DEFAULT,
     N_("set program name for configuration lookup"),
-    0 },
-  { "path", PATH_OPTION, NULL, 0,
-    N_("display parameters as paths") },
-  { "verbose", 'v', NULL, 0,
-    N_("increase output verbosity"), 0},
-  { NULL }
-};
-
-static error_t
-query_parse_opt (int key, char *arg, struct argp_state *state)
-{
-  switch (key)
-    {
-    case 'f':
-      file_name = arg;
-      break;
-
-    case 'p':
-      hints.flags |= MU_CFG_PARSE_PROGRAM;
-      hints.program = arg;
-      break;
-      
-    case 'v':
-      hints.flags |= MU_CFG_FMT_LOCUS;
-      break;
-
-    case VALUE_OPTION:
-      hints.flags |= MU_CFG_FMT_VALUE_ONLY;
-      break;
-      
-    case PATH_OPTION:
-      hints.flags |= MU_CFG_FMT_PARAM_PATH;
-      break;
-      
-    default:
-      return ARGP_ERR_UNKNOWN;
-    }
-  return 0;
-}
-
-static struct argp query_argp = {
-  query_options,
-  query_parse_opt,
-  query_args_doc,
-  query_doc,
-  NULL,
-  NULL,
-  NULL
+    mu_c_string, &progname },
+  { "path", 0, NULL, MU_OPTION_DEFAULT,
+    N_("display parameters as paths"),
+    mu_c_bool, &path_option },
+  { "verbose", 'v', NULL, MU_OPTION_DEFAULT,
+    N_("increase output verbosity"),
+    mu_c_bool, &verbose_option },
+  MU_OPTION_END
 };
 
 int
 mutool_query (int argc, char **argv)
 {
-  int index;
+  static struct mu_cfg_parse_hints hints;
   mu_cfg_tree_t *tree = NULL;
-  
-  if (argp_parse (&query_argp, argc, argv, ARGP_IN_ORDER, &index, NULL))
-    return 1;
 
-  argc -= index;
-  argv += index;
+  mu_action_getopt (&argc, &argv, query_options, query_docstring,
+		    query_args_doc);
 
   if (argc == 0)
     {
@@ -113,8 +59,21 @@ mutool_query (int argc, char **argv)
       return 1;
     }
 
-  hints.flags |= MU_CFG_PARSE_SITE_RCFILE | MU_PARSE_CONFIG_GLOBAL;
-  hints.site_rcfile = file_name ? file_name : mu_site_rcfile;
+  hints.flags = MU_CFG_PARSE_SITE_RCFILE | MU_PARSE_CONFIG_GLOBAL;
+  hints.site_rcfile = file_name ? file_name : mu_site_config_file ();
+
+  if (progname)
+    {
+      hints.flags |= MU_CFG_PARSE_PROGRAM;
+      hints.program = progname;
+    }
+
+  if (verbose_option)
+    hints.flags |= MU_CFG_FMT_LOCUS;
+  if (value_option)
+    hints.flags |= MU_CFG_FMT_VALUE_ONLY;
+  if (path_option)
+    hints.flags |= MU_CFG_FMT_PARAM_PATH;
   
   if (mu_cfg_parse_config (&tree, &hints))
     return 1;

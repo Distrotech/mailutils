@@ -14,17 +14,6 @@
    You should have received a copy of the GNU General Public License
    along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>. */
 
-#ifdef HAVE_CONFIG_H
-# include <config.h>
-#endif
-#include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <netdb.h>
-#include <netinet/in.h>
-#include <mailutils/cctype.h>
-#include <mailutils/mailutils.h>
-#include <argp.h>
 #include "mu.h"
 
 static int read_recipients;
@@ -46,59 +35,41 @@ send_address_add (mu_address_t *paddr, const char *value)
   MU_ASSERT (mu_address_union (paddr, addr));
   mu_address_destroy (&addr);
 }
-
-static char send_doc[] = N_("mu send - send a message.");
+
 char send_docstring[] = N_("send a message");
 static char send_args_doc[] = "URL-or-HOST [FILE]";
 
-static struct argp_option send_options[] = {
-  { "from",  'F', N_("ADDRESS"), 0,
-    N_("send mail from this ADDRESS") },
-  { "rcpt",  'T', N_("ADDRESS"), 0,
-    N_("send mail to this ADDRESS") },
-  { "read-recipients", 't', NULL, 0,
-    N_("read recipients from the message") },
-  { NULL }
-};
-
-static error_t
-send_parse_opt (int key, char *arg, struct argp_state *state)
+static void
+set_from_address (struct mu_parseopt *po, struct mu_option *opt,
+		  char const *arg)
 {
-  switch (key)
-    {
-    case 'F':
-      MU_ASSERT (mu_address_create_null (&from_addr));
-      send_address_add (&from_addr, arg);
-      break;
-
-    case 'T':
-      send_address_add (&rcpt_addr, arg);
-      break;
-
-    case 't':
-      read_recipients = 1;
-      break;
-
-    default:
-      return ARGP_ERR_UNKNOWN;
-    }
-  return 0;
+  MU_ASSERT (mu_address_create_null (&from_addr));
+  send_address_add (&from_addr, arg);
 }
 
-static struct argp send_argp = {
-  send_options,
-  send_parse_opt,
-  send_args_doc,
-  send_doc,
-  NULL,
-  NULL,
-  NULL
+static void
+set_rcpt_address (struct mu_parseopt *po, struct mu_option *opt,
+		  char const *arg)
+{
+  send_address_add (&rcpt_addr, arg);
+}
+
+static struct mu_option send_options[] = {
+  { "from",  'F', N_("ADDRESS"), MU_OPTION_DEFAULT,
+    N_("send mail from this ADDRESS"),
+    mu_c_string, NULL, set_from_address },
+  { "rcpt",  'T', N_("ADDRESS"), MU_OPTION_DEFAULT,
+    N_("send mail to this ADDRESS"),
+    mu_c_string, NULL, set_rcpt_address },
+  { "read-recipients", 't', NULL, MU_OPTION_DEFAULT,
+    N_("read recipients from the message"),
+    mu_c_bool, &read_recipients },
+  MU_OPTION_END
 };
 
 int
 mutool_send (int argc, char **argv)
 {
-  int index;
   char *infile;
   mu_stream_t instr;
   mu_message_t msg;
@@ -108,12 +79,8 @@ mutool_send (int argc, char **argv)
   
   MU_ASSERT (mu_address_create_null (&rcpt_addr));
   mu_register_all_mailer_formats ();
-  
-  if (argp_parse (&send_argp, argc, argv, 0, &index, NULL))
-    return 1;
 
-  argc -= index;
-  argv += index;
+  mu_action_getopt (&argc, &argv, send_options, send_docstring, send_args_doc);
 
   if (argc < 1)
     {

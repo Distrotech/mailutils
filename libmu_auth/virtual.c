@@ -53,22 +53,20 @@
 #include <mailutils/nls.h>
 #include <mailutils/errno.h>
 #include <mailutils/util.h>
+#include <mailutils/cli.h>
 
 #ifdef ENABLE_VIRTUAL_DOMAINS
 
-struct mu_gocs_virtual mu_virtual_module_config = { SITE_VIRTUAL_PWDDIR };
+static char *pwddir = { SITE_VIRTUAL_PWDDIR };
 
-int
-mu_virtual_module_init (enum mu_gocs_op op, void *data)
-{
-  if (op == mu_gocs_op_set && data)
-    {
-      struct mu_gocs_virtual *p = data;
-      mu_virtual_module_config = *p;
-    }
-  return 0;
-}
-
+static struct mu_cfg_param mu_virtdomain_param[] = {
+  { "passwd-dir", mu_c_string, &pwddir, 0, NULL,
+    N_("Name of the directory where virtual domain password files are "
+       "located."),
+    N_("dir") },
+  { NULL }
+};
+
 #if !HAVE_FGETPWENT
 /* FIXME: A temporary solution. Need proper declaration in .h */
 extern struct passwd *mu_fgetpwent (FILE *fp);
@@ -90,7 +88,7 @@ getpwnam_virtual (const char *u)
   if (delim == 0)
     return NULL;
 
-  filename = mu_make_file_name (mu_virtual_module_config.pwddir, &u[delim + 1]);
+  filename = mu_make_file_name (pwddir, &u[delim + 1]);
   if (filename == NULL)
     return NULL;
 
@@ -191,28 +189,15 @@ mu_auth_virt_domain_by_name (struct mu_auth_data **return_data,
 }
 
 #else
-static int
-mu_auth_virt_domain_by_name (struct mu_auth_data **return_data MU_ARG_UNUSED,
-			     const void *key MU_ARG_UNUSED,
-			     void *func_data MU_ARG_UNUSED,
-			     void *call_data MU_ARG_UNUSED)
-{
-  return ENOSYS;
-}
+# define mu_virtdomain_param NULL
+# define mu_auth_virt_domain_by_name NULL
 #endif
 
 struct mu_auth_module mu_auth_virtual_module = {
-  "virtdomain",
-#ifdef ENABLE_VIRTUAL_DOMAINS
-  mu_virtual_module_init,
-#else
-  NULL,
-#endif
-  mu_auth_nosupport,
-  NULL,
-  mu_auth_virt_domain_by_name,
-  NULL,
-  mu_auth_nosupport,
-  NULL
+  .name = "virtdomain",
+  .cfg = mu_virtdomain_param,
+  .handler = {
+    [mu_auth_getpwnam] = mu_auth_virt_domain_by_name,
+  }
 };
     

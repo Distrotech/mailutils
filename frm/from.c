@@ -48,7 +48,6 @@ static char *capa[] = {
   "debug",
   "mailbox",
   "locking",
-  "tls",
   NULL
 };
 
@@ -89,7 +88,7 @@ main (int argc, char **argv)
   /* register the formats.  */
   mu_register_all_mbox_formats ();
 
-  mu_cli_capa_register (&mu_cli_capa_tls);
+  mu_auth_register_module (&mu_auth_tls_module);
   mu_cli (argc, argv, &cli, capa, NULL, &argc, &argv);
 
   if (argc > 1)

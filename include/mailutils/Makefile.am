@@ -48,7 +48,6 @@ pkginclude_HEADERS = \
  error.h\
  filter.h\
  folder.h\
- gocs.h\
  gsasl.h\
  guile.h\
  header.h\
@@ -59,8 +58,6 @@ pkginclude_HEADERS = \
  iterator.h\
  kwd.h\
  ldap.h\
- libargp.h\
- libcfg.h\
  list.h\
  locker.h\
  log.h\

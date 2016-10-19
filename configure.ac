@@ -1480,9 +1480,7 @@ AC_CONFIG_FILES([
  include/mailutils/cpp/Makefile
  lib/Makefile
  lib/gnu/Makefile
- libmu_argp/Makefile
  libmu_auth/Makefile
- libmu_cfg/Makefile
  libmu_cpp/Makefile
  libmu_scm/Makefile
  libmu_scm/mailutils/Makefile

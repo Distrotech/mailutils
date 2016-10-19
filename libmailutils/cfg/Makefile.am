@@ -21,8 +21,7 @@ libcfg_la_SOURCES = \
  driver.c\
  format.c\
  lexer.c\
- parser.c\
- gocs.c
+ parser.c
 
 localedir = $(datadir)/locale
 AM_CPPFLAGS = \

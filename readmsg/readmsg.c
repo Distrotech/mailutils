@@ -21,6 +21,7 @@
 
 #include "readmsg.h"
 #include "mailutils/cli.h"
+#include "mailutils/mu_auth.h"
 #include "mu_umaxtostr.h"
 
 #define WEEDLIST_SEPARATOR " :,"
@@ -94,7 +95,6 @@ static char *readmsg_argp_capa[] = {
   "debug",
   "mailbox",
   "locking",
-  "tls",
   NULL
 };
 
@@ -242,7 +242,7 @@ main (int argc, char **argv)
   mu_register_all_mbox_formats ();
   mu_register_extra_formats ();
 
-  mu_cli_capa_register (&mu_cli_capa_tls);
+  mu_auth_register_module (&mu_auth_tls_module);
 
   mu_cli (argc, argv, &cli, readmsg_argp_capa, NULL, &argc, &argv);
 
