@@ -20,6 +20,7 @@
 # include <config.h>
 #endif
 #include <mailutils/cli.h>
+#include <mailutils/mu_auth.h>
 
 #ifdef WITH_GSASL
 
@@ -29,7 +30,6 @@
 #include <unistd.h>
 #include <mailutils/error.h>
 #include <mailutils/errno.h>
-#include <mailutils/mu_auth.h>
 #include <mailutils/nls.h>
 #include <mailutils/stream.h>
 #include <mailutils/gsasl.h>
