@@ -65,8 +65,8 @@ struct lib_descr {
 #ifdef WITH_PYTHON
   { "python", "-lmu_py " PYTHON_LIBS, -1, NOTALL },
 #endif
-  { "cfg",    "-lmu_cfg",  -1, NOTALL },
-  { "argp",   "-lmu_argp", -2, NOTALL },
+  { "cfg",    NULL,  0, 0 },  /* deprecated */
+  { "argp",   NULL,  0, 0 },  /* deprecated */
   { NULL }
 };
 
@@ -100,7 +100,7 @@ add_entry (int level, char *ptr)
 
 /* Sort the entries by their level. */
 void
-sort_entries ()
+sort_entries (void)
 {
   int j;
 
