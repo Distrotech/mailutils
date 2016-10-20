@@ -132,7 +132,8 @@ _wordwrap_write (mu_stream_t stream, const char *iptr, size_t isize,
   for (n = 0; n < isize; n++)
     {
       if (str->offset == str->right_margin
-	  || (str->offset > 0 && str->buffer[str->offset - 1] == '\n'))
+	  || (str->offset > str->left_margin
+	      && str->buffer[str->offset - 1] == '\n'))
 	_wordwrap_flush_line (str, iptr[n]);
       if (str->offset == str->left_margin && mu_isblank (iptr[n]))
 	continue;
@@ -178,19 +179,20 @@ set_margin (mu_stream_t stream, unsigned lmargin, int off)
   if (lmargin >= str->right_margin)
     return EINVAL;
 
+  /* Flush the stream if the new margin is set to the left of the current
+     column, or it equals the current column and the character in previous
+     column is a word constituent, or the last character on line is a newline.
+  */
   if (str->offset > str->left_margin
-      && (lmargin < str->offset || str->buffer[str->offset - 1] == '\n'))
-    {
-      str->left_margin = lmargin;
-      _wordwrap_flush (stream);
-    }
-  else
-    {
-      if (lmargin > str->offset)
-	memset (str->buffer + str->offset, ' ', lmargin - str->offset);
-      str->left_margin = lmargin;
-      str->offset = lmargin;
-    }
+      && (lmargin < str->offset
+	  || (lmargin == str->offset && is_word (str->buffer[str->offset - 1]))
+	  || str->buffer[str->offset - 1] == '\n'))
+    _wordwrap_flush (stream);
+
+  if (lmargin > str->offset)
+    memset (str->buffer + str->offset, ' ', lmargin - str->offset);
+  str->left_margin = lmargin;
+  str->offset = lmargin;
 
   return 0;
 }
