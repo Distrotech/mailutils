@@ -141,6 +141,10 @@ static struct parseopt_param parseopt_param[] = {
   { "MU_PARSEOPT_EXIT_ERROR", MU_PARSEOPT_EXIT_ERROR,
     mu_c_int, mu_offsetof(struct mu_parseopt, po_exit_error) },
   { "MU_PARSEOPT_VERSION_HOOK", MU_PARSEOPT_VERSION_HOOK, mu_c_void },
+  { "MU_PARSEOPT_SINGLE_DASH", MU_PARSEOPT_SINGLE_DASH, mu_c_void },
+  { "MU_PARSEOPT_NEGATION", MU_PARSEOPT_NEGATION,
+    mu_c_string, mu_offsetof(struct mu_parseopt, po_negation) },
+    
   { NULL }
 };
 

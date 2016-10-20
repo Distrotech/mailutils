@@ -30,7 +30,7 @@
 #include <mailutils/stream.h>
 
 unsigned short_opt_col = 2;
-unsigned long_opt_col = 6;
+unsigned long_opt_col; /* Initialized in init_usage_vars */
 /*FIXME: doc_opt_col? */
 unsigned header_col = 1;
 unsigned opt_doc_col = 29;
@@ -170,6 +170,11 @@ init_usage_vars (struct mu_parseopt *po)
   struct mu_wordsplit ws;
   size_t i;
   
+  if (po->po_flags & MU_PARSEOPT_SINGLE_DASH)
+    long_opt_col = 2;
+  else
+    long_opt_col = 6;
+
   fmt = getenv ("ARGP_HELP_FMT");
   if (!fmt)
     return;
@@ -223,11 +228,10 @@ print_opt_arg (mu_stream_t str, struct mu_option *opt, int delim)
 }
 
 static size_t
-print_option (mu_stream_t str,
-	      struct mu_option **optbuf, size_t optcnt, size_t num,
+print_option (mu_stream_t str, struct mu_parseopt *po, size_t num,
 	      int *argsused)
 {
-  struct mu_option *opt = optbuf[num];
+  struct mu_option *opt = po->po_optv[num];
   size_t next, i;
   int delim;
   int first_option = 1;
@@ -240,38 +244,47 @@ print_option (mu_stream_t str,
       if (opt->opt_doc[0])
 	{
 	  set_margin (str, header_col);
-	  mu_stream_printf (str, "%s", gettext (opt->opt_doc));
+	  mu_stream_printf (str, "%s\n", gettext (opt->opt_doc));
 	}
       return num + 1;
     }
 
   /* count aliases */
   for (next = num + 1;
-       next < optcnt && optbuf[next]->opt_flags & MU_OPTION_ALIAS;
+       next < po->po_optc && po->po_optv[next]->opt_flags & MU_OPTION_ALIAS;
        next++);
 
   if (opt->opt_flags & MU_OPTION_HIDDEN)
     return next;
 
-  set_margin (str, short_opt_col); 
-  for (i = num; i < next; i++)
+  if (po->po_flags & MU_PARSEOPT_SINGLE_DASH)
     {
-      if (MU_OPTION_IS_VALID_SHORT_OPTION (optbuf[i]))
+      if (!opt->opt_long)
+	return num + 1; /* Ignore erroneous option */
+      set_margin (str, long_opt_col);
+    }
+  else
+    {
+      set_margin (str, short_opt_col); 
+      for (i = num; i < next; i++)
 	{
-	  if (first_option)
-	    first_option = 0;
-	  else
-	    mu_stream_printf (str, ", ");
-	  mu_stream_printf (str, "-%c", optbuf[i]->opt_short);
-	  delim = ' ';
-	  if (opt->opt_arg && dup_args)
-	    print_opt_arg (str, opt, delim);
+	  if (MU_OPTION_IS_VALID_SHORT_OPTION (po->po_optv[i]))
+	    {
+	      if (first_option)
+		first_option = 0;
+	      else
+		mu_stream_printf (str, ", ");
+	      mu_stream_printf (str, "-%c", po->po_optv[i]->opt_short);
+	      delim = ' ';
+	      if (opt->opt_arg && dup_args)
+		print_opt_arg (str, opt, delim);
+	    }
 	}
     }
-
+  
   for (i = num; i < next; i++)
     {
-      if (MU_OPTION_IS_VALID_LONG_OPTION (optbuf[i]))
+      if (MU_OPTION_IS_VALID_LONG_OPTION (po->po_optv[i]))
 	{
 	  if (first_option)
 	    first_option = 0;
@@ -287,8 +300,12 @@ print_option (mu_stream_t str,
 	      first_long_option = 0;
 	    }
 	  
-  	  mu_stream_printf (str, "--%s", optbuf[i]->opt_long);
-	  delim = '=';
+  	  mu_stream_printf (str, "%s", po->po_long_opt_start);
+	  if (mu_option_possible_negation (po, po->po_optv[i]))
+	    mu_stream_printf (str, "[%s]", po->po_negation);
+  	  mu_stream_printf (str, "%s", po->po_optv[i]->opt_long);	  
+	  delim = ((po->po_flags & MU_PARSEOPT_SINGLE_DASH)
+		   && !(opt->opt_flags & MU_OPTION_ARG_OPTIONAL)) ? ' ' : '=';
 	  if (opt->opt_arg && dup_args)
 	    print_opt_arg (str, opt, delim);
 	}
@@ -308,14 +325,13 @@ print_option (mu_stream_t str,
 }
 
 void
-mu_option_describe_options (mu_stream_t str,
-			    struct mu_option **optbuf, size_t optcnt)
+mu_option_describe_options (mu_stream_t str, struct mu_parseopt *po)
 {
   unsigned i;
   int argsused = 0;
 
-  for (i = 0; i < optcnt; )
-    i = print_option (str, optbuf, optcnt, i, &argsused);
+  for (i = 0; i < po->po_optc; )
+    i = print_option (str, po, i, &argsused);
   mu_stream_printf (str, "\n");
 
   if (argsused && dup_args_note)
@@ -334,7 +350,7 @@ mu_program_help (struct mu_parseopt *po, mu_stream_t outstr)
 {
   mu_stream_t str;
   int rc;
-  
+
   init_usage_vars (po);
 
   rc = mu_wordwrap_stream_create (&str, outstr, 0, rmargin);
@@ -358,7 +374,7 @@ mu_program_help (struct mu_parseopt *po, mu_stream_t outstr)
       mu_stream_printf (str, "\n");
     }
   
-  mu_option_describe_options (str, po->po_optv, po->po_optc);
+  mu_option_describe_options (str, po);
 
   if (po->po_help_hook)
     {
@@ -432,41 +448,44 @@ option_summary (struct mu_parseopt *po, mu_stream_t str)
   
   idxbuf = mu_calloc (optcnt, sizeof (idxbuf[0]));
 
-  /* Print a list of short options without arguments. */
-  for (i = nidx = 0; i < optcnt; i++)
-    if (MU_OPTION_IS_VALID_SHORT_OPTION (optbuf[i]) && !optbuf[i]->opt_arg)
-      idxbuf[nidx++] = i;
-
-  if (nidx)
+  if (!(po->po_flags & MU_PARSEOPT_SINGLE_DASH))
     {
-      qsort (idxbuf, nidx, sizeof (idxbuf[0]), cmpidx_short);
-      mu_stream_printf (str, "[-");
-      for (i = 0; i < nidx; i++)
+      /* Print a list of short options without arguments. */
+      for (i = nidx = 0; i < optcnt; i++)
+	if (MU_OPTION_IS_VALID_SHORT_OPTION (optbuf[i]) && !optbuf[i]->opt_arg)
+	  idxbuf[nidx++] = i;
+      
+      if (nidx)
 	{
-	  mu_stream_printf (str, "%c", optbuf[idxbuf[i]]->opt_short);
+	  qsort (idxbuf, nidx, sizeof (idxbuf[0]), cmpidx_short);
+	  mu_stream_printf (str, "[-");
+	  for (i = 0; i < nidx; i++)
+	    {
+	      mu_stream_printf (str, "%c", optbuf[idxbuf[i]]->opt_short);
+	    }
+	  mu_stream_printf (str, "%c", ']');
 	}
-      mu_stream_printf (str, "%c", ']');
-    }
 
-  /* Print a list of short options with arguments. */
-  for (i = nidx = 0; i < optcnt; i++)
-    {
-      if (MU_OPTION_IS_VALID_SHORT_OPTION (optbuf[i]) && optbuf[i]->opt_arg)
-	idxbuf[nidx++] = i;
-    }
-
-  if (nidx)
-    {
-      qsort (idxbuf, nidx, sizeof (idxbuf[0]), cmpidx_short);
-    
-      for (i = 0; i < nidx; i++)
+      /* Print a list of short options with arguments. */
+      for (i = nidx = 0; i < optcnt; i++)
 	{
-	  struct mu_option *opt = optbuf[idxbuf[i]];
-	  const char *arg = gettext (opt->opt_arg);
-	  if (opt->opt_flags & MU_OPTION_ARG_OPTIONAL)
-	    mu_stream_printf (str, " [-%c[%s]]", opt->opt_short, arg);
-	  else
-	    mu_stream_printf (str, " [-%c %s]", opt->opt_short, arg);
+	  if (MU_OPTION_IS_VALID_SHORT_OPTION (optbuf[i]) && optbuf[i]->opt_arg)
+	    idxbuf[nidx++] = i;
+	}
+
+      if (nidx)
+	{
+	  qsort (idxbuf, nidx, sizeof (idxbuf[0]), cmpidx_short);
+	  
+	  for (i = 0; i < nidx; i++)
+	    {
+	      struct mu_option *opt = optbuf[idxbuf[i]];
+	      const char *arg = gettext (opt->opt_arg);
+	      if (opt->opt_flags & MU_OPTION_ARG_OPTIONAL)
+		mu_stream_printf (str, " [-%c[%s]]", opt->opt_short, arg);
+	      else
+		mu_stream_printf (str, " [-%c %s]", opt->opt_short, arg);
+	    }
 	}
     }
   
@@ -486,11 +505,17 @@ option_summary (struct mu_parseopt *po, mu_stream_t str)
 	  struct mu_option *opt = optbuf[idxbuf[i]];
 	  const char *arg = opt->opt_arg ? gettext (opt->opt_arg) : NULL;
 
-	  mu_stream_printf (str, " [--%s", opt->opt_long);
+	  mu_stream_printf (str, " [%s", po->po_long_opt_start);
+	  if (mu_option_possible_negation (po, opt))
+	    mu_stream_printf (str, "[%s]", po->po_negation);
+	  mu_stream_printf (str, "%s", opt->opt_long);
+
 	  if (opt->opt_arg)
 	    {
 	      if (opt->opt_flags & MU_OPTION_ARG_OPTIONAL)
 		mu_stream_printf (str, "[=%s]", arg);
+	      else if (po->po_flags & MU_PARSEOPT_SINGLE_DASH)
+		mu_stream_printf (str, " %s", arg);
 	      else
 		mu_stream_printf (str, "=%s", arg);
 	    }

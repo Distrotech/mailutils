@@ -103,12 +103,16 @@ struct mu_option_cache
 #define MU_PARSEOPT_DATA           0x00400000
 #define MU_PARSEOPT_VERSION_HOOK   0x00800000
 #define MU_PARSEOPT_PROG_DOC_HOOK  0x01000000
+/* Long options start with single dash.  Disables recognition of traditional
+   short options */
+#define MU_PARSEOPT_SINGLE_DASH    0x02000000
+/* Negation prefix is set */
+#define MU_PARSEOPT_NEGATION       0x04000000
 
 /* Reuse mu_parseopt struct initialized previously */
 #define MU_PARSEOPT_REUSE          0x80000000
 /* Mask for immutable flag bits */
 #define MU_PARSEOPT_IMMUTABLE_MASK 0xFFFFF000
-
 
 struct mu_parseopt
 {
@@ -119,6 +123,7 @@ struct mu_parseopt
   struct mu_option **po_optv;      /* Array of ptrs to option structures */ 
   int po_flags;                        
 
+  char *po_negation;               /* Negation prefix for boolean options */
   void *po_data;                   /* Call-specific data */
 
   int po_exit_error;               /* Exit on error with this code */
@@ -145,6 +150,9 @@ struct mu_parseopt
   /* Auxiliary data */
   char *po_cur;                    /* Points to the next character */
   int po_chr;                      /* Single-char option */
+
+  char *po_long_opt_start;         /* Character sequence that starts
+				      long option */
   
   /* The following two keep the position of the first non-optional argument
      and the number of contiguous non-optional arguments after it.
@@ -161,6 +169,7 @@ struct mu_parseopt
   unsigned po_permuted:1;           /* Whether the arguments were permuted */
 };
 
+
 int mu_parseopt (struct mu_parseopt *p,
 		 int argc, char **argv, struct mu_option **optv,
 		 int flags);
@@ -171,13 +180,14 @@ void mu_parseopt_free (struct mu_parseopt *p);
 
 unsigned mu_parseopt_getcolumn (const char *name);
 
-void mu_option_describe_options (mu_stream_t str,
-				 struct mu_option **optbuf, size_t optcnt);
+void mu_option_describe_options (mu_stream_t str, struct mu_parseopt *p);
 void mu_program_help (struct mu_parseopt *p, mu_stream_t str);
 void mu_program_usage (struct mu_parseopt *p, int optsummary, mu_stream_t str);
 void mu_program_version (struct mu_parseopt *po, mu_stream_t str);
 
 void mu_option_set_value (struct mu_parseopt *po, struct mu_option *opt,
 			  char const *arg);
+
+int mu_option_possible_negation (struct mu_parseopt *po, struct mu_option *opt);
 
 #endif

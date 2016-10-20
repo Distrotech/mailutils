@@ -193,58 +193,94 @@ find_short_option (struct mu_parseopt *po, int chr)
    it in *ARGPTR. */
 struct mu_option *
 find_long_option (struct mu_parseopt *po, char const *optstr,
-		  char **argptr)
+		  struct mu_option **used_opt_ptr,
+		  char **used_value,
+		  char **value)
 {
   size_t i;
-  size_t optlen;
-  size_t ind;
-  int found = 0;
+  size_t optlen;       /* Length of the option in optstr */
+  int found = 0;       /* 1 if the match was found, 2 if option is ambiguous */
+  int neglen;          /* Length of the negation prefix, if any */
+  int neg = 0;         /* 1 if a boolean option is negated */
+  struct mu_option *ret_opt = NULL;
+  struct mu_option *used_opt;
   
   optlen = strcspn (optstr, "=");
+  if (po->po_negation)
+    neglen = strlen (po->po_negation);
   
   for (i = 0; i < po->po_optc; i++)
     {
-      if (MU_OPTION_IS_VALID_LONG_OPTION (po->po_optv[i])
-	  && optlen <= strlen (po->po_optv[i]->opt_long)
-	  && memcmp (po->po_optv[i]->opt_long, optstr, optlen) == 0)
+      if (MU_OPTION_IS_VALID_LONG_OPTION (po->po_optv[i]))
 	{
-	  switch (found)
+	  size_t len = strlen (po->po_optv[i]->opt_long);
+	  struct mu_option *opt = option_unalias (po, i);
+	  
+	  if ((optlen <= len
+	       && memcmp (po->po_optv[i]->opt_long, optstr, optlen) == 0)
+	      || (neg = (mu_option_possible_negation (po, opt)
+			 && optlen <= neglen + len
+			 && memcmp (optstr, po->po_negation, neglen) == 0
+			 && memcmp (optstr + neglen, po->po_optv[i]->opt_long,
+				    optlen - neglen) == 0)))
 	    {
-	    case 0:
-	      ind = i;
-	      found++;
-	      if (optlen == strlen (po->po_optv[i]->opt_long))
-		i = po->po_optc - 1; /* exact match: break the loop */
-	      break;
-
-	    case 1:
-	      if (option_unalias (po, i) == option_unalias (po, ind))
-		continue;
-	      if (po->po_flags & MU_PARSEOPT_IGNORE_ERRORS)
-		return NULL;
-	      mu_parseopt_error (po,
-			   _("option '--%*.*s' is ambiguous; possibilities:"),
-			   optlen, optlen, optstr);
-	      fprintf (stderr, "--%s\n", po->po_optv[ind]->opt_long);
-	      found++;
-
-	    case 2:
-	      fprintf (stderr, "--%s\n", po->po_optv[i]->opt_long);
+	      switch (found)
+		{
+		case 0:
+		  used_opt = po->po_optv[i];
+		  ret_opt = opt;
+		  found++;
+		  if (optlen == len || (neg && optlen == neglen + len))
+		    i = po->po_optc - 1; /* exact match: break the loop */
+		  break;
+		  
+		case 1:
+		  if (opt == ret_opt)
+		    continue;
+		  if (po->po_flags & MU_PARSEOPT_IGNORE_ERRORS)
+		    return NULL;
+		  mu_parseopt_error (po,
+				     _("option '%s%*.*s' is ambiguous; possibilities:"),
+				     po->po_long_opt_start,
+				     optlen, optlen, optstr);
+		  fprintf (stderr, "%s%s%s\n",
+			   po->po_long_opt_start,
+			   neg ? po->po_negation : "",
+			   used_opt->opt_long);
+		  found++;
+		  
+		case 2:
+		  fprintf (stderr, "%s%s%s\n",
+			   po->po_long_opt_start,
+			   neg ? po->po_negation : "",
+			   po->po_optv[i]->opt_long);
+		}
 	    }
 	}
     }
-
+  
   switch (found)
     {
     case 0:
-      mu_parseopt_error (po, _("unrecognized option '--%s'"), optstr);
+      mu_parseopt_error (po, _("unrecognized option '%s%s'"),
+			 po->po_long_opt_start, optstr);
       break;
       
     case 1:
+      *used_opt_ptr = used_opt;
       if (optstr[optlen])
 	++optlen;
-      *argptr = (char *)(optstr + optlen);
-      return option_unalias (po, ind);
+      *used_value = (char *)(optstr + optlen);
+      if (ret_opt->opt_type == mu_c_bool)
+	{
+	  if (neg)
+	    *value = "0";
+	  else
+	    *value = "1";
+	}
+      else
+	*value = NULL;
+      return ret_opt;
 
     case 2:
       break;
@@ -313,7 +349,36 @@ next_opt (struct mu_parseopt *po)
 	  if (!po->po_cur)
 	    return 1;
 	  if (po->po_cur[0] == '-' && po->po_cur[1])
-	    break;
+	    {
+	      if (*++po->po_cur == '-')
+		{
+		  if (*++po->po_cur == 0)
+		    {
+		      /* End of options */
+		      permute (po);
+		      ++po->po_ind;
+		      return 1;
+		    }
+		  
+		  if (po->po_flags & MU_PARSEOPT_SINGLE_DASH)
+		    /* a non-optional argument */;
+		  else
+		    {
+		      /* It's a long option */
+		      po->po_chr = 0;
+		      return 0;
+		    }
+		}
+	      else if (po->po_flags & MU_PARSEOPT_SINGLE_DASH)
+		{
+		  /* Assume single-dash long option */
+		  po->po_chr = 0;
+		  return 0;
+		}
+	      else
+		break;
+	    }
+
 	  if (!(po->po_flags & MU_PARSEOPT_IN_ORDER))
 	    {
 	      if (!po->po_permuted && po->po_arg_count == 0)
@@ -323,21 +388,6 @@ next_opt (struct mu_parseopt *po)
 	    }
 	  else
 	    return 1;
-	}
-
-      if (*++po->po_cur == '-')
-	{
-	  if (*++po->po_cur == 0)
-	    {
-	      /* End of options */
-	      permute (po);
-	      ++po->po_ind;
-	      return 1;
-	    }
-
-	  /* It's a long option */
-	  po->po_chr = 0;
-	  return 0;
 	}
     }
 
@@ -386,18 +436,18 @@ parse (struct mu_parseopt *po)
   
   while (next_opt (po) == 0)
     {
-      struct mu_option *opt;
-      char *long_opt;
+      struct mu_option *opt, *uopt;
+      char *value;
       
       if (po->po_chr)
 	{
 	  opt = find_short_option (po, po->po_chr);
-	  long_opt = NULL;
+	  uopt = NULL;
+	  value = NULL;
 	}
       else
 	{
-	  long_opt = po->po_cur;
-	  opt = find_long_option (po, long_opt, &po->po_cur);
+	  opt = find_long_option (po, po->po_cur, &uopt, &po->po_cur, &value);
 	}
 
       if (opt)
@@ -417,14 +467,14 @@ parse (struct mu_parseopt *po)
 		arg = po->po_argv[po->po_ind++];
 	      else
 		{
-		  if (long_opt)
+		  if (uopt)
 		    mu_parseopt_error (po,
-				 _("option '--%s' requires an argument"),
-				 long_opt);
+				 _("option '%s%s' requires an argument"),
+				       po->po_long_opt_start, uopt->opt_long);
 		  else
 		    mu_parseopt_error (po,
 				 _("option '-%c' requires an argument"),
-				 po->po_chr);
+				       po->po_chr);
 		  po->po_opterr = po->po_ind;
 		  if (po->po_flags & MU_PARSEOPT_NO_ERREXIT)
 		    {
@@ -437,13 +487,14 @@ parse (struct mu_parseopt *po)
 	    }
 	  else
 	    {
-	      if (long_opt
+	      if (uopt
 		  && po->po_cur[0]
 		  && !(po->po_flags & MU_OPTION_ARG_OPTIONAL))
 		{
 		  mu_parseopt_error (po,
-			       _("option '--%s' doesn't allow an argument"),
-			       long_opt);
+			       _("option '%s%s' doesn't allow an argument"),
+				     po->po_long_opt_start,
+				     uopt->opt_long);
 		  po->po_opterr = po->po_ind;
 		  if (po->po_flags & MU_PARSEOPT_NO_ERREXIT)
 		    {
@@ -455,6 +506,9 @@ parse (struct mu_parseopt *po)
 		}
 	      arg = NULL;
 	    }
+
+	  if (!arg && value)
+	    arg = value;
 	  
 	  add_option_cache (po, opt, arg);
 	}
@@ -515,6 +569,13 @@ parseopt_init (struct mu_parseopt *po, struct mu_option **options,
     po->po_version_hook = NULL;
   if (!(flags & MU_PARSEOPT_PROG_DOC_HOOK))
     po->po_prog_doc_hook = NULL;
+  if (!(flags & MU_PARSEOPT_NEGATION))
+    po->po_negation = NULL;
+  
+  if (flags & MU_PARSEOPT_SINGLE_DASH)
+    po->po_long_opt_start = "-";
+  else
+    po->po_long_opt_start = "--";    
   
   /* Count the options */
   po->po_optc = 0;
@@ -685,4 +746,10 @@ mu_option_set_value (struct mu_parseopt *po, struct mu_option *opt,
 	    exit (EXIT_ERROR);
 	}
     }
+}
+
+int
+mu_option_possible_negation (struct mu_parseopt *po, struct mu_option *opt)
+{
+  return po->po_negation && opt->opt_type == mu_c_bool && !opt->opt_arg;
 }
