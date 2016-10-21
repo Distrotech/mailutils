@@ -47,6 +47,7 @@ struct mu_option
   void *opt_ptr;          /* Data pointer */
   void (*opt_set) (struct mu_parseopt *, struct mu_option *, char const *);
                           /* Function to set the option */
+  char const *opt_default;/* Default value */
 };
 
 #define MU_OPTION_GROUP(text) { NULL, 0, NULL, 0, text }

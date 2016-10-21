@@ -20,11 +20,10 @@
 #include <mh.h>
 #include <mh_format.h>
 #include <mailutils/mime.h>
+#include <mailutils/opool.h>
 
-#ifdef HAVE_STRINGS_H
-# include <strings.h>
-#endif
 #include <string.h>
+#include <ctype.h>
 #include "mbiter.h"
 #include "mbchar.h"
 #include "mbswidth.h"

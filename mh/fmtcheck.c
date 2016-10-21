@@ -19,37 +19,33 @@
 
 #include <mh.h>
 
-static char doc[] = N_("GNU MH fmtcheck")"\v"
-N_("Use -help to obtain the list of traditional MH options.");
-
-/* GNU options */
-static struct argp_option options[] = {
-  {"form",    ARG_FORM, N_("FILE"),   0,
-   N_("read format from given file")},
-  {"format",  ARG_FORMAT, N_("FORMAT"), 0,
-   N_("use this format string")},
-  {"dump",    ARG_DUMP, NULL,     0,
-   N_("dump the listing of compiled format code")},
-  { "debug",  ARG_DEBUG, NULL,     0,
-    N_("enable parser debugging output"),},
-
-  { NULL }
-};
-
-/* Traditional MH options */
-struct mh_option mh_option[] = {
-  { "form",    MH_OPT_ARG, "formatfile" },
-  { "format",  MH_OPT_ARG, "string" },
-  { NULL }
-};
+static char prog_doc[] = N_("GNU MH fmtcheck");
 
 char *format_str;
 static mh_format_t format;
+int dump_option;
+int debug_option;
 
-typedef int (*action_fp) (void);
+static struct mu_option options[] = {
+  { "form",    0, N_("FILE"),   MU_OPTION_DEFAULT,
+    N_("read format from given file"),
+    mu_c_string, &format_str, mh_opt_read_formfile },
+  
+  { "format",  0, N_("FORMAT"), MU_OPTION_DEFAULT,
+    N_("use this format string"),
+    mu_c_string, &format_str },
+  { "dump",    0, NULL,     MU_OPTION_HIDDEN,
+    N_("dump the listing of compiled format code"),
+    mu_c_bool,   &dump_option },
+  { "debug",   0, NULL,     MU_OPTION_DEFAULT,
+    N_("enable parser debugging output"),
+    mu_c_bool,   &debug_option },
+
+  MU_OPTION_END
+};
 
 static int
-action_dump ()
+action_dump (void)
 {
   if (!format_str)
     {
@@ -60,49 +56,18 @@ action_dump ()
   return 0;
 }
 
-static action_fp action = action_dump;
-
-static error_t
-opt_handler (int key, char *arg, struct argp_state *state)
-{
-  switch (key)
-    {
-    case ARG_FORM:
-      mh_read_formfile (arg, &format_str);
-      break;
-
-    case ARG_FORMAT:
-      format_str = arg;
-      break;
-
-    case ARG_DUMP:
-      action = action_dump;
-      break;
-
-    case ARG_DEBUG:
-      mh_format_debug (1);
-      break;
-      
-    default:
-      return ARGP_ERR_UNKNOWN;
-    }
-  return 0;
-}
-
 int
 main (int argc, char **argv)
 {
   /* Native Language Support */
   MU_APP_INIT_NLS ();
 
-  mh_argp_init ();
-  mh_argp_parse (&argc, &argv, 0, options, mh_option, NULL, doc,
-		 opt_handler, NULL, NULL);
-
+  mh_getopt (&argc, &argv, options, 0, NULL, prog_doc, NULL);
+  mh_format_debug (debug_option);
   if (format_str && mh_format_parse (format_str, &format))
     {
       mu_error (_("Bad format string"));
       exit (1);
     }
-  return (*action) ();
+  return action_dump ();
 }

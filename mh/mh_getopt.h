@@ -16,198 +16,24 @@
    along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include <mailutils/nls.h>
-#include "argp.h"
-#include "mailutils/libargp.h"
+#include <mailutils/opt.h>
 
-#define MH_OPT_BOOL 1
-#define MH_OPT_ARG  2
+#define MH_GETOPT_DEFAULT_FOLDER 0x1
 
-struct mh_option
-{
-  char *opt;
-  int flags;
-  char *arg;
-  size_t match_len;
-};
+void mh_getopt (int *pargc, char ***pargv, struct mu_option *options,
+		int flags,
+		char *argdoc, char *progdoc, char *extradoc);
 
-struct mh_argp_data
-{
-  struct mh_option *mh_option;
-  argp_parser_t handler;
-  int errind;
-  void *closure;
-  char *doc;
-};
+void mh_opt_notimpl (struct mu_parseopt *po, struct mu_option *opt,
+		     char const *arg);
+void mh_opt_notimpl_warning (struct mu_parseopt *po, struct mu_option *opt,
+			     char const *arg);
+void mh_opt_clear_string (struct mu_parseopt *po, struct mu_option *opt,
+			  char const *arg);
 
-enum mh_arg {
-  ARG_ADD = 256,		
-  ARG_AFTER,		
-  ARG_ALIAS,		
-  ARG_ALL,		
-  ARG_AND,		
-  ARG_ANNOTATE,		
-  ARG_APOP,
-  ARG_AUDIT,		
-  ARG_AUTO,		
-  ARG_BEFORE,		
-  ARG_BELL,		
-  ARG_BUILD,		
-  ARG_CC,	        
-  ARG_CFLAGS,		
-  ARG_CHANGECUR,
-  ARG_CHARSET,
-  ARG_CHECK,
-  ARG_CHUNKSIZE,
-  ARG_CLEAR,		
-  ARG_COMPAT,		
-  ARG_COMPONENT,		
-  ARG_COMPOSE,		
-  ARG_CREATE,		
-  ARG_DATE,		
-  ARG_DATEFIELD,		
-  ARG_DEBUG,		
-  ARG_DELETE,		
-  ARG_DRAFT,		
-  ARG_DRAFTFOLDER,	
-  ARG_DRAFTMESSAGE,	
-  ARG_DRY_RUN,		
-  ARG_DUMP,		
-  ARG_EDITOR,		
-  ARG_FAST,		
-  ARG_FCC,		
-  ARG_FILE,		
-  ARG_FILTER,		
-  ARG_FOLDER,		
-  ARG_FORM,		
-  ARG_FORMAT,		
-  ARG_FORWARD,		
-  ARG_FROM,		
-  ARG_GROUP,              
-  ARG_HEADER,		
-  ARG_HOST,
-  ARG_INPLACE,		
-  ARG_INTERACTIVE,	
-  ARG_LANG,
-  ARG_LBRACE,		
-  ARG_LENGTH,		
-  ARG_LIMIT,		
-  ARG_LINK,		
-  ARG_LIST,		
-  ARG_MIME,		
-  ARG_MOREPROC,
-  ARG_MOVETO,
-  ARG_MSGID,		
-  ARG_NOALIAS,            
-  ARG_NOAPOP,
-  ARG_NOAUDIT,		
-  ARG_NOAUTO,		
-  ARG_NOBELL,		
-  ARG_NOCC,		
-  ARG_NOCHANGECUR,	
-  ARG_NOCHECK,		
-  ARG_NOCLEAR,		
-  ARG_NOCOMPOSE,		
-  ARG_NOCREATE,		
-  ARG_NODATE,		
-  ARG_NODATEFIELD,	
-  ARG_NODRAFTFOLDER,	
-  ARG_NOEDIT,		
-  ARG_NOFAST,		
-  ARG_NOFILTER,		
-  ARG_NOFORMAT,		
-  ARG_NOFORWARD,		
-  ARG_NOHEADER,		
-  ARG_NOHEADERS,		
-  ARG_NOINPLACE,		
-  ARG_NOINTERACTIVE,      
-  ARG_NOLIMIT,		
-  ARG_NOLIST,		
-  ARG_NOMIME,		
-  ARG_NOMOREPROC,		
-  ARG_NOMSGID,		
-  ARG_NONOTIFY,
-  ARG_NOPAUSE,		
-  ARG_NOPUBLIC,		
-  ARG_NOPUSH,		
-  ARG_NOQUIET,            
-  ARG_NOREALSIZE,		
-  ARG_NORECURSIVE,        
-  ARG_NOREVERSE,	
-  ARG_NORMALIZE,          
-  ARG_NOSERIALONLY,	
-  ARG_NOSHOW,		
-  ARG_NOSHOWPROC,
-  ARG_NOSTORE,		
-  ARG_NOT,		
-  ARG_NOTEXTFIELD,	
-  ARG_NOTIFY,
-  ARG_NOTOTAL,		
-  ARG_NOTRUNCATE,		
-  ARG_NOUSE,		
-  ARG_NOVERBOSE,		
-  ARG_NOWATCH,		
-  ARG_NOWHATNOWPROC,	
-  ARG_NOZERO,		
-  ARG_NUMFIELD,		
-  ARG_OR,		        
-  ARG_PACK,               
-  ARG_PART,		
-  ARG_PATTERN,		
-  ARG_PAUSE,		
-  ARG_POP,		
-  ARG_PRESERVE,		
-  ARG_PRINT,		
-  ARG_PROMPT,		
-  ARG_PUBLIC,		
-  ARG_PUSH,		
-  ARG_QUERY,		
-  ARG_QUIET,		
-  ARG_RBRACE,		
-  ARG_REALSIZE,		
-  ARG_RECURSIVE,		
-  ARG_REORDER,		
-  ARG_REVERSE,		
-  ARG_SCRIPT,
-  ARG_SEQUENCE,		
-  ARG_SERIALONLY,		
-  ARG_SHOW,		
-  ARG_SHOWPROC,
-  ARG_SOURCE,		
-  ARG_SPLIT,		
-  ARG_STORE,		
-  ARG_SUBJECT,		
-  ARG_TEXT,		
-  ARG_TEXTFIELD,		
-  ARG_TO,		        
-  ARG_TOTAL,		
-  ARG_TRUNCATE,		
-  ARG_TYPE,		
-  ARG_USE,		
-  ARG_USER,               
-  ARG_VERBOSE,		
-  ARG_WATCH,		
-  ARG_WHATNOWPROC,	
-  ARG_WIDTH,	
-  ARG_ZERO
-};
+void mh_opt_find_file (struct mu_parseopt *po, struct mu_option *opt,
+		       char const *arg);
+void mh_opt_read_formfile (struct mu_parseopt *po, struct mu_option *opt,
+			   char const *arg);
 
-extern void (*mh_help_hook) (void);
 
-void mh_option_init (struct mh_option *opt);
-
-void mh_argp_init (void);
-void mh_argv_preproc (int argc, char **argv, struct mh_argp_data *data);
-int mh_getopt (int argc, char **argv, struct mh_option *mh_opt, const char *doc);
-int mh_argp_parse (int *argc, char **argv[],
-		   int flags,
-		   struct argp_option *option,
-		   struct mh_option *mh_option,
-		   char *argp_doc, char *doc,
-		   argp_parser_t handler,
-		   void *closure, int *index);
-
-void mh_help (struct mh_option *mh_option, const char *doc);
-void mh_license (const char *name);
-
-void mh_opt_notimpl (const char *name);
-void mh_opt_notimpl_warning (const char *name);

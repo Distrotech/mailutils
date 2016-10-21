@@ -19,78 +19,8 @@
 
 #include <mh.h>
 
-static char doc[] = N_("GNU MH forw")"\v"
-N_("Options marked with `*' are not yet implemented.\n\
-Use -help to obtain the list of traditional MH options.");
+static char prog_doc[] = N_("GNU MH forw");
 static char args_doc[] = N_("[MSGLIST]");
-
-/* GNU options */
-static struct argp_option options[] = {
-  {"annotate",      ARG_ANNOTATE,      N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("add Forwarded: header to each forwarded message")},
-  {"build",         ARG_BUILD,         0, 0,
-   N_("build the draft and quit immediately")},
-  {"draftfolder",   ARG_DRAFTFOLDER,   N_("FOLDER"), 0,
-   N_("specify the folder for message drafts")},
-  {"nodraftfolder", ARG_NODRAFTFOLDER, 0, 0,
-   N_("undo the effect of the last --draftfolder option")},
-  {"draftmessage" , ARG_DRAFTMESSAGE,  N_("MSG"), 0,
-   N_("invoke the draftmessage facility")},
-  {"folder",        ARG_FOLDER,        N_("FOLDER"), 0,
-   N_("specify folder to operate upon")},
-  {"editor",        ARG_EDITOR,        N_("PROG"), 0,
-   N_("set the editor program to use")},
-  {"noedit",        ARG_NOEDIT,        0, 0,
-   N_("suppress the initial edit")},
-  {"file",          ARG_FILE, N_("FILE"), 0,
-   N_("read message from FILE")},
-  {"format",        ARG_FORMAT,        N_("BOOL"), 0, 
-   N_("format messages")},
-  {"noformat",      ARG_NOFORMAT,      NULL, 0,
-   N_("undo the effect of the last --format option") },
-  {"form",          ARG_FORM,          N_("FILE"), 0,
-   N_("read format from given file")},
-  {"filter",        ARG_FILTER,        N_("FILE"), 0,
-  N_("use filter FILE to preprocess the body of the message") },
-  {"nofilter",      ARG_NOFILTER,      NULL, 0,
-   N_("undo the effect of the last --filter option") },
-  {"inplace",       ARG_INPLACE,       N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("* annotate the message in place")},
-  {"noinplace",     ARG_NOINPLACE,     0,          OPTION_HIDDEN, "" },
-  {"mime",          ARG_MIME,          N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("use MIME encapsulation") },
-  {"nomime",        ARG_NOMIME,        NULL, OPTION_HIDDEN, "" },
-  {"width", ARG_WIDTH, N_("NUMBER"), 0, N_("Set output width")},
-  {"whatnowproc",   ARG_WHATNOWPROC,   N_("PROG"), 0,
-   N_("set the replacement for whatnow program")},
-  {"nowhatnowproc", ARG_NOWHATNOWPROC, NULL, 0,
-   N_("don't run whatnowproc")},
-  {"use",           ARG_USE,           N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("use draft file preserved after the last session") },
-  {"nouse",         ARG_NOUSE,         N_("BOOL"), OPTION_HIDDEN, "" },
-
-  {NULL},
-};
-
-/* Traditional MH options */
-struct mh_option mh_option[] = {
-  { "annotate",      MH_OPT_BOOL },
-  { "build" },
-  { "file",          MH_OPT_ARG, "msgfile" },
-  { "form",          MH_OPT_ARG, "formatfile" },
-  { "format",        MH_OPT_BOOL },
-  { "draftfolder",   MH_OPT_ARG, "folder" },
-  { "nodraftfolder" },
-  { "draftmessage" },
-  { "editor",        MH_OPT_ARG, "program" },
-  { "noedit" },
-  { "filter",        MH_OPT_ARG, "program" },
-  { "inplace",       MH_OPT_BOOL },
-  { "whatnowproc",   MH_OPT_ARG, "program" },
-  { "nowhatnowproc" },
-  { "mime",          MH_OPT_BOOL },
-  { NULL }
-};
 
 enum encap_type
   {
@@ -120,123 +50,99 @@ static char *input_file;        /* input file name (--file option) */
 static mu_msgset_t msgset;
 static mu_mailbox_t mbox;
 
-static int
-opt_handler (int key, char *arg, struct argp_state *state)
+static void
+set_filter (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
 {
-  switch (key)
-    {
-    case ARGP_KEY_INIT:
-      draftfolder = mh_global_profile_get ("Draft-Folder", NULL);
-      whatnowproc = mh_global_profile_get ("whatnowproc", NULL);
-      break;
-
-    case ARG_ANNOTATE:
-      annotate = is_true (arg);
-      break;
-      
-    case ARG_BUILD:
-      build_only = 1;
-      break;
-
-    case ARG_FILE:
-      input_file = arg;
-      break;
-      
-    case ARG_DRAFTFOLDER:
-      draftfolder = arg;
-      break;
-
-    case ARG_NODRAFTFOLDER:
-      draftfolder = NULL;
-      break;
-      
-    case ARG_DRAFTMESSAGE:
-      draftmessage = arg;
-      break;
-
-    case ARG_USE:
-      use_draft = is_true (arg);
-      break;
-
-    case ARG_NOUSE:
-      use_draft = 0;
-      break;
-
-    case ARG_WIDTH:
-      width = strtoul (arg, NULL, 0);
-      if (!width)
-	{
-	  argp_error (state, _("invalid width"));
-	  exit (1);
-	}
-      break;
-
-    case ARG_EDITOR:
-      wh_env.editor = arg;
-      break;
-      
-    case ARG_FOLDER: 
-      mh_set_current_folder (arg);
-      break;
-
-    case ARG_FORM:
-      mh_find_file (arg, &formfile);
-      break;
-
-    case ARG_FORMAT:
-      if (is_true (arg))
-	{
-	  encap = encap_mhl;
-	  mh_find_file ("mhl.forward", &mhl_filter_file);
-	}
-      else
-	encap = encap_clear;
-      break;
-      
-    case ARG_NOFORMAT:
-      encap = encap_clear;
-      break;
-
-    case ARG_FILTER:
-      mh_find_file (arg, &mhl_filter_file);
-      encap = encap_mhl;
-      break;
-	
-    case ARG_MIME:
-      if (is_true (arg))
-	{
-	  encap = encap_mime;
-	  break;
-	}
-      /*FALLTHRU*/
-    case ARG_NOMIME:
-      if (encap == encap_mime)
-	encap = encap_clear;
-      break;
-      
-    case ARG_INPLACE:
-      mh_opt_notimpl_warning ("-inplace");
-      break;
-
-    case ARG_WHATNOWPROC:
-      whatnowproc = arg;
-      break;
-
-    case ARG_NOWHATNOWPROC:
-      nowhatnowproc = 1;
-      break;
-
-    case ARGP_KEY_FINI:
-      if (!formfile)
-	mh_find_file ("forwcomps", &formfile);
-      break;
-      
-    default:
-      return ARGP_ERR_UNKNOWN;
-    }
-  return 0;
+  mh_find_file (arg, &mhl_filter_file);
+  encap = encap_mhl;
 }
 
+static void
+clear_filter (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
+{
+  mhl_filter_file = NULL;
+  encap = encap_clear;
+}
+
+static void
+set_mime (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
+{
+  if (strcmp (arg, "1") == 0)
+    encap = encap_mime;
+  else
+    encap = encap_clear;
+}
+
+static void
+set_format (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
+{
+  if (arg)
+    {
+      encap = encap_mhl;
+      mh_find_file ("mhl.forward", &mhl_filter_file);
+    }
+  else
+    encap = encap_clear;
+}
+
+static struct mu_option options[] = {
+  { "annotate",      0,      NULL, MU_OPTION_DEFAULT,
+    N_("add Forwarded: header to each forwarded message"),
+    mu_c_bool, &annotate },
+  { "build",         0,      NULL, MU_OPTION_DEFAULT,
+    N_("build the draft and quit immediately"),
+    mu_c_bool, &build_only },
+  { "draftfolder",   0,      N_("FOLDER"), MU_OPTION_DEFAULT,
+    N_("specify the folder for message drafts"),
+    mu_c_string, &draftfolder },
+  { "nodraftfolder", 0, NULL, MU_OPTION_DEFAULT,
+    N_("undo the effect of the last --draftfolder option"),
+    mu_c_string, &draftfolder, mh_opt_clear_string },
+  { "draftmessage" , 0, N_("MSG"), MU_OPTION_DEFAULT,
+    N_("invoke the draftmessage facility"),
+    mu_c_string, &draftmessage },
+  { "editor",        0, N_("PROG"), MU_OPTION_DEFAULT,
+    N_("set the editor program to use"),
+    mu_c_string, &wh_env.editor },
+  { "noedit",        0, NULL, MU_OPTION_DEFAULT,
+    N_("suppress the initial edit"),
+    mu_c_int, &initial_edit, NULL, "0" },
+  { "file",          0, N_("FILE"), MU_OPTION_DEFAULT,
+    N_("read message from FILE"),
+    mu_c_string, &input_file },
+  { "format",        0, NULL, MU_OPTION_DEFAULT, 
+    N_("format messages"),
+    mu_c_bool, NULL, set_format },
+  { "form",          0, N_("FILE"), MU_OPTION_DEFAULT,
+    N_("read format from given file"),
+    mu_c_string, &formfile, mh_opt_find_file },
+  { "filter",        0, N_("FILE"), MU_OPTION_DEFAULT,
+    N_("use filter FILE to preprocess the body of the message"),
+    mu_c_string, NULL, set_filter },
+  { "nofilter",      0, NULL, MU_OPTION_DEFAULT,
+   N_("undo the effect of the last --filter option"),
+    mu_c_string, NULL, clear_filter },
+  { "inplace",       0, NULL, MU_OPTION_HIDDEN,
+    N_("annotate the message in place"),
+    mu_c_bool, NULL, mh_opt_notimpl_warning },
+  { "mime",          0, NULL, MU_OPTION_DEFAULT,
+    N_("use MIME encapsulation"),
+    mu_c_bool, NULL, set_mime },
+  { "width",         0, N_("NUMBER"), MU_OPTION_DEFAULT,
+    N_("Set output width"),
+    mu_c_int, &width },
+  { "whatnowproc",   0, N_("PROG"), MU_OPTION_DEFAULT,
+    N_("set the replacement for whatnow program"),
+    mu_c_string, &whatnowproc },
+  { "nowhatnowproc", 0, NULL, MU_OPTION_DEFAULT,
+    N_("don't run whatnowproc"),
+    mu_c_int, &nowhatnowproc, NULL, "1" },
+  { "use",           0, NULL, MU_OPTION_DEFAULT,
+    N_("use draft file preserved after the last session"),
+    mu_c_bool, &use_draft },
+  MU_OPTION_END
+};
+
 struct format_data
 {
   int num;
@@ -475,18 +381,18 @@ finish_draft ()
 int
 main (int argc, char **argv)
 {
-  int index, rc;
+  int rc;
 
   /* Native Language Support */
   MU_APP_INIT_NLS ();
 
-  mh_argp_init ();
-  mh_argp_parse (&argc, &argv, 0, options, mh_option, args_doc, doc,
-		 opt_handler, NULL, &index);
-
-  argc -= index;
-  argv += index;
-
+  draftfolder = mh_global_profile_get ("Draft-Folder", NULL);
+  whatnowproc = mh_global_profile_get ("whatnowproc", NULL);
+  mh_getopt (&argc, &argv, options, MH_GETOPT_DEFAULT_FOLDER,
+	     args_doc, prog_doc, NULL);
+  if (!formfile)
+    mh_find_file ("forwcomps", &formfile);
+  
   if (input_file)
     {
       if (encap == encap_mime)

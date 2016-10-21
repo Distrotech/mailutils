@@ -90,7 +90,7 @@ Regards,
 Sergey
 ])
 
-burst +inbox --length=7 1 || exit $?
+burst +inbox -length 7 1 || exit $?
 grep -v ^X-Envelope- Mail/inbox/2
 grep -v ^X-Envelope- Mail/inbox/3
 grep -v ^X-Envelope- Mail/inbox/4
@@ -140,7 +140,7 @@ With gently smiling jaws!
 
 MH_CHECK([burst mime recursive],[burst03 burst-mime-recursive],[
 MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
-burst +inbox --recursive 4 || exit $?
+burst +inbox -recursive 4 || exit $?
 grep -v ^X-Envelope- Mail/inbox/6
 grep -v ^X-Envelope- Mail/inbox/7
 grep -v ^X-Envelope- Mail/inbox/8

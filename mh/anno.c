@@ -19,81 +19,29 @@
 
 #include <mh.h>
 
-static char doc[] = N_("GNU MH anno")"\v"
-N_("Options marked with `*' are not yet implemented.\n\
-Use -help to obtain the list of traditional MH options.");
+static char prog_doc[] = N_("GNU MH anno");
 static char args_doc[] = N_("[MSGLIST]");
 
-/* GNU options */
-static struct argp_option options[] = {
-  {"folder",  ARG_FOLDER, N_("FOLDER"), 0,
-   N_("specify folder to operate upon")},
-  {"inplace", ARG_INPLACE, N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("* annotate the message in place")},
-  {"noinplace", ARG_NOINPLACE, NULL, OPTION_HIDDEN,  "" },
-  {"date", ARG_DATE, N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("add FIELD: date header") },
-  {"nodate", ARG_NODATE, NULL, OPTION_HIDDEN, "" },
-  {"component", ARG_COMPONENT, N_("FIELD"), 0,
-   N_("add this FIELD to the message header") },
-  {"text", ARG_TEXT, N_("STRING"), 0,
-   N_("field value for the component") },
-  { NULL }
-};
-
-struct mh_option mh_option[] = {
-  { "inplace",   MH_OPT_BOOL },
-  { "date",      MH_OPT_BOOL },
-  { "component", MH_OPT_ARG, "field" },
-  { "text",      MH_OPT_ARG, "body" },
-  { NULL }
-};
-
-static int inplace;       /* Annotate the message in place */
+//static int inplace;       /* Annotate the message in place */
 static int anno_date = 1; /* Add date to the annotation */
 static char *component;   /* header field */
 static char *anno_text;   /* header field value */
 
-static error_t
-opt_handler (int key, char *arg, struct argp_state *state)
-{
-  switch (key)
-    {
-    case ARG_FOLDER: 
-      mh_set_current_folder (arg);
-      break;
-
-    case ARG_INPLACE:
-      mh_opt_notimpl_warning ("-inplace");
-      inplace = is_true (arg);
-      break;
-
-    case ARG_NOINPLACE:
-      mh_opt_notimpl_warning ("-noinplace");
-      inplace = 0;
-      break;
-
-    case ARG_DATE:
-      anno_date = is_true (arg);
-      break;
-
-    case ARG_NODATE:
-      anno_date = 0;
-      break;
-
-    case ARG_COMPONENT:
-      component = arg;
-      break;
-
-    case ARG_TEXT:
-      mh_quote (arg, &anno_text);
-      break;
-
-    default:
-      return ARGP_ERR_UNKNOWN;
-    }
-  return 0;
-}
+static struct mu_option options[] = {
+  { "inplace", 0, NULL, MU_OPTION_HIDDEN,
+    N_("annotate the message in place"),
+    mu_c_string, NULL, mh_opt_notimpl_warning },
+  { "date", 0, NULL, MU_OPTION_DEFAULT,
+    N_("add FIELD: date header"),
+    mu_c_bool, &anno_date },
+  { "component", 0, N_("FIELD"), MU_OPTION_DEFAULT,
+    N_("add this FIELD to the message header"),
+    mu_c_string, &component },
+  { "text", 0, N_("STRING"), MU_OPTION_DEFAULT,
+    N_("field value for the component"),
+    mu_c_string, &anno_text },
+  MU_OPTION_END
+};
 
 int
 anno (size_t n, mu_message_t msg, void *call_data)
@@ -106,17 +54,21 @@ int
 main (int argc, char **argv)
 {
   int rc;
-  int index;
   mu_mailbox_t mbox;
   mu_msgset_t msgset;
   size_t len;
 
   MU_APP_INIT_NLS ();
 
-  mh_argp_init ();
-  mh_argp_parse (&argc, &argv, 0, options, mh_option, args_doc, doc,
-		 opt_handler, NULL, &index);
-
+  mh_getopt (&argc, &argv, options, MH_GETOPT_DEFAULT_FOLDER,
+	     args_doc, prog_doc, NULL);
+  if (anno_text)
+    {
+      char *arg = anno_text;
+      mh_quote (arg, &anno_text);
+      free (arg);
+    }
+  
   mbox = mh_open_folder (mh_current_folder (), MU_STREAM_RDWR);
 
   if (!component)
@@ -151,9 +103,6 @@ main (int argc, char **argv)
   len = strlen (component);
   if (len > 0 && component[len-1] == ':')
     component[len-1] = 0;
-  
-  argc -= index;
-  argv += index;
   
   mh_msgset_parse (&msgset, mbox, argc, argv, "cur");
   rc = mu_msgset_foreach_message (msgset, anno, NULL);

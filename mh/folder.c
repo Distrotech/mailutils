@@ -28,78 +28,16 @@
 
 #include <dirent.h>
 
-static char doc[] = N_("GNU MH folder")"\v"
-N_("Use -help to obtain the list of traditional MH options.");
+static char prog_doc[] = N_("GNU MH folder");
 static char args_doc[] = N_("[ACTION] [MSG]");
 
-static struct argp_option options[] = {
-  {N_("Actions are:"), 0, 0, OPTION_DOC, NULL, 0 },
-  {"print", ARG_PRINT, NULL, 0,
-   N_("list the folders (default)"), 1 },
-  {"list",  ARG_LIST,  NULL, 0,
-   N_("list the contents of the folder stack"), 1},
-  {"pack",  ARG_PACK,  N_("NUMBER"), OPTION_ARG_OPTIONAL,
-   N_("remove holes in message numbering, begin numbering from NUMBER (default: first message number)"), 1},
-  {"push",  ARG_PUSH,  N_("FOLDER"), OPTION_ARG_OPTIONAL,
-    N_("push the folder on the folder stack. If FOLDER is specified, it is pushed. "
-       "Otherwise, if a folder is given in the command line (via + or --folder), "
-       "it is pushed on stack. Otherwise, the current folder and the top of the folder "
-       "stack are exchanged"), 1},
-  {"pop",   ARG_POP,    NULL, 0,
-   N_("pop the folder off the folder stack"), 1},
-  
-  {N_("Options are:"), 0, 0, OPTION_DOC, NULL, 2 },
-  
-  {"folder", ARG_FOLDER, N_("FOLDER"), 0,
-   N_("specify folder to operate upon"), 3},
-  {"all",    ARG_ALL,    NULL, 0,
-   N_("list all folders"), 3},
-  {"create", ARG_CREATE, N_("BOOL"), OPTION_ARG_OPTIONAL, 
-    N_("create non-existing folders"), 3},
-  {"nocreate", ARG_NOCREATE, NULL, OPTION_HIDDEN, ""},
-  {"fast",   ARG_FAST, N_("BOOL"), OPTION_ARG_OPTIONAL, 
-    N_("list only the folder names"), 3},
-  {"nofast", ARG_NOFAST, NULL, OPTION_HIDDEN, ""},
-  {"header", ARG_HEADER, N_("BOOL"), OPTION_ARG_OPTIONAL, 
-    N_("print the header line"), 3},
-  {"noheader", ARG_NOHEADER, NULL, OPTION_HIDDEN, ""},
-  {"recurse",ARG_RECURSIVE, N_("BOOL"), OPTION_ARG_OPTIONAL,
-    N_("scan folders recursively"), 3},
-  {"norecurse", ARG_NORECURSIVE, NULL, OPTION_HIDDEN, ""},
-  {"total",  ARG_TOTAL, N_("BOOL"), OPTION_ARG_OPTIONAL, 
-    N_("output the total statistics"), 3},
-  {"nototal", ARG_NOTOTAL, NULL, OPTION_HIDDEN, ""},
-  {"verbose", ARG_VERBOSE, NULL, 0,
-   N_("verbosely list actions taken"), 3},
-  {"dry-run", ARG_DRY_RUN, NULL, 0,
-   N_("do nothing, print what would be done (with --pack)"), 3},
-   
-  {NULL},
-};
+typedef int (*folder_action) (void);
 
-/* Traditional MH options */
-struct mh_option mh_option[] = {
-  { "print" },
-  { "list" },
-  { "push" },
-  { "pop" },
-  { "all" },
-  { "pack" },
-  { "create",  MH_OPT_BOOL },
-  { "fast",    MH_OPT_BOOL },
-  { "header",  MH_OPT_BOOL },
-  { "recurse", MH_OPT_BOOL },
-  { "total",   MH_OPT_BOOL },
-  { NULL }
-};
-
-typedef int (*folder_action) ();
-
-static int action_print ();
-static int action_list ();
-static int action_push ();
-static int action_pop ();
-static int action_pack ();
+static int action_print (void);
+static int action_list (void);
+static int action_push (void);
+static int action_pop (void);
+static int action_pack (void);
 static folder_action action = action_print;
 
 int show_all = 0; /* List all folders. Raised by --all switch */
@@ -121,110 +59,105 @@ const char *push_folder; /* Folder name to push on stack */
 const char *mh_seq_name; /* Name of the mh sequence file (defaults to
 			    .mh_sequences) */
 int has_folder;    /* Folder has been explicitely given */
+int recurse_option = 0;
 size_t max_depth = 1;  /* Maximum recursion depth (0 means infinity) */ 
 
 #define OPTION_IS_SET(opt) ((opt) == -1 ? show_all : opt)
 
-static int
-opt_handler (int key, char *arg, struct argp_state *state)
+void
+set_action (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
 {
-  switch (key)
+  if (strcmp (opt->opt_long, "print") == 0)
+    action = action_print;
+  else if (strcmp (opt->opt_long, "pack") == 0)
     {
-    case ARG_DRY_RUN:
-      dry_run++;
-      break;
-	
-    case ARG_PACK:
       action = action_pack;
       if (arg)
 	{
-	  char *p;
-	  pack_start = strtoul (arg, &p, 10);
-	  if (*p)
-	    argp_error (state, _("invalid number"));
+	  if (mu_str_to_c (arg, mu_c_size, &pack_start, NULL))
+	    {
+	      mu_parseopt_error (po, _("%s: invalid number"), arg);
+	      exit (po->po_exit_error);
+	    }
 	}
-      break;
-      
-    case ARG_PRINT:
-      action = action_print;
-      break;
-      
-    case ARG_LIST:
-      action = action_list;
-      break;
-
-    case ARG_PUSH:
+    }
+  else if (strcmp (opt->opt_long, "list") == 0)
+    action = action_list;
+  else if (strcmp (opt->opt_long, "push") == 0)
+    {
       action = action_push;
       if (arg)
 	{
 	  push_folder = mh_current_folder ();
 	  mh_set_current_folder (arg);
 	}
-      break;
-      
-    case ARG_POP:
-      action = action_pop;
-      break;
-      
-    case ARG_ALL:
-      show_all = 1;
-      break;
-
-    case ARG_CREATE:
-      create_flag = is_true (arg);
-      break;
-
-    case ARG_NOCREATE:
-      create_flag = 0;
-      
-    case ARG_FAST:
-      fast_mode = is_true (arg);
-      break;
-
-    case ARG_NOFAST:
-      fast_mode = 0;
-      break;
-      
-    case ARG_HEADER:
-      print_header = is_true (arg);
-      break;
-
-    case ARG_NOHEADER:
-      print_header = 0;
-      break;
-      
-    case ARG_RECURSIVE:
-      max_depth = is_true (arg) ? 0 : 1;
-      break;
-
-    case ARG_NORECURSIVE:
-      max_depth = 0;
-      break;
-      
-    case ARG_TOTAL:
-      print_total = is_true (arg);
-      break;
-
-    case ARG_NOTOTAL:
-      print_total = 0;
-      break;
-      
-    case ARG_FOLDER:
-      has_folder = 1;
-      push_folder = mh_current_folder ();
-      mh_set_current_folder (arg);
-      break;
-      
-    case ARG_VERBOSE:
-      verbose++;
-      break;
-      
-    default:
-      return ARGP_ERR_UNKNOWN;
     }
-  return 0;
+  else if (strcmp (opt->opt_long, "pop") == 0)
+    action = action_pop;
+  else
+    abort ();
 }
 
+void
+set_folder (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
+{
+  has_folder = 1;
+  push_folder = mh_current_folder ();
+  mh_set_current_folder (arg);
+}
+
+static struct mu_option options[] = {
+  MU_OPTION_GROUP (N_("Actions are:")),
+  { "print", 0, NULL, MU_OPTION_DEFAULT,
+    N_("list the folders (default)"),
+    mu_c_string, NULL, set_action },
+  { "list",   0, NULL, MU_OPTION_DEFAULT,
+    N_("list the contents of the folder stack"),
+    mu_c_string, NULL, set_action },
+  { "pack",   0, N_("NUMBER"), MU_OPTION_ARG_OPTIONAL,
+    N_("remove holes in message numbering, begin numbering from NUMBER (default: first message number)"),
+    mu_c_string, NULL, set_action },
+  { "push",   0, N_("FOLDER"), MU_OPTION_ARG_OPTIONAL,
+    N_("push the folder on the folder stack. If FOLDER is specified, it is pushed. "
+       "Otherwise, if a folder is given in the command line (via + or --folder), "
+       "it is pushed on stack. Otherwise, the current folder and the top of the folder "
+       "stack are exchanged"),
+    mu_c_string, NULL, set_action },
+  { "pop",    0, NULL, MU_OPTION_DEFAULT,
+    N_("pop the folder off the folder stack"), 
+    mu_c_string, NULL, set_action },
+  
+  MU_OPTION_GROUP (N_("Options are:")),
+  
+  { "folder", 0, N_("FOLDER"), MU_OPTION_DEFAULT,
+    N_("specify folder to operate upon"),
+    mu_c_string, NULL, set_folder },
+  { "all",    0,    NULL, MU_OPTION_DEFAULT,
+    N_("list all folders"),
+    mu_c_bool, &show_all },
+  { "create", 0, NULL, MU_OPTION_DEFAULT, 
+    N_("create non-existing folders"),
+    mu_c_bool, &create_flag },
+  { "fast",   0, NULL, MU_OPTION_DEFAULT, 
+    N_("list only the folder names"),
+    mu_c_bool, &fast_mode },
+  { "header", 0, NULL, MU_OPTION_DEFAULT, 
+    N_("print the header line"),
+    mu_c_bool, &print_header },
+  { "recurse",0, NULL, MU_OPTION_DEFAULT,
+    N_("scan folders recursively"),
+    mu_c_bool, &recurse_option },
+  { "total",  0, NULL, MU_OPTION_DEFAULT, 
+    N_("output the total statistics"),
+    mu_c_bool, &print_total },
+  { "verbose", 0, NULL, MU_OPTION_DEFAULT,
+    N_("verbosely list actions taken"),
+    mu_c_bool, &verbose },
+  { "dry-run", 0, NULL, MU_OPTION_DEFAULT,
+    N_("do nothing, print what would be done (with --pack)"),
+    mu_c_bool, &dry_run },
+  MU_OPTION_END
+};
 
 /* ************************************************************* */
 /* Printing */
@@ -430,19 +363,19 @@ _folder_name_printer (void *item, void *data)
 }
 
 static void
-print_all ()
+print_all (void)
 {
   mu_list_foreach (folder_info_list, _folder_info_printer, NULL);
 }
 
 static void
-print_fast ()
+print_fast (void)
 {
   mu_list_foreach (folder_info_list, _folder_name_printer, NULL);
 }
 
 static int
-action_print ()
+action_print (void)
 {
   const char *folder_dir = mu_folder_directory ();
   mh_seq_name = mh_global_profile_get ("mh-sequences", MH_SEQUENCES_FILE);
@@ -502,7 +435,7 @@ action_print ()
 /* Listing */
 
 static int
-action_list ()
+action_list (void)
 {
   const char *stack = mh_global_context_get ("Folder-Stack", NULL);
 
@@ -598,7 +531,7 @@ pop_val (size_t *pc, char ***pv)
 }
   
 static int
-action_push ()
+action_push (void)
 {
   size_t c;
   char **v;
@@ -623,7 +556,7 @@ action_push ()
 }
 
 static int
-action_pop ()
+action_pop (void)
 {
   size_t c;
   char **v;
@@ -849,7 +782,7 @@ fixup_private (const char *name, const char *value, void *data)
 }
 
 int
-action_pack ()
+action_pack (void)
 {
   const char *folder_dir = mh_expand_name (NULL, mh_current_folder (), 
                                            NAME_ANY);
@@ -959,9 +892,9 @@ main (int argc, char **argv)
   /* Native Language Support */
   MU_APP_INIT_NLS ();
 
-  mh_argp_init ();
-  mh_argp_parse (&argc, &argv, 0, options, mh_option, args_doc, doc,
-		 opt_handler, NULL, &index);
+  mh_getopt (&argc, &argv, options, 0, args_doc, prog_doc, NULL);
+  if (recurse_option)
+    max_depth = 0;
 
   /* If  folder  is invoked by a name ending with "s" (e.g.,  folders),
      `-all'  is  assumed */

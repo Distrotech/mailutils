@@ -57,6 +57,7 @@
 #include <mailutils/io.h>
 #include <mailutils/property.h>
 #include <mailutils/prog.h>
+#include <mailutils/opool.h>
 #include <mailutils/mh.h>
 #include <mailutils/stdstream.h>
 #include <mailutils/datetime.h>
@@ -230,7 +231,7 @@ extern int mh_mailbox_cur_default;
 void mh_init (void);
 void mh_init2 (void);
 void mh_read_profile (void);
-int mh_read_formfile (char *name, char **pformat);
+int mh_read_formfile (char const *name, char **pformat);
 mu_message_t mh_file_to_message (const char *folder, const char *file_name);
 mu_message_t mh_stream_to_message (mu_stream_t stream);
 void mh_install (char *name, int automode);
@@ -342,7 +343,7 @@ void mh_set_reply_regex (const char *str);
 int mh_decode_2047 (char *text, char **decoded_text);
 const char *mh_charset (const char *);
 
-int mh_alias_read (char *name, int fail);
+int mh_alias_read (char const *name, int fail);
 int mh_alias_get (const char *name, mu_list_t *return_list);
 int mh_alias_get_address (const char *name, mu_address_t *addr, int *incl);
 int mh_alias_get_alias (const char *uname, mu_list_t *return_list);

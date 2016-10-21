@@ -23,73 +23,41 @@
 #include <sys/ioctl.h>
 #include <sys/stat.h>
 
-static char doc[] = N_("GNU MH ali")"\v"
-N_("Use -help to obtain the list of traditional MH options.");
+static char prog_doc[] = N_("GNU MH ali");
 static char args_doc[] = N_("ALIAS [ALIAS...]");
-
-/* GNU options */
-static struct argp_option options[] = {
-  {"alias",  ARG_ALIAS, N_("FILE"), 0,
-   N_("use the additional alias FILE")},
-  {"noalias", ARG_NOALIAS, NULL, 0,
-   N_("do not read the system alias file") },
-  {"list", ARG_LIST, N_("BOOL"),  OPTION_ARG_OPTIONAL,
-   N_("list each address on a separate line") },
-  {"normalize", ARG_NORMALIZE, N_("BOOL"),  OPTION_ARG_OPTIONAL,
-   N_("try to determine the official hostname for each address") },
-  {"user", ARG_USER, N_("BOOL"),  OPTION_ARG_OPTIONAL,
-   N_("list the aliases that expand to given addresses") },
-  { 0 }
-};
-
-/* Traditional MH options */
-struct mh_option mh_option[] = {
-  { "alias", MH_OPT_ARG, "aliasfile" },
-  { "noalias", },
-  { "list", MH_OPT_BOOL },
-  { "normalize", MH_OPT_BOOL },
-  { "user", MH_OPT_BOOL },
-  { NULL }
-};
 
 static int list_mode;
 static int user_mode;
 static int normalize_mode;
 static int nolist_mode;
 
-static error_t
-opt_handler (int key, char *arg, struct argp_state *state)
+static void
+alias_handler (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
 {
-  switch (key)
-    {
-    case ARG_ALIAS:
-      mh_alias_read (arg, 1);
-      break;
-
-    case ARG_NOALIAS:
-      nolist_mode = 1;
-      break;
-      
-    case ARG_LIST:
-      list_mode = is_true (arg);
-      break;
-	
-    case ARG_NORMALIZE:
-      normalize_mode = is_true (arg);
-      break;
-
-    case ARG_USER:
-      user_mode = is_true (arg);
-      break;
-
-    default:
-      return ARGP_ERR_UNKNOWN;
-    }
-  return 0;
+  mh_alias_read (arg, 1);
 }
 
+static struct mu_option options[] = {
+  { "alias",  0, N_("FILE"), MU_OPTION_DEFAULT,
+    N_("use the additional alias FILE"),
+    mu_c_string, NULL, alias_handler },
+  { "noalias", 0, NULL, 0,
+    N_("do not read the system alias file"),
+    mu_c_int, &nolist_mode, NULL, "1" },
+  { "list", 0, NULL,  MU_OPTION_DEFAULT,
+    N_("list each address on a separate line"),
+    mu_c_bool, &list_mode },
+  { "normalize", 0, NULL, MU_OPTION_DEFAULT,
+    N_("try to determine the official hostname for each address"),
+    mu_c_bool, &normalize_mode },
+  { "user", 0, NULL,  MU_OPTION_DEFAULT,
+    N_("list the aliases that expand to given addresses"),
+    mu_c_bool, &user_mode },
+  MU_OPTION_END
+};
+
 static int
-getcols ()
+getcols (void)
 {
   struct winsize ws;
 
@@ -174,17 +142,10 @@ ali_print_name (char *name)
 int
 main (int argc, char **argv)
 {
-  int index;
-  
   /* Native Language Support */
   MU_APP_INIT_NLS ();
 
-  mh_argp_init ();
-  mh_argp_parse (&argc, &argv, 0, options, mh_option, args_doc, doc,
-		 opt_handler, NULL, &index);
-
-  argc -= index;
-  argv += index;
+  mh_getopt (&argc, &argv, options, 0, args_doc, prog_doc, NULL);
 
   if (!nolist_mode)
     mh_read_aliases ();

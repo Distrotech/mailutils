@@ -20,70 +20,13 @@
 #include <mh.h>
 #include "muscript.h"
 
-static char doc[] = N_("GNU MH inc")"\v"
-N_("Debug flags are:\n\
+static char prog_doc[] = N_("GNU MH inc");
+static char extra_doc[] = N_("Debug flags are:\n\
   g - guile stack traces\n\
   t - sieve trace (MU_SIEVE_DEBUG_TRACE)\n\
   i - sieve instructions trace (MU_SIEVE_DEBUG_INSTR)\n\
-  l - sieve action logs\n\n\
-Use -help to obtain the list of traditional MH options.");
+  l - sieve action logs");
 static char args_doc[] = N_("[+FOLDER]");
-
-/* GNU options */
-static struct argp_option options[] = {
-  {"file",    ARG_FILE, N_("FILE"),   0,
-   N_("incorporate mail from named file")},
-  {"folder",  ARG_FOLDER, N_("FOLDER"), 0,
-   N_("specify folder to incorporate mail to")},
-  {"audit",   ARG_AUDIT, N_("FILE"), 0,
-   N_("enable audit")},
-  {"noaudit", ARG_NOAUDIT, 0, 0,
-   N_("disable audit")},
-  {"changecur", ARG_CHANGECUR, N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("mark first incorporated message as current (default)")},
-  {"nochangecur", ARG_NOCHANGECUR, NULL, OPTION_HIDDEN, ""},
-  {"form",    ARG_FORM, N_("FILE"),   0,
-   N_("read format from given file")},
-  {"format",  ARG_FORMAT, N_("FORMAT"), 0,
-   N_("use this format string")},
-  {"truncate", ARG_TRUNCATE, N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("truncate source mailbox after incorporating (default)")},
-  {"notruncate", ARG_NOTRUNCATE, NULL, OPTION_HIDDEN, ""},
-  {"moveto",  ARG_MOVETO, N_("MAILBOX"), 0,
-   N_("move incorporated messages to MAILBOX instead of deleting them") },
-  {"width",   ARG_WIDTH, N_("NUMBER"), 0,
-   N_("set output width")},
-  {"quiet",   ARG_QUIET, 0,        0,
-   N_("be quiet")},
-  {"notify",  ARG_NOTIFY,N_("BOOL"),   OPTION_ARG_OPTIONAL,
-   N_("enable biff notification"), },
-  {"language",ARG_LANG,  N_("LANG"), 0,
-   N_("set language for the --script option") },
-  {"script",  ARG_SCRIPT,N_("FILE"), 0,
-   N_("filter incoming messages using script FILE") },
-  {"debug",   ARG_DEBUG, N_("FLAGS"), 0,
-   N_("enable debugging") },   
-  { 0 }
-};
-
-/* Traditional MH options */
-struct mh_option mh_option[] = {
-  { "audit",     MH_OPT_ARG, "audit-file" },
-  { "noaudit" },
-  { "changecur", MH_OPT_BOOL },
-  { "file",      MH_OPT_ARG, "input-file" },
-  { "form",      MH_OPT_ARG, "format-file" },
-  { "format",    MH_OPT_ARG, "string" },
-  { "truncate",  MH_OPT_BOOL },
-  { "moveto",    MH_OPT_ARG, "folder" },
-  { "width",     MH_OPT_ARG, "number" },
-  { "notify",    MH_OPT_BOOL },
-  { "quiet" },
-  { "language",  MH_OPT_ARG, "lang" },
-  { "script",    MH_OPT_ARG, "file" },
-  { "debug",     MH_OPT_ARG, "flags" },
-  { NULL }
-};
 
 static char *format_str = mh_list_format;
 static int width = 80;
@@ -99,114 +42,89 @@ static const char *move_to_mailbox;
 static const char *script_file;
 static const char *script_lang;
 
-static error_t
-opt_handler (int key, char *arg, struct argp_state *state)
+static void
+add_file (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
 {
   int rc;
-  char *p;
-  
-  switch (key)
+  if (!input_file_list)
     {
-    case ARGP_KEY_FINI:
-      if (!append_folder)
-	append_folder = mh_global_profile_get ("Inbox", "inbox");
-      break;
-
-    case ARG_AUDIT:
-      audit_file = arg;
-      break;
-
-    case ARG_NOAUDIT:
-      audit_file = NULL;
-      break;
-      
-    case ARG_CHANGECUR:
-      changecur = is_true (arg);
-      break;
-
-    case ARG_DEBUG:
-      if (mu_script_debug_flags (arg, &p))
-	argp_error (state, _("invalid debug flag near %s"), p);
-      break;
-
-    case ARG_NOCHANGECUR:
-      changecur = 0;
-      break;
-      
-    case ARG_FOLDER: 
-      append_folder = arg;
-      break;
-      
-    case ARG_FORM:
-      mh_read_formfile (arg, &format_str);
-      break;
-
-    case ARG_FORMAT:
-      format_str = arg;
-      break;
-      
-    case ARG_FILE:
-      if (!input_file_list)
-	{
-	  rc = mu_list_create (&input_file_list);
-	  if (rc)
-	    {
-	      mu_diag_funcall (MU_DIAG_ERROR,
-			       "mu_list_create", "&input_file_list", rc);
-	      exit (1);
-	    }
-	}
-      rc = mu_list_append (input_file_list, arg);
+      rc = mu_list_create (&input_file_list);
       if (rc)
 	{
-	  mu_diag_funcall (MU_DIAG_ERROR, "mu_list_append", arg, rc);
+	  mu_diag_funcall (MU_DIAG_ERROR,
+			   "mu_list_create", "&input_file_list", rc);
 	  exit (1);
 	}
-      break;
-
-    case ARG_TRUNCATE:
-      truncate_source = is_true (arg);
-      break;
-
-    case ARG_NOTRUNCATE:
-      truncate_source = 0;
-      break;
-
-    case ARG_MOVETO:
-      move_to_mailbox = arg;
-      break;
-      
-    case ARG_WIDTH:
-      width = strtoul (arg, NULL, 0);
-      if (!width)
-	{
-	  argp_error (state, _("invalid width"));
-	  exit (1);
-	}
-      break;
-
-    case ARG_QUIET:
-      quiet = 1;
-      break;
-
-    case ARG_NOTIFY:
-      notify = is_true (arg);;
-      break;
-
-    case ARG_LANG:
-      script_lang = arg;
-      break;
-
-    case ARG_SCRIPT:
-      script_file = arg;
-      break;
-      
-    default:
-      return ARGP_ERR_UNKNOWN;
     }
-  return 0;
+  rc = mu_list_append (input_file_list, mu_strdup (arg));
+  if (rc)
+    {
+      mu_diag_funcall (MU_DIAG_ERROR, "mu_list_append", arg, rc);
+      exit (1);
+    }
 }
 
+static void
+set_debug (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
+{
+  char *p;
+  
+  if (mu_script_debug_flags (arg, &p))
+    {
+      mu_parseopt_error (po, _("invalid debug flag near %s"), p);
+      exit (po->po_exit_error);
+    }
+}
+
+static struct mu_option options[] = {
+  { "file",    0, N_("FILE"),   MU_OPTION_DEFAULT,
+    N_("incorporate mail from named file"),
+    mu_c_string, NULL, add_file },
+  { "folder",  0, N_("FOLDER"), MU_OPTION_DEFAULT,
+    N_("specify folder to incorporate mail to"),
+    mu_c_string, &append_folder },
+  { "audit",   0, N_("FILE"), MU_OPTION_DEFAULT,
+    N_("enable audit"),
+    mu_c_string, &audit_file },
+  { "noaudit", 0, NULL, MU_OPTION_DEFAULT,
+    N_("disable audit"),
+    mu_c_string, &audit_file, mh_opt_clear_string },
+  { "changecur", 0, NULL, MU_OPTION_DEFAULT,
+    N_("mark first incorporated message as current (default)"),
+    mu_c_bool, &changecur },
+  { "form",      0, N_("FILE"),   MU_OPTION_DEFAULT,
+    N_("read format from given file"),
+    mu_c_string, &format_str, mh_opt_read_formfile },
+  { "format",    0, N_("FORMAT"), MU_OPTION_DEFAULT,
+    N_("use this format string"),
+    mu_c_string, &format_str },
+  { "truncate",  0, NULL, MU_OPTION_DEFAULT,
+    N_("truncate source mailbox after incorporating (default)"),
+    mu_c_bool, &truncate_source },
+  { "moveto",    0, N_("MAILBOX"), MU_OPTION_DEFAULT,
+    N_("move incorporated messages to MAILBOX instead of deleting them"),
+    mu_c_string, &move_to_mailbox },
+  { "width",     0, N_("NUMBER"), MU_OPTION_DEFAULT,
+    N_("set output width"),
+    mu_c_int, &width },
+  { "quiet",     0, NULL,         MU_OPTION_DEFAULT,
+    N_("be quiet"),
+    mu_c_bool, &quiet },
+  { "notify",    0, NULL,         MU_OPTION_DEFAULT,
+    N_("enable biff notification"),
+    mu_c_bool, &notify },
+  { "language",  0, N_("LANG"),   MU_OPTION_DEFAULT,
+    N_("set language for the --script option"),
+    mu_c_string, &script_lang },
+  { "script",    0, N_("FILE"),   MU_OPTION_DEFAULT,
+    N_("filter incoming messages using script FILE"),
+    mu_c_string, &script_file },
+  { "debug",     0, N_("FLAGS"),  MU_OPTION_DEFAULT,
+    N_("enable debugging"),
+    mu_c_string, 0, set_debug },
+  MU_OPTION_END
+};
+
 void
 list_message (mh_format_t *format, mu_mailbox_t mbox, size_t msgno,
 	      size_t width)
@@ -430,9 +348,10 @@ main (int argc, char **argv)
   /* Native Language Support */
   MU_APP_INIT_NLS ();
   
-  mh_argp_init ();
-  mh_argp_parse (&argc, &argv, 0, options, mh_option, args_doc, doc,
-		 opt_handler, NULL, NULL);
+  mh_getopt (&argc, &argv, options, 0, args_doc, prog_doc, extra_doc);
+  if (!append_folder)
+    append_folder = mh_global_profile_get ("Inbox", "inbox");
+
   mu_registrar_set_default_scheme ("mh");
 
   /* Inc sets missing cur to 1 */

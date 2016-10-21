@@ -59,7 +59,7 @@ mh_init2 ()
 }
 
 int
-mh_read_formfile (char *name, char **pformat)
+mh_read_formfile (char const *name, char **pformat)
 {
   FILE *fp;
   struct stat st;

@@ -21,48 +21,15 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-static char doc[] = N_("GNU MH mhl")"\v"
-N_("Use -help to obtain the list of traditional MH options.");
+static char prog_doc[] = N_("GNU MH mhl");
 static char args_doc[] = N_("[FILE [FILE...]]");
 
-/* GNU options */
-static struct argp_option options[] = {
-  {"folder",     ARG_FOLDER,     N_("FOLDER"), 0,
-   N_("specify folder to operate upon")},
-  { "bell",      ARG_BELL,       N_("BOOL"), OPTION_ARG_OPTIONAL,
-    N_("ring the bell at the end of each output page") },
-  {"nobell",     ARG_NOBELL,     NULL, OPTION_HIDDEN, "" },
-  { "clear",     ARG_CLEAR,      N_("BOOL"), OPTION_ARG_OPTIONAL,
-    N_("clear the screen after each page of output")},
-  {"noclear",    ARG_NOCLEAR,    NULL, OPTION_HIDDEN, "" },
-  {"form",       ARG_FORM,       N_("FILE"), 0,
-   N_("read format from given file")},
-  {"width",      ARG_WIDTH,      N_("NUMBER"), 0,
-   N_("set output width")},
-  {"length",     ARG_LENGTH,     N_("NUMBER"), 0,
-   N_("set output screen length")},
-  {"moreproc",   ARG_MOREPROC,   N_("PROG"), 0,
-   N_("use given PROG instead of the default") },
-  {"nomoreproc", ARG_NOMOREPROC, NULL, 0,
-   N_("disable use of moreproc program") },
-  { NULL }
-};
-   
-/* Traditional MH options */
-struct mh_option mh_option[] = {
-  { "bell",       MH_OPT_BOOL },
-  { "clear",      MH_OPT_BOOL },
-  { "form",       MH_OPT_ARG, "formatfile"},
-  { "width",      MH_OPT_ARG, "number"},
-  { "length",     MH_OPT_ARG, "number"},
-  { "moreproc",   MH_OPT_ARG, "program"},
-  { "nomoreproc" },
-  { NULL }
-};
+static int bell_option;
+static int clear_option;
 
 static int interactive;  /* Using interactive output */
-static int mhl_fmt_flags; /* MHL format flags. Controlled by --bell 
-                             and --clear */
+static int mhl_fmt_flags; /* MHL format flags. Controlled by -bell 
+                             and -clear */
 static int length = 40;  /* Length of output page */
 static int width = 80;   /* Width of output page */
 static char *formfile = MHLIBDIR "/mhl.format";
@@ -71,69 +38,31 @@ static int nomoreproc;
 
 static mu_list_t format;
 
-static error_t
-opt_handler (int key, char *arg, struct argp_state *state)
-{
-  switch (key)
-    {
-    case ARG_FOLDER:
-      mh_set_current_folder (arg);
-      break;
-
-    case ARG_BELL:
-      if (is_true (arg))
-        mhl_fmt_flags |= MHL_BELL;
-      break;
-      
-    case ARG_NOBELL:
-      mhl_fmt_flags &= ~MHL_BELL;
-      break;
-      
-    case ARG_CLEAR:
-      if (is_true (arg))
-        mhl_fmt_flags |= MHL_CLEARSCREEN;
-      break;
-      
-    case ARG_NOCLEAR:
-      mhl_fmt_flags &= ~MHL_CLEARSCREEN;
-      break;
-      
-    case ARG_FORM:
-      mh_find_file (arg, &formfile);
-      break;
-      
-    case ARG_WIDTH:
-      width = strtoul (arg, NULL, 0);
-      if (!width)
-	{
-	  argp_error (state, _("invalid width"));
-	  exit (1);
-	}
-      break;
-      
-    case ARG_LENGTH:
-      length = strtoul (arg, NULL, 0);
-      if (!length)
-	{
-	  argp_error (state, _("invalid length"));
-	  exit (1);
-	}
-      break;
-
-    case ARG_MOREPROC:
-      moreproc = arg;
-      break;
-      
-    case ARG_NOMOREPROC:
-      nomoreproc = 1;
-      break;
-      
-    default:
-      return ARGP_ERR_UNKNOWN;
-    }
-  return 0;
-}
-
+static struct mu_option options[] = {
+  { "bell",      0,       NULL, MU_OPTION_DEFAULT,
+    N_("ring the bell at the end of each output page"),
+    mu_c_bool, &bell_option },
+  { "clear",     0,       NULL, MU_OPTION_DEFAULT,
+    N_("clear the screen after each page of output"),
+    mu_c_bool, &clear_option },
+  { "form",      0,       N_("FILE"), MU_OPTION_DEFAULT,
+    N_("read format from given file"),
+    mu_c_string, &formfile, mh_opt_find_file },
+  { "width",     0,       N_("NUMBER"), MU_OPTION_DEFAULT,
+    N_("set output width"),
+    mu_c_int, &width },
+  { "length",    0,       N_("NUMBER"), MU_OPTION_DEFAULT,
+    N_("set output screen length"),
+    mu_c_int, &length },
+  { "moreproc",  0,       N_("PROG"), MU_OPTION_DEFAULT,
+    N_("use given PROG instead of the default"),
+    mu_c_string, &moreproc },
+  { "nomoreproc", 0, NULL, MU_OPTION_DEFAULT,
+    N_("disable use of moreproc program"),
+    mu_c_bool, &nomoreproc },
+  MU_OPTION_END
+};
+   
 static mu_stream_t
 open_output ()
 {
@@ -205,23 +134,33 @@ list_message (char *name, mu_stream_t output)
 int
 main (int argc, char **argv)
 {
-  int index;
   mu_stream_t output;
   
   interactive = isatty (1) && isatty (0);
   
   MU_APP_INIT_NLS ();
-  mh_argp_init ();
-  mh_argp_parse (&argc, &argv, 0, options, mh_option, args_doc, doc,
-		 opt_handler, NULL, &index);
 
+  mh_getopt (&argc, &argv, options, MH_GETOPT_DEFAULT_FOLDER,
+	     args_doc, prog_doc, NULL);  
+
+  if (bell_option == -1)
+    /* use default */;
+  else if (bell_option)
+    mhl_fmt_flags |= MHL_BELL;
+  else
+    mhl_fmt_flags &= ~MHL_BELL;
+
+  if (clear_option == -1)
+    /* use default */;
+  else if (clear_option)
+    mhl_fmt_flags |= MHL_CLEARSCREEN;
+  else
+    mhl_fmt_flags &= ~MHL_CLEARSCREEN;
+  
   format = mhl_format_compile (formfile);
   if (!format)
     exit (1);
   
-  argc -= index;
-  argv += index;
-
   if (argc == 0)
     nomoreproc = 1;
 

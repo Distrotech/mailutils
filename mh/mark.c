@@ -17,105 +17,77 @@
 
 #include <mh.h>
 
-static char doc[] = N_("GNU MH mark")"\v"
-N_("Use -help to obtain the list of traditional MH options.");
+static char prog_doc[] = N_("GNU MH mark");
 static char args_doc[] = N_("[MSGLIST]");
 
-/* GNU options */
-static struct argp_option options[] = {
-  {"folder",  ARG_FOLDER, N_("FOLDER"), 0,
-   N_("specify folder to operate upon")},
-  {"sequence", ARG_SEQUENCE, N_("NAME"), 0,
-   N_("specify sequence name to operate upon")},
-  {"add", ARG_ADD, NULL, 0,
-   N_("add messages to the sequence")},
-  {"delete", ARG_DELETE, NULL, 0,
-   N_("delete messages from the sequence")},
-  {"list", ARG_LIST, NULL, 0,
-   N_("list the sequences")},
-  {"public", ARG_PUBLIC, N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("create public sequence")},
-  {"nopublic", ARG_NOPUBLIC, NULL, OPTION_HIDDEN, "" },
-  {"zero", ARG_ZERO, N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("empty the sequence before adding messages")},
-  {"nozero", ARG_NOZERO, NULL, OPTION_HIDDEN, "" },
-  {NULL}
-};
+enum action_type
+  {
+    action_undef,
+    action_list,
+    action_add,
+    action_delete
+  };
+static enum action_type action = action_undef;  /* Action to perform */
 
-struct mh_option mh_option[] = {
-  { "sequence" },
-  { "add" }, 
-  { "delete" },
-  { "list" },
-  { "public", MH_OPT_BOOL },
-  { "zero", MH_OPT_BOOL },
-  { NULL }
-};
-
-static int action;  /* Action to perform */
 static int seq_flags = 0; /* Create public sequences;
 			     Do not zero the sequence before addition */
 static mu_list_t seq_list;  /* List of sequence names to operate upon */
 
 static const char *mbox_dir;
+static int public_option = -1;
+static int zero_option = -1;
 
 static void
-add_sequence (char *name)
+set_action_add (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
+{
+  action = action_add;
+}
+
+static void
+set_action_delete (struct mu_parseopt *po, struct mu_option *opt,
+		   char const *arg)
+{
+  action = action_delete;
+}
+
+static void
+set_action_list (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
+{
+  action = action_list;
+}
+
+static void
+add_sequence (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
 {
   if (!seq_list && mu_list_create (&seq_list))
     {
       mu_error (_("cannot create sequence list"));
       exit (1);
     }
-  mu_list_append (seq_list, name);
+  mu_list_append (seq_list, mu_strdup (arg));
 }
 
-static error_t
-opt_handler (int key, char *arg, struct argp_state *state)
-{
-  switch (key)
-    {
-    case ARG_FOLDER: 
-      mh_set_current_folder (arg);
-      break;
-
-    case ARG_SEQUENCE:
-      add_sequence (arg);
-      break;
-
-    case ARG_ADD:
-    case ARG_DELETE:
-    case ARG_LIST:
-      action = key;
-      break;
-      
-    case ARG_PUBLIC:
-      if (is_true (arg))
-	seq_flags &= ~SEQ_PRIVATE;
-      else
-	seq_flags |= SEQ_PRIVATE;
-      break;
-      
-    case ARG_NOPUBLIC:
-      seq_flags |= SEQ_PRIVATE;
-      break;
-      
-    case ARG_ZERO:
-      if (is_true (arg))
-	seq_flags |= SEQ_ZERO;
-      else
-	seq_flags &= ~SEQ_ZERO;
-      break;
-
-    case ARG_NOZERO:
-      seq_flags &= ~SEQ_ZERO;
-      break;
-      
-    default:
-      return ARGP_ERR_UNKNOWN;
-    }
-  return 0;
-}
+static struct mu_option options[] = {
+  { "sequence", 0, N_("NAME"), MU_OPTION_DEFAULT,
+    N_("specify sequence name to operate upon"),
+    mu_c_string, NULL, add_sequence },
+  { "add",      0, NULL, MU_OPTION_DEFAULT,
+    N_("add messages to the sequence"),
+    mu_c_string, NULL, set_action_add },
+  { "delete",   0, NULL, MU_OPTION_DEFAULT,
+    N_("delete messages from the sequence"),
+    mu_c_string, NULL, set_action_delete },
+  { "list",     0, NULL, MU_OPTION_DEFAULT,
+    N_("list the sequences"),
+    mu_c_string, NULL, set_action_list },
+  { "public",   0, NULL, MU_OPTION_DEFAULT,
+    N_("create public sequence"),
+    mu_c_bool, &public_option },
+  { "zero", 0, NULL, MU_OPTION_DEFAULT,
+    N_("empty the sequence before adding messages"),
+    mu_c_bool, &zero_option },
+  MU_OPTION_END
+};
 
 
 struct mark_closure
@@ -125,7 +97,7 @@ struct mark_closure
 };
 
 static int
-action_add (void *item, void *data)
+do_add (void *item, void *data)
 {
   struct mark_closure *clos = data;
   mh_seq_add (clos->mbox, (char *)item, clos->msgset, seq_flags);
@@ -133,7 +105,7 @@ action_add (void *item, void *data)
 }
 
 static int
-action_delete (void *item, void *data)
+do_delete (void *item, void *data)
 {
   struct mark_closure *clos = data;
   mh_seq_delete (clos->mbox, (char *)item, clos->msgset, seq_flags);
@@ -141,7 +113,7 @@ action_delete (void *item, void *data)
 }
 
 static int
-action_list (void *item, void *data)
+do_list (void *item, void *data)
 {
   struct mark_closure *clos = data;
   char *name = item;
@@ -190,25 +162,45 @@ list_all (mu_mailbox_t mbox)
 int
 main (int argc, char **argv)
 {
-  int index;
   mu_msgset_t msgset;
   mu_mailbox_t mbox;
   mu_url_t url;
   struct mark_closure clos;
   
   MU_APP_INIT_NLS ();
-  mh_argp_init ();
-  mh_argp_parse (&argc, &argv, 0, options, mh_option, args_doc, doc,
-		 opt_handler, NULL, &index);
 
+  mh_getopt (&argc, &argv, options, MH_GETOPT_DEFAULT_FOLDER,
+	     args_doc, prog_doc, NULL);
+  if (public_option == -1)
+    /* use default */;
+  else if (public_option)
+    seq_flags &= ~SEQ_PRIVATE;
+  else
+    seq_flags |= SEQ_PRIVATE;
+
+  if (zero_option == -1)
+    /* use default */;
+  else if (zero_option)
+    seq_flags |= SEQ_ZERO;
+  else
+    seq_flags &= ~SEQ_ZERO;
+
+  if (action == action_undef)
+    {
+      /* If no explicit action is given, assume -add if a sequence
+	 was specified, and -list otherwise. */
+      if (mu_list_is_empty (seq_list))
+	action = action_list;
+      else
+	action = action_add;
+    }
+  
   mbox = mh_open_folder (mh_current_folder (), MU_STREAM_RDWR);
   mu_mailbox_get_url (mbox, &url);
   mbox_dir = mu_url_to_string (url);
   if (memcmp (mbox_dir, "mh:", 3) == 0)
     mbox_dir += 3;
 	
-  argc -= index;
-  argv += index;
   mh_msgset_parse (&msgset, mbox, argc, argv, "cur");
   
   clos.mbox = mbox;
@@ -216,32 +208,34 @@ main (int argc, char **argv)
   //FIXME: msgset operates on UIDs but there's no way to inform it about that.
   switch (action)
     {
-    case ARG_ADD:
+    case action_add:
       if (!seq_list)
 	{
 	  mu_error (_("--add requires at least one --sequence argument"));
 	  return 1;
 	}
-      mu_list_foreach (seq_list, action_add, (void *) &clos);
+      mu_list_foreach (seq_list, do_add, (void *) &clos);
       mh_global_save_state ();
       break;
       
-    case ARG_DELETE:
+    case action_delete:
       if (!seq_list)
 	{
 	  mu_error (_("--delete requires at least one --sequence argument"));
 	  return 1;
 	}
-      mu_list_foreach (seq_list, action_delete, (void *) &clos);
+      mu_list_foreach (seq_list, do_delete, (void *) &clos);
       mh_global_save_state ();
       break;
       
-    case ARG_LIST:
+    case action_list:
       if (!seq_list)
 	list_all (mbox);
       else
-	mu_list_foreach (seq_list, action_list, &clos);
+	mu_list_foreach (seq_list, do_list, &clos);
       break;
+    default:
+      abort ();
     }
   mu_mailbox_close (mbox);
   mu_mailbox_destroy (&mbox);

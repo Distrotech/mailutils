@@ -99,13 +99,13 @@ Mail/inbox/4
 Mail/inbox/5
 ])
 
-MH_CHECK([folder --pack=N],[folder06 folder--pack=N],[
+MH_CHECK([folder -pack=N],[folder06 folder-pack=N],[
 MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
 for i in 1 2 3 4 5
 do
   mv Mail/inbox/$i Mail/inbox/${i}0
 done
-folder --pack=1 || exit $?
+folder -pack=1 || exit $?
 find Mail/inbox -not -name '.mu-prop' | sort
 ],
 [0],

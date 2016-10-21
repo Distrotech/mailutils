@@ -17,41 +17,17 @@
 
 #include <mh.h>
 
-static char doc[] = N_("GNU MH install-mh")"\v"
-N_("Use -help to obtain the list of traditional MH options.");
-
-/* GNU options */
-static struct argp_option options[] = {
-  {"auto",  ARG_AUTO, NULL, 0, N_("do not ask for anything")},
-  {"compat", ARG_COMPAT, NULL, OPTION_HIDDEN, ""},
-  {NULL}
-};
-
-struct mh_option mh_option[] = {
-  { "auto" },
-  { "compat" },
-  { NULL }
-};
+static char prog_doc[] = N_("GNU MH install-mh");
 
 int automode;
 
-static error_t
-opt_handler (int key, char *arg, struct argp_state *state)
-{
-  switch (key)
-    {
-    case ARG_AUTO:
-      automode = 1;
-      break;
-
-    case ARG_COMPAT:
-      break;
-
-    default:
-      return ARGP_ERR_UNKNOWN;
-    }
-  return 0;
-}
+static struct mu_option options[] = {
+  { "auto",   0, NULL, MU_OPTION_DEFAULT,
+    N_("do not ask for anything"),
+    mu_c_bool, &automode },
+  { "compat", 0, NULL, MU_OPTION_HIDDEN, "", mu_c_void },
+  MU_OPTION_END
+};
 
 int
 main (int argc, char **argv)
@@ -62,10 +38,8 @@ main (int argc, char **argv)
   /* Native Language Support */
   MU_APP_INIT_NLS ();
 
-  mh_argp_init ();
   mh_auto_install = 0;
-  mh_argp_parse (&argc, &argv, 0, options, mh_option, NULL, doc,
-		 opt_handler, NULL, NULL);
+  mh_getopt (&argc, &argv, options, 0, NULL, prog_doc, NULL);
 
   name = getenv ("MH");
   if (name)

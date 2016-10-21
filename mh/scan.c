@@ -26,45 +26,8 @@
 #include <time.h>
 #include <mailutils/observer.h>
 
-static char doc[] = N_("GNU MH scan")"\v"
-N_("Use -help to obtain the list of traditional MH options.");
+static char progdoc[] = N_("GNU MH scan");
 static char args_doc[] = N_("[+FOLDER] [MSGLIST]");
-
-/* GNU options */
-static struct argp_option options[] = {
-  {"folder",  ARG_FOLDER, N_("FOLDER"), 0,
-   N_("specify folder to scan")},
-  {"clear",   ARG_CLEAR, N_("BOOL"),   OPTION_ARG_OPTIONAL,
-   N_("clear screen after displaying the list")},
-  {"noclear", ARG_NOCLEAR, NULL, OPTION_HIDDEN, ""},
-  {"form",    ARG_FORM, N_("FILE"),   0,
-   N_("read format from given file")},
-  {"format",  ARG_FORMAT, N_("FORMAT"), 0,
-   N_("use this format string")},
-  {"header",  ARG_HEADER, N_("BOOL"),   OPTION_ARG_OPTIONAL,
-   N_("display header")},
-  {"width",   ARG_WIDTH, N_("NUMBER"), 0,
-   N_("set output width")},
-  {"reverse", ARG_REVERSE, N_("BOOL"),   OPTION_ARG_OPTIONAL,
-   N_("list messages in reverse order")},
-  {"noreverse", ARG_NOREVERSE, NULL, OPTION_HIDDEN, ""},
-  {"file",    ARG_FILE, N_("FILE"),   0,
-   N_("[not yet implemented]")},
-  
-  { 0 }
-};
-
-/* Traditional MH options */
-struct mh_option mh_option[] = {
-  { "clear",   MH_OPT_BOOL },
-  { "form",    MH_OPT_ARG, "formatfile" },
-  { "format",  MH_OPT_ARG, "string" },
-  { "header",  MH_OPT_BOOL },
-  { "width",   MH_OPT_ARG, "number" },
-  { "reverse", MH_OPT_BOOL },
-  { "file",    MH_OPT_ARG, "file" },
-  { NULL }
-};
 
 static int clear;
 static char *format_str = mh_list_format;
@@ -77,66 +40,41 @@ static mh_format_t format;
 
 static mu_msgset_t msgset;
 
+static void
+form_handler (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
+{
+  if (mh_read_formfile (arg, &format_str))
+    exit (1);
+}
+
+static struct mu_option options[] = {
+  { "clear",   0, NULL, MU_OPTION_DEFAULT,
+    N_("clear screen after displaying the list"),
+    mu_c_bool, &clear },
+  { "form",    0, N_("FILE"),   MU_OPTION_DEFAULT,
+    N_("read format from given file"),
+    mu_c_string, NULL, form_handler },
+  { "format",  0, N_("FORMAT"), MU_OPTION_DEFAULT,
+    N_("use this format string"),
+    mu_c_string, &format_str },
+  { "header",  0, NULL,   MU_OPTION_DEFAULT,
+    N_("display header"),
+    mu_c_bool, &header },
+  { "width",   0, N_("NUMBER"), MU_OPTION_DEFAULT,
+    N_("set output width"),
+    mu_c_int, &width },
+  { "reverse",  0, NULL,   MU_OPTION_DEFAULT,
+    N_("list messages in reverse order"),
+    mu_c_bool, &reverse },
+  { "file",     0, N_("FILE"),   MU_OPTION_HIDDEN,
+    N_("[not yet implemented]"),
+    mu_c_string, NULL, mh_opt_notimpl },
+  MU_OPTION_END
+};
+
 static int list_message (size_t num, mu_message_t msg, void *data);
 void print_header (mu_mailbox_t mbox);
 void clear_screen (void);
-
-static error_t
-opt_handler (int key, char *arg, struct argp_state *state)
-{
-  switch (key)
-    {
-    case ARG_FOLDER: 
-      mh_set_current_folder (arg);
-      break;
-      
-    case ARG_CLEAR:
-      clear = is_true(arg);
-      break;
-
-    case ARG_NOCLEAR:
-      clear = 0;
-      break;
-      
-    case ARG_FORM:
-      if (mh_read_formfile (arg, &format_str))
-	exit (1);
-      break;
-      
-    case ARG_FORMAT:
-      format_str = arg;
-      break;
-      
-    case ARG_HEADER:
-      header = is_true(arg);
-      break;
-      
-    case ARG_WIDTH:
-      width = strtoul (arg, NULL, 0);
-      if (!width)
-	{
-	  argp_error (state, _("invalid width"));
-	  exit (1);
-	}
-      break;
-      
-    case ARG_REVERSE:
-      reverse = is_true(arg);
-      break;
-
-    case ARG_NOREVERSE:
-      reverse = 0;
-      break;
-      
-    case ARG_FILE:
-      mh_opt_notimpl ("-file");
-      break;
-      
-    default:
-      return ARGP_ERR_UNKNOWN;
-    }
-  return 0;
-}
 
 /* Observable Action this is called at every message discover.  */
 static int
@@ -161,7 +99,6 @@ action (mu_observer_t o, size_t type, void *data, void *action_data)
 int
 main (int argc, char **argv)
 {
-  int index;
   mu_mailbox_t mbox;
   int status;
   size_t total = 0;
@@ -169,9 +106,8 @@ main (int argc, char **argv)
   /* Native Language Support */
   MU_APP_INIT_NLS ();
 
-  mh_argp_init ();
-  mh_argp_parse (&argc, &argv, 0, options, mh_option, args_doc, doc,
-		 opt_handler, NULL, &index);
+  mh_getopt (&argc, &argv, options, MH_GETOPT_DEFAULT_FOLDER,
+	     args_doc, progdoc, NULL);
 
   if (mh_format_parse (format_str, &format))
     {
@@ -181,8 +117,6 @@ main (int argc, char **argv)
 
   mbox = mh_open_folder (mh_current_folder (), MU_STREAM_READ);
 
-  argc -= index;
-  argv += index;
   if ((argc == 0 || strcmp (argv[0], "all") == 0) && !reverse)
     {
       /* Fast approach */

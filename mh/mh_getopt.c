@@ -15,8 +15,6 @@
    You should have received a copy of the GNU General Public License
    along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>. */
 
-/* Parse traditional MH options. */
-
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
@@ -24,197 +22,224 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <mh_getopt.h>
+#include "mh.h"
+#include <mailutils/stream.h>
+#include <mailutils/wordsplit.h>
 #include <mailutils/io.h>
 
-static int mh_optind = 1;
-static char *mh_optarg;
-static char *mh_optptr;
-
-void (*mh_help_hook) ();
-
-int
-mh_getopt (int argc, char **argv, struct mh_option *mh_opt, const char *doc)
+struct getopt_data
 {
-  struct mh_option *p;
-  int optlen;
-  
-  if (mh_optind >= argc || argv[mh_optind] == NULL)
-    return EOF;
-  mh_optptr = argv[mh_optind];
+  char *extra_doc;
+};
 
-  if (mh_optptr[0] == '+')
+static void
+mh_extra_help_hook (struct mu_parseopt *po, mu_stream_t stream)
+{
+  struct getopt_data *data = po->po_data;
+  mu_stream_printf (stream, "%s\n", _(data->extra_doc));
+}
+
+static void
+augment_argv (int *pargc, char ***pargv)
+{
+  int argc;
+  char **argv;
+  int i, j;
+  struct mu_wordsplit ws;
+  char const *val = mh_global_profile_get (mu_program_name, NULL);
+
+  if (!val)
+    return;
+      
+  if (mu_wordsplit (val, &ws, MU_WRDSF_DEFFLAGS))
     {
-      mh_optarg = mh_optptr + 1;
-      mh_optind++;
-      return '+';
-    }
-  
-  if (mh_optptr[0] != '-' || mh_optptr[1] == '-')
-    {
-      mh_optind++;
-      return 0;
+      mu_error (_("cannot split line `%s': %s"), val,
+		mu_wordsplit_strerror (&ws));
+      exit (1);
     }
 
-  if (strcmp (mh_optptr, "-version") == 0)
-    mu_asprintf (&argv[mh_optind], "--version");
-  else
+  argc = *pargc + ws.ws_wordc;
+  argv = calloc (argc + 1, sizeof *argv);
+  if (!argv)
+    mh_err_memory (1);
+
+  i = 0;
+  argv[i++] = (*pargv)[0];
+  for (j = 0; j < ws.ws_wordc; i++, j++)
+    argv[i] = ws.ws_wordv[j];
+  for (j = 1; i < argc; i++, j++)
+    argv[i] = (*pargv)[j];
+  argv[i] = NULL;
+  
+  ws.ws_wordc = 0;
+  mu_wordsplit_free (&ws);
+
+  *pargc = argc;
+  *pargv = argv;
+}
+
+static void
+process_folder_arg (int *pargc, char **argv, struct mu_parseopt *po)
+{
+  int i, j;
+  int argc = *pargc;
+  struct mu_option *opt;
+  
+  /* Find folder option */
+  for (i = 0; ; i++)
     {
-      int negation = 0;
-      
-      optlen = strlen (mh_optptr+1);
-      for (p = mh_opt; p->opt; p++)
+      if (!po->po_optv[i])
+	return; /* Nothing to do */
+      if (MU_OPTION_IS_VALID_LONG_OPTION (po->po_optv[i])
+	  && strcmp (po->po_optv[i]->opt_long, "folder") == 0)
+	break;
+    }
+  opt = po->po_optv[i];
+    
+  for (i = j = 0; i < argc; i++)
+    {
+      if (argv[i][0] == '+')
 	{
-	  if (p->match_len <= optlen
-	      && memcmp (mh_optptr+1, p->opt, optlen) == 0)
-	    break;
-	  if (p->flags == MH_OPT_BOOL
-	      && optlen > 2
-	      && memcmp (mh_optptr+1, "no", 2) == 0
-	      && strlen (p->opt) >= optlen-2
-	      && memcmp (mh_optptr+3, p->opt, optlen-2) == 0)
-	    {
-	      negation = 1;
-	      break;
-	    }
-	}
-      
-      if (p->opt)
-	{
-	  char *longopt = p->opt;
-	  switch (p->flags)
-	    {
-	    case MH_OPT_BOOL:
-	      mh_optarg = negation ? "no" : "yes";
-	      mu_asprintf (&argv[mh_optind], "--%s=%s", longopt, mh_optarg);
-	      break;
-	      
-	    case MH_OPT_ARG:
-	      mu_asprintf (&argv[mh_optind], "--%s", longopt);
-	      mh_optarg = argv[++mh_optind];
-	      break;
-	      
-	    default:
-	      mu_asprintf (&argv[mh_optind], "--%s", longopt);
-	      mh_optarg = NULL;
-	    }
-	  mh_optind++;
-	  return 1;
-	}
-      else if (!strcmp (mh_optptr+1, "help"))
-	{
-	  mh_help (mh_opt, doc);
-	  exit (1);
+	  opt->opt_set (po, opt, argv[i] + 1);
 	}
       else
-	mh_optind++;
+	argv[j++] = argv[i];
     }
-  return '?';
+  argv[j] = NULL;
+  *pargc = j;
 }
-
-void
-mh_argv_preproc (int argc, char **argv, struct mh_argp_data *data)
-{
-  mh_optind = 1;
-  while (mh_getopt (argc, argv, data->mh_option, data->doc) != EOF)
-    ;
-}
-
-void
-mh_help (struct mh_option *mh_opt, const char *doc)
-{
-  struct mh_option *p;
-
-  printf (_("Compatibility syntax:\n"));
-  printf (_("%s [switches] %s\n"), mu_program_name, doc);
-  printf (_("  switches are:\n"));
-  
-  for (p = mh_opt; p->opt; p++)
-    {
-      int len = strlen (p->opt);
-      
-      printf ("  -");
-      if (p->flags == MH_OPT_BOOL)
-	printf ("[no]");
-      if (len > p->match_len)
-	printf ("(%*.*s)%s",
-		(int) p->match_len, (int) p->match_len, p->opt,
-		p->opt + p->match_len);
-      else
-	printf ("%s", p->opt);
-      
-      if (p->flags == MH_OPT_ARG)
-	printf (" %s", p->arg);
-      printf ("\n");
-    }
-  if (mh_help_hook)
-    mh_help_hook ();
-  printf ("  -help\n");
-  printf ("  -version\n");
-  printf (_("\nPlease use GNU long options instead.\n"
-            "Run %s --help for more info on these.\n"),
-            mu_program_name);
-}
-
 
-static int
-optcmp (const void *a, const void *b)
+static void
+set_folder (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
 {
-  struct mh_option const *opta = a, *optb = b;
-  return strcmp (opta->opt, optb->opt);
+  mh_set_current_folder (arg);
 }
 
-void
-mh_option_init (struct mh_option *opt)
-{
-  size_t count, i;
+static struct mu_option folder_option[] = {
+  { "folder", 0, NULL, MU_OPTION_DEFAULT,
+    N_("set current folder"),
+    mu_c_string, NULL, set_folder },
+  MU_OPTION_END
+};
 
-  /* Count number of elements and initialize minimum abbreviation
-     lengths to 1. */
-  for (count = 0; opt[count].opt; count++)
-    opt[count].match_len = 1;
-  /* Sort them alphabetically */
-  qsort (opt, count, sizeof (opt[0]), optcmp);
-  /* Determine minimum abbreviations */
-  for (i = 0; i < count; i++)
+void
+mh_getopt (int *pargc, char ***pargv, struct mu_option *options,
+	   int mhflags,
+	   char *argdoc, char *progdoc, char *extradoc)
+{
+  int argc = *pargc;
+  char **argv = *pargv;
+  struct mu_parseopt po;
+  struct mu_option *optv[3];
+  struct getopt_data getopt_data;
+  char const *args[2];
+  int flags = MU_PARSEOPT_SINGLE_DASH | MU_PARSEOPT_IMMEDIATE;
+  int i;
+  
+  po.po_negation = "no";
+  flags |= MU_PARSEOPT_NEGATION;
+
+  if (argdoc)
     {
-      const char *sample = opt[i].opt;
-      size_t sample_len = strlen (sample);
-      size_t minlen = opt[i].match_len;
-      size_t j;
-      
-      for (j = i + 1; j < count; j++)
-	{
-	  size_t len = strlen (opt[j].opt);
-	  if (len >= minlen && memcmp (opt[j].opt, sample, minlen) == 0)
-	    do
-	      {
-		minlen++;
-		if (minlen <= strlen (opt[j].opt))
-		  opt[j].match_len = minlen;
-		if (minlen == sample_len)
-		  break;
-	      }
-	    while (len >= minlen && memcmp (opt[j].opt, sample, minlen) == 0);
-	  else if (opt[j].opt[0] == sample[0])
-	    opt[j].match_len = minlen;
-	  else
-	    break;
-	}
-      if (minlen <= sample_len)
-	opt[i].match_len = minlen;
+      args[0] = argdoc;
+      args[1] = NULL;
+      po.po_prog_args = args;
+      flags |= MU_PARSEOPT_PROG_ARGS;
     }
+  if (progdoc)
+    {
+      po.po_prog_doc = progdoc;
+      flags |= MU_PARSEOPT_PROG_DOC;
+    }
+
+  getopt_data.extra_doc = extradoc;
+  if (extradoc)
+    {
+      po.po_help_hook = mh_extra_help_hook;
+      flags |= MU_PARSEOPT_HELP_HOOK;
+    }
+
+  po.po_data = &getopt_data;
+  flags |= MU_PARSEOPT_DATA;
+  
+  po.po_exit_error = 1;
+  flags |= MU_PARSEOPT_EXIT_ERROR;
+  
+  po.po_package_name = PACKAGE_NAME;
+  flags |= MU_PARSEOPT_PACKAGE_NAME;
+
+  po.po_package_url = PACKAGE_URL;
+  flags |= MU_PARSEOPT_PACKAGE_URL;
+
+  po.po_bug_address = PACKAGE_BUGREPORT;
+  flags |= MU_PARSEOPT_BUG_ADDRESS;
+
+  //po.po_extra_info = gnu_general_help_url;
+  //flags |= MU_PARSEOPT_EXTRA_INFO;
+
+  mu_set_program_name (argv[0]);
+  mh_init ();
+  augment_argv (&argc, &argv);
+
+  i = 0;
+  if (mhflags & MH_GETOPT_DEFAULT_FOLDER)
+    optv[i++] = folder_option;
+  optv[i++] = options;
+  optv[i] = NULL;
+  
+  if (mu_parseopt (&po, argc, argv, optv, flags))
+    exit (po.po_exit_error);
+
+  argc -= po.po_arg_start;
+  argv += po.po_arg_start;
+
+  process_folder_arg (&argc, argv, &po);
+
+  if (!argdoc && argc)
+    {
+      mu_error (_("Extra arguments"));
+      exit (1);
+    }
+
+  *pargc = argc;
+  *pargv = argv;
+  
+  mh_init2 ();
 }
 
 void
-mh_opt_notimpl (const char *name)
+mh_opt_notimpl (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
 {
-  mu_error (_("option is not yet implemented: %s"), name);
+  mu_error (_("option is not yet implemented: %s"), opt->opt_long);
   exit (1);
 }
 
 void
-mh_opt_notimpl_warning (const char *name)
+mh_opt_notimpl_warning (struct mu_parseopt *po, struct mu_option *opt,
+			char const *arg)
 {
-  mu_error (_("ignoring not implemented option %s"), name);
+  mu_error (_("ignoring not implemented option %s"), opt->opt_long);
+}
+
+void
+mh_opt_clear_string (struct mu_parseopt *po, struct mu_option *opt,
+		     char const *arg)
+{
+  char **sptr = opt->opt_ptr;
+  free (*sptr);
+  *sptr = NULL;
+}
+
+void
+mh_opt_find_file (struct mu_parseopt *po, struct mu_option *opt,
+		  char const *arg)
+{
+  mh_find_file (arg, opt->opt_ptr);
+}
+
+void
+mh_opt_read_formfile (struct mu_parseopt *po, struct mu_option *opt,
+		      char const *arg)
+{
+  mh_read_formfile (arg, opt->opt_ptr);
 }

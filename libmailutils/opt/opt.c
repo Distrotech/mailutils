@@ -189,6 +189,31 @@ find_short_option (struct mu_parseopt *po, int chr)
   return NULL;
 }
 
+enum neg_match
+  {
+    neg_nomatch,
+    neg_match_inexact,
+    neg_match_exact
+  };
+  
+static enum neg_match
+negmatch (struct mu_parseopt *po, size_t i, char const *optstr, size_t optlen)
+{
+  if (mu_option_possible_negation (po, po->po_optv[i]))
+    {
+      size_t neglen = strlen (po->po_negation);
+      size_t len = strlen (po->po_optv[i]->opt_long);
+      if (optlen <= neglen + len
+	  && memcmp (optstr, po->po_negation, neglen) == 0
+	  && memcmp (optstr + neglen, po->po_optv[i]->opt_long,
+		     optlen - neglen) == 0)
+	{
+	  return (optlen == neglen + len) ? neg_match_exact : neg_match_inexact;
+	}
+    }
+  return neg_nomatch;
+}
+
 /* Find a descriptor of long option OPTSTR.  If it has argument, return
    it in *ARGPTR. */
 struct mu_option *
@@ -200,14 +225,11 @@ find_long_option (struct mu_parseopt *po, char const *optstr,
   size_t i;
   size_t optlen;       /* Length of the option in optstr */
   int found = 0;       /* 1 if the match was found, 2 if option is ambiguous */
-  int neglen;          /* Length of the negation prefix, if any */
-  int neg = 0;         /* 1 if a boolean option is negated */
+  enum neg_match neg;  /* 1 if a boolean option is negated */
   struct mu_option *ret_opt = NULL;
   struct mu_option *used_opt;
   
   optlen = strcspn (optstr, "=");
-  if (po->po_negation)
-    neglen = strlen (po->po_negation);
   
   for (i = 0; i < po->po_optc; i++)
     {
@@ -215,14 +237,10 @@ find_long_option (struct mu_parseopt *po, char const *optstr,
 	{
 	  size_t len = strlen (po->po_optv[i]->opt_long);
 	  struct mu_option *opt = option_unalias (po, i);
-	  
+	  neg = neg_nomatch;
 	  if ((optlen <= len
 	       && memcmp (po->po_optv[i]->opt_long, optstr, optlen) == 0)
-	      || (neg = (mu_option_possible_negation (po, opt)
-			 && optlen <= neglen + len
-			 && memcmp (optstr, po->po_negation, neglen) == 0
-			 && memcmp (optstr + neglen, po->po_optv[i]->opt_long,
-				    optlen - neglen) == 0)))
+	      || (neg = negmatch (po, i, optstr, optlen)))
 	    {
 	      switch (found)
 		{
@@ -230,7 +248,7 @@ find_long_option (struct mu_parseopt *po, char const *optstr,
 		  used_opt = po->po_optv[i];
 		  ret_opt = opt;
 		  found++;
-		  if (optlen == len || (neg && optlen == neglen + len))
+		  if (optlen == len || neg == neg_match_exact)
 		    i = po->po_optc - 1; /* exact match: break the loop */
 		  break;
 		  
@@ -247,6 +265,11 @@ find_long_option (struct mu_parseopt *po, char const *optstr,
 			   po->po_long_opt_start,
 			   neg ? po->po_negation : "",
 			   used_opt->opt_long);
+		  if (neg == neg_nomatch && negmatch (po, i, optstr, optlen))
+		    fprintf (stderr, "%s%s%s\n",
+			     po->po_long_opt_start,
+			     po->po_negation,
+			     po->po_optv[i]->opt_long);
 		  found++;
 		  
 		case 2:
@@ -254,6 +277,11 @@ find_long_option (struct mu_parseopt *po, char const *optstr,
 			   po->po_long_opt_start,
 			   neg ? po->po_negation : "",
 			   po->po_optv[i]->opt_long);
+		  if (neg == neg_nomatch && negmatch (po, i, optstr, optlen))
+		    fprintf (stderr, "%s%s%s\n",
+			     po->po_long_opt_start,
+			     po->po_negation,
+			     po->po_optv[i]->opt_long);
 		}
 	    }
 	}
@@ -719,7 +747,9 @@ mu_option_set_value (struct mu_parseopt *po, struct mu_option *opt,
       
       if (arg == NULL)
 	{
-	  if (opt->opt_arg == NULL)
+	  if (opt->opt_default)
+	    arg = opt->opt_default;
+	  else if (opt->opt_arg == NULL)
 	    arg = "1";
 	  else
 	    {
@@ -737,7 +767,8 @@ mu_option_set_value (struct mu_parseopt *po, struct mu_option *opt,
 	    errtext = mu_strerror (rc);
 
 	  if (opt->opt_long)
-	    mu_parseopt_error (po, "--%s: %s", opt->opt_long, errtext);
+	    mu_parseopt_error (po, "%s%s: %s", po->po_long_opt_start,
+			       opt->opt_long, errtext);
 	  else
 	    mu_parseopt_error (po, "-%c: %s", opt->opt_short, errtext);
 	  free (errmsg);

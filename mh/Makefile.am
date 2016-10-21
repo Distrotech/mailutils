@@ -70,7 +70,6 @@ libmh_a_SOURCES= \
  mboxprop.c\
  mh_alias_gram.c\
  mh_alias_lex.c\
- mh_argp.c\
  mh_getopt.c\
  mh_global.c\
  mh_format.c\

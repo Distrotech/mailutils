@@ -419,7 +419,7 @@ yywrap ()
 
 /* Parses the named alias file */
 int
-mh_alias_read (char *name, int fail)
+mh_alias_read (char const *name, int fail)
 {
   extern int yydebug;
   char *p = getenv("ALI_YYDEBUG");

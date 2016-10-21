@@ -18,39 +18,8 @@
 
 #include <mh.h>
 
-static char doc[] = N_("GNU MH burst")"\v"
-N_("Options marked with `*' are not yet implemented.\n\
-Use -help to obtain the list of traditional MH options.");
+static char prog_doc[] = N_("GNU MH burst");
 static char args_doc[] = N_("[MSGLIST]");
-
-/* GNU options */
-static struct argp_option options[] = {
-  {"folder",        ARG_FOLDER,        N_("FOLDER"), 0,
-   N_("specify folder to operate upon")},
-  {"inplace",      ARG_INPLACE,      N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("replace the source message with the table of contents, insert extracted messages after it") },
-  {"noinplace",    ARG_NOINPLACE,    0, OPTION_HIDDEN, ""},
-  {"quiet",        ARG_QUIET,        N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("be quiet about the messages that are not in digest format") },
-  {"noquiet",      ARG_NOQUIET,      0, OPTION_HIDDEN, ""},
-  {"verbose",      ARG_VERBOSE,      N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("verbosely list the actions taken") },
-  {"noverbose",    ARG_NOVERBOSE,    0, OPTION_HIDDEN, ""},
-  {"recursive",    ARG_RECURSIVE,    N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("recursively expand MIME messages") },
-  {"norecursive",  ARG_NORECURSIVE,  0, OPTION_HIDDEN, ""},
-  {"length",       ARG_LENGTH,       N_("NUMBER"), 0,
-   N_("set minimal length of digest encapsulation boundary (default 1)") },
-  { NULL }
-};
-
-/* Traditional MH options */
-struct mh_option mh_option[] = {
-  { "inplace",    MH_OPT_BOOL },
-  { "quiet",      MH_OPT_BOOL },
-  { "verbose",    MH_OPT_BOOL },
-  { NULL }
-};
 
 /* Command line switches */
 int inplace; 
@@ -61,59 +30,24 @@ int eb_min_length = 1;  /* Minimal length of encapsulation boundary */
 
 #define VERBOSE(c) do { if (verbose) { printf c; putchar ('\n'); } } while (0)
 
-static error_t
-opt_handler (int key, char *arg, struct argp_state *state)
-{
-  switch (key)
-    {
-    case ARG_FOLDER: 
-      mh_set_current_folder (arg);
-      break;
-
-    case ARG_INPLACE:
-      inplace = is_true (arg);
-      break;
-
-    case ARG_NOINPLACE:
-      inplace = 0;
-      break;
-
-    case ARG_LENGTH:
-      eb_min_length = strtoul (arg, NULL, 0);
-      if (eb_min_length == 0)
-	eb_min_length = 1;
-      break;
-      
-    case ARG_VERBOSE:
-      verbose = is_true (arg);
-      break;
-
-    case ARG_NOVERBOSE:
-      verbose = 0;
-      break;
-
-    case ARG_RECURSIVE:
-      recursive = is_true (arg);
-      break;
-      
-    case ARG_NORECURSIVE:
-      recursive = 0;
-      break;
-      
-    case ARG_QUIET:
-      quiet = is_true (arg);
-      break;
-
-    case ARG_NOQUIET:
-      quiet = 0;
-      break;
-      
-    default:
-      return ARGP_ERR_UNKNOWN;
-    }
-  return 0;
-}
-
+static struct mu_option options[] = {
+  { "inplace",     0,      NULL, MU_OPTION_DEFAULT,
+   N_("replace the source message with the table of contents, insert extracted messages after it"),
+    mu_c_bool, &inplace },
+  { "quiet",       0,      NULL, MU_OPTION_DEFAULT,
+    N_("be quiet about the messages that are not in digest format"),
+    mu_c_bool, &quiet },
+  { "verbose",     0,      NULL, MU_OPTION_DEFAULT,
+    N_("verbosely list the actions taken"),
+    mu_c_bool, &verbose },
+  { "recursive",   0,      NULL, MU_OPTION_DEFAULT,
+    N_("recursively expand MIME messages"),
+    mu_c_bool, &recursive },
+  { "length",      0, N_("NUM"), MU_OPTION_DEFAULT,
+    N_("set minimal length of digest encapsulation boundary (default 1)"),
+    mu_c_int, &eb_min_length },
+  MU_OPTION_END
+};
 
 /* General-purpose data structures */
 struct burst_map
@@ -713,7 +647,7 @@ finalize_inplace (size_t lastuid)
 int
 main (int argc, char **argv)
 {
-  int index, rc;
+  int rc;
   mu_mailbox_t mbox;
   mu_msgset_t msgset;
   const char *tempfolder = mh_global_profile_get ("Temp-Folder", ".temp");
@@ -721,13 +655,11 @@ main (int argc, char **argv)
   /* Native Language Support */
   MU_APP_INIT_NLS ();
 
-  mh_argp_init ();
-  mh_argp_parse (&argc, &argv, 0, options, mh_option, args_doc, doc,
-		 opt_handler, NULL, &index);
-
-  argc -= index;
-  argv += index;
-
+  mh_getopt (&argc, &argv, options, MH_GETOPT_DEFAULT_FOLDER,
+	     args_doc, prog_doc, NULL);
+  if (eb_min_length == 0)
+    eb_min_length = 1;
+  
   VERBOSE ((_("Opening folder `%s'"), mh_current_folder ()));
   mbox = mh_open_folder (mh_current_folder (), MU_STREAM_RDWR);
   mh_msgset_parse (&msgset, mbox, argc, argv, "cur");
