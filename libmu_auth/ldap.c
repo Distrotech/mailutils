@@ -920,10 +920,11 @@ mu_auth_ldap_user_by_uid (struct mu_auth_data **return_data,
 
 
 #else
-# define mu_ldap_module_init NULL
+# define module_init NULL
 # define mu_ldap_authenticate mu_auth_nosupport
 # define mu_auth_ldap_user_by_name mu_auth_nosupport 
 # define mu_auth_ldap_user_by_uid mu_auth_nosupport
+# define mu_ldap_param NULL
 
 #endif
 

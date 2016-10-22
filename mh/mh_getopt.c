@@ -141,6 +141,29 @@ static struct mu_option folder_option[] = {
   MU_OPTION_END
 };
 
+void
+mh_version_hook (struct mu_parseopt *po, mu_stream_t stream)
+{
+#ifdef GIT_DESCRIBE
+  mu_stream_printf (stream, "%s (%s %s) [%s]\n",
+		    mu_program_name, PACKAGE_NAME, PACKAGE_VERSION,
+		    GIT_DESCRIBE);
+#else
+  mu_stream_printf (stream, "%s (%s %s)\n", mu_program_name,
+		    PACKAGE_NAME, PACKAGE_VERSION);
+#endif
+  /* TRANSLATORS: Translate "(C)" to the copyright symbol
+     (C-in-a-circle), if this symbol is available in the user's
+     locale.  Otherwise, do not translate "(C)"; leave it as-is.  */
+  mu_stream_printf (stream, mu_version_copyright, _("(C)"));
+  mu_stream_printf (stream, _("\
+\n\
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\nThis is free software: you are free to change and redistribute it.\n\
+There is NO WARRANTY, to the extent permitted by law.\n\
+\n\
+"));
+}
+
 static void
 fn_version (struct mu_parseopt *po, struct mu_option *opt, char const *unused)
 {
@@ -213,7 +236,7 @@ mh_getopt (int *pargc, char ***pargv, struct mu_option *options,
   //po.po_extra_info = gnu_general_help_url;
   //flags |= MU_PARSEOPT_EXTRA_INFO;
 
-  po.po_version_hook = mu_version_hook;
+  po.po_version_hook = mh_version_hook;
   flags |= MU_PARSEOPT_VERSION_HOOK;
   
   mu_set_program_name (argv[0]);
