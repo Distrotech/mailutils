@@ -54,10 +54,19 @@ struct mu_cli_setup
   void (*prog_doc_hook) (mu_stream_t);
 };
 
+extern const char mu_version_copyright[];
+
 void mu_version_hook (struct mu_parseopt *po, mu_stream_t stream);
 void mu_cli (int argc, char **argv, struct mu_cli_setup *setup,
 	     char **capa, void *data,
 	     int *ret_argc, char ***ret_argv);
+void mu_cli_ext (int argc, char **argv,
+		 struct mu_cli_setup *setup,
+		 struct mu_parseopt *pohint,
+		 struct mu_cfg_parse_hints *cfhint,
+		 char **capa,
+		 void *data,
+		 int *ret_argc, char ***ret_argv);
 
 char *mu_site_config_file (void);
 

@@ -16,7 +16,6 @@
    along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include "pop3d.h"
-#include "mailutils/libargp.h"
 #include "mailutils/property.h"
 
 mu_stream_t iostream;

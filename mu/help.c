@@ -22,7 +22,6 @@
 #include <stdlib.h>
 #include <mailutils/nls.h>
 #include <mailutils/io.h>
-#include "mailutils/libargp.h"
 #include "mu.h"
 
 static char help_doc[] = N_("mu help - display a terse help summary");

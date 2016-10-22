@@ -16,8 +16,7 @@
    along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>. */
 
 #include "comsat.h"
-#define MU_CFG_COMPATIBILITY /* This source uses deprecated cfg interfaces */
-#include "mailutils/libcfg.h"
+#include "mailutils/syslog.h"
 #include "mailutils/cli.h"
 
 #ifndef PATH_DEV

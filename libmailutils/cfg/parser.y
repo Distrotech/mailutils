@@ -1590,7 +1590,7 @@ mu_cfg_parse_config (mu_cfg_tree_t **ptree, struct mu_cfg_parse_hints *hints)
 	}
     }
 
-  if (hints->append_tree)
+  if (hints->flags & MU_CFG_APPEND_TREE)
     mu_cfg_tree_union (&tree, &hints->append_tree);
 
   *ptree = tree;

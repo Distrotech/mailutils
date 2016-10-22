@@ -155,8 +155,11 @@ param_set (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
   if (rc)
     mu_parseopt_error (po, "%s: cannot create node: %s",
 		       arg, mu_strerror (rc));
-  if (!hints->append_tree)
-    mu_cfg_tree_create (&hints->append_tree);
+  if (!(hints->flags & MU_CFG_APPEND_TREE))
+    {
+      mu_cfg_tree_create (&hints->append_tree);
+      hints->flags |= MU_CFG_APPEND_TREE;
+    }
   mu_cfg_tree_add_node (hints->append_tree, node);
 }
 
@@ -334,11 +337,25 @@ run_commit (void *item, void *data)
   commit (data);
   return 0;
 }
-  
+
+#define PRESERVE_FLAGS \
+  ( MU_PARSEOPT_NO_SORT					\
+    | MU_PARSEOPT_SINGLE_DASH				\
+    | MU_PARSEOPT_PACKAGE_NAME				\
+    | MU_PARSEOPT_PACKAGE_URL				\
+    | MU_PARSEOPT_BUG_ADDRESS				\
+    | MU_PARSEOPT_EXTRA_INFO				\
+    | MU_PARSEOPT_VERSION_HOOK				\
+    | MU_PARSEOPT_NEGATION)
+
 void
-mu_cli (int argc, char **argv, struct mu_cli_setup *setup, char **capa,
-	void *data,
-	int *ret_argc, char ***ret_argv)
+mu_cli_ext (int argc, char **argv,
+	    struct mu_cli_setup *setup,
+	    struct mu_parseopt *pohint,
+	    struct mu_cfg_parse_hints *cfhint,
+	    char **capa,
+	    void *data,
+	    int *ret_argc, char ***ret_argv)
 {
   struct mu_parseopt po;
   int flags = 0;
@@ -356,14 +373,22 @@ mu_cli (int argc, char **argv, struct mu_cli_setup *setup, char **capa,
     setup->ex_usage = EX_USAGE;
   if (setup->ex_config == 0)
     setup->ex_config = EX_CONFIG;
-  if (setup->inorder)
-    flags |= MU_PARSEOPT_IN_ORDER;
-    
-  /* Set program name */
-  mu_set_program_name (argv[0]);
 
-  if (!mu_log_tag)
-    mu_log_tag = (char*)mu_program_name;
+  hints = *cfhint;
+  /* Set program name */
+  if (hints.flags & MU_CFG_PARSE_PROGRAM)
+    {
+      if (!mu_log_tag)
+	mu_log_tag = (char*)hints.program;
+    }
+  else
+    {
+      mu_set_program_name (argv[0]);
+      if (!mu_log_tag)
+	mu_log_tag = (char*)mu_program_name;
+      hints.program = (char*) mu_program_name;
+      hints.flags |= MU_CFG_PARSE_PROGRAM;
+    }
 
   /* Initialize standard streams */
   mu_stdstream_setup (MU_STDSTREAM_RESET_NONE);
@@ -371,21 +396,16 @@ mu_cli (int argc, char **argv, struct mu_cli_setup *setup, char **capa,
   /* Initialize standard capabilities */
   mu_cli_capa_init ();
 
-  /* Initialize hints */
-  memset (&hints, 0, sizeof (hints));
-  hints.flags |= MU_CFG_PARSE_SITE_RCFILE;
-  hints.site_rcfile = mu_site_config_file ();
-
-  hints.flags |= MU_CFG_PARSE_PROGRAM;
-  hints.program = (char*) mu_program_name;
-
-  hints.data = setup;
-  
   /* Initialize po */
   
   if (setup->prog_doc)
     {
       po.po_prog_doc = setup->prog_doc;
+      flags |= MU_PARSEOPT_PROG_DOC;
+    }
+  else if (pohint->po_flags & MU_PARSEOPT_PROG_DOC)
+    {
+      po.po_prog_doc = pohint->po_prog_doc;
       flags |= MU_PARSEOPT_PROG_DOC;
     }
 
@@ -415,21 +435,11 @@ mu_cli (int argc, char **argv, struct mu_cli_setup *setup, char **capa,
 
       flags |= MU_PARSEOPT_PROG_ARGS;
     }
-  
-  po.po_package_name = PACKAGE_NAME;
-  flags |= MU_PARSEOPT_PACKAGE_NAME;
-
-  po.po_package_url = PACKAGE_URL;
-  flags |= MU_PARSEOPT_PACKAGE_URL;
-
-  po.po_bug_address = PACKAGE_BUGREPORT;
-  flags |= MU_PARSEOPT_BUG_ADDRESS;
-
-  po.po_extra_info = gnu_general_help_url;
-  flags |= MU_PARSEOPT_EXTRA_INFO;
-
-  po.po_version_hook = mu_version_hook;
-  flags |= MU_PARSEOPT_VERSION_HOOK;
+  else if (pohint->po_flags & MU_PARSEOPT_PROG_ARGS)
+    {
+      po.po_prog_args = pohint->po_prog_args;
+      flags |= MU_PARSEOPT_PROG_ARGS;
+    }
 
   if (setup->prog_extra_doc)
     {
@@ -442,7 +452,30 @@ mu_cli (int argc, char **argv, struct mu_cli_setup *setup, char **capa,
       po.po_prog_doc_hook = prog_doc_hook;
       flags |= MU_PARSEOPT_PROG_DOC_HOOK;
     }
+  else if (pohint->po_flags & MU_PARSEOPT_PROG_DOC_HOOK)
+    {
+      po.po_prog_doc_hook = pohint->po_prog_doc_hook;
+      flags |= MU_PARSEOPT_PROG_DOC_HOOK;
+    }
   
+  if (setup->inorder)
+    flags |= MU_PARSEOPT_IN_ORDER;
+  
+  flags |= pohint->po_flags & PRESERVE_FLAGS;
+
+  if (flags & MU_PARSEOPT_PACKAGE_NAME)
+    po.po_package_name = pohint->po_package_name;
+  if (flags & MU_PARSEOPT_PACKAGE_URL)
+    po.po_package_url = pohint->po_package_url;
+  if (flags & MU_PARSEOPT_BUG_ADDRESS)
+    po.po_bug_address = pohint->po_bug_address;
+  if (flags & MU_PARSEOPT_EXTRA_INFO)
+    po.po_extra_info = pohint->po_extra_info;
+  if (flags & MU_PARSEOPT_VERSION_HOOK)
+    po.po_version_hook = pohint->po_version_hook;
+  if (flags & MU_PARSEOPT_NEGATION)
+    po.po_negation = pohint->po_negation;
+
   po.po_data = &hints;
   flags |= MU_PARSEOPT_DATA;
 
@@ -487,4 +520,34 @@ mu_cli (int argc, char **argv, struct mu_cli_setup *setup, char **capa,
   free (args);
 
   mu_parseopt_free (&po);  
+}
+
+void
+mu_cli (int argc, char **argv, struct mu_cli_setup *setup, char **capa,
+	void *data,
+	int *ret_argc, char ***ret_argv)
+{
+  struct mu_parseopt pohint;
+  struct mu_cfg_parse_hints cfhint;
+  
+  pohint.po_package_name = PACKAGE_NAME;
+  pohint.po_flags |= MU_PARSEOPT_PACKAGE_NAME;
+
+  pohint.po_package_url = PACKAGE_URL;
+  pohint.po_flags |= MU_PARSEOPT_PACKAGE_URL;
+
+  pohint.po_bug_address = PACKAGE_BUGREPORT;
+  pohint.po_flags |= MU_PARSEOPT_BUG_ADDRESS;
+
+  pohint.po_extra_info = gnu_general_help_url;
+  pohint.po_flags |= MU_PARSEOPT_EXTRA_INFO;
+
+  pohint.po_version_hook = mu_version_hook;
+  pohint.po_flags |= MU_PARSEOPT_VERSION_HOOK;
+
+  cfhint.site_rcfile = mu_site_config_file ();
+  cfhint.flags = MU_CFG_PARSE_SITE_RCFILE;
+  
+  mu_cli_ext (argc, argv, setup, &pohint, &cfhint, capa, data,
+	      ret_argc, ret_argv);
 }
