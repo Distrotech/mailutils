@@ -26,7 +26,7 @@
 #include <time.h>
 #include <mailutils/observer.h>
 
-static char progdoc[] = N_("GNU MH scan");
+static char prog_doc[] = N_("GNU MH scan");
 static char args_doc[] = N_("[+FOLDER] [MSGLIST]");
 
 static int clear;
@@ -107,7 +107,7 @@ main (int argc, char **argv)
   MU_APP_INIT_NLS ();
 
   mh_getopt (&argc, &argv, options, MH_GETOPT_DEFAULT_FOLDER,
-	     args_doc, progdoc, NULL);
+	     args_doc, prog_doc, NULL);
 
   if (mh_format_parse (format_str, &format))
     {

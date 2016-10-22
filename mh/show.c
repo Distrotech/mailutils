@@ -19,54 +19,8 @@
 
 #include <mh.h>
 
-static char doc[] = N_("GNU MH show")"\v"
-N_("Use -help to obtain the list of traditional MH options.");
+static char prog_doc[] = N_("GNU MH show");
 static char args_doc[] = N_("[+FOLDER] [MSGLIST]");
-
-#define ARG_PASS ARG_MAX
-
-static struct argp_option options[] = {
-  {"draft",         ARG_DRAFT,          NULL, 0,
-   N_("show the draft file") },
-  {"file",          ARG_FILE,     N_("FILE"), 0,
-   N_("show this file") },
-  {"header",        ARG_HEADER,   N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("display a description of the message before the message itself") },
-  {"noheader",      ARG_HEADER,   NULL, OPTION_HIDDEN, "" },
-  {"showproc",      ARG_SHOWPROC, N_("PROGRAM"), 0,
-   N_("use PROGRAM to show messages")},
-  {"noshowproc",    ARG_NOSHOWPROC, NULL, 0,
-   N_("disable the use of the \"showproc:\" profile component") },
-
-  {"form",          ARG_FORM,     N_("FILE"),   0,
-   N_("read format from given file")},
-  {"moreproc",      ARG_MOREPROC, N_("PROG"),   0,
-   N_("use this PROG as pager"), },
-  {"nomoreproc",    ARG_NOMOREPROC,     NULL,         0,
-   N_("disable the use of moreproc") },
-  {"length",        ARG_LENGTH,   N_("NUMBER"), 0,
-   N_("set output screen length")},
-  {"width",         ARG_WIDTH,    N_("NUMBER"), 0,
-   N_("set output width")},
-  
-  {NULL}
-};
-
-/* Traditional MH options */
-struct mh_option mh_option[] = {
-  { "draft" },
-  { "file", MH_OPT_ARG, "file" },
-  { "header", MH_OPT_BOOL },
-  { "showproc", MH_OPT_ARG, "program" },
-  { "noshowproc" },
-  { "form",       MH_OPT_ARG, "formatfile"},
-  { "width",      MH_OPT_ARG, "number"},
-  { "length",     MH_OPT_ARG, "number"},
-  { "moreproc",   MH_OPT_ARG, "program"},
-  { "nomoreproc" },
-  
-  { NULL }
-};
 
 int use_draft;
 int use_showproc = 1;
@@ -100,71 +54,75 @@ insarg (char *arg)
       showargv[1] = p;
     }
 }
-
-static const char *
-findopt (int key)
+
+static void
+set_draft (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
 {
-  struct argp_option *p;
-
-  for (p = options; p->name; p++)
-    if (p->key == key)
-      return p->name;
-  abort ();
-}
-
-static error_t
-opt_handler (int key, char *arg, struct argp_state *state)
-{
-  switch (key)
+  if (use_draft || file)
     {
-    case ARG_FOLDER: 
-      mh_set_current_folder (arg);
-      break;
-
-    case ARG_DRAFT:
-      if (use_draft || file)
-	argp_error (state, _("only one file at a time!"));
-      use_draft = 1;
-      break;
-
-    case ARG_FILE:
-      if (use_draft || file)
-	argp_error (state, _("only one file at a time!"));
-      file = mh_expand_name (NULL, arg, NAME_FILE);
-      break;
-      
-    case ARG_HEADER:
-      header_option = is_true (arg);
-      break;
-
-    case ARG_NOHEADER:
-      header_option = 0;
-      break;
-
-    case ARG_SHOWPROC:
-      showproc = arg;
-      break;
-
-    case ARG_NOSHOWPROC:
-      use_showproc = 0;
-      break;
-      
-    case ARG_NOMOREPROC:
-    case ARG_FORM:
-    case ARG_MOREPROC:
-    case ARG_LENGTH:
-    case ARG_WIDTH:
-      addarg (findopt (key));
-      if (arg)
-	addarg (arg);
-      break;
-
-    default:
-      return ARGP_ERR_UNKNOWN;
+      mu_parseopt_error (po, _("only one file at a time!"));
+      exit (po->po_exit_error);
     }
-  return 0;
+  use_draft = 1;
 }
 
+static void
+set_file (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
+{
+  if (use_draft || file)
+    {
+      mu_parseopt_error (po, _("only one file at a time!"));
+      exit (po->po_exit_error);
+    }
+  file = mh_expand_name (NULL, arg, NAME_FILE);
+}
+
+static void
+add_show_arg (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
+{
+  char *name = mu_alloc (strlen (opt->opt_long) + 2);
+  name[0] = '-';
+  strcpy (name + 1, opt->opt_long);
+  addarg (name);
+  if (arg)
+    addarg (arg);
+}
+
+static struct mu_option options[] = {
+  { "draft",        0,     NULL, MU_OPTION_DEFAULT,
+    N_("show the draft file"),
+    mu_c_string, NULL, set_draft },
+  { "file",         0,     N_("FILE"), MU_OPTION_DEFAULT,
+    N_("show this file"),
+    mu_c_string, NULL, set_file },
+  { "header",       0,     NULL, MU_OPTION_DEFAULT,
+    N_("display a description of the message before the message itself"),
+    mu_c_bool, &header_option },
+  { "showproc",     0,     N_("PROGRAM"), MU_OPTION_DEFAULT,
+    N_("use PROGRAM to show messages"),
+    mu_c_string, &showproc },
+  { "noshowproc",   0,  NULL, MU_OPTION_DEFAULT,
+    N_("disable the use of the \"showproc:\" profile component"),
+    mu_c_int, &use_showproc, NULL, "0" },
+  { "form",         0,  N_("FILE"),  MU_OPTION_DEFAULT,
+    N_("read format from given file"),
+    mu_c_string, NULL, add_show_arg },
+  { "moreproc",     0, N_("PROG"),   MU_OPTION_DEFAULT,
+    N_("use this PROG as pager"),
+    mu_c_string, NULL, add_show_arg },
+  { "nomoreproc",   0, NULL,         MU_OPTION_DEFAULT,
+    N_("disable the use of moreproc"),
+    mu_c_string, NULL, add_show_arg },
+  { "length",       0, N_("NUMBER"), MU_OPTION_DEFAULT,
+    N_("set output screen length"),
+    mu_c_string, NULL, add_show_arg },
+  { "width",        0, N_("NUMBER"), MU_OPTION_DEFAULT,
+    N_("set output width"),
+    mu_c_string, NULL, add_show_arg },
+  
+  MU_OPTION_END
+};
+
 static int
 resolve_mime (size_t num, mu_message_t msg, void *data)
 {
@@ -222,7 +180,6 @@ checkfile (char *file)
 int
 main (int argc, char **argv)
 {
-  int index = 0;
   mu_mailbox_t mbox;
   mu_msgset_t msgset;
   const char *p;
@@ -233,15 +190,13 @@ main (int argc, char **argv)
   showargmax = 2;
   showargc = 1;
   showargv = mu_calloc (showargmax, sizeof showargv[0]);
+
+  mh_getopt (&argc, &argv, options, MH_GETOPT_DEFAULT_FOLDER,
+	     args_doc, prog_doc, NULL);
+
   
-  mh_argp_init ();
-  mh_argp_parse (&argc, &argv, 0, options, mh_option, args_doc, doc,
-		 opt_handler, NULL, &index);
   mbox = mh_open_folder (mh_current_folder (), MU_STREAM_RDWR);
 
-  argc -= index;
-  argv += index;
-  
   if (use_draft || file)
     {
       if (argc)

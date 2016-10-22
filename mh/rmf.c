@@ -28,28 +28,8 @@
 
 #include <dirent.h>
 
-static char doc[] = N_("GNU MH rmf")"\v"
-N_("Use -help to obtain the list of traditional MH options.");
+static char prog_doc[] = N_("GNU MH rmf");
 static char args_doc[] = N_("[+FOLDER]");
-
-/* GNU options */
-static struct argp_option options[] = {
-  {"folder",  ARG_FOLDER, N_("FOLDER"), 0,
-   N_("specify the folder to delete")},
-  {"interactive", ARG_INTERACTIVE, N_("BOOL"), OPTION_ARG_OPTIONAL,
-    N_("interactive mode: ask for confirmation before removing each folder")},
-  {"nointeractive", ARG_NOINTERACTIVE, NULL, OPTION_HIDDEN, ""},
-  {"recursive", ARG_RECURSIVE, NULL, 0,
-   N_("recursively delete all subfolders")},
-  {"norecursive", ARG_NORECURSIVE, NULL, OPTION_HIDDEN, ""},
-  { 0 }
-};
-
-/* Traditional MH options */
-struct mh_option mh_option[] = {
-  { "interactive", MH_OPT_BOOL },
-  { 0 }
-};
 
 int explicit_folder; /* Was the folder explicitly given */
 int interactive; /* Ask for confirmation before deleting */
@@ -59,38 +39,26 @@ static char *cur_folder_path; /* Full pathname of the current folder */
 static char *folder_name;     /* Name of the (topmost) folder to be
 				 deleted */
 
-static error_t
-opt_handler (int key, char *arg, struct argp_state *state)
+static void
+set_folder (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
 {
-  switch (key)
-    {
-    case ARG_FOLDER:
-      explicit_folder = 1;
-      folder_name = arg;
-      break;
+  explicit_folder = 1;
+  folder_name = mu_strdup (arg);
+} 
 
-    case ARG_INTERACTIVE:
-      interactive = is_true (arg);
-      break;
-
-    case ARG_NOINTERACTIVE:
-      interactive = 0;
-      break;
-	
-    case ARG_RECURSIVE:
-      recursive = is_true (arg);
-      break;
-      
-    case ARG_NORECURSIVE:
-      recursive = 0;
-      break;
-
-    default:
-      return ARGP_ERR_UNKNOWN;
-    }
-  return 0;
-}
-
+static struct mu_option options[] = {
+  { "folder",  0, N_("FOLDER"), MU_OPTION_DEFAULT,
+    N_("specify the folder to delete"),
+    mu_c_string, NULL, set_folder },
+  { "interactive", 0, NULL, MU_OPTION_DEFAULT,
+    N_("interactive mode: ask for confirmation before removing each folder"),
+    mu_c_bool, &interactive },
+  { "recursive", 0, NULL, MU_OPTION_DEFAULT,
+    N_("recursively delete all subfolders"),
+    mu_c_bool, &recursive },
+  MU_OPTION_END
+};
+
 static char *
 current_folder_path (void)
 {
@@ -185,9 +153,7 @@ main (int argc, char **argv)
   /* Native Language Support */
   MU_APP_INIT_NLS ();
 
-  mh_argp_init ();
-  mh_argp_parse (&argc, &argv, 0, options, mh_option, args_doc, doc,
-		 opt_handler, NULL, NULL);
+  mh_getopt (&argc, &argv, options, 0, args_doc, prog_doc, NULL);
 
   cur_folder_path = current_folder_path ();
 

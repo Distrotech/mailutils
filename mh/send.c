@@ -23,91 +23,13 @@
 #include <stdarg.h>
 #include <pwd.h>
 
-static char doc[] = N_("GNU MH send")"\v"
-N_("Options marked with `*' are not yet implemented.\n\
-Use -help to obtain the list of traditional MH options.");
+static char prog_doc[] = N_("GNU MH send");
 static char args_doc[] = N_("FILE [FILE...]");
-
-/* GNU options */
-static struct argp_option options[] = {
-  {"alias",         ARG_ALIAS,         N_("FILE"), 0,
-   N_("specify additional alias file") },
-  {"draft",         ARG_DRAFT,         NULL, 0,
-   N_("use prepared draft") },
-  {"draftfolder",   ARG_DRAFTFOLDER,   N_("FOLDER"), 0,
-   N_("specify the folder for message drafts") },
-  {"draftmessage",  ARG_DRAFTMESSAGE,  N_("MSG"), 0,
-   N_("use MSG from the draftfolder as a draft") },
-  {"nodraftfolder", ARG_NODRAFTFOLDER, NULL, 0,
-   N_("undo the effect of the last --draftfolder option") },
-  {"filter",        ARG_FILTER,        N_("FILE"), 0,
-  N_("* use filter FILE to preprocess the body of the message") },
-  {"nofilter",      ARG_NOFILTER,      NULL, 0,
-   N_("* undo the effect of the last --filter option") },
-  {"format",        ARG_FORMAT,        N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("* reformat To: and Cc: addresses") },
-  {"noformat",      ARG_NOFORMAT,      NULL, OPTION_HIDDEN, "" },
-  {"forward",       ARG_FORWARD,       N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("* in case of failure forward the draft along with the failure notice to the sender") },
-  {"noforward",     ARG_NOFORWARD,     NULL, OPTION_HIDDEN, "" },
-  {"mime",          ARG_MIME,          N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("* use MIME encapsulation") },
-  {"nomime",        ARG_NOMIME,        NULL, OPTION_HIDDEN, "" },
-  {"msgid",         ARG_MSGID,         N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("add Message-ID: field") },
-  {"nomsgid",       ARG_NOMSGID,       NULL, OPTION_HIDDEN, ""},
-  {"push",          ARG_PUSH,          N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("run in the background") },
-  {"nopush",        ARG_NOPUSH,        NULL, OPTION_HIDDEN, "" },
-  {"preserve",      ARG_PRESERVE,      N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("keep draft files") },
-  {"keep",          0, NULL, OPTION_ALIAS, NULL},
-  {"split",         ARG_SPLIT,         N_("SECONDS"), 0,
-   N_("split the draft into several partial messages and send them with SECONDS interval") },
-  {"chunksize",     ARG_CHUNKSIZE,     N_("NUMBER"), 0,
-   N_("set the size of chunk for --split (in bytes)") },
-  {"verbose",       ARG_VERBOSE,       N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("print the transcript of interactions with the transport system") },
-  {"noverbose",     ARG_NOVERBOSE,     NULL, OPTION_HIDDEN, "" },
-  {"watch",         ARG_WATCH,         N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("monitor the delivery of mail") },
-  {"nowatch",       ARG_NOWATCH,       NULL, OPTION_HIDDEN, "" },
-  {"width",         ARG_WIDTH,         N_("NUMBER"), 0,
-   N_("* make header fields no longer than NUMBER columns") },
-  { 0 }
-};
-
-/* Traditional MH options */
-struct mh_option mh_option[] = {
-  { "alias",         MH_OPT_ARG, "aliasfile" },
-  { "draft" },
-  { "draftfolder",   MH_OPT_ARG, "folder" },
-  { "draftmessage",  MH_OPT_ARG, "message" },
-  { "nodraftfolder" },
-  { "filter",        MH_OPT_ARG, "filterfile" },
-  { "nofilter" },
-  { "format",        MH_OPT_BOOL },
-  { "forward",       MH_OPT_BOOL },
-  { "mime",          MH_OPT_BOOL },
-  { "msgid",         MH_OPT_BOOL },
-  { "push",          MH_OPT_BOOL },
-  { "preserve",      MH_OPT_BOOL },
-  { "keep",          MH_OPT_BOOL },
-  { "split",         MH_OPT_ARG, "seconds" },
-  { "verbose",       MH_OPT_BOOL },
-  { "watch",         MH_OPT_BOOL },
-  { "width" },
-  { NULL }
-};
 
 static const char *draftfolder;  /* Use this draft folder */
 static int use_draftfolder = 1;
 static int use_draft;
 
-static int reformat_recipients;  /* --format option */
-static int forward_notice;       /* Forward the failure notice to the sender,
-				    --forward flag */
-static int mime_encaps;          /* Use MIME encapsulation */
 static int append_msgid;         /* Append Message-ID: header */
 static int background;           /* Operate in the background */
 
@@ -117,7 +39,6 @@ static unsigned long split_interval; /* Interval in seconds between sending two
 static size_t split_size = 76*632;   /* Size of split parts */
 static int verbose;              /* Produce verbose diagnostics */
 static int watch;                /* Watch the delivery process */
-static unsigned width = 76;      /* Maximum width of header fields */
 
 static int keep_files;           /* Keep draft files */
 
@@ -128,147 +49,116 @@ static int keep_files;           /* Keep draft files */
     watch_printf c;\
 } while (0)
 
-static int add_file (char *name);
+static int add_file (char const *name);
 static void mesg_list_fixup (void);
-
-static error_t
-opt_handler (int key, char *arg, struct argp_state *state)
+
+static void
+add_alias (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
 {
-  char *p;
-  
-  switch (key)
-    {
-    case ARG_ALIAS:
-      mh_alias_read (arg, 1);
-      break;
-
-    case ARG_CHUNKSIZE:
-      split_size = strtoul (arg, &p, 10);
-      if (*p)
-	{
-	  argp_error (state, "%s: %s", arg, _("invalid number"));
-	  exit (1);
-	}
-      break;
-	
-    case ARG_DRAFT:
-      use_draft = 1;
-      break;
-	
-    case ARG_DRAFTFOLDER:
-      draftfolder = arg;
-      use_draftfolder = 1;
-      break;
-      
-    case ARG_NODRAFTFOLDER:
-      draftfolder = NULL;
-      use_draftfolder = 0;
-      break;
-      
-    case ARG_DRAFTMESSAGE:
-      add_file (arg);
-      break;
-      
-    case ARG_FILTER:
-      mh_opt_notimpl ("-filter");
-      break;
-
-    case ARG_NOFILTER:
-      mh_opt_notimpl ("-nofilter");
-      break;
- 
-    case ARG_FORMAT:
-      mh_opt_notimpl_warning ("-format"); 
-      reformat_recipients = is_true (arg);
-      break;
-      
-    case ARG_NOFORMAT:
-      mh_opt_notimpl_warning ("-noformat"); 
-      reformat_recipients = 0;
-      break;
-      
-    case ARG_FORWARD:
-      mh_opt_notimpl_warning ("-forward");
-      forward_notice = is_true (arg);
-      break;
-      
-    case ARG_NOFORWARD:
-      mh_opt_notimpl_warning ("-noforward");
-      forward_notice = 0;
-      break;
-      
-    case ARG_MIME:
-      mh_opt_notimpl_warning ("-mime");
-      mime_encaps = is_true (arg);
-      break;
-      
-    case ARG_NOMIME:
-      mh_opt_notimpl_warning ("-nomime");
-      mime_encaps = 0;
-      break;
-      
-    case ARG_MSGID:
-      append_msgid = is_true (arg);
-      break;
-      
-    case ARG_NOMSGID:
-      append_msgid = 0;
-      break;
-
-    case ARG_PRESERVE:
-      keep_files = is_true (arg);
-      break;
-      
-    case ARG_PUSH:
-      background = is_true (arg);
-      break;
-      
-    case ARG_NOPUSH:
-      background = 0;
-      break;
-      
-    case ARG_SPLIT:
-      split_message = 1;
-      split_interval = strtoul (arg, &p, 10);
-      if (*p)
-	{
-	  argp_error (state, "%s: %s", arg, _("invalid number"));
-	  exit (1);
-	}
-      break;
-      
-    case ARG_VERBOSE:
-      verbose = is_true (arg);
-      break;
-      
-    case ARG_NOVERBOSE:
-      verbose = 0;
-      break;
-      
-    case ARG_WATCH:
-      watch = is_true (arg);
-      break;
-      
-    case ARG_NOWATCH:
-      watch = 0;
-      break;
-      
-    case ARG_WIDTH:
-      mh_opt_notimpl_warning ("-width");
-      width = strtoul (arg, &p, 10);
-      if (*p)
-	{
-	  argp_error (state, _("invalid number"));
-	  exit (1);
-	}
-      break;
-      
-    default:
-      return ARGP_ERR_UNKNOWN;
-    }
-  return 0;
+  mh_alias_read (arg, 1);
 }
 
+static void
+set_draftfolder (struct mu_parseopt *po, struct mu_option *opt,
+		 char const *arg)
+{
+  draftfolder = mu_strdup (arg);
+  use_draftfolder = 1;
+}
+
+static void
+add_draftmessage (struct mu_parseopt *po, struct mu_option *opt,
+		  char const *arg)
+{
+  add_file (arg);
+}
+
+static void
+set_split_opt (struct mu_parseopt *po, struct mu_option *opt,
+	       char const *arg)
+{
+  char *errmsg;
+  int rc = mu_str_to_c (arg, opt->opt_type, opt->opt_ptr, &errmsg);
+  if (rc)
+    {
+      char const *errtext;
+      if (errmsg)
+	errtext = errmsg;
+      else
+	errtext = mu_strerror (rc);
+
+      mu_parseopt_error (po, "%s%s: %s", po->po_long_opt_start,
+			 opt->opt_long, errtext);
+      free (errmsg);
+
+      if (!(po->po_flags & MU_PARSEOPT_NO_ERREXIT))
+	exit (po->po_exit_error);
+    }
+  split_message = 1;
+}
+
+static struct mu_option options[] = {
+  { "alias",        0,    N_("FILE"), MU_OPTION_DEFAULT,
+    N_("specify additional alias file"),
+    mu_c_string, NULL, add_alias },
+  { "draft",        0,    NULL, MU_OPTION_DEFAULT,
+    N_("use prepared draft"),
+    mu_c_bool, &use_draft },
+  { "draftfolder",  0,   N_("FOLDER"), MU_OPTION_DEFAULT,
+    N_("specify the folder for message drafts"),
+    mu_c_string, NULL, set_draftfolder },
+  { "draftmessage", 0,   N_("MSG"), MU_OPTION_DEFAULT,
+    N_("use MSG from the draftfolder as a draft"),
+    mu_c_string, NULL, add_draftmessage },
+  { "nodraftfolder", 0, NULL, MU_OPTION_DEFAULT,
+    N_("undo the effect of the last --draftfolder option"),
+    mu_c_int, &use_draftfolder, NULL, "1" },
+  { "filter",        0, N_("FILE"), MU_OPTION_HIDDEN,
+    N_("use filter FILE to preprocess the body of the message"),
+    mu_c_string, NULL, mh_opt_notimpl },
+  { "nofilter",      0, NULL, MU_OPTION_HIDDEN,
+    N_("undo the effect of the last --filter option"),
+    mu_c_string, NULL, mh_opt_notimpl },
+  { "format",        0, NULL, MU_OPTION_HIDDEN,
+    N_("reformat To: and Cc: addresses"),
+    mu_c_string, NULL, mh_opt_notimpl_warning },
+  { "noformat",      0, NULL, MU_OPTION_HIDDEN },
+  { "forward",       0, NULL, MU_OPTION_HIDDEN,
+    N_("in case of failure forward the draft along with the failure notice to the sender"),
+    mu_c_string, NULL, mh_opt_notimpl_warning },
+  { "noforward",     0, NULL, MU_OPTION_HIDDEN, "" },
+  { "mime",          0, NULL, MU_OPTION_HIDDEN,
+    N_("use MIME encapsulation"),
+    mu_c_bool, NULL, mh_opt_notimpl_warning },
+  { "msgid",         0, NULL, MU_OPTION_DEFAULT,
+    N_("add Message-ID: field"),
+    mu_c_bool, &append_msgid },
+  { "push",          0, NULL, MU_OPTION_DEFAULT,
+    N_("run in the background"),
+    mu_c_bool, &background },
+  { "preserve",      0, NULL, MU_OPTION_DEFAULT,
+    N_("keep draft files"),
+    mu_c_bool, &keep_files },
+  { "keep",          0, NULL, MU_OPTION_ALIAS },
+  { "split",         0, N_("SECONDS"), MU_OPTION_DEFAULT,
+   N_("split the draft into several partial messages and send them with SECONDS interval"),
+    mu_c_ulong, &split_interval, set_split_opt },
+  { "chunksize",     0, N_("NUMBER"), MU_OPTION_DEFAULT,
+    N_("set the size of chunk for --split (in bytes)"),
+    mu_c_size, &split_size },
+  { "verbose",       0, NULL, MU_OPTION_DEFAULT,
+    N_("print the transcript of interactions with the transport system"),
+    mu_c_bool, &verbose },
+  { "watch",         0, NULL, MU_OPTION_DEFAULT,
+    N_("monitor the delivery of mail"),
+    mu_c_bool, &watch },
+  { "width",         0, N_("NUMBER"), MU_OPTION_HIDDEN,
+    N_("make header fields no longer than NUMBER columns"),
+    mu_c_string, NULL, mh_opt_notimpl_warning },
+
+  MU_OPTION_END
+};
+
 static void
 watch_printf (const char *fmt, ...)
 {
@@ -291,7 +181,7 @@ static mu_list_t mesg_list;
 static mu_property_t mts_profile;
 
 int
-add_file (char *name)
+add_file (char const *name)
 {
   struct list_elt *elt;
 
@@ -859,17 +749,12 @@ int
 main (int argc, char **argv)
 {
   mu_mailbox_t mbox = NULL;
-  int index;
   char *p;
   int rc;
   
   MU_APP_INIT_NLS ();
   
-  mh_argp_init ();
-  mh_argp_parse (&argc, &argv, 0, options, mh_option, args_doc, doc,
-		 opt_handler, NULL, &index);
-  argc -= index;
-  argv += index;
+  mh_getopt (&argc, &argv, options, 0, args_doc, prog_doc, NULL);
 
   mh_read_aliases ();
   /* Process the mtstailor file */

@@ -22,71 +22,9 @@
 #include <unistd.h>
 #include <signal.h>
 
-static char doc[] = N_("GNU MH sortm")"\v"
+static char prog_doc[] = N_("GNU MH sortm")"\v"
 N_("Use -help to obtain the list of traditional MH options.");
 static char args_doc[] = N_("[MSGLIST]");
-
-#define ARG_QUICKSORT 1024
-#define ARG_SHELL     1025
-
-/* GNU options */
-static struct argp_option options[] = {
-  {"folder",        ARG_FOLDER,        N_("FOLDER"), 0,
-   N_("specify folder to operate upon")},
-
-  {N_("Setting sort keys:"), 0,  NULL, OPTION_DOC,  NULL, 0},
-  {"datefield",     ARG_DATEFIELD,     N_("STRING"), 0,
-   N_("sort on the date field (default `Date:')"), 10},
-  {"nodatefield",   ARG_NODATEFIELD,   NULL,       0,
-   N_("undo the effect of the last --datefield option"), 10},
-  {"limit",         ARG_LIMIT,         N_("DAYS"), 0,
-   N_("consider two datefields equal if their difference lies within the given nuber of DAYS."), 11},
-  {"nolimit",       ARG_NOLIMIT,       NULL,       0,
-   N_("undo the effect of the last --limit option"), 11},
-  {"textfield",     ARG_TEXTFIELD,     N_("STRING"), 0,
-   N_("sort on the text field"), 15},
-  {"notextfield",   ARG_NOTEXTFIELD,   NULL,       0,
-   N_("undo the effect of the last --textfield option"), 15},
-  {"numfield",      ARG_NUMFIELD,      N_("STRING"), 0,
-   N_("sort on the numeric field"), 16},
-  
-  {N_("Actions:"), 0,  NULL, OPTION_DOC,  NULL, 16},
-  {"reorder", ARG_REORDER,    0, 0,
-   N_("reorder the messages (default)"), 20 },
-  {"dry-run", ARG_DRY_RUN,    0, 0,
-   N_("do not do anything, only show what would have been done"), 20 },
-  {"list",    ARG_LIST,   0, 0,
-   N_("list the sorted messages"), 20 },
-  {"form",    ARG_FORM, N_("FILE"),   0,
-   N_("read format from given file"), 23},
-  {"format",  ARG_FORMAT, N_("FORMAT"), 0,
-   N_("use this format string"), 23},
-
-  {"verbose",       ARG_VERBOSE,       N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("verbosely list executed actions"), 30 },
-  {"noverbose",     ARG_NOVERBOSE,     NULL, OPTION_HIDDEN, "" },
-
-  {N_("Select sort algorithm:"), 0,  NULL, OPTION_DOC,  NULL, 30},
-
-  {"shell",     ARG_SHELL,      0, 0,
-   N_("use shell algorithm"), 40 },
-  {"quicksort", ARG_QUICKSORT,  0, 0,
-   N_("use quicksort algorithm (default)"), 40 },
-
-  { NULL },
-};
-
-/* Traditional MH options */
-struct mh_option mh_option[] = {
-  { "datefield",     MH_OPT_ARG, "field" },
-  { "nodatefield" },
-  { "textfield",     MH_OPT_ARG, "field" },
-  { "notextfield" },
-  { "limit",         MH_OPT_ARG, "days" },
-  { "nolimit" },
-  { "verbose",       MH_OPT_BOOL },
-  { NULL },
-};
 
 static int limit;
 static int verbose;
@@ -98,115 +36,175 @@ static size_t msgcount;
 
 static size_t current_num;
 
-#define ACTION_REORDER   0
-#define ACTION_DRY_RUN   1
-#define ACTION_LIST      2  
+enum
+  {
+    ACTION_REORDER,
+    ACTION_DRY_RUN,
+    ACTION_LIST
+  };
 
-static int algorithm = ARG_QUICKSORT;
+enum
+  {
+    algo_quicksort,
+    algo_shell
+  };
+static int algorithm = algo_quicksort;
 static int action = ACTION_REORDER;
 static char *format_str = mh_list_format;
 static mh_format_t format;
 
 typedef int (*compfun) (void *, void *);
-static void addop (char *field, compfun comp);
+static void addop (char const *field, compfun comp);
 static void remop (compfun comp);
 static int comp_text (void *a, void *b);
 static int comp_date (void *a, void *b);
 static int comp_number (void *a, void *b);
-
-static error_t
-opt_handler (int key, char *arg, struct argp_state *state)
+
+static void
+add_datefield (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
 {
-  switch (key)
-    {
-    case ARG_FOLDER:
-      mh_set_current_folder (arg);
-      break;
-      
-    case ARG_DATEFIELD:
-      addop (arg, comp_date);
-      break;
-      
-    case ARG_NUMFIELD:
-      addop (arg, comp_number);
-      break;
-
-    case ARG_NODATEFIELD:
-      remop (comp_date);
-      break;
-      
-    case ARG_TEXTFIELD:
-      addop (arg, comp_text);
-      break;
-      
-    case ARG_NOTEXTFIELD:
-      remop (comp_text);
-      break;
-      
-    case ARG_LIMIT:
-      limit = strtoul (arg, NULL, 0);
-      break;
-      
-    case ARG_NOLIMIT:
-      limit = -1;
-      break;
-      
-    case ARG_VERBOSE:
-      if (!arg || mu_isalpha (arg[0]))
-	verbose = is_true (arg);
-      else
-	verbose = arg[0] - '0';
-      break;
-      
-    case ARG_NOVERBOSE:
-      verbose = 0;
-      break;
-      
-    case ARG_FORM:
-      mh_read_formfile (arg, &format_str);
-      break;
-      
-    case ARG_FORMAT:
-      format_str = arg;
-      break;
-
-    case ARG_REORDER:
-      action = ACTION_REORDER;
-      break;
-      
-    case ARG_LIST:
-      action = ACTION_LIST;
-      break;
-
-    case ARG_DRY_RUN:
-      action = ACTION_DRY_RUN;
-      if (!verbose)
-	verbose = 1;
-      break;
-
-    case ARG_SHELL:
-    case ARG_QUICKSORT:
-      algorithm = key;
-      break;
-      
-    default:
-      return ARGP_ERR_UNKNOWN;
-    }
-  return 0;
+  addop (arg, comp_date);
 }
 
+static void
+add_numfield (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
+{
+  addop (arg, comp_number);
+}
+
+static void
+add_textfield (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
+{
+  addop (arg, comp_text);
+}
+
+static void
+rem_datefield (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
+{
+  remop (comp_date);
+}
+
+static void
+rem_numfield (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
+{
+  remop (comp_number);
+}
+
+static void
+rem_textfield (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
+{
+  remop (comp_text);
+}
+
+static void
+set_action_reorder (struct mu_parseopt *po, struct mu_option *opt,
+		    char const *arg)
+{
+  action = ACTION_REORDER;
+}
+
+static void
+set_action_list (struct mu_parseopt *po, struct mu_option *opt,
+		    char const *arg)
+{
+  action = ACTION_LIST;
+}
+
+static void
+set_action_dry_run (struct mu_parseopt *po, struct mu_option *opt,
+		    char const *arg)
+{
+  action = ACTION_DRY_RUN;
+  if (!verbose)
+    verbose = 1;
+}
+
+static void
+set_algo_shell (struct mu_parseopt *po, struct mu_option *opt,
+		char const *arg)
+{
+  algorithm = algo_shell;
+}
+
+static void
+set_algo_quicksort (struct mu_parseopt *po, struct mu_option *opt,
+		    char const *arg)
+{
+  algorithm = algo_quicksort;
+}
+
+static struct mu_option options[] = {
+  MU_OPTION_GROUP (N_("Setting sort keys:")),
+  { "datefield",     0, N_("STRING"), MU_OPTION_DEFAULT,
+    N_("sort on the date field (default `Date:')"),
+    mu_c_string, NULL, add_datefield },
+  { "nodatefield",   0, NULL,       MU_OPTION_DEFAULT,
+    N_("don't sort on the date field"),
+    mu_c_string, NULL, rem_datefield },
+  { "limit",         0, N_("DAYS"), MU_OPTION_DEFAULT,
+    N_("consider two datefields equal if their difference lies within the given nuber of DAYS."),
+    mu_c_int, &limit },
+  { "nolimit",       0,       NULL,       MU_OPTION_DEFAULT,
+    N_("undo the effect of the last -limit option"),
+    mu_c_int, &limit, NULL, "-1" },
+  { "textfield",     0,       N_("STRING"), MU_OPTION_DEFAULT,
+    N_("sort on the text field"),
+    mu_c_string, NULL, add_textfield },
+  { "notextfield",   0,       NULL,       MU_OPTION_DEFAULT, 
+    N_("don't sort on the text field"),
+    mu_c_string, NULL, rem_textfield },
+  { "numfield",      0,       N_("STRING"), MU_OPTION_DEFAULT,
+    N_("sort on the numeric field"),
+    mu_c_string, NULL, add_numfield },
+  { "nonumfield",    0,       NULL,       MU_OPTION_DEFAULT,
+    N_("don't sort on the numeric field"),
+    mu_c_string, NULL, rem_numfield },
+  
+  MU_OPTION_GROUP (N_("Actions:")),
+  { "reorder", 0,    NULL, MU_OPTION_DEFAULT,
+    N_("reorder the messages (default)"),
+    mu_c_string, NULL, set_action_reorder },
+  { "dry-run", 0,    NULL, MU_OPTION_DEFAULT,
+   N_("do not do anything, only show what would have been done"),
+    mu_c_string, NULL, set_action_dry_run },
+  { "list",    0,    NULL, MU_OPTION_DEFAULT,
+    N_("list the sorted messages"), 
+    mu_c_string, NULL, set_action_list },
+  
+  { "form",    0, N_("FILE"),   MU_OPTION_DEFAULT,
+    N_("read format from given file"),
+    mu_c_string, &format_str, mh_opt_read_formfile },
+  { "format",  0, N_("FORMAT"), MU_OPTION_DEFAULT,
+    N_("use this format string"),
+    mu_c_string, &format_str },
+
+  { "verbose",  0, NULL,   MU_OPTION_DEFAULT,
+    N_("verbosely list executed actions"),
+    mu_c_bool, &verbose },
+
+  MU_OPTION_GROUP (N_("Select sort algorithm:")),
+  { "shell",    0, NULL,   MU_OPTION_DEFAULT,
+    N_("use shell algorithm"),
+    mu_c_string, NULL, set_algo_shell },
+  
+  { "quicksort", 0, NULL,   MU_OPTION_DEFAULT,
+    N_("use quicksort algorithm (default)"),
+    mu_c_string, NULL, set_algo_quicksort },
+
+  MU_OPTION_END
+};
 
 /* *********************** Comparison functions **************************** */
 struct comp_op
 {
-  char *field;
+  char const *field;
   compfun comp;
 };
 
 static mu_list_t oplist;
 
 static void
-addop (char *field, compfun comp)
+addop (char const *field, compfun comp)
 {
   struct comp_op *op = mu_alloc (sizeof (*op));
   
@@ -497,11 +495,11 @@ sort ()
 
   switch (algorithm)
     {
-    case ARG_QUICKSORT:
+    case algo_quicksort:
       qsort (msgarr, msgcount, sizeof (msgarr[0]), comp);
       break;
 
-    case ARG_SHELL:
+    case algo_shell:
       shell_sort ();
       break;
     }
@@ -599,19 +597,17 @@ fill_msgarr (mu_msgset_t msgset)
 }
 
 
-/* Main */
-
 int
 main (int argc, char **argv)
 {
-  int index;
   mu_url_t url;
   mu_msgset_t msgset;
   
   MU_APP_INIT_NLS ();
-  mh_argp_init ();
-  mh_argp_parse (&argc, &argv, 0, options, mh_option,
-		 args_doc, doc, opt_handler, NULL, &index);
+
+  mh_getopt (&argc, &argv, options, MH_GETOPT_DEFAULT_FOLDER,
+	     args_doc, prog_doc, NULL);
+  
   if (!oplist)
     addop ("date", comp_date);
 
@@ -627,9 +623,6 @@ main (int argc, char **argv)
   if (memcmp (mbox_path, "mh:", 3) == 0)
     mbox_path += 3;
   
-  argc -= index;
-  argv += index;
-
   mh_mailbox_get_cur (mbox, &current_num);
 
   mh_msgset_parse (&msgset, mbox, argc, argv, "all");

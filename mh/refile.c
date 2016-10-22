@@ -23,38 +23,8 @@
 #include <errno.h>
 #include <fcntl.h>
 
-static char doc[] = N_("GNU MH refile")"\v"
-N_("Options marked with `*' are not yet implemented.\n\
-Use -help to obtain the list of traditional MH options.");
+static char prog_doc[] = N_("GNU MH refile");
 static char args_doc[] = N_("MSGLIST FOLDER [FOLDER...]");
-
-/* GNU options */
-static struct argp_option options[] = {
-  {"folder",  ARG_FOLDER, N_("FOLDER"), 0,
-   N_("specify folder to operate upon")},
-  {"draft",   ARG_DRAFT, NULL, 0,
-   N_("use <mh-dir>/draft as the source message")},
-  {"copy",    ARG_LINK, N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("preserve the source folder copy")},
-  {"link",    0, NULL, OPTION_ALIAS, NULL},
-  {"preserve", ARG_PRESERVE, N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("* try to preserve message sequence numbers")},
-  {"source", ARG_SOURCE, N_("FOLDER"), 0,
-   N_("specify source folder; it will become the current folder after the program exits")},
-  {"src", 0, NULL, OPTION_ALIAS, NULL},
-  {"file", ARG_FILE, N_("FILE"), 0, N_("use FILE as the source message")},
-  { 0 }
-};
-
-/* Traditional MH options */
-struct mh_option mh_option[] = {
-  { "file",     MH_OPT_ARG, "input-file"},
-  { "draft" },
-  { "link",     MH_OPT_BOOL },
-  { "preserve", MH_OPT_BOOL },
-  { "src",      MH_OPT_ARG, "folder" },
-  { NULL }
-};
 
 int link_flag = 0;
 int preserve_flag = 0;
@@ -72,9 +42,40 @@ add_folder (const char *folder)
     }
   mu_list_append (folder_name_list, mu_strdup (folder));
 }
+
+static void
+add_folder_option (struct mu_parseopt *po, struct mu_option *opt,
+		   const char *arg)
+{
+  add_folder (arg);
+}
 
+static struct mu_option options[] = {
+  { "folder",  0, N_("FOLDER"), MU_OPTION_DEFAULT,
+    N_("specify folder to operate upon"),
+    mu_c_string, NULL, add_folder_option },
+  { "draft",   0, NULL, MU_OPTION_DEFAULT,
+    N_("use <mh-dir>/draft as the source message"),
+    mu_c_string, &source_file, NULL, "draft" },
+  { "copy",    0, NULL, MU_OPTION_DEFAULT,
+    N_("preserve the source folder copy"),
+    mu_c_bool, &link_flag },
+  { "link",    0, NULL, MU_OPTION_ALIAS },
+  { "preserve", 0, NULL, MU_OPTION_HIDDEN,
+    N_("try to preserve message sequence numbers"),
+    mu_c_string, NULL, mh_opt_notimpl_warning },
+  { "source", 0, N_("FOLDER"), MU_OPTION_DEFAULT,
+    N_("specify source folder; it will become the current folder after the program exits"),
+    mu_c_string, NULL, mh_opt_set_folder },
+  { "src", 0, NULL, MU_OPTION_ALIAS },
+  { "file", 0, N_("FILE"), MU_OPTION_DEFAULT,
+    N_("use FILE as the source message"),
+    mu_c_string, &source_file },
+  MU_OPTION_END
+};
+
 void
-open_folders ()
+open_folders (void)
 {
   int rc;
   mu_iterator_t itr;
@@ -139,45 +140,9 @@ _close_folder (void *unused, mu_mailbox_t mbox)
 }
 
 void
-close_folders ()
+close_folders (void)
 {
   enumerate_folders (_close_folder, NULL);
-}
-
-static int
-opt_handler (int key, char *arg, struct argp_state *state)
-{
-  switch (key)
-    {
-    case ARG_FOLDER: 
-      add_folder (arg);
-      break;
-
-    case ARG_DRAFT:
-      source_file = "draft";
-      break;
-
-    case ARG_LINK:
-      link_flag = is_true(arg);
-      break;
-      
-    case ARG_PRESERVE:
-      mh_opt_notimpl_warning ("-preserve");
-      preserve_flag = is_true(arg);
-      break;
-	
-    case ARG_SOURCE:
-      mh_set_current_folder (arg);
-      break;
-      
-    case ARG_FILE:
-      source_file = arg;
-      break;
-      
-    default:
-      return ARGP_ERR_UNKNOWN;
-    }
-  return 0;
 }
 
 void
@@ -216,7 +181,6 @@ refile_iterator (size_t num, mu_message_t msg, void *data)
 int
 main (int argc, char **argv)
 {
-  int index;
   mu_msgset_t msgset;
   mu_mailbox_t mbox;
   int status, i, j;
@@ -224,13 +188,7 @@ main (int argc, char **argv)
   /* Native Language Support */
   MU_APP_INIT_NLS ();
 
-  mh_argp_init ();
-  mh_argp_parse (&argc, &argv, 0, options, mh_option, args_doc, doc,
-		 opt_handler, NULL, &index);
-
-  argc -= index;
-  argv += index;
-
+  mh_getopt (&argc, &argv, options, 0, args_doc, prog_doc, NULL);
   /* Collect any surplus folders */
   for (i = j = 0; i < argc; i++)
     {

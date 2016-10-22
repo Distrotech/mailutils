@@ -189,28 +189,28 @@ tokname (int tok)
   switch (tok)
     {
     case T_DATEFIELD:
-      return "--datefield";
+      return "-datefield";
       
     case T_BEFORE:
-      return "--before";
+      return "-before";
       
     case T_AFTER:
-      return "--after";
+      return "-after";
       
     case T_LBRACE:
-      return "--lbrace";
+      return "-lbrace";
       
     case T_RBRACE:
-      return "--rbrace";
+      return "-rbrace";
       
     case T_OR:
-      return "--or";
+      return "-or";
       
     case T_AND:
-      return "--and";
+      return "-and";
       
     case T_NOT:
-      return "--not";
+      return "-not";
     }
   return NULL;
 }
@@ -236,7 +236,7 @@ yyerror (const char *s)
 }
   
 void
-pick_add_token (mu_list_t *list, int tok, char *val)
+pick_add_token (mu_list_t *list, int tok, char const *val)
 {
   struct token *tp;
   int rc;

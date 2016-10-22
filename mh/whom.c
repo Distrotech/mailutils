@@ -17,99 +17,58 @@
 
 #include <mh.h>
 
-static char doc[] = N_("GNU MH whom")"\v"
-N_("Use -help to obtain the list of traditional MH options.");
+static char prog_doc[] = N_("GNU MH whom");
 static char args_doc[] = "[FILE]";
-
-/* GNU options */
-static struct argp_option options[] = {
-  {"alias",         ARG_ALIAS,         N_("FILE"), 0,
-   N_("specify additional alias file") },
-  {"draft",         ARG_DRAFT,         NULL, 0,
-   N_("use prepared draft") },
-  {"draftfolder",   ARG_DRAFTFOLDER,   N_("FOLDER"), 0,
-   N_("specify the folder for message drafts") },
-  {"draftmessage",  ARG_DRAFTMESSAGE,  NULL, 0,
-   N_("treat the arguments as a list of messages from the draftfolder") },
-  {"nodraftfolder", ARG_NODRAFTFOLDER, NULL, 0,
-   N_("undo the effect of the last --draftfolder option") },
-  {"check",         ARG_CHECK,         N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("check if addresses are deliverable") },
-  {"nocheck",       ARG_NOCHECK,       NULL, OPTION_HIDDEN, "" },
-
-  {NULL}
-};
-
-/* Traditional MH options */
-struct mh_option mh_option[] = {
-  { "alias",         MH_OPT_ARG, "aliasfile" },
-  { "draft" },
-  { "draftfolder",   MH_OPT_ARG, "folder" },
-  { "draftmessage",  MH_OPT_ARG, "message" },
-  { "nodraftfolder" },
-  { "check",         MH_OPT_BOOL },
-  {NULL}
-};
 
 static int check_recipients;
 static int use_draft;            /* Use the prepared draft */
 static const char *draft_folder; /* Use this draft folder */
-
-static error_t
-opt_handler (int key, char *arg, struct argp_state *state)
+
+static void
+add_alias (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
 {
-  switch (key)
-    {
-    case ARG_ALIAS:
-      mh_alias_read (arg, 1);
-      break;
-      
-    case ARG_DRAFT:
-      use_draft = 1;
-      break;
-	
-    case ARG_DRAFTFOLDER:
-      draft_folder = arg;
-      break;
-      
-    case ARG_NODRAFTFOLDER:
-      draft_folder = NULL;
-      break;
-      
-    case ARG_DRAFTMESSAGE:
-      if (!draft_folder)
-	draft_folder = mh_global_profile_get ("Draft-Folder",
-					      mu_folder_directory ());
-      break;
-
-    case ARG_CHECK:
-      check_recipients = is_true (arg);
-      break;
-
-    case ARG_NOCHECK:
-      check_recipients = 0;
-      break;
-
-    default:
-      return ARGP_ERR_UNKNOWN;
-    }
-  return 0;
+  mh_alias_read (arg, 1);
 }
 
+static void
+set_draftmessage (struct mu_parseopt *po, struct mu_option *opt,
+		  char const *arg)
+{
+  if (!draft_folder)
+    draft_folder = mh_global_profile_get ("Draft-Folder",
+					  mu_folder_directory ());
+}
+
+static struct mu_option options[] = {
+  { "alias",        0,    N_("FILE"), MU_OPTION_DEFAULT,
+    N_("specify additional alias file"),
+    mu_c_string, NULL, add_alias },
+  { "draft",        0,    NULL, MU_OPTION_DEFAULT,
+    N_("use prepared draft"),
+    mu_c_bool, &use_draft },
+  { "draftfolder",   0,      N_("FOLDER"), MU_OPTION_DEFAULT,
+    N_("specify the folder for message drafts"),
+    mu_c_string, &draft_folder },
+  { "nodraftfolder", 0, NULL, MU_OPTION_DEFAULT,
+    N_("undo the effect of the last -draftfolder option"),
+    mu_c_string, &draft_folder, mh_opt_clear_string },
+  { "draftmessage",  0,  NULL, MU_OPTION_DEFAULT,
+    N_("treat the arguments as a list of messages from the draftfolder"),
+    mu_c_string, NULL, set_draftmessage },
+  { "check",         0,  NULL, MU_OPTION_DEFAULT,
+    N_("check if addresses are deliverable"),
+    mu_c_bool, &check_recipients },
+  MU_OPTION_END
+};
+
 int
 main (int argc, char **argv)
 {
-  int index;
   char *name = "draft";
   
   MU_APP_INIT_NLS ();
   
-  mh_argp_init ();
-  mh_argp_parse (&argc, &argv, 0, options, mh_option, args_doc, doc,
-		 opt_handler, NULL, &index);
-
-  argc -= index;
-  argv += index;
+  mh_getopt (&argc, &argv, options, 0, args_doc, prog_doc, NULL);
 
   if (!use_draft && argc > 0)
     name = argv[0];

@@ -18,51 +18,21 @@
 
 #include <mh.h>
 
-static char doc[] = N_("GNU MH mhseq")"\v"
-N_("Use -help to obtain the list of traditional MH options.");
+static char prog_doc[] = N_("GNU MH mhseq");
 static char args_doc[] = N_("[SEQUENCE]");
-
-static struct argp_option options[] = {
-  {"folder",  ARG_FOLDER, N_("FOLDER"), 0,
-   N_("specify the folder to use")},
-  { "uids",  'u', NULL, 0,
-    N_("show message UIDs (default)")},
-  { "numbers", 'n', NULL, 0,
-    N_("show message numbers") },
-  { NULL }
-};
-
-/* Traditional MH options */
-struct mh_option mh_option[] = {
-  { "uid" },
-  { NULL }
-};
 
 static int uid_option = 1;
 
-static error_t
-opt_handler (int key, char *arg, struct argp_state *state)
-{
-  switch (key)
-    {
-    case ARG_FOLDER: 
-      mh_set_current_folder (arg);
-      break;
-
-    case 'n':
-      uid_option = 0;
-      break;
-      
-    case 'u':
-      uid_option = 1;
-      break;
-
-    default:
-      return ARGP_ERR_UNKNOWN;
-    }
-  return 0;
-}
-
+static struct mu_option options[] = {
+  { "uids",   0, NULL, MU_OPTION_DEFAULT,
+    N_("show message UIDs (default)"),
+    mu_c_int, &uid_option, NULL, "1" },
+  { "numbers", 0, NULL, MU_OPTION_DEFAULT,
+    N_("show message numbers"),
+    mu_c_int, &uid_option, NULL, "0" },
+  MU_OPTION_END
+};
+
 static int
 _print_number (size_t n, void *data)
 {
@@ -73,19 +43,15 @@ _print_number (size_t n, void *data)
 int
 main (int argc, char **argv)
 {
-  int index;
   mu_mailbox_t mbox;
   mu_msgset_t msgset;
     
   /* Native Language Support */
   MU_APP_INIT_NLS ();
 
-  mh_argp_init ();
-  mh_argp_parse (&argc, &argv, 0, options, mh_option, args_doc, doc,
-		 opt_handler, NULL, &index);
+  mh_getopt (&argc, &argv, options, MH_GETOPT_DEFAULT_FOLDER,
+	     args_doc, prog_doc, NULL);
 
-  argc -= index;
-  argv += index;
   mbox = mh_open_folder (mh_current_folder (), MU_STREAM_READ);
 
   mh_msgset_parse (&msgset, mbox, argc, argv, "cur");

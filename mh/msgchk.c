@@ -21,41 +21,8 @@
 #include "mailutils/datetime.h"
 #include <pwd.h>
 
-static char doc[] = N_("GNU MH msgchk")"\v"
-N_("Use -help to obtain the list of traditional MH options.");
+static char prog_doc[] = N_("GNU MH msgchk");
 static char args_doc[] = N_("USER [USER...]");
-
-/* GNU options */
-static struct argp_option options[] = {
-  {"date",         ARG_DATE,    N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("print out the last date mail was read") },
-  {"nodate",       ARG_NODATE,  NULL, OPTION_HIDDEN,
-   N_("don't print out the last date mail was read") },
-  {"notify",       ARG_NOTIFY, "all|mail|nomail", 0,
-   N_("produce a message upon these events") },
-  {"nonotify",     ARG_NONOTIFY, "all|mail|nomail", 0,
-   N_("disable notification") },
-  {"host",         ARG_HOST,     N_("URL"), 0,
-   N_("check mail on this host or URL") },
-  {"user",         ARG_USER,     N_("NAME"), 0,
-   N_("set user name for remote mailbox access") },
-  {"apop",         ARG_APOP,    N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("enable APOP") },
-  {"noapop",       ARG_NOAPOP,  NULL, OPTION_HIDDEN,
-   N_("disable APOP") },
-  {NULL}
-};
-
-/* Traditional MH options */
-struct mh_option mh_option[] = {
-  { "date", MH_OPT_BOOL },
-  { "notify", MH_OPT_ARG, "all|mail|nomail" },
-  { "nonotify", MH_OPT_ARG, "all|mail|nomail" },
-  { "host", MH_OPT_ARG, "host-or-url" },
-  { "user", MH_OPT_ARG, "name" },
-  { "apop", MH_OPT_BOOL },
-  { NULL }
-};
 
 int date_option = 1;
 int apop_option;
@@ -75,55 +42,53 @@ static struct mu_kwd notifytab[] = {
   { NULL }
 };
 
-static error_t
-opt_handler (int key, char *arg, struct argp_state *state)
+static void
+set_notify (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
 {
   int n;
-  
-  switch (key)
+  if (mu_kwd_xlat_name (notifytab, arg, &n))
     {
-    case ARG_DATE:
-      date_option = is_true (arg);
-      break;
-      
-    case ARG_NODATE:
-      date_option = 0;
-      break;
-      
-    case ARG_APOP:
-      apop_option = is_true (arg);
-      break;
-      
-    case ARG_NOAPOP:
-      apop_option = 0;
-      break;
-      
-    case ARG_NOTIFY:
-      if (mu_kwd_xlat_name (notifytab, arg, &n))
-	argp_error (state, "unknown notify argument: %s", arg);
-      notify |= n;
-      break;
-      
-    case ARG_NONOTIFY:
-      if (mu_kwd_xlat_name (notifytab, arg, &n))
-	argp_error (state, "unknown notify argument: %s", arg);
-      notify &= ~n;
-      break;
-      
-    case ARG_USER:
-      remote_user = arg;
-      break;
-      
-    case ARG_HOST:
-      remote_host = arg;
-      break;
-      
-    default:
-      return ARGP_ERR_UNKNOWN;
+      mu_parseopt_error (po, "unknown notify argument: %s", arg);
+      exit (po->po_exit_error);
     }
-  return 0;
+  notify |= n;
 }
 
+static void
+clr_notify (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
+{
+  int n;
+  if (mu_kwd_xlat_name (notifytab, arg, &n))
+    {
+      mu_parseopt_error (po, "unknown notify argument: %s", arg);
+      exit (po->po_exit_error);
+    }
+  notify &= ~n;
+}
+  
+static struct mu_option options[] = {
+  { "date",        0,    NULL, MU_OPTION_DEFAULT,
+    N_("print out the last date mail was read"),
+    mu_c_bool, &date_option },
+  { "notify",      0, "all|mail|nomail", MU_OPTION_DEFAULT,
+    N_("produce a message upon these events"),
+    mu_c_string, NULL, set_notify },
+  { "nonotify",    0, "all|mail|nomail", MU_OPTION_DEFAULT,
+    N_("disable notification"),
+    mu_c_string, NULL, clr_notify },
+  { "host",        0,  N_("URL"), MU_OPTION_DEFAULT,
+    N_("check mail on this host or URL"),
+    mu_c_string, &remote_host },
+  { "user",        0,  N_("NAME"), MU_OPTION_DEFAULT,
+    N_("set user name for remote mailbox access"),
+    mu_c_string, &remote_user },
+  { "apop",        0,  NULL, MU_OPTION_DEFAULT,
+    N_("enable APOP"),
+    mu_c_bool, &apop_option },
+  
+  MU_OPTION_END
+};
+
 static char *
 attach_auth_ticket (mu_mailbox_t mbox)
 {
@@ -185,7 +150,7 @@ checkmail (const char *username, int personal)
     {
       static mu_url_t pop_hint;
 
-      if (pop_hint)
+      if (!pop_hint)
 	{
 	  rc = mu_url_create (&pop_hint, "pop://");
 	  if (rc)
@@ -382,17 +347,11 @@ checkmail (const char *username, int personal)
 int
 main (int argc, char **argv)
 {
-  int index;
   int rc = 0;
   
   MU_APP_INIT_NLS ();
-  
-  mh_argp_init ();
-  mh_argp_parse (&argc, &argv, 0, options, mh_option, args_doc, doc,
-		 opt_handler, NULL, &index);
 
-  argc -= index;
-  argv += index;
+  mh_getopt (&argc, &argv, options, 0, args_doc, prog_doc, NULL);  
 
   if (argc == 0)
     {

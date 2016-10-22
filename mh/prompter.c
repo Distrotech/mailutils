@@ -19,49 +19,8 @@
 #include <mh.h>
 #include "prompter.h"
 
-static char doc[] = N_("GNU MH prompter")"\v"
-N_("Use -help to obtain the list of traditional MH options.");
+static char prog_doc[] = N_("GNU MH prompter");
 static char args_doc[] = N_("FILE");
-
-enum {
-  ARG_ERASE=256,
-  ARG_KILL,
-  ARG_PREPEND,
-  ARG_NOPREPEND,
-  ARG_RAPID,
-  ARG_NORAPID,
-  ARG_DOTEOF,
-  ARG_NODOTEOF
-};
-
-static struct argp_option options[] = {
-  { "erase",         ARG_ERASE,         N_("CHAR"), 0,
-    N_("set erase character") },
-  { "kill",          ARG_KILL,          N_("CHAR"), 0,
-    N_("set kill character") },
-  { "prepend",       ARG_PREPEND,       N_("BOOL"), 0,
-    N_("prepend user input to the message body") },
-  { "noprepend",     ARG_NOPREPEND,     NULL, OPTION_HIDDEN,
-    NULL },
-  { "rapid",         ARG_RAPID,         N_("BOOL"), 0,
-    N_("do not display message body") },
-  { "norapid",       ARG_NORAPID,       NULL, OPTION_HIDDEN,
-    NULL },
-  { "doteof",        ARG_DOTEOF,        N_("BOOL"), 0,
-    N_("a period on a line marks end-of-file") },
-  { "nodoteof",      ARG_NODOTEOF,      NULL, OPTION_HIDDEN,
-    NULL },
-  { NULL }
-};
-
-struct mh_option mh_option[] = {
-  { "erase", MH_OPT_ARG, "chr" },
-  { "kill",  MH_OPT_ARG, "chr" },
-  { "prepend", MH_OPT_BOOL },
-  { "rapid", MH_OPT_BOOL },
-  { "doteof", MH_OPT_BOOL },
-  { NULL }
-};
 
 char *erase_seq;
 char *kill_seq;
@@ -69,48 +28,24 @@ int prepend_option;
 int rapid_option;
 int doteof_option;
 
-static error_t
-opt_handler (int key, char *arg, struct argp_state *state)
-{
-  switch (key)
-    {
-    case ARG_ERASE:
-      erase_seq = arg;
-      break;
-      
-    case ARG_KILL:
-      kill_seq = arg;
-      break;
-      
-    case ARG_PREPEND:
-      prepend_option = is_true (arg);
-      break;
-      
-    case ARG_NOPREPEND:
-      prepend_option = 0;
-      break;
-      
-    case ARG_RAPID:
-      rapid_option = is_true (arg);
-      break;
-      
-    case ARG_NORAPID:
-      rapid_option = 0;
-      break;
-      
-    case ARG_DOTEOF:
-      doteof_option = is_true (arg);
-      break;
-      
-    case ARG_NODOTEOF:
-      doteof_option = 0;
-      break;
-
-    default:
-      return ARGP_ERR_UNKNOWN;
-   }
-  return 0;
-}
+static struct mu_option options[] = {
+  { "erase",         0,     N_("CHAR"), MU_OPTION_DEFAULT,
+    N_("set erase character"),
+    mu_c_string, &erase_seq },
+  { "kill",          0,     N_("CHAR"), MU_OPTION_DEFAULT,
+    N_("set kill character"),
+    mu_c_string, &kill_seq },
+  { "prepend",       0,     NULL, MU_OPTION_DEFAULT,
+    N_("prepend user input to the message body"),
+    mu_c_bool, &prepend_option },
+  { "rapid",         0,     NULL, MU_OPTION_DEFAULT,
+    N_("do not display message body"),
+    mu_c_bool, &rapid_option },
+  { "doteof",        0,     NULL, MU_OPTION_DEFAULT,
+    N_("a period on a line marks end-of-file"),
+    mu_c_bool, &doteof_option },
+  MU_OPTION_END
+};
 
 static int
 is_empty_string (const char *str)
@@ -142,7 +77,6 @@ mu_stream_t strout;
 int
 main (int argc, char **argv)
 {
-  int index;
   int rc;
   mu_stream_t in, tmp;
   mu_message_t msg;
@@ -156,16 +90,20 @@ main (int argc, char **argv)
   
   MU_APP_INIT_NLS ();
   
-  mh_argp_init ();
-  mh_argp_parse (&argc, &argv, 0, options, mh_option, args_doc, doc,
-		 opt_handler, NULL, &index);
+  mh_getopt (&argc, &argv, options, 0, args_doc, prog_doc, NULL);
 
-  if (index == argc)
+  if (argc == 0)
     {
       mu_error (_("file name not given"));
       exit (1);
     }
-  file = argv[index];
+  else if (argc > 1)
+    {
+      mu_error (_("too many arguments"));
+      exit (1);
+    }
+  
+  file = argv[0];
 
   prompter_init ();
   if (erase_seq)
@@ -178,7 +116,7 @@ main (int argc, char **argv)
       mu_error (_("cannot open stdout: %s"), mu_strerror (rc));
       return 1;
     }
-  
+
   if ((rc = mu_file_stream_create (&in, file, MU_STREAM_RDWR)))
     {
       mu_error (_("cannot open input file `%s': %s"),
@@ -186,14 +124,13 @@ main (int argc, char **argv)
       return 1;
     }
   rc = mu_stream_to_message (in, &msg);
-  mu_stream_unref (in);
   if (rc)
     {
       mu_error (_("input stream %s is not a message (%s)"),
 		file, mu_strerror (rc));
       return 1;
     }
-  
+
   if ((rc = mu_temp_file_stream_create (&tmp, NULL, 0))) 
     {
       mu_error (_("Cannot open temporary file: %s"),

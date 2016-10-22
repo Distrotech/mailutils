@@ -22,88 +22,8 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-static char doc[] = N_("GNU MH repl")"\v"
-N_("Options marked with `*' are not yet implemented.\n\
-Use -help to obtain the list of traditional MH options.");
+static char prog_doc[] = N_("GNU MH repl");
 static char args_doc[] = N_("[+FOLDER] [MESSAGE]");
-
-
-/* GNU options */
-static struct argp_option options[] = {
-  {"annotate", ARG_ANNOTATE, N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("add Replied: header to the message being replied to")},
-  {"build",   ARG_BUILD, 0, 0,
-   N_("build the draft and quit immediately")},
-  {"draftfolder", ARG_DRAFTFOLDER, N_("FOLDER"), 0,
-   N_("specify the folder for message drafts")},
-  {"nodraftfolder", ARG_NODRAFTFOLDER, 0, 0,
-   N_("undo the effect of the last --draftfolder option")},
-  {"draftmessage" , ARG_DRAFTMESSAGE, N_("MSG"), 0,
-   N_("invoke the draftmessage facility")},
-  {"cc", ARG_CC, "{all|to|cc|me}", 0,
-   N_("specify whom to place on the Cc: list of the reply")},
-  {"nocc", ARG_NOCC, "{all|to|cc|me}", 0,
-   N_("specify whom to remove from the Cc: list of the reply")},
-  {"folder",  ARG_FOLDER, N_("FOLDER"), 0, N_("specify folder to operate upon")},
-  {"group",  ARG_GROUP,  N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("construct a group or followup reply") },
-  {"editor", ARG_EDITOR, N_("PROG"), 0, N_("set the editor program to use")},
-  {"noedit", ARG_NOEDIT, 0, 0, N_("suppress the initial edit")},
-  {"fcc",    ARG_FCC, N_("FOLDER"), 0, N_("set the folder to receive Fcc's")},
-  {"filter", ARG_FILTER, N_("MHL-FILTER"), 0,
-   N_("set the mhl filter to preprocess the body of the message being replied")},
-  {"form",   ARG_FORM, N_("FILE"), 0, N_("read format from given file")},
-  {"format", ARG_FORMAT, N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("include a copy of the message being replied; the message will be processed using either the default filter \"mhl.reply\", or the filter specified by --filter option") },
-  {"noformat", ARG_NOFORMAT, 0,          OPTION_HIDDEN, "" },
-  {"inplace", ARG_INPLACE, N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("* annotate the message in place")},
-  {"query", ARG_QUERY, N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("* query for addresses to place in To: and Cc: lists")},
-  {"width", ARG_WIDTH, N_("NUMBER"), 0, N_("set output width")},
-  {"whatnowproc", ARG_WHATNOWPROC, N_("PROG"), 0,
-   N_("set the replacement for whatnow program")},
-  {"nowhatnowproc", ARG_NOWHATNOWPROC, NULL, 0,
-   N_("don't run whatnowproc")},
-  {"use", ARG_USE, N_("BOOL"), OPTION_ARG_OPTIONAL, N_("use draft file preserved after the last session") },
-  { 0 }
-};
-
-/* Traditional MH options */
-struct mh_option mh_option[] = {
-  { "annotate",    MH_OPT_BOOL },
-  { "build" },
-  { "cc",          MH_OPT_ARG, "all/to/cc/me"},
-  { "nocc",        MH_OPT_ARG, "all/to/cc/me"},
-  { "form",        MH_OPT_ARG, "formatfile"},
-  { "width",       MH_OPT_ARG, "number"},
-  { "draftfolder", MH_OPT_ARG, "folder"},
-  { "nodraftfolder" },
-  { "draftmessage" },
-  { "editor", MH_OPT_ARG, "program"},
-  { "noedit" },
-  { "fcc",         MH_OPT_ARG, "folder"},
-  { "filter",      MH_OPT_ARG, "program"},
-  { "format",      MH_OPT_BOOL },
-  { "group",       MH_OPT_BOOL },
-  { "inplace",     MH_OPT_BOOL },
-  { "query",       MH_OPT_BOOL },
-  { "whatnowproc", MH_OPT_ARG, "program"},
-  { "nowhatnowproc" },
-  { NULL }
-};
-
-static char default_format_str[] =
-"%(lit)%(formataddr %<{reply-to}%?{from}%?{sender}%?{return-path}%>)"
-"%<(nonnull)%(void(width))%(putaddr To: )\\n%>"
-"%(lit)%<(rcpt to)%(formataddr{to})%>%<(rcpt cc)%(formataddr{cc})%>%<(rcpt me)%(formataddr(me))%>"
-"%<(nonnull)%(void(width))%(putaddr cc: )\\n%>"
-"%<{fcc}Fcc: %{fcc}\\n%>"
-"%<{subject}Subject: Re: %(unre{subject})\\n%>"
-"%(lit)%(concat(in_reply_to))%<(nonnull)%(void(width))%(printhdr In-reply-to: )\\n%>"
-"%(lit)%(concat(references))%<(nonnull)%(void(width))%(printhdr References: )\\n%>"
-"X-Mailer: MH \\(%(package_string)\\)\\n" 
-"--------\n";
 
 static char *format_str = NULL;
 static mh_format_t format;
@@ -114,12 +34,11 @@ static int initial_edit = 1;
 static const char *whatnowproc;
 static mu_msgset_t msgset;
 static mu_mailbox_t mbox;
-static int build_only = 0; /* --build flag */
-static int nowhatnowproc = 0; /* --nowhatnowproc */
-static int query_mode = 0; /* --query flag */
-static int use_draft = 0;  /* --use flag */
-static char *mhl_filter = NULL; /* --filter flag */
-static int annotate;       /* --annotate flag */
+static int build_only = 0; /* -build flag */
+static int nowhatnowproc = 0; /* -nowhatnowproc */
+static int use_draft = 0;  /* -use flag */
+static char *mhl_filter = NULL; /* -filter flag */
+static int annotate;       /* -annotate flag */
 static char *draftmessage = "new";
 static const char *draftfolder = NULL;
 static mu_opool_t fcc_pool;
@@ -136,145 +55,135 @@ decode_cc_flag (const char *opt, const char *arg)
     }
   return rc;
 }
-
-static error_t
-opt_handler (int key, char *arg, struct argp_state *state)
+
+static void
+set_cc (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
 {
-  switch (key)
+  rcpt_mask |= decode_cc_flag ("-cc", arg);
+}
+
+static void
+clr_cc (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
+{
+  rcpt_mask &= ~decode_cc_flag ("-nocc", arg);
+}
+
+static void
+set_fcc (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
+{
+  if (!has_fcc)
     {
-    case ARGP_KEY_INIT:
-      draftfolder = mh_global_profile_get ("Draft-Folder", NULL);
-      whatnowproc = mh_global_profile_get ("whatnowproc", NULL);
-      break;
-      
-    case ARG_ANNOTATE:
-      annotate = is_true (arg);
-      break;
-      
-    case ARG_BUILD:
-      build_only = 1;
-      break;
-      
-    case ARG_CC:
-      rcpt_mask |= decode_cc_flag ("-cc", arg);
-      break;
+      mu_opool_create (&fcc_pool, 1);
+      has_fcc = 1;
+    }
+  else
+    mu_opool_append (fcc_pool, ", ", 2);
+  mu_opool_appendz (fcc_pool, arg);
+}
 
-    case ARG_NOCC:
-      rcpt_mask &= ~decode_cc_flag ("-nocc", arg);
-      break;
-	
-    case ARG_DRAFTFOLDER:
-      draftfolder = arg;
-      break;
-      
-    case ARG_EDITOR:
-      wh_env.editor = arg;
-      break;
-      
-    case ARG_FOLDER: 
-      mh_set_current_folder (arg);
-      break;
+static void
+set_whatnowproc (struct mu_parseopt *po, struct mu_option *opt,
+		 char const *arg)
+{
+  whatnowproc = mu_strdup (arg);
+  nowhatnowproc = 0;
+}
 
-    case ARG_FORM:
+static void
+set_group (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
+{
+  if (strcmp (arg, "1") == 0)
+    {
+      if (mh_read_formfile ("replgroupcomps", &format_str))
+	exit (1);
+      rcpt_mask |= RCPT_ALL;
+    }
+  else
+    {
       free (format_str);
       format_str = NULL;
-      if (mh_read_formfile (arg, &format_str))
-	exit (1);
-      break;
-
-    case ARG_GROUP:
-      if (is_true (arg))
-	{
-	  if (mh_read_formfile ("replgroupcomps", &format_str))
-	    exit (1);
-	  rcpt_mask |= RCPT_ALL;
-	}
-      else
-	{
-	  free (format_str);
-	  format_str = NULL;
-	}
-      break;
-	    
-    case ARG_DRAFTMESSAGE:
-      draftmessage = arg;
-      break;
-
-    case ARG_USE:
-      use_draft = is_true (arg);
-      break;
-      
-    case ARG_WIDTH:
-      width = strtoul (arg, NULL, 0);
-      if (!width)
-	{
-	  argp_error (state, _("invalid width"));
-	  exit (1);
-	}
-      break;
-
-    case ARG_NODRAFTFOLDER:
-      draftfolder = NULL;
-      break;
-
-    case ARG_NOEDIT:
-      initial_edit = 0;
-      break;
-      
-    case ARG_QUERY:
-      query_mode = is_true (arg);
-      if (query_mode)
-	mh_opt_notimpl_warning ("-query");
-      break;
-      
-    case ARG_FILTER:
-      mh_find_file (arg, &mhl_filter);
-      break;
-
-    case ARG_FORMAT:
-      if (is_true (arg))
-	mh_find_file ("mhl.repl", &mhl_filter);
-      else
-	mhl_filter = NULL;
-      break;
-
-    case ARG_NOFORMAT:
-      mhl_filter = NULL;
-      break;
-      
-    case ARG_FCC:
-      if (!has_fcc)
-	{
-	  mu_opool_create (&fcc_pool, 1);
-	  has_fcc = 1;
-	}
-      else
-	mu_opool_append (fcc_pool, ", ", 2);
-      mu_opool_appendz (fcc_pool, arg);
-      break;
-	  
-    case ARG_INPLACE:
-      mh_opt_notimpl_warning ("-inplace");
-      break;
-      
-    case ARG_WHATNOWPROC:
-      whatnowproc = arg;
-      break;
-
-    case ARG_NOWHATNOWPROC:
-      nowhatnowproc = 1;
-      break;
-
-    case ARGP_KEY_FINI:
-      if (!format_str)
-	format_str = default_format_str;
-      break;
-      
-    default:
-      return ARGP_ERR_UNKNOWN;
     }
-  return 0;
 }
+
+static struct mu_option options[] = {
+  { "annotate", 0, NULL, MU_OPTION_DEFAULT,
+    N_("add Replied: header to the message being replied to"),
+    mu_c_bool, &annotate },
+  { "build",    0, NULL, MU_OPTION_DEFAULT,
+    N_("build the draft and quit immediately"),
+    mu_c_bool, &build_only },
+  { "draftfolder", 0, N_("FOLDER"), MU_OPTION_DEFAULT,
+    N_("specify the folder for message drafts"),
+    mu_c_string, &draftfolder },
+  { "nodraftfolder", 0, NULL, MU_OPTION_DEFAULT,
+    N_("undo the effect of the last --draftfolder option"),
+    mu_c_string, &draftfolder, mh_opt_clear_string },
+  { "draftmessage" , 0, N_("MSG"), MU_OPTION_DEFAULT,
+    N_("invoke the draftmessage facility"),
+    mu_c_string, &draftmessage },
+  { "cc", 0, "{all|to|cc|me}", 0,
+    N_("specify whom to place on the Cc: list of the reply"),
+    mu_c_string, NULL, set_cc },
+  { "nocc", 0, "{all|to|cc|me}", 0,
+    N_("specify whom to remove from the Cc: list of the reply"),
+    mu_c_string, NULL, clr_cc },
+  { "group", 0,  NULL, MU_OPTION_DEFAULT,
+    N_("construct a group or followup reply"),
+    mu_c_string, NULL, set_group },
+  { "editor", 0, N_("PROG"), MU_OPTION_DEFAULT,
+    N_("set the editor program to use"),
+    mu_c_string, &wh_env.editor },
+  { "noedit", 0, NULL, MU_OPTION_DEFAULT,
+    N_("suppress the initial edit"),
+    mu_c_int, &initial_edit, NULL, "0" },
+  { "fcc",    0, N_("FOLDER"), MU_OPTION_DEFAULT,
+    N_("set the folder to receive Fcc's"),
+    mu_c_string, NULL, set_fcc },
+  { "filter", 0, N_("MHL-FILTER"), MU_OPTION_DEFAULT,
+    N_("set the mhl filter to preprocess the body of the message being replied"),
+    mu_c_string, &mhl_filter, mh_opt_find_file },
+  { "form",   0, N_("FILE"), MU_OPTION_DEFAULT,
+    N_("read format from given file") ,
+    mu_c_string, &format_str, mh_opt_read_formfile },
+  { "format", 0, NULL, MU_OPTION_DEFAULT,
+    N_("include a copy of the message being replied; the message will be processed using either the default filter \"mhl.reply\", or the filter specified by --filter option"),
+    mu_c_string, &mhl_filter, mh_opt_find_file, "mhl.repl" },
+  { "noformat", 0, NULL,   MU_OPTION_DEFAULT,
+    N_("cancels the effect of the recent -format option"),
+    mu_c_string, &mhl_filter, mh_opt_clear_string },
+  { "inplace",  0, NULL,   MU_OPTION_HIDDEN,
+    N_("annotate the message in place"),
+    mu_c_string, NULL, mh_opt_notimpl_warning },
+  { "query",    0, NULL,   MU_OPTION_HIDDEN,
+    N_("query for addresses to place in To: and Cc: lists"),
+    mu_c_string, NULL, mh_opt_notimpl_warning },
+  { "width",    0, N_("NUMBER"), MU_OPTION_DEFAULT,
+    N_("set output width"),
+    mu_c_int, &width },
+  { "whatnowproc", 0, N_("PROG"), MU_OPTION_DEFAULT,
+    N_("set the replacement for whatnow program"),
+    mu_c_string, NULL, set_whatnowproc },
+  { "nowhatnowproc", 0, NULL, MU_OPTION_DEFAULT,
+    N_("don't run whatnowproc"),
+    mu_c_int, &nowhatnowproc, NULL, "1" },
+  { "use", 0, NULL, MU_OPTION_DEFAULT,
+    N_("use draft file preserved after the last session"),
+    mu_c_bool, &use_draft },
+  
+  MU_OPTION_END
+};
+
+static char default_format_str[] =
+"%(lit)%(formataddr %<{reply-to}%?{from}%?{sender}%?{return-path}%>)"
+"%<(nonnull)%(void(width))%(putaddr To: )\\n%>"
+"%(lit)%<(rcpt to)%(formataddr{to})%>%<(rcpt cc)%(formataddr{cc})%>%<(rcpt me)%(formataddr(me))%>"
+"%<(nonnull)%(void(width))%(putaddr cc: )\\n%>"
+"%<{fcc}Fcc: %{fcc}\\n%>"
+"%<{subject}Subject: Re: %(unre{subject})\\n%>"
+"%(lit)%(concat(in_reply_to))%<(nonnull)%(void(width))%(printhdr In-reply-to: )\\n%>"
+"%(lit)%(concat(references))%<(nonnull)%(void(width))%(printhdr References: )\\n%>"
+"X-Mailer: MH \\(%(package_string)\\)\\n" 
+"--------\n";
 
 void
 make_draft (mu_mailbox_t mbox, int disp, struct mh_whatnow_env *wh)
@@ -396,15 +305,20 @@ make_draft (mu_mailbox_t mbox, int disp, struct mh_whatnow_env *wh)
 int
 main (int argc, char **argv)
 {
-  int index, rc;
+  int rc;
 
   /* Native Language Support */
   MU_APP_INIT_NLS ();
 
-  mh_argp_init ();
+  draftfolder = mh_global_profile_get ("Draft-Folder", NULL);
+  whatnowproc = mh_global_profile_get ("whatnowproc", NULL);
 
-  mh_argp_parse (&argc, &argv, 0, options, mh_option, args_doc, doc,
-		 opt_handler, NULL, &index);
+  mh_getopt (&argc, &argv, options, MH_GETOPT_DEFAULT_FOLDER,
+	     args_doc, prog_doc, NULL);
+
+  if (!format_str)
+    format_str = default_format_str;
+
   if (mh_format_parse (format_str, &format))
     {
       mu_error (_("Bad format string"));
@@ -412,7 +326,7 @@ main (int argc, char **argv)
     }
 
   mbox = mh_open_folder (mh_current_folder (), MU_STREAM_RDWR);
-  mh_msgset_parse (&msgset, mbox, argc - index, argv + index, "cur");
+  mh_msgset_parse (&msgset, mbox, argc, argv, "cur");
   if (!mh_msgset_single_message (msgset))
     {
       mu_error (_("only one message at a time!"));

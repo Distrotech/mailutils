@@ -22,98 +22,8 @@
 #include <mailutils/mime.h>
 #include <setjmp.h>
 
-static char doc[] = N_("GNU MH mhn")"\v"
-N_("Options marked with `*' are not yet implemented.\n\
-Use -help to obtain the list of traditional MH options.");
+static char prog_doc[] = N_("GNU MH mhn");
 static char args_doc[] = N_("[MSGLIST]");
-
-static struct argp_option options[] = {
-  {"folder",       ARG_FOLDER,       N_("FOLDER"), 0,
-   N_("specify folder to operate upon"), 0},
-  {"file",         ARG_FILE,         N_("FILE"),   0,
-   N_("specify file to operate upon"), 0},
-
-#define GRID 10
-  {N_("MIME editing options"),   0,  NULL, OPTION_DOC,  NULL, GRID},
-  {"compose",      ARG_COMPOSE,      N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("compose the MIME message (default)"), GRID+1},
-  {"build",        0,                NULL,       OPTION_ALIAS,
-   NULL, GRID+1 },
-  {"nocompose",    ARG_NOCOMPOSE,    NULL, OPTION_HIDDEN, NULL, GRID+1},
-  {"nobuild",      ARG_NOCOMPOSE,    NULL, OPTION_HIDDEN|OPTION_ALIAS,
-   NULL, GRID+1},
-#undef GRID
-#define GRID 20  
-  {N_("Listing options"),   0,  NULL, OPTION_DOC,  NULL, GRID},
-  {"list",         ARG_LIST,         N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("list the table of contents"), GRID+1 },
-  {"nolist",       ARG_NOLIST,       NULL, OPTION_HIDDEN, "", GRID+1 },
-  {"headers",      ARG_HEADER,       N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("print the banner above the listing"), GRID+1 },
-  {"noheaders",    ARG_NOHEADERS,    NULL, OPTION_HIDDEN, "", GRID+1 },
-  {"realsize",     ARG_REALSIZE,     N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("list the decoded sizes"), GRID+1 },
-  {"norealsize",   ARG_NOREALSIZE,   NULL, OPTION_HIDDEN, "", GRID+1 },
-#undef GRID
-#define GRID 40
-  {N_("Display options"),   0,  NULL, OPTION_DOC,  NULL, GRID},
-  {"show",         ARG_SHOW,         N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("display the contents of the messages"), GRID+1},
-  {"noshow",       ARG_NOSHOW,       NULL, OPTION_HIDDEN, "", GRID+1 },
-  {"serialonly",   ARG_SERIALONLY,   N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("* display messages serially"), GRID+1},
-  {"noserialonly", ARG_NOSERIALONLY, NULL, OPTION_HIDDEN, "", GRID+1 },
-  {"form",         ARG_FORM,         N_("FILE"), 0,
-   N_("read mhl format from FILE"), GRID+1},
-  {"pause",        ARG_PAUSE,        N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("pause prior to displaying content"), GRID+1},
-  {"nopause",      ARG_NOPAUSE,      NULL, OPTION_HIDDEN, "", GRID+1 },
-#undef GRID
-#define GRID 50
-  {N_("Saving options"),   0,  NULL, OPTION_DOC,  NULL, GRID},
-  {"store",        ARG_STORE,        N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("write extracted message parts to disk"), GRID+1},
-  {"nostore",      ARG_NOSTORE,      NULL, OPTION_HIDDEN, "", GRID+1 },
-  {"auto",         ARG_AUTO,         N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("use filenames from the content headers"), GRID+1},
-  {"noauto",       ARG_NOAUTO,       NULL, OPTION_HIDDEN, "", GRID+1 },
-  {"charset",      ARG_CHARSET,      N_("NAME"), 0,
-   N_("use this charset to represent attachment file names"), GRID+1},
-#undef GRID
-#define GRID 60
-  {N_("Other options"),    0,  NULL, OPTION_DOC,  NULL, GRID},
-  {"part",         ARG_PART,         N_("PART"), 0,
-   N_("limit the scope of the operation to the given part"), GRID+1},
-  {"type",         ARG_TYPE,         N_("CONTENT"), 0,
-   N_("operate on message part with given multipart content"), GRID+1 },
-  {"verbose",      ARG_VERBOSE,     N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("print additional information"), GRID+1 },
-  {"noverbose",    ARG_NOVERBOSE,   NULL, OPTION_HIDDEN, "", GRID+1 },
-  {"quiet",        ARG_QUIET, 0, 0,
-   N_("be quiet"), GRID+1},
-#undef GRID
-  {NULL}
-};
-
-/* Traditional MH options */
-struct mh_option mh_option[] = {
-  { "file",          MH_OPT_ARG, "filename" },
-  { "compose" },
-  { "build" },
-  { "list",          MH_OPT_BOOL },
-  { "headers",       MH_OPT_BOOL },
-  { "realsize",      MH_OPT_BOOL },
-  { "show",          MH_OPT_BOOL },
-  { "serialonly",    MH_OPT_BOOL },
-  { "form",          MH_OPT_ARG, "formfile" },
-  { "pause",         MH_OPT_BOOL },
-  { "store",         MH_OPT_BOOL },
-  { "auto",          MH_OPT_BOOL },
-  { "part",          MH_OPT_ARG, "part" },
-  { "type",          MH_OPT_ARG, "type" },
-  { "verbose",       MH_OPT_BOOL },
-  { NULL }
-};
 
 typedef struct _msg_part *msg_part_t;
 
@@ -124,28 +34,22 @@ static void msg_part_incr (msg_part_t p);
 static void msg_part_decr (msg_part_t p);
 static void msg_part_set_subpart (msg_part_t p, size_t subpart);
 static void msg_part_print (msg_part_t p, int width);
-static msg_part_t msg_part_parse (char *str);
+static msg_part_t msg_part_parse (char const *str);
 static int msg_part_level (msg_part_t p);
 static size_t msg_part_subpart (msg_part_t p, int level);
 
-enum mhn_mode
-  {
-    mode_compose,
-    mode_list,
-    mode_show,
-    mode_store,
-  };
+static int compose_option;
+static int list_option; 
+static int show_option;
+static int store_option;
 
-static enum mhn_mode mode = mode_compose;
+static int headers_option = 1;
+static int realsize_option;
+static int auto_option;
+/*static int serialonly_option;*/
+static int verbose_option;
+static int quiet_option;
 
-#define OPT_HEADERS    001
-#define OPT_REALSIZE   002
-#define OPT_AUTO       004
-#define OPT_SERIALONLY 010
-#define OPT_VERBOSE    020
-#define OPT_QUIET      040
-
-static int mode_options = OPT_HEADERS;
 static int pause_option = -1; /* -pause option. -1 means "not given" */
 static char *formfile;
 static char *content_type;
@@ -260,173 +164,88 @@ _get_content_encoding (mu_header_t hdr, char **value)
   *value = encoding;
   return 0;
 }
-
-static error_t
-opt_handler (int key, char *arg, struct argp_state *state)
+
+static void
+set_part (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
 {
-  switch (key)
-    {
-    case ARG_FOLDER: 
-      mh_set_current_folder (arg);
-      break;
-
-    case ARG_FILE:
-      input_file = arg;
-      break;
-      
-      /* Operation mode */
-    case ARG_COMPOSE:
-      if (is_true (arg))
-	{
-	  mode = mode_compose;
-	  break;
-	}
-      /*FALLTHRU*/
-    case ARG_NOCOMPOSE:
-      if (mode == mode_compose)
-	mode = mode_compose;
-      break;
-
-    case ARG_LIST:
-      if (is_true (arg))
-	{
-	  mode = mode_list;
-	  break;
-	}
-      /*FALLTHRU*/
-    case ARG_NOLIST:
-      if (mode == mode_list)
-	mode = mode_compose;
-      break;
-
-    case ARG_SHOW:
-      if (is_true (arg))
-	{
-	  mode = mode_show;
-	  break;
-	}
-      /*FALLTHRU*/
-    case ARG_NOSHOW:
-      if (mode == mode_show)
-	mode = mode_compose;
-      break;
-
-    case ARG_STORE:
-      if (is_true (arg))
-	{
-	  mode = mode_store;
-	  break;
-	}
-      /*FALLTHRU*/
-    case ARG_NOSTORE:
-      if (mode == mode_store)
-	mode = mode_compose;
-      break;
-
-      /* List options */
-    case ARG_HEADER:
-      if (is_true (arg))
-	{
-	  mode_options |= OPT_HEADERS;
-	  break;
-	}
-      /*FALLTHRU*/
-    case ARG_NOHEADERS:
-      mode_options &= ~OPT_HEADERS;
-      break;
-      
-    case ARG_REALSIZE:
-      if (is_true (arg))
-	{
-	  mode_options |= OPT_REALSIZE;
-	  break;
-	}
-      /*FALLTHRU*/
-    case ARG_NOREALSIZE:
-      mode_options &= ~OPT_REALSIZE;
-      break;
-
-      /* Display options */
-
-    case ARG_SERIALONLY:
-      mh_opt_notimpl_warning ("-[no]serialonly");
-      if (is_true (arg))
-	{
-	  mode_options |= OPT_SERIALONLY;
-	  break;
-	}
-      /*FALLTHRU*/
-    case ARG_NOSERIALONLY:
-      mode_options &= ~OPT_SERIALONLY;
-      break;
-
-    case ARG_PAUSE:
-      pause_option = is_true (arg);
-      break;
-      
-    case ARG_NOPAUSE:
-      pause_option = 0;
-      break;
-
-      /* Store options */
-    case ARG_AUTO:
-      if (is_true (arg))
-	{
-	  mode_options |= OPT_AUTO;
-	  break;
-	}
-      /*FALLTHRU*/
-    case ARG_NOAUTO:
-      mode_options &= ~OPT_AUTO;
-      break;
-
-    case ARG_FORM:
-      mh_find_file (arg, &formfile);
-      break;
-
-      /* Common options */
-    case ARG_VERBOSE:
-      if (is_true (arg))
-	{
-	  mode_options |= OPT_VERBOSE;
-	  break;
-	}
-      /*FALLTHRU*/
-    case ARG_NOVERBOSE:
-      mode_options &= ~OPT_VERBOSE;
-      break;
-
-    case ARG_TYPE:
-      sfree (&content_type);
-      sfree (&content_subtype);
-      split_content (arg, &content_type, &content_subtype);
-      break;
-      
-    case ARG_PART:
-      req_part = msg_part_parse (arg);
-      break;
-
-    case ARG_QUIET:
-      mode_options |= OPT_QUIET;
-      break;
-	
-    case ARG_CHARSET:
-      charset = arg;
-      break;
-      
-    case ARGP_KEY_FINI:
-      if (!formfile)
-	mh_find_file ("mhl.headers", &formfile);
-      if (!isatty (0))
-	pause_option = 0;
-      break;
-      
-    default:
-      return ARGP_ERR_UNKNOWN;
-    }
-  return 0;
+  req_part = msg_part_parse (arg);
 }
 
+static void
+set_type (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
+{
+  sfree (&content_type);
+  sfree (&content_subtype);
+  split_content (arg, &content_type, &content_subtype);
+}
+
+static struct mu_option options[] = {
+  { "folder",      0,       N_("FOLDER"), MU_OPTION_DEFAULT,
+    N_("specify folder to operate upon"),
+    mu_c_string, NULL, mh_opt_set_folder },
+  { "file",        0,       N_("FILE"),   MU_OPTION_DEFAULT,
+    N_("specify file to operate upon"),
+    mu_c_string, &input_file },
+
+  MU_OPTION_GROUP (N_("MIME editing options")),
+  { "compose",     0,       NULL, MU_OPTION_DEFAULT,
+    N_("compose the MIME message (default)"),
+    mu_c_bool, &compose_option },
+  { "build",       0,       NULL, MU_OPTION_ALIAS },
+
+  MU_OPTION_GROUP (N_("Listing options")),
+  { "list",        0,       NULL, MU_OPTION_DEFAULT,
+    N_("list the table of contents"),
+    mu_c_bool, &list_option },
+  { "headers",     0,       NULL, MU_OPTION_DEFAULT,
+    N_("print the banner above the listing"),
+    mu_c_bool, &headers_option },
+  { "realsize",    0,       NULL, MU_OPTION_DEFAULT,
+    N_("list the decoded sizes"),
+    mu_c_bool, &realsize_option },
+
+  MU_OPTION_GROUP (N_("Display options")),
+  { "show",        0,       NULL, MU_OPTION_DEFAULT,
+    N_("display the contents of the messages"),
+    mu_c_bool, &show_option },
+  { "serialonly",  0,       NULL, MU_OPTION_HIDDEN,
+    "",
+    mu_c_bool, NULL, mh_opt_notimpl_warning },
+  { "form",        0,       N_("FILE"), MU_OPTION_DEFAULT,
+    N_("read mhl format from FILE"),
+    mu_c_string, &formfile, mh_opt_find_file },
+  { "pause",       0,       NULL, MU_OPTION_DEFAULT,
+    N_("pause prior to displaying content"),
+    mu_c_bool, &pause_option },
+
+  MU_OPTION_GROUP (N_("Saving options")),
+  { "store",        0,       NULL, MU_OPTION_DEFAULT,
+    N_("write extracted message parts to disk"),
+    mu_c_bool, &store_option },
+  { "auto",         0,       NULL, MU_OPTION_DEFAULT,
+    N_("use filenames from the content headers"),
+    mu_c_bool, &auto_option },
+  { "charset",      0,       N_("NAME"), MU_OPTION_DEFAULT,
+    N_("use this charset to represent attachment file names"),
+    mu_c_string, &charset },
+
+  MU_OPTION_GROUP (N_("Other options")),
+  { "part",         0,       N_("PART"), MU_OPTION_DEFAULT,
+    N_("limit the scope of the operation to the given part"),
+    mu_c_string, NULL, set_part },
+  { "type",         0,       N_("CONTENT"), MU_OPTION_DEFAULT,
+    N_("operate on message part with given multipart content"),
+    mu_c_string, NULL, set_type },
+  { "verbose",      0,       NULL, MU_OPTION_DEFAULT,
+    N_("print additional information"),
+    mu_c_bool, &verbose_option },
+  { "quiet",        0,       NULL, MU_OPTION_DEFAULT,
+    N_("be quiet"),
+    mu_c_bool, &quiet_option },
+
+  MU_OPTION_END
+};
+
 
 /* *********************** Message part functions ************************* */
 
@@ -555,7 +374,7 @@ msg_part_format_pool (mu_opool_t pool, msg_part_t p)
 }
 
 msg_part_t
-msg_part_parse (char *str)
+msg_part_parse (char const *str)
 {
   msg_part_t p = msg_part_create (0);
 
@@ -1267,7 +1086,7 @@ mhn_message_size (mu_message_t msg, mu_off_t *psize)
   
   *psize = 0;
   mu_message_get_body (msg, &body);
-  if (mode_options & OPT_REALSIZE)
+  if (realsize_option)
     {
       mu_stream_t dstr = NULL, bstr = NULL;
 
@@ -1389,7 +1208,7 @@ mhn_list ()
 {
   int rc; 
 
-  if (mode_options & OPT_HEADERS)
+  if (headers_option)
     printf (_(" msg part type/subtype              size  description\n"));
 
   if (message)
@@ -1672,7 +1491,7 @@ store_handler (mu_message_t msg, msg_part_t part, char *type, char *encoding,
   if (mu_message_is_multipart (msg, &ismime) == 0 && ismime)
     return 0;
   
-  if (mode_options & OPT_AUTO)
+  if (auto_option)
     {
       char *val;
       int rc = mu_message_aget_decoded_attachment_name (msg, charset,
@@ -1773,7 +1592,7 @@ store_handler (mu_message_t msg, msg_part_t part, char *type, char *encoding,
       printf (_("storing message %s part %s as file %s\n"),
 	      prefix, partstr, name);
 
-      if (!(mode_options & OPT_QUIET) && access (name, R_OK) == 0)
+      if (!quiet_option && access (name, R_OK) == 0)
 	{
 	  int ok;
 	  
@@ -2939,17 +2758,18 @@ int
 main (int argc, char **argv)
 {
   int rc;
-  int index;
   
   MU_APP_INIT_NLS ();
   
-  mh_argp_init ();
-  mh_argp_parse (&argc, &argv, 0, options, mh_option, args_doc, doc,
-		 opt_handler, NULL, &index);
+  mh_getopt (&argc, &argv, options, 0, args_doc, prog_doc, NULL);
+  if (!formfile)
+    mh_find_file ("mhl.headers", &formfile);
+  if (!isatty (0))
+    pause_option = 0;
 
-  argc -= index;
-  argv += index;
-
+  if (!compose_option && !list_option && !show_option && !store_option)
+    show_option = 1;
+  
   signal (SIGPIPE, SIG_IGN);
 
   if (input_file)
@@ -2966,45 +2786,36 @@ main (int argc, char **argv)
       if (!message)
 	return 1;
     }
-  else if (mode == mode_compose)
+  
+  if (compose_option)
     {
       if (argc > 1)
 	{
 	  mu_error (_("extra arguments"));
 	  return 1;
 	}
-      input_file = mh_expand_name (mu_folder_directory (),
-				   argc == 1 ? argv[0] : "draft", NAME_ANY);
-      message = mh_file_to_message (NULL, input_file);
-      if (!message)
-	return 1;
+      if (!input_file)
+	{
+	  input_file = mh_expand_name (mu_folder_directory (),
+				       argc == 1
+				         ? argv[0] : "draft", NAME_ANY);
+	  message = mh_file_to_message (NULL, input_file);
+	  if (!message)
+	    return 1;
+	}
+      rc = mhn_compose ();
     }
   else
     {
       mbox = mh_open_folder (mh_current_folder (), MU_STREAM_READ);
       mh_msgset_parse (&msgset, mbox, argc, argv, "cur");
-    }
-  
-  switch (mode)
-    {
-    case mode_compose:
-      rc = mhn_compose ();
-      break;
-      
-    case mode_list:
-      rc = mhn_list ();
-      break;
-      
-    case mode_show:
-      rc = mhn_show ();
-      break;
-      
-    case mode_store:
-      rc = mhn_store ();
-      break;
-      
-    default:
-      abort ();
+      /* FIXME: Combine the three */
+      if (list_option)
+	rc = mhn_list ();
+      if (show_option)
+	rc |= mhn_show ();
+      if (store_option)
+	rc |= mhn_store ();
     }
   return rc ? 1 : 0;
 }

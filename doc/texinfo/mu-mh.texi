@@ -27,9 +27,6 @@ distribution directory.
 @subsection Major differences between Mailutils MH and other MH implementations
 
 @enumerate 1
-@item All programs use usual GNU long options.  The support for MH single-dash
-options is provided for backward compatibility;
-
 @item UUCP addresses are not supported;
 
 @item Mailutils supports a set of new format specifications
@@ -37,6 +34,12 @@ options is provided for backward compatibility;
 
 @item Mailutils provides a set of new profile variables
 (@pxref{Profile Variable Diffs});
+
+@item All programs recognize @option{--help} and @option{--version} options
+
+These options are recognized only if no other arguments are present in
+the command line.  Abbreviations are not recognized.  This makes Mailutils
+MH implementation compatible with the standard usage for GNU tools.
 
 @item Several programs behave differently (@pxref{Program
 Diffs});
@@ -150,7 +153,7 @@ This expression is used in default @file{replcomps} and
 @deftypefn {MH Format} boolean rcpt (@samp{to} | @samp{cc} | @samp{me} | @samp{all})
 
 This function returns true if the given element is present in the
-recipient mask (as modified by @option{--cc} or @option{--nocc} options) and
+recipient mask (as modified by @option{-cc} or @option{-nocc} options) and
 false otherwise.  It is used in default formats for @command{repl} and
 @command{comp}, e.g.: 
 
@@ -159,7 +162,7 @@ false otherwise.  It is used in default formats for @command{repl} and
 @end smallexample
 
 Notice that this means that usual @file{replcomps} file will be ignoring
-@option{--cc} and @option{--nocc} options, unless it has been modified
+@option{-cc} and @option{-nocc} options, unless it has been modified
 as shown above. 
 @end deftypefn
 
@@ -226,12 +229,12 @@ RAND @command{anno} displays the prompt anyway.
 
 The utility is able to burst both RFC 934 digest messages and MIME
 multipart messages.  It provides two additional command line options:
-@option{--recurse} and @option{--length}.
+@option{-recurse} and @option{-length}.
 
-The @option{--recurse} option instructs the utility to recursively
+The @option{-recurse} option instructs the utility to recursively
 expand the digest.
 
-The @option{--length} option can be used to set the minimal encapsulation
+The @option{-length} option can be used to set the minimal encapsulation
 boundary length for RFC 934 digests.  Default length is 1,
 i.e. encountering one dash immediately following a newline triggers
 digest decoding.  It is OK for messages that follow RFC 934
@@ -239,12 +242,12 @@ specification.  However, many user agents do not precisely follow it,
 in particular, they often do not escape lines starting with a dash by
 @samp{- } sequence.  @command{Mailman} is one of such agents.  To cope
 with such digests you can set encapsulation boundary length to a higher
-value.  For example, @command{bounce --length=8} has been found to be
+value.  For example, @command{bounce -length 8} has been found to be
 sufficient for most Mailman-generated digests.
 
 @item comp
 
-Understands @option{--build} option.
+Understands @option{-build} option.
 
 @item fmtdump
 
@@ -252,24 +255,24 @@ This command is not provided.  Use @option{fmtcheck} instead.
 
 @item inc
 @itemize @bullet
-@item The @option{--moveto} option.
-The @option{--moveto} option instructs @command{inc} to move
+@item The @option{-moveto} option.
+The @option{-moveto} option instructs @command{inc} to move
 messages into another folder after incorporating them.  This option
-has effect only if the @option{--truncate} option has also been
+has effect only if the @option{-truncate} option has also been
 specified and the underlying mailbox supports the @samp{move}
 operation.  Currently only @samp{imap} and @samp{imaps} mailboxes
 support it.  For example, the following command moves incorporated
 messages into the @samp{archive} folder:
 
 @example
-inc --file imaps://imap.gmail.com --moveto=archive
+inc -file imaps://imap.gmail.com -moveto=archive
 @end example
 
 The @samp{moveto} URL parameter can be used instead of this option,
 e.g.:
 
 @example
-inc --file 'imaps://imap.gmail.com;moveto=archive'
+inc -file 'imaps://imap.gmail.com;moveto=archive'
 @end example
 
 @item Multiple sources
@@ -294,7 +297,7 @@ Moves incorporated messages into another folder.  This was discussed
 above.
 
 @item nomoveto
-Disables the previous @option{--moveto} option.
+Disables the previous @option{-moveto} option.
 
 @item truncate[=@var{bool}]
 Controls source mailbox truncation.  If @var{bool} is not given or it is
@@ -333,13 +336,13 @@ The following format variables are silently ignored: @samp{center},
 @itemize @bullet
 
 @item New option
-New option @option{--compose} forces @command{mhn} editing mode.  This
+New option @option{-compose} forces @command{mhn} editing mode.  This
 is also the default mode.  This differs from the standard
 @command{mhn}, which switches to the editing mode only if no other
 options were given and the input file name coincides with the value of
 @env{mhdraft} environment variable.  
 
-@item Show mode (@option{--show})
+@item Show mode (@option{-show})
 If an appropriate mhn-show-type[/subtype] was not found, GNU @command{mhn}
 prints the decoded message content using @code{moreproc}
 variable.  Standard @command{mhn} in this case used to print @samp{don't
@@ -349,47 +352,28 @@ The default behaviour is to pipe the content to the standard input
 of the mhn-show-type[/subtype] command.  This is altered to using a
 temporary file if the command contains @code{%f} or @code{%F} escapes.
 
-@item Store mode (@option{--store})
+@item Store mode (@option{-store})
 If the @code{Content-Disposition} header contains @samp{filename=},
-and @command{mhn} is invoked with @option{--auto} switch, it
+and @command{mhn} is invoked with @option{-auto} switch, it
 transforms the file name into the absolute notation and uses it only
 if it lies below the current mhn-storage directory.  Standard
 @command{mhn} only requires that the file name do not begin with @samp{/}.
 
 Before saving a message part, GNU @command{mhn} checks if the file already
 exists.  If so, it asks whether the user wishes to rewrite it.  This
-behaviour is disabled when @option{--quiet} option was given.
+behaviour is disabled when @option{-quiet} option was given.
 @end itemize
 
 @item mhparam
 
-The @option{--all} mode does not display commented out entries.
+The @option{-all} mode does not display commented out entries.
 
 @item pick
 
-The command line syntax @option{--@var{component} @var{string}}) is
-recognized only if at least one of the following conditions is met:
-
-@itemize @bullet
-@item The word @var{component} contains at least one capital letter.
-E.g.  @option{--User-Agent Mailutils}.
-
-@item The word @var{component} ends with a colon, as in
-@option{user-agent: Mailutils}.
-
-@item Standard input is not connected to a terminal.
-@end itemize
-
-The GNU syntax for component matching is:
-
-@smallexample
-pick --component @var{field} --pattern @var{string}
-@end smallexample
-
-New command line option @option{--cflags} allows to control the type of 
+New command line option @option{-cflags} allows to control the type of 
 regular expressions used.  The option must occur right before
-@option{--pattern} or @option{--component} option (or one of its
-aliases, like @option{--cc}, @option{--from}, etc.)
+@option{--@var{component} @var{pattern}} or equivalent construct (like
+@option{-cc}, @option{-from}, etc.) 
 
 The argument to this option is a string of type specifications:
 
@@ -402,24 +386,24 @@ The argument to this option is a string of type specifications:
 
 Default is @samp{EI}.
 
-The flags remain in effect until the next occurrence of @option{--cflags}
+The flags remain in effect until the next occurrence of @option{-cflags}
 option.
 
 Sample usage:
 
 @smallexample
-pick --cflag BC --subject '*a string' 
+pick -cflag BC -subject '*a string' 
 @end smallexample
 
-The date comparison options (@option{--before} and @option{--after}
+The date comparison options (@option{-before} and @option{-after}
 accept date specifications in a wide variety of formats, e.g.:
 
 @smallexample
-pick --after 20030301
-pick --after 2003-03-01
-pick --after 01-mar-2003
-pick --after 2003-mar-01
-pick --before '1 year ago'
+pick -after 20030301
+pick -after 2003-03-01
+pick -after 01-mar-2003
+pick -after 2003-mar-01
+pick -before '1 year ago'
 etc...
 @end smallexample
 
@@ -454,11 +438,11 @@ will add it automatically.
 @item
 Linking messages between folders goes against the logic of Mailutils,
 so @command{refile} never makes links even if called with
-@option{--link} option.  The latter is actually a synonym for @option{--copy},
+@option{-link} option.  The latter is actually a synonym for @option{-copy},
 which preserves the original message.
 
 @item
-The @option{--preserve} option is not implemented.  It is retained for backward
+The @option{-preserve} option is not implemented.  It is retained for backward
 compatibility only.
 
 @item
@@ -467,7 +451,7 @@ Message specs and folder names may be interspersed.
 
 @item repl
 
-Understands @option{--use} option.  Disposition shell provides
+Understands @option{-use} option.  Disposition shell provides
 @code{use} command. 
 
 @item rmm
@@ -491,14 +475,14 @@ rmmproc:
 
 @item sortm
 
-New option @option{--numfield} specifies numeric comparison for the
+New option @option{-numfield} specifies numeric comparison for the
 given field. 
 
-Any number of @option{--datefield}, @option{--textfield} and
-@option{--numfield} options may be given, thus allowing to build sort
+Any number of @option{-datefield}, @option{-textfield} and
+@option{-numfield} options may be given, thus allowing to build sort
 criteria of arbitrary complexity. 
 
-The order of @option{--.*field} options sets the ordering priority.  This
+The order of @option{-.*field} options sets the ordering priority.  This
 differs from the behaviour of the standard @command{sortm}, which
 always orders datefield-major, textfield-minor.
 
@@ -506,11 +490,11 @@ Apart from sorting the mailfolder the following actions may be
 specified:
 
 @table @option
-@item --list
+@item -list
 List the ordered messages using a format string given by
-@option{--form} or @option{--format} option.
+@option{-form} or @option{-format} option.
 
-@item --dry-run
+@item -dry-run
 Do not actually sort messages, rather print what would have been
 done.  This is useful for debugging purposes.
 @end table

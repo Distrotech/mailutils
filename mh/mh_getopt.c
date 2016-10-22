@@ -79,6 +79,23 @@ augment_argv (int *pargc, char ***pargv)
 }
 
 static void
+process_std_options (int argc, char **argv, struct mu_parseopt *po)
+{
+  if (argc != 1)
+    return;
+  if (strcmp (argv[0], "--help") == 0)
+    {
+      mu_program_help (po, mu_strout);
+      exit (0);
+    }
+  if (strcmp (argv[0], "--version") == 0)
+    {
+      mu_program_version (po, mu_strout);
+      exit (0);
+    }
+}
+  
+static void
 process_folder_arg (int *pargc, char **argv, struct mu_parseopt *po)
 {
   int i, j;
@@ -109,8 +126,9 @@ process_folder_arg (int *pargc, char **argv, struct mu_parseopt *po)
   *pargc = j;
 }
 
-static void
-set_folder (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
+void
+mh_opt_set_folder (struct mu_parseopt *po, struct mu_option *opt,
+		   char const *arg)
 {
   mh_set_current_folder (arg);
 }
@@ -118,7 +136,45 @@ set_folder (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
 static struct mu_option folder_option[] = {
   { "folder", 0, NULL, MU_OPTION_DEFAULT,
     N_("set current folder"),
-    mu_c_string, NULL, set_folder },
+    mu_c_string, NULL, mh_opt_set_folder },
+  MU_OPTION_END
+};
+
+void
+mh_version_hook (struct mu_parseopt *po, mu_stream_t stream)
+{
+  extern const char mu_version_copyright[];
+#ifdef GIT_DESCRIBE
+  mu_stream_printf (stream, "%s (GNU MH, %s) %s [%s]\n",
+		    mu_program_name, PACKAGE_NAME, PACKAGE_VERSION,
+		    GIT_DESCRIBE);
+#else
+  mu_stream_printf (stream, "%s (GNU MH, %s) %s\n", mu_program_name,
+		    PACKAGE_NAME, PACKAGE_VERSION);
+#endif
+  /* TRANSLATORS: Translate "(C)" to the copyright symbol
+     (C-in-a-circle), if this symbol is available in the user's
+     locale.  Otherwise, do not translate "(C)"; leave it as-is.  */
+  mu_stream_printf (stream, mu_version_copyright, _("(C)"));
+  mu_stream_printf (stream, _("\
+\n\
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\nThis is free software: you are free to change and redistribute it.\n\
+There is NO WARRANTY, to the extent permitted by law.\n\
+\n\
+"));
+}
+
+static void
+fn_version (struct mu_parseopt *po, struct mu_option *opt, char const *unused)
+{
+  mu_program_version (po, mu_strout);
+  exit (0);
+}
+
+static struct mu_option version_option[] = {
+  { "version", 0, NULL, MU_OPTION_DEFAULT,
+    N_("print program version"),
+    mu_c_string, NULL, fn_version },
   MU_OPTION_END
 };
 
@@ -132,7 +188,7 @@ mh_getopt (int *pargc, char ***pargv, struct mu_option *options,
   struct mu_parseopt po;
   struct mu_option *optv[3];
   struct getopt_data getopt_data;
-  char const *args[2];
+  char const *args[3];
   int flags = MU_PARSEOPT_SINGLE_DASH | MU_PARSEOPT_IMMEDIATE;
   int i;
   
@@ -177,6 +233,9 @@ mh_getopt (int *pargc, char ***pargv, struct mu_option *options,
   //po.po_extra_info = gnu_general_help_url;
   //flags |= MU_PARSEOPT_EXTRA_INFO;
 
+  po.po_version_hook = mh_version_hook;
+  flags |= MU_PARSEOPT_VERSION_HOOK;
+  
   mu_set_program_name (argv[0]);
   mh_init ();
   augment_argv (&argc, &argv);
@@ -184,7 +243,9 @@ mh_getopt (int *pargc, char ***pargv, struct mu_option *options,
   i = 0;
   if (mhflags & MH_GETOPT_DEFAULT_FOLDER)
     optv[i++] = folder_option;
-  optv[i++] = options;
+  if (options)
+    optv[i++] = options;
+  optv[i++] = version_option;
   optv[i] = NULL;
   
   if (mu_parseopt (&po, argc, argv, optv, flags))
@@ -193,6 +254,8 @@ mh_getopt (int *pargc, char ***pargv, struct mu_option *options,
   argc -= po.po_arg_start;
   argv += po.po_arg_start;
 
+  process_std_options (argc, argv, &po);
+  
   process_folder_arg (&argc, argv, &po);
 
   if (!argdoc && argc)

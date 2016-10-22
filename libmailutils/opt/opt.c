@@ -136,7 +136,6 @@ static void
 mu_option_cache_destroy (void *ptr)
 {
   struct mu_option_cache *cache = ptr;
-  free (cache->cache_arg);
   free (cache);
 }
 
@@ -150,7 +149,7 @@ add_option_cache (struct mu_parseopt *po, struct mu_option *opt,
 {
   struct mu_option_cache *cache = mu_alloc (sizeof (*cache));
   cache->cache_opt = opt;
-  cache->cache_arg = arg ? mu_strdup (arg) : NULL;
+  cache->cache_arg = arg;
 
   if ((po->po_flags & MU_PARSEOPT_IMMEDIATE)
        || (opt->opt_flags & MU_OPTION_IMMEDIATE))
@@ -774,7 +773,7 @@ mu_option_set_value (struct mu_parseopt *po, struct mu_option *opt,
 	  free (errmsg);
 
 	  if (!(po->po_flags & MU_PARSEOPT_NO_ERREXIT))
-	    exit (EXIT_ERROR);
+	    exit (po->po_exit_error);
 	}
     }
 }

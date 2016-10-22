@@ -53,11 +53,11 @@ Mail/inbox/5
 Mail/inbox/6
 ])
 
-MH_CHECK([refile --copy],[refile02 refile--copy],[
+MH_CHECK([refile -copy],[refile02 refile-copy],[
 MUT_MBCOPY($abs_top_srcdir/testsuite/mh/mbox1,[Mail/inbox])
 MUT_MBCOPY($abs_top_srcdir/testsuite/mh/teaparty,[Mail/teaparty])
 echo 'Current-Folder: teaparty' > Mail/context
-refile --copy 3 4 +inbox || exit $?
+refile -copy 3 4 +inbox || exit $?
 find Mail/inbox -name '[[0-9]]' | sort
 cmp Mail/inbox/6 Mail/teaparty/3 >/dev/null || echo "Message 3 differs"
 cmp Mail/inbox/7 Mail/teaparty/4 >/dev/null || echo "Message 4 differs"

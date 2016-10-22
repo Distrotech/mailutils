@@ -71,7 +71,7 @@ typedef struct mu_option_cache *mu_option_cache_ptr_t;
 struct mu_option_cache
 {
   struct mu_option *cache_opt;
-  char *cache_arg;
+  char const *cache_arg;
 };
 
 #define MU_PARSEOPT_DEFAULT        0

@@ -19,48 +19,22 @@
 
 #include <mh.h>
 
-static char doc[] = N_("GNU MH mhparam")"\v"
-N_("Use -help to obtain the list of traditional MH options.");
+static char prog_doc[] = N_("GNU MH mhparam");
 static char args_doc[] = N_("[COMPONENT [COMPONENT...]]");
-
-/* GNU options */
-static struct argp_option options[] = {
-  {"all",  ARG_ALL, NULL, 0,
-   N_("display all components from the MH profile. All other arguments are ignored")},
-  {"component", ARG_COMPONENT, N_("BOOL"),   OPTION_ARG_OPTIONAL,
-   N_("always display the component name") },
-  { 0 }
-};
-
-/* Traditional MH options */
-struct mh_option mh_option[] = {
-  { "all" },
-  { "component", MH_OPT_BOOL },
-  { NULL }
-};
 
 static int display_all;
 static int display_comp_name = -1;
 
-static error_t
-opt_handler (int key, char *arg, struct argp_state *state)
-{
-  switch (key)
-    {
-    case ARG_ALL:
-      display_all = 1;
-      break;
-      
-    case ARG_COMPONENT:
-      display_comp_name = is_true (arg);
-      break;
-      
-    default:
-      return ARGP_ERR_UNKNOWN;
-    }
-  return 0;
-}
-
+static struct mu_option options[] = {
+  { "all",  0, NULL, MU_OPTION_DEFAULT,
+    N_("display all components from the MH profile. All other arguments are ignored"),
+    mu_c_bool, &display_all },
+  { "component", 0, NULL, MU_OPTION_DEFAULT,
+    N_("always display the component name"),
+    mu_c_bool, &display_comp_name },
+  MU_OPTION_END
+};
+
 static struct {
   char *comp;
   char *val;
@@ -81,7 +55,8 @@ mhparam_defval (char *comp)
 }
 
 int
-mhparam_iterator (const char *comp, const char *value, void *data MU_ARG_UNUSED)
+mhparam_iterator (const char *comp, const char *value,
+		  void *data MU_ARG_UNUSED)
 {
   if (display_comp_name)
     printf("%s:\t", comp);
@@ -112,14 +87,10 @@ mhparam (char *comp)
 int
 main (int argc, char **argv)
 {
-  int index;
-  
   /* Native Language Support */
   MU_APP_INIT_NLS ();
 
-  mh_argp_init ();
-  mh_argp_parse (&argc, &argv, 0, options, mh_option, args_doc, doc,
-		 opt_handler, NULL, &index);
+  mh_getopt (&argc, &argv, options, 0, args_doc, prog_doc, NULL);
 
   if (display_all)
     {
@@ -129,11 +100,13 @@ main (int argc, char **argv)
     }
   else
     {
+      int i;
+      
       if (display_comp_name == -1)
-	display_comp_name = argc - index > 1;
+	display_comp_name = argc > 1;
 	
-      for (; index < argc; index++)
-	mhparam (argv[index]);
+      for (i = 0; i < argc; i++)
+	mhparam (argv[i]);
     }
   return 0;
 }
