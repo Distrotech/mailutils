@@ -54,7 +54,7 @@ subcommand_help (mu_stream_t str)
 {
   struct mutool_action_tab *p;
   unsigned margin;
-  
+
   mu_stream_printf (str, "%s\n\n", _("Commands are:"));
   for (p = mutool_action_tab; p->name; p++)
     {

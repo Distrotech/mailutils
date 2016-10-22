@@ -334,7 +334,7 @@ mu_option_describe_options (mu_stream_t str, struct mu_parseopt *po)
     i = print_option (str, po, i, &argsused);
   mu_stream_printf (str, "\n");
 
-  if (argsused && dup_args_note)
+  if (argsused && !(po->po_flags & MU_PARSEOPT_SINGLE_DASH) && dup_args_note)
     {
       set_margin (str, 0);
       mu_stream_printf (str, "%s\n\n",

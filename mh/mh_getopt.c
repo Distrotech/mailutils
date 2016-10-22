@@ -164,20 +164,6 @@ There is NO WARRANTY, to the extent permitted by law.\n\
 "));
 }
 
-static void
-fn_version (struct mu_parseopt *po, struct mu_option *opt, char const *unused)
-{
-  mu_program_version (po, mu_strout);
-  exit (0);
-}
-
-static struct mu_option version_option[] = {
-  { "version", 0, NULL, MU_OPTION_DEFAULT,
-    N_("print program version"),
-    mu_c_string, NULL, fn_version },
-  MU_OPTION_END
-};
-
 void
 mh_getopt (int *pargc, char ***pargv, struct mu_option *options,
 	   int mhflags,
@@ -248,7 +234,6 @@ mh_getopt (int *pargc, char ***pargv, struct mu_option *options,
     optv[i++] = folder_option;
   if (options)
     optv[i++] = options;
-  optv[i++] = version_option;
   optv[i] = NULL;
   
   if (mu_parseopt (&po, argc, argv, optv, flags))

@@ -375,6 +375,8 @@ mu_cli_ext (int argc, char **argv,
     setup->ex_config = EX_CONFIG;
 
   hints = *cfhint;
+  hints.data = setup;
+  
   /* Set program name */
   if (hints.flags & MU_CFG_PARSE_PROGRAM)
     {

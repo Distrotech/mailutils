@@ -30,10 +30,11 @@ mu_set_program_name (const char *arg)
 {
   char *p;
 
+  p = mu_strdup (arg);
   free (mu_full_program_name);
-  mu_full_program_name = mu_strdup (arg);
+  mu_full_program_name = p;
   
-  p = strrchr (arg, '/');
+  p = strrchr (mu_full_program_name, '/');
   if (p)
     ++p;
   else

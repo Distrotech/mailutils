@@ -104,6 +104,11 @@ libmailutils/diag/errors
 libmailutils/opt/opt.c
 libmailutils/opt/help.c
 
+libmailutils/cli/acl.c
+libmailutils/cli/capa.c
+libmailutils/cli/cli.c
+libmailutils/cli/stdcapa.c
+
 libmailutils/server/acl.c
 
 libmailutils/stream/file_stream.c
