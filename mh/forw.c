@@ -19,7 +19,7 @@
 
 #include <mh.h>
 
-static char prog_doc[] = N_("GNU MH forw");
+static char prog_doc[] = N_("Forward messages");
 static char args_doc[] = N_("[MSGLIST]");
 
 enum encap_type
@@ -382,9 +382,6 @@ int
 main (int argc, char **argv)
 {
   int rc;
-
-  /* Native Language Support */
-  MU_APP_INIT_NLS ();
 
   draftfolder = mh_global_profile_get ("Draft-Folder", NULL);
   whatnowproc = mh_global_profile_get ("whatnowproc", NULL);

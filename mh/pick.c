@@ -22,7 +22,7 @@
 #include <pick.h>
 #include <pick-gram.h>
 
-static char prog_doc[] = N_("GNU MH pick");
+static char prog_doc[] = N_("Search for messages by content");
 static char args_doc[] = N_("[--COMPONENT PATTERN]... [MSGLIST]");
 
 static int public_option = 1;
@@ -266,8 +266,6 @@ main (int argc, char **argv)
   int status;
   mu_mailbox_t mbox;
   mu_msgset_t msgset;
-
-  MU_APP_INIT_NLS ();
 
   mh_getopt (&argc, &argv, options, MH_GETOPT_DEFAULT_FOLDER,
 	     args_doc, prog_doc, NULL);

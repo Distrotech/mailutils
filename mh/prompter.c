@@ -19,7 +19,7 @@
 #include <mh.h>
 #include "prompter.h"
 
-static char prog_doc[] = N_("GNU MH prompter");
+static char prog_doc[] = N_("Prompting editor front-end for GNU MH");
 static char args_doc[] = N_("FILE");
 
 char *erase_seq;
@@ -87,8 +87,6 @@ main (int argc, char **argv)
   mu_off_t size;
   mu_body_t body;
   mu_stream_t bstr;
-  
-  MU_APP_INIT_NLS ();
   
   mh_getopt (&argc, &argv, options, 0, args_doc, prog_doc, NULL);
 

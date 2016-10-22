@@ -22,7 +22,7 @@
 #include <mailutils/mime.h>
 #include <setjmp.h>
 
-static char prog_doc[] = N_("GNU MH mhn");
+static char prog_doc[] = N_("manipulate MIME messages");
 static char args_doc[] = N_("[MSGLIST]");
 
 typedef struct _msg_part *msg_part_t;
@@ -2758,8 +2758,6 @@ int
 main (int argc, char **argv)
 {
   int rc;
-  
-  MU_APP_INIT_NLS ();
   
   mh_getopt (&argc, &argv, options, 0, args_doc, prog_doc, NULL);
   if (!formfile)

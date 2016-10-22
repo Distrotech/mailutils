@@ -23,7 +23,7 @@
 #include <errno.h>
 #include <fcntl.h>
 
-static char prog_doc[] = N_("GNU MH refile");
+static char prog_doc[] = N_("File messages in other folders");
 static char args_doc[] = N_("MSGLIST FOLDER [FOLDER...]");
 
 int link_flag = 0;
@@ -184,9 +184,6 @@ main (int argc, char **argv)
   mu_msgset_t msgset;
   mu_mailbox_t mbox;
   int status, i, j;
-
-  /* Native Language Support */
-  MU_APP_INIT_NLS ();
 
   mh_getopt (&argc, &argv, options, 0, args_doc, prog_doc, NULL);
   /* Collect any surplus folders */

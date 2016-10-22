@@ -19,7 +19,7 @@
 
 #include <mh.h>
 
-static char prog_doc[] = N_("GNU MH mhpath");
+static char prog_doc[] = N_("Print full pathnames of GNU MH messages and folders");
 static char args_doc[] = N_("[+FOLDER] [MSGLIST]");
 
 static int
@@ -43,9 +43,6 @@ main (int argc, char **argv)
   int status;
   const char *current_folder;
   
-  /* Native Language Support */
-  MU_APP_INIT_NLS ();
-
   mh_getopt (&argc, &argv, NULL, MH_GETOPT_DEFAULT_FOLDER,
 	     args_doc, prog_doc, NULL);
 

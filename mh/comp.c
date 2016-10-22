@@ -21,7 +21,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-static char prog_doc[] = N_("GNU MH comp");
+static char prog_doc[] = N_("Compose a message");
 static char args_doc[] = N_("[MSG]");
 
 struct mh_whatnow_env wh_env = { 0 };
@@ -131,14 +131,10 @@ copy_message (mu_mailbox_t mbox, size_t n, const char *file)
 int
 main (int argc, char **argv)
 {
-  /* Native Language Support */
-  MU_APP_INIT_NLS ();
-
   draftfolder = mh_global_profile_get ("Draft-Folder", NULL);
   whatnowproc = mh_global_profile_get ("whatnowproc", NULL);
 
-  mh_getopt (&argc, &argv, options, 0,
-	     args_doc, prog_doc, NULL);
+  mh_getopt (&argc, &argv, options, 0, args_doc, prog_doc, NULL);
   if (use_draft)
     draftmessage = "cur";
   if (!formfile)

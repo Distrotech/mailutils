@@ -21,7 +21,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-static char prog_doc[] = N_("GNU MH mhl");
+static char prog_doc[] = N_("Produce formatted listings of MH messages");
 static char args_doc[] = N_("[FILE [FILE...]]");
 
 static int bell_option;
@@ -138,8 +138,6 @@ main (int argc, char **argv)
   
   interactive = isatty (1) && isatty (0);
   
-  MU_APP_INIT_NLS ();
-
   mh_getopt (&argc, &argv, options, MH_GETOPT_DEFAULT_FOLDER,
 	     args_doc, prog_doc, NULL);  
 

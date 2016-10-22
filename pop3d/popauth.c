@@ -149,7 +149,7 @@ popauth_version (struct mu_parseopt *po, mu_stream_t stream)
   mu_iterator_t itr;
   int rc;
 
-  mu_version_func (po, stream);
+  mu_version_hook (po, stream);
   mu_stream_printf (stream, _("Database formats: "));
 
   rc = mu_dbm_impl_iterator (&itr);

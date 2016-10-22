@@ -17,7 +17,7 @@
 
 #include <mh.h>
 
-static char prog_doc[] = N_("GNU MH mark");
+static char prog_doc[] = N_("Manipulate message sequences");
 static char args_doc[] = N_("[MSGLIST]");
 
 enum action_type
@@ -167,8 +167,6 @@ main (int argc, char **argv)
   mu_url_t url;
   struct mark_closure clos;
   
-  MU_APP_INIT_NLS ();
-
   mh_getopt (&argc, &argv, options, MH_GETOPT_DEFAULT_FOLDER,
 	     args_doc, prog_doc, NULL);
   if (public_option == -1)

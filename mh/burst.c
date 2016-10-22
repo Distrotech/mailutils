@@ -18,7 +18,7 @@
 
 #include <mh.h>
 
-static char prog_doc[] = N_("GNU MH burst");
+static char prog_doc[] = N_("Explode digests into messages");
 static char args_doc[] = N_("[MSGLIST]");
 
 /* Command line switches */
@@ -652,9 +652,6 @@ main (int argc, char **argv)
   mu_msgset_t msgset;
   const char *tempfolder = mh_global_profile_get ("Temp-Folder", ".temp");
   
-  /* Native Language Support */
-  MU_APP_INIT_NLS ();
-
   mh_getopt (&argc, &argv, options, MH_GETOPT_DEFAULT_FOLDER,
 	     args_doc, prog_doc, NULL);
   if (eb_min_length == 0)

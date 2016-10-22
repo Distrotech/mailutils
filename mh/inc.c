@@ -20,7 +20,7 @@
 #include <mh.h>
 #include "muscript.h"
 
-static char prog_doc[] = N_("GNU MH inc");
+static char prog_doc[] = N_("Incorporate new mail");
 static char extra_doc[] = N_("Debug flags are:\n\
   g - guile stack traces\n\
   t - sieve trace (MU_SIEVE_DEBUG_TRACE)\n\
@@ -344,9 +344,6 @@ main (int argc, char **argv)
   int f_changecur = 0;
   size_t lastseen;
   const char *unseen_seq;
-  
-  /* Native Language Support */
-  MU_APP_INIT_NLS ();
   
   mh_getopt (&argc, &argv, options, 0, args_doc, prog_doc, extra_doc);
   if (!append_folder)

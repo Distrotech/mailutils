@@ -28,7 +28,7 @@
 
 #include <dirent.h>
 
-static char prog_doc[] = N_("GNU MH folder");
+static char prog_doc[] = N_("set or list current folder or message");
 static char args_doc[] = N_("[ACTION] [MSG]");
 
 typedef int (*folder_action) (void);
@@ -888,9 +888,6 @@ main (int argc, char **argv)
 {
   int index = 0;
   mu_msgset_t msgset;
-
-  /* Native Language Support */
-  MU_APP_INIT_NLS ();
 
   mh_getopt (&argc, &argv, options, 0, args_doc, prog_doc, NULL);
   if (recurse_option)

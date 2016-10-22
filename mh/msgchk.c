@@ -21,7 +21,7 @@
 #include "mailutils/datetime.h"
 #include <pwd.h>
 
-static char prog_doc[] = N_("GNU MH msgchk");
+static char prog_doc[] = N_("Check for messages");
 static char args_doc[] = N_("USER [USER...]");
 
 int date_option = 1;
@@ -349,8 +349,6 @@ main (int argc, char **argv)
 {
   int rc = 0;
   
-  MU_APP_INIT_NLS ();
-
   mh_getopt (&argc, &argv, options, 0, args_doc, prog_doc, NULL);  
 
   if (argc == 0)

@@ -19,7 +19,7 @@
 
 #include <mh.h>
 
-static char prog_doc[] = "GNU MH whatnow";
+static char prog_doc[] = N_("Prompting front-end for sending messages");
 static char args_doc[] = N_("[FILE]");
 
 struct mh_whatnow_env wh_env = { 0 };
@@ -52,8 +52,6 @@ static struct mu_option options[] = {
 int
 main (int argc, char **argv)
 {
-  MU_APP_INIT_NLS ();
-
   mh_whatnow_env_from_environ (&wh_env);
 
   mh_getopt (&argc, &argv, options, 0, args_doc, prog_doc, NULL);

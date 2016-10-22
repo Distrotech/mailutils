@@ -54,7 +54,7 @@ const char mu_version_copyright[] =
   "Copyright %s 2007-2016 Free Software Foundation, inc.";
 
 void
-mu_version_func (struct mu_parseopt *po, mu_stream_t stream)
+mu_version_hook (struct mu_parseopt *po, mu_stream_t stream)
 {
 #ifdef GIT_DESCRIBE
   mu_stream_printf (stream, "%s (%s) %s [%s]\n",
@@ -428,7 +428,7 @@ mu_cli (int argc, char **argv, struct mu_cli_setup *setup, char **capa,
   po.po_extra_info = gnu_general_help_url;
   flags |= MU_PARSEOPT_EXTRA_INFO;
 
-  po.po_version_hook = mu_version_func;
+  po.po_version_hook = mu_version_hook;
   flags |= MU_PARSEOPT_VERSION_HOOK;
 
   if (setup->prog_extra_doc)

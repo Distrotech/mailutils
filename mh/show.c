@@ -19,7 +19,7 @@
 
 #include <mh.h>
 
-static char prog_doc[] = N_("GNU MH show");
+static char prog_doc[] = N_("Display GNU MH messages");
 static char args_doc[] = N_("[+FOLDER] [MSGLIST]");
 
 int use_draft;
@@ -184,9 +184,6 @@ main (int argc, char **argv)
   mu_msgset_t msgset;
   const char *p;
   
-  /* Native Language Support */
-  MU_APP_INIT_NLS ();
-
   showargmax = 2;
   showargc = 1;
   showargv = mu_calloc (showargmax, sizeof showargv[0]);

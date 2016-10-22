@@ -19,7 +19,7 @@
 
 #include <mh.h>
 
-static char prog_doc[] = N_("GNU MH anno");
+static char prog_doc[] = N_("Annotate messages");
 static char args_doc[] = N_("[MSGLIST]");
 
 //static int inplace;       /* Annotate the message in place */
@@ -57,8 +57,6 @@ main (int argc, char **argv)
   mu_mailbox_t mbox;
   mu_msgset_t msgset;
   size_t len;
-
-  MU_APP_INIT_NLS ();
 
   mh_getopt (&argc, &argv, options, MH_GETOPT_DEFAULT_FOLDER,
 	     args_doc, prog_doc, NULL);

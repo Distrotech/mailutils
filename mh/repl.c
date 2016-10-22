@@ -22,7 +22,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-static char prog_doc[] = N_("GNU MH repl");
+static char prog_doc[] = N_("Reply to a message");
 static char args_doc[] = N_("[+FOLDER] [MESSAGE]");
 
 static char *format_str = NULL;
@@ -306,9 +306,6 @@ int
 main (int argc, char **argv)
 {
   int rc;
-
-  /* Native Language Support */
-  MU_APP_INIT_NLS ();
 
   draftfolder = mh_global_profile_get ("Draft-Folder", NULL);
   whatnowproc = mh_global_profile_get ("whatnowproc", NULL);

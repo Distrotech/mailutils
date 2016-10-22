@@ -23,7 +23,7 @@
 #include <stdarg.h>
 #include <pwd.h>
 
-static char prog_doc[] = N_("GNU MH send");
+static char prog_doc[] = N_("Send messages");
 static char args_doc[] = N_("FILE [FILE...]");
 
 static const char *draftfolder;  /* Use this draft folder */
@@ -751,8 +751,6 @@ main (int argc, char **argv)
   mu_mailbox_t mbox = NULL;
   char *p;
   int rc;
-  
-  MU_APP_INIT_NLS ();
   
   mh_getopt (&argc, &argv, options, 0, args_doc, prog_doc, NULL);
 

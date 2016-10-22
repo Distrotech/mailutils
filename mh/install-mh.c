@@ -35,9 +35,6 @@ main (int argc, char **argv)
   char *name;
   extern int mh_auto_install;
   
-  /* Native Language Support */
-  MU_APP_INIT_NLS ();
-
   mh_auto_install = 0;
   mh_getopt (&argc, &argv, options, 0, NULL, prog_doc, NULL);
 

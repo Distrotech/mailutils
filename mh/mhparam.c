@@ -19,7 +19,7 @@
 
 #include <mh.h>
 
-static char prog_doc[] = N_("GNU MH mhparam");
+static char prog_doc[] = N_("Print GNU MH profile and context components");
 static char args_doc[] = N_("[COMPONENT [COMPONENT...]]");
 
 static int display_all;
@@ -87,9 +87,6 @@ mhparam (char *comp)
 int
 main (int argc, char **argv)
 {
-  /* Native Language Support */
-  MU_APP_INIT_NLS ();
-
   mh_getopt (&argc, &argv, options, 0, args_doc, prog_doc, NULL);
 
   if (display_all)

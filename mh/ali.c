@@ -23,7 +23,7 @@
 #include <sys/ioctl.h>
 #include <sys/stat.h>
 
-static char prog_doc[] = N_("GNU MH ali");
+static char prog_doc[] = N_("List mail aliases");
 static char args_doc[] = N_("ALIAS [ALIAS...]");
 
 static int list_mode;
@@ -142,9 +142,6 @@ ali_print_name (char *name)
 int
 main (int argc, char **argv)
 {
-  /* Native Language Support */
-  MU_APP_INIT_NLS ();
-
   mh_getopt (&argc, &argv, options, 0, args_doc, prog_doc, NULL);
 
   if (!nolist_mode)

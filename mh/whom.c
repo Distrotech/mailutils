@@ -17,7 +17,7 @@
 
 #include <mh.h>
 
-static char prog_doc[] = N_("GNU MH whom");
+static char prog_doc[] = N_("Report to whom a message would go");
 static char args_doc[] = "[FILE]";
 
 static int check_recipients;
@@ -65,9 +65,7 @@ int
 main (int argc, char **argv)
 {
   char *name = "draft";
-  
-  MU_APP_INIT_NLS ();
-  
+
   mh_getopt (&argc, &argv, options, 0, args_doc, prog_doc, NULL);
 
   if (!use_draft && argc > 0)

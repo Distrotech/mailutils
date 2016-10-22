@@ -19,7 +19,7 @@
 
 #include <mh.h>
 
-static char prog_doc[] = N_("GNU MH fmtcheck");
+static char prog_doc[] = N_("Check MH format string");
 
 char *format_str;
 static mh_format_t format;
@@ -59,9 +59,6 @@ action_dump (void)
 int
 main (int argc, char **argv)
 {
-  /* Native Language Support */
-  MU_APP_INIT_NLS ();
-
   mh_getopt (&argc, &argv, options, 0, NULL, prog_doc, NULL);
   mh_format_debug (debug_option);
   if (format_str && mh_format_parse (format_str, &format))

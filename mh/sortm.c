@@ -22,8 +22,7 @@
 #include <unistd.h>
 #include <signal.h>
 
-static char prog_doc[] = N_("GNU MH sortm")"\v"
-N_("Use -help to obtain the list of traditional MH options.");
+static char prog_doc[] = N_("Sort GNU MH messages");
 static char args_doc[] = N_("[MSGLIST]");
 
 static int limit;
@@ -603,8 +602,6 @@ main (int argc, char **argv)
   mu_url_t url;
   mu_msgset_t msgset;
   
-  MU_APP_INIT_NLS ();
-
   mh_getopt (&argc, &argv, options, MH_GETOPT_DEFAULT_FOLDER,
 	     args_doc, prog_doc, NULL);
   

@@ -19,7 +19,7 @@
 
 #include <mh.h>
 
-static char prog_doc[] = N_("GNU MH rmm");
+static char prog_doc[] = N_("Remove messages");
 static char args_doc[] = N_("[+FOLDER] [MSGLIST]");
 
 static int
@@ -56,9 +56,6 @@ main (int argc, char **argv)
   int status;
   struct seq_closure clos;
   
-  /* Native Language Support */
-  MU_APP_INIT_NLS ();
-
   mh_getopt (&argc, &argv, NULL, MH_GETOPT_DEFAULT_FOLDER,
 	     args_doc, prog_doc, NULL);
 
