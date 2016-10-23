@@ -348,6 +348,11 @@ main (int argc, char **argv)
   mh_getopt (&argc, &argv, options, 0, args_doc, prog_doc, extra_doc);
   if (!append_folder)
     append_folder = mh_global_profile_get ("Inbox", "inbox");
+  if (argc)
+    {
+      mu_error (_("unrecognized arguments"));
+      exit (1);
+    }
 
   mu_registrar_set_default_scheme ("mh");
 

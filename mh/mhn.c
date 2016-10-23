@@ -2808,8 +2808,9 @@ main (int argc, char **argv)
       mbox = mh_open_folder (mh_current_folder (), MU_STREAM_READ);
       mh_msgset_parse (&msgset, mbox, argc, argv, "cur");
       /* FIXME: Combine the three */
+      rc = 0;
       if (list_option)
-	rc = mhn_list ();
+	rc |= mhn_list ();
       if (show_option)
 	rc |= mhn_show ();
       if (store_option)
