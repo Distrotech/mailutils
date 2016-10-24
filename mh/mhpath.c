@@ -20,7 +20,7 @@
 #include <mh.h>
 
 static char prog_doc[] = N_("Print full pathnames of GNU MH messages and folders");
-static char args_doc[] = N_("[+FOLDER] [MSGLIST]");
+static char args_doc[] = N_("[MSGLIST]");
 
 static int
 mhpath (size_t num, mu_message_t msg, void *data)

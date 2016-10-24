@@ -23,7 +23,7 @@
 #include <unistd.h>
 
 static char prog_doc[] = N_("Reply to a message");
-static char args_doc[] = N_("[+FOLDER] [MESSAGE]");
+static char args_doc[] = N_("[MESSAGE]");
 
 static char *format_str = NULL;
 static mh_format_t format;

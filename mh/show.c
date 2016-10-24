@@ -20,7 +20,7 @@
 #include <mh.h>
 
 static char prog_doc[] = N_("Display GNU MH messages");
-static char args_doc[] = N_("[+FOLDER] [MSGLIST]");
+static char args_doc[] = N_("[MSGLIST]");
 
 int use_draft;
 int use_showproc = 1;

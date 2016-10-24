@@ -26,7 +26,6 @@ static char extra_doc[] = N_("Debug flags are:\n\
   t - sieve trace (MU_SIEVE_DEBUG_TRACE)\n\
   i - sieve instructions trace (MU_SIEVE_DEBUG_INSTR)\n\
   l - sieve action logs");
-static char args_doc[] = N_("[+FOLDER]");
 
 static char *format_str = mh_list_format;
 static int width = 80;
@@ -345,7 +344,7 @@ main (int argc, char **argv)
   size_t lastseen;
   const char *unseen_seq;
   
-  mh_getopt (&argc, &argv, options, 0, args_doc, prog_doc, extra_doc);
+  mh_getopt (&argc, &argv, options, 0, NULL, prog_doc, extra_doc);
   if (!append_folder)
     append_folder = mh_global_profile_get ("Inbox", "inbox");
   if (argc)

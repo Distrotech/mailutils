@@ -27,7 +27,7 @@
 #include <mailutils/observer.h>
 
 static char prog_doc[] = N_("Produce a one line per message scan listing");
-static char args_doc[] = N_("[+FOLDER] [MSGLIST]");
+static char args_doc[] = N_("[MSGLIST]");
 
 static int clear;
 static char *format_str = mh_list_format;

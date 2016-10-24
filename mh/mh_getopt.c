@@ -135,7 +135,7 @@ mh_opt_set_folder (struct mu_parseopt *po, struct mu_option *opt,
 }
 
 static struct mu_option folder_option[] = {
-  { "folder", 0, NULL, MU_OPTION_DEFAULT,
+  { "folder", 0, N_("FOLDER"), MU_OPTION_DEFAULT,
     N_("set current folder"),
     mu_c_string, NULL, mh_opt_set_folder },
   MU_OPTION_END
@@ -164,6 +164,19 @@ There is NO WARRANTY, to the extent permitted by law.\n\
 "));
 }
 
+static int
+has_folder_option (struct mu_option *opt)
+{
+  while (!MU_OPTION_IS_END (opt))
+    {
+      if (MU_OPTION_IS_VALID_LONG_OPTION (opt)
+	  && strcmp (opt->opt_long, "folder") == 0)
+	return 1;
+      ++opt;
+    }
+  return 0;
+}
+
 void
 mh_getopt (int *pargc, char ***pargv, struct mu_option *options,
 	   int mhflags,
@@ -183,6 +196,12 @@ mh_getopt (int *pargc, char ***pargv, struct mu_option *options,
 
   po.po_negation = "no";
   flags |= MU_PARSEOPT_NEGATION;
+
+  if ((mhflags & MH_GETOPT_DEFAULT_FOLDER) || has_folder_option (options))
+    {
+      po.po_special_args = N_("[+FOLDER]");
+      flags |= MU_PARSEOPT_SPECIAL_ARGS;
+    }
 
   if (argdoc)
     {
@@ -248,7 +267,12 @@ mh_getopt (int *pargc, char ***pargv, struct mu_option *options,
 
   if (!argdoc && argc)
     {
-      mu_error (_("Extra arguments"));
+      mu_diag_init ();
+      mu_stream_printf (mu_strerr, "\033s<%d>", MU_DIAG_ERROR);
+      mu_stream_printf (mu_strerr, "%s", _("unrecognized extra arguments:"));
+      for (i = 0; i < argc; i++)
+	mu_stream_printf (mu_strerr, " %s", argv[i]);
+      mu_stream_write (mu_strerr, "\n", 1, NULL);
       exit (1);
     }
 

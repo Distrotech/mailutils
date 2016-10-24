@@ -523,6 +523,9 @@ option_summary (struct mu_parseopt *po, mu_stream_t str)
 	}
     }
 
+  if (po->po_special_args)
+    mu_stream_printf (str, " %s", gettext (po->po_special_args));
+  
   free (idxbuf);
 }  
 
@@ -535,10 +538,7 @@ print_program_usage (struct mu_parseopt *po, int optsum, mu_stream_t str)
   
   usage_text = _("Usage:");
 
-  if (po->po_flags & MU_PARSEOPT_PROG_ARGS)
-    arg_text = po->po_prog_args;
-  else
-    arg_text = NULL;
+  arg_text = po->po_prog_args;
   i = 0;
   
   do
@@ -552,7 +552,11 @@ print_program_usage (struct mu_parseopt *po, int optsum, mu_stream_t str)
 	  optsum = 0;
 	}
       else
-	mu_stream_printf (str, "[%s...]", _("OPTION"));
+	{
+	  mu_stream_printf (str, "[%s...]", _("OPTION"));
+	  if (po->po_special_args)
+	    mu_stream_printf (str, " %s", gettext (po->po_special_args));
+	}
 
       if (arg_text)
 	{

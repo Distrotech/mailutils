@@ -29,7 +29,6 @@
 #include <dirent.h>
 
 static char prog_doc[] = N_("Remove a GNU MH folder");
-static char args_doc[] = N_("[+FOLDER]");
 
 int explicit_folder; /* Was the folder explicitly given */
 int interactive; /* Ask for confirmation before deleting */
@@ -150,7 +149,7 @@ main (int argc, char **argv)
   int status;
   char *name;
 
-  mh_getopt (&argc, &argv, options, 0, args_doc, prog_doc, NULL);
+  mh_getopt (&argc, &argv, options, 0, NULL, prog_doc, NULL);
 
   cur_folder_path = current_folder_path ();
 

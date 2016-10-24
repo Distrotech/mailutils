@@ -109,6 +109,8 @@ struct mu_option_cache
 #define MU_PARSEOPT_SINGLE_DASH    0x02000000
 /* Negation prefix is set */
 #define MU_PARSEOPT_NEGATION       0x04000000
+/* po_special_args is set */
+#define MU_PARSEOPT_SPECIAL_ARGS   0x08000000
 
 /* Reuse mu_parseopt struct initialized previously */
 #define MU_PARSEOPT_REUSE          0x80000000
@@ -131,8 +133,9 @@ struct mu_parseopt
   
   /* Informational: */
   char const *po_prog_name;
-  char const *po_prog_doc;	
+  char const *po_prog_doc;
   char const **po_prog_args;
+  char const *po_special_args;     /* Special option-like arguments */
   char const *po_bug_address;
   char const *po_package_name;
   char const *po_package_url;

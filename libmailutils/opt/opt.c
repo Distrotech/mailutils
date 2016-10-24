@@ -578,6 +578,8 @@ parseopt_init (struct mu_parseopt *po, struct mu_option **options,
     po->po_prog_doc = NULL;
   if (!(flags & MU_PARSEOPT_PROG_ARGS))
     po->po_prog_args = NULL;
+  if (!(flags & MU_PARSEOPT_SPECIAL_ARGS))
+    po->po_special_args = NULL;
   if (!(flags & MU_PARSEOPT_BUG_ADDRESS))
     po->po_bug_address = NULL;
   if (!(flags & MU_PARSEOPT_PACKAGE_NAME))

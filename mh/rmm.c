@@ -20,7 +20,7 @@
 #include <mh.h>
 
 static char prog_doc[] = N_("Remove messages");
-static char args_doc[] = N_("[+FOLDER] [MSGLIST]");
+static char args_doc[] = N_("[MSGLIST]");
 
 static int
 rmm (size_t num, mu_message_t msg, void *data)
