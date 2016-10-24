@@ -531,6 +531,8 @@ mu_cli (int argc, char **argv, struct mu_cli_setup *setup, char **capa,
 {
   struct mu_parseopt pohint;
   struct mu_cfg_parse_hints cfhint;
+
+  pohint.po_flags = 0;
   
   pohint.po_package_name = PACKAGE_NAME;
   pohint.po_flags |= MU_PARSEOPT_PACKAGE_NAME;
