@@ -148,7 +148,10 @@ add_option_cache (struct mu_parseopt *po, struct mu_option *opt,
 		  char const *arg)
 {
   struct mu_option_cache *cache = mu_alloc (sizeof (*cache));
+  
   cache->cache_opt = opt;
+  if (arg == NULL && opt->opt_default)
+    arg = opt->opt_default;
   cache->cache_arg = arg;
 
   if ((po->po_flags & MU_PARSEOPT_IMMEDIATE)
@@ -749,6 +752,9 @@ mu_option_set_value (struct mu_parseopt *po, struct mu_option *opt,
       if (arg == NULL)
 	{
 	  if (opt->opt_default)
+	    /* The default value has been already assigned in add_option_cache.
+	       This conditional is here in case mu_option_set_value is called
+	       from the user code. */
 	    arg = opt->opt_default;
 	  else if (opt->opt_arg == NULL)
 	    arg = "1";
