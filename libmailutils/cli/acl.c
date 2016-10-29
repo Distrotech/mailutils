@@ -221,15 +221,16 @@ static struct mu_cfg_param acl_param[] = {
     N_("addr: IP") },
   { "exec", mu_cfg_callback, NULL, 0, cb_exec,
     N_("Execute supplied program if a connection from this IP address is "
-       "requested. Arguments are:\n"
-       "  <addr: IP> <program: string>\n"
-       "Following macros are expanded in <program> before executing:\n"
+       "requested.\n\n"
+       "The following macros are expanded in <program> before executing:\n"
        "  address  -  Source IP address\n"
-       "  port     -  Source port number\n") },
+       "  port     -  Source port number\n"),
+    N_("addr: IP> <program: string") },
   { "ifexec", mu_cfg_callback, NULL, 0, cb_ifexec,
     N_("If a connection from this IP address is requested, execute supplied "
        "program and allow or deny the connection depending on its exit code. "
-       "See `exec' for a description of its arguments.") },
+       "See `exec' for a description of its arguments."),
+    N_("addr: IP> <program: string") },
   { NULL }
 };
 

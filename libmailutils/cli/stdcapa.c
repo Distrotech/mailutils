@@ -79,12 +79,14 @@ static struct mu_cfg_param logging_cfg[] = {
   { "severity", mu_cfg_callback, NULL, 0, cb_severity,
     N_("Output only messages with a severity equal to or greater than "
        "this one."),
-    N_("arg: string")},
+    /* TRANSLATORS: Translate only arg:, rest are keywords */
+    N_("arg: debug|info|notice|warning|error|crit|alert|emerg")},
   { "facility", mu_cfg_callback, NULL, 0, cb_facility,
     N_("Set syslog facility. Arg is one of the following: user, daemon, "
        "auth, authpriv, mail, cron, local0 through local7 (case-insensitive), "
        "or a facility number."), 
-    N_("arg: string") },
+    /* TRANSLATORS: Translate only arg: and <number>, rest are keywords */
+    N_("arg: auth|authpriv|mail|local0-local7|<number>") },
   { "session-id", mu_c_bool, &mu_log_session_id, 0, NULL,
     N_("Log session ID") },
   { "tag", mu_c_string, &mu_log_tag, 0, NULL,

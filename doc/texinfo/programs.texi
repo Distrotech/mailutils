@@ -7435,18 +7435,12 @@ Enable support for mailers.
 Link in the support for Sieve mail filtering language.
 @item dbm
 Link in the support for DBM databases (libmu_dbm library).
-@item compat
-Provide a compatibility layer for Mailutils 2.x.
 @item auth
 Link in the Mailutils authentication library.
 @item guile
 Provide Guile language bindings.
 @item python
 Provide Python language bindings.
-@item cfg
-Link in the Mailutils configuration library.
-@item argp
-Link in the library for command line parsing.
 @end table
 
 @node mailutils query

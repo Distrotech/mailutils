@@ -222,13 +222,15 @@ static struct mu_cfg_param sieve_cfg_param[] = {
        "   T - mailutils traces (sieve.trace9)\n"
        "   P - network protocols (sieve.prot)\n"
        "   t - sieve trace (MU_SIEVE_DEBUG_TRACE)\n"
-       "   i - sieve instructions trace (MU_SIEVE_DEBUG_INSTR).") },
+       "   i - sieve instructions trace (MU_SIEVE_DEBUG_INSTR)."),
+    N_("arg: string") },
   { "verbose", mu_c_bool, &verbose, 0, NULL,
     N_("Log all executed actions.") },
   { "line-info", mu_c_bool, &sieve_print_locus, 0, NULL,
     N_("Print source locations along with action logs (default).") },
   { "email", mu_cfg_callback, NULL, 0, cb_email,
-    N_("Set user email address.") },
+    N_("Set user email address."),
+    N_("arg: string") },
   { NULL }
 };
 

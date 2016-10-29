@@ -102,15 +102,23 @@ libmu_auth module. It is declared as follows:
 
 @smallexample
 @group
-struct mu_auth_module @{
-  char           *name;              /* Module name */
-  struct argp    *argp;              /* Corresponding argp structure */
-  mu_auth_fp     authenticate;       /* Authentication function ... */
-  void           *authenticate_data; /* ... and its specific data */
-  mu_auth_fp     auth_by_name;       /* Get user info by user name */ 
-  void           *auth_by_name_data; /* ... and its specific data */
-  mu_auth_fp     auth_by_uid;        /* Get user info by user id */  
-  void           *auth_by_uid_data;  /* ... and its specific data */
+struct mu_auth_module
+@{
+  /* Module name */
+  char            *name;            
+  /* Pointers to functions for each mode */
+  mu_auth_fp      handler[MU_AUTH_MODE_COUNT];
+  /* Corresponding data pointers */
+  void            *data[MU_AUTH_MODE_COUNT];
+
+  /* Describes command line options for that module */
+  struct mu_option *opt;
+  /* Configuration parameters for that module */
+  struct mu_cfg_param *cfg;
+  /* Configuration section parser */
+  mu_cfg_section_fp parser;
+  /* Function to commit the changes */
+  mu_cli_capa_commit_fp commit;
 @};
 @end group
 @end smallexample
@@ -271,8 +279,6 @@ main (int argc, char **argv)
   state = STATE_NONAUTH; /* Starting state in non-auth.  */
 
   MU_AUTH_REGISTER_ALL_MODULES ();
-  mu_argp_parse (&argp, &argc, &argv, 0, imap4d_capa,
-                 NULL, &daemon_param);
   @dots{}       
 @end group
 @end smallexample

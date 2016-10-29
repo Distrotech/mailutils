@@ -142,21 +142,23 @@ cb_library_path_prefix (void *data, mu_config_value_t *val)
 
 static struct mu_cfg_param mu_sieve_param[] = {
   { "clear-library-path", mu_cfg_callback, NULL, 0, cb_clear_library_path,
-     N_("Clear library search path.") },
+     N_("Clear library search path."),
+     N_("arg: directory list") },
   { "clear-include-path", mu_cfg_callback, NULL, 0, cb_clear_include_path,
-     N_("Clear include search path.") },
+     N_("Clear include search path."),
+     N_("arg: directory list") },
   { "library-path", mu_cfg_callback, NULL, 0, cb_library_path,
     N_("Add directories to the library search path.  Argument is a "
        "colon-separated list of directories."),
-    N_("list") },
+    N_("arg: directory list") },
   { "library-path-prefix", mu_cfg_callback, NULL, 0, cb_library_path_prefix,
     N_("Add directories to the beginning of the library search path.  "
        "Argument is a colon-separated list of directories."),
-    N_("list") },
+    N_("arg: directory list") },
   { "include-path", mu_cfg_callback, NULL, 0, cb_include_path,
     N_("Add directories to the include search path.  Argument is a "
        "colon-separated list of directories."),
-    N_("list") },
+    N_("arg: directory list") },
   { NULL }
 };
 

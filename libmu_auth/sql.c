@@ -103,6 +103,7 @@ static struct mu_cfg_param mu_sql_param[] = {
   { "interface", mu_cfg_callback, &mu_sql_module_config.interface, 0,
     cb_interface,
     N_("Set SQL interface to use."),
+    /* TRANSLATORS: Words to the right of : are keywords - do not translate */
     N_("iface: mysql|odbc|postgres") },
   { "getpwnam", mu_c_string, &mu_sql_module_config.getpwnam_query, 0, NULL,
     N_("SQL query to use for getpwnam requests."),
@@ -124,8 +125,9 @@ static struct mu_cfg_param mu_sql_param[] = {
   { "db", mu_c_string, &mu_sql_module_config.db, 0, NULL,
     N_("Database name.") },
   { "password-type", mu_cfg_callback, NULL, 0, cb_password_type,
-    N_("Type of password returned by getpass query (one of: plain, hash, "
-       "scrambled).") },
+    N_("Type of password returned by getpass query."),
+    /* TRANSLATORS: Words to the right of : are keywords - do not translate */
+    N_("arg: plain|hash|scrambled") },
   { "positional", mu_c_bool, &mu_sql_module_config.positional, 0, NULL,
     N_("Use positional (v1.0 compatible) field interface.") },
   { "field-map", mu_cfg_callback, NULL, 0, cb_field_map,
@@ -136,7 +138,7 @@ static struct mu_cfg_param mu_sql_param[] = {
        "where <name> is one of the following: name, passwd, uid, gid, "
        "gecos, dir, shell, mailbox, quota, and <column> is the name of "
        "the corresponding SQL column."),
-    N_("map") },
+    N_("map: definition") },
   { NULL }
 };
 

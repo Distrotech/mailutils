@@ -365,7 +365,8 @@ struct mu_cfg_param movemail_cfg_param[] = {
        " delete -  delete this one and to the next message\n"
        " count  -  count this message as processed\n"
        "Each keyword can be prefixed with \"no\" to reverse its meaning\n"
-       "Setting onerror=abort reverts to the default behavior.") },
+       "Setting onerror=abort reverts to the default behavior."),
+    N_("arg: list") },
   { NULL }
 };
 

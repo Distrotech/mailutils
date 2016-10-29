@@ -234,7 +234,9 @@ static struct mu_cfg_param pop3d_srv_param[] = {
 #ifdef WITH_TLS
   { "tls", mu_cfg_callback,
     NULL, mu_offsetof (struct pop3d_srv_config, tls_mode), cb_tls,
-    N_("Kind of TLS encryption to use for this server") },
+    N_("Kind of TLS encryption to use for this server"),
+    /* TRANSLATORS: words to the right of : are keywords - do not translate */
+    N_("arg: false|true|ondemand|stls|requred|connection") },
 #endif
   { NULL }
 };
@@ -252,7 +254,8 @@ static struct mu_cfg_param pop3d_cfg_param[] = {
   { "apop-database-file", mu_c_string, &apop_database_name, 0, NULL,
     N_("set APOP database file name or URL") },
   { "apop-database-owner", mu_cfg_callback, NULL, 0, cb_apop_database_owner,
-    N_("Name or UID of the APOP database owner") },
+    N_("Name or UID of the APOP database owner"),
+    N_("arg: string") },
   { "apop-database-safety", mu_cfg_callback, NULL, 0, cb_apop_safety_checks,
     N_("Configure safety checks for APOP database files.  Argument is a list or "
        "sequence of check names optionally prefixed with '+' to enable or "
@@ -271,10 +274,13 @@ static struct mu_cfg_param pop3d_cfg_param[] = {
     
 #ifdef WITH_TLS
   { "tls", mu_cfg_callback, &tls_mode, 0, cb_tls,
-    N_("Kind of TLS encryption to use") },
+    N_("Kind of TLS encryption to use"),
+    /* TRANSLATORS: words to the right of : are keywords - do not translate */
+    N_("arg: false|true|ondemand|stls|requred|connection") },
   { "tls-required", mu_cfg_callback, &tls_mode, 0, cb_tls_required,
     N_("Always require STLS before entering authentication phase.\n"
-       "Deprecated, use \"tls required\" instead.") },
+       "Deprecated, use \"tls required\" instead."),
+    N_("arg: bool") },
 #endif
 #ifdef ENABLE_LOGIN_DELAY
   { "login-delay", mu_c_time, &login_delay, 0, NULL,
@@ -284,11 +290,11 @@ static struct mu_cfg_param pop3d_cfg_param[] = {
 #endif
   { "bulletin-source", mu_cfg_callback, NULL, 0, cb_bulletin_source,
     N_("Get bulletins from the specified mailbox."),
-    N_("url") },
+    N_("url: string") },
 #ifdef ENABLE_DBM
   { "bulletin-db", mu_cfg_callback, NULL, 0, cb_bulletin_db,
     N_("Set the bulletin database file name."),
-    N_("file") },
+    N_("file: string") },
 #endif
   { "output-buffer-size", mu_c_size, &pop3d_output_bufsize, 0, NULL,
     N_("Size of the output buffer.") },

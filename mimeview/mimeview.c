@@ -130,7 +130,7 @@ cb_debug (void *data, mu_config_value_t *val)
 struct mu_cfg_param mimeview_cfg_param[] = {
   { "debug", mu_cfg_callback, NULL, 0, cb_debug,
     N_("Set debug verbosity level."),
-    N_("flags") },
+    N_("flags: string") },
   { "mimetypes", mu_c_string, &mimetypes_config, 0, NULL,
     N_("Use this mime.types file."),
     N_("file") },

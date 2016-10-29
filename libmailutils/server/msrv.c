@@ -895,8 +895,9 @@ static struct mu_cfg_param dot_server_cfg_param[] = {
     N_("Maximum number of children processes to run simultaneously.") },
   { "mode", mu_cfg_callback,
     NULL, mu_offsetof (struct _mu_m_server,mode), _cb_daemon_mode,
-    N_("Set daemon mode (either inetd (or interactive) or daemon)."),
-    N_("mode") },
+    N_("Set operation mode."),
+    /* TRANSLATORS: Words to the right of : are keywords. */
+    N_("mode: inetd|interactive|daemom") },
   { "foreground", mu_c_bool,
     NULL, mu_offsetof (struct _mu_m_server, foreground), NULL,
     N_("Run in foreground.") },
@@ -906,7 +907,8 @@ static struct mu_cfg_param dot_server_cfg_param[] = {
     N_("file") },
   { "port", mu_cfg_callback,
     NULL, mu_offsetof (struct _mu_m_server, hints), _cb_port,
-    N_("Default port number.") },
+    N_("Default port number."),
+    N_("arg: port number or service name") },
   { "timeout", mu_c_time,
     NULL, mu_offsetof (struct _mu_m_server,timeout), NULL,
     N_("Set idle timeout.") },
@@ -953,7 +955,8 @@ _cb_backlog (void *data, mu_config_value_t *val)
 static struct mu_cfg_param server_tcp_param[] = {
   { "backlog", mu_cfg_callback,
     NULL, mu_offsetof (struct mu_srv_config, tcpsrv), _cb_backlog,
-    N_("Size of the queue of pending connections") },
+    N_("Size of the queue of pending connections"),
+    N_("number") },
   { NULL }
 };
 

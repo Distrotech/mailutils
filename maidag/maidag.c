@@ -372,9 +372,12 @@ cb_script_pattern (void *data, mu_config_value_t *val)
 
 struct mu_cfg_param filter_cfg_param[] = {
   { "language", mu_cfg_callback, NULL, 0, cb_script_language,
-    N_("Set script language.") },
+    N_("Set script language."),
+    /* TRANSLATORS: words to the right of : are keywords - do not translate */
+    N_("arg: python|guile") },
   { "pattern", mu_cfg_callback, NULL, 0, cb_script_pattern,
-    N_("Set script pattern.") },
+    N_("Set script pattern."), 
+    N_("arg: glob") },
   { NULL }
 };
 
@@ -419,7 +422,8 @@ cb_listen (void *data, mu_config_value_t *val)
 struct mu_cfg_param maidag_cfg_param[] = {
   { "delivery-mode", mu_cfg_callback, NULL, 0, cb_delivery_mode,
     N_("Set delivery mode"),
-    N_("mode: {mda | url | lmtp}") },
+    /* TRANSLATORS: words to the right of : are keywords - do not translate */
+    N_("mode: mda|url|lmtp") },
   { "exit-multiple-delivery-success", mu_c_bool, &multiple_delivery, 0, NULL,
     N_("In case of multiple delivery, exit with code 0 if at least one "
        "delivery succeeded.") },
@@ -447,9 +451,11 @@ struct mu_cfg_param maidag_cfg_param[] = {
        "  g - guile stack traces\n"
        "  t - sieve trace (MU_SIEVE_DEBUG_TRACE)\n"
        "  i - sieve instructions trace (MU_SIEVE_DEBUG_INSTR)\n"
-       "  l - sieve action logs\n") },
+       "  l - sieve action logs\n"),
+    N_("arg: string") },
   { "stderr", mu_cfg_callback, NULL, 0, cb_stderr,
-    N_("Log to stderr instead of syslog.") },
+    N_("Log to stderr instead of syslog."),
+    N_("arg: bool") },
   { "forward-file", mu_c_string, &forward_file, 0, NULL,
     N_("Process forward file.") },
   { "forward-file-checks", mu_cfg_callback, NULL, 0, cb_forward_file_checks,
@@ -467,7 +473,7 @@ struct mu_cfg_param maidag_cfg_param[] = {
        "mandatory)\n"
        "   file://<socket-file-name>\n"
        "or socket://<socket-file-name>"),
-    N_("url") },
+    N_("url: string") },
   { "reuse-address", mu_c_bool, &reuse_lmtp_address, 0, NULL,
     N_("Reuse existing address (LMTP mode).  Default is \"yes\".") },
   { "filter", mu_cfg_section, NULL, 0, NULL,

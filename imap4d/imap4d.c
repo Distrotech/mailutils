@@ -364,7 +364,9 @@ static struct mu_cfg_param imap4d_srv_param[] = {
 #ifdef WITH_TLS
   { "tls", mu_cfg_callback,
     NULL, mu_offsetof (struct imap4d_srv_config, tls_mode), cb_tls,
-    N_("Kind of TLS encryption to use for this server") },
+    N_("Kind of TLS encryption to use for this server"),
+    /* TRANSLATORS: translate only arg:, the rest are keywords */
+    N_("arg: false|true|ondemand|stls|requred|connection") },
 #endif
   { NULL }
 };
@@ -396,33 +398,38 @@ static struct mu_cfg_param imap4d_cfg_param[] = {
     N_("Set shared namespace.") },
   { "other-mailbox-mode", mu_cfg_callback, &mailbox_mode[NS_OTHER], 0,
     cb_mailbox_mode,
-    N_("File mode for mailboxes in other namespace.") },
+    N_("File mode for mailboxes in other namespace."),
+    N_("mode: g(+|=)[wr]+,o(+|=)[wr]+") },
   { "shared-mailbox-mode", mu_cfg_callback, &mailbox_mode[NS_SHARED], 0,
     cb_mailbox_mode,
-    N_("File mode for mailboxes in shared namespace.") },
+    N_("File mode for mailboxes in shared namespace."),
+    N_("mode: g(+|=)[wr]+,o(+|=)[wr]+") },
   { "login-disabled", mu_c_bool, &login_disabled, 0, NULL,
     N_("Disable LOGIN command.") },
   { "create-home-dir", mu_c_bool, &create_home_dir, 0, NULL,
     N_("If true, create non-existing user home directories.") },
   { "home-dir-mode", mu_cfg_callback, NULL, 0, cb_mode,
-    N_("File mode for creating user home directories (octal)."),
-    N_("mode") },
+    N_("File mode for creating user home directories."),
+    N_("mode: octal") },
   { "retain-groups", mu_cfg_callback, &user_retain_groups, 0, cb_group,
     N_("Retain these supplementary groups when switching to user privileges"),
     N_("groups: list of string") },
 #ifdef WITH_TLS
   { "tls", mu_cfg_callback, &tls_mode, 0, cb_tls,
-    N_("Kind of TLS encryption to use") },
+    N_("Kind of TLS encryption to use"),
+    /* TRANSLATORS: translate only arg:, the rest are keywords */
+    N_("arg: false|true|ondemand|stls|requred|connection") },
   { "tls-required", mu_cfg_callback, &tls_mode, 0, cb_tls_required,
     N_("Always require STLS before entering authentication phase.\n"
-       "Deprecated, use \"tls required\" instead.") },
+       "Deprecated, use \"tls required\" instead."),
+    N_("arg: bool") },
 #endif
   { "preauth", mu_cfg_callback, NULL, 0, cb_preauth,
-    N_("Configure PREAUTH mode.  MODE is one of:\n"
+    N_("Configure PREAUTH mode.  <value> is one of:\n"
        "  prog:///<full-program-name: string>\n"
        "  ident[://:<port: string-or-number>]\n"
        "  stdio"),
-    N_("mode") },
+    N_("mode: value") },
   { "preauth-only", mu_c_bool, &preauth_only, 0, NULL,
     N_("Use only preauth mode.  If unable to setup it, disconnect "
        "immediately.") },

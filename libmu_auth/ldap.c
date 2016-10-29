@@ -106,7 +106,7 @@ static struct mu_cfg_param mu_ldap_param[] = {
        "where <name> is one of the following: name, passwd, uid, gid, "
        "gecos, dir, shell, mailbox, quota, and <attr> is the name of "
        "the corresponding LDAP attribute."),
-    N_("map") },
+    N_("map: definition") },
   { "getpwnam", mu_c_string, &ldap_param.getpwnam_filter, 0, NULL,
     N_("LDAP filter to use for getpwnam requests."),
     N_("filter") },

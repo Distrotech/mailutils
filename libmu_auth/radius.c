@@ -191,7 +191,8 @@ static struct mu_cfg_param mu_radius_param[] = {
     N_("Radius request for getpwuid."),
     N_("request: string") },
   { "directory", mu_cfg_callback, NULL, 0, cb_config_dir,
-    N_("Set radius configuration directory.") },
+    N_("Set radius configuration directory."),
+    N_("dir: string") },
   { NULL }
 };
 
