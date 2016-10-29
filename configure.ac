@@ -49,7 +49,6 @@ AC_SUBST(MU_LIB_POP)
 AC_SUBST(MU_LIB_SIEVE,'${top_builddir}/libmu_sieve/libmu_sieve.la')
 AC_SUBST(MU_LIB_SCM)
 AC_SUBST(MU_LIB_CPP)
-AC_SUBST(MU_LIB_ARGP,'${top_builddir}/libmu_argp/libmu_argp.la')
 AC_SUBST(MU_LIB_PY)
 
 dnl Other variables
@@ -70,7 +69,7 @@ AC_SUBST(MU_APP_LIBRARIES,'${top_builddir}/lib/libmuaux.la')
 
 AC_SUBST(MU_LIB_COMMON_INCLUDES,'-I${top_builddir} -I${top_srcdir}/include  -I${top_builddir}/include')
 
-AC_SUBST(MU_APP_COMMON_INCLUDES,'-I${srcdir} -I${top_srcdir}/include -I${top_srcdir}/lib -I${top_srcdir}/lib/gnu -I${top_builddir}/lib/gnu -I${top_builddir} -I${top_builddir}/include -I${top_srcdir}/libmu_argp -I${top_srcdir}/libmu_cfg')
+AC_SUBST(MU_APP_COMMON_INCLUDES,'-I${srcdir} -I${top_srcdir}/include -I${top_srcdir}/lib -I${top_srcdir}/lib/gnu -I${top_builddir}/lib/gnu -I${top_builddir} -I${top_builddir}/include')
 
 dnl Check for programs
 AC_PROG_CC
@@ -124,13 +123,6 @@ AH_BOTTOM([
 
 AC_SUBST(MU_LINK_POSTFLAGS,[`for opt in $LTLIBICONV; do case $opt in -[[lL]]*) echo $opt;; esac; done|tr '\n' ' '`])
 
-
-dnl Escape defuns that force automake to add their arguments
-dnl to LIBOBJS.
-dnl All dependencies has been handled by gnulib-sync.
-
-AC_DEFINE([GNULIB_ARGP_EXTERN_BASENAME],1,
-          [Define to use our own version of __argp_base_name])
 
 # Check for large file support
 AC_SYS_LARGEFILE

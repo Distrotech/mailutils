@@ -233,7 +233,7 @@ static struct mu_cfg_param sieve_cfg_param[] = {
 };
 
 
-static char *sieve_argp_capa[] = {
+static char *sieve_capa[] = {
   "debug",
   "mailbox",
   "locking",
@@ -400,7 +400,7 @@ main (int argc, char *argv[])
   
   mu_register_all_formats ();
 
-  mu_cli (argc, argv, &cli, sieve_argp_capa, NULL, &argc, &argv);
+  mu_cli (argc, argv, &cli, sieve_capa, NULL, &argc, &argv);
 
   if (argc == 0)
     {

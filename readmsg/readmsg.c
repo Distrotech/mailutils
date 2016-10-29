@@ -91,7 +91,7 @@ struct mu_cli_setup cli = {
   NULL
 };
 
-static char *readmsg_argp_capa[] = {
+static char *readmsg_capa[] = {
   "debug",
   "mailbox",
   "locking",
@@ -244,7 +244,7 @@ main (int argc, char **argv)
 
   mu_auth_register_module (&mu_auth_tls_module);
 
-  mu_cli (argc, argv, &cli, readmsg_argp_capa, NULL, &argc, &argv);
+  mu_cli (argc, argv, &cli, readmsg_capa, NULL, &argc, &argv);
 
   if (argc == 0)
     {

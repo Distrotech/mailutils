@@ -29,7 +29,6 @@
 #include <mailutils/imaputil.h>
 #include <mailutils/msgset.h>
 #include "mu.h"
-#include "argp.h"
 
 char imap_docstring[] = N_("IMAP4 client shell");
 

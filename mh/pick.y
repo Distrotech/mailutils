@@ -21,7 +21,7 @@
 #include <pick.h>
   
 static node_t *pick_node_create (node_type type, void *a, void *b);
-static void set_cflags (char *str);
+static void set_cflags (char const *str);
  
 static regex_t *
 regex_dup (regex_t *re)
@@ -248,7 +248,7 @@ pick_add_token (mu_list_t *list, int tok, char const *val)
     }
   tp = mu_alloc (sizeof (*tp));
   tp->tok = tok;
-  tp->val = val;
+  tp->val = (char*) val;
   mu_list_append (*list, tp);
 }
 
@@ -410,7 +410,7 @@ pick_eval (mu_message_t msg)
 }
 
 void
-set_cflags (char *str)
+set_cflags (char const *str)
 {
   reg_flags = 0;
   for (; *str; str++)

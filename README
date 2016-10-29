@@ -248,12 +248,6 @@ mailutils-specific configuration options:
 
        Use the GNU gettext library included in the Mailutils distribution.
 
-    --with-included-argp
-
-        Use the argp library supplied with the package, instead of the
-        one from your libc. You will need this option if the libc library
-        on your system was compiled without NLS support.
-
 The following options enable DBM support in Mailutils. DBM support is
 necessary if you wish to use APOP authentication in POP3 daemon or to
 use DBM-based mail box quotas with maildag.

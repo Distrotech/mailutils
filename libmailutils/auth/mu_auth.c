@@ -234,16 +234,20 @@ int
 mu_get_auth (struct mu_auth_data **auth, enum mu_auth_key_type type,
              const void *key)
 {
+  enum mu_auth_mode mode;
+  
   if (!mu_getpw_modules)
     mu_auth_begin_setup ();
   switch (type)
     {
     case mu_auth_key_name:
+      mode = mu_auth_getpwnam;
       mu_debug (MU_DEBCAT_AUTH, MU_DEBUG_TRACE1,
                 ("Getting auth info for user %s", (char*) key));
       break;
 
     case mu_auth_key_uid:
+      mode = mu_auth_getpwuid;
       mu_debug (MU_DEBCAT_AUTH, MU_DEBUG_TRACE1, 
                 ("Getting auth info for UID %lu",
 		 (unsigned long) *(uid_t*) key));
@@ -254,7 +258,7 @@ mu_get_auth (struct mu_auth_data **auth, enum mu_auth_key_type type,
                 ("Unknown mu_auth_key_type: %d", type));
       return EINVAL;
     }
-  return mu_auth_runlist (mu_getpw_modules, type, key, NULL, auth);
+  return mu_auth_runlist (mu_getpw_modules, mode, key, NULL, auth);
 }
 
 struct mu_auth_data *
@@ -289,7 +293,7 @@ mu_authenticate (struct mu_auth_data *auth_data, const char *pass)
     mu_auth_begin_setup ();
   return mu_auth_runlist (mu_auth_modules,
 			  mu_auth_authenticate,
-			  auth_data, pass, NULL);
+			  auth_data, (void *) pass, NULL);
 }
 
 
@@ -434,7 +438,7 @@ mu_authentication_clear_list ()
    2) --authentication and --authorization modify only temporary lists,
       which get flushed to the main ones when mu_auth_finish_setup() is
       run. Thus, the default "generic:system" remain in force until
-      argp_parse() exits. */
+      mu_cli_ext exits. */
    
 void
 mu_auth_begin_setup (void)

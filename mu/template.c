@@ -32,11 +32,7 @@
 # include <config.h>
 #endif
 #include <mailutils/mailutils.h>
-#include "argp.h"
 #include "mu.h"
-
-#warning "Replace DESCRIPTION with a short description of this module."
-static char FOO_doc[] = N_("mu FOO - DESCRIPTION");
 
 #warning "Usually DESCRIPTION is the same text as the one used in FOO_doc."
 char FOO_docstring[] = N_("DESCRIPTION");
@@ -44,38 +40,14 @@ char FOO_docstring[] = N_("DESCRIPTION");
 #warning "Edit ARGDOC or remove this variable if module does not take arguments"
 static char FOO_args_doc[] = N_("ARGDOC");
 
-static struct argp_option FOO_options[] = {
+static struct mu_option FOO_options[] = {
   { NULL }
-};
-
-static error_t
-FOO_parse_opt (int key, char *arg, struct argp_state *state)
-{
-  switch (key)
-    {
-    default:
-      return ARGP_ERR_UNKNOWN;
-    }
-  return 0;
-}
-
-static struct argp FOO_argp = {
-  FOO_options,
-  FOO_parse_opt,
-  FOO_args_doc,
-  FOO_doc,
-  NULL,
-  NULL,
-  NULL
 };
 
 int
 mutool_FOO (int argc, char **argv)
 {
-  int index;
-  
-  if (argp_parse (&FOO_argp, argc, argv, ARGP_IN_ORDER, &index, NULL))
-    return 1;
+  mu_action_getopt (&argc, &argv, FOO_options, FOO_docstring, FOO_args_doc);
 #warning "Add the necessary functionality here"  
   return 0;
 }

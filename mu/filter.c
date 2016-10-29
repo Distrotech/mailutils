@@ -20,7 +20,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <mailutils/mailutils.h>
-#include "argp.h"
 #include "mu.h"
 
 char filter_docstring[] = N_("apply a chain of filters to the input");

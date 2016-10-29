@@ -25,7 +25,6 @@
 #include <mailutils/cctype.h>
 #include <mailutils/mailutils.h>
 #include <mailutils/smtp.h>
-#include <argp.h>
 #include "mu.h"
 
 char smtp_docstring[] = N_("run a SMTP session");

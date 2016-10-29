@@ -117,32 +117,39 @@ bootstrap_destroy (struct _mu_stream *str)
 
 /* Standard I/O streams: */
 static struct _mu_file_stream stdstream[2] = {
-  { { ref_count: 1,
-      buftype: mu_buffer_none,
-      flags: MU_STREAM_READ,
-      destroy: bootstrap_destroy,
-      event_cb: std_bootstrap,
-      event_mask: _MU_STR_EVMASK (_MU_STR_EVENT_BOOTSTRAP)
-    }, fd: MU_STDIN_FD, filename: "<stdin>",
-    flags: _MU_FILE_STREAM_FD_BORROWED|_MU_FILE_STREAM_STATIC_FILENAME },
-  { { ref_count: 1,
-      buftype: mu_buffer_none,
-      flags: MU_STREAM_WRITE,
-      destroy: bootstrap_destroy,
-      event_cb: std_bootstrap,
-      event_mask: _MU_STR_EVMASK (_MU_STR_EVENT_BOOTSTRAP)
-    }, fd: MU_STDOUT_FD, filename: "<stdout>",
-    flags: _MU_FILE_STREAM_FD_BORROWED|_MU_FILE_STREAM_STATIC_FILENAME }
+  { .stream = {
+      .ref_count = 1,
+      .buftype = mu_buffer_none,
+      .flags = MU_STREAM_READ,
+      .destroy = bootstrap_destroy,
+      .event_cb = std_bootstrap,
+      .event_mask = _MU_STR_EVMASK (_MU_STR_EVENT_BOOTSTRAP)
+    },
+    .fd = MU_STDIN_FD,
+    .filename = "<stdin>",
+    .flags = _MU_FILE_STREAM_FD_BORROWED|_MU_FILE_STREAM_STATIC_FILENAME },
+  { .stream = {
+      .ref_count = 1,
+      .buftype = mu_buffer_none,
+      .flags = MU_STREAM_WRITE,
+      .destroy = bootstrap_destroy,
+      .event_cb = std_bootstrap,
+      .event_mask = _MU_STR_EVMASK (_MU_STR_EVENT_BOOTSTRAP)
+    },
+    .fd = MU_STDOUT_FD,
+    .filename = "<stdout>",
+    .flags = _MU_FILE_STREAM_FD_BORROWED|_MU_FILE_STREAM_STATIC_FILENAME }
 };
 
 /* Standard error stream: */
 static struct _mu_log_stream default_strerr = {
-  { ref_count: 1,
-    buftype: mu_buffer_none,
-    flags: MU_STREAM_WRITE,
-    destroy: bootstrap_destroy,
-    event_cb: std_log_bootstrap,
-    event_mask: _MU_STR_EVMASK (_MU_STR_EVENT_BOOTSTRAP)
+  .base = {
+    .ref_count = 1,
+    .buftype = mu_buffer_none,
+    .flags = MU_STREAM_WRITE,
+    .destroy = bootstrap_destroy,
+    .event_cb = std_log_bootstrap,
+    .event_mask = _MU_STR_EVMASK (_MU_STR_EVENT_BOOTSTRAP)
   }
 };
 

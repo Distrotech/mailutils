@@ -38,7 +38,7 @@ mu_set_program_name (const char *arg)
   if (p)
     ++p;
   else
-    p = (char*) arg;
+    p = (char*) mu_full_program_name;
   if (strlen (p) > 3 && memcmp (p, "lt-", 3) == 0)
     p += 3;
   free (mu_program_name);

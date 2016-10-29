@@ -177,7 +177,7 @@ static struct mu_cli_setup cli = {
   N_("[URL ...]"),
 };
 
-static char *frm_argp_capa[] = {
+static char *capa[] = {
   "debug",
   "mailbox",
   "locking",
@@ -328,7 +328,7 @@ main (int argc, char **argv)
   mu_register_all_mbox_formats ();
 
   mu_auth_register_module (&mu_auth_tls_module);
-  mu_cli (argc, argv, &cli, frm_argp_capa, NULL, &argc, &argv);
+  mu_cli (argc, argv, &cli, capa, NULL, &argc, &argv);
 
   if (align && (s = util_getcols ()))
     init_output (s);

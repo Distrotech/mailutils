@@ -60,7 +60,6 @@ AC_DEFUN([AM_GNU_MAILUTILS],
   do
     case $x in
     mailer)   test $MAILUTILS_VERSION_NUMBER -ge 1200 && req="$req $x";;
-    cfg|argp) test $MAILUTILS_VERSION_NUMBER -ge 1290 && req="$req $x";;
     *)        req="$req $x"
     esac
   done
