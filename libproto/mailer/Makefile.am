@@ -53,6 +53,4 @@ libmu_mailer_la_SOURCES = \
  smtp_send.c\
  smtp_starttls.c\
  smtp_trace.c\
- smtp_url.c\
- remote.c
-
+ smtp_url.c

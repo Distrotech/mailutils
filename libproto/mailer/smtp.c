@@ -602,5 +602,4 @@ _mailer_smtp_init (mu_mailer_t mailer)
 #include <stdio.h>
 #include <mailutils/sys/registrar.h>
 mu_record_t     mu_smtp_record = NULL;
-mu_record_t     mu_remote_smtp_record = NULL;
 #endif

@@ -508,13 +508,6 @@ struct mu_cli_setup cli = {
   l - sieve action logs\n\
   0-9 - Set maidag debugging level\n")
 };
-
-/* FIXME: These are for compatibility with MU 2.0.
-   Remove in 2.2 */
-extern mu_record_t mu_remote_smtp_record;
-extern mu_record_t mu_remote_sendmail_record;
-extern mu_record_t mu_remote_prog_record;
-
 
 int
 main (int argc, char *argv[])
