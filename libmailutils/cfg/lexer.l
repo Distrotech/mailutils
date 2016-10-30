@@ -200,7 +200,7 @@ void
 _mu_line_begin ()
 {
   if (!pool)
-    mu_opool_create (&pool, 1);
+    mu_opool_create (&pool, MU_OPOOL_ENOMEMABRT);
   else
     mu_opool_clear (pool);
 }

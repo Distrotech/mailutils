@@ -144,7 +144,7 @@ expand_line (const char *str, mu_message_t msg)
 
   if (!*str)
     return NULL;
-  mu_opool_create (&pool, 1);
+  mu_opool_create (&pool, MU_OPOOL_ENOMEMABRT);
   for (p = str; *p; p++)
     {
       switch (*p)

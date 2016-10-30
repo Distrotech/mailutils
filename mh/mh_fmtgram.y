@@ -499,7 +499,7 @@ mh_format_parse (char *format_str, mh_format_t *fmt)
   if (p)
     yydebug = 1;
   start = curp = format_str;
-  mu_opool_create (&tokpool, 1);
+  mu_opool_create (&tokpool, MU_OPOOL_ENOMEMABRT);
   format.prog = NULL;
   format.progsize = 0;
   pc = 0;

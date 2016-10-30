@@ -73,7 +73,7 @@ set_fcc (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
 {
   if (!has_fcc)
     {
-      mu_opool_create (&fcc_pool, 1);
+      mu_opool_create (&fcc_pool, MU_OPOOL_ENOMEMABRT);
       has_fcc = 1;
     }
   else

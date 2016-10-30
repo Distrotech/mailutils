@@ -156,7 +156,7 @@ main (int argc, char **argv)
 	  mu_opool_t opool;
 	  const char *prompt = name;
 	  
-	  mu_opool_create (&opool, 1);
+	  mu_opool_create (&opool, MU_OPOOL_ENOMEMABRT);
 	  do
 	    {
 	      size_t len;

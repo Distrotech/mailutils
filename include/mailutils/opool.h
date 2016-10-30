@@ -24,10 +24,12 @@
 # define MU_OPOOL_BUCKET_SIZE 1024
 #endif
 
-/* Create an object pool.  If MEMERR is not 0, any operation of the
-   resulting pool (including mu_opool_create itself) will abort on
-   not enough memory condition, using mu_alloc_die. */
-int mu_opool_create (mu_opool_t *pret, int memerr);
+/* Flags for mu_opool_create call: */
+#define MU_OPOOL_DEFAULT 0
+#define MU_OPOOL_ENOMEMABRT 0x01 /* Abort on ENOMEM error */
+
+/* Create an object pool.  */
+int mu_opool_create (mu_opool_t *pret, int flags);
 int mu_opool_set_bucket_size (mu_opool_t opool, size_t size);
 int mu_opool_get_bucket_size (mu_opool_t opool, size_t *psize);
 
@@ -38,6 +40,10 @@ int mu_opool_union (mu_opool_t *dst, mu_opool_t *src);
 /* Clear all data from the pool, so next mu_opool_append* call will
    begin a new object. */
 void mu_opool_clear (mu_opool_t opool);
+
+/* Free object OBJ from the pool.  If OBJ is NULL, free all created objects,
+   including the one being built */
+void mu_opool_free (mu_opool_t pool, void *obj);
 
 /* Destroy the pool, reclaim any memory associated with it. */
 void mu_opool_destroy (mu_opool_t *popool);
@@ -79,6 +85,10 @@ void *mu_opool_head (mu_opool_t opool, size_t *psize);
    mu_opool_clear (opool);
    return p; */
 void *mu_opool_finish (mu_opool_t opool, size_t *psize);
+
+/* Append SIZE bytes from DATA to the pool and return the pointer to the
+   created object. */
+void *mu_opool_dup (mu_opool_t pool, void const *data, size_t size);
 
 int mu_opool_get_iterator (mu_opool_t opool, mu_iterator_t *piterator);
 

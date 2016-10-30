@@ -1110,7 +1110,7 @@ mu_cfg_tree_create (struct mu_cfg_tree **ptree)
   struct mu_cfg_tree *tree = calloc (1, sizeof *tree);
   if (!tree)
     return errno;
-  mu_opool_create (&tree->pool, 1);
+  mu_opool_create (&tree->pool, MU_OPOOL_ENOMEMABRT);
   *ptree = tree;
   return 0;
 }

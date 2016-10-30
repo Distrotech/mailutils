@@ -41,11 +41,11 @@ struct mu_opool_bucket
 
 struct _mu_opool
 {
-  int memerr;
-  size_t bucket_size;
-  size_t itr_count;
-  struct mu_opool_bucket *head, *tail;
-  struct mu_opool_bucket *free;
+  int flags;                   /* Flag bits */
+  size_t bucket_size;          /* Default bucket size */
+  size_t itr_count;            /* Number of iterators created for this pool */
+  struct mu_opool_bucket *bkt_head, *bkt_tail; 
+  struct mu_opool_bucket *bkt_fini; /* List of finished objects */
 };
 
 static struct mu_opool_bucket *
@@ -54,7 +54,7 @@ alloc_bucket (struct _mu_opool *opool, size_t size)
   struct mu_opool_bucket *p = malloc (sizeof (*p) + size);
   if (!p)
     {
-      if (opool->memerr)
+      if (opool->flags & MU_OPOOL_ENOMEMABRT)
 	mu_alloc_die ();
     }
   else
@@ -73,11 +73,11 @@ alloc_pool (mu_opool_t opool, size_t size)
   struct mu_opool_bucket *p = alloc_bucket (opool, opool->bucket_size);
   if (!p)
     return ENOMEM;
-  if (opool->tail)
-    opool->tail->next = p;
+  if (opool->bkt_tail)
+    opool->bkt_tail->next = p;
   else
-    opool->head = p;
-  opool->tail = p;
+    opool->bkt_head = p;
+  opool->bkt_tail = p;
   return 0;
 }
 
@@ -86,32 +86,32 @@ copy_chars (mu_opool_t opool, const char *str, size_t n, size_t *psize)
 {
   size_t rest;
 
-  if (!opool->head || opool->tail->level == opool->tail->size)
+  if (!opool->bkt_head || opool->bkt_tail->level == opool->bkt_tail->size)
     if (alloc_pool (opool, opool->bucket_size))
       return ENOMEM;
-  rest = opool->tail->size - opool->tail->level;
+  rest = opool->bkt_tail->size - opool->bkt_tail->level;
   if (n > rest)
     n = rest;
-  memcpy (opool->tail->buf + opool->tail->level, str, n);
-  opool->tail->level += n;
+  memcpy (opool->bkt_tail->buf + opool->bkt_tail->level, str, n);
+  opool->bkt_tail->level += n;
   *psize = n;
   return 0;
 }
 
 int
-mu_opool_create (mu_opool_t *pret, int memerr)
+mu_opool_create (mu_opool_t *pret, int flags)
 {
   struct _mu_opool *x = malloc (sizeof (x[0]));
   if (!x)
     {
-      if (memerr)
+      if (flags & MU_OPOOL_ENOMEMABRT)
 	mu_alloc_die ();
       return ENOMEM;
     }
-  x->memerr = memerr;
+  x->flags = flags;
   x->bucket_size = MU_OPOOL_BUCKET_SIZE;
   x->itr_count = 0;
-  x->head = x->tail = x->free = 0;
+  x->bkt_head = x->bkt_tail = x->bkt_fini = NULL;
   *pret = x;
   return 0;
 }
@@ -140,11 +140,11 @@ mu_opool_clear (mu_opool_t opool)
   if (!opool)
     return;
   
-  if (opool->tail)
+  if (opool->bkt_tail)
     {
-      opool->tail->next = opool->free;
-      opool->free = opool->head;
-      opool->head = opool->tail = NULL;
+      opool->bkt_tail->next = opool->bkt_fini;
+      opool->bkt_fini = opool->bkt_head;
+      opool->bkt_head = opool->bkt_tail = NULL;
     }
 }	
 
@@ -156,15 +156,15 @@ mu_opool_destroy (mu_opool_t *popool)
     {
       mu_opool_t opool = *popool;
       mu_opool_clear (opool);
-      for (p = opool->free; p; )
+      for (p = opool->bkt_fini; p; )
 	{
 	  struct mu_opool_bucket *next = p->next;
 	  free (p);
 	  p = next;
 	}
       free (opool);
+      *popool = NULL;
     }
-  *popool = NULL;
 }
 
 int
@@ -174,13 +174,13 @@ mu_opool_alloc (mu_opool_t opool, size_t size)
     {
       size_t rest;
 
-      if (!opool->head || opool->tail->level == opool->tail->size)
+      if (!opool->bkt_head || opool->bkt_tail->level == opool->bkt_tail->size)
 	if (alloc_pool (opool, opool->bucket_size))
 	  return ENOMEM;
-      rest = opool->tail->size - opool->tail->level;
+      rest = opool->bkt_tail->size - opool->bkt_tail->level;
       if (size < rest)
 	rest = size;
-      opool->tail->level += rest;
+      opool->bkt_tail->level += rest;
       size -= rest;
     }
   return 0;
@@ -218,7 +218,7 @@ mu_opool_size (mu_opool_t opool)
 {
   size_t size = 0;
   struct mu_opool_bucket *p;
-  for (p = opool->head; p; p = p->next)
+  for (p = opool->bkt_head; p; p = p->next)
     size += p->level;
   return size;
 }
@@ -230,7 +230,7 @@ mu_opool_copy (mu_opool_t opool, void *buf, size_t size)
   size_t total = 0;
   struct mu_opool_bucket *p;
   
-  for (p = opool->head; p && total < size; p = p->next)
+  for (p = opool->bkt_head; p && total < size; p = p->next)
     {
       size_t cpsize = size - total;
       if (cpsize > p->level)
@@ -249,27 +249,28 @@ mu_opool_coalesce (mu_opool_t opool, size_t *psize)
 
   if (opool->itr_count)
     return MU_ERR_FAILURE;
-  if (opool->head && opool->head->next == NULL)
-    size = opool->head->level;
-  else {
-    struct mu_opool_bucket *bucket;
-    struct mu_opool_bucket *p;
+  if (opool->bkt_head && opool->bkt_head->next == NULL)
+    size = opool->bkt_head->level;
+  else
+    {
+      struct mu_opool_bucket *bucket;
+      struct mu_opool_bucket *p;
 
-    size = mu_opool_size (opool);
+      size = mu_opool_size (opool);
 	
-    bucket = alloc_bucket (opool, size);
-    if (!bucket)
-      return ENOMEM;
-    for (p = opool->head; p; )
-      {
-	struct mu_opool_bucket *next = p->next;
-	memcpy (bucket->buf + bucket->level, p->buf, p->level);
-	bucket->level += p->level;
-	free (p);
-	p = next;
-      }
-    opool->head = opool->tail = bucket;
-  }
+      bucket = alloc_bucket (opool, size);
+      if (!bucket)
+	return ENOMEM;
+      for (p = opool->bkt_head; p; )
+	{
+	  struct mu_opool_bucket *next = p->next;
+	  memcpy (bucket->buf + bucket->level, p->buf, p->level);
+	  bucket->level += p->level;
+	  free (p);
+	  p = next;
+	}
+      opool->bkt_head = opool->bkt_tail = bucket;
+    }
   if (psize)
     *psize = size;
   return 0;
@@ -278,9 +279,9 @@ mu_opool_coalesce (mu_opool_t opool, size_t *psize)
 void *
 mu_opool_head (mu_opool_t opool, size_t *psize)
 {
-  if (*psize) 
-    *psize = opool->head ? opool->head->level : 0;
-  return opool->head ? opool->head->buf : NULL;
+  if (psize) 
+    *psize = opool->bkt_head ? opool->bkt_head->level : 0;
+  return opool->bkt_head ? opool->bkt_head->buf : NULL;
 }
 
 void *
@@ -289,7 +290,48 @@ mu_opool_finish (mu_opool_t opool, size_t *psize)
   if (mu_opool_coalesce (opool, psize))
     return NULL;
   mu_opool_clear (opool);
-  return opool->free->buf;
+  return opool->bkt_fini->buf;
+}
+
+void
+mu_opool_free (mu_opool_t pool, void *obj)
+{
+  if (!pool)
+    return;
+  if (!obj)
+    {
+      if (pool->bkt_head)
+	mu_opool_finish (pool, NULL);
+      while (pool->bkt_fini)
+	{
+	  struct mu_opool_bucket *next = pool->bkt_fini->next;
+	  free (pool->bkt_fini);
+	  pool->bkt_fini = next;
+	}
+    }
+  else
+    {
+      struct mu_opool_bucket *bucket = pool->bkt_fini, **pprev = &pool->bkt_fini;
+      while (bucket)
+	{
+	  if (bucket->buf == obj)
+	    {
+	      *pprev = bucket->next;
+	      free (bucket);
+	      return;
+	    }
+	  pprev = &bucket->next;
+	  bucket = bucket->next;
+	}
+    }
+}
+
+void *
+mu_opool_dup (mu_opool_t pool, void const *data, size_t size)
+{
+  if (mu_opool_append (pool, data, size))
+    return NULL;
+  return mu_opool_finish (pool, NULL);
 }
 
 int
@@ -314,20 +356,20 @@ mu_opool_union (mu_opool_t *pdst, mu_opool_t *psrc)
   else
     dst = *pdst;
 
-  if (dst->tail)
-    dst->tail->next = src->head;
+  if (dst->bkt_tail)
+    dst->bkt_tail->next = src->bkt_head;
   else
-    dst->head = src->head;
-  dst->tail = src->tail;
+    dst->bkt_head = src->bkt_head;
+  dst->bkt_tail = src->bkt_tail;
 
-  if (src->free)
+  if (src->bkt_fini)
     {
       struct mu_opool_bucket *p;
 
-      for (p = src->free; p->next; p = p->next)
+      for (p = src->bkt_fini; p->next; p = p->next)
 	;
-      p->next = dst->free;
-      dst->free = src->free;
+      p->next = dst->bkt_fini;
+      dst->bkt_fini = src->bkt_fini;
     }
 
   free (src);
@@ -347,7 +389,7 @@ static int
 opitr_first (void *owner)
 {
   struct opool_iterator *itr = owner;
-  itr->cur = itr->opool->head;
+  itr->cur = itr->opool->bkt_head;
   return 0;
 }
 
@@ -434,7 +476,7 @@ mu_opool_get_iterator (mu_opool_t opool, mu_iterator_t *piterator)
   if (!itr)
     return ENOMEM;
   itr->opool = opool;
-  itr->cur = opool->head;
+  itr->cur = opool->bkt_head;
   
   status = mu_iterator_create (&iterator, itr);
   if (status)

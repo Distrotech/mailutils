@@ -172,7 +172,7 @@ mimetypes_open (const char *name)
       return -1;
     }
   line_num = 1;
-  mu_opool_create (&pool, 1);
+  mu_opool_create (&pool, MU_OPOOL_ENOMEMABRT);
   return 0;
 }
 

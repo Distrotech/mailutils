@@ -84,7 +84,7 @@ mh_whatnow_env_to_environ (struct mh_whatnow_env *wh)
       int mrange = 0;
       const char *s;
       
-      mu_opool_create (&opool, 1);
+      mu_opool_create (&opool, MU_OPOOL_ENOMEMABRT);
       mu_list_get_iterator (wh->anno_list, &itr);
       for (mu_iterator_first (itr); !mu_iterator_is_done (itr);
 	   mu_iterator_next (itr))

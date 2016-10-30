@@ -686,7 +686,7 @@ display_stream_mailcap (const char *ident, mu_stream_t stream, mu_header_t hdr,
       mailcap_path = mailcap_path_tmp;
     }
   
-  mu_opool_create (&expand_pool, 1);
+  mu_opool_create (&expand_pool, MU_OPOOL_ENOMEMABRT);
 
   ws.ws_delim = ":";
   if (mu_wordsplit (mailcap_path, &ws,

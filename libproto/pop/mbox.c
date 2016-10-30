@@ -654,7 +654,7 @@ pop_header_blurb (mu_stream_t stream, size_t maxlines,
   size_t n;
   size_t nlines = 0;
   
-  status = mu_opool_create (&opool, 0);
+  status = mu_opool_create (&opool, MU_OPOOL_DEFAULT);
   if (status)
     return status;
       

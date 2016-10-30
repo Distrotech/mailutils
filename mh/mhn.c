@@ -461,7 +461,7 @@ mhn_compose_command (char *typestr, char *typeargs, int *flags, char *file)
     %F  %f, and stdout is not redirected
     %s  subtype */
 
-  mu_opool_create (&pool, 1);
+  mu_opool_create (&pool, MU_OPOOL_ENOMEMABRT);
 
   p = mu_str_skip_class (str, MU_CTYPE_SPACE);
   
@@ -642,7 +642,7 @@ mhn_show_command (mu_message_t msg, msg_part_t part, int *flags,
     %s  subtype
     %d  content description */
 
-  mu_opool_create (&pool, 1);
+  mu_opool_create (&pool, MU_OPOOL_ENOMEMABRT);
 
   p = mu_str_skip_class (str, MU_CTYPE_SPACE);
   
@@ -814,7 +814,7 @@ mhn_store_command (mu_message_t msg, msg_part_t part, const char *name,
      %p  part
      %s  subtype */
 
-  mu_opool_create (&pool, 1);
+  mu_opool_create (&pool, MU_OPOOL_ENOMEMABRT);
   
   for (p = str; *p; p++)
     {
@@ -1883,7 +1883,7 @@ parse_type_command (char **pcmd, struct compose_env *env, mu_header_t hdr)
       return 1;
     }
 
-  mu_opool_create (&pool, 1);
+  mu_opool_create (&pool, MU_OPOOL_ENOMEMABRT);
 
   mu_opool_appendz (pool, type);
   mu_opool_append_char (pool, '/');
@@ -2050,7 +2050,7 @@ edit_extern (char *cmd, struct compose_env *env, mu_message_t *msg, int level)
 
   mu_message_get_header (*msg, &hdr);
 
-  mu_opool_create (&pool, 1);
+  mu_opool_create (&pool, MU_OPOOL_ENOMEMABRT);
   mu_opool_append (pool, EXTCONTENT, sizeof (EXTCONTENT) - 1);
   *--rest = ';'; /* FIXME */
   rc = parse_content_type (env, pool, &rest, &id, NULL);

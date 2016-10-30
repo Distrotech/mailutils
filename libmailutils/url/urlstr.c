@@ -111,7 +111,7 @@ mu_url_sget_name (const mu_url_t url, const char **retptr)
       char *ptr, *newname;
       size_t size;
       
-      rc = mu_opool_create (&pool, 0);
+      rc = mu_opool_create (&pool, MU_OPOOL_DEFAULT);
       if (rc)
 	return rc;
       rc = url_reconstruct_to_pool (url, pool);

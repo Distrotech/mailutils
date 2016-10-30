@@ -678,7 +678,7 @@ main (int argc, char **argv)
 	  mu_attribute_set_deleted (attr);
 	}
       mu_mailbox_expunge (tmpbox);
-      mu_opool_create (&pool, 1);
+      mu_opool_create (&pool, MU_OPOOL_ENOMEMABRT);
     }
   else
     tmpbox = mbox;

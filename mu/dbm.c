@@ -610,7 +610,7 @@ newfmt_init (struct xfer_format *fmt, const char *version,
   else
     {
       mu_opool_t pool;
-      rc = mu_opool_create (&pool, 0);
+      rc = mu_opool_create (&pool, MU_OPOOL_DEFAULT);
       if (rc)
 	{
 	  mu_diag_funcall (MU_DIAG_ERROR, "mu_opool_create",
