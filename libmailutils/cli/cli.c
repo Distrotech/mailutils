@@ -175,7 +175,7 @@ struct mu_option mu_common_options[] = {
   { "no-user-rcfile", 0,  NULL,        MU_OPTION_ALIAS },
   
   { "no-site-config", 0,  NULL,        MU_OPTION_IMMEDIATE,
-    N_("do not load user configuration file"),
+    N_("do not load site-wide configuration file"),
     mu_c_string, NULL, no_site_config },
   { "no-site-rcfile", 0,  NULL,        MU_OPTION_ALIAS },
   
