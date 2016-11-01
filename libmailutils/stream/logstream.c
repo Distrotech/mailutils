@@ -168,12 +168,14 @@ _log_write (struct _mu_stream *str, const char *buf, size_t size,
 	  /* Input line (decimal) */
 	  READNUM (n);
 	  _locus_set_line (&loc, n);
+	  logmode |= MU_LOGMODE_LOCUS;
 	  break;
 
 	case 'c':
 	  /* Column in input line (decimal) */
 	  READNUM (n);
 	  _locus_set_col (&loc, n);
+	  logmode |= MU_LOGMODE_LOCUS;
 	  break;
 	  
 	case 'f':
@@ -182,6 +184,7 @@ _log_write (struct _mu_stream *str, const char *buf, size_t size,
 	  fname = buf;
 	  buf += flen;
 	  size -= flen;
+	  logmode |= MU_LOGMODE_LOCUS;
 	  break;
 
 	default:
