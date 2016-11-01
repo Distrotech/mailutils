@@ -118,14 +118,14 @@ static struct mu_option options[] = {
     mu_c_string, NULL, mh_opt_notimpl },
   { "nofilter",      0, NULL, MU_OPTION_HIDDEN,
     N_("undo the effect of the last --filter option"),
-    mu_c_string, NULL, mh_opt_notimpl },
+    mu_c_int, NULL, mh_opt_notimpl },
   { "format",        0, NULL, MU_OPTION_HIDDEN,
     N_("reformat To: and Cc: addresses"),
-    mu_c_string, NULL, mh_opt_notimpl_warning },
+    mu_c_bool, NULL, mh_opt_notimpl_warning },
   { "noformat",      0, NULL, MU_OPTION_HIDDEN },
   { "forward",       0, NULL, MU_OPTION_HIDDEN,
     N_("in case of failure forward the draft along with the failure notice to the sender"),
-    mu_c_string, NULL, mh_opt_notimpl_warning },
+    mu_c_bool, NULL, mh_opt_notimpl_warning },
   { "noforward",     0, NULL, MU_OPTION_HIDDEN, "" },
   { "mime",          0, NULL, MU_OPTION_HIDDEN,
     N_("use MIME encapsulation"),
@@ -154,7 +154,7 @@ static struct mu_option options[] = {
     mu_c_bool, &watch },
   { "width",         0, N_("NUMBER"), MU_OPTION_HIDDEN,
     N_("make header fields no longer than NUMBER columns"),
-    mu_c_string, NULL, mh_opt_notimpl_warning },
+    mu_c_uint, NULL, mh_opt_notimpl_warning },
 
   MU_OPTION_END
 };

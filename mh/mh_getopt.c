@@ -293,6 +293,12 @@ void
 mh_opt_notimpl_warning (struct mu_parseopt *po, struct mu_option *opt,
 			char const *arg)
 {
+  if (opt->opt_type == mu_c_bool)
+    {
+      int val;
+      if (mu_str_to_c (arg, opt->opt_type, &val, NULL) == 0 && !val)
+	return;
+    }
   mu_error (_("ignoring not implemented option %s"), opt->opt_long);
 }
 

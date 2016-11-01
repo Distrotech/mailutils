@@ -63,7 +63,7 @@ static struct mu_option options[] = {
   { "link",    0, NULL, MU_OPTION_ALIAS },
   { "preserve", 0, NULL, MU_OPTION_HIDDEN,
     N_("try to preserve message sequence numbers"),
-    mu_c_string, NULL, mh_opt_notimpl_warning },
+    mu_c_bool, NULL, mh_opt_notimpl_warning },
   { "source", 0, N_("FOLDER"), MU_OPTION_DEFAULT,
     N_("specify source folder; it will become the current folder after the program exits"),
     mu_c_string, NULL, mh_opt_set_folder },

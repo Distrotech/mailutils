@@ -30,7 +30,7 @@ static char *anno_text;   /* header field value */
 static struct mu_option options[] = {
   { "inplace", 0, NULL, MU_OPTION_HIDDEN,
     N_("annotate the message in place"),
-    mu_c_string, NULL, mh_opt_notimpl_warning },
+    mu_c_bool, NULL, mh_opt_notimpl_warning },
   { "date", 0, NULL, MU_OPTION_DEFAULT,
     N_("add FIELD: date header"),
     mu_c_bool, &anno_date },
