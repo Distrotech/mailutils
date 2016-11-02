@@ -20,7 +20,6 @@ m4_define([IMAP4D_HOMEDIR])
 
 m4_define([IMAP4D_DEFAULT_OPTIONS],[dnl
 --no-site-config dnl
---no-user-config dnl
 --test dnl
 --set logging.syslog=0 dnl
 --set logging.severity=notice dnl

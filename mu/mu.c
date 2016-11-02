@@ -43,7 +43,20 @@ int
 main (int argc, char **argv)
 {
   mutool_action_t action;
-  
+  static struct mu_parseopt pohint = {
+    .po_flags = MU_PARSEOPT_PACKAGE_NAME
+                | MU_PARSEOPT_PACKAGE_URL
+                | MU_PARSEOPT_BUG_ADDRESS
+                | MU_PARSEOPT_EXTRA_INFO
+                | MU_PARSEOPT_VERSION_HOOK,
+    .po_package_name = PACKAGE_NAME,
+    .po_package_url = PACKAGE_URL,
+    .po_bug_address = PACKAGE_BUGREPORT,
+    .po_extra_info = mu_general_help_text,
+    .po_version_hook = mu_version_hook,
+  };
+  struct mu_cfg_parse_hints cfhint = { .flags = 0 };
+
   /* Native Language Support */
   MU_APP_INIT_NLS ();
   MU_AUTH_REGISTER_ALL_MODULES ();
@@ -51,7 +64,7 @@ main (int argc, char **argv)
   /* Register the desired mailbox formats.  */
   mu_register_all_mbox_formats ();
 
-  mu_cli (argc, argv, &cli, capa, NULL, &argc, &argv);
+  mu_cli_ext (argc, argv, &cli, &pohint, &cfhint, capa, NULL, &argc, &argv);
 
   if (argc < 1)
     {

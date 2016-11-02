@@ -152,7 +152,7 @@ format_node (const mu_cfg_node_t *node, void *data)
 {
   struct tree_print *tp = data;
 
-  if ((tp->flags & MU_CFG_FMT_LOCUS) && node->locus.mu_file)
+  if ((tp->flags & MU_CF_FMT_LOCUS) && node->locus.mu_file)
     mu_stream_printf (tp->stream, "# %lu \"%s\"\n",
 		      (unsigned long) node->locus.mu_line, 
 		      node->locus.mu_file);
@@ -165,7 +165,7 @@ format_node (const mu_cfg_node_t *node, void *data)
       break;
 
     case mu_cfg_node_statement:
-      if (tp->flags & MU_CFG_FMT_PARAM_PATH)
+      if (tp->flags & MU_CF_FMT_PARAM_PATH)
 	return MU_CFG_ITER_OK;
       else
 	{
@@ -181,9 +181,9 @@ format_node (const mu_cfg_node_t *node, void *data)
       break;
 
     case mu_cfg_node_param:
-      if (tp->flags & MU_CFG_FMT_VALUE_ONLY)
+      if (tp->flags & MU_CF_FMT_VALUE_ONLY)
 	format_value (tp, node->label);
-      else if (tp->flags & MU_CFG_FMT_PARAM_PATH)
+      else if (tp->flags & MU_CF_FMT_PARAM_PATH)
 	{
 	  format_path (tp, node, ':');
 	  mu_stream_write (tp->stream, " ", 1, NULL);
@@ -209,7 +209,7 @@ static int
 format_node_end (const mu_cfg_node_t *node, void *data)
 {
   struct tree_print *tp = data;
-  if (!(tp->flags & MU_CFG_FMT_PARAM_PATH))
+  if (!(tp->flags & MU_CF_FMT_PARAM_PATH))
     {
       tp->level--;
       format_level (tp->stream, tp->level);
@@ -242,7 +242,7 @@ mu_cfg_format_node (mu_stream_t stream, const mu_cfg_node_t *node, int flags)
   struct tree_print t;
 
   if (node->type == mu_cfg_node_statement)
-    flags &= ~MU_CFG_FMT_VALUE_ONLY;
+    flags &= ~MU_CF_FMT_VALUE_ONLY;
   t.flags = flags;
   t.level = 0;
   t.stream = stream;

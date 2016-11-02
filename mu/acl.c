@@ -58,8 +58,8 @@ mutool_acl (int argc, char **argv)
     }
 
   memset (&hints, 0, sizeof (hints));
-  hints.flags = MU_CFG_PARSE_CUSTOM_RCFILE;
-  hints.custom_rcfile = input_file_name;
+  hints.flags = MU_CFHINT_CUSTOM_FILE;
+  hints.custom_file = input_file_name;
 
   mu_acl_cfg_init ();
   if (mu_cfg_parse_config (&tree, &hints))

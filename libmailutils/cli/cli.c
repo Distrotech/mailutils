@@ -76,23 +76,29 @@ There is NO WARRANTY, to the extent permitted by law.\n\
 "));
 }
 
-static char gnu_general_help_url[] =
+const char mu_general_help_text[] =
   N_("General help using GNU software: <http://www.gnu.org/gethelp/>");
 
+struct app_data
+{
+  struct mu_cli_setup *setup;
+  struct mu_cfg_parse_hints *hints;
+  struct mu_cfg_tree *append_tree;
+  int lint;
+};
+
 static void
 extra_help_hook (struct mu_parseopt *po, mu_stream_t stream)
 {
-  struct mu_cfg_parse_hints *hints = po->po_data;
-  struct mu_cli_setup *setup = hints->data;
-  mu_stream_printf (stream, "%s\n", _(setup->prog_extra_doc));
+  struct app_data *dp = po->po_data;
+  mu_stream_printf (stream, "%s\n", gettext (dp->setup->prog_extra_doc));
 }
 
 static void
 prog_doc_hook (struct mu_parseopt *po, mu_stream_t stream)
 {
-  struct mu_cfg_parse_hints *hints = po->po_data;
-  struct mu_cli_setup *setup = hints->data;
-  setup->prog_doc_hook (stream);
+  struct app_data *dp = po->po_data;
+  dp->setup->prog_doc_hook (stream);
 }
 
 static void
@@ -100,87 +106,108 @@ change_progname (struct mu_parseopt *po, struct mu_option *opt,
 		 char const *arg)
 {
   po->po_prog_name = mu_strdup (arg);
+  free (mu_program_name);
+  mu_program_name = mu_strdup (arg);  
 }
 
 static void
 no_user_config (struct mu_parseopt *po, struct mu_option *opt,
 		char const *arg)
 {
-  struct mu_cfg_parse_hints *hints = po->po_data;
-  hints->flags &= ~MU_CFG_PARSE_PROGRAM;
+  struct app_data *dp = po->po_data;
+  dp->hints->flags &= ~MU_CFHINT_PER_USER_FILE;
 }
 
 static void
 no_site_config (struct mu_parseopt *po, struct mu_option *opt,
 		char const *arg)
 {
-  struct mu_cfg_parse_hints *hints = po->po_data;
-  hints->flags &= ~MU_CFG_PARSE_SITE_RCFILE;
+  struct app_data *dp = po->po_data;
+  dp->hints->flags &= ~MU_CFHINT_SITE_FILE;
+}
+
+static void
+no_config (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
+{
+  struct app_data *dp = po->po_data;
+  dp->hints->flags &= ~(MU_CFHINT_SITE_FILE|MU_CFHINT_PER_USER_FILE);
 }
 
 static void
 config_file (struct mu_parseopt *po, struct mu_option *opt,
 	     char const *arg)
 {
-  struct mu_cfg_parse_hints *hints = po->po_data;
-  hints->flags |= MU_CFG_PARSE_CUSTOM_RCFILE;
-  hints->custom_rcfile = mu_strdup (arg);
+  struct app_data *dp = po->po_data;
+  dp->hints->flags = (dp->hints->flags
+		        & ~(MU_CFHINT_SITE_FILE|MU_CFHINT_PROGRAM))
+                      | MU_CFHINT_CUSTOM_FILE;
+  dp->hints->custom_file = mu_strdup (arg);
 }
 
 static void
 config_verbose (struct mu_parseopt *po, struct mu_option *opt,
 		char const *arg)
 {
-  struct mu_cfg_parse_hints *hints = po->po_data;
-  if (hints->flags & MU_PARSE_CONFIG_VERBOSE)
-    hints->flags |= MU_PARSE_CONFIG_DUMP;
+  struct app_data *dp = po->po_data;
+  if (dp->hints->flags & MU_CF_VERBOSE)
+    dp->hints->flags |= MU_CF_DUMP;
   else
-    hints->flags |= MU_PARSE_CONFIG_VERBOSE;
+    dp->hints->flags |= MU_CF_VERBOSE;
 }
 
 static void
 config_lint (struct mu_parseopt *po, struct mu_option *opt,
 		char const *arg)
 {
-  struct mu_cfg_parse_hints *hints = po->po_data;
-  hints->flags |= MU_PARSE_CONFIG_VERBOSE|MU_PARSE_CONFIG_LINT;
+  struct app_data *dp = po->po_data;
+  dp->lint = 1;
+  dp->hints->flags |= MU_CF_VERBOSE;
 }
 
 static void
 param_set (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
 {
-  struct mu_cfg_parse_hints *hints = po->po_data;
+  struct app_data *dp = po->po_data;
   mu_cfg_node_t *node;
   int rc = mu_cfg_create_subtree (arg, &node);
   if (rc)
     mu_parseopt_error (po, "%s: cannot create node: %s",
 		       arg, mu_strerror (rc));
-  if (!(hints->flags & MU_CFG_APPEND_TREE))
+  if (!dp->append_tree)
     {
-      mu_cfg_tree_create (&hints->append_tree);
-      hints->flags |= MU_CFG_APPEND_TREE;
+      mu_cfg_tree_create (&dp->append_tree);
     }
-  mu_cfg_tree_add_node (hints->append_tree, node);
+  mu_cfg_tree_add_node (dp->append_tree, node);
 }
 
 struct mu_option mu_common_options[] = {
-  MU_OPTION_GROUP(N_("Common options")),
+  /*  MU_OPTION_GROUP(N_("Common options")),*/
   { "program-name",   0,  N_("NAME"),  MU_OPTION_IMMEDIATE|MU_OPTION_HIDDEN,
     N_("set program name"),
     mu_c_string, NULL, change_progname },
+  MU_OPTION_END
+};
+
+struct mu_option mu_config_option_header =
+  MU_OPTION_GROUP (N_("Configuration handling"));
 
-  { "no-user-config", 0,  NULL,        MU_OPTION_IMMEDIATE,
-    N_("do not load user configuration file"),
-    mu_c_string, NULL, no_user_config },
-  { "no-user-rcfile", 0,  NULL,        MU_OPTION_ALIAS },
-  
+struct mu_option mu_site_config_options[] = {
   { "no-site-config", 0,  NULL,        MU_OPTION_IMMEDIATE,
     N_("do not load site-wide configuration file"),
     mu_c_string, NULL, no_site_config },
   { "no-site-rcfile", 0,  NULL,        MU_OPTION_ALIAS },
+  MU_OPTION_END
+};  
+
+struct mu_option mu_no_config_option = {
+  "no-config", 0,  NULL,        MU_OPTION_IMMEDIATE,
+  N_("do not load site and user configuration files"),
+  mu_c_string, NULL, no_config
+};
   
+struct mu_option mu_config_options[] = {
   { "config-file",    0,  N_("FILE"),  MU_OPTION_IMMEDIATE,
-    N_("load this configuration file"),
+    N_("load this configuration file; implies --no-config"),
     mu_c_string, NULL, config_file },
   { "rcfile",         0,  NULL,        MU_OPTION_ALIAS },
   
@@ -197,7 +224,15 @@ struct mu_option mu_common_options[] = {
   { "set",            0,  N_("PARAM=VALUE"), MU_OPTION_IMMEDIATE,
     N_("set configuration parameter"),
     mu_c_string, NULL, param_set },
-  
+
+  MU_OPTION_END  
+};
+
+struct mu_option mu_user_config_options[] = {
+  { "no-user-config", 0,  NULL,        MU_OPTION_IMMEDIATE,
+    N_("do not load user configuration file"),
+    mu_c_string, NULL, no_user_config },
+  { "no-user-rcfile", 0,  NULL,        MU_OPTION_ALIAS },
   MU_OPTION_END
 };
 
@@ -213,7 +248,7 @@ static void
 show_config_help (struct mu_parseopt *po, struct mu_option *opt,
 		  char const *unused)
 {
-  struct mu_cfg_parse_hints *hints = po->po_data;
+  struct app_data *dp = po->po_data;
 
   char *comment;
   mu_stream_t stream;
@@ -253,11 +288,10 @@ show_config_help (struct mu_parseopt *po, struct mu_option *opt,
   cont = mu_config_clone_root_container ();
   mu_config_container_register_section (&cont, NULL, NULL, NULL, NULL,
 					dummy_include_param, NULL);
-  if (hints->data)
+  if (dp->setup)
     {
-      struct mu_cli_setup *setup = hints->data;
       mu_config_container_register_section (&cont, NULL, NULL, NULL, NULL,
-					    setup->cfg, NULL);
+					    dp->setup->cfg, NULL);
     }
   
   mu_cfg_format_container (stream, cont);
@@ -267,11 +301,15 @@ show_config_help (struct mu_parseopt *po, struct mu_option *opt,
   exit (0);
 }  
 
-struct mu_option mu_extra_help_options[] = {
+static struct mu_option mu_extra_help_options[] = {
   MU_OPTION_GROUP (N_("Informational options")),
   { "show-config-options",   0,  NULL,  MU_OPTION_IMMEDIATE,
     N_("show compilation options"),
     mu_c_string, NULL, show_comp_defaults },
+  MU_OPTION_END
+};
+
+static struct mu_option mu_config_help_options[] = {
   { "config-help",           0,  NULL,  MU_OPTION_IMMEDIATE,
     N_("show configuration file summary"),
     mu_c_string, NULL, show_config_help },
@@ -288,9 +326,38 @@ add_opt_group (void *item, void *data)
   return 0;
 }
 
+#define CONFIG_ENABLED \
+  (MU_CFHINT_SITE_FILE | MU_CFHINT_CUSTOM_FILE | MU_CFHINT_PER_USER_FILE)
+
+static void
+opool_add_option (mu_opool_t pool, struct mu_option *opt)
+{
+  mu_opool_append (pool, opt, sizeof *opt);
+}
+
+static void
+opool_add_options (mu_opool_t pool, struct mu_option *opt)
+{
+  while (!MU_OPTION_IS_END (opt))
+    {
+      opool_add_option (pool, opt);
+      opt++;
+    }
+}
+
+static struct mu_option *
+opool_end_option (mu_opool_t pool)
+{
+  struct mu_option end = MU_OPTION_END;
+  opool_add_option (pool, &end);
+  return mu_opool_finish (pool, NULL);
+}
+
 /* Build the list of option groups and configuration sections */
 static struct mu_option **
-init_options (char **capa, struct mu_cli_setup *setup,
+init_options (mu_opool_t pool,
+	      char **capa, struct mu_cli_setup *setup,
+	      struct mu_cfg_parse_hints const *hints,
 	      mu_list_t *ret_comlist)
 {
   size_t i, s;
@@ -316,8 +383,41 @@ init_options (char **capa, struct mu_cli_setup *setup,
   *ret_comlist = comlist;
   
   mu_list_append (oplist, mu_common_options);
-  mu_list_append (oplist, mu_extra_help_options);
+
+  /* Construct configuration option section */
+  if (hints->flags & CONFIG_ENABLED)
+    {
+      opool_add_option (pool, &mu_config_option_header);
+      opool_add_options (pool, mu_config_options);
+      if (hints->flags & MU_CFHINT_SITE_FILE)
+	{
+	  opool_add_options (pool, mu_site_config_options);
+	  if (hints->flags & MU_CFHINT_PER_USER_FILE)
+	    {
+	      opool_add_options (pool, mu_user_config_options);
+	      opool_add_option (pool, &mu_no_config_option);
+	    }
+	  else
+	    {
+	      struct mu_option opt = mu_no_config_option;
+	      opt.opt_flags = MU_OPTION_ALIAS;
+	      opool_add_option (pool, &opt);
+	    }
+	}
+      else if (hints->flags & MU_CFHINT_PER_USER_FILE)
+	{
+	  struct mu_option opt = mu_no_config_option;
+	  opool_add_options (pool, mu_user_config_options);
+	  opt.opt_flags = MU_OPTION_ALIAS;
+	  opool_add_option (pool, &opt);
+	}
+      mu_list_append (oplist, opool_end_option (pool));
+    }
   
+  mu_list_append (oplist, mu_extra_help_options);
+  if (hints->flags & CONFIG_ENABLED)
+    mu_list_append (oplist, mu_config_help_options);
+		    
   mu_list_count (oplist, &s);
 
   po.po_optv = mu_calloc (s + 1, sizeof (po.po_optv[0]));
@@ -367,6 +467,8 @@ mu_cli_ext (int argc, char **argv,
   char const *dfl_args[DFLARGC];
   char **args = NULL;
   size_t argcnt;
+  struct app_data appd;
+  mu_opool_t pool;
   
   /* Set up defaults */
   if (setup->ex_usage == 0)
@@ -375,10 +477,11 @@ mu_cli_ext (int argc, char **argv,
     setup->ex_config = EX_CONFIG;
 
   hints = *cfhint;
-  hints.data = setup;
+  if (setup->server)
+    hints.flags &= ~MU_CFHINT_PER_USER_FILE;
   
   /* Set program name */
-  if (hints.flags & MU_CFG_PARSE_PROGRAM)
+  if (hints.flags & MU_CFHINT_PROGRAM)
     {
       if (!mu_log_tag)
 	mu_log_tag = (char*)hints.program;
@@ -389,7 +492,7 @@ mu_cli_ext (int argc, char **argv,
       if (!mu_log_tag)
 	mu_log_tag = (char*)mu_program_name;
       hints.program = (char*) mu_program_name;
-      hints.flags |= MU_CFG_PARSE_PROGRAM;
+      hints.flags |= MU_CFHINT_PROGRAM;
     }
 
   /* Initialize standard streams */
@@ -478,12 +581,17 @@ mu_cli_ext (int argc, char **argv,
   if (flags & MU_PARSEOPT_NEGATION)
     po.po_negation = pohint->po_negation;
 
-  po.po_data = &hints;
+  appd.setup = setup;
+  appd.hints = &hints;
+  appd.append_tree = NULL;
+  appd.lint = 0;
+  po.po_data = &appd;
   flags |= MU_PARSEOPT_DATA;
 
   po.po_exit_error = setup->ex_usage;
 
-  optv = init_options (capa, setup, &com_list);
+  mu_opool_create (&pool, MU_OPOOL_ENOMEMABRT);
+  optv = init_options (pool, capa, setup, &hints, &com_list);
 
   if (mu_parseopt (&po, argc, argv, optv, flags))
     exit (po.po_exit_error);
@@ -502,6 +610,9 @@ mu_cli_ext (int argc, char **argv,
   if (mu_cfg_parse_config (&parse_tree, &hints))
     exit (setup->ex_config);
 
+  if (appd.append_tree)
+    mu_cfg_tree_union (&parse_tree, &appd.append_tree);
+  
   if (mu_cfg_tree_reduce (parse_tree, &hints, setup->cfg, data))
     exit (setup->ex_config);
 
@@ -513,15 +624,14 @@ mu_cli_ext (int argc, char **argv,
   mu_list_foreach (com_list, run_commit, NULL);
   mu_list_destroy (&com_list);
 
-  if (hints.flags & MU_PARSE_CONFIG_LINT)
-    exit (0);
-
   mu_cfg_destroy_tree (&parse_tree);
   free (optv);
-  
   free (args);
-
-  mu_parseopt_free (&po);  
+  mu_parseopt_free (&po);
+  mu_opool_destroy (&pool);
+  
+  if (appd.lint)
+    exit (0);
 }
 
 void
@@ -543,14 +653,14 @@ mu_cli (int argc, char **argv, struct mu_cli_setup *setup, char **capa,
   pohint.po_bug_address = PACKAGE_BUGREPORT;
   pohint.po_flags |= MU_PARSEOPT_BUG_ADDRESS;
 
-  pohint.po_extra_info = gnu_general_help_url;
+  pohint.po_extra_info = mu_general_help_text;
   pohint.po_flags |= MU_PARSEOPT_EXTRA_INFO;
 
   pohint.po_version_hook = mu_version_hook;
   pohint.po_flags |= MU_PARSEOPT_VERSION_HOOK;
 
-  cfhint.site_rcfile = mu_site_config_file ();
-  cfhint.flags = MU_CFG_PARSE_SITE_RCFILE;
+  cfhint.site_file = mu_site_config_file ();
+  cfhint.flags = MU_CFHINT_SITE_FILE | MU_CFHINT_PER_USER_FILE;
   
   mu_cli_ext (argc, argv, setup, &pohint, &cfhint, capa, data,
 	      ret_argc, ret_argv);

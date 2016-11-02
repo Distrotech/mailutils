@@ -72,17 +72,43 @@ struct mu_cfg_node
   mu_list_t nodes;   /* a list of mu_cfg_node_t */
   struct mu_cfg_node *parent; /* parent node */
 };
-
+
 struct mu_cfg_parse_hints
 {
   int flags;
-  char *site_rcfile;
-  char *custom_rcfile;
+  char *site_file;
+  char *custom_file;
   char *program;
-  struct mu_cfg_tree *append_tree;
-  void *data;
 };
 
+/* Bit constants for the flags field of struct mu_cfg_parse_hints */
+/* Parse site-wide configuration file hints.site_file */
+#define MU_CFHINT_SITE_FILE        0x0001
+/* Parse custom configuration file hints.custom_file */
+#define MU_CFHINT_CUSTOM_FILE      0x0002
+/* The hints.program field is set.  The "program PROGNAME" section
+   will be processed, if PROGNAME is the same as hints.program.
+   If include statement is used with the directory name DIR as its
+   argument, the file DIR/PROGNAME will be looked up and read in,
+   if it exists. */
+#define MU_CFHINT_PROGRAM          0x0004
+
+/* If MU_CFHINT_PROGRAM is set, look for the file ~/.PROGNAME after parsing
+   site-wide configuration */
+#define MU_CFHINT_PER_USER_FILE    0x0008
+  
+/* Verbosely log files being processed */
+#define MU_CF_VERBOSE              0x0010
+/* Dump the pare tree on stderr */
+#define MU_CF_DUMP                 0x0020
+
+/* Format location of the statement */
+#define MU_CF_FMT_LOCUS            0x0100
+/* Print only value */
+#define MU_CF_FMT_VALUE_ONLY       0x0200
+/* Print full parameter path */
+#define MU_CF_FMT_PARAM_PATH       0x0400
+  
 struct mu_cfg_tree
 {
   mu_list_t nodes;   /* a list of mu_cfg_node_t */
@@ -139,9 +165,6 @@ struct mu_cfg_param
   const char *docstring;
   const char *argname;
 };
-
-#define MU_TARGET_REF(f) &f, 0
-#define MU_TARGET_OFF(s,f) NULL, mu_offsetof(s,f)
 
 enum mu_cfg_section_stage
   {
@@ -230,29 +253,7 @@ int mu_config_register_plain_section (const char *parent_path,
 				      const char *ident,
 				      struct mu_cfg_param *params);
 
-#define MU_PARSE_CONFIG_GLOBAL     0x001
-#define MU_PARSE_CONFIG_VERBOSE    0x002
-#define MU_PARSE_CONFIG_DUMP       0x004
-#define MU_PARSE_CONFIG_PLAIN      0x008
-#define MU_CFG_PARSE_SITE_RCFILE   0x010
-#define MU_CFG_PARSE_CUSTOM_RCFILE 0x020
-#define MU_CFG_PARSE_PROGRAM       0x040
-#define MU_CFG_FMT_LOCUS           0x080
-#define MU_CFG_FMT_VALUE_ONLY      0x100
-#define MU_CFG_FMT_PARAM_PATH      0x200
-#define MU_PARSE_CONFIG_LINT       0x400
-#define MU_CFG_APPEND_TREE         0x800
   
-#ifdef MU_CFG_COMPATIBILITY
-# define MU_CFG_DEPRECATED
-#else
-# define MU_CFG_DEPRECATED MU_DEPRECATED
-#endif
-
-int mu_parse_config (const char *file, const char *progname,
-		     struct mu_cfg_param *progparam, int flags,
-		     void *target_ptr) MU_CFG_DEPRECATED;
-
 extern int mu_cfg_parser_verbose;
 extern size_t mu_cfg_error_count;
 
@@ -279,10 +280,6 @@ int mu_cfg_parse_file (mu_cfg_tree_t **return_tree, const char *file,
 		       int flags);
   
   
-int mu_get_config (const char *file, const char *progname,
-		   struct mu_cfg_param *progparam, int flags,
-		   void *target_ptr) MU_CFG_DEPRECATED;
-
 int mu_cfg_tree_create (struct mu_cfg_tree **ptree);
 mu_cfg_node_t *mu_cfg_tree_create_node (struct mu_cfg_tree *tree,
 					enum mu_cfg_node_type type,

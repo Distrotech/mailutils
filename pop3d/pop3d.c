@@ -317,9 +317,10 @@ static char *capa[] = {
 };
 
 struct mu_cli_setup cli = {
-  options,
-  pop3d_cfg_param,
-  N_("GNU pop3d -- the POP3 daemon."),
+  .optv = options,
+  .cfg = pop3d_cfg_param,
+  .prog_doc = N_("GNU pop3d -- the POP3 daemon."),
+  .server = 1
 };
 
 int

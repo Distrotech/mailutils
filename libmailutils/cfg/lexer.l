@@ -330,14 +330,14 @@ mu_cfg_parse_file (mu_cfg_tree_t **return_tree, const char *file, int flags)
   int rc;
   char *full_name = mu_tilde_expansion (file, MU_HIERARCHY_DELIMITER, NULL);
 
-  if (flags & MU_PARSE_CONFIG_VERBOSE)
+  if (flags & MU_CF_VERBOSE)
     mu_diag_output (MU_DIAG_INFO, _("opening configuration file %s"),
 		    full_name);
   if (stat (full_name, &st))
     {
       if (errno != ENOENT)
 	mu_error (_("cannot stat `%s': %s"), full_name, mu_strerror (errno));
-      else if (flags & MU_PARSE_CONFIG_VERBOSE)
+      else if (flags & MU_CF_VERBOSE)
 	mu_diag_output (MU_DIAG_INFO, _("configuration file %s doesn't exist"),
 			full_name);
       free (full_name);
@@ -345,7 +345,7 @@ mu_cfg_parse_file (mu_cfg_tree_t **return_tree, const char *file, int flags)
     }
   else if (!S_ISREG (st.st_mode))
     {
-      if (flags & MU_PARSE_CONFIG_VERBOSE)
+      if (flags & MU_CF_VERBOSE)
 	mu_diag_output (MU_DIAG_INFO, _("%s: not a regular file"), full_name);
       free (full_name);
       return ENOENT;
@@ -360,7 +360,7 @@ mu_cfg_parse_file (mu_cfg_tree_t **return_tree, const char *file, int flags)
       return errno;
     }
 
-  if (flags & MU_PARSE_CONFIG_VERBOSE)
+  if (flags & MU_CF_VERBOSE)
     mu_diag_output (MU_DIAG_INFO, _("parsing file `%s'"), full_name);
 
   mu_cfg_set_lex_debug ();
@@ -379,36 +379,12 @@ mu_cfg_parse_file (mu_cfg_tree_t **return_tree, const char *file, int flags)
   yyrestart (fp);
   rc = mu_cfg_parse (return_tree);
   fclose (fp);
-  if (flags & MU_PARSE_CONFIG_VERBOSE)
+  if (flags & MU_CF_VERBOSE)
     mu_diag_output (MU_DIAG_INFO, _("finished parsing file `%s'"),
 		    mu_cfg_locus.mu_file);
 
   return rc == 0 ? 0 : MU_ERR_FAILURE;
 }
-
-/* FIXME: Deprecated interface */
-int
-mu_get_config (const char *file, const char *progname,
-               struct mu_cfg_param *progparam, int flags, void *target_ptr)
-{
-  mu_cfg_tree_t *parse_tree;
-  int rc = mu_cfg_parse_file (&parse_tree, file, flags);
-  if (rc == 0)
-    {
-      struct mu_cfg_parse_hints hints;
-
-      hints.flags = flags | MU_CFG_PARSE_PROGRAM;
-      hints.program = (char*)progname;
-      
-      rc = mu_cfg_tree_postprocess (parse_tree, &hints);
-      if (rc == 0)
-	rc = mu_cfg_tree_reduce (parse_tree, &hints, progparam, target_ptr);
-      mu_cfg_destroy_tree (&parse_tree);
-    }
-
-  return rc == 0 ? 0 : MU_ERR_FAILURE;
-}
-
 
 mu_opool_t 
 mu_cfg_lexer_pool ()

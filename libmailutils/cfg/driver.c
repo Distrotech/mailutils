@@ -27,7 +27,6 @@
 #include <ctype.h>
 #include <mailutils/argcv.h>
 #include <mailutils/nls.h>
-#define MU_CFG_COMPATIBILITY /* This source uses deprecated cfg interfaces */
 #include <mailutils/cfg.h>
 #include <mailutils/errno.h>
 #include <mailutils/error.h>
@@ -466,14 +465,14 @@ mu_cfg_tree_reduce (mu_cfg_tree_t *parse_tree,
   struct mu_cfg_cont *cont;
   if (!parse_tree)
     return 0;
-  if (hints && (hints->flags & MU_PARSE_CONFIG_DUMP))
+  if (hints && (hints->flags & MU_CF_DUMP))
     {
       int yes = 1;
       mu_stream_t stream;
       
       mu_stdio_stream_create (&stream, MU_STDERR_FD, 0);
       mu_stream_ioctl (stream, MU_IOCTL_FD, MU_IOCTL_FD_SET_BORROW, &yes);
-      mu_cfg_format_parse_tree (stream, parse_tree, MU_CFG_FMT_LOCUS);
+      mu_cfg_format_parse_tree (stream, parse_tree, MU_CF_FMT_LOCUS);
       mu_stream_destroy (&stream);
     }
 
@@ -490,29 +489,6 @@ mu_format_config_tree (mu_stream_t stream, struct mu_cfg_param *progparam)
   struct mu_cfg_cont *cont = mu_build_container (progparam);
   mu_cfg_format_container (stream, cont);
   mu_config_destroy_container (&cont);
-}
-
-int
-mu_parse_config (const char *file, const char *progname,
-		 struct mu_cfg_param *progparam, int flags,
-		 void *target_ptr)
-{
-  int rc;
-  char *full_name = mu_tilde_expansion (file, MU_HIERARCHY_DELIMITER, NULL);
-  if (full_name)
-    {
-      if (access (full_name, R_OK) == 0)
-	{
-	  rc = mu_get_config (full_name, progname, progparam, flags,
-			      target_ptr);
-	}
-      else
-	rc = ENOENT;
-      free (full_name);
-    }
-  else
-    rc = ENOMEM;
-  return rc;
 }
 
 static const char *

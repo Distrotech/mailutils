@@ -22,7 +22,7 @@ m4_pushdef([BIFF_MBOX],[`pwd`/mailbox])
 
 dnl ------------------------------------------------------------
 dnl comsatcmd
-m4_pushdef([comsatcmd],[comsatd --no-site --no-user --file ./biff.rc dnl
+m4_pushdef([comsatcmd],[comsatd --no-site-config --file ./biff.rc dnl
  --set logging.syslog=no --test])
 
 dnl ------------------------------------------------------------

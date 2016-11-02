@@ -17,7 +17,7 @@
 #include "mu.h"
 
 char query_docstring[] = N_("query configuration values");
-static char query_args_doc[] = N_("path [path...]");
+static char query_args_doc[] = N_("PATH [PATH...]");
 
 static char *file_name;
 int value_option;
@@ -59,21 +59,21 @@ mutool_query (int argc, char **argv)
       return 1;
     }
 
-  hints.flags = MU_CFG_PARSE_SITE_RCFILE | MU_PARSE_CONFIG_GLOBAL;
-  hints.site_rcfile = file_name ? file_name : mu_site_config_file ();
+  hints.flags = MU_CFHINT_SITE_FILE;
+  hints.site_file = file_name ? file_name : mu_site_config_file ();
 
   if (progname)
     {
-      hints.flags |= MU_CFG_PARSE_PROGRAM;
+      hints.flags |= MU_CFHINT_PROGRAM;
       hints.program = progname;
     }
 
   if (verbose_option)
-    hints.flags |= MU_CFG_FMT_LOCUS;
+    hints.flags |= MU_CF_FMT_LOCUS;
   if (value_option)
-    hints.flags |= MU_CFG_FMT_VALUE_ONLY;
+    hints.flags |= MU_CF_FMT_VALUE_ONLY;
   if (path_option)
-    hints.flags |= MU_CFG_FMT_PARAM_PATH;
+    hints.flags |= MU_CF_FMT_PARAM_PATH;
   
   if (mu_cfg_parse_config (&tree, &hints))
     return 1;

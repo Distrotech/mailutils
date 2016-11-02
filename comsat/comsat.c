@@ -194,11 +194,11 @@ struct mu_cfg_param comsat_cfg_param[] = {
 static char const *alt_args[] = { N_("--test MBOX-URL MSG-QID"), NULL };
 
 static struct mu_cli_setup cli = {
-  options,
-  comsat_cfg_param,
-  N_("GNU comsatd -- notify users about incoming mail"),
-  "",
-  alt_args,
+  .optv = options,
+  .cfg =comsat_cfg_param,
+  .prog_doc = N_("GNU comsatd -- notify users about incoming mail"),
+  .prog_alt_args = alt_args,
+  .server = 1
 };
 
 static char *capa[] = {
@@ -568,7 +568,7 @@ main (int argc, char **argv)
 
   save_argv = argv;
   
-  mu_cli (argc, argv, &cli, capa, NULL, &argc, &argv);
+  mu_cli (argc, argv, &cli, capa, server, &argc, &argv);
 
   if (test_mode)
     {

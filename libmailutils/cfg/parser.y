@@ -501,8 +501,7 @@ do_include (const char *name, struct mu_cfg_parse_hints *hints,
       
       if (S_ISDIR (sb.st_mode))
 	{
-	  if ((hints->flags & (MU_PARSE_CONFIG_GLOBAL|MU_CFG_PARSE_PROGRAM)) ==
-	      (MU_PARSE_CONFIG_GLOBAL|MU_CFG_PARSE_PROGRAM))
+	  if (hints->flags & MU_CFHINT_PROGRAM)
 	    {
 	      char *file = mu_make_file_name (name, hints->program);
 	      rc = mu_cfg_parse_file (&tree, file, hints->flags);
@@ -515,7 +514,7 @@ do_include (const char *name, struct mu_cfg_parse_hints *hints,
       if (rc == 0 && tree)
 	{
 	  struct mu_cfg_parse_hints xhints = *hints;
-	  xhints.flags &= ~MU_PARSE_CONFIG_GLOBAL;
+	  xhints.flags &= ~MU_CFHINT_PROGRAM;
 	  mu_cfg_tree_postprocess (tree, &xhints);
 	}
     }
@@ -538,8 +537,7 @@ do_include (const char *name, struct mu_cfg_parse_hints *hints,
 }
 
 int
-mu_cfg_tree_postprocess (mu_cfg_tree_t *tree,
-			 struct mu_cfg_parse_hints *hints)
+mu_cfg_tree_postprocess (mu_cfg_tree_t *tree, struct mu_cfg_parse_hints *hints)
 {
   int rc;
   mu_iterator_t itr;
@@ -558,13 +556,12 @@ mu_cfg_tree_postprocess (mu_cfg_tree_t *tree,
       
       if (node->type == mu_cfg_node_statement)
 	{
-	  if ((hints->flags & MU_PARSE_CONFIG_GLOBAL) &&
+	  if ((hints->flags & MU_CFHINT_PROGRAM) &&
 	      strcmp (node->tag, "program") == 0)
 	    {
 	      if (node->label->type == MU_CFG_STRING)
 		{
-		  if ((hints->flags & MU_CFG_PARSE_PROGRAM)
-		      && strcmp (node->label->v.string, hints->program) == 0)
+		  if (strcmp (node->label->v.string, hints->program) == 0)
 		    {
 		      /* Reset the parent node */
 		      mu_list_foreach (node->nodes, _node_set_parent,
@@ -1527,10 +1524,11 @@ mu_cfg_parse_config (mu_cfg_tree_t **ptree, struct mu_cfg_parse_hints *hints)
 {
   int rc = 0;
   mu_cfg_tree_t *tree = NULL, *tmp;
+  struct mu_cfg_parse_hints xhints;
   
-  if ((hints->flags & MU_CFG_PARSE_SITE_RCFILE) && hints->site_rcfile)
+  if ((hints->flags & MU_CFHINT_SITE_FILE) && hints->site_file)
     {
-      rc = mu_cfg_parse_file (&tmp, hints->site_rcfile, hints->flags);
+      rc = mu_cfg_parse_file (&tmp, hints->site_file, hints->flags);
       
       if (rc == ENOMEM)
 	{
@@ -1539,14 +1537,16 @@ mu_cfg_parse_config (mu_cfg_tree_t **ptree, struct mu_cfg_parse_hints *hints)
 	}
       else if (rc == 0)
 	{
-	  struct mu_cfg_parse_hints xhints = *hints;
-	  xhints.flags |= MU_PARSE_CONFIG_GLOBAL;
-	  mu_cfg_tree_postprocess (tmp, &xhints);
+	  mu_cfg_tree_postprocess (tmp, hints);
 	  mu_cfg_tree_union (&tree, &tmp);
 	}
     }
+
+  xhints = *hints;
+  xhints.flags &= ~MU_CFHINT_PROGRAM;
   
-  if ((hints->flags & MU_CFG_PARSE_PROGRAM) && hints->program)
+  if ((hints->flags & MU_CFHINT_PER_USER_FILE)
+      && (hints->flags & MU_CFHINT_PROGRAM))
     {
       size_t size = 3 + strlen (hints->program) + 1;
       char *file_name = malloc (size);
@@ -1555,7 +1555,7 @@ mu_cfg_parse_config (mu_cfg_tree_t **ptree, struct mu_cfg_parse_hints *hints)
 	  strcpy (file_name, "~/.");
 	  strcat (file_name, hints->program);
 	  
-	  rc = mu_cfg_parse_file (&tmp, file_name, hints->flags);
+	  rc = mu_cfg_parse_file (&tmp, file_name, xhints.flags);
 	  if (rc == ENOMEM)
 	    {
 	      mu_error ("%s", mu_strerror (rc));
@@ -1564,7 +1564,7 @@ mu_cfg_parse_config (mu_cfg_tree_t **ptree, struct mu_cfg_parse_hints *hints)
 	    }
 	  else if (rc == 0)
 	    {
-	      mu_cfg_tree_postprocess (tmp, hints);
+	      mu_cfg_tree_postprocess (tmp, &xhints);
 	      mu_cfg_tree_union (&tree, &tmp);
 	    }
 	  else if (rc == ENOENT)
@@ -1573,25 +1573,22 @@ mu_cfg_parse_config (mu_cfg_tree_t **ptree, struct mu_cfg_parse_hints *hints)
 	}
     }
   
-  if ((hints->flags & MU_CFG_PARSE_CUSTOM_RCFILE) && hints->custom_rcfile)
+  if ((hints->flags & MU_CFHINT_CUSTOM_FILE) && hints->custom_file)
     {
-      rc = mu_cfg_parse_file (&tmp, hints->custom_rcfile, hints->flags);
+      rc = mu_cfg_parse_file (&tmp, hints->custom_file, xhints.flags);
       if (rc)
 	{
-	  mu_error (_("errors parsing file %s: %s"), hints->custom_rcfile,
+	  mu_error (_("errors parsing file %s: %s"), hints->custom_file,
 		    mu_strerror (rc));
 	  mu_cfg_destroy_tree (&tree);
 	  return rc;
 	}
       else
 	{
-	  mu_cfg_tree_postprocess (tmp, hints);
+	  mu_cfg_tree_postprocess (tmp, &xhints);
 	  mu_cfg_tree_union (&tree, &tmp);
 	}
     }
-
-  if (hints->flags & MU_CFG_APPEND_TREE)
-    mu_cfg_tree_union (&tree, &hints->append_tree);
 
   *ptree = tree;
   return rc;

@@ -17,9 +17,8 @@
 # along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>. 
 
 source $top_srcdir/testsuite/lib/mailutils.exp
-
     
-mu_init "--rcfile=$objdir/pop3d.rc"
+mu_init "--config-file=$objdir/pop3d.rc"
 mu_version
 if ![mu_check_capability ENABLE_VIRTUAL_DOMAINS] {
     clone_output "WARNING: Support for virtual domains not compiled in"

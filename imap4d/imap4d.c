@@ -449,9 +449,10 @@ static struct mu_cfg_param imap4d_cfg_param[] = {
 };
 
 struct mu_cli_setup cli = {
-  options,
-  imap4d_cfg_param,
-  N_("GNU imap4d -- the IMAP4D daemon.")
+  .optv = options,
+  .cfg = imap4d_cfg_param,
+  .prog_doc = N_("GNU imap4d -- the IMAP4D daemon."),
+  .server = 1
 };
 
 int
@@ -659,7 +660,7 @@ get_client_address (int fd, struct sockaddr_in *pcs)
 }
 
 static int
-set_strerr_flt ()
+set_strerr_flt (void)
 {
   mu_stream_t flt, trans[2];
   int rc;
@@ -700,7 +701,7 @@ set_strerr_flt ()
 }
 
 static void
-clr_strerr_flt ()
+clr_strerr_flt (void)
 {
   mu_stream_t flt, trans[2];
   int rc;

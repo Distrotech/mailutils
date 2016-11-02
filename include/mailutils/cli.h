@@ -50,11 +50,14 @@ struct mu_cli_setup
   int ex_usage;                /* If not 0, exit code on usage errors */
   int ex_config;               /* If not 0, exit code on configuration
 				  errors */
-  int inorder;
+  int inorder:1;               /* Don't permute options and arguments */
+  int server:1;                /* This is a server: don't read per-user
+				  configuration files */
   void (*prog_doc_hook) (mu_stream_t);
 };
 
 extern const char mu_version_copyright[];
+extern const char mu_general_help_text[];
 
 void mu_version_hook (struct mu_parseopt *po, mu_stream_t stream);
 void mu_cli (int argc, char **argv, struct mu_cli_setup *setup,

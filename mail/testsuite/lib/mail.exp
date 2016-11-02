@@ -18,7 +18,7 @@
 
 source $top_srcdir/testsuite/lib/mailutils.exp
 
-mu_init "--nosum --norc"
+mu_init --nosum --norc
 
 #FIXME: this doesn't work with remote testing
 set env(MAILRC) $MU_RC_DIR/mail.rc
