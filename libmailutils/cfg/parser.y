@@ -1530,15 +1530,19 @@ mu_cfg_parse_config (mu_cfg_tree_t **ptree, struct mu_cfg_parse_hints *hints)
     {
       rc = mu_cfg_parse_file (&tmp, hints->site_file, hints->flags);
       
-      if (rc == ENOMEM)
+      switch (rc)
 	{
-	  mu_error ("%s", mu_strerror (rc));
-	  return rc;
-	}
-      else if (rc == 0)
-	{
+	case 0:
 	  mu_cfg_tree_postprocess (tmp, hints);
 	  mu_cfg_tree_union (&tree, &tmp);
+	  
+	case ENOENT:
+	  rc = 0;
+	  break;
+
+	default:
+	  mu_error ("%s", mu_strerror (rc));
+	  return rc;
 	}
     }
 
@@ -1556,19 +1560,22 @@ mu_cfg_parse_config (mu_cfg_tree_t **ptree, struct mu_cfg_parse_hints *hints)
 	  strcat (file_name, hints->program);
 	  
 	  rc = mu_cfg_parse_file (&tmp, file_name, xhints.flags);
-	  if (rc == ENOMEM)
+	  switch (rc)
 	    {
+	    case 0:
+	      mu_cfg_tree_postprocess (tmp, &xhints);
+	      mu_cfg_tree_union (&tree, &tmp);
+	      break;
+
+	    case ENOENT:
+	      rc = 0;
+	      break;
+	      
+	    default:
 	      mu_error ("%s", mu_strerror (rc));
 	      mu_cfg_destroy_tree (&tree);
 	      return rc;
 	    }
-	  else if (rc == 0)
-	    {
-	      mu_cfg_tree_postprocess (tmp, &xhints);
-	      mu_cfg_tree_union (&tree, &tmp);
-	    }
-	  else if (rc == ENOENT)
-	    rc = 0;
 	  free (file_name);
 	}
     }
