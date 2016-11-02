@@ -154,23 +154,23 @@ Command Line
 Mailutils Configuration File
 
 * conf-syntax::         Configuration File Syntax
-* Include::             Include Statement
-* Logging Statement::
-* Debug Statement::
-* Mailbox Statement::
-* Locking Statement::
-* Mailer Statement::
-* ACL Statement::
-* Tcp-wrappers Statement::
+* include::             Include Statement
+* logging statement::
+* debug statement::
+* mailbox statement::
+* locking statement::
+* mailer statement::
+* acl statement::
+* tcp-wrappers statement::
 * Server Settings::
-* Auth Statement::
-* PAM Statement::
-* Virtdomain Statement::
-* Radius Statement::
-* SQL Statement::
-* LDAP Statement::
-* TLS Statement::
-* GSASL Statement::
+* auth statement::
+* pam statement::
+* virtdomain statement::
+* radius statement::
+* sql statement::
+* ldap statement::
+* tls statement::
+* gsasl statement::
 
 Configuration File Syntax
 

@@ -1,4 +1,4 @@
-GNU mailutils NEWS -- history of user-visible changes. 2016-10-30
+GNU mailutils NEWS -- history of user-visible changes. 2016-11-02
 Copyright (C) 2002-2016 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
@@ -38,6 +38,8 @@ Finally, the section "Changes to the library" is of interest to
 programmers which use or wish to use Mailutils in their projects.
  
 * Important changes
+
+** Main configuration file renamed to mailutils.conf
 
 ** IPv6 support.
 

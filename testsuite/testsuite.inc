@@ -24,8 +24,7 @@ dnl ------------------------------------------------------------
 dnl MUT_DEFAULT_OPTIONS -- produce default command line options
 dnl ------------------------------------------------------------
 m4_define([MUT_DEFAULT_OPTIONS],[dnl
- --no-site-config dnl
- --no-user-config dnl
+ --no-config dnl
  --set '.mailbox.mailbox-type=mbox' dnl
 ])
 

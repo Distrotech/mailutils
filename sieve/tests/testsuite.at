@@ -21,7 +21,7 @@ dnl testcompile(SCRIPT) -- test compilation of the Sieve SCRIPT
 dnl
 m4_define([testcompile],[
 AT_SETUP([compile $1])
-AT_CHECK([sieve -c $abs_top_srcdir/sieve/examples/$1],
+AT_CHECK([sieve MUT_SIEVE_DEFAULT_OPTIONS -c $abs_top_srcdir/sieve/examples/$1],
 [0])
 AT_CLEANUP
 ])

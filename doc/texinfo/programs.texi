@@ -225,6 +225,10 @@ Do not load site-wide configuration file.
 @item --no-user-config
 Do not load user configuration file.
 
+@xopindex{no-config, introduced}
+@item --no-config
+Don't load site-wide and user configuration files.
+
 @xopindex{set, introduced}
 @item --set=@var{path}=@var{value}
 Set configuration variable.
@@ -233,7 +237,7 @@ Set configuration variable.
 @node configuration
 @section Mailutils Configuration File
 @cindex Mailutils configuration file
-@cindex mailutils.rc
+@cindex mailutils.conf
 
   Configuration files are the principal means of configuring any GNU
 Mailutils component.  When started, each utility tries to load its
@@ -242,9 +246,9 @@ configuration from the following locations, in that order:
 @enumerate 1
 @item Main site-wide configuration file.
 
-It is named @file{@var{sysconfdir}/mailutils.rc}, where @var{sysconfdir} stands
-for the system configuration directory set when compiling the package.
-You can obtain the value of @var{sysconfdir} by running
+It is named @file{@var{sysconfdir}/mailutils.conf}, where
+@var{sysconfdir} stands for the system configuration directory set
+when compiling the package. You can obtain the value of @var{sysconfdir} by running
 
 @example
 $ mailutils info sysconfdir
@@ -261,30 +265,58 @@ $ @var{prog} --show-config-options | grep SYSCONFDIR
 where @var{prog} stands for any GNU Mailutils utility.
 
 @xopindex{no-site-config, described}
-The site-wide configuration file is not read if the @option{--no-site-config}
-command line option was given.
+The site-wide configuration file is not read if any of
+@option{--no-site-config} or @option{--no-config} command line options
+was given.
+
+Older versions of GNU Mailutils read configuration from file
+@file{mailutils.rc}.  To facilitate transition, mailutils will look
+for that file as well.  If both the default site-wide configuration
+file and legacy configuration file are present you will get the
+following warning:
+
+@example
+legacy configuration file /etc/mailutils.rc ignored
+@end example
+
+Otherwise, if @file{mailutils.conf} does not exist and
+@file{mailutils.rc} is present, it will be used instead and the
+following warning will be issued:
+
+@example
+ using legacy configuration file /etc/mailutils.rc:
+ please rename it to /etc/mailutils.conf
+@end example
 
 @item Per-user configuration file.
 
-A per user configuration file is located in the user home directory
-and is named @samp{.@var{prog}}, where @var{prog} is the name of the
-utility.  For example, the per-user configuration file for
-@command{sieve} utility is named @file{.sieve}.
+Client utilities, such as @command{frm} or @command{sieve}, look in
+the user home directory for a file named @samp{.@var{prog}}, where
+@var{prog} is the name of the utility.  If it is present, it will be
+loaded after loading the site-wide configuration file.  This file
+allows users to customize such utilities.
+
+For example, the per-user configuration file for @command{sieve}
+utility is named @file{.sieve}. 
 
 @xopindex{no-user-config, described}
-This configuration file is not read if the @option{--no-user-config}
-command line option was given.
-
-@xopindex{config-file, described}
-@item Additional configuration file, if specified using the
-@option{--config-file} command line option.
+Loading of per-user configuration file is disabled by
+@option{--no-user-config} and @option{--no-config} options.
 @end enumerate
 
-The order in which configuration files are loaded defines the
-precedence of their settings.  Thus, settings from additional
-configuration file override those set in per-user configuration file.
-The latter, in their turn, take precedence over the settings from the
-site-wide configuration file.
+Server programs, such as @command{imap4d} don't use per-user
+configuration files.
+
+The @option{--no-config} option provides a shortcut for disabling
+loading of the default configuration files.  For servers, its effect
+is the same as of @option{--no-site-config}.  For client utilities, it
+is equivalent to @option{--no-site-config --no-user-config} used
+together.
+
+@xopindex{config-file, described}
+The @option{--config-file} command line option instructs the program
+to read configuration from the file supplied as its argument.  In that
+case, default configuration files are not used at all.
 
 @xopindex{config-verbose, described}
 Neither site-wide nor user configuration files are required to
@@ -342,11 +374,16 @@ $ imap4d --config-help > imap4d.rc
 @noindent
 and to edit the @file{imap4d.rc} file with your editor of choice.
 
+The order in which configuration files are loaded defines the
+precedence of their settings.  Thus, for client utilities, settings
+from the per-user configuration file override those from the site-wide
+configuration.
+
 @xopindex{set, described}
   It is also possible to set or override arbitrary configuration
 variables in the command line.  It can be done via the @option{--set}
 option.  Its argument is a @dfn{pathname} of the variable to be set,
-followed by an equals sign and value.  For example, to define the
+followed by an equals sign and a value.  For example, to define the
 variable @samp{syslog} in section @samp{logging} to @samp{no}, do the
 following: 
 
@@ -356,26 +393,30 @@ $ imap4d --set .logging.syslog=no
 
 Configuration pathnames are discussed in detail in @ref{Paths}.
 
+The @option{--set} options are processed after loading all
+configuration files.
+
 @menu
 * conf-syntax::         Configuration File Syntax
 * Variables::           Variable Expansion
-* Include::             Include Statement
-* Logging Statement::
-* Debug Statement::
-* Mailbox Statement::
-* Locking Statement::
-* Mailer Statement::
-* ACL Statement::
-* Tcp-wrappers Statement::
+* include::             Include Statement
+* program statement::
+* logging statement::
+* debug statement::
+* mailbox statement::
+* locking statement::
+* mailer statement::
+* acl statement::
+* tcp-wrappers statement::
 * Server Settings::
-* Auth Statement::
-* PAM Statement::
-* Virtdomain Statement::
-* Radius Statement::
-* SQL Statement::
-* LDAP Statement::
-* TLS Statement::
-* GSASL Statement::
+* auth statement::
+* pam statement::
+* virtdomain statement::
+* radius statement::
+* sql statement::
+* ldap statement::
+* tls statement::
+* gsasl statement::
 @end menu
 
 @node conf-syntax
@@ -611,8 +652,7 @@ this is not required.
 @command{Mailutils} configuration files have a distinct hierarchical
 structure.  Each statement in such files can therefore be identified
 by its name and the names of block statements containing it.  Such
-names form this statement @dfn{pathname}, similar to that used,
-e.g. by UNIX file system.
+names form the @dfn{pathname}, similar to that used by UNIX file system.
 
 For example, consider the following file:
 
@@ -650,9 +690,9 @@ Any other punctuation character can be used as a component separator,
 provided that it appears at the beginning of the pathname.  In other
 words, only absolute pathnames allow for a change in component separators.
 
-A block statement that has a tag is referred to by its name, followed
-by an equals sign, followed by the tag value.  For example, the
-statement @samp{A} in the file below:
+A block statement that has a tag is referred to by the statement's
+name, followed by an equals sign, followed by the tag value.  For
+example, the statement @samp{A} in the file below:
 
 @example
 program x @{
@@ -722,24 +762,27 @@ substituted, otherwise the expansion of @var{word} is substituted.
 The subsections below define variable names that are valid for use in
 each configuration statement.
 
-@node Include
-@subsection Include Statement 
+@node include
+@subsection The @code{include} Statement
+@anchor{Include} @c for backward-compatibility
 @cindex include statement, configuration file
 @kwindex include
   The @dfn{include statement} is a special statement that causes
-inclusion of a named file.  It has the following syntax:
+inclusion of the named file.  It has the following syntax:
 
 @example
 include @var{file};
 @end example
 
-If @var{file} names a regular file, the contents of this file is
-included in this point.  Otherwise, if @var{file} names a directory,
-Mailutils searches in that directory for a file whose name coincides
-with the name of utility being executed, and includes this file, if it
-exists.
+The effect of this statement is that the contents of this @var{file} is
+included in this point.
 
-It is a common approach to end the site-wide configuration file with
+In site-wide configuration file, @var{file} can be a directory name.
+In this case, Mailutils will search this directory for a file with the
+same name as the utility being executed.  If found, this file will be
+loaded.
+
+It is a common to end the site-wide configuration file with
 an include statement, e.g.:
 
 @example
@@ -747,11 +790,40 @@ include /etc/mailutils.d;
 @end example
 
 This allows each particular utility to have its own configuration
-file.  Thus.  @command{imap4d} will read
+file.  Thus, @command{imap4d} will read
 @file{/etc/mailutils.d/imap4d}, etc.
 
-@node Logging Statement
-@subsection Logging Statement
+@node program statement
+@subsection The @command{program} statement
+@kwindex program
+Another way to configure program-specific settings is by using the
+@command{program} statement.  The syntax is as follows:
+
+@example
+program @var{progname} @{
+   ...
+@}
+@end example
+
+The @command{program} statement is allowed only in the site-wide
+configuration file.  When encountered, its tag (@var{progname}) is
+compared with the name of the program being run.  If two strings are
+the same, the statements between curly braces are stored in a
+temporary memory, otherwise the statement is ignored.  When entire
+configuration file is loaded, the statements accumulated in the
+temporary storage are processed.
+
+Notice the difference between this statement and a per-program
+configuration file loaded via an @code{include} statement.  No matter
+where in the file the @command{program} statement is, it is always
+processed after the entire configuraion file is processed.  In the
+contrast, the per-program configuration file loaded via @code{include}
+with the directory name as its argument is processed right where it is
+encountered.
+
+@node logging statement
+@subsection The @code{logging} Statement
+@anchor{Logging Statement}
 @kwindex logging
 @subheading Syntax
 @example
@@ -822,8 +894,9 @@ programs that handle multiple user sessions simultaneously, such as
 @command{pop3d} and @command{imap4d}.
 @end deffn
 
-@node Debug Statement
-@subsection Debug Statement
+@node debug statement
+@subsection The @code{debug} Statement
+@anchor{Debug Statement}
 @kwindex debug
 @subheading Syntax
 @example
@@ -850,8 +923,9 @@ debugging messages to be prefixed with locations in Mailutils source
 files where they appear.  Normally, only Mailutils developers need
 this option. 
 
-@node Mailbox Statement
-@subsection Mailbox Statement
+@node mailbox statement
+@subsection The @code{mailbox} Statement
+@anchor{Mailbox Statement}
 @kwindex mailbox
 @subheading Syntax
 @example
@@ -1045,8 +1119,9 @@ The @var{dir} argument can contain mailbox type prefix, e.g
 The default folder name is @samp{Mail/}.
 @end deffn
 
-@node Locking Statement
-@subsection Locking Statement
+@node locking statement
+@subsection The @command{locking} Statement
+@anchor{Locking Statement}
 @kwindex locking
 @subheading Syntax
 @example
@@ -1121,8 +1196,9 @@ Set command line of an external locker program.  The @samp{E} flag
 must be set for this to take effect. 
 @end deffn
 
-@node Mailer Statement
-@subsection Mailer Statement
+@node mailer statement
+@subsection The @code{mailer} Statement
+@anchor{Mailer Statement}
 @kwindex mailer
 @subheading Syntax
 @example
@@ -1176,8 +1252,9 @@ mailer that allows to use arbitrary external programs as mailers.
 It is described in detain in @ref{Program Mailboxes,,prog}.
 @end table
 
-@node ACL Statement
-@subsection ACL Statement
+@node acl statement
+@subsection The @code{acl} Statement
+@anchor{ACL Statement}
 @kwindex acl
 @subheading Syntax
 @example
@@ -1321,8 +1398,9 @@ the given @var{program}.  Do not wait for it to terminate, and ignore
 its exit code.
 @end deffn
 
-@node Tcp-wrappers Statement
-@subsection Tcp-wrappers Statement
+@node tcp-wrappers statement
+@subsection The @code{tcp-wrappers} Statement
+@anchor{Tcp-wrappers Statement}
 @kwindex tcp-wrappers
 @subheading Syntax
 @example
@@ -1501,7 +1579,7 @@ requests during @var{time} seconds, the child process terminates.
 @end deffn
 
 @node Server Statement
-@subsubsection Server Statement
+@subsubsection The @code{server} Statement
 @cindex server statement
 @kwindex server
 @* Syntax:
@@ -1515,6 +1593,9 @@ server @var{ipaddr}[:@var{port}] @{
 
   # @r{Set idle timeout.}
   timeout @var{time};
+
+  # Size of the queue of pending connections
+  backlog <number: callback>;
 
   # @r{Kind of TLS encryption to use for this server.}
   tls @samp{no}|@samp{ondemand}|@samp{required}|@samp{connection};
@@ -1569,6 +1650,10 @@ Set idle timeout for this server.  This overrides global timeout
 settings (@pxref{General Server Configuration, timeout}).
 @end deffn
 
+@deffn {Configuration} backlog @var{number};
+Configures the size of the queue of pending connections
+@end deffn
+
 @deffn {Configuration} tls @var{mode};
 Configure the use of TLS encryption.  The @var{mode} argument is one
 of the following:
@@ -1602,9 +1687,9 @@ ACL are used, the connection is allowed only if both of them allow it,
 and is denied if any one of them denies it.
 @end deffn
 
-@node Auth Statement
-@subsection Auth Statement
-@UNREVISED
+@node auth statement
+@subsection The @code{auth} Statement
+@anchor{Auth Statement}
 @cindex authorization
 @cindex authentication
 @kwindex auth
@@ -1680,17 +1765,17 @@ User credentials are retrieved from the system user database
 @item sql
 User credentials are retrieved from a @acronym{SQL} database.
 A separate configuration statement, @code{sql}, is used to configure
-it (@pxref{SQL Statement}).
+it (@pxref{sql statement}).
 @item virtdomain
 User credentials are retrieved from a ``virtual domain'' user
 database.  Virtual domains are configured using @code{virtdomain}
-statement (@pxref{Virtdomain Statement}).
+statement (@pxref{virtdomain statement}).
 @item radius
-User credentials are retrieved using @acronym{RADIUS}.  @xref{Radius
-Statement}, for a detailed description on how to configure it.
+User credentials are retrieved using @acronym{RADIUS}.  @xref{radius
+statement}, for a detailed description on how to configure it.
 @item ldap
 User credentials are retrieved from an @acronym{LDAP}
-database.  @xref{LDAP Statement}, for an information on how to
+database.  @xref{ldap statement}, for an information on how to
 configure it.
 @end table
 
@@ -1719,16 +1804,16 @@ The hashed value of the user password is retrieved from
 @item sql
 The hashed value of the user password is retrieved from a
 @acronym{SQL} database using query supplied by @code{getpass}
-statement (@pxref{SQL Statement, getpass}).
+statement (@pxref{sql statement, getpass}).
 @item pam
 The user is authenticated via pluggable authentication module
 (@acronym{PAM}).  The @acronym{PAM} service name to be used is
-configured in @code{pam} statement (@pxref{PAM Statement}).
+configured in @code{pam} statement (@pxref{pam statement}).
 @item radius
 The user is authenticated on a remote @acronym{RADIUS}
-server.  @xref{Radius Statement}.
+server.  @xref{radius statement}.
 @item ldap
-The user is authenticated using @acronym{LDAP}.  @xref{LDAP Statement}.
+The user is authenticated using @acronym{LDAP}.  @xref{ldap statement}.
 @end table
 
 @FIXME{This list is inaccurate:}
@@ -1740,8 +1825,9 @@ the list of authentication modules is:
 @end example
 @end deffn
 
-@node PAM Statement
+@node pam statement
 @subsection PAM Statement
+@anchor{PAM Statement}
 @UNREVISED
 @kwindex pam
 @subheading Syntax
@@ -1762,10 +1848,11 @@ default, the base name of the Mailutils binary is used.
 @end deffn
 
 This statement takes effect only if @samp{pam} is listed in
-@code{authentication} statement (@pxref{Auth Statement}).
+@code{authentication} statement (@pxref{auth statement}).
 
-@node Virtdomain Statement
-@subsection Virtdomain Statement
+@node virtdomain statement
+@subsection The @code{virtdomain} Statement
+@anchor{Virtdomain Statement}
 @UNREVISED
 @kwindex virtdomain
 @subheading Syntax
@@ -1821,8 +1908,9 @@ the domain name corresponding to that address is looked up in the DNS
 system.  Finally, this domain name is used as a name of the password
 file.
 
-@node Radius Statement
-@subsection Radius Statement
+@node radius statement
+@subsection The @code{radius} Statement
+@anchor{Radius Statement}
 @UNREVISED
 @kwindex radius
 @subheading Syntax
@@ -1980,8 +2068,9 @@ The reply to @code{getpwuid} request is the same as to @code{getpwnam}
 request (see above).
 @end deffn
 
-@node SQL Statement
-@subsection SQL Statement
+@node sql statement
+@subsection The @code{sql} Statement
+@anchor{SQL Statement}
 @UNREVISED
 @kwindex sql
 @subheading Syntax
@@ -2066,8 +2155,9 @@ Name of the database.
 Password to access the database.
 @end deffn
 
-@node LDAP Statement
-@subsection LDAP Statement
+@node ldap statement
+@subsection The @code{ldap} Statement
+@anchor{LDAP Statement}
 @WRITEME
 @kwindex ldap
 @subheading Syntax
@@ -2096,8 +2186,9 @@ ldap @{
 @}
 @end example
 
-@node TLS Statement
-@subsection TLS Statement
+@node tls statement
+@subsection The @code{tls} Statement
+@anchor{TLS Statement}
 @WRITEME
 @kwindex tls
 @subheading Syntax
@@ -2114,8 +2205,9 @@ tls @{
 @}
 @end example
 
-@node GSASL Statement
-@subsection GSASL Statement
+@node gsasl statement
+@subsection The @code{gsasl} Statement
+@anchor{GSASL Statement}
 @WRITEME
 @kwindex gsasl
 @subheading Syntax

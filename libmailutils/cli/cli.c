@@ -18,6 +18,7 @@
 # include <config.h>
 #endif
 #include <stdlib.h>
+#include <unistd.h>
 #include <sysexits.h>
 #include <mailutils/cfg.h>
 #include <mailutils/opt.h>
@@ -33,8 +34,10 @@
 #include <mailutils/syslog.h>
 #include <mailutils/mu_auth.h>
 
+#define MU_LEGACY_CONFIG_FILE SYSCONFDIR "/mailutils.rc"
+
 #ifndef MU_SITE_CONFIG_FILE
-# define MU_SITE_CONFIG_FILE SYSCONFDIR "/mailutils.rc"
+# define MU_SITE_CONFIG_FILE SYSCONFDIR "/mailutils.conf"
 #endif
 
 char *
@@ -188,38 +191,61 @@ struct mu_option mu_common_options[] = {
   MU_OPTION_END
 };
 
-struct mu_option mu_config_option_header =
+/* This varibales are used to construct the set of configuration
+   handling options.
+*/
+
+/* Option group header */
+static struct mu_option mu_config_option_header =
   MU_OPTION_GROUP (N_("Configuration handling"));
 
-struct mu_option mu_site_config_options[] = {
+/* Disables site-wide configuration file */
+static struct mu_option mu_site_config_options[] = {
   { "no-site-config", 0,  NULL,        MU_OPTION_IMMEDIATE,
     N_("do not load site-wide configuration file"),
     mu_c_string, NULL, no_site_config },
-  { "no-site-rcfile", 0,  NULL,        MU_OPTION_ALIAS },
   MU_OPTION_END
 };  
 
-struct mu_option mu_no_config_option = {
+/* Disables per-user configuration file */
+static struct mu_option mu_user_config_options[] = {
+  { "no-user-config", 0,  NULL,        MU_OPTION_IMMEDIATE,
+    N_("do not load user configuration file"),
+    mu_c_string, NULL, no_user_config },
+  MU_OPTION_END
+};
+
+/* 1. If both site-wide and per-user configuration files are used,
+      this option is equivalent to --no-site-config --no-user-config
+      used together.
+   2. If only site-wide configuration is used, this option is an alias
+      to --no-site-config
+   3. If only per-user configuration is used, this option is an alias
+      to --no-user-config
+
+   Thus, --no-config-option always disables parsing of the default
+   configuration files.
+ */
+static struct mu_option mu_no_config_option = {
   "no-config", 0,  NULL,        MU_OPTION_IMMEDIATE,
   N_("do not load site and user configuration files"),
   mu_c_string, NULL, no_config
 };
-  
-struct mu_option mu_config_options[] = {
+
+/* These options are always available for utilities that use at least
+   one of default configuration files */
+static struct mu_option mu_config_options[] = {
   { "config-file",    0,  N_("FILE"),  MU_OPTION_IMMEDIATE,
     N_("load this configuration file; implies --no-config"),
     mu_c_string, NULL, config_file },
-  { "rcfile",         0,  NULL,        MU_OPTION_ALIAS },
   
   { "config-verbose", 0,  NULL,        MU_OPTION_IMMEDIATE,
     N_("verbosely log parsing of the configuration files"),
     mu_c_string, NULL, config_verbose },
-  { "rcfile-verbose", 0,  NULL,        MU_OPTION_ALIAS },
   
   { "config-lint",    0,  NULL,        MU_OPTION_IMMEDIATE,
     N_("check configuration file syntax and exit"),
     mu_c_string, NULL, config_lint },
-  { "rcfile-lint",    0,  NULL,        MU_OPTION_ALIAS },
 
   { "set",            0,  N_("PARAM=VALUE"), MU_OPTION_IMMEDIATE,
     N_("set configuration parameter"),
@@ -228,13 +254,6 @@ struct mu_option mu_config_options[] = {
   MU_OPTION_END  
 };
 
-struct mu_option mu_user_config_options[] = {
-  { "no-user-config", 0,  NULL,        MU_OPTION_IMMEDIATE,
-    N_("do not load user configuration file"),
-    mu_c_string, NULL, no_user_config },
-  { "no-user-rcfile", 0,  NULL,        MU_OPTION_ALIAS },
-  MU_OPTION_END
-};
 
 static void
 show_comp_defaults (struct mu_parseopt *po, struct mu_option *opt,
@@ -607,6 +626,29 @@ mu_cli_ext (int argc, char **argv,
   else if (argc)
     mu_parseopt_error (&po, "%s", _("unexpected arguments"));
 
+#if defined(MU_LEGACY_CONFIG_FILE)
+  if ((hints.flags & MU_CFHINT_SITE_FILE)
+      && strcmp (hints.site_file, MU_SITE_CONFIG_FILE) == 0)
+    {
+      if (access (MU_LEGACY_CONFIG_FILE, F_OK) == 0)
+	{
+	  if (access (hints.site_file, F_OK) == 0)
+	    {
+	      mu_diag_output (MU_DIAG_WARNING,
+			      _("legacy configuration file %s ignored"),
+			      MU_LEGACY_CONFIG_FILE);
+	    }
+	  else
+	    {
+	      mu_diag_output (MU_DIAG_WARNING,
+			      _("using legacy configuration file %s: please rename it to %s"),
+		              MU_LEGACY_CONFIG_FILE, MU_SITE_CONFIG_FILE);
+	      hints.site_file = MU_LEGACY_CONFIG_FILE;
+	    }
+	}
+    }  
+#endif
+  
   if (mu_cfg_parse_config (&parse_tree, &hints))
     exit (setup->ex_config);
 
