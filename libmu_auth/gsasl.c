@@ -39,12 +39,8 @@
 #include <gsasl.h>
 
 struct mu_gsasl_module_data mu_gsasl_module_data = {
-  1,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  SITE_CRAM_MD5_PWD
+  .enable = 1,
+  .cram_md5_pwd = SITE_CRAM_MD5_PWD
 };
 
 static struct mu_cfg_param mu_gsasl_param[] = {
@@ -65,7 +61,7 @@ static struct mu_cfg_param mu_gsasl_param[] = {
   { "anonymous-user", mu_c_string, &mu_gsasl_module_data.anon_user, 0, NULL,
     N_("Anonymous user name."),
     N_("name") },
-
+  
   { NULL }
 };
 

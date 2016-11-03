@@ -231,7 +231,7 @@ Don't load site-wide and user configuration files.
 
 @xopindex{set, introduced}
 @item --set=@var{path}=@var{value}
-Set configuration variable.
+Set configuration variable.  @xref{the --set option}.
 @end table
 
 @node configuration
@@ -292,12 +292,10 @@ following warning will be issued:
 
 Client utilities, such as @command{frm} or @command{sieve}, look in
 the user home directory for a file named @samp{.@var{prog}}, where
-@var{prog} is the name of the utility.  If it is present, it will be
-loaded after loading the site-wide configuration file.  This file
-allows users to customize such utilities.
-
-For example, the per-user configuration file for @command{sieve}
-utility is named @file{.sieve}. 
+@var{prog} is the name of the utility.  If present, this file will be
+loaded after loading the site-wide configuration file.  For example,
+the per-user configuration file for @command{sieve} utility is named
+@file{.sieve}.
 
 @xopindex{no-user-config, described}
 Loading of per-user configuration file is disabled by
@@ -320,40 +318,42 @@ case, default configuration files are not used at all.
 
 @xopindex{config-verbose, described}
 Neither site-wide nor user configuration files are required to
-exist.  If any or both of them are absent, GNU Mailutils does not
-complain, and the utility falls back to its default settings.  To make
-configuration processing more verbose, use the
+exist.  If any or both of them are absent, GNU Mailutils won't
+complain -- the utility will silently fall back to its default
+settings.
+
+To make configuration processing more verbose, use the
 @option{--config-verbose} command line option.  Here is an example of
 what you might get using this option:
 
 @example
-imap4d: Info: parsing file `/etc/mailutils.rc'
-imap4d: Info: finished parsing file `/etc/mailutils.rc'
+imap4d: parsing file `/etc/mailutils.conf'
+imap4d: finished parsing file `/etc/mailutils.conf'
 @end example
 
 Specifying this option more than once adds more verbosity to this
 output.  If this option is given two times, GNU Mailutils will print
-any configuration file statement it parsed, along with the exact
+each configuration file statement it parsed, along with the exact
 location where it occurred (the exact meaning of each statement will
 be described later in this chapter):
 
 @example
-imap4d: Info: parsing file `/etc/mailutils.rc'
-@hashchar{} 1 "/etc/mailutils.rc"
+imap4d: parsing file `/etc/mailutils.conf'
+@hashchar{} 1 "/etc/mailutils.conf"
 mailbox @{
-@hashchar{} 2 "/etc/mailutils.rc"
+@hashchar{} 2 "/etc/mailutils.conf"
   mailbox-pattern maildir:/var/spool/mail;type=index;param=2;user=$@{user@};
-@hashchar{} 3 "/etc/mailutils.rc"
+@hashchar{} 3 "/etc/mailutils.conf"
   mailbox-type maildir;
 @};
-@hashchar{} 6 "/etc/mailutils.rc"
+@hashchar{} 6 "/etc/mailutils.conf"
 include /etc/mailutils.d;
-imap4d: Info: parsing file `/etc/mailutils.d/imap4d'
+imap4d: parsing file `/etc/mailutils.d/imap4d'
 ...
 @end example
 
 @xopindex{config-lint, described}
-  To test configuration file without actually starting the utility,
+  To test configuration file without actually running the utility,
 use the @option{--config-lint} command line option.  With this option,
 any Mailutils utility exits after finishing parsing of the
 configuration files.  Any errors occurred during parsing are displayed
@@ -368,11 +368,11 @@ configuration file.  For example, the simplest way to write a
 configuration file for, say, @command{imap4d} is to run
 
 @example
-$ imap4d --config-help > imap4d.rc
+$ imap4d --config-help > imap4d.conf
 @end example
 
 @noindent
-and to edit the @file{imap4d.rc} file with your editor of choice.
+and to edit the @file{imap4d.conf} file with your editor of choice.
 
 The order in which configuration files are loaded defines the
 precedence of their settings.  Thus, for client utilities, settings
@@ -391,7 +391,8 @@ following:
 $ imap4d --set .logging.syslog=no
 @end example
 
-Configuration pathnames are discussed in detail in @ref{Paths}.
+Configuration pathnames are discussed in detail in @ref{Paths}.  For a
+detailed description of this option, @ref{the --set option}.
 
 The @option{--set} options are processed after loading all
 configuration files.
@@ -716,6 +717,76 @@ component separator, e.g.:
 .program="a.out".bar.baz
 @end example
 
+@anchor{the --set option}
+The @option{--set} command line option allows you to set configuration
+variables from the command line.  Its argument consists of the
+statement path and value, separated by a single equals sign (no
+whitespace is permitted at either side of it).  For example, the
+following option:
+
+@example
+--set .logging.facility=mail
+@end example
+
+@noindent
+has the same effect as the following statement in the configuration
+file:
+
+@example
+logging @{
+    facility mail;
+@}
+@end example
+
+Values set using this option override those set in the configuration
+files.  This provides a convenient way for temporarily changing
+configuration without altering configuration files.
+
+Notice, that when using @option{--set}, the @samp{=} sign has two
+purposes: first it separates statement path from the value, thus
+forming an assignment, and secondly it can be used within the path
+itself to introduce a tag.  To illustrate this, let's assume you have
+the following statement in your configuration file:
+
+@example
+@group
+program pop3d @{
+    logging @{
+       facility mail;
+    @}
+    server 0.0.0.0 @{
+       transcript no;
+    @}
+@}
+@end group
+@end example
+
+Now assume you wish to temporarily change logging facility to
+@samp{local1}.  The following option will do this:
+
+@example
+--set .program=pop3d.logging.facility=local1
+@end example
+
+When splitting the argument to @option{--set}, the option parser
+always looks for the rightmost equals sign.  Everything to the right
+of it is the value, and everything to the left of it - the path.
+
+If the tag contains dots (as the @code{server} statement in the
+example above), you should either escape them with slashes or change
+the pathname separator to some other character, e.g.:
+
+@example
+--set .program=pop3d.server='0\.0\.0\.0'.transcript=yes
+@end example
+
+@noindent
+or
+
+@example
+--set /program=pop3d/server="0.0.0.0"/transcript=yes
+@end example
+
 @node Variables
 @subsection Configuration Variables
 @cindex variable expansion
@@ -767,15 +838,16 @@ each configuration statement.
 @anchor{Include} @c for backward-compatibility
 @cindex include statement, configuration file
 @kwindex include
-  The @dfn{include statement} is a special statement that causes
-inclusion of the named file.  It has the following syntax:
+  A special statement is provided that causes inclusion of the named
+file.  It has the following syntax: 
 
 @example
 include @var{file};
 @end example
 
-The effect of this statement is that the contents of this @var{file} is
-included in this point.
+When reading the configuration file, this statement is effectively
+replaced with the content of @var{file}.  It is an error if @var{file}
+does not exist.
 
 In site-wide configuration file, @var{file} can be a directory name.
 In this case, Mailutils will search this directory for a file with the
@@ -815,11 +887,10 @@ temporary storage are processed.
 
 Notice the difference between this statement and a per-program
 configuration file loaded via an @code{include} statement.  No matter
-where in the file the @command{program} statement is, it is always
-processed after the entire configuraion file is processed.  In the
+where in the file the @command{program} statement is, its content will
+be processed after the content of the enclosing file.  In the
 contrast, the per-program configuration file loaded via @code{include}
-with the directory name as its argument is processed right where it is
-encountered.
+is processed right where it is encountered.
 
 @node logging statement
 @subsection The @code{logging} Statement
@@ -966,19 +1037,16 @@ favor of @code{mailbox-pattern} statement.
 The @code{mailbox-pattern} statement is a preferred way of configuring
 mailbox locations.  It supersedes @code{mail-spool} statement.
 
-The @var{url} is valid mailbox URL (@pxref{Mailbox}), which 
+The @var{url} must be a valid mailbox URL (@pxref{Mailbox}), which 
 may contain references to the @samp{user} variable
 (@pxref{Variables}).  This variable will be expanded to the actual
 user name.
 
 @anchor{local URL parameters}
-Optional URL parameters can be used to configure indexed directory
-structure.
-
 @cindex directory indexing
-An @dfn{indexed directory structure} is a special way of storing
-mailboxes, which allows for faster access in case of very large
-number of users. 
+Optional URL parameters can be used to configure @dfn{indexed directory
+structure}.  Such structure is a special way of storing mailboxes,
+which allows for faster access in case of very large number of users. 
 
 By default, all user mailboxes are stored in a single directory and
 are named after user login names.  To find the mailbox for a given
@@ -999,7 +1067,8 @@ user mailbox is determined using the following algorithm:
 @enumerate 1
 @item Take the first letter of the user name.
 @item Map it to a lower-case letter using @dfn{index mapping}
-table.  The result gives sub-directory name.
+table.  The result gives the name of a sub-directory where the mailbox
+is located.
 @item Descend into this directory.
 @end enumerate
 
@@ -1041,7 +1110,7 @@ arguments:
 @table @asis
 @kwindex type
 @item type=@var{value}
-Specifies type of indexing.  Valid values are @samp{index}, for direct
+Specifies the type of indexing.  Valid values are @samp{index}, for direct
 indexed structure, @samp{rev-index} for reverse indexing, and
 @samp{hash} for hashed structure.
 
@@ -1085,22 +1154,22 @@ If neither @code{mailbox-pattern} nor @code{mail-spool} are given, the
 mailbox names are determined using the following algorithm:
 
 @enumerate 1
-@item If environment variable @env{FOLDER} its value is used.
-@item Otherwise, if environment variable @env{MAIL} is set, its value
-is used.
-@item If neither of these is set, the mailbox name is constructed by
+@item If environment variable @env{FOLDER} is set, use its value.
+@item Otherwise, if environment variable @env{MAIL} is set, use its
+value.
+@item If neither of these is set, construct the mailbox name by 
 concatenating the built-in mail spool directory name, a directory
 separator, and the user name.
 
 The built-in mail spool directory name is determined at compile
-time, using @samp{_PATH_MAILDIR} define from the include file
+time, using the @samp{_PATH_MAILDIR} define from the include file
 @file{paths.h}.  If this value is not defined, @file{/var/mail} or
 @file{/usr/spool/mail} is used.
 @end enumerate
 
 @deffn {Configuration} mailbox-type @var{type}
 @vrindex MU_DEFAULT_SCHEME
-Specifies type of mailboxes.  By default, @samp{mbox} (UNIX mailbox)
+Specifies the type of mailboxes.  By default, @samp{mbox} (UNIX mailbox)
 is assumed.  This can be changed while configuring the package by
 setting @code{MU_DEFAULT_SCHEME} configuration variable.  The default
 value can be verified by running @command{mailutils info scheme}.
@@ -1157,7 +1226,7 @@ the following letters:
 
 @table @asis
 @item E
-Use an external program to manage locks.  The program is given by
+Use an external program to manage locks.  The program is given by the
 @code{external-locker} statement (see below).
 
 @item R
@@ -1192,8 +1261,9 @@ seconds ago.  The @samp{T} flag must be set for this to take effect.
 @end deffn
 
 @deffn {Configuration} external-locker @var{string}
-Set command line of an external locker program.  The @samp{E} flag
-must be set for this to take effect. 
+Determines the external locker program to use.  The @var{string}
+argument is the valid command line, starting with the full program
+name.  The @samp{E} flag must be set for this to take effect. 
 @end deffn
 
 @node mailer statement
@@ -1429,15 +1499,15 @@ Access control using TCP wrappers is based on two files, called
 @dfn{tables}, containing access rules.  There are two tables: the
 @dfn{allow table}, usually stored in file @file{/etc/hosts.allow}, and
 the @dfn{deny table}, kept in file @file{/etc/hosts.deny}.  The rules
-in each table begin with an identifier called @dfn{daemon name}.  Each
-utility wishing to verify a connection, select the entries having
+in each table begin with an identifier called @dfn{daemon name}.  A
+utility that wishes to verify a connection, selects the entries having
 its daemon name from the allow table.  A connection is allowed if it
 matches any of these entries.  Otherwise, the utility retrieves all
 entries with its daemon name from the deny table.  If any of these
 matches the connection, then it is refused.  Otherwise, if neither
 table contains matching entries, the connection is allowed.
 
-Description of a TCP wrapper table format lies outside the scope of
+The description of a TCP wrapper table format lies outside the scope of
 this document.  Please, see @ref{ACCESS CONTROL FILES,,ACCESS CONTROL FILES,
 hosts_access(5), hosts_access(5) man page}, for details.
 
@@ -1562,7 +1632,7 @@ After startup, store the PID of the main server process in
 @var{file}.  When the process terminates, the file is removed.  As of
 version @value{VERSION}, GNU Mailutils servers make no further use of
 this file.  It is intended for use by automated startup scripts and
-controlling programs (@FIXME-pxref{mention pies}).
+controlling programs (e.g. @pxref{Top, GNU pies,, pies, GNU Pies Manual}).
 @end deffn
 
 @deffn {Configuration} port @var{portspec};
@@ -1646,7 +1716,7 @@ in debugging.  They should be turned off on most production servers.
 @end deffn
 
 @deffn {Configuration} timeout @var{time};
-Set idle timeout for this server.  This overrides global timeout
+Set idle timeout for this server.  This overrides the global timeout
 settings (@pxref{General Server Configuration, timeout}).
 @end deffn
 
@@ -1779,13 +1849,18 @@ database.  @xref{ldap statement}, for an information on how to
 configure it.
 @end table
 
-@FIXME{This may be inaccurate:}
 Unless overridden by @code{authorization} statement,
 the default list of authorization modules is:
 
-@example
-  (system, sql, virtdomains)
-@end example
+@enumerate 1
+@item generic
+@item system
+@item pam
+@item sql
+@item virtual
+@item radius
+@item ldap
+@end enumerate
 @end deffn
 
 @deffn {Configuration} authentication @var{module-list}
@@ -1816,19 +1891,24 @@ server.  @xref{radius statement}.
 The user is authenticated using @acronym{LDAP}.  @xref{ldap statement}.
 @end table
 
-@FIXME{This list is inaccurate:}
 Unless overridden by @code{authentication} statement,
-the list of authentication modules is:
+the list of authentication modules is the same as for
+@code{authorization}, i.e.:
 
-@example
-  (generic, system, pam, sql)
-@end example
+@enumerate 1
+@item generic
+@item system
+@item pam
+@item sql
+@item virtual
+@item radius
+@item ldap
+@end enumerate
 @end deffn
 
 @node pam statement
 @subsection PAM Statement
 @anchor{PAM Statement}
-@UNREVISED
 @kwindex pam
 @subheading Syntax
 @example
@@ -1853,7 +1933,6 @@ This statement takes effect only if @samp{pam} is listed in
 @node virtdomain statement
 @subsection The @code{virtdomain} Statement
 @anchor{Virtdomain Statement}
-@UNREVISED
 @kwindex virtdomain
 @subheading Syntax
 @example
@@ -1880,8 +1959,8 @@ latter is set using @code{passwd-dir} statement.
 Set virtual domain password directory.
 @end deffn
 
-For example, when authenticating user @samp{smith@@domain.tld},
-the server will use password file named @file{@var{dir}/domain.tld}.
+For example, when authenticating user @samp{smith@@example.com},
+the server will use password file named @file{@var{dir}/example.com}.
 This file must be in UNIX passwd format (@pxref{password
 file,,,passwd(5), passwd(5) man page}), with encrypted passwords
 stored in it (as of GNU Mailutils version @value{VERSION}, there is no
@@ -1911,7 +1990,6 @@ file.
 @node radius statement
 @subsection The @code{radius} Statement
 @anchor{Radius Statement}
-@UNREVISED
 @kwindex radius
 @subheading Syntax
 @example
@@ -2043,7 +2121,7 @@ The attributes @code{GNU-MU-Mailbox} and @code{GNU-MU-Quota} are
 optional.
 
 If @code{GNU-MU-Mailbox} is present, it must contain a
-valid mailbox @acronym{URL} (@FIXME-pxref{urls}).  If
+valid mailbox @acronym{URL} (@pxref{Mailbox, URL}).  If
 @code{GNU-MU-Mailbox} is not present, Mailutils constructs the
 mailbox name using the settings from the @code{mailbox} configuration
 statement (@pxref{Mailbox Statement}), or built-in defaults, if it is
@@ -2071,7 +2149,6 @@ request (see above).
 @node sql statement
 @subsection The @code{sql} Statement
 @anchor{SQL Statement}
-@UNREVISED
 @kwindex sql
 @subheading Syntax
 @example
@@ -2091,7 +2168,7 @@ sql @{
   # @r{Type of password returned by getpass query.}
   password-type @samp{plain | hash | scrambled};
   # @r{Set a field-map for parsing SQL replies.}
-  field-map @var{map};
+  field-map @var{list};
   # @r{SQL query returning the user's password.}
   getpass @var{query};
   # @r{SQL query to use for getpwnam requests.}
@@ -2155,10 +2232,101 @@ Name of the database.
 Password to access the database.
 @end deffn
 
+@deffn {Configuration} password-encryption @var{arg};
+Defines type of encryption used by the password returned by
+@code{getpass} query (see below).  Possible arguments are:
+
+@table @asis
+@item plain
+Password is in plain text.
+
+@item crypt
+@itemx hash
+Password is encrypted by system @code{crypt} function
+(@pxref{crypt,,,crypt(3), crypt(3) man page}).
+
+@item scrambled
+Password is encrypted by MySQL @code{password} function.
+@end table
+@end deffn
+
+@deffn {Configuration} getpwnam @var{query}
+Defines SQL query that returns information about the given user.  The
+@var{query} is subject to variable expansion (@pxref{Variables}).  The
+only variable defined is @samp{$user}, which expands to the user name.
+
+@anchor{getpw column names}
+The query should return a single row with the following columns:
+
+@table @asis
+@item name
+User name.
+@item passwd
+User password.
+@item uid
+UID of the user.
+@item gid
+GID of the primary group.
+@item gecos
+Textual description of the user.
+@item dir
+User's home directory
+@item shell
+User's shell program.
+@end table
+
+The following columns are optional:
+
+@table @asis
+@item mailbox
+Full pathname of the user's mailbox.  If not returned or NULL, the
+mailbox is determined using the default algorithm (@pxref{Mailbox}).
+@item quota
+Upper limit on the size of the mailbox.  The value is either an
+integer number optionally followed by one of the usual size suffixes:
+@samp{K}, @samp{M}, @samp{G}, or @samp{T} (case-insensitive).
+@end table
+@end deffn
+
+@deffn {Configuration} getpwuid @var{query}
+Defines SQL query that returns information about the given UID.  The
+@var{query} is subject to variable expansion (@pxref{Variables}).  The
+only variable defined is @samp{$user}, which expands to the UID.
+
+The query should return a single row, as described for @code{getpwnam}.
+@end deffn
+
+@deffn {Configuration} getpass @var{query}
+Defines SQL query that returns the password of the given user.  The
+@var{query} is subject to variable expansion (@pxref{Variables}).  The
+only variable defined is @samp{$user}, which expands to the user name.
+
+The query should return a row with a single column, which gives the
+password.  The password can be encrypted as specified by the
+@code{password-encryption} statement.
+@end deffn
+
+@deffn {Configuration} field-map @var{list}
+Defines a translation map for column names.   The @var{list} is a
+list of mappings.  Each mapping is a string
+@samp{@var{name}=@var{column}}, where @var{name} is one of the names
+described in @ref{getpw column names}, and @var{column} is the name of
+the column in the returned row that should be used instead.  The effect of
+this statement is similar to that of SQL @code{AS} keyword.  E.g. the
+statement
+
+@example
+field-map (uid=user_id);
+@end example
+
+@noindent
+has the same effect as using @samp{SELECT user_id AS uid} in the SQL
+statement.
+@end deffn
+
 @node ldap statement
 @subsection The @code{ldap} Statement
 @anchor{LDAP Statement}
-@WRITEME
 @kwindex ldap
 @subheading Syntax
 @example
@@ -2178,18 +2346,107 @@ ldap @{
   # @r{Set LDAP debugging level.}
   debug @var{number};
   # @r{Set a field-map for parsing LDAP replies.}
-  field-map @var{map};
+  field-map @var{list};
   # @r{LDAP filter to use for getpwnam requests.}
   getpwnam @var{string};
   # @r{LDAP filter to use for getpwuid requests.}
   getpwuid @var{filter};
 @}
 @end example
+@subheading Description
+The @code{ldap} statement configures the use of LDAP for authentication.
+
+@deffn {Configuration} enable @var{bool}
+Enables LDAP lookups.  If absent, @samp{enable On} is assumed.
+@end deffn
+
+@deffn {Configuration} url @var{url}
+Sets the URL of the LDAP server.
+@end deffn
+
+@deffn {Configuration} base @var{string}
+Defines base DN for LDAP lookups.
+@end deffn
+
+@deffn {Configuration} binddn @var{string}
+Defines the DN for accessing LDAP database.
+@end deffn
+
+@deffn {Configuration} passwd @var{string}
+Password for use when binding to the database.
+@end deffn
+
+@deffn {Configuration} tls @var{bool}
+Enable the use of TLS when connecting to the server.
+@end deffn
+
+@deffn {Configuration} debug @var{number}
+Set LDAP debug level.  Please refer to the OpenLDAP documentation, for
+allowed @var{number} values and their meaning.
+@end deffn
+
+@deffn {Configuration} field-map @var{map} 
+Defines a map for parsing LDAP replies.  The @var{map} is a list
+of mappings@footnote{For backward compatibility, @var{map} can be a
+string containing colon-delimited list of mappings.  Such usage is,
+however, deprecated.}.  Each mapping is @samp{@var{field}=@var{attr}}, where
+@var{attr} is the name of the LDAP attribute and @var{field} is a
+field name that declares what information that attribute carries.
+Available values for @var{field} are:
+
+@table @asis
+@item name
+User name.
+@item passwd
+User password.
+@item uid
+UID of the user.
+@item gid
+GID of the primary group.
+@item gecos
+Textual description of the user.
+@item dir
+User's home directory
+@item shell
+User's shell program.
+@end table
+
+The default mapping is
+
+@example
+@group
+  ("name=uid",
+   "passwd=userPassword",
+   "uid=uidNumber",
+   "gid=gidNumber",
+   "gecos=gecos",
+   "dir=homeDirectory",
+   "shell=loginShell")
+@end group
+@end example
+@end deffn
+
+@deffn {Configuration} getpwnam @var{string}
+Defines the LDAP filter to use for @samp{getpwnam} requests.  The
+default is:
+
+@example
+  (&(objectClass=posixAccount) (uid=$user))
+@end example
+@end deffn
+
+@deffn {Configuration} getpwuid @var{string}
+Defines the LDAP filter to use for @samp{getpwuid} requests.  The
+default filter is:
+
+@example
+  (&(objectClass=posixAccount) (uidNumber=$user))
+@end example
+@end deffn
 
 @node tls statement
 @subsection The @code{tls} Statement
 @anchor{TLS Statement}
-@WRITEME
 @kwindex tls
 @subheading Syntax
 @example
@@ -2197,13 +2454,80 @@ tls @{
   # @r{Enable TLS support.}
   enable @var{bool};
   # @r{Specify SSL certificate file.}
-  ssl-cert @var{bool};
+  ssl-cert @var{string};
   # @r{Specify SSL certificate key file.}
   ssl-key @var{file};
   # @r{Specify trusted CAs file.}
   ssl-cafile @var{file};
+  # @r{Set the priorities to use on the ciphers, methods, etc.}
+  ssl-priorities @var{string};
+  # @r{Configure safety checks for SSL key file.}
+  key-file-safety-checks @var{list};
+  # @r{Configure safety checks for SSL certificate.}
+  cert-file-safety-checks @var{list};
+  # @r{Configure safety checks for SSL CA file.}
+  ca-file-safety-checks @var{list};
 @}
 @end example
+@subheading Description
+
+@deffn {Configuration} enable @var{bool}
+Enable TLS support.  If absent, @samp{enable On} is assumed.
+@end deffn
+
+@deffn {Configuration} ssl-cert @var{string}
+Specify SSL certificate file.
+@end deffn
+
+@deffn {Configuration} ssl-key @var{file}
+Specify SSL certificate key file.
+@end deffn
+
+@deffn {Configuration} ssl-cafile @var{file}
+Specify the trusted certificate authorities file.
+@end deffn
+
+@deffn {Configuration} ssl-priorities @var{string}
+Set the priorities to use on the ciphers, key exchange methods, MACs
+and compression methods.
+@end deffn
+
+@deffn {Configuration} key-file-safety-checks @var{list}
+Configure safety checks for SSL key file.  Elements of the @var{list} are
+names of individual checks, optionally prefixed with @samp{+} to enable or 
+@samp{-} to disable the corresponding check.  Valid check names are:
+
+@table @asis
+@item none
+Disable all checks.
+@item all
+Enable all checks.
+@item gwrfil
+Forbid group writable files.
+@item awrfil
+Forbid world writable files.
+@item grdfil
+Forbid group readable files.
+@item ardfil
+Forbid world writable files.
+@item linkwrdir
+Forbid symbolic links in group or world writable directories.
+@item gwrdir
+Forbid files in group writable directories.
+@item awrdir
+Forbid files in world writable directories,
+@end table
+@end deffn
+
+@deffn {Configuration} cert-file-safety-checks @var{list}
+Configure safety checks for SSL certificate.  See
+@code{key-file-safety-checks} for a description of @var{list}.
+@end deffn
+
+@deffn {Configuration} ca-file-safety-checks @var{list}
+Configure safety checks for SSL CA file.  See
+@code{key-file-safety-checks} for a description of @var{list}.
+@end deffn
 
 @node gsasl statement
 @subsection The @code{gsasl} Statement
@@ -8226,13 +8550,13 @@ optional @var{col} is the column number in that file.
 For example, the following invocation:
 
 @example
-mailutils logger --locus mailutils.rc:34 Suspicious statement
+mailutils logger --locus mailutils.conf:34 Suspicious statement
 @end example
 
 will send the following to the log:
 
 @example
-mu-logger: mailutils.rc:34: Suspicious statement
+mu-logger: mailutils.conf:34: Suspicious statement
 @end example
 
 @node mailutils pop

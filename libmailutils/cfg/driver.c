@@ -38,7 +38,7 @@
 #include <mailutils/stream.h>
 #include <mailutils/assoc.h>
 #include <mailutils/alloc.h>
-
+#include <mailutils/cstr.h>
 
 static mu_assoc_t section_tab;
 
@@ -587,3 +587,92 @@ mu_cfg_string_value_cb (mu_config_value_t *val,
     }
   return rc;
 }
+
+struct mapping_closure
+{
+  mu_assoc_t assoc;
+  char *err_term;
+  int err;
+};
+
+static int
+parse_mapping (void *item, void *data)
+{
+  struct mapping_closure *clos = data;
+  char *str = item;
+  size_t len;
+  char *key, *val;
+  
+  len = strcspn (str, "=");
+  if (str[len] == 0)
+    {
+      clos->err_term = mu_strdup (str);
+      return MU_ERR_PARSE;
+    }
+  key = mu_alloc (len + 1);
+  memcpy (key, str, len);
+  key[len] = 0;
+  val = mu_strdup (str + len + 1);
+  if (!val)
+    return ENOMEM;
+  clos->err = mu_assoc_install (clos->assoc, key, &val);
+  free (key);
+  if (clos->err)
+    return 1;
+  return 0;
+}
+
+static void
+assoc_str_free (void *data)
+{
+  free (data);
+}
+
+int
+mu_cfg_field_map (struct mu_config_value const *val, mu_assoc_t *passoc,
+		  char **err_term)
+{
+  int rc;
+  struct mapping_closure clos;
+  mu_list_t list = NULL;
+  
+  rc = mu_assoc_create (&clos.assoc, sizeof(char*), 0);
+  if (rc)
+    return rc;
+  mu_assoc_set_free (clos.assoc, assoc_str_free);
+  clos.err_term = NULL;
+  
+  switch (val->type)
+    {
+    case MU_CFG_STRING:
+      mu_list_create (&list);
+      mu_list_set_destroy_item (list, mu_list_free_item);
+      rc = mu_string_split (val->v.string, ":", list);
+      if (rc == 0)
+	rc = mu_list_foreach (list, parse_mapping, &clos);
+      mu_list_destroy (&list);
+      break;
+
+    case MU_CFG_LIST:
+      rc = mu_list_foreach (val->v.list, parse_mapping, &clos);
+      break;
+
+    case MU_CFG_ARRAY:
+      rc = EINVAL;
+    }
+
+  if (rc)
+    {
+      if (err_term)
+	*err_term = clos.err_term;
+      else
+	free (clos.err_term);
+      mu_assoc_destroy (&clos.assoc);
+    }
+  else
+    *passoc = clos.assoc;
+  
+  return rc;
+}
+
+

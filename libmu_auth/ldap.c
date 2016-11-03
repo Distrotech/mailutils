@@ -60,24 +60,22 @@ const char *default_field_map =
 "shell=loginShell";
 
 static struct mu_ldap_module_config ldap_param;
-
-
 
-static int
-_cb2_field_map (const char *arg, void *data)
-{
-  int err;
-  int rc = mutil_parse_field_map (arg, &ldap_param.field_map, &err);
-  if (rc)
-    /* FIXME: this message can be misleading */
-    mu_error (_("error near element %d: %s"), err, mu_strerror (rc));
-  return 0;
-}
-
 static int
 cb_field_map (void *data, mu_config_value_t *val)
 {
-  return mu_cfg_string_value_cb (val, _cb2_field_map, NULL);
+  char *err_term;
+  int rc = mu_cfg_field_map (val, &ldap_param.field_map, &err_term);
+
+  if (rc)
+    {
+      if (err_term)
+	mu_error (_("error near %s: %s"), err_term, mu_strerror (rc));
+      else
+	mu_error ("%s", mu_strerror (rc));
+    }
+
+  return rc;
 }
 
 static struct mu_cfg_param mu_ldap_param[] = {
@@ -140,14 +138,18 @@ module_init (void *ptr)
   if (ldap_param.enable)
     {
       if (!ldap_param.getpwnam_filter)
-	ldap_param.getpwnam_filter = "(&(objectClass=posixAccount) (uid=%u))";
+	ldap_param.getpwnam_filter =
+	  "(&(objectClass=posixAccount) (uid=$user))";
       if (!ldap_param.getpwuid_filter)
 	ldap_param.getpwuid_filter =
-	  "&(objectClass=posixAccount) (uidNumber=%u))";
+	  "(&(objectClass=posixAccount) (uidNumber=$user))";
       if (!ldap_param.field_map)
 	{
-	  int d;
-	  mutil_parse_field_map (default_field_map, &ldap_param.field_map, &d);
+	  struct mu_config_value val;
+	  val.type = MU_CFG_STRING;
+	  val.v.string = default_field_map;
+	  if (mu_cfg_field_map (&val, &ldap_param.field_map, NULL))
+	    abort ();
 	}
     }
 }

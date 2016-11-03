@@ -297,6 +297,10 @@ int mu_cfg_create_subtree (const char *path, mu_cfg_node_t **pnode);
 int mu_cfg_parse_config (mu_cfg_tree_t **ptree,
 			 struct mu_cfg_parse_hints *hints);
 
+int mu_cfg_field_map (struct mu_config_value const *val, mu_assoc_t *passoc,
+		      char **err_term);
+
+
 #ifdef __cplusplus
 }
 #endif

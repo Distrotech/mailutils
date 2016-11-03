@@ -243,7 +243,7 @@ retrieve_password (Gsasl *ctx, Gsasl_session *sctx)
     }
   
 #ifdef USE_SQL
-  if (mu_sql_module_config.password_type == password_plaintext)
+  if (mu_sql_module_config.password_encryption == mu_sql_password_plaintext)
     {
       char *passwd;
       int status = mu_sql_getpass (*username, &passwd);

@@ -51,38 +51,53 @@
 #include <mailutils/cstr.h>
 #include <mailutils/wordsplit.h>
 #include <mailutils/cli.h>
+#include <mailutils/kwd.h>
 #include "sql.h"
 
 #ifdef USE_SQL
 
 struct mu_sql_module_config mu_sql_module_config;
+
 /* Resource file configuration */
-static int
-cb_password_type (void *data, mu_config_value_t *val)
-{
-  if (mu_cfg_assert_value_type (val, MU_CFG_STRING))
-    return 1;
-  
-  if (mu_sql_decode_password_type (val->v.string, &mu_sql_module_config.password_type))
-    mu_error (_("unknown password type `%s'"), val->v.string);
-  return 0;
-}
+
+static struct mu_kwd password_encryption[] = {
+  { "plain", mu_sql_password_plaintext },
+  { "scrambled", mu_sql_password_scrambled },
+  { "hash", mu_sql_password_hash },
+  { "crypt", mu_sql_password_hash },
+  { NULL }
+};
 
 static int
-_cb2_field_map (const char *arg, void *data)
+cb_password_encryption (void *data, mu_config_value_t *val)
 {
-  int err;
-  int rc = mutil_parse_field_map (arg, &mu_sql_module_config.field_map, &err);
-  if (rc)
-    /* FIXME: this message may be misleading */
-    mu_error (_("error near element %d: %s"), err, mu_strerror (rc));
+  int res;
+  
+  if (mu_cfg_assert_value_type (val, MU_CFG_STRING))
+    return 1;
+
+  if (mu_kwd_xlat_name (password_encryption, val->v.string, &res))
+    mu_error ("%s", _("unrecognized password encryption"));
+  else
+    mu_sql_module_config.password_encryption = res;
   return 0;
 }
 
 static int
 cb_field_map (void *data, mu_config_value_t *val)
 {
-  return mu_cfg_string_value_cb (val, _cb2_field_map, NULL);
+  char *err_term;
+  int rc = mu_cfg_field_map (val, &mu_sql_module_config.field_map, &err_term);
+
+  if (rc)
+    {
+      if (err_term)
+	mu_error (_("error near %s: %s"), err_term, mu_strerror (rc));
+      else
+	mu_error ("%s", mu_strerror (rc));
+    }
+
+  return rc;
 }
 
 static int
@@ -124,12 +139,10 @@ static struct mu_cfg_param mu_sql_param[] = {
     N_("SQL server port.") },
   { "db", mu_c_string, &mu_sql_module_config.db, 0, NULL,
     N_("Database name.") },
-  { "password-type", mu_cfg_callback, NULL, 0, cb_password_type,
+  { "password-encryption", mu_cfg_callback, NULL, 0, cb_password_encryption,
     N_("Type of password returned by getpass query."),
     /* TRANSLATORS: Words to the right of : are keywords - do not translate */
-    N_("arg: plain|hash|scrambled") },
-  { "positional", mu_c_bool, &mu_sql_module_config.positional, 0, NULL,
-    N_("Use positional (v1.0 compatible) field interface.") },
+    N_("arg: plain|hash|crypt|scrambled") },
   { "field-map", mu_cfg_callback, NULL, 0, cb_field_map,
     N_("Set a field-map for parsing SQL replies.  The map is a "
        "column-separated list of definitions.  Each definition has the "
@@ -207,64 +220,7 @@ mu_sql_expand_query (const char *query, const char *ustr)
   free (esc_ustr);
   return res;
 }
-
 
-static int
-decode_tuple_v1_0 (mu_sql_connection_t conn, int n,
-		   struct mu_auth_data **return_data)
-{
-  int rc;
-  char *mailbox_name = NULL;
-  char *name;
-      
-  if (mu_sql_get_column (conn, 0, 0, &name))
-    return MU_ERR_FAILURE;
-
-  if (n == 7)
-    {
-      char *tmp;
-      if (mu_sql_get_column (conn, 0, 6, &tmp))
-	return MU_ERR_FAILURE;
-      if (tmp && (mailbox_name = strdup (tmp)) == NULL)
-	return ENOMEM;
-    }
-  else if (mu_construct_user_mailbox_url (&mailbox_name, name))
-    return MU_ERR_FAILURE;
-      
-  if (mailbox_name)
-    {
-      char *passwd, *suid, *sgid, *dir, *shell;
-	  
-      if (mu_sql_get_column (conn, 0, 1, &passwd)
-	  || !passwd
-	  || mu_sql_get_column (conn, 0, 2, &suid)
-	  || !suid
-	  || mu_sql_get_column (conn, 0, 3, &sgid)
-	  || !sgid
-	  || mu_sql_get_column (conn, 0, 4, &dir)
-	  || !dir
-	  || mu_sql_get_column (conn, 0, 5, &shell)
-	  || !shell)
-	return MU_ERR_FAILURE;
-      
-      rc = mu_auth_data_alloc (return_data,
-			       name,
-			       passwd,
-			       atoi (suid),
-			       atoi (sgid),
-			       "SQL User",
-			       dir,
-			       shell,
-			       mailbox_name,
-			       1);
-    }
-  else
-    rc = MU_ERR_AUTH_FAILURE;
-  
-  free (mailbox_name);
-  return rc;
-}
-
 static int
 get_field (mu_sql_connection_t conn, const char *id, char **ret, int mandatory)
 {
@@ -292,8 +248,8 @@ get_field (mu_sql_connection_t conn, const char *id, char **ret, int mandatory)
 }
 
 static int
-decode_tuple_new (mu_sql_connection_t conn, int n,
-		  struct mu_auth_data **return_data)
+decode_tuple (mu_sql_connection_t conn, int n,
+	      struct mu_auth_data **return_data)
 {
   int rc;
   char *mailbox_name = NULL;
@@ -402,16 +358,6 @@ decode_tuple_new (mu_sql_connection_t conn, int n,
   return rc;
 }  
 
-static int
-decode_tuple (mu_sql_connection_t conn, int n,
-	      struct mu_auth_data **return_data)
-{
-  if (mu_sql_module_config.field_map || !mu_sql_module_config.positional)
-    return decode_tuple_new (conn, n, return_data);
-  else
-    return decode_tuple_v1_0 (conn, n, return_data);
-}
- 
 static int
 mu_auth_sql_by_name (struct mu_auth_data **return_data,
 		     const void *key,
@@ -723,9 +669,9 @@ mu_sql_authenticate (struct mu_auth_data **return_data MU_ARG_UNUSED,
   if ((rc = mu_sql_getpass (auth_data->name, &sql_pass)))
     return rc;
 
-  switch (mu_sql_module_config.password_type)
+  switch (mu_sql_module_config.password_encryption)
     {
-    case password_hash:
+    case mu_sql_password_hash:
       crypt_pass = crypt (pass, sql_pass);
       if (!crypt_pass)
         rc = 1;
@@ -733,7 +679,7 @@ mu_sql_authenticate (struct mu_auth_data **return_data MU_ARG_UNUSED,
         rc = strcmp (sql_pass, crypt_pass);
       break;
 
-    case password_scrambled:
+    case mu_sql_password_scrambled:
       /* FIXME: Should this call be implementation-independent? I mean,
          should we have mu_sql_check_scrambled() that will match the
 	 password depending on the exact type of the underlying database,
@@ -745,7 +691,7 @@ mu_sql_authenticate (struct mu_auth_data **return_data MU_ARG_UNUSED,
 #endif
       break;
 
-    case password_plaintext:
+    case mu_sql_password_plaintext:
       rc = strcmp (sql_pass, pass);
       break;
     }

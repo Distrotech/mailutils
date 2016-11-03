@@ -20,11 +20,11 @@
 #define _MAILUTILS_SQL_H
 
 /* Configuration */
-enum mu_password_type
+enum mu_sql_password_encryption
   {
-    password_plaintext,       /* Plaintext passwords */
-    password_scrambled,       /* Scrambled MySQL (>=3.21) password */
-    password_hash,            /* MD5 (or DES or whatever) hash */
+    mu_sql_password_plaintext,       /* Plaintext passwords */
+    mu_sql_password_scrambled,       /* Scrambled MySQL (>=3.21) password */
+    mu_sql_password_hash,            /* MD5 (or DES or whatever) hash */
   };
 
 struct mu_sql_module_config
@@ -38,8 +38,7 @@ struct mu_sql_module_config
   char *passwd;
   char *db;
   int port;
-  enum mu_password_type password_type;
-  int positional;
+  enum mu_sql_password_encryption password_encryption;
   mu_assoc_t field_map;
 };
 
@@ -142,7 +141,5 @@ extern char *mu_sql_expand_query (const char *query, const char *ustr);
 extern int mu_sql_getpass (const char *username, char **passwd);
 extern int mu_check_mysql_scrambled_password (const char *scrambled,
 					      const char *message);
-
-int mu_sql_decode_password_type (const char *arg, enum mu_password_type *t);
 
 #endif
