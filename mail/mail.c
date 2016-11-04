@@ -23,6 +23,7 @@
 mu_mailbox_t mbox;            /* Mailbox being operated upon */
 size_t total;                 /* Total number of messages in the mailbox */
 int interactive;              /* Is the session interactive */  
+int read_recipients;          /* Read recipients from the message (mail -t) */
 
 static mu_list_t command_list;/* List of commands to be executed after parsing
 				 command line */
@@ -72,6 +73,8 @@ cli_command_option (struct mu_parseopt *po, struct mu_option *opt,
       break;
       
     case 't':
+      read_recipients = 1;
+      util_cache_command (&command_list, "set editheaders");
       util_cache_command (&command_list, "setq mode=send");
       break;
       
@@ -186,7 +189,7 @@ static struct mu_option mail_options[] = {
     mu_c_string, NULL, cli_subject },
   
   { "to",      't', NULL,       MU_OPTION_DEFAULT,
-    N_("precede message by a list of addresses"),
+    N_("read recipients from the message header"),
     mu_c_string, NULL, cli_command_option },
     
   { "user",    'u', N_("USER"), MU_OPTION_DEFAULT,
@@ -227,7 +230,7 @@ static struct mu_cli_setup cli = {
   options,
   NULL,
   N_("GNU mail -- process mail messages.\n"
-"If -f or --file is given, mail operates on the mailbox named "
+     "If -f or --file is given, mail operates on the mailbox named "
      "by the first argument, or the user's mbox, if no argument given."),
   N_("[address...]"),
   alt_args,
@@ -421,6 +424,12 @@ main (int argc, char **argv)
   /* argument parsing */
   mu_cli (argc, argv, &cli, mail_capa, NULL, &argc, &argv);
 
+  if (read_recipients)
+    {
+      argv += argc;
+      argc = 0;
+    }
+  
   if ((hint & (HINT_SEND_MODE|HINT_FILE_OPTION)) ==
       (HINT_SEND_MODE|HINT_FILE_OPTION))
     {

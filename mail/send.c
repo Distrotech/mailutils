@@ -488,8 +488,42 @@ mail_send (int argc, char **argv)
   compose_init (&env);
 
   if (argc < 2)
-    compose_header_set (&env, MU_HEADER_TO, ml_readline_with_intr ("To: "),
-			COMPOSE_REPLACE);
+    {
+      if (interactive)
+	compose_header_set (&env, MU_HEADER_TO, ml_readline_with_intr ("To: "),
+			    COMPOSE_REPLACE);
+      else if (!mailvar_get (NULL, "editheaders", mailvar_type_boolean, 0))
+	{
+	  if (parse_headers (mu_strin, &env) != parse_headers_ok)
+	    {
+	      mu_error ("%s", _("Errors parsing message"));
+	      exit (EXIT_FAILURE);
+	    }
+	  if (add_header_list)
+	    {
+	      mu_iterator_t itr;
+	      mu_list_get_iterator (add_header_list, &itr);
+	      for (mu_iterator_first (itr); !mu_iterator_is_done (itr);
+		   mu_iterator_next (itr))
+		{
+		  struct add_header *hp;
+		  int mode;
+		  if (mu_iterator_current (itr, (void**) &hp))
+		    break; 
+		  mode = hp->mode;
+		  if (mu_header_sget_value (env.header, hp->name, NULL) == 0)
+		    mode = COMPOSE_REPLACE;
+		  compose_header_set (&env, hp->name, hp->value, hp->mode);
+		}
+	      mu_iterator_destroy (&itr);
+	    }
+	}
+      else
+	{
+	  mu_error ("%s", _("No recipients specified"));
+	  exit (EXIT_FAILURE);
+	}
+    }
   else
     {
       while (--argc)
@@ -511,27 +545,137 @@ mail_send (int argc, char **argv)
 	}
     }
 
-  if (mailvar_get (NULL, "mailx", mailvar_type_boolean, 0))
-    read_cc_bcc (&env);
+  if (interactive)
+    {
+      if (mailvar_get (NULL, "mailx", mailvar_type_boolean, 0))
+	read_cc_bcc (&env);
 
-  if (mailvar_get (NULL, "asksub", mailvar_type_boolean, 0) == 0)
-    compose_header_set (&env, MU_HEADER_SUBJECT,
-			ml_readline_with_intr ("Subject: "), COMPOSE_REPLACE);
-
+      if (mailvar_get (NULL, "asksub", mailvar_type_boolean, 0) == 0)
+	compose_header_set (&env, MU_HEADER_SUBJECT,
+			    ml_readline_with_intr ("Subject: "),
+			    COMPOSE_REPLACE);
+    }
+  
   status = mail_send0 (&env, save_to);
   compose_destroy (&env);
   return status;
 }
+
+int
+parse_headers (mu_stream_t input, compose_env_t *env)
+{
+  int status;
+  mu_header_t header;
+  char *name = NULL;
+  char *value = NULL;
+  enum { STATE_INIT, STATE_READ, STATE_BODY } state = STATE_INIT;
+  char *buf = NULL;
+  size_t size = 0, n;
+  int errcnt = 0, line = 0;
+  
+  if ((status = mu_header_create (&header, NULL, 0)) != 0)
+    {
+      mu_error (_("Cannot create header: %s"), mu_strerror (status));
+      return parse_headers_fatal;
+    }
+  
+  while (state != STATE_BODY &&
+	 errcnt == 0 &&
+	 mu_stream_getline (input, &buf, &size, &n) == 0 && n > 0)
+    {
+      mu_rtrim_class (buf, MU_CTYPE_SPACE);
+
+      line++;
+      switch (state)
+	{
+	case STATE_INIT:
+	  if (!buf[0] || mu_isspace (buf[0]))
+	    continue;
+	  else
+	    state = STATE_READ;
+	  /*FALLTHRU*/
+	  
+	case STATE_READ:
+	  if (buf[0] == 0)
+	    state = STATE_BODY;
+	  else if (mu_isspace (buf[0]))
+	    {
+	      /* A continuation line */
+	      if (name)
+		{
+		  char *p = NULL;
+		  mu_asprintf (&p, "%s\n%s", value, buf);
+		  free (value);
+		  value = p;
+		}
+	      else
+		{
+		  mu_error (_("%d: not a header line"), line);
+		  errcnt++;
+		}
+	    }
+	  else
+	    {
+	      char *p;
+	      
+	      if (name)
+		{
+		  mu_header_set_value (header, name, value[0] ? value : NULL, 0);
+		  free (name);
+		  free (value);
+		  name = value = NULL;
+		}
+	      p = strchr (buf, ':');
+	      if (p)
+		{
+		  *p++ = 0;
+		  while (*p && mu_isspace (*p))
+		    p++;
+		  value = mu_strdup (p);
+		  name = mu_strdup (buf);
+		}
+	      else
+		{
+		  mu_error (_("%d: not a header line"), line);
+		  errcnt++;
+		}
+	    }
+	  break;
+	  
+	default:
+	  abort ();
+	}
+    }
+  
+  free (buf);
+  if (name)
+    {
+      mu_header_set_value (header, name, value, 0);
+      free (name);
+      free (value);
+    }     
+
+  if (errcnt)
+    {
+      mu_header_destroy (&header);
+      return parse_headers_error;
+    }
+
+  mu_header_destroy (&env->header);
+  env->header = header;
+  return parse_headers_ok;
+}
+
 
 void
-compose_init (compose_env_t * env)
+compose_init (compose_env_t *env)
 {
   memset (env, 0, sizeof (*env));
   mu_list_foreach (add_header_list, seed_headers, env);
 }
 
 int
-compose_header_set (compose_env_t * env, const char *name,
+compose_header_set (compose_env_t *env, const char *name,
 		    const char *value, int mode)
 {
   int status;
@@ -601,7 +745,7 @@ compose_header_set (compose_env_t * env, const char *name,
 }
 
 char *
-compose_header_get (compose_env_t * env, char *name, char *defval)
+compose_header_get (compose_env_t *env, char *name, char *defval)
 {
   char *p;
 

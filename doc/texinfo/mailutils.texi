@@ -236,7 +236,6 @@ Reading Mail
 @command{movemail} --- Moves Mail from the User Maildrop to the Local File
 
 * Movemail Configuration::
-* Movemail Options::     Description of the Available Options
 * Ownership::            Setting Destination Mailbox Ownership
 * Summary::              Short Movemail Invocation Summary
 

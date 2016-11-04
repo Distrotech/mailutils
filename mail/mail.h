@@ -288,6 +288,15 @@ extern int escape_attach (int argc, char **argv, compose_env_t *env);
 extern int escape_remove_attachment (int argc, char **argv,
 				     compose_env_t *env);
 
+enum
+  {
+    parse_headers_ok,
+    parse_headers_error,
+    parse_headers_fatal
+  };
+
+extern int parse_headers (mu_stream_t input, compose_env_t *env);
+
 /* Cursor */
 extern void set_cursor (unsigned value);
 extern size_t get_cursor (void);

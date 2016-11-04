@@ -194,49 +194,52 @@ set_mailbox_ownership_list (char const *str)
 }
 
 static int
-set_onerror_action (char const *str)
+set_onerror_action (void *item, void *data)
 {
-  struct mu_wordsplit ws;
-  static struct mu_kwd onerror_kw[] = {
-    { "skip", ONERROR_SKIP },
-    { "delete", ONERROR_DELETE },
-    { "count", ONERROR_COUNT },
-    { NULL }
-  };
-  int i, flag;
-  
+  char *str = item;
+
   if (strcmp (str, "abort") == 0)
+    onerror_flags = 0;
+  else
     {
-      onerror_flags = 0;
-      return 0;
-    }
-  ws.ws_delim = ",";
-  if (mu_wordsplit (str, &ws,
-		    MU_WRDSF_NOVAR | MU_WRDSF_NOCMD |
-		    MU_WRDSF_DELIM | MU_WRDSF_WS))
-    {
-      mu_error (_("cannot split argument: %s"), mu_wordsplit_strerror (&ws));
-      return 1;
-    }
-  for (i = 0; i < ws.ws_wordc; i++)
-    {
-      int clr = 0;
-      char *name = ws.ws_wordv[i];
-      
-      if (strncmp (name, "no", 2) == 0)
+      static struct mu_kwd onerror_kw[] = {
+	{ "skip", ONERROR_SKIP },
+	{ "delete", ONERROR_DELETE },
+	{ "count", ONERROR_COUNT },
+	{ NULL }
+      };
+      int flag, clr = 0;
+
+      if (strncmp (str, "no", 2) == 0)
 	{
 	  clr = 1;
-	  name += 2;
+	  str += 2;
 	}
-      if (mu_kwd_xlat_name (onerror_kw, name, &flag))
-	mu_error (_("unknown keyword: %s"), ws.ws_wordv[i]);
+      if (mu_kwd_xlat_name (onerror_kw, str, &flag))
+	{
+	  mu_error (_("unknown keyword: %s"), str);
+	  return 1;
+	}
       if (clr)
 	onerror_flags &= ~flag;
       else
 	onerror_flags |= flag;
     }
-  mu_wordsplit_free (&ws);
   return 0;
+}
+
+static int
+set_onerror_actions (char const *str)
+{
+  mu_list_t list;
+  int rc;
+  
+  mu_list_create (&list);
+  mu_list_set_destroy_item (list, mu_list_free_item);
+  mu_string_split (str, ",", list);
+  rc = mu_list_foreach (list, set_onerror_action, NULL);
+  mu_list_destroy (&list);
+  return rc;
 }
 
 static void
@@ -250,7 +253,7 @@ cli_mailbox_ownership (struct mu_parseopt *po, struct mu_option *opt,
 static void
 cli_onerror (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
 {
-  if (set_onerror_action (arg))
+  if (set_onerror_actions (arg))
     exit (po->po_exit_error);
 }
 
@@ -327,9 +330,20 @@ cb_mailbox_ownership (void *data, mu_config_value_t *val)
 static int
 cb_onerror (void *data, mu_config_value_t *val)
 {
-  if (mu_cfg_assert_value_type (val, MU_CFG_STRING))
-    return 1;
-  return set_onerror_action (val->v.string);
+  switch (val->type)
+    {
+    case MU_CFG_LIST:
+      mu_list_foreach (val->v.list, set_onerror_action, NULL);
+      break;
+
+    case MU_CFG_STRING:
+      set_onerror_actions (val->v.string);
+      break;
+
+    default:
+      mu_error ("%s", _("too many arguments"));
+    }
+  return 0;
 }
   
 struct mu_cfg_param movemail_cfg_param[] = {
@@ -360,12 +374,12 @@ struct mu_cfg_param movemail_cfg_param[] = {
   { "ignore-errors", mu_c_bool, &ignore_errors, 0, NULL,
     N_("Continue after an error.") },
   { "onerror", mu_cfg_callback, NULL, 0, cb_onerror,
-    N_("What to do after an error. Argument is a comma-separated list of:\n"
+    N_("What to do after an error. Argument is a list of:\n"
+       " abort  -  terminate the program (the default)\n"
        " skip   -  skip to the next message\n"
        " delete -  delete this one and to the next message\n"
        " count  -  count this message as processed\n"
-       "Each keyword can be prefixed with \"no\" to reverse its meaning\n"
-       "Setting onerror=abort reverts to the default behavior."),
+       "Each keyword can be prefixed with \"no\" to reverse its meaning."),
     N_("arg: list") },
   { NULL }
 };

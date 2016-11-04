@@ -2742,7 +2742,7 @@ is being sent, etc.
 @item trace6
 When used together with @samp{prot}, displays security-sensitive
 information (such as passwords, user keys, etc). in plaintext.  By
-default, such information is replaced with asteriscs to reduce the
+default, such information is replaced with asterisks to reduce the
 possibility of security compromise.
 @item trace7
 When used together with @samp{prot}, displays the @dfn{payload}
@@ -2795,10 +2795,10 @@ configuration file statements:
 
 @multitable @columnfractions 0.3 0.6
 @headitem Statement @tab Reference
-@item debug   @tab @xref{Debug Statement}.
-@item tls     @tab @xref{TLS Statement}.
-@item mailbox @tab @xref{Mailbox Statement}.
-@item locking @tab @xref{Locking Statement}.
+@item debug   @tab @xref{debug statement}.
+@item tls     @tab @xref{tls statement}.
+@item mailbox @tab @xref{mailbox statement}.
+@item locking @tab @xref{locking statement}.
 @end multitable
 
 @subheading @command{frm}
@@ -2907,10 +2907,9 @@ contents of the user system mailbox.  The @option{--file} (@option{-f})
 command line option allows to specify another mailbox name.  For more
 detail, see @ref{Reading Mail}.
 
-In contrast to other GNU Mailutils programs, @command{mail} does not
-use the Mailutils configuration file.  Instead, it uses the traditional
-@samp{mailrc}-style configuration.  @xref{Mail Configuration Files},
-for a detailed description of its format.
+In addition to the Mailutils configuration file, @command{mail} loads
+the traditional @samp{mailrc}-style configuration files.  @xref{Mail
+Configuration Files}, for a detailed description of their format.
 
 @menu
 * Invoking Mail::            Command Line Options.
@@ -2934,49 +2933,72 @@ General usage of @command{mail} program is:
 If [@var{address}...] part is present, @command{mail} switches to
 mail sending mode, otherwise it operates in mail reading mode.
 
-The program uses following option groups: @FIXME-xref{mailbox}.
-
-@command{Mail} understands following command line options:
+@command{Mail} understands the following command line options:
 
 @table @option
-@item -e
-@itemx --exist
-Return true if the mailbox contains some messages.  Return false
-otherwise.
-This is useful for writing shell scripts.
+@item -A @var{file}
+@itemx --attach=@var{file}
+Attach @var{file} to the composed message.  The encoding and content
+type are controlled by the @option{--encoding} and
+@option{--content-type} options, correspondingly.
+
+@item -a @var{header}:@var{value}
+@itemx --append=@var{header}:@var{value}
+Append the given header to the composed message.
+
+@item --content-type=@var{type}
+This options sets the content type to be used by all subsequent
+@option{--attach} options.
+
 @item -E @var{command}
 @itemx --exec=@var{command}
 Execute @var{command} before opening the mailbox.  Any number of
 @option{--exec} options can be given.  The commands will be executed
 after sourcing configuration files (@pxref{Mail Configuration Files}),
 but before opening the mailbox. 
-@item -f
-@itemx --file
-Operate on the mailbox given by the first non-optional command line
-argument.  If there is no such argument, read messages from the
-user's @file{mbox} file.  @xref{Reading Mail}, for more details about
-using this option.
+
+@item -e
+@itemx --exist
+Return true if the mailbox contains some messages.  Return false
+otherwise.
+
+This is useful for writing shell scripts.
+
+@item --encoding=@var{enc}
+Sets content transfer encoding for use by the subsequent
+@option{--attach} options.
+
 @item -F
 @itemx --byname
 Record outgoing messages in a file named after the first recipient.
 The name is the login-name portion of the address found first on the
 @samp{To:} line in the mail header.  This option sets the @samp{byname}
 variable, which see (@pxref{byname}).
+
+@item -f
+@itemx --file
+Operate on the mailbox given by the first non-optional command line
+argument.  If there is no such argument, read messages from the
+user's @file{mbox} file.  @xref{Reading Mail}, for more details about
+using this option.
+
 @item -H
 @itemx --headers
 Print header summary to stdout and exit.
+
 @item -i
 @itemx --ignore
-Ignore interrupts.
-@item -m @var{path}
-@itemx --mail-spool=@var{path}
-Set path to the mailspool directory
-@item -n
-@itemx --norc
-Do not read the system-wide mailrc file.  @xref{Mail Configuration Files}.
+Ignore interrupts when composing the message.
+
 @item -N
 @itemx --nosum
 Do not display initial header summary.
+
+@item -n
+@itemx --norc
+Do not read the system-wide mailrc file.  @xref{Mail Configuration
+Files}.
+
 @item -p
 @itemx --print
 @itemx --read
@@ -2990,18 +3012,26 @@ quit
 @end example
 @noindent
 except that @command{mail --print} does not change status of the messages.
-@item -r @var{address}
-@itemx --return-address=@var{address}
-Sets the return email address for outgoing mail.  @xref{return-address}.
+
 @item -q
 @itemx --quit
 Cause interrupts to terminate program.
+
+@item -r @var{address}
+@itemx --return-address=@var{address}
+Sets the return email address for outgoing mail.
+@xref{return-address}.
+
 @item -s @var{subj}
 @itemx --subject=@var{subj}
-Send a message with a Subject of @var{subj}.  Valid only in sending mode.
+Send a message with a Subject of @var{subj}.  Valid only in sending
+mode.
+
 @item -t
 @itemx --to
-Switch to sending mode.
+Read recipients from the message header.  Ignore addresses listed in
+the command line.
+
 @item -u @var{user}
 @itemx --user=@var{user}
 Operate on @var{user}'s mailbox.  This is equivalent to:
@@ -3013,15 +3043,10 @@ mail -f/@var{spool_path}/@var{user}
 @noindent
 with @var{spool_path} being the full path to your mailspool directory
 @*(@file{/var/spool/mail} or @file{/var/mail} on most systems).
-@item -?
-@itemx --help
-Display a help message.
-@item --usage
-Display a short usage summary.
-@item -V
-@itemx --version
-Print program version and exit.
 @end table
+
+The program also understands the common mailutils options
+(@pxref{Common Options}. 
 
 @node Specifying Messages
 @subsection How to Specify Message Sets
@@ -3136,6 +3161,7 @@ The actual escape character may be changed by setting the value of
 * Modifying the Headers::
 * Enclosing Another Message::
 * Adding a File to the Message::
+* Attaching a File to the Message::
 * Printing And Saving the Message::
 * Signing the Message::
 * Printing Another Message::
@@ -3194,6 +3220,7 @@ the headers as well.
 @node Modifying the Headers
 @subsubsection Modifying the Headers: ~h, ~t, ~c, ~b, ~s
 
+@cindex ~t, mail escape
 To add new addresses to the list of message recipients, use @samp{~t}
 command, e.g.:
 
@@ -3201,15 +3228,19 @@ command, e.g.:
 ~t name1@@domain.net name2
 @end example
 
+@cindex ~c, mail escape
+@cindex ~b, mail escape
 To add addresses to @code{Cc} or @code{Bcc}, use @samp{~c} or @samp{~b}
 escapes respectively.
 
+@cindex ~s, mail escape
 To change the @code{Subject} header, use @samp{~s} escape, e.g.:
 
 @example
 ~s "Re: your message"
 @end example
 
+@cindex ~h, mail escape
 Finally, to edit all headers, type @samp{~h} escape.  This will present
 you with the values of @code{To}, @code{Cc}, @code{Bcc}, and
 @code{Subject} headers allowing to edit them with normal text editing
@@ -3235,6 +3266,8 @@ prepended to each line enclosed.
 @node Adding a File to the Message
 @subsubsection Adding a File to the Message: ~r and ~d
 
+@cindex ~r, mail escape
+@cindex ~<, mail escape
 To append the contents of file @var{filename} to the message, type
 
 @example
@@ -3248,10 +3281,54 @@ or
 @end example
 @noindent
 
+@cindex ~d, mail escape
 The @samp{~d} escape is a shorthand for
 
 @example
 ~r dead.letter
+@end example
+
+@node Attaching a File to the Message
+@subsubsection Attaching a File to the Message
+@cindex ~+, mail escape
+The @samp{~+} escape attaches a file to the message.  It takes one to
+three arguments.  The first argument supplies the name of the file to
+attach:
+
+@example
+~+ myfile.txt
+@end example
+
+The file will be attached with default content-type
+@samp{application/octet-stream}, and encoding @samp{base64}
+(these can be altered by the @option{--content-type} and
+@option{--encoding} command line options, correspondingly).
+
+Optional second argument defines the content type to be used instead
+of the default one.  Optional third argument defines the encoding,
+e.g.:
+
+@example
+~+ myfile.html text/html base64
+@end example
+
+@cindex ~l, mail escape
+To list the files attached so far, use the @samp{~l} escape:
+
+@example
+~l
+   1 myfile.html text/html base64
+@end example
+
+Each line of the listing contains the ordinal number of the attachment,
+the name of the file, content-type and transfer encoding used.
+
+@cindex ~^, mail escape
+The @samp{~^} escape removes attachments.  Its argument is the number
+of the attachment to remove, e.g.:
+
+@example
+~^ 1
 @end example
 
 @node Printing And Saving the Message
@@ -4692,7 +4769,7 @@ The program is started with the @option{--print} (@option{-p}) command
 line option (@pxref{Invoking Mail}).
 
 @item read
-The progran operates in read mode.  This is the default.
+The program operates in read mode.  This is the default.
 
 @item send
 The program operates in send mode.  This means it was given one or more
@@ -4992,7 +5069,7 @@ variables.  Also, if the user is trying to set an unknown variable,
 @*Type: Boolean.
 @*Default: False.
 
-If this variable is set, the listing ouput by @command{set} contains short
+If this variable is set, the listing output by @command{set} contains short
 descriptions before each variable.  @xref{Setting and Unsetting the Variables}. 
 
 @kwindex verbose
@@ -5021,8 +5098,9 @@ X-Mailer: mail (GNU Mailutils @value{VERSION})
 @node Mail Configuration Files
 @subsection Personal and System-wide Configuration Files
 
-Upon startup, @command{mail} reads the contents of the two command files:
-the system-wide configuration file, and the user's configuration
+After processing the usual Mailutils configuration files
+(@pxref{configuration}), @command{mail} reads the contents of the two
+command files: the system-wide command file, and the user's command
 file.  Each line read from these files is processed like a usual
 @command{mail} command.
 
@@ -5040,7 +5118,6 @@ package via @option{--with-mail-rc} option.  It defaults to
 @node messages
 @section @command{messages} --- Count the Number of Messages in a Mailbox
 @pindex messages
-@UNREVISED
 
 @command{Messages} prints on standard output the number of messages
 contained in each folder specified in command line.  If no folders
@@ -5055,18 +5132,19 @@ Number of messages in @var{folder}: @var{number}
 where @var{folder} represents the folder name, @var{number} represents
 the number of messages.
 
-Following configuration file statements affect the behaviour of 
+The following configuration file statements affect the behaviour of 
 @command{messages}:
 
 @multitable @columnfractions 0.3 0.6
 @headitem Statement @tab Reference
-@item debug         @tab @xref{Debug Statement}.
-@item tls           @tab @xref{TLS Statement}.
-@item mailbox       @tab @xref{Mailbox Statement}.
-@item locking       @tab @xref{Locking Statement}.
+@item debug         @tab @xref{debug statement}.
+@item tls           @tab @xref{tls statement}.
+@item mailbox       @tab @xref{mailbox statement}.
+@item locking       @tab @xref{locking statement}.
 @end multitable
 
-The program accepts following command line options:
+In addition to the common mailutils options (@pxref{Common Options}),
+the program accepts the following command line options:
 
 @table @option
 @item -q
@@ -5074,22 +5152,12 @@ The program accepts following command line options:
 @itemx -s
 @itemx --silent
 Be quiet.  Display only number of messages per mailbox, without leading text.
-@item -?
-@itemx --help
-Output help message and exit.
-@item --usage
-Output short usage summary and exit.
-@item -V
-@itemx --version
-Output program version and exit.
 @end table
 
 @page
 @node movemail
 @section @command{movemail} --- Moves Mail from the User Maildrop to the Local File
 @pindex movemail
-@UNREVISED
-
 The purpose of @command{movemail}, as its name implies, is to move mail
 from one location to another.  For example, the following invocation:
 
@@ -5100,11 +5168,10 @@ movemail /var/mail/smith INBOX
 @noindent
 moves messages from file @file{/var/mail/smith} to file @file{INBOX}.
 
-You will probably never have to run this program manually.  It is
-intended as a replacement for @command{movemail} from GNU Emacs.  The
-@command{movemail} program is run by Emacs @code{Rmail}
-module.  @xref{Rmail,,,emacs,Reading Mail with Rmail}, for detailed
-description of @code{Rmail} interface.
+The program was initially intended as a replacement for
+@command{movemail} from GNU Emacs.  The @command{movemail} program is
+run by Emacs @code{Rmail} module.  @xref{Rmail,,,emacs,Reading Mail
+with Rmail}, for detailed description of @code{Rmail} interface.
 
 Mailutils version of @command{movemail} is fully
 backward-compatible with its Emacs predecessor, so it should run
@@ -5113,18 +5180,21 @@ starting from 22.1 contain improved @code{Rmail} interface and
 are able to take advantage of all new features mailutils
 @command{movemail} provides.
 
+Apart from that use, @command{movemail} proved to be a useful tool for
+incorporating mail from remote mailboxes into the local one.  See
+@uref{http://mailutils.org/wiki/Fetching_Mail_with_Movemail, Fetching
+Mail with Movemail}, for a detailed discussion with usage recipes.
+
 @menu
 * Movemail Configuration::
-* Movemail Options::     Description of the Available Options
 * Ownership::            Setting Destination Mailbox Ownership
 * Summary::              Short Movemail Invocation Summary
 @end menu
 
 @node Movemail Configuration
 @subsection Movemail Configuration
-@UNREVISED
-
-Following configuration file statements affect the behavior of
+@cindex movemail, configuration
+The following configuration file statements affect the behavior of
 @command{movemail}:
 
 @deffn {Movemail Config} preserve @var{bool}
@@ -5139,7 +5209,7 @@ If @var{bool} is @samp{true}, reverse message sorting order.
 If @var{bool} is @samp{true}, output information used by Emacs rmail interface.
 @end deffn
 
-@deffn {Movemail Config} ignore-erros @var{bool}
+@deffn {Movemail Config} ignore-errors @var{bool}
 Continue moving messages after errors.  By default,
 @command{mailfromd} exits immediately if it cannot copy a message.
 @end deffn
@@ -5149,6 +5219,7 @@ Set program identifier, i.e. a string which will prefix all
 diagnostic messages issued by the program.  By default, program
 name is used.
 
+@anchor{movemail-program-id}
 The @var{fmt} is a format string that may contain references to the
 following variables (@pxref{Variables}):
 
@@ -5224,100 +5295,144 @@ Make destination mailbox owned by @var{user}.
 @end table
 @end deffn
 
+@deffn {Movemail Config} max-messages @var{count}
+Defines upper limit on the number of moved messages.  Movemail will
+stop after transferring @var{count} messages.
+
+By default, the number of messages is not limited.
+@end deffn
+
+@anchor{movemail-onerror}
+@deffn {Movemail Config} onerror @var{actions}
+Defines what to do if an error occurs when transferring a message.
+@var{actions} is a list of one or more of the following keywords:
+
+@table @asis
+@item abort
+Abort the transfer and terminate the program.  This is the default
+action.
+
+@item skip
+Skip to the next message.
+
+@item delete
+Delete the affected message.
+
+@item count
+Count this message as processed.
+@end table
+
+Each keyword can be prefixed with @samp{no} to reverse its meaning.
+@end deffn
+
+The following standard Mailutils statements are supported:
+
 @multitable @columnfractions 0.3 0.6
 @headitem Statement @tab Reference
-@item debug         @tab @xref{Debug Statement}.
-@item tls           @tab @xref{TLS Statement}.
-@item mailbox       @tab @xref{Mailbox Statement}.
-@item locking       @tab @xref{Locking Statement}.
-@item pam           @tab @xref{PAM Statement}.
-@item sql           @tab @xref{SQL Statement}.
-@item virtdomain    @tab @xref{Virtdomain Statement}.
-@item radius        @tab @xref{Radius Statement}.
-@item ldap          @tab @xref{LDAP Statement}.
-@item auth          @tab @xref{Auth Statement}.
+@item debug         @tab @xref{debug statement}.
+@item tls           @tab @xref{tls statement}.
+@item mailbox       @tab @xref{mailbox statement}.
+@item locking       @tab @xref{locking statement}.
+@item pam           @tab @xref{pam statement}.
+@item sql           @tab @xref{sql statement}.
+@item virtdomain    @tab @xref{virtdomain statement}.
+@item radius        @tab @xref{radius statement}.
+@item ldap          @tab @xref{ldap statement}.
+@item auth          @tab @xref{auth statement}.
 @end multitable
-
-@node Movemail Options
-@subsection Movemail Options
-@UNREVISED
-
-This subsection discusses @command{movemail} options from the point of
-view of an Emacs @code{Rmail} user.
-
-To set various options to @command{movemail} from @code{Rmail}, use
-@code{rmail-movemail-flags} variable, or @samp{Rmail Movemail Flags}
-section from the menu. 
-
-Some POP servers return messages in reversed order.  To fix the
-order, use @option{-p} option or its synonym @option{--reverse}.
-
-If the remote server supports @acronym{TLS} encryption, use
-@option{--tls} to instruct @command{movemail} to initiate encrypted
-connection.
 
 @node Ownership
 @subsection Setting Destination Mailbox Ownership
 @UNREVISED
 
-
 @node Summary
 @subsection Movemail Usage Summary
 
 @example
-movemail [@var{option}...] @var{inbox} @var{destfile} [@var{remote-password}]
+movemail [@var{option}...] @var{inbox} @var{destfile} [@var{password}]
 @end example
 
-The first argument, @var{inbox}, is the @acronym{url} (@FIXME-pxref{URL}) of
+The first argument, @var{inbox}, is the @acronym{url} (@pxref{Mailbox}) of
 the source mailbox.  The second argument, @var{destfile}, traditionally
 means destination file, i.e. the UNIX mailbox to copy messages
 to.  However, mailutils @command{movemail} extends the meaning of this
-parameter.  You may actually specify any valid @acronym{URL} as
+parameter.  You may actually specify any valid @acronym{url} as
 @var{destfile} parameter.@footnote{Rmail does not use this
-feature}.  Finally, optional third argument is a traditional way of
-specifying user passwords for remote (@acronym{POP} or @acronym{IMAP})
-mailboxes.
+feature}.
 
-Following is the summary of available command line options:
+For compatibility with older implementations of @command{movemail},
+the @var{source} argument can also have the form:
+
+@example
+po:@var{username}[:@var{pop-server}]
+@end example
+
+@noindent
+where @var{pop-server} is the IP address or hostname of a POP3 server
+to connect to and @var{username} is the name of the user on that
+server.  The password is then supplied by the third argument.
+
+It is equivalent to the following URL:
+
+@example
+pop://@var{username}[:@var{password}]@@@var{pop-server}
+@end example
+
+In fact, whenever @var{source} refers to a remote mailbox, the
+@var{password} argument can be used to pass the password.  However,
+the safer @dfn{ticket} method is of course preferred.
+
+Options are one or more of the following:
 
 @table @option
 @item --emacs
-Output information used by Emacs rmail interface
+Output information used by Emacs @code{rmail} interface.
 
 @item --ignore-errors
-Continue moving messages after an error occurs.
+Try to continue after errors.
+
+@item --max-messages=@var{count}
+Process at most @var{count} messages.
+
+@item --notify
+Enable biff notification.
+
+@item --onerror=@var{kw}[,@var{kw}...]
+What to do on errors.  @xref{movemail-onerror, onerror statement}, for
+a description of @var{kw}.
+
+@item -P @var{modelist}
+@itemx --owner=@var{modelist}
+Control mailbox ownership.  @var{modelist} is a comma-separated list
+of one or more ownership change methods.
+@xref{mailbox-ownership-methods}, for a description of available
+methods.
+
+This option is useful only when running @command{movemail} as root.
 
 @item -p
 @itemx --preserve
 @itemx --keep-messages
-Preserve the source mailbox
+Don't remove transferred messages from the source mailbox.
 
 @item --program-id=@var{fmt}
-Set program identifier for diagnostic purposes.  See @ref{Movemail
-Configuration,program-id}, for a detailed discussion of this feature. 
+Set program identifier for diagnostics (default: the program name).
+@xref{movemail-program-id}, for a description of its argument.
 
 @item -r
 @itemx --reverse
-Reverse the sorting order
-
-@item --tls[=@var{bool}]
-Enable (default) or disable TLS support
+Reverse the order of retrieved messages.
 
 @item -u
-@item --uidl
+@itemx --uidl
 Use UIDLs to avoid downloading the same message twice.
 
-@item -P @var{method-list}
-@itemx --owner=@var{method-list}
-Define list of methods for setting ownership of the destination
-mailbox.  @xref{mailbox-ownership-methods}, for a description of
-@var{method-list}.  This option is useful only when running
-@command{movemail} as root.
-
 @item -v
-@item --verbose
+@itemx --verbose
 Increase verbosity level.
 @end table
+
+The common options are also understood (@pxref{Common Options}).
 
 @page
 @node readmsg
@@ -5397,6 +5512,8 @@ Put form-feed (Control-L) between messages instead of newline.
 A whitespace or coma separated list of header names to show per message.
 Default is @option{--weedlist="From Subject Date To CC Apparently-"}.
 @end table
+
+See also @ref{Common Options}.
 
 @node Conf-readmsg
 @subsection Configuration of @command{readmsg}.
@@ -7997,7 +8114,7 @@ run:
 mailutils filter --list
 @end example
 
-Filters are applied in the order of their appearence, from left to
+Filters are applied in the order of their appearance, from left to
 right and operate in encode mode.  The plus sign has the same meaning
 as pipe in shell.  The default mode can be changed using the
 @option{--decode} (@option{-d}) and @option{--encode} (@option{-e}) options.
@@ -8050,7 +8167,7 @@ configuration file processing.
 @node mailutils acl
 @subsection mailutils acl
 The @command{mailutils acl} command tests Mailutils Access Control Lists.  By
-default it reads ACL from the Mailutils configiration file section
+default it reads ACL from the Mailutils configuration file section
 @samp{acl}.  The command takes a list of IP addresses as its
 arguments, applies the ACL to each of them in turn and prints the result.
 
@@ -8166,7 +8283,7 @@ smtp://bar@@gnu.org: /home/@var{user}/.mu-tickets:2: smtp://bar:***@@gnu.org
 @end example
 
 As you see, even in that case the tool hides the actual password part
-by replacing it with three asteriscs.  If you are working in a secure
+by replacing it with three asterisks.  If you are working in a secure
 environment, you can tell @command{mu wicket} to show passwords as
 well, by supplying the @option{-v} option twice.
 
@@ -8395,7 +8512,7 @@ As of version @value{VERSION}, @command{mailutils dbm} supports two formats
 for dumping DBM databases.  Both formats are line-oriented.  Comments
 are introduced with a sharp (@samp{#}) sign in the column 0 of a line,
 followed by at least one white space character (space or tab).  Sharp
-sign followed by a colon (@samp{#:}) introduces a @dfn{paragmatic
+sign followed by a colon (@samp{#:}) introduces a @dfn{pragmatic
 comment}, which carries some additional information to the loader. 
 
 @anchor{dump version 0.0}
