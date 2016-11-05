@@ -111,6 +111,7 @@ SCM_DEFINE_PUBLIC (scm_mu_register_format, "mu-register-format", 0, 0, 1,
 {
   int status;
 
+  SCM_VALIDATE_REST_ARGUMENT (rest);
   if (scm_is_null (rest))
     {
       status = register_format (NULL);

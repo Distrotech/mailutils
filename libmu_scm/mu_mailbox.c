@@ -220,7 +220,7 @@ SCM_DEFINE_PUBLIC (scm_mu_mailbox_open, "mu-mailbox-open", 2, 0, 0,
   int status;
   SCM ret;
   
-  SCM_ASSERT (scm_is_string (url), url, SCM_ARG1, FUNC_NAME);
+  SCM_ASSERT (scm_is_bool (url) || scm_is_string (url), url, SCM_ARG1, FUNC_NAME);
   SCM_ASSERT (scm_is_string (mode), mode, SCM_ARG2, FUNC_NAME);
   
   scm_dynwind_begin (0);
@@ -247,8 +247,20 @@ SCM_DEFINE_PUBLIC (scm_mu_mailbox_open, "mu-mailbox-open", 2, 0, 0,
   if (mode_bits & MU_STREAM_READ && mode_bits & MU_STREAM_WRITE)
     mode_bits = (mode_bits & ~(MU_STREAM_READ | MU_STREAM_WRITE)) | MU_STREAM_RDWR;
 
-  mode_str = scm_to_locale_string (url);
-  scm_dynwind_free (mode_str);
+  if (scm_is_bool (url))
+    {
+      if (url == SCM_BOOL_F)
+	mode_str = NULL;
+      else
+	mu_scm_error (FUNC_NAME, EINVAL,
+		      "value #t for URL is reserved for future use",
+		      scm_list_1 (url));
+    }
+  else
+    {
+      mode_str = scm_to_locale_string (url);
+      scm_dynwind_free (mode_str);
+    }
   
   status = mu_mailbox_create_default (&mbox, mode_str);
   if (status)

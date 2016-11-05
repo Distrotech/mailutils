@@ -27,6 +27,7 @@ exec ${GUILE-guile} -l $0 -c "(apply $main (list (command-line)))" "$@"
 
 (use-modules (ice-9 getopt-long)
 	     (ice-9 rdelim)
+	     (ice-9 eval-string)
 	     (srfi srfi-1)
 	     (mailutils mailutils))
 
@@ -190,7 +191,7 @@ for any corresponding short options.
     guimb-module)
 
 (define-macro (bound? name)
-  `(and (module-defined? guimb-module ',name)
+  `(and (module-defined? (get-module) ',name)
 	(procedure? ,name)))
 
 (define (guimb-parse-command-line cmdline)
@@ -219,17 +220,12 @@ for any corresponding short options.
     (if (not output-mailbox-mode)
 	(set! output-mailbox-mode (if (null? input-mailbox-names) "wr" "a")))
     
-    (cond
-     (user-name
-      (set! output-mailbox
-	    (mu-mailbox-open
-	     (if (string? user-name)
-		 (string-append "%" user-name)
-		 "")
-	     output-mailbox-mode)))
-     (output-mailbox-name
-      (set! output-mailbox (mu-mailbox-open output-mailbox-name
-					    output-mailbox-mode))))
+    (if (and (not output-mailbox-name) user-name)
+	(set! output-mailbox-name (if (string? user-name)
+			 (string-append "%" user-name)
+			 #f)))
+    (set! output-mailbox (mu-mailbox-open output-mailbox-name
+						    output-mailbox-mode))
 ;    (write output-mailbox)(newline)
 
     (if source-file-name

@@ -513,7 +513,7 @@ mail_send (int argc, char **argv)
 		  mode = hp->mode;
 		  if (mu_header_sget_value (env.header, hp->name, NULL) == 0)
 		    mode = COMPOSE_REPLACE;
-		  compose_header_set (&env, hp->name, hp->value, hp->mode);
+		  compose_header_set (&env, hp->name, hp->value, mode);
 		}
 	      mu_iterator_destroy (&itr);
 	    }
