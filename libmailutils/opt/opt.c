@@ -29,6 +29,14 @@
 #define EXIT_SUCCESS 0
 #define EXIT_ERROR   1
 
+/* Option and its aliases form a contiguous array.  Option slot is used
+   to preserve contiguity during sorting. */
+struct opt_slot
+{
+  struct mu_option **opt;   /* Points to the option */
+  int count;                /* Number of options in opt */
+};
+
 /* Compare pointers to two option structs */
 static int
 optcmp (const void *a, const void *b)
@@ -36,11 +44,6 @@ optcmp (const void *a, const void *b)
   struct mu_option const *ap = *(struct mu_option const **)a;
   struct mu_option const *bp = *(struct mu_option const **)b;
   
-  while (ap->opt_flags & MU_OPTION_ALIAS)
-    ap--;
-  while (bp->opt_flags & MU_OPTION_ALIAS)
-    bp--;
-
   if (!MU_OPTION_IS_VALID_SHORT_OPTION (ap)
       && MU_OPTION_IS_VALID_LONG_OPTION (ap)
       && !MU_OPTION_IS_VALID_SHORT_OPTION (bp)
@@ -60,18 +63,67 @@ optcmp (const void *a, const void *b)
     }
 }
 
+/* Compare pointers to two option slots */
+static int
+slotcmp (const void *a, const void *b)
+{
+  struct opt_slot const *ap = (struct opt_slot const *)a;
+  struct opt_slot const *bp = (struct opt_slot const *)b;
+  return optcmp (ap->opt, bp->opt);
+} 
 /* Sort a group of options in OPTBUF, starting at index START (first
    option slot after a group header (if any).  The group spans up to
    next group header or end of options */
 static size_t
 sort_group (struct mu_option **optbuf, size_t start)
 {
-  size_t i;
-  
+  size_t i, count = 0;
+
+  /* Make sure the first option in group is not an alias. */
+  optbuf[start]->opt_flags &= ~MU_OPTION_ALIAS;
   for (i = start; optbuf[i] && !MU_OPTION_IS_GROUP_HEADER (optbuf[i]); i++)
-    ;
-  
-  qsort (&optbuf[start], i - start, sizeof (optbuf[0]), optcmp);
+    {
+      if (!(optbuf[i]->opt_flags & MU_OPTION_ALIAS))
+	count++;
+    }
+  if (count == i - start)
+    /* Inplace sort */
+    qsort (&optbuf[start], count, sizeof (optbuf[0]), optcmp);
+  else
+    {
+      /* Option group contains aliases. Split it into option slots. */
+      struct mu_option **tmp;
+      struct opt_slot *slots;
+      size_t j, k, l;
+      
+      slots = mu_calloc (count, sizeof (slots[0]));
+      j = 0;
+      slots[0].opt = optbuf + start;
+      slots[0].count = 1;
+      for (k = start + 1; k < i; k++)
+	{
+	  if (optbuf[k]->opt_flags & MU_OPTION_ALIAS)
+	    slots[j].count++;
+	  else
+	    {
+	      j++;
+	      slots[j].opt = optbuf + k;
+	      slots[j].count = 1;
+	    }
+	}
+      /* Sort the slots */
+      qsort (slots, count, sizeof (slots[0]), slotcmp);
+      /* Create ordered array of option pointers */
+      tmp = mu_calloc (i - start, sizeof (tmp[0]));
+      for (k = l = 0; k < count; k++)
+	for (j = 0; j < slots[k].count; j++)
+	  tmp[l++] = slots[k].opt[j];
+      /* Copy ordered pointers back and free temporary memory */
+      memcpy (optbuf + start, tmp, (i - start) * sizeof tmp[0]);
+      free (tmp);
+      free (slots);
+    }
+		     
   return i;
 }
 
@@ -648,9 +700,7 @@ parseopt_init (struct mu_parseopt *po, struct mu_option **options,
   
   po->po_optv[j] = NULL;
 
-  /* Ensure sane start of options.  This is necessary, in particular,
-     because optcmp backs up until it finds an element with cleared
-     MU_OPTION_ALIAS bit. */
+  /* Ensure sane start of options. */
   po->po_optv[0]->opt_flags &= ~MU_OPTION_ALIAS;
   if (!(flags & MU_PARSEOPT_NO_SORT))
     {

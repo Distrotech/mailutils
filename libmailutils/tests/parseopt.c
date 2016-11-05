@@ -90,7 +90,7 @@ set_prog_args (struct parseopt_param *param, char const *str, void *target)
 
   size = 1;
   for (i = 0; str[i]; i++)
-    if (str[i] == '\n')
+    if (str[i] == '|')
       size++;
 
   args = mu_calloc (size + 1, sizeof (args[0]));

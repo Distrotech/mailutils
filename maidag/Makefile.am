@@ -33,9 +33,6 @@ endif
 
 maidag_LDADD = \
  ../lib/libmuscript.a\
- @LIBMU_SCM@ @GUILE_LIBS@\
- @LIBMU_SCM_DEPS@\
- @MU_LIB_PY@ @PYTHON_LIBS@\
  ${MU_APP_LIBRARIES}\
  ${MU_LIB_SIEVE}\
  ${MU_LIB_MBOX}\
@@ -49,7 +46,12 @@ maidag_LDADD = \
  @MU_AUTHLIBS@\
  ${MU_LIB_MAILUTILS} \
  @MU_COMMON_LIBRARIES@\
+ @LIBMU_SCM@\
+ @LIBMU_SCM_DEPS@\
+ @MU_LIB_PY@\
  $(LIBMU_DBM)\
+ @GUILE_LIBS@\
+ @PYTHON_LIBS@\
  @DBMLIBS@\
  @MU_TCPWRAP_LIBRARIES@
 

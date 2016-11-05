@@ -161,10 +161,17 @@ static void
 v_cidr_format (union value *val, FILE *fp)
 {  
   char *buf;
-
-  mu_cidr_format (&val->v_cidr, 0, &buf);
-  fprintf (fp, "%s", buf);
-  free (buf);
+  int rc;
+  rc = mu_cidr_format (&val->v_cidr, 0, &buf);
+  if (rc)
+    {
+      fprintf (fp, "(can't convert value: %s)", mu_strerror (rc));
+    }
+  else
+    {
+      fprintf (fp, "%s", buf);
+      free (buf);
+    }
 }
 
 static int
@@ -259,6 +266,7 @@ struct testdata tests[] = {
 	.len = 4,
 	.address = { 127, 0, 0, 0 },
 	.netmask = { 255 } } } },
+#ifdef MAILUTILS_IPV6  
   { mu_c_cidr,   "fe80::4a5b:39ff:fe09:97f0/64", 0,  { .v_cidr = {
 	.family = 10,
 	.len = 16,
@@ -266,7 +274,7 @@ struct testdata tests[] = {
 		     0x4a, 0x5b, 0x39, 0xff, 0xfe, 0x9, 0x97, 0xf0 },
 	.netmask = { 255, 255, 255, 255, 255, 255, 255, 255,
 		     0,   0,   0,   0,   0,   0,   0,   0 } } } },
-  
+#endif  
   { mu_c_incr,   NULL,              0, { .v_int = 1 } },
   { mu_c_void }
 };

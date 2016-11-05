@@ -192,7 +192,7 @@ static struct mu_option options[] = {
   { ")",         0, NULL, MU_OPTION_ALIAS },
 
   MU_OPTION_GROUP (N_("Operations over the selected messages")),
-  { "list",      0, NULL, MU_OPTION_ALIAS,
+  { "list",      0, NULL, MU_OPTION_DEFAULT,
     N_("list the numbers of the selected messages (default)"),
     mu_c_bool, &list },
   { "sequence",  0, N_("NAME"), MU_OPTION_DEFAULT,
