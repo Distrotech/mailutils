@@ -119,6 +119,13 @@ Introduction
 * Book Contents::               What this Book Contains
 * History::                     A bit of History
 
+Mailbox
+
+* Local Mailboxes::      Mailboxes stored on the local file system.
+* Remote Mailboxes::     Mailboxes stored on remote hosts.
+* SMTP Mailboxes::       Mailboxes that send mail.
+* Program Mailboxes::
+
 Mailutils Programs
 
 * command line::      Command Line Syntax.  
@@ -154,7 +161,9 @@ Command Line
 Mailutils Configuration File
 
 * conf-syntax::         Configuration File Syntax
+* Variables::           Variable Expansion
 * include::             Include Statement
+* program statement::
 * logging statement::
 * debug statement::
 * mailbox statement::
@@ -207,6 +216,7 @@ Composing Mail
 * Modifying the Headers::
 * Enclosing Another Message::
 * Adding a File to the Message::
+* Attaching a File to the Message::
 * Printing And Saving the Message::
 * Signing the Message::
 * Printing Another Message::
@@ -247,7 +257,7 @@ Reading Mail
 @command{sieve}
 
 * sieve interpreter::   A Sieve Interpreter
-* sieve.scm::           A Sieve to Scheme Translator and Filter
+* sieve2scm::           A Sieve to Scheme Translator and Filter
 
 A Sieve Interpreter
 
@@ -327,24 +337,24 @@ Major differences between Mailutils MH and other MH implementations
 * Profile Variable Diffs::
 * Program Diffs::
 
-MU
+mailutils
 
 * mailutils invocation syntax::
-* mailutils help::
-* mailutils info::
-* mailutils cflags::
-* mailutils ldflags::
-* mailutils query::
-* mailutils 2047::
-* mailutils filter::
-* mailutils acl::
-* mailutils wicket::
-* mailutils dbm::
-* mailutils logger::
-* mailutils pop::
-* mailutils imap::
-* mailutils send::
-* mailutils smtp::
+* mailutils help::                Display a terse help summary.
+* mailutils info::                Show Mailutils configuration.
+* mailutils cflags::              Show compiler options.
+* mailutils ldflags::             List libraries required to link.
+* mailutils query::               Query configuration values.
+* mailutils 2047::                Decode/encode email message headers.
+* mailutils filter::              Apply a chain of filters to the input.
+* mailutils acl::                 Test access control lists.
+* mailutils wicket::              Scan wickets for matching URLs.
+* mailutils dbm::                 DBM management tool.
+* mailutils logger::              Log data using Mailutils log facility.
+* mailutils pop::                 POP3 client shell.
+* mailutils imap::                IMAP4 client shell.
+* mailutils send::                Send a message.
+* mailutils smtp::                Run a SMTP session.
 
 mailutils dbm
 

@@ -5571,7 +5571,7 @@ utilities in detail.
 
 @menu
 * sieve interpreter::   A Sieve Interpreter
-* sieve.scm::           A Sieve to Scheme Translator and Filter
+* sieve2scm::           A Sieve to Scheme Translator and Filter
 @end menu
 
 @node sieve interpreter
@@ -5663,9 +5663,21 @@ Keep on going if execution fails on a message.  See also
 Append directory @var{dir} to the list of directories searched for
 library files.  See also @ref{Sieve Configuration, library-path}.
 
+@item --libdir-prefix=@var{dir}
+Add @var{dir} to the beginning of the list of directories searched for
+library files.
+
+@item -M @var{url}
+@itemx --mailer=@var{url}
+Define the URL of the default mailer.
+
 @item -n
 @itemx --no-actions
+@itemx --dry-run
 Dry run: do not execute any actions, just print what would be done.
+
+@item --no-program-name
+Do not prefix diagnostic messages with the program name.
 
 @item -t @var{ticket}
 @itemx --ticket=@var{ticket}
@@ -5677,6 +5689,8 @@ Ticket file for mailbox authentication.  See also
 Log all actions executed.  See also @ref{Sieve Configuration, verbose}.
 @end table
 
+See also @ref{Common Options}.
+
 @node Sieve Configuration
 @subsubsection Sieve Configuration
 
@@ -5685,12 +5699,12 @@ configuration statements:
 
 @multitable @columnfractions 0.3 0.6
 @headitem Statement @tab Reference
-@item debug         @tab @xref{Debug Statement}.
-@item tls           @tab @xref{TLS Statement}.
-@item mailbox       @tab @xref{Mailbox Statement}.
-@item locking       @tab @xref{Locking Statement}.
-@item logging       @tab @xref{Logging Statement}.
-@item mailer        @tab @xref{Mailer Statement}.
+@item debug         @tab @xref{debug statement}.
+@item tls           @tab @xref{tls statement}.
+@item mailbox       @tab @xref{mailbox statement}.
+@item locking       @tab @xref{locking statement}.
+@item logging       @tab @xref{logging statement}.
+@item mailer        @tab @xref{mailer statement}.
 @end multitable
 
 The following statements configure sieve-specific features:
@@ -5698,37 +5712,32 @@ The following statements configure sieve-specific features:
 @deffn {Sieve Conf} sieve @{ ...  @}
 This block statement configures search paths @command{sieve} uses to
 locate its loadable modules.  @xref{Require Statement}, for a detailed
-information of this feature.
+information about loadable modules.
 
 This statement may contain the following sub-statements:
-@code{clear-library-path}, @code{clear-include-path},
-@code{library-path}, @code{include-path}, which are described below.
-@end deffn
 
 @deffn {Sieve Conf} clear-library-path @var{bool}
-Used within the @code{sieve} block statement.
-
 If @var{bool} is @samp{true}, clear library search path.
 @end deffn
 
 @deffn {Sieve Conf} clear-include-path @var{bool}
-Used within the @code{sieve} block statement.
-
 If @var{bool} is @samp{true}, clear include search path.
 @end deffn
 
 @deffn {Sieve Conf} library-path @var{path}
-Used within the @code{sieve} block statement.
-
 Add directories to @command{sieve} library search path.  Argument is a
 string containing a colon-separated list of directories.
 @end deffn
 
-@deffn {Sieve Conf} include-path @var{path}
-Used within the @code{sieve} block statement.
+@deffn {Sieve Conf} library-path-prefix @var{path}
+Add directories to the beginning if the library search path.  Argument
+is a string containing a colon-separated list of directories.
+@end deffn
 
+@deffn {Sieve Conf} include-path @var{path}
 Add directories to the include search path.  Argument is a
 string containing a colon-separated list of directories.
+@end deffn
 @end deffn
 
 @deffn {Sieve Conf} keep-going @var{bool}
@@ -5781,21 +5790,21 @@ debugging level to be enabled.  The argument can consist of the
 following letters:
 
 @table @samp
-@item @samp{t}
+@item t
 This flag enables sieve tracing.  It means that every test will be logged
 when executed.
 
-@item @samp{T}
+@item T
 This flag enables debugging of underlying @code{mailutils} library.
 
-@item @samp{P}
+@item P
 Trace network protocols: produces log of network transactions executed
 while running the script.
 
-@item @samp{g}
+@item g
 Enable main parser traces.  This is useful for debugging the sieve grammar.
 
-@item @samp{i}
+@item i
 Trace the program instructions.  It is the most extensive debugging
 level.  It produces the full execution log of a sieve program, showing
 each instruction and states of the sieve machine.  It is only useful
@@ -5813,7 +5822,7 @@ If the argument to @option{--debug} is omitted, it defaults to
 Option @option{--dump} produces the disassembled dump of the compiled
 sieve program. 
 
-By default @command{sieve} output all diagnostics on standard error and verbose
+By default @command{sieve} outputs all diagnostics on standard error and verbose
 logs on standard output.  This behaviour is changed when
 @option{--log-facility} is given in the command line (@FIXME-pxref{logging}).
 This option causes @command{sieve} to output its diagnostics to
@@ -5823,7 +5832,7 @@ the given syslog facility.
 @subsubsection Extending @command{sieve}
 
 The basic set of sieve actions, tests and comparators may be extended
-using loadable extensions.  Usual @code{require} mechanism is used for
+using loadable extensions.  The usual @code{require} mechanism is used for
 that.
 
 When processing arguments for @code{require} statement, @command{sieve}
@@ -5832,7 +5841,7 @@ uses the following algorithm:
 @enumerate 1
 @item Look up the name in a symbol table.  If the name begins with
 @samp{comparator-} it is looked up in the comparator table.  If it
-begins with @samp{test-}, the test table is used instead.  Otherwise
+begins with @samp{test-}, the test table is searched instead.  Otherwise
 the name is looked up in the action table.
 
 @item If the name is found, the search is terminated.
@@ -5852,12 +5861,17 @@ following search paths (in the order given):
 
 @item The value of the environment variable @env{LTDL_LIBRARY_PATH}.
 
+@item Additional search directories specified with the.
+@option{--libdir-prefix} command line option (@pxref{Invoking Sieve,
+libdir-prefix}), or the @code{library-path-prefix} configuration
+statement (@pxref{Sieve Configuration,library-path-prefix}).
+
 @item Additional search directories specified with the
 @code{library-path} statement (@pxref{Sieve Configuration,
 library-path}) in Sieve configuration file.
 
 @item Additional search directories specified with the.
-@option{--libdir} command line option (@FIXME-pxref{libdir}).
+@option{--libdir} command line option (@pxref{Invoking Sieve,libdir}).
 
 @item Additional search directories specified with the
 @code{#searchpath} Sieve directive (@pxref{#searchpath}).
@@ -5900,11 +5914,11 @@ source for the required action NAME is not available
 @c ***********************************************************************
 
 @page
-@node sieve.scm
+@node sieve2scm
 @subsection A Sieve to Scheme Translator and Filter
 @UNREVISED
 
-A Sieve to Scheme Translator @command{sieve.scm} translates a given
+A Sieve to Scheme Translator @command{sieve2scm} translates a given
 Sieve script into an equivalent Scheme program and optionally executes
 it.  The program itself is written in Scheme and requires presence of
 Guile version 1.8 or newer on the system.  For more information on
@@ -5928,7 +5942,7 @@ Set sieve library directory name
 Set debugging level
 @end table            
 
-The Scheme programs produced by @command{sieve.scm} can be used with
+The Scheme programs produced by @command{sieve2scm} can be used with
 @command{guimb} or @command{maidag}.
 
 @c ***********************************************************************
@@ -5937,22 +5951,64 @@ The Scheme programs produced by @command{sieve.scm} can be used with
 @node guimb
 @section @command{guimb} --- A Mailbox Scanning and Processing Language
 @pindex guimb
-@UNREVISED
 
-@command{Guimb} is for mailboxes what @command{awk} is for text files.
-It processes mailboxes, applying the user-supplied scheme procedures
-to each of them in turn and saves the resulting output in mailbox
-format.
+@command{Guimb} is an experimental tool that iterates over messages in
+a mailbox (or several mailboxes), applying a Scheme function to each
+of them.
 
-The following configuration statements affect the behavior of
-@command{guimb}:
+A user-defined @dfn{scheme module} that supplies the function to apply
+is specified using the @option{--source} or @option{--file} option.
+The module must define at least the following function:
 
-@multitable @columnfractions 0.3 0.6
-@headitem Statement @tab Reference
-@item debug         @tab @xref{Debug Statement}.
-@item mailbox       @tab @xref{Mailbox Statement}.
-@item locking       @tab @xref{Locking Statement}.
-@end multitable
+@deffn {User function} guimb-message @var{msg}
+Processes message @var{msg}.  This function can alter the message
+using Guile primitives supplied by mailutils.
+@end deffn
+
+The following function definitions are optional:
+
+@deffn {User function} guimb-getopt @var{args}
+If defined, this function is called after @command{guimb} has finished
+processing the command line.  @var{args} is a list of unconsumed
+command line arguments.
+
+The function is intended to provide a way of configuring the module
+from the command line.
+@end deffn
+
+@deffn {User function} guimb-end
+If defined, this function is called after all mailboxes have been processed.
+@end deffn
+
+In the following example we define a module that prints
+information about each message is the input mailbox, in a way similar
+to @code{frm} utility:
+
+@example
+@group
+(define-module (frm)
+  :export (guimb-message))
+
+(use-modules (mailutils mailutils))
+             
+(define (guimb-message msg)
+  (display (mu-message-get-sender msg))
+  (display " ")
+  (display (mu-message-get-header msg "subject"))
+  (newline))
+@end group
+@end example
+
+The modules are looked up in directories listed in the global variable
+@code{%load-path}.  New directories can be added to that variable on
+the fly using the @option{-L} (@option{--load-path}) option.  For
+example, if the sample module above was saved in a file
+@file{frm.scm} somewhere in the load path, it can be applied to the
+current user inbox by running the following command:
+
+@example
+guimb --file frm
+@end example
 
 @menu
 * Specifying Scheme Program to Execute::
@@ -5964,36 +6020,34 @@ The following configuration statements affect the behavior of
 @node Specifying Scheme Program to Execute
 @subheading Specifying Scheme Program to Execute
 
-The Scheme program or expression to be executed is passed to
-@command{guimb} via the following options:
+The Scheme module that defines message processing functions is given
+via the following options:
 
 @table @option
-@item -s @var{file}
-@itemx --source @var{file}
-Load Scheme source code from @var{file}.
-@item -c @var{expr}
-@itemx --code @var{expr}
-Execute given scheme expression.
+@item -s @var{module}
+@itemx --source @var{module}
+Load Scheme code from @var{module}.
+
+This option stops further argument processing, and passes all
+remaining arguments as the value of @var{args} argument to the
+@code{guimb-getopt} function, if it is defined.
+
+@item -f @var{module}
+@itemx --file @var{module}
+Load Scheme source code from @var{module}.  The remaining arguments
+are processed in the usual way.  When using this option, you can pass
+additional options and or arguments to the module by enclosing them in
+@option{-@{} and @option{-@}} options (@pxref{Passing Options to Scheme}).
 @end table
 
-The above switches stop further argument processing, and pass all
-remaining arguments as the value of @code{(command-line)}.
-
-If the remaining arguments must be processed by @command{guimb} itself,
-use following options:
+An experimental option is provided, that evaluates a supplied
+Scheme expression right after loading the module:
 
 @table @option
 @item -e @var{expr}
 @itemx --expression @var{expr}
-Execute scheme expression.
-@item -f @var{file}
-@itemx --file @var{file}
-Load Scheme source code from @var{file}.
+Evaluate scheme expression.
 @end table
-
-You can specify both of them.  In this case, the @var{file} is read
-first, then @var{expr} is executed.  You may still pass any additional
-arguments to the script using @option{--guile-arg} option.
 
 @node Specifying Mailboxes to Operate Upon
 @subheading Specifying Mailboxes to Operate Upon
@@ -6012,8 +6066,8 @@ The contents of specified mailboxes is processed, and the resulting
 mailbox contents is appended to @var{defmbox}.
 @item guimb [@var{options}] --user @var{username} [@var{mailbox}...]
 The contents of specified mailboxes is processed, and the resulting
-mailbox contents is appended to the user's system mailbox.  This allows
-to use @command{guimb} as a mail delivery agent.
+mailbox contents is appended to the user's system mailbox.  This makes
+it possible to use @command{guimb} as a mail delivery agent.
 @end table
 
 If no mailboxes are specified in the command line, @command{guimb} reads
@@ -6025,12 +6079,13 @@ and processes the system mailbox of the current user.
 Sometimes it is necessary to pass some command line options to the
 scheme procedure.  There are three ways of doing so.
 
-When using @option{--source} (@option{-s}) or @option{--code}
-(@option{-c}) options, all the rest of the command line following
-the option's argument is passed to Scheme program verbatim.  This
-allows for making guimb scripts executable by the shell.  If your system
-supports @samp{#!} magic at the start of scripts, add the following two
-lines to the beginning of your script to allow for its immediate execution:
+When using @option{--source} (@option{-s}) option, the rest of the
+command line following the option's argument is passed as the
+@var{args} argument to the @code{guimb-getopt} function, if such
+function is defined.  This allows for making guimb scripts executable
+by the shell.  If your system supports @samp{#!} magic at the start of
+scripts, add the following two lines to the beginning of your script
+to allow for its immediate execution: 
 
 @example
 #! /usr/local/bin/guimb -s
@@ -6040,18 +6095,19 @@ lines to the beginning of your script to allow for its immediate execution:
 @noindent
 (replace @samp{/usr/local/bin/} with the actual path to the @command{guimb}).
 
-Otherwise, if you use @option{--file} or @option{--expression} options,
-the additional arguments may be passed to the Scheme program @option{-g}
+Otherwise, if you use the @option{--file} option, the additional
+arguments can be passed to the Scheme program @option{-g} 
 (@option{--guile-arg}) command line option.  For example:
 
 @example
 guimb --guile-arg -opt --guile-arg 24 --file @var{progfile}
 @end example
 
-In this example, the scheme procedure will see the following command line:
+In this example, the @code{guimb-getopt} function will get the
+following argument
 
 @example
-@var{progfile} -opt 24
+( '-opt' 24 )
 @end example
 
 Finally, if there are many arguments to be passed to Scheme, it is more
@@ -6074,6 +6130,11 @@ Start with debugging evaluator and backtraces.
 @item -e @var{expr}
 @itemx --expression @var{expr}
 Execute given Scheme expression.
+@item -L @var{dir}
+@item --load-path @var{dir}
+Insert @var{dir} at the beginning of the @code{%load-path} list.  The
+argument is either a single directory name, or a list of such names,
+delimited by @samp{:} characters.
 @item -m @var{path}
 @itemx --mail-spool=@var{path}
 Set path to the mailspool directory
@@ -6111,8 +6172,8 @@ is a general-purpose @acronym{MDA} offering a rich set of
 features.  It can operate both in traditional mode, reading the message
 from its standard input, and in @acronym{LMTP} mode.  @command{Maidag}
 is able to deliver mail to any mailbox format, supported by GNU
-Mailutils.  These formats, among others, include @samp{remote+smtp},
-@samp{remote+prog} and @samp{remote+sendmail} which are
+Mailutils.  These formats, among others, include @samp{smtp://},
+@samp{prog://} and @samp{sendmail://} which are
 equivalent to forwarding a message over @acronym{SMTP} to a remote
 node.  Thus, @command{maidag} supersedes both @command{mail.local} and
 @command{mail.remote} utilities from GNU Mailutils versions prior to
@@ -6203,7 +6264,7 @@ maidag:
 MeTA1 (@uref{http://meta1.org}) communicates with the delivery agent
 using @acronym{LMTP}.
 
-LMTP mode is enabled in @command{maidag} by the @samp{lmpt yes}
+LMTP mode is enabled in @command{maidag} by the @samp{lmtp yes}
 statement.  The socket to listen on must be specified using
 @code{server} statement (@pxref{Server Settings}).  For the purposes of
 this section, let's suppose @command{maidag} will listen on a
@@ -6411,7 +6472,7 @@ Expands to the recipient home directory.
 Expands to the recipient user name.
 @end table
 
-By default, a filename extension decide which scripting language will
+By default, the filename extension decides which scripting language will
 be used.  User can alter the choice using @samp{language} configuration
 statement.  For example:
 
@@ -6592,25 +6653,25 @@ $ maidag --url maildir:///home/smith/Mail
 @node Remote Mailbox Delivery
 @subsection Remote Mailbox Delivery
 @command{Maidag} can be used to deliver mail to remote mailboxes, such
-as @samp{imap} or @samp{remote+smtp}.  If the mailbox @acronym{URL}
-is @samp{remote+smtp} or @samp{remote+sendmail}, the message is
+as @samp{imap} or @samp{smtp}.  If the mailbox @acronym{URL}
+is @samp{smtp} or @samp{sendmail}, the message is
 actually forwarded over @acronym{SMTP} to the remote node, so
 @command{maidag} acts as a message transfer agent.  For example:
 
 @example
-$ maidag --url remote+smtp://10.10.1.100:24
+$ maidag --url smtp://10.10.1.100:24
 @end example
 
 This command line will send the message to the machine
 @samp{10.10.1.100} using port @samp{24} (private mail system).
 
-The @samp{remote+prog} mailbox may be of special use.  Delivering to
+The @samp{prog} mailbox may be of special use.  Delivering to
 this mailbox results in invoking the specified command with the given
 arguments and passing the message to its standard input.  There are two
-ways to specify a @samp{remote+prog} mailbox:
+ways to specify a @samp{prog} mailbox:
 
 @table @asis
-@item remote+prog://@var{program}?@var{args}
+@item prog://@var{program}?@var{args}
 Here, @var{program} is the absolute pathname of the program binary,
 and @var{args} are its arguments, separated by @samp{&} signs.
 
@@ -6621,7 +6682,7 @@ white space.
 
 In both cases, @var{args} do not include @code{argv[0]}.
 
-The @samp{remote+prog} mailbox may be used, in particular, to implement
+The @samp{prog} mailbox may be used, in particular, to implement
 mailing lists with MeTA1.
 
 For example, suppose that the @command{maidag} configuration contains:
@@ -6672,20 +6733,20 @@ statements:
 
 @multitable @columnfractions 0.3 0.6
 @headitem Statement @tab Reference
-@item debug         @tab @xref{Debug Statement}.
-@item mailbox       @tab @xref{Mailbox Statement}.
-@item locking       @tab @xref{Locking Statement}.
-@item pam           @tab @xref{PAM Statement}.
-@item sql           @tab @xref{SQL Statement}.
-@item virtdomain    @tab @xref{Virtdomain Statement}.
-@item radius        @tab @xref{Radius Statement}.
-@item ldap          @tab @xref{LDAP Statement}.
-@item auth          @tab @xref{Auth Statement}.
-@item mailer        @tab @xref{Mailer Statement}.
+@item debug         @tab @xref{debug statement}.
+@item mailbox       @tab @xref{mailbox statement}.
+@item locking       @tab @xref{locking statement}.
+@item pam           @tab @xref{pam statement}.
+@item sql           @tab @xref{sql statement}.
+@item virtdomain    @tab @xref{virtdomain statement}.
+@item radius        @tab @xref{radius statement}.
+@item ldap          @tab @xref{ldap statement}.
+@item auth          @tab @xref{auth statement}.
+@item mailer        @tab @xref{mailer statement}.
 @item server        @tab @xref{Server Settings}.  Used only in
 @acronym{LMTP} mode.
-@item acl           @tab @xref{ACL Statement}.
-@item tcp-wrappers  @tab @xref{Tcp-wrappers Statement}.
+@item acl           @tab @xref{acl statement}.
+@item tcp-wrappers  @tab @xref{tcp-wrappers statement}.
 @end multitable
 
 @deffn {Maidag Config} ex-multiple-delivery-success @var{bool}
@@ -6940,7 +7001,6 @@ Use @var{program} to display files.
 @node pop3d
 @section POP3 Daemon
 @pindex pop3d
-@UNREVISED
 
 The @command{pop3d} daemon implements the Post Office Protocol
 Version 3 server.
@@ -7134,20 +7194,20 @@ The following configuration file statements affect the behavior of
 
 @multitable @columnfractions 0.3 0.6
 @headitem Statement @tab Reference
-@item debug         @tab @xref{Debug Statement}.
-@item tls           @tab @xref{TLS Statement}.
-@item mailbox       @tab @xref{Mailbox Statement}.
-@item locking       @tab @xref{Locking Statement}.
-@item logging       @tab @xref{Logging Statement}.
-@item pam           @tab @xref{PAM Statement}.
-@item sql           @tab @xref{SQL Statement}.
-@item virtdomain    @tab @xref{Virtdomain Statement}.
-@item radius        @tab @xref{Radius Statement}.
-@item ldap          @tab @xref{LDAP Statement}.
-@item auth          @tab @xref{Auth Statement}.
+@item debug         @tab @xref{debug statement}.
+@item tls           @tab @xref{tls statement}.
+@item mailbox       @tab @xref{mailbox statement}.
+@item locking       @tab @xref{locking statement}.
+@item logging       @tab @xref{logging statement}.
+@item pam           @tab @xref{pam statement}.
+@item sql           @tab @xref{sql statement}.
+@item virtdomain    @tab @xref{virtdomain statement}.
+@item radius        @tab @xref{radius statement}.
+@item ldap          @tab @xref{ldap statement}.
+@item auth          @tab @xref{auth statement}.
 @item server        @tab @xref{Server Settings}.
-@item acl           @tab @xref{ACL Statement}.
-@item tcp-wrappers  @tab @xref{Tcp-wrappers Statement}.
+@item acl           @tab @xref{acl statement}.
+@item tcp-wrappers  @tab @xref{tcp-wrappers statement}.
 @end multitable
 
 @deffn {Pop3d Conf} undelete @var{bool}
@@ -7207,26 +7267,15 @@ it defaults to 10 processes.
 @itemx --inetd
 Run in inetd mode.
 
-@item -h
-@itemx --help
-Display short help message and exit.
-
 @item --foreground
 Remain in foreground.
-
-@item --tls[=@var{bool}]
-Enable TLS.  If optional argument is supplied and is @samp{false}, then
-disable it.
-
-@item --debug-auth
-Enable debugging of authentication functions.
 @end table
 
+The Mailutils common options are also understood.  @xref{Common Options}.
 @page
 @node imap4d
 @section IMAP4 Daemon
 @pindex imap4d
-@UNREVISED
 
 GNU @command{imap4d} is a daemon implementing @sc{imap4} rev1 protocol
 for accessing and handling electronic mail messages on a server.  It can
@@ -7341,20 +7390,20 @@ configuration statements:
 
 @multitable @columnfractions 0.3 0.6
 @headitem Statement @tab Reference
-@item debug         @tab @xref{Debug Statement}.
-@item tls           @tab @xref{TLS Statement}.
-@item mailbox       @tab @xref{Mailbox Statement}.
-@item locking       @tab @xref{Locking Statement}.
-@item logging       @tab @xref{Logging Statement}.
-@item pam           @tab @xref{PAM Statement}.
-@item sql           @tab @xref{SQL Statement}.
-@item virtdomain    @tab @xref{Virtdomain Statement}.
-@item radius        @tab @xref{Radius Statement}.
-@item ldap          @tab @xref{LDAP Statement}.
-@item auth          @tab @xref{Auth Statement}.
+@item debug         @tab @xref{debug statement}.
+@item tls           @tab @xref{tls statement}.
+@item mailbox       @tab @xref{mailbox statement}.
+@item locking       @tab @xref{locking statement}.
+@item logging       @tab @xref{logging statement}.
+@item pam           @tab @xref{pam statement}.
+@item sql           @tab @xref{sql statement}.
+@item virtdomain    @tab @xref{virtdomain statement}.
+@item radius        @tab @xref{radius statement}.
+@item ldap          @tab @xref{ldap statement}.
+@item auth          @tab @xref{auth statement}.
 @item server        @tab @xref{Server Settings}.
-@item acl           @tab @xref{ACL Statement}.
-@item tcp-wrappers  @tab @xref{Tcp-wrappers Statement}.
+@item acl           @tab @xref{acl statement}.
+@item tcp-wrappers  @tab @xref{tcp-wrappers statement}.
 @end multitable
 
 @deffn {Imap4d Conf} shared-namespace @var{list}
@@ -7521,35 +7570,26 @@ it defaults to 20 processes.
 @emph{Please note}, that there should be no whitespace between the
 @option{-d} and its parameter.
 
-@item -h
-@itemx --help
-Display short help message and exit.
-
 @item -i
 @itemx --inetd
 Run in inetd mode.
+
 @item --foreground
 Run in foreground.
 
 @item --preauth
 Start in preauth mode
 
-@item --tls[=@var{bool}]
-Enable TLS support
-
-@item --debug-auth
-Debug authentication functions.
-
-@item -v
-@itemx --version
-Display program version and exit.
+@item --test
+Run in test mode.
 @end table
+
+See also @ref{Common Options}.
 
 @page
 @node comsatd
 @section Comsat Daemon
 @pindex comsatd
-@UNREVISED
 
 Comsatd is the server which receives reports of incoming mail and
 notifies users, wishing to get this service.  It can be started
@@ -7564,22 +7604,7 @@ either from @file{inetd.conf} or as a standalone daemon.
 @node Starting comsatd
 @subsection Starting @command{comsatd}
 
-@command{Comsatd} uses following option groups: @FIXME-xref{mailbox},
-@FIXME-xref{daemon}, @FIXME-xref{logging}.
-
 @table @option
-@item -C @var{file}
-@itemx --convert-config=@var{file}
-Convert the configuration file @var{file} to the new
-format.  @var{File} must be a @command{comsatd} configuration file in
-Mailutils v. 1.x format.  The converted file is printed on the standard
-output.  For example, the following command can be used to convert old
-@command{comsatd} configuration file to new format:
-
-@example
-$ comsatd --convert-config=/etc/comsatd.conf > /etc/mailutils.d/comsatd
-@end example
-
 @item -d
 @itemx --daemon
 Run as a standalone daemon.
@@ -7605,7 +7630,11 @@ mailbox, e.g.:
 $ comsatd --test /var/mail/root 34589
 @end example
 
+@item --foreground
+Don't detach from the controlling terminal, remain in foreground.
 @end table
+
+See also @ref{Common Options}.
 
 @node Configuring comsatd
 @subsection Configuring @command{comsatd}
@@ -7615,11 +7644,11 @@ Following configuration statements affect the behavior of
 
 @multitable @columnfractions 0.3 0.6
 @headitem Statement @tab Reference
-@item debug   @tab @xref{Debug Statement}.
-@item logging @tab @xref{Logging Statement}.
-@item mailbox @tab @xref{Mailbox Statement}.
-@item locking @tab @xref{Locking Statement}.
-@item acl     @tab @xref{ACL Statement}.
+@item debug   @tab @xref{debug statement}.
+@item logging @tab @xref{logging statement}.
+@item mailbox @tab @xref{mailbox statement}.
+@item locking @tab @xref{locking statement}.
+@item acl     @tab @xref{acl statement}.
 @end multitable
 
 @menu
@@ -7769,7 +7798,6 @@ $B(,5)\
 @page
 @node mh
 @section MH --- The MH Message Handling System
-@UNREVISED
 
 @include mu-mh.texi
 
@@ -8839,14 +8867,320 @@ Shows command history.
 
 @node mailutils imap
 @subsection mailutils imap
-The @command{mailutils imap} command is reserved for an interactive IMAP4
-client shell.  It does not do much now (as of version @value{VERSION}.
+The @command{mailutils imap} command invokes an interactive IMAP4 client
+shell.  It reads commands from the standard input, executes them and
+displays the results on the standard output.  The shell is similar to
+the @command{mailutils pop} (@pxref{mailutils pop}) shell.
+
+@subsubheading IMAP protocol commands
+
+Most commands in this group correspond (with minor differences) to
+IMAP commands described in RFC 3501@footnote{See
+@uref{http://www.faqs.org/rfcs/rfc3501.html}.}.
+
+@deffn {imap command} connect [-tls] @var{host} [@var{port}]
+Opens connection to the server @var{host}.  If the @option{-tls}
+option is given, TLS encryption (also known as IMAPS protocol) will be
+used.  If @var{port} argument is not supplied, the command uses port
+143 for a plain IMAP connection or 993 for IMAPS (if @option{-tls} is
+given).
+@end deffn
+
+@deffn {imap command} capability [-reread] [@var{name}...]
+Lists server capabilities.  Any number of @var{name}s is accepted.  If
+at least one is given, the shell will display only the named
+capabilities, otherwise it displays the entire list.  By default,
+@command{capability} reuses the response of its previous invocation
+(if there was any), instead of resending the CAPABILITY command to the
+server.  To force it do so, use the @option{-reread} option. 
+@end deffn
+
+@deffn {imap command} starttls
+Starts TLS negotiation.  This command is valid only after unencrypted
+connection has been successfully initiated using connect without the
+@option{-tls} option.
+@end deffn
+
+@deffn {imap command} login @var{user} [@var{password}] 
+Logs in to the server as @var{user} with optional @var{password}.  If
+the pass argument is omitted, the shell will ask you to enter it.
+While entering, both echoing and history recording will be disabled.
+Use this to avoid compromising your password.
+@end deffn
+
+@deffn {imap command} logout
+@deffnx {imap command} quit
+Quits the imap session.
+@end deffn
+
+@deffn {imap command} id [-test @var{kw}] [@var{arg}...]
+Sends IMAP ID command.  See RFC
+2971@footnote{@uref{http://www.faqs.org/rfcs/rfc2971.html}}, for a
+discussion of arguments.  By default, this command outputs entire ID
+list. If, however, the @option{-test} option is given, it will check whether
+the keyword @var{kw} is defined and display its value if so.  
+@end deffn
+
+@deffn {imap command} check
+Requests a server checkpoint.
+@end deffn
+
+@deffn {imap command} select [@var{mbox}]
+Selects the named mailbox. Without argument, selects @samp{INBOX}. 
+@end deffn
+
+@deffn {imap command} examine [@var{mbox}]
+Examines the named mailbox, i.e. selects it in read-only mode.  If
+@var{mbox} is not given, @samp{INBOX} is assumed.
+@end deffn
+
+@deffn {imap command} status @var{mbox} @var{kw} [@var{kw}...]
+Gets mailbox status.  Valid keywords (@var{kw} arguments) are:
+@samp{MESSAGES}, @samp{RECENT}, @samp{UIDNEXT}, @samp{UIDVALIDITY},
+and @samp{UNSEEN}.  Keywords are case-insensitive. 
+@end deffn
+
+@deffn {imap command} fetch @var{msgset} @var{items}
+Fetches message data.  See RFC 3501, section
+6.4.5@footnote{@uref{http://tools.ietf.org/html/rfc3501#section-6.4.5}},
+for a discussion of its arguments.
+@end deffn
+
+@deffn {imap command} store @var{msgset} @var{items}
+Alters mailbox data.  See RFC 3501, section
+6.4.6@footnote{@uref{http://tools.ietf.org/html/rfc3501#section-6.4.6}},
+for a discussion of its arguments. 
+@end deffn
+
+@deffn {imap command} close
+Closes the currently selected mailbox (with expunge). 
+@end deffn
+
+@deffn {imap command} unselect
+Closes the currently selected mailbox (without expunge). 
+@end deffn
+
+@deffn {imap command} delete @var{mbox}
+Deletes the mailbox @var{mbox}. 
+@end deffn
+
+@deffn {imap command} rename @var{old-name} @var{new-name}
+Renames existing mailbox @var{old-name} to @var{new-name}.
+@end deffn
+
+@deffn {imap command} expunge
+Permanently removes messages marked for deletion. 
+@end deffn
+
+@deffn {imap command} create @var{name}
+Creates new mailbox with the given @var{name}.
+@end deffn
+
+@deffn {imap command} append [-time @var{datetime}] [-flag @var{flag}] @var{mailbox} @var{file}
+Reads an RFC-822 message from @var{file} and appends it to the
+@var{mailbox}.  Use the @option{-time} option to supply envelope date
+for the message.  Use the @option{-flag} option to supply message
+flags.  For example:  
+
+@example
+append -time "25-Aug-2002 18:00:00 +0200" -flag \Seen INBOX input.msg
+@end example
+@end deffn
+
+@deffn {imap command} list @var{ref} @var{mbox}
+Lists matching mailboxes.  See RFC 3501, section
+6.3.8@footnote{@uref{http://tools.ietf.org/html/rfc3501#section-6.3.8}},
+for a discussion of its arguments.
+@end deffn
+
+@deffn {imap command} lsub @var{ref} @var{mbox}
+Lists subscribed mailboxes (RFC 3501, section 6.3.9@footnote{@uref{http://tools.ietf.org/html/rfc3501#section-6.3.9}}). 
+@end deffn
+
+@deffn {imap command} subscribe @var{mbox}
+Subscribes to a mailbox. 
+@end deffn
+
+@deffn {imap command} unsubscribe @var{mbox}
+Removes mailbox @var{mbox} from the subscription list. 
+@end deffn
+
+@deffn {imap command} noop
+Sends a @dfn{no operation} command. 
+@end deffn
+
+@deffn {imap command} disconnect
+Closes existing connection. 
+@end deffn
+
+@subsubheading Internal commands
+The @code{imap} shell implements the same set of internal commands as
+@code{pop} shell: @xref{mailutils pop, Internal commands}.  There is
+only one imap-specific internal command:
+
+@deffn {imap command} uid [on|off]
+Controls the UID mode.  When the UID mode is on, the commands
+@code{fetch} and @code{store} operate on and return message UIDs
+instead of their sequence numbers.  
+
+To examine the current state of the UID mode, issue the @code{uid}
+command without arguments.
+@end deffn
 
 @node mailutils send
 @subsection mailutils send
-@WRITEME
+Reads an RFC-822 message from a file and sends it over to a specified
+SMTP server.  The syntax is: 
 
+@example
+mailutils send [@var{options}] @var{host} @var{file}
+@end example
+
+@noindent
+where @var{host} defines the SMTP server through which to send the
+message, and @var{file} is the name of the input file containing the
+message.  For example, to send a message from file @file{input.msg}
+using SMTP service at localhost, one would write:
+
+@example
+$ mailutils send localhost input.msg
+@end example
+
+The @var{host} argument can be an IP address, hostname, or a
+valid SMTP URL. 
+
+The following command line options are understood:
+
+@table @option
+@item -F @var{address}
+@itemx --from=@var{address}
+Supplies envelope sender address.
+
+@item -T @var{address}
+@itemx --rcpt=@var{address}
+Supplies envelope recipient address.  It can be specified multiple
+times.
+
+@item -t
+@itemx --read-recipients
+Instructs the program to read recipient email addresses from the
+message @samp{To:}, @samp{Cc:}, and @samp{Bcc:} headers.
+@end table
+    
 @node mailutils smtp
 @subsection mailutils smtp
-@WRITEME
+The @code{mailutils smtp} command invokes an interactive SMTP client
+shell.  It reads commands from the standard input, executes them and
+displays the results on the standard output.  If the standard input is
+connected to a terminal, the readline and history facilities are
+enabled (provided that Mailutils is configured with GNU Readline).
+
+@subsubheading Initializing connection
+
+@deffn {smtp command} connect [-tls] @var{host} [@var{port}]
+Connects to SMTP server at @var{host} (IP address or host name).  If
+the @option{-tls} option is given, TLS encryption (also known as SMTPS
+protocol) will be used.  The default port number is 25 for plain SMTP
+and 465 for SMTPS.  Explicit @var{port} argument overrides the default
+value.  
+@end deffn
+
+@subsubheading Connection parameters
+
+A number of parameters is associated with an open connection:
+
+@table @asis
+@item domain
+Domain name used in EHLO statement.  Defaults to the current host name. 
+@end table
+
+The following parameters are used for ESMTP authentication:
+
+@table @asis
+@item username
+User name. 
+@item password
+User password. 
+@item service
+GSASL service name. 
+@item realm
+Realm name. 
+@item host
+Host name.
+@item url
+SMTP URL.  It can contain all of the above. Default is smtp:// 
+@end table
+
+These parameters are manipulated using the following statements:
+
+@deffn {smtp command} set @var{param} @var{value} [@var{param} @var{value}...]
+Sets parameter @var{param} to @var{value}.  Several parameters can be
+set with one @command{set} statement.  
+@end deffn
+
+@deffn {smtp command} clear [@var{param}...]
+Unset the supplied connection parameters.  If used without arguments,
+unsets all parameters.  
+@end deffn
+
+@deffn {smtp command} list [@var{param}...]
+Lists the values of the connection parameters.  If used without
+arguments, lists all parameters. 
+@end deffn
+
+@subsubheading SMTP commands
+@deffn {smtp command} ehlo [@var{domain}]
+Sends the ESMTP greeting.  Unless @var{domain} is supplied, the
+connection parameter @samp{domain} is used.  
+@end deffn
+
+@deffn {smtp command} capa [@var{name}...]
+Lists the server capabilities. 
+@end deffn
+
+@deffn {smtp command} starttls
+Initiates encrypted connection.  This command is disabled if the
+connection is opened with the @option{-tls} option.
+@end deffn
+
+@deffn {smtp command} auth @var{mech} [@var{mech}...]
+Authenticate using the supplied mechanisms.
+@end deffn
+
+@deffn {smtp command} rset
+Reset the session state.
+@end deffn
+
+@deffn {smtp command} from [@var{email}]
+Sets sender email address.  If used without arguments, prints the
+sender email address.
+@end deffn
+
+@deffn {smtp command} to [@var{email}]
+Sets recipient email address.  If used without arguments, prints all
+recepient names collected so far.
+@end deffn
+
+@deffn {smtp command} smtp @var{command} [@var{args}...]
+Sends the @var{command} with its arguments verbatim. 
+@end deffn
+
+@deffn {smtp command} quit
+Quits the SMTP session. 
+@end deffn
+
+@deffn {smtp command} send [@var{file}]
+Reads the message from @var{file} and sends it.  If @var{file} is not
+supplied, the action depends on whether a @code{send} command was used
+prevously within the same session.  If so, @command{mailutils} will
+first ask whether to reuse the already supplied message.  If not, it
+will start an editor, allowing you to enter the new message.  When you
+exit from the editor, you will be prompted what to do with the
+message: send, edit, or quit (discard) it.
+@end deffn
+
+@subsubheading Internal commands
+
+Internal commands are the same as in @code{pop} shell: @xref{mailutils
+pop, Internal commands}.
 

@@ -970,7 +970,7 @@ If the tagged argument is not given, @samp{:over} is assumed.
 
 @deftypefn Test {} pipe [:envelope] [:header] [:body] @
                         [:exit @var{code}(number)] @
-  	                [:signal @var{code}(number)] @
+                        [:signal @var{code}(number)] @
                         @var{command}(string)
 @*Synopsis:
 @smallexample
@@ -1489,14 +1489,14 @@ pipe "/usr/sbin/maidag --url smtp://gray@@mail.gnu.org"
                           [:noreply @var{noreply-address}(string-list)] @
                           [:reply_regex @var{expr}(string)] @
                           [:reply_prefix @var{prefix}(string)] @
- 		          [:sender @var{email}(string)] @
-		          [:database @var{path}(string)] @
-		          [:return_address @var{email}(string)] @
+                          [:sender @var{email}(string)] @
+                          [:database @var{path}(string)] @
+                          [:return_address @var{email}(string)] @
                           [:header @var{headers}(string-list)] @
-		          [:mime] @
-		          [:always_reply] @
+                          [:mime] @
+                          [:always_reply] @
                           [:rfc2822] @
-		          [:file] @
+                          [:file] @
                           @var{text}(string)
 @*Syntax:
 @smallexample
