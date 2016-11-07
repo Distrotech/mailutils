@@ -1,16 +1,15 @@
-GNU mailutils NEWS -- history of user-visible changes. 2016-11-02
+GNU mailutils NEWS -- history of user-visible changes. 2016-11-06
 Copyright (C) 2002-2016 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
 Please send mailutils bug reports to <bug-mailutils@gnu.org>.
 
 
-Version 2.99.993 (Git)
+Version 3.0 - 2016-11-06
 
 This version is a major rewrite of GNU Mailutils.  Quite a few parts
 of the basic framework were rewritten from scratch, while some others
-undergone a considerable revamping.  The user documentation at the
-moment is insufficient, and in some aspects even scarce.  It is being
+undergone considerable revamping.  The documentation is still being
 worked upon.  However, most of the utilities self-document themselves.  
 To obtain a summary of available configuration statements for a given
 program, run `program --config-help'.  For additional documentation,
@@ -136,7 +135,7 @@ example:
   mail -A prog --encoding quoted-printable --content-type text/c \
        -A main.c -A ext.h
 
-Here, the file "prog" will be attached witg the content type
+Here, the file "prog" will be attached with the content type
 "application/octet-stream" and encoding base64, while the files
 "main.c" and "ext.h" will be marked with content type "text/c" and
 encoded using "quoted-printable" algorithm.
@@ -168,7 +167,7 @@ to the `return-address' variable, e.g.:
     
 ** MH: improved compatibility with other implementations
 
-** MH inc: new option --moveto
+** MH inc: new option -moveto
 
 This option instructs the utility to move incorporated messages into
 another folder instead of deleting them. It is implemented only for
@@ -198,11 +197,11 @@ option:
 
   moveto=FOLDER
     Moves incorporated messages into FOLDER.  This is similar to the
-    `--moveto' option, but applies only to that particular mailbox.
+    `-moveto' option, but applies only to that particular mailbox.
     See the example above.
     
   nomoveto
-    Disables the previous `--moveto' option.
+    Disables the previous `-moveto' option.
 
   truncate[=BOOL]
     Controls source mailbox truncation.  If BOOL is not given or is
@@ -298,9 +297,9 @@ options for particular interfaces.  For example, to build only GDBM
 ** Link with GSASL by default
 
 GSASL is used by several Mailutils components (notably pop3d
-and imap4d as well as their client counterparts) for authentification.
+and imap4d as well as their client counterparts) for authentication.
 Since this version, it is enabled by default if configure detects the
-presense of GNU SASL version 0.2.3 or later.
+presence of GNU SASL version 0.2.3 or later.
 
 This can be disabled using the --without-gsasl option.
 
@@ -349,7 +348,7 @@ transaction.
 
 This method copies the requested set of messages into another
 mailbox. It is accessed using the `mu_mailbox_msgset_copy' or
-`mu_mailbox_message_copy' functions.  So far it is implememented
+`mu_mailbox_message_copy' functions.  So far it is implemented
 only for IMAP and IMAPS mailboxes.
 
 ** MIME support improved.
@@ -812,8 +811,6 @@ New diagnostics functions are available, among them:
 A new header file, mailutils/diag.h, provides declarations for these
 and other related functions.
   
-See documentation (FIXME: Chapter?) for more information.
-
 The functions mu_error and mu_verror are shortcuts for
 mu_diag_output (MU_DIAG_ERROR, ...)  and mu_diag_voutput (MU_DIAG_ERROR, ...),
 correspondingly.
