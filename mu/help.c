@@ -35,15 +35,17 @@ mutool_help (int argc, char **argv)
 
   if (argc == 1)
     {
+      char *hargv[3];
       mutool_action_t action = dispatch_find_action (argv[0]);
       if (!action)
 	{
 	  mu_error (_("don't know what %s is"), argv[0]);
 	  exit (1);
 	}
-      mu_asprintf (&argv[0], "%s %s", mu_program_name, argv[0]);
-      argv[1] = "--help";
-      return action (2, argv);
+      hargv[0] = argv[0];
+      hargv[1] = "--help";
+      hargv[2] = NULL;
+      return action (3, hargv);
     }
   else if (argc > 1)
     {
