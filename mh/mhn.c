@@ -2766,7 +2766,7 @@ main (int argc, char **argv)
     pause_option = 0;
 
   if (!compose_option && !list_option && !show_option && !store_option)
-    show_option = 1;
+    compose_option = 1;
   
   signal (SIGPIPE, SIG_IGN);
 
