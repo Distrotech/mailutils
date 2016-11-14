@@ -22,20 +22,34 @@
 
 #define MAILVAR_TYPEMASK(type) (1<<(8+(type)))
 
+enum mailvar_cmd
+  {
+    mailvar_cmd_set,
+    mailvar_cmd_unset
+  };
+
 struct mailvar_symbol
 {
   struct mailvar_variable var;
   int flags;
   char *descr;
-  void (*handler) (struct mailvar_variable *);
+  int (*handler) (enum mailvar_cmd, struct mailvar_variable *);
 };
 
 mu_list_t mailvar_list = NULL;
 
-static void set_decode_fallback (struct mailvar_variable *);
-static void set_replyregex (struct mailvar_variable *);
-static void set_screen (struct mailvar_variable *);
-static void set_debug (struct mailvar_variable *);
+static int set_decode_fallback (enum mailvar_cmd cmd,
+				struct mailvar_variable *);
+static int set_replyregex (enum mailvar_cmd cmd,
+			   struct mailvar_variable *);
+static int set_screen (enum mailvar_cmd cmd,
+		       struct mailvar_variable *);
+static int set_debug (enum mailvar_cmd cmd,
+		      struct mailvar_variable *);
+static int set_folder (enum mailvar_cmd cmd,
+		       struct mailvar_variable *);
+static int set_headline (enum mailvar_cmd,
+			 struct mailvar_variable *);
   
 struct mailvar_symbol mailvar_tab[] =
   {
@@ -119,7 +133,8 @@ struct mailvar_symbol mailvar_tab[] =
       N_("swap the meaning of reply and Reply commands") },
     { { "folder", },
       MAILVAR_TYPEMASK (mailvar_type_string), 
-      N_("folder directory name") },
+      N_("folder directory name"),
+      set_folder },
     { { "fromfield", },
       MAILVAR_TYPEMASK (mailvar_type_boolean),
       N_("get sender address from the `From:' header, instead of "
@@ -133,7 +148,7 @@ struct mailvar_symbol mailvar_tab[] =
     { { "headline", },
       MAILVAR_TYPEMASK (mailvar_type_string),
       N_("format string to use for the header summary"),
-      mail_compile_headline },
+      set_headline },
     { { "hold", },
       MAILVAR_TYPEMASK (mailvar_type_boolean),
       N_("hold the read or saved messages in the system mailbox") },
@@ -471,9 +486,10 @@ int
 mailvar_set (const char *variable, void *value, enum mailvar_type type,
 	     int flags)
 {
-  struct mailvar_variable *var;
+  struct mailvar_variable *var, newvar;
   const struct mailvar_symbol *sym = find_mailvar_symbol (variable);
-  int unset = flags & MOPTF_UNSET;
+  enum mailvar_cmd cmd =
+    (flags & MOPTF_UNSET) ? mailvar_cmd_unset : mailvar_cmd_set;
   
   if (!(flags & MOPTF_QUIET)
       && mailvar_get (NULL, "variable-strict", mailvar_type_boolean, 0) == 0)
@@ -488,95 +504,174 @@ mailvar_set (const char *variable, void *value, enum mailvar_type type,
 	  return 1;
 	}
       else if (!(sym->flags & MAILVAR_TYPEMASK (type))
-	       && !unset)
+	       && cmd == mailvar_cmd_set)
 	{
 	  mu_error (_("Wrong type for %s"), variable);
 	  return 1;
 	}
     }
 
-  var = mailvar_find_variable (variable, !unset);
+  var = mailvar_find_variable (variable, cmd == mailvar_cmd_set);
 
   if (!var || (var->set && !(flags & MOPTF_OVERWRITE)))
     return 0;
 
-  mailvar_variable_reset (var);
-  if (!unset)
+  newvar.name = var->name;
+  newvar.type = var->type;
+  newvar.set = 0;
+  memset (&newvar.value, 0, sizeof (newvar.value));
+  
+  switch (cmd)
     {
-      var->type = type;
+    case mailvar_cmd_set:
       if (value)
 	{
-	  var->set = 1;
 	  switch (type)
 	    {
 	    case mailvar_type_number:
-	      var->value.number = *(int*)value;
+	      newvar.value.number = *(int*)value;
 	      break;
 	  
 	    case mailvar_type_string:
-	      var->value.string = strdup (value);
+	      {
+		char *p = strdup (value);
+		if (!p)
+		  {
+		    mu_error ("%s", _("Not enough memory"));
+		    return 1;
+		  }
+		newvar.value.string = p;
+	      }
 	      break;
 	  
 	    case mailvar_type_boolean:
-	      var->value.bool = *(int*)value;
+	      newvar.value.bool = *(int*)value;
 	      break;
 		  
 	    default:
 	      abort();
 	    }
+	  newvar.set = 1;
 	}
+      newvar.type = type;
+      if (sym
+	  && sym->handler
+	  && sym->flags & MAILVAR_TYPEMASK (type)
+	  && sym->handler (cmd, &newvar))
+	{
+	  mailvar_variable_reset (&newvar);
+	  return 1;
+	}
+      mailvar_variable_reset (var);
+      *var = newvar;
+      break;
+
+    case mailvar_cmd_unset:
+      if (sym
+	  && sym->handler
+	  && sym->handler (cmd, var))
+	return 1;
+      mailvar_variable_reset (var);
     }
-    
-  /* Special handling for some variables */
-  if (sym && sym->flags & MAILVAR_TYPEMASK (type) && sym->handler)
-    sym->handler (var);
+
+  return 0;
+}
+
+static int
+set_folder (enum mailvar_cmd cmd, struct mailvar_variable *var)
+{
+  int rc = mu_set_folder_directory (var->value.string);
+  if (rc)
+    mu_diag_funcall (MU_DIAG_ERROR, "mu_set_folder_directory",
+		     var->value.string, rc);
+  return rc;
+}
+		   
+
+static int
+set_headline (enum mailvar_cmd cmd, struct mailvar_variable *var)
+{
+  if (cmd == mailvar_cmd_unset)
+    return 1;
   
+  mail_compile_headline (var->value.string);
   return 0;
 }
 
-
-static void
-set_decode_fallback (struct mailvar_variable *var)
+static int
+set_decode_fallback (enum mailvar_cmd cmd, struct mailvar_variable *var)
 {
-  if (mu_set_default_fallback (var->value.string))
+  char *value;
+  int rc;
+  
+  switch (cmd)
+    {
+    case mailvar_cmd_set:
+      value = var->value.string;
+      break;
+
+    case mailvar_cmd_unset:
+      value = "none";
+    }
+  
+  rc = mu_set_default_fallback (value);
+  if (rc)
     mu_error (_("Incorrect value for decode-fallback"));
+  return rc;
 }
 
-static void
-set_replyregex (struct mailvar_variable *var)
+static int
+set_replyregex (enum mailvar_cmd cmd, struct mailvar_variable *var)
 {
   int rc;
   char *err;
-  
-  if ((rc = mu_unre_set_regex (var->value.string, 0, &err)))
+
+  switch (cmd)
     {
-      if (err)
-	mu_error ("%s: %s", mu_strerror (rc), err);
-      else
-	mu_error ("%s", mu_strerror (rc));
+    case mailvar_cmd_set:
+      if ((rc = mu_unre_set_regex (var->value.string, 0, &err)))
+	{
+	  if (err)
+	    mu_error ("%s: %s", mu_strerror (rc), err);
+	  else
+	    mu_error ("%s", mu_strerror (rc));
+	  return 1;
+	}
+      break;
+
+    case mailvar_cmd_unset:
+      return 1;
     }
+
+  return 0;
 }
 
-static void
-set_screen (struct mailvar_variable *var)
+static int
+set_screen (enum mailvar_cmd cmd, struct mailvar_variable *var)
 {
-  page_invalidate (1);
+  if (cmd == mailvar_cmd_set)
+    page_invalidate (1);
+  return 0;
 }
 
 #define DEFAULT_DEBUG_LEVEL  MU_DEBUG_LEVEL_UPTO (MU_DEBUG_TRACE7)
 
-static void
-set_debug (struct mailvar_variable *var)
+static int
+set_debug (enum mailvar_cmd cmd, struct mailvar_variable *var)
 {
   mu_debug_clear_all ();
 
-  if (var->type == mailvar_type_boolean)
+  if (cmd == mailvar_cmd_set)
     {
-      if (var->set)
-        mu_debug_set_category_level (MU_DEBCAT_ALL, DEFAULT_DEBUG_LEVEL);
-      return;
+      if (var->type == mailvar_type_boolean)
+	{
+	  if (var->set)
+	    mu_debug_set_category_level (MU_DEBCAT_ALL, DEFAULT_DEBUG_LEVEL);
+	  return 0;
+	}
+      mu_debug_parse_spec (var->value.string);
     }
-  mu_debug_parse_spec (var->value.string); 
+  return 0;
 }
 
 

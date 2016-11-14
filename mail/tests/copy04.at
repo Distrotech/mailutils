@@ -14,24 +14,34 @@
 # You should have received a copy of the GNU General Public License
 # along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
 
-AT_SETUP([setting columns from environment])
-AT_KEYWORDS([columns cols00])
+AT_SETUP([copy: # expansion])
+AT_KEYWORDS([copy copy04])
 
-# Description: Check if COLUMNS setting is honored.
-# Reported-By: Dan Jacobson <jidanni@jidanni.org>
-# References: <87vbgemcc7.fsf@jidanni.org>,
-#    http://lists.gnu.org/archive/html/bug-mailutils/2015-04/msg00002.html
+# Description: Check whether special mailbox notations are correctly expanded
+# in copy command.  This was broken by commit eea2c4aa.
+#
+# This testcase checks for expansion of "#".
 
 AT_CHECK([
 MUT_MBCOPY($abs_top_srcdir/testsuite/spool/mbox)
-COLUMNS=26 MUT_MAIL_CMD -nH -E 'set columns=26' -f ./mbox
-COLUMNS=31 MUT_MAIL_CMD -nH -f ./mbox
+folder=`pwd`
+MBOX=$folder/mbox
+NEW=$folder/new
+>$NEW
+AT_DATA([script],[file +new
+file +mbox
+copy 1 #
+])
+MUT_MAIL_CMD -N -E "set folder=\"$folder\"" -f $MBOX < script  | dnl
+ sed 's/  *$//;s|'$NEW'|NEW|;s|'$MBOX'|MBOX|'
+sed '/^X-IMAPbase:/d;/^Status:/d;/^X-UID/d' $NEW | diff - $abs_top_srcdir/testsuite/spool/mbox 
 ],
 [0],
-[>N   1 Sergey Poznyakoff
->N   1 Sergey Poznyakoff  Tue
+[Held 1 message in MBOX
+Held 0 messages in NEW
+"NEW"  17/482
+
+Held 1 message in MBOX
 ])
 
 AT_CLEANUP
-
-

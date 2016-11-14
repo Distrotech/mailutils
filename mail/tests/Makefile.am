@@ -42,6 +42,10 @@ TESTSUITE_AT =\
  cols00.at\
  cols01.at\
  copy00.at\
+ copy01.at\
+ copy02.at\
+ copy03.at\
+ copy04.at\
  nohome.at\
  testsuite.at\
  version.at

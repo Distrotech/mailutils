@@ -1,5 +1,5 @@
 # This file is part of GNU Mailutils. -*- Autotest -*-
-# Copyright (C) 2007-2012, 2014-2016 Free Software Foundation, Inc.
+# Copyright (C) 2015-2016 Free Software Foundation, Inc.
 #
 # GNU Mailutils is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License as
@@ -14,19 +14,25 @@
 # You should have received a copy of the GNU General Public License
 # along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
 
-m4_include([testsuite.inc])
+AT_SETUP([copy: % expansion])
+AT_KEYWORDS([copy copy01])
 
-m4_define([MUT_MAIL_CMD],[MAILRC=/dev/null mail MUT_DEFAULT_OPTIONS])
+# Description: Check whether special mailbox notations are correctly expanded
+# in copy command.  This was broken by commit eea2c4aa.
+#
+# This testcase checks for expansion of "%".
 
-AT_INIT
-AT_TESTED([mail])
+AT_CHECK([
+MUT_MBCOPY($abs_top_srcdir/testsuite/spool/mbox)
+mbox=`pwd`/user
+echo 'copy 1 %' | dnl
+ MUT_MAIL_CMD -N -f ./mbox --set '|mailbox|mailbox-pattern'=$mbox | dnl
+ sed 's/  *$//;/^Held 1 message/d;s|'$mbox'|MBOX|'
+cmp user $abs_top_srcdir/testsuite/spool/mbox
+],
+[0],
+["MBOX"  14/438
 
-m4_include([version.at])
-m4_include([nohome.at])
-m4_include([cols00.at])
-m4_include([cols01.at])
-m4_include([copy00.at])
-m4_include([copy01.at])
-m4_include([copy02.at])
-m4_include([copy03.at])
-m4_include([copy04.at])
+])
+
+AT_CLEANUP

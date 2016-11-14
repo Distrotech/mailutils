@@ -24,7 +24,6 @@ AT_KEYWORDS([nohome])
 
 AT_CHECK([
 MUT_MBCOPY($abs_top_srcdir/testsuite/spool/mbox)
-unset MAILRC
 unset HOME
 MAIL=./mbox MUT_MAIL_CMD -nH
 ],

@@ -117,9 +117,17 @@ mu_set_mailbox_pattern (const char *pat)
 int
 mu_set_folder_directory (const char *p)
 {
-  char *fdir = strdup (p);
-  if (!fdir)
-    return ENOMEM;
+  char *fdir;
+
+  if (p)
+    {
+      fdir = strdup (p);
+      if (!fdir)
+	return ENOMEM;
+    }
+  else
+    fdir = NULL;
+  
   if (_mu_folder_dir != _default_folder_dir)
     free (_mu_folder_dir);
   _mu_folder_dir = fdir;
@@ -127,7 +135,7 @@ mu_set_folder_directory (const char *p)
 }
 
 const char *
-mu_mailbox_url ()
+mu_mailbox_url (void)
 {
   if (_mu_mailbox_pattern)
     return _mu_mailbox_pattern;
@@ -135,10 +143,13 @@ mu_mailbox_url ()
 }
 
 const char *
-mu_folder_directory ()
+mu_folder_directory (void)
 {
-  if (!_mu_folder_dir)
-    _mu_folder_dir = _default_folder_dir;
+  if (!_mu_folder_dir && _default_folder_dir)
+    {
+      mu_set_folder_directory (_default_folder_dir);
+      _default_folder_dir = NULL;
+    }
   return _mu_folder_dir;
 }
 
@@ -286,30 +297,40 @@ user_mailbox_name (const char *user, char **mailbox_name)
 static int
 plus_expand (const char *file, char **buf)
 {
-  char *home;
+  int rc = 0;
   const char *folder_dir = mu_folder_directory ();
 
-  home = get_homedir (NULL);
-  if (!home)
-    return ENOENT;
-  
-  file++;
-  
-  if (folder_dir[0] == '/' || mu_is_proto (folder_dir))
+  if (!folder_dir)
     {
-      *buf = mu_make_file_name (folder_dir, file);
-      if (!*buf)
-	return errno;
+      char *p = strdup (file);
+      if (!p)
+	return ENOMEM;
+      *buf = p;
     }
   else
     {
-      int rc = mu_asprintf (buf, "%s/%s/%s", home, folder_dir, file);
-      if (rc)
-	return rc;
+      file++;
+  
+      if (folder_dir[0] == '/' || mu_is_proto (folder_dir))
+	{
+	  char *p = mu_make_file_name (folder_dir, file);
+	  if (!p)
+	    return errno;
+	  *buf = p;
+	}
+      else
+	{
+	  char *home = get_homedir (NULL);
+      
+	  if (!home)
+	    return ENOENT;
+      
+	  rc = mu_asprintf (buf, "%s/%s/%s", home, folder_dir, file);
+	  free (home);
+	}
     }
   
-  free (home);
-  return 0;
+  return rc;
 }
 
 static int
@@ -374,21 +395,75 @@ attach_auth_ticket (mu_mailbox_t mbox)
     }
 }
 
-/* We are trying to be smart about the location of the mail.
-   mu_mailbox_create() is not doing this.
-   %           --> system mailbox for the real uid
-   %user       --> system mailbox for the given user
-   ~/file      --> /home/user/file
-   ~user/file  --> /home/user/file
-   +file       --> /home/user/Mail/file
-   =file       --> /home/user/Mail/file
-*/
+/* Expand mailbox name according to the following rules:
+
+   NAME            Expands to
+   -------------+------------------------------------
+   %            -> system mailbox for the real uid
+   %user        -> system mailbox for the given user
+   ~/file       -> /home/user/file
+   ~user/file   -> /home/user/file
+   +file        -> /home/user/Mail/file
+   =file        -> /home/user/Mail/file
+ */
+int
+mu_mailbox_expand_name (const char *name, char **expansion)
+{
+  int status = 0;
+  char *p;
+  char *mbox = NULL;
+  
+  if (!name)
+    return EINVAL;
+  if (!expansion)
+    return MU_ERR_OUT_PTR_NULL;
+
+  p = mu_tilde_expansion (name, MU_HIERARCHY_DELIMITER, NULL);
+  if (!p)
+    return errno;
+  switch (p[0])
+    {
+    case '%':
+      status = percent_expand (p, &mbox);
+      break;
+      
+    case '+':
+    case '=':
+      status = plus_expand (p, &mbox);
+      break;
+  
+    case '/':
+      mbox = p;
+      p = NULL;
+      break;
+      
+    default:
+      if (!mu_is_proto (p))
+	{
+	  char *dir = mu_getcwd();
+	  mbox = mu_make_file_name (dir, p);
+	  if (!mbox)
+	    status = errno;
+	  free (dir);  
+	}
+      else
+	{
+	  mbox = p;
+	  p = NULL;
+	}
+    }
+  free (p);
+  if (status == 0)
+    *expansion = mbox;
+  return status;
+}
+
+/* Expand mailbox name MAIL and create a mailbox structure for it. */
 int
 mu_mailbox_create_default (mu_mailbox_t *pmbox, const char *mail)
 {
-  char *mbox = NULL;
-  char *tmp_mbox = NULL;
-  char *p;
+  char *mboxname = NULL;
+  char *name_ptr = NULL;
   int status = 0;
 
   /* Sanity.  */
@@ -412,63 +487,19 @@ mu_mailbox_create_default (mu_mailbox_t *pmbox, const char *mail)
 
       if (!mail)
 	{
-	  if ((status = user_mailbox_name (NULL, &tmp_mbox)))
+	  if ((status = user_mailbox_name (NULL, &name_ptr)))
 	    return status;
-	  mail = tmp_mbox;
+	  mail = name_ptr;
 	}
     }
-  
-  p = mu_tilde_expansion (mail, MU_HIERARCHY_DELIMITER, NULL);
-  if (tmp_mbox)
-    free (tmp_mbox);
-  tmp_mbox = p;
-  mail = tmp_mbox;
-  if (!mail)
-    return ENOMEM;
 
-  switch (mail[0])
-    {
-    case '%':
-      status = percent_expand (mail, &mbox);
-      break;
-      
-    case '+':
-    case '=':
-      status = plus_expand (mail, &mbox);
-      break;
-
-    case '/':
-      mbox = strdup (mail);
-      if (!mbox)
-	status = errno;
-      break;
-      
-    default:
-      if (!mu_is_proto (mail))
-	{
-	  p = mu_getcwd();
-	  mbox = mu_make_file_name (p, mail);
-	  if (!mbox)
-	    status = errno;
-	  free (p);  
-	}
-      else
-	{
-	  mbox = strdup (mail);
-	  if (!mbox)
-	    status = errno;
-	}
-      break;
-    }
-
-  if (tmp_mbox)
-    free (tmp_mbox);
-
+  status = mu_mailbox_expand_name (mail, &mboxname);
+  free (name_ptr);
   if (status)
     return status;
   
-  status = mu_mailbox_create (pmbox, mbox);
-  free (mbox);
+  status = mu_mailbox_create (pmbox, mboxname);
+  free (mboxname);
   if (status == 0)
     attach_auth_ticket (*pmbox);
       

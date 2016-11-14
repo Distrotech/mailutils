@@ -193,7 +193,7 @@ extern int mail_folders (int argc, char **argv);
 extern int mail_followup (int argc, char **argv);
 extern int mail_from (int argc, char **argv);
 extern int mail_from0 (msgset_t *mspec, mu_message_t msg, void *data);
-extern void mail_compile_headline (struct mailvar_variable *var);
+extern void mail_compile_headline (char const *str);
 
 extern int mail_headers (int argc, char **argv);
 extern int mail_hold (int argc, char **argv);

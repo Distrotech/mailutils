@@ -40,7 +40,7 @@ append_to_mailbox (char const *filename, msgset_t *msglist, int mark,
   size_t size;
   mu_message_t msg;
   
-  if ((status = mu_mailbox_create_default (&mbx, filename)) != 0)
+  if ((status = mu_mailbox_create (&mbx, filename)) != 0)
     {
       mu_error (_("Cannot create mailbox %s: %s"), filename, 
                    mu_strerror (status));
@@ -96,7 +96,7 @@ append_to_file (char const *filename, msgset_t *msglist, int mark,
   size_t lines;
   mu_message_t msg;
   mu_locker_t locker;
-  
+
   status = mu_file_stream_create (&ostr, filename,
 				  MU_STREAM_CREAT|MU_STREAM_APPEND);
   if (status)

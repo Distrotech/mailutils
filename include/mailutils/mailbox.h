@@ -36,6 +36,8 @@ const char *mu_mailbox_url (void);
 const char *mu_folder_directory (void);
 int mu_construct_user_mailbox_url (char **pout, const char *name);
 
+int mu_mailbox_expand_name (const char *name, char **expansion);
+  
 /* Constructor/destructor and possible types.  */
 extern int  mu_mailbox_create          (mu_mailbox_t *, const char *);
 extern int  mu_mailbox_create_from_url (mu_mailbox_t *, mu_url_t);

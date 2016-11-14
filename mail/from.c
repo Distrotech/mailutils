@@ -538,10 +538,10 @@ compile_headline (const char *str)
 static struct header_segm *mail_header_line;
 
 void
-mail_compile_headline (struct mailvar_variable *var)
+mail_compile_headline (char const *str)
 {
   free_headline (mail_header_line);
-  mail_header_line = compile_headline (var->value.string);
+  mail_header_line = compile_headline (str);
 }
 
 

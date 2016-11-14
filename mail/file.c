@@ -23,44 +23,43 @@ static char *prev_name;
  * #	    the previous file
  * &	    the current mbox
  * +file    the file named in the folder directory (set folder=foo)
- * Note 1) The followig notations are left intact, since they are
- * handled by mu_mailbox_create_default:
  * %	    system mailbox
- * %user    system mailbox of the user 
- * Note 2) Allocates memory
+ * %user    system mailbox of the user
  */
 char *
 mail_expand_name (const char *name)
 {
-  switch (name[0])
+  int status = 0;
+  char *exp = NULL;
+    
+  if (strcmp (name, "#") == 0)
     {
-    case '#':
       if (!prev_name)
 	{
 	  mu_error (_("No previous file"));
 	  return NULL;
 	}
       else
-	name = mu_strdup (prev_name);
-      break;
-	  
-    case '&':
+	return mu_strdup (prev_name);
+    }
+
+  if (strcmp (name, "&") == 0)
+    {
       name = getenv ("MBOX");
       if (!name)
-	mu_error (_("MBOX environment variable not set"));
-      else
-	name = mu_strdup (name);
-      break;
-	  
-    case '+':
-      name = util_folder_path (name);
-      break;
-
-    default:
-      name = mu_strdup (name);
-      break;
+	{
+	  mu_error (_("MBOX environment variable not set"));
+	  return NULL;
+	}
+      /* else fall through */
     }
-  return (char*) name;
+
+  status = mu_mailbox_expand_name (name, &exp);
+
+  if (status)
+    mu_error (_("Failed to expand %s: %s"), name, mu_strerror (status));
+
+  return (char*) exp;
 }
 
 /*
@@ -87,7 +86,7 @@ mail_file (int argc, char **argv)
       if (!name)
 	return 1;
       
-      if ((status = mu_mailbox_create_default (&newbox, name)) != 0 
+      if ((status = mu_mailbox_create (&newbox, name)) != 0 
 	  || (status = mu_mailbox_open (newbox, MU_STREAM_RDWR)) != 0)
 	{
 	  mu_mailbox_destroy (&newbox);
