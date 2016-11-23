@@ -83,7 +83,9 @@ set_debug_level (const char *arg)
 	  break;
 
 	case 'g':
-	  mu_sieve_yydebug = 1;
+	  mu_debug_get_category_level (mu_sieve_debug_handle, &lev);
+	  mu_debug_set_category_level (mu_sieve_debug_handle,
+				    lev | MU_DEBUG_LEVEL_MASK(MU_DEBUG_TRACE1));
 	  break;
 
 	case 't':

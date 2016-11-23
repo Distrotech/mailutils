@@ -38,7 +38,7 @@ if header :comparator "i;ascii-numeric" :contains "X-Number" "15"
     discard;
   }
 ],[78],[],
-[sieve: prog:5: comparator `i;ascii-numeric' is incompatible with match type `contains' in call to `header'
+[sieve: prog:4:1: comparator `i;ascii-numeric' is incompatible with match type `contains' in call to `header'
 ])
 AT_CLEANUP
 

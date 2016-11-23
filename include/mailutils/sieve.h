@@ -47,7 +47,8 @@ typedef int (*mu_sieve_comparator_t) (const char *, const char *);
 typedef int (*mu_sieve_retrieve_t) (void *item, void *data, int idx,
 				    char **pval);
 typedef void (*mu_sieve_destructor_t) (void *data);
-typedef int (*mu_sieve_tag_checker_t) (const char *name,
+typedef int (*mu_sieve_tag_checker_t) (mu_sieve_machine_t mach,
+				       const char *name,
 				       mu_list_t tags, mu_list_t args);
 
 typedef enum
@@ -121,7 +122,6 @@ typedef struct
 #define MU_SIEVE_DEBUG_DISAS  0x0004
 #define MU_SIEVE_DRY_RUN      0x0008
 
-extern int mu_sieve_yydebug;
 extern mu_debug_handle_t mu_sieve_debug_handle;
 extern mu_list_t mu_sieve_include_path;
 extern mu_list_t mu_sieve_library_path;
@@ -190,13 +190,16 @@ int mu_sieve_str_to_relcmp (const char *str, mu_sieve_relcmp_t * test,
 mu_sieve_relcmp_t mu_sieve_get_relcmp (mu_sieve_machine_t mach,
 				       mu_list_t tags);
 
-void mu_sieve_require (mu_list_t slist);
+void mu_sieve_require (mu_sieve_machine_t mach, mu_list_t slist);
+
 int mu_sieve_tag_lookup (mu_list_t taglist, char *name,
 			 mu_sieve_value_t ** arg);
 int mu_sieve_load_ext (mu_sieve_machine_t mach, const char *name);
-int mu_sieve_match_part_checker (const char *name, mu_list_t tags,
+int mu_sieve_match_part_checker (mu_sieve_machine_t mach,
+				 const char *name, mu_list_t tags,
 				 mu_list_t args);
-int mu_sieve_match_part_checker (const char *name, mu_list_t tags,
+int mu_sieve_match_part_checker (mu_sieve_machine_t mach,
+				 const char *name, mu_list_t tags,
 				 mu_list_t args);
 /* Operations in value lists */
 mu_sieve_value_t *mu_sieve_value_get (mu_list_t vlist, size_t index);

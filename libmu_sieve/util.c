@@ -171,7 +171,7 @@ mu_sieve_value_create (mu_sieve_data_type type, void *data)
       break;
 	
     default:
-      mu_sv_compile_error (&mu_sieve_locus, _("invalid data type"));
+      mu_error ("%s", _("invalid data type"));
       abort ();
     }
   return val;
@@ -183,24 +183,6 @@ mu_sieve_value_get (mu_list_t vlist, size_t index)
   mu_sieve_value_t *val = NULL;
   mu_list_get (vlist, index, (void **)&val);
   return val;
-}
-
-void
-mu_sv_compile_error (struct mu_locus *ploc, const char *fmt, ...)
-{
-  va_list ap;
-
-  va_start (ap, fmt);
-  mu_sieve_error_count++;
-  mu_stream_ioctl (mu_sieve_machine->errstream,
-                   MU_IOCTL_LOGSTREAM, MU_IOCTL_LOGSTREAM_SET_LOCUS,
-		   ploc);
-  mu_stream_printf (mu_sieve_machine->errstream,
-		    "\033s<%d>\033O<%d>",
-		    MU_LOG_ERROR, MU_LOGMODE_LOCUS);
-  mu_stream_vprintf (mu_sieve_machine->errstream, fmt, ap);
-  mu_stream_write (mu_sieve_machine->errstream, "\n", 1, NULL);
-  va_end (ap);
 }
 
 void

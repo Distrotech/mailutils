@@ -61,10 +61,11 @@ mu_diag_at_locus (int level, struct mu_locus const *loc, const char *fmt, ...)
   va_list ap;
 
   va_start (ap, fmt);
-  mu_stream_printf (mu_strerr, "\033f<%d>%s\033l<%u>\033c<%u>",
-		    (unsigned) strlen (loc->mu_file), loc->mu_file,
-		    loc->mu_line,
-		    loc->mu_col);
+  if (loc && loc->mu_file)
+    mu_stream_printf (mu_strerr, "\033f<%d>%s\033l<%u>\033c<%u>",
+		      (unsigned) strlen (loc->mu_file), loc->mu_file,
+		      loc->mu_line,
+		      loc->mu_col);
   mu_diag_voutput (level, fmt, ap);
   va_end (ap);
 }

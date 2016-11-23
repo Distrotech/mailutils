@@ -17,6 +17,7 @@
 
 YLWRAP = $(SHELL) $(mu_aux_dir)/gylwrap
 AM_YFLAGS = -dtv
+#AM_LEXFLAGS=-dvp
 AM_CPPFLAGS =\
  @MU_LIB_COMMON_INCLUDES@\
  -DMU_SIEVE_MODDIR=\"@MU_SIEVE_MODDIR@\"

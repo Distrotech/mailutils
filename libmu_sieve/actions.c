@@ -522,7 +522,8 @@ mu_sieve_data_type fileinto_args[] = {
 };
 
 static int
-perms_tag_checker (const char *name, mu_list_t tags, mu_list_t args)
+perms_tag_checker (mu_sieve_machine_t mach,
+		   const char *name, mu_list_t tags, mu_list_t args)
 {
   mu_iterator_t itr;
   int err = 0;
@@ -540,8 +541,9 @@ perms_tag_checker (const char *name, mu_list_t tags, mu_list_t args)
 	{
 	  if (mu_parse_stream_perm_string (&flag, t->arg->v.string, &p))
 	    {
-	      mu_sv_compile_error (&mu_sieve_locus, 
-				   _("invalid permissions (near %s)"), p);
+	      mu_diag_at_locus (MU_LOG_ERROR, &mach->locus,
+				_("invalid permissions (near %s)"), p);
+	      mu_i_sv_error (mach);
 	      err = 1;
 	    }
 	}

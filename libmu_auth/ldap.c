@@ -538,8 +538,6 @@ _mu_entry_to_auth_data (LDAP *ld, LDAPMessage *msg,
   
   rc = ldap_get_dn_ber (ld, msg, &ber, &bv);
   ufn = ldap_dn2ufn (bv.bv_val);
-  /* FIXME: Use debug or diag functions */
-  mu_error ("INFO: %s", ufn);
   ldap_memfree (ufn);
   
   mu_assoc_get_iterator (ldap_param.field_map, &itr);

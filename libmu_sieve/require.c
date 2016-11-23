@@ -27,7 +27,7 @@
 #include <sieve-priv.h>
 
 void
-mu_sieve_require (mu_list_t slist)
+mu_sieve_require (mu_sieve_machine_t mach, mu_list_t slist)
 {
   int status;
   mu_iterator_t itr;
@@ -35,9 +35,10 @@ mu_sieve_require (mu_list_t slist)
   status = mu_list_get_iterator (slist, &itr);
   if (status)
     {
-      mu_sv_compile_error (&mu_sieve_locus,
-			   _("cannot create iterator: %s"),
-			   mu_strerror (status));
+      mu_diag_at_locus (MU_LOG_ERROR, &mach->locus,
+			_("cannot create iterator: %s"),
+			mu_strerror (status));
+      mu_i_sv_error (mach);
       return;
     }
 
@@ -73,12 +74,12 @@ mu_sieve_require (mu_list_t slist)
 	  text = _("required action");
 	}
 
-      if (reqfn (mu_sieve_machine, name))
+      if (reqfn (mach, name))
 	{
-	  mu_sv_compile_error (&mu_sieve_locus,
-			       _("source for the %s %s is not available"),
-			       text,
-			       name);
+	  mu_diag_at_locus (MU_LOG_ERROR, &mach->locus,
+			    _("source for the %s %s is not available"),
+			    text, name);
+	  mu_i_sv_error (mach);
 	}
     }
   mu_iterator_destroy (&itr);

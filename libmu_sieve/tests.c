@@ -320,22 +320,6 @@ sieve_test_size (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
 }
 
 int
-sieve_test_true (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
-{
-  if (mach->debug_level & MU_SIEVE_DEBUG_TRACE)
-    mu_sieve_debug (mach, "TRUE");
-  return 1;
-}
-
-int
-sieve_test_false (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
-{
-  if (mach->debug_level & MU_SIEVE_DEBUG_TRACE)
-    mu_sieve_debug (mach, "FALSE");
-  return 0;
-}
-
-int
 _test_exists (void *item, void *data)
 {
   mu_header_t hdr = data;
@@ -446,8 +430,7 @@ mu_sieve_tag_group_t header_tag_groups[] = {
 void
 mu_sv_register_standard_tests (mu_sieve_machine_t mach)
 {
-  mu_sieve_register_test (mach, "false", sieve_test_false, NULL, NULL, 1);
-  mu_sieve_register_test (mach, "true", sieve_test_true, NULL, NULL, 1);
+  /* true and false are built-ins */
   mu_sieve_register_test (mach, "address", sieve_test_address,
 		       address_req_args, address_tag_groups, 1);
   mu_sieve_register_test (mach, "size", sieve_test_size,

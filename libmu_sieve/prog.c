@@ -25,72 +25,55 @@
 #include <sieve-priv.h>
 
 int
-mu_sv_code (sieve_op_t *op)
+mu_i_sv_code (struct mu_sieve_machine *mach, sieve_op_t op)
 {
-  if (mu_sieve_machine->pc >= mu_sieve_machine->progsize)
+  if (mach->pc >= mach->progsize)
     {
-      size_t newsize = mu_sieve_machine->progsize + SIEVE_CODE_INCR;
-      sieve_op_t *newprog = mu_sieve_mrealloc (mu_sieve_machine, 
-                                               mu_sieve_machine->prog,
-					       newsize *
-					     sizeof mu_sieve_machine->prog[0]);
+      size_t newsize = mach->progsize + SIEVE_CODE_INCR;
+      sieve_op_t *newprog =
+	mu_sieve_mrealloc (mach, mach->prog, newsize * sizeof mach->prog[0]);
       if (!newprog)
 	{
-	  mu_sv_compile_error (&mu_sieve_locus, _("not enough memory"));
+	  mu_diag_at_locus (MU_LOG_ERROR, &mach->locus, _("not enough memory"));
+	  mu_i_sv_error (mach);
 	  return 1;
 	}
-      mu_sieve_machine->prog = newprog;
-      mu_sieve_machine->progsize = newsize;
+      mach->prog = newprog;
+      mach->progsize = newsize;
     }
-  mu_sieve_machine->prog[mu_sieve_machine->pc++] = *op;
+  mach->prog[mach->pc++] = op;
   return 0;
 }
-
-int
-mu_sv_code_instr (sieve_instr_t instr)
+
+static int
+file_eq (char const *a, char const *b)
 {
-  sieve_op_t op;
-
-  op.instr = instr;
-  return mu_sv_code (&op);
+  if (a)
+    return b ? (strcmp (a, b) == 0) : 1;
+  return b ? -1 : 0;
 }
-
+      
+/* FIXME: 1. Only beg is stored
+          2. mu_col is not used
+ */
 int
-mu_sv_code_handler (mu_sieve_handler_t handler)
+mu_i_sv_locus (struct mu_sieve_machine *mach, struct mu_locus_range *lr)
 {
-  sieve_op_t op;
+  if (!file_eq (mach->locus.mu_file, lr->beg.mu_file))
+    {
+      mu_i_sv_code (mach, (sieve_op_t) _mu_sv_instr_source);
+      mu_i_sv_code (mach, (sieve_op_t) lr->beg.mu_file);
+    }
+  if (mach->locus.mu_line != lr->beg.mu_line)
+    {
+      mu_i_sv_code (mach, (sieve_op_t) _mu_sv_instr_line);
+      mu_i_sv_code (mach, (sieve_op_t) lr->beg.mu_line);
+    }
 
-  op.handler = handler;
-  return mu_sv_code (&op);
+  mach->locus = lr->beg;
+  return 0;
 }
-
-int
-mu_sv_code_list (mu_list_t list)
-{
-  sieve_op_t op;
-
-  op.list = list;
-  return mu_sv_code (&op);
-}
-
-int
-mu_sv_code_number (long num)
-{
-  sieve_op_t op;
-
-  op.number = num;
-  return mu_sv_code (&op);
-}
-
-int
-mu_sv_code_string (const char *string)
-{
-  sieve_op_t op;
-
-  op.string = string;
-  return mu_sv_code (&op);
-}
-
+
 mu_sieve_tag_def_t *
 find_tag (mu_sieve_tag_group_t *taglist, char *tagname,
 	  mu_sieve_tag_checker_t *checker)
@@ -119,7 +102,9 @@ _compare_ptr (void *item, void *data)
   return item == data;
 }
 
-struct check_arg {
+struct check_arg
+{
+  struct mu_sieve_machine *mach;
   const char *name;
   mu_list_t args;
   mu_list_t tags;
@@ -129,11 +114,13 @@ static int
 _run_checker (void *item, void *data)
 {
   struct check_arg *arg = data;
-  return (*(mu_sieve_tag_checker_t)item) (arg->name, arg->tags, arg->args);
+  return (*(mu_sieve_tag_checker_t)item) (arg->mach, arg->name,
+					  arg->tags, arg->args);
 }
 
-int
-mu_sv_code_command (mu_sieve_register_t *reg, mu_list_t arglist)
+static int
+sv_code_command (struct mu_sieve_machine *mach,
+		 mu_sieve_register_t *reg, mu_list_t arglist)
 {
   mu_iterator_t itr;
   mu_list_t arg_list = NULL;
@@ -144,7 +131,7 @@ mu_sv_code_command (mu_sieve_register_t *reg, mu_list_t arglist)
   int rc, err = 0;
   static mu_sieve_data_type empty[] = { SVT_VOID };
   
-  if (mu_sv_code_handler (reg->handler))
+  if (mu_i_sv_code (mach, (sieve_op_t) reg->handler))
     return 1;
 
   exp_arg = reg->req_args ? reg->req_args : empty;
@@ -155,13 +142,15 @@ mu_sv_code_command (mu_sieve_register_t *reg, mu_list_t arglist)
 
       if (rc)
 	{
-	  mu_sv_compile_error (&mu_sieve_locus, 
-                               _("cannot create iterator: %s"),
-  		               mu_strerror (rc));
+	  mu_diag_at_locus (MU_LOG_ERROR, &mach->locus,
+			    _("cannot create iterator: %s"),
+			    mu_strerror (rc));
+	  mu_i_sv_error (mach);
 	  return 1;
 	}
   
-      for (mu_iterator_first (itr); !mu_iterator_is_done (itr); mu_iterator_next (itr))
+      for (mu_iterator_first (itr);
+	   !mu_iterator_is_done (itr); mu_iterator_next (itr))
 	{
 	  mu_sieve_value_t *val;
 	  mu_sieve_runtime_tag_t tagrec, *tagptr;
@@ -171,21 +160,24 @@ mu_sv_code_command (mu_sieve_register_t *reg, mu_list_t arglist)
 	  if (val->type == SVT_TAG)
 	    {
 	      mu_sieve_tag_checker_t cf;
-	      mu_sieve_tag_def_t *tag = find_tag (reg->tags, val->v.string, &cf);
+	      mu_sieve_tag_def_t *tag = find_tag (reg->tags, val->v.string,
+						  &cf);
 	      if (!tag)
 		{
-		  mu_sv_compile_error (&mu_sieve_locus, 
-				       _("invalid tag name `%s' for `%s'"),
-				       val->v.string, reg->name);
+		  mu_diag_at_locus (MU_LOG_ERROR, &mach->locus, 
+				    _("invalid tag name `%s' for `%s'"),
+				    val->v.string, reg->name);
+		  mu_i_sv_error (mach);
 		  err = 1;
 		  break;
 		}
 	      
 	      if (!tag_list && (rc = mu_list_create (&tag_list)))
 		{
-		  mu_sv_compile_error (&mu_sieve_locus, 
-                                       _("cannot create tag list: %s"),
-			               mu_strerror (rc));
+		  mu_diag_at_locus (MU_LOG_ERROR, &mach->locus, 
+				    _("cannot create tag list: %s"),
+				    mu_strerror (rc));
+		  mu_i_sv_error (mach);
 		  err = 1;
 		  break;
 		}
@@ -196,24 +188,25 @@ mu_sv_code_command (mu_sieve_register_t *reg, mu_list_t arglist)
 		  mu_iterator_next (itr);
 		  if (mu_iterator_is_done (itr))
 		    {
-		      mu_sv_compile_error (&mu_sieve_locus, 
+		      mu_diag_at_locus (MU_LOG_ERROR, &mach->locus, 
 			   _("required argument for tag %s is missing"),
-					   tag->name);
+					tag->name);
+		      mu_i_sv_error (mach);
 		      err = 1;
 		      break;
 		    }
 		  mu_iterator_current (itr, (void **)&tagrec.arg);
 		  if (tagrec.arg->type != tag->argtype)
 		    {
-		      mu_sv_compile_error (&mu_sieve_locus, 
-					   _("type mismatch in argument to "
-					     "tag `%s'"),
-					   tag->name);
-		      mu_sv_compile_error (&mu_sieve_locus, 
-					   _("expected %s but passed %s"),
-					   mu_sieve_type_str (tag->argtype),
-					   mu_sieve_type_str
-					                 (tagrec.arg->type));
+		      mu_diag_at_locus (MU_LOG_ERROR, &mach->locus, 
+					     _("type mismatch in argument to "
+					       "tag `%s'"),
+					     tag->name);
+		      mu_diag_at_locus (MU_LOG_ERROR, &mach->locus, 
+					     _("expected %s but passed %s"),
+					     mu_sieve_type_str (tag->argtype),
+					     mu_sieve_type_str (tagrec.arg->type));
+		      mu_i_sv_error (mach);
 		      err = 1;
 		      break;
 		    }
@@ -221,7 +214,7 @@ mu_sv_code_command (mu_sieve_register_t *reg, mu_list_t arglist)
 	      else
 		tagrec.arg = NULL;
 	      
-	      tagptr = mu_sieve_malloc (mu_sieve_machine, sizeof (*tagptr));
+	      tagptr = mu_sieve_malloc (mach, sizeof (*tagptr));
 	      *tagptr = tagrec;
 	      mu_list_append (tag_list, tagptr);
 
@@ -229,9 +222,10 @@ mu_sv_code_command (mu_sieve_register_t *reg, mu_list_t arglist)
 		{
 		  if (!chk_list && (rc = mu_list_create (&chk_list)))
 		    {
-		      mu_sv_compile_error (&mu_sieve_locus, 
- 			  	         _("cannot create check list: %s"),
-					   mu_strerror (rc));
+		      mu_diag_at_locus (MU_LOG_ERROR, &mach->locus, 
+					_("cannot create check list: %s"),
+					mu_strerror (rc));
+		      mu_i_sv_error (mach);
 		      err = 1;
 		      break;
 		    }
@@ -250,9 +244,10 @@ mu_sv_code_command (mu_sieve_register_t *reg, mu_list_t arglist)
 		    }
 		  else
 		    {
-		      mu_sv_compile_error (&mu_sieve_locus, 
-				      _("too many arguments in call to `%s'"),
-					   reg->name);
+		      mu_diag_at_locus (MU_LOG_ERROR, &mach->locus, 
+					_("too many arguments in call to `%s'"),
+					reg->name);
+		      mu_i_sv_error (mach);
 		      err = 1;
 		      break;
 		    }
@@ -266,19 +261,20 @@ mu_sv_code_command (mu_sieve_register_t *reg, mu_list_t arglist)
 
 		      mu_list_create (&list);
 		      mu_list_append (list, val->v.string);
-		      mu_sieve_mfree (mu_sieve_machine, val);
+		      mu_sieve_mfree (mach, val);
 		      val = mu_sieve_value_create (SVT_STRING_LIST, list);
 		    }
 		  else
 		    {
-		      mu_sv_compile_error (&mu_sieve_locus, 
+		      mu_diag_at_locus (MU_LOG_ERROR, &mach->locus, 
                                    _("type mismatch in argument %lu to `%s'"),
 				   (unsigned long) (exp_arg - reg->req_args + 1),
-					   reg->name);
-		      mu_sv_compile_error (&mu_sieve_locus, 
-					   _("expected %s but passed %s"),
-					   mu_sieve_type_str (*exp_arg),
-					   mu_sieve_type_str (val->type));
+					     reg->name);
+		      mu_diag_at_locus (MU_LOG_ERROR, &mach->locus, 
+					_("expected %s but passed %s"),
+					mu_sieve_type_str (*exp_arg),
+					mu_sieve_type_str (val->type));
+		      mu_i_sv_error (mach);
 		      err = 1;
 		      break;
 		    }
@@ -286,9 +282,10 @@ mu_sv_code_command (mu_sieve_register_t *reg, mu_list_t arglist)
 
 	      if (!arg_list && (rc = mu_list_create (&arg_list)))
 		{
-		  mu_sv_compile_error (&mu_sieve_locus, 
-                                       _("cannot create arg list: %s"),
-			               mu_strerror (rc));
+		  mu_diag_at_locus (MU_LOG_ERROR, &mach->locus, 
+				    _("cannot create arg list: %s"),
+				    mu_strerror (rc));
+		  mu_i_sv_error (mach);
 		  err = 1;
 		  break;
 		}
@@ -304,16 +301,18 @@ mu_sv_code_command (mu_sieve_register_t *reg, mu_list_t arglist)
     {
       if (!opt_args && *exp_arg != SVT_VOID)
 	{
-	  mu_sv_compile_error (&mu_sieve_locus, 
-                               _("too few arguments in call to `%s'"),
-			       reg->name);
+	  mu_diag_at_locus (MU_LOG_ERROR, &mach->locus, 
+			    _("too few arguments in call to `%s'"),
+			    reg->name);
+	  mu_i_sv_error (mach);
 	  err = 1;
 	}
 
       if (chk_list)
 	{
 	  struct check_arg chk_arg;
-      
+
+	  chk_arg.mach = mach;
 	  chk_arg.name = reg->name;
 	  chk_arg.tags = tag_list;
 	  chk_arg.args = arg_list;
@@ -322,9 +321,9 @@ mu_sv_code_command (mu_sieve_register_t *reg, mu_list_t arglist)
     }
   
   if (!err)
-    err = mu_sv_code_list (arg_list)
-          || mu_sv_code_list (tag_list)
-          || mu_sv_code_string (reg->name);
+    err = mu_i_sv_code (mach, (sieve_op_t) arg_list)
+      || mu_i_sv_code (mach, (sieve_op_t) tag_list)
+      || mu_i_sv_code (mach, (sieve_op_t) (char*) reg->name);
 
   if (err)
     {
@@ -337,95 +336,18 @@ mu_sv_code_command (mu_sieve_register_t *reg, mu_list_t arglist)
 }
 
 int
-mu_sv_code_source (const char *name)
+mu_i_sv_code_action (struct mu_sieve_machine *mach,
+		     mu_sieve_register_t *reg, mu_list_t arglist)
 {
-  char *s;
-  
-  if (mu_list_locate (mu_sieve_machine->source_list, 
-                      (void*) name, (void **) &s))
-    {
-      s = mu_sieve_mstrdup (mu_sieve_machine, name);
-      mu_list_append (mu_sieve_machine->source_list, s);
-    }
-  
-  return mu_sv_code_instr (_mu_sv_instr_source)
-	 || mu_sv_code_string (s);
+  return mu_i_sv_code (mach, (sieve_op_t) _mu_sv_instr_action)
+         || sv_code_command (mach, reg, arglist);
 }
 
 int
-mu_sv_code_line (size_t line)
+mu_i_sv_code_test (struct mu_sieve_machine *mach,
+		   mu_sieve_register_t *reg, mu_list_t arglist)
 {
-  sieve_op_t op;
-
-  op.line = line;
-  return mu_sv_code_instr (_mu_sv_instr_line)
-	 || mu_sv_code (&op);
+  return mu_i_sv_code (mach, (sieve_op_t) _mu_sv_instr_test)
+         || sv_code_command (mach, reg, arglist);
 }
 
-static int sieve_source_changed;
-
-void
-mu_sv_change_source ()
-{
-  sieve_source_changed = 1;
-}
-
-static int
-sieve_check_source_changed ()
-{
-  if (sieve_source_changed)
-    {
-      sieve_source_changed = 0;
-      return mu_sv_code_source (mu_sieve_locus.mu_file);
-    }
-  return 0;
-}
-
-int
-mu_sv_code_action (mu_sieve_register_t *reg, mu_list_t arglist)
-{
-  return sieve_check_source_changed ()
-         || mu_sv_code_line (mu_sieve_locus.mu_line)
-         || mu_sv_code_instr (_mu_sv_instr_action)
-         || mu_sv_code_command (reg, arglist);
-}
-
-int
-mu_sv_code_test (mu_sieve_register_t *reg, mu_list_t arglist)
-{
-  return sieve_check_source_changed ()
-         || mu_sv_code_line (mu_sieve_locus.mu_line)
-         || mu_sv_code_instr (_mu_sv_instr_test)
-         || mu_sv_code_command (reg, arglist);
-}
-
-void
-mu_sv_code_anyof (size_t start)
-{
-  size_t end = mu_sieve_machine->pc;
-  while (mu_sieve_machine->prog[start+1].pc != 0)
-    {
-      size_t next = mu_sieve_machine->prog[start+1].pc;
-      mu_sieve_machine->prog[start].instr = _mu_sv_instr_brnz;
-      mu_sieve_machine->prog[start+1].pc = end - start - 2;
-      start = next;
-    }
-  mu_sieve_machine->prog[start].instr = _mu_sv_instr_nop;
-  mu_sieve_machine->prog[start+1].instr = _mu_sv_instr_nop;
-}
-
-void
-mu_sv_code_allof (size_t start)
-{
-  size_t end = mu_sieve_machine->pc;
-  
-  while (mu_sieve_machine->prog[start+1].pc != 0)
-    {
-      size_t next = mu_sieve_machine->prog[start+1].pc;
-      mu_sieve_machine->prog[start+1].pc = end - start - 2;
-      start = next;
-    }
-  mu_sieve_machine->prog[start].instr = _mu_sv_instr_nop;
-  mu_sieve_machine->prog[start+1].instr = _mu_sv_instr_nop;
-}
-		

@@ -339,6 +339,10 @@ mu_sieve_mailbox (mu_sieve_machine_t mach, mu_mailbox_t mbox)
   if (!mach || !mbox)
     return EINVAL;
 
+  if (mach->state != mu_sieve_state_compiled)
+    return EINVAL; /* FIXME: Error code */
+  mach->state = mu_sieve_state_running;
+  
   mu_observer_create (&observer, mach);
   mu_observer_set_action (observer, _sieve_action, mach);
   mu_mailbox_get_observable (mbox, &observable);
@@ -353,6 +357,7 @@ mu_sieve_mailbox (mu_sieve_machine_t mach, mu_mailbox_t mbox)
   mu_observable_detach (observable, observer);
   mu_observer_destroy (&observer, mach);
 
+  mach->state = mu_sieve_state_compiled;
   mach->mailbox = NULL;
   
   return rc;
@@ -366,10 +371,15 @@ mu_sieve_message (mu_sieve_machine_t mach, mu_message_t msg)
   if (!mach || !msg)
     return EINVAL;
 
+  if (mach->state != mu_sieve_state_compiled)
+    return EINVAL; /* FIXME: Error code */
+  mach->state = mu_sieve_state_running;
+
   mach->msgno = 1;
   mach->msg = msg;
   mach->mailbox = NULL;
   rc = sieve_run (mach);
+  mach->state = mu_sieve_state_compiled;
   mach->msg = NULL;
   
   return rc;
