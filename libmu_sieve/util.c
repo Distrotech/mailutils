@@ -339,7 +339,7 @@ sieve_print_value (mu_sieve_value_t *val, mu_stream_t str)
 } 
 
 void
-mu_sv_print_value_list (mu_list_t list, mu_stream_t str)
+mu_i_sv_print_value_list (mu_list_t list, mu_stream_t str)
 {
   mu_sieve_value_t val;
   
@@ -366,7 +366,7 @@ tag_printer (void *item, void *data)
 }
 
 void
-mu_sv_print_tag_list (mu_list_t list, mu_stream_t str)
+mu_i_sv_print_tag_list (mu_list_t list, mu_stream_t str)
 {
   mu_list_foreach (list, tag_printer, str);
 }

@@ -157,26 +157,26 @@ int mu_i_sv_code_test (struct mu_sieve_machine *mach,
 		       mu_sieve_register_t *reg, mu_list_t arglist);
 
 /* Opcodes */
-void _mu_sv_instr_action (mu_sieve_machine_t mach);
-void _mu_sv_instr_test (mu_sieve_machine_t mach);
-void _mu_sv_instr_push (mu_sieve_machine_t mach);
-void _mu_sv_instr_pop (mu_sieve_machine_t mach);
-void _mu_sv_instr_not (mu_sieve_machine_t mach);
-void _mu_sv_instr_branch (mu_sieve_machine_t mach);
-void _mu_sv_instr_brz (mu_sieve_machine_t mach);
-void _mu_sv_instr_brnz (mu_sieve_machine_t mach);
-void _mu_sv_instr_nop (mu_sieve_machine_t mach);
-void _mu_sv_instr_source (mu_sieve_machine_t mach);
-void _mu_sv_instr_line (mu_sieve_machine_t mach);
+void _mu_i_sv_instr_action (mu_sieve_machine_t mach);
+void _mu_i_sv_instr_test (mu_sieve_machine_t mach);
+void _mu_i_sv_instr_push (mu_sieve_machine_t mach);
+void _mu_i_sv_instr_pop (mu_sieve_machine_t mach);
+void _mu_i_sv_instr_not (mu_sieve_machine_t mach);
+void _mu_i_sv_instr_branch (mu_sieve_machine_t mach);
+void _mu_i_sv_instr_brz (mu_sieve_machine_t mach);
+void _mu_i_sv_instr_brnz (mu_sieve_machine_t mach);
+void _mu_i_sv_instr_nop (mu_sieve_machine_t mach);
+void _mu_i_sv_instr_source (mu_sieve_machine_t mach);
+void _mu_i_sv_instr_line (mu_sieve_machine_t mach);
 
-int mu_sv_load_add_dir (mu_sieve_machine_t mach, const char *name);
+int mu_i_sv_load_add_dir (mu_sieve_machine_t mach, const char *name);
 
-void mu_sv_register_standard_actions (mu_sieve_machine_t mach);
-void mu_sv_register_standard_tests (mu_sieve_machine_t mach);
-void mu_sv_register_standard_comparators (mu_sieve_machine_t mach);
+void mu_i_sv_register_standard_actions (mu_sieve_machine_t mach);
+void mu_i_sv_register_standard_tests (mu_sieve_machine_t mach);
+void mu_i_sv_register_standard_comparators (mu_sieve_machine_t mach);
 
-void mu_sv_print_value_list (mu_list_t list, mu_stream_t str);
-void mu_sv_print_tag_list (mu_list_t list, mu_stream_t str);
+void mu_i_sv_print_value_list (mu_list_t list, mu_stream_t str);
+void mu_i_sv_print_tag_list (mu_list_t list, mu_stream_t str);
 
 void mu_i_sv_error (mu_sieve_machine_t mach);
 

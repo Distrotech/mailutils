@@ -604,7 +604,7 @@ code_node_cond (struct mu_sieve_machine *mach, struct mu_sieve_node *node)
   size_t br1;
   
   tree_code (mach, node->v.cond.expr);
-  mu_i_sv_code (mach, (sieve_op_t) _mu_sv_instr_brz);
+  mu_i_sv_code (mach, (sieve_op_t) _mu_i_sv_instr_brz);
   br1 = mach->pc;
   mu_i_sv_code (mach, (sieve_op_t) 0);
   tree_code (mach, node->v.cond.iftrue);
@@ -613,7 +613,7 @@ code_node_cond (struct mu_sieve_machine *mach, struct mu_sieve_node *node)
     {
       size_t br2;
 
-      mu_i_sv_code (mach, (sieve_op_t) _mu_sv_instr_branch);
+      mu_i_sv_code (mach, (sieve_op_t) _mu_i_sv_instr_branch);
       br2 = mach->pc;
       mu_i_sv_code (mach, (sieve_op_t) 0);
       
@@ -761,7 +761,7 @@ optimize_node_anyof (struct mu_sieve_node *node)
 static int
 code_node_anyof (struct mu_sieve_machine *mach, struct mu_sieve_node *node)
 {
-  return code_node_x_of (mach, node, (sieve_op_t) _mu_sv_instr_brnz);
+  return code_node_x_of (mach, node, (sieve_op_t) _mu_i_sv_instr_brnz);
 }
 
 /* mu_sieve_node_allof */
@@ -774,7 +774,7 @@ optimize_node_allof (struct mu_sieve_node *node)
 static int
 code_node_allof (struct mu_sieve_machine *mach, struct mu_sieve_node *node)
 {
-  return code_node_x_of (mach, node, (sieve_op_t) _mu_sv_instr_brz);
+  return code_node_x_of (mach, node, (sieve_op_t) _mu_i_sv_instr_brz);
 }
 
 /* mu_sieve_node_not */
@@ -809,7 +809,7 @@ static int
 code_node_not (struct mu_sieve_machine *mach, struct mu_sieve_node *node)
 {
   node_code (mach, node->v.node);
-  return mu_i_sv_code (mach, (sieve_op_t) _mu_sv_instr_not);
+  return mu_i_sv_code (mach, (sieve_op_t) _mu_i_sv_instr_not);
 }
 
 static void
@@ -1230,9 +1230,9 @@ mu_sieve_machine_destroy (mu_sieve_machine_t *pmach)
 static void
 sieve_machine_begin (mu_sieve_machine_t mach, const char *file)
 {
-  mu_sv_register_standard_actions (mach);
-  mu_sv_register_standard_tests (mach);
-  mu_sv_register_standard_comparators (mach);
+  mu_i_sv_register_standard_actions (mach);
+  mu_i_sv_register_standard_tests (mach);
+  mu_i_sv_register_standard_comparators (mach);
   mu_sieve_machine = mach;
 }
 
@@ -1292,6 +1292,12 @@ sieve_parse (void)
 	  tree_dump (mu_strerr, sieve_tree, 0);
 	}
       mu_i_sv_code (mu_sieve_machine, (sieve_op_t) 0);
+
+      /* Clear location, so that mu_i_sv_locus will do its job. */
+      mu_sieve_machine->locus.mu_file = NULL;
+      mu_sieve_machine->locus.mu_line = 0;
+      mu_sieve_machine->locus.mu_col = 0;
+      
       rc = tree_code (mu_sieve_machine, sieve_tree);
       if (rc)
 	mu_i_sv_error (mu_sieve_machine);

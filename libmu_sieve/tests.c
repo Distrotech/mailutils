@@ -428,7 +428,7 @@ mu_sieve_tag_group_t header_tag_groups[] = {
 };
 
 void
-mu_sv_register_standard_tests (mu_sieve_machine_t mach)
+mu_i_sv_register_standard_tests (mu_sieve_machine_t mach)
 {
   /* true and false are built-ins */
   mu_sieve_register_test (mach, "address", sieve_test_address,

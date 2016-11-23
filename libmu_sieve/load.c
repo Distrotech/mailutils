@@ -136,7 +136,7 @@ _add_load_dir (void *item, void *unused)
 }
 
 int
-mu_sv_load_add_dir (mu_sieve_machine_t mach, const char *name)
+mu_i_sv_load_add_dir (mu_sieve_machine_t mach, const char *name)
 {
   if (sieve_init_load_path ())
     return 1;
@@ -155,7 +155,7 @@ mu_sieve_load_ext (mu_sieve_machine_t mach, const char *name)
 }
 
 int
-mu_sv_load_add_dir (mu_sieve_machine_t mach, const char *name)
+mu_i_sv_load_add_dir (mu_sieve_machine_t mach, const char *name)
 {
   return 1;
 }

@@ -502,7 +502,7 @@ i_ascii_numeric_eq (const char *pattern, const char *text)
 }
 
 void
-mu_sv_register_standard_comparators (mu_sieve_machine_t mach)
+mu_i_sv_register_standard_comparators (mu_sieve_machine_t mach)
 {
   mu_sieve_register_comparator (mach,
 			     "i;octet",

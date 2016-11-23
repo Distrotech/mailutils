@@ -50,7 +50,7 @@ file_eq (char const *a, char const *b)
 {
   if (a)
     return b ? (strcmp (a, b) == 0) : 1;
-  return b ? -1 : 0;
+  return b ? 0 : 1;
 }
       
 /* FIXME: 1. Only beg is stored
@@ -61,12 +61,12 @@ mu_i_sv_locus (struct mu_sieve_machine *mach, struct mu_locus_range *lr)
 {
   if (!file_eq (mach->locus.mu_file, lr->beg.mu_file))
     {
-      mu_i_sv_code (mach, (sieve_op_t) _mu_sv_instr_source);
+      mu_i_sv_code (mach, (sieve_op_t) _mu_i_sv_instr_source);
       mu_i_sv_code (mach, (sieve_op_t) lr->beg.mu_file);
     }
   if (mach->locus.mu_line != lr->beg.mu_line)
     {
-      mu_i_sv_code (mach, (sieve_op_t) _mu_sv_instr_line);
+      mu_i_sv_code (mach, (sieve_op_t) _mu_i_sv_instr_line);
       mu_i_sv_code (mach, (sieve_op_t) lr->beg.mu_line);
     }
 
@@ -339,7 +339,7 @@ int
 mu_i_sv_code_action (struct mu_sieve_machine *mach,
 		     mu_sieve_register_t *reg, mu_list_t arglist)
 {
-  return mu_i_sv_code (mach, (sieve_op_t) _mu_sv_instr_action)
+  return mu_i_sv_code (mach, (sieve_op_t) _mu_i_sv_instr_action)
          || sv_code_command (mach, reg, arglist);
 }
 
@@ -347,7 +347,7 @@ int
 mu_i_sv_code_test (struct mu_sieve_machine *mach,
 		   mu_sieve_register_t *reg, mu_list_t arglist)
 {
-  return mu_i_sv_code (mach, (sieve_op_t) _mu_sv_instr_test)
+  return mu_i_sv_code (mach, (sieve_op_t) _mu_i_sv_instr_test)
          || sv_code_command (mach, reg, arglist);
 }
 

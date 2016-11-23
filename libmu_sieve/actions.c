@@ -563,7 +563,7 @@ static mu_sieve_tag_group_t fileinto_tag_groups[] = {
 };
   
 void
-mu_sv_register_standard_actions (mu_sieve_machine_t mach)
+mu_i_sv_register_standard_actions (mu_sieve_machine_t mach)
 {
   mu_sieve_register_action (mach, "stop", sieve_action_stop, NULL, NULL, 1);
   mu_sieve_register_action (mach, "keep", sieve_action_keep, NULL, NULL, 1);

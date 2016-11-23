@@ -461,7 +461,7 @@ sieve_searchpath (void)
   name = get_file_name (p, endp, NULL);
   if (name)
     {
-      mu_sv_load_add_dir (mu_sieve_machine, name);
+      mu_i_sv_load_add_dir (mu_sieve_machine, name);
       free (name);
     }
 }
