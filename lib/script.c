@@ -39,6 +39,8 @@ struct mu_script_fun *script_tab[] = {
 int
 mu_script_debug_flags (const char *arg, char **endp)
 {
+  mu_debug_level_t lev;
+    
   for (; *arg; arg++)
     {
       switch (*arg)
@@ -48,11 +50,15 @@ mu_script_debug_flags (const char *arg, char **endp)
 	  break;
 
 	case 't':
-	  mu_script_debug_sieve |= MU_SIEVE_DEBUG_TRACE;
+	  mu_debug_get_category_level (mu_sieve_debug_handle, &lev);
+	  mu_debug_set_category_level (mu_sieve_debug_handle,
+			       lev | MU_DEBUG_LEVEL_MASK(MU_DEBUG_TRACE4));
 	  break;
 	  
 	case 'i':
-	  mu_script_debug_sieve |= MU_SIEVE_DEBUG_INSTR;
+	  mu_debug_get_category_level (mu_sieve_debug_handle, &lev);
+	  mu_debug_set_category_level (mu_sieve_debug_handle,
+			       lev | MU_DEBUG_LEVEL_MASK(MU_DEBUG_TRACE9));
 	  break;
 	  
 	case 'l':

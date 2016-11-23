@@ -152,10 +152,7 @@ list_test (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   struct header_closure clos;
   int result;
 
-  if (mu_sieve_get_debug_level (mach) & MU_SIEVE_DEBUG_TRACE)
-    {
-      mu_sieve_debug (mach, "LIST");
-    }
+  mu_sieve_trace (mach, "LIST");
   
   memset (&clos, 0, sizeof clos);
   if (mu_sieve_tag_lookup (tags, "delim", &arg))

@@ -368,11 +368,8 @@ spamd_test (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   mu_header_t hdr;
   mu_debug_handle_t lev = 0;
   
-  if (mu_sieve_get_debug_level (mach) & MU_SIEVE_DEBUG_TRACE)
-    {
-      mu_sieve_debug (mach, "spamd_test %lu",
-		      (unsigned long) mu_sieve_get_message_num (mach));
-    }
+  mu_sieve_trace (mach, "spamd_test %lu",
+		  (unsigned long) mu_sieve_get_message_num (mach));
   
   if (mu_sieve_is_dry_run (mach))
     return 0;

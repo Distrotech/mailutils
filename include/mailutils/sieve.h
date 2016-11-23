@@ -231,13 +231,15 @@ void *mu_sieve_get_data (mu_sieve_machine_t mach);
 void mu_sieve_set_data (mu_sieve_machine_t mach, void *);
 mu_message_t mu_sieve_get_message (mu_sieve_machine_t mach);
 size_t mu_sieve_get_message_num (mu_sieve_machine_t mach);
-int mu_sieve_get_debug_level (mu_sieve_machine_t mach);
+
+int mu_sieve_is_dry_run (mu_sieve_machine_t mach);
+int mu_sieve_set_dry_run (mu_sieve_machine_t mach, int val);
+
 mu_mailer_t mu_sieve_get_mailer (mu_sieve_machine_t mach);
 int mu_sieve_get_locus (mu_sieve_machine_t mach, struct mu_locus *);
 char *mu_sieve_get_daemon_email (mu_sieve_machine_t mach);
 const char *mu_sieve_get_identifier (mu_sieve_machine_t mach);
 
-void mu_sieve_set_debug_level (mu_sieve_machine_t mach, int level);
 void mu_sieve_set_logger (mu_sieve_machine_t mach,
 			  mu_sieve_action_log_t logger);
 void mu_sieve_set_mailer (mu_sieve_machine_t mach, mu_mailer_t mailer);

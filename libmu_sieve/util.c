@@ -230,6 +230,27 @@ mu_sieve_debug (mu_sieve_machine_t mach, const char *fmt, ...)
 }
 
 void
+mu_sieve_trace (mu_sieve_machine_t mach, const char *fmt, ...)
+{
+  va_list ap;
+
+  if (!mu_debug_level_p (mu_sieve_debug_handle, MU_DEBUG_TRACE4))
+    return;
+  
+  va_start (ap, fmt);
+  mu_stream_printf (mach->errstream, "\033s<%d>", MU_LOG_DEBUG);
+  if (mach->locus.mu_file)
+    mu_stream_printf (mach->errstream, "\033O<%d>\033f<%u>%s\033l<%u>",
+		      MU_LOGMODE_LOCUS,
+		      (unsigned) strlen (mach->locus.mu_file),
+		      mach->locus.mu_file,
+		      mach->locus.mu_line);
+  mu_stream_vprintf (mach->errstream, fmt, ap);
+  mu_stream_write (mach->errstream, "\n", 1, NULL);
+  va_end (ap);
+}
+
+void
 mu_sieve_log_action (mu_sieve_machine_t mach, const char *action,
 		     const char *fmt, ...)
 {

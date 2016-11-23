@@ -1037,7 +1037,7 @@ mu_sieve_machine_inherit (mu_sieve_machine_t const parent,
     return rc;
 
   child->logger = parent->logger;
-  child->debug_level = parent->debug_level;
+  child->dry_run = parent->dry_run;
   *pmach = child;
   return 0;
 }
@@ -1071,7 +1071,7 @@ mu_sieve_machine_dup (mu_sieve_machine_t const in, mu_sieve_machine_t *out)
   mach->reg = 0;
   mach->stack = NULL;
 
-  mach->debug_level = in->debug_level;
+  mach->dry_run = in->dry_run;
   
   mach->errstream = in->errstream;
   mu_stream_ref (mach->errstream);
@@ -1097,12 +1097,6 @@ mu_sieve_set_diag_stream (mu_sieve_machine_t mach, mu_stream_t str)
   mu_stream_unref (mach->errstream);
   mach->errstream = str;
   mu_stream_ref (mach->errstream);
-}
-
-void
-mu_sieve_set_debug_level (mu_sieve_machine_t mach, int level)
-{
-  mach->debug_level = level;
 }
 
 void

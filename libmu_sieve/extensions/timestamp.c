@@ -57,10 +57,7 @@ timestamp_test (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   time_t tlimit, tval;
   int rc;
   
-  if (mu_sieve_get_debug_level (mach) & MU_SIEVE_DEBUG_TRACE)
-    {
-      mu_sieve_debug (mach, "TIMESTAMP");
-    }
+  mu_sieve_trace (mach, "TIMESTAMP");
 
   /* Retrieve required arguments: */
   /* First argument: header name */

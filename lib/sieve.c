@@ -81,7 +81,6 @@ sieve_init (const char *prog, mu_script_descr_t *pdescr)
   rc = mu_sieve_machine_init (&mach);
   if (rc == 0)
     {
-      mu_sieve_set_debug_level (mach, mu_script_debug_sieve);
       if (mu_script_sieve_log)
 	mu_sieve_set_logger (mach, _sieve_action_log);
       rc = mu_sieve_compile (mach, prog);

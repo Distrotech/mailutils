@@ -55,58 +55,52 @@ int sieve_debug;
 int verbose;
 char *script;
 int expression_option;
+int dry_run;
 
 static int sieve_print_locus = 1; /* Should the log messages include the
 				     locus */
 
 static void
-set_debug_level (const char *arg)
+modify_debug_flags (mu_debug_level_t set, mu_debug_level_t clr)
 {
   mu_debug_level_t lev;
   
+  mu_debug_get_category_level (mu_sieve_debug_handle, &lev);
+  mu_debug_set_category_level (mu_sieve_debug_handle, (lev & ~clr) | set);
+}
+
+static void
+set_debug_level (const char *arg)
+{
   for (; *arg; arg++)
     {
       switch (*arg)
 	{
 	case 'T':
-	  mu_debug_get_category_level (mu_sieve_debug_handle, &lev);
-	  mu_debug_set_category_level (mu_sieve_debug_handle, 
-				       lev |
-				    (MU_DEBUG_LEVEL_UPTO(MU_DEBUG_TRACE9) &
-				     ~MU_DEBUG_LEVEL_MASK(MU_DEBUG_ERROR)));
+	  modify_debug_flags (MU_DEBUG_LEVEL_UPTO(MU_DEBUG_TRACE9),
+			      MU_DEBUG_LEVEL_MASK(MU_DEBUG_ERROR));
 	  break;
 
 	case 'P':
-	  mu_debug_get_category_level (mu_sieve_debug_handle, &lev);
-	  mu_debug_set_category_level (mu_sieve_debug_handle,
-				    lev | MU_DEBUG_LEVEL_MASK(MU_DEBUG_PROT));
+	  modify_debug_flags (MU_DEBUG_LEVEL_MASK(MU_DEBUG_PROT), 0);
 	  break;
 
 	case 'g':
-	  mu_debug_get_category_level (mu_sieve_debug_handle, &lev);
-	  mu_debug_set_category_level (mu_sieve_debug_handle,
-				    lev | MU_DEBUG_LEVEL_MASK(MU_DEBUG_TRACE1));
+	  modify_debug_flags (MU_DEBUG_LEVEL_MASK(MU_DEBUG_TRACE1), 0);
 	  break;
 
 	case 't':
-	  sieve_debug |= MU_SIEVE_DEBUG_TRACE;
+	  modify_debug_flags (MU_DEBUG_LEVEL_MASK(MU_DEBUG_TRACE4), 0);
 	  break;
 	  
 	case 'i':
-	  sieve_debug |= MU_SIEVE_DEBUG_INSTR;
+	  modify_debug_flags (MU_DEBUG_LEVEL_MASK(MU_DEBUG_TRACE9), 0);
 	  break;
 	  
 	default:
 	  mu_error (_("%c is not a valid debug flag"), *arg);
 	}
     }
-}
-
-static void
-cli_dry_run (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
-{
-  sieve_debug |= MU_SIEVE_DRY_RUN;
-  verbose = 1;
 }
 
 static void
@@ -138,10 +132,10 @@ cli_no_program_name (struct mu_parseopt *po, struct mu_option *opt,
 }
 
 static struct mu_option sieve_options[] = {
-  { "no-actions", 'n', NULL, MU_OPTION_DEFAULT,
+  { "dry-run", 'n', NULL, MU_OPTION_DEFAULT,
     N_("do not execute any actions, just print what would be done"),
-    mu_c_string, NULL, cli_dry_run },
-  { "dry-run", 0, NULL, MU_OPTION_ALIAS },
+    mu_c_bool, &dry_run },
+  { "no-actions", 0, NULL, MU_OPTION_ALIAS },
   { "keep-going", 'k', NULL, MU_OPTION_DEFAULT,
     N_("keep on going if execution fails on a message"),
     mu_c_bool, &keep_going },
@@ -159,7 +153,7 @@ static struct mu_option sieve_options[] = {
     mu_c_string, &mu_ticket_file },
   { "debug", 'd', N_("FLAGS"), MU_OPTION_ARG_OPTIONAL,
     N_("debug flags (defaults to \"" D_DEFAULT "\")"),
-    mu_c_string, NULL, cli_debug },
+    mu_c_string, NULL, cli_debug, D_DEFAULT },
   { "verbose", 'v', NULL, MU_OPTION_DEFAULT,
     N_("log all actions"), 
     mu_c_bool, &verbose },
@@ -334,7 +328,7 @@ sieve_mailbox (mu_sieve_machine_t mach)
     }
 
   /* Open the mailbox read-only if we aren't going to modify it. */
-  if (sieve_debug & MU_SIEVE_DRY_RUN)
+  if (mu_sieve_is_dry_run (mach))
     rc = mu_mailbox_open (mbox, MU_STREAM_READ);
   else
     rc = mu_mailbox_open (mbox, MU_STREAM_RDWR);
@@ -360,7 +354,7 @@ sieve_mailbox (mu_sieve_machine_t mach)
   rc = mu_sieve_mailbox (mach, mbox);
   
  cleanup:
-  if (mbox && !(sieve_debug & MU_SIEVE_DRY_RUN))
+  if (mbox && !dry_run)
     {
       int e;
       
@@ -405,7 +399,9 @@ main (int argc, char *argv[])
   mu_register_all_formats ();
 
   mu_cli (argc, argv, &cli, sieve_capa, NULL, &argc, &argv);
-
+  if (dry_run)
+    verbose++;
+  
   if (argc == 0)
     {
       mu_error (_("script must be specified"));
@@ -448,7 +444,7 @@ main (int argc, char *argv[])
       return EX_OK;
     }
 
-  mu_sieve_set_debug_level (mach, sieve_debug);
+  mu_sieve_set_dry_run (mach, dry_run);
 
   if (mbox_url && strcmp (mbox_url, "-") == 0)
     rc = sieve_message (mach);

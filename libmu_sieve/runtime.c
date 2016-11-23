@@ -28,8 +28,9 @@
 #define SIEVE_ADJUST(m,n) (m)->pc+=(n)
 
 #define INSTR_DEBUG(m) \
-  ((m)->debug_level & (MU_SIEVE_DEBUG_INSTR|MU_SIEVE_DEBUG_DISAS))
-#define INSTR_DISASS(m) ((m)->debug_level & MU_SIEVE_DEBUG_DISAS)
+  (mu_debug_level_p (mu_sieve_debug_handle, MU_DEBUG_TRACE9)) 
+#define INSTR_DISASS(m) \
+  (mu_debug_level_p (mu_sieve_debug_handle, MU_DEBUG_TRACE8)) 
 
 void
 _mu_i_sv_instr_nop (mu_sieve_machine_t mach)
@@ -263,12 +264,6 @@ mu_sieve_get_message_num (mu_sieve_machine_t mach)
   return mach->msgno;
 }
 
-int
-mu_sieve_get_debug_level (mu_sieve_machine_t mach)
-{
-  return mach->debug_level;
-}
-
 const char *
 mu_sieve_get_identifier (mu_sieve_machine_t mach)
 {
@@ -278,7 +273,15 @@ mu_sieve_get_identifier (mu_sieve_machine_t mach)
 int
 mu_sieve_is_dry_run (mu_sieve_machine_t mach)
 {
-  return mach->debug_level & MU_SIEVE_DRY_RUN;
+  return mach->dry_run;
+}
+
+int
+mu_sieve_set_dry_run (mu_sieve_machine_t mach, int val)
+{
+  if (mach->state != mu_sieve_state_compiled)
+    return EINVAL; //FIXME: another error code
+  return mach->dry_run = val;
 }
 
 int
@@ -304,12 +307,15 @@ sieve_run (mu_sieve_machine_t mach)
 int
 mu_sieve_disass (mu_sieve_machine_t mach)
 {
-  int level = mach->debug_level;
+  mu_debug_level_t lev;
   int rc;
-
-  mach->debug_level = MU_SIEVE_DEBUG_INSTR | MU_SIEVE_DEBUG_DISAS;
+  
+  mu_debug_get_category_level (mu_sieve_debug_handle, &lev);
+  mu_debug_set_category_level (mu_sieve_debug_handle,
+			       MU_DEBUG_LEVEL_MASK(MU_DEBUG_TRACE8)
+			       | MU_DEBUG_LEVEL_MASK(MU_DEBUG_TRACE9));
   rc = sieve_run (mach);
-  mach->debug_level = level;
+  mu_debug_set_category_level (mu_sieve_debug_handle, lev);
   return rc;
 }
   

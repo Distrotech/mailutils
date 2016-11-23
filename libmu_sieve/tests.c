@@ -119,8 +119,7 @@ sieve_test_address (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   int rc;
   size_t count;
   
-  if (mach->debug_level & MU_SIEVE_DEBUG_TRACE)
-    mu_sieve_debug (mach, "ADDRESS");
+  mu_sieve_trace (mach, "ADDRESS");
 
   h = mu_sieve_value_get (args, 0);
   if (!h)
@@ -183,8 +182,7 @@ sieve_test_header (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   size_t count, mcount = 0;
   struct header_closure clos;
   
-  if (mach->debug_level & MU_SIEVE_DEBUG_TRACE)
-    mu_sieve_debug (mach, "HEADER");
+  mu_sieve_trace (mach, "HEADER");
 
   h = mu_sieve_value_get (args, 0);
   if (!h)
@@ -267,8 +265,7 @@ sieve_test_envelope (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   int rc;
   size_t count;
   
-  if (mach->debug_level & MU_SIEVE_DEBUG_TRACE)
-    mu_sieve_debug (mach, "ENVELOPE");
+  mu_sieve_trace (mach, "ENVELOPE");
 
   h = mu_sieve_value_get (args, 0);
   if (!h)
@@ -334,8 +331,7 @@ sieve_test_exists (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   mu_header_t header = NULL;
   mu_sieve_value_t *val;   
 
-  if (mach->debug_level & MU_SIEVE_DEBUG_TRACE)
-    mu_sieve_debug (mach, "EXISTS");
+  mu_sieve_trace (mach, "EXISTS");
 
   mu_message_get_header (mu_sieve_get_message (mach), &header);
   val = mu_sieve_value_get (args, 0);

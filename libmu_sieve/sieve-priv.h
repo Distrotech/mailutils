@@ -77,7 +77,7 @@ struct mu_sieve_machine
   long reg;                  /* Numeric register */
   mu_list_t stack;           /* Runtime stack */
 
-  int debug_level;           /* Debugging level */
+  int dry_run;               /* Dry-run mode */
   jmp_buf errbuf;            /* Target location for non-local exits */
   const char *identifier;    /* Name of action or test being executed */
   

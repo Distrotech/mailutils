@@ -84,10 +84,7 @@ numaddr_test (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   struct val_ctr vc;
   int rc;
   
-  if (mu_sieve_get_debug_level (mach) & MU_SIEVE_DEBUG_TRACE)
-    {
-      mu_sieve_debug (mach, "NUMADDR");
-    }
+  mu_sieve_trace (mach, "NUMADDR");
 
   /* Retrieve required arguments: */
   /* First argument: list of header names */
