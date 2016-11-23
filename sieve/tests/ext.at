@@ -32,7 +32,7 @@ if numaddr [[ "to", "cc" ]] :over 5
 MUT_MBCOPY($abs_top_srcdir/testsuite/spool/bigto.mbox)
 
 sieve MUT_SIEVE_CMDLINE dnl
- --clearpath --libdir-prefix= "${abs_top_builddir}/examples" -f ./bigto.mbox prog
+ --clearpath --libdir-prefix="${abs_top_builddir}/examples" -f ./bigto.mbox prog
 ],
 [0],
 [],
