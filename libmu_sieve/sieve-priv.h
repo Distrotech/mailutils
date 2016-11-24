@@ -45,12 +45,17 @@ struct mu_locus_range
   
 #define YYLTYPE struct mu_locus_range
 
+#define MU_SV_SAVED_ERR_STATE 0x01
+#define MU_SV_SAVED_DBG_STATE 0x02
+#define MU_SV_SAVED_STATE     0x80
+
 enum mu_sieve_state
   {
     mu_sieve_state_init,
     mu_sieve_state_error,
     mu_sieve_state_compiled,
-    mu_sieve_state_running
+    mu_sieve_state_running,
+    mu_sieve_state_disass
   };
 
 struct mu_sieve_machine
@@ -85,9 +90,17 @@ struct mu_sieve_machine
   size_t    msgno;           /* Current message number */
   mu_message_t msg;          /* Current message */
   int action_count;          /* Number of actions executed over this message */
-			    
+
+  /* Stream state info */
+  int state_flags;
+  int err_mode;
+  struct mu_locus err_locus;
+  int dbg_mode;
+  struct mu_locus dbg_locus;
+  
   /* User supplied data */
   mu_stream_t errstream;
+  mu_stream_t dbgstream;
   
   mu_sieve_action_log_t logger;
   

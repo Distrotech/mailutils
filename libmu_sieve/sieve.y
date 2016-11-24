@@ -994,8 +994,7 @@ mu_i_sv_error (mu_sieve_machine_t mach)
 }
 
 int
-mu_sieve_machine_init_ex (mu_sieve_machine_t *pmach,
-			  void *data, mu_stream_t errstream)
+mu_sieve_machine_init (mu_sieve_machine_t *pmach)
 {
   int rc;
   mu_sieve_machine_t mach;
@@ -1022,18 +1021,13 @@ mu_sieve_machine_init_ex (mu_sieve_machine_t *pmach,
   
   mach->source_list = NULL;
 
-  mach->data = data;
-  mach->errstream = errstream;
-  mu_stream_ref (errstream);
+  mach->data = NULL;
+
+  mu_sieve_set_diag_stream (mach, mu_strerr);
+  mu_sieve_set_dbg_stream (mach, mu_strerr);
   
   *pmach = mach;
   return 0;
-}
-
-int
-mu_sieve_machine_init (mu_sieve_machine_t *pmach)
-{
-  return mu_sieve_machine_init_ex (pmach, NULL, mu_strerr);
 }
 
 int
@@ -1043,12 +1037,30 @@ mu_sieve_machine_inherit (mu_sieve_machine_t const parent,
   mu_sieve_machine_t child;
   int rc;
   
-  rc = mu_sieve_machine_init_ex (&child, parent->data, parent->errstream);
+  if (!parent || parent->state == mu_sieve_state_error)
+    return EINVAL;
+  
+  rc = mu_sieve_machine_init (&child);
   if (rc)
     return rc;
 
+  child->dry_run     = parent->dry_run;
+
+  child->state_flags = parent->state_flags;
+  child->err_mode    = parent->err_mode;
+  child->err_locus   = parent->err_locus;
+  child->dbg_mode    = parent->dbg_mode;
+  child->dbg_locus   = parent->dbg_locus;  
+
+  child->errstream = parent->errstream;
+  mu_stream_ref (child->errstream);
+  child->dbgstream = parent->dbgstream;
+  mu_stream_ref (child->dbgstream);
+  
+  child->data = parent->data;
   child->logger = parent->logger;
-  child->dry_run = parent->dry_run;
+  child->daemon_email = parent->daemon_email;
+
   *pmach = child;
   return 0;
 }
@@ -1058,7 +1070,9 @@ mu_sieve_machine_dup (mu_sieve_machine_t const in, mu_sieve_machine_t *out)
 {
   int rc;
   mu_sieve_machine_t mach;
-  
+
+  if (!in || in->state == mu_sieve_state_error)
+    return EINVAL; 
   mach = malloc (sizeof (*mach));
   if (!mach)
     return ENOMEM;
@@ -1077,15 +1091,33 @@ mu_sieve_machine_dup (mu_sieve_machine_t const in, mu_sieve_machine_t *out)
   mach->progsize = in->progsize;
   mach->prog = in->prog;
 
-  mach->state = in->state;
+  switch (in->state)
+    {
+    case mu_sieve_state_running:
+    case mu_sieve_state_disass:
+      mach->state = mu_sieve_state_compiled;
+      break;
+
+    default:
+      mach->state = in->state;
+    }
+  
   mach->pc = 0;
   mach->reg = 0;
   mach->stack = NULL;
 
   mach->dry_run = in->dry_run;
-  
+
+  mach->state_flags = in->state_flags;
+  mach->err_mode    = in->err_mode;
+  mach->err_locus   = in->err_locus;
+  mach->dbg_mode    = in->dbg_mode;
+  mach->dbg_locus   = in->dbg_locus;  
+
   mach->errstream = in->errstream;
   mu_stream_ref (mach->errstream);
+  mach->dbgstream = in->dbgstream;
+  mu_stream_ref (mach->dbgstream);
   
   mach->data = in->data;
   mach->logger = in->logger;
@@ -1108,6 +1140,21 @@ mu_sieve_set_diag_stream (mu_sieve_machine_t mach, mu_stream_t str)
   mu_stream_unref (mach->errstream);
   mach->errstream = str;
   mu_stream_ref (mach->errstream);
+}
+
+void
+mu_sieve_set_dbg_stream (mu_sieve_machine_t mach, mu_stream_t str)
+{
+  mu_stream_unref (mach->dbgstream);
+  mach->dbgstream = str;
+  mu_stream_ref (mach->dbgstream);
+}
+
+void
+mu_sieve_get_dbg_stream (mu_sieve_machine_t mach, mu_stream_t *pstr)
+{
+  *pstr = mach->dbgstream;
+  mu_stream_ref (*pstr);
 }
 
 void
@@ -1215,10 +1262,9 @@ void
 mu_sieve_machine_destroy (mu_sieve_machine_t *pmach)
 {
   mu_sieve_machine_t mach = *pmach;
-  /* FIXME: Restore stream state (locus & mode) */
-  mu_stream_ioctl (mach->errstream, MU_IOCTL_LOGSTREAM,
-                   MU_IOCTL_LOGSTREAM_SET_LOCUS, NULL);
+
   mu_stream_destroy (&mach->errstream);
+  mu_stream_destroy (&mach->dbgstream);
   mu_mailer_destroy (&mach->mailer);
   mu_list_foreach (mach->destr_list, _run_destructor, NULL);
   mu_list_destroy (&mach->destr_list);
@@ -1232,42 +1278,31 @@ mu_sieve_machine_destroy (mu_sieve_machine_t *pmach)
   *pmach = NULL;
 }
 
-static void
-sieve_machine_begin (mu_sieve_machine_t mach, const char *file)
-{
-  mu_i_sv_register_standard_actions (mach);
-  mu_i_sv_register_standard_tests (mach);
-  mu_i_sv_register_standard_comparators (mach);
-  mu_sieve_machine = mach;
-}
-
-static void
-sieve_machine_finish (void)
-{
-  //nothing
-}
-
 int
 with_machine (mu_sieve_machine_t mach, char const *name,
 	      int (*thunk) (void *), void *data)
 {
   int rc = 0;
-  mu_stream_t save_errstr = mu_strerr;
-  
+  mu_stream_t save_errstr;
+
+  save_errstr = mu_strerr;  
   mu_stream_ref (save_errstr);
   mu_strerr = mach->errstream;
   mu_stream_ref (mu_strerr);
 
-  sieve_machine_begin (mach, name);
+  mu_i_sv_register_standard_actions (mach);
+  mu_i_sv_register_standard_tests (mach);
+  mu_i_sv_register_standard_comparators (mach);
+  mu_sieve_machine = mach;
 
+  mu_sieve_stream_save (mach);
   rc = thunk (data);
-
-  sieve_machine_finish ();
+  mu_sieve_stream_restore (mach);
 
   mu_stream_unref (save_errstr);
   mu_strerr = save_errstr;
   mu_stream_unref (mu_strerr);
-
+  
   return rc;
 }
 

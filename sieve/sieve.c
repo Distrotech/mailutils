@@ -247,12 +247,20 @@ static struct mu_cli_setup cli = {
   N_("GNU sieve -- a mail filtering tool."),
   "SCRIPT",
   NULL,
-  N_("Debug flags:\n\
+  N_("Sieve-specific debug levels:\n\
+\n\
+  trace1  -  print parse tree before optimization\n\
+  trace2  -  print parse tree after optimization\n\
+  trace3  -  print parser traces\n\
+  trace4  -  print tests and actions being executed\n\
+  trace9  -  print each Sieve instruction being executed\n\
+\n\
+Compatibility debug flags:\n\
   g - main parser traces\n\
   T - mailutils traces (same as --debug-level=sieve.trace0-trace1)\n\
   P - network protocols (same as --debug-level=sieve.=prot)\n\
-  t - sieve trace (MU_SIEVE_DEBUG_TRACE)\n\
-  i - sieve instructions trace (MU_SIEVE_DEBUG_INSTR)\n")
+  t - sieve trace (same as --debug-level=sieve.=trace4)\n\
+  i - sieve instructions trace (same as --debug-level=sieve.=trace9)\n")
 };
 
 static void
@@ -440,7 +448,10 @@ main (int argc, char *argv[])
   if (compile_only)
     {
       if (compile_only == 2)
-	mu_sieve_disass (mach);
+	{
+	  mu_sieve_set_dbg_stream (mach, mu_strout);
+	  mu_sieve_disass (mach);
+	}
       return EX_OK;
     }
 

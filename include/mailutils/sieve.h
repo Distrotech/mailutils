@@ -116,12 +116,6 @@ typedef struct
 #define MU_SIEVE_MATCH_EQ        5
 #define MU_SIEVE_MATCH_LAST      6
 
-/* Debugging levels */
-#define MU_SIEVE_DEBUG_TRACE  0x0001
-#define MU_SIEVE_DEBUG_INSTR  0x0002
-#define MU_SIEVE_DEBUG_DISAS  0x0004
-#define MU_SIEVE_DRY_RUN      0x0008
-
 extern mu_debug_handle_t mu_sieve_debug_handle;
 extern mu_list_t mu_sieve_include_path;
 extern mu_list_t mu_sieve_library_path;
@@ -212,9 +206,6 @@ int mu_sieve_vlist_compare (mu_sieve_value_t * a, mu_sieve_value_t * b,
 
 /* Functions to create and destroy sieve machine */
 int mu_sieve_machine_init (mu_sieve_machine_t *mach);
-int mu_sieve_machine_init_ex (mu_sieve_machine_t *pmach,
-			      void *data,
-			      mu_stream_t errstream);
 int mu_sieve_machine_dup (mu_sieve_machine_t const in,
 			  mu_sieve_machine_t *out);
 int mu_sieve_machine_inherit (mu_sieve_machine_t const in,
@@ -226,6 +217,9 @@ int mu_sieve_machine_add_destructor (mu_sieve_machine_t mach,
 /* Functions for accessing sieve machine internals */
 void mu_sieve_get_diag_stream (mu_sieve_machine_t mach, mu_stream_t *pstr);
 void mu_sieve_set_diag_stream (mu_sieve_machine_t mach, mu_stream_t str);
+
+void mu_sieve_set_dbg_stream (mu_sieve_machine_t mach, mu_stream_t str);
+void mu_sieve_get_dbg_stream (mu_sieve_machine_t mach, mu_stream_t *pstr);
 
 void *mu_sieve_get_data (mu_sieve_machine_t mach);
 void mu_sieve_set_data (mu_sieve_machine_t mach, void *);
@@ -247,6 +241,10 @@ void mu_sieve_set_daemon_email (mu_sieve_machine_t mach, const char *email);
 
 int mu_sieve_get_message_sender (mu_message_t msg, char **ptext);
 
+/* Stream state saving & restoring */
+void mu_sieve_stream_save (mu_sieve_machine_t mach);
+void mu_sieve_stream_restore (mu_sieve_machine_t mach);
+  
 /* Logging and diagnostic functions */
 
 void mu_sieve_error (mu_sieve_machine_t mach, const char *fmt, ...) 

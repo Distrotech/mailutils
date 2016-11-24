@@ -267,17 +267,24 @@ mu_i_sv_debug (mu_sieve_machine_t mach, size_t pc, const char *fmt, ...)
 {
   va_list ap;
 
+  if (mach->state_flags & MU_SV_SAVED_DBG_STATE)
+    {
+      unsigned severity = MU_LOG_DEBUG;
+      mu_stream_ioctl (mach->dbgstream, MU_IOCTL_LOGSTREAM,
+		       MU_IOCTL_LOGSTREAM_SET_SEVERITY, &severity);
+      if (mach->locus.mu_file)
+	{
+	  int mode = mach->dbg_mode | MU_LOGMODE_LOCUS;
+	  mu_stream_ioctl (mach->dbgstream, MU_IOCTL_LOGSTREAM,
+			   MU_IOCTL_LOGSTREAM_SET_LOCUS, &mach->locus);
+	  mu_stream_ioctl (mach->dbgstream, MU_IOCTL_LOGSTREAM,
+			   MU_IOCTL_LOGSTREAM_SET_MODE, &mode);
+	}
+    }
   va_start (ap, fmt);
-  mu_stream_printf (mach->errstream, "\033s<%d>", MU_LOG_DEBUG);
-  if (mach->locus.mu_file)
-    mu_stream_printf (mach->errstream, "\033O<%d>\033f<%u>%s\033l<%u>",
-                      MU_LOGMODE_LOCUS,
-                      (unsigned) strlen (mach->locus.mu_file),
-                      mach->locus.mu_file,
-                      mach->locus.mu_line);
-  mu_stream_printf (mach->errstream, "%4zu: ", pc);
-  mu_stream_vprintf (mach->errstream, fmt, ap);
-  mu_stream_write (mach->errstream, "\n", 1, NULL);
+  mu_stream_printf (mach->dbgstream, "%4zu: ", pc);
+  mu_stream_vprintf (mach->dbgstream, fmt, ap);
+  mu_stream_write (mach->dbgstream, "\n", 1, NULL);
   va_end (ap);
 }
 
@@ -287,18 +294,25 @@ mu_i_sv_debug_command (mu_sieve_machine_t mach,
 		       char const *what,
 		       mu_list_t taglist, mu_list_t arglist)
 {
-  mu_stream_printf (mach->errstream, "\033s<%d>", MU_LOG_DEBUG);
-  if (mach->locus.mu_file)
-    mu_stream_printf (mach->errstream, "\033O<%d>\033f<%u>%s\033l<%u>",
-		      MU_LOGMODE_LOCUS,
-		      (unsigned) strlen (mach->locus.mu_file),
-		      mach->locus.mu_file,
-		      mach->locus.mu_line);
-  mu_stream_printf (mach->errstream, "%4zu: %s: %s",
+  if (mach->state_flags & MU_SV_SAVED_DBG_STATE)
+    {
+      unsigned severity = MU_LOG_DEBUG;
+      mu_stream_ioctl (mach->dbgstream, MU_IOCTL_LOGSTREAM,
+		       MU_IOCTL_LOGSTREAM_SET_SEVERITY, &severity);
+      if (mach->locus.mu_file)
+	{
+	  int mode = mach->dbg_mode | MU_LOGMODE_LOCUS;
+	  mu_stream_ioctl (mach->dbgstream, MU_IOCTL_LOGSTREAM,
+			   MU_IOCTL_LOGSTREAM_SET_LOCUS, &mach->locus);
+	  mu_stream_ioctl (mach->dbgstream, MU_IOCTL_LOGSTREAM,
+			   MU_IOCTL_LOGSTREAM_SET_MODE, &mode);
+	}
+    }
+  mu_stream_printf (mach->dbgstream, "%4zu: %s: %s",
 		    pc, what, mach->identifier);  
-  mu_i_sv_tagf (mach->errstream, taglist);
-  mu_i_sv_argf (mach->errstream, arglist);
-  mu_stream_write (mach->errstream, "\n", 1, NULL);
+  mu_i_sv_tagf (mach->dbgstream, taglist);
+  mu_i_sv_argf (mach->dbgstream, arglist);
+  mu_stream_write (mach->dbgstream, "\n", 1, NULL);
 }
 
 void
@@ -434,9 +448,9 @@ _comp_action (void *item, void *data)
 
 int
 mu_sieve_vlist_compare (mu_sieve_value_t *a, mu_sieve_value_t *b,
-		     mu_sieve_comparator_t comp, mu_sieve_relcmp_t test,
-		     mu_sieve_retrieve_t retr,
-		     void *data, size_t *count)
+			mu_sieve_comparator_t comp, mu_sieve_relcmp_t test,
+			mu_sieve_retrieve_t retr,
+			void *data, size_t *count)
 {
   struct comp_data d;
   int rc;
@@ -451,4 +465,52 @@ mu_sieve_vlist_compare (mu_sieve_value_t *a, mu_sieve_value_t *b,
   if (count)
     *count = d.count;
   return rc;
+}
+
+
+void
+mu_sieve_stream_save (mu_sieve_machine_t mach)
+{
+  if (mach->state_flags & MU_SV_SAVED_STATE)
+    return;
+  
+  if (mu_stream_ioctl (mach->errstream, MU_IOCTL_LOGSTREAM,
+		       MU_IOCTL_LOGSTREAM_GET_MODE, &mach->err_mode) == 0
+      && mu_stream_ioctl (mach->errstream, MU_IOCTL_LOGSTREAM,
+			  MU_IOCTL_LOGSTREAM_SET_LOCUS, &mach->err_locus) == 0)
+      mach->state_flags |= MU_SV_SAVED_ERR_STATE;
+
+  if (mu_stream_ioctl (mach->dbgstream, MU_IOCTL_LOGSTREAM,
+		       MU_IOCTL_LOGSTREAM_GET_MODE, &mach->dbg_mode) == 0
+      && mu_stream_ioctl (mach->dbgstream, MU_IOCTL_LOGSTREAM,
+			  MU_IOCTL_LOGSTREAM_SET_LOCUS, &mach->dbg_locus) == 0)
+    mach->state_flags |= MU_SV_SAVED_DBG_STATE;
+  
+  mach->state_flags |= MU_SV_SAVED_STATE;
+}
+
+void
+mu_sieve_stream_restore (mu_sieve_machine_t mach)
+{
+  if (!(mach->state_flags & MU_SV_SAVED_STATE))
+    return;
+
+  if (mach->state_flags & MU_SV_SAVED_ERR_STATE)
+    {
+      mu_stream_ioctl (mach->errstream, MU_IOCTL_LOGSTREAM,
+		       MU_IOCTL_LOGSTREAM_SET_MODE, &mach->err_mode);
+      mu_stream_ioctl (mach->errstream, MU_IOCTL_LOGSTREAM,
+		       MU_IOCTL_LOGSTREAM_SET_LOCUS, &mach->err_locus);
+    }
+  
+  if (mach->dbgstream != mach->errstream
+      && (mach->state_flags & MU_SV_SAVED_DBG_STATE))
+    {
+      mu_stream_ioctl (mach->dbgstream, MU_IOCTL_LOGSTREAM,
+		       MU_IOCTL_LOGSTREAM_SET_MODE, &mach->dbg_mode);
+      mu_stream_ioctl (mach->dbgstream, MU_IOCTL_LOGSTREAM,
+		       MU_IOCTL_LOGSTREAM_SET_LOCUS, &mach->dbg_locus);
+    }
+  
+  mach->state_flags = 0;
 }

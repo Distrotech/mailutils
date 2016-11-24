@@ -27,10 +27,9 @@
 #define SIEVE_ARG(m,n,t) ((m)->prog[(m)->pc+(n)].t)
 #define SIEVE_ADJUST(m,n) (m)->pc+=(n)
 
+#define INSTR_DISASS(m) ((m)->state == mu_sieve_state_disass)
 #define INSTR_DEBUG(m) \
-  (mu_debug_level_p (mu_sieve_debug_handle, MU_DEBUG_TRACE9)) 
-#define INSTR_DISASS(m) \
-  (mu_debug_level_p (mu_sieve_debug_handle, MU_DEBUG_TRACE8)) 
+  (INSTR_DISASS(m) || mu_debug_level_p (mu_sieve_debug_handle, MU_DEBUG_TRACE9)) 
 
 void
 _mu_i_sv_instr_source (mu_sieve_machine_t mach)
@@ -83,7 +82,7 @@ _mu_i_sv_instr_action (mu_sieve_machine_t mach)
 {
   mach->identifier = SIEVE_ARG (mach, 3, string);
   mach->action_count++;
-  instr_run (mach, "action");
+  instr_run (mach, "ACTION");
   mach->identifier = NULL;
 }
 
@@ -91,7 +90,7 @@ void
 _mu_i_sv_instr_test (mu_sieve_machine_t mach)
 {
   mach->identifier = SIEVE_ARG (mach, 3, string);
-  mach->reg = instr_run (mach, "test");
+  mach->reg = instr_run (mach, "TEST");
   mach->identifier = NULL;
 }
 
@@ -99,11 +98,9 @@ void
 _mu_i_sv_instr_push (mu_sieve_machine_t mach)
 {
   if (INSTR_DEBUG (mach))
-    {
-      mu_i_sv_debug (mach, mach->pc - 1, "PUSH");
-      if (INSTR_DISASS (mach))
-	return;
-    }
+    mu_i_sv_debug (mach, mach->pc - 1, "PUSH");
+  if (INSTR_DISASS (mach))
+    return;
   
   if (!mach->stack && mu_list_create (&mach->stack))
     {
@@ -117,11 +114,9 @@ void
 _mu_i_sv_instr_pop (mu_sieve_machine_t mach)
 {
   if (INSTR_DEBUG (mach))
-    {
-      mu_i_sv_debug (mach, mach->pc - 1, "POP");
-      if (INSTR_DISASS (mach))
-	return;
-    }
+    mu_i_sv_debug (mach, mach->pc - 1, "POP");
+  if (INSTR_DISASS (mach))
+    return;
 
   if (!mach->stack || mu_list_is_empty (mach->stack))
     {
@@ -135,11 +130,9 @@ void
 _mu_i_sv_instr_not (mu_sieve_machine_t mach)
 {
   if (INSTR_DEBUG (mach))
-    {
-      mu_i_sv_debug (mach, mach->pc - 1, "NOT");
-      if (INSTR_DISASS (mach))
-	return;
-    }
+    mu_i_sv_debug (mach, mach->pc - 1, "NOT");
+  if (INSTR_DISASS (mach))
+    return;
   mach->reg = !mach->reg;
 }
 
@@ -150,12 +143,10 @@ _mu_i_sv_instr_branch (mu_sieve_machine_t mach)
 
   SIEVE_ADJUST (mach, 1);
   if (INSTR_DEBUG (mach))
-    {
-      mu_i_sv_debug (mach, mach->pc - 2, "BRANCH %lu",
-		     (unsigned long)(mach->pc + num));
-      if (INSTR_DISASS (mach))
-	return;
-    }
+    mu_i_sv_debug (mach, mach->pc - 2, "BRANCH %lu",
+		   (unsigned long)(mach->pc + num));
+  if (INSTR_DISASS (mach))
+    return;
 
   mach->pc += num;
 }
@@ -167,12 +158,10 @@ _mu_i_sv_instr_brz (mu_sieve_machine_t mach)
   SIEVE_ADJUST (mach, 1);
 
   if (INSTR_DEBUG (mach))
-    {
-      mu_i_sv_debug (mach, mach->pc - 2, "BRZ %lu",
-		     (unsigned long)(mach->pc + num));
-      if (INSTR_DISASS (mach))
-	return;
-    }
+    mu_i_sv_debug (mach, mach->pc - 2, "BRZ %lu",
+		   (unsigned long)(mach->pc + num));
+  if (INSTR_DISASS (mach))
+    return;
   
   if (!mach->reg)
     mach->pc += num;
@@ -185,12 +174,10 @@ _mu_i_sv_instr_brnz (mu_sieve_machine_t mach)
   SIEVE_ADJUST (mach, 1);
 
   if (INSTR_DEBUG (mach))
-    {
-      mu_i_sv_debug (mach, mach->pc - 2, "BRNZ %lu",
-		     (unsigned long)(mach->pc + num));
-      if (INSTR_DISASS (mach))
-	return;
-    }
+    mu_i_sv_debug (mach, mach->pc - 2, "BRNZ %lu",
+		   (unsigned long)(mach->pc + num));
+  if (INSTR_DISASS (mach))
+    return;
   
   if (mach->reg)
     mach->pc += num;
@@ -262,35 +249,40 @@ mu_sieve_set_dry_run (mu_sieve_machine_t mach, int val)
 int
 sieve_run (mu_sieve_machine_t mach)
 {
-  if (setjmp (mach->errbuf))
-    return 1;
+  int rc;
 
-  mach->action_count = 0;
+  mu_sieve_stream_save (mach);
   
-  for (mach->pc = 1; mach->prog[mach->pc].handler; )
-    (*mach->prog[mach->pc++].instr) (mach);
+  rc = setjmp (mach->errbuf);
+  if (rc == 0)
+    {
+      mach->action_count = 0;
+  
+      for (mach->pc = 1; mach->prog[mach->pc].handler; )
+	(*mach->prog[mach->pc++].instr) (mach);
 
-  if (mach->action_count == 0)
-    mu_sieve_log_action (mach, "IMPLICIT KEEP", NULL);
+      if (mach->action_count == 0)
+	mu_sieve_log_action (mach, "IMPLICIT KEEP", NULL);
   
-  if (INSTR_DEBUG (mach))
-    mu_i_sv_debug (mach, mach->pc, "STOP");
+      if (INSTR_DEBUG (mach))
+	mu_i_sv_debug (mach, mach->pc, "STOP");
+    }
   
-  return 0;
+  mu_sieve_stream_restore (mach);
+  
+  return rc;
 }
 
 int
 mu_sieve_disass (mu_sieve_machine_t mach)
 {
-  mu_debug_level_t lev;
   int rc;
-  
-  mu_debug_get_category_level (mu_sieve_debug_handle, &lev);
-  mu_debug_set_category_level (mu_sieve_debug_handle,
-			       MU_DEBUG_LEVEL_MASK(MU_DEBUG_TRACE8)
-			       | MU_DEBUG_LEVEL_MASK(MU_DEBUG_TRACE9));
+
+  if (mach->state != mu_sieve_state_compiled)
+    return EINVAL; /* FIXME: Error code */
+  mach->state = mu_sieve_state_disass;
   rc = sieve_run (mach);
-  mu_debug_set_category_level (mu_sieve_debug_handle, lev);
+  mach->state = mu_sieve_state_compiled;
   return rc;
 }
   

@@ -5,3 +5,5 @@
 
 PATH=@abs_builddir@:@abs_top_builddir@/mail:$top_srcdir:$srcdir:$PATH
 testsuitedir=@abs_top_srcdir@/testsuite
+MALLOC_CHECK_=2
+export MALLOC_CHECK_
