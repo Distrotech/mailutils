@@ -344,16 +344,11 @@ mu_sieve_log_action (mu_sieve_machine_t mach, const char *action,
   
   if (!mach->logger)
     return;
+  
+  mu_stream_ioctl (mach->errstream, MU_IOCTL_LOGSTREAM,
+		   MU_IOCTL_LOGSTREAM_SET_LOCUS, &mach->locus);
   va_start (ap, fmt);
-  mu_stream_printf (mach->errstream, "\033s<%d>", MU_LOG_INFO);
-  if (mach->locus.mu_file)
-    mu_stream_printf (mach->errstream, "\033O<%d>\033f<%u>%s\033l<%u>",
-		      MU_LOGMODE_LOCUS,
-		      (unsigned) strlen (mach->locus.mu_file),
-		      mach->locus.mu_file,
-		      mach->locus.mu_line);
-  mach->logger (mach->data, mach->errstream, mach->msgno, mach->msg,
-		action, fmt, ap);
+  mach->logger (mach, action, fmt, ap);
   va_end (ap);
 }
   

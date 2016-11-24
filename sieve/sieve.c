@@ -264,18 +264,21 @@ Compatibility debug flags:\n\
 };
 
 static void
-_sieve_action_log (void *unused,
-		   mu_stream_t stream, size_t msgno,
-		   mu_message_t msg,
+_sieve_action_log (mu_sieve_machine_t mach,
 		   const char *action, const char *fmt, va_list ap)
 {
   size_t uid = 0;
+  mu_message_t msg;
+  mu_stream_t stream;
+
+  mu_sieve_get_diag_stream (mach, &stream);
+  msg = mu_sieve_get_message (mach);
   
   mu_message_get_uid (msg, &uid);
   mu_stream_printf (stream, "\033s<%d>\033%c<%d>", MU_LOG_NOTICE,
 		    sieve_print_locus ? 'O' : 'X', MU_LOGMODE_LOCUS);
   mu_stream_printf (stream, _("%s on msg uid %lu"),
-		  action, (unsigned long) uid);
+		    action, (unsigned long) uid);
   
   if (fmt && strlen (fmt))
     {
@@ -283,6 +286,8 @@ _sieve_action_log (void *unused,
       mu_stream_vprintf (stream, fmt, ap);
     }
   mu_stream_printf (stream, "\n");
+
+  mu_stream_unref (stream);
 }
 
 static int

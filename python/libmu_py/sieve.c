@@ -236,8 +236,7 @@ api_sieve_message (PyObject *self, PyObject *args)
 }
 
 static void
-_sieve_action_printer (void *data, mu_stream_t stream,
-		       size_t msgno, mu_message_t msg,
+_sieve_action_printer (mu_sieve_machine_t mach,
 		       const char *action, const char *fmt, va_list ap)
 {
   PyObject *py_args;
@@ -258,10 +257,12 @@ _sieve_action_printer (void *data, mu_stream_t stream,
 	  PyStream *py_stm = PyStream_NEW ();
 	  if (py_stm)
 	    {
-	      py_stm->stm = stream;
-	      mu_stream_ref (stream);
-	  
-	      py_msg->msg = msg;
+	      size_t msgno;
+	      
+	      mu_sieve_get_diag_stream (mach, &py_stm->stm);
+	      msgno = mu_sieve_get_message_num (mach);
+	      
+	      py_msg->msg = mu_sieve_get_message (mach);
 	      Py_INCREF (py_msg);
 
 	      PyDict_SetItemString (py_dict, "msgno",
@@ -272,7 +273,7 @@ _sieve_action_printer (void *data, mu_stream_t stream,
 
 	      if (mu_vasnprintf (&buf, &buflen, fmt, ap))
 		{
-		  mu_stream_unref (stream);
+		  mu_stream_destroy (&py_stm->stm);
 		  return;
 		}
 	      PyDict_SetItemString (py_dict, "text",
@@ -282,7 +283,7 @@ _sieve_action_printer (void *data, mu_stream_t stream,
 	      py_args = PyTuple_New (1);
 	      if (py_args)
 		{
-		  struct _mu_py_sieve_logger *s = data;
+		  struct _mu_py_sieve_logger *s = mu_sieve_get_data (mach);
 		  PyObject *py_fnc = s->py_action_printer;
 
 		  Py_INCREF (py_dict);

@@ -35,9 +35,7 @@ typedef struct mu_sieve_machine *mu_sieve_machine_t;
 
 typedef int (*mu_sieve_handler_t) (mu_sieve_machine_t mach,
 				   mu_list_t args, mu_list_t tags);
-typedef void (*mu_sieve_action_log_t) (void *data,
-				       mu_stream_t stream,
-				       size_t msgno, mu_message_t msg,
+typedef void (*mu_sieve_action_log_t) (mu_sieve_machine_t mach,
 				       const char *action,
 				       const char *fmt, va_list ap);
 

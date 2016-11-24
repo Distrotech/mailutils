@@ -28,15 +28,17 @@ struct sieve_log_data
 };
 
 static void
-_sieve_action_log (void *data,
-		   mu_stream_t stream, size_t msgno,
-		   mu_message_t msg,
+_sieve_action_log (mu_sieve_machine_t mach,
 		   const char *action, const char *fmt, va_list ap)
 {
-  struct sieve_log_data *ldat = data;
+  struct sieve_log_data *ldat = mu_sieve_get_data (mach);
   int pfx = 0;
+  mu_stream_t stream;
+  mu_message_t msg = mu_sieve_get_message (mach);
 
+  mu_sieve_get_diag_stream (mach, &stream);
   mu_stream_printf (stream, "\033s<%d>", MU_LOG_NOTICE);
+
   if (ldat)
     {
       if (ldat->user)
@@ -70,6 +72,7 @@ _sieve_action_log (void *data,
       mu_stream_vprintf (stream, fmt, ap);
     }
   mu_stream_printf (stream, "\n");
+  mu_stream_unref (stream);
 }
 
 static int
