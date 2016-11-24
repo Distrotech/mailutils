@@ -165,7 +165,6 @@ void _mu_i_sv_instr_not (mu_sieve_machine_t mach);
 void _mu_i_sv_instr_branch (mu_sieve_machine_t mach);
 void _mu_i_sv_instr_brz (mu_sieve_machine_t mach);
 void _mu_i_sv_instr_brnz (mu_sieve_machine_t mach);
-void _mu_i_sv_instr_nop (mu_sieve_machine_t mach);
 void _mu_i_sv_instr_source (mu_sieve_machine_t mach);
 void _mu_i_sv_instr_line (mu_sieve_machine_t mach);
 

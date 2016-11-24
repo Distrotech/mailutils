@@ -33,13 +33,6 @@
   (mu_debug_level_p (mu_sieve_debug_handle, MU_DEBUG_TRACE8)) 
 
 void
-_mu_i_sv_instr_nop (mu_sieve_machine_t mach)
-{
-  if (INSTR_DEBUG (mach))
-    mu_i_sv_debug (mach, mach->pc - 1, "NOP");
-}
-
-void
 _mu_i_sv_instr_source (mu_sieve_machine_t mach)
 {
   mach->locus.mu_file = (char*) SIEVE_ARG (mach, 0, string);
