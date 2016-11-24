@@ -105,8 +105,6 @@ sieve_pipe (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags, int test)
     }
   cmd = val->v.string;
 
-  mu_sieve_trace (mach, test ? "PIPE (test)" : "PIPE (action)");
-
   if (mu_sieve_is_dry_run (mach))
     return 0;
 

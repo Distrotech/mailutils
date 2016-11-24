@@ -136,8 +136,6 @@ build_mime (mu_sieve_machine_t mach, mu_list_t tags, mu_mime_t *pmime,
 static int
 diag (mu_sieve_machine_t mach)
 {
-  mu_sieve_trace (mach, "VACATION");
-
   mu_sieve_log_action (mach, "VACATION", NULL);
   return mu_sieve_is_dry_run (mach);
 }

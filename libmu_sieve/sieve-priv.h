@@ -180,3 +180,15 @@ void mu_i_sv_print_tag_list (mu_list_t list, mu_stream_t str);
 
 void mu_i_sv_error (mu_sieve_machine_t mach);
 
+void mu_i_sv_debug (mu_sieve_machine_t mach, size_t pc, const char *fmt, ...)
+  MU_PRINTFLIKE(3,4);
+void mu_i_sv_debug_command (mu_sieve_machine_t mach,
+			    size_t pc,
+			    char const *what,
+			    mu_list_t taglist, mu_list_t arglist);
+void mu_i_sv_trace (mu_sieve_machine_t mach, const char *what,
+		    mu_list_t taglist, mu_list_t arglist);
+
+void mu_i_sv_argf (mu_stream_t str, mu_list_t list);
+void mu_i_sv_valf (mu_stream_t str, mu_sieve_value_t *val);
+

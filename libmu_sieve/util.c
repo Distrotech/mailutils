@@ -210,67 +210,7 @@ mu_sieve_arg_error (mu_sieve_machine_t mach, int n)
 {
   mu_sieve_error (mach, _("cannot retrieve argument %d"), n);
 }
-
-void
-mu_sieve_debug (mu_sieve_machine_t mach, const char *fmt, ...)
-{
-  va_list ap;
-
-  va_start (ap, fmt);
-  mu_stream_printf (mach->errstream, "\033s<%d>", MU_LOG_DEBUG);
-  if (mach->locus.mu_file)
-    mu_stream_printf (mach->errstream, "\033O<%d>\033f<%u>%s\033l<%u>",
-		      MU_LOGMODE_LOCUS,
-		      (unsigned) strlen (mach->locus.mu_file),
-		      mach->locus.mu_file,
-		      mach->locus.mu_line);
-  mu_stream_vprintf (mach->errstream, fmt, ap);
-  mu_stream_write (mach->errstream, "\n", 1, NULL);
-  va_end (ap);
-}
-
-void
-mu_sieve_trace (mu_sieve_machine_t mach, const char *fmt, ...)
-{
-  va_list ap;
-
-  if (!mu_debug_level_p (mu_sieve_debug_handle, MU_DEBUG_TRACE4))
-    return;
-  
-  va_start (ap, fmt);
-  mu_stream_printf (mach->errstream, "\033s<%d>", MU_LOG_DEBUG);
-  if (mach->locus.mu_file)
-    mu_stream_printf (mach->errstream, "\033O<%d>\033f<%u>%s\033l<%u>",
-		      MU_LOGMODE_LOCUS,
-		      (unsigned) strlen (mach->locus.mu_file),
-		      mach->locus.mu_file,
-		      mach->locus.mu_line);
-  mu_stream_vprintf (mach->errstream, fmt, ap);
-  mu_stream_write (mach->errstream, "\n", 1, NULL);
-  va_end (ap);
-}
-
-void
-mu_sieve_log_action (mu_sieve_machine_t mach, const char *action,
-		     const char *fmt, ...)
-{
-  va_list ap;
-  
-  if (!mach->logger)
-    return;
-  va_start (ap, fmt);
-  mu_stream_printf (mach->errstream, "\033s<%d>", MU_LOG_INFO);
-  if (mach->locus.mu_file)
-    mu_stream_printf (mach->errstream, "\033O<%d>\033f<%u>%s\033l<%u>",
-		      MU_LOGMODE_LOCUS,
-		      (unsigned) strlen (mach->locus.mu_file),
-		      mach->locus.mu_file,
-		      mach->locus.mu_line);
-  mach->logger (mach->data, mach->errstream, mach->msgno, mach->msg,
-		action, fmt, ap);
-  va_end (ap);
-}
-  
+
 const char *
 mu_sieve_type_str (mu_sieve_data_type type)
 {
@@ -303,95 +243,106 @@ mu_sieve_type_str (mu_sieve_data_type type)
 
   return "unknown";
 }
-
-static int
-string_printer (void *item, void *data)
-{
-  char *s = item;
-  mu_stream_t str = data;
-
-  mu_stream_printf (str, "\"%s\" ", s);
-  return 0;
-}
-
-static void sieve_print_value (mu_sieve_value_t *, mu_stream_t str);
-
-static int
-value_printer (void *item, void *data)
-{
-  mu_sieve_value_t *val = item;
-  mu_stream_t str = data;
-  
-  sieve_print_value (val, str);
-  mu_stream_printf (str, " ");
-  return 0;
-}
-
-static void
-sieve_print_value (mu_sieve_value_t *val, mu_stream_t str)
-{
-  mu_stream_printf (str, "%s(", mu_sieve_type_str (val->type));
-  switch (val->type)
-    {
-    case SVT_VOID:
-      break;
-      
-    case SVT_NUMBER:
-      mu_stream_printf (str, "%lu", (unsigned long) val->v.number);
-      break;
-      
-    case SVT_TAG:
-    case SVT_IDENT:
-    case SVT_STRING:
-      mu_stream_printf (str, "%s", val->v.string);
-      break;
-      
-    case SVT_STRING_LIST:
-      mu_list_foreach (val->v.list, string_printer, str);
-      break;
-
-    case SVT_VALUE_LIST:
-      mu_list_foreach (val->v.list, value_printer, str);
-
-    case SVT_POINTER:
-      mu_stream_printf (str, "%p", val->v.ptr);
-    }
-  mu_stream_printf (str, ")");
-} 
-
-void
-mu_i_sv_print_value_list (mu_list_t list, mu_stream_t str)
-{
-  mu_sieve_value_t val;
-  
-  val.type = SVT_VALUE_LIST;
-  val.v.list = list;
-  sieve_print_value (&val, str);
-}
-
+
 static int
 tag_printer (void *item, void *data)
 {
   mu_sieve_runtime_tag_t *val = item;
   mu_stream_t str = data;
   
-  mu_stream_printf (str, "%s", val->tag);
+  mu_stream_printf (str, " :%s", val->tag);
   if (val->arg)
-    {
-      mu_stream_printf (str, "(");
-      sieve_print_value (val->arg, str);
-      mu_stream_printf (str, ")");
-    }
-  mu_stream_printf (str, " ");
+    mu_i_sv_valf (str, val->arg);
   return 0;
 }
 
 void
-mu_i_sv_print_tag_list (mu_list_t list, mu_stream_t str)
+mu_i_sv_tagf (mu_stream_t str, mu_list_t taglist)
 {
-  mu_list_foreach (list, tag_printer, str);
+  mu_list_foreach (taglist, tag_printer, str);
 }
 
+void
+mu_i_sv_debug (mu_sieve_machine_t mach, size_t pc, const char *fmt, ...)
+{
+  va_list ap;
+
+  va_start (ap, fmt);
+  mu_stream_printf (mach->errstream, "\033s<%d>", MU_LOG_DEBUG);
+  if (mach->locus.mu_file)
+    mu_stream_printf (mach->errstream, "\033O<%d>\033f<%u>%s\033l<%u>",
+                      MU_LOGMODE_LOCUS,
+                      (unsigned) strlen (mach->locus.mu_file),
+                      mach->locus.mu_file,
+                      mach->locus.mu_line);
+  mu_stream_printf (mach->errstream, "%4zu: ", pc);
+  mu_stream_vprintf (mach->errstream, fmt, ap);
+  mu_stream_write (mach->errstream, "\n", 1, NULL);
+  va_end (ap);
+}
+
+void
+mu_i_sv_debug_command (mu_sieve_machine_t mach,
+		       size_t pc,
+		       char const *what,
+		       mu_list_t taglist, mu_list_t arglist)
+{
+  mu_stream_printf (mach->errstream, "\033s<%d>", MU_LOG_DEBUG);
+  if (mach->locus.mu_file)
+    mu_stream_printf (mach->errstream, "\033O<%d>\033f<%u>%s\033l<%u>",
+		      MU_LOGMODE_LOCUS,
+		      (unsigned) strlen (mach->locus.mu_file),
+		      mach->locus.mu_file,
+		      mach->locus.mu_line);
+  mu_stream_printf (mach->errstream, "%4zu: %s: %s",
+		    pc, what, mach->identifier);  
+  mu_i_sv_tagf (mach->errstream, taglist);
+  mu_i_sv_argf (mach->errstream, arglist);
+  mu_stream_write (mach->errstream, "\n", 1, NULL);
+}
+
+void
+mu_i_sv_trace (mu_sieve_machine_t mach, const char *what,
+	       mu_list_t taglist, mu_list_t arglist)
+{
+  if (!mu_debug_level_p (mu_sieve_debug_handle, MU_DEBUG_TRACE4))
+    return;
+  
+  mu_stream_printf (mach->errstream, "\033s<%d>", MU_LOG_DEBUG);
+  if (mach->locus.mu_file)
+    mu_stream_printf (mach->errstream, "\033O<%d>\033f<%u>%s\033l<%u>",
+		      MU_LOGMODE_LOCUS,
+		      (unsigned) strlen (mach->locus.mu_file),
+		      mach->locus.mu_file,
+		      mach->locus.mu_line);
+  mu_stream_printf (mach->errstream, "%zu: %s %s", mach->msgno, what,
+		    mach->identifier);
+  mu_i_sv_tagf (mach->errstream, taglist);
+  mu_i_sv_argf (mach->errstream, arglist);
+  mu_stream_printf (mach->errstream, "\n");
+}
+
+void
+mu_sieve_log_action (mu_sieve_machine_t mach, const char *action,
+		     const char *fmt, ...)
+{
+  va_list ap;
+  
+  if (!mach->logger)
+    return;
+  va_start (ap, fmt);
+  mu_stream_printf (mach->errstream, "\033s<%d>", MU_LOG_INFO);
+  if (mach->locus.mu_file)
+    mu_stream_printf (mach->errstream, "\033O<%d>\033f<%u>%s\033l<%u>",
+		      MU_LOGMODE_LOCUS,
+		      (unsigned) strlen (mach->locus.mu_file),
+		      mach->locus.mu_file,
+		      mach->locus.mu_line);
+  mach->logger (mach->data, mach->errstream, mach->msgno, mach->msg,
+		action, fmt, ap);
+  va_end (ap);
+}
+  
 static int
 tag_finder (void *item, void *data)
 {
@@ -437,7 +388,8 @@ mu_sieve_vlist_do (mu_sieve_value_t *val, mu_list_action_t ac, void *data)
     }
 }
 
-struct comp_data {
+struct comp_data
+{
   mu_sieve_value_t *val;
   mu_sieve_comparator_t comp;
   mu_sieve_relcmp_t test;
@@ -446,7 +398,8 @@ struct comp_data {
   size_t count;
 };
 
-struct comp_data2 {
+struct comp_data2
+{
   char *sample;
   mu_sieve_comparator_t comp;
   mu_sieve_relcmp_t test;

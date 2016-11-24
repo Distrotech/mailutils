@@ -152,8 +152,6 @@ list_test (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   struct header_closure clos;
   int result;
 
-  mu_sieve_trace (mach, "LIST");
-  
   memset (&clos, 0, sizeof clos);
   if (mu_sieve_tag_lookup (tags, "delim", &arg))
     clos.delim = arg->v.string;

@@ -502,12 +502,9 @@ string_dumper (void *item, void *data)
   return 0;
 }
 
-static int
-dump_val (void *item, void *data)
+void
+mu_i_sv_valf (mu_stream_t str, mu_sieve_value_t *val)
 {
-  mu_sieve_value_t *val = item;
-  mu_stream_t str = data;
-
   mu_stream_printf (str, " ");
   switch (val->type)
     {
@@ -544,7 +541,7 @@ dump_val (void *item, void *data)
 	
     case SVT_VALUE_LIST:
       mu_stream_printf (str, "[");
-      mu_list_foreach (val->v.list, dump_val, str);
+      mu_i_sv_argf (str, val->v.list);
       mu_stream_printf (str, "]");
       break;
       
@@ -555,9 +552,23 @@ dump_val (void *item, void *data)
     default:
       abort ();
     }
-  return 0;
 }
   
+static int
+dump_val (void *item, void *data)
+{
+  mu_sieve_value_t *val = item;
+  mu_stream_t str = data;
+  mu_i_sv_valf (str, val);
+  return 0;
+}
+
+void
+mu_i_sv_argf (mu_stream_t str, mu_list_t list)
+{
+  mu_list_foreach (list, dump_val, str);
+}
+
 static void
 dump_node_command (mu_stream_t str, struct mu_sieve_node *node, unsigned level)
 {

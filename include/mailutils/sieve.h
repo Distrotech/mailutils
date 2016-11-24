@@ -251,8 +251,6 @@ int mu_sieve_get_message_sender (mu_message_t msg, char **ptext);
 
 void mu_sieve_error (mu_sieve_machine_t mach, const char *fmt, ...) 
                      MU_PRINTFLIKE(2,3);
-void mu_sieve_debug (mu_sieve_machine_t mach, const char *fmt, ...)
-                     MU_PRINTFLIKE(2,3);
 void mu_sieve_log_action (mu_sieve_machine_t mach, const char *action,
 			  const char *fmt, ...)
 			  MU_PRINTFLIKE(3,4);

@@ -57,8 +57,6 @@ timestamp_test (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   time_t tlimit, tval;
   int rc;
   
-  mu_sieve_trace (mach, "TIMESTAMP");
-
   /* Retrieve required arguments: */
   /* First argument: header name */
   h = mu_sieve_value_get (args, 0);

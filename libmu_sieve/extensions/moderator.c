@@ -273,9 +273,6 @@ moderator_action (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   int discard = 0;
   int ismime;
   
-  mu_sieve_trace (mach, "moderator_test %lu",
-		  (unsigned long) mu_sieve_get_message_num (mach));
-
   msg = mu_sieve_get_message (mach);
   mu_message_is_multipart (msg, &ismime);
 
