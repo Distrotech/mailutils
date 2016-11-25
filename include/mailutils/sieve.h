@@ -123,10 +123,10 @@ void mu_sieve_debug_init (void);
   
 /* Memory allocation functions */
 void *mu_sieve_alloc (size_t size);
-void *mu_sieve_palloc (mu_list_t * pool, size_t size);
-void *mu_sieve_prealloc (mu_list_t * pool, void *ptr, size_t size);
-void mu_sieve_pfree (mu_list_t * pool, void *ptr);
-char *mu_sieve_pstrdup (mu_list_t * pool, const char *str);
+void *mu_sieve_palloc (mu_list_t *pool, size_t size);
+void *mu_sieve_prealloc (mu_list_t *pool, void *ptr, size_t size);
+void mu_sieve_pfree (mu_list_t *pool, void *ptr);
+char *mu_sieve_pstrdup (mu_list_t *pool, const char *str);
 
 void *mu_sieve_malloc (mu_sieve_machine_t mach, size_t size);
 char *mu_sieve_mstrdup (mu_sieve_machine_t mach, const char *str);
@@ -134,7 +134,7 @@ void *mu_sieve_mrealloc (mu_sieve_machine_t mach, void *ptr, size_t size);
 void mu_sieve_mfree (mu_sieve_machine_t mach, void *ptr);
 
 mu_sieve_value_t *mu_sieve_value_create (mu_sieve_data_type type, void *data);
-void mu_sieve_slist_destroy (mu_list_t * plist);
+void mu_sieve_slist_destroy (mu_list_t *plist);
 
 /* Symbol space functions */
 mu_sieve_register_t *mu_sieve_test_lookup (mu_sieve_machine_t mach,
@@ -148,8 +148,8 @@ int mu_sieve_register_test_ext (mu_sieve_machine_t mach,
 				mu_sieve_tag_group_t *tags, int required);
 int mu_sieve_register_test (mu_sieve_machine_t mach,
 			    const char *name, mu_sieve_handler_t handler,
-			    mu_sieve_data_type * arg_types,
-			    mu_sieve_tag_group_t * tags, int required);
+			    mu_sieve_data_type *arg_types,
+			    mu_sieve_tag_group_t *tags, int required);
 
 int mu_sieve_register_action_ext (mu_sieve_machine_t mach,
 				  const char *name, mu_sieve_handler_t handler,
@@ -158,8 +158,8 @@ int mu_sieve_register_action_ext (mu_sieve_machine_t mach,
 				  mu_sieve_tag_group_t *tags, int required);
 int mu_sieve_register_action (mu_sieve_machine_t mach,
 			      const char *name, mu_sieve_handler_t handler,
-			      mu_sieve_data_type * arg_types,
-			      mu_sieve_tag_group_t * tags, int required);
+			      mu_sieve_data_type *arg_types,
+			      mu_sieve_tag_group_t *tags, int required);
 int mu_sieve_register_comparator (mu_sieve_machine_t mach, const char *name,
 				  int required, mu_sieve_comparator_t is,
 				  mu_sieve_comparator_t contains,
@@ -177,8 +177,8 @@ mu_sieve_comparator_t mu_sieve_comparator_lookup (mu_sieve_machine_t mach,
 
 mu_sieve_comparator_t mu_sieve_get_comparator (mu_sieve_machine_t mach,
 					       mu_list_t tags);
-int mu_sieve_str_to_relcmp (const char *str, mu_sieve_relcmp_t * test,
-			    mu_sieve_relcmpn_t * stest);
+int mu_sieve_str_to_relcmp (const char *str, mu_sieve_relcmp_t *test,
+			    mu_sieve_relcmpn_t *stest);
 mu_sieve_relcmp_t mu_sieve_get_relcmp (mu_sieve_machine_t mach,
 				       mu_list_t tags);
 
@@ -195,12 +195,12 @@ int mu_sieve_match_part_checker (mu_sieve_machine_t mach,
 				 mu_list_t args);
 /* Operations in value lists */
 mu_sieve_value_t *mu_sieve_value_get (mu_list_t vlist, size_t index);
-int mu_sieve_vlist_do (mu_sieve_value_t * val, mu_list_action_t ac,
+int mu_sieve_vlist_do (mu_sieve_value_t *val, mu_list_action_t ac,
 		       void *data);
-int mu_sieve_vlist_compare (mu_sieve_value_t * a, mu_sieve_value_t * b,
+int mu_sieve_vlist_compare (mu_sieve_value_t *a, mu_sieve_value_t *b,
 			    mu_sieve_comparator_t comp,
 			    mu_sieve_relcmp_t test, mu_sieve_retrieve_t ac,
-			    void *data, size_t * count);
+			    void *data, size_t *count);
 
 /* Functions to create and destroy sieve machine */
 int mu_sieve_machine_init (mu_sieve_machine_t *mach);
@@ -208,7 +208,7 @@ int mu_sieve_machine_dup (mu_sieve_machine_t const in,
 			  mu_sieve_machine_t *out);
 int mu_sieve_machine_inherit (mu_sieve_machine_t const in,
 			      mu_sieve_machine_t *out);
-void mu_sieve_machine_destroy (mu_sieve_machine_t * pmach);
+void mu_sieve_machine_destroy (mu_sieve_machine_t *pmach);
 int mu_sieve_machine_add_destructor (mu_sieve_machine_t mach,
 				     mu_sieve_destructor_t destr, void *ptr);
 

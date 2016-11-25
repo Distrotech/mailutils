@@ -113,6 +113,7 @@ m4_include([version.at])
 
 AT_BANNER(Compilation)
 m4_include([compile.at])
+m4_include([enc-char.at])
 
 AT_BANNER(Actions)
 m4_include([false.at])

@@ -47,6 +47,7 @@ TESTSUITE_AT = \
   anyof.at\
   delheader.at\
   compile.at\
+  enc-char.at\
   envelope.at\
   exists.at\
   ext.at\

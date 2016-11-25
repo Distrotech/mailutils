@@ -68,6 +68,11 @@ mu_sieve_require (mu_sieve_machine_t mach, mu_list_t slist)
 	  reqfn = mu_sieve_require_relational;
 	  text = "";
 	}
+      else if (strcmp (name, "encoded-character") == 0) /* RFC 5228, 2.4.2.4 */
+	{
+	  reqfn = mu_sieve_require_encoded_character;
+	  text = "";
+	}
       else
 	{
 	  reqfn = mu_sieve_require_action;

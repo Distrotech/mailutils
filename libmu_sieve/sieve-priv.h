@@ -203,4 +203,15 @@ void mu_i_sv_trace (mu_sieve_machine_t mach, const char *what,
 
 void mu_i_sv_argf (mu_stream_t str, mu_list_t list);
 void mu_i_sv_valf (mu_stream_t str, mu_sieve_value_t *val);
+
+typedef int (*mu_i_sv_interp_t) (char const *, size_t, char **, void *);
+
+int mu_i_sv_string_expand (char const *input,
+			   mu_i_sv_interp_t interp, void *data, char **ret);
+
+int mu_i_sv_expand_encoded_char (char const *input, size_t len, char **exp, void *data);
+
+int mu_sieve_require_encoded_character (mu_sieve_machine_t mach,
+					const char *name);
+
 

@@ -529,11 +529,11 @@ number ()
 }
 
 static int
-string ()
+string (void)
 {
-  yylval.string = mu_sieve_malloc (mu_sieve_machine, yyleng - 1);
-  memcpy (yylval.string, yytext + 1, yyleng - 2);
-  yylval.string[yyleng - 2] = 0;
+  line_begin ();
+  line_add (yytext + 1, yyleng - 2);
+  line_finish ();
   return STRING; 
 }
 
@@ -615,13 +615,6 @@ multiline_begin (void)
 }
 
 static void
-line_finish (void)
-{
-  mu_opool_append_char (mu_sieve_machine->string_pool, 0);
-  yylval.string = mu_opool_finish (mu_sieve_machine->string_pool, NULL);
-}
-
-static void
 multiline_finish (void)
 {
   line_finish ();
@@ -647,4 +640,57 @@ str_unescape (char *text, size_t len)
   str[len - 2] = mu_wordsplit_c_unquote_char (text[len - 1]);
   str[len - 1] = 0;
   return str;
+}
+
+enum
+  {
+    interp_encoded_character,
+    interp_variable
+  };
+
+#define MAXINTERP (interp_variable+1)
+mu_i_sv_interp_t interpreter[MAXINTERP];
+
+static void
+line_finish (void)
+{
+  int i;
+  char *str;
+  
+  mu_opool_append_char (mu_sieve_machine->string_pool, 0);
+  str = mu_opool_finish (mu_sieve_machine->string_pool, NULL);
+  for (i = 0; i < MAXINTERP; i++)
+    {
+      if (interpreter[i])
+	{
+	  char *exp;
+	  int rc = mu_i_sv_string_expand (str, interpreter[i], NULL, &exp);
+	  if (rc == 0)
+	    {
+	      mu_opool_free (mu_sieve_machine->string_pool, str);
+	      mu_opool_appendz (mu_sieve_machine->string_pool, exp);
+	      mu_opool_append_char (mu_sieve_machine->string_pool, 0);
+	      free (exp);
+	      str = mu_opool_finish (mu_sieve_machine->string_pool, NULL);
+	    }
+	  else if (rc == MU_ERR_CANCELED)
+	    continue;
+	  else
+	    {
+	      mu_diag_at_locus (MU_LOG_ERROR, &mu_sieve_locus,
+				_("error expandind string: %s"),
+				mu_strerror (rc));
+	      break;
+	    }
+	}
+    }
+  yylval.string = str;
+}
+
+int
+mu_sieve_require_encoded_character (mu_sieve_machine_t mach,
+				    const char *name)
+{
+  interpreter[interp_encoded_character] = mu_i_sv_expand_encoded_char;
+  return 0;
 }
