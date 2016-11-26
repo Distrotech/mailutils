@@ -35,6 +35,7 @@ typedef union
   size_t line;
   int inum;
   char *string;
+  unsigned unum;
 } sieve_op_t;
 
 struct mu_locus_range
