@@ -362,9 +362,10 @@ spamd_test (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   int result;
   long score, threshold, limit;
   mu_stream_t stream = NULL, null;
-  mu_sieve_value_t *arg;
   mu_message_t msg;
   char *host;
+  size_t num;
+  char *str;
   mu_header_t hdr;
   mu_debug_handle_t lev = 0;
   
@@ -380,15 +381,13 @@ spamd_test (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
       mu_sieve_abort (mach);
     }
   
-  if (mu_sieve_tag_lookup (tags, "host", &arg))
-    host = arg->v.string;
-  else
+  if (!mu_sieve_tag_lookup (mach, tags, "host", SVT_STRING, &host))
     host = "127.0.0.1";
   
-  if (mu_sieve_tag_lookup (tags, "port", &arg))
-    result = spamd_connect_tcp (mach, &stream, host, arg->v.number);
-  else if (mu_sieve_tag_lookup (tags, "socket", &arg))
-    result = spamd_connect_socket (mach, &stream, arg->v.string);
+  if (mu_sieve_tag_lookup (mach, tags, "port", SVT_NUMBER, &num))
+    result = spamd_connect_tcp (mach, &stream, host, num);
+  else if (mu_sieve_tag_lookup (mach, tags, "socket", SVT_STRING, &str))
+    result = spamd_connect_socket (mach, &stream, str);
   else
     result = spamd_connect_tcp (mach, &stream, host, DEFAULT_SPAMD_PORT);
   if (result) /* spamd_connect_ already reported error */
@@ -422,8 +421,8 @@ spamd_test (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   spamd_send_command (stream, "SYMBOLS SPAMC/1.2");
   
   spamd_send_command (stream, "Content-length: %lu", (u_long) size);
-  if (mu_sieve_tag_lookup (tags, "user", &arg))
-    spamd_send_command (stream, "User: %s", arg);
+  if (mu_sieve_tag_lookup (mach, tags, "user", SVT_STRING, &str))
+    spamd_send_command (stream, "User: %s", str);
   else
     {
       struct mu_auth_data *auth = mu_get_auth_by_uid (geteuid ());
@@ -465,14 +464,14 @@ spamd_test (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
 
   if (!result)
     {
-      if (mu_sieve_tag_lookup (tags, "over", &arg))
+      if (mu_sieve_tag_lookup (mach, tags, "over", SVT_STRING, &str))
 	{
-	  decode_float (&limit, arg->v.string, 3, NULL);
+	  decode_float (&limit, str, 3, NULL);
 	  result = score >= limit;
 	}
-      else if (mu_sieve_tag_lookup (tags, "under", &arg))
+      else if (mu_sieve_tag_lookup (mach, tags, "under", SVT_STRING, &str))
 	{
-	  decode_float (&limit, arg->v.string, 3, NULL);
+	  decode_float (&limit, str, 3, NULL);
 	  result = score <= limit;	  
 	}
     }

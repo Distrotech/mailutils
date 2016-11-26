@@ -539,12 +539,6 @@ mu_i_sv_valf (mu_stream_t str, mu_sieve_value_t *val)
       mu_stream_printf (str, "%s", val->v.string);
       break;
 	
-    case SVT_VALUE_LIST:
-      mu_stream_printf (str, "[");
-      mu_i_sv_argf (str, val->v.list);
-      mu_stream_printf (str, "]");
-      break;
-      
     case SVT_POINTER:
       mu_stream_printf (str, "%p", val->v.ptr);
       break;

@@ -79,32 +79,29 @@ sieve_action_fileinto (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
 {
   int rc;
   int mbflags = 0;
-  mu_sieve_value_t *opt;
-  mu_sieve_value_t *val = mu_sieve_value_get (args, 0);
-  if (!val)
-    {
-      mu_sieve_error (mach, _("cannot get filename!"));
-      mu_sieve_abort (mach);
-    }
+  char *filename;
+  char *perms;
 
-  if (mu_sieve_tag_lookup (tags, "permissions", &opt))
+  mu_sieve_value_get (mach, args, 0, SVT_STRING, &filename);
+
+  if (mu_sieve_tag_lookup (mach, tags, "permissions", SVT_STRING, &perms))
     {
       const char *p;
       
-      if (mu_parse_stream_perm_string (&mbflags, opt->v.string, &p))
+      if (mu_parse_stream_perm_string (&mbflags, perms, &p))
 	{
 	  /* Should not happen, but anyway... */
 	  mu_sieve_error (mach, _("invalid permissions (near %s)"), p);
-	  return 1;
+	  mu_sieve_abort (mach);
 	}
     }
   
   mu_sieve_log_action (mach, "FILEINTO",
-		       _("delivering into %s"), val->v.string);
+		       _("delivering into %s"), filename);
   if (mu_sieve_is_dry_run (mach))
     return 0;
 
-  rc = mu_message_save_to_mailbox (mach->msg, val->v.string, mbflags);
+  rc = mu_message_save_to_mailbox (mach->msg, filename, mbflags);
   if (rc)
     mu_sieve_error (mach, _("cannot save to mailbox: %s"),
 		    mu_strerror (rc));
@@ -293,18 +290,14 @@ sieve_action_reject (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   char *addrtext;
   mu_address_t from, to;
   mu_header_t hdr;
+  char *text;
   
-  mu_sieve_value_t *val = mu_sieve_value_get (args, 0);
-  if (!val)
-    {
-      mu_sieve_error (mach, _("reject: cannot get text!"));
-      mu_sieve_abort (mach);
-    }
+  mu_sieve_value_get (mach, args, 0, SVT_STRING, &text);
   mu_sieve_log_action (mach, "REJECT", NULL);  
   if (mu_sieve_is_dry_run (mach))
     return 0;
 
-  rc = build_mime (&mime, mach->msg, val->v.string);
+  rc = build_mime (&mime, mach->msg, text);
 
   mu_mime_get_message (mime, &newmsg);
   mu_message_unref (newmsg);
@@ -413,25 +406,21 @@ sieve_action_redirect (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   int rc;
   char *fromaddr, *p;
   mu_mailer_t mailer = mu_sieve_get_mailer (mach);
+  char *addrstr;
   
-  mu_sieve_value_t *val = mu_sieve_value_get (args, 0);
-  if (!val)
-    {
-      mu_sieve_error (mach, _("cannot get address!"));
-      mu_sieve_abort (mach);
-    }
+  mu_sieve_value_get (mach, args, 0, SVT_STRING, &addrstr);
 
-  rc = mu_address_create (&addr, val->v.string);
+  rc = mu_address_create (&addr, addrstr);
   if (rc)
     {
       mu_sieve_error (mach,
 		      _("%lu: parsing recipient address `%s' failed: %s"),
 		      (unsigned long) mu_sieve_get_message_num (mach),
-		      val->v.string, mu_strerror (rc));
+		      addrstr, mu_strerror (rc));
       return 1;
     }
   
-  mu_sieve_log_action (mach, "REDIRECT", _("to %s"), val->v.string);
+  mu_sieve_log_action (mach, "REDIRECT", _("to %s"), addrstr);
   if (mu_sieve_is_dry_run (mach))
     return 0;
 

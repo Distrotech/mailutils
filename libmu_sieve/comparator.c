@@ -288,8 +288,7 @@ mu_sieve_match_part_checker (mu_sieve_machine_t mach,
 
           matchtype = MU_SIEVE_MATCH_LAST; /* to not leave it undefined */
 	  compfun = comp_false;
-	  val = mu_sieve_value_get (args, 1);
-	  if (!val)
+	  if (mu_list_get (args, 1, (void**) &val))
 	    return 1; /* shouldn't happen */
 	  /* NOTE: Type of v is always SVT_STRING_LIST */
 	  mu_list_count (val->v.list, &count);

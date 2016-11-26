@@ -50,7 +50,8 @@
 static int
 timestamp_test (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
 {
-  mu_sieve_value_t *h, *v;
+  char const *hname;
+  char const *date;
   mu_header_t hdr;
   char *val;
   time_t now = time (NULL);
@@ -59,24 +60,14 @@ timestamp_test (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   
   /* Retrieve required arguments: */
   /* First argument: header name */
-  h = mu_sieve_value_get (args, 0);
-  if (!h)
-    {
-      mu_sieve_arg_error (mach, 1);
-      mu_sieve_abort (mach);
-    }
+  mu_sieve_value_get (mach, args, 0, SVT_STRING, &hname);
   /* Second argument: date displacement */
-  v = mu_sieve_value_get (args, 1);
-  if (!v)
-    {
-      mu_sieve_arg_error (mach, 2);
-      mu_sieve_abort (mach);
-    }
+  mu_sieve_value_get (mach, args, 1, SVT_STRING, &date);
 
-  if (mu_parse_date (v->v.string, &tlimit, &now))
+  if (mu_parse_date (date, &tlimit, &now))
     {
       mu_sieve_error (mach, _("cannot parse date specification (%s)"),
-		   v->v.string);
+		      date);
       mu_sieve_abort (mach);
     }
 
@@ -87,7 +78,7 @@ timestamp_test (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
       mu_sieve_abort (mach);
     }
   
-  if (mu_header_aget_value (hdr, h->v.string, &val))
+  if (mu_header_aget_value (hdr, hname, &val))
     return 0;
 
   if (mu_parse_date (val, &tval, &now))
@@ -102,7 +93,7 @@ timestamp_test (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
 
   rc = tval > tlimit;
     
-  if (mu_sieve_tag_lookup (tags, "before", NULL))
+  if (mu_sieve_tag_lookup (mach, tags, "before", SVT_VOID, NULL))
     rc = !rc;  
 
   return rc;

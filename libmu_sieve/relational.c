@@ -83,12 +83,12 @@ mu_sieve_str_to_relcmp (const char *str,
 mu_sieve_relcmp_t
 mu_sieve_get_relcmp (mu_sieve_machine_t mach, mu_list_t tags)
 {
-  mu_sieve_value_t *arg;
+  char *str;
   mu_sieve_relcmp_t test = NULL;
   
-  if (mu_sieve_tag_lookup (tags, "value", &arg) == 0)
+  if (mu_sieve_tag_lookup (mach, tags, "value", SVT_STRING, &str) == 0)
     return op_ne;
-  mu_sieve_str_to_relcmp (arg->v.string, &test, NULL);
+  mu_sieve_str_to_relcmp (str, &test, NULL);
   return test;
 }
 

@@ -80,9 +80,9 @@ moderator_filter_message (mu_sieve_machine_t mach, mu_list_t tags,
   int rc;
   mu_sieve_machine_t newmach;
   mu_attribute_t attr;
-  mu_sieve_value_t *arg;
+  char *arg;
   
-  if (mu_sieve_tag_lookup (tags, "source", &arg))
+  if (mu_sieve_tag_lookup (mach, tags, "source", SVT_STRING, &arg))
     {
       rc = mu_sieve_machine_inherit (mach, &newmach);
       if (rc)
@@ -97,11 +97,11 @@ moderator_filter_message (mu_sieve_machine_t mach, mu_list_t tags,
 	   ...
       */
       
-      rc = mu_sieve_compile (newmach, arg->v.string);
+      rc = mu_sieve_compile (newmach, arg);
       if (rc)
-	mu_sieve_error (mach, _("cannot compile source `%s'"), arg->v.string);
+	mu_sieve_error (mach, _("cannot compile source `%s'"), arg);
     }
-  else if (mu_sieve_tag_lookup (tags, "program", &arg))
+  else if (mu_sieve_tag_lookup (mach, tags, "program", SVT_STRING, &arg))
     {
       struct mu_locus locus;
       
@@ -114,7 +114,7 @@ moderator_filter_message (mu_sieve_machine_t mach, mu_list_t tags,
 	}
       mu_sieve_get_locus (mach, &locus);
       rc = mu_sieve_compile_buffer (newmach,
-				    arg->v.string, strlen (arg->v.string),
+				    arg, strlen (arg),
 				    locus.mu_file, locus.mu_line);
       if (rc)
 	mu_sieve_error (mach, _("cannot compile subprogram"));
@@ -303,7 +303,6 @@ moderator_action (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
     {
       mu_message_t request;
       char *from = NULL;
-      mu_sieve_value_t *arg;
       
       if ((rc = moderator_message_get_part (mach, msg, 3, &request)))
 	{
@@ -312,14 +311,13 @@ moderator_action (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
 	  mu_sieve_abort (mach);
 	}
 
-      if (mu_sieve_tag_lookup (tags, "address", &arg))
-	from = arg->v.string;
+      mu_sieve_tag_lookup (mach, tags, "address", SVT_STRING, &from);
       
       if (moderator_discard_message (mach, request, from))
 	discard = 0;
       else
 	{
-	  if (!mu_sieve_tag_lookup (tags, "keep", NULL))
+	  if (!mu_sieve_tag_lookup (mach, tags, "keep", SVT_VOID, NULL))
 	    {
 	      mu_attribute_t attr = 0;
 

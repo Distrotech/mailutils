@@ -156,7 +156,6 @@ mu_sieve_value_create (mu_sieve_data_type type, void *data)
       val->v.string = data;
       break;
       
-    case SVT_VALUE_LIST:
     case SVT_STRING_LIST:
       val->v.list = data;
       break;
@@ -178,11 +177,55 @@ mu_sieve_value_create (mu_sieve_data_type type, void *data)
 }
 
 mu_sieve_value_t *
-mu_sieve_value_get (mu_list_t vlist, size_t index)
+mu_sieve_value_get_untyped (mu_sieve_machine_t mach, mu_list_t vlist,
+			    size_t index)
 {
   mu_sieve_value_t *val = NULL;
-  mu_list_get (vlist, index, (void **)&val);
+  int rc = mu_list_get (vlist, index, (void **)&val);
+  if (rc)
+    {
+      mu_sieve_error (mach, _("can't get argument %zu: %s"),
+		      index, mu_strerror (rc));
+      mu_sieve_abort (mach);
+    }
   return val;
+}
+
+mu_sieve_value_t *
+mu_sieve_value_get_optional (mu_sieve_machine_t mach, mu_list_t vlist,
+			     size_t index)
+{
+  mu_sieve_value_t *val = NULL;
+  int rc = mu_list_get (vlist, index, (void **)&val);
+  if (rc == MU_ERR_NOENT)
+    return NULL;
+  else if (rc)
+    {
+      mu_sieve_error (mach, _("can't get argument %zu: %s"),
+		      index, mu_strerror (rc));
+      mu_sieve_abort (mach);
+    }
+  return val;
+}  
+
+int
+mu_sieve_value_get (mu_sieve_machine_t mach, mu_list_t vlist,
+		    size_t index,
+		    mu_sieve_data_type type, void *ret)
+{
+  mu_sieve_value_t *val = mu_sieve_value_get_untyped (mach, vlist, index);
+  if (val->type != type)
+    {
+      mu_sieve_error (mach,
+		    _("bad type for argument %zu: %s, instead of expected %s"),
+		      index,
+		      mu_sieve_type_str (val->type),
+		      mu_sieve_type_str (type));
+      mu_sieve_abort (mach);
+    }
+
+  *(union mu_sieve_value_storage *)ret = val->v;
+  return 0;
 }
 
 void
@@ -203,12 +246,6 @@ mu_sieve_error (mu_sieve_machine_t mach, const char *fmt, ...)
   mu_stream_vprintf (mach->errstream, fmt, ap);
   mu_stream_write (mach->errstream, "\n", 1, NULL);
   va_end (ap);
-}
-
-void
-mu_sieve_arg_error (mu_sieve_machine_t mach, int n)
-{
-  mu_sieve_error (mach, _("cannot retrieve argument %d"), n);
 }
 
 const char *
@@ -233,9 +270,6 @@ mu_sieve_type_str (mu_sieve_data_type type)
 
     case SVT_IDENT:
       return "ident";
-
-    case SVT_VALUE_LIST:
-      return "value-list";
 
     case SVT_POINTER:
       return "pointer";
@@ -367,18 +401,47 @@ tag_finder (void *item, void *data)
 }
 
 int
-mu_sieve_tag_lookup (mu_list_t taglist, char *name, mu_sieve_value_t **arg)
+mu_sieve_tag_lookup_untyped (mu_sieve_machine_t mach, mu_list_t taglist,
+			     char *name, mu_sieve_value_t **ret)
 {
   mu_sieve_runtime_tag_t t;
 
   t.tag = name;
   if (taglist && mu_list_foreach (taglist, tag_finder, &t))
     {
-      if (arg)
-	*arg = t.arg;
+      if (ret)
+	*ret = t.arg;
       return 1;
     }
   return 0;
+}
+
+int
+mu_sieve_tag_lookup (mu_sieve_machine_t mach, mu_list_t taglist,
+		     char *name, mu_sieve_data_type type,
+		     void *ret)
+{
+  mu_sieve_value_t *val;
+  int found = mu_sieve_tag_lookup_untyped (mach, taglist, name, &val);
+
+  if (found)
+    {
+      if (ret)
+	{
+	  if (val->type != type)
+	    {
+	      mu_sieve_error (mach,
+			      _("bad type for tag %s: %s, instead of expected %s"),
+			      name,
+			      mu_sieve_type_str (val->type),
+			      mu_sieve_type_str (type));
+	      mu_sieve_abort (mach);
+	    }
+	  *(union mu_sieve_value_storage *)ret = val->v;
+	}
+    }
+
+  return found;
 }
 
 int
@@ -386,7 +449,6 @@ mu_sieve_vlist_do (mu_sieve_value_t *val, mu_list_action_t ac, void *data)
 {
   switch (val->type)
     {
-    case SVT_VALUE_LIST:
     case SVT_STRING_LIST:
       return mu_list_foreach (val->v.list, ac, data);
     case SVT_STRING:

@@ -87,7 +87,6 @@ sieve_pipe (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags, int test)
   int retval = 0;
   int rc, result;
   mu_message_t msg;
-  mu_sieve_value_t *val;
   char *cmd;
   mu_stream_t pstr;
   mu_envelope_t env;
@@ -95,15 +94,7 @@ sieve_pipe (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags, int test)
   const char *error_arg = NULL;
   int pipe_mask = 0;
   
-  val = mu_sieve_value_get (args, 0);
-  if (!val)
-    {
-      mu_sieve_error (mach, "%lu: %s",
-		      (unsigned long) mu_sieve_get_message_num (mach),
-		      _("cannot get command!"));
-      mu_sieve_abort (mach);
-    }
-  cmd = val->v.string;
+  mu_sieve_value_get (mach, args, 0, SVT_STRING, &cmd);
 
   if (mu_sieve_is_dry_run (mach))
     return 0;
@@ -111,11 +102,11 @@ sieve_pipe (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags, int test)
   msg = mu_sieve_get_message (mach);
   mu_message_get_envelope (msg, &env);
 
-  if (mu_sieve_tag_lookup (tags, "envelope", NULL))
+  if (mu_sieve_tag_lookup (mach, tags, "envelope", SVT_VOID, NULL))
     pipe_mask |= PIPE_ENVELOPE;
-  if (mu_sieve_tag_lookup (tags, "header", NULL))
+  if (mu_sieve_tag_lookup (mach, tags, "header", SVT_VOID, NULL))
     pipe_mask |= PIPE_HEADERS;
-  if (mu_sieve_tag_lookup (tags, "body", NULL))
+  if (mu_sieve_tag_lookup (mach, tags, "body", SVT_VOID, NULL))
     pipe_mask |= PIPE_BODY;
   if (pipe_mask == 0)
     pipe_mask = PIPE_ALL;
@@ -193,6 +184,7 @@ sieve_pipe (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags, int test)
     {
       int code = 0;
       int status;
+      size_t n;
       
       rc = mu_stream_ioctl (pstr, MU_IOCTL_PROGSTREAM,
 			    MU_IOCTL_PROG_STATUS, &status);
@@ -202,8 +194,8 @@ sieve_pipe (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags, int test)
 	  mu_sieve_abort (mach);
 	}
 
-      if (mu_sieve_tag_lookup (tags, "exit", &val))
-	code = val->v.number;
+      if (mu_sieve_tag_lookup (mach, tags, "exit", SVT_NUMBER, &n))
+	code = n;
       if (result == 0)
 	retval = code == 0;
       else if (result == MU_ERR_PROCESS_EXITED)
@@ -211,8 +203,9 @@ sieve_pipe (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags, int test)
       else if (result == MU_ERR_PROCESS_SIGNALED)
 	{
 	  int signo = WTERMSIG (status);
-	  if (mu_sieve_tag_lookup (tags, "signal", &val))
-	    retval = signo == val->v.number;
+	  size_t n;
+	  if (mu_sieve_tag_lookup (mach, tags, "signal", SVT_NUMBER, &n))
+	    retval = signo == n;
 	  else
 	    {
 	      mu_stream_destroy (&pstr);

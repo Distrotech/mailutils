@@ -147,30 +147,17 @@ list_retrieve_header (void *item, void *data, int idx, char **pval)
 static int
 list_test (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
 {
-  mu_sieve_value_t *h, *v, *arg;
+  mu_sieve_value_t *h, *v;
   mu_sieve_comparator_t comp = mu_sieve_get_comparator (mach, tags);
   struct header_closure clos;
   int result;
 
   memset (&clos, 0, sizeof clos);
-  if (mu_sieve_tag_lookup (tags, "delim", &arg))
-    clos.delim = arg->v.string;
-  else
+  if (!mu_sieve_tag_lookup (mach, tags, "delim", SVT_STRING, &clos.delim))
     clos.delim = ",";
   
-  h = mu_sieve_value_get (args, 0);
-  if (!h)
-    {
-      mu_sieve_arg_error (mach, 1);
-      mu_sieve_abort (mach);
-    }
-  v = mu_sieve_value_get (args, 1);
-  if (!v)
-    {
-      mu_sieve_arg_error (mach, 2);
-      mu_sieve_abort (mach);
-    }
-
+  h = mu_sieve_value_get_untyped (mach, args, 0);
+  v = mu_sieve_value_get_untyped (mach, args, 1);
   mu_message_get_header (mu_sieve_get_message (mach), &clos.header);
   result = mu_sieve_vlist_compare (h, v, comp,
 				   mu_sieve_get_relcmp (mach, tags),

@@ -33,32 +33,14 @@
 int
 sieve_addheader (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
 {
-  mu_sieve_value_t *val;
   const char *field_name;
   const char *field_value;
   mu_message_t msg;
   mu_header_t hdr;
   int rc;
   
-  val = mu_sieve_value_get (args, 0);
-  if (!val)
-    {
-      mu_sieve_error (mach, "%lu: %s",
-		      (unsigned long) mu_sieve_get_message_num (mach),
-		      _("cannot get field name"));
-      mu_sieve_abort (mach);
-    }
-  field_name = val->v.string;
-
-  val = mu_sieve_value_get (args, 1);
-  if (!val)
-    {
-      mu_sieve_error (mach, "%lu: %s",
-		      (unsigned long) mu_sieve_get_message_num (mach),
-		      _("cannot get field value"));
-      mu_sieve_abort (mach);
-    }
-  field_value = val->v.string;
+  mu_sieve_value_get (mach, args, 0, SVT_STRING, &field_name);
+  mu_sieve_value_get (mach, args, 1, SVT_STRING, &field_value);
 
   mu_sieve_log_action (mach, "ADDHEADER", "%s: %s", field_name, field_value);
 
@@ -76,7 +58,7 @@ sieve_addheader (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
       mu_sieve_abort (mach);
     }
 
-  rc = (mu_sieve_tag_lookup (tags, "last", NULL) ?
+  rc = (mu_sieve_tag_lookup (mach, tags, "last", SVT_VOID, NULL) ?
 	mu_header_append : mu_header_prepend) (hdr, field_name, field_value);
   if (rc)
     {
@@ -105,19 +87,10 @@ sieve_deleteheader (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   int rc;
   mu_sieve_comparator_t comp;
   mu_iterator_t itr;
-  unsigned long i, idx = 0;
+  size_t i, idx = 0;
   
-  val = mu_sieve_value_get (args, 0);
-  if (!val)
-    {
-      mu_sieve_error (mach, "%lu: %s",
-		      (unsigned long) mu_sieve_get_message_num (mach),
-		      _("cannot get field name"));
-      mu_sieve_abort (mach);
-    }
-  field_name = val->v.string;
-
-  val = mu_sieve_value_get (args, 1);
+  mu_sieve_value_get (mach, args, 0, SVT_STRING, &field_name);
+  val = mu_sieve_value_get_optional (mach, args, 1);
   if (!val)
     {
       field_pattern = NULL;
@@ -169,15 +142,14 @@ sieve_deleteheader (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
     }
 
   mu_header_get_iterator (hdr, &itr);
-  if (mu_sieve_tag_lookup (tags, "last", NULL))
+  if (mu_sieve_tag_lookup (mach, tags, "last", SVT_VOID, NULL))
     {
       int backwards = 1;
       mu_iterator_ctl (itr, mu_itrctl_set_direction, &backwards);
     }
   comp = mu_sieve_get_comparator (mach, tags);
 
-  if (mu_sieve_tag_lookup (tags, "index", &val))
-    idx = val->v.number;
+  mu_sieve_tag_lookup (mach, tags, "index", SVT_NUMBER, &idx);
   
   for (i = 0, mu_iterator_first (itr); !mu_iterator_is_done (itr);
        mu_iterator_next (itr))

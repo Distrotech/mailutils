@@ -85,9 +85,6 @@ A sieve tag. See @code{mu_sieve_runtime_tag_t} below.
 @item SVT_IDENT
 A character string representing an identifier. 
 
-@item SVT_VALUE_LIST
-A @code{mu_list_t}. Each item in this list is of @code{mu_sieve_value_t} type.
-
 @item SVT_POINTER
 An opaque pointer.
 @end table
@@ -128,7 +125,6 @@ The numeric value is kept in @code{number} member.
 The string is kept in @code{string} member.
 
 @item SVT_STRING_LIST
-@itemx SVT_VALUE_LIST
 The list itself is pointed to by @code{list} member
 
 @item SVT_TAG

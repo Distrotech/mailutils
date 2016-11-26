@@ -57,24 +57,24 @@ typedef enum
   SVT_STRING_LIST,
   SVT_TAG,
   SVT_IDENT,
-  SVT_VALUE_LIST,
   SVT_POINTER
 }
 mu_sieve_data_type;
 
 typedef struct mu_sieve_runtime_tag mu_sieve_runtime_tag_t;
 
+union mu_sieve_value_storage
+{
+  char *string;
+  size_t number;
+  mu_list_t list;
+  void *ptr;
+};
+
 typedef struct
 {
   mu_sieve_data_type type;
-  union
-  {
-    char *string;
-    size_t number;
-    mu_list_t list;
-    mu_sieve_runtime_tag_t *tag;
-    void *ptr;
-  } v;
+  union mu_sieve_value_storage v;
 } mu_sieve_value_t;
 
 typedef struct
@@ -184,8 +184,12 @@ mu_sieve_relcmp_t mu_sieve_get_relcmp (mu_sieve_machine_t mach,
 
 void mu_sieve_require (mu_sieve_machine_t mach, mu_list_t slist);
 
-int mu_sieve_tag_lookup (mu_list_t taglist, char *name,
-			 mu_sieve_value_t ** arg);
+int mu_sieve_tag_lookup (mu_sieve_machine_t mach,
+			 mu_list_t taglist, char *name,
+			 mu_sieve_data_type type, void *ret);
+int mu_sieve_tag_lookup_untyped (mu_sieve_machine_t mach, mu_list_t taglist,
+				 char *name, mu_sieve_value_t **ret);
+  
 int mu_sieve_load_ext (mu_sieve_machine_t mach, const char *name);
 int mu_sieve_match_part_checker (mu_sieve_machine_t mach,
 				 const char *name, mu_list_t tags,
@@ -193,8 +197,16 @@ int mu_sieve_match_part_checker (mu_sieve_machine_t mach,
 int mu_sieve_match_part_checker (mu_sieve_machine_t mach,
 				 const char *name, mu_list_t tags,
 				 mu_list_t args);
-/* Operations in value lists */
-mu_sieve_value_t *mu_sieve_value_get (mu_list_t vlist, size_t index);
+/* Operations on value lists */
+mu_sieve_value_t *mu_sieve_value_get_optional (mu_sieve_machine_t mach,
+					       mu_list_t vlist,
+					       size_t index);
+mu_sieve_value_t *mu_sieve_value_get_untyped (mu_sieve_machine_t mach,
+					      mu_list_t vlist,
+					      size_t index);
+int mu_sieve_value_get (mu_sieve_machine_t mach, mu_list_t vlist,
+			size_t index,
+			mu_sieve_data_type type, void *ret);
 int mu_sieve_vlist_do (mu_sieve_value_t *val, mu_list_action_t ac,
 		       void *data);
 int mu_sieve_vlist_compare (mu_sieve_value_t *a, mu_sieve_value_t *b,
@@ -251,7 +263,6 @@ void mu_sieve_log_action (mu_sieve_machine_t mach, const char *action,
 			  const char *fmt, ...)
 			  MU_PRINTFLIKE(3,4);
 void mu_sieve_abort (mu_sieve_machine_t mach);
-void mu_sieve_arg_error (mu_sieve_machine_t mach, int n);
 
 int mu_sieve_is_dry_run (mu_sieve_machine_t mach);
 const char *mu_sieve_type_str (mu_sieve_data_type type);
