@@ -345,6 +345,9 @@ int mu_list_rfold (mu_list_t _list, mu_list_folder_t _fold, void *_data,
      first of them is less than the second, and +1 otherwise.
   */
 void mu_list_sort (mu_list_t _list, mu_list_comparator_t _comp);
+void mu_list_sort_r (mu_list_t _list,
+		     int (*_comp) (const void *, const void *, void *),
+		     void *_data);
   
 #ifdef __cplusplus
 }

@@ -37,7 +37,8 @@ _list_append_entry (struct _mu_list *list, struct list_data *ent)
 }
 
 static void
-_list_qsort (mu_list_t list, mu_list_comparator_t cmp)
+_list_qsort (mu_list_t list, int cmp (const void *, const void *, void *),
+	     void *data)
 {
   struct list_data *cur, *middle;
   struct _mu_list high_list, low_list;
@@ -47,7 +48,7 @@ _list_qsort (mu_list_t list, mu_list_comparator_t cmp)
     return;
   if (list->count == 2)
     {
-      if (cmp (list->head.prev->item, list->head.next->item) < 0)
+      if (cmp (list->head.prev->item, list->head.next->item, data) < 0)
 	{
 	  cur = list->head.prev;
 	  list->head.prev = list->head.next;
@@ -67,7 +68,7 @@ _list_qsort (mu_list_t list, mu_list_comparator_t cmp)
     cur = cur->next;
     if (cur == &list->head)
       return;
-  } while ((rc = cmp (list->head.next->item, cur->item)) == 0);
+  } while ((rc = cmp (list->head.next->item, cur->item, data)) == 0);
 
   /* Select the lower of the two as the middle value */
   middle = (rc > 0) ? cur : list->head.next;
@@ -81,7 +82,7 @@ _list_qsort (mu_list_t list, mu_list_comparator_t cmp)
       struct list_data *next = cur->next;
       cur->next = NULL;
 
-      if (cmp (middle->item, cur->item) < 0)
+      if (cmp (middle->item, cur->item, data) < 0)
 	_list_append_entry (&high_list, cur);
       else
 	_list_append_entry (&low_list, cur);
@@ -89,8 +90,8 @@ _list_qsort (mu_list_t list, mu_list_comparator_t cmp)
     }
 
   /* Sort both sublists recursively */
-  _list_qsort (&low_list, cmp);
-  _list_qsort (&high_list, cmp);
+  _list_qsort (&low_list, cmp, data);
+  _list_qsort (&high_list, cmp, data);
 
   /* Join both lists in order */
   if (low_list.head.prev)
@@ -114,8 +115,24 @@ _list_qsort (mu_list_t list, mu_list_comparator_t cmp)
 }
 
 void
+mu_list_sort_r (mu_list_t list,
+		int (*comp) (const void *, const void *, void *), void *data)
+{
+  if (list)
+    _list_qsort (list, comp, data);
+}
+
+static int
+callcomp (const void *a, const void *b, void *data)
+{
+  mu_list_comparator_t comp = data;
+  return comp (a, b);
+}
+
+void
 mu_list_sort (mu_list_t list, mu_list_comparator_t comp)
 {
   if (list)
-    _list_qsort (list, comp ? comp : list->comp);
+    _list_qsort (list, callcomp, comp ? comp : list->comp);
 }
+
