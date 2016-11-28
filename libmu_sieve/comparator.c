@@ -127,14 +127,14 @@ _find_comparator (void *item, void *data)
 }
 
 mu_sieve_comparator_t
-mu_sieve_get_comparator (mu_sieve_machine_t mach, mu_list_t tags)
+mu_sieve_get_comparator (mu_sieve_machine_t mach)
 {
   mu_sieve_comparator_t comp = NULL;
 
-  mu_list_foreach (tags, _find_comparator, &comp);
+  mu_list_foreach (mach->tag_list, _find_comparator, &comp);
   return comp ? comp : mu_sieve_comparator_lookup (mach,
-						"i;ascii-casemap",
-						MU_SIEVE_MATCH_IS);
+						   "i;ascii-casemap",
+						   MU_SIEVE_MATCH_IS);
 }
 
 /* Compile time support */

@@ -78,7 +78,7 @@ _count_items (void *item, void *data)
 
 /* Handler for the numaddr test */
 static int
-numaddr_test (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
+numaddr_test (mu_sieve_machine_t mach)
 {
   mu_sieve_value_t *h;
   struct val_ctr vc;
@@ -86,9 +86,9 @@ numaddr_test (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   
   /* Retrieve required arguments: */
   /* First argument: list of header names */
-  h = mu_sieve_value_get_untyped (mach, args, 0);
+  h = mu_sieve_get_arg_untyped (mach, 0);
   /* Second argument: Limit on the number of addresses */
-  mu_sieve_value_get (mach, args, 1, SVT_NUMBER, &vc.limit);
+  mu_sieve_get_arg (mach, 1, SVT_NUMBER, &vc.limit);
 
   /* Fill in the val_ctr structure */
   mu_message_get_header (mu_sieve_get_message (mach), &vc.hdr);
@@ -99,7 +99,7 @@ numaddr_test (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
 
   /* Here rc >= 1 iff the counted number of addresses is greater or equal
      to vc.limit. If `:under' tag was given we reverse the return value */
-  if (mu_sieve_tag_lookup (mach, tags, "under", SVT_VOID, NULL))
+  if (mu_sieve_get_tag (mach, "under", SVT_VOID, NULL))
     rc = !rc;
 
   return rc;

@@ -31,7 +31,7 @@
 /* Syntax: addheader [:last] <field-name: string> <value: string>
  */
 int
-sieve_addheader (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
+sieve_addheader (mu_sieve_machine_t mach)
 {
   const char *field_name;
   const char *field_value;
@@ -39,8 +39,8 @@ sieve_addheader (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   mu_header_t hdr;
   int rc;
   
-  mu_sieve_value_get (mach, args, 0, SVT_STRING, &field_name);
-  mu_sieve_value_get (mach, args, 1, SVT_STRING, &field_value);
+  mu_sieve_get_arg (mach, 0, SVT_STRING, &field_name);
+  mu_sieve_get_arg (mach, 1, SVT_STRING, &field_value);
 
   mu_sieve_log_action (mach, "ADDHEADER", "%s: %s", field_name, field_value);
 
@@ -58,7 +58,7 @@ sieve_addheader (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
       mu_sieve_abort (mach);
     }
 
-  rc = (mu_sieve_tag_lookup (mach, tags, "last", SVT_VOID, NULL) ?
+  rc = (mu_sieve_get_tag (mach, "last", SVT_VOID, NULL) ?
 	mu_header_append : mu_header_prepend) (hdr, field_name, field_value);
   if (rc)
     {
@@ -77,7 +77,7 @@ sieve_addheader (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
                         [<value-patterns: string-list>]
  */
 int
-sieve_deleteheader (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
+sieve_deleteheader (mu_sieve_machine_t mach)
 {
   mu_sieve_value_t *val;
   const char *field_name;
@@ -89,8 +89,8 @@ sieve_deleteheader (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   mu_iterator_t itr;
   size_t i, idx = 0;
   
-  mu_sieve_value_get (mach, args, 0, SVT_STRING, &field_name);
-  val = mu_sieve_value_get_optional (mach, args, 1);
+  mu_sieve_get_arg (mach, 0, SVT_STRING, &field_name);
+  val = mu_sieve_get_arg_optional (mach, 1);
   if (!val)
     {
       field_pattern = NULL;
@@ -142,14 +142,14 @@ sieve_deleteheader (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
     }
 
   mu_header_get_iterator (hdr, &itr);
-  if (mu_sieve_tag_lookup (mach, tags, "last", SVT_VOID, NULL))
+  if (mu_sieve_get_tag (mach, "last", SVT_VOID, NULL))
     {
       int backwards = 1;
       mu_iterator_ctl (itr, mu_itrctl_set_direction, &backwards);
     }
-  comp = mu_sieve_get_comparator (mach, tags);
+  comp = mu_sieve_get_comparator (mach);
 
-  mu_sieve_tag_lookup (mach, tags, "index", SVT_NUMBER, &idx);
+  mu_sieve_get_tag (mach, "index", SVT_NUMBER, &idx);
   
   for (i = 0, mu_iterator_first (itr); !mu_iterator_is_done (itr);
        mu_iterator_next (itr))

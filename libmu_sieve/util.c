@@ -177,11 +177,10 @@ mu_sieve_value_create (mu_sieve_data_type type, void *data)
 }
 
 mu_sieve_value_t *
-mu_sieve_value_get_untyped (mu_sieve_machine_t mach, mu_list_t vlist,
-			    size_t index)
+mu_sieve_get_arg_untyped (mu_sieve_machine_t mach, size_t index)
 {
   mu_sieve_value_t *val = NULL;
-  int rc = mu_list_get (vlist, index, (void **)&val);
+  int rc = mu_list_get (mach->arg_list, index, (void **)&val);
   if (rc)
     {
       mu_sieve_error (mach, _("can't get argument %zu: %s"),
@@ -192,11 +191,10 @@ mu_sieve_value_get_untyped (mu_sieve_machine_t mach, mu_list_t vlist,
 }
 
 mu_sieve_value_t *
-mu_sieve_value_get_optional (mu_sieve_machine_t mach, mu_list_t vlist,
-			     size_t index)
+mu_sieve_get_arg_optional (mu_sieve_machine_t mach, size_t index)
 {
   mu_sieve_value_t *val = NULL;
-  int rc = mu_list_get (vlist, index, (void **)&val);
+  int rc = mu_list_get (mach->arg_list, index, (void **)&val);
   if (rc == MU_ERR_NOENT)
     return NULL;
   else if (rc)
@@ -209,11 +207,10 @@ mu_sieve_value_get_optional (mu_sieve_machine_t mach, mu_list_t vlist,
 }  
 
 int
-mu_sieve_value_get (mu_sieve_machine_t mach, mu_list_t vlist,
-		    size_t index,
-		    mu_sieve_data_type type, void *ret)
+mu_sieve_get_arg (mu_sieve_machine_t mach, size_t index,
+		  mu_sieve_data_type type, void *ret)
 {
-  mu_sieve_value_t *val = mu_sieve_value_get_untyped (mach, vlist, index);
+  mu_sieve_value_t *val = mu_sieve_get_arg_untyped (mach, index);
   if (val->type != type)
     {
       mu_sieve_error (mach,
@@ -325,8 +322,7 @@ mu_i_sv_debug (mu_sieve_machine_t mach, size_t pc, const char *fmt, ...)
 void
 mu_i_sv_debug_command (mu_sieve_machine_t mach,
 		       size_t pc,
-		       char const *what,
-		       mu_list_t taglist, mu_list_t arglist)
+		       char const *what)
 {
   if (mach->state_flags & MU_SV_SAVED_DBG_STATE)
     {
@@ -344,14 +340,13 @@ mu_i_sv_debug_command (mu_sieve_machine_t mach,
     }
   mu_stream_printf (mach->dbgstream, "%4zu: %s: %s",
 		    pc, what, mach->identifier);  
-  mu_i_sv_tagf (mach->dbgstream, taglist);
-  mu_i_sv_argf (mach->dbgstream, arglist);
+  mu_i_sv_tagf (mach->dbgstream, mach->tag_list);
+  mu_i_sv_argf (mach->dbgstream, mach->arg_list);
   mu_stream_write (mach->dbgstream, "\n", 1, NULL);
 }
 
 void
-mu_i_sv_trace (mu_sieve_machine_t mach, const char *what,
-	       mu_list_t taglist, mu_list_t arglist)
+mu_i_sv_trace (mu_sieve_machine_t mach, const char *what)
 {
   if (!mu_debug_level_p (mu_sieve_debug_handle, MU_DEBUG_TRACE4))
     return;
@@ -365,8 +360,8 @@ mu_i_sv_trace (mu_sieve_machine_t mach, const char *what,
 		      mach->locus.mu_line);
   mu_stream_printf (mach->errstream, "%zu: %s %s", mach->msgno, what,
 		    mach->identifier);
-  mu_i_sv_tagf (mach->errstream, taglist);
-  mu_i_sv_argf (mach->errstream, arglist);
+  mu_i_sv_tagf (mach->errstream, mach->tag_list);
+  mu_i_sv_argf (mach->errstream, mach->arg_list);
   mu_stream_printf (mach->errstream, "\n");
 }
 
@@ -401,13 +396,13 @@ tag_finder (void *item, void *data)
 }
 
 int
-mu_sieve_tag_lookup_untyped (mu_sieve_machine_t mach, mu_list_t taglist,
-			     char *name, mu_sieve_value_t **ret)
+mu_sieve_get_tag_untyped (mu_sieve_machine_t mach, 
+			  char *name, mu_sieve_value_t **ret)
 {
   mu_sieve_runtime_tag_t t;
 
   t.tag = name;
-  if (taglist && mu_list_foreach (taglist, tag_finder, &t))
+  if (mach->tag_list && mu_list_foreach (mach->tag_list, tag_finder, &t))
     {
       if (ret)
 	*ret = t.arg;
@@ -417,12 +412,12 @@ mu_sieve_tag_lookup_untyped (mu_sieve_machine_t mach, mu_list_t taglist,
 }
 
 int
-mu_sieve_tag_lookup (mu_sieve_machine_t mach, mu_list_t taglist,
-		     char *name, mu_sieve_data_type type,
-		     void *ret)
+mu_sieve_get_tag (mu_sieve_machine_t mach, 
+		  char *name, mu_sieve_data_type type,
+		  void *ret)
 {
   mu_sieve_value_t *val;
-  int found = mu_sieve_tag_lookup_untyped (mach, taglist, name, &val);
+  int found = mu_sieve_get_tag_untyped (mach, name, &val);
 
   if (found)
     {

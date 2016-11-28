@@ -30,7 +30,7 @@
 #define INSTR_DISASS(m) ((m)->state == mu_sieve_state_disass)
 #define INSTR_DEBUG(m) \
   (INSTR_DISASS(m) || mu_debug_level_p (mu_sieve_debug_handle, MU_DEBUG_TRACE9)) 
-
+
 void
 _mu_i_sv_instr_source (mu_sieve_machine_t mach)
 {
@@ -59,39 +59,38 @@ _mu_i_sv_instr_line (mu_sieve_machine_t mach)
 static int
 instr_run (mu_sieve_machine_t mach, char const *what)
 {
-  mu_sieve_handler_t han = SIEVE_ARG (mach, 0, handler);
-  mu_list_t arg_list = SIEVE_ARG (mach, 1, list);
-  mu_list_t tag_list = SIEVE_ARG (mach, 2, list);
   int rc = 0;
+  mu_sieve_handler_t han = SIEVE_ARG (mach, 0, handler);
+  mach->arg_list = SIEVE_ARG (mach, 1, list);
+  mach->tag_list = SIEVE_ARG (mach, 2, list);
+  mach->identifier = SIEVE_ARG (mach, 3, string);
   
-  SIEVE_ADJUST(mach, 4);
+  SIEVE_ADJUST (mach, 4);
 
   if (INSTR_DEBUG (mach))
-    mu_i_sv_debug_command (mach, mach->pc - 1,
-			   what, tag_list, arg_list);
+    mu_i_sv_debug_command (mach, mach->pc - 1, what);
   else
-    mu_i_sv_trace (mach, what, tag_list, arg_list);
+    mu_i_sv_trace (mach, what);
   
-  if (!INSTR_DISASS(mach))
-    rc = han (mach, arg_list, tag_list);
+  if (!INSTR_DISASS (mach))
+    rc = han (mach);
+  mach->arg_list = NULL;
+  mach->tag_list = NULL;
+  mach->identifier = NULL;
   return rc;
 }
 
 void
 _mu_i_sv_instr_action (mu_sieve_machine_t mach)
 {
-  mach->identifier = SIEVE_ARG (mach, 3, string);
   mach->action_count++;
   instr_run (mach, "ACTION");
-  mach->identifier = NULL;
 }
 
 void
 _mu_i_sv_instr_test (mu_sieve_machine_t mach)
 {
-  mach->identifier = SIEVE_ARG (mach, 3, string);
   mach->reg = instr_run (mach, "TEST");
-  mach->identifier = NULL;
 }
 
 void

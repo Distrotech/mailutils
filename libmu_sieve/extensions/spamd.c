@@ -353,7 +353,7 @@ get_real_message_size (mu_message_t msg, size_t *psize)
 */
 
 static int
-spamd_test (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
+spamd_test (mu_sieve_machine_t mach)
 {
   char *buffer = NULL;
   size_t size;
@@ -381,12 +381,12 @@ spamd_test (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
       mu_sieve_abort (mach);
     }
   
-  if (!mu_sieve_tag_lookup (mach, tags, "host", SVT_STRING, &host))
+  if (!mu_sieve_get_tag (mach, "host", SVT_STRING, &host))
     host = "127.0.0.1";
   
-  if (mu_sieve_tag_lookup (mach, tags, "port", SVT_NUMBER, &num))
+  if (mu_sieve_get_tag (mach, "port", SVT_NUMBER, &num))
     result = spamd_connect_tcp (mach, &stream, host, num);
-  else if (mu_sieve_tag_lookup (mach, tags, "socket", SVT_STRING, &str))
+  else if (mu_sieve_get_tag (mach, "socket", SVT_STRING, &str))
     result = spamd_connect_socket (mach, &stream, str);
   else
     result = spamd_connect_tcp (mach, &stream, host, DEFAULT_SPAMD_PORT);
@@ -421,7 +421,7 @@ spamd_test (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   spamd_send_command (stream, "SYMBOLS SPAMC/1.2");
   
   spamd_send_command (stream, "Content-length: %lu", (u_long) size);
-  if (mu_sieve_tag_lookup (mach, tags, "user", SVT_STRING, &str))
+  if (mu_sieve_get_tag (mach, "user", SVT_STRING, &str))
     spamd_send_command (stream, "User: %s", str);
   else
     {
@@ -464,12 +464,12 @@ spamd_test (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
 
   if (!result)
     {
-      if (mu_sieve_tag_lookup (mach, tags, "over", SVT_STRING, &str))
+      if (mu_sieve_get_tag (mach, "over", SVT_STRING, &str))
 	{
 	  decode_float (&limit, str, 3, NULL);
 	  result = score >= limit;
 	}
-      else if (mu_sieve_tag_lookup (mach, tags, "under", SVT_STRING, &str))
+      else if (mu_sieve_get_tag (mach, "under", SVT_STRING, &str))
 	{
 	  decode_float (&limit, str, 3, NULL);
 	  result = score <= limit;	  

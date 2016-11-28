@@ -47,7 +47,7 @@ sieve_mark_deleted (mu_message_t msg, int deleted)
 
 
 static int
-sieve_action_stop (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
+sieve_action_stop (mu_sieve_machine_t mach)
 {
   mu_sieve_log_action (mach, "STOP", NULL);
   mach->pc = 0;
@@ -55,7 +55,7 @@ sieve_action_stop (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
 }
 
 static int
-sieve_action_keep (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
+sieve_action_keep (mu_sieve_machine_t mach)
 {
   mu_sieve_log_action (mach, "KEEP", NULL);
   if (mu_sieve_is_dry_run (mach))
@@ -65,7 +65,7 @@ sieve_action_keep (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
 }
 
 static int
-sieve_action_discard (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
+sieve_action_discard (mu_sieve_machine_t mach)
 {
   mu_sieve_log_action (mach, "DISCARD", _("marking as deleted"));
   if (mu_sieve_is_dry_run (mach))
@@ -75,16 +75,16 @@ sieve_action_discard (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
 }
 
 static int
-sieve_action_fileinto (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
+sieve_action_fileinto (mu_sieve_machine_t mach)
 {
   int rc;
   int mbflags = 0;
   char *filename;
   char *perms;
 
-  mu_sieve_value_get (mach, args, 0, SVT_STRING, &filename);
+  mu_sieve_get_arg (mach, 0, SVT_STRING, &filename);
 
-  if (mu_sieve_tag_lookup (mach, tags, "permissions", SVT_STRING, &perms))
+  if (mu_sieve_get_tag (mach, "permissions", SVT_STRING, &perms))
     {
       const char *p;
       
@@ -281,7 +281,7 @@ build_mime (mu_mime_t *pmime, mu_message_t msg, const char *text)
 }
 
 static int
-sieve_action_reject (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
+sieve_action_reject (mu_sieve_machine_t mach)
 {
   mu_mime_t mime = NULL;
   mu_mailer_t mailer = mu_sieve_get_mailer (mach);
@@ -292,7 +292,7 @@ sieve_action_reject (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   mu_header_t hdr;
   char *text;
   
-  mu_sieve_value_get (mach, args, 0, SVT_STRING, &text);
+  mu_sieve_get_arg (mach, 0, SVT_STRING, &text);
   mu_sieve_log_action (mach, "REJECT", NULL);  
   if (mu_sieve_is_dry_run (mach))
     return 0;
@@ -398,7 +398,7 @@ check_redirect_loop (mu_message_t msg)
 }
 
 static int
-sieve_action_redirect (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
+sieve_action_redirect (mu_sieve_machine_t mach)
 {
   mu_message_t msg, newmsg = NULL;
   mu_address_t addr = NULL, from = NULL;
@@ -408,7 +408,7 @@ sieve_action_redirect (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   mu_mailer_t mailer = mu_sieve_get_mailer (mach);
   char *addrstr;
   
-  mu_sieve_value_get (mach, args, 0, SVT_STRING, &addrstr);
+  mu_sieve_get_arg (mach, 0, SVT_STRING, &addrstr);
 
   rc = mu_address_create (&addr, addrstr);
   if (rc)

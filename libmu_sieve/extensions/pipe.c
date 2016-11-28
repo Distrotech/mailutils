@@ -82,7 +82,7 @@
 #define PIPE_ALL (PIPE_ENVELOPE | PIPE_HEADERS | PIPE_BODY)
 
 int
-sieve_pipe (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags, int test)
+sieve_pipe (mu_sieve_machine_t mach, int test)
 {
   int retval = 0;
   int rc, result;
@@ -94,7 +94,7 @@ sieve_pipe (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags, int test)
   const char *error_arg = NULL;
   int pipe_mask = 0;
   
-  mu_sieve_value_get (mach, args, 0, SVT_STRING, &cmd);
+  mu_sieve_get_arg (mach, 0, SVT_STRING, &cmd);
 
   if (mu_sieve_is_dry_run (mach))
     return 0;
@@ -102,11 +102,11 @@ sieve_pipe (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags, int test)
   msg = mu_sieve_get_message (mach);
   mu_message_get_envelope (msg, &env);
 
-  if (mu_sieve_tag_lookup (mach, tags, "envelope", SVT_VOID, NULL))
+  if (mu_sieve_get_tag (mach, "envelope", SVT_VOID, NULL))
     pipe_mask |= PIPE_ENVELOPE;
-  if (mu_sieve_tag_lookup (mach, tags, "header", SVT_VOID, NULL))
+  if (mu_sieve_get_tag (mach, "header", SVT_VOID, NULL))
     pipe_mask |= PIPE_HEADERS;
-  if (mu_sieve_tag_lookup (mach, tags, "body", SVT_VOID, NULL))
+  if (mu_sieve_get_tag (mach, "body", SVT_VOID, NULL))
     pipe_mask |= PIPE_BODY;
   if (pipe_mask == 0)
     pipe_mask = PIPE_ALL;
@@ -194,7 +194,7 @@ sieve_pipe (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags, int test)
 	  mu_sieve_abort (mach);
 	}
 
-      if (mu_sieve_tag_lookup (mach, tags, "exit", SVT_NUMBER, &n))
+      if (mu_sieve_get_tag (mach, "exit", SVT_NUMBER, &n))
 	code = n;
       if (result == 0)
 	retval = code == 0;
@@ -204,7 +204,7 @@ sieve_pipe (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags, int test)
 	{
 	  int signo = WTERMSIG (status);
 	  size_t n;
-	  if (mu_sieve_tag_lookup (mach, tags, "signal", SVT_NUMBER, &n))
+	  if (mu_sieve_get_tag (mach, "signal", SVT_NUMBER, &n))
 	    retval = signo == n;
 	  else
 	    {
@@ -228,16 +228,16 @@ sieve_pipe (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags, int test)
 }
 
 int
-sieve_action_pipe (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
+sieve_action_pipe (mu_sieve_machine_t mach)
 {
   mu_sieve_log_action (mach, "PIPE", NULL);
-  return sieve_pipe (mach, args, tags, 0);
+  return sieve_pipe (mach, 0);
 }
 
 int
-sieve_test_pipe (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
+sieve_test_pipe (mu_sieve_machine_t mach)
 {
-  return sieve_pipe (mach, args, tags, 1);
+  return sieve_pipe (mach, 1);
 }
 
 

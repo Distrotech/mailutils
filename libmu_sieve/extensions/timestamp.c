@@ -48,7 +48,7 @@
 
 /* Handler for the timestamp test */
 static int
-timestamp_test (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
+timestamp_test (mu_sieve_machine_t mach)
 {
   char const *hname;
   char const *date;
@@ -60,9 +60,9 @@ timestamp_test (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   
   /* Retrieve required arguments: */
   /* First argument: header name */
-  mu_sieve_value_get (mach, args, 0, SVT_STRING, &hname);
+  mu_sieve_get_arg (mach, 0, SVT_STRING, &hname);
   /* Second argument: date displacement */
-  mu_sieve_value_get (mach, args, 1, SVT_STRING, &date);
+  mu_sieve_get_arg (mach, 1, SVT_STRING, &date);
 
   if (mu_parse_date (date, &tlimit, &now))
     {
@@ -93,7 +93,7 @@ timestamp_test (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
 
   rc = tval > tlimit;
     
-  if (mu_sieve_tag_lookup (mach, tags, "before", SVT_VOID, NULL))
+  if (mu_sieve_get_tag (mach, "before", SVT_VOID, NULL))
     rc = !rc;  
 
   return rc;

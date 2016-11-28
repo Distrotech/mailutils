@@ -83,9 +83,13 @@ struct mu_sieve_machine
   long reg;                  /* Numeric register */
   mu_list_t stack;           /* Runtime stack */
 
+  /* Call environment */
+  const char *identifier;    /* Name of action or test being executed */
+  mu_list_t arg_list;        /* Positional arguments */
+  mu_list_t tag_list;        /* Tagged arguments */
+  
   int dry_run;               /* Dry-run mode */
   jmp_buf errbuf;            /* Target location for non-local exits */
-  const char *identifier;    /* Name of action or test being executed */
   
   mu_mailbox_t mailbox;      /* Mailbox to operate upon */
   size_t    msgno;           /* Current message number */
@@ -195,12 +199,9 @@ void mu_i_sv_error (mu_sieve_machine_t mach);
 
 void mu_i_sv_debug (mu_sieve_machine_t mach, size_t pc, const char *fmt, ...)
   MU_PRINTFLIKE(3,4);
-void mu_i_sv_debug_command (mu_sieve_machine_t mach,
-			    size_t pc,
-			    char const *what,
-			    mu_list_t taglist, mu_list_t arglist);
-void mu_i_sv_trace (mu_sieve_machine_t mach, const char *what,
-		    mu_list_t taglist, mu_list_t arglist);
+void mu_i_sv_debug_command (mu_sieve_machine_t mach, size_t pc,
+			    char const *what);
+void mu_i_sv_trace (mu_sieve_machine_t mach, const char *what);
 
 void mu_i_sv_argf (mu_stream_t str, mu_list_t list);
 void mu_i_sv_valf (mu_stream_t str, mu_sieve_value_t *val);

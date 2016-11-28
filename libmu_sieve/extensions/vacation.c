@@ -51,7 +51,7 @@
    is the message text.
 */
 static int
-build_mime (mu_sieve_machine_t mach, mu_list_t tags, mu_mime_t *pmime,
+build_mime (mu_sieve_machine_t mach, mu_mime_t *pmime,
 	    mu_message_t msg, const char *text)
 {
   mu_mime_t mime = NULL;
@@ -78,7 +78,7 @@ build_mime (mu_sieve_machine_t mach, mu_list_t tags, mu_mime_t *pmime,
       return 1;
     }
 
-  if (mu_sieve_tag_lookup (mach, tags, "mime", SVT_VOID, NULL))
+  if (mu_sieve_get_tag (mach, "mime", SVT_VOID, NULL))
     {
       mu_stream_t fstr;
       rc = mu_filter_create (&fstr, input, "base64",
@@ -227,7 +227,7 @@ regex_comparator (void *item, void *data)
 /* Decide whether EMAIL address should not be responded to.
  */
 static int
-noreply_address_p (mu_sieve_machine_t mach, mu_list_t tags, char *email)
+noreply_address_p (mu_sieve_machine_t mach, char *email)
 {
   int i, rc = 0;
   mu_sieve_value_t *arg;
@@ -249,7 +249,7 @@ noreply_address_p (mu_sieve_machine_t mach, mu_list_t tags, char *email)
   for (i = 0; rc == 0 && noreply_sender[i]; i++)
     rc = regex_comparator (noreply_sender[i], &rd);
 
-  if (!rc && mu_sieve_tag_lookup_untyped (mach, tags, "noreply", &arg))
+  if (!rc && mu_sieve_get_tag_untyped (mach, "noreply", &arg))
     rc = mu_sieve_vlist_do (arg, regex_comparator, &rd);
   
   return rc;
@@ -337,7 +337,7 @@ test_and_update_prop (mu_property_t prop, const char *from,
    be answered, 0 if it should not, and throw exception if an error
    occurs. */
 static int
-check_db (mu_sieve_machine_t mach, mu_list_t tags, char *from)
+check_db (mu_sieve_machine_t mach, char *from)
 {
   mu_property_t prop;
   char *file;
@@ -348,7 +348,7 @@ check_db (mu_sieve_machine_t mach, mu_list_t tags, char *from)
   const char *dbfile = "~/.vacation";
   size_t n;
   
-  if (mu_sieve_tag_lookup (mach, tags, "days", SVT_NUMBER, &n))
+  if (mu_sieve_get_tag (mach, "days", SVT_NUMBER, &n))
     {
       days = n;
       if (days > DAYS_MAX)
@@ -357,7 +357,7 @@ check_db (mu_sieve_machine_t mach, mu_list_t tags, char *from)
   else
     days = DAYS_DEFAULT;
 
-  mu_sieve_tag_lookup (mach, tags, "database", SVT_STRING, &dbfile);
+  mu_sieve_get_tag (mach, "database", SVT_STRING, &dbfile);
   
   file = mu_tilde_expansion (dbfile, MU_HIERARCHY_DELIMITER, NULL);
   if (!file)
@@ -429,12 +429,12 @@ check_db (mu_sieve_machine_t mach, mu_list_t tags, char *from)
    "reply_prefix" tag.
  */
 static void
-re_subject (mu_sieve_machine_t mach, mu_list_t tags, char **psubject)
+re_subject (mu_sieve_machine_t mach, char **psubject)
 {
   char *subject;
   char *prefix = "Re";
   
-  mu_sieve_tag_lookup (mach, tags, "reply_prefix", SVT_STRING, &prefix);
+  mu_sieve_get_tag (mach, "reply_prefix", SVT_STRING, &prefix);
 
   subject = malloc (strlen (*psubject) + strlen (prefix) + 3);
   if (!subject)
@@ -459,7 +459,7 @@ re_subject (mu_sieve_machine_t mach, mu_list_t tags, char **psubject)
    Otherwise, reply_prefix is prepended to it. */
 
 static void
-vacation_subject (mu_sieve_machine_t mach, mu_list_t tags,
+vacation_subject (mu_sieve_machine_t mach,
 		  mu_message_t msg, mu_header_t newhdr)
 {
   char *value;
@@ -467,7 +467,7 @@ vacation_subject (mu_sieve_machine_t mach, mu_list_t tags,
   int subject_allocated = 0;
   mu_header_t hdr;
   
-  if (mu_sieve_tag_lookup (mach, tags, "subject", SVT_STRING, &subject))
+  if (mu_sieve_get_tag (mach, "subject", SVT_STRING, &subject))
     /* nothing */;
   else if (mu_message_get_header (msg, &hdr) == 0
 	   && mu_header_aget_value_unfold (hdr, MU_HEADER_SUBJECT,
@@ -488,7 +488,7 @@ vacation_subject (mu_sieve_machine_t mach, mu_list_t tags,
 	  subject = p;
 	}
 
-      if (mu_sieve_tag_lookup (mach, tags, "reply_regex", SVT_STRING, &p))
+      if (mu_sieve_get_tag (mach, "reply_regex", SVT_STRING, &p))
 	{
 	  char *err = NULL;
 	  
@@ -504,7 +504,7 @@ vacation_subject (mu_sieve_machine_t mach, mu_list_t tags,
 	}
 	  
       if (mu_unre_subject (subject, NULL))
-	re_subject (mach, tags, &subject);
+	re_subject (mach, &subject);
       
       free (value);
     }
@@ -601,7 +601,7 @@ add_header (void *item, void *data)
 
 /* Generate and send the reply message */
 static int
-vacation_reply (mu_sieve_machine_t mach, mu_list_t tags, mu_message_t msg,
+vacation_reply (mu_sieve_machine_t mach, mu_message_t msg,
 		char const *text, char const *to, char const *from)
 {
   mu_mime_t mime = NULL;
@@ -613,7 +613,7 @@ vacation_reply (mu_sieve_machine_t mach, mu_list_t tags, mu_message_t msg,
   int rc;
   mu_sieve_value_t *val;
 
-  if (mu_sieve_tag_lookup (mach, tags, "file", SVT_VOID, NULL))
+  if (mu_sieve_get_tag (mach, "file", SVT_VOID, NULL))
     {
       mu_stream_t instr;
       
@@ -628,7 +628,7 @@ vacation_reply (mu_sieve_machine_t mach, mu_list_t tags, mu_message_t msg,
 	  return -1;
 	}
       
-      if (mu_sieve_tag_lookup (mach, tags, "rfc2822", SVT_VOID, NULL))
+      if (mu_sieve_get_tag (mach, "rfc2822", SVT_VOID, NULL))
 	{
 	  rc = mu_stream_to_message (instr, &newmsg);
 	  mu_stream_unref (instr);
@@ -684,7 +684,7 @@ vacation_reply (mu_sieve_machine_t mach, mu_list_t tags, mu_message_t msg,
 	      return -1;
 	    }
 
-	  if (build_mime (mach, tags, &mime, msg, (char const *) trans[0]))
+	  if (build_mime (mach, &mime, msg, (char const *) trans[0]))
 	    {
 	      mu_stream_unref (text_stream);
 	      return -1;
@@ -696,7 +696,7 @@ vacation_reply (mu_sieve_machine_t mach, mu_list_t tags, mu_message_t msg,
     }
   else
     {
-      if (build_mime (mach, tags, &mime, msg, text))
+      if (build_mime (mach, &mime, msg, text))
 	return -1;
       mu_mime_get_message (mime, &newmsg);
       mu_message_unref (newmsg);
@@ -716,7 +716,7 @@ vacation_reply (mu_sieve_machine_t mach, mu_list_t tags, mu_message_t msg,
     {
       mu_header_set_value (newhdr, MU_HEADER_TO, to, 0);
 
-      if (mu_sieve_tag_lookup_untyped (mach, tags, "header", &val))
+      if (mu_sieve_get_tag_untyped (mach, "header", &val))
 	{
 	  struct header_closure hc;
 	  hc.mach = mach;
@@ -724,7 +724,7 @@ vacation_reply (mu_sieve_machine_t mach, mu_list_t tags, mu_message_t msg,
 	  mu_sieve_vlist_do (val, add_header, &hc);
 	}
       
-      vacation_subject (mach, tags, msg, newhdr);
+      vacation_subject (mach, msg, newhdr);
       
       if (from)
         {
@@ -763,7 +763,7 @@ vacation_reply (mu_sieve_machine_t mach, mu_list_t tags, mu_message_t msg,
 }
 
 int
-sieve_action_vacation (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
+sieve_action_vacation (mu_sieve_machine_t mach)
 {
   int rc;
   char *text, *from = NULL;
@@ -775,12 +775,12 @@ sieve_action_vacation (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
   if (diag (mach))
     return 0;
   
-  mu_sieve_value_get (mach, args, 0, SVT_STRING, &text);
+  mu_sieve_get_arg (mach, 0, SVT_STRING, &text);
 
   msg = mu_sieve_get_message (mach);
   mu_message_get_header (msg, &hdr);
 
-  if (mu_sieve_tag_lookup (mach, tags, "sender", SVT_STRING, &from))
+  if (mu_sieve_get_tag (mach, "sender", SVT_STRING, &from))
     {
       /* Debugging hook: :sender sets fake reply address */
       from = strdup (from);
@@ -803,12 +803,12 @@ sieve_action_vacation (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
 
   my_address = mu_get_user_email (NULL);
 
-  if (mu_sieve_tag_lookup (mach, tags, "always_reply", SVT_VOID, NULL))
+  if (mu_sieve_get_tag (mach, "always_reply", SVT_VOID, NULL))
     return_address = my_address;
   else
     {
       mu_sieve_value_t *val = NULL;
-      mu_sieve_tag_lookup_untyped (mach, tags, "aliases", &val);
+      mu_sieve_get_tag_untyped (mach, "aliases", &val);
       if (match_addresses (hdr, my_address, val, &return_address) == 0)
 	{
 	  free (my_address);
@@ -816,19 +816,19 @@ sieve_action_vacation (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
 	}
     }
 
-  if (noreply_address_p (mach, tags, from)
+  if (noreply_address_p (mach, from)
       || bulk_precedence_p (hdr)
-      || check_db (mach, tags, from))
+      || check_db (mach, from))
     {
       free (from);
       free (my_address);
       return 0;
     }
 
-  mu_sieve_tag_lookup (mach, tags, "return_address", SVT_STRING,
+  mu_sieve_get_tag (mach, "return_address", SVT_STRING,
 		       &return_address);
 
-  rc = vacation_reply (mach, tags, msg, text, from, return_address);
+  rc = vacation_reply (mach, msg, text, from, return_address);
   free (from);
   free (my_address);
   if (rc == -1)

@@ -64,19 +64,18 @@ struct address_closure
 };  
 
 static int
-do_count (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags,
-	  size_t count, int retval)
+do_count (mu_sieve_machine_t mach, size_t count, int retval)
 {
   char *relcmp;
   
-  if (mu_sieve_tag_lookup (mach, tags, "count", SVT_STRING, &relcmp))
+  if (mu_sieve_get_tag (mach, "count", SVT_STRING, &relcmp))
     {
       size_t limit;
       char *str;
       mu_list_t list;
       mu_sieve_relcmpn_t stest;
       
-      mu_sieve_value_get (mach, args, 1, SVT_STRING_LIST, &list);
+      mu_sieve_get_arg (mach, 1, SVT_STRING_LIST, &list);
       mu_list_get (list, 0, (void **) &str);
       limit = strtoul (str, &str, 10);
 
@@ -110,27 +109,28 @@ retrieve_address (void *item, void *data, int idx, char **pval)
 }
 
 int
-sieve_test_address (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
+sieve_test_address (mu_sieve_machine_t mach)
 {
   mu_sieve_value_t *h, *v;
   mu_header_t header = NULL;
-  mu_sieve_comparator_t comp = mu_sieve_get_comparator (mach, tags);
-  mu_sieve_relcmp_t test = mu_sieve_get_relcmp (mach, tags);
+  mu_sieve_comparator_t comp = mu_sieve_get_comparator (mach);
+  mu_sieve_relcmp_t test = mu_sieve_get_relcmp (mach);
   struct address_closure clos;
   int rc;
   size_t count;
   
-  h = mu_sieve_value_get_untyped (mach, args, 0);
-  v = mu_sieve_value_get_untyped (mach, args, 1);
+  h = mu_sieve_get_arg_untyped (mach, 0);
+  v = mu_sieve_get_arg_untyped (mach, 1);
 
   mu_message_get_header (mu_sieve_get_message (mach), &header);
   clos.data = header;
-  clos.aget = sieve_get_address_part (tags);
+  clos.aget = sieve_get_address_part (mach->tag_list);
   clos.addr = NULL;
-  rc = mu_sieve_vlist_compare (h, v, comp, test, retrieve_address, &clos, &count);
+  rc = mu_sieve_vlist_compare (h, v, comp, test, retrieve_address, &clos,
+			       &count);
   mu_address_destroy (&clos.addr);
   
-  return do_count (mach, args, tags, count, rc);
+  return do_count (mach, count, rc);
 }
 
 struct header_closure
@@ -164,18 +164,18 @@ retrieve_header (void *item, void *data, int idx, char **pval)
 }
 
 int
-sieve_test_header (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
+sieve_test_header (mu_sieve_machine_t mach)
 {
   mu_sieve_value_t *h, *v;
-  mu_sieve_comparator_t comp = mu_sieve_get_comparator (mach, tags);
-  mu_sieve_relcmp_t test = mu_sieve_get_relcmp (mach, tags);
+  mu_sieve_comparator_t comp = mu_sieve_get_comparator (mach);
+  mu_sieve_relcmp_t test = mu_sieve_get_relcmp (mach);
   size_t count, mcount = 0;
   struct header_closure clos;
   
-  h = mu_sieve_value_get_untyped (mach, args, 0);
-  v = mu_sieve_value_get_untyped (mach, args, 1);
+  h = mu_sieve_get_arg_untyped (mach, 0);
+  v = mu_sieve_get_arg_untyped (mach, 1);
 
-  if (mu_sieve_tag_lookup (mach, tags, "mime", SVT_VOID, NULL))
+  if (mu_sieve_get_tag (mach, "mime", SVT_VOID, NULL))
     {
       int ismime = 0;
 
@@ -204,7 +204,7 @@ sieve_test_header (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
 			      &count))
     return 1;
 
-  return do_count (mach, args, tags, count + mcount, 0);
+  return do_count (mach, count + mcount, 0);
 }
 
 int
@@ -235,39 +235,39 @@ retrieve_envelope (void *item, void *data, int idx, char **pval)
 }
 
 int
-sieve_test_envelope (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
+sieve_test_envelope (mu_sieve_machine_t mach)
 {
   mu_sieve_value_t *h, *v;
-  mu_sieve_comparator_t comp = mu_sieve_get_comparator (mach, tags);
-  mu_sieve_relcmp_t test = mu_sieve_get_relcmp (mach, tags);
+  mu_sieve_comparator_t comp = mu_sieve_get_comparator (mach);
+  mu_sieve_relcmp_t test = mu_sieve_get_relcmp (mach);
   struct address_closure clos;
   int rc;
   size_t count;
   
-  h = mu_sieve_value_get_untyped (mach, args, 0);
-  v = mu_sieve_value_get_untyped (mach, args, 1);
+  h = mu_sieve_get_arg_untyped (mach, 0);
+  v = mu_sieve_get_arg_untyped (mach, 1);
 
-  mu_message_get_envelope (mu_sieve_get_message (mach), 
-                           (mu_envelope_t*)&clos.data);
-  clos.aget = sieve_get_address_part (tags);
+  mu_message_get_envelope (mu_sieve_get_message (mach),
+			   (mu_envelope_t*)&clos.data);
+  clos.aget = sieve_get_address_part (mach->tag_list);
   clos.addr = NULL;
   rc = mu_sieve_vlist_compare (h, v, comp, test, retrieve_envelope, &clos,
-			    &count);
+			       &count);
   mu_address_destroy (&clos.addr);
-  return do_count (mach, args, tags, count, rc);
+  return do_count (mach, count, rc);
 }
 
 int
-sieve_test_size (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
+sieve_test_size (mu_sieve_machine_t mach)
 {
   int rc = 1;
   mu_sieve_runtime_tag_t *tag = NULL;
   size_t size;
   size_t arg;
   
-  mu_sieve_value_get (mach, args, 0, SVT_NUMBER, &arg);
+  mu_sieve_get_arg (mach, 0, SVT_NUMBER, &arg);
   mu_message_size (mu_sieve_get_message (mach), &size);
-  mu_list_get (tags, 0, (void **)&tag);
+  mu_list_get (mach->tag_list, 0, (void **)&tag);
   if (!tag)
     rc = size == arg;
   else if (strcmp (tag->tag, "over") == 0)
@@ -288,13 +288,13 @@ _test_exists (void *item, void *data)
 }
   
 int
-sieve_test_exists (mu_sieve_machine_t mach, mu_list_t args, mu_list_t tags)
+sieve_test_exists (mu_sieve_machine_t mach)
 {
   mu_header_t header = NULL;
   mu_sieve_value_t *val;   
 
   mu_message_get_header (mu_sieve_get_message (mach), &header);
-  val = mu_sieve_value_get_untyped (mach, args, 0);
+  val = mu_sieve_get_arg_untyped (mach, 0);
   return mu_sieve_vlist_do (val, _test_exists, header) == 0;
 }
 
