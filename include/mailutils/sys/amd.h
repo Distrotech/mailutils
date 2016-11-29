@@ -48,8 +48,6 @@
 #define _MU_AMD_PROP_SIZE "size"
 
 #define _MU_AMD_PROP_FILE_NAME ".mu-prop"
-/* Legacy (2.x) size file name */
-#define _MU_AMD_SIZE_FILE_NAME ".mu-size"
 
 struct _amd_data;
 struct _amd_message

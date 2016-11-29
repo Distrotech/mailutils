@@ -216,34 +216,6 @@ _amd_prop_store_off (struct _amd_data *amd, const char *name, mu_off_t val)
   return mu_property_set_value (amd->prop, name, p, 1);
 }
 
-/* Backward-compatible size file support */
-static int
-read_size_file (struct _amd_data *amd)
-{
-  FILE *fp;
-  int rc;
-  char *name = mu_make_file_name (amd->name, _MU_AMD_SIZE_FILE_NAME);
-  if (!name)
-    return 1;
-  fp = fopen (name, "r");
-  if (fp)
-    {
-      unsigned long size;
-      if (fscanf (fp, "%lu", &size) == 1)
-	{
-	  rc = _amd_prop_store_off (amd, _MU_AMD_PROP_SIZE, size);
-	}
-      else
-	rc = 1;
-      fclose (fp);
-      unlink (name);
-    }
-  else
-    rc = 1;
-  free (name);
-  return rc;
-}
-
 static int
 _amd_prop_create (struct _amd_data *amd)
 {
@@ -267,8 +239,7 @@ _amd_prop_create (struct _amd_data *amd)
       free (mhprop->filename);
       free (mhprop);
     }
-  else
-    read_size_file (amd);
+  
   return rc;
 }
 
@@ -1246,20 +1217,11 @@ amd_remove_mbox (mu_mailbox_t mailbox)
     {
       char *name;
 
-      name = mu_make_file_name (amd->name, _MU_AMD_SIZE_FILE_NAME);
+      name = mu_make_file_name (amd->name, _MU_AMD_PROP_FILE_NAME);
       if (!name)
 	return ENOMEM;
       if (unlink (name) && errno != ENOENT)
 	rc = errno;
-      else
-	{
-	  free (name);
-	  name = mu_make_file_name (amd->name, _MU_AMD_PROP_FILE_NAME);
-	  if (!name)
-	    return ENOMEM;
-	  if (unlink (name) && errno != ENOENT)
-	    rc = errno;
-	}
       free (name);
     }
 
