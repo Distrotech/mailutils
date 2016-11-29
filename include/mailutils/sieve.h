@@ -121,18 +121,24 @@ extern mu_list_t mu_sieve_library_path_prefix;
 void mu_sieve_debug_init (void);
   
 /* Memory allocation functions */
-void *mu_sieve_alloc (size_t size);
-void *mu_sieve_palloc (mu_list_t *pool, size_t size);
-void *mu_sieve_prealloc (mu_list_t *pool, void *ptr, size_t size);
-void mu_sieve_pfree (mu_list_t *pool, void *ptr);
-char *mu_sieve_pstrdup (mu_list_t *pool, const char *str);
-
+typedef void (*mu_sieve_reclaim_t) (void *);
+void mu_sieve_register_memory (mu_sieve_machine_t mach, void *ptr,
+				  mu_sieve_reclaim_t reclaim);
+void *mu_sieve_alloc_memory (mu_sieve_machine_t mach, size_t size,
+			     mu_sieve_reclaim_t recfun);
+void mu_sieve_free (mu_sieve_machine_t mach, void *ptr);
 void *mu_sieve_malloc (mu_sieve_machine_t mach, size_t size);
-char *mu_sieve_mstrdup (mu_sieve_machine_t mach, const char *str);
-void *mu_sieve_mrealloc (mu_sieve_machine_t mach, void *ptr, size_t size);
-void mu_sieve_mfree (mu_sieve_machine_t mach, void *ptr);
+void *mu_sieve_calloc (mu_sieve_machine_t mach, size_t nmemb, size_t size);
+char *mu_sieve_strdup (mu_sieve_machine_t mach, char const *str);
+void *mu_sieve_realloc (mu_sieve_machine_t mach, void *ptr, size_t size);
 
-mu_sieve_value_t *mu_sieve_value_create (mu_sieve_data_type type, void *data);
+void mu_sieve_reclaim_default (void *p);
+void mu_sieve_reclaim_list (void *p);
+void mu_sieve_reclaim_value (void *p);
+void mu_sieve_reclaim_tag (void *p);
+  
+mu_sieve_value_t *mu_sieve_value_create (mu_sieve_machine_t mach,
+					 mu_sieve_data_type type, void *data);
 void mu_sieve_slist_destroy (mu_list_t *plist);
 
 /* Symbol space functions */

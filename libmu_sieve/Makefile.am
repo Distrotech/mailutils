@@ -32,6 +32,7 @@ libmu_sieve_la_SOURCES = \
  comparator.c\
  encoded.c\
  load.c\
+ mem.c\
  prog.c\
  register.c\
  relational.c\

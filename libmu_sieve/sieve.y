@@ -333,23 +333,24 @@ arglist      : arg
 
 arg          : stringlist
                {		 
-		 $$ = mu_sieve_value_create (SVT_STRING_LIST, $1);
+		 $$ = mu_sieve_value_create (mu_sieve_machine,
+					     SVT_STRING_LIST, $1);
 	       }
              | STRING
                {
-		 $$ = mu_sieve_value_create (SVT_STRING, $1);
+		 $$ = mu_sieve_value_create (mu_sieve_machine, SVT_STRING, $1);
                } 
              | MULTILINE
                {
-		 $$ = mu_sieve_value_create (SVT_STRING, $1);
+		 $$ = mu_sieve_value_create (mu_sieve_machine, SVT_STRING, $1);
 	       }
              | NUMBER
                {
-		 $$ = mu_sieve_value_create (SVT_NUMBER, &$1);
+		 $$ = mu_sieve_value_create (mu_sieve_machine, SVT_NUMBER, &$1);
 	       }
              | TAG
                {
-		 $$ = mu_sieve_value_create (SVT_TAG, $1);
+		 $$ = mu_sieve_value_create (mu_sieve_machine, SVT_TAG, $1);
 	       }
              ;
 
@@ -998,13 +999,7 @@ mu_sieve_machine_init (mu_sieve_machine_t *pmach)
   if (!mach)
     return ENOMEM;
   memset (mach, 0, sizeof (*mach));
-  rc = mu_list_create (&mach->memory_pool);
-  if (rc)
-    {
-      free (mach);
-      return rc;
-    }
-
+  mach->memory_pool = NULL;
   rc = mu_opool_create (&mach->string_pool, MU_OPOOL_DEFAULT);
   if (rc)
     {
@@ -1217,8 +1212,8 @@ mu_sieve_get_daemon_email (mu_sieve_machine_t mach)
 void
 mu_sieve_set_daemon_email (mu_sieve_machine_t mach, const char *email)
 {
-  mu_sieve_mfree (mach, (void *)mach->daemon_email);
-  mach->daemon_email = mu_sieve_mstrdup (mach, email);
+  mu_sieve_free (mach, (void *)mach->daemon_email);
+  mach->daemon_email = mu_sieve_strdup (mach, email);
 }
 
 struct sieve_destr_record
@@ -1267,7 +1262,7 @@ mu_sieve_machine_destroy (mu_sieve_machine_t *pmach)
   mu_list_destroy (&mach->comp_list);
   mu_list_destroy (&mach->source_list);
   mu_opool_destroy (&mach->string_pool);
-  mu_sieve_slist_destroy (&mach->memory_pool);
+  mu_list_destroy (&mach->memory_pool);
   free (mach);
   *pmach = NULL;
 }
@@ -1284,18 +1279,26 @@ with_machine (mu_sieve_machine_t mach, char const *name,
   mu_strerr = mach->errstream;
   mu_stream_ref (mu_strerr);
 
-  mu_i_sv_register_standard_actions (mach);
-  mu_i_sv_register_standard_tests (mach);
-  mu_i_sv_register_standard_comparators (mach);
   mu_sieve_machine = mach;
+  rc = setjmp (mach->errbuf);
 
-  mu_sieve_stream_save (mach);
-  rc = thunk (data);
-  mu_sieve_stream_restore (mach);
+  if (rc == 0)
+    {
+      mach->state = mu_sieve_state_init;
+      mu_i_sv_register_standard_actions (mach);
+      mu_i_sv_register_standard_tests (mach);
+      mu_i_sv_register_standard_comparators (mach);
 
-  mu_stream_unref (save_errstr);
-  mu_strerr = save_errstr;
-  mu_stream_unref (mu_strerr);
+      mu_sieve_stream_save (mach);
+      rc = thunk (data);
+      mu_sieve_stream_restore (mach);
+
+      mu_stream_unref (save_errstr);
+      mu_strerr = save_errstr;
+      mu_stream_unref (mu_strerr);
+    }
+  else
+    mach->state = mu_sieve_state_error;
   
   return rc;
 }

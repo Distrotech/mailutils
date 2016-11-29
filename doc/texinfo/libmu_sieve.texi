@@ -609,27 +609,27 @@ freed upon the call to @code{mu_sieve_machine_destroy (@var{mach})}.
 Allocates @var{size} bytes and returns a pointer to the allocated memory.
 @end deftypefun
 
-@deftypefun {char *} mu_sieve_mstrdup (mu_sieve_machine_t @var{mach}, const char *@var{str})
+@deftypefun {char *} mu_sieve_strdup (mu_sieve_machine_t @var{mach}, const char *@var{str})
 This function returns a pointer to a new string  which is a duplicate of the
 string @var{str}.
 @end deftypefun
 
-@deftypefun {void *} mu_sieve_mrealloc (mu_sieve_machine_t @var{mach}, void *@var{ptr}, size_t @var{size})
+@deftypefun {void *} mu_sieve_realloc (mu_sieve_machine_t @var{mach}, void *@var{ptr}, size_t @var{size})
 Changes the size of the memory block pointed to by @var{ptr} to
 @var{size} bytes. The contents will be unchanged to the minimum of the
 old and new sizes; newly allocated memory will be uninitialized. If
 @var{ptr} is @code{NULL}, the call is equivalent to
 @code{mu_sieve_malloc(@var{mach}, @var{size})}; if @var{size} is equal to
-zero, the call is equivalent to @code{mu_sieve_mfree(@var{ptr})}. Unless
+zero, the call is equivalent to @code{mu_sieve_free(@var{ptr})}. Unless
 @var{ptr} is @code{NULL}, it must have been returned by an earlier
-call to @code{mu_sieve_malloc()} or @code{mu_sieve_mrealloc()}.
+call to @code{mu_sieve_malloc()} or @code{mu_sieve_realloc()}.
 @end deftypefun
 
-@deftypefun void mu_sieve_mfree (mu_sieve_machine_t @var{mach}, void *@var{ptr})
-@code{mu_sieve_mfree()} frees the memory space pointed to by @var{ptr} and
+@deftypefun void mu_sieve_free (mu_sieve_machine_t @var{mach}, void *@var{ptr})
+@code{mu_sieve_free()} frees the memory space pointed to by @var{ptr} and
 detaches it from the destructor list of @var{mach}. The @var{ptr} must
 have been returned by a previous call to @code{mu_sieve_malloc()} or
-@code{mu_sieve_mrealloc()}. Otherwise, or if @code{mu_sieve_mfree(@var{ptr})}
+@code{mu_sieve_realloc()}. Otherwise, or if @code{mu_sieve_mfree(@var{ptr})}
 has already been called before, undefined behaviour occurs.
 
 If @var{ptr} is @code{NULL}, no operation is performed.

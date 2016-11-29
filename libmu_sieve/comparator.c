@@ -338,7 +338,7 @@ mu_sieve_match_part_checker (mu_sieve_machine_t mach,
 
   tmp = mu_sieve_malloc (mach, sizeof (*tmp));
   tmp->tag = TAG_COMPFUN;
-  tmp->arg = mu_sieve_value_create (SVT_POINTER, compfun);
+  tmp->arg = mu_sieve_value_create (mach, SVT_POINTER, compfun);
   mu_list_append (tags, tmp);
   
   if (matchtype == MU_SIEVE_MATCH_REGEX)
@@ -365,7 +365,7 @@ mu_sieve_match_part_checker (mu_sieve_machine_t mach,
 
       if (rc)
 	return rc;
-      newval = mu_sieve_value_create (SVT_STRING_LIST, rd.list);
+      newval = mu_sieve_value_create (rd.mach, SVT_STRING_LIST, rd.list);
       mu_list_replace (args, val, newval);
     }
 #ifndef FNM_CASEFOLD

@@ -89,14 +89,14 @@ mu_sieve_require_test (mu_sieve_machine_t mach, const char *name)
 
 
 static int
-sieve_register (mu_list_t *pool,
+sieve_register (mu_sieve_machine_t mach,
 		mu_list_t *list,
 		const char *name, mu_sieve_handler_t handler,
 		mu_sieve_data_type *req_arg_types,
 		mu_sieve_data_type *opt_arg_types,
 		mu_sieve_tag_group_t *tags, int required)
 {
-  mu_sieve_register_t *reg = mu_sieve_palloc (pool, sizeof (*reg));
+  mu_sieve_register_t *reg = mu_sieve_malloc (mach, sizeof (*reg));
 
   if (!reg)
     return ENOMEM;
@@ -129,7 +129,7 @@ mu_sieve_register_test_ext (mu_sieve_machine_t mach,
 			    mu_sieve_data_type *opt_args,
 			    mu_sieve_tag_group_t *tags, int required)
 {
-  return sieve_register (&mach->memory_pool,
+  return sieve_register (mach,
 			 &mach->test_list, name, handler,
 			 req_args, opt_args, tags, required);
 }
@@ -153,7 +153,7 @@ mu_sieve_register_action_ext (mu_sieve_machine_t mach,
 			      mu_sieve_data_type *opt_args,
 			      mu_sieve_tag_group_t *tags, int required)
 {
-  return sieve_register (&mach->memory_pool,
+  return sieve_register (mach,
 			 &mach->action_list, name, handler,
 			 req_args, opt_args, tags, required);
 }

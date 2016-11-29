@@ -226,7 +226,7 @@ push_source (const char *name)
   if (mu_sieve_locus.mu_file)
     {
       advance_locus ();
-      ctx = mu_sieve_alloc (sizeof (*ctx));
+      ctx = mu_sieve_malloc (mu_sieve_machine, sizeof (*ctx));
       ctx->locus = mu_sieve_locus;
       ctx->i_node = sieve_source_inode;
       ctx->input = input_stream;
@@ -262,7 +262,7 @@ pop_source ()
   sieve_source_inode = context_stack->i_node;
   RESTORE_BUFFER_STATE (context_stack->state);
   ctx = context_stack->prev;
-  free (context_stack);
+  mu_sieve_free (mu_sieve_machine, context_stack);
   context_stack = ctx;
 
   return 0;
@@ -393,7 +393,7 @@ get_file_name (char *p, char *endp, int *usepath)
     }
   
   n = p - startp;
-  name = mu_sieve_alloc (n + 1);
+  name = mu_sieve_malloc (mu_sieve_machine, n + 1);
   memcpy (name, startp, n);
   name[n] = 0;
   return name;
@@ -420,7 +420,7 @@ _try_include (void *item, void *data)
 }
 
 static void
-sieve_include ()
+sieve_include (void)
 {
   char *p, *endp = yytext + yyleng, *name;
   int usepath;
@@ -440,14 +440,14 @@ sieve_include ()
 	  && mu_list_foreach (mu_sieve_include_path, _try_include, &p))
 	{
 	  push_source (p);
-	  free (name);
+	  mu_sieve_free (mu_sieve_machine, name);
 	  free (p);
 	  return;
 	}
     }
 
   push_source (name);
-  free (name);
+  mu_sieve_free (mu_sieve_machine, name);
 }
 
 static void
@@ -462,7 +462,7 @@ sieve_searchpath (void)
   if (name)
     {
       mu_i_sv_load_add_dir (mu_sieve_machine, name);
-      free (name);
+      mu_sieve_free (mu_sieve_machine, name);
     }
 }
 
@@ -597,7 +597,7 @@ multiline_begin (void)
 	  break;
 
       len = endp - p;
-      multiline_delimiter = mu_sieve_alloc (len + 1);
+      multiline_delimiter = mu_sieve_malloc (mu_sieve_machine, len + 1);
       memcpy (multiline_delimiter, p, len);
       multiline_delimiter[len] = 0;
     }
@@ -635,7 +635,7 @@ ident (const char *text)
 static char *
 str_unescape (char *text, size_t len)
 {
-  char *str = mu_sieve_alloc (len);
+  char *str = mu_sieve_malloc (mu_sieve_machine, len);
   memcpy (str, text, len - 2);
   str[len - 2] = mu_wordsplit_c_unquote_char (text[len - 1]);
   str[len - 1] = 0;

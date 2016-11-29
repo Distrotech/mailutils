@@ -31,7 +31,7 @@ mu_i_sv_code (struct mu_sieve_machine *mach, sieve_op_t op)
     {
       size_t newsize = mach->progsize + SIEVE_CODE_INCR;
       sieve_op_t *newprog =
-	mu_sieve_mrealloc (mach, mach->prog, newsize * sizeof mach->prog[0]);
+	mu_sieve_realloc (mach, mach->prog, newsize * sizeof mach->prog[0]);
       if (!newprog)
 	{
 	  mu_diag_at_locus (MU_LOG_ERROR, &mach->locus, _("not enough memory"));
@@ -261,8 +261,8 @@ sv_code_command (struct mu_sieve_machine *mach,
 
 		      mu_list_create (&list);
 		      mu_list_append (list, val->v.string);
-		      mu_sieve_mfree (mach, val);
-		      val = mu_sieve_value_create (SVT_STRING_LIST, list);
+		      mu_sieve_free (mach, val);
+		      val = mu_sieve_value_create (mach, SVT_STRING_LIST, list);
 		    }
 		  else
 		    {

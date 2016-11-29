@@ -25,112 +25,14 @@
 #include <stdarg.h>
 #include <sieve-priv.h>
 
-void *
-mu_sieve_alloc (size_t size)
-{
-  void *p = malloc (size);
-  if (!p)
-    {
-      mu_error ("not enough memory");
-      abort ();
-    }
-  return p;
-}
-
-void *
-mu_sieve_palloc (mu_list_t *pool, size_t size)
-{
-  void *p = malloc (size);
-  if (p)
-    {
-      if (!*pool && mu_list_create (pool))
-	{
-	  free (p);
-	  return NULL;
-	}
-      mu_list_append (*pool, p);
-    }
-  return p;
-}
-
-char *
-mu_sieve_pstrdup (mu_list_t *pool, const char *str)
-{
-  size_t len;
-  char *p;
-  
-  if (!str)
-    return NULL;
-  len = strlen (str);
-  p = mu_sieve_palloc (pool, len + 1);
-  if (p)
-    {
-      memcpy (p, str, len);
-      p[len] = 0;
-    }
-  return p;
-}
-
-void *
-mu_sieve_prealloc (mu_list_t *pool, void *ptr, size_t size)
-{
-  void *newptr;
-  
-  if (*pool)
-    mu_list_remove (*pool, ptr);
-
-  newptr = realloc (ptr, size);
-  if (newptr)
-    {
-      if (!*pool && mu_list_create (pool))
-	{
-	  free (newptr);
-	  return NULL;
-	}
-      mu_list_append (*pool, newptr);
-    }
-  return newptr;
-}
-
-void
-mu_sieve_pfree (mu_list_t *pool, void *ptr)
-{
-  if (*pool)
-    mu_list_remove (*pool, ptr);
-  free (ptr);
-}  
-
-void *
-mu_sieve_malloc (mu_sieve_machine_t mach, size_t size)
-{
-  return mu_sieve_palloc (&mach->memory_pool, size);
-}
-
-char *
-mu_sieve_mstrdup (mu_sieve_machine_t mach, const char *str)
-{
-  return mu_sieve_pstrdup (&mach->memory_pool, str);
-}
-
-void *
-mu_sieve_mrealloc (mu_sieve_machine_t mach, void *ptr, size_t size)
-{
-  return mu_sieve_prealloc (&mach->memory_pool, ptr, size);
-}
-
-void
-mu_sieve_mfree (mu_sieve_machine_t mach, void *ptr)
-{
-  mu_sieve_pfree (&mach->memory_pool, ptr);
-}  
-
+
 static int
 _destroy_item (void *item, void *data)
 {
   free (item);
   return 0;
 }
-
+/* FIXME: Not needed? */
 void
 mu_sieve_slist_destroy (mu_list_t *plist)
 {
@@ -141,9 +43,11 @@ mu_sieve_slist_destroy (mu_list_t *plist)
 }
 
 mu_sieve_value_t *
-mu_sieve_value_create (mu_sieve_data_type type, void *data)
+mu_sieve_value_create (mu_sieve_machine_t mach, mu_sieve_data_type type,
+		       void *data)
 {
-  mu_sieve_value_t *val = mu_sieve_alloc (sizeof (*val));
+  mu_sieve_value_t *val = mu_sieve_alloc_memory (mach, sizeof (*val),
+						 mu_sieve_reclaim_value);
 
   val->type = type;
   switch (type)
