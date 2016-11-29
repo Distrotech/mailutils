@@ -114,10 +114,10 @@ int mu_list_insert   (mu_list_t _list, void *_item, void *_new_item,
                       int _insert_before);
   /* Remove _item from _list and deallocate any memory associated with it
      using the `destroy_item' method. */
-int mu_list_remove   (mu_list_t _list, void *_item);
+int mu_list_remove   (mu_list_t _list, const void *_item);
   /* A non-destructive version of mu_list_remove: removes the _item but does
      not deallocate it. */
-int mu_list_remove_nd  (mu_list_t _list, void *_item);
+int mu_list_remove_nd  (mu_list_t _list, const void *_item);
   /* Remove Nth element from the list. */
 int mu_list_remove_nth (mu_list_t list, size_t n);
   /* Remove Nth element from the list, non-destructive. */

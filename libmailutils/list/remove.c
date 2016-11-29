@@ -24,7 +24,7 @@
 #include <mailutils/errno.h>
 
 int
-mu_list_remove (mu_list_t list, void *item)
+mu_list_remove (mu_list_t list, const void *item)
 {
   struct list_data *current;
   mu_list_comparator_t comp;
@@ -56,7 +56,7 @@ mu_list_remove (mu_list_t list, void *item)
 }
 
 int
-mu_list_remove_nd (mu_list_t list, void *item)
+mu_list_remove_nd (mu_list_t list, const void *item)
 {
   mu_list_destroy_item_t dptr = mu_list_set_destroy_item (list, NULL);
   int rc = mu_list_remove (list, item);
