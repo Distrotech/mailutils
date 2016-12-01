@@ -519,6 +519,8 @@ amd_close (mu_mailbox_t mailbox)
   free (amd->msg_array);
   amd->msg_array = NULL;
 
+  mu_property_save (amd->prop);
+    
   amd->msg_count = 0; /* number of messages in the list */
   amd->msg_max = 0;   /* maximum message buffer capacity */
 
@@ -675,7 +677,7 @@ _amd_scan0 (struct _amd_data *amd, size_t msgno, size_t *pcount,
       _amd_prop_fetch_ulong (amd, _MU_AMD_PROP_UIDVALIDITY, &uidval) ||
       !uidval)
     {
-      uidval = (unsigned long)time (NULL);
+      uidval = (unsigned long) amd->mtime;
       _amd_prop_store_off (amd, _MU_AMD_PROP_UIDVALIDITY, uidval);
     }
   return 0;

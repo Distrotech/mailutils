@@ -225,7 +225,7 @@ deliver_to_mailbox (mu_mailbox_t mbox, mu_message_t msg,
     }
 #endif
   
-  if (!failed && switch_user_id (auth, 1) == 0)
+  if (!failed)
     {
       status = mu_mailbox_append_message (mbox, msg);
       if (status)
@@ -244,7 +244,6 @@ deliver_to_mailbox (mu_mailbox_t mbox, mu_message_t msg,
 	      failed++;
 	    }
 	}
-      switch_user_id (auth, 0);
     }
 
   mu_mailbox_close (mbox);
