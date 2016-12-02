@@ -79,12 +79,13 @@ static void cond_join (struct mu_sieve_node *node);
 %union {
   char *string;
   size_t number;
-  mu_sieve_value_t *value;
-  mu_list_t list;
+  size_t idx;
+  struct mu_sieve_slice slice;
   struct
   {
     char *ident;
-    mu_list_t args;
+    size_t first;
+    size_t count;
   } command;
   struct node_list
   {
@@ -98,8 +99,8 @@ static void cond_join (struct mu_sieve_node *node);
 %token <string> STRING MULTILINE
 %token REQUIRE IF ELSIF ELSE ANYOF ALLOF NOT FALSE TRUE
 
-%type <value> arg
-%type <list> slist stringlist stringorlist arglist maybe_arglist
+%type <idx> arg
+%type <slice> arglist maybe_arglist slist stringlist stringorlist 
 %type <command> command
 %type <node> action test statement block cond
 %type <node> else_part
@@ -138,10 +139,10 @@ list         : statement
 
 statement    : REQUIRE stringorlist ';'
                {
-		 mu_sieve_require (mu_sieve_machine, $2);
-		 /*  All the items in $2 are registered in memory_pool,
-		     so we don't free them */
-		 mu_list_destroy (&$2);
+		 mu_sieve_require (mu_sieve_machine, &$2);
+		 /* Reclaim string slots.  The string data referred to by
+		    $2 are registered in memory_pool, so we don't free them */
+		 mu_sieve_machine->stringcount -= $2.count;
 		 $$ = NULL;
 	       }
              | action ';'
@@ -265,7 +266,11 @@ test         : command
 		 
 		 $$ = node_alloc (mu_sieve_node_test, &@1);
 		 $$->v.command.reg = reg;
-		 $$->v.command.arg = $1.args;
+		 $$->v.command.argstart = $1.first;
+		 $$->v.command.argcount = $1.count;
+		 $$->v.command.tagcount = 0;
+		 $$->v.command.comparator = NULL;
+		 mu_i_sv_lint_command (mu_sieve_machine, $$);
 	       }
              | TRUE
 	       {
@@ -280,7 +285,8 @@ test         : command
 command      : IDENT maybe_arglist
                {
 		 $$.ident = $1;
-		 $$.args = $2;
+		 $$.first = $2.first;
+		 $$.count = $2.count;
 	       }
              ;
 
@@ -308,25 +314,29 @@ action       : command
 		 
 		 $$ = node_alloc(mu_sieve_node_action, &@1);
 		 $$->v.command.reg = reg;
-		 $$->v.command.arg = $1.args;
+		 $$->v.command.argstart = $1.first;
+		 $$->v.command.argcount = $1.count;
+		 $$->v.command.tagcount = 0;
+		 mu_i_sv_lint_command (mu_sieve_machine, $$);		 
 	       }
              ;
 
 maybe_arglist: /* empty */
                {
-		 $$ = NULL;
+		 $$.first = 0;
+		 $$.count = 0;
 	       }
              | arglist
 	     ;
 
 arglist      : arg
                {
-		 mu_list_create (&$$);
-		 mu_list_append ($$, $1);
+		 $$.first = $1;
+		 $$.count = 1;
 	       }		 
              | arglist arg
                {
-		 mu_list_append ($1, $2);
+		 $1.count++;
 		 $$ = $1;
 	       }
              ;
@@ -334,7 +344,7 @@ arglist      : arg
 arg          : stringlist
                {		 
 		 $$ = mu_sieve_value_create (mu_sieve_machine,
-					     SVT_STRING_LIST, $1);
+					     SVT_STRING_LIST, &$1);
 	       }
              | STRING
                {
@@ -356,8 +366,8 @@ arg          : stringlist
 
 stringorlist : STRING
                {
-		 mu_list_create (&$$);
-		 mu_list_append ($$, $1);
+		 $$.first = mu_i_sv_string_create (mu_sieve_machine, $1);
+		 $$.count = 1;
 	       }
              | stringlist
              ;
@@ -370,12 +380,13 @@ stringlist   : '[' slist ']'
 
 slist        : STRING
                {
-		 mu_list_create (&$$);
-		 mu_list_append ($$, $1);
+		 $$.first = mu_i_sv_string_create (mu_sieve_machine, $1);
+		 $$.count = 1;
 	       }
              | slist ',' STRING
                {
-		 mu_list_append ($1, $3);
+		 mu_i_sv_string_create (mu_sieve_machine, $3);
+		 $1.count++;
 		 $$ = $1;
 	       }
              ;
@@ -396,7 +407,7 @@ yyerror (const char *s)
 static void
 cond_join (struct mu_sieve_node *node)
 {
-  while (node)
+  while (node && node->type == mu_sieve_node_cond)
     {
       struct mu_sieve_node *next = node->next;
       node->prev = node->next = NULL;
@@ -422,16 +433,18 @@ static void node_optimize (struct mu_sieve_node *node);
 static void node_free (struct mu_sieve_node *node);
 static void node_replace (struct mu_sieve_node *node,
 			  struct mu_sieve_node *repl);
-static int node_code (struct mu_sieve_machine *mach,
-		      struct mu_sieve_node *node);
+static void node_code (struct mu_sieve_machine *mach,
+		       struct mu_sieve_node *node);
 static void node_dump (mu_stream_t str, struct mu_sieve_node *node,
-		       unsigned level);
+		       unsigned level, struct mu_sieve_machine *mach);
 
 static void tree_free (struct mu_sieve_node **tree);
 static void tree_optimize (struct mu_sieve_node *tree);
-static int tree_code (struct mu_sieve_machine *mach,
-		      struct mu_sieve_node *tree);
-static void tree_dump (mu_stream_t str, struct mu_sieve_node *tree, unsigned level);
+static void tree_code (struct mu_sieve_machine *mach,
+		       struct mu_sieve_node *tree);
+static void tree_dump (mu_stream_t str,
+		       struct mu_sieve_node *tree, unsigned level,
+		       struct mu_sieve_machine *mach);
 
 static void
 indent (mu_stream_t str, unsigned level)
@@ -444,7 +457,8 @@ indent (mu_stream_t str, unsigned level)
 
 /* mu_sieve_node_noop */
 static void
-dump_node_noop (mu_stream_t str, struct mu_sieve_node *node, unsigned level)
+dump_node_noop (mu_stream_t str, struct mu_sieve_node *node, unsigned level,
+		struct mu_sieve_machine *mach)
 {
   indent (str, level);
   mu_stream_printf (str, "NOOP\n");  
@@ -452,7 +466,8 @@ dump_node_noop (mu_stream_t str, struct mu_sieve_node *node, unsigned level)
 
 /* mu_sieve_node_false */
 static void
-dump_node_false (mu_stream_t str, struct mu_sieve_node *node, unsigned level)
+dump_node_false (mu_stream_t str, struct mu_sieve_node *node, unsigned level,
+		 struct mu_sieve_machine *mach)
 {
   indent (str, level);
   mu_stream_printf (str, "FALSE\n");
@@ -460,7 +475,8 @@ dump_node_false (mu_stream_t str, struct mu_sieve_node *node, unsigned level)
 
 /* mu_sieve_node_true */
 static void
-dump_node_true (mu_stream_t str, struct mu_sieve_node *node, unsigned level)
+dump_node_true (mu_stream_t str, struct mu_sieve_node *node, unsigned level,
+		struct mu_sieve_machine *mach)
 {
   indent (str, level);
   mu_stream_printf (str, "TRUE\n");
@@ -470,43 +486,32 @@ dump_node_true (mu_stream_t str, struct mu_sieve_node *node, unsigned level)
 static void
 free_node_command (struct mu_sieve_node *node)
 {
-  mu_list_destroy (&node->v.command.arg);
+  /* nothing */
 }
 
-static int
+static void
 code_node_test (struct mu_sieve_machine *mach, struct mu_sieve_node *node)
 {
-  return mu_i_sv_code_test (mach, node->v.command.reg, node->v.command.arg);
+  mu_i_sv_code_test (mach, node);
 }
 
-static int
+static void
 code_node_action (struct mu_sieve_machine *mach, struct mu_sieve_node *node)
 {
-  return mu_i_sv_code_action (mach, node->v.command.reg, node->v.command.arg);
-}
-
-struct string_dumper_data
-{
-  int init;
-  mu_stream_t stream;
-};
-
-static int
-string_dumper (void *item, void *data)
-{
-  struct string_dumper_data *dp = data;
-  if (dp->init == 0)
-    dp->init = 1;
-  else
-    mu_stream_printf (dp->stream, ", ");
-  mu_stream_printf (dp->stream, "\"%s\"", (char*)item);
-  return 0;
+  mu_i_sv_code_action (mach, node);
 }
 
 void
-mu_i_sv_valf (mu_stream_t str, mu_sieve_value_t *val)
+mu_i_sv_valf (mu_sieve_machine_t mach, mu_stream_t str, mu_sieve_value_t *val)
 {
   mu_stream_printf (str, " ");
+  if (val->tag)
+    {
+      mu_stream_printf (str, ":%s", val->tag);
+      if (val->type == SVT_VOID)
+	return;
+      mu_stream_printf (str, " ");
+    }
   switch (val->type)
     {
     case SVT_VOID:
@@ -518,16 +523,22 @@ mu_i_sv_valf (mu_stream_t str, mu_sieve_value_t *val)
       break;
       
     case SVT_STRING:
-      mu_stream_printf (str, "\"%s\"", val->v.string);
+      mu_stream_printf (str, "\"%s\"",
+			mu_sieve_string_raw (mach, &val->v.list, 0)->orig);
       break;
       
     case SVT_STRING_LIST:
       {
-	struct string_dumper_data d;
-	d.init = 0;
-	d.stream = str;
+	size_t i;
+	
 	mu_stream_printf (str, "[");
-	mu_list_foreach (val->v.list, string_dumper, &d);
+	for (i = 0; i < val->v.list.count; i++)
+	  {
+	    if (i)
+	      mu_stream_printf (str, ", ");
+	    mu_stream_printf (str, "\"%s\"",
+			      mu_sieve_string_raw (mach, &val->v.list, i)->orig);
+	  }
 	mu_stream_printf (str, "]");
       }
       break;
@@ -540,36 +551,21 @@ mu_i_sv_valf (mu_stream_t str, mu_sieve_value_t *val)
       mu_stream_printf (str, "%s", val->v.string);
       break;
 	
-    case SVT_POINTER:
-      mu_stream_printf (str, "%p", val->v.ptr);
-      break;
-
     default:
       abort ();
     }
 }
   
-static int
-dump_val (void *item, void *data)
-{
-  mu_sieve_value_t *val = item;
-  mu_stream_t str = data;
-  mu_i_sv_valf (str, val);
-  return 0;
-}
-
-void
-mu_i_sv_argf (mu_stream_t str, mu_list_t list)
-{
-  mu_list_foreach (list, dump_val, str);
-}
-
 static void
-dump_node_command (mu_stream_t str, struct mu_sieve_node *node, unsigned level)
+dump_node_command (mu_stream_t str, struct mu_sieve_node *node, unsigned level,
+		   struct mu_sieve_machine *mach)
 {
+  size_t i;
+  
   indent (str, level);
   mu_stream_printf (str, "COMMAND %s", node->v.command.reg->name);
-  mu_list_foreach (node->v.command.arg, dump_val, str);
+  for (i = 0; i < node->v.command.argcount + node->v.command.tagcount; i++)
+    mu_i_sv_valf (mach, str, &mach->valspace[node->v.command.argstart + i]);
   mu_stream_printf (str, "\n");
 }
 
@@ -604,7 +600,7 @@ optimize_node_cond (struct mu_sieve_node *node)
     }
 }
 
-static int
+static void
 code_node_cond (struct mu_sieve_machine *mach, struct mu_sieve_node *node)
 {
   size_t br1;
@@ -630,11 +626,11 @@ code_node_cond (struct mu_sieve_machine *mach, struct mu_sieve_node *node)
     }
   else
     mach->prog[br1].pc = mach->pc - br1 - 1;
-  return 0;
 }
   
 static void
-dump_node_cond (mu_stream_t str, struct mu_sieve_node *node, unsigned level)
+dump_node_cond (mu_stream_t str, struct mu_sieve_node *node, unsigned level,
+		struct mu_sieve_machine *mach)
 {
   indent (str, level);
   mu_stream_printf (str, "COND\n");
@@ -643,15 +639,15 @@ dump_node_cond (mu_stream_t str, struct mu_sieve_node *node, unsigned level)
 
   indent (str, level);
   mu_stream_printf (str, "EXPR:\n");
-  tree_dump (str, node->v.cond.expr, level + 1);
+  tree_dump (str, node->v.cond.expr, level + 1, mach);
 
   indent (str, level);
   mu_stream_printf (str, "IFTRUE:\n");
-  tree_dump (str, node->v.cond.iftrue, level + 1);
+  tree_dump (str, node->v.cond.iftrue, level + 1, mach);
 
   indent (str, level);
   mu_stream_printf (str, "IFFALSE:\n");
-  tree_dump (str, node->v.cond.iffalse, level + 1);
+  tree_dump (str, node->v.cond.iffalse, level + 1, mach);
 }
 
 /* mu_sieve_node_anyof & mu_sieve_node_allof */
@@ -703,7 +699,7 @@ optimize_x_of (struct mu_sieve_node *node, enum mu_sieve_node_type solve)
     node->type = solve == mu_sieve_node_false ? mu_sieve_node_true : mu_sieve_node_false;
 }
 
-static int
+static void
 code_node_x_of (struct mu_sieve_machine *mach, struct mu_sieve_node *node,
 		sieve_op_t op)
 {
@@ -731,12 +727,11 @@ code_node_x_of (struct mu_sieve_machine *mach, struct mu_sieve_node *node,
       mach->prog[pc].pc = end - pc - 1;
       pc = prev;
     }
-
-  return 0;
 }
 
 static void
-dump_node_x_of (mu_stream_t str, struct mu_sieve_node *node, unsigned level)
+dump_node_x_of (mu_stream_t str, struct mu_sieve_node *node, unsigned level,
+		mu_sieve_machine_t mach)
 {
   indent (str, level);
   mu_stream_printf (str, "%s:\n",
@@ -746,7 +741,7 @@ dump_node_x_of (mu_stream_t str, struct mu_sieve_node *node, unsigned level)
   node = node->v.node;
   while (node)
     {
-      node_dump (str, node, level + 1);
+      node_dump (str, node, level + 1, mach);
       node = node->next;
       if (node)
 	{
@@ -764,10 +759,10 @@ optimize_node_anyof (struct mu_sieve_node *node)
   optimize_x_of (node, mu_sieve_node_true);
 }
 
-static int
+static void
 code_node_anyof (struct mu_sieve_machine *mach, struct mu_sieve_node *node)
 {
-  return code_node_x_of (mach, node, (sieve_op_t) _mu_i_sv_instr_brnz);
+  code_node_x_of (mach, node, (sieve_op_t) _mu_i_sv_instr_brnz);
 }
 
 /* mu_sieve_node_allof */
@@ -777,10 +772,10 @@ optimize_node_allof (struct mu_sieve_node *node)
   return optimize_x_of (node, mu_sieve_node_false);
 }
 
-static int
+static void
 code_node_allof (struct mu_sieve_machine *mach, struct mu_sieve_node *node)
 {
-  return code_node_x_of (mach, node, (sieve_op_t) _mu_i_sv_instr_brz);
+  code_node_x_of (mach, node, (sieve_op_t) _mu_i_sv_instr_brz);
 }
 
 /* mu_sieve_node_not */
@@ -811,27 +806,29 @@ optimize_node_not (struct mu_sieve_node *node)
     }
 }
 
-static int
+static void
 code_node_not (struct mu_sieve_machine *mach, struct mu_sieve_node *node)
 {
   node_code (mach, node->v.node);
-  return mu_i_sv_code (mach, (sieve_op_t) _mu_i_sv_instr_not);
+  mu_i_sv_code (mach, (sieve_op_t) _mu_i_sv_instr_not);
 }
 
 static void
-dump_node_not (mu_stream_t str, struct mu_sieve_node *node, unsigned level)
+dump_node_not (mu_stream_t str, struct mu_sieve_node *node, unsigned level,
+	       struct mu_sieve_machine *mach)
 {
   indent (str, level);
   mu_stream_printf (str, "NOT\n");
-  node_dump (str, node->v.node, level + 1);
+  node_dump (str, node->v.node, level + 1, mach);
 }
 
 struct node_descr
 {
-  int (*code_fn) (struct mu_sieve_machine *mach, struct mu_sieve_node *node);
+  void (*code_fn) (struct mu_sieve_machine *mach, struct mu_sieve_node *node);
   void (*optimize_fn) (struct mu_sieve_node *node);
   void (*free_fn) (struct mu_sieve_node *node);
-  void (*dump_fn) (mu_stream_t str, struct mu_sieve_node *node, unsigned level);
+  void (*dump_fn) (mu_stream_t str, struct mu_sieve_node *node, unsigned level,
+		   mu_sieve_machine_t);
 
 };
 
@@ -913,28 +910,27 @@ node_replace (struct mu_sieve_node *node, struct mu_sieve_node *repl)
     node_descr[node->type].free_fn (&copy);
 }
 
-static int
+static void
 node_code (struct mu_sieve_machine *mach, struct mu_sieve_node *node)
 {
   if ((int)node->type >= MU_ARRAY_SIZE (node_descr))
     abort ();
 
-  if (!node_descr[node->type].code_fn)
-    return 0;
-
-  if (mu_i_sv_locus (mach, &node->locus))
-    return 1;
-
-  return node_descr[node->type].code_fn (mach, node);
+  if (node_descr[node->type].code_fn)
+    {
+      mu_i_sv_locus (mach, &node->locus);
+      node_descr[node->type].code_fn (mach, node);
+    }
 }
 
 static void
-node_dump (mu_stream_t str, struct mu_sieve_node *node, unsigned level)
+node_dump (mu_stream_t str, struct mu_sieve_node *node, unsigned level,
+	   struct mu_sieve_machine *mach)
 {
   if ((int)node->type >= MU_ARRAY_SIZE (node_descr)
       || !node_descr[node->type].dump_fn) 
     abort ();
-  node_descr[node->type].dump_fn (str, node, level);
+  node_descr[node->type].dump_fn (str, node, level, mach);
 }
 
 
@@ -960,24 +956,23 @@ tree_optimize (struct mu_sieve_node *tree)
     }
 }
 
-static int
+static void
 tree_code (struct mu_sieve_machine *mach, struct mu_sieve_node *tree)
 {
   while (tree)
     {
-      if (node_code (mach, tree))
-	return 1;
+      node_code (mach, tree);
       tree = tree->next;
     }
-  return 0;
 }
 
 static void
-tree_dump (mu_stream_t str, struct mu_sieve_node *tree, unsigned level)
+tree_dump (mu_stream_t str, struct mu_sieve_node *tree, unsigned level,
+	   struct mu_sieve_machine *mach)
 {
   while (tree)
     {
-      node_dump (str, tree, level);
+      node_dump (str, tree, level, mach);
       tree = tree->next;
     }
 }  
@@ -1251,7 +1246,21 @@ void
 mu_sieve_machine_destroy (mu_sieve_machine_t *pmach)
 {
   mu_sieve_machine_t mach = *pmach;
-
+  size_t i;
+  
+  for (i = 0; i < mach->stringcount; i++)
+    {
+      if (mach->stringspace[i].rx)
+	{
+	  regex_t *rx = mach->stringspace[i].rx;
+	  regfree (rx);
+	}
+      /* FIXME: Is it needed?
+      if (mach->stringspace[i].exp)
+	free (mach->stringspace[i].exp);
+      */
+    }
+  
   mu_stream_destroy (&mach->errstream);
   mu_stream_destroy (&mach->dbgstream);
   mu_mailer_destroy (&mach->mailer);
@@ -1320,13 +1329,13 @@ sieve_parse (void)
       if (mu_debug_level_p (mu_sieve_debug_handle, MU_DEBUG_TRACE1))
 	{
 	  mu_error (_("Unoptimized parse tree"));
-	  tree_dump (mu_strerr, sieve_tree, 0);
+	  tree_dump (mu_strerr, sieve_tree, 0, mu_sieve_machine);
 	}
       tree_optimize (sieve_tree);
       if (mu_debug_level_p (mu_sieve_debug_handle, MU_DEBUG_TRACE2))
 	{
 	  mu_error (_("Optimized parse tree"));
-	  tree_dump (mu_strerr, sieve_tree, 0);
+	  tree_dump (mu_strerr, sieve_tree, 0, mu_sieve_machine);
 	}
       mu_i_sv_code (mu_sieve_machine, (sieve_op_t) 0);
 
@@ -1335,9 +1344,7 @@ sieve_parse (void)
       mu_sieve_machine->locus.mu_line = 0;
       mu_sieve_machine->locus.mu_col = 0;
       
-      rc = tree_code (mu_sieve_machine, sieve_tree);
-      if (rc)
-	mu_i_sv_error (mu_sieve_machine);
+      tree_code (mu_sieve_machine, sieve_tree);
       mu_i_sv_code (mu_sieve_machine, (sieve_op_t) 0);
     }
   

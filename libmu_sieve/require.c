@@ -27,30 +27,17 @@
 #include <sieve-priv.h>
 
 void
-mu_sieve_require (mu_sieve_machine_t mach, mu_list_t slist)
+mu_sieve_require (mu_sieve_machine_t mach, mu_sieve_slice_t list)
 {
-  int status;
-  mu_iterator_t itr;
+  size_t i;
   
-  status = mu_list_get_iterator (slist, &itr);
-  if (status)
+  for (i = 0; i < list->count; i++)
     {
-      mu_diag_at_locus (MU_LOG_ERROR, &mach->locus,
-			_("cannot create iterator: %s"),
-			mu_strerror (status));
-      mu_i_sv_error (mach);
-      return;
-    }
-
-  for (mu_iterator_first (itr);
-       !mu_iterator_is_done (itr); mu_iterator_next (itr))
-    {
-      char *name;
+      struct mu_sieve_string *str = mu_sieve_string_raw (mach, list, i);
+      char *name = str->orig;
       int (*reqfn) (mu_sieve_machine_t mach, const char *name) = NULL;
       const char *text = NULL;
       
-      mu_iterator_current (itr, (void **)&name);
-
       if (strncmp (name, "comparator-", 11) == 0)
 	{
 	  name += 11;
@@ -87,6 +74,5 @@ mu_sieve_require (mu_sieve_machine_t mach, mu_list_t slist)
 	  mu_i_sv_error (mach);
 	}
     }
-  mu_iterator_destroy (&itr);
 }
      

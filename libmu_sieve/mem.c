@@ -196,11 +196,42 @@ mu_sieve_reclaim_value (void *p)
   /* For now, the same as _default.  Will change in the future */
   free (p);
 }
-
+
+/* Based on gnulib's x2nrealloc */
 void
-mu_sieve_reclaim_tag (void *p)
+mu_i_sv_2nrealloc (mu_sieve_machine_t mach, void **pptr, size_t *pnmemb,
+		   size_t size)
 {
-  mu_sieve_runtime_tag_t *tag = p;
-  mu_sieve_reclaim_value (tag->arg);
-}
+  void *ptr = *pptr;
+  size_t nmemb = *pnmemb;
+  
+  if (!ptr)
+    {
+      if (!nmemb)
+	{
+	  /* Initial allocation size */
+	  nmemb = 16;
+	}
+    }
+  else
+    {
+      /* Set NMEMB = floor (1.5 * NMEMB) + 1 so that progress is made even
+	 if NMEMB == 0.
+	 Check for overflow, so that NMEMB * SIZE stays in size_t range.
+	 The check may be slightly conservative, but an exact check isn't
+	 worth the trouble.  */
+      if ((size_t) -1 / 3 * 2 / size <= nmemb)
+	{
+	  mu_diag_at_locus (MU_LOG_ERROR, &mach->locus,
+			    _("requested too much memory %zu * %zu"),
+			    nmemb, size);
+	  mu_sieve_abort (mach);
+	}
+      nmemb += nmemb / 2 + 1;
+    }
 
+  ptr = mu_sieve_realloc (mach, ptr, nmemb * size);
+  
+  *pptr = ptr;
+  *pnmemb = nmemb;
+}

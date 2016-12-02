@@ -33,6 +33,13 @@ extern "C" {
 
 typedef struct mu_sieve_machine *mu_sieve_machine_t;
 
+typedef struct mu_sieve_string
+{
+  char *orig;
+  char *exp;
+  void *rx;
+} mu_sieve_string_t;
+  
 typedef int (*mu_sieve_handler_t) (mu_sieve_machine_t mach);
 typedef void (*mu_sieve_action_log_t) (mu_sieve_machine_t mach,
 				       const char *action,
@@ -40,13 +47,12 @@ typedef void (*mu_sieve_action_log_t) (mu_sieve_machine_t mach,
 
 typedef int (*mu_sieve_relcmp_t) (int, int);
 typedef int (*mu_sieve_relcmpn_t) (size_t, size_t);
-typedef int (*mu_sieve_comparator_t) (const char *, const char *);
+typedef int (*mu_sieve_comparator_t) (mu_sieve_machine_t mach,
+				      mu_sieve_string_t *, const char *);
 typedef int (*mu_sieve_retrieve_t) (void *item, void *data, int idx,
 				    char **pval);
 typedef void (*mu_sieve_destructor_t) (void *data);
-typedef int (*mu_sieve_tag_checker_t) (mu_sieve_machine_t mach,
-				       const char *name,
-				       mu_list_t tags, mu_list_t args);
+typedef int (*mu_sieve_tag_checker_t) (mu_sieve_machine_t mach);
 
 typedef enum
 {
@@ -55,24 +61,29 @@ typedef enum
   SVT_STRING,
   SVT_STRING_LIST,
   SVT_TAG,
-  SVT_IDENT,
-  SVT_POINTER
+  SVT_IDENT
 }
 mu_sieve_data_type;
 
-typedef struct mu_sieve_runtime_tag mu_sieve_runtime_tag_t;
+struct mu_sieve_slice
+{
+  size_t first;
+  size_t count;
+};
+
+typedef struct mu_sieve_slice *mu_sieve_slice_t;
 
 union mu_sieve_value_storage
 {
   char *string;
   size_t number;
-  mu_list_t list;
-  void *ptr;
+  struct mu_sieve_slice list;
 };
 
 typedef struct
 {
   mu_sieve_data_type type;
+  char *tag;
   union mu_sieve_value_storage v;
 } mu_sieve_value_t;
 
@@ -87,12 +98,6 @@ typedef struct
   mu_sieve_tag_def_t *tags;
   mu_sieve_tag_checker_t checker;
 } mu_sieve_tag_group_t;
-
-struct mu_sieve_runtime_tag
-{
-  char *tag;
-  mu_sieve_value_t *arg;
-};
 
 typedef struct
 {
@@ -135,11 +140,9 @@ void *mu_sieve_realloc (mu_sieve_machine_t mach, void *ptr, size_t size);
 void mu_sieve_reclaim_default (void *p);
 void mu_sieve_reclaim_list (void *p);
 void mu_sieve_reclaim_value (void *p);
-void mu_sieve_reclaim_tag (void *p);
   
-mu_sieve_value_t *mu_sieve_value_create (mu_sieve_machine_t mach,
-					 mu_sieve_data_type type, void *data);
-void mu_sieve_slist_destroy (mu_list_t *plist);
+size_t mu_sieve_value_create (mu_sieve_machine_t mach,
+			      mu_sieve_data_type type, void *data);
 
 /* Symbol space functions */
 mu_sieve_register_t *mu_sieve_test_lookup (mu_sieve_machine_t mach,
@@ -185,30 +188,41 @@ int mu_sieve_str_to_relcmp (const char *str, mu_sieve_relcmp_t *test,
 			    mu_sieve_relcmpn_t *stest);
 mu_sieve_relcmp_t mu_sieve_get_relcmp (mu_sieve_machine_t mach);
 
-void mu_sieve_require (mu_sieve_machine_t mach, mu_list_t slist);
+void mu_sieve_require (mu_sieve_machine_t mach, mu_sieve_slice_t list);
 
+void mu_sieve_value_get (mu_sieve_machine_t mach, mu_sieve_value_t *val,
+			 mu_sieve_data_type type, void *ret);
+  
 int mu_sieve_get_tag (mu_sieve_machine_t mach, char *name,
 		      mu_sieve_data_type type, void *ret);
-int mu_sieve_get_tag_untyped (mu_sieve_machine_t mach, 
-			      char *name, mu_sieve_value_t **ret);
+mu_sieve_value_t *mu_sieve_get_tag_untyped (mu_sieve_machine_t mach,
+					    char const *name);
+mu_sieve_value_t *mu_sieve_get_tag_n (mu_sieve_machine_t mach, size_t n);
   
 int mu_sieve_load_ext (mu_sieve_machine_t mach, const char *name);
-int mu_sieve_match_part_checker (mu_sieve_machine_t mach,
-				 const char *name, mu_list_t tags,
-				 mu_list_t args);
-int mu_sieve_match_part_checker (mu_sieve_machine_t mach,
-				 const char *name, mu_list_t tags,
-				 mu_list_t args);
+int mu_sieve_match_part_checker (mu_sieve_machine_t mach);
+
 /* Operations on value lists */
 mu_sieve_value_t *mu_sieve_get_arg_optional (mu_sieve_machine_t mach,
 					     size_t index);
 mu_sieve_value_t *mu_sieve_get_arg_untyped (mu_sieve_machine_t mach,
 					    size_t index);
-int mu_sieve_get_arg (mu_sieve_machine_t mach, size_t index,
-		      mu_sieve_data_type type, void *ret);
-int mu_sieve_vlist_do (mu_sieve_value_t *val, mu_list_action_t ac,
+void mu_sieve_get_arg (mu_sieve_machine_t mach, size_t index,
+		       mu_sieve_data_type type, void *ret);
+
+char *mu_sieve_string (mu_sieve_machine_t mach,
+		       mu_sieve_slice_t slice,
+		       size_t i);
+struct mu_sieve_string *mu_sieve_string_raw (mu_sieve_machine_t mach,
+					     mu_sieve_slice_t slice,
+					     size_t i);
+
+  
+int mu_sieve_vlist_do (mu_sieve_machine_t mach,
+		       mu_sieve_value_t *val, mu_list_action_t ac,
 		       void *data);
-int mu_sieve_vlist_compare (mu_sieve_value_t *a, mu_sieve_value_t *b,
+int mu_sieve_vlist_compare (mu_sieve_machine_t mach,
+			    mu_sieve_value_t *a, mu_sieve_value_t *b,
 			    mu_sieve_comparator_t comp,
 			    mu_sieve_relcmp_t test, mu_sieve_retrieve_t ac,
 			    void *data, size_t *count);

@@ -24,8 +24,8 @@
 #include <assert.h>
 #include <sieve-priv.h>
 
-#define SIEVE_ARG(m,n,t) ((m)->prog[(m)->pc+(n)].t)
-#define SIEVE_ADJUST(m,n) (m)->pc+=(n)
+#define SIEVE_RT_ARG(m,n,t) ((m)->prog[(m)->pc+(n)].t)
+#define SIEVE_RT_ADJUST(m,n) (m)->pc+=(n)
 
 #define INSTR_DISASS(m) ((m)->state == mu_sieve_state_disass)
 #define INSTR_DEBUG(m) \
@@ -34,49 +34,53 @@
 void
 _mu_i_sv_instr_source (mu_sieve_machine_t mach)
 {
-  mach->locus.mu_file = (char*) SIEVE_ARG (mach, 0, string);
+  mach->locus.mu_file = (char*) SIEVE_RT_ARG (mach, 0, string);
   mu_stream_ioctl (mach->errstream, MU_IOCTL_LOGSTREAM,
                    MU_IOCTL_LOGSTREAM_SET_LOCUS,
 		   &mach->locus);
   if (INSTR_DEBUG (mach))
     mu_i_sv_debug (mach, mach->pc - 1, "SOURCE %s", mach->locus.mu_file);
-  SIEVE_ADJUST (mach, 1);
+  SIEVE_RT_ADJUST (mach, 1);
 }
 		 
 void
 _mu_i_sv_instr_line (mu_sieve_machine_t mach)
 {
-  mach->locus.mu_line = SIEVE_ARG (mach, 0, line);
+  mach->locus.mu_line = SIEVE_RT_ARG (mach, 0, line);
   mu_stream_ioctl (mach->errstream, MU_IOCTL_LOGSTREAM,
                    MU_IOCTL_LOGSTREAM_SET_LOCUS,
 		   &mach->locus);
   if (INSTR_DEBUG (mach))
     mu_i_sv_debug (mach, mach->pc - 1, "LINE %u",
 		   mach->locus.mu_line);
-  SIEVE_ADJUST (mach, 1);
+  SIEVE_RT_ADJUST (mach, 1);
 }
 		 
 static int
 instr_run (mu_sieve_machine_t mach, char const *what)
 {
   int rc = 0;
-  mu_sieve_handler_t han = SIEVE_ARG (mach, 0, handler);
-  mach->arg_list = SIEVE_ARG (mach, 1, list);
-  mach->tag_list = SIEVE_ARG (mach, 2, list);
-  mach->identifier = SIEVE_ARG (mach, 3, string);
-  
-  SIEVE_ADJUST (mach, 4);
+  mu_sieve_handler_t han = SIEVE_RT_ARG (mach, 0, handler);
+  mach->argstart = SIEVE_RT_ARG (mach, 1, pc);
+  mach->argcount = SIEVE_RT_ARG (mach, 2, pc);
+  mach->tagcount = SIEVE_RT_ARG (mach, 3, pc);
+  mach->identifier = SIEVE_RT_ARG (mach, 4, string);
+  mach->comparator = SIEVE_RT_ARG (mach, 5, comp);
+				   
+  SIEVE_RT_ADJUST (mach, 6);
 
   if (INSTR_DEBUG (mach))
-    mu_i_sv_debug_command (mach, mach->pc - 1, what);
+    mu_i_sv_debug_command (mach, mach->pc - 7, what);
   else
     mu_i_sv_trace (mach, what);
   
   if (!INSTR_DISASS (mach))
     rc = han (mach);
-  mach->arg_list = NULL;
-  mach->tag_list = NULL;
+  mach->argstart = 0;
+  mach->argcount = 0;
+  mach->tagcount = 0;
   mach->identifier = NULL;
+  mach->comparator = NULL;
   return rc;
 }
 
@@ -138,9 +142,9 @@ _mu_i_sv_instr_not (mu_sieve_machine_t mach)
 void
 _mu_i_sv_instr_branch (mu_sieve_machine_t mach)
 {
-  long num = SIEVE_ARG (mach, 0, number);
+  long num = SIEVE_RT_ARG (mach, 0, number);
 
-  SIEVE_ADJUST (mach, 1);
+  SIEVE_RT_ADJUST (mach, 1);
   if (INSTR_DEBUG (mach))
     mu_i_sv_debug (mach, mach->pc - 2, "BRANCH %lu",
 		   (unsigned long)(mach->pc + num));
@@ -153,8 +157,8 @@ _mu_i_sv_instr_branch (mu_sieve_machine_t mach)
 void
 _mu_i_sv_instr_brz (mu_sieve_machine_t mach)
 {
-  long num = SIEVE_ARG (mach, 0, number);
-  SIEVE_ADJUST (mach, 1);
+  long num = SIEVE_RT_ARG (mach, 0, number);
+  SIEVE_RT_ADJUST (mach, 1);
 
   if (INSTR_DEBUG (mach))
     mu_i_sv_debug (mach, mach->pc - 2, "BRZ %lu",
@@ -169,8 +173,8 @@ _mu_i_sv_instr_brz (mu_sieve_machine_t mach)
 void
 _mu_i_sv_instr_brnz (mu_sieve_machine_t mach)
 {
-  long num = SIEVE_ARG (mach, 0, number);
-  SIEVE_ADJUST (mach, 1);
+  long num = SIEVE_RT_ARG (mach, 0, number);
+  SIEVE_RT_ADJUST (mach, 1);
 
   if (INSTR_DEBUG (mach))
     mu_i_sv_debug (mach, mach->pc - 2, "BRNZ %lu",

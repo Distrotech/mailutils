@@ -125,7 +125,7 @@ Subject: Ping
 Test message, please discard.
 
 ],
-[DELETEHEADER on msg uid 1: X-Agent: (regexp)
+[DELETEHEADER on msg uid 1: X-Agent (values)
 ])
 
 m4_popdef([MUT_SIEVE_EXT_NAME])

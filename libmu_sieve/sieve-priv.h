@@ -19,8 +19,7 @@
 #include <mailutils/sieve.h>
 #include <setjmp.h>
 #include <string.h>
-
-#define SIEVE_CODE_INCR 128
+#include <regex.h>
 
 typedef void (*sieve_instr_t) (mu_sieve_machine_t mach);
 
@@ -29,6 +28,7 @@ typedef union
   sieve_instr_t instr;
   mu_sieve_handler_t handler;
   mu_sieve_value_t *val;
+  mu_sieve_comparator_t comp;
   mu_list_t list;
   long number;
   size_t pc;
@@ -37,7 +37,7 @@ typedef union
   char *string;
   unsigned unum;
 } sieve_op_t;
-
+
 struct mu_locus_range
 {
   struct mu_locus beg;
@@ -73,6 +73,14 @@ struct mu_sieve_machine
   mu_list_t action_list;     /* Actions */
   mu_list_t comp_list;       /* Comparators */
   mu_list_t source_list;     /* Source names (for diagnostics) */
+
+  mu_sieve_string_t *stringspace;
+  size_t stringcount;
+  size_t stringmax;
+  
+  mu_sieve_value_t *valspace;
+  size_t valcount;
+  size_t valmax;
   
   size_t progsize;           /* Number of allocated program cells */
   sieve_op_t *prog;          /* Compiled program */
@@ -85,8 +93,10 @@ struct mu_sieve_machine
 
   /* Call environment */
   const char *identifier;    /* Name of action or test being executed */
-  mu_list_t arg_list;        /* Positional arguments */
-  mu_list_t tag_list;        /* Tagged arguments */
+  size_t argstart;           /* Index of the first argument in valspace */
+  size_t argcount;           /* Number of positional arguments */
+  size_t tagcount;           /* Number of tagged arguments */
+  mu_sieve_comparator_t comparator; /* Comparator (for tests) */
   
   int dry_run;               /* Dry-run mode */
   jmp_buf errbuf;            /* Target location for non-local exits */
@@ -146,7 +156,10 @@ struct mu_sieve_node
     struct
     {
       mu_sieve_register_t *reg;
-      mu_list_t arg;
+      size_t argstart;
+      size_t argcount;
+      size_t tagcount;
+      mu_sieve_comparator_t comparator; /* Comparator (for tests) */
     } command;
   } v;
 };
@@ -161,18 +174,16 @@ void mu_i_sv_lex_finish (struct mu_sieve_machine *mach);
 
 extern mu_sieve_machine_t mu_sieve_machine;
 
-#define TAG_COMPFUN "__compfun__"
-
-int mu_i_sv_code (struct mu_sieve_machine *mach, sieve_op_t op);
+void mu_i_sv_code (struct mu_sieve_machine *mach, sieve_op_t op);
 
 void mu_i_sv_compile_error (struct mu_sieve_machine *mach,
 			    const char *fmt, ...) MU_PRINTFLIKE(2,3);
 
 int mu_i_sv_locus (struct mu_sieve_machine *mach, struct mu_locus_range *lr);
-int mu_i_sv_code_action (struct mu_sieve_machine *mach,
-			 mu_sieve_register_t *reg, mu_list_t arglist);
-int mu_i_sv_code_test (struct mu_sieve_machine *mach,
-		       mu_sieve_register_t *reg, mu_list_t arglist);
+void mu_i_sv_code_action (struct mu_sieve_machine *mach,
+			  struct mu_sieve_node *node);
+void mu_i_sv_code_test (struct mu_sieve_machine *mach,
+			struct mu_sieve_node *node);
 
 /* Opcodes */
 void _mu_i_sv_instr_action (mu_sieve_machine_t mach);
@@ -203,8 +214,7 @@ void mu_i_sv_debug_command (mu_sieve_machine_t mach, size_t pc,
 			    char const *what);
 void mu_i_sv_trace (mu_sieve_machine_t mach, const char *what);
 
-void mu_i_sv_argf (mu_stream_t str, mu_list_t list);
-void mu_i_sv_valf (mu_stream_t str, mu_sieve_value_t *val);
+void mu_i_sv_valf (mu_sieve_machine_t mach, mu_stream_t str, mu_sieve_value_t *val);
 
 typedef int (*mu_i_sv_interp_t) (char const *, size_t, char **, void *);
 
@@ -216,4 +226,15 @@ int mu_i_sv_expand_encoded_char (char const *input, size_t len, char **exp, void
 int mu_sieve_require_encoded_character (mu_sieve_machine_t mach,
 					const char *name);
 
+void mu_i_sv_2nrealloc (mu_sieve_machine_t mach,
+			void **pptr, size_t *pnmemb, size_t size);
+
+
+mu_sieve_value_t *mu_i_sv_mach_arg (mu_sieve_machine_t mach, size_t n);
+mu_sieve_value_t *mu_i_sv_mach_tagn (mu_sieve_machine_t mach, size_t n);
+void mu_i_sv_lint_command (struct mu_sieve_machine *mach,
+			   struct mu_sieve_node *node);
+
+
+size_t  mu_i_sv_string_create (mu_sieve_machine_t mach, char *str);
 

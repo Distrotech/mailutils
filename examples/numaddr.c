@@ -95,7 +95,7 @@ numaddr_test (mu_sieve_machine_t mach)
   vc.count = 0;
 
   /* Count the addresses */
-  rc = mu_sieve_vlist_do (h, _count_items, &vc);
+  rc = mu_sieve_vlist_do (mach, h, _count_items, &vc);
 
   /* Here rc >= 1 iff the counted number of addresses is greater or equal
      to vc.limit. If `:under' tag was given we reverse the return value */

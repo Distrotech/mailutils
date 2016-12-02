@@ -19,7 +19,6 @@ AT_KEYWORDS([encoded-character enc-char])
 
 AT_CHECK([
 AT_DATA([prog],[[require ["reject", "encoded-character"];
-
 reject "$${hex:40}";
 reject "${hex: 40 }";
 reject "${HEX: 40}";
@@ -38,25 +37,25 @@ reject "Nested ${hex: 73 65 71 ${hex: 75 65 6E}}ce";
 reject "Invalid ${hex: 73 RE}";
 ]])
 
-sieve MUT_SIEVE_CMDLINE MUT_SIEVE_OPTIONS -D prog | grep ACTION
+sieve MUT_SIEVE_CMDLINE MUT_SIEVE_OPTIONS -D prog | sed -n 's/.*ACTION: //p'
 ],
 [0],
-[   9: ACTION: reject "$@"
-  16: ACTION: reject "@"
-  23: ACTION: reject "@"
-  30: ACTION: reject "${hex:40"
-  37: ACTION: reject "${hex:400}"
-  44: ACTION: reject "${hex:40}"
-  51: ACTION: reject "@"
-  58: ACTION: reject "${ unicode:40}"
-  65: ACTION: reject "@"
-  72: ACTION: reject "@"
-  79: ACTION: reject "@"
-  86: ACTION: reject "${Unicode:Cool}"
-  93: ACTION: reject "Now is the time"
- 100: ACTION: reject "Unbalanced ${hex: 73 65 71 uence"
- 107: ACTION: reject "Nested ${hex: 73 65 71 uen}ce"
- 114: ACTION: reject "Invalid ${hex: 73 RE}"
+[reject "$@"
+reject "@"
+reject "@"
+reject "${hex:40"
+reject "${hex:400}"
+reject "${hex:40}"
+reject "@"
+reject "${ unicode:40}"
+reject "@"
+reject "@"
+reject "@"
+reject "${Unicode:Cool}"
+reject "Now is the time"
+reject "Unbalanced ${hex: 73 65 71 uence"
+reject "Nested ${hex: 73 65 71 uen}ce"
+reject "Invalid ${hex: 73 RE}"
 ])
 
 AT_CLEANUP

@@ -159,7 +159,7 @@ list_test (mu_sieve_machine_t mach)
   h = mu_sieve_get_arg_untyped (mach, 0);
   v = mu_sieve_get_arg_untyped (mach, 1);
   mu_message_get_header (mu_sieve_get_message (mach), &clos.header);
-  result = mu_sieve_vlist_compare (h, v, comp,
+  result = mu_sieve_vlist_compare (mach, h, v, comp,
 				   mu_sieve_get_relcmp (mach),
 				   list_retrieve_header,
 				   &clos, NULL) > 0;

@@ -38,13 +38,13 @@ typedef struct {
 
 int
 mu_sieve_register_comparator (mu_sieve_machine_t mach,
-			   const char *name,
-			   int required,
-			   mu_sieve_comparator_t is,
-			   mu_sieve_comparator_t contains,
-			   mu_sieve_comparator_t matches,
-			   mu_sieve_comparator_t regex,
-			   mu_sieve_comparator_t eq)
+			      const char *name,
+			      int required,
+			      mu_sieve_comparator_t is,
+			      mu_sieve_comparator_t contains,
+			      mu_sieve_comparator_t matches,
+			      mu_sieve_comparator_t regex,
+			      mu_sieve_comparator_t eq)
 {
   sieve_comparator_record_t *rp;
 
@@ -113,56 +113,28 @@ mu_sieve_comparator_lookup (mu_sieve_machine_t mach, const char *name,
   return NULL;
 }
 
-static int
-_find_comparator (void *item, void *data)
-{
-  mu_sieve_runtime_tag_t *tag = item;
-
-  if (strcmp (tag->tag, TAG_COMPFUN) == 0)
-    {
-      *(mu_sieve_comparator_t*)data = tag->arg->v.ptr;
-      return 1;
-    }
-  return 0;
-}
+static int i_ascii_casemap_is (mu_sieve_machine_t mach,
+			       mu_sieve_string_t *pattern, const char *text);
 
 mu_sieve_comparator_t
 mu_sieve_get_comparator (mu_sieve_machine_t mach)
 {
-  mu_sieve_comparator_t comp = NULL;
-
-  mu_list_foreach (mach->tag_list, _find_comparator, &comp);
-  return comp ? comp : mu_sieve_comparator_lookup (mach,
-						   "i;ascii-casemap",
-						   MU_SIEVE_MATCH_IS);
+  if (!mach->comparator)
+    return i_ascii_casemap_is;
+  return mach->comparator;
 }
 
 /* Compile time support */
-
-struct regex_data
+static void
+compile_pattern (mu_sieve_machine_t mach, mu_sieve_string_t *pattern, int flags)
 {
-  mu_sieve_machine_t mach;
-  int flags;
-  mu_list_t list;
-};
-
-#ifndef FNM_CASEFOLD
-static int
-_pattern_upcase (void *item, void *data)
-{
-  mu_strupper (item);
-  return 0;
-}
-#endif
-
-static int
-_regex_compile (void *item, void *data)
-{
-  struct regex_data *rd = data;
   int rc;
-  regex_t *preg = mu_sieve_malloc (rd->mach, sizeof (*preg));
-  
-  rc = regcomp (preg, (char*)item, rd->flags);
+  regex_t *preg;
+
+  if (pattern->rx)
+    return;
+  preg = mu_sieve_malloc (mach, sizeof (*preg));
+  rc = regcomp (preg, pattern->orig, REG_EXTENDED | flags);
   if (rc)
     {
       size_t size = regerror (rc, preg, NULL, 0);
@@ -170,64 +142,39 @@ _regex_compile (void *item, void *data)
       if (errbuf)
 	{
 	  regerror (rc, preg, errbuf, size);
-	  mu_diag_at_locus (MU_LOG_ERROR, &rd->mach->locus,
-			    _("regex error: %s"), errbuf);
+	  mu_sieve_error (mach, _("regex error: %s"), errbuf);
 	  free (errbuf);
 	}
       else
-	mu_diag_at_locus (MU_LOG_ERROR, &rd->mach->locus, _("regex error"));
-      mu_i_sv_error (rd->mach);
-      return rc;
+	mu_sieve_error (mach, _("regex error"));
+      mu_sieve_abort (mach);
     }
-
-  mu_list_append (rd->list, preg);
-  
-  return 0;
+  pattern->rx = preg;
 }
 
 static int
-_free_regex (void *item, void *unused)
-{
-  regfree ((regex_t*)item);
-  return 0;
-}
-
-static void
-_free_reglist (void *data)
-{
-  mu_list_t list = data;
-  mu_list_foreach (list, _free_regex, NULL);
-  mu_list_destroy (&list);
-}
-
-static int
-comp_false (const char *pattern, const char *text)
+comp_false (mu_sieve_machine_t mach, mu_sieve_string_t *pattern,
+	    const char *text)
 {
   return 0;
 }
 
 int
-mu_sieve_match_part_checker (mu_sieve_machine_t mach,
-			     const char *name, mu_list_t tags, mu_list_t args)
+mu_sieve_match_part_checker (mu_sieve_machine_t mach)
 {
-  mu_iterator_t itr;
-  mu_sieve_runtime_tag_t *match = NULL;
-  mu_sieve_runtime_tag_t *comp = NULL;
-  mu_sieve_runtime_tag_t *tmp;
+  size_t i;
+  mu_sieve_value_t *match = NULL;
   mu_sieve_comparator_t compfun = NULL;
-  char *compname = "false";
+  char *compname = NULL;
   
   int matchtype;
-  int err = 0;
-  
-  if (!tags || mu_list_get_iterator (tags, &itr))
+
+  if (mach->tagcount == 0)
     return 0;
 
-  for (mu_iterator_first (itr); !err && !mu_iterator_is_done (itr);
-       mu_iterator_next (itr))
+  for (i = 0; i < mach->tagcount; i++)
     {
-      mu_sieve_runtime_tag_t *t;
-      mu_iterator_current (itr, (void **)&t);
+      mu_sieve_value_t *t = mu_sieve_get_tag_n (mach, i);
       
       if (strcmp (t->tag, "is") == 0
 	  || strcmp (t->tag, "contains") == 0
@@ -240,21 +187,20 @@ mu_sieve_match_part_checker (mu_sieve_machine_t mach,
 	    {
 	      mu_diag_at_locus (MU_LOG_ERROR, &mach->locus, 
 				_("match type specified twice in call to `%s'"),
-				name);
+				mach->identifier);
 	      mu_i_sv_error (mach);
-	      err = 1;
+	      return 1;
 	    }
 	  else
 	    match = t;
 	}
-      else if (strcmp (t->tag, "comparator") == 0) 
-	comp = t;
+      else if (strcmp (t->tag, "comparator") == 0)
+	{
+	  if (t->type != SVT_STRING)
+	    abort ();
+	  compname = mu_sieve_string (mach, &t->v.list, 0);
+	}
     }
-
-  mu_iterator_destroy (&itr);
-
-  if (err)
-    return 1;
 
   if (!match || strcmp (match->tag, "is") == 0)
     matchtype = MU_SIEVE_MATCH_IS;
@@ -264,42 +210,43 @@ mu_sieve_match_part_checker (mu_sieve_machine_t mach,
     matchtype = MU_SIEVE_MATCH_MATCHES;
   else if (strcmp (match->tag, "regex") == 0)
     matchtype = MU_SIEVE_MATCH_REGEX;
-  else
+  else if (match->type == SVT_STRING)
     {
-      char *str = match->arg->v.string;
+      char *str = mu_sieve_string (mach, &match->v.list, 0);
       if (strcmp (match->tag, "count") == 0)
 	{
 	  mu_sieve_value_t *val;
 	  char *str;
 	  size_t count;
 	  
-	  if (comp && strcmp (comp->arg->v.string, "i;ascii-numeric"))
+	  if (compname && strcmp (compname, "i;ascii-numeric"))
 	    {
 	      mu_diag_at_locus (MU_LOG_ERROR, &mach->locus,
 				/* TRANSLATORS: Do not translate ':count'.
 				   It is the name of a Sieve tag */
 				_("comparator %s is incompatible with "
 				  ":count in call to `%s'"),
-				comp->arg->v.string,
-				name);
+				compname,
+				mach->identifier);
 	      mu_i_sv_error (mach);
 	      return 1;
 	    }
 
           matchtype = MU_SIEVE_MATCH_LAST; /* to not leave it undefined */
+	  compname = "false";
 	  compfun = comp_false;
-	  if (mu_list_get (args, 1, (void**) &val))
-	    return 1; /* shouldn't happen */
-	  /* NOTE: Type of v is always SVT_STRING_LIST */
-	  mu_list_count (val->v.list, &count);
-	  if (count > 1)
+	  val = mu_sieve_get_arg_untyped (mach, 1);
+	  /* NOTE: Type of val is always SVT_STRING_LIST */
+	  if (val->type != SVT_STRING_LIST)
+	    abort ();
+	  if (val->v.list.count > 1)
 	    {
 	      mu_diag_at_locus (MU_LOG_ERROR, &mach->locus, 
 			_("second argument must be a list of one element"));
 	      mu_i_sv_error (mach);
 	      return 1;
 	    }
-	  mu_list_get (val->v.list, 0, (void **) &str);
+	  str = mu_sieve_string_raw (mach, &val->v.list, 0)->orig;
 	  count = strtoul (str, &str, 10);
 	  if (*str)
 	    {
@@ -316,72 +263,32 @@ mu_sieve_match_part_checker (mu_sieve_machine_t mach,
 	{
 	  mu_diag_at_locus (MU_LOG_ERROR, &mach->locus, 
 			    _("invalid relational match `%s' in call to `%s'"),
-			    str, name);
+			    str, mach->identifier);
 	  mu_i_sv_error (mach);
 	  return 1;
 	}
     }
-
+  else
+    abort ();//FIXME
+  
   if (!compfun)
     {
-      compname = comp ? comp->arg->v.string : "i;ascii-casemap";
+      if (!compname)
+	compname = "i;ascii-casemap";
       compfun = mu_sieve_comparator_lookup (mach, compname, matchtype);
       if (!compfun)
 	{
 	  mu_diag_at_locus (MU_LOG_ERROR, &mach->locus, 
 			    _("comparator `%s' is incompatible with match type `%s' in call to `%s'"),
-			    compname, match ? match->tag : "is", name);
+			    compname, match ? match->tag : "is",
+			    mach->identifier);
 	  mu_i_sv_error (mach);
 	  return 1;
 	}
     }
 
-  tmp = mu_sieve_malloc (mach, sizeof (*tmp));
-  tmp->tag = TAG_COMPFUN;
-  tmp->arg = mu_sieve_value_create (mach, SVT_POINTER, compfun);
-  mu_list_append (tags, tmp);
+  mach->comparator = compfun;
   
-  if (matchtype == MU_SIEVE_MATCH_REGEX)
-    {
-      /* To speed up things, compile all patterns at once.
-	 Notice that it is supposed that patterns are in arg 2 */
-      mu_sieve_value_t *val, *newval;
-      struct regex_data rd;
-      int rc;
-      
-      if (mu_list_get (args, 1, (void**)&val))
-	return 0;
-
-      rd.mach = mach;
-      rd.flags = REG_EXTENDED;
-      if (strcmp (compname, "i;ascii-casemap") == 0)
-	rd.flags |= REG_ICASE;
-
-      mu_list_create (&rd.list);
-      
-      rc = mu_sieve_vlist_do (val, _regex_compile, &rd);
-
-      mu_sieve_machine_add_destructor (rd.mach, _free_reglist, rd.list);
-
-      if (rc)
-	return rc;
-      newval = mu_sieve_value_create (rd.mach, SVT_STRING_LIST, rd.list);
-      mu_list_replace (args, val, newval);
-    }
-#ifndef FNM_CASEFOLD
-  else if (matchtype == MU_SIEVE_MATCH_MATCHES
-	   && strcmp (compname, "i;ascii-casemap") == 0)
-    {
-      int rc;
-      mu_sieve_value_t *val;
-
-      if (mu_list_get (args, 1, (void**)&val))
-	return 0;
-      rc = mu_sieve_vlist_do (val, _pattern_upcase, NULL);
-      if (rc)
-	return rc;
-    }
-#endif
   return 0;
 }
 
@@ -390,85 +297,88 @@ mu_sieve_match_part_checker (mu_sieve_machine_t mach,
 /* :comparator i;octet */
 
 static int
-i_octet_is (const char *pattern, const char *text)
+i_octet_is (mu_sieve_machine_t mach, mu_sieve_string_t *pattern,
+	    const char *text)
 {
-  return strcmp (pattern, text) == 0;
+  return strcmp (pattern->orig, text) == 0;
 }
 
 static int
-i_octet_contains (const char *pattern, const char *text)
+i_octet_contains (mu_sieve_machine_t mach, mu_sieve_string_t *pattern,
+		  const char *text)
 {
-  return strstr (text, pattern) != NULL;
+  return strstr (text, pattern->orig) != NULL;
 }
 
 static int 
-i_octet_matches (const char *pattern, const char *text)
+i_octet_matches (mu_sieve_machine_t mach, mu_sieve_string_t *pattern,
+		 const char *text)
 {
-  return fnmatch (pattern, text, 0) == 0;
+  return fnmatch (pattern->orig, text, 0) == 0;
 }
 
 static int
-i_octet_regex (const char *pattern, const char *text)
+i_octet_regex (mu_sieve_machine_t mach, mu_sieve_string_t *pattern,
+	       const char *text)
 {
-  return regexec ((regex_t *) pattern, text, 0, NULL, 0) == 0;
+  compile_pattern (mach, pattern, 0);
+  return regexec ((regex_t *)pattern->rx, text, 0, NULL, 0) == 0;
 }
 
 static int
-i_octet_eq (const char *pattern, const char *text)
+i_octet_eq (mu_sieve_machine_t mach,
+	    mu_sieve_string_t *pattern, const char *text)
 {
-  return strcmp (text, pattern);
+  return strcmp (text, pattern->orig);
 }
 
 /* :comparator i;ascii-casemap */
 static int
-i_ascii_casemap_is (const char *pattern, const char *text)
+i_ascii_casemap_is (mu_sieve_machine_t mach,
+		    mu_sieve_string_t *pattern, const char *text)
 {
-  return mu_c_strcasecmp (pattern, text) == 0;
+  return mu_c_strcasecmp (pattern->orig, text) == 0;
 }
 
 static int
-i_ascii_casemap_contains (const char *pattern, const char *text)
+i_ascii_casemap_contains (mu_sieve_machine_t mach,
+			  mu_sieve_string_t *pattern, const char *text)
 {
-  return mu_c_strcasestr (text, pattern) != NULL;
+  return mu_c_strcasestr (text, pattern->orig) != NULL;
 }
 
 static int
-i_ascii_casemap_matches (const char *pattern, const char *text)
+i_ascii_casemap_matches (mu_sieve_machine_t mach,
+			 mu_sieve_string_t *pattern, const char *text)
 {
-#ifdef FNM_CASEFOLD
-  return fnmatch (pattern, text, FNM_CASEFOLD) == 0;
-#else
-  int rc;
-  char *p = strdup (text);
-  if (!p)
-    return 0;
-  _pattern_upcase (p, NULL);
-  rc = fnmatch (pattern, p, 0) == 0;
-  free (p);
-  return rc;
-#endif
+  return fnmatch (pattern->orig, text, FNM_CASEFOLD) == 0;
 }
 
 static int
-i_ascii_casemap_regex (const char *pattern, const char *text)
+i_ascii_casemap_regex (mu_sieve_machine_t mach,
+		       mu_sieve_string_t *pattern, const char *text)
 {
-  return regexec ((regex_t *) pattern, text, 0, NULL, 0) == 0;
+  compile_pattern (mach, pattern, REG_ICASE);
+  return regexec ((regex_t *) pattern->rx, text, 0, NULL, 0) == 0;
 }
 
 static int
-i_ascii_casemap_eq (const char *pattern, const char *text)
+i_ascii_casemap_eq (mu_sieve_machine_t mach,
+		    mu_sieve_string_t *pattern, const char *text)
 {
-  return mu_c_strcasecmp (text, pattern);
+  return mu_c_strcasecmp (text, pattern->orig);
 }
 
 /* :comparator i;ascii-numeric */
 static int
-i_ascii_numeric_is (const char *pattern, const char *text)
+i_ascii_numeric_is (mu_sieve_machine_t mach,
+		    mu_sieve_string_t *pattern, const char *text)
 {
-  if (mu_isdigit (*pattern))
+  if (mu_isdigit (*pattern->orig))
     {
       if (mu_isdigit (*text))
-	return strtol (pattern, NULL, 10) == strtol (text, NULL, 10);
+	//FIXME: Error checking
+	return strtol (pattern->orig, NULL, 10) == strtol (text, NULL, 10);
       else 
 	return 0;
     }
@@ -479,13 +389,14 @@ i_ascii_numeric_is (const char *pattern, const char *text)
 }
 
 static int
-i_ascii_numeric_eq (const char *pattern, const char *text)
+i_ascii_numeric_eq (mu_sieve_machine_t mach,
+		    mu_sieve_string_t *pattern, const char *text)
 {
-  if (mu_isdigit (*pattern))
+  if (mu_isdigit (*pattern->orig))
     {
       if (mu_isdigit (*text))
 	{
-	  size_t a = strtoul (pattern, NULL, 10);
+	  size_t a = strtoul (pattern->orig, NULL, 10);
 	  size_t b = strtoul (text, NULL, 10);
 	  if (b > a)
 	    return 1;

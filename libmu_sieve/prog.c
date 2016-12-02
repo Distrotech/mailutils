@@ -24,25 +24,15 @@
 #include <assert.h>
 #include <sieve-priv.h>
 
-int
+void
 mu_i_sv_code (struct mu_sieve_machine *mach, sieve_op_t op)
 {
   if (mach->pc >= mach->progsize)
     {
-      size_t newsize = mach->progsize + SIEVE_CODE_INCR;
-      sieve_op_t *newprog =
-	mu_sieve_realloc (mach, mach->prog, newsize * sizeof mach->prog[0]);
-      if (!newprog)
-	{
-	  mu_diag_at_locus (MU_LOG_ERROR, &mach->locus, _("not enough memory"));
-	  mu_i_sv_error (mach);
-	  return 1;
-	}
-      mach->prog = newprog;
-      mach->progsize = newsize;
+      mu_i_sv_2nrealloc (mach, (void**) &mach->prog, &mach->progsize,
+			 sizeof mach->prog[0]);
     }
   mach->prog[mach->pc++] = op;
-  return 0;
 }
 
 static int
@@ -105,249 +95,247 @@ _compare_ptr (void *item, void *data)
 struct check_arg
 {
   struct mu_sieve_machine *mach;
-  const char *name;
-  mu_list_t args;
-  mu_list_t tags;
+  struct mu_sieve_node *node;
 };
 
 static int
 _run_checker (void *item, void *data)
 {
   struct check_arg *arg = data;
-  return (*(mu_sieve_tag_checker_t)item) (arg->mach, arg->name,
-					  arg->tags, arg->args);
+  mu_sieve_machine_t mach = arg->mach;
+  struct mu_sieve_node *node = arg->node;
+  mu_sieve_tag_checker_t checker = item;
+  int rc;
+
+  mach->comparator = node->v.command.comparator;
+  mach->argstart = node->v.command.argstart;
+  mach->argcount = node->v.command.argcount;
+  mach->tagcount = node->v.command.tagcount;
+  mach->identifier = node->v.command.reg->name;
+  
+  rc = checker (arg->mach);
+
+  /* checker is allowed to alter these values */
+  node->v.command.comparator = mach->comparator;
+  node->v.command.argcount = mach->argcount;
+  node->v.command.tagcount = mach->tagcount;
+  
+  mach->argstart = 0;
+  mach->argcount = 0;
+  mach->tagcount = 0;
+  mach->identifier = NULL;
+
+  return rc;
 }
 
-static int
-sv_code_command (struct mu_sieve_machine *mach,
-		 mu_sieve_register_t *reg, mu_list_t arglist)
+void
+mu_i_sv_lint_command (struct mu_sieve_machine *mach,
+		      struct mu_sieve_node *node)
 {
-  mu_iterator_t itr;
-  mu_list_t arg_list = NULL;
-  mu_list_t tag_list = NULL;
+  size_t i;
+  mu_sieve_register_t *reg = node->v.command.reg;
+
+  mu_sieve_value_t *start = mach->valspace + node->v.command.argstart;
+  
   mu_list_t chk_list = NULL;
   mu_sieve_data_type *exp_arg;
   int opt_args = 0;
   int rc, err = 0;
   static mu_sieve_data_type empty[] = { SVT_VOID };
   
-  if (mu_i_sv_code (mach, (sieve_op_t) reg->handler))
-    return 1;
-
   exp_arg = reg->req_args ? reg->req_args : empty;
 
-  if (arglist)
+  /* Pass 1: consolidation */
+  for (i = 0; i < node->v.command.argcount; i++)
     {
-      rc = mu_list_get_iterator (arglist, &itr);
-
-      if (rc)
-	{
-	  mu_diag_at_locus (MU_LOG_ERROR, &mach->locus,
-			    _("cannot create iterator: %s"),
-			    mu_strerror (rc));
-	  mu_i_sv_error (mach);
-	  return 1;
-	}
-  
-      for (mu_iterator_first (itr);
-	   !mu_iterator_is_done (itr); mu_iterator_next (itr))
-	{
-	  mu_sieve_value_t *val;
-	  mu_sieve_runtime_tag_t tagrec, *tagptr;
+      mu_sieve_value_t *val = start + i;
 	  
-	  mu_iterator_current (itr, (void **)&val);
-	  
-	  if (val->type == SVT_TAG)
+      if (val->type == SVT_TAG)
+	{
+	  mu_sieve_tag_checker_t cf;
+	  mu_sieve_tag_def_t *tag = find_tag (reg->tags, val->v.string, &cf);
+	      
+	  if (!tag)
 	    {
-	      mu_sieve_tag_checker_t cf;
-	      mu_sieve_tag_def_t *tag = find_tag (reg->tags, val->v.string,
-						  &cf);
-	      if (!tag)
-		{
-		  mu_diag_at_locus (MU_LOG_ERROR, &mach->locus, 
-				    _("invalid tag name `%s' for `%s'"),
-				    val->v.string, reg->name);
-		  mu_i_sv_error (mach);
-		  err = 1;
-		  break;
-		}
-	      
-	      if (!tag_list && (rc = mu_list_create (&tag_list)))
-		{
-		  mu_diag_at_locus (MU_LOG_ERROR, &mach->locus, 
-				    _("cannot create tag list: %s"),
-				    mu_strerror (rc));
-		  mu_i_sv_error (mach);
-		  err = 1;
-		  break;
-		}
-	      
-	      tagrec.tag = tag->name;
-	      if (tag->argtype != SVT_VOID)
-		{
-		  mu_iterator_next (itr);
-		  if (mu_iterator_is_done (itr))
-		    {
-		      mu_diag_at_locus (MU_LOG_ERROR, &mach->locus, 
-			   _("required argument for tag %s is missing"),
-					tag->name);
-		      mu_i_sv_error (mach);
-		      err = 1;
-		      break;
-		    }
-		  mu_iterator_current (itr, (void **)&tagrec.arg);
-		  if (tagrec.arg->type != tag->argtype)
-		    {
-		      mu_diag_at_locus (MU_LOG_ERROR, &mach->locus, 
-					     _("type mismatch in argument to "
-					       "tag `%s'"),
-					     tag->name);
-		      mu_diag_at_locus (MU_LOG_ERROR, &mach->locus, 
-					     _("expected %s but passed %s"),
-					     mu_sieve_type_str (tag->argtype),
-					     mu_sieve_type_str (tagrec.arg->type));
-		      mu_i_sv_error (mach);
-		      err = 1;
-		      break;
-		    }
-		}
-	      else
-		tagrec.arg = NULL;
-	      
-	      tagptr = mu_sieve_malloc (mach, sizeof (*tagptr));
-	      *tagptr = tagrec;
-	      mu_list_append (tag_list, tagptr);
+	      mu_diag_at_locus (MU_LOG_ERROR, &mach->locus, 
+				_("invalid tag name `%s' for `%s'"),
+				val->v.string, reg->name);
+	      mu_i_sv_error (mach);
+	      err = 1;
+	      break;
+	    }
 
-	      if (cf)
-		{
-		  if (!chk_list && (rc = mu_list_create (&chk_list)))
-		    {
-		      mu_diag_at_locus (MU_LOG_ERROR, &mach->locus, 
-					_("cannot create check list: %s"),
-					mu_strerror (rc));
-		      mu_i_sv_error (mach);
-		      err = 1;
-		      break;
-		    }
-		  if (mu_list_foreach (chk_list, _compare_ptr, cf) == 0)
-		    mu_list_append (chk_list, cf);
-		}
+	  node->v.command.tagcount++;
+	  
+	  if (tag->argtype == SVT_VOID)
+	    {
+	      val->type = SVT_VOID;
+	      val->tag = val->v.string;
+	      val->v.string = NULL;
 	    }
 	  else
 	    {
-	      if (*exp_arg == SVT_VOID)
-		{
-		  if (reg->opt_args)
-		    {
-		      exp_arg = reg->opt_args;
-		      opt_args = 1;
-		    }
-		  else
-		    {
-		      mu_diag_at_locus (MU_LOG_ERROR, &mach->locus, 
-					_("too many arguments in call to `%s'"),
-					reg->name);
-		      mu_i_sv_error (mach);
-		      err = 1;
-		      break;
-		    }
-		}
-	      
-	      if (*exp_arg != val->type)
-		{
-		  if (*exp_arg == SVT_STRING_LIST && val->type == SVT_STRING)
-		    {
-		      mu_list_t list;
-
-		      mu_list_create (&list);
-		      mu_list_append (list, val->v.string);
-		      mu_sieve_free (mach, val);
-		      val = mu_sieve_value_create (mach, SVT_STRING_LIST, list);
-		    }
-		  else
-		    {
-		      mu_diag_at_locus (MU_LOG_ERROR, &mach->locus, 
-                                   _("type mismatch in argument %lu to `%s'"),
-				   (unsigned long) (exp_arg - reg->req_args + 1),
-					     reg->name);
-		      mu_diag_at_locus (MU_LOG_ERROR, &mach->locus, 
-					_("expected %s but passed %s"),
-					mu_sieve_type_str (*exp_arg),
-					mu_sieve_type_str (val->type));
-		      mu_i_sv_error (mach);
-		      err = 1;
-		      break;
-		    }
-		}
-
-	      if (!arg_list && (rc = mu_list_create (&arg_list)))
+	      if (i + 1 == node->v.command.argcount)
 		{
 		  mu_diag_at_locus (MU_LOG_ERROR, &mach->locus, 
-				    _("cannot create arg list: %s"),
+				    _("required argument for tag %s is missing"),
+				    tag->name);
+		  mu_i_sv_error (mach);
+		  err = 1;
+		  break;
+		}
+
+	      val[1].tag = val->v.string;
+	      *val = val[1];
+	      memmove (val + 1, val + 2,
+		       (node->v.command.argcount - i - 2) * sizeof (val[0]));
+	      mach->valcount--;
+	      node->v.command.argcount--;
+	      
+	      if (val->type != tag->argtype)
+		{
+		  mu_diag_at_locus (MU_LOG_ERROR, &mach->locus, 
+				    _("type mismatch in argument to "
+				      "tag `%s'"),
+				    tag->name);
+		  mu_diag_at_locus (MU_LOG_ERROR, &mach->locus, 
+				    _("expected %s but passed %s"),
+				    mu_sieve_type_str (tag->argtype),
+				    mu_sieve_type_str (val->type));
+		  mu_i_sv_error (mach);
+		  err = 1;
+		  break;
+		}
+	    }
+
+	  if (cf)
+	    {
+	      if (!chk_list && (rc = mu_list_create (&chk_list)))
+		{
+		  mu_diag_at_locus (MU_LOG_ERROR, &mach->locus, 
+				    _("cannot create check list: %s"),
 				    mu_strerror (rc));
 		  mu_i_sv_error (mach);
 		  err = 1;
 		  break;
 		}
-	      
-	      mu_list_append (arg_list, val);
-	      exp_arg++;
-	    }	    
+	      //FIXME
+	      if (mu_list_foreach (chk_list, _compare_ptr, cf) == 0)
+		mu_list_append (chk_list, cf);
+	    }
 	}
-      mu_iterator_destroy (&itr);
+      else
+	{
+	  if (*exp_arg == SVT_VOID)
+	    {
+	      if (reg->opt_args)
+		{
+		  exp_arg = reg->opt_args;
+		  opt_args = 1;
+		}
+	      else
+		{
+		  mu_diag_at_locus (MU_LOG_ERROR, &mach->locus, 
+				    _("too many arguments in call to `%s'"),
+				    reg->name);
+		  mu_i_sv_error (mach);
+		  err = 1;
+		  break;
+		}
+	    }
+	      
+	  if (*exp_arg != val->type)
+	    {
+	      if (*exp_arg == SVT_STRING_LIST && val->type == SVT_STRING)
+		/* compatible types */;
+	      else
+		{
+		  mu_diag_at_locus (MU_LOG_ERROR, &mach->locus, 
+				    _("type mismatch in argument %lu to `%s'"),
+				    (unsigned long) (exp_arg - reg->req_args + 1),
+				    reg->name);
+		  mu_diag_at_locus (MU_LOG_ERROR, &mach->locus, 
+				    _("expected %s but passed %s"),
+				    mu_sieve_type_str (*exp_arg),
+				    mu_sieve_type_str (val->type));
+		  mu_i_sv_error (mach);
+		  err = 1;
+		  break;
+		}
+	    }
+	  exp_arg++;
+	}
     }
 
-  if (!err)
+  if (!err && !opt_args && *exp_arg != SVT_VOID)
     {
-      if (!opt_args && *exp_arg != SVT_VOID)
-	{
-	  mu_diag_at_locus (MU_LOG_ERROR, &mach->locus, 
-			    _("too few arguments in call to `%s'"),
-			    reg->name);
-	  mu_i_sv_error (mach);
-	  err = 1;
-	}
-
-      if (chk_list)
-	{
-	  struct check_arg chk_arg;
-
-	  chk_arg.mach = mach;
-	  chk_arg.name = reg->name;
-	  chk_arg.tags = tag_list;
-	  chk_arg.args = arg_list;
-	  err = mu_list_foreach (chk_list, _run_checker, &chk_arg);
-	}
+      mu_diag_at_locus (MU_LOG_ERROR, &mach->locus, 
+			_("too few arguments in call to `%s'"),
+			reg->name);
+      mu_i_sv_error (mach);
+      err = 1;
     }
   
-  if (!err)
-    err = mu_i_sv_code (mach, (sieve_op_t) arg_list)
-      || mu_i_sv_code (mach, (sieve_op_t) tag_list)
-      || mu_i_sv_code (mach, (sieve_op_t) (char*) reg->name);
-
   if (err)
     {
-      mu_list_destroy (&arg_list);
-      mu_list_destroy (&tag_list);
       mu_list_destroy (&chk_list);
+      return;
     }
 
-  return err;
+  if (node->v.command.tagcount)
+    {
+      /* Move tags to the end of the list */
+      for (i = 1; i < node->v.command.argcount; i++)
+	{
+	  int j;//FIXME
+	  mu_sieve_value_t tmp = start[i];
+	  for (j = i - 1; j >= 0; j--)
+	    {
+	      if (!tmp.tag && start[j].tag)
+		start[j + 1] = start[j];
+	      else
+		break;
+	    }
+	  start[j + 1] = tmp;
+	}
+    }
+
+  node->v.command.argcount -= node->v.command.tagcount;
+  
+  if (chk_list)
+    {
+      struct check_arg chk_arg;
+
+      chk_arg.mach = mach;
+      chk_arg.node = node;
+      err = mu_list_foreach (chk_list, _run_checker, &chk_arg);
+    }
+}  
+
+static void
+sv_code_command (struct mu_sieve_machine *mach,
+		 struct mu_sieve_node *node)
+{
+  mu_i_sv_code (mach, (sieve_op_t) node->v.command.reg->handler);
+  mu_i_sv_code (mach, (sieve_op_t) node->v.command.argstart);
+  mu_i_sv_code (mach, (sieve_op_t) node->v.command.argcount);
+  mu_i_sv_code (mach, (sieve_op_t) node->v.command.tagcount);
+  mu_i_sv_code (mach, (sieve_op_t) (char*) node->v.command.reg->name);
+  mu_i_sv_code (mach, (sieve_op_t) node->v.command.comparator);
 }
 
-int
+void
 mu_i_sv_code_action (struct mu_sieve_machine *mach,
-		     mu_sieve_register_t *reg, mu_list_t arglist)
+		     struct mu_sieve_node *node)
 {
-  return mu_i_sv_code (mach, (sieve_op_t) _mu_i_sv_instr_action)
-         || sv_code_command (mach, reg, arglist);
+  mu_i_sv_code (mach, (sieve_op_t) _mu_i_sv_instr_action);
+  sv_code_command (mach, node);
 }
 
-int
-mu_i_sv_code_test (struct mu_sieve_machine *mach,
-		   mu_sieve_register_t *reg, mu_list_t arglist)
+void
+mu_i_sv_code_test (struct mu_sieve_machine *mach, struct mu_sieve_node *node)
 {
-  return mu_i_sv_code (mach, (sieve_op_t) _mu_i_sv_instr_test)
-         || sv_code_command (mach, reg, arglist);
+  mu_i_sv_code (mach, (sieve_op_t) _mu_i_sv_instr_test);
+  sv_code_command (mach, node);
 }
 

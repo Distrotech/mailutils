@@ -38,7 +38,8 @@ DCL(ge,>=)
 DCL(lt,<)
 DCL(le,<=)
 
-static struct reltest_tab {
+static struct reltest_tab
+{
   char *name;
   mu_sieve_relcmp_t test;
   mu_sieve_relcmpn_t stest;
@@ -66,7 +67,7 @@ _relcmp_lookup (const char *str)
 
 int
 mu_sieve_str_to_relcmp (const char *str,
-		      mu_sieve_relcmp_t *test, mu_sieve_relcmpn_t *stest)
+			mu_sieve_relcmp_t *test, mu_sieve_relcmpn_t *stest)
 {
   struct reltest_tab *t = _relcmp_lookup (str);
   if (t)

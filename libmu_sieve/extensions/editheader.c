@@ -81,7 +81,6 @@ sieve_deleteheader (mu_sieve_machine_t mach)
 {
   mu_sieve_value_t *val;
   const char *field_name;
-  const char *field_pattern;
   mu_message_t msg;
   mu_header_t hdr;
   int rc;
@@ -91,41 +90,9 @@ sieve_deleteheader (mu_sieve_machine_t mach)
   
   mu_sieve_get_arg (mach, 0, SVT_STRING, &field_name);
   val = mu_sieve_get_arg_optional (mach, 1);
-  if (!val)
-    {
-      field_pattern = NULL;
-      mu_sieve_log_action (mach, "DELETEHEADER", "%s", field_name);
-    }
-  else
-    {
-      switch (val->type)
-	{
-	case SVT_STRING_LIST:
-	  if (mu_list_get (val->v.list, 0, (void**)&field_pattern))
-	    {
-	      mu_sieve_error (mach, "%lu: %s",
-			      (unsigned long) mu_sieve_get_message_num (mach),
-			      _("cannot get list item"));
-	      mu_sieve_abort (mach);
-	    }
-	  mu_sieve_log_action (mach, "DELETEHEADER", "%s: (regexp)",
-			       field_name);
-	  break;
-	  
-	case SVT_STRING:
-	  field_pattern = val->v.string;
-	  mu_sieve_log_action (mach, "DELETEHEADER", "%s: %s", field_name,
-			       field_pattern);
-	  break;
 
-	default:
-	  mu_sieve_error (mach, "%lu: %s: %d",
-			  (unsigned long) mu_sieve_get_message_num (mach),
-			  _("unexpected value type"), val->type);
-	  mu_sieve_abort (mach);
-	  
-	}
-    }
+  mu_sieve_log_action (mach, "DELETEHEADER", "%s%s", field_name,
+		       val ? " (values)" : "" );
   
   if (mu_sieve_is_dry_run (mach))
     return 0;
@@ -141,7 +108,14 @@ sieve_deleteheader (mu_sieve_machine_t mach)
       mu_sieve_abort (mach);
     }
 
-  mu_header_get_iterator (hdr, &itr);
+  rc = mu_header_get_iterator (hdr, &itr);
+  if (rc)
+    {
+      mu_sieve_error (mach, "mu_header_get_iterator: %s",
+		      mu_strerror (rc));
+      mu_sieve_abort (mach);
+    }
+      
   if (mu_sieve_get_tag (mach, "last", SVT_VOID, NULL))
     {
       int backwards = 1;
@@ -162,10 +136,18 @@ sieve_deleteheader (mu_sieve_machine_t mach)
       if (idx && ++i < idx)
 	continue;
 	  
-      if (field_pattern)
+      if (val)
 	{
-	  if (comp (field_pattern, fv))
-	    mu_iterator_ctl (itr, mu_itrctl_delete, NULL);
+	  for (i = 0; i < val->v.list.count; i++)
+	    {
+	      mu_sieve_string_t *s = mu_sieve_string_raw (mach,
+							  &val->v.list, i);
+	      if (comp (mach, s, fv))
+		{
+		  mu_iterator_ctl (itr, mu_itrctl_delete, NULL);
+		  break;
+		}
+	    }
 	}
       else
 	mu_iterator_ctl (itr, mu_itrctl_delete, NULL);

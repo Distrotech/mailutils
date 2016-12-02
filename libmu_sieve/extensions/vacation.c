@@ -161,8 +161,8 @@ _compare (void *item, void *data)
    of the originating mail. Return non-zero if so and store a pointer
    to the matching address in *MY_ADDRESS. */
 static int
-match_addresses (mu_header_t hdr, char *email, mu_sieve_value_t *addresses,
-		 char const **my_address)
+match_addresses (mu_sieve_machine_t mach, mu_header_t hdr, char *email,
+		 mu_sieve_value_t *addresses, char const **my_address)
 {
   int match = 0;
   const char *str;
@@ -176,7 +176,7 @@ match_addresses (mu_header_t hdr, char *email, mu_sieve_value_t *addresses,
 	  if (_compare (email, &ad))
 	    match = 1;
 	  else if (addresses)
-	    match += mu_sieve_vlist_do (addresses, _compare, &ad);
+	    match += mu_sieve_vlist_do (mach, addresses, _compare, &ad);
 	  mu_address_destroy (&ad.addr);
 	}
     }
@@ -188,7 +188,7 @@ match_addresses (mu_header_t hdr, char *email, mu_sieve_value_t *addresses,
 	  if (_compare (email, &ad))
 	    match = 1;
 	  else if (addresses)
-	    match += mu_sieve_vlist_do (addresses, _compare, &ad);
+	    match += mu_sieve_vlist_do (mach, addresses, _compare, &ad);
 	  mu_address_destroy (&ad.addr);
 	}
     }
@@ -249,8 +249,8 @@ noreply_address_p (mu_sieve_machine_t mach, char *email)
   for (i = 0; rc == 0 && noreply_sender[i]; i++)
     rc = regex_comparator (noreply_sender[i], &rd);
 
-  if (!rc && mu_sieve_get_tag_untyped (mach, "noreply", &arg))
-    rc = mu_sieve_vlist_do (arg, regex_comparator, &rd);
+  if (!rc && (arg = mu_sieve_get_tag_untyped (mach, "noreply")) != NULL)
+    rc = mu_sieve_vlist_do (mach, arg, regex_comparator, &rd);
   
   return rc;
 }
@@ -716,12 +716,13 @@ vacation_reply (mu_sieve_machine_t mach, mu_message_t msg,
     {
       mu_header_set_value (newhdr, MU_HEADER_TO, to, 0);
 
-      if (mu_sieve_get_tag_untyped (mach, "header", &val))
+      val = mu_sieve_get_tag_untyped (mach, "header");
+      if (val)
 	{
 	  struct header_closure hc;
 	  hc.mach = mach;
 	  hc.hdr = newhdr;
-	  mu_sieve_vlist_do (val, add_header, &hc);
+	  mu_sieve_vlist_do (mach, val, add_header, &hc);
 	}
       
       vacation_subject (mach, msg, newhdr);
@@ -807,9 +808,8 @@ sieve_action_vacation (mu_sieve_machine_t mach)
     return_address = my_address;
   else
     {
-      mu_sieve_value_t *val = NULL;
-      mu_sieve_get_tag_untyped (mach, "aliases", &val);
-      if (match_addresses (hdr, my_address, val, &return_address) == 0)
+      mu_sieve_value_t *val = mu_sieve_get_tag_untyped (mach, "aliases");
+      if (match_addresses (mach, hdr, my_address, val, &return_address) == 0)
 	{
 	  free (my_address);
 	  return 0;

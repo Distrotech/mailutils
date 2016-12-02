@@ -42,6 +42,7 @@ libmu_sieve_la_SOURCES = \
  sieve-gram.h\
  sieve-lex.c\
  strexp.c\
+ string.c\
  tests.c\
  util.c
 libmu_sieve_la_LIBADD = ${MU_LIB_MAILUTILS} @LTDL_LIB@
