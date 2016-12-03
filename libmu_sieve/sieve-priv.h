@@ -29,7 +29,6 @@ typedef union
   mu_sieve_handler_t handler;
   mu_sieve_value_t *val;
   mu_sieve_comparator_t comp;
-  mu_list_t list;
   long number;
   size_t pc;
   size_t line;
@@ -69,10 +68,10 @@ struct mu_sieve_machine
 
   /* Symbol space: */
   mu_opool_t string_pool;    /* String constants */
+  mu_list_t source_list;     /* Source names (for diagnostics) */
   mu_list_t test_list;       /* Tests */
   mu_list_t action_list;     /* Actions */
   mu_list_t comp_list;       /* Comparators */
-  mu_list_t source_list;     /* Source names (for diagnostics) */
 
   mu_sieve_string_t *stringspace;
   size_t stringcount;
@@ -86,7 +85,7 @@ struct mu_sieve_machine
   sieve_op_t *prog;          /* Compiled program */
 
   /* Runtime data */
-  enum mu_sieve_state state;
+  enum mu_sieve_state state; /* Machine state */
   size_t pc;                 /* Current program counter */
   long reg;                  /* Numeric register */
   mu_list_t stack;           /* Runtime stack */
@@ -144,8 +143,6 @@ struct mu_sieve_node
   struct mu_locus_range locus;
   union
   {
-    mu_sieve_value_t *value;
-    mu_list_t list;
     struct mu_sieve_node *node;
     struct
     {
@@ -176,9 +173,6 @@ extern mu_sieve_machine_t mu_sieve_machine;
 
 void mu_i_sv_code (struct mu_sieve_machine *mach, sieve_op_t op);
 
-void mu_i_sv_compile_error (struct mu_sieve_machine *mach,
-			    const char *fmt, ...) MU_PRINTFLIKE(2,3);
-
 int mu_i_sv_locus (struct mu_sieve_machine *mach, struct mu_locus_range *lr);
 void mu_i_sv_code_action (struct mu_sieve_machine *mach,
 			  struct mu_sieve_node *node);
@@ -203,9 +197,6 @@ void mu_i_sv_register_standard_actions (mu_sieve_machine_t mach);
 void mu_i_sv_register_standard_tests (mu_sieve_machine_t mach);
 void mu_i_sv_register_standard_comparators (mu_sieve_machine_t mach);
 
-void mu_i_sv_print_value_list (mu_list_t list, mu_stream_t str);
-void mu_i_sv_print_tag_list (mu_list_t list, mu_stream_t str);
-
 void mu_i_sv_error (mu_sieve_machine_t mach);
 
 void mu_i_sv_debug (mu_sieve_machine_t mach, size_t pc, const char *fmt, ...)
@@ -214,7 +205,8 @@ void mu_i_sv_debug_command (mu_sieve_machine_t mach, size_t pc,
 			    char const *what);
 void mu_i_sv_trace (mu_sieve_machine_t mach, const char *what);
 
-void mu_i_sv_valf (mu_sieve_machine_t mach, mu_stream_t str, mu_sieve_value_t *val);
+void mu_i_sv_valf (mu_sieve_machine_t mach, mu_stream_t str,
+		   mu_sieve_value_t *val);
 
 typedef int (*mu_i_sv_interp_t) (char const *, size_t, char **, void *);
 

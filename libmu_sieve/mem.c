@@ -181,13 +181,6 @@ mu_sieve_reclaim_default (void *p)
   free (p);
 }
 
-void 
-mu_sieve_reclaim_list (void *p)
-{
-  mu_list_t list = p;
-  mu_list_destroy (&list);
-}
-
 void
 mu_sieve_reclaim_value (void *p)
 {

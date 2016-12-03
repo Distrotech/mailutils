@@ -217,7 +217,6 @@ mu_sieve_match_part_checker (mu_sieve_machine_t mach)
 	{
 	  mu_sieve_value_t *val;
 	  char *str;
-	  size_t count;
 	  
 	  if (compname && strcmp (compname, "i;ascii-numeric"))
 	    {
@@ -247,7 +246,7 @@ mu_sieve_match_part_checker (mu_sieve_machine_t mach)
 	      return 1;
 	    }
 	  str = mu_sieve_string_raw (mach, &val->v.list, 0)->orig;
-	  count = strtoul (str, &str, 10);
+	  str = mu_str_skip_class (str, MU_CTYPE_DIGIT);
 	  if (*str)
 	    {
 	      mu_diag_at_locus (MU_LOG_ERROR, &mach->locus, 

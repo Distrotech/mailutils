@@ -547,10 +547,6 @@ mu_i_sv_valf (mu_sieve_machine_t mach, mu_stream_t str, mu_sieve_value_t *val)
       mu_stream_printf (str, ":%s", val->v.string);
       break;
       
-    case SVT_IDENT:
-      mu_stream_printf (str, "%s", val->v.string);
-      break;
-	
     default:
       abort ();
     }

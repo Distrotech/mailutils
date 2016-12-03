@@ -59,7 +59,6 @@ mu_sieve_value_create (mu_sieve_machine_t mach, mu_sieve_data_type type,
       break;
       
     case SVT_TAG:
-    case SVT_IDENT:
       val->v.string = data;
       break;
 
@@ -142,7 +141,6 @@ mu_sieve_value_get (mu_sieve_machine_t mach, mu_sieve_value_t *val,
       break;
 
     case SVT_TAG:
-    case SVT_IDENT:
       *(char**) ret = val->v.string;
       break;
 
@@ -236,9 +234,6 @@ mu_sieve_type_str (mu_sieve_data_type type)
       
     case SVT_TAG:
       return "tag";
-
-    case SVT_IDENT:
-      return "ident";
 
     }
 
