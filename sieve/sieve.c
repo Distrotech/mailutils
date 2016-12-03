@@ -431,7 +431,7 @@ main (int argc, char *argv[])
     }
 
   /* Sieve interpreter setup. */
-  rc = mu_sieve_machine_init (&mach);
+  rc = mu_sieve_machine_create (&mach);
   if (rc)
     {
       mu_error (_("cannot initialize sieve machine: %s"), mu_strerror (rc));

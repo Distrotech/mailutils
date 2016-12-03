@@ -81,7 +81,7 @@ sieve_init (const char *prog, mu_script_descr_t *pdescr)
   int rc;
   mu_sieve_machine_t mach;
 
-  rc = mu_sieve_machine_init (&mach);
+  rc = mu_sieve_machine_create (&mach);
   if (rc == 0)
     {
       if (mu_script_sieve_log)

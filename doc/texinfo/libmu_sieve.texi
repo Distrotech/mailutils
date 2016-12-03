@@ -222,8 +222,8 @@ typedef int (*mu_sieve_printf_t) (void *@var{data},
 
 @table @var
 @item data
-A pointer to application specific data. These data are passed as 
-second argument to @code{mu_sieve_machine_init()}.
+A pointer to application specific data.  It is set using
+the @code{mu_sieve_set_data} call.
 @item fmt
 Printf-like format string.
 @item ap
@@ -362,13 +362,12 @@ case. [FIXME: describe how to do that]
 This subsection describes functions used to create an instance of the
 sieve machine, read or alter its internal fields and destroy it.
 
-@deftypefun int mu_sieve_machine_init (mu_sieve_machine_t *@var{mach}, void *@var{data})
+@deftypefun int mu_sieve_machine_create (mu_sieve_machine_t *@var{mach})
 
-The @code{mu_sieve_machine_init()} function creates an instance of a sieve
-machine. A pointer to the instance itself is returned in the argument
-@var{mach}. The user-specific data to be associated with the new machine
-are passed in @var{data} argument. The function returns 0 on success,
-non-zero error code otherwise,
+The @code{mu_sieve_machine_create()} function creates an instance of a sieve
+machine.  A pointer to the instance itself is returned in the argument
+@var{mach}. The function returns 0 on success, and a non-zero error
+code otherwise.
 @end deftypefun
 
 @deftypefun void mu_sieve_machine_destroy (mu_sieve_machine_t *@var{pmach})
@@ -417,7 +416,7 @@ match_part_checker (const char *name, list_t tags, list_t args)
 
 @deftypefun {void *} mu_sieve_get_data (mu_sieve_machine_t @var{mach})
 This function returns the application-specific data associated with
-the instance of sieve machine. See @code{mu_sieve_machine_init()}.
+the instance of sieve machine. See @code{mu_sieve_machine_create()}.
 @end deftypefun
 
 @deftypefun mu_message_t mu_sieve_get_message (mu_sieve_machine_t @var{mach})

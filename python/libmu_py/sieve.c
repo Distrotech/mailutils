@@ -107,7 +107,7 @@ api_sieve_machine_init (PyObject *self, PyObject *args)
   if (status)
     return _ro (PyInt_FromLong (status));
   
-  status = mu_sieve_machine_init (&py_mach->mach);
+  status = mu_sieve_machine_create (&py_mach->mach);
   if (status == 0)
     mu_sieve_set_diag_stream (py_mach->mach, estr);
   mu_stream_unref (estr);

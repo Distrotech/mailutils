@@ -980,7 +980,7 @@ mu_i_sv_error (mu_sieve_machine_t mach)
 }
 
 int
-mu_sieve_machine_init (mu_sieve_machine_t *pmach)
+mu_sieve_machine_create (mu_sieve_machine_t *pmach)
 {
   int rc;
   mu_sieve_machine_t mach;
@@ -1010,6 +1010,70 @@ mu_sieve_machine_init (mu_sieve_machine_t *pmach)
   return 0;
 }
 
+void
+mu_i_sv_free_stringspace (mu_sieve_machine_t mach)
+{
+  size_t i;
+  
+  for (i = 0; i < mach->stringcount; i++)
+    {
+      if (mach->stringspace[i].rx)
+	{
+	  regex_t *rx = mach->stringspace[i].rx;
+	  regfree (rx);
+	}
+      /* FIXME: Is it needed?
+      if (mach->stringspace[i].exp)
+	free (mach->stringspace[i].exp);
+      */
+    }
+}  
+
+int
+mu_sieve_machine_reset (mu_sieve_machine_t mach)
+{
+  switch (mach->state)
+    {
+    case mu_sieve_state_init:
+      /* Nothing to do */
+      return 0;
+      
+    case mu_sieve_state_error:
+    case mu_sieve_state_compiled:
+      /* Do the right thing */
+      break;
+      
+    case mu_sieve_state_running:
+    case mu_sieve_state_disass:
+      /* Can't reset a running machine */
+      return MU_ERR_FAILURE;
+    }
+
+  mu_i_sv_free_stringspace (mach);
+  mu_list_clear (mach->memory_pool);
+  mu_list_clear (mach->destr_list);
+  mu_opool_free (mach->string_pool, NULL);
+  mu_list_clear (mach->source_list);
+  mu_list_clear (mach->test_list);
+  mu_list_clear (mach->action_list);
+  mu_list_clear (mach->comp_list);
+
+  mach->stringspace = NULL;
+  mach->stringcount = 0;
+  mach->stringmax = 0;
+
+  mach->valspace = NULL;
+  mach->valcount = 0;
+  mach->valmax = 0;
+
+  mach->progsize = 0;
+  mach->prog = NULL;
+
+  mach->state = mu_sieve_state_init;
+
+  return 0;
+}
+
 int
 mu_sieve_machine_inherit (mu_sieve_machine_t const parent,
 			  mu_sieve_machine_t *pmach)
@@ -1020,7 +1084,7 @@ mu_sieve_machine_inherit (mu_sieve_machine_t const parent,
   if (!parent || parent->state == mu_sieve_state_error)
     return EINVAL;
   
-  rc = mu_sieve_machine_init (&child);
+  rc = mu_sieve_machine_create (&child);
   if (rc)
     return rc;
 
@@ -1029,9 +1093,14 @@ mu_sieve_machine_inherit (mu_sieve_machine_t const parent,
   child->state_flags = parent->state_flags;
   child->err_mode    = parent->err_mode;
   child->err_locus   = parent->err_locus;
+  if (child->err_locus.mu_file)
+    child->err_locus.mu_file =
+      mu_sieve_strdup (child, child->err_locus.mu_file);
   child->dbg_mode    = parent->dbg_mode;
   child->dbg_locus   = parent->dbg_locus;  
-
+  if (child->dbg_locus.mu_file)
+    child->dbg_locus.mu_file =
+      mu_sieve_strdup (child, child->dbg_locus.mu_file);
   child->errstream = parent->errstream;
   mu_stream_ref (child->errstream);
   child->dbgstream = parent->dbgstream;
@@ -1213,54 +1282,61 @@ struct sieve_destr_record
   void *ptr;
 };
 
-int
+static void
+run_destructor (void *data)
+{
+  struct sieve_destr_record *p = data;
+  p->destr (p->ptr);
+  free (data);
+}
+
+void
 mu_sieve_machine_add_destructor (mu_sieve_machine_t mach,
 				 mu_sieve_destructor_t destr,
 				 void *ptr)
 {
+  int rc;
   struct sieve_destr_record *p;
-
-  if (!mach->destr_list && mu_list_create (&mach->destr_list))
-    return 1;
-  p = mu_sieve_malloc (mach, sizeof (*p));
+  
+  if (!mach->destr_list)
+    {
+      rc = mu_list_create (&mach->destr_list);
+      if (rc)
+	{
+	  mu_sieve_error (mach, "mu_list_create: %s", mu_strerror (rc));
+	  destr (ptr);
+	  mu_sieve_abort (mach);
+	}
+      mu_list_set_destroy_item (mach->destr_list, run_destructor);
+    }
+  p = malloc (sizeof (*p));
   if (!p)
-    return 1;
+    {
+      mu_sieve_error (mach, "%s", mu_strerror (errno));
+      destr (ptr);
+      mu_sieve_abort (mach);
+    }
   p->destr = destr;
   p->ptr = ptr;
-  return mu_list_prepend (mach->destr_list, p);
-}
-
-static int
-_run_destructor (void *data, void *unused)
-{
-  struct sieve_destr_record *p = data;
-  p->destr (p->ptr);
-  return 0;
+  rc = mu_list_prepend (mach->destr_list, p);
+  if (rc)
+    {
+      mu_sieve_error (mach, "mu_list_prepend: %s", mu_strerror (rc));
+      destr (ptr);
+      free (p);
+      mu_sieve_abort (mach);
+    }
 }
 
 void
 mu_sieve_machine_destroy (mu_sieve_machine_t *pmach)
 {
   mu_sieve_machine_t mach = *pmach;
-  size_t i;
-  
-  for (i = 0; i < mach->stringcount; i++)
-    {
-      if (mach->stringspace[i].rx)
-	{
-	  regex_t *rx = mach->stringspace[i].rx;
-	  regfree (rx);
-	}
-      /* FIXME: Is it needed?
-      if (mach->stringspace[i].exp)
-	free (mach->stringspace[i].exp);
-      */
-    }
-  
+
+  mu_i_sv_free_stringspace (mach);
   mu_stream_destroy (&mach->errstream);
   mu_stream_destroy (&mach->dbgstream);
   mu_mailer_destroy (&mach->mailer);
-  mu_list_foreach (mach->destr_list, _run_destructor, NULL);
   mu_list_destroy (&mach->destr_list);
   mu_list_destroy (&mach->action_list);
   mu_list_destroy (&mach->test_list);
@@ -1279,6 +1355,10 @@ with_machine (mu_sieve_machine_t mach, char const *name,
   int rc = 0;
   mu_stream_t save_errstr;
 
+  rc = mu_sieve_machine_reset (mach);
+  if (rc)
+    return rc;
+  
   save_errstr = mu_strerr;  
   mu_stream_ref (save_errstr);
   mu_strerr = mach->errstream;

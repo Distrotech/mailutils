@@ -25,7 +25,7 @@ using namespace mailutils;
 
 SieveMachine :: SieveMachine ()
 {
-  int status = mu_sieve_machine_init (&mach);
+  int status = mu_sieve_machine_create (&mach);
   if (status)
     throw Exception ("SieveMachine::SieveMachine", status);
 }

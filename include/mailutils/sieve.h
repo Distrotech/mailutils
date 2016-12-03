@@ -226,14 +226,14 @@ int mu_sieve_vlist_compare (mu_sieve_machine_t mach,
 			    void *data, size_t *count);
 
 /* Functions to create and destroy sieve machine */
-int mu_sieve_machine_init (mu_sieve_machine_t *mach);
+int mu_sieve_machine_create (mu_sieve_machine_t *mach);
 int mu_sieve_machine_dup (mu_sieve_machine_t const in,
 			  mu_sieve_machine_t *out);
 int mu_sieve_machine_inherit (mu_sieve_machine_t const in,
 			      mu_sieve_machine_t *out);
 void mu_sieve_machine_destroy (mu_sieve_machine_t *pmach);
-int mu_sieve_machine_add_destructor (mu_sieve_machine_t mach,
-				     mu_sieve_destructor_t destr, void *ptr);
+void mu_sieve_machine_add_destructor (mu_sieve_machine_t mach,
+				      mu_sieve_destructor_t destr, void *ptr);
 
 /* Functions for accessing sieve machine internals */
 void mu_sieve_get_diag_stream (mu_sieve_machine_t mach, mu_stream_t *pstr);
