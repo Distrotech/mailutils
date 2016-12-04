@@ -31,16 +31,6 @@
 
 typedef int (*sieve_module_init_t) (mu_sieve_machine_t mach);
 
-#if 0
-/* FIXME: See comment below */ 
-static void
-_free_loaded_module (void *data)
-{
-  lt_dlclose ((lt_dlhandle)data);
-  lt_dlexit ();
-}
-#endif
-
 static int _add_load_dir (void *, void *);
 
 static int
@@ -61,8 +51,7 @@ sieve_init_load_path ()
     }
   return 0;
 }
-  
-     
+
 static lt_dlhandle
 load_module (mu_sieve_machine_t mach, const char *name)
 {
@@ -74,18 +63,12 @@ load_module (mu_sieve_machine_t mach, const char *name)
   handle = lt_dlopenext (name);
   if (handle)
     {
-      sieve_module_init_t init = (sieve_module_init_t)
-	                                lt_dlsym (handle, "init");
+      sieve_module_init_t init;
+      
+      init  = (sieve_module_init_t) lt_dlsym (handle, "init");
       if (init)
 	{
 	  init (mach);
-	  /* FIXME: We used to have this:
-  	       mu_sieve_machine_add_destructor (mach, _free_loaded_module,
- 	                                        handle);
-             However, unloading modules can lead to random segfaults in
-	     case they allocated any global-access data (e.g. mach->msg).
-	     In particular, this was the case with extensions/pipe.c. 
-	  */
 	  return handle;
 	}
       else
@@ -114,7 +97,7 @@ fix_module_name (char *name)
     }
 }
 
-int
+void *
 mu_sieve_load_ext (mu_sieve_machine_t mach, const char *name)
 {
   lt_dlhandle handle;
@@ -122,11 +105,18 @@ mu_sieve_load_ext (mu_sieve_machine_t mach, const char *name)
 
   modname = strdup (name);
   if (!modname)
-    return 1;
+    return NULL;
   fix_module_name (modname);
   handle = load_module (mach, modname);
   free (modname);
-  return handle == NULL;
+  return handle;
+}
+
+void
+mu_sieve_unload_ext (void *data)
+{
+  if (data)
+    lt_dlclose ((lt_dlhandle)data);
 }
 
 static int

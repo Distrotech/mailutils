@@ -123,6 +123,7 @@ static mu_sieve_tag_group_t timestamp_tag_groups[] = {
 int
 SIEVE_EXPORT(timestamp,init) (mu_sieve_machine_t mach)
 {
-  return mu_sieve_register_test (mach, "timestamp", timestamp_test,
-                              timestamp_req_args, timestamp_tag_groups, 1);
+  mu_sieve_register_test (mach, "timestamp", timestamp_test,
+			  timestamp_req_args, timestamp_tag_groups, 1);
+  return 0;
 }

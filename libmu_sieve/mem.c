@@ -83,6 +83,9 @@ mu_sieve_free (mu_sieve_machine_t mach, void *ptr)
   int rc;
   struct memory_cell mcell;
 
+  if (!ptr)
+    return;
+  
   mcell.ptr = ptr;
   rc = mu_list_remove (mach->memory_pool, &mcell);
   if (rc)
@@ -228,3 +231,65 @@ mu_i_sv_2nrealloc (mu_sieve_machine_t mach, void **pptr, size_t *pnmemb,
   *pptr = ptr;
   *pnmemb = nmemb;
 }
+
+char *
+mu_i_sv_id_canon (mu_sieve_machine_t mach, char const *name)
+{
+  size_t i;
+  char *p;
+  
+  if (!name)
+    return NULL;
+  
+  for (i = 0; i < mach->idcount; i++)
+    {
+      if (strcmp (mach->idspace[i], name) == 0)
+	return mach->idspace[i];
+    }
+
+  if (mach->idcount == mach->idmax)
+    {
+      mu_i_sv_2nrealloc (mach, 
+			 (void **) &mach->idspace,
+			 &mach->idmax,
+			 sizeof mach->idspace[0]);
+    }
+
+  p = mu_sieve_strdup (mach, name);
+  mach->idspace[mach->idcount++] = p;
+
+  return p;
+}
+ 
+size_t
+mu_i_sv_id_num (mu_sieve_machine_t mach, char const *name)
+{
+  size_t i;
+
+  for (i = 0; i < mach->idcount; i++)
+    {
+      if (mach->idspace[i] == name || strcmp (mach->idspace[i], name) == 0)
+	return i;
+    }
+  abort ();
+}
+
+char *
+mu_i_sv_id_str (mu_sieve_machine_t mach, size_t n)
+{
+  if (n >= mach->idcount)
+    abort ();
+  return mach->idspace[n];
+}
+
+void
+mu_i_sv_free_idspace (mu_sieve_machine_t mach)
+{
+  size_t i;
+
+  for (i = 0; i < mach->idcount; i++)
+    mu_sieve_free (mach, mach->idspace[i]);
+  mach->idcount = 0;
+}
+
+      

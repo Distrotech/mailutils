@@ -544,7 +544,8 @@ static mu_sieve_tag_group_t spamd_tag_groups[] = {
 int
 SIEVE_EXPORT(spamd,init) (mu_sieve_machine_t mach)
 {
-  return mu_sieve_register_test (mach, "spamd", spamd_test,
-                              spamd_req_args, spamd_tag_groups, 1);
+  mu_sieve_register_test (mach, "spamd", spamd_test,
+			  spamd_req_args, spamd_tag_groups, 1);
+  return 0;
 }
    

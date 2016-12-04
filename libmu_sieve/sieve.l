@@ -56,7 +56,6 @@ static int isemptystr (char *text);
 static ino_t sieve_source_inode;
 struct mu_locus mu_sieve_locus;
 static int newline;
-static mu_list_t file_names;
 
 static mu_stream_t input_stream;
  
@@ -90,35 +89,10 @@ fillbuf (char *buf, size_t max_size)
         yy_switch_to_buffer (s); \
 } while (0)
 
-static int
-file_name_cmp (const void *a, const void *b)  
-{
-  return strcmp (a, b);
-}
-
 static void
 init_locus (char const *name, ino_t ino)
 {
-  mu_sieve_locus.mu_file = NULL;
-  if (name)
-    {
-      if (!file_names)
-	{
-	  mu_list_create (&file_names);
-	  mu_list_set_comparator (file_names, file_name_cmp);
-	  mu_list_set_destroy_item (file_names, mu_list_free_item);
-	}
-      else
-	{
-	  mu_list_locate (file_names, (void*) name,
-			  (void**) &mu_sieve_locus.mu_file);
-	}
-      if (!mu_sieve_locus.mu_file)
-	{
-	  mu_sieve_locus.mu_file = strdup (name);//FIXME: Error checking
-	  mu_list_append (file_names, mu_sieve_locus.mu_file);
-	}
-    }
+  mu_sieve_locus.mu_file = mu_i_sv_id_canon (mu_sieve_machine, name);
   mu_sieve_locus.mu_line = 1;
   mu_sieve_locus.mu_col = 0;
   newline = 0;
@@ -496,12 +470,10 @@ mu_i_sv_lex_begin_string (const char *buf, int bufsize,
 }
 
 void
-mu_i_sv_lex_finish (struct mu_sieve_machine *mach)
+mu_i_sv_lex_finish (void)
 {
   while (pop_source () == 0)
     ;
-  mach->source_list = file_names;
-  file_names = NULL;
 }
   
 static int

@@ -203,8 +203,9 @@ static mu_sieve_tag_group_t list_tag_groups[] = {
 int
 SIEVE_EXPORT(list,init) (mu_sieve_machine_t mach)
 {
-  return mu_sieve_register_test (mach, "list", list_test,
-                              list_req_args, list_tag_groups, 1);
+  mu_sieve_register_test (mach, "list", list_test,
+			  list_req_args, list_tag_groups, 1);
+  return 0;
 }
 
 /* End of list.c */

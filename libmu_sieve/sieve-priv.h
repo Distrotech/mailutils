@@ -68,11 +68,12 @@ struct mu_sieve_machine
 
   /* Symbol space: */
   mu_opool_t string_pool;    /* String constants */
-  mu_list_t source_list;     /* Source names (for diagnostics) */
-  mu_list_t test_list;       /* Tests */
-  mu_list_t action_list;     /* Actions */
-  mu_list_t comp_list;       /* Comparators */
+  mu_list_t registry;        /* Tests, Actions, Comparators */
 
+  char **idspace;            /* Source and identifier names */
+  size_t idcount;
+  size_t idmax;
+  
   mu_sieve_string_t *stringspace;
   size_t stringcount;
   size_t stringmax;
@@ -88,7 +89,6 @@ struct mu_sieve_machine
   enum mu_sieve_state state; /* Machine state */
   size_t pc;                 /* Current program counter */
   long reg;                  /* Numeric register */
-  mu_list_t stack;           /* Runtime stack */
 
   /* Call environment */
   const char *identifier;    /* Name of action or test being executed */
@@ -152,7 +152,7 @@ struct mu_sieve_node
     } cond;
     struct
     {
-      mu_sieve_register_t *reg;
+      mu_sieve_registry_t *reg;
       size_t argstart;
       size_t argcount;
       size_t tagcount;
@@ -167,7 +167,7 @@ int mu_sieve_yylex (void);
 int mu_i_sv_lex_begin (const char *name);
 int mu_i_sv_lex_begin_string (const char *buf, int bufsize,
 			      const char *fname, int line);
-void mu_i_sv_lex_finish (struct mu_sieve_machine *mach);
+void mu_i_sv_lex_finish (void);
 
 extern mu_sieve_machine_t mu_sieve_machine;
 
@@ -182,8 +182,6 @@ void mu_i_sv_code_test (struct mu_sieve_machine *mach,
 /* Opcodes */
 void _mu_i_sv_instr_action (mu_sieve_machine_t mach);
 void _mu_i_sv_instr_test (mu_sieve_machine_t mach);
-void _mu_i_sv_instr_push (mu_sieve_machine_t mach);
-void _mu_i_sv_instr_pop (mu_sieve_machine_t mach);
 void _mu_i_sv_instr_not (mu_sieve_machine_t mach);
 void _mu_i_sv_instr_branch (mu_sieve_machine_t mach);
 void _mu_i_sv_instr_brz (mu_sieve_machine_t mach);
@@ -229,4 +227,10 @@ void mu_i_sv_lint_command (struct mu_sieve_machine *mach,
 
 
 size_t  mu_i_sv_string_create (mu_sieve_machine_t mach, char *str);
+
+char *mu_i_sv_id_canon (mu_sieve_machine_t mach, char const *name);
+size_t mu_i_sv_id_num (mu_sieve_machine_t mach, char const *name);
+char *mu_i_sv_id_str (mu_sieve_machine_t mach, size_t n);
+void mu_i_sv_free_idspace (mu_sieve_machine_t mach);
+
 

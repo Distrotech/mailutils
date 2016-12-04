@@ -30,13 +30,7 @@
 #include <mailutils/cctype.h>
 #include <mailutils/cstr.h>
 
-typedef struct {
-  const char *name;
-  int required;
-  mu_sieve_comparator_t comp[MU_SIEVE_MATCH_LAST];
-} sieve_comparator_record_t;
-
-int
+void
 mu_sieve_register_comparator (mu_sieve_machine_t mach,
 			      const char *name,
 			      int required,
@@ -46,70 +40,26 @@ mu_sieve_register_comparator (mu_sieve_machine_t mach,
 			      mu_sieve_comparator_t regex,
 			      mu_sieve_comparator_t eq)
 {
-  sieve_comparator_record_t *rp;
+  mu_sieve_registry_t *reg = mu_sieve_registry_add (mach, name);
 
-  if (!mach->comp_list)
-    {
-      int rc = mu_list_create (&mach->comp_list);
-      if (rc)
-	return rc;
-    }
-
-  rp = mu_sieve_malloc (mach, sizeof (*rp));
-  rp->required = required;
-  rp->name = name;
-  rp->comp[MU_SIEVE_MATCH_IS] = is;       
-  rp->comp[MU_SIEVE_MATCH_CONTAINS] = contains; 
-  rp->comp[MU_SIEVE_MATCH_MATCHES] = matches;  
-  rp->comp[MU_SIEVE_MATCH_REGEX] = regex;    
-  rp->comp[MU_SIEVE_MATCH_EQ] = eq;    
-
-  return mu_list_append (mach->comp_list, rp);
-}
-
-sieve_comparator_record_t *
-_lookup (mu_list_t list, const char *name)
-{
-  mu_iterator_t itr;
-  sieve_comparator_record_t *reg;
-
-  if (!list || mu_list_get_iterator (list, &itr))
-    return NULL;
-
-  for (mu_iterator_first (itr); !mu_iterator_is_done (itr); mu_iterator_next (itr))
-    {
-      mu_iterator_current (itr, (void **)&reg);
-      if (strcmp (reg->name, name) == 0)
-	break;
-      else
-	reg = NULL;
-    }
-  mu_iterator_destroy (&itr);
-  return reg;
-}
-    
-int
-mu_sieve_require_comparator (mu_sieve_machine_t mach, const char *name)
-{
-  sieve_comparator_record_t *reg = _lookup (mach->comp_list, name);
-  if (!reg)
-    {
-      if (!(mu_sieve_load_ext (mach, name) == 0
-	    && (reg = _lookup (mach->comp_list, name)) != NULL))
-	return 1;
-    }
-
-  reg->required = 1;
-  return 0;
+  reg->type = mu_sieve_record_comparator;
+  reg->required = required;
+  reg->name = name;
+  reg->v.comp[MU_SIEVE_MATCH_IS] = is;       
+  reg->v.comp[MU_SIEVE_MATCH_CONTAINS] = contains; 
+  reg->v.comp[MU_SIEVE_MATCH_MATCHES] = matches;  
+  reg->v.comp[MU_SIEVE_MATCH_REGEX] = regex;    
+  reg->v.comp[MU_SIEVE_MATCH_EQ] = eq;    
 }
 
 mu_sieve_comparator_t 
 mu_sieve_comparator_lookup (mu_sieve_machine_t mach, const char *name, 
                             int matchtype)
 {
-  sieve_comparator_record_t *reg = _lookup (mach->comp_list, name);
-  if (reg && reg->comp[matchtype])
-    return reg->comp[matchtype];
+  mu_sieve_registry_t *reg =
+    mu_sieve_registry_lookup (mach, name, mu_sieve_record_comparator);
+  if (reg && reg->v.comp[matchtype])
+    return reg->v.comp[matchtype];
   return NULL;
 }
 

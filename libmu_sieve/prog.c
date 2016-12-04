@@ -52,7 +52,7 @@ mu_i_sv_locus (struct mu_sieve_machine *mach, struct mu_locus_range *lr)
   if (!file_eq (mach->locus.mu_file, lr->beg.mu_file))
     {
       mu_i_sv_code (mach, (sieve_op_t) _mu_i_sv_instr_source);
-      mu_i_sv_code (mach, (sieve_op_t) lr->beg.mu_file);
+      mu_i_sv_code (mach, (sieve_op_t) mu_i_sv_id_num (mach, lr->beg.mu_file));
     }
   if (mach->locus.mu_line != lr->beg.mu_line)
     {
@@ -133,8 +133,8 @@ mu_i_sv_lint_command (struct mu_sieve_machine *mach,
 		      struct mu_sieve_node *node)
 {
   size_t i;
-  mu_sieve_register_t *reg = node->v.command.reg;
-
+  mu_sieve_registry_t *reg = node->v.command.reg;
+  
   mu_sieve_value_t *start = mach->valspace + node->v.command.argstart;
   
   mu_list_t chk_list = NULL;
@@ -142,8 +142,11 @@ mu_i_sv_lint_command (struct mu_sieve_machine *mach,
   int opt_args = 0;
   int rc, err = 0;
   static mu_sieve_data_type empty[] = { SVT_VOID };
+
+  if (!reg)
+    return;
   
-  exp_arg = reg->req_args ? reg->req_args : empty;
+  exp_arg = reg->v.command.req_args ? reg->v.command.req_args : empty;
 
   /* Pass 1: consolidation */
   for (i = 0; i < node->v.command.argcount; i++)
@@ -153,7 +156,8 @@ mu_i_sv_lint_command (struct mu_sieve_machine *mach,
       if (val->type == SVT_TAG)
 	{
 	  mu_sieve_tag_checker_t cf;
-	  mu_sieve_tag_def_t *tag = find_tag (reg->tags, val->v.string, &cf);
+	  mu_sieve_tag_def_t *tag = find_tag (reg->v.command.tags,
+					      val->v.string, &cf);
 	      
 	  if (!tag)
 	    {
@@ -228,9 +232,9 @@ mu_i_sv_lint_command (struct mu_sieve_machine *mach,
 	{
 	  if (*exp_arg == SVT_VOID)
 	    {
-	      if (reg->opt_args)
+	      if (reg->v.command.opt_args)
 		{
-		  exp_arg = reg->opt_args;
+		  exp_arg = reg->v.command.opt_args;
 		  opt_args = 1;
 		}
 	      else
@@ -252,7 +256,7 @@ mu_i_sv_lint_command (struct mu_sieve_machine *mach,
 		{
 		  mu_diag_at_locus (MU_LOG_ERROR, &mach->locus, 
 				    _("type mismatch in argument %lu to `%s'"),
-				    (unsigned long) (exp_arg - reg->req_args + 1),
+				    (unsigned long) (exp_arg - reg->v.command.req_args + 1),
 				    reg->name);
 		  mu_diag_at_locus (MU_LOG_ERROR, &mach->locus, 
 				    _("expected %s but passed %s"),
@@ -316,7 +320,7 @@ static void
 sv_code_command (struct mu_sieve_machine *mach,
 		 struct mu_sieve_node *node)
 {
-  mu_i_sv_code (mach, (sieve_op_t) node->v.command.reg->handler);
+  mu_i_sv_code (mach, (sieve_op_t) node->v.command.reg->v.command.handler);
   mu_i_sv_code (mach, (sieve_op_t) node->v.command.argstart);
   mu_i_sv_code (mach, (sieve_op_t) node->v.command.argcount);
   mu_i_sv_code (mach, (sieve_op_t) node->v.command.tagcount);

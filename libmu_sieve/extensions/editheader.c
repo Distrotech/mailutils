@@ -272,22 +272,13 @@ static mu_sieve_data_type deleteheader_args[] = {
 int
 SIEVE_EXPORT (editheader, init) (mu_sieve_machine_t mach)
 {
-  int rc;
-
   /* This dummy record is required by libmu_sieve  */
-  rc = mu_sieve_register_action (mach, "editheader", NULL, NULL, NULL, 1);
-  if (rc)
-    return rc;
-  rc = mu_sieve_register_action (mach, "addheader", sieve_addheader,
-				 addheader_args, addheader_tag_groups, 1);
-  if (rc)
-    return rc;
-  rc = mu_sieve_register_action_ext (mach, "deleteheader", sieve_deleteheader,
-				     deleteheader_args, deleteheader_args,
-				     deleteheader_tag_groups,
-				     1);
-  if (rc)
-    return rc;
-
-  return rc;
+  mu_sieve_register_action (mach, "editheader", NULL, NULL, NULL, 1);
+  mu_sieve_register_action (mach, "addheader", sieve_addheader,
+			    addheader_args, addheader_tag_groups, 1);
+  mu_sieve_register_action_ext (mach, "deleteheader", sieve_deleteheader,
+				deleteheader_args, deleteheader_args,
+				deleteheader_tag_groups,
+				1);
+  return 0;
 }

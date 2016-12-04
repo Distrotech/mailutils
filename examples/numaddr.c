@@ -131,6 +131,7 @@ static mu_sieve_tag_group_t numaddr_tag_groups[] = {
 int
 SIEVE_EXPORT(numaddr,init) (mu_sieve_machine_t mach)
 {
-  return mu_sieve_register_test (mach, "numaddr", numaddr_test,
-                              numaddr_req_args, numaddr_tag_groups, 1);
+  mu_sieve_register_test (mach, "numaddr", numaddr_test,
+			  numaddr_req_args, numaddr_tag_groups, 1);
+  return 0;
 }

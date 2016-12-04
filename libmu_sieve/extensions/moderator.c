@@ -84,7 +84,7 @@ moderator_filter_message (mu_sieve_machine_t mach,
   
   if (mu_sieve_get_tag (mach, "source", SVT_STRING, &arg))
     {
-      rc = mu_sieve_machine_inherit (mach, &newmach);
+      rc = mu_sieve_machine_clone (mach, &newmach);
       if (rc)
 	{
 	  mu_sieve_error (mach, _("cannot initialize sieve machine: %s"),
@@ -105,7 +105,7 @@ moderator_filter_message (mu_sieve_machine_t mach,
     {
       struct mu_locus locus;
       
-      rc = mu_sieve_machine_inherit (mach, &newmach);
+      rc = mu_sieve_machine_clone (mach, &newmach);
       if (rc)
 	{
 	  mu_sieve_error (mach, _("cannot initialize sieve machine: %s"),
@@ -363,8 +363,9 @@ static mu_sieve_tag_group_t moderator_tag_groups[] = {
 int
 SIEVE_EXPORT(moderator,init) (mu_sieve_machine_t mach)
 {
-  return mu_sieve_register_action (mach, "moderator", moderator_action,
-				   moderator_req_args,
-				   moderator_tag_groups, 1);
+  mu_sieve_register_action (mach, "moderator", moderator_action,
+			    moderator_req_args,
+			    moderator_tag_groups, 1);
+  return 0;
 }
    

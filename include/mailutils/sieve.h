@@ -100,17 +100,13 @@ typedef struct
   mu_sieve_tag_checker_t checker;
 } mu_sieve_tag_group_t;
 
-typedef struct
+struct mu_sieve_command          /* test or action */
 {
-  const char *name;
-  int required;
   mu_sieve_handler_t handler;
   mu_sieve_data_type *req_args;
   mu_sieve_data_type *opt_args;
   mu_sieve_tag_group_t *tags;
-} mu_sieve_register_t;
-
-#define MU_SIEVE_CHARSET "UTF-8"
+};
 
 #define MU_SIEVE_MATCH_IS        1
 #define MU_SIEVE_MATCH_CONTAINS  2
@@ -118,6 +114,28 @@ typedef struct
 #define MU_SIEVE_MATCH_REGEX     4
 #define MU_SIEVE_MATCH_EQ        5
 #define MU_SIEVE_MATCH_LAST      6
+
+enum mu_sieve_record
+  {
+    mu_sieve_record_action,
+    mu_sieve_record_test,
+    mu_sieve_record_comparator
+  };
+  
+typedef struct
+{
+  const char *name;
+  int required;
+  void *handle;
+  enum mu_sieve_record type;
+  union
+  {
+    struct mu_sieve_command command;
+    mu_sieve_comparator_t comp[MU_SIEVE_MATCH_LAST];
+  } v;
+} mu_sieve_registry_t;
+
+#define MU_SIEVE_CHARSET "UTF-8"
 
 extern mu_debug_handle_t mu_sieve_debug_handle;
 extern mu_list_t mu_sieve_include_path;
@@ -143,41 +161,46 @@ size_t mu_sieve_value_create (mu_sieve_machine_t mach,
 			      mu_sieve_data_type type, void *data);
 
 /* Symbol space functions */
-mu_sieve_register_t *mu_sieve_test_lookup (mu_sieve_machine_t mach,
-					   const char *name);
-mu_sieve_register_t *mu_sieve_action_lookup (mu_sieve_machine_t mach,
-					     const char *name);
-int mu_sieve_register_test_ext (mu_sieve_machine_t mach,
-				const char *name, mu_sieve_handler_t handler,
-				mu_sieve_data_type *req_args,
-				mu_sieve_data_type *opt_args,
-				mu_sieve_tag_group_t *tags, int required);
-int mu_sieve_register_test (mu_sieve_machine_t mach,
-			    const char *name, mu_sieve_handler_t handler,
-			    mu_sieve_data_type *arg_types,
-			    mu_sieve_tag_group_t *tags, int required);
+mu_sieve_registry_t *mu_sieve_registry_add (mu_sieve_machine_t mach,
+					    const char *name);
+mu_sieve_registry_t *mu_sieve_registry_lookup (mu_sieve_machine_t mach,
+					       const char *name,
+					       enum mu_sieve_record type);
+int mu_sieve_registry_require (mu_sieve_machine_t mach, const char *name,
+			       enum mu_sieve_record type);
 
-int mu_sieve_register_action_ext (mu_sieve_machine_t mach,
-				  const char *name, mu_sieve_handler_t handler,
-				  mu_sieve_data_type *req_args,
-				  mu_sieve_data_type *opt_args,
-				  mu_sieve_tag_group_t *tags, int required);
-int mu_sieve_register_action (mu_sieve_machine_t mach,
-			      const char *name, mu_sieve_handler_t handler,
-			      mu_sieve_data_type *arg_types,
-			      mu_sieve_tag_group_t *tags, int required);
-int mu_sieve_register_comparator (mu_sieve_machine_t mach, const char *name,
-				  int required, mu_sieve_comparator_t is,
-				  mu_sieve_comparator_t contains,
-				  mu_sieve_comparator_t matches,
-				  mu_sieve_comparator_t regex,
-				  mu_sieve_comparator_t eq);
-int mu_sieve_require_action (mu_sieve_machine_t mach, const char *name);
-int mu_sieve_require_test (mu_sieve_machine_t mach, const char *name);
-int mu_sieve_require_comparator (mu_sieve_machine_t mach, const char *name);
+void mu_sieve_register_test_ext (mu_sieve_machine_t mach,
+				 const char *name, mu_sieve_handler_t handler,
+				 mu_sieve_data_type *req_args,
+				 mu_sieve_data_type *opt_args,
+				 mu_sieve_tag_group_t *tags, int required);
+void mu_sieve_register_test (mu_sieve_machine_t mach,
+			     const char *name, mu_sieve_handler_t handler,
+			     mu_sieve_data_type *arg_types,
+			     mu_sieve_tag_group_t *tags, int required);
+
+void mu_sieve_register_action_ext (mu_sieve_machine_t mach,
+				   const char *name, mu_sieve_handler_t handler,
+				   mu_sieve_data_type *req_args,
+				   mu_sieve_data_type *opt_args,
+				   mu_sieve_tag_group_t *tags, int required);
+void mu_sieve_register_action (mu_sieve_machine_t mach,
+			       const char *name, mu_sieve_handler_t handler,
+			       mu_sieve_data_type *arg_types,
+			       mu_sieve_tag_group_t *tags, int required);
+  
+void mu_sieve_register_comparator (mu_sieve_machine_t mach, const char *name,
+				   int required, mu_sieve_comparator_t is,
+				   mu_sieve_comparator_t contains,
+				   mu_sieve_comparator_t matches,
+				   mu_sieve_comparator_t regex,
+				   mu_sieve_comparator_t eq);
+
 int mu_sieve_require_relational (mu_sieve_machine_t mach, const char *name);
 
-int mu_sieve_load_ext (mu_sieve_machine_t mach, const char *name);
+void *mu_sieve_load_ext (mu_sieve_machine_t mach, const char *name);
+void mu_sieve_unload_ext (void *handle);
+  
 int mu_sieve_match_part_checker (mu_sieve_machine_t mach);
 
 mu_sieve_comparator_t mu_sieve_comparator_lookup (mu_sieve_machine_t mach,
@@ -229,7 +252,7 @@ int mu_sieve_vlist_compare (mu_sieve_machine_t mach,
 int mu_sieve_machine_create (mu_sieve_machine_t *mach);
 int mu_sieve_machine_dup (mu_sieve_machine_t const in,
 			  mu_sieve_machine_t *out);
-int mu_sieve_machine_inherit (mu_sieve_machine_t const in,
+int mu_sieve_machine_clone (mu_sieve_machine_t const in,
 			      mu_sieve_machine_t *out);
 void mu_sieve_machine_destroy (mu_sieve_machine_t *pmach);
 void mu_sieve_machine_add_destructor (mu_sieve_machine_t mach,

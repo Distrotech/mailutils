@@ -34,7 +34,7 @@
 void
 _mu_i_sv_instr_source (mu_sieve_machine_t mach)
 {
-  mach->locus.mu_file = (char*) SIEVE_RT_ARG (mach, 0, string);
+  mach->locus.mu_file = mu_i_sv_id_str (mach, SIEVE_RT_ARG (mach, 0, pc));
   mu_stream_ioctl (mach->errstream, MU_IOCTL_LOGSTREAM,
                    MU_IOCTL_LOGSTREAM_SET_LOCUS,
 		   &mach->locus);
@@ -95,38 +95,6 @@ void
 _mu_i_sv_instr_test (mu_sieve_machine_t mach)
 {
   mach->reg = instr_run (mach, "TEST");
-}
-
-void
-_mu_i_sv_instr_push (mu_sieve_machine_t mach)
-{
-  if (INSTR_DEBUG (mach))
-    mu_i_sv_debug (mach, mach->pc - 1, "PUSH");
-  if (INSTR_DISASS (mach))
-    return;
-  
-  if (!mach->stack && mu_list_create (&mach->stack))
-    {
-      mu_sieve_error (mach, _("cannot create stack"));
-      mu_sieve_abort (mach);
-    }
-  mu_list_push (mach->stack, (void*) mach->reg);
-}
-
-void
-_mu_i_sv_instr_pop (mu_sieve_machine_t mach)
-{
-  if (INSTR_DEBUG (mach))
-    mu_i_sv_debug (mach, mach->pc - 1, "POP");
-  if (INSTR_DISASS (mach))
-    return;
-
-  if (!mach->stack || mu_list_is_empty (mach->stack))
-    {
-      mu_sieve_error (mach, _("stack underflow"));
-      mu_sieve_abort (mach);
-    }
-  mu_list_pop (mach->stack, (void **)&mach->reg);
 }
 
 void
@@ -207,7 +175,7 @@ mu_sieve_get_data (mu_sieve_machine_t mach)
 int
 mu_sieve_get_locus (mu_sieve_machine_t mach, struct mu_locus *loc)
 {
-  if (mach->source_list)
+  if (mach->locus.mu_file)
     {
       *loc = mach->locus;
       return 0;

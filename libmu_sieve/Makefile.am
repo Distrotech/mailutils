@@ -34,7 +34,7 @@ libmu_sieve_la_SOURCES = \
  load.c\
  mem.c\
  prog.c\
- register.c\
+ registry.c\
  relational.c\
  require.c\
  runtime.c\

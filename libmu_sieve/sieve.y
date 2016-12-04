@@ -245,10 +245,11 @@ cond         : test
 
 test         : command
                {
-		 mu_sieve_register_t *reg;
+		 mu_sieve_registry_t *reg;
 
 		 mu_sieve_machine->locus = @1.beg;
-		 reg = mu_sieve_test_lookup (mu_sieve_machine, $1.ident);
+		 reg = mu_sieve_registry_lookup (mu_sieve_machine, $1.ident,
+						 mu_sieve_record_test);
 		 if (!reg)
 		   {
 		     mu_diag_at_locus (MU_LOG_ERROR, &@1.beg,
@@ -292,10 +293,11 @@ command      : IDENT maybe_arglist
 
 action       : command
                {
-		 mu_sieve_register_t *reg;
+		 mu_sieve_registry_t *reg;
 
 		 mu_sieve_machine->locus = @1.beg;
-		 reg = mu_sieve_action_lookup (mu_sieve_machine, $1.ident);
+		 reg = mu_sieve_registry_lookup (mu_sieve_machine, $1.ident,
+						 mu_sieve_record_action);
 		 
 		 if (!reg)
 		   {
@@ -999,8 +1001,6 @@ mu_sieve_machine_create (mu_sieve_machine_t *pmach)
       return rc;
     }
   
-  mach->source_list = NULL;
-
   mach->data = NULL;
 
   mu_sieve_set_diag_stream (mach, mu_strerr);
@@ -1053,10 +1053,8 @@ mu_sieve_machine_reset (mu_sieve_machine_t mach)
   mu_list_clear (mach->memory_pool);
   mu_list_clear (mach->destr_list);
   mu_opool_free (mach->string_pool, NULL);
-  mu_list_clear (mach->source_list);
-  mu_list_clear (mach->test_list);
-  mu_list_clear (mach->action_list);
-  mu_list_clear (mach->comp_list);
+  mu_i_sv_free_idspace (mach);
+  mu_list_clear (mach->registry);
 
   mach->stringspace = NULL;
   mach->stringcount = 0;
@@ -1074,22 +1072,19 @@ mu_sieve_machine_reset (mu_sieve_machine_t mach)
   return 0;
 }
 
-int
-mu_sieve_machine_inherit (mu_sieve_machine_t const parent,
-			  mu_sieve_machine_t *pmach)
+static int
+regdup (void *item, void *data)
 {
-  mu_sieve_machine_t child;
-  int rc;
-  
-  if (!parent || parent->state == mu_sieve_state_error)
-    return EINVAL;
-  
-  rc = mu_sieve_machine_create (&child);
-  if (rc)
-    return rc;
+  mu_sieve_registry_t *reg = item;
+  mu_sieve_machine_t mach = data;
 
-  child->dry_run     = parent->dry_run;
+  mu_sieve_registry_require (mach, reg->name, reg->type);
+  return 0;
+}
 
+static void
+copy_stream_state (mu_sieve_machine_t child, mu_sieve_machine_t parent)
+{
   child->state_flags = parent->state_flags;
   child->err_mode    = parent->err_mode;
   child->err_locus   = parent->err_locus;
@@ -1105,13 +1100,97 @@ mu_sieve_machine_inherit (mu_sieve_machine_t const parent,
   mu_stream_ref (child->errstream);
   child->dbgstream = parent->dbgstream;
   mu_stream_ref (child->dbgstream);
-  
-  child->data = parent->data;
-  child->logger = parent->logger;
-  child->daemon_email = parent->daemon_email;
+}
 
-  *pmach = child;
-  return 0;
+int
+mu_sieve_machine_clone (mu_sieve_machine_t const parent,
+			mu_sieve_machine_t *pmach)
+{
+  size_t i;
+  mu_sieve_machine_t child;
+  int rc;
+  
+  if (!parent || parent->state == mu_sieve_state_error)
+    return EINVAL;
+  
+  rc = mu_sieve_machine_create (&child);
+  if (rc)
+    return rc;
+
+  rc = setjmp (child->errbuf);
+
+  if (rc == 0)
+    {
+      child->state = mu_sieve_state_init;
+      mu_i_sv_register_standard_actions (child);
+      mu_i_sv_register_standard_tests (child);
+      mu_i_sv_register_standard_comparators (child);
+
+      /* Load necessary modules */
+      mu_list_foreach (parent->registry, regdup, child);
+  
+      /* Copy identifiers */
+      child->idspace = mu_sieve_calloc (child, parent->idcount,
+					sizeof (child->idspace[0]));
+      child->idcount = child->idmax = parent->idcount;
+      for (i = 0; i < child->idcount; i++)
+	child->idspace[i] = mu_sieve_strdup (parent, parent->idspace[i]);
+      
+      /* Copy string constants */
+      child->stringspace = mu_sieve_calloc (child, parent->stringcount,
+					    sizeof (child->stringspace[0]));
+      child->stringcount = child->stringmax = parent->stringcount;
+      for (i = 0; i < parent->stringcount; i++)
+	{
+	  memset (&child->stringspace[i], 0, sizeof (child->stringspace[0]));
+	  child->stringspace[i].orig =
+	    mu_sieve_strdup (parent, parent->stringspace[i].orig);
+	}
+
+      /* Copy value space */
+      child->valspace = mu_sieve_calloc (parent, parent->valcount,
+					 sizeof child->valspace[0]);
+      child->valcount = child->valmax = parent->valcount;
+      for (i = 0; i < child->valcount; i++)
+	{
+	  child->valspace[i].type = parent->valspace[i].type;
+	  child->valspace[i].tag =
+	    mu_sieve_strdup (parent, parent->valspace[i].tag);
+	  switch (child->valspace[i].type)
+	    {
+	    case SVT_TAG:
+	      child->valspace[i].v.string =
+		mu_sieve_strdup (parent, parent->valspace[i].v.string);
+	      break;
+	      
+	    default:
+	      child->valspace[i].v = parent->valspace[i].v;
+	    }
+	}
+      
+      /* Copy progspace */
+      child->progsize = parent->progsize;
+      child->prog = mu_sieve_calloc (child, parent->progsize,
+				     sizeof child->prog[0]);
+      memcpy (child->prog, parent->prog,
+	      parent->progsize * sizeof (child->prog[0]));
+      
+      /* Copy user-defined settings */
+      
+      child->dry_run     = parent->dry_run;
+      
+      copy_stream_state (child, parent);
+      
+      child->data = parent->data;
+      child->logger = parent->logger;
+      child->daemon_email = parent->daemon_email;
+      
+      *pmach = child;
+    }
+  else
+    mu_sieve_machine_destroy (&child);
+  
+  return rc;
 }
 
 int
@@ -1133,9 +1212,7 @@ mu_sieve_machine_dup (mu_sieve_machine_t const in, mu_sieve_machine_t *out)
       return rc;
     }
   mach->destr_list = NULL;
-  mach->test_list = NULL;
-  mach->action_list = NULL;
-  mach->comp_list = NULL;
+  mach->registry = NULL;
 
   mach->progsize = in->progsize;
   mach->prog = in->prog;
@@ -1150,30 +1227,34 @@ mu_sieve_machine_dup (mu_sieve_machine_t const in, mu_sieve_machine_t *out)
     default:
       mach->state = in->state;
     }
+
+  rc = setjmp (mach->errbuf);
+
+  if (rc == 0)
+    {
+      mach->pc = 0;
+      mach->reg = 0;
+
+      mach->dry_run = in->dry_run;
+      
+      mach->state_flags = in->state_flags;
+      mach->err_mode    = in->err_mode;
+      mach->err_locus   = in->err_locus;
+      mach->dbg_mode    = in->dbg_mode;
+      mach->dbg_locus   = in->dbg_locus;  
+      
+      copy_stream_state (mach, in);
   
-  mach->pc = 0;
-  mach->reg = 0;
-  mach->stack = NULL;
+      mach->data = in->data;
+      mach->logger = in->logger;
+      mach->daemon_email = in->daemon_email;
 
-  mach->dry_run = in->dry_run;
-
-  mach->state_flags = in->state_flags;
-  mach->err_mode    = in->err_mode;
-  mach->err_locus   = in->err_locus;
-  mach->dbg_mode    = in->dbg_mode;
-  mach->dbg_locus   = in->dbg_locus;  
-
-  mach->errstream = in->errstream;
-  mu_stream_ref (mach->errstream);
-  mach->dbgstream = in->dbgstream;
-  mu_stream_ref (mach->dbgstream);
+      *out = mach;
+    }
+  else
+    mu_sieve_machine_destroy (&mach);
   
-  mach->data = in->data;
-  mach->logger = in->logger;
-  mach->daemon_email = in->daemon_email;
-
-  *out = mach;
-  return 0;
+  return rc;
 }
 
 void
@@ -1334,14 +1415,13 @@ mu_sieve_machine_destroy (mu_sieve_machine_t *pmach)
   mu_sieve_machine_t mach = *pmach;
 
   mu_i_sv_free_stringspace (mach);
+  mu_sieve_free (mach, mach->stringspace);
   mu_stream_destroy (&mach->errstream);
   mu_stream_destroy (&mach->dbgstream);
   mu_mailer_destroy (&mach->mailer);
   mu_list_destroy (&mach->destr_list);
-  mu_list_destroy (&mach->action_list);
-  mu_list_destroy (&mach->test_list);
-  mu_list_destroy (&mach->comp_list);
-  mu_list_destroy (&mach->source_list);
+  mu_list_destroy (&mach->registry);
+  mu_sieve_free (mach, mach->idspace);
   mu_opool_destroy (&mach->string_pool);
   mu_list_destroy (&mach->memory_pool);
   free (mach);
@@ -1397,7 +1477,7 @@ sieve_parse (void)
   yydebug = mu_debug_level_p (mu_sieve_debug_handle, MU_DEBUG_TRACE3);
 
   rc = yyparse ();
-  mu_i_sv_lex_finish (mu_sieve_machine);
+  mu_i_sv_lex_finish ();
   if (rc)
     mu_i_sv_error (mu_sieve_machine);
   if (mu_sieve_machine->state == mu_sieve_state_init)

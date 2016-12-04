@@ -35,42 +35,26 @@ mu_sieve_require (mu_sieve_machine_t mach, mu_sieve_slice_t list)
     {
       struct mu_sieve_string *str = mu_sieve_string_raw (mach, list, i);
       char *name = str->orig;
-      int (*reqfn) (mu_sieve_machine_t mach, const char *name) = NULL;
-      const char *text = NULL;
+      int rc;
       
-      if (strncmp (name, "comparator-", 11) == 0)
-	{
-	  name += 11;
-	  reqfn = mu_sieve_require_comparator;
-	  text = _("required comparator");
-	}
-      else if (strncmp (name, "test-", 5)  == 0) /* GNU extension */
-	{
-	  name += 5;
-	  reqfn = mu_sieve_require_test;
-	  text = _("required test");
-	}
-      else if (strcmp (name, "relational") == 0) /* RFC 3431 */
-	{
-	  reqfn = mu_sieve_require_relational;
-	  text = "";
-	}
+      if (strcmp (name, "relational") == 0) /* RFC 3431 */
+	rc = mu_sieve_require_relational (mach, name);
       else if (strcmp (name, "encoded-character") == 0) /* RFC 5228, 2.4.2.4 */
-	{
-	  reqfn = mu_sieve_require_encoded_character;
-	  text = "";
-	}
+	rc = mu_sieve_require_encoded_character (mach, name);
+      else if (strncmp (name, "comparator-", 11) == 0)
+	rc = mu_sieve_registry_require (mach, name + 11,
+					mu_sieve_record_comparator);
+      else if (strncmp (name, "test-", 5)  == 0) /* GNU extension */
+	rc = mu_sieve_registry_require (mach, name + 5,
+					mu_sieve_record_test);
       else
-	{
-	  reqfn = mu_sieve_require_action;
-	  text = _("required action");
-	}
+	rc = mu_sieve_registry_require (mach, name, mu_sieve_record_action);
 
-      if (reqfn (mach, name))
+      if (rc)
 	{
 	  mu_diag_at_locus (MU_LOG_ERROR, &mach->locus,
-			    _("source for the %s %s is not available"),
-			    text, name);
+			    _("can't require %s is not available"),
+			    name);
 	  mu_i_sv_error (mach);
 	}
     }

@@ -378,13 +378,13 @@ mu_i_sv_register_standard_tests (mu_sieve_machine_t mach)
 {
   /* true and false are built-ins */
   mu_sieve_register_test (mach, "address", sieve_test_address,
-		       address_req_args, address_tag_groups, 1);
+			  address_req_args, address_tag_groups, 1);
   mu_sieve_register_test (mach, "size", sieve_test_size,
-		       size_req_args, size_tag_groups, 1);
+			  size_req_args, size_tag_groups, 1);
   mu_sieve_register_test (mach, "envelope", sieve_test_envelope,
-		       address_req_args, envelope_tag_groups, 1);
+			  address_req_args, envelope_tag_groups, 1);
   mu_sieve_register_test (mach, "exists", sieve_test_exists,
-		       exists_req_args, NULL, 1);
+			  exists_req_args, NULL, 1);
   mu_sieve_register_test (mach, "header", sieve_test_header,
-		       address_req_args, header_tag_groups, 1);
+			  address_req_args, header_tag_groups, 1);
 }

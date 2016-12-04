@@ -868,6 +868,7 @@ static mu_sieve_data_type vacation_args[] = {
 
 int SIEVE_EXPORT (vacation, init) (mu_sieve_machine_t mach)
 {
-  return mu_sieve_register_action (mach, "vacation", sieve_action_vacation,
-				vacation_args, vacation_tag_groups, 1);
+  mu_sieve_register_action (mach, "vacation", sieve_action_vacation,
+			    vacation_args, vacation_tag_groups, 1);
+  return 0;
 }

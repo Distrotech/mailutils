@@ -275,11 +275,9 @@ static mu_sieve_data_type pipe_args[] = {
 int
 SIEVE_EXPORT (pipe, init) (mu_sieve_machine_t mach)
 {
-  int rc;
-  rc = mu_sieve_register_action (mach, "pipe", sieve_action_pipe,
-				 pipe_args, pipe_action_tag_groups, 1);
-  if (rc)
-    return rc;
-  return mu_sieve_register_test (mach, "pipe", sieve_test_pipe,
-				 pipe_args, pipe_test_tag_groups, 1);
+  mu_sieve_register_action (mach, "pipe", sieve_action_pipe,
+			    pipe_args, pipe_action_tag_groups, 1);
+  mu_sieve_register_test (mach, "pipe", sieve_test_pipe,
+			  pipe_args, pipe_test_tag_groups, 1);
+  return 0;
 }
