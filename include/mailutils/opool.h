@@ -79,12 +79,22 @@ size_t mu_opool_copy (mu_opool_t opool, void *buf, size_t size);
    If PSIZE is not NULL, store the size of the head chunk to *PSIZE. */     
 void *mu_opool_head (mu_opool_t opool, size_t *psize);
 
-/* Finish building the object.  Equivalent to:
+/* Finishes the object being constructed.  Returns pointer to the object,
+   and its size in PSIZE (unless it is NULL).
+
+   Equivalent to:
    mu_opool_coalesce (opool, NULL);
    p = mu_opool_head (opool, psize);
    mu_opool_clear (opool);
    return p; */
 void *mu_opool_finish (mu_opool_t opool, size_t *psize);
+
+
+/* Similar to mu_opool_finish, but also detaches the created object from the
+   pool, so that the latter can be destroyed without affecting the object.
+   The returned pointer should be deallocated with free(3) when no longer
+   needed. */
+void *mu_opool_detach (mu_opool_t opool, size_t *psize);
 
 /* Append SIZE bytes from DATA to the pool and return the pointer to the
    created object. */
