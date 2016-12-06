@@ -1160,7 +1160,7 @@ mu_stream_ioctl (mu_stream_t stream, int family, int opcode, void *ptr)
 {
   int rc;
   _bootstrap_event (stream);
-  if ((rc = _stream_flush_buffer (stream, _MU_STR_FLUSH_ALL)))
+  if ((rc = _stream_flush_buffer (stream, _MU_STR_FLUSH_ALL|_MU_STR_FLUSH_KEEP)))
     return rc;
   if (stream->ctl == NULL)
     return ENOSYS;
