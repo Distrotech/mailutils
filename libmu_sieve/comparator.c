@@ -25,7 +25,6 @@
 #include <unistd.h>  
 #include <string.h>  
 #include <sieve-priv.h>
-#include <fnmatch.h>
 #include <regex.h>
 #include <mailutils/cctype.h>
 #include <mailutils/cstr.h>
@@ -97,6 +96,25 @@ compile_pattern (mu_sieve_machine_t mach, mu_sieve_string_t *pattern, int flags)
 	}
       else
 	mu_sieve_error (mach, _("regex error"));
+      mu_sieve_abort (mach);
+    }
+  pattern->rx = preg;
+}
+
+static void
+compile_wildcard (mu_sieve_machine_t mach, mu_sieve_string_t *pattern,
+		  int flags)
+{
+  int rc;
+  regex_t *preg;
+
+  if (pattern->rx)
+    return;
+  preg = mu_sieve_malloc (mach, sizeof (*preg));
+  rc = mu_glob_compile (preg, pattern->orig, flags);
+  if (rc)
+    {
+      mu_sieve_error (mach, _("can't compile pattern"));
       mu_sieve_abort (mach);
     }
   pattern->rx = preg;
@@ -263,7 +281,8 @@ static int
 i_octet_matches (mu_sieve_machine_t mach, mu_sieve_string_t *pattern,
 		 const char *text)
 {
-  return fnmatch (pattern->orig, text, 0) == 0;
+  compile_wildcard (mach, pattern, 0);
+  return regexec ((regex_t *)pattern->rx, text, 0, NULL, 0) == 0;
 }
 
 static int
@@ -300,7 +319,8 @@ static int
 i_ascii_casemap_matches (mu_sieve_machine_t mach,
 			 mu_sieve_string_t *pattern, const char *text)
 {
-  return fnmatch (pattern->orig, text, FNM_CASEFOLD) == 0;
+  compile_wildcard (mach, pattern, MU_GLOBF_ICASE);
+  return regexec ((regex_t *)pattern->rx, text, 0, NULL, 0) == 0;
 }
 
 static int

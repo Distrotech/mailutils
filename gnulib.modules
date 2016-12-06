@@ -1,7 +1,7 @@
 # List of gnulib modules needed for GNU mailutils.
 # A module name per line. Empty lines and comments are ignored.
 
-# FIXME: fnmatch, regex and glob are used by libmailutils...
+# FIXME: regex and glob are used by libmailutils...
 
 autobuild
 crypto/des
