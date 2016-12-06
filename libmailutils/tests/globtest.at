@@ -1,0 +1,46 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2016 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# GNU Mailutils is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+
+AT_BANNER([Globbing patterns])
+
+dnl ------------------------------------------------------------------
+dnl GLOBCOMP (pattern, regex, [FLAGS])
+m4_pushdef([GLOBCOMP],
+[AT_SETUP([[$1][]m4_foreach([flag],[m4_shift(m4_shift($@))],[ flag])])
+AT_KEYWORDS([glob])
+AT_CHECK([globtest m4_foreach([flag],[m4_shift(m4_shift($@))],[dnl
+m4_if(flag,[sub],[ -s],[icase],[ -i],[collapse],[ -c])]) '[$1]'],[0],[[^$2$]
+])
+AT_CLEANUP
+])
+dnl ------------------------------------------------------------------
+
+GLOBCOMP(abab, abab)
+GLOBCOMP(a*c, a.*c)
+GLOBCOMP(a*c?d, a(.*)c(.)d, sub)
+GLOBCOMP(a***c, a.*c)
+GLOBCOMP(a***c, a()()(.*)c, sub)
+GLOBCOMP(a***c, a(.*)c,     sub, collapse)
+GLOBCOMP([{$|a$$], [\{\$\|a\$\$])
+GLOBCOMP([a[0-9A-Z]c], [a[0-9A-Z]c])
+GLOBCOMP([a[!a-z]c], [a[^a-z]c])
+GLOBCOMP([a[!]z@:>@], [a[^]z@:>@])
+GLOBCOMP([a@<:@cde], [a\@<:@cde])
+GLOBCOMP([a[@<:@ba]], [a[\@<:@ba]])
+GLOBCOMP([*.c], [.*\.c])
+GLOBCOMP([a\],[a\\])
+
+m4_popdef([GLOBCOMP])

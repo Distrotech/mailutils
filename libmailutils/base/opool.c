@@ -53,6 +53,7 @@ struct _mu_opool
   int flags;                   /* Flag bits */
   size_t bucket_size;          /* Default bucket size */
   size_t itr_count;            /* Number of iterators created for this pool */
+  mu_nonlocal_jmp_t *jmp;      /* Buffer for non-local exit */
   union mu_opool_bucket *bkt_head, *bkt_tail; 
   union mu_opool_bucket *bkt_fini; /* List of finished objects */
 };
@@ -65,6 +66,8 @@ alloc_bucket (struct _mu_opool *opool, size_t size)
     {
       if (opool->flags & MU_OPOOL_ENOMEMABRT)
 	mu_alloc_die ();
+      if (opool->jmp)
+	longjmp (opool->jmp->buf, ENOMEM);
     }
   else
     {
@@ -122,8 +125,28 @@ mu_opool_create (mu_opool_t *pret, int flags)
   x->bucket_size = MU_OPOOL_BUCKET_SIZE;
   x->itr_count = 0;
   x->bkt_head = x->bkt_tail = x->bkt_fini = NULL;
+  x->jmp = NULL;
   *pret = x;
   return 0;
+}
+
+void
+mu_opool_setjmp (mu_opool_t opool, mu_nonlocal_jmp_t *jmp)
+{
+  if (jmp)
+    {
+      jmp->next = opool->jmp;
+      opool->jmp = jmp;
+    }
+  else
+    mu_opool_clrjmp (opool);
+}
+
+void
+mu_opool_clrjmp (mu_opool_t opool)
+{
+  if (opool->jmp)
+    opool->jmp = opool->jmp->next;
 }
 
 int

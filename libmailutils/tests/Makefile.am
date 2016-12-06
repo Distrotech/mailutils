@@ -49,6 +49,7 @@ noinst_PROGRAMS = \
  fsaf\
  fsaftomod\
  fsfolder\
+ globtest\
  imapio\
  listop\
  mailcap\
@@ -94,6 +95,7 @@ TESTSUITE_AT = \
  fsfolder02.at\
  hdrflt.at\
  htmlent.at\
+ globtest.at\
  imapio.at\
  inline-comment.at\
  linecon.at\

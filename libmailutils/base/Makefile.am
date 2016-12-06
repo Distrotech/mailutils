@@ -34,6 +34,7 @@ libbase_la_SOURCES = \
  getcwd.c\
  getmaxfd.c\
  getpass.c\
+ glob.c\
  hostname.c\
  iterator.c\
  kwd.c\

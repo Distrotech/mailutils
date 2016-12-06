@@ -32,6 +32,7 @@
 #include <mailutils/error.h>
 #include <mailutils/filter.h>
 #include <mailutils/folder.h>
+#include <mailutils/glob.h>
 #include <mailutils/header.h>
 #include <mailutils/iterator.h>
 #include <mailutils/kwd.h>

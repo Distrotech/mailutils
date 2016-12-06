@@ -19,6 +19,7 @@
 #define _MAILUTILS_OPOOL_H
 
 #include <mailutils/types.h>
+#include <setjmp.h>
 
 #ifndef MU_OPOOL_BUCKET_SIZE
 # define MU_OPOOL_BUCKET_SIZE 1024
@@ -33,6 +34,27 @@ int mu_opool_create (mu_opool_t *pret, int flags);
 int mu_opool_set_bucket_size (mu_opool_t opool, size_t size);
 int mu_opool_get_bucket_size (mu_opool_t opool, size_t *psize);
 
+struct mu_nonlocal_jmp
+{
+  jmp_buf buf;
+  struct mu_nonlocal_jmp *next;
+};
+
+typedef struct mu_nonlocal_jmp mu_nonlocal_jmp_t;
+
+void mu_opool_setjmp (mu_opool_t opool, mu_nonlocal_jmp_t *err);
+void mu_opool_clrjmp (mu_opool_t opool);
+
+#define mu_opool_setup_nonlocal_jump(p,jb)	\
+  do						\
+    {						\
+      int __rc = setjmp (jb.buf);		\
+      if (__rc)					\
+	return __rc;				\
+      mu_opool_setjmp (p, &jb);			\
+    }						\
+ while (0)
+   
 /* Merge all data from *SRC into *DST.  If the latter is NULL, create
    it.  On success, free *SRC and initialize it with NULL. */
 int mu_opool_union (mu_opool_t *dst, mu_opool_t *src);
