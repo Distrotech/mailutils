@@ -48,6 +48,7 @@ pkginclude_HEADERS = \
  error.h\
  filter.h\
  folder.h\
+ glob.h\
  gsasl.h\
  guile.h\
  header.h\
