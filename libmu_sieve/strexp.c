@@ -155,7 +155,8 @@ update_len (void *item, void *data)
       break;
 
     case segm_repl:
-      st->len += strlen (segm->repl);
+      if (segm->repl)
+	st->len += strlen (segm->repl);
       break;
     }
   return 0;
@@ -176,8 +177,13 @@ append_segm (void *item, void *data)
       break;
 
     case segm_repl:
-      len = strlen (segm->repl);
-      memcpy (buf->endptr, segm->repl, len);
+      if (segm->repl)
+	{
+	  len = strlen (segm->repl);
+	  memcpy (buf->endptr, segm->repl, len);
+	}
+      else
+	len = 0;
     }
   
   buf->endptr += len;

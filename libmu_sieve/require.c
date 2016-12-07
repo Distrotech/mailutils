@@ -37,7 +37,9 @@ mu_sieve_require (mu_sieve_machine_t mach, mu_sieve_slice_t list)
       char *name = str->orig;
       int rc;
       
-      if (strcmp (name, "relational") == 0) /* RFC 3431 */
+      if (strcmp (name, "variables") == 0) /* RFC 5229 */
+	rc = mu_sieve_require_variables (mach);
+      else if (strcmp (name, "relational") == 0) /* RFC 3431 */
 	rc = mu_sieve_require_relational (mach, name);
       else if (strcmp (name, "encoded-character") == 0) /* RFC 5228, 2.4.2.4 */
 	rc = mu_sieve_require_encoded_character (mach, name);
@@ -52,8 +54,7 @@ mu_sieve_require (mu_sieve_machine_t mach, mu_sieve_slice_t list)
 
       if (rc)
 	{
-	  mu_diag_at_locus (MU_LOG_ERROR, &mach->locus,
-			    _("can't require %s is not available"),
+	  mu_diag_at_locus (MU_LOG_ERROR, &mach->locus, _("can't require %s"),
 			    name);
 	  mu_i_sv_error (mach);
 	}

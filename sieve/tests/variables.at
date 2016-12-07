@@ -1,0 +1,99 @@
+# This file is part of GNU Mailutils. -*- Autotest -*-
+# Copyright (C) 2016 Free Software Foundation, Inc.
+#
+# GNU Mailutils is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+#
+# GNU Mailutils is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Mailutils.  If not, see <http://www.gnu.org/licenses/>.
+
+AT_BANNER([Variables extension])
+
+MUT_TESTCASE([match variable],[variables match match-variable],
+[require [["variables", "fileinto"]];
+if address :matches [[ "To", "Cc" ] [ "*@**.com", "*@**.edu" ]]
+{
+   fileinto "INBOX.${3}.${1}";
+}],
+[],[0],[],
+[FILEINTO on msg uid 1: delivering into INBOX.acme.example.roadrunner
+FILEINTO on msg uid 2: delivering into INBOX.landru.example.rube
+IMPLICIT KEEP on msg uid 3
+])
+
+MUT_TESTCASE([set action],[variables action set],
+[require [["variables", "fileinto"]];
+set "name" "value";
+fileinto "INBOX.${name}";
+],
+[],[0],[],
+[FILEINTO on msg uid 1: delivering into INBOX.value
+FILEINTO on msg uid 2: delivering into INBOX.value
+FILEINTO on msg uid 3: delivering into INBOX.value
+])
+
+MUT_TESTCASE([variables with encoded characters],[variables encoded-character],
+[require [["encoded-character", "variables", "fileinto"]];
+set "myvar" "INBOX";
+fileinto "${${hex: 6D 79 76}ar}";
+],
+[],[0],[],
+[FILEINTO on msg uid 1: delivering into INBOX
+FILEINTO on msg uid 2: delivering into INBOX
+FILEINTO on msg uid 3: delivering into INBOX
+])
+
+MUT_TESTCASE([set modifiers],[variables action set],
+[require [["variables", "fileinto"]];
+set "name" :upperfirst :lower "VALUE";
+fileinto "INBOX.${name}";
+],
+[],[0],[],
+[FILEINTO on msg uid 1: delivering into INBOX.Value
+FILEINTO on msg uid 2: delivering into INBOX.Value
+FILEINTO on msg uid 3: delivering into INBOX.Value
+])
+
+MUT_TESTCASE([:quotewildcard modifier],[variables action set],
+[require [["variables", "fileinto"]];
+set "name" :quotewildcard ".a*strange?name\\!";
+fileinto "INBOX${name}";
+],
+[],[0],[],
+[FILEINTO on msg uid 1: delivering into INBOX.a\*strange\?name\\!
+FILEINTO on msg uid 2: delivering into INBOX.a\*strange\?name\\!
+FILEINTO on msg uid 3: delivering into INBOX.a\*strange\?name\\!
+])
+
+MUT_TESTCASE([:length modifier],[variables action set],
+[require [["variables", "fileinto"]];
+set "name" :length "value";
+fileinto "INBOX.${name}";
+],
+[],[0],[],
+[FILEINTO on msg uid 1: delivering into INBOX.5
+FILEINTO on msg uid 2: delivering into INBOX.5
+FILEINTO on msg uid 3: delivering into INBOX.5
+])
+
+MUT_TESTCASE([string test],[variables test string],
+[require "variables";
+if address "To" :matches "*@*.*.*"
+{
+  if string "${2}" [[ "landru", "ACME" ]]
+  {
+    discard;
+  }
+}],
+[],[0],[],
+[DISCARD on msg uid 1: marking as deleted
+DISCARD on msg uid 2: marking as deleted
+IMPLICIT KEEP on msg uid 3
+])

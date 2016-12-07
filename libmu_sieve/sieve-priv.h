@@ -17,6 +17,7 @@
    <http://www.gnu.org/licenses/>. */
 
 #include <mailutils/sieve.h>
+#include <mailutils/assoc.h>
 #include <setjmp.h>
 #include <string.h>
 #include <regex.h>
@@ -90,13 +91,20 @@ struct mu_sieve_machine
   size_t pc;                 /* Current program counter */
   long reg;                  /* Numeric register */
 
+  /* Support for variables (RFC 5229) */
+  mu_assoc_t vartab;         /* Table of variables */
+  char *match_string;        /* The string used in the most recent match */
+  regmatch_t *match_buf;     /* Offsets of parenthesized groups */
+  size_t match_count;        /* Actual number of elements used in match_buf */
+  size_t match_max;          /* Total number of elements available in match_buf */
+
   /* Call environment */
   const char *identifier;    /* Name of action or test being executed */
   size_t argstart;           /* Index of the first argument in valspace */
   size_t argcount;           /* Number of positional arguments */
   size_t tagcount;           /* Number of tagged arguments */
   mu_sieve_comparator_t comparator; /* Comparator (for tests) */
-  
+
   int dry_run;               /* Dry-run mode */
   jmp_buf errbuf;            /* Target location for non-local exits */
   
@@ -233,4 +241,8 @@ size_t mu_i_sv_id_num (mu_sieve_machine_t mach, char const *name);
 char *mu_i_sv_id_str (mu_sieve_machine_t mach, size_t n);
 void mu_i_sv_free_idspace (mu_sieve_machine_t mach);
 
+void mu_i_sv_copy_variables (mu_sieve_machine_t child,
+			     mu_sieve_machine_t parent);
+int mu_i_sv_expand_variables (char const *input, size_t len,
+			      char **exp, void *data);
 

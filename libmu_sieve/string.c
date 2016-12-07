@@ -44,7 +44,7 @@ mu_i_sv_string_create (mu_sieve_machine_t mach, char *str)
   return n;
 }
 
-struct mu_sieve_string *
+mu_sieve_string_t *
 mu_sieve_string_raw (mu_sieve_machine_t mach, mu_sieve_slice_t slice,
 		     size_t i)
 {
@@ -54,8 +54,57 @@ mu_sieve_string_raw (mu_sieve_machine_t mach, mu_sieve_slice_t slice,
 }
 
 char *
+mu_sieve_string_get (mu_sieve_machine_t mach, mu_sieve_string_t *string)
+{
+  char *exp;
+  int rc;
+  
+  if (string->constant)
+    return string->orig;
+
+  rc = mu_i_sv_string_expand (string->orig, mu_i_sv_expand_variables, mach,
+			      &exp);
+  switch (rc)
+    {
+    case 0:
+      if (string->exp == NULL)
+	{
+	  string->changed = strcmp (string->orig, exp) != 0;
+	  string->exp = mu_sieve_strdup (mach, exp);
+	  free (exp);
+	}
+      else if (strcmp (exp, string->exp) == 0)
+	{
+	  string->changed = 0;
+	  free (exp);
+	}
+      else
+	{
+	  string->changed = 1;
+	  mu_sieve_free (mach, string->exp);
+	  string->exp = mu_sieve_strdup (mach, exp);
+	  free (exp);
+	}
+      break;
+	  
+    case MU_ERR_CANCELED:
+      string->changed = 0;
+      return string->orig;
+
+    default:
+      mu_sieve_error (mach, "error expanding variables: %s",
+		      mu_strerror (rc));
+      mu_sieve_abort (mach);
+    }
+
+  return string->exp;
+}
+
+char *
 mu_sieve_string (mu_sieve_machine_t mach, mu_sieve_slice_t slice,
 		 size_t i)
 {
-  return mu_sieve_string_raw (mach, slice, i)->orig;
+  return mu_sieve_string_get (mach, mu_sieve_string_raw (mach, slice, i));
 }
+
+      

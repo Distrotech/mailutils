@@ -35,9 +35,11 @@ typedef struct mu_sieve_machine *mu_sieve_machine_t;
 
 typedef struct mu_sieve_string
 {
-  char *orig;
-  char *exp;
-  void *rx;
+  unsigned constant:1;       /* String is constant */
+  unsigned changed:1;        /* String value has changed */
+  char *orig;                /* String original value */
+  char *exp;                 /* Actual string value after expansion */
+  void *rx;                  /* Pointer to the corresponding regular expr */
 } mu_sieve_string_t;
   
 typedef int (*mu_sieve_handler_t) (mu_sieve_machine_t mach);
@@ -141,7 +143,9 @@ extern mu_debug_handle_t mu_sieve_debug_handle;
 extern mu_list_t mu_sieve_include_path;
 extern mu_list_t mu_sieve_library_path;
 extern mu_list_t mu_sieve_library_path_prefix;
-  
+
+extern mu_sieve_tag_def_t mu_sieve_match_part_tags[];
+
 /* Memory allocation functions */
 typedef void (*mu_sieve_reclaim_t) (void *);
 void mu_sieve_register_memory (mu_sieve_machine_t mach, void *ptr,
@@ -197,6 +201,11 @@ void mu_sieve_register_comparator (mu_sieve_machine_t mach, const char *name,
 				   mu_sieve_comparator_t eq);
 
 int mu_sieve_require_relational (mu_sieve_machine_t mach, const char *name);
+int mu_sieve_relational_count (mu_sieve_machine_t mach, size_t count,
+			       int retval);
+  
+int mu_sieve_require_variables (mu_sieve_machine_t mach);
+int mu_sieve_has_variables (mu_sieve_machine_t mach);
 
 void *mu_sieve_load_ext (mu_sieve_machine_t mach, const char *name);
 void mu_sieve_unload_ext (void *handle);
@@ -234,9 +243,10 @@ void mu_sieve_get_arg (mu_sieve_machine_t mach, size_t index,
 char *mu_sieve_string (mu_sieve_machine_t mach,
 		       mu_sieve_slice_t slice,
 		       size_t i);
-struct mu_sieve_string *mu_sieve_string_raw (mu_sieve_machine_t mach,
-					     mu_sieve_slice_t slice,
-					     size_t i);
+mu_sieve_string_t *mu_sieve_string_raw (mu_sieve_machine_t mach,
+					mu_sieve_slice_t slice,
+					size_t i);
+char *mu_sieve_string_get (mu_sieve_machine_t mach, mu_sieve_string_t *string);
 
 /* Operations on value lists */ 
 int mu_sieve_vlist_do (mu_sieve_machine_t mach,

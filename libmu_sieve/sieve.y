@@ -1067,6 +1067,12 @@ mu_sieve_machine_reset (mu_sieve_machine_t mach)
   mach->progsize = 0;
   mach->prog = NULL;
 
+  mu_assoc_destroy (&mach->vartab);
+  mach->match_string = NULL;
+  mach->match_buf = NULL;
+  mach->match_count = 0;
+  mach->match_max = 0;
+  
   mach->state = mu_sieve_state_init;
 
   return 0;
@@ -1174,6 +1180,16 @@ mu_sieve_machine_clone (mu_sieve_machine_t const parent,
 				     sizeof child->prog[0]);
       memcpy (child->prog, parent->prog,
 	      parent->progsize * sizeof (child->prog[0]));
+
+      /* Copy variables */
+      if (mu_sieve_has_variables (parent))
+	{
+	  mu_i_sv_copy_variables (child, parent);
+	  child->match_string = NULL;
+	  child->match_buf = NULL;
+	  child->match_count = 0;
+	  child->match_max = 0;
+	}
       
       /* Copy user-defined settings */
       
@@ -1468,6 +1484,30 @@ with_machine (mu_sieve_machine_t mach, char const *name,
   return rc;
 }
 
+/* Rescan all registered strings to determine their properties */
+static void
+string_rescan (mu_sieve_machine_t mach)
+{
+  size_t i;
+  int hasvar = mu_sieve_has_variables (mach);
+  
+  for (i = 0; i < mach->stringcount; i++)
+    {
+      mach->stringspace[i].changed = 0;
+      if (hasvar)
+	{
+	  mach->stringspace[i].constant = 0;
+	  mu_sieve_string_get (mach, &mach->stringspace[i]);
+	  mu_sieve_free (mach, mach->stringspace[i].exp);
+	  mach->stringspace[i].exp = NULL;
+	  mach->stringspace[i].constant = !mach->stringspace[i].changed;
+	  mach->stringspace[i].changed = 0;
+	}
+      else
+	mach->stringspace[i].constant = 1;
+    }
+}
+
 static int
 sieve_parse (void)
 {
@@ -1509,7 +1549,10 @@ sieve_parse (void)
       if (mu_sieve_machine->state == mu_sieve_state_error)
 	rc = MU_ERR_PARSE;
       else
-	mu_sieve_machine->state = mu_sieve_state_compiled;
+	{
+	  string_rescan (mu_sieve_machine);
+	  mu_sieve_machine->state = mu_sieve_state_compiled;
+	}
     }
 
   tree_free (&sieve_tree);

@@ -69,6 +69,7 @@ TESTSUITE_AT = \
   true.at\
   testsuite.at\
   vacation.at\
+  variables.at\
   version.at
 
 TESTSUITE = $(srcdir)/testsuite

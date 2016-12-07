@@ -529,6 +529,8 @@ multiline_strip_tabs (char *text)
 static void
 line_add (char *text, size_t len)
 {
+  if (len == 0)
+    len = strlen (text);
   mu_opool_append (mu_sieve_machine->string_pool, text, len);
 }
 

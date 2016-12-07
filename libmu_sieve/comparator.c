@@ -79,11 +79,20 @@ compile_pattern (mu_sieve_machine_t mach, mu_sieve_string_t *pattern, int flags)
 {
   int rc;
   regex_t *preg;
+  char *str;
 
+  str = mu_sieve_string_get (mach, pattern);
+  
   if (pattern->rx)
-    return;
-  preg = mu_sieve_malloc (mach, sizeof (*preg));
-  rc = regcomp (preg, pattern->orig, REG_EXTENDED | flags);
+    {
+      if (!pattern->changed)
+	return;
+      preg = pattern->rx;
+      regfree (preg);
+    }
+  else
+    preg = mu_sieve_malloc (mach, sizeof (*preg));
+  rc = regcomp (preg, str, REG_EXTENDED | flags);
   if (rc)
     {
       size_t size = regerror (rc, preg, NULL, 0);
@@ -107,11 +116,23 @@ compile_wildcard (mu_sieve_machine_t mach, mu_sieve_string_t *pattern,
 {
   int rc;
   regex_t *preg;
+  char *str;
 
+  str = mu_sieve_string_get (mach, pattern);
+  
   if (pattern->rx)
-    return;
-  preg = mu_sieve_malloc (mach, sizeof (*preg));
-  rc = mu_glob_compile (preg, pattern->orig, flags);
+    {
+      if (!pattern->changed)
+	return;
+      preg = pattern->rx;
+      regfree (preg);
+    }
+  else
+    preg = mu_sieve_malloc (mach, sizeof (*preg));
+
+  if (mu_sieve_has_variables (mach))
+    flags |= MU_GLOBF_SUB;
+  rc = mu_glob_compile (preg, str, flags);
   if (rc)
     {
       mu_sieve_error (mach, _("can't compile pattern"));
@@ -184,7 +205,7 @@ mu_sieve_match_part_checker (mu_sieve_machine_t mach)
       if (strcmp (match->tag, "count") == 0)
 	{
 	  mu_sieve_value_t *val;
-	  char *str;
+	  mu_sieve_string_t *argstr;
 	  
 	  if (compname && strcmp (compname, "i;ascii-numeric"))
 	    {
@@ -213,14 +234,17 @@ mu_sieve_match_part_checker (mu_sieve_machine_t mach)
 	      mu_i_sv_error (mach);
 	      return 1;
 	    }
-	  str = mu_sieve_string_raw (mach, &val->v.list, 0)->orig;
-	  str = mu_str_skip_class (str, MU_CTYPE_DIGIT);
-	  if (*str)
+	  argstr = mu_sieve_string_raw (mach, &val->v.list, 0);
+	  if (argstr->constant)
 	    {
-	      mu_diag_at_locus (MU_LOG_ERROR, &mach->locus, 
-			   _("second argument cannot be converted to number"));
-	      mu_i_sv_error (mach);
-	      return 1;
+	      char *p = mu_str_skip_class (argstr->orig, MU_CTYPE_DIGIT);
+	      if (*p)
+		{
+		  mu_diag_at_locus (MU_LOG_ERROR, &mach->locus, 
+				    _("second argument cannot be converted to number"));
+		  mu_i_sv_error (mach);
+		  return 1;
+		}
 	    }
 	}
       else
@@ -258,7 +282,30 @@ mu_sieve_match_part_checker (mu_sieve_machine_t mach)
   
   return 0;
 }
+
+static int
+regmatch (mu_sieve_machine_t mach, mu_sieve_string_t *pattern, char const *text)
+{
+  regex_t *reg = pattern->rx;
+  regmatch_t *match_buf = NULL;
+  size_t match_count = 0; 
 
+  if (mu_sieve_has_variables (mach))
+    {
+      match_count = reg->re_nsub + 1;
+      while (mach->match_max < match_count)
+	mu_i_sv_2nrealloc (mach, (void **) &mach->match_buf,
+			   &mach->match_max,
+			   sizeof (mach->match_buf[0]));
+      mach->match_count = match_count;
+      mu_sieve_free (mach, mach->match_string);
+      mach->match_string = mu_sieve_strdup (mach, text);
+
+      match_buf = mach->match_buf;
+    }
+      
+  return regexec (reg, text, match_count, match_buf, 0) == 0;
+}
 /* Particular comparators */
 
 /* :comparator i;octet */
@@ -267,14 +314,14 @@ static int
 i_octet_is (mu_sieve_machine_t mach, mu_sieve_string_t *pattern,
 	    const char *text)
 {
-  return strcmp (pattern->orig, text) == 0;
+  return strcmp (mu_sieve_string_get (mach, pattern), text) == 0;
 }
 
 static int
 i_octet_contains (mu_sieve_machine_t mach, mu_sieve_string_t *pattern,
 		  const char *text)
 {
-  return strstr (text, pattern->orig) != NULL;
+  return strstr (text, mu_sieve_string_get (mach, pattern)) != NULL;
 }
 
 static int 
@@ -282,7 +329,7 @@ i_octet_matches (mu_sieve_machine_t mach, mu_sieve_string_t *pattern,
 		 const char *text)
 {
   compile_wildcard (mach, pattern, 0);
-  return regexec ((regex_t *)pattern->rx, text, 0, NULL, 0) == 0;
+  return regmatch (mach, pattern, text);
 }
 
 static int
@@ -290,14 +337,14 @@ i_octet_regex (mu_sieve_machine_t mach, mu_sieve_string_t *pattern,
 	       const char *text)
 {
   compile_pattern (mach, pattern, 0);
-  return regexec ((regex_t *)pattern->rx, text, 0, NULL, 0) == 0;
+  return regmatch (mach, pattern, text);
 }
 
 static int
 i_octet_eq (mu_sieve_machine_t mach,
 	    mu_sieve_string_t *pattern, const char *text)
 {
-  return strcmp (text, pattern->orig);
+  return strcmp (text, mu_sieve_string_get (mach, pattern));
 }
 
 /* :comparator i;ascii-casemap */
@@ -305,14 +352,14 @@ static int
 i_ascii_casemap_is (mu_sieve_machine_t mach,
 		    mu_sieve_string_t *pattern, const char *text)
 {
-  return mu_c_strcasecmp (pattern->orig, text) == 0;
+  return mu_c_strcasecmp (mu_sieve_string_get (mach, pattern), text) == 0;
 }
 
 static int
 i_ascii_casemap_contains (mu_sieve_machine_t mach,
 			  mu_sieve_string_t *pattern, const char *text)
 {
-  return mu_c_strcasestr (text, pattern->orig) != NULL;
+  return mu_c_strcasestr (text, mu_sieve_string_get (mach, pattern)) != NULL;
 }
 
 static int
@@ -320,7 +367,7 @@ i_ascii_casemap_matches (mu_sieve_machine_t mach,
 			 mu_sieve_string_t *pattern, const char *text)
 {
   compile_wildcard (mach, pattern, MU_GLOBF_ICASE);
-  return regexec ((regex_t *)pattern->rx, text, 0, NULL, 0) == 0;
+  return regmatch (mach, pattern, text);
 }
 
 static int
@@ -328,14 +375,14 @@ i_ascii_casemap_regex (mu_sieve_machine_t mach,
 		       mu_sieve_string_t *pattern, const char *text)
 {
   compile_pattern (mach, pattern, REG_ICASE);
-  return regexec ((regex_t *) pattern->rx, text, 0, NULL, 0) == 0;
+  return regmatch (mach, pattern, text);
 }
 
 static int
 i_ascii_casemap_eq (mu_sieve_machine_t mach,
 		    mu_sieve_string_t *pattern, const char *text)
 {
-  return mu_c_strcasecmp (text, pattern->orig);
+  return mu_c_strcasecmp (text, mu_sieve_string_get (mach, pattern));
 }
 
 /* :comparator i;ascii-numeric */
@@ -343,11 +390,12 @@ static int
 i_ascii_numeric_is (mu_sieve_machine_t mach,
 		    mu_sieve_string_t *pattern, const char *text)
 {
-  if (mu_isdigit (*pattern->orig))
+  char *str = mu_sieve_string_get (mach, pattern);
+  if (mu_isdigit (*str))
     {
       if (mu_isdigit (*text))
 	//FIXME: Error checking
-	return strtol (pattern->orig, NULL, 10) == strtol (text, NULL, 10);
+	return strtol (str, NULL, 10) == strtol (text, NULL, 10);
       else 
 	return 0;
     }
@@ -361,11 +409,12 @@ static int
 i_ascii_numeric_eq (mu_sieve_machine_t mach,
 		    mu_sieve_string_t *pattern, const char *text)
 {
-  if (mu_isdigit (*pattern->orig))
+  char *str = mu_sieve_string_get (mach, pattern);
+  if (mu_isdigit (*str))
     {
       if (mu_isdigit (*text))
 	{
-	  size_t a = strtoul (pattern->orig, NULL, 10);
+	  size_t a = strtoul (str, NULL, 10);
 	  size_t b = strtoul (text, NULL, 10);
 	  if (b > a)
 	    return 1;

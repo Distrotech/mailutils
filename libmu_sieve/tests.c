@@ -55,21 +55,26 @@ struct address_closure
   mu_address_t addr;       /* Obtained address */
 };  
 
-static int
-do_count (mu_sieve_machine_t mach, size_t count, int retval)
+int
+mu_sieve_relational_count (mu_sieve_machine_t mach, size_t count, int retval)
 {
   char *relcmp;
   
   if (mu_sieve_get_tag (mach, "count", SVT_STRING, &relcmp))
     {
       size_t limit;
-      char *str;
+      char *str, *p;
       struct mu_sieve_slice slice;
       mu_sieve_relcmpn_t stest;
       
       mu_sieve_get_arg (mach, 1, SVT_STRING_LIST, &slice);
       str = mu_sieve_string (mach, &slice, 0);
-      limit = strtoul (str, &str, 10);
+      limit = strtoul (str, &p, 10);
+      if (*p)
+	{
+	  mu_sieve_error (mach, _("%s: not an integer"), str);
+	  mu_sieve_abort (mach);
+	}
 
       mu_sieve_str_to_relcmp (relcmp, NULL, &stest);
       return stest (count, limit);
@@ -122,7 +127,7 @@ sieve_test_address (mu_sieve_machine_t mach)
 			       &count);
   mu_address_destroy (&clos.addr);
   
-  return do_count (mach, count, rc);
+  return mu_sieve_relational_count (mach, count, rc);
 }
 
 struct header_closure
@@ -196,7 +201,7 @@ sieve_test_header (mu_sieve_machine_t mach)
 			      &count))
     return 1;
 
-  return do_count (mach, count + mcount, 0);
+  return mu_sieve_relational_count (mach, count + mcount, 0);
 }
 
 int
@@ -246,7 +251,7 @@ sieve_test_envelope (mu_sieve_machine_t mach)
   rc = mu_sieve_vlist_compare (mach, h, v, comp, test, retrieve_envelope, &clos,
 			       &count);
   mu_address_destroy (&clos.addr);
-  return do_count (mach, count, rc);
+  return mu_sieve_relational_count (mach, count, rc);
 }
 
 int
@@ -301,7 +306,7 @@ static mu_sieve_tag_def_t address_part_tags[] = {
   { NULL }
 };
 
-static mu_sieve_tag_def_t match_part_tags[] = {
+mu_sieve_tag_def_t mu_sieve_match_part_tags[] = {
   { "is", SVT_VOID },
   { "contains", SVT_VOID },
   { "matches", SVT_VOID },
@@ -327,7 +332,7 @@ static mu_sieve_tag_def_t mime_tags[] = {
   { address_part_tags, NULL }
 
 #define MATCH_PART_GROUP \
-  { match_part_tags, mu_sieve_match_part_checker }
+  { mu_sieve_match_part_tags, mu_sieve_match_part_checker }
 
 #define SIZE_GROUP { size_tags, NULL }
 

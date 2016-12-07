@@ -44,7 +44,8 @@ libmu_sieve_la_SOURCES = \
  strexp.c\
  string.c\
  tests.c\
- util.c
+ util.c\
+ variables.c
 libmu_sieve_la_LIBADD = ${MU_LIB_MAILUTILS} @LTDL_LIB@
 libmu_sieve_la_LDFLAGS = -version-info @VI_CURRENT@:@VI_REVISION@:@VI_AGE@
 
