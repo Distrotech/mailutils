@@ -1,8 +1,14 @@
-GNU mailutils NEWS -- history of user-visible changes. 2016-11-06
+GNU mailutils NEWS -- history of user-visible changes. 2016-12-07
 Copyright (C) 2002-2016 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
 Please send mailutils bug reports to <bug-mailutils@gnu.org>.
+
+
+Version 3.0.90 (Git)
+
+Sieve library essentially rewritten.  It now inludes support for
+the "variables" extension (RFC 5229).
 
 
 Version 3.0 - 2016-11-06
