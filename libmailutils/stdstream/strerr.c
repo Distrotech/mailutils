@@ -117,7 +117,7 @@ mu_stdstream_strerr_setup (int type)
 
   if (mu_stdstream_strerr_create (&str, type,
 				  mu_log_facility, LOG_ERR,
-				  mu_log_tag, NULL) == 0)
+				  MU_LOG_TAG (), NULL) == 0)
     {
       if (mu_log_print_severity)
 	{

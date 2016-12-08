@@ -500,16 +500,9 @@ mu_cli_ext (int argc, char **argv,
     hints.flags &= ~MU_CFHINT_PER_USER_FILE;
   
   /* Set program name */
-  if (hints.flags & MU_CFHINT_PROGRAM)
-    {
-      if (!mu_log_tag)
-	mu_log_tag = (char*)hints.program;
-    }
-  else
+  if (!(hints.flags & MU_CFHINT_PROGRAM))
     {
       mu_set_program_name (argv[0]);
-      if (!mu_log_tag)
-	mu_log_tag = (char*)mu_program_name;
       hints.program = (char*) mu_program_name;
       hints.flags |= MU_CFHINT_PROGRAM;
     }

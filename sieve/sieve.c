@@ -59,6 +59,7 @@ int dry_run;
 
 static int sieve_print_locus = 1; /* Should the log messages include the
 				     locus */
+static int no_program_name;
 
 static void
 modify_debug_flags (mu_debug_level_t set, mu_debug_level_t clr)
@@ -124,13 +125,6 @@ cli_email (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
     mu_parseopt_error (po, _("invalid email: %s"), mu_strerror (rc));
 }
 
-static void
-cli_no_program_name (struct mu_parseopt *po, struct mu_option *opt,
-		     char const *arg)
-{
-  mu_log_tag = NULL;
-}
-
 static struct mu_option sieve_options[] = {
   { "dry-run", 'n', NULL, MU_OPTION_DEFAULT,
     N_("do not execute any actions, just print what would be done"),
@@ -168,7 +162,7 @@ static struct mu_option sieve_options[] = {
     mu_c_bool, &expression_option },
   { "no-program-name", 0, NULL, MU_OPTION_DEFAULT,
     N_("do not prefix diagnostic messages with the program name"),
-    mu_c_string, NULL, cli_no_program_name },
+    mu_c_int, &no_program_name },
   MU_OPTION_END
 }, *options[] = { sieve_options, NULL };
 
@@ -414,6 +408,20 @@ main (int argc, char *argv[])
   mu_cli (argc, argv, &cli, sieve_capa, NULL, &argc, &argv);
   if (dry_run)
     verbose++;
+
+  if (no_program_name)
+    {
+      mu_stream_t errstr;
+
+      mu_log_tag = NULL;
+      rc = mu_stdstream_strerr_create (&errstr, MU_STRERR_STDERR, 0, 0,
+				       NULL, NULL);
+      if (rc == 0)
+        {
+          mu_stream_destroy (&mu_strerr);
+          mu_strerr = errstr;
+        }
+    }
   
   if (argc == 0)
     {
