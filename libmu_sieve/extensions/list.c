@@ -93,7 +93,7 @@ retrieve_next_header (struct header_closure *hc, char *name, char **pval)
 }
 
 static int
-list_retrieve_header (void *item, void *data, int idx, char **pval)
+list_retrieve_header (void *item, void *data, size_t idx, char **pval)
 {
   struct header_closure *hc = data;
   char *p;
@@ -106,7 +106,7 @@ list_retrieve_header (void *item, void *data, int idx, char **pval)
       if (!hc->valv)
 	{
 	  if (retrieve_next_header (hc, (char*) item, &p))
-	    return 1;
+	    return MU_ERR_NOENT;
 	}
       else if (hc->vali == hc->valc)
 	{
@@ -117,11 +117,11 @@ list_retrieve_header (void *item, void *data, int idx, char **pval)
 	p = hc->valv[hc->vali++];
   
       if ((*pval = strdup (p)) == NULL)
-        return 1;
+        return errno;
       return 0;
     }
   
-  return 1;
+  return MU_ERR_NOENT;
 }
 
 
@@ -148,7 +148,6 @@ static int
 list_test (mu_sieve_machine_t mach)
 {
   mu_sieve_value_t *h, *v;
-  mu_sieve_comparator_t comp = mu_sieve_get_comparator (mach);
   struct header_closure clos;
   int result;
 
@@ -159,10 +158,8 @@ list_test (mu_sieve_machine_t mach)
   h = mu_sieve_get_arg_untyped (mach, 0);
   v = mu_sieve_get_arg_untyped (mach, 1);
   mu_message_get_header (mu_sieve_get_message (mach), &clos.header);
-  result = mu_sieve_vlist_compare (mach, h, v, comp,
-				   mu_sieve_get_relcmp (mach),
-				   list_retrieve_header,
-				   &clos, NULL) > 0;
+  result = mu_sieve_vlist_compare (mach, h, v, list_retrieve_header, NULL,
+				   &clos);
   cleanup (&clos);
   return result; 
 }

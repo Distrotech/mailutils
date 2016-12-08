@@ -358,49 +358,112 @@ mu_sieve_vlist_do (mu_sieve_machine_t mach, mu_sieve_value_t *val,
       return EINVAL;
     }
 }
-
+
 int
 mu_sieve_vlist_compare (mu_sieve_machine_t mach,
 			mu_sieve_value_t *a, mu_sieve_value_t *b,
-			mu_sieve_comparator_t comp, mu_sieve_relcmp_t test,
-			mu_sieve_retrieve_t retr,
-			void *data, size_t *count)
+			mu_sieve_retrieve_t retr, mu_list_folder_t fold,
+			void *data)
 {
   int rc = 0;
   size_t i;
+  mu_sieve_comparator_t comp = mu_sieve_get_comparator (mach);
+  mu_sieve_relcmp_t test = mu_sieve_get_relcmp (mach);
+  char *relcmp;
+  mu_list_t tmp;
   
-  switch (a->type)
+  if (!(a->type == SVT_STRING_LIST || a->type == SVT_STRING))
+    abort ();
+
+  rc = mu_list_create (&tmp);
+  if (rc)
     {
-    case SVT_STRING_LIST:
-    case SVT_STRING:
-      for (i = 0; i < a->v.list.count; i++)
+      mu_sieve_error (mach, "mu_list_create: %s", mu_strerror (rc));
+      mu_sieve_abort (mach);
+    }
+  mu_list_set_destroy_item (tmp, mu_list_free_item);
+  for (i = 0; i < a->v.list.count; i++)
+    {
+      char *item = mu_sieve_string (mach, &a->v.list, i);
+      char *sample;
+      size_t j;
+      
+      for (j = 0; (rc = retr (item, data, j, &sample)) == 0; j++)
 	{
-	  char *item = mu_sieve_string (mach, &a->v.list, i);
-	  char *sample;
-	  size_t j, k;
-  
-	  for (j = 0; rc == 0 && retr (item, data, j, &sample) == 0; j++)
+	  rc = mu_list_append (tmp, sample);
+	  if (rc)
 	    {
-	      if (count)
-		(*count)++;
-	      for (k = 0; k < b->v.list.count; k++)
-		{
-		  mu_sieve_string_t *s = mu_sieve_string_raw (mach, &b->v.list, k);
-		  rc = test (comp (mach, s, sample), 0);
-		  if (rc)
-		    {
-		      free (sample);
-		      return rc;
-		    }
-		}
 	      free (sample);
+	      mu_list_destroy (&tmp);
+	      mu_sieve_error (mach, "mu_list_append: %s", mu_strerror (rc));
+	      mu_sieve_abort (mach);
 	    }
 	}
-      break;
-      
-    default:
-      abort ();
+
+      if (rc != MU_ERR_NOENT)
+	{
+	  mu_list_destroy (&tmp);
+	  mu_sieve_error (mach, "retriever failure: %s", mu_strerror (rc));
+	  mu_sieve_abort (mach);
+	}
     }
+
+  if (mu_sieve_get_tag (mach, "count", SVT_STRING, &relcmp))
+    {
+      size_t limit;
+      size_t count;
+      mu_sieve_relcmpn_t stest;
+      struct mu_sieve_slice slice;
+      char *str, *p;
+      
+      if (fold)
+	{
+	  count = 0;
+	  rc = mu_list_fold (tmp, fold, data, &count, &count);
+	  if (rc)
+	    {
+	      mu_sieve_error (mach, "mu_list_fold: %s", mu_strerror (rc));
+	      mu_sieve_abort (mach);
+	    }
+	}
+      else
+	mu_list_count (tmp, &count);
+      
+      mu_sieve_get_arg (mach, 1, SVT_STRING_LIST, &slice);
+      str = mu_sieve_string (mach, &slice, 0);
+      limit = strtoul (str, &p, 10);
+      if (*p)
+	{
+	  mu_sieve_error (mach, _("%s: not an integer"), str);
+	  mu_sieve_abort (mach);
+	}
+
+      mu_sieve_str_to_relcmp (relcmp, NULL, &stest);
+      rc = stest (count, limit);
+    }
+  else
+    {
+      mu_iterator_t itr;
+      
+      mu_list_get_iterator (tmp, &itr);
+      rc = 0;
+      for (mu_iterator_first (itr); rc == 0 && !mu_iterator_is_done (itr);
+	   mu_iterator_next (itr))
+	{
+	  char const *val;
+	  mu_iterator_current (itr, (void**)&val);
+	  
+	  for (i = 0; i < b->v.list.count; i++)
+	    {
+	      mu_sieve_string_t *s = mu_sieve_string_raw (mach, &b->v.list, i);
+	      rc = test (comp (mach, s, val), 0);
+	      if (rc)
+		break;
+	    }
+	}
+      mu_iterator_destroy (&itr);
+    }
+  mu_list_destroy (&tmp);
   return rc;
 }
 

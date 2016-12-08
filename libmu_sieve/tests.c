@@ -55,35 +55,8 @@ struct address_closure
   mu_address_t addr;       /* Obtained address */
 };  
 
-int
-mu_sieve_relational_count (mu_sieve_machine_t mach, size_t count, int retval)
-{
-  char *relcmp;
-  
-  if (mu_sieve_get_tag (mach, "count", SVT_STRING, &relcmp))
-    {
-      size_t limit;
-      char *str, *p;
-      struct mu_sieve_slice slice;
-      mu_sieve_relcmpn_t stest;
-      
-      mu_sieve_get_arg (mach, 1, SVT_STRING_LIST, &slice);
-      str = mu_sieve_string (mach, &slice, 0);
-      limit = strtoul (str, &p, 10);
-      if (*p)
-	{
-	  mu_sieve_error (mach, _("%s: not an integer"), str);
-	  mu_sieve_abort (mach);
-	}
-
-      mu_sieve_str_to_relcmp (relcmp, NULL, &stest);
-      return stest (count, limit);
-    }
-  return retval;
-}
-
-int
-retrieve_address (void *item, void *data, int idx, char **pval)
+static int
+retrieve_address (void *item, void *data, size_t idx, char **pval)
 {
   struct address_closure *ap = data;
   char *val;
@@ -91,8 +64,9 @@ retrieve_address (void *item, void *data, int idx, char **pval)
       
   if (!ap->addr)
     {
-      if (mu_header_aget_value ((mu_header_t)ap->data, (char*)item, &val))
-	return 1;
+      rc = mu_header_aget_value ((mu_header_t)ap->data, (char*)item, &val);
+      if (rc)
+	return rc;
       rc = mu_address_create (&ap->addr, val);
       free (val);
       if (rc)
@@ -110,11 +84,8 @@ sieve_test_address (mu_sieve_machine_t mach)
 {
   mu_sieve_value_t *h, *v;
   mu_header_t header = NULL;
-  mu_sieve_comparator_t comp = mu_sieve_get_comparator (mach);
-  mu_sieve_relcmp_t test = mu_sieve_get_relcmp (mach);
   struct address_closure clos;
   int rc;
-  size_t count = 0;
   
   h = mu_sieve_get_arg_untyped (mach, 0);
   v = mu_sieve_get_arg_untyped (mach, 1);
@@ -123,89 +94,105 @@ sieve_test_address (mu_sieve_machine_t mach)
   clos.data = header;
   clos.aget = sieve_get_address_part (mach);
   clos.addr = NULL;
-  rc = mu_sieve_vlist_compare (mach, h, v, comp, test, retrieve_address, &clos,
-			       &count);
+  rc = mu_sieve_vlist_compare (mach, h, v, retrieve_address, NULL, &clos);
   mu_address_destroy (&clos.addr);
   
-  return mu_sieve_relational_count (mach, count, rc);
+  return rc;
 }
 
 struct header_closure
 {
+  mu_message_t message;
+  size_t nparts;
+  
+  size_t part;
   mu_header_t header;
-  int index;
+  size_t index;
 };
 
 int
-retrieve_header (void *item, void *data, int idx, char **pval)
+retrieve_header (void *item, void *data, size_t idx, char **pval)
 {
   struct header_closure *hc = data;
-  char buf[512];
-  size_t n;
+  char const *hname;
+  int rc;
   
   if (idx == 0)
-    hc->index = 1;
-
-  while (!mu_header_get_field_name (hc->header, hc->index, buf, sizeof(buf), &n))
     {
-      int i = hc->index++;
-      if (mu_c_strcasecmp (buf, (char*)item) == 0)
-	{
-	  if (mu_header_aget_field_value_unfold (hc->header, i, pval))
-	    return 1;
-	  return 0;
-	}
+      rc = mu_message_get_header (hc->message, &hc->header);
+      if (rc)
+	return rc;
+      hc->index = 1;
+      hc->part = 1;
     }
+  
+  do
+    {
+      if (!hc->header)
+	{
+	  if (hc->part <= hc->nparts)
+	    {
+	      mu_message_t msg;
+	      rc = mu_message_get_part (hc->message, hc->part, &msg);
+	      if (rc)
+		return rc;
+	      hc->part++;
+	      rc = mu_message_get_header (msg, &hc->header);
+	      if (rc)
+		return rc;
+	      hc->index = 1;
+	    }
+	  else
+	    return 1;
+	}
+  
+      while (!mu_header_sget_field_name (hc->header, hc->index, &hname))
+	{
+	  int i = hc->index++;
+	  if (mu_c_strcasecmp (hname, (char*)item) == 0)
+	    {
+	      if (mu_header_aget_field_value_unfold (hc->header, i, pval))
+		return -1;
+	      return 0;
+	    }
+	}
 
-  return 1;
+      hc->header = NULL;
+    }
+  while (hc->part <= hc->nparts);
+  
+  return MU_ERR_NOENT;
 }
 
 int
 sieve_test_header (mu_sieve_machine_t mach)
 {
   mu_sieve_value_t *h, *v;
-  mu_sieve_comparator_t comp = mu_sieve_get_comparator (mach);
-  mu_sieve_relcmp_t test = mu_sieve_get_relcmp (mach);
-  size_t count = 0, mcount = 0;
+  int rc;
   struct header_closure clos;
   
   h = mu_sieve_get_arg_untyped (mach, 0);
   v = mu_sieve_get_arg_untyped (mach, 1);
 
+  clos.message = mach->msg;
+  
   if (mu_sieve_get_tag (mach, "mime", SVT_VOID, NULL))
     {
       int ismime = 0;
 
       mu_message_is_multipart (mach->msg, &ismime);
       if (ismime)
-	{
-	  size_t i, nparts = 0;
-	  
-	  mu_message_get_num_parts (mach->msg, &nparts);
-	  for (i = 1; i <= nparts; i++)
-	    {
-	      mu_message_t message = NULL;
-
-	      if (mu_message_get_part (mach->msg, i, &message) == 0)
-		{
-		  mu_message_get_header (message, &clos.header);
-		  if (mu_sieve_vlist_compare (mach, h, v, comp, test,
-					   retrieve_header, &clos, &mcount))
-		    return 1;
-		}
-	    }
-	}
+	mu_message_get_num_parts (mach->msg, &clos.nparts);
     }
-  mu_message_get_header (mach->msg, &clos.header);
-  if (mu_sieve_vlist_compare (mach, h, v, comp, test, retrieve_header, &clos,
-			      &count))
-    return 1;
-
-  return mu_sieve_relational_count (mach, count + mcount, 0);
+  else
+    clos.nparts = 0;
+  
+  rc = mu_sieve_vlist_compare (mach, h, v, retrieve_header, NULL, &clos);
+  return rc;
 }
 
 int
-retrieve_envelope (void *item, void *data, int idx, char **pval)
+retrieve_envelope (void *item, void *data, size_t idx, char **pval)
 {
   struct address_closure *ap = data;
   int rc;
@@ -215,10 +202,11 @@ retrieve_envelope (void *item, void *data, int idx, char **pval)
       const char *buf;
       
       if (mu_c_strcasecmp ((char*)item, "from") != 0)
-	return 1;
+	return MU_ERR_NOENT;
 
-      if (mu_envelope_sget_sender ((mu_envelope_t)ap->data, &buf))
-	return 1;
+      rc = mu_envelope_sget_sender ((mu_envelope_t)ap->data, &buf);
+      if (rc)
+	return rc;
 
       rc = mu_address_create (&ap->addr, buf);
       if (rc)
@@ -235,11 +223,8 @@ int
 sieve_test_envelope (mu_sieve_machine_t mach)
 {
   mu_sieve_value_t *h, *v;
-  mu_sieve_comparator_t comp = mu_sieve_get_comparator (mach);
-  mu_sieve_relcmp_t test = mu_sieve_get_relcmp (mach);
   struct address_closure clos;
   int rc;
-  size_t count = 0;
   
   h = mu_sieve_get_arg_untyped (mach, 0);
   v = mu_sieve_get_arg_untyped (mach, 1);
@@ -248,10 +233,9 @@ sieve_test_envelope (mu_sieve_machine_t mach)
 			   (mu_envelope_t*)&clos.data);
   clos.aget = sieve_get_address_part (mach);
   clos.addr = NULL;
-  rc = mu_sieve_vlist_compare (mach, h, v, comp, test, retrieve_envelope, &clos,
-			       &count);
+  rc = mu_sieve_vlist_compare (mach, h, v, retrieve_envelope, NULL, &clos);
   mu_address_destroy (&clos.addr);
-  return mu_sieve_relational_count (mach, count, rc);
+  return rc;
 }
 
 int

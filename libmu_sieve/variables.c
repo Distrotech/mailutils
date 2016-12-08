@@ -243,43 +243,45 @@ static mu_sieve_data_type set_args[] = {
   SVT_VOID
 };
 
+static int
+retrieve_string (void *item, void *data, size_t idx, char **pval)
+{
+  if (idx)
+    return MU_ERR_NOENT;
+  *pval = strdup ((char*)item);
+  if (!*pval)
+    return errno;
+  return 0;
+}
+
+int
+fold_string (void *item, void *data, void *prev, void **ret)
+{
+  char *str = item;
+  size_t count = *(size_t*) prev;
+
+  /* The "relational" extension [RELATIONAL] adds a match type called
+     ":count".  The count of a single string is 0 if it is the empty
+     string, or 1 otherwise.  The count of a string list is the sum of the
+     counts of the member strings.
+  */
+  if (*str)
+    ++count;
+  *(size_t*)ret = count;
+  return 0;
+}
+    
 /* RFC 5229, 5. Test string */
 int
 sieve_test_string (mu_sieve_machine_t mach)
 {
   mu_sieve_value_t *source, *key_list;
-  mu_sieve_comparator_t comp = mu_sieve_get_comparator (mach);
-  mu_sieve_relcmp_t test = mu_sieve_get_relcmp (mach);
-  size_t count = 0;
-  int rc = 0;
-  size_t i;
   
   source = mu_sieve_get_arg_untyped (mach, 0);
   key_list = mu_sieve_get_arg_untyped (mach, 1);
 
-  for (i = 0; i < source->v.list.count; i++)
-    {
-      char *item = mu_sieve_string (mach, &source->v.list, i);
-      size_t k;
-
-      /* The "relational" extension [RELATIONAL] adds a match type called
-        ":count".  The count of a single string is 0 if it is the empty
-        string, or 1 otherwise.  The count of a string list is the sum of the
-        counts of the member strings.
-      */
-      if (item[0])
-	count++;
-      for (k = 0; k < key_list->v.list.count; k++)
-	{
-	  mu_sieve_string_t *s =
-	    mu_sieve_string_raw (mach, &key_list->v.list, k);
-	  rc = test (comp (mach, s, item), 0);
-	  if (rc)
-	    return rc;
-	}
-    }
-
-  return mu_sieve_relational_count (mach, count, 0);
+  return mu_sieve_vlist_compare (mach, source, key_list,
+				 retrieve_string, fold_string, mach);
 }
 
 mu_sieve_data_type string_args[] = {

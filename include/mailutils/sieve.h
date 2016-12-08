@@ -51,7 +51,7 @@ typedef int (*mu_sieve_relcmp_t) (int, int);
 typedef int (*mu_sieve_relcmpn_t) (size_t, size_t);
 typedef int (*mu_sieve_comparator_t) (mu_sieve_machine_t mach,
 				      mu_sieve_string_t *, const char *);
-typedef int (*mu_sieve_retrieve_t) (void *item, void *data, int idx,
+typedef int (*mu_sieve_retrieve_t) (void *item, void *data, size_t idx,
 				    char **pval);
 typedef void (*mu_sieve_destructor_t) (void *data);
 typedef int (*mu_sieve_tag_checker_t) (mu_sieve_machine_t mach);
@@ -201,8 +201,6 @@ void mu_sieve_register_comparator (mu_sieve_machine_t mach, const char *name,
 				   mu_sieve_comparator_t eq);
 
 int mu_sieve_require_relational (mu_sieve_machine_t mach, const char *name);
-int mu_sieve_relational_count (mu_sieve_machine_t mach, size_t count,
-			       int retval);
   
 int mu_sieve_require_variables (mu_sieve_machine_t mach);
 int mu_sieve_has_variables (mu_sieve_machine_t mach);
@@ -254,9 +252,8 @@ int mu_sieve_vlist_do (mu_sieve_machine_t mach,
 		       void *data);
 int mu_sieve_vlist_compare (mu_sieve_machine_t mach,
 			    mu_sieve_value_t *a, mu_sieve_value_t *b,
-			    mu_sieve_comparator_t comp,
-			    mu_sieve_relcmp_t test, mu_sieve_retrieve_t ac,
-			    void *data, size_t *count);
+			    mu_sieve_retrieve_t ac, mu_list_folder_t fold,
+			    void *data);
 
 /* Functions to create and destroy sieve machine */
 int mu_sieve_machine_create (mu_sieve_machine_t *mach);
