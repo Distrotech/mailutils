@@ -314,6 +314,46 @@ fetch_envelope0 (mu_message_t msg)
 
 static int fetch_bodystructure0 (mu_message_t message, int extension);
 
+static int
+format_param (void *item, void *data)
+{
+  struct mu_param *p = item;
+  int *first = data;
+
+  if (!*first)
+    io_sendf (" ");
+  io_send_qstring (p->name);
+  io_sendf (" ");
+  io_send_qstring (p->value);
+  *first = 0;
+  return 0;
+}
+
+static int
+get_content_type (mu_header_t hdr, mu_content_type_t *ctp, char const *dfl)
+{
+  int rc;
+  char *buffer = NULL;
+  
+  rc = mu_header_aget_value (hdr, MU_HEADER_CONTENT_TYPE, &buffer);
+  if (rc == 0)
+    {
+      rc = mu_content_type_parse (buffer, ctp);
+      if (rc == MU_ERR_PARSE)
+	{
+	  mu_error (_("malformed content type: %s"), buffer);
+	  if (dfl)
+	    rc = mu_content_type_parse (dfl, ctp);
+	}
+      else if (rc)
+	mu_diag_funcall (MU_DIAG_ERROR, "mu_content_type_parse", buffer, rc);
+      free (buffer);
+    }
+  else if (rc == MU_ERR_NOENT && dfl)
+    rc = mu_content_type_parse (dfl, ctp);
+  return rc;
+}
+
 /* The basic fields of a non-multipart body part are in the following order:
    body type:
    A string giving the content media type name as defined in [MIME-IMB].
@@ -362,98 +402,43 @@ static int
 bodystructure (mu_message_t msg, int extension)
 {
   mu_header_t header = NULL;
-  char *buffer = NULL;
   size_t blines = 0;
   int message_rfc822 = 0;
   int text_plain = 0;
-
+  mu_content_type_t ct;
+  int rc;
+  
   mu_message_get_header (msg, &header);
 
-  if (mu_header_aget_value (header, MU_HEADER_CONTENT_TYPE, &buffer) == 0)
+  rc = get_content_type (header, &ct, "TEXT/PLAIN; CHARSET=US-ASCII");
+  if (rc == 0)
     {
-      struct mu_wordsplit ws;
-      char *p;
-      size_t len;
-      
-      ws.ws_delim = " \t\r\n;=";
-      ws.ws_alloc_die = imap4d_ws_alloc_die;
-      if (mu_wordsplit (buffer, &ws, IMAP4D_WS_FLAGS))
-	{
-	  mu_error (_("%s failed: %s"), "mu_wordsplit",
-		    mu_wordsplit_strerror (&ws));
-	  return RESP_BAD; /* FIXME: a better error handling, maybe? */
-	}
-
-      len = strcspn (ws.ws_wordv[0], "/");
-      if (mu_c_strcasecmp (ws.ws_wordv[0], "MESSAGE/RFC822") == 0)
+      if (mu_c_strcasecmp (ct->type, "MESSAGE") == 0
+	  && mu_c_strcasecmp (ct->subtype, "RFC822") == 0)
         message_rfc822 = 1;
-      else if (mu_c_strncasecmp (ws.ws_wordv[0], "TEXT", len) == 0)
+      else if (mu_c_strcasecmp (ct->type, "TEXT") == 0)
         text_plain = 1;
 
-      ws.ws_wordv[0][len++] = 0;
-      p = ws.ws_wordv[0];
-      io_send_qstring (p);
+      io_send_qstring (ct->type);
       io_sendf (" ");
-      io_send_qstring (ws.ws_wordv[0] + len);
+      io_send_qstring (ct->subtype);
 
       /* body parameter parenthesized list: Content-type attributes */
-      if (ws.ws_wordc > 1)
+      if (mu_list_is_empty (ct->param))
+	io_sendf (" NIL");
+      else
 	{
-	  int space = 0;
-	  char *lvalue = NULL;
-	  int i;
-	  
+	  int first = 1;
 	  io_sendf (" (");
-	  for (i = 1; i < ws.ws_wordc; i++)
-	    {
-	      /* body parameter parenthesized list:
-		 Content-type parameter list. */
-	      if (lvalue)
-		{
-		  if (space)
-		    io_sendf (" ");
-		  io_send_qstring (lvalue);
-		  lvalue = NULL;
-		  space = 1;
-		}
-	      
-	      switch (ws.ws_wordv[i][0])
-		{
-		case ';':
-		  continue;
-		  
-		case '=':
-		  if (++i < ws.ws_wordc)
-		    {
-		      io_sendf (" ");
-		      io_send_qstring (ws.ws_wordv[i]);
-		    }
-		  break;
-		  
-		default:
-		  lvalue = ws.ws_wordv[i];
-		}
-	    }
-	  
-	  if (lvalue)
-	    {
-	      if (space)
-		io_sendf (" ");
-	      io_send_qstring (lvalue);
-	    }
-
+	  mu_list_foreach (ct->param, format_param, &first);
 	  io_sendf (")");
 	}
-      else
-	io_sendf (" NIL");
-      mu_wordsplit_free (&ws);
-      free (buffer);
+      mu_content_type_destroy (&ct);
     }
   else
     {
-      /* Default? If Content-Type is not present consider as text/plain.  */
-      io_sendf ("\"TEXT\" \"PLAIN\" (\"CHARSET\" \"US-ASCII\")");
-      text_plain = 1;
+      mu_diag_funcall (MU_DIAG_ERROR, "get_content_type", NULL, rc);
+      return RESP_BAD; /* FIXME: a better error handling, maybe? */
     }
   
   /* body id: Content-ID. */
@@ -542,13 +527,14 @@ fetch_bodystructure0 (mu_message_t message, int extension)
   size_t nparts = 1;
   size_t i;
   int is_multipart = 0;
-
+  
   mu_message_is_multipart (message, &is_multipart);
   if (is_multipart)
     {
-      char *buffer = NULL;
+      mu_content_type_t ct;
       mu_header_t header = NULL;
-
+      int rc;
+      
       mu_message_get_num_parts (message, &nparts);
 
       /* Get all the sub messages.  */
@@ -564,79 +550,32 @@ fetch_bodystructure0 (mu_message_t message, int extension)
       mu_message_get_header (message, &header);
 
       /* The subtype.  */
-      if (mu_header_aget_value (header, MU_HEADER_CONTENT_TYPE, &buffer) == 0)
+      rc = get_content_type (header, &ct, NULL);
+      if (rc == 0)
 	{
-	  struct mu_wordsplit ws;
-	  char *s;
-
-	  ws.ws_delim = " \t\r\n;=";
-	  ws.ws_alloc_die = imap4d_ws_alloc_die;
-	  if (mu_wordsplit (buffer, &ws, IMAP4D_WS_FLAGS))
-	    {
-	      mu_error (_("%s failed: %s"), "mu_wordsplit",
-			mu_wordsplit_strerror (&ws));
-	      return RESP_BAD; /* FIXME: a better error handling, maybe? */
-	    }
-
-	  s = strchr (ws.ws_wordv[0], '/');
-	  if (s)
-	    s++;
 	  io_sendf (" ");
-	  io_send_qstring (s);
+	  io_send_qstring (ct->subtype);
 
 	  /* The extension data for multipart. */
-	  if (extension)
+	  if (extension && !mu_list_is_empty (ct->param))
 	    {
-	      int space = 0;
-	      char *lvalue = NULL;
-	      
+	      int first = 1;
 	      io_sendf (" (");
-	      for (i = 1; i < ws.ws_wordc; i++)
-		{
-		  /* body parameter parenthesized list:
-		     Content-type parameter list. */
-		  if (lvalue)
-		    {
-		      if (space)
-			io_sendf (" ");
-		      io_send_qstring (lvalue);
-		      lvalue = NULL;
-		      space = 1;
-		    }
-
-		  switch (ws.ws_wordv[i][0])
-		    {
-		    case ';':
-		      continue;
-		      
-		    case '=':
-		      if (++i < ws.ws_wordc)
-			{
-			  io_sendf (" ");
-			  io_send_qstring (ws.ws_wordv[i]);
-			}
-		      break;
-		      
-		    default:
-		      lvalue = ws.ws_wordv[i];
-		    }
-		}
-	      if (lvalue)
-		{
-		  if (space)
-		    io_sendf (" ");
-		  io_send_qstring (lvalue);
-		}
+	      mu_list_foreach (ct->param, format_param, &first);
 	      io_sendf (")");
 	    }
 	  else
 	    io_sendf (" NIL");
-	  mu_wordsplit_free (&ws);
-          free (buffer);
+	  mu_content_type_destroy (&ct);
 	}
-      else
+      else if (rc == MU_ERR_NOENT)
 	/* No content-type header */
 	io_sendf (" NIL");
+      else
+	{
+	  mu_diag_funcall (MU_DIAG_ERROR, "get_content_type", NULL, rc);
+	  return RESP_BAD; /* FIXME: a better error handling, maybe? */
+	}
 
       /* body disposition: Content-Disposition.  */
       fetch_send_header_list (header, MU_HEADER_CONTENT_DISPOSITION,
@@ -729,7 +668,6 @@ fetch_get_part_rfc822 (struct fetch_function_closure *ffc,
   mu_message_t msg = frt->msg, retmsg = NULL;
   size_t i;
   mu_header_t header;
-  const char *hval;
   
   if (ffc->nset == 0)
     {
@@ -739,30 +677,20 @@ fetch_get_part_rfc822 (struct fetch_function_closure *ffc,
   
   for (i = 0; i < ffc->nset; i++)
     {
+      mu_content_type_t ct;
+      int rc;
+      
       if (mu_message_get_part (msg, ffc->section_part[i], &msg))
 	return NULL;
 
       if (mu_message_get_header (msg, &header))
 	return NULL;
-  
-      if (mu_header_sget_value (header, MU_HEADER_CONTENT_TYPE, &hval) == 0)
+
+      rc = get_content_type (header, &ct, NULL);
+      if (rc == 0)
 	{
-	  struct mu_wordsplit ws;
-	  int rc;
-      
-	  ws.ws_delim = " \t\r\n;=";
-	  ws.ws_alloc_die = imap4d_ws_alloc_die;
-	  if (mu_wordsplit (hval, &ws, IMAP4D_WS_FLAGS))
-	    {
-	      mu_error (_("%s failed: %s"), "mu_wordsplit",
-			mu_wordsplit_strerror (&ws));
-	      return NULL;
-	    }
-
-	  rc = mu_c_strcasecmp (ws.ws_wordv[0], "MESSAGE/RFC822");
-	  mu_wordsplit_free (&ws);
-
-	  if (rc == 0)
+	  if (mu_c_strcasecmp (ct->type, "MESSAGE") == 0
+	      && mu_c_strcasecmp (ct->subtype, "RFC822") == 0)
 	    {
 	      rc = mu_message_unencapsulate  (msg, &retmsg, NULL);
 	      if (rc)
@@ -778,7 +706,10 @@ fetch_get_part_rfc822 (struct fetch_function_closure *ffc,
 		}
 	      msg = retmsg;
 	    }
+	  mu_content_type_destroy (&ct);
 	}
+      else if (rc != MU_ERR_NOENT)
+	mu_diag_funcall (MU_DIAG_ERROR, "get_content_type", NULL, rc);
     }
   
   return retmsg;

@@ -124,6 +124,29 @@ int mu_rfc2822_references (mu_message_t msg, char **pstr);
 int mu_rfc2822_in_reply_to (mu_message_t msg, char **pstr);
 
   /* ----------------------- */
+  /* ----------------------- */
+struct mu_content_type
+{
+  char *type;
+  char *subtype;
+  char *trailer;
+  mu_list_t param;
+};
+
+typedef struct mu_content_type *mu_content_type_t;
+
+struct mu_param
+{
+  char *name;
+  char *value;
+};
+
+  
+  
+int mu_content_type_parse (const char *input, mu_content_type_t *retct);
+void mu_content_type_destroy (mu_content_type_t *pptr);
+  
+  /* ----------------------- */
   /* Filter+iconv            */
   /* ----------------------- */
 int mu_decode_filter (mu_stream_t *pfilter, mu_stream_t input,

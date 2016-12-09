@@ -42,6 +42,7 @@ AM_CPPFLAGS = @MU_LIB_COMMON_INCLUDES@
 noinst_PROGRAMS = \
  addr\
  cidr\
+ conttype\
  debugspec\
  decode2047\
  encode2047\

@@ -24,8 +24,9 @@ libbase_la_SOURCES = \
  argcvjoin.c\
  argcvrem.c\
  assoc.c\
- filesafety.c\
+ ctparse.c\
  daemon.c\
+ filesafety.c\
  fdwait.c\
  fgetpwent.c\
  filename.c\
