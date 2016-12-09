@@ -335,7 +335,7 @@ get_content_type (mu_header_t hdr, mu_content_type_t *ctp, char const *dfl)
   int rc;
   char *buffer = NULL;
   
-  rc = mu_header_aget_value (hdr, MU_HEADER_CONTENT_TYPE, &buffer);
+  rc = mu_header_aget_value_unfold (hdr, MU_HEADER_CONTENT_TYPE, &buffer);
   if (rc == 0)
     {
       rc = mu_content_type_parse (buffer, ctp);
