@@ -28,7 +28,6 @@ pkginclude_HEADERS = \
  acl.h\
  address.h\
  alloc.h\
- argcv.h\
  assoc.h\
  attribute.h\
  auth.h\
@@ -102,7 +101,6 @@ pkginclude_HEADERS = \
  tls.h\
  types.h\
  url.h\
- vartab.h\
  version.h\
  wordsplit.h
 

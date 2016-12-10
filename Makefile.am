@@ -94,7 +94,6 @@ SUBDIRS = . \
  sql\
  libmu_auth\
  libproto\
- libmu_compat\
  testsuite\
  lib\
  $(LIBMU_CPP_DIR)\

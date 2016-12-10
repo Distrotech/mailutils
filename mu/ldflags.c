@@ -57,7 +57,6 @@ struct lib_descr {
 #endif
   { "mailer", "-lmu_mailer", 0 },
   { "sieve",  "-lmu_sieve",  0, NOTALL },
-  { "compat", "-lmu_compat", 0 },
   { "auth",   "-lmu_auth " AUTHLIBS, 2 },
 #ifdef WITH_GUILE	      
   { "guile",  "-lmu_scm " GUILE_LIBS, -1, NOTALL },
@@ -65,6 +64,7 @@ struct lib_descr {
 #ifdef WITH_PYTHON
   { "python", "-lmu_py " PYTHON_LIBS, -1, NOTALL },
 #endif
+  { "compat", NULL,  0, 0 },  /* deprecated */
   { "cfg",    NULL,  0, 0 },  /* deprecated */
   { "argp",   NULL,  0, 0 },  /* deprecated */
   { NULL }

@@ -411,7 +411,7 @@ run_metamail (const char *mailcap_cmd, mu_message_t mesg)
 	  status = mu_message_get_streamref (mesg, &stream);
 	  if (status)
 	    {
-	      mu_error ("mu_message_get_stream: %s", mu_strerror (status));
+	      mu_error ("mu_message_get_streamref: %s", mu_strerror (status));
 	      break;
 	    }
 

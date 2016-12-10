@@ -45,11 +45,3 @@ mu_list_foreach (mu_list_t list, mu_list_action_t action, void *cbdata)
   mu_iterator_destroy (&itr);
   return status;
 }
-
-/* Retained for compatibility with previous versions.
-   In the future it will be removed, or changed to a define or weak alias. */
-int
-mu_list_do (mu_list_t list, mu_list_action_t action, void *cbdata)
-{
-  return mu_list_foreach (list, action, cbdata);
-}

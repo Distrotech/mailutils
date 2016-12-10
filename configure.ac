@@ -1318,7 +1318,6 @@ test -z "$client_list" && client_list=" [NONE]"
 # Initialize the (autotest) test suite.
 AC_CONFIG_TESTDIR(libmailutils/tests)
 AC_CONFIG_TESTDIR(testsuite)
-AC_CONFIG_TESTDIR(libmu_compat/tests)
 AC_CONFIG_TESTDIR(frm/tests)
 AC_CONFIG_TESTDIR(maidag/tests)
 AC_CONFIG_TESTDIR(mail/tests)
@@ -1331,8 +1330,6 @@ AC_CONFIG_TESTDIR(imap4d/tests)
 
 AC_CONFIG_FILES([libmailutils/tests/Makefile
                  libmailutils/tests/atlocal
-		 libmu_compat/tests/Makefile
-		 libmu_compat/tests/atlocal
 	         testsuite/Makefile
                  testsuite/atlocal
                  comsat/tests/Makefile
@@ -1487,7 +1484,6 @@ AC_CONFIG_FILES([
  libproto/nntp/Makefile
  libproto/imap/Makefile
  libproto/imap/tests/Makefile
- libmu_compat/Makefile
  maidag/Makefile
  mail/Makefile
  mail/testsuite/Makefile

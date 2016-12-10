@@ -134,13 +134,6 @@ enum mu_iconv_fallback_mode
     mu_fallback_copy_octal
   };
 
-extern int mu_filter_iconv_create (mu_stream_t *s, mu_stream_t transport,
-				   const char *fromcode, const char *tocode,
-				   int flags,
-				   enum mu_iconv_fallback_mode fallback_mode)
-                                   MU_DEPRECATED;
-  
-
 extern int mu_linelen_filter_create (mu_stream_t *pstream, mu_stream_t stream,
 				     size_t limit, int flags);
 

@@ -154,8 +154,6 @@ int mu_list_foreach_dir (mu_list_t _list, int _dir, mu_list_action_t _action,
 			 void *_cbdata);
   /* Same as mu_list_foreach_dir with _dir==0. */
 int mu_list_foreach (mu_list_t _list, mu_list_action_t _action, void *_data);
-  /* A historical alias to the above. */
-int mu_list_do (mu_list_t, mu_list_action_t, void *) MU_DEPRECATED;
   
 
   /* ************************************************* */
