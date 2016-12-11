@@ -107,7 +107,9 @@ struct mu_sieve_machine
 
   int dry_run;               /* Dry-run mode */
   jmp_buf errbuf;            /* Target location for non-local exits */
-  
+
+  mu_assoc_t exenv;          /* Execution environment (RFC 5183) */
+
   mu_mailbox_t mailbox;      /* Mailbox to operate upon */
   size_t    msgno;           /* Current message number */
   mu_message_t msg;          /* Current message */

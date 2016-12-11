@@ -205,6 +205,8 @@ int mu_sieve_require_relational (mu_sieve_machine_t mach, const char *name);
 int mu_sieve_require_variables (mu_sieve_machine_t mach);
 int mu_sieve_has_variables (mu_sieve_machine_t mach);
 
+int mu_sieve_require_environment (mu_sieve_machine_t mach);
+
 void *mu_sieve_load_ext (mu_sieve_machine_t mach, const char *name);
 void mu_sieve_unload_ext (void *handle);
   
@@ -291,6 +293,11 @@ void mu_sieve_set_mailer (mu_sieve_machine_t mach, mu_mailer_t mailer);
 void mu_sieve_set_daemon_email (mu_sieve_machine_t mach, const char *email);
 
 int mu_sieve_get_message_sender (mu_message_t msg, char **ptext);
+
+int mu_sieve_get_environ (mu_sieve_machine_t mach, char const *name,
+			  char **retval);
+int mu_sieve_set_environ (mu_sieve_machine_t mach, char const *name,
+			  char const *value);
 
 /* Stream state saving & restoring */
 void mu_sieve_stream_save (mu_sieve_machine_t mach);

@@ -284,13 +284,13 @@ sieve_test_string (mu_sieve_machine_t mach)
 				 retrieve_string, fold_string, mach);
 }
 
-mu_sieve_data_type string_args[] = {
+static mu_sieve_data_type string_args[] = {
   SVT_STRING_LIST,
   SVT_STRING_LIST,
   SVT_VOID
 };
 
-mu_sieve_tag_group_t string_tag_groups[] = {
+static mu_sieve_tag_group_t string_tag_groups[] = {
   { mu_sieve_match_part_tags, mu_sieve_match_part_checker },
   { NULL }
 };

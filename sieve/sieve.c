@@ -61,6 +61,21 @@ static int sieve_print_locus = 1; /* Should the log messages include the
 				     locus */
 static int no_program_name;
 
+static mu_list_t env_list;
+
+static int
+sieve_setenv (void *item, void *data)
+{
+  char *str = item;
+  mu_sieve_machine_t mach = data;
+  int rc = mu_sieve_set_environ (mach, str, str + strlen (str) + 1);
+  if (rc)
+    mu_error (_("can't set environment item %s: %s"),
+	      str, mu_strerror (rc));
+  return 0;
+}
+
+
 static void
 modify_debug_flags (mu_debug_level_t set, mu_debug_level_t clr)
 {
@@ -125,6 +140,27 @@ cli_email (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
     mu_parseopt_error (po, _("invalid email: %s"), mu_strerror (rc));
 }
 
+static void
+cli_env (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
+{
+  char *p = strchr (arg, '=');
+  if (p == NULL)
+    mu_parseopt_error (po, _("malformed environment setting: %s"), arg);
+  else
+    {
+      char *str;
+
+      str = mu_strdup (arg);
+      str[p - arg] = 0;
+      if (!env_list)
+	{
+	  mu_list_create (&env_list);
+	  mu_list_set_destroy_item (env_list, mu_list_free_item);
+	}
+      mu_list_append (env_list, str);
+    }
+}
+
 static struct mu_option sieve_options[] = {
   { "dry-run", 'n', NULL, MU_OPTION_DEFAULT,
     N_("do not execute any actions, just print what would be done"),
@@ -163,6 +199,9 @@ static struct mu_option sieve_options[] = {
   { "no-program-name", 0, NULL, MU_OPTION_DEFAULT,
     N_("do not prefix diagnostic messages with the program name"),
     mu_c_int, &no_program_name },
+  { "environment", 0, N_("NAME=VALUE"), MU_OPTION_DEFAULT,
+    N_("set sieve environment value"),
+    mu_c_string, NULL, cli_env },
   MU_OPTION_END
 }, *options[] = { sieve_options, NULL };
 
@@ -445,7 +484,9 @@ main (int argc, char *argv[])
       mu_error (_("cannot initialize sieve machine: %s"), mu_strerror (rc));
       return EX_SOFTWARE;
     }
-
+  mu_list_foreach (env_list, sieve_setenv, mach);
+  mu_list_destroy (&env_list);
+    
   if (verbose)
     mu_sieve_set_logger (mach, _sieve_action_log);
 

@@ -41,10 +41,11 @@ static int strip_tabs;
 static int number (void);
 static int string (void);
 static void line_begin (void);
-static void line_add (char *text, size_t len);
+static void line_add (char const *text, size_t len);
+static void line_addz (char const *text); 
 static void line_finish (void);
 static void multiline_begin (void);
-static void multiline_add (char *);
+static void multiline_add (void);
 static void multiline_finish (void);
 static char *multiline_strip_tabs (char *text);
 static void ident (const char *text);
@@ -286,8 +287,8 @@ true    return TRUE;
 \"[^\\"\n]*\"                 { return string (); }
 \"[^\\"\n]*\\.    { BEGIN(STR);
                     line_begin ();
-  		    line_add (str_unescape (yytext + 1, yyleng - 1), 0); }
-<STR>[^\\"\n]*\\. { line_add (str_unescape (yytext, yyleng), 0); }
+  		    line_addz (str_unescape (yytext + 1, yyleng - 1)); }
+<STR>[^\\"\n]*\\. { line_addz (str_unescape (yytext, yyleng)); }
 <STR>[^\\"\n]*\" { BEGIN(INITIAL);
                   if (yyleng > 1) 
                      line_add (yytext, yyleng - 1); 
@@ -303,7 +304,7 @@ text:-?\\?{IDENT}[ \t]*#.*\n { BEGIN(ML);
 text:-?\\?{IDENT}[ \t]*\n    { BEGIN(ML);
                                multiline_begin (); }
 <ML>#[ \t]*include.*\n    { if (multiline_delimiter[0] == '\\')
-                              multiline_add (NULL);
+                              multiline_add ();
                             else
                               sieve_include (); }
 <ML>.*\n { char *p = multiline_strip_tabs (yytext);
@@ -318,7 +319,7 @@ text:-?\\?{IDENT}[ \t]*\n    { BEGIN(ML);
 	       multiline_finish ();
 	       return MULTILINE;
 	     }
-	    multiline_add (NULL); } 
+	    multiline_add (); } 
 {WS}     ;
          /* Other tokens */
 \n       ;
@@ -527,19 +528,22 @@ multiline_strip_tabs (char *text)
 }
 
 static void
-line_add (char *text, size_t len)
+line_add (char const *text, size_t len)
 {
-  if (len == 0)
-    len = strlen (text);
   mu_opool_append (mu_sieve_machine->string_pool, text, len);
 }
 
 static void
-multiline_add (char *s)
+line_addz (char const *text)
 {
-  if (!s)
-    s = multiline_strip_tabs (yytext);
-  mu_opool_appendz (mu_sieve_machine->string_pool, s);
+  mu_opool_appendz (mu_sieve_machine->string_pool, text);
+}
+
+static void
+multiline_add (void)
+{
+  mu_opool_appendz (mu_sieve_machine->string_pool,
+		    multiline_strip_tabs (yytext));
 }
 
 static void
