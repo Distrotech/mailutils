@@ -35,7 +35,6 @@ static const char *whatnowproc;
 static mu_msgset_t msgset;
 static mu_mailbox_t mbox;
 static int build_only = 0; /* -build flag */
-static int nowhatnowproc = 0; /* -nowhatnowproc */
 static int use_draft = 0;  /* -use flag */
 static char *mhl_filter = NULL; /* -filter flag */
 static int annotate;       /* -annotate flag */
@@ -86,7 +85,7 @@ set_whatnowproc (struct mu_parseopt *po, struct mu_option *opt,
 		 char const *arg)
 {
   whatnowproc = mu_strdup (arg);
-  nowhatnowproc = 0;
+  wh_env.nowhatnowproc = 0;
 }
 
 static void
@@ -165,7 +164,7 @@ static struct mu_option options[] = {
     mu_c_string, NULL, set_whatnowproc },
   { "nowhatnowproc", 0, NULL, MU_OPTION_DEFAULT,
     N_("don't run whatnowproc"),
-    mu_c_int, &nowhatnowproc, NULL, "1" },
+    mu_c_int, &wh_env.nowhatnowproc, NULL, "1" },
   { "use", 0, NULL, MU_OPTION_DEFAULT,
     N_("use draft file preserved after the last session"),
     mu_c_bool, &use_draft },
@@ -190,23 +189,11 @@ make_draft (mu_mailbox_t mbox, int disp, struct mh_whatnow_env *wh)
 {
   int rc;
   mu_message_t msg;
-  struct stat st;
   size_t msgno;
   
   /* First check if the draft exists */
-  if (!build_only && stat (wh->draftfile, &st) == 0)
-    {
-      if (use_draft)
-	disp = DISP_USE;
-      else 
-	{
-	  printf (ngettext ("Draft \"%s\" exists (%s byte).\n",
-			    "Draft \"%s\" exists (%s bytes).\n",
-			    (unsigned long) st.st_size),
-		  wh->draftfile, mu_umaxtostr (0, st.st_size));
-	  disp = mh_disposition (wh->draftfile);
-	}
-    }
+  if (!build_only)
+    disp = check_draft_disposition (wh, use_draft);
 
   switch (disp)
     {
@@ -344,7 +331,7 @@ main (int argc, char **argv)
   make_draft (mbox, DISP_REPLACE, &wh_env);
 
   /* Exit immediately if --build is given */
-  if (build_only || nowhatnowproc)
+  if (build_only || wh_env.nowhatnowproc)
     return 0;
 
   rc = mh_whatnowproc (&wh_env, initial_edit, whatnowproc);

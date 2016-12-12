@@ -27,7 +27,6 @@ static char args_doc[] = N_("[MSG]");
 struct mh_whatnow_env wh_env = { 0 };
 static int initial_edit = 1;
 static const char *whatnowproc;
-static int nowhatnowproc;
 char *formfile;
 static int build_only = 0; /* -build flag */
 static int use_draft = 0;  /* -use flag */
@@ -81,7 +80,7 @@ static struct mu_option options[] = {
     mu_c_string, &whatnowproc },
   { "nowhatnowproc", 0, NULL, MU_OPTION_DEFAULT,
     N_("don't run whatnowproc"),
-    mu_c_string, &nowhatnowproc, NULL, "1" },
+    mu_c_int, &wh_env.nowhatnowproc, NULL, "1" },
   { "use",           0, NULL, MU_OPTION_DEFAULT,
     N_("use draft file preserved after the last session"),
     mu_c_bool, &use_draft },
@@ -235,7 +234,7 @@ main (int argc, char **argv)
     }
   
   /* Exit immediately if -build is given */
-  if (build_only || nowhatnowproc)
+  if (build_only || wh_env.nowhatnowproc)
     return 0;
 
   return mh_whatnowproc (&wh_env, initial_edit, whatnowproc);

@@ -37,7 +37,6 @@ static const char *whatnowproc;
 static char *mhl_filter_file = NULL; /* --filter flag */
 
 static int build_only = 0;      /* --build flag */
-static int nowhatnowproc = 0;   /* --nowhatnowproc */
 static int annotate = 0;        /* --annotate flag */
 static enum encap_type encap = encap_clear; /* controlled by --format, --form
 					       and --mime flags */
@@ -136,7 +135,7 @@ static struct mu_option options[] = {
     mu_c_string, &whatnowproc },
   { "nowhatnowproc", 0, NULL, MU_OPTION_DEFAULT,
     N_("don't run whatnowproc"),
-    mu_c_int, &nowhatnowproc, NULL, "1" },
+    mu_c_int, &wh_env.nowhatnowproc, NULL, "1" },
   { "use",           0, NULL, MU_OPTION_DEFAULT,
     N_("use draft file preserved after the last session"),
     mu_c_bool, &use_draft },
@@ -434,7 +433,7 @@ main (int argc, char **argv)
     }
   
   /* Exit immediately if --build is given */
-  if (build_only || nowhatnowproc)
+  if (build_only || wh_env.nowhatnowproc)
     {
       if (strcmp (wh_env.file, wh_env.draftfile))
 	rename (wh_env.file, wh_env.draftfile);

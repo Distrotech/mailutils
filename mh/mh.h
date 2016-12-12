@@ -215,6 +215,7 @@ struct mh_whatnow_env     /* whatnow shell environment */
   char *anno_field;       /* Annotate field to be used */
   mu_list_t anno_list;    /* List of messages (mu_message_t) to annotate */
   mu_mailbox_t mbox;
+  int nowhatnowproc;
 };
 
 #define DISP_QUIT 0

@@ -582,6 +582,9 @@ mh_whatnowproc (struct mh_whatnow_env *wh, int initial_edit, const char *prog)
 {
   int rc;
   pid_t pid;
+
+  if (wh->nowhatnowproc)
+    return 0;
   
   if (!prog)
     return mh_whatnow (wh, initial_edit);

@@ -74,6 +74,9 @@ check_draft_disposition (struct mh_whatnow_env *wh, int use_draft)
   struct stat st;
   int disp = DISP_REPLACE;
 
+  if (wh->nowhatnowproc)
+    return disp;
+  
   /* First check if the draft exists */
   if (stat (wh->draftfile, &st) == 0)
     {
