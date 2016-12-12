@@ -49,6 +49,7 @@ TESTSUITE_AT = \
   compile.at\
   enc-char.at\
   envelope.at\
+  environment.at\
   exists.at\
   ext.at\
   false.at\

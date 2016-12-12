@@ -58,6 +58,8 @@ struct apply_script_closure
   mu_message_t msg;
 };
 
+static char const *script_env[] = { "location=MDA", "phase=during", NULL };
+
 static int
 apply_script (void *item, void *data)
 {
@@ -67,7 +69,7 @@ apply_script (void *item, void *data)
   int rc;
   struct stat st;
   mu_script_descr_t sd;
-  
+
   progfile = mu_expand_path_pattern (scr->pat, clos->auth->name);
   if (stat (progfile, &st))
     {
@@ -79,7 +81,7 @@ apply_script (void *item, void *data)
       return 0;
     }
 
-  rc = mu_script_init (scr->scr, progfile, &sd);
+  rc = mu_script_init (scr->scr, progfile, script_env, &sd);
   if (rc)
     mu_error (_("initialization of script %s failed: %s"),
 	      progfile, mu_strerror (rc));

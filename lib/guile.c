@@ -25,7 +25,7 @@
 static int initialized;
 
 static int
-scheme_init (const char *prog, mu_script_descr_t *pdescr)
+scheme_init (const char *prog, const char **env, mu_script_descr_t *pdescr)
 {
   if (!initialized)
     {

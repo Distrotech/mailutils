@@ -108,9 +108,10 @@ mu_script_suffix_handler (const char *name)
 }
 
 int
-mu_script_init (mu_script_t scr, const char *name, mu_script_descr_t *pdescr)
+mu_script_init (mu_script_t scr, const char *name, const char **env,
+		mu_script_descr_t *pdescr)
 {
-  return scr->script_init ? scr->script_init (name, pdescr) : 0;
+  return scr->script_init ? scr->script_init (name, env, pdescr) : 0;
 }
 
 int

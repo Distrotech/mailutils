@@ -23,7 +23,7 @@
 #include <string.h>
 
 static int
-python_init (const char *prog, mu_script_descr_t *pdescr)
+python_init (const char *prog, const char **env, mu_script_descr_t *pdescr)
 {
   *pdescr = (mu_script_descr_t) strdup (prog);
   if (!*pdescr)

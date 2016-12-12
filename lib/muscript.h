@@ -27,7 +27,8 @@ typedef struct mu_script_descr *mu_script_descr_t;
 mu_script_t mu_script_lang_handler (const char *lang);
 mu_script_t mu_script_suffix_handler (const char *name);
 
-int mu_script_init (mu_script_t scr, const char *name, mu_script_descr_t *);
+int mu_script_init (mu_script_t scr, const char *name, const char **env,
+		    mu_script_descr_t *);
 int mu_script_done (mu_script_t, mu_script_descr_t);
 int mu_script_process_msg (mu_script_t, mu_script_descr_t, mu_message_t msg);
 void mu_script_log_enable (mu_script_t scr, mu_script_descr_t descr,

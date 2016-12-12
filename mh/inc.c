@@ -40,6 +40,7 @@ static const char *append_folder;
 static const char *move_to_mailbox;
 static const char *script_file;
 static const char *script_lang;
+static char const *script_env[] = { "location=MUA", "phase=post", NULL };
 
 static void
 add_file (struct mu_parseopt *po, struct mu_option *opt, char const *arg)
@@ -390,7 +391,8 @@ main (int argc, char **argv)
 	      exit (1);
 	    }
 	}
-      rc = mu_script_init (incdat.handler, script_file, &incdat.descr);
+      rc = mu_script_init (incdat.handler, script_file, script_env,
+			   &incdat.descr);
       if (rc)
 	{
 	  mu_error (_("script initialization failed: %s"),

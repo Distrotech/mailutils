@@ -75,8 +75,36 @@ _sieve_action_log (mu_sieve_machine_t mach,
   mu_stream_unref (stream);
 }
 
+static void
+sieve_setenv (mu_sieve_machine_t mach, const char **env)
+{
+  if (env)
+    {
+      char *buffer = NULL;
+      size_t buflen = 0;
+      size_t i;
+      char *p;
+      
+      for (i = 0; env[i]; i++)
+	{
+	  if (buflen < strlen (env[i]) + 1)
+	    {
+	      buflen = strlen (env[i]) + 1;
+	      buffer = mu_realloc (buffer, buflen);
+	    }
+	  strcpy (buffer, env[i]);
+	  p = strchr (buffer, '=');
+	  if (!p)
+	    continue;
+	  *p++ = 0;
+	  mu_sieve_set_environ (mach, buffer, p);
+	}
+      free (buffer);
+    }
+}
+
 static int
-sieve_init (const char *prog, mu_script_descr_t *pdescr)
+sieve_init (const char *prog, const char **env, mu_script_descr_t *pdescr)
 {
   int rc;
   mu_sieve_machine_t mach;
@@ -86,6 +114,7 @@ sieve_init (const char *prog, mu_script_descr_t *pdescr)
     {
       if (mu_script_sieve_log)
 	mu_sieve_set_logger (mach, _sieve_action_log);
+      sieve_setenv (mach, env);
       rc = mu_sieve_compile (mach, prog);
     }
   *pdescr = (mu_script_descr_t) mach;
