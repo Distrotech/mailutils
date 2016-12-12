@@ -1744,7 +1744,7 @@ parse_brace (char **pval, char **cmd, int c, struct compose_env *env)
   return 0;
 }
 
-#define isdelim(c) (mu_isspace (c) || strchr (";<[(", c))
+#define isdelim(c) (c == 0 || mu_isspace (c) || strchr (";<[(", c))
 #define skipws(ptr) (ptr) = mu_str_skip_class (ptr, MU_CTYPE_SPACE)
 
 int
@@ -1754,7 +1754,7 @@ parse_content_type (struct compose_env *env,
   int status = 0, stop = 0;
   char *rest = *prest;
   char *comment = NULL;
-
+  
   while (stop == 0 && status == 0 && *rest)
     {
       skipws (rest);
@@ -1823,12 +1823,29 @@ parse_content_type (struct compose_env *env,
 	  rest++;
 	  mu_opool_append_char (pool, '=');
 	  skipws (rest);
-	  for (; *rest; rest++)
+	  if (*rest == '"')
 	    {
-	      if (isdelim (*rest))
-		break;
 	      mu_opool_append_char (pool, *rest);
+	      rest++;
+	      while (*rest != '"')
+		{
+		  if (*rest == '\\')
+		    {
+		      mu_opool_append_char (pool, *rest);
+		      if (rest[1])
+			rest++;
+		      else
+			break;
+		    }
+		  mu_opool_append_char (pool, *rest);
+		  rest++;
+		}
+	      mu_opool_append_char (pool, *rest);
+	      rest++;
 	    }
+	  else
+	    for (; !isdelim (*rest); rest++)
+	      mu_opool_append_char (pool, *rest);
 	  break;
 	    
 	default:
@@ -1867,7 +1884,7 @@ parse_type_command (char **pcmd, struct compose_env *env, mu_header_t hdr)
   char *rest = *pcmd;
   
   skipws (rest);
-  for (sp = rest; *sp && !isdelim (*sp); sp++)
+  for (sp = rest; !isdelim (*sp); sp++)
     ;
   c = *sp;
   *sp = 0;
