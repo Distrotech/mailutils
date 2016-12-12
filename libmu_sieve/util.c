@@ -476,13 +476,13 @@ mu_sieve_stream_save (mu_sieve_machine_t mach)
   if (mu_stream_ioctl (mach->errstream, MU_IOCTL_LOGSTREAM,
 		       MU_IOCTL_LOGSTREAM_GET_MODE, &mach->err_mode) == 0
       && mu_stream_ioctl (mach->errstream, MU_IOCTL_LOGSTREAM,
-			  MU_IOCTL_LOGSTREAM_SET_LOCUS, &mach->err_locus) == 0)
+			  MU_IOCTL_LOGSTREAM_GET_LOCUS, &mach->err_locus) == 0)
       mach->state_flags |= MU_SV_SAVED_ERR_STATE;
 
   if (mu_stream_ioctl (mach->dbgstream, MU_IOCTL_LOGSTREAM,
 		       MU_IOCTL_LOGSTREAM_GET_MODE, &mach->dbg_mode) == 0
       && mu_stream_ioctl (mach->dbgstream, MU_IOCTL_LOGSTREAM,
-			  MU_IOCTL_LOGSTREAM_SET_LOCUS, &mach->dbg_locus) == 0)
+			  MU_IOCTL_LOGSTREAM_GET_LOCUS, &mach->dbg_locus) == 0)
     mach->state_flags |= MU_SV_SAVED_DBG_STATE;
   
   mach->state_flags |= MU_SV_SAVED_STATE;
