@@ -60,7 +60,7 @@ parse_type (const char *input, mu_content_type_t ct)
 	  || !(mu_isalnum (input[i]) || input[i] == '-' || input[i] == '_'))
 	return MU_ERR_PARSE;
     }
-  ct->type = malloc (i);
+  ct->type = malloc (i + 1);
   if (!ct->type)
     return ENOMEM;
   memcpy (ct->type, input, i);
@@ -83,7 +83,7 @@ parse_subtype (const char *input, mu_content_type_t ct)
       if (!ISTOKEN (input[i]))
 	return MU_ERR_PARSE;
     }
-  ct->subtype = malloc (i);
+  ct->subtype = malloc (i + 1);
   if (!ct->subtype)
     return ENOMEM;
   memcpy (ct->subtype, input, i);
