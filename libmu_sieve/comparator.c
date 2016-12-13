@@ -266,7 +266,10 @@ mu_sieve_match_part_checker (mu_sieve_machine_t mach)
 	}
     }
   else
-    abort ();//FIXME
+    {
+      mu_error (_("%s:%d: INTERNAL ERROR, please report"), __FILE__, __LINE__);
+      abort ();
+    }
   
   if (!compfun)
     {
@@ -400,7 +403,7 @@ i_ascii_numeric_is (mu_sieve_machine_t mach,
   if (mu_isdigit (*str))
     {
       if (mu_isdigit (*text))
-	//FIXME: Error checking
+	/* FIXME: Error checking */
 	return strtol (str, NULL, 10) == strtol (text, NULL, 10);
       else 
 	return 0;

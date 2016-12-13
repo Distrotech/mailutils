@@ -5,7 +5,7 @@ See the end of file for copying conditions.
 Please send mailutils bug reports to <bug-mailutils@gnu.org>.
 
 
-Version 3.0.90 (Git)
+Version 3.1 - 2016-12-13
 
 * Sieve
 
@@ -16,8 +16,8 @@ are implemented:
  variables          -  RFC 5229
  environment        -  RFC 5183
 
-The tools define the Sieve environment "location", and
-"phase" as follows:
+The utilities define the Sieve environment "location", and
+"phase" as per the following table:
 
   Utility |  "location" | "phase"
   --------+-------------+--------

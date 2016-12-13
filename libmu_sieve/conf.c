@@ -45,7 +45,6 @@ struct sieve_settings
 };
 static struct sieve_settings sieve_settings;
 
-/*FIXME: REMOVE BEGIN */
 static int
 _path_append (void *item, void *data)
 {

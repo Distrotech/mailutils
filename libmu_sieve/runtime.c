@@ -228,7 +228,7 @@ int
 mu_sieve_set_dry_run (mu_sieve_machine_t mach, int val)
 {
   if (mach->state != mu_sieve_state_compiled)
-    return EINVAL; //FIXME: another error code
+    return EINVAL; /* FIXME: another error code */
   return mach->dry_run = val;
 }
 

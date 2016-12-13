@@ -81,7 +81,6 @@ mu_sieve_get_arg_untyped (mu_sieve_machine_t mach, size_t index)
 		      mach->tagcount,
 		      index);
       abort ();
-      //FIXME      mu_sieve_abort (mach);
     }
   
   return mach->valspace + mach->argstart + index;

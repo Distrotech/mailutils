@@ -156,7 +156,7 @@ findprec (char const *name)
   for (i = 0; i < MU_ARRAY_SIZE (modprec); i++)
     if (strcmp (modprec[i].name, name) == 0)
       return &modprec[i];
-  mu_error ("%s:%d: INTERNAL ERROR", __FILE__, __LINE__);
+  mu_error (_("%s:%d: INTERNAL ERROR, please report"), __FILE__, __LINE__);
   abort ();
 }
 

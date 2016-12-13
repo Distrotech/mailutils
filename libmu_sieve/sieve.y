@@ -1007,10 +1007,8 @@ mu_i_sv_free_stringspace (mu_sieve_machine_t mach)
 	  regex_t *rx = mach->stringspace[i].rx;
 	  regfree (rx);
 	}
-      /* FIXME: Is it needed?
-      if (mach->stringspace[i].exp)
-	free (mach->stringspace[i].exp);
-      */
+      /* There's no need to free mach->stringspace[i].exp, because
+	 it is allocated in mach's memory pool */
     }
 }  
 
@@ -1575,7 +1573,6 @@ sieve_compile_strbuf (void *name)
   return MU_ERR_FAILURE;
 } 
 
-//FIXME: The API is clumsy
 int
 mu_sieve_compile_buffer (mu_sieve_machine_t mach,
 			 const char *str, int strsize,

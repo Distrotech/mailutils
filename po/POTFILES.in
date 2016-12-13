@@ -38,6 +38,7 @@ libmu_auth/tls.c
 libmu_sieve/actions.c
 libmu_sieve/comparator.c
 libmu_sieve/conf.c
+libmu_sieve/mem.c
 libmu_sieve/prog.c
 libmu_sieve/relational.c
 libmu_sieve/require.c
@@ -46,6 +47,7 @@ libmu_sieve/sieve.l
 libmu_sieve/sieve.y
 libmu_sieve/tests.c
 libmu_sieve/util.c
+libmu_sieve/variables.c
 
 libmu_sieve/extensions/list.c
 libmu_sieve/extensions/moderator.c

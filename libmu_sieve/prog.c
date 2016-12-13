@@ -148,7 +148,7 @@ mu_i_sv_lint_command (struct mu_sieve_machine *mach,
   
   exp_arg = reg->v.command.req_args ? reg->v.command.req_args : empty;
 
-  /* Pass 1: consolidation */
+  /* Pass 1: tag consolidation and argument checking */
   for (i = 0; i < node->v.command.argcount; i++)
     {
       mu_sieve_value_t *val = start + i;
@@ -223,9 +223,19 @@ mu_i_sv_lint_command (struct mu_sieve_machine *mach,
 		  err = 1;
 		  break;
 		}
-	      //FIXME
 	      if (mu_list_foreach (chk_list, _compare_ptr, cf) == 0)
-		mu_list_append (chk_list, cf);
+		{
+		  rc = mu_list_append (chk_list, cf);
+		  if (rc)
+		    {
+		      mu_diag_at_locus (MU_LOG_ERROR, &mach->locus,
+					"mu_list_append: %s",
+					mu_strerror (rc));
+		      mu_i_sv_error (mach);
+		      err = 1;
+		      break;
+		    }
+		}
 	    }
 	}
       else
@@ -288,19 +298,19 @@ mu_i_sv_lint_command (struct mu_sieve_machine *mach,
 
   if (node->v.command.tagcount)
     {
-      /* Move tags to the end of the list */
+      /* Pass 2: Move tags to the end of the list */
       for (i = 1; i < node->v.command.argcount; i++)
 	{
-	  int j;//FIXME
+	  size_t j;
 	  mu_sieve_value_t tmp = start[i];
-	  for (j = i - 1; j >= 0; j--)
+	  for (j = i; j > 0; j--)
 	    {
-	      if (!tmp.tag && start[j].tag)
-		start[j + 1] = start[j];
+	      if (!tmp.tag && start[j - 1].tag)
+		start[j] = start[j - 1];
 	      else
 		break;
 	    }
-	  start[j + 1] = tmp;
+	  start[j] = tmp;
 	}
     }
 
