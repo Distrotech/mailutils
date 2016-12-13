@@ -49,7 +49,7 @@ imap4d_uid (struct imap4d_session *session,
     rc = imap4d_search0 (tok, 1, &err_text);
   else
     {
-      err_text = "Uknown uid command";
+      err_text = "Unknown uid command";
       rc = RESP_BAD;
     }
   return io_completion_response (command, rc, "%s %s", cmd, err_text);

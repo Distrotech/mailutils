@@ -121,7 +121,7 @@ struct mailvar_symbol mailvar_tab[] =
       N_("input message is terminated with a dot alone on a line") },
     { { "editheaders", },
       MAILVAR_TYPEMASK (mailvar_type_boolean),
-      N_("allow to edit message headers while composing") },
+      N_("allow editing message headers while composing") },
     { { "emptystart", },
       MAILVAR_TYPEMASK (mailvar_type_boolean),
       N_("start interactive mode if the mailbox is empty") },

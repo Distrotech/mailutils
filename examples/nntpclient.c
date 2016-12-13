@@ -953,7 +953,7 @@ com_info (char *arg)
 
   if (!printed)
     {
-      printf ("No commands match `%s'.  Possibilties are:\n", arg);
+      printf ("No commands match `%s'.  Possibilities are:\n", arg);
 
       for (i = 0; commands[i].name; i++)
 	{

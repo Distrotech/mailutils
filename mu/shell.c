@@ -226,7 +226,7 @@ shell_help (int argc, char **argv)
 	print_comtab (mu_strout, com);
       else
 	{
-	  mu_printf ("No commands match `%s'.  Possibilties are:\n", name);
+	  mu_printf ("No commands match `%s'.  Possibilities are:\n", name);
 	  list_commands (shell_comtab, name);
 	}
     }
