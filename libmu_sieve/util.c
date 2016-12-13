@@ -99,7 +99,11 @@ void
 mu_sieve_value_get (mu_sieve_machine_t mach, mu_sieve_value_t *val,
 		    mu_sieve_data_type type, void *ret)
 {
-  if (val->type != type)
+  if (val->type == SVT_STRING && type == SVT_STRING_LIST)
+    /* compatible types; note that the operation is not commutative: it's
+       OK if actual type is single string and string list is expected, but
+       not vice-versa. */;
+  else if (val->type != type)
     {
       if (val->tag)
 	mu_sieve_error (mach,
