@@ -2346,7 +2346,7 @@ mu_wordsplit_perror (struct mu_wordsplit *wsp)
       break;
 
     default:
-      wsp->ws_error (mu_wordsplit_strerror (wsp));
+      wsp->ws_error ("%s", mu_wordsplit_strerror (wsp));
     }
 }
 
