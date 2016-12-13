@@ -420,5 +420,208 @@ NF: 1
 ],
 [input exhausted
 ])
+
+dnl Something that doesn't fit into TESTWSP
 
+AT_SETUP([simple command substitution])
+AT_KEYWORDS([wordsplit wsp wsp-cmd wsp-cmd-1])
+AT_CHECK([
+mkdir dir
+> dir/file
+
+wsp -nocmd <<'EOT'
+begin $(find dir) end
+EOT
+],
+[0],
+[NF: 4
+0: begin
+1: dir
+2: dir/file
+3: end
+])
+AT_CLEANUP
+
+AT_SETUP([quoted command substitution])
+AT_KEYWORDS([wordsplit wsp wsp-cmd wsp-cmd-2])
+AT_CHECK([
+mkdir dir
+> dir/file
+
+wsp -nocmd <<'EOT'
+begin "$(find dir)" end
+EOT
+],
+[0],
+[NF: 3
+0: begin
+1: "dir dir/file"
+2: end
+])
+AT_CLEANUP
+
+AT_SETUP([coalesced command substitution])
+AT_KEYWORDS([wordsplit wsp wsp-cmd wsp-cmd-3])
+AT_CHECK([
+mkdir dir
+> dir/file
+
+wsp -nocmd <<'EOT'
+begin($(find dir))end
+EOT
+],
+[0],
+[NF: 2
+0: begin(dir
+1: dir/file)end
+])
+AT_CLEANUP
+
+AT_SETUP([quoted coalesced command substitution])
+AT_KEYWORDS([wordsplit wsp wsp-cmd wsp-cmd-4])
+AT_CHECK([
+mkdir dir
+> dir/file
+
+wsp -nocmd <<'EOT'
+"begin($(find dir))end"
+EOT
+],
+[0],
+[NF: 1
+0: "begin(dir dir/file)end"
+])
+AT_CLEANUP
+
+AT_SETUP([variable and command substitution])
+AT_KEYWORDS([wordsplit wsp wsp-var wsp-var24 wsp-cmd wsp-cmd-5])
+AT_CHECK([
+mkdir dir
+> dir/file
+
+DIR=dir wsp -nocmd -novar<<'EOT'
+begin $DIR $(find $DIR) end
+EOT
+],
+[0],
+[NF: 5
+0: begin
+1: dir
+2: dir
+3: dir/file
+4: end
+])
+AT_CLEANUP
+
+AT_SETUP([variable expansion and command substitution in quotes])
+AT_KEYWORDS([wordsplit wsp wsp-var wsp-var25 wsp-cmd wsp-cmd-6])
+AT_CHECK([
+mkdir dir
+> dir/file
+
+DIR=dir BEGIN=begin wsp -nocmd -novar<<'EOT'
+"${BEGIN}($(find $DIR))end"
+EOT
+],
+[0],
+[NF: 1
+0: "begin(dir dir/file)end"
+])
+AT_CLEANUP
+
+AT_SETUP([nested commands])
+AT_KEYWORDS([wordsplit wsp wsp-cmd])
+AT_CHECK([
+AT_DATA([input],[foo
+bar
+baz
+])
+SUFFIX=put wsp -nocmd -novar <<'EOT'
+$(echo output $(cat in$SUFFIX))
+EOT
+],
+[0],
+[NF: 4
+0: output
+1: foo
+2: bar
+3: baz
+])
+AT_CLEANUP
+
+AT_SETUP([pathname expansion])
+AT_KEYWORDS([wordsplit wsp wsp-path wsp-path-1])
+AT_CHECK([
+mkdir dir
+> dir/1.c
+> dir/2.c
+> dir/3.b
+
+wsp pathexpand<<'EOT'
+begin dir/*.c end
+EOT
+],
+[0],
+[NF: 4
+0: begin
+1: dir/1.c
+2: dir/2.c
+3: end
+])
+AT_CLEANUP
+
+AT_SETUP([pathname expansion: no match])
+AT_KEYWORDS([wordsplit wsp wsp-path wsp-path-2])
+AT_CHECK([
+mkdir dir
+> dir/1.c
+> dir/2.b
+
+wsp pathexpand<<'EOT'
+begin dir/*.d end
+EOT
+],
+[0],
+[NF: 3
+0: begin
+1: dir/*.d
+2: end
+])
+AT_CLEANUP
+
+AT_SETUP([pathname expansion: nullglob])
+AT_KEYWORDS([wordsplit wsp wsp-path wsp-path-3])
+AT_CHECK([
+mkdir dir
+> dir/1.c
+> dir/2.b
+
+wsp pathexpand nullglob<<'EOT'
+begin dir/*.d end
+EOT
+],
+[0],
+[NF: 2
+0: begin
+1: end
+])
+AT_CLEANUP
+
+AT_SETUP([pathname expansion: failglob])
+AT_KEYWORDS([wordsplit wsp wsp-path wsp-path-4])
+AT_CHECK([
+mkdir dir
+> dir/1.c
+> dir/2.b
+
+wsp pathexpand failglob<<'EOT'
+begin dir/*.d end
+EOT
+],
+[0],
+[],
+[no files match pattern dir/*.d
+])
+AT_CLEANUP
+
 m4_popdef([TESTWSP])

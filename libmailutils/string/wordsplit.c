@@ -1332,7 +1332,6 @@ expcmd (struct mu_wordsplit *wsp, const char *str, size_t len,
       struct mu_wordsplit ws;
 
       rc = _wsplt_subsplit (wsp, &ws, str, j,
-			    MU_WRDSF_NOVAR | MU_WRDSF_NOCMD |
 			    MU_WRDSF_WS | MU_WRDSF_QUOTE);
       if (rc)
 	{
@@ -2064,30 +2063,42 @@ mu_wordsplit_c_quote_copy (char *dst, const char *src, int quote_hex)
 	}
     }
 }
+
 
+/* This structure describes a single expansion phase */
 struct exptab
 {
-  char *descr;
-  int flag;
-  int opt;
-  int (*expansion) (struct mu_wordsplit *wsp);
+  char *descr;     /* Textual description (for debugging) */
+  int flag;        /* MU_WRDSF_ bit that controls this phase */
+  int opt;         /* Entry-specific options (see EXPOPT_ flags below */
+  int (*expansion) (struct mu_wordsplit *wsp); /* expansion function */
 };
 
+/* The following options control expansions: */
+/* Normally the exptab entry is run if its flag bit is set in struct
+   wordsplit.  The EXPOPT_NEG option negates this test so that expansion
+   is performed if its associated flag bit is not set in struct wordsplit. */
 #define EXPOPT_NEG      0x01
+/* Coalesce the input list before running the expansion. */
 #define EXPOPT_COALESCE 0x02
 
 static struct exptab exptab[] = {
-  { N_("WS trimming"),          MU_WRDSF_WS,         0, mu_wordsplit_trimws },
-  { N_("tilde expansion"),      MU_WRDSF_PATHEXPAND, 0, mu_wordsplit_tildexpand },
-  { N_("variable expansion"),   MU_WRDSF_NOVAR,      EXPOPT_NEG,
-    mu_wordsplit_varexp },
-  { N_("quote removal"),        0,                EXPOPT_NEG,
-    wsnode_quoteremoval },
+  { N_("WS trimming"),          MU_WRDSF_WS,         0,
+    mu_wordsplit_trimws },
   { N_("command substitution"), MU_WRDSF_NOCMD,      EXPOPT_NEG|EXPOPT_COALESCE,
     mu_wordsplit_cmdexp },
-  { N_("coalesce list"),        0,                EXPOPT_NEG|EXPOPT_COALESCE,
+  { N_("coalesce list"),        0,                   EXPOPT_NEG|EXPOPT_COALESCE,
     NULL },
-  { N_("path expansion"),       MU_WRDSF_PATHEXPAND, 0, mu_wordsplit_pathexpand },
+  { N_("tilde expansion"),      MU_WRDSF_PATHEXPAND, 0,
+    mu_wordsplit_tildexpand },
+  { N_("variable expansion"),   MU_WRDSF_NOVAR,      EXPOPT_NEG,
+    mu_wordsplit_varexp },
+  { N_("quote removal"),        0,                   EXPOPT_NEG,
+    wsnode_quoteremoval },
+  { N_("coalesce list"),        0,                   EXPOPT_NEG|EXPOPT_COALESCE,
+    NULL },
+  { N_("path expansion"),       MU_WRDSF_PATHEXPAND, 0,
+    mu_wordsplit_pathexpand },
   { NULL }
 };
     
