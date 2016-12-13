@@ -67,6 +67,8 @@ retrieve_address (void *item, void *data, size_t idx, char **pval)
       rc = mu_header_aget_value ((mu_header_t)ap->data, (char*)item, &val);
       if (rc)
 	return rc;
+      if (mu_str_skip_class (val, MU_CTYPE_BLANK)[0] == 0)
+	return MU_ERR_NOENT;
       rc = mu_address_create (&ap->addr, val);
       free (val);
       if (rc)
@@ -150,11 +152,7 @@ retrieve_header (void *item, void *data, size_t idx, char **pval)
 	{
 	  int i = hc->index++;
 	  if (mu_c_strcasecmp (hname, (char*)item) == 0)
-	    {
-	      if (mu_header_aget_field_value_unfold (hc->header, i, pval))
-		return -1;
-	      return 0;
-	    }
+	    return mu_header_aget_field_value_unfold (hc->header, i, pval);
 	}
 
       hc->header = NULL;

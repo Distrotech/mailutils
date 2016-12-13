@@ -157,7 +157,7 @@ _mu_i_sv_instr_brnz (mu_sieve_machine_t mach)
 void
 mu_sieve_abort (mu_sieve_machine_t mach)
 {
-  longjmp (mach->errbuf, 1);
+  longjmp (mach->errbuf, MU_ERR_FAILURE);
 }
 
 void

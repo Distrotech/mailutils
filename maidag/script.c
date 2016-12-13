@@ -98,13 +98,6 @@ apply_script (void *item, void *data)
 
   free (progfile);
 
-  if (rc == 0)
-    {
-      mu_attribute_t attr;
-      mu_message_get_attribute (clos->msg, &attr);
-      rc = mu_attribute_is_deleted (attr);
-    }
-  
   return rc;
 }
   
@@ -129,7 +122,15 @@ script_apply (mu_message_t msg, struct mu_auth_data *auth)
 	  rc = mu_list_foreach (script_list, apply_script, &clos);
 	  chdir ("/");
 	  switch_user_id (auth, 0);
-	}
+	  if (rc == 0)
+	    {
+	      mu_attribute_t attr;
+	      mu_message_get_attribute (msg, &attr);
+	      rc = mu_attribute_is_deleted (attr);
+	    }
+	  else
+	    rc = 0;
+  	}
     }
   return rc;
 }
