@@ -1,4 +1,4 @@
-GNU mailutils NEWS -- history of user-visible changes. 2016-12-07
+GNU mailutils NEWS -- history of user-visible changes. 2016-12-13
 Copyright (C) 2002-2016 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
@@ -7,8 +7,34 @@ Please send mailutils bug reports to <bug-mailutils@gnu.org>.
 
 Version 3.0.90 (Git)
 
-Sieve library essentially rewritten.  It now inludes support for
-the "variables" extension (RFC 5229).
+* Sieve
+
+The Sieve library essentially rewritten.  The following new extensions
+are implemented:
+
+ encoded-character  -  RFC 5228, 2.4.2.4
+ variables          -  RFC 5229
+ environment        -  RFC 5183
+
+The tools define the Sieve environment "location", and
+"phase" as follows:
+
+  Utility |  "location" | "phase"
+  --------+-------------+--------
+  maidag  |  "MDA"      | "during"
+  inc     |  "MUA"      | "post"
+  sieve   |  "MS"       | "post"
+
+The "sieve" utility provides new option: --environment, for
+manipulating the environment.
+  
+* Bugfixes
+** Fix program name duplicate in the output of "mailutils help COMMAND"
+** Fix several bugs in mhn
+** Fix expansion of #, &, %, etc. in mail "copy" and "file" commands.
+** Fix improper permissions after delivery to MH and Maildir mailboxes.
+** Fix stream flushing code
+** Fix the implementation of -nowhatnowproc option in mh
 
 
 Version 3.0 - 2016-11-06

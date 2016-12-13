@@ -15,6 +15,7 @@ is a superset of the Sieve language as described in RFC 3028.
 * Comparators::
 * Tests::
 * Actions::
+* Extensions::
 * GNU Extensions::
 @end menu
 
@@ -1561,6 +1562,409 @@ The tag @code{:always_reply} instructs vacation to respond to the
 message regardless of whether the user email is listed as a recipient
 for the message.
 @end deftypefn
+
+@node Extensions
+@section Extensions
+
+The following extensions are implemented
+
+@menu
+* encoded-character::
+* relational::
+* variables::
+* environment::
+* numaddr::
+* editheader::
+* list::
+* moderator::
+* pipe::
+* spamd::
+* timestamp::
+* vacation::
+@end menu
+
+@node encoded-character
+@subsection The encoded-character extension
+
+The @samp{encoded-character} extension complies with @cite{RFC 5228},
+part 2.4.2.4.  It provides a way of incorporating multibyte sequences
+in a Sieve script using only ASCII characters.  This is a built-in
+extension.  It is enabled using the following statement:
+
+@example
+require "encoded-character";
+@end example
+
+When this extension is enabled, the sequences @samp{$@{hex: ...@}},
+and @samp{$@{unicode: ...@}} can appear inside of quoted strings.
+
+The sequence
+
+@example
+$@{hex: @var{XX}@}
+@end example
+
+@noindent
+where @var{XX} is a sequence of one or two-digit hex numbers separated
+by any amount of whitespace, is replaced with the octets with the
+hexadecimal values given by each hex number.  For example,
+
+@example
+"$@{hex: 24 24@}" @result{} "$$"
+@end example
+
+Thus, the following script will discard any message containing three
+contiguous dollar signs in its @samp{Subject} header:
+
+@example
+require "encoded-character";
+
+if header :contains "Subject" "$$@{hex:24 24@}" @{
+     discard;
+@}
+@end example
+
+The @samp{hex:} keyword is case-insensitive.  If @var{XX} contains
+invalid hex numbers, the entire sequence is left verbatim.  This is
+illustrated by the following example: 
+
+@example
+"$$@{hex:40@}"         @result{} "$@@"
+"$@{hex: 40 @}"        @result{} "@@"
+"$@{HEX: 40@}"         @result{} "@@"
+"$@{hex:40"             @result{} "$@{hex:40"
+"$@{hex:400@}"         @result{} "$@{hex:400@}"
+"$@{hex:4$@{hex:30@}@}"  @result{} "$@{hex:40@}"
+@end example
+
+The sequence
+
+@example
+$@{unicode: @var{HEXNUM}@}
+@end example
+
+@noindent
+where @var{HEXNUM} is a list of hexadecimal numbers separated with
+whitespace, will be replaced by the UTF-8 encoding of the specified
+Unicode characters, which are identified by the hexadecimal value of
+@var{HEXNUM}.  For example, the following string represents a single
+@samp{@@} sign:
+
+@example
+"$@{UNICODE:40@}"
+@end example
+
+Similarly to @samp{hex:}, the @samp{unicode:} indicator is case
+insensitive.  The following examples demonstrate the handling of
+several valid and invalid encodings:
+
+@example
+"$@{unicode:40@}"      @result{} "@@"
+"$@{ unicode:40@}"     @result{} "$@{ unicode:40@}"
+"$@{UNICODE:40@}"      @result{} "@@"
+"$@{UnICoDE:0000040@}" @result{} "@@"
+"$@{Unicode:40@}"      @result{} "@@"
+"$@{Unicode:Cool@}"    @result{} "$@{Unicode:Cool@}"
+"$@{unicode:200000@}"  @result{} error
+"$@{Unicode:DF01@}     @result{} error
+@end example
+
+@node relational
+@subsection The relational extension
+
+The @samp{relational} extension complies with @cite{RFC 3431}.  It is
+a built-in extension.  When enabled, the two new match types become
+available: @code{:count} and @code{:value}.  Both keywords take a
+single argument defining the relational operator to use:
+
+@multitable @columnfractions 0.2 0.8
+@item @samp{"gt"} @tab greater than (@samp{>})
+@item @samp{"ge"} @tab greater than or equal (@samp{>=})
+@item @samp{"lt"} @tab less than (@samp{<})
+@item @samp{"le"} @tab less than or equal (@samp{<=})
+@item @samp{"eq"} @tab equal to (@samp{==})
+@item @samp{"ne"} @tab not equal to (@samp{!=})
+@end multitable
+
+The @code{:value} keyword requires a relational comparison between
+strings.  The left side of the relation is formed by the value from
+the message.  The right side of the relation is the value from the
+test expression.  If there are multiple values on either side or both
+sides, the test is considered true if any pair is true.  For example,
+
+@example
+require ["relational", "fileinto"];
+
+if header :value "gt" :comparator "i;ascii-numeric"
+                ["x-spam-level] ["5"]
+@{
+  fileinto "spam";
+@}  
+@end example
+
+The @code{:count} keyword counts the specified entities in the message
+and compares their number with the value given in the test
+expression.  The latter must be a list of one element.  This match
+type can only be used with numeric comparators.  For example, the
+following script will discard any message with 10 or more recipient
+addresses in the @samp{To} and @samp{Cc} headers:
+
+@example
+require "relational";
+
+if address :count "ge" :comparator "i;ascii-numeric"
+                      ["to", "cc"] ["10"]
+@{
+    discard;
+@}
+@end example
+
+@node variables
+@subsection The variables extension
+
+The @samp{variables} extension is defined in @cite{RFC 5229}.  It is
+a built-in extension.  It introduces support for variables in Sieve
+scripts.
+
+There are two kind of variables: user-defined and match variables.
+
+A @dfn{user-defined} variable is initialized using the @code{set}
+action:
+
+@deftypefn Action {} set [@var{modifiers}] @var{name}(string) @var{value}(string)
+Stores the specified @var{value} in the variable identified by
+@var{name}.  Optional @var{modifiers} are applied on @var{value} before it
+is stored in the variable.
+
+The following modifiers are available:
+
+@table @code
+@item :lower
+Convert value to lower case letters.
+@item :upper
+Convert value to upper case letters.
+
+@item :lowerfirst
+Convert the first character in value to lower case.
+
+@item :upperfirst
+Convert the first character in value to upper case.
+
+@item :quotewildcard
+Quote wildcard characters (@samp{*}, @samp{?}, @samp{\}) by prefixing
+each occurrence with a backslash (@samp{\}).  This can be used to
+ensure that the variable will only match a literal occurrence if used
+as a parameter to @code{:matches}.
+
+@item :length
+The value is the decimal number of characters in the expansion,
+converted to a string.
+@end table
+
+When several modifiers are present, they are applied in the following
+order of precedence (largest value first):
+
+@multitable @columnfractions 0.2 0.8
+@headitem precedence @tab modifiers
+@item 40 @tab @code{:lower} or @code{:upper}
+@item 30 @tab @code{:lowerfirst} or @code{:upperfirst}
+@item 20 @tab @code{:quotewildcard}
+@item 10 @tab @code{:length}
+@end multitable
+
+Modifiers having the same precedence (i.e. listed on the same row in
+the above table) cannot be used together.
+@end deftypefn
+
+Variables are referenced within text strings using the construct
+@samp{$@{@var{name}@}}, where @var{name} is the name of the variable
+as it appeared in the first parameter to the @code{set} statement.
+For example:
+
+@example
+require "variables";
+
+set "sender" "root@*":
+
+if envelope :matches "$@{sender@}"
+@{
+   ...
+@}
+@end example
+
+@dfn{Match variables} refer to parts of the most recently evaluated
+successful match of type @code{:matches} or @code{:regex}.  They have
+names consisting entirely of decimal digits.  The variable
+@samp{$@{0@}} refers to the entire matched expression.  The variable
+@samp{$@{1@}} refers to the substring matching the first occurrence of
+the wildcard (@samp{?} and @samp{*}), @samp{$@{2@}} refers to the
+second occurrence and so on.  The wildcards match as little as possible
+(non-greedy matching).  For example:
+
+@example
+require ["variables", "fileinto"];
+
+if header :matches "List-ID" "*<*@*" @{
+   fileinto "INBOX.lists.$@{2@}";
+   stop;
+@}
+@end example
+
+If @code{:regex} match is used, the match variables starting from
+@samp{$@{1@}} refer to the substrings of the argument value matching
+subsequent parenthesized groups of the regular expression.  
+
+@deftypefn Test {} string [@var{comparator}] @
+                          [@var{match-type}] @
+                          @var{source}(string-list) @var{keys}(string-list)
+The @code{string} test compares two strings according to the selected
+comparator and match type.   The test evaluates to @samp{true} if any
+two strings from @var{source} and @var{keys} match.
+
+The @samp{:count} match used in @samp{string} counts each empty string
+as 0, and each non-empty one as 1.  The count of a string list is the
+sum of the counts of the member strings.
+@end deftypefn
+
+@node environment
+@subsection environment
+
+The @samp{environment} extension complies with @cite{RFC 5183}.  It is
+a built-in extension.  It introduces the following test:
+
+@deftypefn Test {} environment [@var{comparator}] @
+                               [@var{match-type}] @
+                               @var{name}(string) @var{keys}(string-list)
+The @code{environment} test evaluates to @samp{true} if the value of
+the environment items @var{name} matches any string from @var{keys}.
+@end deftypefn
+
+The following environment items are defined:
+
+@table @asis
+@item domain
+The primary DNS domain of the machine where the Sieve script is
+executing.
+
+@item host
+The fully-qualified domain name of the host where the Sieve script is
+executing. 
+
+@item location
+Type of service that is evaluating the script.   Depending on the
+utility that is evaluating the script it is:
+
+@multitable @columnfractions 0.6 0.4
+@headitem Utility @tab Location
+@item sieve @tab @samp{"MUA"}, or set with the @option{--environment} option.
+@item maidag @tab @samp{"MDA"}
+@item inc @tab @samp{"MUA"}
+@end multitable
+
+@item name
+The string @samp{GNU Mailutils}
+
+@item phase
+The point relative to final delivery where the Sieve script is being
+evaluated.  Depending on the utility that is evaluating the script it is:
+
+@multitable @columnfractions 0.6 0.4
+@headitem Utility @tab Location
+@item sieve @tab @samp{post} unless set with the @option{--environment} option.
+@item maidag @tab @samp{"during"}
+@item inc @tab @samp{"post"}
+@end multitable
+
+@item version
+Mailutils version string (e.g. @samp{@value{VERSION}}).
+@end table
+
+@node numaddr
+@subsection The numaddr extension
+
+This is an example loadable extension.  @ref{External Tests, numaddr}.
+
+@node editheader
+@subsection The editheader extension
+
+The @code{editheader} extension complies with @cite{RFC 5293}.  It
+provides the following actions:
+
+@deftypefn Action {} addheader [:last] @var{field-name}(string) @var{value}(string
+Adds a header field to the existing message header.  By default the
+header is inserted at the beginning of the header list.  If the tag
+@code{:last} is specified, it is appended at the end.
+@end deftypefn
+
+@deftypefn Action {} deleteheader" [:index @var{fieldno}(number) :last] @
+                                   [@var{comparator}] @
+                                   [@var{match-type}] @
+                                   @var{field-name}(string) @
+                                   [@var{value-patterns}(string-list)]
+                                   
+Deletes occurrences of the header field matching the criteria.
+
+The @var{value-patterns}, if specified, determines which occurrences
+of the header fielde to delete.  If not supplied, @var{comparator} and
+@var{match-type} are silently ignored.
+
+If @samp{:index @var{fieldno}} is specified, only the numbered
+occurrence of the named header field will be matched (header numbering
+begins at 1),  If @code{:last} is specified, the count is backwards; 1
+denotes the last named header field, 2 the second to last, and so on.
+The counting happens before the @var{value-patterns} match, if any.
+Thus, e.g. the action
+
+@example
+deleteheader :index 1 :contains "Delivered-To" "bob@@example.com";
+@end example
+
+@noindent
+would delete the first @samp{Delivered-To} header field if it contains
+the string @samp{bob@@example.com}.
+@end deftypefn
+
+@node list
+@subsection The list extension
+
+@ref{External Tests, list}.
+
+@node moderator
+@subsection The moderator extension
+
+A loadable extension implementing a moderator robot for Mailman-driven
+mail archives.  @ref{External Actions, moderator}.
+
+@node pipe
+@subsection The pipe extension
+
+A loadable extension for external command execution.  It provides the
+@code{pipe} action (@pxref{External Actions, pipe}) and test
+(@pxref{External Tests, pipe}).  
+
+@node spamd
+@subsection The spamd extension
+
+Implements a test which interfaces to SpamAssassin filter.  This is a
+loadable extension.  @pxref{External Tests, spamd}.
+
+@node timestamp
+@subsection The timestamp extension
+
+The loadable extension @code{timestamp} implements a test for 
+comparing the value of a structured date header field with the given
+date.
+
+Note: this extension will probably phase away in favor of the
+@code{date} Sieve extension (@cite{RFC 5260}).
+
+@node vacation
+@subsection The vacation extension
+
+The loadable extension @code{vacation} provides the action intended to
+inform the sender that the recipient is not currently reading his mail.
+
+@xref{External Actions,vacation}.
 
 @node GNU Extensions
 @section GNU Extensions

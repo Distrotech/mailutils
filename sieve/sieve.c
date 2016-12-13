@@ -484,6 +484,8 @@ main (int argc, char *argv[])
       mu_error (_("cannot initialize sieve machine: %s"), mu_strerror (rc));
       return EX_SOFTWARE;
     }
+
+  sieve_setenv ("phase=post", mach);
   mu_list_foreach (env_list, sieve_setenv, mach);
   mu_list_destroy (&env_list);
     

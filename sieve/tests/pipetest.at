@@ -17,7 +17,7 @@
 m4_pushdef([MUT_SIEVE_EXT_NAME],[pipe test])
 
 MUT_SIEVE_EXT_TEST([],[pipetest00],
-[require "test-pipe";
+[require "pipe";
 if pipe :header "$cwd/ckmsg"
   {
     discard;

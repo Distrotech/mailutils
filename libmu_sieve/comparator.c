@@ -225,12 +225,18 @@ mu_sieve_match_part_checker (mu_sieve_machine_t mach)
 	  compfun = comp_false;
 	  val = mu_sieve_get_arg_untyped (mach, 1);
 	  /* NOTE: Type of val is always SVT_STRING_LIST */
-	  if (val->type != SVT_STRING_LIST)
-	    abort ();
-	  if (val->v.list.count > 1)
+	  switch (val->type)
 	    {
+	    case SVT_STRING:
+	      break;
+	      
+	    case SVT_STRING_LIST:
+	      if (val->v.list.count == 1)
+		break;
+	      /* fall through */
+	    default:
 	      mu_diag_at_locus (MU_LOG_ERROR, &mach->locus, 
-			_("second argument must be a list of one element"));
+				_(":count requires second argument to be a list of one element"));
 	      mu_i_sv_error (mach);
 	      return 1;
 	    }
