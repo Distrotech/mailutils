@@ -32,7 +32,6 @@ static struct mu_sieve_node *sieve_tree;
 
 static struct mu_sieve_node *node_alloc (enum mu_sieve_node_type,
 					 struct mu_locus_range *);
-static void cond_join (struct mu_sieve_node *node);
 
 #define YYLLOC_DEFAULT(Current, Rhs, N)                         \
   do								\
@@ -158,17 +157,13 @@ statement    : REQUIRE stringorlist ';'
 
 else_part    : maybe_elsif
                {
-		 cond_join ($1.head);
 		 $$ = $1.head;
 	       }
              | maybe_elsif ELSE block
                {
-		 $3->prev = $1.tail;
-		 if ($1.head)
+		 if ($1.tail)
 		   {
-		     $1.tail->next = $3;
-		     $1.tail = $3;
-		     cond_join ($1.head);
+		     $1.tail->v.cond.iffalse = $3;
 		     $$ = $1.head;
 		   }
 		 else
@@ -183,6 +178,8 @@ maybe_elsif  : /* empty */
              | elsif_branch
              ;
 
+/* elsif branches form a singly-linked version of node_list.  Nodes in
+   this list are linked by v.cond.iffalse pointer */
 elsif_branch : ELSIF cond block
                {
 		 struct mu_sieve_node *node =
@@ -199,10 +196,10 @@ elsif_branch : ELSIF cond block
 		 node->v.cond.expr = $3;
 		 node->v.cond.iftrue = $4;
 		 node->v.cond.iffalse = NULL;
-
-		 node->prev = $1.tail;
-		 $1.tail->next = node;
+		 
+		 $1.tail->v.cond.iffalse = node;
 		 $1.tail = node;
+
 		 $$ = $1;
 	       }
              ;
@@ -404,18 +401,6 @@ yyerror (const char *s)
   mu_diag_at_locus (MU_LOG_ERROR, &mu_sieve_locus, "%s", s);
   mu_i_sv_error (mu_sieve_machine);
   return 0;
-}
-
-static void
-cond_join (struct mu_sieve_node *node)
-{
-  while (node && node->type == mu_sieve_node_cond)
-    {
-      struct mu_sieve_node *next = node->next;
-      node->prev = node->next = NULL;
-      node->v.cond.iffalse = next;
-      node = next;
-    }
 }
 
 static struct mu_sieve_node *
