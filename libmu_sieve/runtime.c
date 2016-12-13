@@ -183,6 +183,12 @@ mu_sieve_get_locus (mu_sieve_machine_t mach, struct mu_locus *loc)
   return 1;
 }
 
+mu_mailbox_t
+mu_sieve_get_mailbox (mu_sieve_machine_t mach)
+{
+  return mach->mailbox;
+}
+
 mu_message_t
 mu_sieve_get_message (mu_sieve_machine_t mach)
 {
@@ -201,6 +207,15 @@ const char *
 mu_sieve_get_identifier (mu_sieve_machine_t mach)
 {
   return mach->identifier;
+}
+
+void
+mu_sieve_get_argc (mu_sieve_machine_t mach, size_t *args, size_t *tags)
+{
+  if (args)
+    *args = mach->argcount;
+  if (tags)
+    *tags = mach->tagcount;
 }
 
 int
