@@ -588,7 +588,7 @@ com_connect (int argc, char **argv)
   if (!status)
     {
       connect_argc = argc;
-      connect_argv = mu_calloc (argc, sizeof (*connect_argv));
+      connect_argv = mu_calloc (argc + 1, sizeof (*connect_argv));
       for (i = 0; i < argc; i++)
 	connect_argv[i] = mu_strdup (argv[i]);
       connect_argv[i] = NULL;

@@ -40,6 +40,8 @@ _mu_imap_tag_incr (mu_imap_t imap)
 	  if (!np)
 	    return ENOMEM;
 	  imap->tag_buf = np;
+	  imap->tag_buf[imap->tag_len] = 0;
+	  
 	  sp = realloc (imap->tag_str,
 			(imap->tag_len + 2) * sizeof imap->tag_str[0]);
 	  if (!sp)
