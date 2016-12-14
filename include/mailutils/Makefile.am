@@ -28,6 +28,7 @@ pkginclude_HEADERS = \
  acl.h\
  address.h\
  alloc.h\
+ argcv.h\
  assoc.h\
  attribute.h\
  auth.h\
