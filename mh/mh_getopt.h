@@ -23,6 +23,11 @@
 void mh_getopt (int *pargc, char ***pargv, struct mu_option *options,
 		int flags,
 		char *argdoc, char *progdoc, char *extradoc);
+void mh_getopt0 (int *pargc, char ***pargv, struct mu_option *options,
+		 int mhflags,
+		 char *argdoc, char *progdoc, char *extradoc,
+		 int (*eatarg) (int argc, char **argv, void *data),
+		 void *data);
 
 void mh_opt_notimpl (struct mu_parseopt *po, struct mu_option *opt,
 		     char const *arg);

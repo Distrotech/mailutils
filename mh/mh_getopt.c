@@ -178,9 +178,11 @@ has_folder_option (struct mu_option *opt)
 }
 
 void
-mh_getopt (int *pargc, char ***pargv, struct mu_option *options,
-	   int mhflags,
-	   char *argdoc, char *progdoc, char *extradoc)
+mh_getopt0 (int *pargc, char ***pargv, struct mu_option *options,
+	    int mhflags,
+	    char *argdoc, char *progdoc, char *extradoc,
+	    int (*eatarg) (int argc, char **argv, void *data),
+	    void *data)
 {
   int argc = *pargc;
   char **argv = *pargv;
@@ -197,6 +199,9 @@ mh_getopt (int *pargc, char ***pargv, struct mu_option *options,
   po.po_negation = "no";
   flags |= MU_PARSEOPT_NEGATION;
 
+  if (eatarg)
+    flags |= MU_PARSEOPT_IN_ORDER;
+  
   if ((mhflags & MH_GETOPT_DEFAULT_FOLDER) || has_folder_option (options))
     {
       po.po_special_args = N_("[+FOLDER]");
@@ -254,12 +259,29 @@ mh_getopt (int *pargc, char ***pargv, struct mu_option *options,
   if (options)
     optv[i++] = options;
   optv[i] = NULL;
-  
-  if (mu_parseopt (&po, argc, argv, optv, flags))
-    exit (po.po_exit_error);
 
-  argc -= po.po_arg_start;
-  argv += po.po_arg_start;
+  do
+    {
+      if (mu_parseopt (&po, argc, argv, optv, flags))
+	exit (po.po_exit_error);
+      argc -= po.po_arg_start;
+      argv += po.po_arg_start;
+      if (eatarg)
+	{
+	  int consumed = eatarg (argc, argv, data);
+	  if (consumed == 0)
+	    break;
+	  else
+	    {
+	      argc -= consumed;
+	      argv += consumed;
+	    }
+	  flags |= MU_PARSEOPT_ARGV0;
+	}
+      else
+	break;
+    }
+  while (argc > 0);
 
   process_std_options (argc, argv, &po);
   
@@ -280,6 +302,15 @@ mh_getopt (int *pargc, char ***pargv, struct mu_option *options,
   *pargv = argv;
   
   mh_init2 ();
+}
+
+void
+mh_getopt (int *pargc, char ***pargv, struct mu_option *options,
+	   int mhflags,
+	   char *argdoc, char *progdoc, char *extradoc)
+{
+  return mh_getopt0 (pargc, pargv, options, mhflags, argdoc, progdoc, extradoc,
+		     NULL, NULL);
 }
 
 void

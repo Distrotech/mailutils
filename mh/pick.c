@@ -260,6 +260,19 @@ parse_comp_match (int *pargc, char **argv)
   *pargc = j;
 }
 
+static int
+comp_match_arg (int argc, char **argv, void *data)
+{
+  if (argc >= 2 && strncmp (argv[0], "--", 2) == 0)
+    {
+      mu_list_t *lp = data;
+      pick_add_token (lp, T_COMP, argv[0] + 2);
+      pick_add_token (lp, T_STRING, argv[1]);
+      return 2;
+    }
+  return 0;
+}
+  
 int
 main (int argc, char **argv)
 {
@@ -267,8 +280,8 @@ main (int argc, char **argv)
   mu_mailbox_t mbox;
   mu_msgset_t msgset;
 
-  mh_getopt (&argc, &argv, options, MH_GETOPT_DEFAULT_FOLDER,
-	     args_doc, prog_doc, NULL);
+  mh_getopt0 (&argc, &argv, options, MH_GETOPT_DEFAULT_FOLDER,
+	      args_doc, prog_doc, NULL, comp_match_arg, &lexlist);
 
   parse_comp_match (&argc, argv);
   
