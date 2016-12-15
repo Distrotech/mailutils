@@ -1068,7 +1068,7 @@ SCM_DEFINE_PUBLIC (scm_mu_message_send, "mu-message-send", 1, 3, 0,
   status = mu_mailer_create (&mailer_c, mailer_name);
   free (mailer_name);
   if (status)
-    mu_scm_error (FUNC_NAME, status, "Cannot get create mailer", SCM_BOOL_F);
+    mu_scm_error (FUNC_NAME, status, "Cannot create mailer", SCM_BOOL_F);
 
   if (scm_to_int (MU_SCM_SYMBOL_VALUE ("mu-debug")))
     {

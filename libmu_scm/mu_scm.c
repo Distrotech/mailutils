@@ -175,9 +175,11 @@ mu_scm_init ()
 
   _mu_scm_mailer = scm_from_locale_string ("sendmail:" PATH_SENDMAIL);
   scm_c_define ("mu-mailer", _mu_scm_mailer);
-
+  scm_c_export ("mu-mailer", NULL);
+  
   _mu_scm_debug = scm_from_int (0);
   scm_c_define ("mu-debug", _mu_scm_debug);
+  scm_c_export ("mu-debug", NULL);
 
   _mu_scm_package = scm_from_locale_string (PACKAGE);
   scm_c_define ("mu-package", _mu_scm_package);
