@@ -70,12 +70,12 @@ mu_registrar_set_default_scheme (const char *scheme)
   
   status = mu_registrar_lookup_scheme (scheme, &rec);
   if (status == 0)
-    mu_default_record = rec;
+    mu_registrar_set_default_record (rec);
   return status;
 }
 
 const char *
-mu_registrar_get_default_scheme ()
+mu_registrar_get_default_scheme (void)
 {
   return mu_default_record ? mu_default_record->scheme : NULL;
 }
@@ -279,6 +279,12 @@ mu_record_is_scheme (mu_record_t record, mu_url_t url, int flags)
 }
 
 int
+mu_record_is_local (mu_record_t record)
+{
+  return record->flags & MU_RECORD_LOCAL;
+}
+
+int
 mu_record_get_url (mu_record_t record, int (*(*_purl)) (mu_url_t))
 {
   if (record == NULL)
@@ -393,6 +399,30 @@ mu_registrar_test_local_url (mu_url_t url, int *pres)
   rc = mu_registrar_lookup_url (url, MU_FOLDER_ATTRIBUTE_ALL, &rec, NULL);
   if (rc)
     return rc;
-  *pres = rec->flags & MU_RECORD_LOCAL;
+  *pres = mu_record_is_local (rec);
+  return 0;
+}
+
+/* Apply flt to each record in the registry and remove those, for which it
+   returns non-zero. */
+int
+mu_registrar_apply_filter (int (*flt) (mu_record_t, void *), void *data)
+{
+  mu_iterator_t iterator;
+  
+  int status = mu_registrar_get_iterator (&iterator);
+  if (status != 0)
+    return status;
+  mu_monitor_wrlock (&registrar_monitor);
+  for (mu_iterator_first (iterator); !mu_iterator_is_done (iterator);
+       mu_iterator_next (iterator))
+    {
+      mu_record_t record;
+      mu_iterator_current (iterator, (void **)&record);
+      if (flt (record, data))
+	mu_list_remove (registrar_list, record);
+    }
+  mu_iterator_destroy (&iterator);
+  mu_monitor_unlock (&registrar_monitor);
   return 0;
 }

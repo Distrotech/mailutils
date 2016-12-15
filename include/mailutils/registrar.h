@@ -75,7 +75,10 @@ int mu_registrar_lookup_url (mu_url_t url, int flags,
 				    mu_record_t *precord, int *pflags);
 int mu_registrar_record       (mu_record_t);
 int mu_unregistrar_record     (mu_record_t);
+int mu_registrar_apply_filter (int (*flt) (mu_record_t, void *), void *data);
 
+int mu_record_is_local (mu_record_t);
+  
 /* Scheme.  */
 int mu_record_is_scheme       (mu_record_t, mu_url_t, int flags);
 
@@ -113,8 +116,8 @@ extern mu_record_t mu_maildir_record;
 #define MU_IMAP_PRIO        100
 #define MU_POP_PRIO         200
 #define MU_MBOX_PRIO        300 
-#define MU_MH_PRIO          400
-#define MU_MAILDIR_PRIO     500 
+#define MU_MAILDIR_PRIO     400 
+#define MU_MH_PRIO          500
 #define MU_NNTP_PRIO        600
 #define MU_PATH_PRIO        1000
   
